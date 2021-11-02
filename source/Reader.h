@@ -5,7 +5,7 @@
 #include <vector>
 
 // my own includes
-#include "Atom.h"
+#include "Atom.cpp"
 
 class Reader {
 public: 

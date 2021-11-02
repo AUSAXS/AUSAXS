@@ -4,7 +4,7 @@
 
 // my own includes
 #include "source/pdbml_reader.h"
-#include "source/Atom.h"
+#include "source/Atom.cpp"
 
 int main(int argc, char const *argv[])
 {

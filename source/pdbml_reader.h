@@ -8,6 +8,7 @@
 
 // my own includes
 #include "Reader.h"
+#include "Atom.cpp"
 
 class pdbml_reader : Reader {
 public: 
