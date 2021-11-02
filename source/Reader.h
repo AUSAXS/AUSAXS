@@ -26,10 +26,10 @@ public:
         }
     };
 
-    virtual std::vector<Atom> read() {};
+    virtual std::vector<Atom*> read() {return std::vector<Atom*>();};
 
 private:
     std::string filename;
     int loc; // line number
-    virtual Atom read_line() {};
+    virtual Atom read_line() {return Atom();};
 };

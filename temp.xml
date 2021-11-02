@@ -1,0 +1,23 @@
+   <PDBx:atom_siteCategory>
+      <PDBx:atom_site id="1">
+         <PDBx:Cartn_x>-3.462</PDBx:Cartn_x>
+         <PDBx:Cartn_y>69.119</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-8.662</PDBx:Cartn_z>
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:type_symbol>N</PDBx:type_symbol>
+      </PDBx:atom_site>
+      <PDBx:atom_site id="2">
+         <PDBx:Cartn_x>-2.451</PDBx:Cartn_x>
+         <PDBx:Cartn_y>68.681</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-9.776</PDBx:Cartn_z>
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:type_symbol>C</PDBx:type_symbol>
+      </PDBx:atom_site>
+      <PDBx:atom_site id="3">
+         <PDBx:Cartn_x>-2.454</PDBx:Cartn_x>
+         <PDBx:Cartn_y>67.107</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-9.965</PDBx:Cartn_z>
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:type_symbol>C</PDBx:type_symbol>
+      </PDBx:atom_site>
+
