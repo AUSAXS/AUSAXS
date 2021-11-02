@@ -1,0 +1,76 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/Residue.cc, 1.0.3, drussel@graphics.stanford.edu)
+AC_CONFIG_AUX_DIR(config)
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(dsr-pdb, 1.0.3)
+
+
+#AM_CONDITIONAL(WANT_CGAL, test $want_cgal = yes)
+
+
+dnl Checks for programs.
+AC_PROG_CXX
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_LIBTOOL
+
+AC_LANG_CPLUSPLUS
+
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+
+DSR_PARSE_CGAL_MAKEFILE
+dnl echo ldflags $LDFLAGS
+dnl echo ldlibs $LDLIBS
+DSR_CHECK_PROGRAM_OPTIONS
+
+DSR_CHECK_IMAGEMAGICK
+
+dnl DSR_CHECK_MULTIARRAY
+dnl echo ldlibs $LDLIBS
+
+dnl AC_CHECK_HEADERS(CGAL/basic.h CGAL/Point_3.h, ,,[[#if HAVE_CGAL_BASIC_H
+dnl #include <CGAL/basic.h>
+dnl #endif
+dnl ]])
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+dnl AC_TYPE_SIZE_T
+
+dnl Checks for library functions.
+
+
+AC_SUBST(LIBTOOL_DEPS)
+
+AC_OUTPUT(Makefile
+doc/Makefile
+doc/html/Makefile
+include/Makefile
+include/dsrpdb/Makefile
+include/dsrpdb_internal/Makefile
+include/tnt/Makefile
+lib/Makefile
+test/Makefile
+tools/Makefile
+)
+
+if test "$pdb_have_program_options" == "no"; then
+   echo "Boost program_options library not found. Command line arguments to programs will be heavily limited (and lightly tested)."
+fi
+
+if test "$pdb_have_magick" == "no"; then
+   echo "ImageMagick++ not found, writing of images will be disabled."
+fi
+
+dnl if test "$pdb_have_multiarray" == "no"; then
+dnl    echo "boost/multi_array.hpp not found, computation of distance matrices will be disabled."
+dnl fi
+
+# AC_SUBST(foo, bar) becomes a makefile variable
+# AC_DEFINE(FOO, "bar") addes to config.h
+
+
