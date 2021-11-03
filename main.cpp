@@ -2,27 +2,58 @@
 #include <vector>
 #include <string>
 
+// ROOT
+#include <TStyle.h>
+#include <TROOT.h>
+#include <TCanvas.h>
+#include <TH1.h>
+
 // my own includes
-#include "source/pdbml_reader.h"
+#include "source/pdbml_reader.cpp"
 #include "source/Atom.cpp"
 #include "source/Protein.cpp"
-#include "source/tools.cpp"
+#include "source/Tools.cpp"
+#include "plot_style.cpp"
+
+using namespace ROOT;
 
 int main(int argc, char const *argv[])
 {
-    Protein protein("temp.xml");
+    Protein protein("2epe.xml");
     auto[dp, dh] = protein.calc_distances();
-    save(dp, "temp/distances_protein.txt");
-    save(dh, "temp/distances_hydration.txt");
+    protein.generate_new_hydration();
 
-    std::cout << "Protein atoms:" << std::endl;
-    for (Atom* a : protein.protein) {
-        a->print();
+    // plots
+    setup_style();
+    TCanvas* c1 = new TCanvas("c1", "c", 600, 600);
+    TH1D* h1 = new TH1D("hist", "h", 500, 0, 50);
+
+    for (int i = 0; i < dp.size(); i++) {
+        h1->Fill(dp[i]);
+    }
+    for (int i = 0; i < dh.size(); i++) {
+        h1->Fill(dh[i]);
     }
 
-    std::cout << "Hydration atoms:" << std::endl;
-    for (Atom* a : protein.hydration) {
-        a->print();
-    }
+    h1->Draw("colz");
+
+    std::string path = "figures/main.pdf"; 
+    c1->SetRightMargin(0.15);
+    c1->SetLeftMargin(0.15);
+    c1->SaveAs(path.c_str());
+
+
+    // save(dp, "temp/distances_protein.txt");
+    // save(dh, "temp/distances_hydration.txt");
+
+    // std::cout << "Protein atoms:" << std::endl;
+    // for (Atom* a : protein.protein) {
+    //     a->print();
+    // }
+
+    // std::cout << "Hydration atoms:" << std::endl;
+    // for (Atom* a : protein.hydration) {
+    //     a->print();
+    // }
     return 0;
 }

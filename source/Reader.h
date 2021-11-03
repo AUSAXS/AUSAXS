@@ -6,6 +6,9 @@
 
 // my own includes
 #include "Atom.cpp"
+#include "Tools.cpp"
+
+using std::vector, std::string, std::cout, std::endl;
 
 class Reader {
 public: 
@@ -14,24 +17,26 @@ public:
     /** Constructor for the Reader class. 
      * @param filename the name of the input file
      */
-    Reader(std::string filename) {
+    Reader(string filename) {
         this->filename = filename;
         loc = 0;
         file.open(filename);
 
         // check if file was succesfully opened
         if (!file.is_open()) {
-            perror(("Could not open file \"" + filename + "\"").c_str());
-            exit(EXIT_FAILURE);
+            print_err("Could not open file \"" + filename + "\"");
+            exit(1);
         }
     };
 
     Reader(){};
 
-    virtual std::vector<Atom*> read() {return std::vector<Atom*>();};
+    virtual vector<Atom*> read() {return vector<Atom*>();};
+
+    string get_filename() {return filename;}
 
 private:
-    std::string filename;
+    string filename;
     int loc; // line number
     virtual Atom read_line() {return Atom();};
 };

@@ -20,4 +20,104 @@
          <PDBx:occupancy>1.00</PDBx:occupancy>
          <PDBx:type_symbol>C</PDBx:type_symbol>
       </PDBx:atom_site>
+      <PDBx:atom_site id="4">
+         <PDBx:B_iso_or_equiv>23.10</PDBx:B_iso_or_equiv>
+         <PDBx:Cartn_x>-11.786</PDBx:Cartn_x>
+         <PDBx:Cartn_y>67.435</PDBx:Cartn_y>
+         <PDBx:Cartn_z>13.912</PDBx:Cartn_z>
+         <PDBx:auth_asym_id>A</PDBx:auth_asym_id>
+         <PDBx:auth_atom_id>O</PDBx:auth_atom_id>
+         <PDBx:auth_comp_id>HOH</PDBx:auth_comp_id>
+         <PDBx:auth_seq_id>130</PDBx:auth_seq_id>
+         <PDBx:group_PDB>HETATM</PDBx:group_PDB>
+         <PDBx:label_alt_id xsi:nil="true" />
+         <PDBx:label_asym_id>B</PDBx:label_asym_id>
+         <PDBx:label_atom_id>O</PDBx:label_atom_id>
+         <PDBx:label_comp_id>HOH</PDBx:label_comp_id>
+         <PDBx:label_entity_id>2</PDBx:label_entity_id>
+         <PDBx:label_seq_id xsi:nil="true" />
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:pdbx_PDB_model_num>1</PDBx:pdbx_PDB_model_num>
+         <PDBx:type_symbol>O</PDBx:type_symbol>
+      </PDBx:atom_site>
+      <PDBx:atom_site id="5">
+         <PDBx:B_iso_or_equiv>15.83</PDBx:B_iso_or_equiv>
+         <PDBx:Cartn_x>-7.924</PDBx:Cartn_x>
+         <PDBx:Cartn_y>47.912</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-2.103</PDBx:Cartn_z>
+         <PDBx:auth_asym_id>A</PDBx:auth_asym_id>
+         <PDBx:auth_atom_id>O</PDBx:auth_atom_id>
+         <PDBx:auth_comp_id>HOH</PDBx:auth_comp_id>
+         <PDBx:auth_seq_id>131</PDBx:auth_seq_id>
+         <PDBx:group_PDB>HETATM</PDBx:group_PDB>
+         <PDBx:label_alt_id xsi:nil="true" />
+         <PDBx:label_asym_id>B</PDBx:label_asym_id>
+         <PDBx:label_atom_id>O</PDBx:label_atom_id>
+         <PDBx:label_comp_id>HOH</PDBx:label_comp_id>
+         <PDBx:label_entity_id>2</PDBx:label_entity_id>
+         <PDBx:label_seq_id xsi:nil="true" />
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:pdbx_PDB_model_num>1</PDBx:pdbx_PDB_model_num>
+         <PDBx:type_symbol>O</PDBx:type_symbol>
+      </PDBx:atom_site>
+      <PDBx:atom_site id="6">
+         <PDBx:B_iso_or_equiv>23.51</PDBx:B_iso_or_equiv>
+         <PDBx:Cartn_x>-9.104</PDBx:Cartn_x>
+         <PDBx:Cartn_y>56.364</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-0.001</PDBx:Cartn_z>
+         <PDBx:auth_asym_id>A</PDBx:auth_asym_id>
+         <PDBx:auth_atom_id>O</PDBx:auth_atom_id>
+         <PDBx:auth_comp_id>HOH</PDBx:auth_comp_id>
+         <PDBx:auth_seq_id>132</PDBx:auth_seq_id>
+         <PDBx:group_PDB>HETATM</PDBx:group_PDB>
+         <PDBx:label_alt_id xsi:nil="true" />
+         <PDBx:label_asym_id>B</PDBx:label_asym_id>
+         <PDBx:label_atom_id>O</PDBx:label_atom_id>
+         <PDBx:label_comp_id>HOH</PDBx:label_comp_id>
+         <PDBx:label_entity_id>2</PDBx:label_entity_id>
+         <PDBx:label_seq_id xsi:nil="true" />
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:pdbx_PDB_model_num>1</PDBx:pdbx_PDB_model_num>
+         <PDBx:type_symbol>O</PDBx:type_symbol>
+      </PDBx:atom_site>
+      <PDBx:atom_site id="7">
+         <PDBx:B_iso_or_equiv>25.05</PDBx:B_iso_or_equiv>
+         <PDBx:Cartn_x>-7.755</PDBx:Cartn_x>
+         <PDBx:Cartn_y>50.310</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-4.632</PDBx:Cartn_z>
+         <PDBx:auth_asym_id>A</PDBx:auth_asym_id>
+         <PDBx:auth_atom_id>O</PDBx:auth_atom_id>
+         <PDBx:auth_comp_id>HOH</PDBx:auth_comp_id>
+         <PDBx:auth_seq_id>133</PDBx:auth_seq_id>
+         <PDBx:group_PDB>HETATM</PDBx:group_PDB>
+         <PDBx:label_alt_id xsi:nil="true" />
+         <PDBx:label_asym_id>B</PDBx:label_asym_id>
+         <PDBx:label_atom_id>O</PDBx:label_atom_id>
+         <PDBx:label_comp_id>HOH</PDBx:label_comp_id>
+         <PDBx:label_entity_id>2</PDBx:label_entity_id>
+         <PDBx:label_seq_id xsi:nil="true" />
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:pdbx_PDB_model_num>1</PDBx:pdbx_PDB_model_num>
+         <PDBx:type_symbol>O</PDBx:type_symbol>
+      </PDBx:atom_site>
+      <PDBx:atom_site id="8">
+         <PDBx:B_iso_or_equiv>19.13</PDBx:B_iso_or_equiv>
+         <PDBx:Cartn_x>-3.932</PDBx:Cartn_x>
+         <PDBx:Cartn_y>57.164</PDBx:Cartn_y>
+         <PDBx:Cartn_z>6.224</PDBx:Cartn_z>
+         <PDBx:auth_asym_id>A</PDBx:auth_asym_id>
+         <PDBx:auth_atom_id>O</PDBx:auth_atom_id>
+         <PDBx:auth_comp_id>HOH</PDBx:auth_comp_id>
+         <PDBx:auth_seq_id>134</PDBx:auth_seq_id>
+         <PDBx:group_PDB>HETATM</PDBx:group_PDB>
+         <PDBx:label_alt_id xsi:nil="true" />
+         <PDBx:label_asym_id>B</PDBx:label_asym_id>
+         <PDBx:label_atom_id>O</PDBx:label_atom_id>
+         <PDBx:label_comp_id>HOH</PDBx:label_comp_id>
+         <PDBx:label_entity_id>2</PDBx:label_entity_id>
+         <PDBx:label_seq_id xsi:nil="true" />
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:pdbx_PDB_model_num>1</PDBx:pdbx_PDB_model_num>
+         <PDBx:type_symbol>O</PDBx:type_symbol>
+      </PDBx:atom_site>
 

@@ -7,18 +7,29 @@
 #include <iomanip>
 #include <iostream>
 #include <cmath>
+#include <boost/format.hpp>
+
+// ROOT
+#include <TVector3.h>
+
+// my own stuff
+#include "Tools.cpp"
+
+using namespace ROOT;
+using std::vector, std::string, std::cout, std::endl, std::setw;
+using boost::format;
 
 class Atom {
 public:
     /** Constructor for the Atom class. 
-     * @param v a vector containing the x, y, z coordinates for the atom. 
-     * @param weight the weight of this atom
+     * @param v a TVector3 containing the x, y, z coordinates of the atom. 
+     * @param occupancy the occupancy of this atom
      * @param symbol the atomic symbol of the base atom
      * @param comp the molecule (e.g. HOH)
      */
-    Atom(std::vector<double> v, double weight, std::string symbol, std::string comp) {
+    Atom(TVector3 v, double occupancy, string symbol, string comp) {
         this->set_coordinates(v);
-        this->weight = weight;
+        this->occupancy = occupancy;
         this->symbol = symbol;
         this->comp = comp;
     }
@@ -30,70 +41,88 @@ public:
      * @return the distance. 
      */
     double distance(Atom* a) {
-        return std::sqrt(std::pow(x - a->get_x(), 2) + std::pow(y - a->get_y(), 2) + std::pow(z - a->get_z(), 2));
+        return sqrt(pow(get_x() - a->get_x(), 2) + pow(get_y() - a->get_y(), 2) + pow(get_z() - a->get_z(), 2));
     }
 
     /** Returns a standard PDB format representation of this atom.
      * @param serial the entry number of this atom. 
      * @return a PDB string representation of this atom. 
      */
-    std::string to_pdb(int serial) {
+    string to_pdb(int serial) {
         return "ATOM  ";
     }
 
     /** Returns a standard PDBML format representation of this atom. 
      * @return a PDBML string representation of this atom. 
      */
-    std::string to_pdbml() {
-        return "<PDBx:atom_site id=\"" + std::to_string(serial) + "\"> \
-        \n    <PDBx:Cartn_x>" + std::to_string(x) + "</PDBx:Cartn_x> \
-        \n    <PDBx:Cartn_y>" + std::to_string(y) + "</PDBx:Cartn_y> \
-        \n    <PDBx:Cartn_z>" + std::to_string(z) + "</PDBx:Cartn_z> \
-        \n    <PDBx:occupancy>" + std::to_string(weight) + "</PDBx:occupancy> \
-        \n    <PDBx:type_symbol>" + symbol + "</PDBx:type_symbol> \
-        \n</PDBx:atom_site>";
+    string to_pdbml() {
+        return (format("<PDBx:atom_site id=\"%1%\"> \
+        \n    <PDBx:Cartn_x>%2%</PDBx:Cartn_x> \
+        \n    <PDBx:Cartn_y>%3%</PDBx:Cartn_y> \
+        \n    <PDBx:Cartn_z>%4%</PDBx:Cartn_z> \
+        \n    <PDBx:occupancy>%5%</PDBx:occupancy> \
+        \n    <PDBx:type_symbol>%6%</PDBx:type_symbol> \
+        \n</PDBx:atom_site>") % serial % get_x() % get_y() % get_z() % occupancy % symbol).str();
     }
 
-    /** Prints the contents of this object.
-     */
+    /** Prints the contents of this object. */
     void print() {
-        std::cout << "\nAtom no: " << serial << std::endl;
-        std::cout << std::setw(17) << "(x, y, z): (" << std::setw(6) << x << ", " << std::setw(6) << y << ", " << std::setw(6) << z << ")" << std::endl;
-        std::cout << std::setw(16) << "Weight: " << std::to_string(weight) << std::endl;
-        std::cout << std::setw(16) << "Symbol: " << symbol << std::endl;
-        std::cout << std::setw(16) << "Molecule: " << comp << std::endl;
+        cout << "\nAtom no: " << serial << endl;
+        cout << setw(17) << "(x, y, z): (" << setw(6) << get_x() << ", " << setw(6) << get_y() << ", " << setw(6) << get_z() << ")" << endl;
+        cout << setw(16) << "Weight: " << std::to_string(occupancy) << endl;
+        cout << setw(16) << "Symbol: " << symbol << endl;
+        cout << setw(16) << "Molecule: " << comp << endl;
         return;
     }
 
-    // setters
-    void set_coordinates(std::vector<double> v) {
-        this->x = v[0];
-        this->y = v[1];
-        this->z = v[2];
+    /** Move this atom by a vector
+     * @param v the translation vector.
+     */
+    void translate(TVector3 v) {
+        coords += v;
     }
-    void set_x(double x) {this->x = x;}
-    void set_y(double y) {this->y = y;}
-    void set_z(double z) {this->z = z;}
-    void set_weight(double weight) {this->weight = weight;}
+
+    // setters
+    void set_coordinates(TVector3 v) {this->coords = v;}
+    void set_x(double x) {this->coords.SetX(x);}
+    void set_y(double y) {this->coords.SetY(y);}
+    void set_z(double z) {this->coords.SetZ(z);}
+    void set_occupancy(double occupancy) {this->occupancy = occupancy;}
     void set_serial(int serial) {this->serial = serial;}
-    void set_comp(std::string comp) {this->comp = comp;}
-    void set_symbol(std::string symbol) {this->symbol = symbol;}
+    void set_comp(string comp) {this->comp = comp;}
+    void set_symbol(string symbol) {this->symbol = symbol;}
 
     // getters
-    int get_x() {return x;}
-    int get_y() {return y;}
-    int get_z() {return z;}
-    int get_weight() {return weight;}
+    int get_x() {return coords.X();}
+    int get_y() {return coords.Y();}
+    int get_z() {return coords.Z();}
+    TVector3 get_coords() {return coords;}
+    int get_occupancy() {return occupancy;}
     int get_serial() {return serial;}
-    std::string get_symbol() {return symbol;}
-    std::string get_comp() {return comp;}
+    string get_symbol() {return symbol;}
+    string get_comp() {return comp;}
+
+    double get_atomic_weight() {
+        if (symbol == "") {
+            print_err("ERROR: Attempted to get atomic weight, but the symbol was not set!");
+            exit(1);
+        }
+        if (!atomic_weight_map.count(symbol)) {
+            print_err((format("ERROR: Weight is undefined for the atom \"%1%\"") % symbol).str());
+            exit(1);
+        }
+        return atomic_weight_map.at(symbol);
+    };
 
 private:
     int serial; // the serial (or sequence number) of this atom. Used when it is read from a file. 
-    double x, y, z; // coordinates
-    double weight; // weight
-    std::string symbol; // atomic symbol
-    std::string comp = "undefined"; // special name e.g. Ca
 
-    const std::map<std::string, int> atomic_number_map = {{"H", 1}, {"He", 2}, {"C", 6}};
+    TVector3 coords; // (x, y, z) coordinates
+    double occupancy; // the occupancy (or weight) of this atom
+    double atomic_weight; // the atomic weight
+    string symbol; // atomic symbol
+    string comp = "undefined"; // molecular name, e.g. HOH
+
+    // atomic weights taken from https://www.britannica.com/science/atomic-weight
+    const std::map<string, int> atomic_weight_map = {{"H", 1.01}, {"He", 4.00}, {"Li", 6.95}, {"C", 12.01}, {"N", 14.01}, {"O", 16.00}, {"S", 32.06}};
 };
