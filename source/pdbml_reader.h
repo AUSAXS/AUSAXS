@@ -10,7 +10,7 @@
 #include "Reader.h"
 #include "Atom.cpp"
 
-class pdbml_reader : Reader {
+class pdbml_reader : public Reader {
 public: 
 
     /** Constructor for the pdbml_reader class. 
@@ -28,7 +28,7 @@ public:
         Atom* atom = new Atom();
         std::vector<Atom*> atoms;
         int serial = 1;
-        atom->serial = serial;
+        atom->set_serial(serial);
 
         while(getline(file, line)) {
             // check if this line contains any relevant information
@@ -58,7 +58,7 @@ public:
                 atom = new Atom();
 
                 serial++;
-                atom->serial = serial;
+                atom->set_serial(serial);
                 continue;
             }
 
@@ -77,25 +77,31 @@ public:
             
             // check if the word is a coordinate
             if (w == "Cartn_x") {
-                atom->x = stod(v);
+                atom->set_x(stod(v));
                 continue;
             } else if (w == "Cartn_y") {
-                atom->y = stod(v);
+                atom->set_y(stod(v));
                 continue;
             } else if (w == "Cartn_z") {
-                atom->z = stod(v);
+                atom->set_z(stod(v));
                 continue;
             }
             
             // check if the word is the weight
             else if (w == "occupancy") {
-                atom->w = stod(v);
+                atom->set_weight(stod(v));
                 continue;
             }
 
             // check if the word is the symbol
             else if (w == "type_symbol") {
-                atom->symbol = v;
+                atom->set_symbol(v);
+                continue;
+            }
+
+            // check if the word describes the molecule
+            else if (w == "auth_comp_id") {
+                atom->set_comp(v);
                 continue;
             }
 

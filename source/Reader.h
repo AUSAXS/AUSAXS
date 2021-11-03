@@ -26,6 +26,8 @@ public:
         }
     };
 
+    Reader(){};
+
     virtual std::vector<Atom*> read() {return std::vector<Atom*>();};
 
 private:

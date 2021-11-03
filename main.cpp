@@ -5,17 +5,24 @@
 // my own includes
 #include "source/pdbml_reader.h"
 #include "source/Atom.cpp"
+#include "source/Protein.cpp"
+#include "source/tools.cpp"
 
 int main(int argc, char const *argv[])
 {
-    std::string file = "temp.xml";
-    pdbml_reader reader(file);
-    std::vector<Atom*> atoms = reader.read();
-    for (Atom* a : atoms) {
-        a->print();
-        std::cout << a->to_pdbml() << std::endl;
-    }
-    // comment
+    Protein protein("temp.xml");
+    auto[dp, dh] = protein.calc_distances();
+    save(dp, "temp/distances_protein.txt");
+    save(dh, "temp/distances_hydration.txt");
 
+    std::cout << "Protein atoms:" << std::endl;
+    for (Atom* a : protein.protein) {
+        a->print();
+    }
+
+    std::cout << "Hydration atoms:" << std::endl;
+    for (Atom* a : protein.hydration) {
+        a->print();
+    }
     return 0;
 }

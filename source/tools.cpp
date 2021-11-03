@@ -2,11 +2,21 @@
 
 // includes
 #include <string>
+#include <fstream>
 #include <iostream>
+#include <filesystem>
 
-/** Print a red error message to the terminal. 
- * @param str the string to be printed. 
- */
-void print_err(std::string str) {
-    std::cout << "\033[1;31mbold" << str << "\033[0m\n" << std::endl;
+template <typename T>
+void save(std::vector<T> v, std::string path) {
+    std::filesystem::path p(path);
+    std::filesystem::create_directories(p.remove_filename().string()); // create the directories if they do not exist
+    std::ofstream file(p.string());
+    if (!file.is_open()) {
+        perror(("Could not create file at " + p.string()).c_str());
+        exit(EXIT_FAILURE);
+    }
+    for (T e : v) {
+        file << e << std::endl;
+    }
+    file.close();
 }
