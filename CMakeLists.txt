@@ -21,3 +21,5 @@ list(APPEND LIBRARIES ${ROOT_LIBRARIES} Spectrum MathMore)
 link_libraries(${LIBRARIES})
 
 add_executable(main main.cpp)
+
+add_subdirectory(source/tests)

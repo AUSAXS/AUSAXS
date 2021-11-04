@@ -28,10 +28,11 @@ public:
      * @param comp the molecule (e.g. HOH)
      */
     Atom(TVector3 v, double occupancy, string symbol, string comp) {
+        // we use our setters so we can validate the input if necessary
         this->set_coordinates(v);
-        this->occupancy = occupancy;
-        this->symbol = symbol;
-        this->comp = comp;
+        this->set_occupancy(occupancy);
+        this->set_symbol(symbol);
+        this->set_comp(comp);
     }
 
     Atom() {};
@@ -52,20 +53,7 @@ public:
         return "ATOM  ";
     }
 
-    /** Returns a standard PDBML format representation of this atom. 
-     * @return a PDBML string representation of this atom. 
-     */
-    string to_pdbml() {
-        return (format("<PDBx:atom_site id=\"%1%\"> \
-        \n    <PDBx:Cartn_x>%2%</PDBx:Cartn_x> \
-        \n    <PDBx:Cartn_y>%3%</PDBx:Cartn_y> \
-        \n    <PDBx:Cartn_z>%4%</PDBx:Cartn_z> \
-        \n    <PDBx:occupancy>%5%</PDBx:occupancy> \
-        \n    <PDBx:type_symbol>%6%</PDBx:type_symbol> \
-        \n</PDBx:atom_site>") % serial % get_x() % get_y() % get_z() % occupancy % symbol).str();
-    }
-
-    /** Prints the contents of this object. */
+    /** Prints the contents of this object to the terminal. */
     void print() {
         cout << "\nAtom no: " << serial << endl;
         cout << setw(17) << "(x, y, z): (" << setw(6) << get_x() << ", " << setw(6) << get_y() << ", " << setw(6) << get_z() << ")" << endl;
@@ -75,7 +63,7 @@ public:
         return;
     }
 
-    /** Move this atom by a vector
+    /** Move this atom by a vector.
      * @param v the translation vector.
      */
     void translate(TVector3 v) {
@@ -90,14 +78,20 @@ public:
     void set_occupancy(double occupancy) {this->occupancy = occupancy;}
     void set_serial(int serial) {this->serial = serial;}
     void set_comp(string comp) {this->comp = comp;}
-    void set_symbol(string symbol) {this->symbol = symbol;}
+    void set_symbol(string symbol) {
+        if (!atomic_weight_map.count(symbol)) {
+            print_err((format("ERROR: Invalid symbol \"%1%\".") % symbol).str());
+            exit(1);
+        }
+        this->symbol = symbol;
+    }
 
     // getters
-    int get_x() {return coords.X();}
-    int get_y() {return coords.Y();}
-    int get_z() {return coords.Z();}
+    double get_x() {return coords.X();}
+    double get_y() {return coords.Y();}
+    double get_z() {return coords.Z();}
     TVector3 get_coords() {return coords;}
-    int get_occupancy() {return occupancy;}
+    double get_occupancy() {return occupancy;}
     int get_serial() {return serial;}
     string get_symbol() {return symbol;}
     string get_comp() {return comp;}
@@ -105,10 +99,6 @@ public:
     double get_atomic_weight() {
         if (symbol == "") {
             print_err("ERROR: Attempted to get atomic weight, but the symbol was not set!");
-            exit(1);
-        }
-        if (!atomic_weight_map.count(symbol)) {
-            print_err((format("ERROR: Weight is undefined for the atom \"%1%\"") % symbol).str());
             exit(1);
         }
         return atomic_weight_map.at(symbol);

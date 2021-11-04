@@ -10,7 +10,10 @@
 
 // my own includes
 #include "Atom.cpp"
-#include "pdbml_reader.cpp"
+#include "io/PDBML_reader.cpp"
+#include "io/PDB_reader.cpp"
+#include "io/PDBML_writer.cpp"
+#include "io/PDB_writer.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl;
@@ -18,13 +21,42 @@ using namespace ROOT;
 
 class Protein {
 public:
-    Protein(string filename) {
+    /** Creates a new protein from the input .pdb or .xml file. 
+     * @param path path to the input file. 
+     */
+    Protein(string path) {
+        // determine which kind of input file we're looking at
         Reader* reader;
-        if (filename.find(".xml") != string::npos) {
-            reader = new pdbml_reader(filename);
+        if (path.find(".xml") != string::npos) { // .xml file
+            reader = new PDBML_reader(path);
+        } else if (path.find(".pdb") != string::npos) { // .pdb file
+            reader = new PDB_reader(path);
+        } else { // anything else - we cannot handle this
+            print_err((format("ERROR: Invalid file extension of input file %1%.") % path).str());
+            exit(1);
         }
         vector<Atom*> atoms = reader->read();
+        reader->close();
+
         separate(atoms);
+    }
+
+    /** Writes this protein to disk.
+     * @param path path to the destination. 
+     */
+    void save(string path) {
+        // determine the format of the output file
+        Writer* writer;
+        if (path.find(".xml") != string::npos) { // .xml file
+            writer = new PDBML_writer(path);
+        } else if (path.find(".pdb") != string::npos) { // .pdb file
+            writer = new PDB_writer(path);
+        } else { // anything else - we cannot handle this
+            print_err((format("ERROR: Unknown writing format for path \"%1%\".") % path).str());
+            exit(1);
+        }
+        writer->write(&protein_atoms, &hydration_atoms);
+        writer->close();
     }
 
     /** Calculate the distances between each pair of atoms. 
@@ -71,11 +103,12 @@ public:
 
         // move protein to centre of mass
         TVector3 cm = get_cm();
+        cout << format("Center-of-mass is (x, y, z) = (%1%, %2%, %3%)") % cm[0] % cm[1] % cm[2] << endl;
         translate(-cm);
 
         // generate the 3D grid
         double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
-        auto[corner, bins] = gridify(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
+        auto[corner, bins] = generate_grid(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
         cout << format("bins: (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
         vector<vector<vector<bool>>> occupied = find_protein_locations(corner, bins, width);
 
@@ -92,28 +125,19 @@ public:
         cout << format("Occupied slots: %1%, number of protein atoms: %2%") % n % protein_atoms.size() << endl;
     }
 
-private:
-    vector<Atom*> protein_atoms; // atoms of the protein itself
-    vector<Atom*> hydration_atoms; // hydration layer
-
-    /** Marks the approximate protein locations (and *not* hydration locations!) in the input grid. Helper function for generate_new_hydration. 
-     * @return A boolean array which is "true" if the grid point is occupied, and "false" otherwise. 
-     */
-    vector<vector<vector<bool>>> find_protein_locations(const TVector3 corner, const vector<int> bins, const double width) {
-        vector<vector<vector<bool>>> occupied(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false))); // THIS ARRAY IS HUUGE!!!
-        for (Atom* a : protein_atoms) {
-            cout << "Hello there atom no " << a->get_serial() << endl;
-            occupied.at(int((a->get_x() - corner.X())/width)-1).at(int((a->get_y() - corner.Y())/width)-1).at(int((a->get_z() - corner.Z())/width)-1) = true;
-            // occupied[int((a->get_x() - corner.X())/width)][int((a->get_y() - corner.Y())/width)][int((a->get_y() - corner.Y())/width)] = true;
-        }
-        return occupied;
+    vector<Atom*>* get_protein_atoms() {
+        return &protein_atoms;
     }
 
-    /** Generate a 3D grid containing all atoms. Helper function for generate_new_hydration. 
+    vector<Atom*>* get_hydration_atoms() {
+        return &hydration_atoms;
+    }
+
+    /** Generate a 3D grid containing all atoms.
      * @param width the bin width
      * @return A pair (corner point, bins) where the first is a bottom corner of the grid, while the second is the number of bins in each dimension.
      */
-    std::pair<TVector3, vector<int>> gridify(const double width) {
+    std::pair<TVector3, vector<int>> generate_grid(const double width) {
         // determine the size of our grid
         TVector3 high = get_cm();
         TVector3 low = high;
@@ -138,6 +162,47 @@ private:
         return std::make_pair(low, bins);
     }
 
+    /** Calculate the center-mass coordinates for the protein.
+     * @return The center-mass (x, y, z) coordinates. 
+     */
+    TVector3 get_cm() {
+        TVector3 cm;
+        double M = 0; // total mass
+        auto weighted_sum = [&cm, &M] (vector<Atom*>* atoms) {
+            for (Atom* a : *atoms) {
+                double m = a->get_atomic_weight();
+                M += m;
+                double x = a->get_x()*m;
+                double y = a->get_y()*m;
+                double z = a->get_z()*m;
+                cm += TVector3(x, y, z);
+            }
+            cm[0] = cm[0]/M;
+            cm[1] = cm[1]/M;
+            cm[2] = cm[2]/M;
+        };
+        weighted_sum(&protein_atoms);
+        weighted_sum(&hydration_atoms);
+        return cm;
+    }
+
+private:
+    vector<Atom*> protein_atoms; // atoms of the protein itself
+    vector<Atom*> hydration_atoms; // hydration layer
+
+    /** Marks the approximate protein locations (and *not* hydration locations!) in the input grid. Helper function for generate_new_hydration. 
+     * @return A boolean array which is "true" if the grid point is occupied, and "false" otherwise. 
+     */
+    vector<vector<vector<bool>>> find_protein_locations(const TVector3 corner, const vector<int> bins, const double width) {
+        vector<vector<vector<bool>>> occupied(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false))); // THIS ARRAY IS HUUGE!!!
+        for (Atom* a : protein_atoms) {
+            cout << "Hello there atom no " << a->get_serial() << endl;
+            occupied.at(int((a->get_x() - corner.X())/width)-1).at(int((a->get_y() - corner.Y())/width)-1).at(int((a->get_z() - corner.Z())/width)-1) = true;
+            // occupied[int((a->get_x() - corner.X())/width)][int((a->get_y() - corner.Y())/width)][int((a->get_y() - corner.Y())/width)] = true;
+        }
+        return occupied;
+    }
+
     /** Move the entire protein by a vector
      * @param v the translation vector
      */
@@ -149,25 +214,6 @@ private:
         };
         move(&protein_atoms);
         move(&hydration_atoms);
-    }
-
-    /** Calculate the center-mass coordinates for the protein.
-     * @return The center-mass (x, y, z) coordinates. 
-     */
-    TVector3 get_cm() {
-        TVector3 cm;
-        auto weighted_sum = [&cm] (vector<Atom*>* atoms) {
-            for (Atom* a : *atoms) {
-                double w = a->get_atomic_weight();
-                double x = a->get_x()/w;
-                double y = a->get_y()/w;
-                double z = a->get_z()/w;
-                cm += TVector3(x, y, z);
-            }
-        };
-        weighted_sum(&protein_atoms);
-        weighted_sum(&hydration_atoms);
-        return cm;
     }
 
     /** Separate the structure into the protein and its hydration layer 

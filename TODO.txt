@@ -1,0 +1,5 @@
+Determine what to do with TER records. 
+    - Maybe create the superclass Record for Atom, where Termination could be a subclass?
+    - Store in Protein class?
+
+Implement the hydration algorithm. 

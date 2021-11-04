@@ -5,21 +5,19 @@
 #include <vector>
 
 // my own includes
-#include "Atom.cpp"
-#include "Tools.cpp"
+#include "../Atom.cpp"
 
 using std::vector, std::string, std::cout, std::endl;
 
-class Reader {
+class Writer {
 public: 
-    std::ifstream file;
+    std::ofstream file;
 
-    /** Constructor for the Reader class. 
-     * @param filename the name of the input file
+    /** Constructor for the Writer class. 
+     * @param filename the name of the output file
      */
-    Reader(string filename) {
+    Writer(string filename) {
         this->filename = filename;
-        loc = 0;
         file.open(filename);
 
         // check if file was succesfully opened
@@ -29,14 +27,14 @@ public:
         }
     };
 
-    Reader(){};
+    Writer(){};
 
-    virtual vector<Atom*> read() {return vector<Atom*>();};
+    virtual void write(vector<Atom*>* protein_atoms, vector<Atom*>* hydration_atoms) {}
+
+    void close() {file.close();}
 
     string get_filename() {return filename;}
 
 private:
     string filename;
-    int loc; // line number
-    virtual Atom read_line() {return Atom();};
 };

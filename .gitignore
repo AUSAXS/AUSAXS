@@ -2,3 +2,5 @@
 build
 temp
 figures
+data
+*.pdf

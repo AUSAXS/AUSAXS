@@ -8,24 +8,22 @@
 
 // my own includes
 #include "Reader.h"
-#include "Atom.cpp"
-#include "Tools.cpp"
 
-using std::vector, std::string, std::cout, std::endl;
-
-class pdbml_reader : public Reader {
+class PDBML_reader : public Reader {
 public: 
-
-    /** Constructor for the pdbml_reader class. 
+    /** Constructor for the PDBML_reader class. 
      * @param filename the name of the input file
      */
-    pdbml_reader(string filename) : Reader(filename) {
+    PDBML_reader(string filename) : Reader(filename) {
         if (filename.find(".xml") == string::npos) {
             print_err("Input file \"" + filename + "\" is not a .xml file!");
             exit(1);
         }
     };
 
+    /** Parse the atoms from the input file
+     * @return A vector containing all of the parsed atoms.
+     */
     vector<Atom*> read() override {
         string line;
         Atom* atom = new Atom();
@@ -48,7 +46,7 @@ public:
 
                 // sanity check
                 if (atoi(v.c_str()) != serial) {
-                    print_err("ERROR: Broken reading sequence in file " + get_filename() + ". Expected id " + std::to_string(serial) + ", but found " + v);
+                    print_err((format("ERROR: Broken reading sequence in file %1%. Expected id %2%, but found %3%.") % get_filename() % serial % v).str());
                     exit(1);
                 }
                 continue;
@@ -99,7 +97,7 @@ public:
             }
 
             // check if the word describes the molecule
-            else if (w == "auth_comp_id") {
+            else if (w == "label_comp_id") {
                 atom->set_comp(v);
                 continue;
             }
@@ -108,10 +106,5 @@ public:
             // cout << "No match found for word: \"" << w << "\" with value \"" << v << "\"" << endl;
         }
         return atoms;
-    };
-
-private:
-    Atom read_line() override {
-        return Atom();
-    };
+    }
 };

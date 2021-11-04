@@ -16,7 +16,7 @@ void save(vector<T> v, string path) {
     std::ofstream file(path, std::ios::trunc);
     if (!file.is_open()) {
         perror(("Could not create file at " + path).c_str());
-        exit(EXIT_FAILURE);
+        exit(1);
     }
     for (T e : v) {
         file << e << endl;

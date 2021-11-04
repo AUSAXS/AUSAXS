@@ -9,7 +9,6 @@
 #include <TH1.h>
 
 // my own includes
-#include "source/pdbml_reader.cpp"
 #include "source/Atom.cpp"
 #include "source/Protein.cpp"
 #include "source/Tools.cpp"
@@ -19,9 +18,11 @@ using namespace ROOT;
 
 int main(int argc, char const *argv[])
 {
-    Protein protein("2epe.xml");
+    Protein protein(argv[1]);  
     auto[dp, dh] = protein.calc_distances();
-    protein.generate_new_hydration();
+    // protein.generate_new_hydration();
+    protein.save("temp2.pdb");
+    Protein protein2("temp2.pdb");
 
     // plots
     setup_style();
