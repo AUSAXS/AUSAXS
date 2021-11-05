@@ -1,5 +1,19 @@
 Determine what to do with TER records. 
+    - https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf
     - Maybe create the superclass Record for Atom, where Termination could be a subclass?
+        - Looking very appealing based on the number of record types in the above document
     - Store in Protein class?
 
 Implement the hydration algorithm. 
+
+Bundle all dependencies to make them easier to install
+    - Store on Drive?
+    
+Læs volumen nukleiner, syrer
+    B. Jacrot rep prog phys ~ 1980
+    Peter Zipper ~1980
+    ATSAS Crysol
+
+Make a short presentation on C++
+    - Objects
+    - Functions

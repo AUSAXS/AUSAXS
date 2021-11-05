@@ -18,7 +18,7 @@ public:
      */
     Writer(string filename) {
         this->filename = filename;
-        file.open(filename);
+        file.open(filename, std::ios::trunc);
 
         // check if file was succesfully opened
         if (!file.is_open()) {

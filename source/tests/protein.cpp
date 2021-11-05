@@ -34,18 +34,41 @@ int main(int argc, char const *argv[])
     Protein protein("temp.pdb");
 
     // check get_cm
-    TVector3 cm = protein.get_cm();    
-    assert(cm[0] == 0);
-    assert(cm[1] == 0);
-    assert(cm[2] == 0);
+    TVector3 cm = protein.get_cm();
+    try {
+        assert(cm[0] == 0);
+        assert(cm[1] == 0);
+        assert(cm[2] == 0);
+    } catch (const std::exception& e) {
+        print_err("get_cm failed.");
+    }
 
     // check the grid generator
     double width = 0.1;
     auto[corner, bins] = protein.generate_grid(width);
-    assert(corner[0] == -1);
-    assert(corner[1] == -1);
-    assert(corner[2] == -1);
-    assert(bins[0] == 2/width);
+    try {
+        assert(corner[0] == -1);
+        assert(corner[1] == -1);
+        assert(corner[2] == -1);
+        assert(bins[0] == 2/width);
+    } catch (const std::exception& e) {
+        print_err("generate_grid failed.");
+    }
+
+    // check find_protein_locations
+    vector<vector<vector<bool>>> locs = protein.find_protein_locations(corner, bins, width);
+    try { // these are just all corner locations
+        assert(locs[0][0][0]);
+        assert(locs[0][0][bins[2]]);
+        assert(locs[0][bins[1]][0]);
+        assert(locs[0][bins[1]][bins[2]]);
+        assert(locs[bins[0]][0][0]);
+        assert(locs[bins[0]][0][bins[2]]);
+        assert(locs[bins[0]][bins[1]][0]);
+        assert(locs[bins[0]][bins[1]][bins[2]]);
+    } catch (const std::exception& e) {
+        print_err("find_protein_locations failed.");
+    }
 
     remove("temp.pdb");
 
