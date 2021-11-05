@@ -16,6 +16,7 @@ using namespace ROOT;
 
 int main(int argc, char const *argv[])
 {
+    cout << "Testing Protein class...\t\r" << std::flush;
     std::ofstream file("temp.pdb");
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
     file << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n"
@@ -56,19 +57,20 @@ int main(int argc, char const *argv[])
     }
 
     // check find_protein_locations
-    vector<vector<vector<bool>>> locs = protein.find_protein_locations(corner, bins, width);
-    try { // these are just all corner locations
-        assert(locs[0][0][0]);
-        assert(locs[0][0][bins[2]]);
-        assert(locs[0][bins[1]][0]);
-        assert(locs[0][bins[1]][bins[2]]);
-        assert(locs[bins[0]][0][0]);
-        assert(locs[bins[0]][0][bins[2]]);
-        assert(locs[bins[0]][bins[1]][0]);
-        assert(locs[bins[0]][bins[1]][bins[2]]);
-    } catch (const std::exception& e) {
-        print_err("find_protein_locations failed.");
-    }
+    // std::map<int, vector<int>> locs = protein.find_protein_locations();
+    // vector<vector<vector<bool>>> grid = protein.boolean_representation(locs);
+    // try { // these are just all corner locations
+    //     assert(locs[0][0][0]);
+    //     assert(locs[0][0][bins[2]]);
+    //     assert(locs[0][bins[1]][0]);
+    //     assert(locs[0][bins[1]][bins[2]]);
+    //     assert(locs[bins[0]][0][0]);
+    //     assert(locs[bins[0]][0][bins[2]]);
+    //     assert(locs[bins[0]][bins[1]][0]);
+    //     assert(locs[bins[0]][bins[1]][bins[2]]);
+    // } catch (const std::exception& e) {
+    //     print_err("find_protein_locations failed.");
+    // }
 
     remove("temp.pdb");
 

@@ -39,7 +39,7 @@ public:
             }
         };
         write_v(protein_atoms);
-        file << left << setw(6) << "TER" << " " << right << setw(4) << protein_atoms->size() << "  " << endl;
+        // file << left << setw(6) << "TER" << " " << right << setw(4) << protein_atoms->size() << "  " << endl;
         write_v(hydration_atoms);
         return;
     }

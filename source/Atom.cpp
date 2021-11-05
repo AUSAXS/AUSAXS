@@ -21,13 +21,14 @@ using boost::format;
 
 class Atom {
 public:
-    /** Constructor for the Atom class. 
+    /** 
+     * @brief Constructor for the Atom class. 
      * @param v a TVector3 containing the x, y, z coordinates of the atom. 
      * @param occupancy the occupancy of this atom
      * @param symbol the atomic symbol of the base atom
      * @param comp the molecule (e.g. HOH)
      */
-    Atom(TVector3 v, double occupancy, string symbol, string comp) {
+    Atom(const TVector3 v, const double occupancy, const string symbol, const string comp) {
         // we use our setters so we can validate the input if necessary
         this->set_coordinates(v);
         this->set_occupancy(occupancy);
@@ -41,16 +42,8 @@ public:
      * @param a the other atom.
      * @return the distance. 
      */
-    double distance(Atom* a) {
+    double distance(const Atom* a) {
         return sqrt(pow(get_x() - a->get_x(), 2) + pow(get_y() - a->get_y(), 2) + pow(get_z() - a->get_z(), 2));
-    }
-
-    /** Returns a standard PDB format representation of this atom.
-     * @param serial the entry number of this atom. 
-     * @return a PDB string representation of this atom. 
-     */
-    string to_pdb(int serial) {
-        return "ATOM  ";
     }
 
     /** Prints the contents of this object to the terminal. */
@@ -66,7 +59,7 @@ public:
     /** Move this atom by a vector.
      * @param v the translation vector.
      */
-    void translate(TVector3 v) {
+    void translate(const TVector3 v) {
         coords += v;
     }
 
@@ -87,22 +80,30 @@ public:
     }
 
     // getters
-    double get_x() {return coords.X();}
-    double get_y() {return coords.Y();}
-    double get_z() {return coords.Z();}
-    TVector3 get_coords() {return coords;}
-    double get_occupancy() {return occupancy;}
-    int get_serial() {return serial;}
-    string get_symbol() {return symbol;}
-    string get_comp() {return comp;}
+    double get_x() const {return coords.X();}
+    double get_y() const {return coords.Y();}
+    double get_z() const {return coords.Z();}
+    TVector3 get_coords() const {return coords;}
+    double get_occupancy() const {return occupancy;}
+    int get_serial() const {return serial;}
+    string get_symbol() const {return symbol;}
+    string get_comp() const {return comp;}
 
-    double get_atomic_weight() {
+    double get_atomic_weight() const {
         if (symbol == "") {
             print_err("ERROR: Attempted to get atomic weight, but the symbol was not set!");
             exit(1);
         }
         return atomic_weight_map.at(symbol);
     };
+
+    /**
+     * @brief Comparison function to allow this class to be a map key. 
+     * @param rhs Atom to compare against.
+     */
+    bool operator<(const Atom& rhs) const {
+        return serial < rhs.get_serial();
+    }
 
 private:
     int serial; // the serial (or sequence number) of this atom. Used when it is read from a file. 

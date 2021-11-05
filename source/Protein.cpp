@@ -111,21 +111,8 @@ public:
         double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
         auto[corner, bins] = generate_grid(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
         cout << format("bins: (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
-        vector<vector<vector<bool>>> occupied = find_protein_locations(corner, bins, width);
-
+        // vector<vector<vector<bool>>> occupied = find_protein_locations(corner, bins, width);
         
-
-        int n = 0;
-        for (int i = 0; i < bins[0]; i++) {
-            for (int j = 0; j < bins[1]; j++) {
-                for (int k = 0; k < bins[2]; k++) {
-                    if (occupied[i][j][k]) {
-                        n++;
-                    }
-                }
-            }
-        }
-        cout << format("Occupied slots: %1%, number of protein atoms: %2%") % n % protein_atoms.size() << endl;
 
         // Jans approach: generate grid from -250 to 250 in all dimensions, with grid size 1Å. 
         // Move protein to center so its more likely to be covered by the grid. 
@@ -198,87 +185,48 @@ public:
         return cm;
     }
 
-private:
-    vector<Atom*> protein_atoms; // atoms of the protein itself
-    vector<Atom*> hydration_atoms; // hydration layer
-
-    /** Marks the approximate protein locations (and *not* hydration locations!) in the input grid. Helper function for generate_new_hydration. 
-     * @return A boolean array which is "true" if the grid point is occupied, and "false" otherwise. 
-     */
-    std::map<int, vector<int>> find_protein_locations(const TVector3 corner, const vector<int> bins, const double width) {
-        // vector<vector<vector<bool>>> occupied(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false))); // THIS ARRAY IS HUUGE!!!
-        std::map<int, vector<int>> locs; // bin locations of each atom
-        for (Atom* a : protein_atoms) {
-            locs.add(a->get_serial(), {int((a->get_x() - corner.X())/width)-1), int((a->get_y() - corner.Y())/width)-1), int((a->get_z() - corner.Z())/width)-1)};
-            // occupied.at(int((a->get_x() - corner.X())/width)-1).at(int((a->get_y() - corner.Y())/width)-1).at(int((a->get_z() - corner.Z())/width)-1) = true;
-            // occupied[int((a->get_x() - corner.X())/width)][int((a->get_y() - corner.Y())/width)][int((a->get_y() - corner.Y())/width)] = true;
-        }
-
-        return locs;
-    }
-
     /** Generate a boolean grid array representation of the protein. Occupied slots are marked by "true". 
      * @param locs the index locations of each atom.
      * @return A 3D boolean array representation of the protein. 
      */
-    vector<vector<vector<bool>>> boolean_representation(std::map<int, vector<int>> locs) {
-        double width = 0.1;
-        double radius = 2.5; // radius of each atom in Ångström
-        auto[corner, bins] = generate_grid(width);
-        std::map<int, vector<int>> locs = find_protein_locations(corner, bins, width);
+    // vector<vector<vector<bool>>> boolean_representation(std::map<int, vector<int>> locs) {
+        // double width = 0.1;
+        // double radius = 2.5; // radius of each atom in Ångström
+        // auto[corner, bins] = generate_grid(width);
+        // std::map<int, vector<int>> locs = find_protein_locations(corner, bins, width);
 
-        cout << format("Number of bins (x, y, z): (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
+        // cout << format("Number of bins (x, y, z): (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
 
-        // create the boolean grid array
-        vector<vector<vector<bool>>> grid(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false)));
+        // // create the boolean grid array
+        // vector<vector<vector<bool>>> grid(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false)));
 
-        int radius_bins = int(radius/width); // radius represented as a number of bins
-        int vol_counter = 0; // volume counter
-        for (Atom* a : protein_atoms) {
-            vol_counter++;
-            vector<int> loc = locs(a->get_serial());
-            for (int i = loc[0] - radius_bins; i < loc[0] + radius_bins; i++) {
-                if (loc[0] - i < 0 || loc[0] + i > bins[0]) continue; // check bounds
-                for (int j = loc[1] - radius_bins; j < loc[1] + radius_bins; j++) {
-                    if (loc[1] - j < 0 || loc[1] + j > bins[1]) continue; // check bounds
-                    for (int k = loc[2] - radius_bins; k < loc[2] + radius_bins; k++) {
-                        if (loc[2] - k < 0 || loc[2] + k > bins[2]) continue; // check bounds
-                        // determine if the bin is within a sphere centered on the atom
-                        if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) < radius_bins) {
-                            vol_counter++;
-                            grid[i][j][k] = true;
-                        }
-                    }
-                }
-            }
-        }
+        // return grid;
+    // }
 
+private:
+    vector<Atom*> protein_atoms; // atoms of the protein itself
+    vector<Atom*> hydration_atoms; // hydration layer
+
+    void place_hydration_atoms() {
         // determine the surface
-        vector<int> hydration_locs();
-        auto check_dim = [&] (int dim) {
-            if (i-radius_bins > 0) {
-                if (!grid[i-radius_bins][j][k]) {
-                    hydration_locs.push_back({i - radius_bins, j, k});
-                }
-            }
-        };
-        for (int i = 0; i < bins[0]; i++) {
-            for (int j = 0; j < bins[1]; j++) {
-                for (int k = 0; k < bins[2]; k++) {
-                    if (!grid[i][j][k]) continue; // empty
+        // vector<int> hydration_locs();
+        // auto check_dim = [&] (int dim) {
+        //     if (i-radius_bins > 0) {
+        //         if (!grid[i-radius_bins][j][k]) {
+        //             hydration_locs.push_back({i - radius_bins, j, k});
+        //         }
+        //     }
+        // };
+        // for (int i = 0; i < bins[0]; i++) {
+        //     for (int j = 0; j < bins[1]; j++) {
+        //         for (int k = 0; k < bins[2]; k++) {
+        //             if (!grid[i][j][k]) continue; // empty
 
-                    // now we just check all possible locations
+        //             // now we just check all possible locations
 
-                }
-            }
-        }
-
-
-        
-    }
-
-    vector<vector<vector<bool>>> expand_volume() {
-
+        //         }
+        //     }
+        // }        
     }
 
     /** Move the entire protein by a vector

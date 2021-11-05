@@ -16,10 +16,11 @@ using namespace ROOT;
 
 int main(int argc, char const *argv[])
 {
+    cout << "Testing io functionalities...\t\r" << std::flush;
     // test basic reading functionalities
     std::ofstream pdb_file("temp.pdb");
     std::ofstream xml_file("temp.xml");
-    pdb_file << "ATOM      1  HOH LEU A 129       2.1     3.2     4.3    0.50 42.04           O  " << endl;
+    pdb_file << "ATOM      1  LEU HOH A 129       2.1     3.2     4.3    0.50 42.04           O  " << endl;
     xml_file << "<PDBx:atom_site id=\"1\"> \
         \n    <PDBx:Cartn_x>2.1</PDBx:Cartn_x> \
         \n    <PDBx:Cartn_y>3.2</PDBx:Cartn_y> \

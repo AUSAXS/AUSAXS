@@ -10,7 +10,10 @@ tests: $(addprefix build/source/tests/, $(test_files))
 	    $$program ; \
 	done
 	
-build/source/tests/%: source/tests/%.cpp build/Makefile
+test/%: build/source/tests/%
+	$<
+	
+build/source/tests/%: $(shell find source/ -print) build/Makefile
 	@ make -C build $*
 
 build/Makefile: CMakeLists.txt source/tests/CMakeLists.txt

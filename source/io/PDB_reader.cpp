@@ -62,8 +62,8 @@ public:
                 exit(1);
             }
 
-            // extract the chemical composition (chars 13 - 16)
-            string comp = line.substr(17, 4);
+            // extract the chemical composition (chars 13 - 15)
+            string comp = line.substr(17, 3);
             boost::erase_all(comp, " "); // remove any spaces
             atom->set_comp(comp);
 
@@ -74,12 +74,12 @@ public:
             TVector3 coords(stod(x), stod(y), stod(z));
             atom->set_coordinates(coords);
 
-            // extract the occupancy (chars 55 - 60)
+            // extract the occupancy (chars 55 - 59)
             string occupancy = line.substr(55, 5);
             atom->set_occupancy(stod(occupancy));
 
-            // extract the atomic symbol (chars 75 - 78)
-            string symbol = line.substr(75, 3);
+            // extract the atomic symbol (chars 76 - 77)
+            string symbol = line.substr(76, 2);
             boost::erase_all(symbol, " "); // remove any spaces
             atom->set_symbol(symbol);
 
