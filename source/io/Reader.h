@@ -5,7 +5,7 @@
 #include <vector>
 
 // my own includes
-#include "../Atom.cpp"
+#include "Atom.cpp"
 
 using std::vector, std::string, std::cout, std::endl;
 

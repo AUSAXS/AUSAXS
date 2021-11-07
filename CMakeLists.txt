@@ -15,6 +15,7 @@ set(LIBRARIES "")
 # Include ROOT
 find_package(ROOT REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
+include_directories("${CMAKE_SOURCE_DIR}/source")
 link_directories(${ROOT_LIBRARY_DIR})
 list(APPEND LIBRARIES ${ROOT_LIBRARIES} Spectrum MathMore)
 
@@ -23,3 +24,4 @@ link_libraries(${LIBRARIES})
 add_executable(main main.cpp)
 
 add_subdirectory(source/tests)
+add_subdirectory(source/scripts)

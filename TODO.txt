@@ -4,6 +4,10 @@ Determine what to do with TER records.
         - Looking very appealing based on the number of record types in the above document
     - Store in Protein class?
 
+Consider redoing input with string streams
+    - https://stackoverflow.com/questions/11374617/the-easiest-way-to-read-formatted-input-in-c looks *very* appealing
+
+
 Implement the hydration algorithm. 
 
 Bundle all dependencies to make them easier to install

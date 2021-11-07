@@ -9,9 +9,9 @@
 #include <TH1.h>
 
 // my own includes
-#include "source/Atom.cpp"
-#include "source/Protein.cpp"
-#include "source/Tools.cpp"
+#include "Atom.cpp"
+#include "Protein.cpp"
+#include "Tools.cpp"
 #include "plot_style.cpp"
 
 using namespace ROOT;

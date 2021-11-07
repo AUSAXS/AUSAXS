@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<PDBx:datablock datablockName="2EPE"
+   xmlns:PDBx="http://pdbml.pdb.org/schema/pdbx-v50.xsd"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://pdbml.pdb.org/schema/pdbx-v50.xsd pdbx-v50.xsd">
+
+   <PDBx:atom_siteCategory>
+         <PDBx:B_iso_or_equiv>19.81</PDBx:B_iso_or_equiv>
+         <PDBx:Cartn_y>69.119</PDBx:Cartn_y>
+         <PDBx:Cartn_z>-8.662</PDBx:Cartn_z>
+         <PDBx:auth_asym_id>A</PDBx:auth_asym_id>
+         <PDBx:auth_atom_id>N</PDBx:auth_atom_id>
+         <PDBx:auth_comp_id>LYS</PDBx:auth_comp_id>
+         <PDBx:auth_seq_id>1</PDBx:auth_seq_id>
+         <PDBx:group_PDB>ATOM</PDBx:group_PDB>
+         <PDBx:label_alt_id xsi:nil="true" />
+         <PDBx:label_asym_id>A</PDBx:label_asym_id>
+         <PDBx:label_atom_id>N</PDBx:label_atom_id>
+         <PDBx:label_comp_id>LYS</PDBx:label_comp_id>
+         <PDBx:label_entity_id>1</PDBx:label_entity_id>
+         <PDBx:label_seq_id>1</PDBx:label_seq_id>
+         <PDBx:occupancy>1.00</PDBx:occupancy>
+         <PDBx:pdbx_PDB_model_num>1</PDBx:pdbx_PDB_model_num>
+         <PDBx:type_symbol>N</PDBx:type_symbol>
+      </PDBx:atom_site>
+   </PDBx:atom_siteCategory>
+   <PDBx:atom_typeCategory>
+      <PDBx:atom_typeCategory>
+      <PDBx:atom_type symbol="C"></PDBx:atom_type>
+      <PDBx:atom_type symbol="N"></PDBx:atom_type>
+      <PDBx:atom_type symbol="O"></PDBx:atom_type>
+      <PDBx:atom_type symbol="S"></PDBx:atom_type>
+   </PDBx:atom_typeCategory>
+   <PDBx:chem_compCategory>
+      <PDBx:chem_comp id="LYS">
+         <PDBx:formula>C6 H15 N2 O2 1</PDBx:formula>
+         <PDBx:formula_weight>147.195</PDBx:formula_weight>
+         <PDBx:mon_nstd_flag>y</PDBx:mon_nstd_flag>
+         <PDBx:name>LYSINE</PDBx:name>
+         <PDBx:type>L-peptide linking</PDBx:type>
+      </PDBx:chem_comp>
+   </PDBx:chem_compCategory>
+</PDBx:datablock>

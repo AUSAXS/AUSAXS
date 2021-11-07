@@ -35,6 +35,6 @@ public:
 
     string get_filename() {return filename;}
 
-private:
+protected:
     string filename;
 };

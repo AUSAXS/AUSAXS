@@ -1,3 +1,6 @@
+hydrate/%: build/source/scripts/new_hydration
+	$< data/$* output/$*
+
 run/%: build/main main.cpp source/* source/io/*
 	build/main data/$*
 
@@ -16,6 +19,13 @@ test/%: build/source/tests/%
 build/source/tests/%: $(shell find source/ -print) build/Makefile
 	@ make -C build $*
 
+build/%: build
+	@ echo $*.cpp
+	@ make -C $(@D) $(*F)
+	
+build: $(shell find -name "CMakeLists.txt" -printf "%P ")
+	cd build; cmake ../
+	
 build/Makefile: CMakeLists.txt source/tests/CMakeLists.txt
 	@ mkdir -p build
 	@ cd build; cmake ../

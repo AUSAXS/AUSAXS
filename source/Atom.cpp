@@ -28,12 +28,13 @@ public:
      * @param symbol the atomic symbol of the base atom
      * @param comp the molecule (e.g. HOH)
      */
-    Atom(const TVector3 v, const double occupancy, const string symbol, const string comp) {
+    Atom(const TVector3 v, const double occupancy, const string symbol, const string comp, int serial) {
         // we use our setters so we can validate the input if necessary
         this->set_coordinates(v);
         this->set_occupancy(occupancy);
         this->set_symbol(symbol);
         this->set_comp(comp);
+        this->set_serial(serial);
     }
 
     Atom() {};
@@ -61,6 +62,17 @@ public:
      */
     void translate(const TVector3 v) {
         coords += v;
+    }
+
+    /**
+     * @brief Determine if this is a water molecule. 
+     * @return true if this is a water molecule, otherwise false. 
+     */
+    bool is_water() {
+        if (comp == "HOH") {
+            return true;
+        }
+        return false;
     }
 
     // setters

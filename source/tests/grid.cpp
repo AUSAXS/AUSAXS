@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
     Grid grid(base, width, bins);
 
     // check the grid generation
-    Atom* atom = new Atom({0, 0, 0}, 0, "C", "");
+    Atom* atom = new Atom({0, 0, 0}, 0, "C", "", 0);
     vector<Atom*> a = {atom};
     grid.add(&a);
     vector<vector<vector<bool>>> &g = *grid.get_grid();
@@ -86,10 +86,8 @@ int main(int argc, char const *argv[])
     }
 
     // check that the bounding box of a more advanced structure is correct
-    Atom* a1 = new Atom({5, 0, -7}, 0, "C", "");
-    Atom* a2 = new Atom({0, -5, 0}, 0, "C", "");
-    a1->set_serial(1);
-    a2->set_serial(2);
+    Atom* a1 = new Atom({5, 0, -7}, 0, "C", "", 1);
+    Atom* a2 = new Atom({0, -5, 0}, 0, "C", "", 2);
     a = {a1, a2};
     grid.add(&a);
     grid.expand_volume(3);

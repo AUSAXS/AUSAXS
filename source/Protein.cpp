@@ -14,6 +14,7 @@
 #include "io/PDB_reader.cpp"
 #include "io/PDBML_writer.cpp"
 #include "io/PDB_writer.cpp"
+#include "Grid.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl;
@@ -100,19 +101,21 @@ public:
         for (Atom* a : hydration_atoms) {
             delete a;
         }
-        hydration_atoms = vector<Atom*>();
 
-        // move protein to centre of mass
+        // move protein to center of mass
         TVector3 cm = get_cm();
         cout << format("Center-of-mass is (x, y, z) = (%1%, %2%, %3%)") % cm[0] % cm[1] % cm[2] << endl;
         translate(-cm);
 
         // generate the 3D grid
-        double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
-        auto[corner, bins] = generate_grid(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
-        cout << format("bins: (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
-        // vector<vector<vector<bool>>> occupied = find_protein_locations(corner, bins, width);
-        
+        Grid grid({-250, -250, -250}, 1, 501);
+        grid.add(&protein_atoms);
+        grid.expand_volume(3);
+        hydration_atoms = grid.hydrate();
+
+        // double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
+        // auto[corner, bins] = generate_grid(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
+        // cout << format("bins: (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
 
         // Jans approach: generate grid from -250 to 250 in all dimensions, with grid size 1Å. 
         // Move protein to center so its more likely to be covered by the grid. 

@@ -62,7 +62,7 @@ public:
             double x = base.X() + v[0]*width;
             double y = base.Y() + v[1]*width;
             double z = base.Z() + v[2]*width;
-            return new Atom({x, y, z}, 1, "O", "HOH");
+            return new Atom({x, y, z}, 1, "O", "HOH", members.size()+1);
         };
 
         int c = 0; // counter
@@ -78,6 +78,8 @@ public:
             expand_volume(*a);
             hydration_atoms.push_back(a);
         }
+
+        return hydration_atoms;
     }
 
     /**
@@ -104,9 +106,9 @@ public:
 
         // loop over the minimum bounding box as found above
         vector<vector<int>> available_locs;
-        for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
-            for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
-                for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
+        for (int i = bounds[0][0]; i < bounds[0][1]; i+=r) {
+            for (int j = bounds[1][0]; j < bounds[1][1]; j+=r) {
+                for (int k = bounds[2][0]; k < bounds[2][1]; k+=r) {
                     // if this spot is part of an atom
                     if (grid[i][j][k]) {
                         // check x ± r
@@ -124,6 +126,7 @@ public:
                 }
             }
         }
+        cout << "Found " << available_locs.size() << " available HOH spots." << endl;
         return available_locs;
     };
 
@@ -165,6 +168,22 @@ public:
             print_err("WARNING: The radius is already set for this grid!");
         }
         this->r = new_r;
+    }
+
+    /**
+     * @brief Get all hydration atoms from this grid. 
+     * NOTE: Consider adding a parameter to start all their serials from. 
+     * @return A vector containing all of the hydration atoms. 
+     */
+    vector<Atom*> get_hydration_atoms() {
+        vector<Atom*> atoms;
+        for (const auto& pair : members) {
+            Atom a = pair.first;
+            if (a.is_water()) {
+                atoms.push_back(&a);
+            }
+        }
+        return atoms;
     }
 
 private:
