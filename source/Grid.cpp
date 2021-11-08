@@ -9,7 +9,7 @@
 #include <TVector3.h>
 
 // my own includes
-#include "Atom.cpp"
+#include "data/Atom.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl;

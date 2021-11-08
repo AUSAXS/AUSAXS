@@ -21,17 +21,48 @@ public:
         }
     };
 
+    File* read() override {
+        string line; // placeholder for the current line
+        File* file = new File();
+        while(getline(input, line)) {
+            string type = line.substr(0, 6); // read the first 6 characters
+            switch(File::get_type(type)) {
+                case File::ATOM: {
+                    Atom* atom = new Atom();
+                    atom->parse_xml(line);
+                    file->add(atom);
+                    break;
+                } case File::TERMINATE: {
+                    Terminate* term = new Terminate();
+                    term->parse_xml(line);
+                    file->add(term);
+                    break;
+                } case File::HEADER: {
+                    file->add("HEADER", line);
+                    break;
+                } case File::FOOTER: {
+                    file->add("FOOTER", line);
+                    break;
+                } default: { 
+                    print_err("ERROR: Unrecognized type.");
+                    exit(1);
+                }
+            };
+        }
+        return file;
+    } 
+
     /** Parse the atoms from the input file
      * @return A vector containing all of the parsed atoms.
      */
-    vector<Atom*> read() override {
+    vector<Atom*> read2() {
         string line;
         Atom* atom = new Atom();
         vector<Atom*> atoms;
         int serial = 1;
         atom->set_serial(serial);
 
-        while(getline(file, line)) {
+        while(getline(input, line)) {
             // check if this line contains any relevant information
             if (line.find("PDBx:") == string::npos) {
                 continue; // otherwise we just skip it

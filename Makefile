@@ -23,9 +23,9 @@ build/%: build
 	@ echo $*.cpp
 	@ make -C $(@D) $(*F)
 	
-build: $(shell find -name "CMakeLists.txt" -printf "%P ")
+build: $(shell find -name "CMakeLists.txt" -printf "%P ") build/Makefile
 	cd build; cmake ../
 	
-build/Makefile: CMakeLists.txt source/tests/CMakeLists.txt
+build/Makefile:
 	@ mkdir -p build
 	@ cd build; cmake ../

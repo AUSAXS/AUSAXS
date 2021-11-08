@@ -19,12 +19,12 @@ public:
 
     void write(vector<Atom*>* protein_atoms, vector<Atom*>* hydration_atoms) override {
         std::filesystem::path p(filename);
-        file << format("<PDBx:datablock datablockName=%1%>") % p.stem() << endl;
-        file << "   <PDBx:atom_siteCategory>" << endl;
-        for (Atom* a : *protein_atoms) {file << to_pdbml(a) << endl;}
-        for (Atom* a : *hydration_atoms) {file << to_pdbml(a) << endl;}
-        file << "   </PDBx:atom_siteCategory>" << endl;
-        file << "</PDBx:datablock>" << endl;
+        output << format("<PDBx:datablock datablockName=%1%>") % p.stem() << endl;
+        output << "   <PDBx:atom_siteCategory>" << endl;
+        for (Atom* a : *protein_atoms) {output << to_pdbml(a) << endl;}
+        for (Atom* a : *hydration_atoms) {output << to_pdbml(a) << endl;}
+        output << "   </PDBx:atom_siteCategory>" << endl;
+        output << "</PDBx:datablock>" << endl;
         return;
     }
 

@@ -5,23 +5,21 @@
 #include <vector>
 
 // my own includes
-#include "Atom.cpp"
+#include "data/File.cpp"
 
 using std::vector, std::string, std::cout, std::endl;
 
 class Reader {
 public: 
-    std::ifstream file;
-
     /** Constructor for the Reader class. 
      * @param filename the name of the input file
      */
     Reader(string filename) {
         this->filename = filename;
-        file.open(filename);
+        input.open(filename);
 
         // check if file was succesfully opened
-        if (!file.is_open()) {
+        if (!input.is_open()) {
             print_err("Could not open file \"" + filename + "\"");
             exit(1);
         }
@@ -29,12 +27,13 @@ public:
 
     Reader(){}
 
-    virtual vector<Atom*> read() {return vector<Atom*>();}
+    virtual File* read() {return new File();}
 
-    void close() {file.close();}
+    void close() {input.close();}
 
     string get_filename() {return filename;}
 
-private:
+protected:
+    std::ifstream input;
     string filename;
 };

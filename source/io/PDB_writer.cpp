@@ -21,7 +21,7 @@ public:
     void write(vector<Atom*>* protein_atoms, vector<Atom*>* hydration_atoms) override {
         auto write_v = [&] (vector<Atom*>* atoms) {
             for (Atom* a : *atoms) {
-                file << left << setw(6) << "ATOM" << " "            // starts at index 0
+                output << left << setw(6) << "ATOM" << " "            // starts at index 0
                 << right << setw(4) << a->get_serial() << "  "      // 7
                 << left << setw(3) << "NAN" << " "                  // 13
                 << left << setw(3) << a->get_comp() << " "          // 17

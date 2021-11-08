@@ -9,6 +9,8 @@
 
 // my own includes
 #include "Reader.h"
+#include "data/Record.h"
+#include "data/File.cpp"
 
 class PDB_reader : public Reader {
 public: 
@@ -22,17 +24,48 @@ public:
         }
     };
 
+    File* read() override {
+        string line; // placeholder for the current line
+        File* file = new File();
+        while(getline(input, line)) {
+            string type = line.substr(0, 6); // read the first 6 characters
+            switch(File::get_type(type)) {
+                case File::ATOM: {
+                    Atom* atom = new Atom();
+                    atom->parse_pdb(line);
+                    file->add(atom);
+                    break;
+                } case File::TERMINATE: {
+                    Terminate* term = new Terminate();
+                    term->parse_pdb(line);
+                    file->add(term);
+                    break;
+                } case File::HEADER: {
+                    file->add("HEADER", line);
+                    break;
+                } case File::FOOTER: {
+                    file->add("FOOTER", line);
+                    break;
+                } default: { 
+                    print_err("ERROR: Unrecognized type.");
+                    exit(1);
+                }
+            };
+        }
+        return file;
+    } 
+
     /** Parse the atoms from the input file
      * @return A vector containing all of the parsed atoms.
      */
-    vector<Atom*> read() override {
+    vector<Atom*> read2() {
         string line;
         Atom* atom = new Atom();
         vector<Atom*> atoms;
         int serial = 1;
         atom->set_serial(serial);
 
-        while(getline(file, line)) {
+        while(getline(input, line)) {
             /* All lines are of the form
             * [ATOM   9999  N   LYS A 999      -3.462  69.119  -8.662  1.00 19.81          Ne ] (sample line)
             * [0      7     13  17  21         31      39      47      55   61           75   ] (index numbers)

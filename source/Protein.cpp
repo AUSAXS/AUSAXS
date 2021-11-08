@@ -9,7 +9,7 @@
 #include <TVector3.h>
 
 // my own includes
-#include "Atom.cpp"
+#include "data/Atom.cpp"
 #include "io/PDBML_reader.cpp"
 #include "io/PDB_reader.cpp"
 #include "io/PDBML_writer.cpp"
