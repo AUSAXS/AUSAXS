@@ -36,8 +36,8 @@ int main(int argc, char const *argv[])
     Protein* protein = new Protein("temp.xml");
     protein->save("temp2.xml");
     protein = new Protein("temp2.xml");
-    vector<Atom*>* atoms = protein->get_hydration_atoms();
-    Atom* a = (*atoms)[0];
+    vector<shared_ptr<Atom>>* atoms = protein->get_hydration_atoms();
+    shared_ptr<Atom> a = (*atoms)[0];
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.

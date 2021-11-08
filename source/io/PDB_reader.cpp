@@ -12,6 +12,8 @@
 #include "data/Record.h"
 #include "data/File.cpp"
 
+using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 
+
 class PDB_reader : public Reader {
 public: 
     /** Constructor for the PDB_reader class. 
@@ -24,26 +26,26 @@ public:
         }
     };
 
-    File* read() override {
+    unique_ptr<File> read() override {
         string line; // placeholder for the current line
-        File* file = new File();
+        unique_ptr<File> file = std::make_unique<File>();
         while(getline(input, line)) {
             string type = line.substr(0, 6); // read the first 6 characters
             switch(File::get_type(type)) {
-                case File::ATOM: {
-                    Atom* atom = new Atom();
+                case Record::RecordType::ATOM: {
+                    shared_ptr<Atom> atom = std::make_shared<Atom>();
                     atom->parse_pdb(line);
                     file->add(atom);
                     break;
-                } case File::TERMINATE: {
-                    Terminate* term = new Terminate();
+                } case Record::RecordType::TERMINATE: {
+                    shared_ptr<Terminate> term = std::make_shared<Terminate>();
                     term->parse_pdb(line);
                     file->add(term);
                     break;
-                } case File::HEADER: {
+                } case Record::RecordType::HEADER: {
                     file->add("HEADER", line);
                     break;
-                } case File::FOOTER: {
+                } case Record::RecordType::FOOTER: {
                     file->add("FOOTER", line);
                     break;
                 } default: { 

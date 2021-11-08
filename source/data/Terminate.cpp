@@ -11,6 +11,8 @@ public:
     void parse_pdb(string s) {}
     void parse_xml(string s) {}
 
+    RecordType get_type() override {return TERMINATE;}
+
     string as_pdb() const {return "";}
     string as_pdbml() const {return "";}
 };

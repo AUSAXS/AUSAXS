@@ -14,10 +14,12 @@ public:
     void parse_pdb(string s) {}
     void parse_xml(string s) {}
 
-    void add(string s) {contents += s;}
+    RecordType get_type() override {return FOOTER;}
 
     string as_pdb() const {return "";}
     string as_pdbml() const {return "";}
+
+    void add(string s) {contents += s;}
 
 private: 
     string contents;

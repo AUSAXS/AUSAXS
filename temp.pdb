@@ -1,0 +1,9 @@
+ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C 
+ATOM      2  C   LYS A   1          -1       1      -1  1.00 00.00           C 
+ATOM      3  C   LYS A   1           1      -1      -1  1.00 00.00           C 
+ATOM      4  C   LYS A   1           1       1      -1  1.00 00.00           C 
+ATOM      5  C   LYS A   1          -1      -1       1  1.00 00.00           C 
+ATOM      6  C   LYS A   1          -1       1       1  1.00 00.00           C 
+ATOM      7  C   LYS A   1           1      -1       1  1.00 00.00           C 
+ATOM      8  C   LYS A   1           1       1       1  1.00 00.00           C 
+ATOM      9  C   LYS A   1           0       0       0  1.00 00.00           C  

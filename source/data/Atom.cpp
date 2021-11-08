@@ -9,16 +9,17 @@
 #include <cmath>
 #include <boost/format.hpp>
 #include <cstdio>
+#include <utility>
 
 // ROOT
 #include <TVector3.h>
 
 // my own stuff
-#include "Record.h"
+#include "data/Record.h"
 #include "Tools.cpp"
 
 using namespace ROOT;
-using std::vector, std::string, std::cout, std::endl, std::setw;
+using std::vector, std::string, std::cout, std::endl, std::setw, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
 class Atom : public Record {
@@ -41,6 +42,7 @@ public:
 
     Atom() {};
 
+    RecordType get_type() override {return ATOM;}
 
     void parse_pdb(const string s) override {
         const char form[] = "ATOM  %5c%4c%1c%3c%1c%4c%1c%8c%8c%8c%6c%6c%2c%2c";
@@ -53,7 +55,7 @@ public:
      * @param a the other atom.
      * @return the distance. 
      */
-    double distance(const Atom* a) {
+    double distance(const shared_ptr<Atom> a) {
         return sqrt(pow(get_x() - a->get_x(), 2) + pow(get_y() - a->get_y(), 2) + pow(get_z() - a->get_z(), 2));
     }
 

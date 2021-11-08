@@ -9,38 +9,44 @@
 // my own includes
 #include "Reader.h"
 
-class PDBML_reader : public Reader {
+class XML_reader : public Reader {
 public: 
-    /** Constructor for the PDBML_reader class. 
+    /** Constructor for the XML_reader class. 
      * @param filename the name of the input file
      */
-    PDBML_reader(string filename) : Reader(filename) {
+    XML_reader(string filename) : Reader(filename) {
         if (filename.find(".xml") == string::npos) {
             print_err("Input file \"" + filename + "\" is not a .xml file!");
             exit(1);
         }
     };
 
-    File* read() override {
+    unique_ptr<File> read() override {
         string line; // placeholder for the current line
-        File* file = new File();
+        unique_ptr<File> file = std::make_unique<File>();
         while(getline(input, line)) {
+            if (line.find("PDBx:atom_site id") == string::npos) {
+                file->add("HEADER", line);
+                continue; // otherwise we just skip it
+            }
+
+
             string type = line.substr(0, 6); // read the first 6 characters
             switch(File::get_type(type)) {
-                case File::ATOM: {
-                    Atom* atom = new Atom();
+                case Record::RecordType::ATOM: {
+                    shared_ptr<Atom> atom = std::make_shared<Atom>();
                     atom->parse_xml(line);
                     file->add(atom);
                     break;
-                } case File::TERMINATE: {
-                    Terminate* term = new Terminate();
+                } case Record::RecordType::TERMINATE: {
+                    shared_ptr<Terminate> term = std::make_shared<Terminate>();
                     term->parse_xml(line);
                     file->add(term);
                     break;
-                } case File::HEADER: {
+                } case Record::RecordType::HEADER: {
                     file->add("HEADER", line);
                     break;
-                } case File::FOOTER: {
+                } case Record::RecordType::FOOTER: {
                     file->add("FOOTER", line);
                     break;
                 } default: { 

@@ -18,9 +18,9 @@ public:
      */
     PDB_writer(string filename) : Writer(filename) {};
 
-    void write(vector<Atom*>* protein_atoms, vector<Atom*>* hydration_atoms) override {
-        auto write_v = [&] (vector<Atom*>* atoms) {
-            for (Atom* a : *atoms) {
+    void write(vector<shared_ptr<Atom>>* protein_atoms, vector<shared_ptr<Atom>>* hydration_atoms) override {
+        auto write_v = [&] (vector<shared_ptr<Atom>>* atoms) {
+            for (auto const& a : *atoms) {
                 output << left << setw(6) << "ATOM" << " "            // starts at index 0
                 << right << setw(4) << a->get_serial() << "  "      // 7
                 << left << setw(3) << "NAN" << " "                  // 13

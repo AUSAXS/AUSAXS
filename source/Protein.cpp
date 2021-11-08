@@ -4,20 +4,21 @@
 #include <vector>
 #include <map>
 #include "boost/format.hpp"
+#include <utility>
 
 // ROOT
 #include <TVector3.h>
 
 // my own includes
 #include "data/Atom.cpp"
-#include "io/PDBML_reader.cpp"
 #include "io/PDB_reader.cpp"
-#include "io/PDBML_writer.cpp"
 #include "io/PDB_writer.cpp"
+#include "io/XML_reader.cpp"
+#include "io/XML_writer.cpp"
 #include "Grid.cpp"
 
 using boost::format;
-using std::vector, std::string, std::cout, std::endl;
+using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 using namespace ROOT;
 
 class Protein {
@@ -27,16 +28,18 @@ public:
      */
     Protein(string path) {
         // determine which kind of input file we're looking at
-        Reader* reader;
+        unique_ptr<Reader> reader;
         if (path.find(".xml") != string::npos) { // .xml file
-            reader = new PDBML_reader(path);
+            reader = std::make_unique<XML_reader>(path);
         } else if (path.find(".pdb") != string::npos) { // .pdb file
-            reader = new PDB_reader(path);
+            reader = std::make_unique<PDB_reader>(path);
         } else { // anything else - we cannot handle this
             print_err((format("ERROR: Invalid file extension of input file %1%.") % path).str());
             exit(1);
         }
-        vector<Atom*> atoms = reader->read();
+        
+        file = reader->read();
+        vector<shared_ptr<Atom>> atoms = file->get_atoms();
         reader->close();
 
         separate(atoms);
@@ -49,7 +52,7 @@ public:
         // determine the format of the output file
         Writer* writer;
         if (path.find(".xml") != string::npos) { // .xml file
-            writer = new PDBML_writer(path);
+            writer = new XML_writer(path);
         } else if (path.find(".pdb") != string::npos) { // .pdb file
             writer = new PDB_writer(path);
         } else { // anything else - we cannot handle this
@@ -93,14 +96,12 @@ public:
         return make_pair(dp, dh);
     }
 
-    /** Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
-     * 
+    /** 
+     * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
      */
     void generate_new_hydration() {
         // delete the old hydration layer
-        for (Atom* a : hydration_atoms) {
-            delete a;
-        }
+        hydration_atoms = vector<shared_ptr<Atom>>();
 
         // move protein to center of mass
         TVector3 cm = get_cm();
@@ -127,11 +128,11 @@ public:
         // Place the hydration atoms. Only keep every third. 
     }
 
-    vector<Atom*>* get_protein_atoms() {
+    vector<shared_ptr<Atom>>* get_protein_atoms() {
         return &protein_atoms;
     }
 
-    vector<Atom*>* get_hydration_atoms() {
+    vector<shared_ptr<Atom>>* get_hydration_atoms() {
         return &hydration_atoms;
     }
 
@@ -143,8 +144,8 @@ public:
         // determine the size of our grid
         TVector3 high = get_cm();
         TVector3 low = high;
-        auto update = [&low, &high] (vector<Atom*>* atoms) {
-            for (Atom* a : *atoms) {
+        auto update = [&low, &high] (vector<shared_ptr<Atom>>* atoms) {
+            for (auto const& a : *atoms) {
                 // update minimum vector
                 if (a->get_x() < low.X()) low.SetX(a->get_x());
                 if (a->get_y() < low.Y()) low.SetY(a->get_y());
@@ -170,8 +171,8 @@ public:
     TVector3 get_cm() {
         TVector3 cm;
         double M = 0; // total mass
-        auto weighted_sum = [&cm, &M] (vector<Atom*>* atoms) {
-            for (Atom* a : *atoms) {
+        auto weighted_sum = [&cm, &M] (vector<shared_ptr<Atom>>* atoms) {
+            for (auto const& a : *atoms) {
                 double m = a->get_atomic_weight();
                 M += m;
                 double x = a->get_x()*m;
@@ -188,56 +189,17 @@ public:
         return cm;
     }
 
-    /** Generate a boolean grid array representation of the protein. Occupied slots are marked by "true". 
-     * @param locs the index locations of each atom.
-     * @return A 3D boolean array representation of the protein. 
-     */
-    // vector<vector<vector<bool>>> boolean_representation(std::map<int, vector<int>> locs) {
-        // double width = 0.1;
-        // double radius = 2.5; // radius of each atom in Ångström
-        // auto[corner, bins] = generate_grid(width);
-        // std::map<int, vector<int>> locs = find_protein_locations(corner, bins, width);
-
-        // cout << format("Number of bins (x, y, z): (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
-
-        // // create the boolean grid array
-        // vector<vector<vector<bool>>> grid(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false)));
-
-        // return grid;
-    // }
-
 private:
-    vector<Atom*> protein_atoms; // atoms of the protein itself
-    vector<Atom*> hydration_atoms; // hydration layer
-
-    void place_hydration_atoms() {
-        // determine the surface
-        // vector<int> hydration_locs();
-        // auto check_dim = [&] (int dim) {
-        //     if (i-radius_bins > 0) {
-        //         if (!grid[i-radius_bins][j][k]) {
-        //             hydration_locs.push_back({i - radius_bins, j, k});
-        //         }
-        //     }
-        // };
-        // for (int i = 0; i < bins[0]; i++) {
-        //     for (int j = 0; j < bins[1]; j++) {
-        //         for (int k = 0; k < bins[2]; k++) {
-        //             if (!grid[i][j][k]) continue; // empty
-
-        //             // now we just check all possible locations
-
-        //         }
-        //     }
-        // }        
-    }
+    vector<shared_ptr<Atom>> protein_atoms; // atoms of the protein itself
+    vector<shared_ptr<Atom>> hydration_atoms; // hydration layer
+    unique_ptr<File> file; 
 
     /** Move the entire protein by a vector
      * @param v the translation vector
      */
     void translate(const TVector3 v) {
-        auto move = [&v] (vector<Atom*>* atoms) {
-            for (Atom* a : *atoms) {
+        auto move = [&v] (vector<shared_ptr<Atom>>* atoms) {
+            for (auto const& a : *atoms) {
                 a->translate(v);
             }
         };
@@ -245,15 +207,15 @@ private:
         move(&hydration_atoms);
     }
 
-    /** Separate the structure into the protein and its hydration layer 
-     * NOTE: consider removing return values
+    /** 
+     * @brief Separate the structure into the protein and its hydration layer 
      * @return A pointer pair of (protein atoms, hydration atoms) to the private data of this class.
      */
-    std::pair<vector<Atom*>*, vector<Atom*>*> separate(const vector<Atom*> atoms) {
-        hydration_atoms = vector<Atom*>(atoms.size());
-        protein_atoms = vector<Atom*>(atoms.size());
+    void separate(const vector<shared_ptr<Atom>> atoms) {
+        hydration_atoms = vector<shared_ptr<Atom>>(atoms.size());
+        protein_atoms = vector<shared_ptr<Atom>>(atoms.size());
         int i = 0, j = 0; // index counters for the hydration and protein vectors, respectively
-        for (Atom* a : atoms) {
+        for (auto const& a : atoms) {
             if (a->get_comp() == "HOH") { // check if it is a hydration molecule
                 hydration_atoms[i] = a;
                 i++;
@@ -265,6 +227,5 @@ private:
         hydration_atoms.resize(i);
         protein_atoms.resize(j);
         cout << format("Found %1% protein atoms, and %2% hydration atoms.") % protein_atoms.size() % hydration_atoms.size() << endl;
-        return make_pair(&protein_atoms, &hydration_atoms);
     };
 };

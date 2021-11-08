@@ -7,7 +7,7 @@
 // my own includes
 #include "data/File.cpp"
 
-using std::vector, std::string, std::cout, std::endl;
+using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr;
 
 class Reader {
 public: 
@@ -27,7 +27,7 @@ public:
 
     Reader(){}
 
-    virtual File* read() {return new File();}
+    virtual unique_ptr<File> read() {return std::make_unique<File>();}
 
     void close() {input.close();}
 

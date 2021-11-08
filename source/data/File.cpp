@@ -3,28 +3,47 @@
 // includes
 #include <string>
 #include <vector>
+#include <utility>
 
 // my own includes
 #include "data/Record.h"
 #include "data/Terminate.cpp"
 #include "data/Header.cpp"
 #include "data/Footer.cpp"
-#include "Atom.cpp"
+#include "data/Atom.cpp"
 
-using std::vector, std::string, std::cout, std::endl;
+using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 
 
 class File {
 public: 
+    vector<shared_ptr<Record>> contents;
+    Header header;
+    Footer footer;
+
     /** 
      * @brief Constructor for the File class. 
      */
     File() {};
 
+    /**
+     * @brief Get the atoms contained in this File. 
+     * @return The atoms from this file. 
+     */
+    vector<shared_ptr<Atom>> get_atoms() {
+        vector<shared_ptr<Atom>> atoms;
+        for (auto const& r : contents) {
+            if (r->get_type() == Record::ATOM) {
+                atoms.push_back(std::static_pointer_cast<Atom>(r));
+            }
+        }
+        return atoms;
+    }
+
     /** 
      * @brief Add an Atom record to this File. 
      * @param r Atom to be added. 
      */
-    void add(Atom* r) {
+    void add(shared_ptr<Atom> r) {
         contents.push_back(r);
     }
 
@@ -32,7 +51,7 @@ public:
      * @brief Add a Terminate record to this File. 
      * @param r Terminate to be added. 
      */
-    void add(Terminate* r) {
+    void add(shared_ptr<Terminate> r) {
         contents.push_back(r);
     }
 
@@ -47,7 +66,7 @@ public:
         } else if (type == "FOOTER") {
             footer.add(s);
         } else {
-            print_err("ERROR: string " + type + " is not \"HEADER\" or \"FOOTER\"!");
+            print_err("Error in File::add: string " + type + " is not \"HEADER\" or \"FOOTER\"!");
             exit(1);
         }
     }
@@ -76,23 +95,21 @@ public:
         return s;
     }
 
-    vector<Record*> contents;
-    Header header;
-    Footer footer;
-
-    enum Type {HEADER, ATOM, TERMINATE, FOOTER};
-    static Type get_type(string s) {
+    static Record::RecordType get_type(string s) {
         if (type_map.count(s) == 1) {
             return type_map.at(s);
         }
-        print_err((format("ERROR: Could not determine type \"%1%\"") % s).str());
+        print_err((format("Error in File::get_type: Could not determine type \"%1%\"") % s).str());
         exit(1);
     }
 
-    static const inline std::map<string, Type> type_map = {{"ATOM  ", ATOM}, {"HETATM", ATOM}, {"TER   ", TERMINATE}, 
-        {"HEADER", HEADER}, {"TITLE", HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, {"EXPDTA", HEADER},
-        {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL  ", HEADER}, {"REMARK", HEADER}, {"DBREF ", HEADER}, {"SEQRES", HEADER},
-        {"FORMUL", HEADER}, {"HELIX ", HEADER}, {"SHEET ", HEADER}, {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER},
-        {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, 
-        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END   ", FOOTER}};
+    static const inline std::map<string, Record::RecordType> type_map = {
+        {"ATOM  ", Record::ATOM}, {"HETATM", Record::ATOM},
+        {"TER   ", Record::TERMINATE}, 
+        {"HEADER", Record::HEADER}, {"TITLE", Record::HEADER}, {"COMPND", Record::HEADER}, {"SOURCE", Record::HEADER}, {"KEYWDS", Record::HEADER}, 
+        {"EXPDTA", Record::HEADER}, {"AUTHOR", Record::HEADER}, {"REVDAT", Record::HEADER}, {"JRNL  ", Record::HEADER}, {"REMARK", Record::HEADER}, 
+        {"DBREF ", Record::HEADER}, {"SEQRES", Record::HEADER}, {"FORMUL", Record::HEADER}, {"HELIX ", Record::HEADER}, {"SHEET ", Record::HEADER}, 
+        {"SSBOND", Record::HEADER}, {"CRYST1", Record::HEADER}, {"ORIGX1", Record::HEADER}, {"ORIGX2", Record::HEADER}, {"ORIGX3", Record::HEADER}, 
+        {"SCALE1", Record::HEADER}, {"SCALE2", Record::HEADER}, {"SCALE3", Record::HEADER}, 
+        {"CONECT", Record::FOOTER}, {"MASTER", Record::FOOTER}, {"END   ", Record::FOOTER}};
 };

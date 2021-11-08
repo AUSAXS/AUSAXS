@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include "boost/format.hpp"
+#include <utility>
 
 // ROOT
 #include <TVector3.h>
@@ -12,7 +13,7 @@
 #include "data/Atom.cpp"
 
 using boost::format;
-using std::vector, std::string, std::cout, std::endl;
+using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
 class Grid {
@@ -30,8 +31,8 @@ public:
      * @brief Add a set of atoms to the grid. 
      * @param atoms the set of atoms to add to this grid.
      */
-    void add(vector<Atom*>* atoms) {
-        for (Atom* a : *atoms) {
+    void add(vector<shared_ptr<Atom>>* atoms) {
+        for (auto const& a : *atoms) {
             add(a);
         }
     }
@@ -53,8 +54,8 @@ public:
      * @brief Hydrate the grid. 
      * @param reduce Reduces the number of generated HOH molecules by this factor. Use 0 for no reduction. 
      */
-    vector<Atom*> hydrate(int reduce = 3) {
-        vector<Atom*> hydration_atoms;
+    vector<shared_ptr<Atom>> hydrate(int reduce = 3) {
+        vector<shared_ptr<Atom>> hydration_atoms;
         vector<vector<int>> hydration_slots = find_free_locs();
 
         // create a new HOH molecule based on an index vector ### NO SERIAL ###
@@ -62,13 +63,13 @@ public:
             double x = base.X() + v[0]*width;
             double y = base.Y() + v[1]*width;
             double z = base.Z() + v[2]*width;
-            return new Atom({x, y, z}, 1, "O", "HOH", members.size()+1);
+            return std::make_shared<Atom>(Atom({x, y, z}, 1, "O", "HOH", members.size()+1));
         };
 
         int c = 0; // counter
         for (vector<int> v : hydration_slots) {
             c++;
-            Atom* a = new_HOH(v);
+            shared_ptr<Atom> a = new_HOH(v);
             if (reduce != 0) {
                 if (c % reduce != 0) {
                     continue;
@@ -217,7 +218,7 @@ private:
      * @brief Add a single atom to the grid. 
      * @param atoms The atom to be added. 
      */
-    void add(Atom* atom) {
+    void add(shared_ptr<Atom> atom) {
         volume++;
         int binx = (atom->get_x() - base.X()/width);
         int biny = (atom->get_y() - base.Y()/width);
