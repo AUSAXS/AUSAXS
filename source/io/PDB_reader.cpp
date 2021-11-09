@@ -100,7 +100,7 @@ public:
             // extract the chemical composition (chars 13 - 15)
             string comp = line.substr(17, 3);
             boost::erase_all(comp, " "); // remove any spaces
-            atom->set_comp(comp);
+            atom->set_name(comp);
 
             // extract the coordinates (chars 31 - 38, 39 - 46, 47 - 54)
             string x = line.substr(31, 7);
@@ -116,7 +116,7 @@ public:
             // extract the atomic symbol (chars 76 - 77)
             string symbol = line.substr(76, 2);
             boost::erase_all(symbol, " "); // remove any spaces
-            atom->set_symbol(symbol);
+            atom->set_element(symbol);
 
             // create the atom and prepare the next one
             atoms.push_back(atom);

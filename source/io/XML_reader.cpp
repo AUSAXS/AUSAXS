@@ -129,13 +129,13 @@ public:
 
             // check if the word is the symbol
             else if (w == "type_symbol") {
-                atom->set_symbol(v);
+                atom->set_element(v);
                 continue;
             }
 
             // check if the word describes the molecule
             else if (w == "label_comp_id") {
-                atom->set_comp(v);
+                atom->set_name(v);
                 continue;
             }
 

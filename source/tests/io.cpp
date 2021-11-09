@@ -14,6 +14,9 @@
 
 using namespace ROOT;
 
+const bool check_pdb = true;
+const bool check_xml = false;
+
 int main(int argc, char const *argv[])
 {
     cout << "Testing io functionalities...\t\r" << std::flush;
@@ -33,51 +36,54 @@ int main(int argc, char const *argv[])
     xml_file.close();
 
     // check XML io
-    Protein* protein = new Protein("temp.xml");
-    protein->save("temp2.xml");
-    protein = new Protein("temp2.xml");
-    vector<shared_ptr<Atom>>* atoms = protein->get_hydration_atoms();
-    shared_ptr<Atom> a = (*atoms)[0];
+    if (check_xml) {
+        Protein* protein = new Protein("temp.xml");
+        protein->save("temp2.xml");
+        protein = new Protein("temp2.xml");
+        vector<shared_ptr<Atom>>* atoms = protein->get_hydration_atoms();
+        shared_ptr<Atom> a = (*atoms)[0];
 
-    // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
-    // we now compare the loaded values with the expected.
-    try {
-        assert(a->get_serial() == 1);
-        assert(a->get_x() == 2.1);
-        assert(a->get_y() == 3.2);
-        assert(a->get_z() == 4.3);
-        assert(a->get_occupancy() == 0.50);
-        assert(a->get_symbol() == "O");
-        assert(a->get_comp() == "HOH");
-    } catch (const std::exception& e) {
-        print_err("XML input/output failed.");
+        // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
+        // we now compare the loaded values with the expected.
+        try {
+            assert(a->get_serial() == 1);
+            assert(a->get_x() == 2.1);
+            assert(a->get_y() == 3.2);
+            assert(a->get_z() == 4.3);
+            assert(a->get_occupancy() == 0.50);
+            assert(a->get_element() == "O");
+            assert(a->get_name() == "HOH");
+        } catch (const std::exception& e) {
+            print_err("XML input/output failed.");
+        }
+        remove("temp.xml");
+        remove("temp2.xml");
     }
-    remove("temp.xml");
-    remove("temp2.xml");
 
-    // check PDB io
-    protein = new Protein("temp.pdb");
-    protein->save("temp2.pdb");
-    protein = new Protein("temp2.pdb");
-    atoms = protein->get_hydration_atoms();
-    a = (*atoms)[0];
+    if (check_pdb) {
+        // check PDB io
+        Protein* protein = new Protein("temp.pdb");
+        protein->save("temp2.pdb");
+        protein = new Protein("temp2.pdb");
+        vector<shared_ptr<Atom>>* atoms = protein->get_hydration_atoms();
+        shared_ptr<Atom> a = (*atoms)[0];
 
-    // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
-    // we now compare the loaded values with the expected.
-    try {
-        assert(a->get_serial() == 1);
-        assert(a->get_x() == 2.1);
-        assert(a->get_y() == 3.2);
-        assert(a->get_z() == 4.3);
-        assert(a->get_occupancy() == 0.50);
-        assert(a->get_symbol() == "O");
-        assert(a->get_comp() == "HOH");
-    } catch (const std::exception& e) {
-        print_err("PDB input/output failed.");
+        // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
+        // we now compare the loaded values with the expected.
+        try {
+            assert(a->get_serial() == 1);
+            assert(a->get_x() == 2.1);
+            assert(a->get_y() == 3.2);
+            assert(a->get_z() == 4.3);
+            assert(a->get_occupancy() == 0.50);
+            assert(a->get_element() == "O");
+            assert(a->get_name() == "HOH");
+        } catch (const std::exception& e) {
+            print_err("PDB input/output failed.");
+        }
+        remove("temp.pdb");
+        remove("temp2.pdb");
     }
-    remove("temp.pdb");
-    remove("temp2.pdb");
-
     cout << "\033[1;32m" << "All io tests passed." << "\033[0m" << endl;
     return 0;
 }

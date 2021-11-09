@@ -216,7 +216,7 @@ private:
         protein_atoms = vector<shared_ptr<Atom>>(atoms.size());
         int i = 0, j = 0; // index counters for the hydration and protein vectors, respectively
         for (auto const& a : atoms) {
-            if (a->get_comp() == "HOH") { // check if it is a hydration molecule
+            if (a->get_name() == "HOH") { // check if it is a hydration molecule
                 hydration_atoms[i] = a;
                 i++;
             } else {

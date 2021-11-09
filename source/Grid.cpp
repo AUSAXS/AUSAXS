@@ -90,7 +90,7 @@ public:
     vector<vector<int>> find_free_locs() const {
         // a quick check to verify there are no water molecules already present
         for (const auto& pair : members) {
-            if (pair.first.get_comp() == "HOH") {
+            if (pair.first.get_name() == "HOH") {
                 print_err("WARNING: Attempting to hydrate a grid which already contains water!");
             }
         }

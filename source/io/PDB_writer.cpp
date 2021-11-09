@@ -24,7 +24,7 @@ public:
                 output << left << setw(6) << "ATOM" << " "            // starts at index 0
                 << right << setw(4) << a->get_serial() << "  "      // 7
                 << left << setw(3) << "NAN" << " "                  // 13
-                << left << setw(3) << a->get_comp() << " "          // 17
+                << left << setw(3) << a->get_name() << " "          // 17
                 << "A" << " "                                       // 21
                 << right << setw(3) << "00" << " "                  // 23
                 << "    "                                           // 27
@@ -34,7 +34,7 @@ public:
                 << right << setw(5) << a->get_occupancy() << " "    // 55
                 << right << setw(5) << "00.00" << " "               // 61
                 << "        "                                       // 67
-                << right << setw(3) << a->get_symbol() << " "       // 75
+                << right << setw(3) << a->get_element() << " "       // 75
                 << endl;                                            // 79
             }
         };

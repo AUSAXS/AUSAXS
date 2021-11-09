@@ -43,6 +43,6 @@ private:
         \n         <PDBx:occupancy>%5%</PDBx:occupancy> \
         \n         <PDBx:type_symbol>%6%</PDBx:type_symbol> \
         \n         <PDBx:label_comp_id>%7%</PDBx:label_comp_id> \
-        \n      </PDBx:atom_site>") % atom->get_serial() % atom->get_x() % atom->get_y() % atom->get_z() % atom->get_occupancy() % atom->get_symbol() % atom->get_comp()).str();
+        \n      </PDBx:atom_site>") % atom->get_serial() % atom->get_x() % atom->get_y() % atom->get_z() % atom->get_occupancy() % atom->get_element() % atom->get_name()).str();
     }
 };
