@@ -54,9 +54,15 @@ public:
         }
 
         // insert a TER record between the ATOMs and HETATMs
-        shared_ptr<Terminate> ter = std::make_shared<Terminate>(i+1, "", "", 0, "");
-        c[i] = ter;
-        i++;
+        if (i != 0) {
+            c[i] = find_ter_separator(); // see if we can reuse the original
+            if (c[i] == nullptr) { // it could not be found, so we create a new one
+                c[i] = std::make_shared<Terminate>(i+1, "", "", 0, "");
+            } else { // it does exist, so we update its serial and reuse it
+                std::static_pointer_cast<Terminate>(c[i])->set_serial(i+1);
+            }
+            i++;
+        }
 
         // insert all HETATMs
         for (auto const& a : hydration_atoms) {
@@ -68,7 +74,20 @@ public:
         contents = c;
     };
 
-private: 
+private:
+    /**
+     * @brief Find the Terminate Record separating ATOMs and HETATMs
+     * @return A pointer to the Terminate Record if it exists, nullptr otherwise.
+     */
+    shared_ptr<Record> find_ter_separator() {
+        for (auto const& r : contents) {
+            if (r->get_type() == Record::TERMINATE) {
+                return r;
+            }
+        }
+        return nullptr;
+    }
+
     /**
      * @brief Read the file backing this File object. 
      */

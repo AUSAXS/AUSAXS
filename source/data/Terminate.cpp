@@ -91,6 +91,8 @@ public:
         return ss.str();
     }
     
+    void set_serial(const int serial) {this->serial = serial;}
+
 private:
     int serial, resSeq;
     string resName, chainID, iCode;

@@ -34,16 +34,15 @@ public:
             exit(1);
         }
         
-        auto[pa, ha] = file->get_atoms();
-        protein_atoms = pa;
-        hydration_atoms = ha;
+        std::tie(protein_atoms, hydration_atoms) = file->get_atoms();
     }
 
     /** Writes this protein to disk.
      * @param path path to the destination. 
      */
     void save(string path) {
-        file->write(path);
+        file->update(protein_atoms, hydration_atoms); // update the File backing this Protein with our new atoms
+        file->write(path); // write to disk
     }
 
     /** Calculate the distances between each pair of atoms. 

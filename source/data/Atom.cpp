@@ -24,11 +24,12 @@ using boost::format;
 class Atom : public Record {
 public:
     /** 
-     * @brief Constructor for the Atom class. 
+     * @brief Construct a new Atom object.
      * @param v a TVector3 containing the x, y, z coordinates of the atom. 
-     * @param occupancy the occupancy of this atom
-     * @param element the atomic element of the base atom
-     * @param name the molecule (e.g. HOH)
+     * @param occupancy the occupancy of this atom.
+     * @param element the atomic element of the base atom.
+     * @param name the molecule (e.g. HOH).
+     * @param serial the serial number of this atom.
      */
     Atom(const TVector3 v, const double occupancy, const string element, const string name, int serial) {
         // we use our setters so we can validate the input if necessary
@@ -37,9 +38,55 @@ public:
         this->set_element(element);
         this->set_name(name);
         this->set_serial(serial);
+        this->recName = "";
+        this->altLoc = "";
+        this->resName = "";
+        this->chainID = "";
+        this->iCode = "";
+        this->charge = "";
+        this->resSeq = -1;
+        this->tempFactor = -1;
     }
 
-    Atom() {}
+    /**
+     * @brief Construct a new Atom object.
+     * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
+     */
+    Atom(const string recName, const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
+        const string iCode, const TVector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
+            this->recName = recName;
+            this->set_serial(serial);
+            this->set_name(name);
+            this->altLoc = altLoc;
+            this->set_resName(resName);
+            this->chainID = chainID;
+            this->resSeq = resSeq;
+            this->iCode = iCode;
+            this->set_coordinates(coords);
+            this->set_occupancy(occupancy);
+            this->tempFactor = tempFactor;
+            this->set_element(element);
+            this->charge = charge;
+    }
+
+    /**
+     * @brief Construct a new empty Atom object.
+     */
+    Atom() {
+        recName = "NULL";
+        name = "";
+        altLoc = "";
+        resName = "";
+        chainID = "";
+        iCode = "";
+        element = "";
+        charge = "";
+        serial = -1;
+        resSeq = -1;
+        occupancy = -1;
+        tempFactor = -1;
+        coords = {0, 0, 0};
+    }
 
     RecordType get_type() const override {return ATOM;}
 
@@ -88,7 +135,7 @@ public:
             this->set_serial(std::stoi(serial));
             this->set_name(name);
             this->altLoc = altLoc;
-            this->resName = resName;
+            this->set_resName(resName);
             this->chainID = chainID;
             this->resSeq = std::stoi(resSeq);
             this->iCode = iCode;
@@ -177,19 +224,23 @@ public:
     }
 
     // setters
-    void set_coordinates(TVector3 v) {this->coords = v;}
-    void set_x(double x) {this->coords.SetX(x);}
-    void set_y(double y) {this->coords.SetY(y);}
-    void set_z(double z) {this->coords.SetZ(z);}
+    void set_coordinates(const TVector3 v) {this->coords = v;}
+    void set_x(const double x) {this->coords.SetX(x);}
+    void set_y(const double y) {this->coords.SetY(y);}
+    void set_z(const double z) {this->coords.SetZ(z);}
     void set_occupancy(double occupancy) {this->occupancy = occupancy;}
-    void set_serial(int serial) {this->serial = serial;}
+    void set_serial(const int serial) {this->serial = serial;}
+    void set_resName(string resName) {
+        boost::erase_all(resName, " "); // remove spaces
+        this->resName = resName;
+    }
 
     /**
      * @brief Set the atomic name for this Atom. Any spaces are removed.
      * @param name the atomic name, e.g. LYS.
      */
     void set_name(string name) {
-        boost::erase_all(name, " ");
+        boost::erase_all(name, " "); // remove spaces
         this->name = name;
     }
 
@@ -247,6 +298,23 @@ public:
         if (resSeq != rhs.resSeq) {return false;}
         if (coords != rhs.coords) {return false;}
         return true;
+    }
+
+    /**
+     * @brief Create a new water Atom.
+     * @return A pointer to the new water Atom. 
+     */
+    static unique_ptr<Atom> create_new_water() {
+        return create_new_water({0, 0, 0});
+    }
+
+    /**
+     * @brief Create a new water Atom.
+     * @param coords the coordinates for the new Atom.
+     * @return A pointer to the new water Atom. 
+     */
+    static unique_ptr<Atom> create_new_water(TVector3 coords) {
+        return std::make_unique<Atom>(Atom("HETATM", -1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", ""));
     }
 
 private:

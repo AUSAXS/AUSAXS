@@ -3,106 +3,127 @@
 #include <string>
 #include <fstream>
 
-// ROOT
-#include <TStyle.h>
-#include <TROOT.h>
-#include <TCanvas.h>
-#include <TH1.h>
-
-// my own includes
-#include "../Protein.cpp"
-#include "../Grid.cpp"
+#include "tests/Test.h"
+#include "Protein.cpp"
+#include "Grid.cpp"
 
 using namespace ROOT;
 
-int main(int argc, char const *argv[])
-{
-    cout << "Testing Grid class...\t\r" << std::flush;
+/**
+ * @brief Test that the grid is generated correctly.
+ */
+void test_grid_generation() {
     TVector3 base(-10, -10, -10);
     int width = 1;
     int bins = 21;
     Grid grid(base, width, bins);
 
-    // check the grid generation
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
     grid.add(&a);
     vector<vector<vector<bool>>> &g = *grid.get_grid();
 
-    try {
-        // check that it was placed correctly in the grid
-        assert(g[10][10][10]);
+    // check that it was placed correctly in the grid
+    IS_TRUE(g[10][10][10]);
+    IS_TRUE(!g[10][10][11]);
+    IS_TRUE(!g[10][11][11]);
+    IS_TRUE(!g[11][10][10]);
+    IS_TRUE(!g[9][8][14]);
+}
 
-        // some additional random checks
-        assert(!g[10][10][11]);
-        assert(!g[10][11][11]);
-        assert(!g[11][10][10]);
-        assert(!g[9][8][14]);
-    } catch (const std::exception& e) {
-        print_err("Atom was placed incorrectly in the Grid.");
-    }
+void test_simple_bounding_box() {
+    TVector3 base(-10, -10, -10);
+    int width = 1;
+    int bins = 21;
+    Grid grid(base, width, bins);
 
-    // check that the bounding box of a point atom is correct
+    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
+    vector<shared_ptr<Atom>> a = {atom};
+    grid.add(&a);
+    vector<vector<vector<bool>>> &g = *grid.get_grid();
+
     vector<vector<int>> box = grid.bounding_box();
-    try {
-        // check that it was placed correctly in the grid
-        assert(box[0][0] == 10);
-        assert(box[0][1] == 10);
-        assert(box[1][0] == 10);
-        assert(box[1][1] == 10);
-        assert(box[2][0] == 10);
-        assert(box[2][1] == 10);
-    } catch (const std::exception& e) {
-        print_err("The bounding box is incorrect.");
-    }
+    IS_TRUE(box[0][0] == 10);
+    IS_TRUE(box[0][1] == 10);
+    IS_TRUE(box[1][0] == 10);
+    IS_TRUE(box[1][1] == 10);
+    IS_TRUE(box[2][0] == 10);
+    IS_TRUE(box[2][1] == 10);
+}
 
-    // check the possible HOH spot locator
-    grid.set_radius(3);
-    vector<vector<int>> locs = grid.find_free_locs();
-    try {
-        assert(locs.size() == 6);
-        assert(locs[0] == vector({7, 10, 10}));
-        assert(locs[1] == vector({13, 10, 10}));
-        assert(locs[2] == vector({10, 7, 10}));
-        assert(locs[3] == vector({10, 13, 10}));
-        assert(locs[4] == vector({10, 10, 7}));
-        assert(locs[5] == vector({10, 10, 13}));
-    } catch (const std::exception& e) {
-        print_err("Volume expansion failed.");
-    }
+void test_complex_bounding_box() {
+    TVector3 base(-10, -10, -10);
+    int width = 1;
+    int bins = 21;
+    Grid grid(base, width, bins);
 
-    // check that volumes are filled correctly
-    grid.expand_volume(3);
-    try {
-        assert(g[10][10][12]);
-        assert(g[12][10][10]);
-        assert(g[10][12][10]);
-        assert(g[9][9][9]);
-
-        assert(!g[8][8][8]);
-        assert(!g[12][12][12]);
-    } catch (const std::exception& e) {
-        print_err("Volume expansion failed.");
-    }
-
-    // check that the bounding box of a more advanced structure is correct
     shared_ptr<Atom> a1 = std::make_shared<Atom>(Atom({5, 0, -7}, 0, "C", "", 1));
     shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, -5, 0}, 0, "C", "", 2));
-    a = {a1, a2};
+    vector<shared_ptr<Atom>> a = {a1, a2};
+
     grid.add(&a);
     grid.expand_volume(3);
-    box = grid.bounding_box();
-    try {
-        assert(box[0][0] == 10);
-        assert(box[0][1] == 15);
-        assert(box[1][0] == 5);
-        assert(box[1][1] == 10);
-        assert(box[2][0] == 3);
-        assert(box[2][1] == 10);
-    } catch (const std::exception& e) {
-        print_err("The bounding box for three atoms is incorrect.");
-    }
+    vector<vector<vector<bool>>> &g = *grid.get_grid();
 
+    vector<vector<int>> box = grid.bounding_box();
+    IS_TRUE(box[0][0] == 10);
+    IS_TRUE(box[0][1] == 15);
+    IS_TRUE(box[1][0] == 5);
+    IS_TRUE(box[1][1] == 10);
+    IS_TRUE(box[2][0] == 3);
+    IS_TRUE(box[2][1] == 10);
+}
+
+void test_find_free_locs() {
+    TVector3 base(-10, -10, -10);
+    int width = 1;
+    int bins = 21;
+    Grid grid(base, width, bins);
+
+    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
+    vector<shared_ptr<Atom>> a = {atom};
+    grid.add(&a);
+    vector<vector<vector<bool>>> &g = *grid.get_grid();
+
+    grid.set_radius(3);
+    vector<vector<int>> locs = grid.find_free_locs();
+    IS_TRUE(locs.size() == 6);
+    IS_TRUE(locs[0] == vector({7, 10, 10}));
+    IS_TRUE(locs[1] == vector({13, 10, 10}));
+    IS_TRUE(locs[2] == vector({10, 7, 10}));
+    IS_TRUE(locs[3] == vector({10, 13, 10}));
+    IS_TRUE(locs[4] == vector({10, 10, 7}));
+    IS_TRUE(locs[5] == vector({10, 10, 13}));
+}
+
+void test_volume_expansion() {
+    TVector3 base(-10, -10, -10);
+    int width = 1;
+    int bins = 21;
+    Grid grid(base, width, bins);
+
+    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
+    vector<shared_ptr<Atom>> a = {atom};
+    grid.add(&a);
+    vector<vector<vector<bool>>> &g = *grid.get_grid();
+
+    grid.expand_volume(3);
+    IS_TRUE(g[10][10][12]);
+    IS_TRUE(g[12][10][10]);
+    IS_TRUE(g[10][12][10]);
+    IS_TRUE(g[9][9][9]);
+    IS_TRUE(!g[8][8][8]);
+    IS_TRUE(!g[12][12][12]);
+}
+
+int main(void)
+{
+    cout << "Summary of Grid testing:" << std::endl;
+    test_grid_generation();
+    test_simple_bounding_box();
+    test_complex_bounding_box();
+    test_find_free_locs();
+    test_volume_expansion();
     cout << "\033[1;32m" << "All Grid tests passed." << "\033[0m" << endl;
     return 0;
 }

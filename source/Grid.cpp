@@ -58,18 +58,18 @@ public:
         vector<shared_ptr<Atom>> hydration_atoms;
         vector<vector<int>> hydration_slots = find_free_locs();
 
-        // create a new HOH molecule based on an index vector ### NO SERIAL ###
-        auto new_HOH = [&] (vector<int> v) {
+        // create a new water molecule based on an index vector ### NO SERIAL ###
+        auto create_new_water = [&] (vector<int> v) {
             double x = base.X() + v[0]*width;
             double y = base.Y() + v[1]*width;
             double z = base.Z() + v[2]*width;
-            return std::make_shared<Atom>(Atom({x, y, z}, 1, "O", "HOH", members.size()+1));
+            return Atom::create_new_water({x, y, z});
         };
 
         int c = 0; // counter
         for (vector<int> v : hydration_slots) {
             c++;
-            shared_ptr<Atom> a = new_HOH(v);
+            shared_ptr<Atom> a = create_new_water(v);
             if (reduce != 0) {
                 if (c % reduce != 0) {
                     continue;
