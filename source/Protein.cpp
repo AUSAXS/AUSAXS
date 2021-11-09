@@ -59,7 +59,7 @@ public:
             print_err((format("ERROR: Unknown writing format for path \"%1%\".") % path).str());
             exit(1);
         }
-        writer->write(&protein_atoms, &hydration_atoms);
+        writer->write(file);
         writer->close();
     }
 
@@ -192,7 +192,7 @@ public:
 private:
     vector<shared_ptr<Atom>> protein_atoms; // atoms of the protein itself
     vector<shared_ptr<Atom>> hydration_atoms; // hydration layer
-    unique_ptr<File> file; 
+    shared_ptr<File> file; 
 
     /** Move the entire protein by a vector
      * @param v the translation vector
@@ -216,7 +216,7 @@ private:
         protein_atoms = vector<shared_ptr<Atom>>(atoms.size());
         int i = 0, j = 0; // index counters for the hydration and protein vectors, respectively
         for (auto const& a : atoms) {
-            if (a->get_name() == "HOH") { // check if it is a hydration molecule
+            if (a->is_water()) { // check if it is a hydration molecule
                 hydration_atoms[i] = a;
                 i++;
             } else {

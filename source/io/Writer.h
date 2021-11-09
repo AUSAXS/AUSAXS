@@ -29,7 +29,7 @@ public:
 
     Writer(){};
 
-    virtual void write(vector<shared_ptr<Atom>>* protein_atoms, vector<shared_ptr<Atom>>* hydration_atoms) {}
+    virtual void write(shared_ptr<File> file) {}
 
     void close() {output.close();}
 

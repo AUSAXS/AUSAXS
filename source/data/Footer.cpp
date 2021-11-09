@@ -11,15 +11,35 @@ class Footer : Record {
 public: 
     Footer(){}
 
-    void parse_pdb(string s) {}
-    void parse_xml(string s) {}
+    /**
+     * @brief Get the RecordType of this object.
+     * @return Record::Footer
+     */
+    RecordType get_type() const override {return FOOTER;}
 
-    RecordType get_type() override {return FOOTER;}
+    /**
+     * @brief Parse a .pdb format Footer string. This is equivalent to the add method.
+     * @param s the .pdb format Footer string.
+     */
+    void parse_pdb(const string s) override {add(contents);}
 
-    string as_pdb() const {return "";}
-    string as_pdbml() const {return "";}
+    /**
+     * @brief Get the .pdb format representation of this Footer. This is equivalent to the get method.
+     * @return the .pdb format Footer string. 
+     */
+    string as_pdb() const override {return get();}
 
-    void add(string s) {contents += s;}
+    /**
+     * @brief Add a Footer line to the internal storage of this Footer. 
+     * @param s the Footer line. 
+     */
+    void add(const string s) {contents += s + "\n";}
+
+    /**
+     * @brief Get the .pdb format representation of this Footer.
+     * @return the .pdb format Footer string. 
+     */
+    string get() const {return contents;};
 
 private: 
     string contents;

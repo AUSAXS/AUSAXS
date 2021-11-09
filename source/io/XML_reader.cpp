@@ -22,6 +22,8 @@ public:
     };
 
     unique_ptr<File> read() override {
+        print_err("Error in XML_reader::read: Not implemented.");
+        exit(1);
         string line; // placeholder for the current line
         unique_ptr<File> file = std::make_unique<File>();
         while(getline(input, line)) {
@@ -30,17 +32,16 @@ public:
                 continue; // otherwise we just skip it
             }
 
-
             string type = line.substr(0, 6); // read the first 6 characters
-            switch(File::get_type(type)) {
+            switch(Record::get_type(type)) {
                 case Record::RecordType::ATOM: {
                     shared_ptr<Atom> atom = std::make_shared<Atom>();
-                    atom->parse_xml(line);
+                    // atom->parse_xml(line);
                     file->add(atom);
                     break;
                 } case Record::RecordType::TERMINATE: {
                     shared_ptr<Terminate> term = std::make_shared<Terminate>();
-                    term->parse_xml(line);
+                    // term->parse_xml(line);
                     file->add(term);
                     break;
                 } case Record::RecordType::HEADER: {

@@ -8,6 +8,7 @@
 
 // my own includes
 #include "Writer.h"
+#include "data/File.cpp"
 
 using std::setw, std::left, std::right;
 
@@ -18,29 +19,5 @@ public:
      */
     PDB_writer(string filename) : Writer(filename) {};
 
-    void write(vector<shared_ptr<Atom>>* protein_atoms, vector<shared_ptr<Atom>>* hydration_atoms) override {
-        auto write_v = [&] (vector<shared_ptr<Atom>>* atoms) {
-            for (auto const& a : *atoms) {
-                output << left << setw(6) << "ATOM" << " "            // starts at index 0
-                << right << setw(4) << a->get_serial() << "  "      // 7
-                << left << setw(3) << "NAN" << " "                  // 13
-                << left << setw(3) << a->get_name() << " "          // 17
-                << "A" << " "                                       // 21
-                << right << setw(3) << "00" << " "                  // 23
-                << "    "                                           // 27
-                << right << setw(7) << a->get_x() << " "            // 31
-                << right << setw(7) << a->get_y() << " "            // 39
-                << right << setw(7) << a->get_z() << " "            // 47
-                << right << setw(5) << a->get_occupancy() << " "    // 55
-                << right << setw(5) << "00.00" << " "               // 61
-                << "        "                                       // 67
-                << right << setw(3) << a->get_element() << " "       // 75
-                << endl;                                            // 79
-            }
-        };
-        write_v(protein_atoms);
-        // file << left << setw(6) << "TER" << " " << right << setw(4) << protein_atoms->size() << "  " << endl;
-        write_v(hydration_atoms);
-        return;
-    }
+    void write(shared_ptr<File> file) override {output << file->as_pdb() << std::flush;}
 };

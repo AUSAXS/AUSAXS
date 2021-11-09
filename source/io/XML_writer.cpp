@@ -20,7 +20,12 @@ public:
      */
     XML_writer(string filename) : Writer(filename) {};
 
-    void write(vector<shared_ptr<Atom>>* protein_atoms, vector<shared_ptr<Atom>>* hydration_atoms) override {
+    void write(shared_ptr<File> file) override {
+        print_err("Error in XML_writer::write: Not implemented.");
+        exit(1);
+    }
+
+    void write(vector<shared_ptr<Atom>>* protein_atoms, vector<shared_ptr<Atom>>* hydration_atoms) {
         std::filesystem::path p(filename);
         output << format("<PDBx:datablock datablockName=%1%>") % p.stem() << endl;
         output << "   <PDBx:atom_siteCategory>" << endl;
@@ -43,6 +48,6 @@ private:
         \n         <PDBx:occupancy>%5%</PDBx:occupancy> \
         \n         <PDBx:type_symbol>%6%</PDBx:type_symbol> \
         \n         <PDBx:label_comp_id>%7%</PDBx:label_comp_id> \
-        \n      </PDBx:atom_site>") % atom->get_serial() % atom->get_x() % atom->get_y() % atom->get_z() % atom->get_occupancy() % atom->get_element() % atom->get_name()).str();
+        \n      </PDBx:atom_site>") % atom->get_serial() % atom->get_x() % atom->get_y() % atom->get_z() % atom->get_occupancy() % atom->get_element() % atom->get_resName()).str();
     }
 };

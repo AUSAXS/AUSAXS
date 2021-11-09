@@ -31,7 +31,7 @@ public:
         unique_ptr<File> file = std::make_unique<File>();
         while(getline(input, line)) {
             string type = line.substr(0, 6); // read the first 6 characters
-            switch(File::get_type(type)) {
+            switch(Record::get_type(type)) {
                 case Record::RecordType::ATOM: {
                     shared_ptr<Atom> atom = std::make_shared<Atom>();
                     atom->parse_pdb(line);

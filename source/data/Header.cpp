@@ -11,15 +11,35 @@ class Header : Record {
 public: 
     Header(){}
 
-    void parse_pdb(string s) {}
-    void parse_xml(string s) {}
+    /**
+     * @brief Get the RecordType of this object.
+     * @return Record::HEADER
+     */
+    RecordType get_type() const override {return HEADER;}
 
-    RecordType get_type() override {return HEADER;}
+    /**
+     * @brief Parse a .pdb format header string. This is equivalent to the add method.
+     * @param s the .pdb format header string.
+     */
+    void parse_pdb(const string s) override {add(contents);}
 
-    string as_pdb() const {return "";}
-    string as_pdbml() const {return "";}
+    /**
+     * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.
+     * @return the .pdb format header string. 
+     */
+    string as_pdb() const override {return get();}
 
-    void add(string s) {contents += s;}
+    /**
+     * @brief Add a header line to the internal storage of this Header. 
+     * @param s the header line. 
+     */
+    void add(const string s) {contents += s + "\n";}
+
+    /**
+     * @brief Get the .pdb format representation of this Header.
+     * @return the .pdb format header string. 
+     */
+    string get() const {return contents;};
 
 private: 
     string contents;
