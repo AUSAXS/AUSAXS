@@ -189,26 +189,4 @@ private:
         move(&protein_atoms);
         move(&hydration_atoms);
     }
-
-    /** 
-     * @brief Separate the structure into the protein and its hydration layer 
-     * @return A pointer pair of (protein atoms, hydration atoms) to the private data of this class.
-     */
-    void separate(const vector<shared_ptr<Atom>> atoms) {
-        hydration_atoms = vector<shared_ptr<Atom>>(atoms.size());
-        protein_atoms = vector<shared_ptr<Atom>>(atoms.size());
-        int i = 0, j = 0; // index counters for the hydration and protein vectors, respectively
-        for (auto const& a : atoms) {
-            if (a->is_water()) { // check if it is a hydration molecule
-                hydration_atoms[i] = a;
-                i++;
-            } else {
-                protein_atoms[j] = a;
-                j++;
-            }
-        }
-        hydration_atoms.resize(i);
-        protein_atoms.resize(j);
-        cout << format("Found %1% protein atoms, and %2% hydration atoms.") % protein_atoms.size() % hydration_atoms.size() << endl;
-    };
 };

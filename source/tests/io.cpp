@@ -139,6 +139,6 @@ int main(int argc, char const *argv[])
             remove("temp.pdb");
         }
 
-    cout << "\033[1;32m" << "All io tests passed." << "\033[0m" << endl;
+    cout << "\033[1;32m" << "All io tests passed.           " << "\033[0m" << endl;
     return 0;
 }
