@@ -39,7 +39,7 @@ public:
         this->set_serial(serial);
     }
 
-    Atom() {};
+    Atom() {}
 
     RecordType get_type() const override {return ATOM;}
 

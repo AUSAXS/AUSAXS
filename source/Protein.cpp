@@ -11,11 +11,8 @@
 
 // my own includes
 #include "data/Atom.cpp"
-#include "io/PDB_reader.cpp"
-#include "io/PDB_writer.cpp"
-#include "io/XML_reader.cpp"
-#include "io/XML_writer.cpp"
 #include "Grid.cpp"
+#include "data/PDB_file.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
@@ -28,39 +25,25 @@ public:
      */
     Protein(string path) {
         // determine which kind of input file we're looking at
-        unique_ptr<Reader> reader;
         if (path.find(".xml") != string::npos) { // .xml file
-            reader = std::make_unique<XML_reader>(path);
+            print_err("Error in Protein::Protein: .xml input files are not supported.");
         } else if (path.find(".pdb") != string::npos) { // .pdb file
-            reader = std::make_unique<PDB_reader>(path);
+            file = std::make_shared<PDB_file>(path);
         } else { // anything else - we cannot handle this
-            print_err((format("ERROR: Invalid file extension of input file %1%.") % path).str());
+            print_err((format("Error in Protein::Protein: Invalid file extension of input file %1%.") % path).str());
             exit(1);
         }
         
-        file = reader->read();
-        vector<shared_ptr<Atom>> atoms = file->get_atoms();
-        reader->close();
-
-        separate(atoms);
+        auto[pa, ha] = file->get_atoms();
+        protein_atoms = pa;
+        hydration_atoms = ha;
     }
 
     /** Writes this protein to disk.
      * @param path path to the destination. 
      */
     void save(string path) {
-        // determine the format of the output file
-        Writer* writer;
-        if (path.find(".xml") != string::npos) { // .xml file
-            writer = new XML_writer(path);
-        } else if (path.find(".pdb") != string::npos) { // .pdb file
-            writer = new PDB_writer(path);
-        } else { // anything else - we cannot handle this
-            print_err((format("ERROR: Unknown writing format for path \"%1%\".") % path).str());
-            exit(1);
-        }
-        writer->write(file);
-        writer->close();
+        file->write(path);
     }
 
     /** Calculate the distances between each pair of atoms. 

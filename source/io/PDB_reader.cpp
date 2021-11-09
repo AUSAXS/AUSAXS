@@ -10,7 +10,7 @@
 // my own includes
 #include "Reader.h"
 #include "data/Record.h"
-#include "data/File.cpp"
+#include "data/PDB_file.cpp"
 
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 
 

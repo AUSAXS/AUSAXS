@@ -8,7 +8,7 @@
 
 // my own includes
 #include "Writer.h"
-#include "data/File.cpp"
+#include "data/PDB_file.cpp"
 
 using std::setw, std::left, std::right;
 

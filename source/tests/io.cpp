@@ -125,10 +125,10 @@ int main(int argc, char const *argv[])
         remove("temp2.pdb");
     }
 
-    // load and copy each file in the Data/ folder, and then compare the two files line-by-line
+    // load and copy each file in the data/ folder, and then compare the two files line-by-line
     // this is probably one of the strongest tests we can make for i/o
-    for (const auto& file : std::filesystem::recursive_directory_iterator("data"))
-        if (check_pdb && file.path().extension() == ".pdb") {
+    for (const auto& file : std::filesystem::recursive_directory_iterator("data")) // loop over all files in the data/ directory
+        if (check_pdb && file.path().extension() == ".pdb") { // check if the extension is .pdb
             Protein* protein = new Protein(file.path().string());
             protein->save("temp.pdb");
             try {

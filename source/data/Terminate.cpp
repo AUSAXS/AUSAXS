@@ -9,6 +9,16 @@ using std::string, std::left, std::right, std::setw;
 
 class Terminate : public Record {
 public: 
+    Terminate(int serial, string resName, string chainID, int resSeq, string iCode) {
+        this->serial = serial;
+        this->resName = resName;
+        this->chainID = chainID;
+        this->resSeq = resSeq;
+        this->iCode = iCode;
+    }
+
+    Terminate() {}
+
     /**
      * @brief Get the RecordType of this object.
      * @return Record::TERMINATE
@@ -79,8 +89,8 @@ public:
             << setw(53) << "                                                     " // 80
             << endl;
         return ss.str();
-;}
-
+    }
+    
 private:
     int serial, resSeq;
     string resName, chainID, iCode;
