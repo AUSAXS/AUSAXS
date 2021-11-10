@@ -18,6 +18,5 @@ Læs volumen nukleiner, syrer
     Peter Zipper ~1980
     ATSAS Crysol
 
-Make a short presentation on C++
-    - Objects
-    - Functions
+Coordinates with more than 4 digits breaks the formatting
+    - Check that this does not occur?

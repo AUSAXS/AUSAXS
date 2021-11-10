@@ -164,25 +164,25 @@ public:
         //                   0     1           2              3     4  5  6      7     8
         //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
         //          format: "%6c%5c%2c%4c%1c%3c %1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c"
-        ss << left << setw(6) << recName                 // 1 - 6
-            << right << setw(5) << get_serial()          // 7 - 11
-            << " "                                       // 12
-            << " " << left << setw(3) << name            // 13 - 16
-            << left << setw(1) << altLoc                 // 17
-            << left << setw(3) << resName                // 18 - 20
-            << " "                                       // 21
-            << left << setw(1) << chainID                // 22
-            << right << setw(4) << resSeq                // 23 - 26
-            << right << setw(1) << iCode                 // 27
-            << "   "                                     // 28 - 30
-            << right << setw(8) << get_x()               // 31 - 38
-            << right << setw(8) << get_y()               // 39 - 46
-            << right << setw(8) << get_z()               // 47 - 54
-            << right << setw(6) << get_occupancy()       // 55 - 60
-            << right << setw(6) << tempFactor            // 61 - 66
-            << "          "                              // 67 - 76
-            << right << setw(2) << get_element()         // 77 - 78
-            << left << setw(2) << charge                 // 79 - 80
+        ss << left << setw(6) << recName                                         // 1 - 6
+            << right << setw(5) << get_serial()                                  // 7 - 11
+            << " "                                                               // 12
+            << " " << left << setw(3) << name                                    // 13 - 16
+            << left << setw(1) << altLoc                                         // 17
+            << left << setw(3) << resName                                        // 18 - 20
+            << " "                                                               // 21
+            << left << setw(1) << chainID                                        // 22
+            << right << setw(4) << resSeq                                        // 23 - 26
+            << right << setw(1) << iCode                                         // 27
+            << "   "                                                             // 28 - 30
+            << right << setw(8) << std::setprecision(7) << get_x()               // 31 - 38
+            << right << setw(8) << std::setprecision(7) << get_y()               // 39 - 46
+            << right << setw(8) << std::setprecision(7) << get_z()               // 47 - 54
+            << right << setw(6) << std::setprecision(7) << get_occupancy()       // 55 - 60
+            << right << setw(6) << std::setprecision(7) << tempFactor            // 61 - 66
+            << "          "                                                      // 67 - 76
+            << right << setw(2) << get_element()                                 // 77 - 78
+            << left << setw(2) << charge                                         // 79 - 80
             << endl;
         return ss.str();
     }

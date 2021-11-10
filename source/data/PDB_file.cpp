@@ -31,7 +31,7 @@ public:
     void write(string path) const override {
         std::ofstream output(path);
         if (!output.is_open()) {
-            print_err("Could not open file \"" + filename + "\"");
+            print_err("Error in PDB_file::write: Could not open file \"" + path + "\"");
             exit(1);
         }
         output << as_pdb() << std::flush;
@@ -95,7 +95,7 @@ private:
         // check if file was succesfully opened
         std::ifstream input(filename);
         if (!input.is_open()) {
-            print_err("Could not open file \"" + filename + "\"");
+            print_err("Error in PDB_file::read: Could not open file \"" + filename + "\"");
             exit(1);
         }
 

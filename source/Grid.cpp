@@ -18,13 +18,37 @@ using namespace ROOT;
 
 class Grid {
 public:
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}) {}
+    /**
+     * @brief Construct a new Grid object.
+     * @param base the base point for the grid.
+     * @param width the distance between each point.
+     * @param bins the number of bins in all dimensions. 
+     */
+    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, sqrt(8)) {}
 
-    Grid(TVector3 base, double width, vector<int> bins) {
+    /**
+     * @brief Construct a new Grid object.
+     * @param base the base point for the grid.
+     * @param width the distance between each point.
+     * @param bins the number of bins in all dimensions. 
+     * @param radius the radius of each atom.
+     */
+    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius) {}
+
+    /**
+     * @brief Construct a new Grid object.
+     * @param base the base point for the grid.
+     * @param width the distance between each point.
+     * @param bins the number of bins in each dimension. 
+     * @param radius the radius of each atom.
+     */
+    Grid(TVector3 base, double width, vector<int> bins, double radius) {
         this->base = base;
         this->width = width;
         this->bins = bins;
         this->grid = vector(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false)));
+        this->set_radius_atoms(radius);
+        this->set_radius_water(radius);
     }
 
     /** 
@@ -38,11 +62,10 @@ public:
     }
 
     /** 
-     * @brief Expand the member atoms into actual spheres of a given radius. 
-     * @param radius the radius of the spherical expansion in Ångström. 
+     * @brief Expand the member atoms into actual spheres of radius r. 
      */
-    void expand_volume(double radius) {
-        set_radius(radius);
+    void expand_volume() {
+        vol_expanded = true;
 
         // iterate through each member location
         for (const auto& pair : members) {
@@ -87,42 +110,49 @@ public:
      * @brief Identify possible hydration binding locations for the structure. 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<vector<int>> find_free_locs() const {
+    vector<vector<int>> find_free_locs() {
         // a quick check to verify there are no water molecules already present
         for (const auto& pair : members) {
             if (pair.first.is_water()) {
-                print_err("WARNING: Attempting to hydrate a grid which already contains water!");
+                print_err("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
             }
         }
-        if (r == 0) {
-            print_err("WARNING: Attempting to hydrate a grid of atoms without any volume! This is most likely an error.");
+
+        if (!vol_expanded) {
+            expand_volume();
         }
 
         vector<vector<int>> bounds = bounding_box();
-        // add 2*radius extra space in each direction
+        // add ra+rh extra space in each direction to account for the volume of both atoms and water molecules
         for (int i = 0; i < 3; i++) {
-            bounds[i][0] = std::max(bounds[i][0] - 2*r, 0);
-            bounds[i][1] = std::min(bounds[i][1] + 2*r, bins[i]);
+            bounds[i][0] = std::max(bounds[i][0] - (ra+rh), 0);
+            bounds[i][1] = std::min(bounds[i][1] + (ra+rh) + 1, bins[i]); // +1 since this range is inclusive, but the following loop is not
         }
 
         // loop over the minimum bounding box as found above
         vector<vector<int>> available_locs;
-        for (int i = bounds[0][0]; i < bounds[0][1]; i+=r) {
-            for (int j = bounds[1][0]; j < bounds[1][1]; j+=r) {
-                for (int k = bounds[2][0]; k < bounds[2][1]; k+=r) {
+        auto check_loc = [&] (const vector<int> v) {return check_collisions(v, available_locs);};
+        for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
+            for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
+                for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
                     // if this spot is part of an atom
                     if (grid[i][j][k]) {
-                        // check x ± r
-                        if (!grid[std::max(i-r, 0)][j][k]) available_locs.push_back({std::max(i-r, 0), j, k});
-                        if (!grid[std::min(i+r, bins[0])][j][k]) available_locs.push_back({std::min(i+r, bins[0]), j, k});
+                        // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
+                        int xmin = std::max(i-rh, 0), xmax = std::min(i+rh, bins[0]);
+                        int ymin = std::max(j-rh, 0), ymax = std::min(j+rh, bins[1]);
+                        int zmin = std::max(k-rh, 0), zmax = std::min(k+rh, bins[2]);
 
-                        // check y ± r
-                        if (!grid[i][std::max(j-r, 0)][k]) available_locs.push_back({i, std::max(j-r, 0), k});
-                        if (!grid[i][std::min(j+r, bins[1])][k]) available_locs.push_back({i, std::min(j+r, bins[1]), k});
+                        // check collisions for x ± r_eff
+                        if (!grid[xmin][j][k] && check_loc({xmin, j, k})) available_locs.push_back({xmin, j, k});
+                        if (!grid[xmax][j][k] && check_loc({xmax, j, k})) available_locs.push_back({xmax, j, k});
 
-                        // check z ± r
-                        if (!grid[i][j][std::max(k-r, 0)]) available_locs.push_back({i, j, std::max(k-r, 0)});
-                        if (!grid[i][j][std::min(k+r, bins[2])]) available_locs.push_back({i, j, std::min(k+r, bins[2])});
+                        // check collisions for y ± r_eff
+                        if (!grid[i][ymin][k] && check_loc({i, ymin, k})) available_locs.push_back({i, ymin, k});
+                        if (!grid[i][ymax][k] && check_loc({i, ymax, k})) available_locs.push_back({i, ymax, k});
+
+                        // check collisions for z ± r_eff
+                        if (!grid[i][j][zmin] && check_loc({i, j, zmin})) available_locs.push_back({i, j, zmin});
+                        if (!grid[i][j][zmax] && check_loc({i, j, zmax})) available_locs.push_back({i, j, zmax});
                     }
                 }
             }
@@ -137,14 +167,14 @@ public:
      */
     vector<vector<int>> bounding_box() const {
         if (members.size() == 0) {
-            print_err("ERROR: Calculating a boundary box for a grid with no members!");
+            print_err("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
             exit(1);
         }
 
-        // initialize the bounds with values that will always be replaced in the following loop
-        vector<vector<int>> box = {{bins[0]+1, -1}, {bins[1]+1, -1}, {bins[2]+1, -1}};
+        // initialize the bounds as large as possible
+        vector<vector<int>> box = {{bins[0], 0}, {bins[1], 0}, {bins[2], 0}};
         for (const auto& pair : members) {
-            vector<int> loc = pair.second;
+            const vector<int>& loc = pair.second;
             for (int i = 0; i < 3; i++) {
                 if (box[i][0] > loc[i]) box[i][0] = loc[i]; // min
                 if (box[i][1] < loc[i]) box[i][1] = loc[i]; // max
@@ -160,15 +190,27 @@ public:
     vector<vector<vector<bool>>>* get_grid() {return &grid;}
 
     /**
-     * @brief Set the radius.
-     * @param radius The new radius.
+     * @brief Set the radius of all atoms (not water molecules!).
+     * @param radius The new radius in Ångström.
      */
-    void set_radius(double radius) {
-        int new_r = int(radius/width);
-        if (this->r != 0 && this->r != new_r) {
-            print_err("WARNING: The radius is already set for this grid!");
+    void set_radius_atoms(double radius) {
+        int new_r = int(radius/width); // convert the radius to a "bin-radius"
+        if (this->ra != 0 && this->ra != new_r) {
+            print_err("Warning in Grid::set_radius: The radius is already set for this grid!");
         }
-        this->r = new_r;
+        this->ra = new_r;
+    }
+
+    /**
+     * @brief Set the radius for all water molecules.
+     * @param radius The new radius in Ångström.
+     */
+    void set_radius_water(double radius) {
+        int new_r = int(radius/width); // convert the radius to a "bin-radius"
+        if (this->rh != 0 && this->rh != new_r) {
+            print_err("Warning in Grid::set_radius: The radius is already set for this grid!");
+        }
+        this->rh = new_r;
     }
 
     /**
@@ -176,7 +218,7 @@ public:
      * NOTE: Consider adding a parameter to start all their serials from. 
      * @return A vector containing all of the hydration atoms. 
      */
-    vector<Atom*> get_hydration_atoms() {
+    vector<Atom*> get_hydration_atoms() const {
         vector<Atom*> atoms;
         for (const auto& pair : members) {
             Atom a = pair.first;
@@ -194,16 +236,64 @@ private:
     std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
     vector<int> bins; // the number of bins in each dimension
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-    int r = 0; // radius of each atom represented as a number of bins
+    int ra = 0; // radius of each atom represented as a number of bins
+    int rh = 0; // radius of each water molecule represented as a number of bins
+    bool vol_expanded = false; // a flag determining if the volume has been expanded 
+
+    /**
+     * @brief Check if a water molecule can be placed at the given location. 
+     *        This checks collisions with both other water molecules and other atoms. 
+     * @param loc the location to be checked. 
+     * @param other_molecules the other water molecules which have already been placed.
+     * @return True if this is an acceptable location, false otherwise.
+     */
+    bool check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const {
+        const int x = loc[0], y = loc[1], z = loc[2];
+
+        // check collision with other atoms
+        int r_eff = ra + rh; // effective radius for water/atom collisions
+        for (auto const& pair : members) {
+            const vector<int>& v = pair.second;
+
+            // check if the point is inside the spherical volume of loc
+            if (sqrt(pow(x-v[0], 2) + pow(y-v[1], 2) + pow(z-v[2], 2)) < r_eff) {
+                // cout << format("Atom: (%1%, %2%, %3%), water: (%4%, %5%, %6%)") % v[0] % v[1] % v[2] % x % y % z << endl;
+                // cout << "Separation: " << sqrt(pow(x-v[0], 2) + pow(y-v[1], 2) + pow(z-v[2], 2)) << endl << endl;
+                return false;
+            }
+        }
+
+        // check collision with other water molecules
+        r_eff = 2*rh; // effective radius for water/water collisions
+        for (auto const& a : other_molecules) {
+            // check if the point is inside the spherical volume of loc
+            if (sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2)) < r_eff) {
+                cout << "water dist: " << sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2)) << endl;
+                return false;
+            }            
+        }
+        return true;
+    }
 
     /** 
-     * @brief Expand a single member atom into an actual sphere. The radius r must be set.
+     * @brief Expand a single member atom into an actual sphere.
+     * @param atom the member atom to be expanded. 
      */
-    void expand_volume(Atom atom) {
+    void expand_volume(const Atom atom) {
         vector<int> loc = members.at(atom);
-        for (int i = std::max(loc[0] - r, 0); i < std::min(loc[0] + r, bins[0]); i++) {
-            for (int j = std::max(loc[1] - r, 0); j < std::min(loc[1] + r, bins[1]); j++) {
-                for (int k = std::max(loc[2] - r, 0); k < std::min(loc[2] + r, bins[2]); k++) {
+        int r = atom.is_water() ? rh : ra; // determine which radius to use for the expansion
+
+        // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+        vector<vector<int>> bounds(3, vector<int>(2, 0));
+        for (int i = 0; i < 3; i++) {
+            bounds[i][0] = std::max(loc[i] - r, 0);
+            bounds[i][1] = std::min(loc[i] + r + 1, bins[i]); // +1 since this range is inclusive, while the following for-loop is not
+        }
+
+        // loop over each bin in the box
+        for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
+            for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
+                for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
                     // determine if the bin is within a sphere centered on the atom
                     if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
                         volume++;
@@ -220,9 +310,9 @@ private:
      */
     void add(shared_ptr<Atom> atom) {
         volume++;
-        int binx = (atom->get_x() - base.X()/width);
-        int biny = (atom->get_y() - base.Y()/width);
-        int binz = (atom->get_z() - base.Z()/width);
+        int binx = std::round(atom->get_x() - base.X()/width);
+        int biny = std::round(atom->get_y() - base.Y()/width);
+        int binz = std::round(atom->get_z() - base.Z()/width);
         members.insert({*atom, {binx, biny, binz}});
         grid[binx][biny][binz] = true;
     }

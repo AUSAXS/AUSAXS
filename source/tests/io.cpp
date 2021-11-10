@@ -133,6 +133,11 @@ int main(void) {
     test_simple_pdb();
     // test_simple_xml();
     test_all_data();
-    cout << "\033[1;32m" << "All io tests passed.           " << "\033[0m" << endl;
+
+    if (passed_all) {
+        cout << "\033[1;32m" << "All io tests passed.           " << "\033[0m" << endl;
+    } else {
+        print_err("Some IO tests failed.");
+    }
     return 0;
 }

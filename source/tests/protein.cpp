@@ -53,6 +53,10 @@ int main(void)
     test_generate_grid();
     remove("temp.pdb");
 
-    cout << "\033[1;32m" << "All protein tests passed." << "\033[0m" << endl;
+    if (passed_all) {
+        cout << "\033[1;32m" << "All protein tests passed." << "\033[0m" << endl;
+    } else {
+        print_err("Some Protein tests failed.");
+    }
     return 0;
 }

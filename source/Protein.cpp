@@ -93,7 +93,7 @@ public:
         // generate the 3D grid
         Grid grid({-250, -250, -250}, 1, 501);
         grid.add(&protein_atoms);
-        grid.expand_volume(3);
+        grid.expand_volume();
         hydration_atoms = grid.hydrate();
 
         // double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
