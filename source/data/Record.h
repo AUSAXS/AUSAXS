@@ -50,22 +50,32 @@ std::ostream& operator<<(std::ostream& os, const __setp& obj) {
     return os;
 }
 
-__setp setp(double number, int p) {
+/**
+ * @brief Print a fixed-width number in a given stream.
+ * @param number number to be printed. 
+ * @param p total width including signs and decimal separator
+ */
+__setp setf(const double number, const int precision) {
+    // IF THIS EVER BREAKS AGAIN, CONVERT IT TO A SIMPLE LOOP OVER string(number) INSTEAD. COULD EVEN INCLUDE MINWIDTH AS WELL
     __setp setter;
     setter.number = number;
+    int p = 1; // the dot will always take up a slot
 
     string num = std::to_string(number);
-    int fdec = num.find("0.")+1; // find first decimal after a 0
-    if (fdec == string::npos) { // if it does not start with 0, there are no issues
-        setter.prec = p;
+    if (num[0] == '-') {
+        p++; // -1 since the sign takes up a slot
+    }
+
+    if (std::floor(std::abs(number)) != 0) { // if the number is not ±0.xxx
+        setter.prec = precision - p;
         return setter;
     }
 
-    int fsig = num.find_first_not_of("0", fdec); // find first significant decimal
-    if (fsig == string::npos) { // number is of the form 0.0000...
-        setter.prec = p - fdec; 
-    } else { // number is of the form 0.00314...
-        setter.prec = p - fsig;
+    p++; // another slot is taken by 0
+    int fsig = num.find_first_not_of("0", p); // find first significant decimal after the dot
+    if (fsig != string::npos) { // number is of the form 0.00312...
+        p = fsig;
     }
+    setter.prec = precision - p;
     return setter;
 }

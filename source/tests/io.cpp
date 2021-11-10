@@ -131,6 +131,11 @@ int main(void) {
     cout << "Summary of IO testing:" << endl;
     print_err("Test that TER records are generated correctly.");
 
+    // cout << setf(-10.377, 8) << endl;
+    // cout << setf(-2.87003736, 8) << endl;
+    // cout << setf(-0.689022, 8) << endl;
+    // exit(1);
+
     test_simple_pdb();
     // test_simple_xml();
     test_all_data();
