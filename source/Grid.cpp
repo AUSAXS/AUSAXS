@@ -268,7 +268,6 @@ private:
         for (auto const& a : other_molecules) {
             // check if the point is inside the spherical volume of loc
             if (sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2)) < r_eff) {
-                cout << "water dist: " << sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2)) << endl;
                 return false;
             }            
         }

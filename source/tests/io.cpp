@@ -130,6 +130,7 @@ void test_all_data() {
 int main(void) {
     cout << "Summary of IO testing:" << endl;
     print_err("Test that TER records are generated correctly.");
+
     test_simple_pdb();
     // test_simple_xml();
     test_all_data();

@@ -175,11 +175,11 @@ public:
             << right << setw(4) << resSeq                                        // 23 - 26
             << right << setw(1) << iCode                                         // 27
             << "   "                                                             // 28 - 30
-            << right << setw(8) << std::setprecision(7) << get_x()               // 31 - 38
-            << right << setw(8) << std::setprecision(7) << get_y()               // 39 - 46
-            << right << setw(8) << std::setprecision(7) << get_z()               // 47 - 54
-            << right << setw(6) << std::setprecision(7) << get_occupancy()       // 55 - 60
-            << right << setw(6) << std::setprecision(7) << tempFactor            // 61 - 66
+            << right << setw(8) << setp(get_x(), 8)                              // 31 - 38
+            << right << setw(8) << setp(get_y(), 8)                              // 39 - 46
+            << right << setw(8) << setp(get_z(), 8)                              // 47 - 54
+            << right << setw(6) << setp(get_occupancy(), 6)                      // 55 - 60
+            << right << setw(6) << setp(tempFactor, 6)                           // 61 - 66
             << "          "                                                      // 67 - 76
             << right << setw(2) << get_element()                                 // 77 - 78
             << left << setw(2) << charge                                         // 79 - 80
