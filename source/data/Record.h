@@ -38,7 +38,6 @@ private:
 };
 
 // Fixed-length printing of numbers. std::setprecision does *not* count leading zeros, which breaks our strict formatting.
-// Based on https://stackoverflow.com/a/66691675 
 struct __setp {
     double number;
     int prec;

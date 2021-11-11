@@ -36,6 +36,7 @@ public:
         }
         output << as_pdb() << std::flush;
         output.close();
+        cout << "Output written to file " + path + "." << endl;
     }
 
     /**
@@ -120,7 +121,7 @@ private:
                     add("FOOTER", line);
                     break;
                 } default: { 
-                    print_err("ERROR: Unrecognized type.");
+                    print_err("Error in PDB_file::read: Unrecognized type.");
                     exit(1);
                 }
             };

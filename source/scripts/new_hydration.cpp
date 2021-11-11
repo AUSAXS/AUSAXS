@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
         exit(1);
     }
     Protein protein(argv[1]);
-    protein.generate_new_hydration();
+    protein.generate_new_hydration(0);
     protein.save(argv[2]);
     return 0;
 }

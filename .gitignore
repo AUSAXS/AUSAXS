@@ -1,7 +1,10 @@
 .vscode
 build
 temp
-figures
-output
+figures/*
+output/*
 data/*
+
 *.pdf
+*.xml
+*.pdb

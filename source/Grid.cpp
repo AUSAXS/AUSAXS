@@ -19,12 +19,12 @@ using namespace ROOT;
 class Grid {
 public:
     /**
-     * @brief Construct a new Grid object.
+     * @brief Construct a new Grid object with standard atomic radii.
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, sqrt(8)) {}
+    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, sqrt(8), 1) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -33,22 +33,30 @@ public:
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius) {}
+    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius) {}
 
     /**
      * @brief Construct a new Grid object.
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in each dimension. 
-     * @param radius the radius of each atom.
+     * @param ra the radius of each atom.
+     * @param rh the radius of each water molecule.
      */
-    Grid(TVector3 base, double width, vector<int> bins, double radius) {
+    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh) {
+        long long int total_bins = (long long) bins[0]*bins[1]*bins[2];
+        if (total_bins > 32e9) {
+            print_err("Error in Grid: Too many bins.");
+            exit(1);
+        } else if (total_bins > 4e9) {
+            print_err("Warning in Grid: Consider lowering the number of bins.");
+        }
         this->base = base;
         this->width = width;
         this->bins = bins;
         this->grid = vector(bins[0], vector<vector<bool>>(bins[1], vector<bool>(bins[2], false)));
-        this->set_radius_atoms(radius);
-        this->set_radius_water(radius);
+        this->set_radius_atoms(ra);
+        this->set_radius_water(rh);
     }
 
     /** 
@@ -62,7 +70,7 @@ public:
     }
 
     /** 
-     * @brief Expand the member atoms into actual spheres of radius r. 
+     * @brief Expand the member atoms into actual spheres based on the radii ra and rh. 
      */
     void expand_volume() {
         vol_expanded = true;
@@ -81,18 +89,10 @@ public:
         vector<shared_ptr<Atom>> hydration_atoms;
         vector<vector<int>> hydration_slots = find_free_locs();
 
-        // create a new water molecule based on an index vector ### NO SERIAL ###
-        auto create_new_water = [&] (vector<int> v) {
-            double x = base.X() + v[0]*width;
-            double y = base.Y() + v[1]*width;
-            double z = base.Z() + v[2]*width;
-            return Atom::create_new_water({x, y, z});
-        };
-
         int c = 0; // counter
         for (vector<int> v : hydration_slots) {
             c++;
-            shared_ptr<Atom> a = create_new_water(v);
+            shared_ptr<Atom> a = Atom::create_new_water(to_xyz(v));
             if (reduce != 0) {
                 if (c % reduce != 0) {
                     continue;
@@ -102,7 +102,6 @@ public:
             expand_volume(*a);
             hydration_atoms.push_back(a);
         }
-
         return hydration_atoms;
     }
 
@@ -215,7 +214,6 @@ public:
 
     /**
      * @brief Get all hydration atoms from this grid. 
-     * NOTE: Consider adding a parameter to start all their serials from. 
      * @return A vector containing all of the hydration atoms. 
      */
     vector<Atom*> get_hydration_atoms() const {
@@ -228,6 +226,12 @@ public:
         }
         return atoms;
     }
+
+    /**
+     * @brief Get the total volume spanned by the atoms in this grid. 
+     * @return The total volume spanned. 
+     */
+    double get_volume() {return pow(width, 3)*volume;}
 
 private:
     TVector3 base; // base point of this grid
@@ -277,7 +281,7 @@ private:
                 return false;
             }            
         }
-        cout << "Water molecule placed! (amin, wmin): (" << amin << ", " << wmin << ")" << endl;
+        // cout << "Water molecule placed! (amin, wmin): (" << amin << ", " << wmin << ")" << endl;
         return true;
     }
 
@@ -312,14 +316,42 @@ private:
 
     /** 
      * @brief Add a single atom to the grid. 
-     * @param atoms The atom to be added. 
+     * @param atoms the atom to be added. 
      */
     void add(shared_ptr<Atom> atom) {
         volume++;
-        int binx = std::round(atom->get_x() - base.X()/width);
-        int biny = std::round(atom->get_y() - base.Y()/width);
-        int binz = std::round(atom->get_z() - base.Z()/width);
-        members.insert({*atom, {binx, biny, binz}});
-        grid[binx][biny][binz] = true;
+        vector<int> loc = to_bins(atom->get_coords());
+
+        // sanity check
+        if (loc[0] >= bins[0] || loc[1] >= bins[1] || loc[2] >= bins[2]) {
+            print_err("Error in Grid::add: Atom is located outside the grid!");
+            exit(1);
+        }
+        members.insert({*atom, loc});
+        grid[loc[0]][loc[1]][loc[2]] = true;
+    }
+
+    /**
+     * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
+     * @param v the xyz location.
+     * @return The bin location. 
+     */
+    vector<int> to_bins(TVector3 v) {
+        int binx = std::round((v[0] - base.X())/width);
+        int biny = std::round((v[1] - base.Y())/width);
+        int binz = std::round((v[2] - base.Z())/width);
+        return {binx, biny, binz};
+    }
+
+    /**
+     * @brief Convert a vector of bin locations (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
+     * @param v the bin location.
+     * @return The xyz location.
+     */
+    TVector3 to_xyz(vector<int> v) {
+        double x = base.X() + width*v[0];
+        double y = base.Y() + width*v[1];
+        double z = base.Z() + width*v[2];
+        return {x, y, z};
     }
 };

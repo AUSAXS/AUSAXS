@@ -80,34 +80,24 @@ public:
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
+     * @param reduce the factor to reduce the output number of water molecules by. 
      */
-    void generate_new_hydration() {
+    void generate_new_hydration(int reduce = 0) {
         // delete the old hydration layer
         hydration_atoms = vector<shared_ptr<Atom>>();
 
         // move protein to center of mass
         TVector3 cm = get_cm();
-        cout << format("Center-of-mass is (x, y, z) = (%1%, %2%, %3%)") % cm[0] % cm[1] % cm[2] << endl;
         translate(-cm);
 
         // generate the 3D grid
-        Grid grid({-250, -250, -250}, 1, 501);
+        Grid grid({-250, -250, -250}, 0.5, 1002); 
         grid.add(&protein_atoms);
-        grid.expand_volume();
-        hydration_atoms = grid.hydrate();
+        hydration_atoms = grid.hydrate(reduce);
 
         // double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
         // auto[corner, bins] = generate_grid(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
         // cout << format("bins: (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
-
-        // Jans approach: generate grid from -250 to 250 in all dimensions, with grid size 1Å. 
-        // Move protein to center so its more likely to be covered by the grid. 
-        // Determine which grid points are filled by our atoms. We can do this in a smart way by converting each coordinate to an index instead of searching through the entire grid. 
-        // Expand each grid point into a proper size for its atom. Jan uses sqrt(6) in each direction. 
-        // Calculate the volume by iterating through the grid and counting how many entries are filled. Can probably be done smarter by keeping track of it along the way.
-        //      The volume may be scaled. Jan multiplied by 27 for some reason. 
-        // Determine the surface atoms of the protein. Jan did this by checking 3Å in each direction. If no other atom occupies the spot, it is a candidate for a hydration atom. 
-        // Place the hydration atoms. Only keep every third. 
     }
 
     vector<shared_ptr<Atom>>* get_protein_atoms() {

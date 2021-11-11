@@ -321,7 +321,7 @@ private:
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     string recName, name, altLoc, resName, chainID, iCode, element, charge;
     double occupancy, tempFactor;
-    int serial, resSeq;
+    int serial, resSeq; 
     TVector3 coords;
 
     // atomic weights taken from https://www.britannica.com/science/atomic-weight
