@@ -5,6 +5,13 @@ Implement the hydration algorithm.
 	- Calculate volume based on aminosyrer (the sequence letters in pymol)
 	- Test it on a bunch of different .pdb files (6YG9)
 
+Grid:
+	- Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
+
+HETATM records:
+	- How do we handle non-water atoms when calculating distances, hydration layer, ...
+	- Currently TER records are broken in PDB_file and will be inserted in the middle of the HETATM records
+
 Bundle all dependencies to make them easier to install
     - ROOT, Boost
     - Consider if ROOT is really necessary

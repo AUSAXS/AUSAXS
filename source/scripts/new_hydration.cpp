@@ -12,21 +12,28 @@ int main(int argc, char const *argv[]) {
     po::options_description description("Usage: ./program <input path> <output path> <optionals>");
     description.add_options()
         ("help,h", "Show this message.")
-        // ("input,i", po::value<string>()->required(), "Path to the input file.")
-        // ("output,p", po::value<string>()->required(), "Path to the output file.")
+        ("input,i", po::value<string>()->required(), "Path to the input file.")
+        ("output,p", po::value<string>()->required(), "Path to the output file.")
         ("reduce,r", po::value<int>(), "The factor to reduce the number of generated water molecules by (default: 3).")
         ("width,w", po::value<double>(), "The distance between each grid point (default: 1). Lower widths increases the precision.");
 
+    // set positional parameters
+    boost::program_options::positional_options_description pos_desc;
+    pos_desc.add("input", 1); // input is always the first argument
+    pos_desc.add("output", 2); // output is always the second argument
+    po::command_line_parser parser{argc, argv};
+    po::parsed_options parsed = parser.options(description).positional(pos_desc).run();
+    
     int reduce = 0;
     double width = 1;
-    // string input, output;
+    string input, output;
     try {
         po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).options(description).run(), vm);
+        po::store(parsed, vm);
         po::notify(vm);
 
-        // input = vm["input"].as<string>();
-        // output = vm["output"].as<string>();
+        input = vm["input"].as<string>();
+        output = vm["output"].as<string>();
         if(vm.count("help")) {
             cout << description << endl;
             exit(0);
@@ -43,10 +50,6 @@ int main(int argc, char const *argv[]) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
-
-    // cout << input << endl;
-    // cout << output << endl;
-    // exit(1);
 
     Protein protein(argv[1]);
     protein.generate_new_hydration(reduce, width);

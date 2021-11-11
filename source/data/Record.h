@@ -33,7 +33,7 @@ private:
         {"DBREF ", HEADER}, {"SEQRES", HEADER}, {"FORMUL", HEADER}, {"HELIX ", HEADER}, {"SHEET ", HEADER}, 
         {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
         {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET   ", HEADER}, {"HETNAM", HEADER},
-        {"HETSYN", HEADER}, {"FORMUL", HEADER},
+        {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE  ", HEADER},
         {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END   ", FOOTER}};
 };
 

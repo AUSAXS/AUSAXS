@@ -123,7 +123,7 @@ void test_all_data() {
             Protein* protein = new Protein(file.path().string());
             protein->save("temp.pdb");
             IS_TRUE(compareFiles(file.path().string(), "temp.pdb"));
-        remove("temp.pdb");
+        // remove("temp.pdb");
     }
 }
 
