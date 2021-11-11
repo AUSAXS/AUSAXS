@@ -1,22 +1,15 @@
-Determine what to do with TER records. 
-    - https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf
-    - Maybe create the superclass Record for Atom, where Termination could be a subclass?
-        - Looking very appealing based on the number of record types in the above document
-    - Store in Protein class?
-
-Consider redoing input with string streams
-    - https://stackoverflow.com/questions/11374617/the-easiest-way-to-read-formatted-input-in-c looks *very* appealing
-
-
 Implement the hydration algorithm. 
+	- Ray-tracing placement of water molecules
+	- Change collision_checker from nlogn to const in grid size
+	- consider how to improve culling method
+	- Calculate volume based on aminosyrer (the sequence letters in pymol)
+	- Test it on a bunch of different .pdb files (6YG9)
 
 Bundle all dependencies to make them easier to install
-    - Store on Drive?
+    - ROOT, Boost
+    - Consider if ROOT is really necessary
     
 Læs volumen nukleiner, syrer
     B. Jacrot rep prog phys ~ 1980
     Peter Zipper ~1980
     ATSAS Crysol
-
-Coordinates with more than 4 digits breaks the formatting
-    - Check that this does not occur?

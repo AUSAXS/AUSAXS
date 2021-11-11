@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(Calibrate)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lboost_program_options")
 SET (CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 #----------------------------------------------------------------------------
@@ -14,10 +14,16 @@ set(LIBRARIES "")
 
 # Include ROOT
 find_package(ROOT REQUIRED)
-include_directories(${ROOT_INCLUDE_DIR})
-include_directories("${CMAKE_SOURCE_DIR}/source")
 link_directories(${ROOT_LIBRARY_DIR})
-list(APPEND LIBRARIES ${ROOT_LIBRARIES} Spectrum MathMore)
+
+# Include Boost
+find_package(Boost COMPONENTS program_options REQUIRED)
+
+include_directories(${ROOT_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories("${CMAKE_SOURCE_DIR}/source")
+
+list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 
 link_libraries(${LIBRARIES})
 

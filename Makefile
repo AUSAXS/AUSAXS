@@ -1,11 +1,16 @@
 # generate lists of files for easy use as dependencies
+pymol := ~/tools/pymol/pymol
+
 test_files := $(basename $(shell find source/tests/ -maxdepth 1 -name "*.cpp" -printf "%P "))
 source_files := $(addprefix source/, $(shell find source/ -type f -not -wholename "source/tests/*" -printf "%P "))
 
+hydrate: build/source/scripts/new_hydration
+	@< $(RUN_ARGS) 
+
 .phony:
 hydrate/%: build/source/scripts/new_hydration
-	@ echo $(source_files)
 	$< data/$* output/$*
+	$(pymol) output/$* -d "show spheres; color orange, hetatm"
 
 run/%: build/main main.cpp source/* source/io/*
 	build/main data/$*

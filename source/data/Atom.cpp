@@ -230,9 +230,14 @@ public:
     void set_z(const double z) {this->coords.SetZ(z);}
     void set_occupancy(double occupancy) {this->occupancy = occupancy;}
     void set_serial(const int serial) {this->serial = serial;}
+    void set_resSeq(const int resSeq) {this->resSeq = resSeq;}
     void set_resName(string resName) {
         boost::erase_all(resName, " "); // remove spaces
         this->resName = resName;
+    }
+    void set_chainID(string chainID) {
+        boost::erase_all(chainID, " "); // remove spaces
+        this->chainID = chainID;
     }
 
     /**
@@ -258,14 +263,17 @@ public:
     }
 
     // getters
+    int get_resSeq() const {return resSeq;}
+    int get_serial() const {return serial;}
+    double get_occupancy() const {return occupancy;}
     double get_x() const {return coords.X();}
     double get_y() const {return coords.Y();}
     double get_z() const {return coords.Z();}
     TVector3 get_coords() const {return coords;}
-    double get_occupancy() const {return occupancy;}
-    int get_serial() const {return serial;}
     string get_element() const {return element;}
     string get_resName() const {return resName;}
+    string get_iCode() const {return iCode;}
+    string get_chainID() const {return chainID;}
 
     double get_atomic_weight() const {
         if (element == "") {
@@ -283,6 +291,11 @@ public:
         return serial < rhs.get_serial();
     }
 
+    /**
+     * @brief Equality operator to determine if two atoms are equal
+     * @param rhs the atom to compare against. 
+     * @return True if equal, false otherwise.
+     */
     bool operator==(const Atom& rhs) const {
         if (recName != rhs.recName) {return false;}
         if (name != rhs.name) {return false;}

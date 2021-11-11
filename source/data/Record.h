@@ -32,9 +32,9 @@ private:
         {"EXPDTA", HEADER}, {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL  ", HEADER}, {"REMARK", HEADER}, 
         {"DBREF ", HEADER}, {"SEQRES", HEADER}, {"FORMUL", HEADER}, {"HELIX ", HEADER}, {"SHEET ", HEADER}, 
         {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
-        {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, 
+        {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET   ", HEADER}, {"HETNAM", HEADER},
+        {"HETSYN", HEADER}, {"FORMUL", HEADER},
         {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END   ", FOOTER}};
-
 };
 
 // Fixed-length printing of numbers. std::setprecision does *not* count leading zeros, which breaks our strict formatting.

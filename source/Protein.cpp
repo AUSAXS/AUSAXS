@@ -81,8 +81,9 @@ public:
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
      * @param reduce the factor to reduce the output number of water molecules by. 
+     * @param width the distance between each grid point
      */
-    void generate_new_hydration(int reduce = 0) {
+    void generate_new_hydration(int reduce = 3, double width = 1) {
         // delete the old hydration layer
         hydration_atoms = vector<shared_ptr<Atom>>();
 
@@ -91,7 +92,7 @@ public:
         translate(-cm);
 
         // generate the 3D grid
-        Grid grid({-250, -250, -250}, 0.5, 1002); 
+        Grid grid({-250, -250, -250}, width, 501/width); 
         grid.add(&protein_atoms);
         hydration_atoms = grid.hydrate(reduce);
 

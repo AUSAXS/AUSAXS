@@ -53,12 +53,17 @@ public:
             c[i] = a;
             i++;
         }
+        // last atom before the terminate
+        // we need this to determine what chainID and resSeq to use for the terminate and hetatms
+        shared_ptr<Atom> a = std::static_pointer_cast<Atom>(c[i-1]);
+        string chainID = a->get_chainID();
+        int resSeq = a->get_resSeq();
 
         // insert a TER record between the ATOMs and HETATMs
         if (i != 0) {
             c[i] = find_ter_separator(); // see if we can reuse the original
             if (c[i] == nullptr) { // it could not be found, so we create a new one
-                c[i] = std::make_shared<Terminate>(i+1, "", "", 0, "");
+                c[i] = std::make_shared<Terminate>(i+1, a->get_resName(), chainID, resSeq, " ");
             } else { // it does exist, so we update its serial and reuse it
                 std::static_pointer_cast<Terminate>(c[i])->set_serial(i+1);
             }
@@ -68,7 +73,10 @@ public:
         // insert all HETATMs
         for (auto const& a : hydration_atoms) {
             a->set_serial(i+1); // fix possible errors in the serial
+            a->set_resSeq(resSeq+1);
+            a->set_chainID(chainID);
             c[i] = a;
+            resSeq++;
             i++;
         }
 
