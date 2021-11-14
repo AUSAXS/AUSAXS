@@ -1,8 +1,12 @@
 #pragma once
 
+// forward declaration
+class PlacementStrategy;
+
 // includes
 #include <TVector3.h>
-#include "data/Atom.cpp"
+#include "data/Atom.h"
+#include "PlacementStrategy.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
@@ -43,9 +47,27 @@ public:
     void add(vector<shared_ptr<Atom>>* atoms);
 
     /** 
+     * @brief Add a single atom to the grid. 
+     * @param atom the atom to be added. 
+     */
+    void add(shared_ptr<Atom> atom);
+
+    /**
+     * @brief Remove a single atom from the grid.
+     * @param atom the atom to be removed.
+     */
+    void remove(shared_ptr<Atom> atom);
+
+    /** 
      * @brief Expand the member atoms into actual spheres based on the radii ra and rh. 
      */
     void expand_volume();
+
+    /** 
+     * @brief Expand a single member atom into an actual sphere.
+     * @param atom the member atom to be expanded. 
+     */
+    void expand_volume(const Atom atom);
 
     /**
      * @brief Generate a new hydration layer for the grid.  
@@ -58,18 +80,13 @@ public:
      * @brief Identify possible hydration binding locations for the structure. 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<vector<int>> find_free_locs();
+    vector<shared_ptr<Atom>> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.
      * @return vector<vector<int>> An index pair (min, max) for each dimension (shape: [3][2]). 
      */
     vector<vector<int>> bounding_box() const;
-
-    /** 
-     * @brief Get a pointer to the internal grid. 
-     */
-    vector<vector<vector<char>>>* get_grid();
 
     /**
      * @brief Set the radius of all atoms (not water molecules!).
@@ -91,47 +108,12 @@ public:
     /**
      * @brief Get the total volume spanned by the atoms in this grid. 
      */
-    double get_volume();
-
-protected:
-    TVector3 base; // base point of this grid
-    double width; // distance between each grid point
-    vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
-    vector<int> bins; // the number of bins in each dimension
-    int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-    int ra = 0; // radius of each atom represented as a number of bins
-    int rh = 0; // radius of each water molecule represented as a number of bins
-    bool vol_expanded = false; // a flag determining if the volume has been expanded 
-
-private:
-    /**
-     * @brief Check if a water molecule can be placed at the given location. 
-     *        This checks collisions with both other water molecules and other atoms. 
-     * @param loc the location to be checked. 
-     * @param other_molecules the other water molecules which have already been placed.
-     * @return True if this is an acceptable location, false otherwise.
-     */
-    bool check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const;
-
-    /** 
-     * @brief Expand a single member atom into an actual sphere.
-     * @param atom the member atom to be expanded. 
-     */
-    void expand_volume(const Atom atom);
-
-    /** 
-     * @brief Add a single atom to the grid. 
-     * @param atoms the atom to be added. 
-     */
-    void add(shared_ptr<Atom> atom);
+    double get_volume() const {return pow(width, 3)*volume;}
 
     /**
-     * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
-     * @param v the xyz location.
-     * @return The bin location. 
+     * @brief Get the number of bins in each dimension.
      */
-    vector<int> to_bins(TVector3 v);
+    const vector<int> get_bins() const {return bins;}
 
     /**
      * @brief Convert a vector of bin locations (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
@@ -139,4 +121,33 @@ private:
      * @return The xyz location.
      */
     TVector3 to_xyz(vector<int> v);
+
+    vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
+    std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
+    int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
+    int ra = 0; // radius of each atom represented as a number of bins
+    int rh = 0; // radius of each water molecule represented as a number of bins
+
+private:
+    TVector3 base; // base point of this grid
+    double width; // distance between each grid point
+    vector<int> bins; // the number of bins in each dimension
+    bool vol_expanded = false; // a flag determining if the volume has been expanded 
+    unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
+
+    // /**
+    //  * @brief Check if a water molecule can be placed at the given location. 
+    //  *        This checks collisions with both other water molecules and other atoms. 
+    //  * @param loc the location to be checked. 
+    //  * @param other_molecules the other water molecules which have already been placed.
+    //  * @return True if this is an acceptable location, false otherwise.
+    //  */
+    // bool check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const;
+
+    /**
+     * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
+     * @param v the xyz location.
+     * @return The bin location. 
+     */
+    vector<int> to_bins(TVector3 v);
 };

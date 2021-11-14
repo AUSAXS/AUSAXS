@@ -118,12 +118,13 @@ void test_simple_xml() {
  *        This is probably one of the strongest tests we can make for i/o
  */
 void test_all_data() {
-    for (const auto& file : std::filesystem::recursive_directory_iterator("data")) // loop over all files in the data/ directory
+    for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
         if (file.path().extension() == ".pdb") { // check if the extension is .pdb
             Protein* protein = new Protein(file.path().string());
             protein->save("temp.pdb");
             IS_TRUE(compareFiles(file.path().string(), "temp.pdb"));
-        // remove("temp.pdb");
+            remove("temp.pdb");
+        }
     }
 }
 

@@ -23,7 +23,7 @@ void test_grid_generation() {
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
     grid.add(&a);
-    vector<vector<vector<char>>> &g = *grid.get_grid();
+    vector<vector<vector<char>>> &g = grid.grid;
 
     // check that it was placed correctly in the grid
     IS_TRUE(g[10][10][10] == 'A');
@@ -86,15 +86,18 @@ void test_find_free_locs() {
     grid.add(&a);
     grid.expand_volume();
 
-    vector<vector<int>> locs = grid.find_free_locs();
+    vector<shared_ptr<Atom>> locs = grid.find_free_locs();
     IS_TRUE(locs.size() == 6);
+    // for (int i = 0; i < locs.size(); i++) {
+    //     cout << format("(x, y, z): (%1%, %2%, %3%)") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
+    // }
     if (locs.size() == 6) { // avoid crashing if the above fails
-        IS_TRUE(locs[0] == vector({4, 10, 10})); // (-2r, 0, 0)
-        IS_TRUE(locs[1] == vector({10, 4, 10})); // (0, -2r, 0)
-        IS_TRUE(locs[2] == vector({10, 10, 4})); // (0, 0, -2r)
-        IS_TRUE(locs[3] == vector({10, 10, 16})); // (0, 0, 2r)
-        IS_TRUE(locs[4] == vector({10, 16, 10})); // (0, 2r, 0)
-        IS_TRUE(locs[5] == vector({16, 10, 10})); // (2r, 0, 0)
+        IS_TRUE(locs[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
+        IS_TRUE(locs[1]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(locs[2]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(locs[3]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
+        IS_TRUE(locs[4]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(locs[5]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
     }
 }
 
@@ -108,15 +111,17 @@ void test_volume_expansion() {
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
     grid.add(&a);
-    vector<vector<vector<char>>> &g = *grid.get_grid();
-
+    vector<vector<vector<char>>> &g = grid.grid;
     grid.expand_volume();
+
+    IS_TRUE(g[10][10][10] == 'A'); // check that the center is still marked as capital 'A'
+
     // check that the x=13 plane looks like this: 
     // x x x
     // x o x
     // x x x
     IS_TRUE(g[14][10][10] == 0); // check that it does not extend to the x=14 plane
-    IS_TRUE(g[13][10][10] == 'A');
+    IS_TRUE(g[13][10][10] == 'a');
 
     IS_TRUE(g[13][9][9] == 0);
     IS_TRUE(g[13][9][10] == 0);
@@ -131,7 +136,7 @@ void test_volume_expansion() {
 
     // repeat with the x=7 plane
     IS_TRUE(g[6][10][10] == 0); // check that it does not extend to the x=6 plane
-    IS_TRUE(g[7][10][10] == 'A');
+    IS_TRUE(g[7][10][10] == 'a');
 
     IS_TRUE(g[7][9][9] == 0);
     IS_TRUE(g[7][9][10] == 0);
@@ -147,28 +152,28 @@ void test_volume_expansion() {
     // check some other points as well
     // x=10, z=10 line, from z=6 it looks like x o o o o o o o x
     IS_TRUE(g[10][6][10] == 0);
-    IS_TRUE(g[10][7][10] == 'A');
-    IS_TRUE(g[10][8][10] == 'A');
-    IS_TRUE(g[10][9][10] == 'A');
+    IS_TRUE(g[10][7][10] == 'a');
+    IS_TRUE(g[10][8][10] == 'a');
+    IS_TRUE(g[10][9][10] == 'a');
     IS_TRUE(g[10][10][10] == 'A');
-    IS_TRUE(g[10][11][10] == 'A');
-    IS_TRUE(g[10][12][10] == 'A');
-    IS_TRUE(g[10][13][10] == 'A');
+    IS_TRUE(g[10][11][10] == 'a');
+    IS_TRUE(g[10][12][10] == 'a');
+    IS_TRUE(g[10][13][10] == 'a');
     IS_TRUE(g[10][14][10] == 0);
 
     // x=10, y=10 line, from y=6 it looks like x o o o o o o o x
     IS_TRUE(g[10][10][6] == 0);
-    IS_TRUE(g[10][10][7] == 'A');
-    IS_TRUE(g[10][10][8] == 'A');
-    IS_TRUE(g[10][10][9] == 'A');
+    IS_TRUE(g[10][10][7] == 'a');
+    IS_TRUE(g[10][10][8] == 'a');
+    IS_TRUE(g[10][10][9] == 'a');
     IS_TRUE(g[10][10][10] == 'A');
-    IS_TRUE(g[10][10][11] == 'A');
-    IS_TRUE(g[10][10][12] == 'A');
-    IS_TRUE(g[10][10][13] == 'A');
+    IS_TRUE(g[10][10][11] == 'a');
+    IS_TRUE(g[10][10][12] == 'a');
+    IS_TRUE(g[10][10][13] == 'a');
     IS_TRUE(g[10][10][14] == 0);
 
     // some random points
-    IS_TRUE(g[9][9][9] == 'A');
+    IS_TRUE(g[9][9][9] == 'a');
     IS_TRUE(g[8][8][8] == 0);
     IS_TRUE(g[13][13][13] == 0);
 }
@@ -206,7 +211,7 @@ void test_width() {
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
     grid.add(&a);
-    vector<vector<vector<char>>> &g = *grid.get_grid();
+    vector<vector<vector<char>>> &g = grid.grid;
 
     // check that it was placed correctly
     IS_TRUE(g[100][100][100] == 'A');
@@ -232,7 +237,7 @@ void test_width() {
 
     grid.add(&a);
     grid.expand_volume();
-    g = *grid.get_grid();
+    g = grid.grid;
 
     vector<vector<int>> box = grid.bounding_box();
     IS_TRUE(box[0][0] == 100);
@@ -246,6 +251,7 @@ void test_width() {
 int main(void)
 {
     cout << "Summary of Grid testing:" << std::endl;
+    print_err("Test that remove works as intended.");
     test_grid_generation();
     test_simple_bounding_box();
     test_complex_bounding_box();

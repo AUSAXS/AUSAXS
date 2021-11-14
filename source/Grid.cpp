@@ -12,6 +12,7 @@
 // my own includes
 #include "Grid.h"
 #include "data/Atom.cpp"
+#include "AxesPlacement.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
@@ -31,6 +32,7 @@ Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh) 
     this->grid = vector(bins[0], vector<vector<char>>(bins[1], vector<char>(bins[2], 0)));
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
+    water_placer = std::make_unique<AxesPlacement>(this);
 }
 
 void Grid::add(vector<shared_ptr<Atom>>* atoms) {
@@ -49,26 +51,23 @@ void Grid::expand_volume() {
 }
 
 vector<shared_ptr<Atom>> Grid::hydrate(int reduce = 3) {
-    vector<shared_ptr<Atom>> hydration_atoms;
-    vector<vector<int>> hydration_slots = find_free_locs();
+    vector<shared_ptr<Atom>> placed_water = find_free_locs();
 
     int c = 0; // counter
-    for (vector<int> v : hydration_slots) {
-        c++;
-        shared_ptr<Atom> a = Atom::create_new_water(to_xyz(v));
+    for (const auto& a : placed_water) {
         if (reduce != 0) {
             if (c % reduce != 0) {
+                remove(a);
+                placed_water.erase(placed_water.begin()+c);
                 continue;
             }
         }
-        add(a);
-        expand_volume(*a);
-        hydration_atoms.push_back(a);
+        c++;
     }
-    return hydration_atoms;
+    return placed_water;
 }
 
-vector<vector<int>> Grid::find_free_locs() {
+vector<shared_ptr<Atom>> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     for (const auto& pair : members) {
         if (pair.first.is_water()) {
@@ -87,77 +86,37 @@ vector<vector<int>> Grid::find_free_locs() {
         bounds[i][1] = std::min(bounds[i][1] + (ra+rh) + 1, bins[i]); // +1 since this range is inclusive, but the following loop is not
     }
 
-    // we define two helper functions so I can make the checks in the inner loop one-liners
-    vector<vector<int>> available_locs;        
-    auto check_loc = [&] (const vector<int> v) {return check_collisions(v, available_locs);};
-    auto add_loc = [&] (const vector<int> v) {
-        grid[v[0]][v[1]][v[2]] = 'H';
-        available_locs.push_back({v[0], v[1], v[2]});
-    };
+    // place the water molecules with the chosen strategy
+    vector<shared_ptr<Atom>> placed_water = water_placer->place(bounds);
 
-    // loop over the minimum bounding box as found above
-    for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
-        for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
-            for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
-                // if this spot is part of an atom
-                if (grid[i][j][k] == 'A') {
-                    // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-                    int xmin = std::max(i-rh, 0), xmax = std::min(i+rh, bins[0]);
-                    int ymin = std::max(j-rh, 0), ymax = std::min(j+rh, bins[1]);
-                    int zmin = std::max(k-rh, 0), zmax = std::min(k+rh, bins[2]);
-
-                    // check collisions for x ± r_eff
-                    if ((grid[xmin][j][k] == 0) && check_loc({xmin, j, k})) add_loc({xmin, j, k});
-                    if ((grid[xmax][j][k] == 0) && check_loc({xmax, j, k})) add_loc({xmax, j, k});
-
-                    // check collisions for y ± r_eff
-                    if ((grid[i][ymin][k] == 0) && check_loc({i, ymin, k})) add_loc({i, ymin, k});
-                    if ((grid[i][ymax][k] == 0) && check_loc({i, ymax, k})) add_loc({i, ymax, k});
-
-                    // check collisions for z ± r_eff
-                    if ((grid[i][j][zmin] == 0) && check_loc({i, j, zmin})) add_loc({i, j, zmin});
-                    if ((grid[i][j][zmax] == 0) && check_loc({i, j, zmax})) add_loc({i, j, zmax});
-                }
-            }
-        }
-    }
-    cout << "Found " << available_locs.size() << " available HOH spots." << endl;
-    return available_locs;
+    cout << "Placed " << placed_water.size() << " HOH molecules." << endl;
+    return placed_water;
 }
 
-bool Grid::check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const {
-    const int x = loc[0], y = loc[1], z = loc[2];
+// bool Grid::check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const {
+//     const int x = loc[0], y = loc[1], z = loc[2];
 
-    double amin = 100, wmin = 100;
+//     // check collision with other atoms
+//     int r_eff = ra + rh; // effective radius for water/atom collisions
+//     for (auto const& pair : members) {
+//         const vector<int>& v = pair.second;
 
-    // check collision with other atoms
-    int r_eff = ra + rh; // effective radius for water/atom collisions
-    for (auto const& pair : members) {
-        const vector<int>& v = pair.second;
+//         // check if the point is inside the spherical volume of loc
+//         if (sqrt(pow(x-v[0], 2) + pow(y-v[1], 2) + pow(z-v[2], 2)) < r_eff) {
+//             return false;
+//         }
+//     }
 
-        // check if the point is inside the spherical volume of loc
-        double d = sqrt(pow(x-v[0], 2) + pow(y-v[1], 2) + pow(z-v[2], 2));
-        amin = std::min(amin, d);
-        if (d < r_eff) {
-            // cout << format("Atom: (%1%, %2%, %3%), water: (%4%, %5%, %6%)") % v[0] % v[1] % v[2] % x % y % z << endl;
-            // cout << "Separation: " << sqrt(pow(x-v[0], 2) + pow(y-v[1], 2) + pow(z-v[2], 2)) << endl << endl;
-            return false;
-        }
-    }
-
-    // check collision with other water molecules
-    r_eff = 2*rh; // effective radius for water/water collisions
-    for (auto const& a : other_molecules) {
-        // check if the point is inside the spherical volume of loc
-        double d = sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2));
-        wmin = std::min(wmin, d);
-        if (sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2)) < r_eff) {
-            return false;
-        }            
-    }
-    // cout << "Water molecule placed! (amin, wmin): (" << amin << ", " << wmin << ")" << endl;
-    return true;
-}
+//     // check collision with other water molecules
+//     r_eff = 2*rh; // effective radius for water/water collisions
+//     for (auto const& a : other_molecules) {
+//         // check if the point is inside the spherical volume of loc
+//         if (sqrt(pow(x-a[0], 2) + pow(y-a[1], 2) + pow(z-a[2], 2)) < r_eff) {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
 
 vector<vector<int>> Grid::bounding_box() const {
     if (members.size() == 0) {
@@ -176,8 +135,6 @@ vector<vector<int>> Grid::bounding_box() const {
     }
     return box;
 }
-
-vector<vector<vector<char>>>* Grid::get_grid() {return &grid;}
 
 void Grid::set_radius_atoms(double radius) {
     int new_r = int(radius/width); // convert the radius to a "bin-radius"
@@ -206,14 +163,42 @@ vector<Atom*> Grid::get_hydration_atoms() const {
     return atoms;
 }
 
-double Grid::get_volume() {return pow(width, 3)*volume;}
-
 void Grid::expand_volume(const Atom atom) {
     vector<int> loc = members.at(atom);
     int r = atom.is_water() ? rh : ra; // determine which radius to use for the expansion
-    char marker = atom.is_water() ? 'H' : 'A';
+    char marker = atom.is_water() ? 'h' : 'a';
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+    vector<vector<int>> bounds(3, vector<int>(2, 0));
+    for (int i = 0; i < 3; i++) {
+        bounds[i][0] = std::max(loc[i] - r, 0);
+        bounds[i][1] = std::min(loc[i] + r + 1, bins[i]); // +1 since this range is inclusive, while the following for-loop is not
+    }
+
+    // loop over each bin in the box
+    for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
+        for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
+            for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
+                if (i == loc[0] && j == loc[1] && k == loc[2]) {continue;} // skip the very center (we want it to be a capital letter)
+                // determine if the bin is within a sphere centered on the atom
+                if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
+                    volume++;
+                    grid[i][j][k] = marker;
+                }
+            }
+        }
+    }
+}
+
+void Grid::remove(shared_ptr<Atom> atom) {
+    volume++;
+    vector<int> loc = to_bins(atom->get_coords());
+    members.erase(*atom);
+    grid[loc[0]][loc[1]][loc[2]] = 0;
+
+    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+    int r = atom->is_water() ? rh : ra; // determine which radius to use for the expansion
+    char marker = atom->is_water() ? 'h' : 'a';
     vector<vector<int>> bounds(3, vector<int>(2, 0));
     for (int i = 0; i < 3; i++) {
         bounds[i][0] = std::max(loc[i] - r, 0);
@@ -227,7 +212,7 @@ void Grid::expand_volume(const Atom atom) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
                     volume++;
-                    grid[i][j][k] = marker;
+                    if (grid[i][j][k] == marker) {grid[i][j][k] = 0;} // only remove the entry if it was from a water expansion
                 }
             }
         }
