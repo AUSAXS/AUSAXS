@@ -1,6 +1,11 @@
 #include "PlacementStrategy.h"
 #include "Grid.h"
 
+/**
+ * @brief This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a
+ *        water molecule at x±r, y±r, and z±r. If the location is valid, the molecule will be placed. This will typically generate
+ *        a lot of molecules, and so a culling method may be useful afterwards. 
+ */
 class AxesPlacement : public PlacementStrategy {
 public:
     AxesPlacement(Grid* grid) : PlacementStrategy(grid) {}
@@ -13,7 +18,6 @@ public:
 
         // we define two helper functions so I can make the checks in the inner loop one-liners
         vector<shared_ptr<Atom>> placed_water;
-        auto check_loc = [&] (const vector<int> v) {return collision_check(v);};
         auto add_loc = [&] (const vector<int> v) {
             shared_ptr<Atom> a = Atom::create_new_water(grid->to_xyz(v));
             grid->add(a);
@@ -33,16 +37,16 @@ public:
                         int zm = std::max(k-rh, 0), zp = std::min(k+rh, bins[2]); // zminus and zplus
 
                         // check collisions for x ± r_eff
-                        if ((gref[xm][j][k] == 0) && check_loc({xm, j, k})) add_loc({xm, j, k});
-                        if ((gref[xp][j][k] == 0) && check_loc({xp, j, k})) add_loc({xp, j, k});
+                        if ((gref[xm][j][k] == 0) && collision_check({xm, j, k})) add_loc({xm, j, k});
+                        if ((gref[xp][j][k] == 0) && collision_check({xp, j, k})) add_loc({xp, j, k});
 
                         // check collisions for y ± r_eff
-                        if ((gref[i][ym][k] == 0) && check_loc({i, ym, k})) add_loc({i, ym, k});
-                        if ((gref[i][yp][k] == 0) && check_loc({i, yp, k})) add_loc({i, yp, k});
+                        if ((gref[i][ym][k] == 0) && collision_check({i, ym, k})) add_loc({i, ym, k});
+                        if ((gref[i][yp][k] == 0) && collision_check({i, yp, k})) add_loc({i, yp, k});
 
                         // check collisions for z ± r_eff
-                        if ((gref[i][j][zm] == 0) && check_loc({i, j, zm})) add_loc({i, j, zm});
-                        if ((gref[i][j][zp] == 0) && check_loc({i, j, zp})) add_loc({i, j, zp});
+                        if ((gref[i][j][zm] == 0) && collision_check({i, j, zm})) add_loc({i, j, zm});
+                        if ((gref[i][j][zp] == 0) && collision_check({i, j, zp})) add_loc({i, j, zp});
                     } 
                 }
             }

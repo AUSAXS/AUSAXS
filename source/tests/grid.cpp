@@ -74,33 +74,6 @@ void test_complex_bounding_box() {
     IS_TRUE(box[2][1] == 10);
 }
 
-void test_find_free_locs() {
-    TVector3 base(-10, -10, -10);
-    int width = 1;
-    int bins = 21;
-    int radius = 3;
-    Grid grid(base, width, bins, radius);
-
-    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
-    vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
-    grid.expand_volume();
-
-    vector<shared_ptr<Atom>> locs = grid.find_free_locs();
-    IS_TRUE(locs.size() == 6);
-    // for (int i = 0; i < locs.size(); i++) {
-    //     cout << format("(x, y, z): (%1%, %2%, %3%)") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
-    // }
-    if (locs.size() == 6) { // avoid crashing if the above fails
-        IS_TRUE(locs[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(locs[1]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(locs[2]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(locs[3]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
-        IS_TRUE(locs[4]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(locs[5]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
-    }
-}
-
 void test_volume_expansion() {
     TVector3 base(-10, -10, -10);
     int width = 1;
@@ -248,17 +221,73 @@ void test_width() {
     IS_TRUE(box[2][1] == 100);
 }
 
+void test_remove() {
+    TVector3 base(-10, -10, -10);
+    double width = 1;
+    int bins = 21;
+    int radius = 3;
+    Grid grid(base, width, bins, radius);
+
+    shared_ptr<Atom> a1 = std::make_shared<Atom>(Atom({3, 0, 0}, 0, "C", "", 1));
+    shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, 3, 0}, 0, "C", "", 2));
+    vector<shared_ptr<Atom>> a = {a1, a2};
+    grid.add(&a);
+    grid.remove(a[0]);
+    vector<vector<vector<char>>> &g = grid.grid;
+
+    // check that the volume is removed
+    IS_TRUE(g[13][10][10] == 'A');
+    IS_TRUE(g[13][10][9] == 0);
+    IS_TRUE(g[13][11][10] == 0);
+    IS_TRUE(g[13][11][9] == 0);
+
+    // check the other is untouched
+    IS_TRUE(g[10][13][10] == 'A');
+    IS_TRUE(g[9][13][10] == 'a');
+    IS_TRUE(g[10][12][10] == 'a');
+    IS_TRUE(g[10][14][10] == 'a');
+}
+
+void test_find_free_locs(Grid::PlacementStrategyChoice ch) {
+    TVector3 base(-10, -10, -10);
+    double width = 1;
+    vector<int> bins = {21, 21, 21};
+    int radius = 3;
+    Grid grid(base, width, bins, radius, radius, ch);
+
+    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
+    vector<shared_ptr<Atom>> a = {atom};
+    grid.add(&a);
+    grid.expand_volume();
+
+    vector<shared_ptr<Atom>> locs = grid.find_free_locs();
+    IS_TRUE(locs.size() == 6);
+    for (int i = 0; i < locs.size(); i++) {
+        cout << format("(x, y, z): (%1%, %2%, %3%)") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
+    }
+    if (locs.size() == 6) { // avoid crashing if the above fails
+        IS_TRUE(locs[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
+        IS_TRUE(locs[1]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(locs[2]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(locs[3]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
+        IS_TRUE(locs[4]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(locs[5]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
+    }
+
+}
+
 int main(void)
 {
     cout << "Summary of Grid testing:" << std::endl;
-    print_err("Test that remove works as intended.");
-    test_grid_generation();
-    test_simple_bounding_box();
-    test_complex_bounding_box();
-    test_find_free_locs();
-    test_hydrate();
-    test_volume_expansion();
-    test_width();
+    // test_grid_generation();
+    // test_simple_bounding_box();
+    // test_complex_bounding_box();
+    // test_find_free_locs(Grid::AxesStrategy);
+    test_find_free_locs(Grid::RadialStrategy);
+    // test_hydrate();
+    // test_volume_expansion();
+    // test_width();
+    // test_remove();
 
     if (passed_all) {
         cout << "\033[1;32m" << "All Grid tests passed." << "\033[0m" << endl;

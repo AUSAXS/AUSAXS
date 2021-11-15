@@ -13,13 +13,15 @@ using namespace ROOT;
 
 class Grid {
 public:
+    enum PlacementStrategyChoice {AxesStrategy, RadialStrategy};
+
     /**
      * @brief Construct a new Grid object with standard atomic radii.
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, sqrt(8), 1) {}
+    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, sqrt(8), 1, AxesStrategy) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -28,7 +30,7 @@ public:
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius) {}
+    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, AxesStrategy) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -38,7 +40,7 @@ public:
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh);
+    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice ch);
 
     /** 
      * @brief Add a set of atoms to the grid. 
@@ -116,11 +118,23 @@ public:
     const vector<int> get_bins() const {return bins;}
 
     /**
+     * @brief Get the width of each bin.
+     */
+    const int get_width() const {return width;}
+
+    /**
      * @brief Convert a vector of bin locations (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
      * @param v the bin location.
      * @return The xyz location.
      */
     TVector3 to_xyz(vector<int> v);
+
+    /**
+     * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
+     * @param v the xyz location.
+     * @return The bin location. 
+     */
+    vector<int> to_bins(TVector3 v);
 
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
     std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
@@ -143,11 +157,4 @@ private:
     //  * @return True if this is an acceptable location, false otherwise.
     //  */
     // bool check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const;
-
-    /**
-     * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
-     * @param v the xyz location.
-     * @return The bin location. 
-     */
-    vector<int> to_bins(TVector3 v);
 };

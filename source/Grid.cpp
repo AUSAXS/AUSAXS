@@ -13,12 +13,13 @@
 #include "Grid.h"
 #include "data/Atom.cpp"
 #include "AxesPlacement.cpp"
+#include "RadialPlacement.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
-Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh) {
+Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice ch = AxesStrategy) {
     long long int total_bins = (long long) bins[0]*bins[1]*bins[2];
     if (total_bins > 32e9) {
         print_err("Error in Grid: Too many bins.");
@@ -32,7 +33,10 @@ Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh) 
     this->grid = vector(bins[0], vector<vector<char>>(bins[1], vector<char>(bins[2], 0)));
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
-    water_placer = std::make_unique<AxesPlacement>(this);
+
+    if (ch == AxesStrategy) {water_placer = std::make_unique<AxesPlacement>(this);}
+    else if (ch == RadialStrategy) {water_placer = std::make_unique<RadialPlacement>(this);}
+    else {print_err("Error in Grid::Grid: Unkown PlacementStrategy");}
 }
 
 void Grid::add(vector<shared_ptr<Atom>>* atoms) {
@@ -179,7 +183,6 @@ void Grid::expand_volume(const Atom atom) {
     for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
         for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
             for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
-                if (i == loc[0] && j == loc[1] && k == loc[2]) {continue;} // skip the very center (we want it to be a capital letter)
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
                     volume++;
@@ -188,6 +191,7 @@ void Grid::expand_volume(const Atom atom) {
             }
         }
     }
+    grid[loc[0]][loc[1]][loc[2]] = atom.is_water() ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
 void Grid::remove(shared_ptr<Atom> atom) {
@@ -211,8 +215,9 @@ void Grid::remove(shared_ptr<Atom> atom) {
             for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
-                    volume++;
-                    if (grid[i][j][k] == marker) {grid[i][j][k] = 0;} // only remove the entry if it was from a water expansion
+                    volume--;
+                    grid[i][j][k] = 0;
+                    // if (grid[i][j][k] == marker) {grid[i][j][k] = 0;} // only remove the entry if it was from a volume expansion
                 }
             }
         }
@@ -220,7 +225,6 @@ void Grid::remove(shared_ptr<Atom> atom) {
 }
 
 void Grid::add(shared_ptr<Atom> atom) {
-    volume++;
     vector<int> loc = to_bins(atom->get_coords());
 
     // sanity check
@@ -233,9 +237,9 @@ void Grid::add(shared_ptr<Atom> atom) {
 }
 
 vector<int> Grid::to_bins(TVector3 v) {
-    int binx = std::round((v[0] - base.X())/width);
-    int biny = std::round((v[1] - base.Y())/width);
-    int binz = std::round((v[2] - base.Z())/width);
+    int binx = std::lrint((v[0] - base.X())/width);
+    int biny = std::lrint((v[1] - base.Y())/width);
+    int binz = std::lrint((v[2] - base.Z())/width);
     return {binx, biny, binz};
 }
 
