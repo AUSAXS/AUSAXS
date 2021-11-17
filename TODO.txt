@@ -8,6 +8,9 @@ Implement the hydration algorithm.
 Grid:
 	- Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
 
+General: 
+	- Add destructors to avoid memory leaks
+
 Bundle all dependencies to make them easier to install
     - ROOT, Boost
     - Consider if ROOT is really necessary

@@ -39,33 +39,45 @@ void Protein::save(string path) {
     file->write(path); // write to disk
 }
 
-std::pair<vector<double>, vector<double>> Protein::calc_distances() {
+Distances Protein::calc_distances() {
     // calculate the internal distances for the protein atoms
-    int n = 0; // index counter
-    vector<double> dp(protein_atoms.size()*(protein_atoms.size() - 1)/2); // n(n-1)/2 total entries
+    int n_pp = 0; // index counter
+    int n_hh = 0;
+    int n_hp = 0;
+    vector<double> d_pp(protein_atoms.size()*(protein_atoms.size() - 1)/2); // n(n-1)/2 entries
+    vector<double> w_pp(protein_atoms.size()*(protein_atoms.size() - 1)/2); // corresponding weights
+    vector<double> d_hh(hydration_atoms.size()*(hydration_atoms.size() - 1)/2); // m(m-1)/2 total entries
+    vector<double> w_hh(hydration_atoms.size()*(hydration_atoms.size() - 1)/2); 
+    vector<double> d_hp(hydration_atoms.size()*protein_atoms.size()); // n*m entries
+    vector<double> w_hp(hydration_atoms.size()*protein_atoms.size()); 
+
+    // calculate p-p distances
     for (int i = 0; i < protein_atoms.size(); i++) {
         for (int j = i+1; j < protein_atoms.size(); j++) {
-            dp[n] = protein_atoms[i]->distance(protein_atoms[j]);
-            n++;
+            d_pp[n_pp] = protein_atoms[i]->distance(protein_atoms[j]);
+            w_pp[n_pp] = property::charge::get.at(protein_atoms[i]->get_element())*property::charge::get.at(protein_atoms[j]->get_element())
+                *protein_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
+            n_pp++;
         }
     }
 
-    // calculate the distances for the hydrogen atoms
-    n = 0; // index counter
-    vector<double> dh(hydration_atoms.size()*(hydration_atoms.size() + 2*protein_atoms.size() - 1)/2); // n(n-1)/2 + nm = n(n + 2m - 1)/2 total entries
     for (int i = 0; i < hydration_atoms.size(); i++) {
-        // loop over the hydration atoms
+        // calculate h-h distances
         for (int j = i+1; j < hydration_atoms.size(); j++) {
-            dh[n] = hydration_atoms[i]->distance(hydration_atoms[j]);
-            n++;
+            d_hh[n_hh] = hydration_atoms[i]->distance(hydration_atoms[j]);
+            w_hh[n_hh] = property::charge::get.at(hydration_atoms[i]->get_element())*property::charge::get.at(hydration_atoms[j]->get_element())
+                *hydration_atoms[i]->get_occupancy()*hydration_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
+            n_hh++;
         }
-        // loop over the protein atoms
+        // calculate h-p distances
         for (int j = 0; j < protein_atoms.size(); j++) {
-            dh[n] = hydration_atoms[i]->distance(protein_atoms[j]);
-            n++;
+            d_hp[n_hp] = hydration_atoms[i]->distance(protein_atoms[j]);
+            w_hp[n_hp] = property::charge::get.at(hydration_atoms[i]->get_element())*property::charge::get.at(protein_atoms[j]->get_element())
+                *hydration_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
+            n_hp++;
         }
     }
-    return make_pair(dp, dh);
+    return Distances(d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
 }
 
 void Protein::generate_new_hydration(int reduce = 3, double width = 1) {

@@ -17,6 +17,16 @@
 using std::vector, std::string, std::unique_ptr;
 using namespace ROOT;
 
+// static_assert(boost::is_pod<Distances>::value);
+struct Distances {
+    Distances(vector<double>& pp, vector<double>& hh, vector<double>& hp, 
+        vector<double>& wpp, vector<double>& whh, vector<double>& whp)
+         : pp(pp), hh(hh), hp(hp), wpp(wpp), whh(whh), whp(whp) {}
+
+    const vector<double> pp, hh, hp;
+    const vector<double> wpp, whh, whp;
+};
+
 class Protein {
 public:
     /** Creates a new protein from the input .pdb or .xml file. 
@@ -30,10 +40,10 @@ public:
     void save(string path);
 
     /** Calculate the distances between each pair of atoms. 
-     * @return A pair where the first entry is a vector of all internal distances between the protein atoms, while the second entry is all internal
-     * distances between hydration atoms plus distances between hydration and protein atoms. 
+     * @return A tuple (pp, hh, hp) where pp is all internal distances between the protein atoms, hh is all internal
+     * distances between hydration atoms, and hp is all distances between protein atoms and hydration atoms.
      */
-    std::pair<vector<double>, vector<double>> calc_distances();
+    Distances calc_distances();
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.

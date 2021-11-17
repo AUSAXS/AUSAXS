@@ -5,6 +5,9 @@
 
 #include "Protein.cpp"
 
+#include "TH1D.h"
+#include "TCanvas.h"
+
 int reduce = 0;
 double width = 1;
 string input, output;
@@ -55,6 +58,21 @@ int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
     Protein protein(argv[1]);
     protein.generate_new_hydration(reduce, width);
-    protein.save(argv[2]);
+    Distances d = protein.calc_distances();
+
+    unique_ptr<TCanvas> c = std::make_unique<TCanvas>("c", "canvas", 600, 600);
+    unique_ptr<TH1D> h = std::make_unique<TH1D>("h", "hist", 100, -10, 10);
+    for (int i = 0; i < d.pp.size(); i++) {
+        h->Fill(d.pp[i], d.wpp[i]);
+    }
+    for (int i = 0; i < d.hh.size(); i++) {
+        h->Fill(d.hh[i], d.whh[i]);
+    }
+    for (int i = 0; i < d.hp.size(); i++) {
+        h->Fill(d.hp[i], d.whp[i]);
+    }
+    c->SetRightMargin(0.15);
+    c->SaveAs(output.c_str());
+
     return 0;
 }

@@ -62,6 +62,19 @@ namespace property {
         constexpr double S = 32.06;
 
         // get the weight of an atom
-        const std::map<string, int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+        const std::map<string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+    }
+
+    namespace charge {
+        constexpr int H = 1;
+        constexpr int He = 2;
+        constexpr int Li = 3;
+        constexpr int C = 6;
+        constexpr int N = 7;
+        constexpr int O = 8;
+        constexpr int S = 16;
+
+        // get the charge Z of an atom
+        const std::map<string, int> get = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
     }
 }
