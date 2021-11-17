@@ -13,9 +13,10 @@
 // my own stuff
 #include "data/Record.h"
 #include "Tools.cpp"
+#include "data/properties.h"
 
 using namespace ROOT;
-using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
+using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
 class Atom : public Record {
@@ -118,10 +119,10 @@ public:
     }
 
     /**
-     * @brief Determine if this is a water molecule. 
+     * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
      * @return true if this is a water molecule, otherwise false. 
      */
-    bool is_water() const;
+    virtual bool is_water() const {return false;}
 
     // setters
     void set_coordinates(const TVector3 v) {this->coords = v;}
@@ -155,8 +156,8 @@ public:
      */
     void set_element(string element) {
         boost::erase_all(element, " ");
-        if (!atomic_weight_map.count(element)) {
-            print_err((format("ERROR: Invalid element \"%1%\".") % element).str());
+        if (!property::weight::atomic.count(element)) { // check that the weight is defined
+            print_err((format("Error in Atom::set_element: The weight of element \"%1%\" is not defined.") % element).str());
             exit(1);
         }
         this->element = element;
@@ -177,10 +178,10 @@ public:
 
     double get_atomic_weight() const {
         if (element == "") {
-            print_err("ERROR: Attempted to get atomic weight, but the element was not set!");
+            print_err("Error in Atom::get_atomic_weight: Attempted to get atomic weight, but the element was not set!");
             exit(1);
         }
-        return atomic_weight_map.at(element);
+        return property::weight::atomic.at(element);
     };
 
     /**
@@ -196,26 +197,10 @@ public:
      */
     bool operator==(const Atom& rhs) const;
 
-    /**
-     * @brief Create a new water Atom.
-     * @return A pointer to the new water Atom. 
-     */
-    static unique_ptr<Atom> create_new_water();
-
-    /**
-     * @brief Create a new water Atom.
-     * @param coords the coordinates for the new Atom.
-     * @return A pointer to the new water Atom. 
-     */
-    static unique_ptr<Atom> create_new_water(TVector3 coords);
-
-private:
+protected:
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     string recName, name, altLoc, resName, chainID, iCode, element, charge;
     double occupancy, tempFactor;
     int serial, resSeq; 
     TVector3 coords;
-
-    // atomic weights taken from https://www.britannica.com/science/atomic-weight
-    const std::map<string, int> atomic_weight_map = {{"H", 1.01}, {"He", 4.00}, {"Li", 6.95}, {"C", 12.01}, {"N", 14.01}, {"O", 16.00}, {"S", 32.06}};
 };

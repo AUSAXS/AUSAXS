@@ -4,13 +4,15 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <fstream>
 
 // my own includes
 #include "data/Record.h"
 #include "data/Terminate.cpp"
 #include "data/Header.cpp"
 #include "data/Footer.cpp"
-#include "data/Atom.cpp"
+#include "data/Atom.h"
+#include "data/Hetatom.cpp"
 #include "data/File.h"
 
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 
@@ -43,34 +45,43 @@ public:
      * @brief Update the contents of this File to reflect the input Protein.
      * @param protein the protein to use.
      */
-    virtual void update(vector<shared_ptr<Atom>> protein_atoms, vector<shared_ptr<Atom>> hydration_atoms) {
+    void update(vector<shared_ptr<Atom>> protein_atoms, vector<shared_ptr<Hetatom>> hydration_atoms) override {
         vector<shared_ptr<Record>> c(protein_atoms.size() + hydration_atoms.size() + 1, nullptr);
         int i = 0; // counter
 
         // insert all ATOMs
+        bool terminate_inserted = false;
+        string chainID = "0"; int resSeq = 0;
+        auto insert_ter = [&] () {
+            // last atom before the terminate
+            // we need this to determine what chainID and resSeq to use for the terminate and hetatms
+            shared_ptr<Atom> a = std::static_pointer_cast<Atom>(c[i-1]);
+            chainID = a->get_chainID();
+            resSeq = a->get_resSeq();
+
+            // insert a TER record between the atoms and waters
+            if (i != 0) {
+                c[i] = std::make_shared<Terminate>(i+1, a->get_resName(), chainID, resSeq, " ");
+            }
+            terminate_inserted = true;
+        };
+
         for (auto const& a : protein_atoms) {
+            if (!terminate_inserted && a->get_type() == Record::RecordType::HETATM) {
+                insert_ter();
+                i++;
+            }
             a->set_serial(i+1); // fix possible errors in the serial
             c[i] = a;
             i++;
         }
-        // last atom before the terminate
-        // we need this to determine what chainID and resSeq to use for the terminate and hetatms
-        shared_ptr<Atom> a = std::static_pointer_cast<Atom>(c[i-1]);
-        string chainID = a->get_chainID();
-        int resSeq = a->get_resSeq();
 
-        // insert a TER record between the ATOMs and HETATMs
-        if (i != 0) {
-            c[i] = find_ter_separator(); // see if we can reuse the original
-            if (c[i] == nullptr) { // it could not be found, so we create a new one
-                c[i] = std::make_shared<Terminate>(i+1, a->get_resName(), chainID, resSeq, " ");
-            } else { // it does exist, so we update its serial and reuse it
-                std::static_pointer_cast<Terminate>(c[i])->set_serial(i+1);
-            }
+        if (!terminate_inserted) {
+            insert_ter();
             i++;
         }
 
-        // insert all HETATMs
+        // insert all waters
         for (auto const& a : hydration_atoms) {
             a->set_serial(i+1); // fix possible errors in the serial
             a->set_resSeq(resSeq+1);
@@ -84,19 +95,6 @@ public:
     };
 
 private:
-    /**
-     * @brief Find the Terminate Record separating ATOMs and HETATMs
-     * @return A pointer to the Terminate Record if it exists, nullptr otherwise.
-     */
-    shared_ptr<Record> find_ter_separator() {
-        for (auto const& r : contents) {
-            if (r->get_type() == Record::TERMINATE) {
-                return r;
-            }
-        }
-        return nullptr;
-    }
-
     /**
      * @brief Read the file backing this File object. 
      */
@@ -112,7 +110,12 @@ private:
         while(getline(input, line)) {
             string type = line.substr(0, 6); // read the first 6 characters
             switch(Record::get_type(type)) {
-                case Record::RecordType::ATOM: {
+                case Record::RecordType::HETATM: {
+                    shared_ptr<Hetatom> atom = std::make_shared<Hetatom>();
+                    atom->parse_pdb(line);
+                    add(atom);
+                    break;
+                } case Record::RecordType::ATOM: {
                     shared_ptr<Atom> atom = std::make_shared<Atom>();
                     atom->parse_pdb(line);
                     add(atom);

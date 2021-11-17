@@ -12,6 +12,7 @@
 // my own includes
 #include "Grid.h"
 #include "data/Atom.cpp"
+#include "data/Hetatom.cpp"
 #include "AxesPlacement.cpp"
 #include "RadialPlacement.cpp"
 
@@ -54,8 +55,8 @@ void Grid::expand_volume() {
     }
 }
 
-vector<shared_ptr<Atom>> Grid::hydrate(int reduce = 3) {
-    vector<shared_ptr<Atom>> placed_water = find_free_locs();
+vector<shared_ptr<Hetatom>> Grid::hydrate(int reduce = 3) {
+    vector<shared_ptr<Hetatom>> placed_water = find_free_locs();
 
     int c = 0; // counter
     for (const auto& a : placed_water) {
@@ -71,7 +72,7 @@ vector<shared_ptr<Atom>> Grid::hydrate(int reduce = 3) {
     return placed_water;
 }
 
-vector<shared_ptr<Atom>> Grid::find_free_locs() {
+vector<shared_ptr<Hetatom>> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     for (const auto& pair : members) {
         if (pair.first.is_water()) {
@@ -91,7 +92,7 @@ vector<shared_ptr<Atom>> Grid::find_free_locs() {
     }
 
     // place the water molecules with the chosen strategy
-    vector<shared_ptr<Atom>> placed_water = water_placer->place(bounds);
+    vector<shared_ptr<Hetatom>> placed_water = water_placer->place(bounds);
 
     cout << "Placed " << placed_water.size() << " HOH molecules." << endl;
     return placed_water;
@@ -169,20 +170,18 @@ vector<Atom*> Grid::get_hydration_atoms() const {
 
 void Grid::expand_volume(const Atom atom) {
     vector<int> loc = members.at(atom);
-    int r = atom.is_water() ? rh : ra; // determine which radius to use for the expansion
     char marker = atom.is_water() ? 'h' : 'a';
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    vector<vector<int>> bounds(3, vector<int>(2, 0));
-    for (int i = 0; i < 3; i++) {
-        bounds[i][0] = std::max(loc[i] - r, 0);
-        bounds[i][1] = std::min(loc[i] + r + 1, bins[i]); // +1 since this range is inclusive, while the following for-loop is not
-    }
+    int r = atom.is_water() ? rh : ra; // determine which radius to use for the expansion
+    int xm = std::max(loc[0]-r, 0), xp = std::min(loc[0]+r+1, bins[0]); // xminus and xplus
+    int ym = std::max(loc[1]-r, 0), yp = std::min(loc[1]+r+1, bins[1]); // yminus and yplus
+    int zm = std::max(loc[2]-r, 0), zp = std::min(loc[2]+r+1, bins[2]); // zminus and zplus
 
     // loop over each bin in the box
-    for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
-        for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
-            for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
+    for (int i = xm; i < xp; i++) {
+        for (int j = ym; j < yp; j++) {
+            for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
                     volume++;
@@ -191,33 +190,34 @@ void Grid::expand_volume(const Atom atom) {
             }
         }
     }
+
     grid[loc[0]][loc[1]][loc[2]] = atom.is_water() ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
 void Grid::remove(shared_ptr<Atom> atom) {
-    volume++;
-    vector<int> loc = to_bins(atom->get_coords());
+    if (members.count(*atom) == 0) {
+        print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
+        exit(1);
+    }
+
+    vector<int> loc = members.at(*atom);
     members.erase(*atom);
     grid[loc[0]][loc[1]][loc[2]] = 0;
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = atom->is_water() ? rh : ra; // determine which radius to use for the expansion
-    char marker = atom->is_water() ? 'h' : 'a';
-    vector<vector<int>> bounds(3, vector<int>(2, 0));
-    for (int i = 0; i < 3; i++) {
-        bounds[i][0] = std::max(loc[i] - r, 0);
-        bounds[i][1] = std::min(loc[i] + r + 1, bins[i]); // +1 since this range is inclusive, while the following for-loop is not
-    }
+    int xm = std::max(loc[0]-r, 0), xp = std::min(loc[0]+r+1, bins[0]); // xminus and xplus
+    int ym = std::max(loc[1]-r, 0), yp = std::min(loc[1]+r+1, bins[1]); // yminus and yplus
+    int zm = std::max(loc[2]-r, 0), zp = std::min(loc[2]+r+1, bins[2]); // zminus and zplus
 
     // loop over each bin in the box
-    for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
-        for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
-            for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
+    for (int i = xm; i < xp; i++) {
+        for (int j = ym; j < yp; j++) {
+            for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
                     volume--;
                     grid[i][j][k] = 0;
-                    // if (grid[i][j][k] == marker) {grid[i][j][k] = 0;} // only remove the entry if it was from a volume expansion
                 }
             }
         }
@@ -237,9 +237,9 @@ void Grid::add(shared_ptr<Atom> atom) {
 }
 
 vector<int> Grid::to_bins(TVector3 v) {
-    int binx = std::lrint((v[0] - base.X())/width);
-    int biny = std::lrint((v[1] - base.Y())/width);
-    int binz = std::lrint((v[2] - base.Z())/width);
+    int binx = std::round((v[0] - base.X())/width);
+    int biny = std::round((v[1] - base.Y())/width);
+    int binz = std::round((v[2] - base.Z())/width);
     return {binx, biny, binz};
 }
 

@@ -10,7 +10,7 @@ using std::string, boost::format;
 
 class Record {
 public: 
-    enum RecordType {HEADER, ATOM, TERMINATE, FOOTER, NOTYPE};
+    enum RecordType {HEADER, ATOM, HETATM, TERMINATE, FOOTER, NOTYPE};
     
     virtual void parse_pdb(const string s) = 0;
     virtual RecordType get_type() const = 0;
@@ -26,7 +26,7 @@ public:
 
 private:
     static const inline std::map<string, Record::RecordType> type_map = {
-        {"ATOM  ", ATOM}, {"HETATM", ATOM},
+        {"ATOM  ", ATOM}, {"HETATM", HETATM},
         {"TER   ", TERMINATE}, 
         {"HEADER", HEADER}, {"TITLE ", HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, 
         {"EXPDTA", HEADER}, {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL  ", HEADER}, {"REMARK", HEADER}, 

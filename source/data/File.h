@@ -10,7 +10,8 @@
 #include "data/Terminate.cpp"
 #include "data/Header.cpp"
 #include "data/Footer.cpp"
-#include "data/Atom.cpp"
+#include "data/Atom.h"
+#include "data/Hetatom.cpp"
 
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 
 
@@ -26,7 +27,7 @@ public:
      * @brief Update the contents of this File to reflect the input Protein.
      * @param protein the protein to use.
      */
-    virtual void update(vector<shared_ptr<Atom>> protein_atoms, vector<shared_ptr<Atom>> hydration_atoms) = 0;
+    virtual void update(vector<shared_ptr<Atom>> protein_atoms, vector<shared_ptr<Hetatom>> hydration_atoms) = 0;
 
     /**
      * @brief Read the file backing this File object. 
@@ -77,19 +78,33 @@ public:
      * @brief Get the atoms contained in this File. 
      * @return A pair of [protein, hydration] atoms contained in this File. 
      */
-    std::pair<vector<shared_ptr<Atom>>, vector<shared_ptr<Atom>>> get_atoms() const {
-        vector<shared_ptr<Atom>> protein_atoms;
-        vector<shared_ptr<Atom>> hydration_atoms;
+    std::pair<vector<shared_ptr<Atom>>, vector<shared_ptr<Hetatom>>> get_atoms() const {
+        vector<shared_ptr<Atom>> protein_atoms(contents.size());
+        vector<shared_ptr<Hetatom>> hydration_atoms(contents.size());
+        int c_pro = 0, c_hyd = 0; // counters 
         for (auto const& r : contents) {
-            if (r->get_type() == Record::ATOM) {
-                shared_ptr<Atom> a = std::static_pointer_cast<Atom>(r);
-                if (a->is_water()) {
-                    hydration_atoms.push_back(a);
-                } else {
-                    protein_atoms.push_back(a);
+            switch (r->get_type()) {
+                case Record::RecordType::ATOM: {
+                    shared_ptr<Atom> a = std::static_pointer_cast<Atom>(r);
+                    protein_atoms[c_pro] = a;
+                    c_pro++;
+                    break;
                 }
-            }
+                case Record::RecordType::HETATM: {
+                    shared_ptr<Hetatom> a = std::static_pointer_cast<Hetatom>(r);
+                    if (a->is_water()) {
+                        hydration_atoms[c_hyd] = a;
+                        c_hyd++;
+                    } else {
+                        protein_atoms[c_pro] = a;
+                        c_pro++;
+                    }
+                    break;
+                }
+            };
         }
+        protein_atoms.resize(c_pro);
+        hydration_atoms.resize(c_hyd);
         return std::make_pair(protein_atoms, hydration_atoms);
     }
 

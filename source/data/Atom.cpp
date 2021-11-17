@@ -121,13 +121,6 @@ void Atom::print() {
     return;
 }
 
-bool Atom::is_water() const {
-    if (resName == "HOH") {
-        return true;
-    }
-    return false;
-}
-
 bool Atom::operator<(const Atom& rhs) const {
     return serial < rhs.get_serial();
 }
@@ -147,12 +140,4 @@ bool Atom::operator==(const Atom& rhs) const {
     if (resSeq != rhs.resSeq) {return false;}
     if (coords != rhs.coords) {return false;}
     return true;
-}
-
-unique_ptr<Atom> Atom::create_new_water() {
-    return create_new_water({0, 0, 0});
-}
-
-unique_ptr<Atom> Atom::create_new_water(TVector3 coords) {
-    return std::make_unique<Atom>(Atom("HETATM", -1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", ""));
 }

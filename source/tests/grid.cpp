@@ -161,7 +161,7 @@ void test_hydrate() {
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
     grid.add(&a);
-    vector<shared_ptr<Atom>> water = grid.hydrate(0);
+    vector<shared_ptr<Hetatom>> water = grid.hydrate(0);
 
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
@@ -190,7 +190,7 @@ void test_width() {
     IS_TRUE(g[100][100][100] == 'A');
 
     // check water generation
-    vector<shared_ptr<Atom>> water = grid.hydrate(0);
+    vector<shared_ptr<Hetatom>> water = grid.hydrate(0);
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
         IS_TRUE(water[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
@@ -232,11 +232,12 @@ void test_remove() {
     shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, 3, 0}, 0, "C", "", 2));
     vector<shared_ptr<Atom>> a = {a1, a2};
     grid.add(&a);
-    grid.remove(a[0]);
+    grid.expand_volume();
+    grid.remove(a1);
     vector<vector<vector<char>>> &g = grid.grid;
 
-    // check that the volume is removed
-    IS_TRUE(g[13][10][10] == 'A');
+    // check that the atom is removed
+    IS_TRUE(g[13][10][10] == 0);
     IS_TRUE(g[13][10][9] == 0);
     IS_TRUE(g[13][11][10] == 0);
     IS_TRUE(g[13][11][9] == 0);
@@ -260,10 +261,11 @@ void test_find_free_locs(Grid::PlacementStrategyChoice ch) {
     grid.add(&a);
     grid.expand_volume();
 
-    vector<shared_ptr<Atom>> locs = grid.find_free_locs();
+    vector<shared_ptr<Hetatom>> locs = grid.find_free_locs();
     IS_TRUE(locs.size() == 6);
     for (int i = 0; i < locs.size(); i++) {
-        cout << format("(x, y, z): (%1%, %2%, %3%)") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
+        // cout << format("(x, y, z): (%1%, %2%, %3%)") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
+        cout << format("%1%\t%2%\t%3%") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
     }
     if (locs.size() == 6) { // avoid crashing if the above fails
         IS_TRUE(locs[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
@@ -279,15 +281,15 @@ void test_find_free_locs(Grid::PlacementStrategyChoice ch) {
 int main(void)
 {
     cout << "Summary of Grid testing:" << std::endl;
-    // test_grid_generation();
-    // test_simple_bounding_box();
-    // test_complex_bounding_box();
-    // test_find_free_locs(Grid::AxesStrategy);
-    test_find_free_locs(Grid::RadialStrategy);
-    // test_hydrate();
-    // test_volume_expansion();
+    test_grid_generation();
+    test_simple_bounding_box();
+    test_complex_bounding_box();
+    test_find_free_locs(Grid::AxesStrategy);
+    // test_find_free_locs(Grid::RadialStrategy);
+    test_hydrate();
+    test_volume_expansion();
     // test_width();
-    // test_remove();
+    test_remove();
 
     if (passed_all) {
         cout << "\033[1;32m" << "All Grid tests passed." << "\033[0m" << endl;

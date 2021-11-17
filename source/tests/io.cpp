@@ -2,9 +2,10 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <filesystem>
 
 #include "tests/Test.h"
-#include "Protein.cpp"
+#include "Protein.h"
 
 using namespace ROOT;
 
@@ -26,11 +27,12 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         }
 
         // since a value of 5.90 is converted to 5.9 in the new file, we must manually compare entries where this can happen
-        if (Record::get_type(l1.substr(0, 6)) == Record::ATOM) { 
+        Record::RecordType type = Record::get_type(l1.substr(0, 6));
+        if (type == Record::ATOM || type == Record::HETATM) { 
             a1.parse_pdb(l1);
             a2.parse_pdb(l2);
             if (!(a1 == a2)) {
-                print_err("File comparison failed on lines");
+                print_err("File comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
@@ -39,7 +41,7 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         // otherwise we just compare the lines themselves
         else {
             if (l1 != l2) {
-                print_err("File comparison failed on lines");
+                print_err("File comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
@@ -53,7 +55,9 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
  */
 void test_simple_pdb() {
     std::ofstream pdb_file("temp.pdb");
-    pdb_file << "ATOM      1  LEU   O A 129         2.1     3.2     4.3  0.50 42.04           O  " << endl;
+    pdb_file << "ATOM      1  LEU   O A 129         2.1     3.2     4.3  0.50 42.04           O " << endl;
+    pdb_file << "HETATM    2  C1  MYR A 601      31.117   3.049  35.879  0.94 34.19           C " << endl;
+    pdb_file << "HETATM    3  HOH HOH A 601      31.117   3.049  35.879  0.94 34.19           O " << endl;
     pdb_file.close();
 
     // check PDB io
@@ -62,6 +66,11 @@ void test_simple_pdb() {
     protein = new Protein("temp2.pdb");
     vector<shared_ptr<Atom>>* atoms = protein->get_protein_atoms();
     shared_ptr<Atom> a = (*atoms)[0];
+
+    if (atoms->size() == 0) {
+        IS_TRUE(false);
+        return;
+    }
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
@@ -73,8 +82,8 @@ void test_simple_pdb() {
     IS_TRUE(a->get_element() == "O");
     IS_TRUE(a->get_resName() == "O");
 
-    remove("temp.pdb");
-    remove("temp2.pdb");
+    // remove("temp.pdb");
+    // remove("temp2.pdb");
 }
 
 /**
@@ -95,7 +104,7 @@ void test_simple_xml() {
     Protein* protein = new Protein("temp.xml");
     protein->save("temp2.xml");
     protein = new Protein("temp2.xml");
-    vector<shared_ptr<Atom>>* atoms = protein->get_hydration_atoms();
+    vector<shared_ptr<Hetatom>>* atoms = protein->get_hydration_atoms();
     shared_ptr<Atom> a = (*atoms)[0];
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
@@ -123,7 +132,7 @@ void test_all_data() {
             Protein* protein = new Protein(file.path().string());
             protein->save("temp.pdb");
             IS_TRUE(compareFiles(file.path().string(), "temp.pdb"));
-            remove("temp.pdb");
+            // remove("temp.pdb");
         }
     }
 }
@@ -131,11 +140,6 @@ void test_all_data() {
 int main(void) {
     cout << "Summary of IO testing:" << endl;
     print_err("Test that TER records are generated correctly.");
-
-    // cout << setf(-10.377, 8) << endl;
-    // cout << setf(-2.87003736, 8) << endl;
-    // cout << setf(-0.689022, 8) << endl;
-    // exit(1);
 
     test_simple_pdb();
     // test_simple_xml();

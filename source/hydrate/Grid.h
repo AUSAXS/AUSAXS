@@ -76,13 +76,13 @@ public:
      * @param reduce reduces the number of generated HOH molecules by this factor. Use 0 for no reduction. 
      * @return Pointers to the new water molecules. 
      */
-    vector<shared_ptr<Atom>> hydrate(int reduce);
+    vector<shared_ptr<Hetatom>> hydrate(int reduce);
 
     /**
      * @brief Identify possible hydration binding locations for the structure. 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<shared_ptr<Atom>> find_free_locs();
+    vector<shared_ptr<Hetatom>> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.

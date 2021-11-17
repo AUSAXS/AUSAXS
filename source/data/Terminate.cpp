@@ -2,8 +2,10 @@
 
 // includes
 #include <string>
-#include "data/Record.h"
+#include <iomanip>
 #include <boost/algorithm/string.hpp>
+
+#include "data/Record.h"
 
 using std::string, std::left, std::right, std::setw;
 

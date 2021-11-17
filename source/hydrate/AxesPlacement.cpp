@@ -10,16 +10,16 @@ class AxesPlacement : public PlacementStrategy {
 public:
     AxesPlacement(Grid* grid) : PlacementStrategy(grid) {}
 
-    vector<shared_ptr<Atom>> place(const vector<vector<int>> bounds) override {
+    vector<shared_ptr<Hetatom>> place(const vector<vector<int>> bounds) override {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();
         const int ra = grid->ra; const int rh = grid->rh;
 
         // we define two helper functions so I can make the checks in the inner loop one-liners
-        vector<shared_ptr<Atom>> placed_water;
+        vector<shared_ptr<Hetatom>> placed_water;
         auto add_loc = [&] (const vector<int> v) {
-            shared_ptr<Atom> a = Atom::create_new_water(grid->to_xyz(v));
+            shared_ptr<Hetatom> a = Hetatom::create_new_water(grid->to_xyz(v));
             grid->add(a);
             grid->expand_volume(*a.get());
             placed_water.push_back(a);

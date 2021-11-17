@@ -5,6 +5,8 @@
 
 #include "tests/Test.h"
 #include "Protein.cpp"
+#include "hydrate/Grid.cpp"
+#include "data/properties.h"
 
 using namespace ROOT;
 
@@ -45,12 +47,19 @@ void test_generate_grid() {
     IS_TRUE(bins[0] == 2/width);
 }
 
+void test_volume() {
+    Protein protein("temp.pdb");
+
+    IS_TRUE(protein.get_volume() == property::volume::lysine);
+}
+
 int main(void)
 {
     cout << "Summary of Protein testing:" << endl;
     create_test_file();
     test_get_cm();
     test_generate_grid();
+    test_volume();
     remove("temp.pdb");
 
     if (passed_all) {
