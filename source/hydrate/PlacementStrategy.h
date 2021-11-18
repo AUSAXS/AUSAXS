@@ -28,7 +28,7 @@ public:
      * @param bounds the area to place molecules in. 
      * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.
      */
-    virtual vector<shared_ptr<Hetatom>> place(const vector<vector<int>> bounds) = 0;
+    virtual vector<shared_ptr<Hetatom>> place() = 0;
 
 protected: 
     Grid* grid; // A reference to the grid used in Grid.

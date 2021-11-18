@@ -98,7 +98,7 @@ public:
     vector<vector<int>> rot_bins_2rh; // the bin offsets for rotations of a 2rh length rod
     vector<vector<int>> rot_bins_rarh; // the bin offsets for rotations of a 2rh length rod
 
-    vector<shared_ptr<Hetatom>> place(const vector<vector<int>> bounds) override {
+    vector<shared_ptr<Hetatom>> place() override {
         // dereference the values we'll need for better performance
         const vector<int> bins = grid->get_bins();
         vector<vector<vector<char>>>& gref = grid->grid;
@@ -108,7 +108,7 @@ public:
         auto add_loc = [&] (const vector<int> v) {
             shared_ptr<Hetatom> a = Hetatom::create_new_water(grid->to_xyz(v));
             grid->add(a);
-            grid->expand_volume(*a.get());
+            grid->expand_volume(a);
             placed_water.push_back(a);
         };
 

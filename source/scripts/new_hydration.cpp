@@ -5,7 +5,7 @@
 
 #include "Protein.h"
 
-int reduce = 3;
+int reduce = 0;
 double width = 1;
 string input, output;
 

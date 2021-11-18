@@ -88,7 +88,7 @@ void Protein::generate_new_hydration(int reduce = 3, double width = 1) {
 
     // generate the 3D grid
     Grid grid({-250, -250, -250}, width, 501/width); 
-    grid.add(&protein_atoms);
+    grid.add(protein_atoms);
     hydration_atoms = grid.hydrate(reduce);
 
     // double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large

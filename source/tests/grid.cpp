@@ -22,7 +22,7 @@ void test_grid_generation() {
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
+    grid.add(a);
     vector<vector<vector<char>>> &g = grid.grid;
 
     // check that it was placed correctly in the grid
@@ -41,7 +41,7 @@ void test_simple_bounding_box() {
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
+    grid.add(a);
 
     vector<vector<int>> box = grid.bounding_box();
     IS_TRUE(box[0][0] == 10);
@@ -62,7 +62,7 @@ void test_complex_bounding_box() {
     shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, -5, 0}, 0, "C", "", 2));
     vector<shared_ptr<Atom>> a = {a1, a2};
 
-    grid.add(&a);
+    grid.add(a);
     grid.expand_volume();
 
     vector<vector<int>> box = grid.bounding_box();
@@ -83,7 +83,7 @@ void test_volume_expansion() {
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
+    grid.add(a);
     vector<vector<vector<char>>> &g = grid.grid;
     grid.expand_volume();
 
@@ -160,17 +160,17 @@ void test_hydrate() {
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
+    grid.add(a);
     vector<shared_ptr<Hetatom>> water = grid.hydrate(0);
 
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
         IS_TRUE(water[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(water[1]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(water[2]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(water[3]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
-        IS_TRUE(water[4]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(water[5]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[1]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[2]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(water[3]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(water[4]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(water[5]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
     }
 }
 
@@ -183,7 +183,7 @@ void test_width() {
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
+    grid.add(a);
     vector<vector<vector<char>>> &g = grid.grid;
 
     // check that it was placed correctly
@@ -194,11 +194,11 @@ void test_width() {
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
         IS_TRUE(water[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(water[1]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(water[2]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(water[3]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
-        IS_TRUE(water[4]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(water[5]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[1]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[2]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(water[3]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(water[4]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(water[5]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
     }
 
     // test bounds
@@ -208,7 +208,7 @@ void test_width() {
     shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, -5, 0}, 0, "C", "", 2));
     a = {a1, a2};
 
-    grid.add(&a);
+    grid.add(a);
     grid.expand_volume();
     g = grid.grid;
 
@@ -231,7 +231,7 @@ void test_remove() {
     shared_ptr<Atom> a1 = std::make_shared<Atom>(Atom({3, 0, 0}, 0, "C", "", 1));
     shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, 3, 0}, 0, "C", "", 2));
     vector<shared_ptr<Atom>> a = {a1, a2};
-    grid.add(&a);
+    grid.add(a);
     grid.expand_volume();
     grid.remove(a1);
     vector<vector<vector<char>>> &g = grid.grid;
@@ -258,7 +258,7 @@ void test_find_free_locs(Grid::PlacementStrategyChoice ch) {
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
-    grid.add(&a);
+    grid.add(a);
     grid.expand_volume();
 
     vector<shared_ptr<Hetatom>> locs = grid.find_free_locs();
@@ -269,11 +269,11 @@ void test_find_free_locs(Grid::PlacementStrategyChoice ch) {
     }
     if (locs.size() == 6) { // avoid crashing if the above fails
         IS_TRUE(locs[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(locs[1]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(locs[2]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(locs[3]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
-        IS_TRUE(locs[4]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(locs[5]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(locs[1]->get_coords() == TVector3({6, 0, 0}));  // (2r, 0, 0)
+        IS_TRUE(locs[2]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(locs[3]->get_coords() == TVector3({0, 6, 0}));  // (0, 2r, 0)
+        IS_TRUE(locs[4]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(locs[5]->get_coords() == TVector3({0, 0, 6}));  // (0, 0, 2r)
     }
 
 }
@@ -288,7 +288,7 @@ int main(void)
     // test_find_free_locs(Grid::RadialStrategy);
     test_hydrate();
     test_volume_expansion();
-    // test_width();
+    test_width();
     test_remove();
 
     if (passed_all) {

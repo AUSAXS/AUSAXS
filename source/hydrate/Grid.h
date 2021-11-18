@@ -46,19 +46,19 @@ public:
      * @brief Add a set of atoms to the grid. 
      * @param atoms the set of atoms to add to this grid.
      */
-    void add(vector<shared_ptr<Atom>>* atoms);
+    void add(const vector<shared_ptr<Atom>>& atoms);
 
     /** 
      * @brief Add a single atom to the grid. 
      * @param atom the atom to be added. 
      */
-    void add(shared_ptr<Atom> atom);
+    void add(const shared_ptr<Atom> atom);
 
     /**
      * @brief Remove a single atom from the grid.
      * @param atom the atom to be removed.
      */
-    void remove(shared_ptr<Atom> atom);
+    void remove(const shared_ptr<Atom> atom);
 
     /** 
      * @brief Expand the member atoms into actual spheres based on the radii ra and rh. 
@@ -69,7 +69,7 @@ public:
      * @brief Expand a single member atom into an actual sphere.
      * @param atom the member atom to be expanded. 
      */
-    void expand_volume(const Atom atom);
+    void expand_volume(const shared_ptr<Atom> atom);
 
     /**
      * @brief Generate a new hydration layer for the grid.  
@@ -105,7 +105,12 @@ public:
     /**
      * @brief Get all hydration atoms from this grid. 
      */
-    vector<Atom*> get_hydration_atoms() const;
+    vector<shared_ptr<Atom>> get_hydration_atoms() const;
+
+    /**
+     * @brief Get all protein atoms from this grid. 
+     */
+    vector<shared_ptr<Atom>> get_protein_atoms() const;
 
     /**
      * @brief Get the total volume spanned by the atoms in this grid. 
@@ -127,17 +132,21 @@ public:
      * @param v the bin location.
      * @return The xyz location.
      */
-    TVector3 to_xyz(vector<int> v);
+    TVector3 to_xyz(const vector<int>& v) const;
 
     /**
      * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
      * @param v the xyz location.
      * @return The bin location. 
      */
-    vector<int> to_bins(TVector3 v);
+    vector<int> to_bins(const TVector3& v) const;
+
+    class Comparator {
+        public: bool operator() (const shared_ptr<Atom>& l, const shared_ptr<Atom>& r) const {return *l < *r;}
+    };
 
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
+    std::map<const shared_ptr<Atom>, vector<int>> members; // a map of all members of this grid and where they are located
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // radius of each atom represented as a number of bins
     int rh = 0; // radius of each water molecule represented as a number of bins
@@ -148,13 +157,4 @@ private:
     vector<int> bins; // the number of bins in each dimension
     bool vol_expanded = false; // a flag determining if the volume has been expanded 
     unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
-
-    // /**
-    //  * @brief Check if a water molecule can be placed at the given location. 
-    //  *        This checks collisions with both other water molecules and other atoms. 
-    //  * @param loc the location to be checked. 
-    //  * @param other_molecules the other water molecules which have already been placed.
-    //  * @return True if this is an acceptable location, false otherwise.
-    //  */
-    // bool check_collisions(const vector<int> loc, const vector<vector<int>> other_molecules) const;
 };

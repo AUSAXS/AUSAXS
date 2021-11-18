@@ -10,7 +10,7 @@ class AxesPlacement : public PlacementStrategy {
 public:
     AxesPlacement(Grid* grid) : PlacementStrategy(grid) {}
 
-    vector<shared_ptr<Hetatom>> place(const vector<vector<int>> bounds) override {
+    vector<shared_ptr<Hetatom>> place() override {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();
@@ -21,36 +21,35 @@ public:
         auto add_loc = [&] (const vector<int> v) {
             shared_ptr<Hetatom> a = Hetatom::create_new_water(grid->to_xyz(v));
             grid->add(a);
-            grid->expand_volume(*a.get());
+            grid->expand_volume(a);
             placed_water.push_back(a);
         };
 
-        // loop over the minimum bounding box as found above
-        for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
-            for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
-                for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
-                    // if this spot is part of an atom
-                    if (gref[i][j][k] == 'a') {
-                        // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-                        int xm = std::max(i-rh, 0), xp = std::min(i+rh, bins[0]); // xminus and xplus
-                        int ym = std::max(j-rh, 0), yp = std::min(j+rh, bins[1]); // yminus and yplus
-                        int zm = std::max(k-rh, 0), zp = std::min(k+rh, bins[2]); // zminus and zplus
+        // loop over the location of all member atoms
+        int r_eff = ra+rh;
+        vector<shared_ptr<Atom>> atoms = grid->get_protein_atoms();
+        for (auto const& a : atoms) {
+            const vector<int>& loc = grid->members.at(a);
+            const int x = loc[0], y = loc[1], z = loc[2];
 
-                        // check collisions for x ± r_eff
-                        if ((gref[xm][j][k] == 0) && collision_check({xm, j, k})) add_loc({xm, j, k});
-                        if ((gref[xp][j][k] == 0) && collision_check({xp, j, k})) add_loc({xp, j, k});
+            // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
+            int xm = std::max(x-r_eff, 0), xp = std::min(x+r_eff, bins[0]-1); // xminus and xplus
+            int ym = std::max(y-r_eff, 0), yp = std::min(y+r_eff, bins[1]-1); // yminus and yplus
+            int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, bins[2]-1); // zminus and zplus
 
-                        // check collisions for y ± r_eff
-                        if ((gref[i][ym][k] == 0) && collision_check({i, ym, k})) add_loc({i, ym, k});
-                        if ((gref[i][yp][k] == 0) && collision_check({i, yp, k})) add_loc({i, yp, k});
+            // check collisions for x ± r_eff
+            if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) add_loc({xm, y, z});
+            if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) add_loc({xp, y, z});
 
-                        // check collisions for z ± r_eff
-                        if ((gref[i][j][zm] == 0) && collision_check({i, j, zm})) add_loc({i, j, zm});
-                        if ((gref[i][j][zp] == 0) && collision_check({i, j, zp})) add_loc({i, j, zp});
-                    } 
-                }
-            }
+            // check collisions for y ± r_eff
+            if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) add_loc({x, ym, z});
+            if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) add_loc({x, yp, z});
+
+            // check collisions for z ± r_eff
+            if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) add_loc({x, y, zm});
+            if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) add_loc({x, y, zp});
         }
+
         return placed_water;
     }
 
@@ -65,15 +64,14 @@ private:
         // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]
         int r = gref[x][y][z] == 'A' ? ra : rh;
 
-        // we use the range (x-r+1) to (x+r) since the first is inclusive and the second is exclusive. 
-        // thus the range that is being checked is actually [x-r+1, x+r-1] because we allow the surfaces to overlap
-        int xm = std::max(x-r+1, 0), xp = std::min(x+r, bins[0]); // xminus and xplus
-        int ym = std::max(y-r+1, 0), yp = std::min(y+r, bins[1]); // yminus and yplus
-        int zm = std::max(z-r+1, 0), zp = std::min(z+r, bins[2]); // zminus and zplus
+        // we use the range (x-r) to (x+r+1) since the first is inclusive and the second is exclusive. 
+        int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
+        int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
+        int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
         for (int i = xm; i < xp; i++) {
             for (int j = ym; j < yp; j++) {
                 for (int k = zm; k < zp; k++) {
-                    if (gref[i][j][k] != 0) {return false;}
+                    if (gref[i][j][k] != 0 && sqrt(pow(x-i, 2) + pow(y-j, 2) + pow(z-k, 2)) < r) {return false;}
                 }
             }
         }
