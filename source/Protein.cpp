@@ -1,5 +1,3 @@
-#pragma once
-
 // includes
 #include <vector>
 #include <map>

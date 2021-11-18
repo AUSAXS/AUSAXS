@@ -12,7 +12,7 @@
 
 // my own stuff
 #include "data/Record.h"
-#include "Tools.cpp"
+#include "Tools.h"
 #include "data/properties.h"
 
 using namespace ROOT;

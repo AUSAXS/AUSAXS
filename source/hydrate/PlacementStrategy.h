@@ -6,7 +6,7 @@ class Grid;
 // includes
 #include <TVector3.h>
 #include "data/Atom.h"
-#include "data/Hetatom.cpp"
+#include "data/Hetatom.h"
 #include "Grid.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;

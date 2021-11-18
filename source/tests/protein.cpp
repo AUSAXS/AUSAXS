@@ -4,8 +4,8 @@
 #include <fstream>
 
 #include "tests/Test.h"
-#include "Protein.cpp"
-#include "hydrate/Grid.cpp"
+#include "Protein.h"
+#include "hydrate/Grid.h"
 #include "data/properties.h"
 
 using namespace ROOT;

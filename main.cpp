@@ -9,20 +9,20 @@
 // #include <TH1.h>
 
 // my own includes
-#include "data/Atom.cpp"
-#include "Protein.cpp"
-#include "Tools.cpp"
+#include "data/Atom.h"
+#include "Protein.h"
+#include "Tools.h"
 #include "plot_style.cpp"
 
 using namespace ROOT;
 
 int main(int argc, char const *argv[])
 {
-    Protein protein(argv[1]);  
-    auto[dp, dh] = protein.calc_distances();
-    // protein.generate_new_hydration();
-    protein.save("temp2.pdb");
-    Protein protein2("temp2.pdb");
+    // Protein protein(argv[1]);  
+    // auto[dp, dh] = protein.calc_distances();
+    // // protein.generate_new_hydration();
+    // protein.save("temp2.pdb");
+    // Protein protein2("temp2.pdb");
 
     // plots
     // setup_style();

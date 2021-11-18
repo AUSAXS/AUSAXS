@@ -8,11 +8,11 @@
 
 // my own includes
 #include "data/Record.h"
-#include "data/Terminate.cpp"
-#include "data/Header.cpp"
-#include "data/Footer.cpp"
+#include "data/Terminate.h"
+#include "data/Header.h"
+#include "data/Footer.h"
 #include "data/Atom.h"
-#include "data/Hetatom.cpp"
+#include "data/Hetatom.h"
 #include "data/File.h"
 
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 

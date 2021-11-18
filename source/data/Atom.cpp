@@ -1,5 +1,3 @@
-#pragma once
-
 // includes
 #include <map>
 #include <string>
@@ -15,7 +13,7 @@
 
 // my own stuff
 #include "data/Record.h"
-#include "Tools.cpp"
+#include "Tools.h"
 #include "Atom.h"
 
 using namespace ROOT;

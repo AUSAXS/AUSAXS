@@ -31,7 +31,7 @@ public:
      * @brief Parse a .pdb format terminate string.
      * @param s the .pdb format terminate string.
      */
-    void parse_pdb(const string s) override {
+    inline void parse_pdb(const string s) override {
         // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#TER
 
         //                   RN SE S1 RN S2 CI RS iC
@@ -74,7 +74,7 @@ public:
      * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.
      * @return the .pdb format header string. 
      */
-    string as_pdb() const override {
+    inline string as_pdb() const override {
         std::stringstream ss;
         //                   RN SE S1 RN S2 CI RS iC
         //                   0     1     2        
@@ -93,7 +93,7 @@ public:
         return ss.str();
     }
     
-    void set_serial(const int serial) {this->serial = serial;}
+    inline void set_serial(const int serial) {this->serial = serial;}
 
 private:
     int serial, resSeq;

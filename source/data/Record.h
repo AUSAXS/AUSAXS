@@ -2,9 +2,11 @@
 
 // includes
 #include <string>
-#include "boost/format.hpp"
+#include <map>
+#include <math.h>
+#include <boost/format.hpp>
 
-#include "Tools.cpp"
+#include "Tools.h"
 
 using std::string, boost::format;
 
@@ -25,7 +27,7 @@ public:
     }
 
 private:
-    static const inline std::map<string, Record::RecordType> type_map = {
+    inline static const std::map<string, RecordType> type_map = {
         {"ATOM  ", ATOM}, {"HETATM", HETATM},
         {"TER   ", TERMINATE}, 
         {"HEADER", HEADER}, {"TITLE ", HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, 
@@ -43,7 +45,7 @@ struct __setp {
     int prec;
 };
 
-std::ostream& operator<<(std::ostream& os, const __setp& obj) {
+inline std::ostream& operator<<(std::ostream& os, const __setp& obj) {
     os.precision(obj.prec);
     os << obj.number;
     return os;
@@ -54,7 +56,7 @@ std::ostream& operator<<(std::ostream& os, const __setp& obj) {
  * @param number number to be printed. 
  * @param p total width including signs and decimal separator
  */
-__setp setf(const double number, const int precision) {
+inline __setp setf(const double number, const int precision) {
     // IF THIS EVER BREAKS AGAIN, CONVERT IT TO A SIMPLE LOOP OVER string(number) INSTEAD. COULD EVEN INCLUDE MINWIDTH AS WELL
     __setp setter;
     setter.number = number;

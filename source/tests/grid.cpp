@@ -4,11 +4,11 @@
 #include <fstream>
 
 #include "tests/Test.h"
-#include "Protein.cpp"
-#include "Grid.cpp"
+#include "Protein.h"
+#include "hydrate/Grid.h"
 
 #include <TVector3.h>
-
+ 
 using namespace ROOT;
 
 /**

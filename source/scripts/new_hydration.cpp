@@ -3,9 +3,9 @@
 #include <string>
 #include <boost/program_options.hpp>
 
-#include "Protein.cpp"
+#include "Protein.h"
 
-int reduce = 0;
+int reduce = 3;
 double width = 1;
 string input, output;
 
@@ -45,7 +45,7 @@ void parse_params(int argc, char const *argv[]) {
             width = vm["width"].as<double>();
             cout << "Width set to " << width << endl;
         }
-    } catch ( const std::exception& e ) {
+    } catch (const std::exception& e ) {
         std::cerr << e.what() << std::endl;
         exit(1);
     }

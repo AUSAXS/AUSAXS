@@ -2,8 +2,9 @@
 #include <vector>
 #include <string>
 #include <boost/program_options.hpp>
+#include <string>
 
-#include "Protein.cpp"
+#include "Protein.h"
 
 #include "TH1D.h"
 #include "TCanvas.h"

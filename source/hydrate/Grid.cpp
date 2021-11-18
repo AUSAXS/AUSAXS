@@ -1,5 +1,3 @@
-#pragma once
-
 // includes
 #include <vector>
 #include <map>
@@ -11,8 +9,8 @@
 
 // my own includes
 #include "Grid.h"
-#include "data/Atom.cpp"
-#include "data/Hetatom.cpp"
+#include "data/Atom.h"
+#include "data/Hetatom.h"
 #include "AxesPlacement.cpp"
 #include "RadialPlacement.cpp"
 
