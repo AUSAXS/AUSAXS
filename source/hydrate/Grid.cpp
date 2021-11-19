@@ -13,12 +13,14 @@
 #include "data/Hetatom.h"
 #include "AxesPlacement.cpp"
 #include "RadialPlacement.cpp"
+#include "CounterCulling.cpp"
+#include "OutlierCulling.cpp"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
-Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice ch = AxesStrategy) {
+Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc = AxesStrategy, CullingStrategyChoice csc = CounterStrategy) {
     long long int total_bins = (long long) bins[0]*bins[1]*bins[2];
     if (total_bins > 32e9) {
         print_err("Error in Grid: Too many bins.");
@@ -33,9 +35,29 @@ Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, 
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
 
-    if (ch == AxesStrategy) {water_placer = std::make_unique<AxesPlacement>(this);}
-    else if (ch == RadialStrategy) {water_placer = std::make_unique<RadialPlacement>(this);}
-    else {print_err("Error in Grid::Grid: Unkown PlacementStrategy");}
+    switch (psc) {
+        case AxesStrategy: 
+            water_placer = std::make_unique<AxesPlacement>(this);
+            break;
+        case RadialStrategy:
+            water_placer = std::make_unique<RadialPlacement>(this);
+            break;
+        default: 
+            print_err("Error in Grid::Grid: Unkown PlacementStrategy");
+            exit(1);
+    }
+
+    switch (csc) {
+        case CounterStrategy: 
+            water_culler = std::make_unique<CounterCulling>(this);
+            break;
+        case OutlierStrategy: 
+            water_culler = std::make_unique<OutlierCulling>(this);
+            break;
+        default: 
+            print_err("Error in Grid::Grid: Unkown CullingStrategy");
+            exit(1);        
+    }
 }
 
 void Grid::add(const vector<shared_ptr<Atom>>& atoms) {
@@ -53,25 +75,10 @@ void Grid::expand_volume() {
     }
 }
 
-vector<shared_ptr<Hetatom>> Grid::hydrate(int reduce = 3) {
+vector<shared_ptr<Hetatom>> Grid::hydrate(double reduce = 0.1) {
     vector<shared_ptr<Hetatom>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    vector<shared_ptr<Hetatom>> final_water(placed_water.size(), nullptr); // the final water molecules that will be used
-
-    int c = 0; // counter
-    int i = 0; // index
-    for (const auto& a : placed_water) {
-        c++;
-        if (reduce != 0) {
-            if (c % reduce != 0) {
-                remove(a);
-                continue;
-            }
-        }
-        final_water[i] = a;
-        i++;
-    }
-    final_water.resize(i);
-    return final_water;
+    water_culler->set_target_count(reduce*(members.size()-placed_water.size())); // target is 10% of atoms
+    return water_culler->cull(placed_water);
 }
 
 vector<shared_ptr<Hetatom>> Grid::find_free_locs() {

@@ -98,7 +98,7 @@ public:
     vector<vector<int>> rot_bins_2rh; // the bin offsets for rotations of a 2rh length rod
     vector<vector<int>> rot_bins_rarh; // the bin offsets for rotations of a 2rh length rod
 
-    vector<shared_ptr<Hetatom>> place() override {
+    vector<shared_ptr<Hetatom>> place() const override {
         // dereference the values we'll need for better performance
         const vector<int> bins = grid->get_bins();
         vector<vector<vector<char>>>& gref = grid->grid;

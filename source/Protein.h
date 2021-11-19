@@ -45,12 +45,18 @@ public:
      */
     Distances calc_distances();
 
+
+    /**
+     * @brief Calculate the intensity based on the Debye scattering equation
+     */
+    vector<double> debye_scattering_intensity();
+
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
-     * @param reduce the factor to reduce the output number of water molecules by. 
+     * @param reduce the desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.  
      * @param width the distance between each grid point
      */
-    void generate_new_hydration(int reduce, double width);
+    void generate_new_hydration(double reduce, double width);
 
     /**
      * @brief Get a pointer to the protein atoms.

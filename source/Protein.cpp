@@ -78,7 +78,7 @@ Distances Protein::calc_distances() {
     return Distances(d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
 }
 
-void Protein::generate_new_hydration(int reduce = 3, double width = 1) {
+void Protein::generate_new_hydration(double reduce = 0.1, double width = 1) {
     // delete the old hydration layer
     hydration_atoms = vector<shared_ptr<Hetatom>>();
 
@@ -90,10 +90,34 @@ void Protein::generate_new_hydration(int reduce = 3, double width = 1) {
     Grid grid({-250, -250, -250}, width, 501/width); 
     grid.add(protein_atoms);
     hydration_atoms = grid.hydrate(reduce);
+}
 
-    // double width = 10; // what width to use? 10 is too large, but with smaller values our grid becomes incredibly large
-    // auto[corner, bins] = generate_grid(width); // corner is the lower corner of our grid, and bins the number of bins in each dimension
-    // cout << format("bins: (%1%, %2%, %3%)") % bins[0] % bins[1] % bins[2] << endl;
+vector<double> Protein::debye_scattering_intensity() {
+    Distances distances = calc_distances();
+
+    // p is the bin contents of a histogram of the distances
+    double width = 0.1;
+    int bins = 100/width;
+    vector<int> p(bins);
+    for (int i = 0; i < distances.pp.size(); i++) {
+        p[std::round(width*distances.pp[i])] += distances.wpp[i];
+    }
+    for (int i = 0; i < distances.hh.size(); i++) {
+        p[std::round(width*distances.hh[i])] += distances.whh[i];
+    }
+    for (int i = 0; i < distances.hp.size(); i++) {
+        p[std::round(width*distances.hp[i])] += distances.whp[i];
+    }
+
+    // calculate the Debye scattering intensity
+    vector<double> Iq(1000, 0);
+    for (int i = 0; i < Iq.size(); i++) {
+        double q = i*0.001;
+        for (int j = 0; j < bins; j++) {
+            Iq[i] += sin(q*p[j])/q*p[j];
+        }
+    }
+    return Iq;
 }
 
 std::pair<TVector3, vector<int>> Protein::generate_grid(const double width) {

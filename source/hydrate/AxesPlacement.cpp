@@ -8,9 +8,9 @@
  */
 class AxesPlacement : public PlacementStrategy {
 public:
-    AxesPlacement(Grid* grid) : PlacementStrategy(grid) {}
+    using PlacementStrategy::PlacementStrategy; // inherit constructor
 
-    vector<shared_ptr<Hetatom>> place() override {
+    vector<shared_ptr<Hetatom>> place() const override {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();

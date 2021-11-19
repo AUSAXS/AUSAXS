@@ -7,6 +7,7 @@ class PlacementStrategy;
 #include <TVector3.h>
 #include "data/Atom.h"
 #include "PlacementStrategy.h"
+#include "CullingStrategy.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
@@ -14,6 +15,7 @@ using namespace ROOT;
 class Grid {
 public:
     enum PlacementStrategyChoice {AxesStrategy, RadialStrategy};
+    enum CullingStrategyChoice {CounterStrategy, OutlierStrategy};
 
     /**
      * @brief Construct a new Grid object with standard atomic radii.
@@ -21,7 +23,7 @@ public:
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, sqrt(8), 1, AxesStrategy) {}
+    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, 2, 1.5, AxesStrategy, CounterStrategy) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -30,7 +32,7 @@ public:
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, AxesStrategy) {}
+    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, AxesStrategy, CounterStrategy) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -40,7 +42,7 @@ public:
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice ch);
+    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc);
 
     /** 
      * @brief Add a set of atoms to the grid. 
@@ -73,10 +75,10 @@ public:
 
     /**
      * @brief Generate a new hydration layer for the grid.  
-     * @param reduce reduces the number of generated HOH molecules by this factor. Use 0 for no reduction. 
+     * @param reduce desired number of water molecules as a percentage of the atoms. Use 0 for no reduction. 
      * @return Pointers to the new water molecules. 
      */
-    vector<shared_ptr<Hetatom>> hydrate(int reduce);
+    vector<shared_ptr<Hetatom>> hydrate(double reduce);
 
     /**
      * @brief Identify possible hydration binding locations for the structure. 
@@ -157,4 +159,5 @@ private:
     vector<int> bins; // the number of bins in each dimension
     bool vol_expanded = false; // a flag determining if the volume has been expanded 
     unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
+    unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules
 };

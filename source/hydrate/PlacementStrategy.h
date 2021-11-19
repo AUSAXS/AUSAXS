@@ -5,9 +5,8 @@ class Grid;
 
 // includes
 #include <TVector3.h>
-#include "data/Atom.h"
 #include "data/Hetatom.h"
-#include "Grid.h"
+#include "hydrate/Grid.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
@@ -25,10 +24,9 @@ public:
 
     /**
      * @brief Place water molecules in the grid wherever possible.
-     * @param bounds the area to place molecules in. 
      * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.
      */
-    virtual vector<shared_ptr<Hetatom>> place() = 0;
+    virtual vector<shared_ptr<Hetatom>> place() const = 0;
 
 protected: 
     Grid* grid; // A reference to the grid used in Grid.

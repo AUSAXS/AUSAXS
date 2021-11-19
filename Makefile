@@ -13,8 +13,8 @@ hydrate/%: build/source/scripts/new_hydration
 	$(pymol) output/$* -d "show spheres; color orange, hetatm"
 
 .phony:
-hist: build/source/scripts/hist
-	$< data/$* output/$*
+hist/%: build/source/scripts/hist
+	$< data/$* figures/
 
 #################################################################################
 ###				TESTS						 ###

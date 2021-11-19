@@ -27,13 +27,34 @@ void create_test_file() {
     file.close();
 }
 
+void test_calc_distances() {
+    std::ofstream file("temp_dist.pdb");
+    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+    file << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n"
+         << "ATOM      2  C   LYS A   1          -1       1      -1  1.00 00.00           C \n"
+         << "ATOM      3  C   LYS A   1           1      -1      -1  1.00 00.00           C \n"
+         << "ATOM      4  C   LYS A   1           1       1      -1  1.00 00.00           C \n"
+         << "HETATM    5  HOH LYS A   1           1      -1      -1  1.00 00.00           O \n"
+         << "HETATM    6  HOH LYS A   1           1       1      -1  1.00 00.00           O \n"
+         << "HETATM    7  HOH LYS A   1           1       1      -1  1.00 00.00           O \n";
+    file.close();
+
+    Protein protein("temp_dist.pdb");
+    remove("temp_dist.pdb");
+
+    Distances d = protein.calc_distances();
+    IS_TRUE(d.pp.size() == 6);
+    IS_TRUE(d.hh.size() == 3);
+    IS_TRUE(d.hp.size() == 12);
+}
+
 void test_get_cm() {
     Protein protein("temp.pdb");
 
     TVector3 cm = protein.get_cm();
-    IS_TRUE(cm[0] == 0);
-    IS_TRUE(cm[1] == 0);
-    IS_TRUE(cm[2] == 0);
+    IS_TRUE(abs(cm[0]) < 1e-9);
+    IS_TRUE(abs(cm[1]) < 1e-9);
+    IS_TRUE(abs(cm[2]) < 1e-9);
 }
 
 void test_generate_grid() {

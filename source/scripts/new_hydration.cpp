@@ -5,7 +5,7 @@
 
 #include "Protein.h"
 
-int reduce = 0;
+double reduce = 0.1;
 double width = 1;
 string input, output;
 
@@ -16,7 +16,7 @@ void parse_params(int argc, char const *argv[]) {
         ("help,h", "Show this message.")
         ("input,i", po::value<string>()->required(), "Path to the input file.")
         ("output,p", po::value<string>()->required(), "Path to the output file.")
-        ("reduce,r", po::value<int>(), "The factor to reduce the number of generated water molecules by (default: 3).")
+        ("reduce,r", po::value<double>(), "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")
         ("width,w", po::value<double>(), "The distance between each grid point (default: 1). Lower widths increases the precision.");
 
     // set positional parameters
