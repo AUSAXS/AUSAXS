@@ -24,7 +24,7 @@ tests: $(addprefix build/source/tests/, $(test_files))
 	    $$program ; \
 	done
 	
-test/%: build/source/tests/%
+test/%: build/source/tests/% source/tests/%.cpp
 	$<
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)

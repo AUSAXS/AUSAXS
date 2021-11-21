@@ -127,7 +127,7 @@ public:
     /**
      * @brief Get the width of each bin.
      */
-    inline const int get_width() const {return width;}
+    inline const double get_width() const {return width;}
 
     /**
      * @brief Convert a vector of bin locations (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
