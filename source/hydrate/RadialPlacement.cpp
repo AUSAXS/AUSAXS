@@ -1,7 +1,8 @@
 #include "PlacementStrategy.h"
 #include "Grid.h"
+#include "settings.h"
 
-#include "TVector3.h"
+#include <TVector3.h>
 #include <iomanip>
 
 /**
@@ -168,9 +169,6 @@ public:
             const vector<int>& loc = grid->members.at(a);
             const int x = loc[0], y = loc[1], z = loc[2];
 
-            cout << "(" << x << ", " << y << ", " << z << ")" << endl;
-
-
             for (int i = 0; i < rot_bins_rarh.size(); i++) {
                 int xr = x + rot_bins_rarh[i][0], yr = y + rot_bins_rarh[i][1], zr = z + rot_bins_rarh[i][2]; // new coordinates
                 
@@ -195,7 +193,7 @@ private:
     /**
      * @brief Check if a water molecule can be placed at the given location. 
      * @param loc the location to be checked. 
-     * @param origin location to be excluded from
+     * @param skip_bin location to be excluded from the check. 
      * @return True if this is an acceptable location, false otherwise.
      */
     bool collision_check(const vector<int> loc, const vector<int> skip_bin) const {
@@ -204,9 +202,28 @@ private:
         const vector<int> bins = grid->get_bins();
         const int ra = grid->ra, rh = grid->rh;
 
-        // check for collisions at 1rh
-        for (auto const& rot : rot_bins_1rh) {
-            int xr = loc[0] + rot[0], yr = loc[1] + rot[1], zr = loc[2] + rot[2]; // new coordinates
+        int score = 0;
+        auto cavity_check = [&loc, &bins, &score, &gref] (vector<int> rot) {
+            int xr = loc[0] + rot[0], yr = loc[1] + rot[1], zr = loc[2] + rot[2];
+
+            // check bounds
+            if (xr < 0) {score++; return;}
+            if (xr >= bins[0]) {score++; return;}
+            if (yr < 0) {score++; return;}
+            if (yr >= bins[1]) {score++; return;}
+            if (zr < 0) {score++; return;}
+            if (zr >= bins[2]) {score++; return;}
+
+            if (gref[loc[0]+rot[0]][loc[1]+rot[1]][loc[2]+rot[2]] == 0) {
+                score++;
+            } else {
+                score--;
+            } 
+        };
+
+        for (int i = 0; i < rot_bins_1rh.size(); i++) {
+            // check for collisions at 1rh
+            int xr = loc[0] + rot_bins_1rh[i][0], yr = loc[1] + rot_bins_1rh[i][1], zr = loc[2] + rot_bins_1rh[i][2]; // new coordinates
             if (vector({xr, yr, zr}) == skip_bin) {continue;}
 
             if (xr < 0) xr = 0;
@@ -217,28 +234,17 @@ private:
             if (zr >= bins[2]) zr = bins[2]-1;
 
             if (gref[xr][yr][zr] != 0) {
-                // cout << "Collision1 at (" << xr << ", " << yr << ", " << zr << ")" << endl;
-                // cout << gref[xr][yr][zr] << endl;
                 return false;
             };
+
+            // check if we're in a cavity
+            cavity_check(rot_bins_3rh[i]);
+            cavity_check(rot_bins_5rh[i]);
+            cavity_check(rot_bins_7rh[i]);
         }
-
-        // // check for collisions at 2rh
-        // for (auto const& rot : rot_bins_2rh) {
-        //     int xr = loc[0] + rot[0], yr = loc[1] + rot[1], zr = loc[2] + rot[2]; // new coordinates
-        //     if (xr < 0) xr = 0;
-        //     if (xr >= bins[0]) xr = bins[0]-1;
-        //     if (yr < 0) yr = 0;
-        //     if (yr >= bins[1]) yr = bins[1]-1;
-        //     if (zr < 0) zr = 0;
-        //     if (zr >= bins[2]) zr = bins[2]-1;
-
-        //     if (gref[xr][yr][zr] != 0) {
-        //         cout << "Collision2 at (" << xr << ", " << yr << ", " << zr << ")" << endl;
-        //         return false;
-        //     };
-        // }
-        // cout << "No collisions!" << endl;
+        if (score <= setting::grid::placement::min_score*rot_bins_1rh.size()) {
+            return false;
+        }
         return true;
     }
 };

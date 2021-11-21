@@ -6,6 +6,7 @@
 #include "tests/Test.h"
 #include "Protein.h"
 #include "hydrate/Grid.h"
+#include "settings.h"
 
 #include <TVector3.h>
  
@@ -158,10 +159,11 @@ void test_hydrate() {
     int radius = 3;
     Grid grid(base, width, bins, radius);
 
+    setting::grid::percent_water = 0;
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
     grid.add(a);
-    vector<shared_ptr<Hetatom>> water = grid.hydrate(0);
+    vector<shared_ptr<Hetatom>> water = grid.hydrate();
 
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
@@ -190,7 +192,8 @@ void test_width() {
     IS_TRUE(g[100][100][100] == 'A');
 
     // check water generation
-    vector<shared_ptr<Hetatom>> water = grid.hydrate(0);
+    setting::grid::percent_water = 0;
+    vector<shared_ptr<Hetatom>> water = grid.hydrate();
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
         IS_TRUE(water[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
@@ -249,12 +252,12 @@ void test_remove() {
     IS_TRUE(g[10][14][10] == 'a');
 }
 
-void test_find_free_locs(Grid::PlacementStrategyChoice ch) {
+void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     TVector3 base(-10, -10, -10);
     double width = 1;
     vector<int> bins = {21, 21, 21};
     int radius = 3;
-    Grid grid(base, width, bins, radius, radius, ch, Grid::CounterStrategy);
+    Grid grid(base, width, bins, radius, radius, ch, setting::grid::csc);
 
     shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
     vector<shared_ptr<Atom>> a = {atom};
@@ -284,7 +287,7 @@ int main(void)
     // test_simple_bounding_box();
     // test_complex_bounding_box();
     // test_find_free_locs(Grid::AxesStrategy);
-    test_find_free_locs(Grid::RadialStrategy);
+    test_find_free_locs(setting::grid::RadialStrategy);
     // test_hydrate();
     // test_volume_expansion();
     // test_width();

@@ -4,11 +4,9 @@
 #include <boost/program_options.hpp>
 
 #include "Protein.h"
+#include "settings.h"
 
-double reduce = 0.1;
-double width = 1;
 string input, output;
-
 void parse_params(int argc, char const *argv[]) {
     namespace po = boost::program_options;
     po::options_description description("Usage: ./program <input path> <output path> <optionals>");
@@ -38,12 +36,12 @@ void parse_params(int argc, char const *argv[]) {
             exit(0);
         }
         if (vm.count("reduce")) {
-            reduce = vm["reduce"].as<int>();
-            cout << "Reduction factor set to " << reduce << endl;
+            setting::grid::percent_water = vm["reduce"].as<int>();
+            cout << "Percentage of water set to " << setting::grid::percent_water << endl;
         }
         if (vm.count("width")) {
-            width = vm["width"].as<double>();
-            cout << "Width set to " << width << endl;
+            setting::protein::grid_width = vm["width"].as<double>();
+            cout << "Width set to " << setting::protein::grid_width << endl;
         }
     } catch (const std::exception& e ) {
         std::cerr << e.what() << std::endl;
@@ -53,8 +51,12 @@ void parse_params(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
+
+    setting::grid::psc = setting::grid::RadialStrategy;
+    cout << "SETTING IS NOW " << setting::grid::psc << " !" << endl;
+
     Protein protein(argv[1]);
-    protein.generate_new_hydration(reduce, width);
+    protein.generate_new_hydration();
     protein.save(argv[2]);
     return 0;
 }

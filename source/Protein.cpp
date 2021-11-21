@@ -13,6 +13,7 @@
 #include "data/PDB_file.cpp"
 #include "data/properties.h"
 #include "Protein.h"
+#include "settings.h"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
@@ -78,7 +79,7 @@ Distances Protein::calc_distances() {
     return Distances(d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
 }
 
-void Protein::generate_new_hydration(double reduce = 0.1, double width = 1) {
+void Protein::generate_new_hydration() {
     // delete the old hydration layer
     hydration_atoms = vector<shared_ptr<Hetatom>>();
 
@@ -87,9 +88,9 @@ void Protein::generate_new_hydration(double reduce = 0.1, double width = 1) {
     translate(-cm);
 
     // generate the 3D grid
-    Grid grid({-250, -250, -250}, width, 501/width); 
+    Grid grid({-250, -250, -250}, setting::protein::grid_width, 501/setting::protein::grid_width); 
     grid.add(protein_atoms);
-    hydration_atoms = grid.hydrate(reduce);
+    hydration_atoms = grid.hydrate();
 }
 
 vector<double> Protein::debye_scattering_intensity() {

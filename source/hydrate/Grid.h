@@ -8,22 +8,20 @@ class PlacementStrategy;
 #include "data/Atom.h"
 #include "PlacementStrategy.h"
 #include "CullingStrategy.h"
+#include "settings.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
 class Grid {
 public:
-    enum PlacementStrategyChoice {AxesStrategy, RadialStrategy};
-    enum CullingStrategyChoice {CounterStrategy, OutlierStrategy};
-
     /**
      * @brief Construct a new Grid object with standard atomic radii.
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, 2, 1.5, AxesStrategy, CounterStrategy) {}
+    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, setting::grid::default_ra, setting::grid::default_rh, setting::grid::psc, setting::grid::csc) {};
 
     /**
      * @brief Construct a new Grid object.
@@ -32,7 +30,7 @@ public:
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, AxesStrategy, CounterStrategy) {}
+    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, setting::grid::psc, setting::grid::csc) {};
 
     /**
      * @brief Construct a new Grid object.
@@ -42,7 +40,7 @@ public:
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc);
+    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 
     /** 
      * @brief Add a set of atoms to the grid. 
@@ -74,11 +72,10 @@ public:
     void expand_volume(const shared_ptr<Atom> atom);
 
     /**
-     * @brief Generate a new hydration layer for the grid.  
-     * @param reduce desired number of water molecules as a percentage of the atoms. Use 0 for no reduction. 
+     * @brief Generate a new hydration layer for the grid.
      * @return Pointers to the new water molecules. 
      */
-    vector<shared_ptr<Hetatom>> hydrate(double reduce);
+    vector<shared_ptr<Hetatom>> hydrate();
 
     /**
      * @brief Identify possible hydration binding locations for the structure. 

@@ -15,12 +15,14 @@
 #include "RadialPlacement.cpp"
 #include "CounterCulling.cpp"
 #include "OutlierCulling.cpp"
+#include "settings.h"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
+using namespace setting::grid;
 
-Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc = AxesStrategy, CullingStrategyChoice csc = CounterStrategy) {
+Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
     long long int total_bins = (long long) bins[0]*bins[1]*bins[2];
     if (total_bins > 32e9) {
         print_err("Error in Grid: Too many bins.");
@@ -75,9 +77,9 @@ void Grid::expand_volume() {
     }
 }
 
-vector<shared_ptr<Hetatom>> Grid::hydrate(double reduce = 0.1) {
+vector<shared_ptr<Hetatom>> Grid::hydrate() {
     vector<shared_ptr<Hetatom>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    water_culler->set_target_count(reduce*(members.size()-placed_water.size())); // target is 10% of atoms
+    water_culler->set_target_count(setting::grid::percent_water*(members.size()-placed_water.size())); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 
