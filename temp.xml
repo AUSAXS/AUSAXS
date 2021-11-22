@@ -1,8 +1,0 @@
-<PDBx:atom_site id="1">         
-    <PDBx:Cartn_x>2.1</PDBx:Cartn_x>         
-    <PDBx:Cartn_y>3.2</PDBx:Cartn_y>         
-    <PDBx:Cartn_z>4.3</PDBx:Cartn_z>         
-    <PDBx:occupancy>0.50</PDBx:occupancy>         
-    <PDBx:type_symbol>O</PDBx:type_symbol>         
-    <PDBx:label_comp_id>HOH</PDBx:label_comp_id>         
-</PDBx:atom_site>

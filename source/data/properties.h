@@ -74,6 +74,15 @@ namespace property {
         constexpr int O = 8;
         constexpr int S = 16;
 
+        // constexpr int temp = 2;
+        // constexpr int H = temp;
+        // constexpr int He = temp;
+        // constexpr int Li = temp;
+        // constexpr int C = temp;
+        // constexpr int N = temp;
+        // constexpr int O = temp;
+        // constexpr int S = temp;
+
         // get the charge Z of an atom
         const std::map<string, int> get = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
     }

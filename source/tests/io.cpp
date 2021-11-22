@@ -82,8 +82,8 @@ void test_simple_pdb() {
     IS_TRUE(a->get_element() == "O");
     IS_TRUE(a->get_resName() == "O");
 
-    // remove("temp.pdb");
-    // remove("temp2.pdb");
+    remove("temp.pdb");
+    remove("temp2.pdb");
 }
 
 /**

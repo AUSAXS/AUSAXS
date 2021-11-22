@@ -38,21 +38,21 @@ void Protein::save(string path) {
     file->write(path); // write to disk
 }
 
-Distances Protein::calc_distances() {
+Distances Protein::calc_distances() const {
     // calculate the internal distances for the protein atoms
     int n_pp = 0; // index counter
     int n_hh = 0;
     int n_hp = 0;
-    vector<double> d_pp(protein_atoms.size()*(protein_atoms.size() - 1)/2); // n(n-1)/2 entries
-    vector<double> w_pp(protein_atoms.size()*(protein_atoms.size() - 1)/2); // corresponding weights
-    vector<double> d_hh(hydration_atoms.size()*(hydration_atoms.size() - 1)/2); // m(m-1)/2 total entries
-    vector<double> w_hh(hydration_atoms.size()*(hydration_atoms.size() - 1)/2); 
-    vector<double> d_hp(hydration_atoms.size()*protein_atoms.size()); // n*m entries
+    vector<double> d_pp(pow(protein_atoms.size(), 2));
+    vector<double> w_pp(pow(protein_atoms.size(), 2)); 
+    vector<double> d_hh(pow(hydration_atoms.size(), 2)); 
+    vector<double> w_hh(pow(hydration_atoms.size(), 2)); 
+    vector<double> d_hp(hydration_atoms.size()*protein_atoms.size());
     vector<double> w_hp(hydration_atoms.size()*protein_atoms.size()); 
 
     // calculate p-p distances
     for (int i = 0; i < protein_atoms.size(); i++) {
-        for (int j = i+1; j < protein_atoms.size(); j++) {
+        for (int j = 0; j < protein_atoms.size(); j++) {
             d_pp[n_pp] = protein_atoms[i]->distance(protein_atoms[j]);
             w_pp[n_pp] = property::charge::get.at(protein_atoms[i]->get_element())*property::charge::get.at(protein_atoms[j]->get_element())
                 *protein_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
@@ -62,7 +62,7 @@ Distances Protein::calc_distances() {
 
     for (int i = 0; i < hydration_atoms.size(); i++) {
         // calculate h-h distances
-        for (int j = i+1; j < hydration_atoms.size(); j++) {
+        for (int j = 0; j < hydration_atoms.size(); j++) {
             d_hh[n_hh] = hydration_atoms[i]->distance(hydration_atoms[j]);
             w_hh[n_hh] = property::charge::get.at(hydration_atoms[i]->get_element())*property::charge::get.at(hydration_atoms[j]->get_element())
                 *hydration_atoms[i]->get_occupancy()*hydration_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
@@ -93,30 +93,44 @@ void Protein::generate_new_hydration() {
     hydration_atoms = grid.hydrate();
 }
 
-vector<double> Protein::debye_scattering_intensity() {
+vector<double> Protein::debye_scattering_intensity() const {
     Distances distances = calc_distances();
 
     // p is the bin contents of a histogram of the distances
-    double width = 0.1;
-    int bins = 100/width;
-    vector<int> p(bins);
+    vector<int> axes = {600, 0, 60};
+    double width = (double) (axes[2]-axes[1])/axes[0];
+    vector<double> p(axes[0]);
     for (int i = 0; i < distances.pp.size(); i++) {
-        p[std::round(width*distances.pp[i])] += distances.wpp[i];
+        p[std::round(distances.pp[i]/width)] += distances.wpp[i];
     }
     for (int i = 0; i < distances.hh.size(); i++) {
-        p[std::round(width*distances.hh[i])] += distances.whh[i];
+        p[std::round(distances.hh[i]/width)] += distances.whh[i];
     }
     for (int i = 0; i < distances.hp.size(); i++) {
-        p[std::round(width*distances.hp[i])] += distances.whp[i];
+        p[std::round(distances.hp[i]/width)] += distances.whp[i];
+    }
+    return debye_scattering_intensity(axes, p);
+}
+
+vector<double> Protein::debye_scattering_intensity(vector<int> axes, vector<double>& p) const {
+    // calculate the Debye scattering intensity
+    vector<double> Iq(10000, 0);
+
+    vector<double> d(axes[0], 0);
+    double width = (double) (axes[2]-axes[1])/axes[0];
+    for (int i = 0; i < axes[0]; i++) {
+        d[i] = axes[1] + width*i;
     }
 
-    // calculate the Debye scattering intensity
-    vector<double> Iq(1000, 0);
     for (int i = 0; i < Iq.size(); i++) {
         double q = i*0.001;
-        for (int j = 0; j < bins; j++) {
-            Iq[i] += sin(q*p[j])/q*p[j];
+        // cout << "Bin " << i << ", q: " << q << endl;
+        for (int j = 0; j < p.size(); j++) {
+            if (q*d[j] < 1e-9) {continue;}
+            // cout << " qd: " << q*d[j] << ", sin(qd): " << sin(q*d[j]) << ", sinqd/qd: " << sin(q*d[j])/(q*d[j]) << endl;
+            Iq[i] += p[j]*sin(q*d[j])/(q*d[j]);
         }
+        // cout << endl << endl;;
     }
     return Iq;
 }

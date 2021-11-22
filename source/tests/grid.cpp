@@ -266,16 +266,20 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 
     vector<shared_ptr<Hetatom>> locs = grid.find_free_locs();
     IS_TRUE(locs.size() == 6);
-    // for (int i = 0; i < locs.size(); i++) {
-    //     cout << format("%1%\t%2%\t%3%") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
-    // }
+    for (int i = 0; i < locs.size(); i++) {
+        cout << format("%1%\t%2%\t%3%") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
+    }
+
+    // since this needs to work with different placement strategies, we have to perform a more general check on the positions
+    vector<TVector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
     if (locs.size() >= 6) { // avoid crashing if the above fails
-        IS_TRUE(locs[0]->get_coords() == TVector3({0, 0, 6}));  // (-2r, 0, 0)
-        IS_TRUE(locs[1]->get_coords() == TVector3({0, 0, -6})); //  (2r, 0, 0)
-        IS_TRUE(locs[2]->get_coords() == TVector3({6, 0, 0}));  // (0, -2r, 0)
-        IS_TRUE(locs[3]->get_coords() == TVector3({-6, 0, 0})); //  (0, 2r, 0)
-        IS_TRUE(locs[4]->get_coords() == TVector3({0, 6, 0}));  // (0, 0, -2r)
-        IS_TRUE(locs[5]->get_coords() == TVector3({0, -6, 0})); //  (0, 0, 2r)
+        for (const auto& l : locs) {
+            bool found = false;
+            for (const auto& p : v) {
+                if (l->get_coords() == p) {found = true;}
+            }
+            IS_TRUE(found);
+        }
     }
 
 }
@@ -286,7 +290,7 @@ int main(void)
     // test_grid_generation();
     // test_simple_bounding_box();
     // test_complex_bounding_box();
-    // test_find_free_locs(Grid::AxesStrategy);
+    test_find_free_locs(setting::grid::AxesStrategy);
     test_find_free_locs(setting::grid::RadialStrategy);
     // test_hydrate();
     // test_volume_expansion();

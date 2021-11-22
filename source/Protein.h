@@ -43,13 +43,19 @@ public:
      * @return A tuple (pp, hh, hp) where pp is all internal distances between the protein atoms, hh is all internal
      * distances between hydration atoms, and hp is all distances between protein atoms and hydration atoms.
      */
-    Distances calc_distances();
-
+    Distances calc_distances() const;
 
     /**
      * @brief Calculate the intensity based on the Debye scattering equation
      */
-    vector<double> debye_scattering_intensity();
+    vector<double> debye_scattering_intensity() const;
+
+    /**
+     * @brief Calculate the intensity based on the Debye scattering equation
+     * @param axes the axes for p in the format {bins, xmin, xmax}
+     * @param p the binned distance histogram to use
+     */
+    vector<double> debye_scattering_intensity(vector<int> axes, vector<double>& p) const;
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.

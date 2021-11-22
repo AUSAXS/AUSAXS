@@ -53,7 +53,6 @@ int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
 
     setting::grid::psc = setting::grid::RadialStrategy;
-    cout << "SETTING IS NOW " << setting::grid::psc << " !" << endl;
 
     Protein protein(argv[1]);
     protein.generate_new_hydration();
