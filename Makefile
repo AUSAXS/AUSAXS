@@ -16,6 +16,10 @@ hydrate/%: build/source/scripts/new_hydration
 hist/%: build/source/scripts/hist
 	$< data/$* figures/
 
+.phony:
+main/%: build/source/scripts/main
+	$< data/$* output/filled_volume.pdb
+
 #################################################################################
 ###				TESTS						 ###
 #################################################################################

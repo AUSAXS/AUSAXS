@@ -33,7 +33,7 @@ Protein::Protein(string path) {
     std::tie(protein_atoms, hydration_atoms) = file->get_atoms();
 }
 
-void Protein::save(string path) {
+void Protein::save(string path) const {
     file->update(protein_atoms, hydration_atoms); // update the File backing this Protein with our new atoms
     file->write(path); // write to disk
 }
@@ -87,10 +87,9 @@ void Protein::generate_new_hydration() {
     TVector3 cm = get_cm();
     translate(-cm);
 
-    // generate the 3D grid
-    Grid grid({-250, -250, -250}, setting::protein::grid_width, 501/setting::protein::grid_width); 
-    grid.add(protein_atoms);
-    hydration_atoms = grid.hydrate();
+    grid = std::make_shared<Grid>(TVector3(-250, -250, -250), setting::protein::grid_width, 501/setting::protein::grid_width); 
+    grid->add(protein_atoms);
+    hydration_atoms = grid->hydrate();
 }
 
 vector<double> Protein::debye_scattering_intensity() const {
@@ -110,6 +109,25 @@ vector<double> Protein::debye_scattering_intensity() const {
         p[std::round(distances.hp[i]/width)] += distances.whp[i];
     }
     return debye_scattering_intensity(axes, p);
+}
+
+void Protein::generate_volume_file(string path) {
+    vector<vector<vector<char>>>& g = grid->grid;
+    vector<shared_ptr<Atom>> filled;
+    for (int i = 0; i < g.size(); i++) {
+        for (int j = 0; j < g[0].size(); j++) {
+            for (int k = 0; k < g[0][0].size(); k++) {
+                if (g[i][j][k] != 0) {
+                    shared_ptr<Atom> a = std::make_shared<Atom>(0, "C", "", "C", "", 1, "", TVector3(i, j, k), 1, 0, "C", "");
+                    filled.push_back(a);
+                }
+            }
+        }
+    }
+    protein_atoms = filled;
+    hydration_atoms = vector<shared_ptr<Hetatom>>();
+    save(path);
+    exit(0);
 }
 
 vector<double> Protein::debye_scattering_intensity(vector<int> axes, vector<double>& p) const {
@@ -135,32 +153,7 @@ vector<double> Protein::debye_scattering_intensity(vector<int> axes, vector<doub
     return Iq;
 }
 
-std::pair<TVector3, vector<int>> Protein::generate_grid(const double width) {
-    // determine the size of our grid
-    TVector3 high = get_cm();
-    TVector3 low = high;
-    auto update = [&low, &high] (auto atoms) {
-        for (auto const& a : *atoms) {
-            // update minimum vector
-            if (a->get_x() < low.X()) low.SetX(a->get_x());
-            if (a->get_y() < low.Y()) low.SetY(a->get_y());
-            if (a->get_z() < low.Z()) low.SetZ(a->get_z());
-
-            // update maximum vector
-            if (a->get_x() > high.X()) high.SetX(a->get_x());
-            if (a->get_y() > high.Y()) high.SetY(a->get_y());
-            if (a->get_z() > high.Z()) high.SetZ(a->get_z());
-        }
-    };
-    update(&protein_atoms);
-    update(&hydration_atoms);
-
-    // calculate the number of bins in each dimension and initialize the grid and occupancy vectors
-    vector<int> bins = {int((high.X() - low.X())/width), int((high.Y() - low.Y())/width), int((high.Z() - low.Z())/width)};
-    return std::make_pair(low, bins);
-}
-
-TVector3 Protein::get_cm() {
+TVector3 Protein::get_cm() const {
     TVector3 cm;
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto atoms) {
@@ -181,7 +174,7 @@ TVector3 Protein::get_cm() {
     return cm;
 }
 
-double Protein::get_volume() {
+double Protein::get_volume() const {
     double v = 0;
     int cur_seq = 0; // sequence number of current acid
     for (auto const& a : protein_atoms) {

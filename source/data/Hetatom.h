@@ -9,6 +9,8 @@ public:
 
     RecordType get_type() const override {return HETATM;}
 
+    string get_recName() const override {return "HETATM";}
+
     bool is_water() const override {
         if (resName == "HOH") {
             return true;
@@ -30,6 +32,6 @@ public:
      * @return A pointer to the new water Atom. 
      */
     static shared_ptr<Hetatom> create_new_water(TVector3 coords) {
-        return std::make_shared<Hetatom>(Hetatom("HETATM", -1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", ""));
+        return std::make_shared<Hetatom>(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
     }
 };

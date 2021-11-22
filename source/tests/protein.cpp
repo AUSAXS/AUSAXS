@@ -57,17 +57,6 @@ void test_get_cm() {
     IS_TRUE(abs(cm[2]) < 1e-9);
 }
 
-void test_generate_grid() {
-    Protein protein("temp.pdb");
-
-    double width = 0.1;
-    auto[corner, bins] = protein.generate_grid(width);
-    IS_TRUE(corner[0] == -1);
-    IS_TRUE(corner[1] == -1);
-    IS_TRUE(corner[2] == -1);
-    IS_TRUE(bins[0] == 2/width);
-}
-
 void test_volume() {
     Protein protein("temp.pdb");
 
@@ -79,7 +68,6 @@ int main(void)
     cout << "Summary of Protein testing:" << endl;
     create_test_file();
     test_get_cm();
-    test_generate_grid();
     test_volume();
     remove("temp.pdb");
 

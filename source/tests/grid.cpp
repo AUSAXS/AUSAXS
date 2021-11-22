@@ -287,15 +287,15 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 int main(void)
 {
     cout << "Summary of Grid testing:" << std::endl;
-    // test_grid_generation();
-    // test_simple_bounding_box();
-    // test_complex_bounding_box();
+    test_grid_generation();
+    test_simple_bounding_box();
+    test_complex_bounding_box();
     test_find_free_locs(setting::grid::AxesStrategy);
     test_find_free_locs(setting::grid::RadialStrategy);
-    // test_hydrate();
-    // test_volume_expansion();
-    // test_width();
-    // test_remove();
+    test_hydrate();
+    test_volume_expansion();
+    test_width();
+    test_remove();
 
     if (passed_all) {
         cout << "\033[1;32m" << "All Grid tests passed." << "\033[0m" << endl;

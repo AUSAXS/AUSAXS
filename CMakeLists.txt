@@ -27,7 +27,5 @@ include(source/data/CMakeLists.txt)
 include(source/hydrate/CMakeLists.txt)
 include(source/CMakeLists.txt)
 
-add_executable(main ${sources} main.cpp)
-
 add_subdirectory(source/tests)
 add_subdirectory(source/scripts)

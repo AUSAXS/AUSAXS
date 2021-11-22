@@ -37,7 +37,7 @@ public:
     /** Writes this protein to disk.
      * @param path path to the destination. 
      */
-    void save(string path);
+    void save(string path) const;
 
     /** Calculate the distances between each pair of atoms. 
      * @return A tuple (pp, hh, hp) where pp is all internal distances between the protein atoms, hh is all internal
@@ -72,28 +72,39 @@ public:
      */
     vector<shared_ptr<Hetatom>>* get_hydration_atoms() {return &hydration_atoms;}
 
-    /** Generate a 3D grid containing all atoms.
-     * @param width the bin width
-     * @return A pair (corner point, bins) where the first is a bottom corner of the grid, while the second is the number of bins in each dimension.
-     */
-    std::pair<TVector3, vector<int>> generate_grid(const double width);
-
     /** Calculate the center-mass coordinates for the protein.
      * @return The center-mass (x, y, z) coordinates. 
      */
-    TVector3 get_cm();
+    TVector3 get_cm() const;
 
     /**
      * @brief Calculate the volume of this protein based on its constituent amino acids
      */
-    double get_volume();
+    double get_volume() const;
+
+    /**
+     * @brief Get the grid representation of this Protein. 
+     */
+    shared_ptr<Grid> get_grid() const {
+        if (grid == nullptr) {
+            print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
+            exit(1);
+        }
+        return grid;
+    }
+
+    /**
+     * @brief Generate a PDB file showing the filled grid volume.
+     */
+    void generate_volume_file(string path);
 
 private:
     vector<shared_ptr<Atom>> protein_atoms; // atoms of the protein itself
     vector<shared_ptr<Hetatom>> hydration_atoms; // hydration layer
     shared_ptr<File> file; 
+    shared_ptr<Grid> grid = nullptr;
 
-    /** Move the entire protein by a vector
+    /** Move the entire protein by a vector.
      * @param v the translation vector
      */
     void translate(const TVector3 v);

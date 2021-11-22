@@ -36,7 +36,6 @@ public:
         this->set_element(element);
         this->set_name(name);
         this->set_serial(serial);
-        this->recName = "";
         this->altLoc = "";
         this->resName = "";
         this->chainID = "";
@@ -50,9 +49,8 @@ public:
      * @brief Construct a new Atom object.
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
-    Atom(const string recName, const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
+    Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
         const string iCode, const TVector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
-            this->recName = recName;
             this->set_serial(serial);
             this->set_name(name);
             this->altLoc = altLoc;
@@ -71,7 +69,6 @@ public:
      * @brief Construct a new empty Atom object.
      */
     Atom() {
-        recName = "NULL";
         name = "";
         altLoc = "";
         resName = "";
@@ -175,6 +172,7 @@ public:
     string get_resName() const {return resName;}
     string get_iCode() const {return iCode;}
     string get_chainID() const {return chainID;}
+    virtual string get_recName() const {return "ATOM  ";}
 
     double get_atomic_weight() const {
         if (element == "") {
@@ -199,7 +197,7 @@ public:
 
 protected:
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
-    string recName, name, altLoc, resName, chainID, iCode, element, charge;
+    string name, altLoc, resName, chainID, iCode, element, charge;
     double occupancy, tempFactor;
     int serial, resSeq; 
     TVector3 coords;
