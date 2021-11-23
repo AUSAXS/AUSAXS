@@ -13,19 +13,10 @@
 #include "hydrate/Grid.h"
 #include "data/File.h"
 #include "data/properties.h"
+#include "data/Distances.h"
 
 using std::vector, std::string, std::unique_ptr;
 using namespace ROOT;
-
-// static_assert(boost::is_pod<Distances>::value);
-struct Distances {
-    Distances(vector<double>& pp, vector<double>& hh, vector<double>& hp, 
-        vector<double>& wpp, vector<double>& whh, vector<double>& whp)
-         : pp(pp), hh(hh), hp(hp), wpp(wpp), whh(whh), whp(whp) {}
-
-    const vector<double> pp, hh, hp;
-    const vector<double> wpp, whh, whp;
-};
 
 class Protein {
 public:
@@ -39,11 +30,10 @@ public:
      */
     void save(string path) const;
 
-    /** Calculate the distances between each pair of atoms. 
-     * @return A tuple (pp, hh, hp) where pp is all internal distances between the protein atoms, hh is all internal
-     * distances between hydration atoms, and hp is all distances between protein atoms and hydration atoms.
+    /**
+     * @brief Get the distances between each atom.
      */
-    Distances calc_distances() const;
+    shared_ptr<Distances> get_distances();
 
     /**
      * @brief Calculate the intensity based on the Debye scattering equation
@@ -101,11 +91,17 @@ public:
 private:
     vector<shared_ptr<Atom>> protein_atoms; // atoms of the protein itself
     vector<shared_ptr<Hetatom>> hydration_atoms; // hydration layer
-    shared_ptr<File> file; 
-    shared_ptr<Grid> grid = nullptr;
+    shared_ptr<File> file; // the file backing this protein
+    shared_ptr<Grid> grid = nullptr; // the grid representation of this protein
+    shared_ptr<Distances> distances; // an object representing the distances between atoms
 
     /** Move the entire protein by a vector.
      * @param v the translation vector
      */
     void translate(const TVector3 v);
+
+    /** 
+     * @brief Calculate the distances between each pair of atoms. 
+     */
+    void calc_distances();
 };

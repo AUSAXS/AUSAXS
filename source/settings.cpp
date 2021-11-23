@@ -1,4 +1,5 @@
 #include "settings.h"
+#include <vector>
 
 namespace setting {
     namespace grid {

@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
@@ -14,11 +15,12 @@ namespace setting {
         const double default_rh = 1.5; // Default radius of water molecules.
 
         namespace placement {
-            extern double min_score; // Minimum percentage of radial lines which must not intersect anything to place a water molecule
+            extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule
         }
     }
 
     namespace protein {
         extern double grid_width; // Width of each bin of the grid used to represent this protein.
+        const std::vector<double> debye_scattering_plot_axes = {1000, 0.001, 1.001}; // Axes used for the Debye scattering intensity plots
     }
 }

@@ -61,52 +61,25 @@ int main(int argc, char const *argv[]) {
 
     Protein protein(argv[1]);
     protein.generate_new_hydration();
-    Distances d = protein.calc_distances();
+    shared_ptr<Distances> d = protein.get_distances();
 
     setup_style();
 
 // Distance plot
     const vector<int> axes = {600, 0, 60};
-    unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
-    unique_ptr<TH1D> h_pp = std::make_unique<TH1D>("h_pp", "hist", axes[0], axes[1], axes[2]);
-    unique_ptr<TH1D> h_hh = std::make_unique<TH1D>("h_hh", "hist", axes[0], axes[1], axes[2]);
-    unique_ptr<TH1D> h_hp = std::make_unique<TH1D>("h_hp", "hist", axes[0], axes[1], axes[2]);
-    unique_ptr<TH1D> h_tot = std::make_unique<TH1D>("h_tot", "hist", axes[0], axes[1], axes[2]);
-
-    vector<double> p_pp(axes[0], 0);
-    vector<double> p_hh(axes[0], 0);
-    vector<double> p_hp(axes[0], 0);
-    vector<double> p_tot(axes[0], 0);
-    double width = (double) (axes[2]-axes[1])/axes[0]; // very important to cast this operation to a double - divison by two ints
-    for (int i = 0; i < d.pp.size(); i++) {
-        p_pp[std::round(d.pp[i]/width)] += d.wpp[i];
-    }
-    for (int i = 0; i < d.hh.size(); i++) {
-        p_hh[std::round(d.hh[i]/width)] += d.whh[i];
-    }
-    for (int i = 0; i < d.hp.size(); i++) {
-        p_hp[std::round(d.hp[i]/width)] += d.whp[i];
-    }
-
-    for (int i = 1; i < axes[0]; i++) {
-        h_pp->SetBinContent(i, p_pp[i-1]);
-        h_hh->SetBinContent(i, p_hh[i-1]);
-        h_hp->SetBinContent(i, p_hp[i-1]);
-        p_tot[i-1] = p_pp[i-1] + p_hh[i-1] + p_hp[i-1];
-        h_tot->SetBinContent(i, p_tot[i-1]);
-    }
+    auto[c1, hists] = d->plot_distance(axes);
 
     // use some nicer colors
-    h_pp->SetLineColor(kOrange+1);
-    h_hh->SetLineColor(kAzure+1);
-    h_hp->SetLineColor(kGreen+1);
-    h_tot->SetLineColor(kBlack);
+    hists[0]->SetLineColor(kOrange+1);
+    hists[1]->SetLineColor(kAzure+1);
+    hists[2]->SetLineColor(kGreen+1);
+    hists[3]->SetLineColor(kBlack);
 
     // draw the histograms on the canvas
-    h_tot->Draw("HIST L");
-    h_pp->Draw("SAME HIST L");
-    h_hh->Draw("SAME HIST L");
-    h_hp->Draw("SAME HIST L");
+    hists[3]->Draw("HIST L");
+    hists[0]->Draw("SAME HIST L");
+    hists[1]->Draw("SAME HIST L");
+    hists[2]->Draw("SAME HIST L");
 
     // create a legend
     unique_ptr<TLegend> legend = std::make_unique<TLegend>(0.6, 0.65, 0.9, 0.9);
@@ -124,17 +97,8 @@ int main(int argc, char const *argv[]) {
     c1->SaveAs(path.c_str());
 
 // Debye scattering intensity plot
-    vector<double> Iq = protein.debye_scattering_intensity(axes, p_tot);
-    unique_ptr<TCanvas> c2 = std::make_unique<TCanvas>("c2", "canvas", 600, 600);
-    unique_ptr<TH1D> h_I = std::make_unique<TH1D>("h_I", "hist", Iq.size(), 0, 10);
-
-    for (int i = 0; i < Iq.size(); i++) {
-        // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
-        h_I->SetBinContent(i+1, Iq[i]);
-        // cout << "Bin " << i << ": " << Iq[i] << endl;
-    }
-
-    h_I->Draw("HIST L");
+    auto[c2, hI] = d->plot_debye_scattering();
+    hI->Draw("HIST L");
 
     // setup the canvas and save the plot
     path = output + "intensity.pdf";

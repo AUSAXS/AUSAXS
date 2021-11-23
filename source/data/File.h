@@ -13,7 +13,7 @@
 #include "data/Atom.h"
 #include "data/Hetatom.h"
 
-using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 
+using std::vector, std::string, std::unique_ptr, std::shared_ptr; 
 
 class File {
 public: 

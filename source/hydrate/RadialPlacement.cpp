@@ -14,64 +14,6 @@ public:
         prepare_rotations();
     }
 
-    // void prepare_rotations(const int divisions = 8) {
-    //     const double w = grid->get_width();
-    //     const int rh = grid->rh, ra = grid->ra;
-
-    //     // vector<vector<int>> bins;
-    //     vector<vector<int>> bins_1rh;
-    //     vector<vector<int>> bins_3rh;
-    //     vector<vector<int>> bins_5rh;
-    //     vector<vector<int>> bins_7rh;
-    //     vector<vector<int>> bins_rarh;
-    //     double ang = 2*M_PI/divisions;
-
-    //     for (double theta = 0; theta < 2*M_PI; theta+=ang) {
-    //         for (double phi = 0; phi < M_PI; phi+=ang) {
-    //             double x = cos(phi)*sin(theta);
-    //             double y = sin(phi)*sin(theta);
-    //             double z = cos(theta);
-    //             // cout << (abs(x) < 1e-6 ? 0 : x) << "\t" << (abs(y) < 1e-6 ? 0 : y) << "\t" << (abs(z) < 1e-6 ? 0 : z) << endl;
-    //             // cout << std::setprecision(3) << std::setw(6) << phi/M_PI << ", " << std::setw(6) << theta/M_PI << ": ("
-    //             //      << std::setw(6) << (abs(x) < 1e-6 ? 0 : x) << ", " << std::setw(6) << (abs(y) < 1e-6 ? 0 : y) << ", " << std::setw(6) << (abs(z) < 1e-6 ? 0 : z) << ")" << endl;
-
-    //             // we use "trunc" for rounding since it is more stable than "round", which often missed some entries due to floating-point errors. 
-    //             // bins.push_back({(int) std::trunc(x/w), (int) std::trunc(y/w), (int) std::trunc(z/w)});
-    //             bins_1rh.push_back({(int) std::trunc(rh*x/w), (int) std::trunc(rh*y/w), (int) std::trunc(rh*z/w)});
-    //             bins_3rh.push_back({(int) std::trunc(3*rh*x/w), (int) std::trunc(3*rh*y/w), (int) std::trunc(3*rh*z/w)});
-    //             bins_5rh.push_back({(int) std::trunc(5*rh*x/w), (int) std::trunc(5*rh*y/w), (int) std::trunc(5*rh*z/w)});
-    //             bins_7rh.push_back({(int) std::trunc(7*rh*x/w), (int) std::trunc(7*rh*y/w), (int) std::trunc(7*rh*z/w)});
-    //             bins_rarh.push_back({(int) std::trunc((ra+rh)*x/w), (int) std::trunc((ra+rh)*y/w), (int) std::trunc((ra+rh)*z/w)});
-    //         }
-    //     }
-
-    //     // remove duplicate entries
-    //     // bins.erase(std::unique(bins.begin(), bins.end()), bins.end());
-    //     bins_1rh.erase(std::unique(bins_1rh.begin(), bins_1rh.end()), bins_1rh.end());
-    //     bins_3rh.erase(std::unique(bins_3rh.begin(), bins_3rh.end()), bins_3rh.end());
-    //     bins_5rh.erase(std::unique(bins_5rh.begin(), bins_5rh.end()), bins_5rh.end());
-    //     bins_7rh.erase(std::unique(bins_7rh.begin(), bins_7rh.end()), bins_7rh.end());
-    //     bins_rarh.erase(std::unique(bins_rarh.begin(), bins_rarh.end()), bins_rarh.end());
-        
-    //     for (const auto& rot : bins_rarh) {
-    //         cout << "" << rot[0] << "\t" << rot[1] << "\t" << rot[2] << "" << endl;
-    //     }
-
-    //     // rot_bins = bins;
-    //     rot_bins_1rh = bins_1rh;
-    //     rot_bins_3rh = bins_3rh;
-    //     rot_bins_5rh = bins_5rh;
-    //     rot_bins_7rh = bins_7rh;
-    //     rot_bins_rarh = bins_rarh;
-
-    //     // sanity check
-    //     if (bins_1rh.size() != bins_3rh.size() || bins_1rh.size() != bins_5rh.size() 
-    //         || bins_1rh.size() != bins_7rh.size() || bins_1rh.size() != bins_rarh.size()) {                
-    //         print_err("Error in RadialPlacement::prepare_rotations: Sizes of rotation vectors are not equal!");
-    //         exit(1);
-    //     }
-    // }
-
     void prepare_rotations(const int divisions = 8) {
         const double w = grid->get_width();
         const int rh = grid->rh, ra = grid->ra;
@@ -203,29 +145,22 @@ private:
         const int ra = grid->ra, rh = grid->rh;
 
         int score = 0;
-        auto cavity_check = [&loc, &bins, &score, &gref] (vector<int> rot) {
-            int xr = loc[0] + rot[0], yr = loc[1] + rot[1], zr = loc[2] + rot[2];
-
-            // check bounds
-            if (xr < 0) {score++; return;}
-            if (xr >= bins[0]) {score++; return;}
-            if (yr < 0) {score++; return;}
-            if (yr >= bins[1]) {score++; return;}
-            if (zr < 0) {score++; return;}
-            if (zr >= bins[2]) {score++; return;}
-
-            if (gref[loc[0]+rot[0]][loc[1]+rot[1]][loc[2]+rot[2]] == 0) {
-                score++;
-            } else {
-                score--;
-            } 
+        // check if a location is out-of-bounds
+        auto is_out_of_bounds = [&bins, &score] (vector<int> v) {
+            if (v[0] < 0) {return true;}
+            if (v[0] >= bins[0]) {return true;}
+            if (v[1] < 0) {return true;}
+            if (v[1] >= bins[1]) {return true;}
+            if (v[2] < 0) {return true;}
+            if (v[2] >= bins[2]) {return true;}
+            return false;
         };
 
         for (int i = 0; i < rot_bins_1rh.size(); i++) {
             // check for collisions at 1rh
             int xr = loc[0] + rot_bins_1rh[i][0], yr = loc[1] + rot_bins_1rh[i][1], zr = loc[2] + rot_bins_1rh[i][2]; // new coordinates
-            if (vector({xr, yr, zr}) == skip_bin) {continue;}
 
+            // check for bounds
             if (xr < 0) xr = 0;
             if (xr >= bins[0]) xr = bins[0]-1;
             if (yr < 0) yr = 0;
@@ -234,13 +169,51 @@ private:
             if (zr >= bins[2]) zr = bins[2]-1;
 
             if (gref[xr][yr][zr] != 0) {
+                if (vector({xr, yr, zr}) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
                 return false;
             };
 
             // check if we're in a cavity
-            cavity_check(rot_bins_3rh[i]);
-            cavity_check(rot_bins_5rh[i]);
-            cavity_check(rot_bins_7rh[i]);
+            for (int j = 0; j < rot_bins_3rh.size(); j++) {
+                // check at 3r
+                int xr = loc[0] + rot_bins_3rh[j][0], yr = loc[1] + rot_bins_3rh[j][1], zr = loc[2] + rot_bins_3rh[j][2];
+                if (is_out_of_bounds({xr, yr, zr})) { // if the line goes out of bounds, we know for sure it won't intersect anything
+                    score += 3;                       // so we add three points and move on to the next
+                    continue;
+                }
+                if (gref[xr][yr][zr] != 0) { // if the line intersects something at 3r, we don't check the other two points of the same line
+                    score -= 3;              // but immediately subtract 3 points and move on to the next
+                    continue;
+                } else {
+                    score++;
+                } 
+
+                // check at 5r
+                xr = loc[0] + rot_bins_5rh[j][0]; yr = loc[1] + rot_bins_5rh[j][1]; zr = loc[2] + rot_bins_5rh[j][2];
+                if (is_out_of_bounds({xr, yr, zr})) {
+                    score += 2;
+                    continue;
+                }
+                if (gref[xr][yr][zr] != 0) {
+                    score -= 2;
+                    continue;
+                } else {
+                    score++;
+                } 
+
+                // check at 7r
+                xr = loc[0] + rot_bins_7rh[j][0]; yr = loc[1] + rot_bins_7rh[j][1]; zr = loc[2] + rot_bins_7rh[j][2];
+                if (is_out_of_bounds({xr, yr, zr})) {
+                    score += 1;
+                    continue;
+                }
+                if (gref[xr][yr][zr] != 0) {
+                    score -= 1;
+                    continue;
+                } else {
+                    score++;
+                }
+            }
         }
         if (score <= setting::grid::placement::min_score*rot_bins_1rh.size()) {
             return false;

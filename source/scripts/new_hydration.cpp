@@ -53,6 +53,7 @@ int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
 
     setting::grid::psc = setting::grid::RadialStrategy;
+    // setting::grid::percent_water = 0;
 
     Protein protein(argv[1]);
     protein.generate_new_hydration();

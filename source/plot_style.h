@@ -2,10 +2,10 @@
 #include <TStyle.h>
 #include <TROOT.h>
 
-double labelsize = 0.06;
-double titlesize = 0.07;
-double xlabeloffset = 0.7;
-double ylabeloffset = 0.65;
+const double labelsize = 0.06;
+const double titlesize = 0.07;
+const double xlabeloffset = 0.7;
+const double ylabeloffset = 0.65;
 
 void setup_style() {
     gStyle->SetLabelSize(labelsize, "X");

@@ -38,7 +38,7 @@ void Protein::save(string path) const {
     file->write(path); // write to disk
 }
 
-Distances Protein::calc_distances() const {
+void Protein::calc_distances() {
     // calculate the internal distances for the protein atoms
     int n_pp = 0; // index counter
     int n_hh = 0;
@@ -76,7 +76,7 @@ Distances Protein::calc_distances() const {
             n_hp++;
         }
     }
-    return Distances(d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
+    this->distances = std::make_shared<Distances>(d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
 }
 
 void Protein::generate_new_hydration() {
@@ -92,24 +92,24 @@ void Protein::generate_new_hydration() {
     hydration_atoms = grid->hydrate();
 }
 
-vector<double> Protein::debye_scattering_intensity() const {
-    Distances distances = calc_distances();
+// vector<double> Protein::debye_scattering_intensity() const {
+//     Distances distances = calc_distances();
 
-    // p is the bin contents of a histogram of the distances
-    vector<int> axes = {600, 0, 60};
-    double width = (double) (axes[2]-axes[1])/axes[0];
-    vector<double> p(axes[0]);
-    for (int i = 0; i < distances.pp.size(); i++) {
-        p[std::round(distances.pp[i]/width)] += distances.wpp[i];
-    }
-    for (int i = 0; i < distances.hh.size(); i++) {
-        p[std::round(distances.hh[i]/width)] += distances.whh[i];
-    }
-    for (int i = 0; i < distances.hp.size(); i++) {
-        p[std::round(distances.hp[i]/width)] += distances.whp[i];
-    }
-    return debye_scattering_intensity(axes, p);
-}
+//     // p is the bin contents of a histogram of the distances
+//     vector<int> axes = {600, 0, 60};
+//     double width = (double) (axes[2]-axes[1])/axes[0];
+//     vector<double> p(axes[0]);
+//     for (int i = 0; i < distances.pp.size(); i++) {
+//         p[std::round(distances.pp[i]/width)] += distances.wpp[i];
+//     }
+//     for (int i = 0; i < distances.hh.size(); i++) {
+//         p[std::round(distances.hh[i]/width)] += distances.whh[i];
+//     }
+//     for (int i = 0; i < distances.hp.size(); i++) {
+//         p[std::round(distances.hp[i]/width)] += distances.whp[i];
+//     }
+//     return debye_scattering_intensity(axes, p);
+// }
 
 void Protein::generate_volume_file(string path) {
     vector<vector<vector<char>>>& g = grid->grid;
@@ -130,28 +130,32 @@ void Protein::generate_volume_file(string path) {
     exit(0);
 }
 
-vector<double> Protein::debye_scattering_intensity(vector<int> axes, vector<double>& p) const {
-    // calculate the Debye scattering intensity
-    vector<double> Iq(10000, 0);
+// vector<double> Protein::debye_scattering_intensity(vector<int> p_axes, vector<double>& p) const {
+//     // calculate the Debye scattering intensity
+//     const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+//     vector<double> Iq(debye_axes[0], 0);
 
-    vector<double> d(axes[0], 0);
-    double width = (double) (axes[2]-axes[1])/axes[0];
-    for (int i = 0; i < axes[0]; i++) {
-        d[i] = axes[1] + width*i;
-    }
+//     vector<double> d(p_axes[0], 0);
+//     double p_width = (double) (p_axes[2]-p_axes[1])/p_axes[0];
+//     for (int i = 0; i < p_axes[0]; i++) {
+//         d[i] = p_axes[1] + p_width*i;
+//     }
 
-    for (int i = 0; i < Iq.size(); i++) {
-        double q = i*0.001;
-        // cout << "Bin " << i << ", q: " << q << endl;
-        for (int j = 0; j < p.size(); j++) {
-            if (q*d[j] < 1e-9) {continue;}
-            // cout << " qd: " << q*d[j] << ", sin(qd): " << sin(q*d[j]) << ", sinqd/qd: " << sin(q*d[j])/(q*d[j]) << endl;
-            Iq[i] += p[j]*sin(q*d[j])/(q*d[j]);
-        }
-        // cout << endl << endl;;
-    }
-    return Iq;
-}
+//     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
+//     for (int i = 0; i < debye_axes[0]; i++) {
+//         double q = debye_axes[1] + i*debye_width;
+//         // cout << "Bin " << i << ", q: " << q << endl;
+//         for (int j = 0; j < p_axes[0]; j++) {
+//             if (q*d[j] < 1e-9) {
+//                 Iq[i] += p[j];
+//             } else {
+//                 Iq[i] += p[j]*sin(q*d[j])/(q*d[j]);
+//             }
+//         }
+//         // cout << endl << endl;;
+//     }
+//     return Iq;
+// }
 
 TVector3 Protein::get_cm() const {
     TVector3 cm;
@@ -185,6 +189,13 @@ double Protein::get_volume() const {
         }
     }
     return v;
+}
+
+shared_ptr<Distances> Protein::get_distances() {
+    if (distances == nullptr) {
+        calc_distances();
+    }
+    return distances;
 }
 
 void Protein::translate(const TVector3 v) {
