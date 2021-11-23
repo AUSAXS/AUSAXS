@@ -33,8 +33,8 @@ public:
      */
     std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> plot_Guinier_gyration();
 
-private:
     const vector<double> d_pp, d_hh, d_hp; // raw distances
+private:
     const vector<double> w_pp, w_hh, w_hp; // weights on each distance
     vector<int> axes; // bin style in the form {bins, xmin, xmax}
     vector<double> binned_pp, binned_hh, binned_hp, binned_tot; // binned distances

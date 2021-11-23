@@ -54,13 +54,12 @@ public:
     }
 
 private:
-
     /**
      * @brief Check if a water molecule can be placed at the given location. 
      * @param loc the location to be checked. 
      * @return True if this is an acceptable location, false otherwise.
      */
-    bool collision_check(const vector<int> loc) const {
+    inline bool collision_check(const vector<int> loc) const {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();

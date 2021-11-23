@@ -72,7 +72,6 @@ std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> Distances::plot_debye_scatterin
 vector<double> Distances::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
     const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
-    vector<double> Iq(debye_axes[0], 0);
 
     // calculate what distance each bin represents
     vector<double> d(axes[0], 0);
@@ -81,7 +80,8 @@ vector<double> Distances::calc_debye_scattering_intensity() const {
         d[i] = axes[1] + p_width*i;
     }
 
-    // calculate the scattering intentiy based on the Debye equation
+    // calculate the scattering intensity based on the Debye equation
+    vector<double> Iq(debye_axes[0], 0);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
         double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
@@ -110,5 +110,14 @@ std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> Distances::plot_Guinier_gyratio
     for (int i = 0; i < axes[0]; i++) {
         num += binned_tot[i]*pow(d[i], 2);
         denom += 2*binned_tot[i];
+    }
+    double Rg2 = num/denom;
+
+    const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+    vector<double> Iq(debye_axes[0], 0);
+    double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
+    for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
+        double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
+        Iq[i] = exp(-pow(q, 2)*Rg2/3);
     }
 }

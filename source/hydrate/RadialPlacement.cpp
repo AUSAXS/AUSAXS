@@ -138,7 +138,7 @@ private:
      * @param skip_bin location to be excluded from the check. 
      * @return True if this is an acceptable location, false otherwise.
      */
-    bool collision_check(const vector<int> loc, const vector<int> skip_bin) const {
+    inline bool collision_check(const vector<int> loc, const vector<int> skip_bin) const {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();

@@ -42,10 +42,10 @@ void test_calc_distances() {
     Protein protein("temp_dist.pdb");
     remove("temp_dist.pdb");
 
-    Distances d = protein.calc_distances();
-    IS_TRUE(d.pp.size() == 6);
-    IS_TRUE(d.hh.size() == 3);
-    IS_TRUE(d.hp.size() == 12);
+    shared_ptr<Distances> d = protein.get_distances();
+    IS_TRUE(d->d_pp.size() == 6);
+    IS_TRUE(d->d_hh.size() == 3);
+    IS_TRUE(d->d_hp.size() == 12);
 }
 
 void test_get_cm() {
@@ -63,8 +63,7 @@ void test_volume() {
     IS_TRUE(protein.get_volume() == property::volume::lysine);
 }
 
-int main(void)
-{
+int main(void) {
     cout << "Summary of Protein testing:" << endl;
     create_test_file();
     test_get_cm();
