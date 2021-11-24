@@ -29,7 +29,7 @@ public:
 
     /**
      * @brief Prepare a plot of the Guinier gyration ratio. 
-     * @return A histogram with logarithmic y-axis. 
+     * @return A histogram with logarithmic base-10 y-axis. 
      */
     unique_ptr<TH1D> plot_guinier_approx();
 
@@ -58,7 +58,7 @@ private:
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 
-     * @return ln I(q)
+     * @return log10 I(q)
      */
     vector<double> calc_guinier_approx() const;
 };
