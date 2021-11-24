@@ -7,6 +7,8 @@
 #include "TH1D.h"
 #include "TCanvas.h"
 #include "TLegend.h"
+#include "TPad.h"
+#include "TLine.h"
 
 #include "Protein.h"
 #include "plot_style.h"
@@ -66,8 +68,9 @@ int main(int argc, char const *argv[]) {
     setup_style();
 
 // Distance plot
+    unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
     const vector<int> axes = {600, 0, 60};
-    auto[c1, hists] = d->plot_distance(axes);
+    auto hists = d->plot_distance(axes);
 
     // use some nicer colors
     hists[0]->SetLineColor(kOrange+1);
@@ -97,13 +100,40 @@ int main(int argc, char const *argv[]) {
     c1->SaveAs(path.c_str());
 
 // Debye scattering intensity plot
-    auto[c2, hI] = d->plot_debye_scattering();
-    hI->Draw("HIST L");
+    unique_ptr<TCanvas> c2 = std::make_unique<TCanvas>("c2", "canvas", 600, 600);
+
+    // Debye scattering intensity
+    c2->cd();
+    unique_ptr<TPad> linpad = std::make_unique<TPad>("linpad", "pad", 0, 0, 1, 1);
+    linpad->Draw();
+    linpad->SetLogx();
+    linpad->SetLogy();
+    linpad->cd();
+    auto hI_debye = d->plot_debye_scattering();
+    hI_debye->Draw("HIST L");
+
+    // Guinier approximation
+    c2->cd();
+    unique_ptr<TPad> logpad = std::make_unique<TPad>("logpad", "pad", 0, 0, 1, 1);
+    logpad->Draw();
+    logpad->SetFillStyle(4000); // transparent
+    logpad->SetFillColor(0);
+    logpad->SetFrameFillStyle(4000);
+    logpad->SetLogx();
+    logpad->cd();
+    auto hI_guinier = d->plot_guinier_approx();
+    hI_guinier->Draw("Y+ HIST L");
+
+    // Vertical line at the Guinier gyration ratio
+    double Rg = sqrt(d->calc_guinier_gyration_ratio_squared());
+    unique_ptr<TLine> gyration_ratio = std::make_unique<TLine>(1./Rg, hI_guinier->GetMaximum(), 1./Rg, hI_guinier->GetMinimum());
+    gyration_ratio->SetLineColor(kRed);
+    gyration_ratio->SetLineStyle(kDashed);
+    gyration_ratio->SetLineWidth(3);
+    gyration_ratio->Draw("SAME");
 
     // setup the canvas and save the plot
     path = output + "intensity.pdf";
-    c2->SetLogx();
-    c2->SetLogy();
     c2->SetRightMargin(0.15);
     c2->SetLeftMargin(0.15);
     c2->SaveAs(path.c_str());

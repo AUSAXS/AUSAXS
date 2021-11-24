@@ -17,21 +17,26 @@ public:
     /**
      * @brief Prepare a plot of the distances contained in this class.
      * @param axes the axes to use in the format {bins, xmin, xmax}
-     * @return A pair (canvas, vector(atom-atom hist, water-water hist, atom-water hist, total hist))
+     * @return A vector of histograms of the form (atom-atom hist, water-water hist, atom-water hist, total hist))
      */
-    std::pair<unique_ptr<TCanvas>, vector<shared_ptr<TH1D>>> plot_distance(const vector<int>& axes);
+    vector<shared_ptr<TH1D>> plot_distance(const vector<int>& axes);
 
     /**
      * @brief Prepare a plot of the Debye scattering intensities.
-     * @return A pair (canvas, hist)
+     * @return A histogram of the scattering intensity. 
      */
-    std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> plot_debye_scattering();
+    unique_ptr<TH1D> plot_debye_scattering();
 
     /**
      * @brief Prepare a plot of the Guinier gyration ratio. 
-     * @return A pair (canvas, hist)
+     * @return A histogram with logarithmic y-axis. 
      */
-    std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> plot_Guinier_gyration();
+    unique_ptr<TH1D> plot_guinier_approx();
+
+    /**
+     * @brief Calculate the squared Guinier gyration ratio. 
+     */
+    double calc_guinier_gyration_ratio_squared() const;
 
     const vector<double> d_pp, d_hh, d_hp; // raw distances
 private:
@@ -47,11 +52,13 @@ private:
 
     /**
      * @brief Calculate the intensity based on the Debye scattering equation
+     * @return I(q)
      */
     vector<double> calc_debye_scattering_intensity() const;
 
     /**
-     * @brief Calculate the Guinier gyration ratio
+     * @brief Calculate the guinier approximation of the scattering intensity. 
+     * @return ln I(q)
      */
-    void calc_gyration_ratio() const;
+    vector<double> calc_guinier_approx() const;
 };

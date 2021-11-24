@@ -6,7 +6,9 @@
 
 #include "TH1D.h"
 #include "TCanvas.h"
+#include <iostream>
 
+using std::cout, std::endl;
 using namespace ROOT;
 
 void Distances::bin(const vector<int>& axes) {
@@ -35,9 +37,8 @@ void Distances::bin(const vector<int>& axes) {
     this->binned_tot = p_tot;
 }
 
-std::pair<unique_ptr<TCanvas>, vector<shared_ptr<TH1D>>> Distances::plot_distance(const vector<int>& axes) {
+vector<shared_ptr<TH1D>> Distances::plot_distance(const vector<int>& axes) {
     if (binned_pp.size() == 0) {bin(axes);}
-    unique_ptr<TCanvas> c = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
     vector<shared_ptr<TH1D>> hists = {
         std::make_shared<TH1D>("h_pp", "hist", axes[0], axes[1], axes[2]), 
         std::make_shared<TH1D>("h_hh", "hist", axes[0], axes[1], axes[2]), 
@@ -52,21 +53,20 @@ std::pair<unique_ptr<TCanvas>, vector<shared_ptr<TH1D>>> Distances::plot_distanc
         hists[3]->SetBinContent(i, binned_tot[i-1]);
     }
 
-    return std::make_pair(std::move(c), hists);
+    return hists;
 }
 
-std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> Distances::plot_debye_scattering() {
+unique_ptr<TH1D> Distances::plot_debye_scattering() {
     if (binned_pp.size() == 0) {bin(axes);}
     vector<double> Iq = calc_debye_scattering_intensity();
-    unique_ptr<TCanvas> c = std::make_unique<TCanvas>("c2", "canvas", 600, 600);
     const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
-    unique_ptr<TH1D> h = std::make_unique<TH1D>("h_I", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
+    unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
 
     for (int i = 0; i < Iq.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
         h->SetBinContent(i+1, Iq[i]);
     }
-    return std::make_pair(std::move(c), std::move(h));
+    return std::move(h);
 }
 
 vector<double> Distances::calc_debye_scattering_intensity() const {
@@ -96,9 +96,26 @@ vector<double> Distances::calc_debye_scattering_intensity() const {
     return Iq;
 }
 
-std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> Distances::plot_Guinier_gyration() {
+unique_ptr<TH1D> Distances::plot_guinier_approx() {
     if (binned_pp.size() == 0) {bin(axes);}
 
+    vector<double> Iq = calc_guinier_approx();
+
+    for (const auto& e : Iq) {
+        cout << e << endl;
+    }
+
+    const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+    unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
+
+    for (int i = 0; i < debye_axes[0]; i++) {
+        // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
+        h->SetBinContent(i+1, Iq[i]);
+    }
+    return std::move(h);
+}
+
+double Distances::calc_guinier_gyration_ratio_squared() const {
     // calculate what distance each bin represents
     vector<double> d(axes[0], 0);
     double p_width = (double) (axes[2]-axes[1])/axes[0];
@@ -111,13 +128,19 @@ std::pair<unique_ptr<TCanvas>, unique_ptr<TH1D>> Distances::plot_Guinier_gyratio
         num += binned_tot[i]*pow(d[i], 2);
         denom += 2*binned_tot[i];
     }
-    double Rg2 = num/denom;
+    return num/denom;
+}
+
+vector<double> Distances::calc_guinier_approx() const {
+    double Rg2 = calc_guinier_gyration_ratio_squared();
 
     const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
     vector<double> Iq(debye_axes[0], 0);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
         double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
-        Iq[i] = exp(-pow(q, 2)*Rg2/3);
+        Iq[i] = -1./3*pow(q, 2)*Rg2;
     }
+
+    return Iq;
 }
