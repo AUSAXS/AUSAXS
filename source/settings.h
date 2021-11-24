@@ -21,6 +21,6 @@ namespace setting {
 
     namespace protein {
         extern double grid_width; // Width of each bin of the grid used to represent this protein.
-        const std::vector<double> debye_scattering_plot_axes = {1000, 0.001, 1.001}; // Axes used for the Debye scattering intensity plots.
+        const std::vector<double> scattering_intensity_plot_axes = {1000, 0.001, 1.001}; // Axes used for the Debye scattering intensity plots.
     }
 }

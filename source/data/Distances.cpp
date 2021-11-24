@@ -59,7 +59,7 @@ vector<shared_ptr<TH1D>> Distances::plot_distance(const vector<int>& axes) {
 unique_ptr<TH1D> Distances::plot_debye_scattering() {
     if (binned_pp.size() == 0) {bin(axes);}
     vector<double> Iq = calc_debye_scattering_intensity();
-    const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
 
     for (int i = 0; i < Iq.size(); i++) {
@@ -71,7 +71,7 @@ unique_ptr<TH1D> Distances::plot_debye_scattering() {
 
 vector<double> Distances::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
-    const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
 
     // calculate what distance each bin represents
     vector<double> d(axes[0], 0);
@@ -101,11 +101,7 @@ unique_ptr<TH1D> Distances::plot_guinier_approx() {
 
     vector<double> Iq = calc_guinier_approx();
 
-    for (const auto& e : Iq) {
-        cout << e << endl;
-    }
-
-    const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
 
     for (int i = 0; i < debye_axes[0]; i++) {
@@ -118,9 +114,9 @@ unique_ptr<TH1D> Distances::plot_guinier_approx() {
 double Distances::calc_guinier_gyration_ratio_squared() const {
     // calculate what distance each bin represents
     vector<double> d(axes[0], 0);
-    double p_width = (double) (axes[2]-axes[1])/axes[0];
+    double d_width = (double) (axes[2]-axes[1])/axes[0];
     for (int i = 0; i < axes[0]; i++) {
-        d[i] = axes[1] + p_width*i;
+        d[i] = axes[1] + d_width*i;
     }
     
     double num = 0, denom = 0;
@@ -134,12 +130,13 @@ double Distances::calc_guinier_gyration_ratio_squared() const {
 vector<double> Distances::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
-    const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
+    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
     vector<double> Iq(debye_axes[0], 0);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
+    double log_conv = log10(exp(1)); // we have to convert natural log to log10
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
         double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
-        Iq[i] = -1./3*pow(q, 2)*Rg2;
+        Iq[i] = -pow(q, 2)*Rg2/3*log_conv;
     }
 
     return Iq;

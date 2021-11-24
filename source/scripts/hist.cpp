@@ -69,7 +69,7 @@ int main(int argc, char const *argv[]) {
 
 // Distance plot
     unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
-    const vector<int> axes = {600, 0, 60};
+    const vector<int> axes = {60, 0, 60};
     auto hists = d->plot_distance(axes);
 
     // use some nicer colors
@@ -110,6 +110,10 @@ int main(int argc, char const *argv[]) {
     linpad->SetLogy();
     linpad->cd();
     auto hI_debye = d->plot_debye_scattering();
+    hI_debye->SetLineColor(kOrange+1);
+    double ymin = hI_debye->GetMinimum();
+    double ymax = hI_debye->GetMaximum();
+    hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y");
     hI_debye->Draw("HIST L");
 
     // Guinier approximation
@@ -122,6 +126,16 @@ int main(int argc, char const *argv[]) {
     logpad->SetLogx();
     logpad->cd();
     auto hI_guinier = d->plot_guinier_approx();
+    double offset = log10(hI_debye->GetMaximum()) - hI_guinier->GetMaximum();
+    for (int i = 1; i < hI_guinier->GetNbinsX(); i++) {
+        hI_guinier->SetBinContent(i, hI_guinier->GetBinContent(i)+offset);
+        cout << hI_guinier->GetBinContent(i) << endl;
+    }
+
+    // hI_guinier->Scale(1./hI_guinier->GetMaximum());
+    hI_guinier->SetLineColor(kAzure+1);
+    hI_guinier->SetLineStyle(kDashed);
+    hI_guinier->SetAxisRange(log10(ymin*0.9), log10(ymax*1.1), "Y");
     hI_guinier->Draw("Y+ HIST L");
 
     // Vertical line at the Guinier gyration ratio

@@ -83,6 +83,9 @@ public:
         }
 
         // insert all waters
+        if (c[i-1]->get_type() == Record::RecordType::HETATM) { // if more HETATMs have been placed since the terminate, we have to update resSeq
+            resSeq = std::static_pointer_cast<Hetatom>(c[i-1])->get_resSeq();
+        }
         for (auto const& a : hydration_atoms) {
             a->set_serial(i+1); // fix possible errors in the serial
             a->set_resSeq(resSeq+1);

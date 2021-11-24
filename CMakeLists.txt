@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(Calibrate)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -lboost_program_options")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3 -flto -lboost_program_options")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 #----------------------------------------------------------------------------
