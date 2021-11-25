@@ -1,73 +1,78 @@
-#include <initializer_list>
-#include <vector>
+#pragma once
 
-template <typename T>
+#include <initializer_list>
+#include <algorithm>
+#include <vector>
+#include <numeric>
+#include <math.h>
+#include <iostream>
+
 class VectorN {
 public:
-    VectorN(std::initializer_list<T> l) : data(l), N(l.size()) {}
-    VectorN(vector<T> v) : data(v), N(v.size()) {}
+    VectorN(std::initializer_list<double> l) : data(l), N(l.size()) {}
+    VectorN(std::vector<double> w) : data(w), N(w.size()) {}
+    VectorN(const int& N) : N(N) {data = std::vector<double>(N);}
 
-    VectorN operator+(const VectorN& w) const;
-    VectorN& operator+=(const VectorN& w) const;
-    VectorN operator-(const VectorN& w) const;
-    VectorN& operator-=(const VectorN& w) const;
-    VectorN operator*(const double& a) const;
-    VectorN operator/(const double& a) const;
-    double dot(const VectorN& w) const;
-    double norm() const;
-    void distance(const VectorN& w) const;
+    VectorN operator+(const VectorN& v) const {
+        std::vector<double> w(N);
+        std::transform(begin(), end(), v.begin(), w.begin(), std::plus<double>());
+        return VectorN(w);
+    }
 
-private:
+    VectorN operator-(const VectorN& v) const {
+        std::vector<double> w(N);
+        std::transform(begin(), end(), v.begin(), w.begin(), std::minus<double>());
+        return VectorN(w);
+    }
+
+    VectorN operator*(const double& a) const {
+        std::vector<double> w(N);
+        std::transform(begin(), end(), w.begin(), [&a](double x) {return x*a;});
+        return VectorN(w);
+    }
+
+    VectorN operator/(const double& a) const {
+        std::vector<double> w(N);
+        std::transform(begin(), end(), w.begin(), [&a](double x) {return x/a;});
+        return VectorN(w);
+    }
+
+    VectorN& operator+=(const VectorN& v) {
+        std::transform(begin(), end(), v.begin(), begin(), std::plus<double>()); 
+        return *this;
+    }
+
+    VectorN& operator-=(const VectorN& v) {
+        std::transform(begin(), end(), v.begin(), begin(), std::minus<double>()); 
+        return *this;
+    }
+
+    const double& operator[](const int& i) const {return data[i];}
+    double& operator[](const int& i) {return data[i];}
+
+    bool operator==(const VectorN& v) { // returns true if the vectors are APPROXIMATELY equal
+        VectorN a = operator-(v); // difference vector
+        return std::accumulate(a.begin(), a.end(), 0.0, [] (double sum, double x) {return sum + abs(x);}) < precision;
+    }
+
+    double dot(const VectorN& v) const {return std::inner_product(begin(), end(), v.begin(), 0);}
+    double norm() const {return dot(*this);}
+    double distance(const VectorN& v) const {return sqrt(distance2(v));};
+    double distance2(const VectorN& v) const {
+        std::vector<double>	w(N);
+        std::transform(begin(), end(), v.begin(), w.begin(), [] (double x1, double x2) {return pow((x1-x2), 2);});
+        return std::accumulate(w.begin(), w.end(), 0);
+    }
+
+    const std::vector<double>::const_iterator begin() const {return data.begin();}
+    const std::vector<double>::const_iterator end() const {return data.end();}
+    std::vector<double>::iterator begin() {return data.begin();}
+    std::vector<double>::iterator end() {return data.end();}
+
+    const int size() const {return N;};
+
+protected:
     const int N;
-    std::vector<T> data;
+    std::vector<double> data;
+    static constexpr double precision = 1e-9;
 };
-
-template <typename T>
-VectorN<T> VectorN<T>::operator+(const VectorN<T>& w) const {
-    std::vector<T> v(N);
-    for (int i = 0; i < N, i++) {v[i] = data[i] + w[i];}
-    return v;
-}
-
-template <typename T>
-VectorN<T>& VectorN<T>::operator+=(const VectorN<T>& w) const {
-    for (int i = 0; i < N; i++) {data[i] += w[i];}
-    return *this;
-}
-
-template <typename T>
-VectorN<T> VectorN<T>::operator-(const VectorN<T>& w) const {
-    std::vector<T> v(N);
-    for (int i = 0; i < N, i++) {v[i] = data[i] - w[i];}
-    return v;
-}
-
-template <typename T>
-VectorN<T>& VectorN<T>::operator-=(const VectorN<T>& w) const {
-    for (int i = 0; i < N; i++) {data[i] -= w[i];}
-    return *this;
-}
-
-template <typename T>
-VectorN<T> VectorN<T>::operator*(const double& a) const {
-    std::vector<T> v(N);
-    for (int i = 0; i < N; i++) {v[i] = data[i]*a;}
-    return v;
-}
-
-template <typename T>
-VectorN<T> VectorN<T>::operator/(const double& a) const {
-    std::vector<T> v(N);
-    for (int i = 0; i < N; i++) {v[i] = data[i]/a;}
-    return v;
-}
-
-template <typename T>
-double VectorN<T>::dot(const VectorN<T>& w) const {
-    double a = 0;
-    for (int i = 0; i < N; i++) {a += data[i]*w[i];}
-    return a;
-}
-
-template <typename T>
-double VectorN<T>::norm() const {return dot(*this);}
