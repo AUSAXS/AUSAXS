@@ -83,6 +83,8 @@ public:
         coords = {0, 0, 0};
     }
 
+    virtual ~Atom() override {}
+
     RecordType get_type() const override {return ATOM;}
 
     /**

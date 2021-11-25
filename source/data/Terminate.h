@@ -20,6 +20,7 @@ public:
     }
 
     Terminate() {}
+    ~Terminate() override {}
 
     /**
      * @brief Get the RecordType of this object.

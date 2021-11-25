@@ -62,12 +62,6 @@ Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, 
     }
 }
 
-void Grid::add(const vector<shared_ptr<Atom>>& atoms) {
-    for (auto const& a : atoms) {
-        add(a);
-    }
-}
-
 void Grid::expand_volume() {
     vol_expanded = true;
 
@@ -225,6 +219,8 @@ void Grid::add(const shared_ptr<Atom> atom) {
     // sanity check
     if (x >= bins[0] || y >= bins[1] || z >= bins[2]) {
         print_err("Error in Grid::add: Atom is located outside the grid!");
+        TVector3 coords = atom->get_coords();
+        print_err((format("Location: (%1%, %2%, %3%)") % coords[0] % coords[1] % coords[2]).str());
         exit(1);
     }
     members.insert({atom, loc});

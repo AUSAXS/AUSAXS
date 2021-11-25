@@ -10,5 +10,5 @@ using std::string, std::cout, std::endl;
  * @param str the string to be printed. 
  */
 inline void print_err(string str) {
-    cout << "\033[1;31m" << str << "\033[0m\n" << endl;
+    cout << "\033[1;31m" << str << "\033[0m" << endl;
 }

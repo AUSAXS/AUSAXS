@@ -9,6 +9,7 @@
 class CounterCulling : public CullingStrategy {
 public:
     using CullingStrategy::CullingStrategy;
+    ~CounterCulling() override {}
 
     // runs in O(n) where n is the number of water molecules
     vector<shared_ptr<Hetatom>> cull(vector<shared_ptr<Hetatom>> placed_water) const override {

@@ -9,6 +9,7 @@
 class AxesPlacement : public PlacementStrategy {
 public:
     using PlacementStrategy::PlacementStrategy; // inherit constructor
+    ~AxesPlacement() override {}
 
     vector<shared_ptr<Hetatom>> place() const override {
         // dereference the values we'll need for better performance

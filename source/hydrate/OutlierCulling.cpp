@@ -11,6 +11,7 @@
 class OutlierCulling : public CullingStrategy {
 public:
     using CullingStrategy::CullingStrategy;
+    ~OutlierCulling() override {}
 
     // runs in O(n ln n) where n is the number of water molecules
     vector<shared_ptr<Hetatom>> cull(vector<shared_ptr<Hetatom>> placed_water) const override {

@@ -70,7 +70,17 @@ public:
     /**
      * @brief Calculate the volume of this protein based on its constituent amino acids
      */
-    double get_volume() const;
+    double get_volume_acids() const;
+
+    /**
+     * @brief Calculate the volume of this protein based on the number of grid bins it spans
+     */
+    double get_volume_grid();
+
+    /**
+     * @brief Calculate the volume of this protein based on the number of C-alpha atoms
+     */
+    double get_volume_calpha() const;
 
     /**
      * @brief Get the grid representation of this Protein. 
@@ -87,6 +97,12 @@ public:
      * @brief Generate a PDB file showing the filled grid volume.
      */
     void generate_volume_file(string path);
+
+protected: 
+    /**
+     * @brief Create a grid and fill it with the atoms of this protein. 
+     */
+    void create_grid();
 
 private:
     vector<shared_ptr<Atom>> protein_atoms; // atoms of the protein itself

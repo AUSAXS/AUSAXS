@@ -18,6 +18,7 @@ using std::vector, std::string, std::unique_ptr, std::shared_ptr;
 class File {
 public: 
     File(string filename) {this->filename = filename;}
+    virtual ~File() {}
 
     Header header;
     Footer footer;

@@ -6,6 +6,7 @@
 class Hetatom : public Atom {
 public:
     using Atom::Atom; // inherit constructors from Atom
+    ~Hetatom() override {}
 
     RecordType get_type() const override {return HETATM;}
 

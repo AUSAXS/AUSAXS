@@ -87,29 +87,10 @@ void Protein::generate_new_hydration() {
     TVector3 cm = get_cm();
     translate(-cm);
 
-    grid = std::make_shared<Grid>(TVector3(-250, -250, -250), setting::protein::grid_width, 501/setting::protein::grid_width); 
+    grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
     grid->add(protein_atoms);
     hydration_atoms = grid->hydrate();
 }
-
-// vector<double> Protein::debye_scattering_intensity() const {
-//     Distances distances = calc_distances();
-
-//     // p is the bin contents of a histogram of the distances
-//     vector<int> axes = {600, 0, 60};
-//     double width = (double) (axes[2]-axes[1])/axes[0];
-//     vector<double> p(axes[0]);
-//     for (int i = 0; i < distances.pp.size(); i++) {
-//         p[std::round(distances.pp[i]/width)] += distances.wpp[i];
-//     }
-//     for (int i = 0; i < distances.hh.size(); i++) {
-//         p[std::round(distances.hh[i]/width)] += distances.whh[i];
-//     }
-//     for (int i = 0; i < distances.hp.size(); i++) {
-//         p[std::round(distances.hp[i]/width)] += distances.whp[i];
-//     }
-//     return debye_scattering_intensity(axes, p);
-// }
 
 void Protein::generate_volume_file(string path) {
     vector<vector<vector<char>>>& g = grid->grid;
@@ -129,33 +110,6 @@ void Protein::generate_volume_file(string path) {
     save(path);
     exit(0);
 }
-
-// vector<double> Protein::debye_scattering_intensity(vector<int> p_axes, vector<double>& p) const {
-//     // calculate the Debye scattering intensity
-//     const vector<double>& debye_axes = setting::protein::debye_scattering_plot_axes;
-//     vector<double> Iq(debye_axes[0], 0);
-
-//     vector<double> d(p_axes[0], 0);
-//     double p_width = (double) (p_axes[2]-p_axes[1])/p_axes[0];
-//     for (int i = 0; i < p_axes[0]; i++) {
-//         d[i] = p_axes[1] + p_width*i;
-//     }
-
-//     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
-//     for (int i = 0; i < debye_axes[0]; i++) {
-//         double q = debye_axes[1] + i*debye_width;
-//         // cout << "Bin " << i << ", q: " << q << endl;
-//         for (int j = 0; j < p_axes[0]; j++) {
-//             if (q*d[j] < 1e-9) {
-//                 Iq[i] += p[j];
-//             } else {
-//                 Iq[i] += p[j]*sin(q*d[j])/(q*d[j]);
-//             }
-//         }
-//         // cout << endl << endl;;
-//     }
-//     return Iq;
-// }
 
 TVector3 Protein::get_cm() const {
     TVector3 cm;
@@ -178,7 +132,7 @@ TVector3 Protein::get_cm() const {
     return cm;
 }
 
-double Protein::get_volume() const {
+double Protein::get_volume_acids() const {
     double v = 0;
     int cur_seq = 0; // sequence number of current acid
     for (auto const& a : protein_atoms) {
@@ -189,6 +143,17 @@ double Protein::get_volume() const {
         }
     }
     return v;
+}
+
+double Protein::get_volume_grid() {
+    if (grid == nullptr) {create_grid();}
+    return grid->get_volume();
+}
+
+void Protein::create_grid() {
+    grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
+    grid->add(protein_atoms);
+    grid->add(hydration_atoms);
 }
 
 shared_ptr<Distances> Protein::get_distances() {

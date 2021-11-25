@@ -21,6 +21,8 @@ public:
      */
     CullingStrategy(Grid* grid) : grid(grid) {}
 
+    virtual ~CullingStrategy() {}
+
     /**
      * @brief Cull the water molecules.
      * @return The remaining molecules after the culling.

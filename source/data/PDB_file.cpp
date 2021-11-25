@@ -26,6 +26,7 @@ public:
     PDB_file(string filename) : File(filename) {
         read();
     }
+    ~PDB_file() override {}
     
     /**
      * @brief write this File to disk. 

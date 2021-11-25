@@ -13,6 +13,7 @@ using std::string, boost::format;
 class Record {
 public: 
     enum RecordType {HEADER, ATOM, HETATM, TERMINATE, FOOTER, NOTYPE};
+    virtual ~Record() {}
     
     virtual void parse_pdb(const string s) = 0;
     virtual RecordType get_type() const = 0;

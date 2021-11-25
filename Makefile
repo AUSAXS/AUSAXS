@@ -20,6 +20,10 @@ hist/%: build/source/scripts/hist
 main/%: build/source/scripts/main
 	$< data/$* output/filled_volume.pdb
 
+.phony:
+optimize_radius/%: build/source/scripts/optimize_radius
+	$< data/$* figures/
+
 #################################################################################
 ###				TESTS						 ###
 #################################################################################

@@ -13,6 +13,7 @@ public:
     RadialPlacement(Grid* grid) : PlacementStrategy(grid) {
         prepare_rotations();
     }
+    ~RadialPlacement() override {}
 
     void prepare_rotations(const int divisions = 8) {
         const double w = grid->get_width();

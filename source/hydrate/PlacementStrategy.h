@@ -22,6 +22,8 @@ public:
      */
     PlacementStrategy(Grid* grid) {this->grid = grid;}
 
+    virtual ~PlacementStrategy() {}
+
     /**
      * @brief Place water molecules in the grid wherever possible.
      * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.

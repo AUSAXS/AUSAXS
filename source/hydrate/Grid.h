@@ -21,7 +21,7 @@ public:
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, setting::grid::default_ra, setting::grid::default_rh, setting::grid::psc, setting::grid::csc) {};
+    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {};
 
     /**
      * @brief Construct a new Grid object.
@@ -46,7 +46,13 @@ public:
      * @brief Add a set of atoms to the grid. 
      * @param atoms the set of atoms to add to this grid.
      */
-    void add(const vector<shared_ptr<Atom>>& atoms);
+    template<typename T>
+    void add(const vector<shared_ptr<T>>& atoms) {
+        static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
+        for (auto const& a : atoms) {
+            add(a);
+        }
+    }
 
     /** 
      * @brief Add a single atom to the grid. 
@@ -114,7 +120,10 @@ public:
     /**
      * @brief Get the total volume spanned by the atoms in this grid. 
      */
-    double get_volume() const {return pow(width, 3)*volume;}
+    double get_volume() {
+        if (!vol_expanded) {expand_volume();} 
+        return pow(width, 3)*volume;
+    }
 
     /**
      * @brief Get the number of bins in each dimension.

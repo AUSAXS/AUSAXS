@@ -10,6 +10,7 @@ using std::string, std::vector;
 class Footer : Record {
 public: 
     Footer(){}
+    ~Footer() override {}
 
     /**
      * @brief Get the RecordType of this object.

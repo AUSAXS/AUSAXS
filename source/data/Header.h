@@ -10,6 +10,7 @@ using std::string, std::vector;
 class Header : Record {
 public: 
     Header(){}
+    ~Header() override {}
 
     /**
      * @brief Get the RecordType of this object.
