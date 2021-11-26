@@ -5,9 +5,6 @@
 #include <map>
 #include <utility>
 
-// ROOT
-#include <TVector3.h>
-
 // my own includes
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
@@ -65,7 +62,7 @@ public:
     /** Calculate the center-mass coordinates for the protein.
      * @return The center-mass (x, y, z) coordinates. 
      */
-    TVector3 get_cm() const;
+    Vector3 get_cm() const;
 
     /**
      * @brief Calculate the volume of this protein based on its constituent amino acids
@@ -114,7 +111,7 @@ private:
     /** Move the entire protein by a vector.
      * @param v the translation vector
      */
-    void translate(const TVector3 v);
+    void translate(const Vector3 v);
 
     /** 
      * @brief Calculate the distances between each pair of atoms. 

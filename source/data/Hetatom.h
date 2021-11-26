@@ -2,6 +2,7 @@
 
 #include "Atom.h"
 #include "Record.h"
+#include "math/Vector3.h"
 
 class Hetatom : public Atom {
 public:
@@ -32,7 +33,7 @@ public:
      * @param coords the coordinates for the new Atom.
      * @return A pointer to the new water Atom. 
      */
-    static shared_ptr<Hetatom> create_new_water(TVector3 coords) {
+    static shared_ptr<Hetatom> create_new_water(Vector3 coords) {
         return std::make_shared<Hetatom>(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
     }
 };

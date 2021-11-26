@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "TVector3.h"
+#include "math/Vector3.h"
 
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
@@ -16,7 +16,7 @@ namespace setting {
         extern double rh; // Default radius of water molecules.
         extern double width; // Width of each bin of the grid used to represent this protein.
         extern int bins; // Default number of bins
-        extern TVector3 base_point; // Default base point
+        extern Vector3 base_point; // Default base point
 
         namespace placement {
             extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule

@@ -2,7 +2,6 @@
 #include "Grid.h"
 #include "settings.h"
 
-#include <TVector3.h>
 #include <iomanip>
 
 /**

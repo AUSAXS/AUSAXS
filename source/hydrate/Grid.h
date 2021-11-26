@@ -4,14 +4,12 @@
 class PlacementStrategy;
 
 // includes
-#include <TVector3.h>
 #include "data/Atom.h"
 #include "PlacementStrategy.h"
 #include "CullingStrategy.h"
 #include "settings.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-using namespace ROOT;
 
 class Grid {
 public:
@@ -21,7 +19,7 @@ public:
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(TVector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {};
+    Grid(Vector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {};
 
     /**
      * @brief Construct a new Grid object.
@@ -30,7 +28,7 @@ public:
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(TVector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, setting::grid::psc, setting::grid::csc) {};
+    Grid(Vector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, setting::grid::psc, setting::grid::csc) {};
 
     /**
      * @brief Construct a new Grid object.
@@ -40,7 +38,7 @@ public:
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+    Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 
     /** 
      * @brief Add a set of atoms to the grid. 
@@ -140,14 +138,14 @@ public:
      * @param v the bin location.
      * @return The xyz location.
      */
-    TVector3 to_xyz(const vector<int>& v) const;
+    Vector3 to_xyz(const vector<int>& v) const;
 
     /**
      * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
      * @param v the xyz location.
      * @return The bin location. 
      */
-    vector<int> to_bins(const TVector3& v) const;
+    vector<int> to_bins(const Vector3& v) const;
 
     class Comparator {
         public: bool operator() (const shared_ptr<Atom>& l, const shared_ptr<Atom>& r) const {return *l < *r;}
@@ -160,7 +158,7 @@ public:
     int rh = 0; // radius of each water molecule represented as a number of bins
 
 private:
-    TVector3 base; // base point of this grid
+    Vector3 base; // base point of this grid
     double width; // distance between each grid point
     vector<int> bins; // the number of bins in each dimension
     bool vol_expanded = false; // a flag determining if the volume has been expanded 

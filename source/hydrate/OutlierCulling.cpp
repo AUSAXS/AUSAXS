@@ -1,7 +1,6 @@
 #include "hydrate/CullingStrategy.h"
 #include "hydrate/Grid.h"
 
-#include <TVector3.h>
 #include <utility>
 
 /**

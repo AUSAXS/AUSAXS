@@ -7,15 +7,12 @@
 #include <utility>
 #include <boost/algorithm/string.hpp>
 
-// ROOT
-#include <TVector3.h>
-
 // my own stuff
 #include "data/Record.h"
 #include "Tools.h"
 #include "data/properties.h"
+#include "math/Vector3.h"
 
-using namespace ROOT;
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
@@ -29,7 +26,7 @@ public:
      * @param name the molecule (e.g. HOH).
      * @param serial the serial number of this atom.
      */
-    Atom(const TVector3 v, const double occupancy, const string element, const string name, int serial) {
+    Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial) {
         // we use our setters so we can validate the input if necessary
         this->set_coordinates(v);
         this->set_occupancy(occupancy);
@@ -50,7 +47,7 @@ public:
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
     Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
-        const string iCode, const TVector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
+        const string iCode, const Vector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
             this->set_serial(serial);
             this->set_name(name);
             this->altLoc = altLoc;
@@ -113,7 +110,7 @@ public:
     /** Move this atom by a vector.
      * @param v the translation vector.
      */
-    void translate(const TVector3 v) {
+    void translate(const Vector3 v) {
         coords += v;
     }
 
@@ -124,10 +121,10 @@ public:
     virtual bool is_water() const {return false;}
 
     // setters
-    void set_coordinates(const TVector3 v) {this->coords = v;}
-    void set_x(const double x) {this->coords.SetX(x);}
-    void set_y(const double y) {this->coords.SetY(y);}
-    void set_z(const double z) {this->coords.SetZ(z);}
+    void set_coordinates(const Vector3 v) {this->coords = v;}
+    void set_x(const double x) {this->coords.x = x;}
+    void set_y(const double y) {this->coords.y = y;}
+    void set_z(const double z) {this->coords.z = z;}
     void set_occupancy(double occupancy) {this->occupancy = occupancy;}
     void set_serial(const int serial) {this->serial = serial;}
     void set_resSeq(const int resSeq) {this->resSeq = resSeq;}
@@ -166,10 +163,10 @@ public:
     int get_resSeq() const {return resSeq;}
     int get_serial() const {return serial;}
     double get_occupancy() const {return occupancy;}
-    double get_x() const {return coords.X();}
-    double get_y() const {return coords.Y();}
-    double get_z() const {return coords.Z();}
-    TVector3 get_coords() const {return coords;}
+    double get_x() const {return coords.x;}
+    double get_y() const {return coords.y;}
+    double get_z() const {return coords.z;}
+    Vector3 get_coords() const {return coords;}
     string get_element() const {return element;}
     string get_resName() const {return resName;}
     string get_iCode() const {return iCode;}
@@ -202,5 +199,8 @@ protected:
     string name, altLoc, resName, chainID, iCode, element, charge;
     double occupancy, tempFactor;
     int serial, resSeq; 
-    TVector3 coords;
+    Vector3 coords;
+
+    // other properties
+    double effective_charge;
 };

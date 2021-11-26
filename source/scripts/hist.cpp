@@ -47,8 +47,8 @@ void parse_params(int argc, char const *argv[]) {
             cout << "Percentage of water set to " << setting::grid::percent_water << endl;
         }
         if (vm.count("width")) {
-            setting::protein::grid_width = vm["width"].as<double>();
-            cout << "Width set to " << setting::protein::grid_width << endl;
+            setting::grid::width = vm["width"].as<double>();
+            cout << "Width set to " << setting::grid::width << endl;
         }
     } catch ( const std::exception& e ) {
         std::cerr << e.what() << std::endl;

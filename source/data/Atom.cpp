@@ -8,15 +8,12 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 
-// ROOT
-#include <TVector3.h>
-
 // my own stuff
 #include "data/Record.h"
 #include "Tools.h"
 #include "Atom.h"
+#include "math/Vector3.h"
 
-using namespace ROOT;
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
@@ -35,12 +32,12 @@ void Atom::parse_pdb(const string s) {
         occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
 
     // sanity check
-    if (!Record::get_type(recName) == Record::ATOM) {
+    if (__builtin_expect(!Record::get_type(recName) == Record::ATOM, false)) {
         print_err("Error in Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
         exit(1);
     }
 
-    // remove any spaces
+    // remove any spaces from the numbers (strings are handled by the setters)
     boost::erase_all(serial, " ");
     boost::erase_all(resSeq, " ");
     boost::erase_all(x, " ");
@@ -73,6 +70,7 @@ void Atom::parse_pdb(const string s) {
         print_err("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         exit(1);
     }
+    this->effective_charge = property::charge::get.at(this->element) + property::hydrogen_atoms::get.at(this->resName).at(this->name);
 
     // DEBUG OUTPUT
     // cout << s << endl;

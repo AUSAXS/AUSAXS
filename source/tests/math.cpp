@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include "math/VectorN.h"
+#include "math/Vector.h"
 #include "math/Vector3.h"
 #include "Tools.h"
 #include "Test.h"
@@ -22,6 +22,8 @@ void test_vector3() {
     v += w; // v = (5, 7, 9)
     Vector3 a = w-v; // a = (-1, -2, -3)
     IS_TRUE(a == Vector3({-1, -2, -3}));
+    v.x = 0;
+    IS_TRUE(v == Vector3({0, 7, 9}));
 }
 
 int main(void) {

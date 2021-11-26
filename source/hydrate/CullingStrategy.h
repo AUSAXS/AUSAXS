@@ -8,7 +8,6 @@ class Grid;
 #include "hydrate/Grid.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-using namespace ROOT;
 
 /**
  * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 

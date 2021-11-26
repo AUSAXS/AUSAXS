@@ -8,7 +8,7 @@
 #include "hydrate/Grid.h"
 #include "settings.h"
 
-#include <TVector3.h>
+#include <math/Vector3.h>
  
 using namespace ROOT;
 
@@ -16,7 +16,7 @@ using namespace ROOT;
  * @brief Test that the grid is generated correctly.
  */
 void test_grid_generation() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     int width = 1;
     int bins = 21;
     Grid grid(base, width, bins);
@@ -35,7 +35,7 @@ void test_grid_generation() {
 }
 
 void test_simple_bounding_box() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     int width = 1;
     int bins = 21;
     Grid grid(base, width, bins);
@@ -54,7 +54,7 @@ void test_simple_bounding_box() {
 }
 
 void test_complex_bounding_box() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     int width = 1;
     int bins = 21;
     Grid grid(base, width, bins, 3);
@@ -76,7 +76,7 @@ void test_complex_bounding_box() {
 }
 
 void test_volume_expansion() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     int width = 1;
     int bins = 21;
     int radius = 3;
@@ -153,7 +153,7 @@ void test_volume_expansion() {
 }
 
 void test_hydrate() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     double width = 1;
     int bins = 21;
     int radius = 3;
@@ -167,17 +167,17 @@ void test_hydrate() {
 
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
-        IS_TRUE(water[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(water[1]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
-        IS_TRUE(water[2]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(water[3]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(water[4]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(water[5]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
+        IS_TRUE(water[0]->get_coords() == Vector3({-6, 0, 0})); // (-2r, 0, 0)
+        IS_TRUE(water[1]->get_coords() == Vector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[2]->get_coords() == Vector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(water[3]->get_coords() == Vector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(water[4]->get_coords() == Vector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(water[5]->get_coords() == Vector3({0, 0, 6})); // (0, 0, 2r)
     }
 }
 
 void test_width() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     double width = 0.1;
     int bins = 210;
     int radius = 3;
@@ -196,12 +196,12 @@ void test_width() {
     vector<shared_ptr<Hetatom>> water = grid.hydrate();
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
-        IS_TRUE(water[0]->get_coords() == TVector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(water[1]->get_coords() == TVector3({6, 0, 0})); // (2r, 0, 0)
-        IS_TRUE(water[2]->get_coords() == TVector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(water[3]->get_coords() == TVector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(water[4]->get_coords() == TVector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(water[5]->get_coords() == TVector3({0, 0, 6})); // (0, 0, 2r)
+        IS_TRUE(water[0]->get_coords() == Vector3({-6, 0, 0})); // (-2r, 0, 0)
+        IS_TRUE(water[1]->get_coords() == Vector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[2]->get_coords() == Vector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(water[3]->get_coords() == Vector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(water[4]->get_coords() == Vector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(water[5]->get_coords() == Vector3({0, 0, 6})); // (0, 0, 2r)
     }
 
     // test bounds
@@ -225,7 +225,7 @@ void test_width() {
 }
 
 void test_remove() {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     double width = 1;
     int bins = 21;
     int radius = 3;
@@ -253,7 +253,7 @@ void test_remove() {
 }
 
 void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
-    TVector3 base(-10, -10, -10);
+    Vector3 base(-10, -10, -10);
     double width = 1;
     vector<int> bins = {21, 21, 21};
     int radius = 3;
@@ -271,7 +271,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     }
 
     // since this needs to work with different placement strategies, we have to perform a more general check on the positions
-    vector<TVector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
+    vector<Vector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
     if (locs.size() >= 6) { // avoid crashing if the above fails
         for (const auto& l : locs) {
             bool found = false;

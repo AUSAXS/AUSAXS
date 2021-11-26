@@ -8,8 +8,6 @@
 #include "hydrate/Grid.h"
 #include "data/properties.h"
 
-using namespace ROOT;
-
 void create_test_file() {
     std::ofstream file("temp.pdb");
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
@@ -50,8 +48,7 @@ void test_calc_distances() {
 
 void test_get_cm() {
     Protein protein("temp.pdb");
-
-    TVector3 cm = protein.get_cm();
+    Vector3 cm = protein.get_cm();
     IS_TRUE(abs(cm[0]) < 1e-9);
     IS_TRUE(abs(cm[1]) < 1e-9);
     IS_TRUE(abs(cm[2]) < 1e-9);
@@ -59,8 +56,7 @@ void test_get_cm() {
 
 void test_volume() {
     Protein protein("temp.pdb");
-
-    IS_TRUE(protein.get_volume() == property::volume::lysine);
+    IS_TRUE(protein.get_volume_acids() == property::volume::lysine);
 }
 
 int main(void) {

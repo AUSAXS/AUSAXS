@@ -4,9 +4,6 @@
 #include "boost/format.hpp"
 #include <utility>
 
-// ROOT
-#include <TVector3.h>
-
 // my own includes
 #include "Grid.h"
 #include "data/Atom.h"
@@ -16,13 +13,13 @@
 #include "CounterCulling.cpp"
 #include "OutlierCulling.cpp"
 #include "settings.h"
+#include "math/Vector3.h"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
-using namespace ROOT;
 using namespace setting::grid;
 
-Grid::Grid(TVector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
+Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
     long long int total_bins = (long long) bins[0]*bins[1]*bins[2];
     if (total_bins > 32e9) {
         print_err("Error in Grid: Too many bins.");
@@ -96,7 +93,7 @@ vector<shared_ptr<Hetatom>> Grid::find_free_locs() {
 }
 
 vector<vector<int>> Grid::bounding_box() const {
-    if (members.size() == 0) {
+    if (__builtin_expect(members.size() == 0, false)) {
         print_err("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
         exit(1);
     }
@@ -157,7 +154,8 @@ vector<shared_ptr<Atom>> Grid::get_protein_atoms() const {
 
 void Grid::expand_volume(const shared_ptr<Atom> atom) {
     vector<int> loc = members.at(atom);
-    char marker = atom->is_water() ? 'h' : 'a';
+    const bool is_water = atom->is_water();
+    char marker = is_water ? 'h' : 'a';
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = atom->is_water() ? rh : ra; // determine which radius to use for the expansion
@@ -171,18 +169,18 @@ void Grid::expand_volume(const shared_ptr<Atom> atom) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
-                    volume++;
+                    if (!is_water) {volume++;};
                     grid[i][j][k] = marker;
                 }
             }
         }
     }
 
-    grid[loc[0]][loc[1]][loc[2]] = atom->is_water() ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
+    grid[loc[0]][loc[1]][loc[2]] = is_water ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
 void Grid::remove(const shared_ptr<Atom> atom) {
-    if (members.count(atom) == 0) {
+    if (__builtin_expect(members.count(atom) == 0, false)) {
         print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
         exit(1);
     }
@@ -215,28 +213,32 @@ void Grid::remove(const shared_ptr<Atom> atom) {
 void Grid::add(const shared_ptr<Atom> atom) {
     vector<int> loc = to_bins(atom->get_coords());
     const int x = loc[0], y = loc[1], z = loc[2];
+    const bool is_water = atom->is_water();
 
     // sanity check
-    if (x >= bins[0] || y >= bins[1] || z >= bins[2]) {
+    const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2];
+    if (__builtin_expect(out_of_bounds, false)) {
         print_err("Error in Grid::add: Atom is located outside the grid!");
-        TVector3 coords = atom->get_coords();
+        Vector3 coords = atom->get_coords();
         print_err((format("Location: (%1%, %2%, %3%)") % coords[0] % coords[1] % coords[2]).str());
         exit(1);
     }
+
+    if (is_water) {volume++;}
     members.insert({atom, loc});
-    grid[x][y][z] = atom->is_water() ? 'H' : 'A';
+    grid[x][y][z] = is_water ? 'H' : 'A';
 }
 
-vector<int> Grid::to_bins(const TVector3& v) const {
-    int binx = std::round((v[0] - base.X())/width);
-    int biny = std::round((v[1] - base.Y())/width);
-    int binz = std::round((v[2] - base.Z())/width);
+vector<int> Grid::to_bins(const Vector3& v) const {
+    int binx = std::round((v[0] - base.x)/width);
+    int biny = std::round((v[1] - base.y)/width);
+    int binz = std::round((v[2] - base.z)/width);
     return {binx, biny, binz};
 }
 
-TVector3 Grid::to_xyz(const vector<int>& v) const {
-    double x = base.X() + width*v[0];
-    double y = base.Y() + width*v[1];
-    double z = base.Z() + width*v[2];
+Vector3 Grid::to_xyz(const vector<int>& v) const {
+    double x = base.x + width*v[0];
+    double y = base.y + width*v[1];
+    double z = base.z + width*v[2];
     return {x, y, z};
 }

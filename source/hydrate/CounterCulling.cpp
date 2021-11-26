@@ -1,8 +1,6 @@
 #include "hydrate/CullingStrategy.h"
 #include "hydrate/Grid.h"
 
-#include "TVector3.h"
-
 /**
  * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
  */

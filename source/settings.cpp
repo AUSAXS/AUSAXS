@@ -1,5 +1,6 @@
 #include "settings.h"
 #include <vector>
+#include "math/Vector3.h"
 
 namespace setting {
     namespace grid {
@@ -11,7 +12,7 @@ namespace setting {
         double rh = 1.5;
         double width = 1; 
         int bins = 501;
-        TVector3 base_point = {-250, -250, -250};
+        Vector3 base_point = {-250, -250, -250};
 
         namespace placement {
             double min_score = 0.1; 

@@ -4,9 +4,6 @@
 #include "boost/format.hpp"
 #include <utility>
 
-// ROOT
-#include <TVector3.h>
-
 // my own includes
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
@@ -84,7 +81,7 @@ void Protein::generate_new_hydration() {
     hydration_atoms = vector<shared_ptr<Hetatom>>();
 
     // move protein to center of mass
-    TVector3 cm = get_cm();
+    Vector3 cm = get_cm();
     translate(-cm);
 
     grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
@@ -99,7 +96,7 @@ void Protein::generate_volume_file(string path) {
         for (int j = 0; j < g[0].size(); j++) {
             for (int k = 0; k < g[0][0].size(); k++) {
                 if (g[i][j][k] != 0) {
-                    shared_ptr<Atom> a = std::make_shared<Atom>(0, "C", "", "C", "", 1, "", TVector3(i, j, k), 1, 0, "C", "");
+                    shared_ptr<Atom> a = std::make_shared<Atom>(0, "C", "", "C", "", 1, "", Vector3(i, j, k), 1, 0, "C", "");
                     filled.push_back(a);
                 }
             }
@@ -111,8 +108,8 @@ void Protein::generate_volume_file(string path) {
     exit(0);
 }
 
-TVector3 Protein::get_cm() const {
-    TVector3 cm;
+Vector3 Protein::get_cm() const {
+    Vector3 cm;
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto atoms) {
         for (auto const& a : *atoms) {
@@ -121,7 +118,7 @@ TVector3 Protein::get_cm() const {
             double x = a->get_x()*m;
             double y = a->get_y()*m;
             double z = a->get_z()*m;
-            cm += TVector3(x, y, z);
+            cm += Vector3(x, y, z);
         }
         cm[0] = cm[0]/M;
         cm[1] = cm[1]/M;
@@ -163,7 +160,7 @@ shared_ptr<Distances> Protein::get_distances() {
     return distances;
 }
 
-void Protein::translate(const TVector3 v) {
+void Protein::translate(const Vector3 v) {
     auto move = [&v] (auto atoms) {
         for (auto const& a : *atoms) {
             a->translate(v);

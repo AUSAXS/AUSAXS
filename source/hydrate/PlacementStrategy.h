@@ -4,12 +4,10 @@
 class Grid;
 
 // includes
-#include <TVector3.h>
 #include "data/Hetatom.h"
 #include "hydrate/Grid.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-using namespace ROOT;
 
 /**
  * @brief This class defines the strategy used to place water molecules. See its subclasses for more information on how this is done. 
