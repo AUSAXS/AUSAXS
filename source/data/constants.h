@@ -5,7 +5,16 @@
 
 using std::string;
 
-namespace property {
+namespace constants {
+    namespace radius {
+        constexpr double electron = 0.0000281794; // electron radius in units of Ångström
+    }
+    constexpr double Avogadro = 6.02214076e-23; // mol^-1
+
+    namespace unit { // units with respect to the ones used in this file
+        constexpr double gm = 1.66054e-24;
+    }
+
     const std::map<string, char> name_1symbol_map = {{"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, 
         {"phenylalanine", 'F'}, {"tyrosine", 'Y'}, {"tryptophan", 'W'}, {"aspartic_acid", 'D'}, {"glutamic_acid", 'E'}, {"serine", 'S'}, 
         {"threonine", 'T'}, {"asparagine", 'N'}, {"glutamine", 'Q'}, {"lysine", 'K'}, {"arginine", 'R'}, {"histidine", 'H'}, {"methionine", 'M'}, 
@@ -51,15 +60,15 @@ namespace property {
         };
     }
 
-    // atomic weights taken from https://www.britannica.com/science/atomic-weight
-    namespace weight {
-        constexpr double H = 1.01;
-        constexpr double He = 4.00;
-        constexpr double Li = 6.95;
-        constexpr double C = 12.01;
-        constexpr double N = 14.01;
-        constexpr double O = 16.00;
-        constexpr double S = 32.06;
+    // atomic weights taken from https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf 
+    namespace mass {
+        constexpr double H = 1.008;
+        constexpr double He = 4.003;
+        constexpr double Li = 7.016;
+        constexpr double C = 12.011;
+        constexpr double N = 14.003;
+        constexpr double O = 15.995;
+        constexpr double S = 31.972;
 
         // get the weight of an atom
         const std::map<string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};

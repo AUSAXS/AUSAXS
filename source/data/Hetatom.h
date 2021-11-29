@@ -14,24 +14,19 @@ public:
     string get_recName() const override {return "HETATM";}
 
     bool is_water() const override {
-        if (resName == "HOH") {
-            return true;
-        }
-        return false;
+        return resName == "HOH";
     }
-
+    
     /**
-     * @brief Create a new water Atom.
-     * @return A pointer to the new water Atom. 
+     * @brief Create a new default water atom.
      */
     static shared_ptr<Hetatom> create_new_water() {
         return create_new_water({0, 0, 0});
     }
 
     /**
-     * @brief Create a new water Atom.
-     * @param coords the coordinates for the new Atom.
-     * @return A pointer to the new water Atom. 
+     * @brief Create a new water atom.
+     * @param coords the coordinates for the new atom.
      */
     static shared_ptr<Hetatom> create_new_water(Vector3 coords) {
         return std::make_shared<Hetatom>(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");

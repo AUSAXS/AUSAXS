@@ -3,12 +3,13 @@
 #include <map>
 #include "boost/format.hpp"
 #include <utility>
+#include <algorithm>
 
 // my own includes
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
 #include "data/PDB_file.cpp"
-#include "data/properties.h"
+#include "data/constants.h"
 #include "Protein.h"
 #include "settings.h"
 
@@ -36,6 +37,8 @@ void Protein::save(string path) const {
 }
 
 void Protein::calc_distances() {
+    update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+
     // calculate the internal distances for the protein atoms
     int n_pp = 0; // index counter
     int n_hh = 0;
@@ -51,7 +54,7 @@ void Protein::calc_distances() {
     for (int i = 0; i < protein_atoms.size(); i++) {
         for (int j = 0; j < protein_atoms.size(); j++) {
             d_pp[n_pp] = protein_atoms[i]->distance(protein_atoms[j]);
-            w_pp[n_pp] = property::charge::get.at(protein_atoms[i]->get_element())*property::charge::get.at(protein_atoms[j]->get_element())
+            w_pp[n_pp] = protein_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *protein_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
             n_pp++;
         }
@@ -61,19 +64,19 @@ void Protein::calc_distances() {
         // calculate h-h distances
         for (int j = 0; j < hydration_atoms.size(); j++) {
             d_hh[n_hh] = hydration_atoms[i]->distance(hydration_atoms[j]);
-            w_hh[n_hh] = property::charge::get.at(hydration_atoms[i]->get_element())*property::charge::get.at(hydration_atoms[j]->get_element())
+            w_hh[n_hh] = hydration_atoms[i]->get_effective_charge()*hydration_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*hydration_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
             n_hh++;
         }
         // calculate h-p distances
         for (int j = 0; j < protein_atoms.size(); j++) {
             d_hp[n_hp] = hydration_atoms[i]->distance(protein_atoms[j]);
-            w_hp[n_hp] = property::charge::get.at(hydration_atoms[i]->get_element())*property::charge::get.at(protein_atoms[j]->get_element())
+            w_hp[n_hp] = hydration_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
             n_hp++;
         }
     }
-    this->distances = std::make_shared<Distances>(d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
+    this->distances = std::make_shared<Distances>(this, d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
 }
 
 void Protein::generate_new_hydration() {
@@ -113,7 +116,7 @@ Vector3 Protein::get_cm() const {
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto atoms) {
         for (auto const& a : *atoms) {
-            double m = a->get_atomic_weight();
+            double m = a->get_mass();
             M += m;
             double x = a->get_x()*m;
             double y = a->get_y()*m;
@@ -136,7 +139,7 @@ double Protein::get_volume_acids() const {
         int a_seq = a->get_resSeq(); // sequence number of current atom
         if (cur_seq != a_seq) { // check if we are still dealing with the same acid
             cur_seq = a_seq; // if not, update our current sequence number
-            v += property::volume::get.at(a->get_resName()); // and add its volume to the running total
+            v += constants::volume::get.at(a->get_resName()); // and add its volume to the running total
         }
     }
     return v;
@@ -154,13 +157,11 @@ void Protein::create_grid() {
 }
 
 shared_ptr<Distances> Protein::get_distances() {
-    if (distances == nullptr) {
-        calc_distances();
-    }
+    if (distances == nullptr) {calc_distances();}
     return distances;
 }
 
-void Protein::translate(const Vector3 v) {
+void Protein::translate(const Vector3& v) {
     auto move = [&v] (auto atoms) {
         for (auto const& a : *atoms) {
             a->translate(v);
@@ -168,4 +169,21 @@ void Protein::translate(const Vector3 v) {
     };
     move(&protein_atoms);
     move(&hydration_atoms);
+}
+
+void Protein::update_effective_charge() {
+    if (grid == nullptr) {create_grid();}
+    double displaced_vol = grid->get_volume();
+    double displaced_charge = constants::charge::density::water*displaced_vol;
+    double charge_per_atom = -displaced_charge/protein_atoms.size();
+    cout << "Added " << charge_per_atom << " additional charge to each protein atom." << endl;
+    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge_per_atom] (const shared_ptr<Atom>& a) {a->add_effective_charge(charge_per_atom);});
+}
+
+double Protein::get_mass() const {
+    double M = 0;
+    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const shared_ptr<Atom>& a) {M += a->get_mass();});
+    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (shared_ptr<Hetatom>& a) {M += a->get_mass();});
+    cout << "Protein mass is " << M*constants::unit::gm/constants::Avogadro << endl;
+    return M*constants::unit::gm/constants::Avogadro;
 }

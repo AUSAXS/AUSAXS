@@ -1,8 +1,5 @@
 #pragma once
 
-// forward declaration
-class PlacementStrategy;
-
 // includes
 #include "data/Atom.h"
 #include "PlacementStrategy.h"
@@ -116,7 +113,8 @@ public:
     vector<shared_ptr<Atom>> get_protein_atoms() const;
 
     /**
-     * @brief Get the total volume spanned by the atoms in this grid. 
+     * @brief Get the total volume spanned by the atoms in this grid in Å^3.
+     *        Water molecules are ignored.  
      */
     double get_volume() {
         if (!vol_expanded) {expand_volume();} 

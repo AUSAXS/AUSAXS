@@ -13,7 +13,8 @@ class Vector {
 public:
     Vector(std::initializer_list<double> l) : data(l), N(l.size()) {}
     Vector(std::vector<double> w) : data(w), N(w.size()) {}
-    Vector(const int& N) : N(N) {data = std::vector<double>(N);}
+    Vector(const int& N) : N(N), data(N) {}
+    ~Vector() {}
 
     // Assignment operator, w = v
     Vector& operator=(const Vector& v) {
@@ -117,11 +118,12 @@ public:
 
     // check if the vector is compatible with ours
     virtual void compatibility_check(const Vector& v) const {
-        if (__builtin_expect(N != v.size(), false)) {throw std::invalid_argument("Vector dimensions do not match.");}
+        if (__builtin_expect(N != v.N, false)) {throw std::invalid_argument("Vector dimensions do not match.");}
     }
 
-protected:
     const int N;
+
+protected:
     std::vector<double> data;
     static constexpr double precision = 1e-9;
 };

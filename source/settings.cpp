@@ -8,7 +8,7 @@ namespace setting {
         CullingStrategyChoice csc = CounterStrategy;
 
         double percent_water = 0.1;
-        double ra = 2;
+        double ra = 1.5;
         double rh = 1.5;
         double width = 1; 
         int bins = 501;

@@ -6,7 +6,7 @@
 #include "tests/Test.h"
 #include "Protein.h"
 #include "hydrate/Grid.h"
-#include "data/properties.h"
+#include "data/constants.h"
 
 void create_test_file() {
     std::ofstream file("temp.pdb");
@@ -56,7 +56,7 @@ void test_get_cm() {
 
 void test_volume() {
     Protein protein("temp.pdb");
-    IS_TRUE(protein.get_volume_acids() == property::volume::lysine);
+    IS_TRUE(protein.get_volume_acids() == constants::volume::lysine);
 }
 
 int main(void) {

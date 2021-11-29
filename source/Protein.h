@@ -1,5 +1,8 @@
 #pragma once
 
+// forwards declaration
+class Distances;
+
 // includes
 #include <vector>
 #include <map>
@@ -9,7 +12,7 @@
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
 #include "data/File.h"
-#include "data/properties.h"
+#include "data/constants.h"
 #include "data/Distances.h"
 
 using std::vector, std::string, std::unique_ptr;
@@ -31,18 +34,6 @@ public:
      * @brief Get the distances between each atom.
      */
     shared_ptr<Distances> get_distances();
-
-    /**
-     * @brief Calculate the intensity based on the Debye scattering equation
-     */
-    vector<double> debye_scattering_intensity() const;
-
-    /**
-     * @brief Calculate the intensity based on the Debye scattering equation
-     * @param axes the axes for p in the format {bins, xmin, xmax}
-     * @param p the binned distance histogram to use
-     */
-    vector<double> debye_scattering_intensity(vector<int> axes, vector<double>& p) const;
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
@@ -91,9 +82,14 @@ public:
     }
 
     /**
-     * @brief Generate a PDB file showing the filled grid volume.
+     * @brief Generate a PDB file at @p path showing the filled grid volume.
      */
     void generate_volume_file(string path);
+
+    /**
+     * @brief Calculate the total mass of this protein.
+     */
+    double get_mass() const;
 
 protected: 
     /**
@@ -106,15 +102,20 @@ private:
     vector<shared_ptr<Hetatom>> hydration_atoms; // hydration layer
     shared_ptr<File> file; // the file backing this protein
     shared_ptr<Grid> grid = nullptr; // the grid representation of this protein
-    shared_ptr<Distances> distances; // an object representing the distances between atoms
+    shared_ptr<Distances> distances = nullptr; // an object representing the distances between atoms
 
     /** Move the entire protein by a vector.
      * @param v the translation vector
      */
-    void translate(const Vector3 v);
+    void translate(const Vector3& v);
 
     /** 
      * @brief Calculate the distances between each pair of atoms. 
      */
     void calc_distances();
+
+    /**
+     * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
+     */
+    void update_effective_charge();
 };

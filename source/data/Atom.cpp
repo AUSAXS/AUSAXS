@@ -70,7 +70,7 @@ void Atom::parse_pdb(const string s) {
         print_err("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         exit(1);
     }
-    this->effective_charge = property::charge::get.at(this->element) + property::hydrogen_atoms::get.at(this->resName).at(this->name);
+    this->effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
 
     // DEBUG OUTPUT
     // cout << s << endl;

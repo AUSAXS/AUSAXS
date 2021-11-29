@@ -10,7 +10,7 @@
 // my own stuff
 #include "data/Record.h"
 #include "Tools.h"
-#include "data/properties.h"
+#include "data/constants.h"
 #include "math/Vector3.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
@@ -60,6 +60,7 @@ public:
             this->tempFactor = tempFactor;
             this->set_element(element);
             this->charge = charge;
+            this->effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
     }
 
     /**
@@ -78,6 +79,7 @@ public:
         occupancy = -1;
         tempFactor = -1;
         coords = {0, 0, 0};
+        effective_charge = -1;
     }
 
     virtual ~Atom() override {}
@@ -96,18 +98,20 @@ public:
      */
     string as_pdb() const override;
 
-    /** Calculate the distance to another atom. 
-     * @param a the other atom.
-     * @return the distance. 
+    /** 
+     * @brief Calculate the distance to another atom. 
      */
     double distance(const shared_ptr<Atom> a) {
-        return sqrt(pow(get_x() - a->get_x(), 2) + pow(get_y() - a->get_y(), 2) + pow(get_z() - a->get_z(), 2));
+        return coords.distance(a->get_coords());
     }
 
-    /** Prints the contents of this object to the terminal. */
+    /** 
+     * @brief Prints the contents of this object to the terminal. (NOT FULLY IMPLEMENTED!)
+     */
     void print();
 
-    /** Move this atom by a vector.
+    /** 
+     * @brief Move this atom by a vector.
      * @param v the translation vector.
      */
     void translate(const Vector3 v) {
@@ -128,6 +132,12 @@ public:
     void set_occupancy(double occupancy) {this->occupancy = occupancy;}
     void set_serial(const int serial) {this->serial = serial;}
     void set_resSeq(const int resSeq) {this->resSeq = resSeq;}
+    void set_effective_charge(double charge) {this->effective_charge = charge;}
+
+    /**
+     * @brief Set the residue name for this atom. Any spaces are removed. 
+     * @param resName the residue name, typically an amino acid such as LYS.
+     */
     void set_resName(string resName) {
         boost::erase_all(resName, " "); // remove spaces
         this->resName = resName;
@@ -138,8 +148,8 @@ public:
     }
 
     /**
-     * @brief Set the atomic name for this Atom. Any spaces are removed.
-     * @param name the atomic name, e.g. LYS.
+     * @brief Specify the position of this atom within its residue. Any spaces are removed.
+     * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
      */
     void set_name(string name) {
         boost::erase_all(name, " "); // remove spaces
@@ -147,12 +157,12 @@ public:
     }
 
     /**
-     * @brief Set the atomic element for this Atom. Any spaces are removed. 
-     * @param element the atomic element.
+     * @brief Set the atomic element for this atom. Any spaces are removed. 
+     * @param element the atomic element, e.g. He.
      */
     void set_element(string element) {
         boost::erase_all(element, " ");
-        if (!property::weight::atomic.count(element)) { // check that the weight is defined
+        if (__builtin_expect(!constants::mass::atomic.count(element), false)) { // check that the weight is defined
             print_err((format("Error in Atom::set_element: The weight of element \"%1%\" is not defined.") % element).str());
             exit(1);
         }
@@ -172,14 +182,21 @@ public:
     string get_iCode() const {return iCode;}
     string get_chainID() const {return chainID;}
     virtual string get_recName() const {return "ATOM  ";}
+    double get_effective_charge() const {return effective_charge;}
 
-    double get_atomic_weight() const {
-        if (element == "") {
-            print_err("Error in Atom::get_atomic_weight: Attempted to get atomic weight, but the element was not set!");
+    double get_mass() const {
+        if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
+            print_err("Error in Atom::get_atomic_weight: Attempted to get atomic mass, but the element was not set!");
             exit(1);
         }
-        return property::weight::atomic.at(element);
+        // mass of this nucleus + mass of attached H atoms
+        return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
     };
+
+    /**
+     * @brief Add @p charge to the effective charge of this atom. 
+     */
+    void add_effective_charge(const double& charge) {effective_charge += charge;}
 
     /**
      * @brief Comparison function to allow this class to be a map key. 
@@ -190,7 +207,6 @@ public:
     /**
      * @brief Equality operator to determine if two atoms are equal
      * @param rhs the atom to compare against. 
-     * @return True if equal, false otherwise.
      */
     bool operator==(const Atom& rhs) const;
 
