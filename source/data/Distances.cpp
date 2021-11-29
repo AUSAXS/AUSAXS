@@ -4,6 +4,7 @@
 
 #include <utility>
 #include <math.h>
+#include <algorithm>
 
 #include "TH1D.h"
 #include "TCanvas.h"
@@ -13,8 +14,22 @@ using std::cout, std::endl;
 using namespace ROOT;
 
 unique_ptr<TH1D> Distances::fit_debye_plot() const {
-    vector<double> Iq = calc_debye_scattering_intensity(constants::radius::electron);
-    const double M = 0;
+    // calculate the scattering intensity based on the Debye equation
+    double I0;
+    double r2 = pow(constants::radius::electron, 2);
+    for (int j = 0; j < axes[0]; j++) { // iterate through the distance histogram
+        I0 += binned_tot[j]*r2;
+    }
+
+    const double M = protein->get_mass();
+    I0 /= M;
+
+    vector<double> Iq = calc_debye_scattering_intensity();
+    cout << "c is " << I0/(Iq[0]*r2);
+
+    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    unique_ptr<TH1D> h = std::make_unique<TH1D>("debye_fit", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
+    return std::move(h);
 }
 
 vector<shared_ptr<TH1D>> Distances::plot_distance() const {
@@ -47,7 +62,7 @@ unique_ptr<TH1D> Distances::plot_debye_scattering() const {
     return std::move(h);
 }
 
-vector<double> Distances::calc_debye_scattering_intensity(const double& r) const {
+vector<double> Distances::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
     const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
 
@@ -61,14 +76,13 @@ vector<double> Distances::calc_debye_scattering_intensity(const double& r) const
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(debye_axes[0], 0);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
-    double r2 = pow(r, 2);
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
         double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
         for (int j = 0; j < axes[0]; j++) { // iterate through the distance histogram
             if (q*d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
-                Iq[i] += binned_tot[j]*r2;
+                Iq[i] += binned_tot[j];
             } else {
-                Iq[i] += binned_tot[j]*sin(q*d[j])/(q*d[j])*r2;
+                Iq[i] += binned_tot[j]*sin(q*d[j])/(q*d[j]);
             }
         }
     }

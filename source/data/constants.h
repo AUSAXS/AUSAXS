@@ -12,7 +12,7 @@ namespace constants {
     constexpr double Avogadro = 6.02214076e-23; // mol^-1
 
     namespace unit { // units with respect to the ones used in this file
-        constexpr double gm = 1.66054e-24;
+        constexpr double gm = 1.66054e-24; // Dalton --> grams
     }
 
     const std::map<string, char> name_1symbol_map = {{"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, 

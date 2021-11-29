@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
+#include "math/Vector.h"
 
 class Matrix {
 public: 
@@ -23,34 +24,51 @@ public:
         return *this;
     }
 
-    // Plus operator, w + v
+    // Plus operator, B + A
     Matrix operator+(const Matrix& A) const {
         compatibility_check(A);
-        Matrix w(N, M);
-        std::transform(begin(), end(), A.begin(), w.begin(), std::plus<double>());
-        return w;
+        Matrix B(N, M);
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < M; ++j) {
+                B[i][j] = data[i][j] + A[i][j];
+            }
+        }
+        return B;
     }
 
-    // Minus operator, w - v
-    // Vector operator-(const Vector& v) const {
-    //     compatibility_check(v);
-    //     Vector w(N);
-    //     std::transform(begin(), end(), v.begin(), w.begin(), std::minus<double>());
-    //     return w;
-    // }
+    // Minus operator, B - A
+    Matrix operator-(const Matrix& A) const {
+        compatibility_check(A);
+        Matrix B(N, M);
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < M; ++j) {
+                B[i][j] = data[i][j] - A[i][j];
+            }
+        }
+        return B;
+    }
 
-    // Vector operator-() const {
-    //     Vector w(N);
-    //     std::transform(begin(), end(), w.begin(), std::negate<double>());
-    //     return w;
-    // }
+    // Negation operator, -A
+    Matrix operator-() const {
+        Matrix A(N, M);
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < M; ++j) {
+                A[i][j] = -data[i][j];
+            }
+        }
+        return A;
+    }
 
-    // // Scalar multiplication, w*a
-    // Vector operator*(const double& a) const {
-    //     Vector w(N);
-    //     std::transform(begin(), end(), w.begin(), [&a](double x) {return x*a;});
-    //     return w;
-    // }
+    // Scalar multiplication, B*a
+    Matrix operator*(const double& a) const {
+        Matrix A(N, M);
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < M; ++j) {
+                A[i][j] = a*data[i][j];
+            }
+        }
+        return A;
+    }
 
     // // Scalar division, w/a
     // Vector operator/(const double& a) const {
@@ -73,11 +91,40 @@ public:
     //     return *this;
     // }
 
-    // // Read-only indexing, w[i]
-    // const double& operator[](const int& i) const {return data[i];}
+    // Read-only indexing, w[i]
+    const std::vector<double>& operator[](const int& i) const {return data[i];}
     
-    // // Read/write indexing, w[i] = ...
-    // double& operator[](const int& i) {return data[i];}
+    // Read/write indexing, w[i] = ...
+    std::vector<double>& operator[](const int& i) {return data[i];}
+
+    // Vector multiplication, A*v
+    friend double operator*(const Matrix& A, const Vector& v) {
+        if (__builtin_expect(A.M != v.N, false)) {
+            throw std::invalid_argument("Invalid vector dimension (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + " ).");
+        }
+        double a = 0;
+        for (int i = 0; i < A.N; ++i) {
+            for (int j = 0; j < A.M; ++j) {
+                a += v[j]*A[i][j];
+            }
+        }
+        return a;
+    }
+
+    // Matrix multiplication, A*B
+    friend Matrix operator*(const Matrix& A, const Matrix& B) {
+        if (__builtin_expect(A.M != B.N || A.N != B.M, false)) {
+            throw std::invalid_argument("Invalid vector dimension (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + 
+                ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + " ).");
+        }
+        double a = 0;
+        for (int i = 0; i < A.N; ++i) {
+            for (int j = 0; j < A.M; ++j) {
+                a += v[j]*A[i][j];
+            }
+        }
+        return a;
+    }
 
     // // Approximate equality, w ~ v
     // bool operator==(const Vector& v) const {

@@ -183,7 +183,7 @@ void Protein::update_effective_charge() {
 double Protein::get_mass() const {
     double M = 0;
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const shared_ptr<Atom>& a) {M += a->get_mass();});
-    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (shared_ptr<Hetatom>& a) {M += a->get_mass();});
-    cout << "Protein mass is " << M*constants::unit::gm/constants::Avogadro << endl;
-    return M*constants::unit::gm/constants::Avogadro;
+    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const shared_ptr<Hetatom>& a) {M += a->get_mass();});
+    cout << "Protein mass is " << M*constants::unit::gm << endl;
+    return M*constants::unit::gm;
 }

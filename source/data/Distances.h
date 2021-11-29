@@ -67,7 +67,7 @@ private:
      * @param r the square of this parameter will be multiplied onto each I(q).
      * @return I(q)
      */
-    vector<double> calc_debye_scattering_intensity(const double& r = 1) const;
+    vector<double> calc_debye_scattering_intensity() const;
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 
