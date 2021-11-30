@@ -11,18 +11,20 @@
 class Matrix {
 public: 
     Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) {
-        data.assign(l.begin(), l.end());
+        _data.assign(l.begin(), l.end());
         for (const auto& e : data) {
             if (__builtin_expect(e.size() != M, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
         }
     }
-    Matrix(const int& N, const int& M) : _N(N), _M(M), data(N, std::vector<double>(M, 0)) {}
+    Matrix(const Vector& v) : _N(v.N), _M(1), _data(1, std::vector<double>(v.N, 0)) {_data[0] = v.data;}
+    Matrix(const int& N, const int& M) : _N(N), _M(M), _data(N, std::vector<double>(M, 0)) {}
+    Matrix() : _N(0), _M(0), _data(0, std::vector<double>(0)) {}
     ~Matrix() {}
 
     // Assignment operator, B = A
     Matrix& operator=(const Matrix& A) {
         _N = A.N; _M = A.M;
-        data.assign(A.begin(), A.end());
+        _data = std::vector<std::vector<double>>(A.data);
         return *this;
     }
 
@@ -88,7 +90,7 @@ public:
         compatibility_check(A);
         for (int row = 0; row < N; ++row) {
             for (int col = 0; col < M; ++col) {
-                data[row][col] += A[row][col];
+                _data[row][col] += A[row][col];
             }
         }
         return *this;
@@ -99,7 +101,7 @@ public:
         compatibility_check(A);
         for (int row = 0; row < N; ++row) {
             for (int col = 0; col < M; ++col) {
-                data[row][col] -= A[row][col];
+                _data[row][col] -= A[row][col];
             }
         }
         return *this;
@@ -109,14 +111,14 @@ public:
     const std::vector<double>& operator[](const int& i) const {return data[i];}
     
     // Read/write indexing, A[i] = ...
-    std::vector<double>& operator[](const int& i) {return data[i];}
+    std::vector<double>& operator[](const int& i) {return _data[i];}
 
     // Vector multiplication, A*v
     friend Vector operator*(const Matrix& A, const Vector& v) {
         if (__builtin_expect(A.M != v.N, false)) {
             throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
         }
-        Vector w(A.M);
+        Vector w(A.N);
         for (int row = 0; row < A.N; ++row) {
             for (int col = 0; col < A.M; ++col) {
                 w[row] += v[col]*A[row][col];
@@ -124,22 +126,6 @@ public:
         }
         return w;
     }
-
-    // // Vector multiplication, A*v
-    // friend Matrix operator*(const Vector& v, const Vector& w) {
-    //     if (__builtin_expect(v.N != w.N, false)) {
-    //         throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(w.N) + ", expected: " + std::to_string(v.N) + "]).");
-    //     }
-    //     Matrix A(v.N, v.N);
-    //     for (int row = 0; row < A.N; ++row) {
-    //         for (int col = 0; col < A.M; ++col) {
-    //             for (int inner = 0; inner < A.N; ++inner) {
-    //                 A[row][col] += v[row]*w[col];
-    //             }
-    //         }
-    //     }
-    //     return A;
-    // }
 
     // Matrix multiplication, A*B
     friend Matrix operator*(const Matrix& A, const Matrix& B) {
@@ -173,6 +159,13 @@ public:
     // Approximate inequality operator, w != v
     bool operator!=(const Matrix& A) const {return !operator==(A);}
 
+    // Returns a copy of this matrix
+    Matrix copy() const {
+        Matrix A(N, M);
+        A._data = std::vector<std::vector<double>>(data);
+        return A;
+    }
+
     // Transpose
     Matrix T() const {
         Matrix A(M, N);
@@ -184,21 +177,13 @@ public:
         return A;
     }
 
-    // check if the matrix is compatible with ours
-    virtual void compatibility_check(const Matrix& A) const {
-        if (__builtin_expect(N != A.N || M != A.M, false)) {
-            throw std::invalid_argument("Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
-                std::to_string(A.N) + ", " + std::to_string(A.M) + "]).");
-        }
-    }
-
     // read-only iterators
     const std::vector<std::vector<double>>::const_iterator begin() const {return data.begin();}
     const std::vector<std::vector<double>>::const_iterator end() const {return data.end();}
 
     // read-write iterators
-    std::vector<std::vector<double>>::iterator begin() {return data.begin();}
-    std::vector<std::vector<double>>::iterator end() {return data.end();}
+    std::vector<std::vector<double>>::iterator begin() {return _data.begin();}
+    std::vector<std::vector<double>>::iterator end() {return _data.end();}
 
     // Print this matrix to the terminal.
     void print() const {
@@ -213,9 +198,18 @@ public:
     }
 
     const int &N = _N, &M = _M; // read-only access to the dimensions
+    const std::vector<std::vector<double>>& data = _data; // read-only access to the data container
 
 private: 
     int _N, _M;
-    std::vector<std::vector<double>> data;
+    std::vector<std::vector<double>> _data;
     static constexpr double precision = 1e-9;
+
+    // check if the matrix is compatible with ours
+    virtual void compatibility_check(const Matrix& A) const {
+        if (__builtin_expect(N != A.N || M != A.M, false)) {
+            throw std::invalid_argument("Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
+                std::to_string(A.N) + ", " + std::to_string(A.M) + "]).");
+        }
+    }
 };

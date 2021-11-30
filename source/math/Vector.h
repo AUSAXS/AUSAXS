@@ -11,15 +11,16 @@
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
 public:
-    Vector(std::initializer_list<double> l) : data(l), N(l.size()) {}
-    Vector(std::vector<double> w) : data(w), N(w.size()) {}
-    Vector(const int& N) : N(N), data(N) {}
+    Vector(std::initializer_list<double> l) : _data(l), _N(l.size()) {}
+    Vector(std::vector<double> w) : _data(w), _N(w.size()) {}
+    Vector(const int& N) : _N(N), _data(N, 0) {}
+    Vector() : _N(0), _data(0) {}
     ~Vector() {}
 
     // Assignment operator, w = v
     Vector& operator=(const Vector& v) {
-        compatibility_check(v);
-        data.assign(v.begin(), v.end());
+        _N = v.N;
+        _data.assign(v.begin(), v.end());
         return *this;
     }
 
@@ -73,11 +74,23 @@ public:
         return *this;
     }
 
+    // Scalar division-assignment, w /= a
+    Vector& operator/=(const double& a) {
+        std::transform(begin(), end(), begin(), [&a](double x) {return x/a;});
+        return *this;
+    }
+
+    // Scalar multiplication-assignment, w /= a
+    Vector& operator*=(const double& a) {
+        std::transform(begin(), end(), begin(), [&a](double x) {return x*a;});
+        return *this;
+    }
+
     // Read-only indexing, w[i]
     const double& operator[](const int& i) const {return data[i];}
     
     // Read/write indexing, w[i] = ...
-    double& operator[](const int& i) {return data[i];}
+    double& operator[](const int& i) {return _data[i];}
 
     // Approximate equality, w ~ v
     bool operator==(const Vector& v) const {
@@ -106,24 +119,42 @@ public:
         return std::accumulate(w.begin(), w.end(), 0);
     }
 
+    // Returns a copy of this vector
+    Vector copy() const {
+        Vector w(N);
+        std::copy(begin(), end(), w.begin());
+        return w;
+    }
+
+    // Print this vector to the terminal
+    void print() const {
+        std::cout << "Printing a " + std::to_string(N) + "-dimensional vector: " << std::endl;
+        for (const auto& e : data) {
+            std::cout << std::setw(8) << e << " ";
+        }
+        std::cout << std::endl;
+    }
+
     // read-only iterators
     const std::vector<double>::const_iterator begin() const {return data.begin();}
     const std::vector<double>::const_iterator end() const {return data.end();}
 
     // read-write iterators
-    std::vector<double>::iterator begin() {return data.begin();}
-    std::vector<double>::iterator end() {return data.end();}
+    std::vector<double>::iterator begin() {return _data.begin();}
+    std::vector<double>::iterator end() {return _data.end();}
 
     const int size() const {return N;};
+
+    const int& N = _N; // read-only access to the dimension
+    const std::vector<double>& data = _data; // read-only access to the data container
+
+protected:
+    int _N;
+    std::vector<double> _data;
+    static constexpr double precision = 1e-9;
 
     // check if the vector is compatible with ours
     virtual void compatibility_check(const Vector& v) const {
         if (__builtin_expect(N != v.N, false)) {throw std::invalid_argument("Vector dimensions do not match.");}
     }
-
-    const int N;
-
-protected:
-    std::vector<double> data;
-    static constexpr double precision = 1e-9;
 };
