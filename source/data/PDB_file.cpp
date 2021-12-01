@@ -34,10 +34,7 @@ public:
      */
     void write(string path) const override {
         std::ofstream output(path);
-        if (!output.is_open()) {
-            print_err("Error in PDB_file::write: Could not open file \"" + path + "\"");
-            exit(1);
-        }
+        if (!output.is_open()) {throw std::ios_base::failure("Error in PDB_file::write: Could not open file \"" + path + "\"");}
         output << as_pdb() << std::flush;
         output.close();
         cout << "Output written to file " + path + "." << endl;
@@ -106,10 +103,7 @@ private:
     void read() override {
         // check if file was succesfully opened
         std::ifstream input(filename);
-        if (!input.is_open()) {
-            print_err("Error in PDB_file::read: Could not open file \"" + filename + "\"");
-            exit(1);
-        }
+        if (!input.is_open()) {throw std::ios_base::failure("Error in PDB_file::read: Could not open file \"" + filename + "\"");}
 
         string line; // placeholder for the current line
         while(getline(input, line)) {
@@ -136,9 +130,8 @@ private:
                 } case Record::RecordType::FOOTER: {
                     add("FOOTER", line);
                     break;
-                } default: { 
-                    print_err("Error in PDB_file::read: Unrecognized type.");
-                    exit(1);
+                } default: {
+                    throw std::ios_base::failure("Error in PDB_file::read: Malformed input file - unrecognized type.");
                 }
             };
         }
