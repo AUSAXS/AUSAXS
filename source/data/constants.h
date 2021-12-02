@@ -13,6 +13,7 @@ namespace constants {
 
     namespace unit { // units with respect to the ones used in this file
         constexpr double gm = 1.66054e-24; // Dalton --> grams
+        constexpr double cm = 1e-8; // Ångström --> cm
     }
 
     const std::map<string, char> name_1symbol_map = {{"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, 

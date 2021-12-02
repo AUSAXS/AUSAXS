@@ -22,6 +22,9 @@ public:
         return *this;
     }
 
+    // Approximate equality, w ~ v
+    bool operator==(const Vector3& v) const {return x-v.x + y-v.y + z-v.z < precision; }
+
     // Two Vector3s are always compatible
     void compatibility_check(const Vector3& v) const {}
 

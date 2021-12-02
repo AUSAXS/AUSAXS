@@ -29,16 +29,20 @@ public:
     IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
     ~IntensityFitter() override {}
 
+    /**
+     * @brief Perform the fit.
+     * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is k = c/M*r_e^2
+     */
     Fit fit() override {
         ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
         auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
         ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
         minimizer->SetFunction(functor);
-        minimizer->SetVariable(0, "c", 0, 1e-4);
+        minimizer->SetVariable(0, "k", 0, 1e-4);
         minimizer->Minimize();
         const double* res = minimizer->X();
 
-        std::map<string, double> pars = {{"c", res[0]}};
+        std::map<string, double> pars = {{"k", res[0]}};
         fitted = Fit(pars, chi2(res), qo.size()-2);
         minimizer->PrintResults();
         return fitted;
@@ -48,7 +52,7 @@ public:
         if (fitted.params.size() == 0) {fit();}
 
         // calculate the scaled I model values
-        double c = fitted.params["c"];
+        double c = fitted.params["k"];
         vector<double> I_scaled(qo.size()); // spliced scaled data
         vector<double> ym_scaled(ym.size()); // original scaled data
         std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});
@@ -67,7 +71,7 @@ public:
         if (fitted.params.size() == 0) {fit();}
 
         // calculate the scaled I model values
-        double c = fitted.params["c"];
+        double c = fitted.params["k"];
         vector<double> I_scaled(qo.size()); // spliced scaled data
         vector<double> residuals(qo.size()); // residuals 
         std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});

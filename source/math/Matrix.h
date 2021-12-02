@@ -159,6 +159,8 @@ public:
     // Approximate inequality operator, w != v
     bool operator!=(const Matrix& A) const {return !operator==(A);}
 
+    double det() const;
+
     // Returns a copy of this matrix
     Matrix copy() const {
         Matrix A(N, M);

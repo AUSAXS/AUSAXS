@@ -23,6 +23,7 @@ include_directories("${CMAKE_SOURCE_DIR}/source")
 list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})
 #----------------------------------------------------------------------------
+include(source/math/CMakeLists.txt)
 include(source/data/CMakeLists.txt)
 include(source/hydrate/CMakeLists.txt)
 include(source/CMakeLists.txt)

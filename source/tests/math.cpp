@@ -10,6 +10,7 @@
 #include "math/Cramer2DSolver.cpp"
 #include "math/GivensSolver.cpp"
 #include "math/CubicSpline.h"
+#include "math/LUPDecomposition.h"
 #include "Tools.h"
 #include "Test.h"
 
@@ -17,6 +18,9 @@
 #include <TGraph.h>
 
 using std::cout, std::endl;
+
+// test if two doubles are approximately equal
+bool approx(double a, double b) {return a - 1e-9 < b && a + 1e-9 > b;}
 
 class randomDouble {
 public:
@@ -72,7 +76,7 @@ void test_vector_advanced() {
     IS_TRUE(w == Vector({6, 5, 4, 3, 2, 1})); // assignment is not by reference
 
     w = {2, 2, 3, 3}; // list assignment
-    IS_TRUE(v*w == Vector({0, 4, 9, 8})); // vector multiplication
+    IS_TRUE(v*w == Vector({0, 4, 9, 12})); // vector multiplication
 }
 
 void test_matrix_basics() {
@@ -112,6 +116,17 @@ void test_matrix_advanced() {
         B = C;
     }
     IS_TRUE(B == Matrix({{6, 5, 4}, {3, 2, 1}})); // assignment is not by reference
+
+    B[0] = A[1];
+    IS_TRUE(B == Matrix({{2, 3, 4}, {3, 2, 1}}));
+
+    // determinants
+    A = {{4, 1}, {2, 3}};
+    B = {{-2, 3, -1}, {5, -1, 4}, {4, -8, 2}};
+    Matrix C = {{5, -7, 2, 2}, {0, 3, 0, -4}, {-5, -8, 0, 3}, {0, 5, 0, -6}};
+    IS_TRUE(approx(A.det(), 10));
+    IS_TRUE(approx(B.det(), -6));
+    IS_TRUE(approx(C.det(), 20));
 }
 
 void test_Cramer() {

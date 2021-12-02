@@ -77,7 +77,9 @@ int main(int argc, char const *argv[]) {
     c2->SetLeftMargin(0.15);
     c2->SaveAs(path.c_str());
 
-    cout << "Result is " << result.params["c"] << "." << endl;
-    cout << "Chi2: " << result.chi2 << endl;
+    cout << "Result is " << result.params["k"] << "." << endl;
+    cout << "c is: " << result.params["k"]*protein.get_mass()*constants::unit::gm/pow(constants::radius::electron*constants::unit::cm, 2) << endl;
+    cout << "Chi2: " << result.chi2 << ", dof: " << result.dof << endl;
+    cout << "Chi2/dof: " << result.chi2/result.dof << endl;
     return 0;
 }
