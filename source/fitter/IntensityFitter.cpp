@@ -1,5 +1,6 @@
 #include "Fitter.h"
 #include "math/CubicSpline.h"
+#include "settings.h"
 
 #include <iostream>
 #include <fstream>
@@ -12,8 +13,10 @@
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
 #include <Math/Functor.h>
+#include <TGraph.h>
+#include <TGraphErrors.h>
 
-using std::string, std::vector;
+using std::string, std::vector, std::shared_ptr;
 
 class IntensityFitter : public Fitter {
 public: 
@@ -23,10 +26,10 @@ public:
      * @param q the model q values.
      * @param I the model I values. 
      */
-    IntensityFitter(string input, vector<double>& q, vector<double>& I) {setup(input, q, I);}
+    IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
     ~IntensityFitter() override {}
 
-    Fit fit() const override {
+    Fit fit() override {
         ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
         auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
         ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
@@ -36,14 +39,55 @@ public:
         const double* res = minimizer->X();
 
         std::map<string, double> pars = {{"c", res[0]}};
-        return Fit(pars);
+        fitted = Fit(pars, chi2(res), qo.size()-2);
+        minimizer->PrintResults();
+        return fitted;
+    }
+
+    vector<shared_ptr<TGraph>> plot() {
+        if (fitted.params.size() == 0) {fit();}
+
+        // calculate the scaled I model values
+        double c = fitted.params["c"];
+        vector<double> I_scaled(qo.size()); // spliced scaled data
+        vector<double> ym_scaled(ym.size()); // original scaled data
+        std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});
+        std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&c] (double I) {return I*c;});
+
+        // prepare the TGraphs
+        vector<double> xerr(sigma.size(), 0);
+        vector<shared_ptr<TGraph>> graphs(3);
+        graphs[0] = std::make_shared<TGraph>(qo.size(), &qo[0], &I_scaled[0]);
+        graphs[1] = std::make_shared<TGraph>(xm.size(), &xm[0], &ym_scaled[0]);
+        graphs[2] = std::make_shared<TGraphErrors>(qo.size(), &qo[0], &Io[0], &xerr[0], &sigma[0]);
+        return graphs;
+    }
+
+    unique_ptr<TGraphErrors> plot_residuals() {
+        if (fitted.params.size() == 0) {fit();}
+
+        // calculate the scaled I model values
+        double c = fitted.params["c"];
+        vector<double> I_scaled(qo.size()); // spliced scaled data
+        vector<double> residuals(qo.size()); // residuals 
+        std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});
+        std::transform(Io.begin(), Io.end(), I_scaled.begin(), residuals.begin(), std::minus<double>());
+
+        // prepare the TGraph
+        vector<double> xerr(sigma.size(), 0);
+        unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &sigma[0]);
+        return std::move(graph);
     }
 
 private: 
+    Fit fitted;
     vector<double> qo; // observed q values
     vector<double> Io; // observed I values
     vector<double> Im; // model I values
     vector<double> sigma; // error in Io
+
+    vector<double>& xm; // full model x data
+    vector<double>& ym; // full model y data
 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.

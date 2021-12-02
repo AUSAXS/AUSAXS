@@ -28,7 +28,7 @@ unique_ptr<TH1D> Distances::fit_debye_plot() const {
     vector<double> Iq = calc_debye_scattering_intensity();
     cout << "c is " << I0/(Iq[0]*r2);
 
-    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("debye_fit", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
     return std::move(h);
 }
@@ -53,7 +53,7 @@ vector<shared_ptr<TH1D>> Distances::plot_distance() const {
 
 unique_ptr<TH1D> Distances::plot_debye_scattering() const {
     vector<double> Iq = calc_debye_scattering_intensity();
-    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
 
     for (int i = 0; i < Iq.size(); i++) {
@@ -64,9 +64,8 @@ unique_ptr<TH1D> Distances::plot_debye_scattering() const {
 }
 
 vector<double> Distances::calc_debye_scattering_intensity() const {
-    if (axes.size() == 0) {throw std::length_error("Error in Distances::calc_debye_scattering_intensity: Axes not set! Call set_axes before accessing this method.");}
     // calculate the Debye scattering intensity
-    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
 
     // calculate what distance each bin represents
     vector<double> d(axes[0], 0);
@@ -94,7 +93,7 @@ vector<double> Distances::calc_debye_scattering_intensity() const {
 unique_ptr<TH1D> Distances::plot_guinier_approx() const {
     vector<double> Iq = calc_guinier_approx();
 
-    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
 
     for (int i = 0; i < debye_axes[0]; i++) {
@@ -121,10 +120,9 @@ double Distances::calc_guinier_gyration_ratio_squared() const {
 }
 
 vector<double> Distances::calc_guinier_approx() const {
-    if (axes.size() == 0) {throw std::length_error("Error in Distances::calc_guinier_approx: Axes not set! Call set_axes before accessing this method.");}
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
-    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     vector<double> Iq(debye_axes[0], 0);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     double log_conv = log10(exp(1)); // we have to convert natural log to log10
@@ -137,7 +135,7 @@ vector<double> Distances::calc_guinier_approx() const {
 }
 
 vector<double> Distances::get_xaxis() const {
-    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     vector<double> x(debye_axes[0], 0);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     for (int i = 0; i < debye_axes[0]; i++) {

@@ -24,6 +24,10 @@ namespace setting {
     }
 
     namespace protein {
+    }
+
+    namespace axes {
         const std::vector<double> scattering_intensity_plot_axes = {1000, 0.001, 1.001}; // Axes used for the Debye scattering intensity plots.
+        const std::vector<int> scattering_intensity_plot_binned = {60, 0, 60}; // Axes used for the binned Debye scattering intensity plots. 
     }
 }
