@@ -5,7 +5,6 @@
 
 class LinearSolver {
 public:
-    LinearSolver() = delete;
     virtual ~LinearSolver(){}
 
     enum Algorithm {Givens};

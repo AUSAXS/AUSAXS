@@ -49,6 +49,18 @@ public:
      */
     double calc_guinier_gyration_ratio_squared() const;
 
+    /**
+     * @brief Calculate the intensity based on the Debye scattering equation
+     * @param r the square of this parameter will be multiplied onto each I(q).
+     * @return I(q)
+     */
+    vector<double> calc_debye_scattering_intensity() const;
+
+    /**
+     * @brief Returns the vector representing the x-axis of q-values. 
+     */
+    vector<double> get_xaxis() const;
+
     const vector<double> d_pp, d_hh, d_hp; // raw distances
 private:
     const vector<double> w_pp, w_hh, w_hp; // weights on each distance
@@ -61,13 +73,6 @@ private:
      * @param axes a vector of the form {bins, xmin, xmax} to use for the binning
      */
     void bin(const vector<int>& axes);
-
-    /**
-     * @brief Calculate the intensity based on the Debye scattering equation
-     * @param r the square of this parameter will be multiplied onto each I(q).
-     * @return I(q)
-     */
-    vector<double> calc_debye_scattering_intensity() const;
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 

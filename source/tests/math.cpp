@@ -9,8 +9,12 @@
 #include "math/Vector3.h"
 #include "math/Cramer2DSolver.cpp"
 #include "math/GivensSolver.cpp"
+#include "math/CubicSpline.h"
 #include "Tools.h"
 #include "Test.h"
+
+#include <TCanvas.h>
+#include <TGraph.h>
 
 using std::cout, std::endl;
 
@@ -43,10 +47,10 @@ void test_vector3_basics() {
     Vector3 v = {1, 2, 3};
     Vector3 w = {4, 5, 6};
 
-    IS_TRUE(v+w == Vector3({5, 7, 9}));
-    IS_TRUE(v-w == Vector3({-3, -3, -3}));
-    IS_TRUE(v.dot(w) == 4+10+18);
-    IS_TRUE(v.norm() == 1+4+9);
+    IS_TRUE(v+w == Vector3({5, 7, 9})); // plus
+    IS_TRUE(v-w == Vector3({-3, -3, -3})); // minus
+    IS_TRUE(v.dot(w) == 4+10+18); // dot product
+    IS_TRUE(v.norm() == 1+4+9); // norm
 
     v += w; // v = (5, 7, 9)
     Vector3 a = w-v; // a = (-1, -2, -3)
@@ -59,13 +63,16 @@ void test_vector_advanced() {
     Vector v = {1, 2, 3, 4};
     Vector w = v.copy();
     v[0] = 0;
-    IS_TRUE(w != v);
+    IS_TRUE(w != v); // copy is not by reference
 
     {
         Vector x = {6, 5, 4, 3, 2, 1};
         w = x;
     }
-    IS_TRUE(w == Vector({6, 5, 4, 3, 2, 1}));
+    IS_TRUE(w == Vector({6, 5, 4, 3, 2, 1})); // assignment is not by reference
+
+    w = {2, 2, 3, 3}; // list assignment
+    IS_TRUE(v*w == Vector({0, 4, 9, 8})); // vector multiplication
 }
 
 void test_matrix_basics() {
@@ -94,17 +101,17 @@ void test_matrix_advanced() {
     Matrix A = {{1, 2, 3}, {2, 3, 4}};
     Matrix B = A.copy();
     B[0][0] = 0;
-    IS_TRUE(B != A);
+    IS_TRUE(B != A); // copy is not by reference
 
     Vector v = {1, 2, 2};
-    IS_TRUE(A*v == Vector({11, 16}));
-    IS_TRUE(B*v == Vector({10, 16}));
+    IS_TRUE(A*v == Vector({11, 16})); // vector multiplication
+    IS_TRUE(B*v == Vector({10, 16})); // repeat
 
     {
         Matrix C = {{6, 5, 4}, {3, 2, 1}};
         B = C;
     }
-    IS_TRUE(B == Matrix({{6, 5, 4}, {3, 2, 1}}));
+    IS_TRUE(B == Matrix({{6, 5, 4}, {3, 2, 1}})); // assignment is not by reference
 }
 
 void test_Cramer() {
@@ -171,6 +178,42 @@ void test_Givens() {
     // }
 }
 
+void test_cubic_spline() {
+    double b = 2*M_PI; // the range is from 0 to this
+    int len = 10;
+    double step = b/len;
+    Vector x(len);
+    Vector y(len);
+    for (int i = 0; i < len; i++) {
+        x[i] = i*step;
+        y[i] = sin(x[i]);
+    }
+    double steps = 4; // interpolates 4 steps between points
+
+    CubicSpline csin(x, y);
+    std::vector<double> newx, newy;
+    for (int i = 0; i < x.size()-1; i++) {
+        newx.push_back(x[i]);
+        newy.push_back(y[i]);
+        for (double z = x[i]; z < x[i+1]; z += (x[i+1] - x[i])/steps) {
+            newx.push_back(z);
+            newy.push_back(csin.spline(z));
+        }
+    }
+    std::unique_ptr<TCanvas> c = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
+    std::unique_ptr<TGraph> g1 = std::make_unique<TGraph>(newx.size(), &newx[0], &newy[0]);
+    std::unique_ptr<TGraph> g2 = std::make_unique<TGraph>(len, &x.data[0], &y.data[0]);
+    g1->SetLineColor(kRed);
+    g1->Draw("AC");
+    g2->Draw("SAME *");
+
+    // setup the canvas and save the plot
+    string path = "temp/cubicspline.pdf";
+    c->SetRightMargin(0.15);
+    c->SetLeftMargin(0.15);
+    c->SaveAs(path.c_str());
+}
+
 int main(void) {
     cout << "Summary of math testing:" << endl;
     test_vector3_basics();
@@ -179,6 +222,7 @@ int main(void) {
     test_matrix_advanced();
     test_Cramer();
     test_Givens();
+    test_cubic_spline();
 
     if (passed_all) {
         cout << "\033[1;32m" << "All math tests passed.           " << "\033[0m" << endl;

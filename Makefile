@@ -23,6 +23,10 @@ main/%: build/source/scripts/main
 .phony:
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$* figures/
+	
+.phony:
+intensity_fit: build/source/scripts/intensity_fitter
+	$< data/2epe.pdb data/Lyz_03m.RSR figures/
 
 #################################################################################
 ###				TESTS						 ###

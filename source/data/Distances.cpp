@@ -5,10 +5,11 @@
 #include <utility>
 #include <math.h>
 #include <algorithm>
+#include <iostream>
+#include <stdexcept>
 
 #include "TH1D.h"
 #include "TCanvas.h"
-#include <iostream>
 
 using std::cout, std::endl;
 using namespace ROOT;
@@ -63,6 +64,7 @@ unique_ptr<TH1D> Distances::plot_debye_scattering() const {
 }
 
 vector<double> Distances::calc_debye_scattering_intensity() const {
+    if (axes.size() == 0) {throw std::length_error("Error in Distances::calc_debye_scattering_intensity: Axes not set! Call set_axes before accessing this method.");}
     // calculate the Debye scattering intensity
     const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
 
@@ -119,6 +121,7 @@ double Distances::calc_guinier_gyration_ratio_squared() const {
 }
 
 vector<double> Distances::calc_guinier_approx() const {
+    if (axes.size() == 0) {throw std::length_error("Error in Distances::calc_guinier_approx: Axes not set! Call set_axes before accessing this method.");}
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
     const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
@@ -131,6 +134,16 @@ vector<double> Distances::calc_guinier_approx() const {
     }
 
     return Iq;
+}
+
+vector<double> Distances::get_xaxis() const {
+    const vector<double>& debye_axes = setting::protein::scattering_intensity_plot_axes;
+    vector<double> x(debye_axes[0], 0);
+    double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
+    for (int i = 0; i < debye_axes[0]; i++) {
+        x[i] = debye_axes[1] + i*debye_width;
+    }
+    return x;
 }
 
 void Distances::set_axes(const vector<int> axes) {

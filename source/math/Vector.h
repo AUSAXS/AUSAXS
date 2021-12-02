@@ -6,6 +6,7 @@
 #include <numeric>
 #include <math.h>
 #include <iostream>
+#include <iomanip>
 #include <stdexcept>
 
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
@@ -15,12 +16,18 @@ public:
     Vector(std::vector<double> w) : _data(w), _N(w.size()) {}
     Vector(const int& N) : _N(N), _data(N, 0) {}
     Vector() : _N(0), _data(0) {}
-    ~Vector() {}
+    virtual ~Vector() {}
 
     // Assignment operator, w = v
     Vector& operator=(const Vector& v) {
         _N = v.N;
         _data.assign(v.begin(), v.end());
+        return *this;
+    }
+
+    Vector& operator=(std::initializer_list<double> l) {
+        _N = l.size();
+        _data.assign(l);
         return *this;
     }
 
@@ -43,6 +50,14 @@ public:
     Vector operator-() const {
         Vector w(N);
         std::transform(begin(), end(), w.begin(), std::negate<double>());
+        return w;
+    }
+
+    // Vector multiplication, w*v
+    Vector operator*(const Vector& v) const {
+        compatibility_check(v);
+        Vector w(N);
+        std::transform(begin(), end(), v.begin(), w.begin(), std::multiplies<double>());
         return w;
     }
 
@@ -143,7 +158,7 @@ public:
     std::vector<double>::iterator begin() {return _data.begin();}
     std::vector<double>::iterator end() {return _data.end();}
 
-    const int size() const {return N;};
+    const size_t size() const {return N;};
 
     const int& N = _N; // read-only access to the dimension
     const std::vector<double>& data = _data; // read-only access to the data container
