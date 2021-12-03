@@ -11,6 +11,7 @@
 #include "math/GivensSolver.cpp"
 #include "math/CubicSpline.h"
 #include "math/LUPDecomposition.h"
+#include "math/QRDecomposition.h"
 #include "Tools.h"
 #include "Test.h"
 
@@ -84,7 +85,11 @@ void test_matrix_basics() {
     Matrix B({{5, 6}, {7, 8}});
 
     // addition/subtraction
+    Matrix D(1, 2);
+    cout << D[0][0] << endl;
+    D.print();
     Matrix C = A + B;
+    (A+B).print();
     IS_TRUE(C == Matrix({{6, 8}, {10, 12}}));
     IS_TRUE(C - A == B);
 
@@ -156,6 +161,12 @@ void test_Cramer() {
     }
 }
 
+void test_QRDecomposition() {
+    Matrix A = {{1, 2}, {3, 4}};
+    QRDecomposition qr(A);
+    IS_TRUE(A*qr.inverse() == Matrix({{1, 0}, {0, 1}}));
+}
+
 void test_Givens() {
     Matrix A = {{2, 3}, {3, -4}};
     Vector b = {12, 1};
@@ -207,7 +218,7 @@ void test_cubic_spline() {
 
     CubicSpline csin(x, y);
     std::vector<double> newx, newy;
-    for (int i = 0; i < x.size()-1; i++) {
+    for (size_t i = 0; i < x.size()-1; i++) {
         newx.push_back(x[i]);
         newy.push_back(y[i]);
         for (double z = x[i]; z < x[i+1]; z += (x[i+1] - x[i])/steps) {
@@ -235,6 +246,7 @@ int main(void) {
     test_vector_advanced();
     test_matrix_basics();
     test_matrix_advanced();
+    test_QRDecomposition();
     test_Cramer();
     test_Givens();
     test_cubic_spline();

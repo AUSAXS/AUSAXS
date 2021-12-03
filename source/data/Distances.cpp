@@ -30,7 +30,7 @@ unique_ptr<TH1D> Distances::fit_debye_plot() const {
 
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("debye_fit", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
-    return std::move(h);
+    return h;
 }
 
 vector<shared_ptr<TH1D>> Distances::plot_distance() const {
@@ -56,11 +56,11 @@ unique_ptr<TH1D> Distances::plot_debye_scattering() const {
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
 
-    for (int i = 0; i < Iq.size(); i++) {
+    for (size_t i = 0; i < Iq.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
         h->SetBinContent(i+1, Iq[i]);
     }
-    return std::move(h);
+    return h;
 }
 
 vector<double> Distances::calc_debye_scattering_intensity() const {
@@ -100,7 +100,7 @@ unique_ptr<TH1D> Distances::plot_guinier_approx() const {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
         h->SetBinContent(i+1, Iq[i]);
     }
-    return std::move(h);
+    return h;
 }
 
 double Distances::calc_guinier_gyration_ratio_squared() const {
@@ -155,13 +155,13 @@ void Distances::bin(const vector<int>& axes) {
     vector<double> p_hp(axes[0], 0);
     vector<double> p_tot(axes[0], 0);
     double width = (double) (axes[2]-axes[1])/axes[0]; // very important to cast this operation to a double - divison by two ints
-    for (int i = 0; i < d_pp.size(); i++) {
+    for (size_t i = 0; i < d_pp.size(); i++) {
         p_pp[std::round(d_pp[i]/width)] += w_pp[i];
     }
-    for (int i = 0; i < d_hh.size(); i++) {
+    for (size_t i = 0; i < d_hh.size(); i++) {
         p_hh[std::round(d_hh[i]/width)] += w_hh[i];
     }
-    for (int i = 0; i < d_hp.size(); i++) {
+    for (size_t i = 0; i < d_hp.size(); i++) {
         p_hp[std::round(d_hp[i]/width)] += w_hp[i];
     }
     for (int i = 0; i < axes[0]; i++) {

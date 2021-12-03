@@ -22,15 +22,15 @@ public:
         const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
         const vector<int> bins = grid->get_bins();
         const vector<vector<vector<char>>>& gref = grid->grid;
-        for (int n = 0; n < placed_water.size(); n++) {
+        for (size_t n = 0; n < placed_water.size(); n++) {
             const vector<int> loc = grid->members.at(placed_water[n]);
             const int x = loc[0], y = loc[1], z = loc[2];
             int score = 0;
 
             // create a box of size [x-2r, x+2r][y-2r, y+2r][z-2r, z+2r] within the bounds
-            int xm = std::max(loc[0]-r, 0), xp = std::min(loc[0]+r+1, bins[0]-1); // xminus and xplus
-            int ym = std::max(loc[1]-r, 0), yp = std::min(loc[1]+r+1, bins[1]-1); // yminus and yplus
-            int zm = std::max(loc[2]-r, 0), zp = std::min(loc[2]+r+1, bins[2]-1); // zminus and zplus
+            int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
+            int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
+            int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
 
             for (int i = xm; i < xp; i++) {
                 for (int j = ym; j < yp; j++) {
@@ -53,7 +53,7 @@ public:
         }
 
         // remove the remaining entries
-        for (int n = target_count; n < v.size(); n++) {
+        for (size_t n = target_count; n < v.size(); n++) {
             grid->remove(v[n].first);
         }
         return final_water;

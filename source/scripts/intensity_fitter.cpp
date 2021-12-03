@@ -24,7 +24,7 @@ int main(int argc, char const *argv[]) {
     std::vector<double> q = d->get_xaxis();
 
     IntensityFitter fitter(argv[2], q, I);
-    Fitter::Fit result = fitter.fit();
+    std::shared_ptr<Fitter::Fit> result = fitter.fit();
 
 //*** FIT PLOT ***//
     std::unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
@@ -77,9 +77,7 @@ int main(int argc, char const *argv[]) {
     c2->SetLeftMargin(0.15);
     c2->SaveAs(path.c_str());
 
-    cout << "Result is " << result.params["k"] << "." << endl;
-    cout << "c is: " << result.params["k"]*protein.get_mass()*constants::unit::gm/pow(constants::radius::electron*constants::unit::cm, 2) << endl;
-    cout << "Chi2: " << result.chi2 << ", dof: " << result.dof << endl;
-    cout << "Chi2/dof: " << result.chi2/result.dof << endl;
+    result->print();
+    cout << "c is: " << result->params["k"]*protein.get_mass()*constants::unit::gm/pow(constants::radius::electron*constants::unit::cm, 2) << endl;
     return 0;
 }

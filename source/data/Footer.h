@@ -22,7 +22,7 @@ public:
      * @brief Parse a .pdb format Footer string. This is equivalent to the add method.
      * @param s the .pdb format Footer string.
      */
-    void parse_pdb(const string s) override {add(contents);}
+    void parse_pdb(const string s) override {add(s);}
 
     /**
      * @brief Get the .pdb format representation of this Footer. This is equivalent to the get method.

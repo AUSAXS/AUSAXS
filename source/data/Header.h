@@ -22,7 +22,7 @@ public:
      * @brief Parse a .pdb format header string. This is equivalent to the add method.
      * @param s the .pdb format header string.
      */
-    void parse_pdb(const string s) override {add(contents);}
+    void parse_pdb(const string s) override {add(s);}
 
     /**
      * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.

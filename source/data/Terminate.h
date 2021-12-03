@@ -45,7 +45,7 @@ public:
             space2.data(), chainID.data(), resSeq.data(), iCode.data());
 
         // sanity check
-        if (!Record::get_type(recName) == Record::TERMINATE) {
+        if (Record::get_type(recName) != Record::TERMINATE) {
             print_err("Error in Atom::parse_pdb: input string is not \"TER   \" (" + recName + ").");
             exit(1);
         }

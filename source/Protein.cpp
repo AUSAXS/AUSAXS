@@ -51,8 +51,8 @@ void Protein::calc_distances() {
     vector<double> w_hp(hydration_atoms.size()*protein_atoms.size()); 
 
     // calculate p-p distances
-    for (int i = 0; i < protein_atoms.size(); i++) {
-        for (int j = 0; j < protein_atoms.size(); j++) {
+    for (size_t i = 0; i < protein_atoms.size(); i++) {
+        for (size_t j = 0; j < protein_atoms.size(); j++) {
             d_pp[n_pp] = protein_atoms[i]->distance(protein_atoms[j]);
             w_pp[n_pp] = protein_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *protein_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
@@ -60,16 +60,16 @@ void Protein::calc_distances() {
         }
     }
 
-    for (int i = 0; i < hydration_atoms.size(); i++) {
+    for (size_t i = 0; i < hydration_atoms.size(); i++) {
         // calculate h-h distances
-        for (int j = 0; j < hydration_atoms.size(); j++) {
+        for (size_t j = 0; j < hydration_atoms.size(); j++) {
             d_hh[n_hh] = hydration_atoms[i]->distance(hydration_atoms[j]);
             w_hh[n_hh] = hydration_atoms[i]->get_effective_charge()*hydration_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*hydration_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
             n_hh++;
         }
         // calculate h-p distances
-        for (int j = 0; j < protein_atoms.size(); j++) {
+        for (size_t j = 0; j < protein_atoms.size(); j++) {
             d_hp[n_hp] = hydration_atoms[i]->distance(protein_atoms[j]);
             w_hp[n_hp] = hydration_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
@@ -95,9 +95,9 @@ void Protein::generate_new_hydration() {
 void Protein::generate_volume_file(string path) {
     vector<vector<vector<char>>>& g = grid->grid;
     vector<shared_ptr<Atom>> filled;
-    for (int i = 0; i < g.size(); i++) {
-        for (int j = 0; j < g[0].size(); j++) {
-            for (int k = 0; k < g[0][0].size(); k++) {
+    for (size_t i = 0; i < g.size(); i++) {
+        for (size_t j = 0; j < g[0].size(); j++) {
+            for (size_t k = 0; k < g[0][0].size(); k++) {
                 if (g[i][j][k] != 0) {
                     shared_ptr<Atom> a = std::make_shared<Atom>(0, "C", "", "C", "", 1, "", Vector3(i, j, k), 1, 0, "C", "");
                     filled.push_back(a);

@@ -6,6 +6,7 @@
 class Vector3 : public Vector {
 public:
     using Vector::Vector;
+    Vector3(const Vector3&) = default;
     Vector3() : Vector(3) {}
     Vector3(Vector v) : Vector(v) {}
     Vector3(double x, double y, double z) : Vector({x, y, z}) {}
@@ -26,7 +27,7 @@ public:
     bool operator==(const Vector3& v) const {return x-v.x + y-v.y + z-v.z < precision; }
 
     // Two Vector3s are always compatible
-    void compatibility_check(const Vector3& v) const {}
+    void compatibility_check(const Vector3&) const {}
 
     double& x = _data[0];
     double& y = _data[1];

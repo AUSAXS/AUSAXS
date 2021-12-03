@@ -16,7 +16,7 @@ using namespace ROOT;
 class Distances {
 public:
     Distances(Protein* protein, vector<double>& pp, vector<double>& hh, vector<double>& hp, vector<double>& wpp, vector<double>& whh, vector<double>& whp) 
-        : protein(protein), d_pp(pp), d_hh(hh), d_hp(hp), w_pp(wpp), w_hh(whh), w_hp(whp), axes(setting::axes::scattering_intensity_plot_binned) {}
+        : d_pp(pp), d_hh(hh), d_hp(hp), w_pp(wpp), w_hh(whh), w_hp(whp), axes(setting::axes::scattering_intensity_plot_binned), protein(protein) {}
 
     /**
      * @brief Set the plot axes. 

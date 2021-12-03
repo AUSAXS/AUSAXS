@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <stdexcept>
 
 // my own includes
 #include "data/Record.h"
@@ -102,6 +103,9 @@ public:
                     }
                     break;
                 }
+                default: {
+                    throw std::runtime_error("This should never happen.");
+                }
             };
         }
         protein_atoms.resize(c_pro);
@@ -116,7 +120,7 @@ public:
     string as_pdb() const {
         string s;
         s += header.get();
-        for (int i = 0; i < contents.size(); i++) {
+        for (size_t i = 0; i < contents.size(); i++) {
             s += contents[i]->as_pdb();
         }
         s += footer.get();

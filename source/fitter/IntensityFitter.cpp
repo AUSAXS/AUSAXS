@@ -16,7 +16,13 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 
-using std::string, std::vector, std::shared_ptr;
+using std::string, std::vector, std::shared_ptr, std::unique_ptr;
+
+struct bad_order_except : public std::exception {
+    bad_order_except(const char* msg) : msg(msg) {}
+    const char* what() const throw() {return msg;}
+    const char* msg;
+};
 
 class IntensityFitter : public Fitter {
 public: 
@@ -33,26 +39,31 @@ public:
      * @brief Perform the fit.
      * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is k = c/M*r_e^2
      */
-    Fit fit() override {
+    shared_ptr<Fit> fit() override {
         ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
         auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-        ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
+        ROOT::Math::Functor functor(f, 2); // declare the function to be minimized and its number of parameters
         minimizer->SetFunction(functor);
-        minimizer->SetVariable(0, "k", 0, 1e-4);
+        minimizer->SetVariable(0, "k", 0, 1e-4); // scaling factor
+        minimizer->SetVariable(1, "a", 0, 1e-4); // background
         minimizer->Minimize();
         const double* res = minimizer->X();
+        const double* err = minimizer->Errors();
 
-        std::map<string, double> pars = {{"k", res[0]}};
-        fitted = Fit(pars, chi2(res), qo.size()-2);
+        bool converged = minimizer->Status();
+        std::map<string, double> pars = {{"k", res[0]}, {"a", res[1]}};
+        std::map<string, double> errs = {{"k", err[0]}, {"a", err[1]}};
+        double funcalls = minimizer->NCalls();
+        fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
         minimizer->PrintResults();
         return fitted;
     }
 
-    vector<shared_ptr<TGraph>> plot() {
-        if (fitted.params.size() == 0) {fit();}
+    vector<shared_ptr<TGraph>> plot() const {
+        if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
         // calculate the scaled I model values
-        double c = fitted.params["k"];
+        double c = fitted->params["k"];
         vector<double> I_scaled(qo.size()); // spliced scaled data
         vector<double> ym_scaled(ym.size()); // original scaled data
         std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});
@@ -68,14 +79,15 @@ public:
     }
 
     unique_ptr<TGraphErrors> plot_residuals() {
-        if (fitted.params.size() == 0) {fit();}
+        if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
 
-        // calculate the scaled I model values
-        double c = fitted.params["k"];
-        vector<double> I_scaled(qo.size()); // spliced scaled data
-        vector<double> residuals(qo.size()); // residuals 
-        std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});
-        std::transform(Io.begin(), Io.end(), I_scaled.begin(), residuals.begin(), std::minus<double>());
+        // calculate the residuals
+        double k = fitted->params["k"];
+        double a = fitted->params["a"];
+        vector<double> residuals(qo.size());
+        for (int i = 0; i < qo.size(); ++i) {
+            residuals[i] = ((Io[i] - k*Im[i]+a)/sigma[i]);
+        }
 
         // prepare the TGraph
         vector<double> xerr(sigma.size(), 0);
@@ -84,7 +96,7 @@ public:
     }
 
 private: 
-    Fit fitted;
+    shared_ptr<Fit> fitted;
     vector<double> qo; // observed q values
     vector<double> Io; // observed I values
     vector<double> Im; // model I values
@@ -97,10 +109,12 @@ private:
      * @brief Calculate chi2 for a given choice of parameters @a params.
      */
     double chi2(const double* params) const {
-        double c = params[0];
+        double k = params[0];
+        double a = params[1];
         double chi = 0;
         for (int i = 0; i < qo.size(); ++i) {
-            chi += pow((Io[i] - c*Im[i])/sigma[i], 2);
+            double I = k*Im[i] + a;
+            chi += pow((Io[i] - I)/sigma[i], 2);
         }
         return chi;
     }

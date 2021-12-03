@@ -12,9 +12,10 @@
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
 public:
-    Vector(std::initializer_list<double> l) : _data(l), _N(l.size()) {}
-    Vector(std::vector<double> w) : _data(w), _N(w.size()) {}
-    Vector(const int& N) : _N(N), _data(N, 0) {}
+    Vector(const Vector&) = default;
+    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l){}
+    Vector(const std::vector<double> w) : _N(w.size()), _data(w) {}
+    Vector(const int& n) : _N(n), _data(n, 0) {}
     Vector() : _N(0), _data(0) {}
     virtual ~Vector() {}
 
@@ -158,13 +159,13 @@ public:
     std::vector<double>::iterator begin() {return _data.begin();}
     std::vector<double>::iterator end() {return _data.end();}
 
-    const size_t size() const {return N;};
+    size_t size() const {return N;};
 
-    const int& N = _N; // read-only access to the dimension
+    const size_t& N = _N; // read-only access to the dimension
     const std::vector<double>& data = _data; // read-only access to the data container
 
 protected:
-    int _N;
+    size_t _N;
     std::vector<double> _data;
     static constexpr double precision = 1e-9;
 

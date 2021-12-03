@@ -15,7 +15,6 @@ public:
     ~RadialPlacement() override {}
 
     void prepare_rotations(const int divisions = 8) {
-        const double w = grid->get_width();
         const int rh = grid->rh, ra = grid->ra;
 
         // vector<vector<int>> bins;
@@ -94,8 +93,6 @@ public:
         // dereference the values we'll need for better performance
         const vector<int> bins = grid->get_bins();
         vector<vector<vector<char>>>& gref = grid->grid;
-        const int ra = grid->ra, rh = grid->rh;
-        const int r_eff = ra+rh;
 
         // we define a helper lambda
         vector<shared_ptr<Hetatom>> placed_water;
@@ -111,7 +108,7 @@ public:
             const vector<int>& loc = grid->members.at(a);
             const int x = loc[0], y = loc[1], z = loc[2];
 
-            for (int i = 0; i < rot_bins_rarh.size(); i++) {
+            for (size_t i = 0; i < rot_bins_rarh.size(); i++) {
                 int xr = x + rot_bins_rarh[i][0], yr = y + rot_bins_rarh[i][1], zr = z + rot_bins_rarh[i][2]; // new coordinates
                 
                 // check bounds
@@ -142,7 +139,6 @@ private:
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();
-        const int ra = grid->ra, rh = grid->rh;
 
         int score = 0;
         // check if a location is out-of-bounds
@@ -156,7 +152,7 @@ private:
             return false;
         };
 
-        for (int i = 0; i < rot_bins_1rh.size(); i++) {
+        for (size_t i = 0; i < rot_bins_1rh.size(); i++) {
             // check for collisions at 1rh
             int xr = loc[0] + rot_bins_1rh[i][0], yr = loc[1] + rot_bins_1rh[i][1], zr = loc[2] + rot_bins_1rh[i][2]; // new coordinates
 
@@ -174,7 +170,7 @@ private:
             };
 
             // check if we're in a cavity
-            for (int j = 0; j < rot_bins_3rh.size(); j++) {
+            for (size_t j = 0; j < rot_bins_3rh.size(); j++) {
                 // check at 3r
                 int xr = loc[0] + rot_bins_3rh[j][0], yr = loc[1] + rot_bins_3rh[j][1], zr = loc[2] + rot_bins_3rh[j][2];
                 if (is_out_of_bounds({xr, yr, zr})) { // if the line goes out of bounds, we know for sure it won't intersect anything

@@ -32,7 +32,7 @@ void Atom::parse_pdb(const string s) {
         occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
 
     // sanity check
-    if (__builtin_expect(!Record::get_type(recName) == Record::ATOM, false)) {
+    if (__builtin_expect(!(Record::get_type(recName) == Record::ATOM || Record::get_type(recName) == Record::HETATM), false)) {
         print_err("Error in Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
         exit(1);
     }

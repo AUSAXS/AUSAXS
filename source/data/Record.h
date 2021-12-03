@@ -74,7 +74,7 @@ inline __setp setf(const double number, const int precision) {
     }
 
     p++; // another slot is taken by 0
-    int fsig = num.find_first_not_of("0", p); // find first significant decimal after the dot
+    size_t fsig = num.find_first_not_of("0", p); // find first significant decimal after the dot
     if (fsig != string::npos) { // number is of the form 0.00312...
         p = fsig;
     }
