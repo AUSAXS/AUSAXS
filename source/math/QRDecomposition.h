@@ -2,6 +2,7 @@
 #include "Matrix.h"
 #include "Vector.h"
 
+// QR decomposition by Gram-Schmidt orthogonalization
 class QRDecomposition : public Decomposition {
 public: 
     QRDecomposition(const Matrix& A) : Q(A) {decompose();}
@@ -15,7 +16,7 @@ public:
 			A[i] = solve(e);
 			e[i] = 0;
 		}
-		return A;
+		return A.T();
 	}
 
 	// solve an equation of the form QRx = b
@@ -38,16 +39,32 @@ public:
 			for (size_t j = 0; j < i; j++) {
 				ujvi = Q[j].dot(Q[i]); 
                 ujuj = Q[j].dot(Q[j]);
-				R[j][i] = ujvi/ujuj; // a_ij
+				R[i][j] = ujvi/ujuj; // a_ij
 				Q[i] -= Q[j]*R[j][i];
 				R[j][i] *= R[j][j];
 			}
 			R[i][i] = Q[i].norm();
 		}
 		for (size_t i = 0; i < Q.M; i++)
-			Q[i] = Q[i]/R[i][i]; // At this point, Q[i] = A[i]
+			Q[i] = Q[i]/R[i][i];
 	}
 
-private:
+	// void decompose() override {
+    //     R = Matrix(Q.N, Q.M);
+	// 	double ujvi, ujuj;
+	// 	for (size_t i = 0; i < Q.M; i++) {
+	// 		for (size_t j = 0; j < i; j++) {
+	// 			ujvi = Q[j].dot(Q[i]); 
+    //             ujuj = Q[j].dot(Q[j]);
+	// 			R[j][i] = ujvi/ujuj; // a_ij
+	// 			Q[i] -= Q[j]*R[j][i];
+	// 			R[j][i] *= R[j][j];
+	// 		}
+	// 		R[i][i] = Q[i].norm();
+	// 	}
+	// 	for (size_t i = 0; i < Q.M; i++)
+	// 		Q[i] = Q[i]/R[i][i];
+	// }
+
     Matrix Q, R;
 };

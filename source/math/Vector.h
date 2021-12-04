@@ -12,11 +12,11 @@
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
 public:
-    Vector(const Vector&) = default;
-    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l){}
-    Vector(const std::vector<double> w) : _N(w.size()), _data(w) {}
-    Vector(const int& n) : _N(n), _data(n, 0) {}
-    Vector() : _N(0), _data(0) {}
+    Vector(const Vector& v) : _N(v.size()), _data(v.data) {} // copy constructor
+    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {} // initializer list {a, b, c, d}
+    Vector(const std::vector<double>& w) : _N(w.size()), _data(w) {} // std::vector --> Vector constructor
+    Vector(const int n) : _N(n), _data(n) {} // dimensional constructor
+    Vector() : _N(0), _data(0) {} // default constructor
     virtual ~Vector() {}
 
     // Assignment operator, w = v
@@ -119,10 +119,10 @@ public:
     bool operator!=(const Vector& v) const {return !operator==(v);}
 
     // Dot product
-    double dot(const Vector& v) const {return std::inner_product(begin(), end(), v.begin(), 0);}
+    double dot(const Vector& v) const {return std::inner_product(begin(), end(), v.begin(), 0.0);}
 
     // Norm (magnitude)
-    double norm() const {return dot(*this);}
+    double norm() const {return sqrt(dot(*this));}
 
     // Euclidian distance to other vector
     double distance(const Vector& v) const {return sqrt(distance2(v));};

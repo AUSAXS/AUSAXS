@@ -1,25 +1,30 @@
 #pragma once
 
+#include <iterator>
 #include <initializer_list>
 #include <algorithm>
 #include <vector>
 #include <stdexcept>
 #include <iomanip>
+#include <functional>
 
 #include "math/Vector.h"
 
 class Matrix {
 public: 
-    Matrix(const Matrix&) = default;
-    Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) {
+    class RowIterator;
+    class ColumnIterator;
+
+    Matrix(const Matrix& A) : _N(A.N), _M(A.M), _data(A.data) {} // copy constructor
+    Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) { // initializer lists {{a, b}, {c, d}}
         _data.assign(l.begin(), l.end());
         for (const auto& e : data) {
             if (__builtin_expect(e.size() != M, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
         }
     }
-    Matrix(const Vector& v) : _N(v.N), _M(1), _data(1, Vector(v.N)) {_data[0] = v.data;}
-    Matrix(const int& n, const int& m) : _N(n), _M(m) {_data = std::vector<Vector>(n, Vector(m)); }
-    Matrix() : _N(0), _M(0), _data(0, Vector(0)) {}
+    Matrix(const Vector& v) : _N(v.N), _M(1), _data(1, Vector(v.N)) {_data[0] = v.data;} // vector --> matrix constructor
+    Matrix(const int n, const int m) : _N(n), _M(m), _data(n, Vector(m)) {} // dimensional constructor
+    Matrix() : _N(0), _M(0), _data(0, Vector(0)) {} // default constructor
     ~Matrix() {}
 
     // Assignment operator, B = A
@@ -181,10 +186,16 @@ public:
     }
 
     // read-only iterators
+    const RowIterator row_begin() const;
+    const size_t row_end() const {return N+1;}
+    const ColumnIterator col_begin() const;
+    const size_t col_end() const {return M+1;}
     const std::vector<Vector>::const_iterator begin() const {return data.begin();}
     const std::vector<Vector>::const_iterator end() const {return data.end();}
 
     // read-write iterators
+    RowIterator row_begin();
+    ColumnIterator col_begin();
     std::vector<Vector>::iterator begin() {return _data.begin();}
     std::vector<Vector>::iterator end() {return _data.end();}
 
@@ -216,3 +227,55 @@ private:
         }
     }
 };
+
+class Matrix::RowIterator {
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = double;
+    using pointer = double*;
+    using reference = double&;
+
+public: 
+    RowIterator(const Matrix* ptr, const size_t& col) : matrix(ptr), row(0), col(col) {}
+
+    const double& operator*() {return matrix->_data[row][col];}
+    RowIterator& operator++() {row++; return *this;}
+    RowIterator& operator--() {row--; return *this;}
+    bool equals(const size_t rowc) const {return rowc == row;}
+
+private: 
+    const Matrix* matrix;
+    size_t row;
+    const size_t col;
+};
+
+bool operator==(const Matrix::RowIterator& lhs, const size_t rhs) {return lhs.equals(rhs);}
+bool operator==(const size_t lhs, const Matrix::RowIterator& rhs) {return rhs.equals(lhs);}
+bool operator!=(const Matrix::RowIterator& lhs, const size_t rhs) {return !lhs.equals(rhs);}
+bool operator!=(const size_t lhs, const Matrix::RowIterator& rhs) {return !rhs.equals(lhs);}
+
+class Matrix::ColumnIterator {
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using value_type = double;
+    using pointer = double*;
+    using reference = double&;
+
+public: 
+    ColumnIterator(const Matrix* ptr, const size_t& row) : matrix(ptr), row(row), col(0) {}
+
+    const double& operator*() {return matrix->_data[row][col];}
+    ColumnIterator& operator++() {col++; return *this;}
+    ColumnIterator& operator--() {col--; return *this;}
+    bool equals(const size_t column) const {return column == col;}
+
+private: 
+    const Matrix* matrix;
+    const size_t row;
+    size_t col;
+};
+
+bool operator==(const Matrix::ColumnIterator& lhs, const size_t rhs) {return lhs.equals(rhs);}
+bool operator==(const size_t lhs, const Matrix::ColumnIterator& rhs) {return rhs.equals(lhs);}
+bool operator!=(const Matrix::ColumnIterator& lhs, const size_t rhs) {return !lhs.equals(rhs);}
+bool operator!=(const size_t lhs, const Matrix::ColumnIterator& rhs) {return !rhs.equals(lhs);}

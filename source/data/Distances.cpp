@@ -16,7 +16,7 @@ using namespace ROOT;
 
 unique_ptr<TH1D> Distances::fit_debye_plot() const {
     // calculate the scattering intensity based on the Debye equation
-    double I0;
+    double I0 = 0;
     double r2 = pow(constants::radius::electron, 2);
     for (int j = 0; j < axes[0]; j++) { // iterate through the distance histogram
         I0 += binned_tot[j]*r2;
