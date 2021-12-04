@@ -1,79 +1,59 @@
-#pragma once
-
 #include "Slice.h"
 #include "Matrix.h"
 #include "Vector.h"
 
-ConstRowSlice::ConstRowSlice(const Matrix* parent, const int& row) : Slice(parent), row(row) {}  
-ConstColumnSlice::ConstColumnSlice(Matrix* const parent, const int& col) : Slice(parent), col(col) {}
-ColumnSlice::ColumnSlice(Matrix* const parent, const int& col) : Slice(parent), col(col) {}
-RowSlice::RowSlice(Matrix* const parent, const int& row) : Slice(parent), row(row) {}
+//*** SLICE ***//
+double Slice::dot(const Slice& s) {return dot(s.operator Vector());}
+double Slice::dot(const Vector& v) {return Vector().dot(v);}
+double Slice::norm() {return Vector().norm();}
+Slice::operator Vector() const {
+    Vector v(N);
+    for (int i = 0; i < length; i++) {
+        v[i] = operator[](i);
+    }
+    return v;
+}
 
-RowSlice& RowSlice::operator=(const RowSlice& s) {operator=(Vector(s));}
-RowSlice& RowSlice::operator=(const Vector& v) {
-    if (__builtin_expect(N != v.N, false)) {throw std::invalid_argument("Vector dimension do not match (got: [" + std::to_string(v.N) + ", expected: " + std::to_string(N) + ")");}
-    Matrix p = *parent;
-    for (int i = 0; i < M; i++) {
-        p._data[row*M + i] = v[i];
+//*** CONST & MUTABLE SLICE ***//
+MutableSlice::MutableSlice(Matrix* const parent, const int& start, const int& step, const int& length) : Slice(parent->N, parent->M, start, step, length), parent(parent) {}
+ConstSlice::ConstSlice(const Matrix* parent, const int& start, const int& step, const int& length) : Slice(parent->N, parent->M, start, step, length), parent(parent) {}
+VectorSlice::VectorSlice(const Vector* parent) : Slice(parent->N, 1, 0, 1, parent->N), parent(parent) {}
+
+double& MutableSlice::operator[](const int& j) {return parent->_data[start + j*step];}
+const double& MutableSlice::operator[](const int& j) const {return parent->data[start + j*step];}
+const double& ConstSlice::operator[](const int& j) const {return parent->data[start + j*step];}
+
+MutableSlice& MutableSlice::operator=(const Vector& v) {
+    for (int i = 0; i < length; i++) {
+        operator[](i) = v[i];
+    }
+    return *this;
+}
+MutableSlice& MutableSlice::operator+=(const Slice& s) {return operator+=(s.operator Vector());}
+MutableSlice& MutableSlice::operator+=(const Vector& v) {
+    for (int i = 0; i < length; i++) {
+        operator[](i) += v[i];
     }
     return *this;
 }
 
-ColumnSlice& ColumnSlice::operator=(const ColumnSlice& s) {operator=(Vector(s));}
-ColumnSlice& ColumnSlice::operator=(const Vector& v) {
-    if (__builtin_expect(M != v.N, false)) {throw std::invalid_argument("Vector dimension do not match (got: [" + std::to_string(v.N) + ", expected: " + std::to_string(N) + ")");}
-    Matrix p = *parent;
-    for (int i = 0; i < N; i++) {
-        p._data[i*M + col] = v[i];
+MutableSlice& MutableSlice::operator-=(const Slice& s) {return operator-=(s.operator Vector());}
+MutableSlice& MutableSlice::operator-=(const Vector& v) {
+    for (int i = 0; i < length; i++) {
+        operator[](i) += v[i];
     }
     return *this;
 }
 
-std::vector<double> RowSlice::copy() const {
-    std::vector<double> v(N);
-    Matrix p = *parent;
-    for (int i = 0; i < N; i++) {
-        v[i] = p.data[row*M + i];
-    }
-    return v;
-}
+//*** DERIVATIVES ***//
+Row::Row(Matrix* const parent, const int& row) : MutableSlice(parent, row*parent->N, 1, parent->N) {}
+Column::Column(Matrix* const parent, const int& col) : MutableSlice(parent, col, parent->M, parent->M) {}
+ConstRow::ConstRow(const Matrix* parent, const int& row) : ConstSlice(parent, row*parent->N, 1, parent->N) {}
+ConstColumn::ConstColumn(Matrix* const parent, const int& col) : ConstSlice(parent, col, parent->M, parent->M) {}
 
-std::vector<double> ConstRowSlice::copy() const {
-    std::vector<double> v(N);
-    Matrix p = *parent;
-    for (int i = 0; i < N; i++) {
-        v[i] = p.data[row*M + i];
-    }
-    return v;
-}
-
-std::vector<double> ColumnSlice::copy() const {
-    std::vector<double> v(N);
-    Matrix p = *parent;
-    for (int i = 0; i < N; i++) {
-        v[i] = p.data[i*M + col];
-    }
-    return v;
-}
-
-std::vector<double> ConstColumnSlice::copy() const {
-    std::vector<double> v(N);
-    Matrix p = *parent;
-    for (int i = 0; i < N; i++) {
-        v[i] = p.data[i*M + col];
-    }
-    return v;
-}
-
-RowSlice::operator Vector() const {return Vector(copy());}
-ConstRowSlice::operator Vector() const {return Vector(copy());}
-ColumnSlice::operator Vector() const {return Vector(copy());}
-ConstColumnSlice::operator Vector() const {return Vector(copy());}
-
-const double& ConstRowSlice::operator[](const int& j) const {return parent->data[row*M + j];}
-const double& RowSlice::operator[](const int& j) const {return parent->data[row*M + j];}
-double& RowSlice::operator[](const int& j) {return parent->_data[row*M + j];}
-
-const double& ConstColumnSlice::operator[](const int& j) const {return parent->data[j*M + col];}
-const double& ColumnSlice::operator[](const int& j) const {return parent->data[j*M + col];}
-double& ColumnSlice::operator[](const int& j) {return parent->_data[j*M + col];}
+Vector operator+(const Slice& s, const Vector& v) {return s.operator Vector().operator+(v);}
+Vector operator-(const Slice& s, const Vector& v) {return s.operator Vector().operator-(v);}
+Vector operator*(const Slice& s, const double& a) {return s.operator Vector().operator*(a);}
+Vector operator/(const Slice& s, const double& a) {return s.operator Vector().operator/(a);}
+bool operator==(const Slice& s, const Vector& v) {return s.operator Vector().operator==(v);}
+bool operator!=(const Slice& s, const Vector& v) {return s.operator Vector().operator!=(v);}

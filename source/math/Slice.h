@@ -1,81 +1,117 @@
 #pragma once
 
-#include <vector>
-#include "Vector.h"
-
 class Matrix;
+class Vector;
 
-template <typename T>
+#include <vector>
+#include <stdexcept>
+
 class Slice {
     public:
-        Slice(T parent) : parent(parent) {}
+        Slice(const int& N, const int& M, const int& start, const int& step, const int& length) 
+            : N(N), M(M), start(start), step(step), length(length) {}
 
-        virtual std::vector<double> copy() const;
-        explicit virtual operator Vector() const;
-        double dot(const Vector& v) {return Vector().dot(v);}
-        double norm() {return Vector().norm();}
-        Vector operator+(const Vector& v) const {return Vector().operator+(v);}
-        Vector operator-(const Vector& v) const {return Vector().operator-(v);}
-        Vector operator*(const double& a) const {return Vector().operator*(a);}
-        Vector operator/(const double& a) const {return Vector().operator/(a);}
-        bool operator==(const Vector& v) const {return Vector().operator==(v);}
-        bool operator!=(const Vector& v) const {return !operator==(v);}
+        double dot(const Slice& s);
+        double dot(const Vector& v);
+        double norm();
+        operator Vector() const;
+        virtual const double& operator[](const int& j) const = 0;
 
-        int index;
-        const int N, M;
-        T parent;
+        const size_t N, M;
+        const int start, step, length;
 };
 
-class RowSlice : public Slice<Matrix* const> {
-    public:
-        RowSlice(Matrix* const parent, const int& row);
+Vector operator+(const Slice& s, const Vector& v);
+Vector operator-(const Slice& s, const Vector& v);
+Vector operator*(const Slice& s, const double& a);
+Vector operator/(const Slice& s, const double& a);
+bool operator==(const Slice& s, const Vector& v);
+bool operator!=(const Slice& s, const Vector& v);
 
-        RowSlice& operator=(const RowSlice& s);
-        RowSlice& operator=(const Vector& v);
-        std::vector<double> copy() const;
-        const double& operator[](const int& j) const;
-        double& operator[](const int& j);
-        operator Vector() const;
+class VectorSlice : public Slice {
+    public: 
+        VectorSlice(const Vector* v);
+        virtual ~VectorSlice() {}
 
-    private: 
-        const int row;
+        double& operator[](const int& i);
+        const Vector* parent;
 };
 
-class ColumnSlice : public Slice<Matrix* const> {
+class MutableSlice : public Slice {
     public:
-        ColumnSlice(Matrix* const parent, const int& col);
+        MutableSlice(Matrix* const parent, const int& start, const int& step, const int& length);
+        virtual ~MutableSlice() {}
 
-        ColumnSlice& operator=(const ColumnSlice& s);
-        ColumnSlice& operator=(const Vector& v);
-        std::vector<double> copy() const;
-        const double& operator[](const int& j) const;
-        double& operator[](const int& j);
-        operator Vector() const;
+        double& operator[](const int& i);
+        const double& operator[](const int& i) const;
+        MutableSlice& operator=(const Vector& v);
+        MutableSlice& operator-=(const Slice& v);
+        MutableSlice& operator-=(const Vector& v);
+        MutableSlice& operator+=(const Slice& v);
+        MutableSlice& operator+=(const Vector& v);
 
-    private: 
-        const int col;
+        Matrix* const parent;
 };
 
-class ConstRowSlice : public Slice<const Matrix*> {
+class ConstSlice : public Slice {
     public:
-        ConstRowSlice(const Matrix* parent, const int& row);
+        ConstSlice(const Matrix* parent, const int& start, const int& step, const int& length);
+        virtual ~ConstSlice() {}
 
-        std::vector<double> copy() const;
-        const double& operator[](const int& j) const;
-        operator Vector() const;
+        const double& operator[](const int& i) const;
 
-    private: 
-        const int row;
+        const Matrix* const parent;
 };
 
-class ConstColumnSlice : public Slice<const Matrix*> {
-    public:
-        ConstColumnSlice(Matrix* const parent, const int& col);
+class ConstRow : public ConstSlice {
+    public: 
+        ConstRow(const Matrix* parent, const int& row);
+        ConstRow(const ConstSlice& s) : ConstSlice(std::move(s)) {}
+};
 
-        std::vector<double> copy() const;
-        const double& operator[](const int& j) const;
-        operator Vector() const;
+class ConstColumn : public ConstSlice {
+    public: 
+        ConstColumn(Matrix* const parent, const int& col);
+        ConstColumn(const ConstSlice& s) : ConstSlice(std::move(s)) {}
+};
 
-    private: 
-        const int col;
+class Row : public MutableSlice {
+    public: 
+        Row(Matrix* const parent, const int& row);
+        Row(MutableSlice& s) : MutableSlice(std::move(s)) {}
+
+        Row& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
+        Row& operator=(const Row& s) {
+            for (int i = 0; i < length; i++) {
+                operator[](i) = s[i];
+            }
+            return *this;
+        }
+
+        Row& operator=(const ConstRow& s) {
+            for (int i = 0; i < length; i++) {
+                operator[](i) = s[i];
+            }
+            return *this;
+        }
+};
+
+class Column : public MutableSlice {
+    public: 
+        Column(Matrix* const parent, const int& col);
+        Column(MutableSlice& s) : MutableSlice(std::move(s)) {}
+
+        Column& operator=(const Column& s) {
+            for (int i = 0; i < length; i++) {
+                operator[](i) = s[i];
+            }
+            return *this;
+        }
+
+        Column& operator=(const ConstColumn& s) {
+            for (int i = 0; i < length; i++) {
+                operator[](i) = s[i];
+            }
+            return *this;
+        }
 };

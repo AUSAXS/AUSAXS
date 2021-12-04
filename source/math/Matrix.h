@@ -1,7 +1,5 @@
 #pragma once
 
-class Vector;
-
 #include <iostream>
 #include <iterator>
 #include <initializer_list>
@@ -9,11 +7,14 @@ class Vector;
 #include <numeric>
 #include <stdexcept>
 #include <iomanip>
+
 #include "Slice.h"
+#include "Vector.h"
 
 class Matrix {
-    friend class RowSlice;
-    friend class ColumnSlice;
+    friend class Row;
+    friend class Column;
+    friend class MutableSlice;
 
 public: 
     Matrix(const Matrix& A) : _N(A.N), _M(A.M), _data(A.data) {} // copy constructor
@@ -120,10 +121,10 @@ public:
     }
 
     // Read-only indexing, A[i]
-    const ConstRowSlice operator[](const int& i) const;
+    const ConstRow operator[](const int& i) const;
     
     // Read/write indexing, A[i] = ...
-    RowSlice operator[](const int& i);
+    Row operator[](const int& i);
 
     // Approximate equality, B ~ A
     bool operator==(const Matrix& A) const {

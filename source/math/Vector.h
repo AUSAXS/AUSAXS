@@ -9,6 +9,8 @@
 #include <iomanip>
 #include <stdexcept>
 
+#include "Slice.h"
+
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
 public:
@@ -23,6 +25,17 @@ public:
     Vector& operator=(const Vector& v) {
         _N = v.N;
         _data.assign(v.begin(), v.end());
+        return *this;
+    }
+
+    template<class T>
+    Vector& operator=(const Slice& s) {
+        if (__builtin_expect(!(s.N == 1 || s.M == 1), false)) {throw std::invalid_argument("Slice is not convertible to a vector.");}
+        _N = std::max(s.N, s.M);
+        _data = std::vector<double>(N);
+        for (size_t i = 0; i < N; i++) {
+            _data[i] = s[i];
+        }
         return *this;
     }
 

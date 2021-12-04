@@ -1,6 +1,7 @@
 #include "Decomposition.h"
 #include "Matrix.h"
 #include "Vector.h"
+#include "Slice.h"
 
 // QR decomposition by Gram-Schmidt orthogonalization
 class QRDecomposition : public Decomposition {
