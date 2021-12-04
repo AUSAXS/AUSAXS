@@ -12,10 +12,10 @@
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
 public:
-    Vector(const Vector& v) : _N(v.size()), _data(v.data) {} // copy constructor
-    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {} // initializer list {a, b, c, d}
-    Vector(const std::vector<double>& w) : _N(w.size()), _data(w) {} // std::vector --> Vector constructor
-    Vector(const int n) : _N(n), _data(n) {} // dimensional constructor
+    Vector(const Vector& v) : _N(v.size()), _data(v._data) {} // copy constructor
+    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(0) {} // initializer list {a, b, c, d}
+    Vector(const std::vector<double>& v) : _N(v.size()), _data(v) {} // std::vector --> Vector constructor
+    Vector(const int& n) : _N(n), _data(n) {} // dimensional constructor
     Vector() : _N(0), _data(0) {} // default constructor
     virtual ~Vector() {}
 
@@ -48,6 +48,7 @@ public:
         return w;
     }
 
+    // Minus operator, -w
     Vector operator-() const {
         Vector w(N);
         std::transform(begin(), end(), w.begin(), std::negate<double>());

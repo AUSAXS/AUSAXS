@@ -105,11 +105,6 @@ void test_matrix_basics() {
 
     // transpose
     IS_TRUE(C.T() == Matrix({{5, 11}, {8, 18}, {11, 25}}));
-
-    // iterator
-    for (const auto& v : B) {
-        IS_TRUE(v == Vector({1, 2, 3}) || v == Vector({2, 3, 4}));
-    }
 }
 
 void test_matrix_advanced() {
