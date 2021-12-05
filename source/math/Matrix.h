@@ -31,6 +31,14 @@ public:
     Matrix() : _N(0), _M(0), _data(0) {} // default constructor
     ~Matrix() {}
 
+    static Matrix identity(const int& dim) {
+        Matrix A(dim, dim);
+        for (int i = 0; i < dim; i++) {
+            A[i][i] = 1;
+        }
+        return A;
+    } 
+
     // Assignment operator, B = A
     Matrix& operator=(const Matrix& A) {
         _N = A.N; _M = A.M;

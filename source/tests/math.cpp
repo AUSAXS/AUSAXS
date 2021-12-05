@@ -23,20 +23,10 @@ using std::cout, std::endl;
 // test if two doubles are approximately equal
 bool approx(double a, double b) {return a - 1e-9 < b && a + 1e-9 > b;}
 
-class randomDouble {
-public:
-    randomDouble(double low, double high) : r(std::bind(std::uniform_real_distribution<>(low, high), std::default_random_engine())) {}
-    double operator()(){return r(); }
-
-private:
-    std::function<double()> r;
-};
-
 Vector GenRandVector(int m) {
-    randomDouble rand(0, 100);
     Vector v(m);
     for (int i = 0; i < m; i++)
-        v[i] = rand();
+        v[i] = rand() % 100;
     return v;
 }
 
@@ -44,11 +34,11 @@ Matrix GenRandMatrix(int n, int m) {
     Matrix M(n, m);
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++)
-            M[i][j] = rand();
+            M[i][j] = rand() % 100;
     return M;
 }
 
-void test_vector3_basics() {
+void test_vector3() {
     Vector3 v = {1, 2, 3};
     Vector3 w = {4, 5, 6};
 
@@ -64,7 +54,7 @@ void test_vector3_basics() {
     IS_TRUE(v == Vector3({0, 7, 9}));
 }
 
-void test_vector_advanced() {
+void test_vector() {
     Vector v = {1, 2, 3, 4};
     Vector w = v.copy();
     v[0] = 0;
@@ -130,7 +120,7 @@ void test_matrix() {
     // determinants (based on LU decomposition)
     A = {{4, 1}, {2, 3}};
     B = {{-2, 3, -1}, {5, -1, 4}, {4, -8, 2}};
-    Matrix C = {{5, -7, 2, 2}, {0, 3, 0, -4}, {-5, -8, 0, 3}, {0, 5, 0, -6}};
+    C = {{5, -7, 2, 2}, {0, 3, 0, -4}, {-5, -8, 0, 3}, {0, 5, 0, -6}};
     IS_TRUE(approx(A.det(), 10));
     IS_TRUE(approx(B.det(), -6));
     IS_TRUE(approx(C.det(), 20));
@@ -248,10 +238,19 @@ void test_Cramer() {
 void test_QRDecomposition() {
     Matrix A = {{1, 2}, {3, 4}};
     QRDecomposition qr(A);
-    qr.Q.print();
-    std::cout << "COMPARE: " << std::endl;
-    std::cout << "	   0.316   0.949\n" << "          0.949  -0.316" << std::endl;
-    IS_TRUE(A*qr.inverse() == Matrix({{1, 0}, {0, 1}}));
+    IS_TRUE(A*qr.inverse() == Matrix::identity(2));
+    IS_TRUE(approx(qr.abs_determinant(), 2));
+
+    // randomized tests on 5x5 matrices
+    for (int i = 0; i < 10; i++) {
+        A = GenRandMatrix(5, 5);
+        Vector b = GenRandVector(5);
+        QRDecomposition solver(A);
+        Vector x = solver.solve(b);
+        Vector Ax = A*x;
+        IS_TRUE(Ax == b);
+        IS_TRUE(solver.inverse()*A == Matrix::identity(5));
+    }
 }
 
 void test_Givens() {
@@ -328,15 +327,17 @@ void test_cubic_spline() {
 }
 
 int main(void) {
+    srand(time(NULL)); // seed rng
+    
     cout << "Summary of math testing:" << endl;
     test_vector3();
     test_vector();
     test_matrix();
     test_slices();
     test_QRDecomposition();
-    // test_Cramer();
+    test_Cramer();
     // test_Givens();
-    // test_cubic_spline();
+    test_cubic_spline();
 
     if (passed_all) {
         cout << "\033[1;32m" << "All math tests passed.           " << "\033[0m" << endl;

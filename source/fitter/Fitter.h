@@ -5,8 +5,9 @@
 #include <map>
 #include <iomanip>
 #include <iostream>
+#include <utility>
 
-using std::cout, std::endl;
+using std::cout, std::endl, std::string;
 
 class Fitter {
 public:
