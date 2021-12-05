@@ -15,7 +15,7 @@
 class Vector {
 public:
     Vector(const Vector& v) : _N(v.size()), _data(v._data) {} // copy constructor
-    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(0) {} // initializer list {a, b, c, d}
+    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {} // initializer list {a, b, c, d}
     Vector(const std::vector<double>& v) : _N(v.size()), _data(v) {} // std::vector --> Vector constructor
     Vector(const int& n) : _N(n), _data(n) {} // dimensional constructor
     Vector() : _N(0), _data(0) {} // default constructor
@@ -133,7 +133,10 @@ public:
     bool operator!=(const Vector& v) const {return !operator==(v);}
 
     // Dot product
-    double dot(const Vector& v) const {return std::inner_product(begin(), end(), v.begin(), 0.0);}
+    double dot(const Vector& v) const {
+        compatibility_check(v);
+        return std::inner_product(begin(), end(), v.begin(), 0.0);
+    }
 
     // Norm (magnitude)
     double norm() const {return sqrt(dot(*this));}
@@ -157,8 +160,8 @@ public:
     }
 
     // Print this vector to the terminal
-    void print() const {
-        std::cout << "Printing a " + std::to_string(N) + "-dimensional vector: " << std::endl;
+    void print(const std::string& message = "") const {
+        if (message != "") {std::cout << message << std::endl;}
         for (const auto& e : data) {
             std::cout << std::setw(8) << e << " ";
         }
@@ -185,6 +188,8 @@ protected:
 
     // check if the vector is compatible with ours
     virtual void compatibility_check(const Vector& v) const {
-        if (__builtin_expect(N != v.N, false)) {throw std::invalid_argument("Vector dimensions do not match.");}
+        if (__builtin_expect(N != v.N, false)) {
+            throw std::invalid_argument("Vector dimensions do not match (got: " + std::to_string(v.N) + ", expected: " + std::to_string(N) + ").");
+        }
     }
 };

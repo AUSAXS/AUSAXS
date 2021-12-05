@@ -110,9 +110,9 @@ public:
                 ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
         }
         Matrix C(A.N, B.M);
-        for (size_t row = 0; row < C.N; ++row) {
-            for (size_t col = 0; col < C.M; ++col) {
-                for (size_t inner = 0; inner < A.M; ++inner) {
+        for (size_t row = 0; row < C.N; row++) {
+            for (size_t col = 0; col < C.M; col++) {
+                for (size_t inner = 0; inner < A.M; inner++) {
                     C[row][col] += A[row][inner]*B[inner][col];
                 }
             }
@@ -122,9 +122,13 @@ public:
 
     // Read-only indexing, A[i]
     const ConstRow operator[](const int& i) const;
+    const ConstColumn col(const int& j) const;
+    const ConstRow row(const int& i) const;
     
     // Read/write indexing, A[i] = ...
     Row operator[](const int& i);
+    Row row(const int& i);
+    Column col(const int& i);
 
     // Approximate equality, B ~ A
     bool operator==(const Matrix& A) const {
@@ -156,8 +160,8 @@ public:
         return A;
     }
 
-    const double& index(const int& i, const int& j) const {return data[N*i + j];}
-    double& index(const int& i, const int& j) {return _data[N*i + j];}
+    const double& index(const int& i, const int& j) const {return data[M*i + j];}
+    double& index(const int& i, const int& j) {return _data[M*i + j];}
 
     // read-only iterators
     const std::vector<double>::const_iterator begin() const {return data.begin();}
@@ -168,11 +172,11 @@ public:
     std::vector<double>::iterator end() {return _data.end();}
 
     // Print this matrix to the terminal.
-    void print() const {
-        std::cout << "Printing a (" + std::to_string(N) + ", " + std::to_string(M) + ") matrix: " << std::endl;
-        for (size_t i = 0; i < N; ++i) {
+    void print(const std::string& message = "") const {
+        if (message != "") {std::cout << message << std::endl;}
+        for (size_t i = 0; i < N; i++) {
             std::cout << "\t" << std::setprecision(3);
-            for (size_t j = 0; j < M; ++j) {
+            for (size_t j = 0; j < M; j++) {
                 std::cout << std::setw(8) << index(i, j);
             }
             std::cout << std::endl;

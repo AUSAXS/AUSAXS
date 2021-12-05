@@ -85,7 +85,7 @@ void test_vector_advanced() {
     }
 }
 
-void test_matrix_basics() {
+void test_matrix() {
     Matrix A({{1, 2}, {3, 4}});
     Matrix B({{5, 6}, {7, 8}});
 
@@ -100,22 +100,22 @@ void test_matrix_basics() {
 
     // different shapes
     B = Matrix({{1, 2, 3}, {2, 3, 4}});
-    C = A*B;
+    C = A*B; // {{5, 8, 11}, {11, 18, 25}}
     IS_TRUE(C == Matrix({{5, 8, 11}, {11, 18, 25}}));
 
     // transpose
     IS_TRUE(C.T() == Matrix({{5, 11}, {8, 18}, {11, 25}}));
-}
 
-void test_matrix_advanced() {
-    Matrix A = {{1, 2, 3}, {2, 3, 4}};
-    Matrix B = A.copy();
+    // copy
+    A = {{1, 2, 3}, {2, 3, 4}};
+    B = A.copy();
     B[0][0] = 0;
     IS_TRUE(B != A); // copy is not by reference
 
+    // vector multiplication
     Vector v = {1, 2, 2};
-    IS_TRUE(A*v == Vector({11, 16})); // vector multiplication
-    IS_TRUE(B*v == Vector({10, 16})); // repeat
+    IS_TRUE(A*v == Vector({11, 16}));
+    IS_TRUE(B*v == Vector({10, 16}));
 
     {
         Matrix C = {{6, 5, 4}, {3, 2, 1}};
@@ -123,16 +123,99 @@ void test_matrix_advanced() {
     }
     IS_TRUE(B == Matrix({{6, 5, 4}, {3, 2, 1}})); // assignment is not by reference
 
+    // slice assignment
     B[0] = A[1];
     IS_TRUE(B == Matrix({{2, 3, 4}, {3, 2, 1}}));
 
-    // determinants
+    // determinants (based on LU decomposition)
     A = {{4, 1}, {2, 3}};
     B = {{-2, 3, -1}, {5, -1, 4}, {4, -8, 2}};
     Matrix C = {{5, -7, 2, 2}, {0, 3, 0, -4}, {-5, -8, 0, 3}, {0, 5, 0, -6}};
     IS_TRUE(approx(A.det(), 10));
     IS_TRUE(approx(B.det(), -6));
     IS_TRUE(approx(C.det(), 20));
+}
+
+void test_slices() {
+    Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
+    Matrix B;
+
+    // row through operator[]
+    IS_TRUE(A[0] == Vector({1, 1, 2, 2}));
+    IS_TRUE(A[1] == Vector({3, 3, 2, 2}));
+    IS_TRUE(A[2] == Vector({5, 5, 4, 4}));
+
+    // explicit row
+    IS_TRUE(A.row(0) == Vector({1, 1, 2, 2}));
+    IS_TRUE(A.row(1) == Vector({3, 3, 2, 2}));
+    IS_TRUE(A.row(2) == Vector({5, 5, 4, 4}));
+
+    // col
+    IS_TRUE(A.col(0) == Vector({1, 3, 5}));
+    IS_TRUE(A.col(1) == Vector({1, 3, 5}));
+    IS_TRUE(A.col(2) == Vector({2, 2, 4}));
+    IS_TRUE(A.col(3) == Vector({2, 2, 4}));
+
+    // assignment
+    A.row(1) = {9, 1, 2, 3};
+    A.row(2) = {6, 3, 1, 2};
+    B = {{1, 1, 2, 2}, {9, 1, 2, 3}, {6, 3, 1, 2}};
+    IS_TRUE(A == B);
+
+    A.col(1) = {2, 5, 1};
+    A.col(3) = {7, 1, 3};
+    B = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+    IS_TRUE(A == B);
+
+    // minus-assignment
+    A = B;
+    A.row(0) -= A.row(1);
+    A.row(1) -= A.row(2);
+    IS_TRUE(A.row(0) == Vector({-8, -3, 0, 6}));
+    IS_TRUE(A.row(1) == Vector({3, 4, 1, -2}));
+
+    A = B;
+    A.col(0) -= A.col(1);
+    A.col(1) -= A.col(2);
+    IS_TRUE(A.col(0) == Vector({-1, 4, 5}));
+    IS_TRUE(A.col(1) == Vector({0, 3, 0}));
+
+    // plus-assignment
+    A = B;
+    A.row(0) += A.row(1);
+    A.row(1) += A.row(2);
+    IS_TRUE(A.row(0) == Vector({10, 7, 4, 8}));
+    IS_TRUE(A.row(1) == Vector({15, 6, 3, 4}));
+
+    A = B;
+    A.col(0) += A.col(1);
+    A.col(1) += A.col(2);
+    IS_TRUE(A.col(0) == Vector({3, 14, 7}));
+    IS_TRUE(A.col(1) == Vector({4, 7, 2}));
+
+    // vector cast
+    A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+    Vector a = A.col(2);
+    IS_TRUE(a.N == 3 && a.data.size() == 3);
+    IS_TRUE(a == Vector({2, 2, 1}));
+    IS_TRUE(A.col(2).operator Vector().N == 3 && A.col(2).operator Vector().data.size() == 3); // chain cast
+
+    // dot with vector
+    Vector b = {2, 3, 1, 5};
+    IS_TRUE(A.row(0).dot(b) == (2+6+2+35));
+    IS_TRUE(A.row(2).dot(b) == (12+3+1+15));
+
+    b = {1, 4, 2};
+    IS_TRUE(A.col(0).dot(b) == (1+36+12));
+    IS_TRUE(A.col(2).dot(b) == (2+8+2));
+
+    // dot with other slice
+    IS_TRUE(A.col(0).dot(A.col(2)) == (2+18+6));
+    IS_TRUE(A.row(0).dot(A.row(1)) == (9+10+4+7));
+
+    // norm
+    IS_TRUE(A.col(0).norm() == sqrt(1+81+36));
+    IS_TRUE(A.row(0).norm() == sqrt(1+4+4+49));
 }
 
 void test_Cramer() {
@@ -246,11 +329,11 @@ void test_cubic_spline() {
 
 int main(void) {
     cout << "Summary of math testing:" << endl;
-    test_vector3_basics();
-    test_vector_advanced();
-    test_matrix_basics();
-    test_matrix_advanced();
-    // test_QRDecomposition();
+    test_vector3();
+    test_vector();
+    test_matrix();
+    test_slices();
+    test_QRDecomposition();
     // test_Cramer();
     // test_Givens();
     // test_cubic_spline();

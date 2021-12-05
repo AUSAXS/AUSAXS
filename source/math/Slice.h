@@ -16,6 +16,7 @@ class Slice {
         double norm();
         operator Vector() const;
         virtual const double& operator[](const int& j) const = 0;
+        void print() const;
 
         const size_t N, M;
         const int start, step, length;
@@ -71,7 +72,7 @@ class ConstRow : public ConstSlice {
 
 class ConstColumn : public ConstSlice {
     public: 
-        ConstColumn(Matrix* const parent, const int& col);
+        ConstColumn(const Matrix* parent, const int& col);
         ConstColumn(const ConstSlice& s) : ConstSlice(std::move(s)) {}
 };
 
@@ -101,6 +102,7 @@ class Column : public MutableSlice {
         Column(Matrix* const parent, const int& col);
         Column(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
+        Column& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
         Column& operator=(const Column& s) {
             for (int i = 0; i < length; i++) {
                 operator[](i) = s[i];
