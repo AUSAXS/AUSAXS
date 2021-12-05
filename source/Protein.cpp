@@ -39,44 +39,43 @@ void Protein::save(string path) const {
 void Protein::calc_distances() {
     update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
 
-    // calculate the internal distances for the protein atoms
-    int n_pp = 0; // index counter
-    int n_hh = 0;
-    int n_hp = 0;
-    vector<double> d_pp(pow(protein_atoms.size(), 2));
-    vector<double> w_pp(pow(protein_atoms.size(), 2)); 
-    vector<double> d_hh(pow(hydration_atoms.size(), 2)); 
-    vector<double> w_hh(pow(hydration_atoms.size(), 2)); 
-    vector<double> d_hp(hydration_atoms.size()*protein_atoms.size());
-    vector<double> w_hp(hydration_atoms.size()*protein_atoms.size()); 
+    const vector<int> axes = setting::axes::scattering_intensity_plot_binned;
+    vector<double> p_pp(axes[0], 0);
+    vector<double> p_hh(axes[0], 0);
+    vector<double> p_hp(axes[0], 0);
+    vector<double> p_tot(axes[0], 0);
+    double width = (double) (axes[2]-axes[1])/axes[0]; // very important to cast this operation to a double - divison by two ints
 
     // calculate p-p distances
     for (size_t i = 0; i < protein_atoms.size(); i++) {
         for (size_t j = 0; j < protein_atoms.size(); j++) {
-            d_pp[n_pp] = protein_atoms[i]->distance(protein_atoms[j]);
-            w_pp[n_pp] = protein_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
+            double dist = protein_atoms[i]->distance(protein_atoms[j]);
+            double weight = protein_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *protein_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
-            n_pp++;
+            p_pp[std::round(dist/width)] += weight;
+            p_tot[std::round(dist/width)] += weight;
         }
     }
 
     for (size_t i = 0; i < hydration_atoms.size(); i++) {
         // calculate h-h distances
         for (size_t j = 0; j < hydration_atoms.size(); j++) {
-            d_hh[n_hh] = hydration_atoms[i]->distance(hydration_atoms[j]);
-            w_hh[n_hh] = hydration_atoms[i]->get_effective_charge()*hydration_atoms[j]->get_effective_charge()
+            double dist = hydration_atoms[i]->distance(hydration_atoms[j]);
+            double weight = hydration_atoms[i]->get_effective_charge()*hydration_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*hydration_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
-            n_hh++;
+            p_hh[std::round(dist/width)] += weight;
+            p_tot[std::round(dist/width)] += weight;
         }
         // calculate h-p distances
         for (size_t j = 0; j < protein_atoms.size(); j++) {
-            d_hp[n_hp] = hydration_atoms[i]->distance(protein_atoms[j]);
-            w_hp[n_hp] = hydration_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
+            double dist = hydration_atoms[i]->distance(protein_atoms[j]);
+            double weight = hydration_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
-            n_hp++;
+            p_hp[std::round(dist/width)] += weight;
+            p_tot[std::round(dist/width)] += weight;
         }
     }
-    this->distances = std::make_shared<Distances>(this, d_pp, d_hh, d_hp, w_pp, w_hh, w_hp);
+    this->distances = std::make_shared<Distances>(p_pp, p_hh, p_hp, p_tot);
 }
 
 void Protein::generate_new_hydration() {

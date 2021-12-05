@@ -70,7 +70,6 @@ int main(int argc, char const *argv[]) {
 // Distance plot
     unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
     const vector<int> axes = {60, 0, 60};
-    d->set_axes(axes);
     auto hists = d->plot_distance();
 
     // use some nicer colors
@@ -151,10 +150,6 @@ int main(int argc, char const *argv[]) {
     c2->SetRightMargin(0.15);
     c2->SetLeftMargin(0.15);
     c2->SaveAs(path.c_str());
-
-// Debye fit
-    unique_ptr<TCanvas> c3 = std::make_unique<TCanvas>("c3", "canvas", 600, 600);
-    hI_debye = d->fit_debye_plot();
 
     return 0;
 }

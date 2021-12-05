@@ -85,14 +85,14 @@ public:
         double k = fitted->params["k"];
         double a = fitted->params["a"];
         vector<double> residuals(qo.size());
-        for (int i = 0; i < qo.size(); ++i) {
+        for (size_t i = 0; i < qo.size(); ++i) {
             residuals[i] = ((Io[i] - k*Im[i]+a)/sigma[i]);
         }
 
         // prepare the TGraph
         vector<double> xerr(sigma.size(), 0);
         unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &sigma[0]);
-        return std::move(graph);
+        return graph;
     }
 
 private: 
@@ -112,7 +112,7 @@ private:
         double k = params[0];
         double a = params[1];
         double chi = 0;
-        for (int i = 0; i < qo.size(); ++i) {
+        for (size_t i = 0; i < qo.size(); ++i) {
             double I = k*Im[i] + a;
             chi += pow((Io[i] - I)/sigma[i], 2);
         }
@@ -132,7 +132,7 @@ private:
         // thus we have to interpolate 
         Im = vector<double>(qo.size()); // model values
         CubicSpline s(x, y);
-        for (int i = 0; i < qo.size(); ++i) {
+        for (size_t i = 0; i < qo.size(); ++i) {
             Im[i] = s.spline(qo[i]);
         }
     }

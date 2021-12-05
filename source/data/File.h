@@ -103,6 +103,9 @@ public:
                     }
                     break;
                 }
+                case Record::RecordType::TERMINATE: {
+                    break;
+                }
                 default: {
                     throw std::runtime_error("This should never happen.");
                 }

@@ -26,12 +26,12 @@ public:
             cout << "############################################################\n" << endl;
         }
 
-        bool converged;
         std::map<string, double> params;
         std::map<string, double> errs;
         double chi2;
         double dof;
         double calls;
+        bool converged;
     };
 
     virtual ~Fitter() {}

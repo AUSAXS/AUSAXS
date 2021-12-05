@@ -15,14 +15,10 @@ using namespace ROOT;
 
 class Distances {
 public:
-    Distances(Protein* protein, vector<double>& pp, vector<double>& hh, vector<double>& hp, vector<double>& wpp, vector<double>& whh, vector<double>& whp) 
-        : d_pp(pp), d_hh(hh), d_hp(hp), w_pp(wpp), w_hh(whh), w_hp(whp), axes(setting::axes::scattering_intensity_plot_binned), protein(protein) {}
+    Distances(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot)
+        : p_pp(p_pp), p_hh(p_hh), p_hp(p_hp), p_tot(p_tot) {setup_bin_dists();}
 
-    /**
-     * @brief Set the plot axes. 
-     * @param axes the axes to use in the format {bins, xmin, xmax}.
-     */
-    void set_axes(const vector<int> axes);
+    void setup_bin_dists();
 
     /**
      * @brief Prepare a plot of the distances contained in this class.
@@ -42,8 +38,6 @@ public:
      */
     unique_ptr<TH1D> plot_guinier_approx() const;
 
-    unique_ptr<TH1D> fit_debye_plot() const;
-
     /**
      * @brief Calculate the squared Guinier gyration ratio. 
      */
@@ -61,18 +55,9 @@ public:
      */
     vector<double> get_xaxis() const;
 
-    const vector<double> d_pp, d_hh, d_hp; // raw distances
 private:
-    const vector<double> w_pp, w_hh, w_hp; // weights on each distance
-    vector<int> axes; // bin style in the form {bins, xmin, xmax}
-    vector<double> binned_pp, binned_hh, binned_hp, binned_tot; // binned distances
-    const Protein* protein; // the protein which created this object
-
-    /**
-     * @brief Bin the raw distance data. 
-     * @param axes a vector of the form {bins, xmin, xmax} to use for the binning
-     */
-    void bin(const vector<int>& axes);
+    vector<double> p_pp, p_hh, p_hp, p_tot; // binned distances
+    vector<double> d; // the distance corresponding to each bin
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 
