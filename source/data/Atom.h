@@ -135,34 +135,24 @@ public:
     void set_effective_charge(double charge) {this->effective_charge = charge;}
 
     /**
-     * @brief Set the residue name for this atom. Any spaces are removed. 
+     * @brief Set the residue name for this atom.
      * @param resName the residue name, typically an amino acid such as LYS.
      */
-    void set_resName(string resName) {
-        boost::erase_all(resName, " "); // remove spaces
-        this->resName = resName;
-    }
-    void set_chainID(string chainID) {
-        boost::erase_all(chainID, " "); // remove spaces
-        this->chainID = chainID;
-    }
+    void set_resName(string resName) {this->resName = resName;}
+    void set_chainID(string chainID) {this->chainID = chainID;}
 
     /**
-     * @brief Specify the position of this atom within its residue. Any spaces are removed.
+     * @brief Specify the position of this atom within its residue.
      * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
      */
-    void set_name(string name) {
-        boost::erase_all(name, " "); // remove spaces
-        this->name = name;
-    }
+    void set_name(string name) {this->name = name;}
 
     /**
      * @brief Set the atomic element for this atom. Any spaces are removed. 
      * @param element the atomic element, e.g. He.
      */
     void set_element(string element) {
-        boost::erase_all(element, " ");
-        if (__builtin_expect(!constants::mass::atomic.count(element), false)) { // check that the weight is defined
+        if (__builtin_expect(constants::mass::atomic.count(element) == 0, false)) { // check that the weight is defined
             print_err((format("Error in Atom::set_element: The weight of element \"%1%\" is not defined.") % element).str());
             exit(1);
         }

@@ -6,8 +6,9 @@
 #include <iomanip>
 #include <iostream>
 #include <utility>
+#include <memory>
 
-using std::cout, std::endl, std::string;
+using std::cout, std::endl, std::string, std::shared_ptr;
 
 class Fitter {
 public:
@@ -18,9 +19,9 @@ public:
 
         void print() const {
             cout << "\n############################################################" << endl;
-            cout << (converged ? "Failed to " : "Successfully ") << "fit the data with " << calls << " function evaluations." << endl;
-            cout << "χ^2 = " << std::setprecision(6) << chi2 << ", dof = " << dof << ", χ^2/dof = " << chi2/dof << endl;
-            for (const auto e : params) {
+            cout << (converged ? "Successfully " : "Failed to ") << "fit the data with " << calls << " function evaluations." << endl;
+            cout << "\u03C7^2 = " << std::setprecision(6) << chi2 << ", dof = " << dof << ", \u03C7^2/dof = " << chi2/dof << endl;
+            for (const auto& e : params) {
                 cout << "\t" << std::setprecision(6) << e.first << " = "  << std::setw(10) << e.second << " ± " << std::setw(10) << errs.at(e.first) << endl;
             }
             cout << "############################################################\n" << endl;

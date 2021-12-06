@@ -1,5 +1,5 @@
 # generate lists of files for easy use as dependencies
-pymol := ~/tools/pymol/pymol
+pymol := pymol
 
 test_files := $(basename $(shell find source/tests/ -maxdepth 1 -name "*.cpp" -printf "%P "))
 source_files := $(addprefix source/, $(shell find source/ -type f -not -wholename "source/tests/*" -printf "%P "))
@@ -7,24 +7,26 @@ source_files := $(addprefix source/, $(shell find source/ -type f -not -wholenam
 #################################################################################
 ###				EXECUTABLES					 ###
 #################################################################################
-.phony:
+.SECONDARY:
+
+.PHONY:
 hydrate/%: build/source/scripts/new_hydration
 	$< data/$* output/$*
 	$(pymol) output/$* -d "show spheres; color orange, hetatm"
 
-.phony:
+.PHONY:
 hist/%: build/source/scripts/hist
 	$< data/$* figures/
 
-.phony:
+.PHONY:
 main/%: build/source/scripts/main
 	$< data/$* output/filled_volume.pdb
 
-.phony:
+.PHONY:
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$* figures/
 	
-.phony:
+.PHONY:
 intensity_fit: build/source/scripts/intensity_fitter
 	$< data/2epe.pdb data/Lyz_03m.RSR figures/
 

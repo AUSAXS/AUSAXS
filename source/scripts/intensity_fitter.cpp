@@ -77,6 +77,6 @@ int main(int, char const *argv[]) {
     c2->SaveAs(path.c_str());
 
     result->print();
-    cout << "c is: " << result->params["k"]*protein.get_mass()*constants::unit::gm/pow(constants::radius::electron*constants::unit::cm, 2) << endl;
+    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2) << endl;
     return 0;
 }

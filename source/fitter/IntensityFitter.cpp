@@ -1,6 +1,7 @@
 #include "Fitter.h"
 #include "math/CubicSpline.h"
 #include "settings.h"
+#include "SimpleLeastSquares.h"
 
 #include <iostream>
 #include <fstream>
@@ -37,25 +38,31 @@ public:
 
     /**
      * @brief Perform the fit.
-     * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is k = c/M*r_e^2
+     * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
      */
-    shared_ptr<Fit> fit() override {
-        ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
-        auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-        ROOT::Math::Functor functor(f, 2); // declare the function to be minimized and its number of parameters
-        minimizer->SetFunction(functor);
-        minimizer->SetVariable(0, "k", 0, 1e-4); // scaling factor
-        minimizer->SetVariable(1, "a", 0, 1e-4); // background
-        minimizer->Minimize();
-        const double* res = minimizer->X();
-        const double* err = minimizer->Errors();
+    // shared_ptr<Fit> fit() override {
+    //     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
+    //     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
+    //     ROOT::Math::Functor functor(f, 2); // declare the function to be minimized and its number of parameters
+    //     minimizer->SetFunction(functor);
+    //     minimizer->SetVariable(0, "a", 0, 1e-4); // scaling factor
+    //     minimizer->SetVariable(1, "b", 0, 1e-4); // background
+    //     minimizer->Minimize();
+    //     const double* res = minimizer->X();
+    //     const double* err = minimizer->Errors();
 
-        bool converged = minimizer->Status();
-        std::map<string, double> pars = {{"k", res[0]}, {"a", res[1]}};
-        std::map<string, double> errs = {{"k", err[0]}, {"a", err[1]}};
-        double funcalls = minimizer->NCalls();
-        fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
-        minimizer->PrintResults();
+    //     bool converged = !minimizer->Status();
+    //     std::map<string, double> pars = {{"a", res[0]}, {"b", res[1]}};
+    //     std::map<string, double> errs = {{"a", err[0]}, {"b", err[1]}};
+    //     double funcalls = minimizer->NCalls();
+    //     fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
+    //     minimizer->PrintResults();
+    //     return fitted;
+    // }
+
+    shared_ptr<Fit> fit() override {
+        SimpleLeastSquares fitter(Im, Io, sigma);
+        fitted = fitter.fit();
         return fitted;
     }
 
@@ -63,11 +70,12 @@ public:
         if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
         // calculate the scaled I model values
-        double c = fitted->params["k"];
+        double a = fitted->params["a"];
+        double b = fitted->params["b"];
         vector<double> I_scaled(qo.size()); // spliced scaled data
         vector<double> ym_scaled(ym.size()); // original scaled data
-        std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&c] (double I) {return I*c;});
-        std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&c] (double I) {return I*c;});
+        std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
+        std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
         // prepare the TGraphs
         vector<double> xerr(sigma.size(), 0);
@@ -82,11 +90,11 @@ public:
         if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
 
         // calculate the residuals
-        double k = fitted->params["k"];
         double a = fitted->params["a"];
+        double b = fitted->params["b"];
         vector<double> residuals(qo.size());
         for (size_t i = 0; i < qo.size(); ++i) {
-            residuals[i] = ((Io[i] - k*Im[i]+a)/sigma[i]);
+            residuals[i] = ((Io[i] - a*Im[i]-b)/sigma[i]);
         }
 
         // prepare the TGraph
@@ -112,7 +120,7 @@ private:
         double k = params[0];
         double a = params[1];
         double chi = 0;
-        for (size_t i = 0; i < qo.size(); ++i) {
+        for (size_t i = 0; i < qo.size(); i++) {
             double I = k*Im[i] + a;
             chi += pow((Io[i] - I)/sigma[i], 2);
         }

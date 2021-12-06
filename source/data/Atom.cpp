@@ -17,10 +17,13 @@
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
-void Atom::parse_pdb(const string s) {
+void Atom::parse_pdb(string s) {
+    int pad_size = 81 - s.size();
+    s += string(pad_size, ' ');
+
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
 
-    //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S2  EL CH
+    //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S4  EL CH
     //                   0     1           2              3     4  5  6      7     8
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
     const char form[] = "%6c%5c%1c%4c%1c%3c%1c%1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c";
@@ -37,14 +40,17 @@ void Atom::parse_pdb(const string s) {
         exit(1);
     }
 
-    // remove any spaces from the numbers (strings are handled by the setters)
+    // remove any spaces from the numbers
     boost::erase_all(serial, " ");
+    boost::erase_all(name, " ");
+    boost::erase_all(resName, " ");
     boost::erase_all(resSeq, " ");
     boost::erase_all(x, " ");
     boost::erase_all(y, " ");
     boost::erase_all(z, " ");
     boost::erase_all(occupancy, " ");
     boost::erase_all(tempFactor, " ");
+    boost::erase_all(element, " ");
 
     // sometimes people use the first character of x for some other purpose.
     // if it is a digit, the following won't work. On the other hand they're kinda asking for it then. Follow the standard, people. 
@@ -54,17 +60,17 @@ void Atom::parse_pdb(const string s) {
 
     // set all of the properties
     try {
-        this->set_serial(std::stoi(serial));
-        this->set_name(name);
+        this->serial = std::stoi(serial);
+        this->name = name;
         this->altLoc = altLoc;
-        this->set_resName(resName);
+        this->resName = resName;
         this->chainID = chainID;
         this->resSeq = std::stoi(resSeq);
         this->iCode = iCode;
         this->set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
-        this->set_occupancy(std::stod(occupancy));
-        this->tempFactor = std::stod(tempFactor);
-        this->set_element(element);
+        if (occupancy.empty()) {this->occupancy = 0;} else {this->occupancy = std::stod(occupancy);}
+        if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
+        if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         this->charge = charge;
     } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
         print_err("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
