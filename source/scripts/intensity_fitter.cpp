@@ -19,8 +19,12 @@ int main(int, char const *argv[]) {
     Protein protein(argv[1]);
     protein.generate_new_hydration();
     std::shared_ptr<Distances> d = protein.get_distances();
+    cout << "HI" << endl;
     auto I = d->calc_debye_scattering_intensity();
+    cout << "HI" << endl;
     std::vector<double> q = d->get_xaxis();
+
+    cout << "HI" << endl;
 
     IntensityFitter fitter(argv[2], q, I);
     std::shared_ptr<Fitter::Fit> result = fitter.fit();

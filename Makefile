@@ -12,23 +12,23 @@ source_files := $(addprefix source/, $(shell find source/ -type f -not -wholenam
 .PHONY:
 hydrate/%: build/source/scripts/new_hydration
 	$< data/$* output/$*
-	$(pymol) output/$* -d "show spheres; color orange, hetatm"
+	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 
 .PHONY:
 hist/%: build/source/scripts/hist
-	$< data/$* figures/
+	$< data/$*.pdb figures/
 
 .PHONY:
 main/%: build/source/scripts/main
-	$< data/$* output/filled_volume.pdb
+	$< data/$*.pdb output/filled_volume.pdb
 
 .PHONY:
 optimize_radius/%: build/source/scripts/optimize_radius
-	$< data/$* figures/
+	$< data/$*.pdb figures/
 	
 .PHONY:
-intensity_fit: build/source/scripts/intensity_fitter
-	$< data/2epe.pdb data/Lyz_03m.RSR figures/
+intensity_fit/%: build/source/scripts/intensity_fitter
+	$< data/$*.pdb data/$*.RSR figures/
 
 #################################################################################
 ###				TESTS						 ###

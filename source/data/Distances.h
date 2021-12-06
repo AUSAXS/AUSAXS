@@ -15,8 +15,8 @@ using namespace ROOT;
 
 class Distances {
 public:
-    Distances(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot)
-        : p_pp(p_pp), p_hh(p_hh), p_hp(p_hp), p_tot(p_tot) {setup_bin_dists();}
+    Distances(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
+        : p_pp(p_pp), p_hh(p_hh), p_hp(p_hp), p_tot(p_tot), axes(axes) {setup_bin_dists();}
 
     void setup_bin_dists();
 
@@ -58,6 +58,7 @@ public:
 private:
     vector<double> p_pp, p_hh, p_hp, p_tot; // binned distances
     vector<double> d; // the distance corresponding to each bin
+    vector<int> axes; // the axes used for the binned plots
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 

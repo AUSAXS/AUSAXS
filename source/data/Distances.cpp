@@ -16,7 +16,6 @@ using namespace ROOT;
 
 void Distances::setup_bin_dists() {
     // calculate what distance each bin represents
-    const vector<int>& axes = setting::axes::scattering_intensity_plot_binned;
     d = vector<double>(axes[0], 0);
     double d_width = (double) (axes[2]-axes[1])/axes[0];
     for (int i = 0; i < axes[0]; i++) {
@@ -25,7 +24,6 @@ void Distances::setup_bin_dists() {
 }
 
 vector<shared_ptr<TH1D>> Distances::plot_distance() const {
-    const vector<int> axes = setting::axes::scattering_intensity_plot_binned;
     vector<shared_ptr<TH1D>> hists = {
         std::make_shared<TH1D>("h_pp", "hist", axes[0], axes[1], axes[2]), 
         std::make_shared<TH1D>("h_hh", "hist", axes[0], axes[1], axes[2]), 

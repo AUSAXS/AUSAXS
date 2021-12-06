@@ -1,7 +1,7 @@
 // includes
 #include <vector>
 #include <map>
-#include "boost/format.hpp"
+#include <boost/format.hpp>
 #include <utility>
 #include <algorithm>
 
@@ -19,9 +19,9 @@ using namespace ROOT;
 
 Protein::Protein(string path) {
     // determine which kind of input file we're looking at
-    if (path.find(".xml") != string::npos) { // .xml file
+    if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
         print_err("Error in Protein::Protein: .xml input files are not supported.");
-    } else if (path.find(".pdb") != string::npos) { // .pdb file
+    } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
         file = std::make_shared<PDB_file>(path);
     } else { // anything else - we cannot handle this
         print_err((format("Error in Protein::Protein: Invalid file extension of input file %1%.") % path).str());
@@ -39,7 +39,10 @@ void Protein::save(string path) const {
 void Protein::calc_distances() {
     update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
 
-    const vector<int> axes = setting::axes::scattering_intensity_plot_binned;
+    // generous sizes - 1000Å should be enough for just about any structure
+    vector<int> axes = {(int) (1000/setting::axes::scattering_intensity_plot_binned_width), 0, 1000}; 
+    int max_bin = 0; // keep track of the highest distance stored, so everything else can be removed. 
+
     vector<double> p_pp(axes[0], 0);
     vector<double> p_hh(axes[0], 0);
     vector<double> p_hp(axes[0], 0);
@@ -52,8 +55,11 @@ void Protein::calc_distances() {
             double dist = protein_atoms[i]->distance(protein_atoms[j]);
             double weight = protein_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *protein_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
-            p_pp[std::round(dist/width)] += weight;
-            p_tot[std::round(dist/width)] += weight;
+
+            int index = std::round(dist/width);
+            max_bin = std::max(index, max_bin);
+            p_pp[index] += weight;
+            p_tot[index] += weight;
         }
     }
 
@@ -63,19 +69,30 @@ void Protein::calc_distances() {
             double dist = hydration_atoms[i]->distance(hydration_atoms[j]);
             double weight = hydration_atoms[i]->get_effective_charge()*hydration_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*hydration_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
-            p_hh[std::round(dist/width)] += weight;
-            p_tot[std::round(dist/width)] += weight;
+            int index = std::round(dist/width);
+            max_bin = std::max(index, max_bin);
+            p_hh[index] += weight;
+            p_tot[index] += weight;
         }
         // calculate h-p distances
         for (size_t j = 0; j < protein_atoms.size(); j++) {
             double dist = hydration_atoms[i]->distance(protein_atoms[j]);
             double weight = hydration_atoms[i]->get_effective_charge()*protein_atoms[j]->get_effective_charge()
                 *hydration_atoms[i]->get_occupancy()*protein_atoms[j]->get_occupancy(); // Z1*Z2*w1*w2
-            p_hp[std::round(dist/width)] += weight;
-            p_tot[std::round(dist/width)] += weight;
+            int index = std::round(dist/width);
+            max_bin = std::max(index, max_bin);
+            p_hp[index] += weight;
+            p_tot[index] += weight;
         }
     }
-    this->distances = std::make_shared<Distances>(p_pp, p_hh, p_hp, p_tot);
+
+    axes = {(int) (max_bin/setting::axes::scattering_intensity_plot_binned_width), 0, max_bin}; 
+    cout << axes[0] << ", " << axes[1] << ", " << axes[2] << endl;
+    p_pp.resize(max_bin);
+    p_hh.resize(max_bin);
+    p_hp.resize(max_bin);
+    p_tot.resize(max_bin);
+    this->distances = std::make_shared<Distances>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
 void Protein::generate_new_hydration() {

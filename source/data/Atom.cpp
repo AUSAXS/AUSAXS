@@ -68,7 +68,7 @@ void Atom::parse_pdb(string s) {
         this->resSeq = std::stoi(resSeq);
         this->iCode = iCode;
         this->set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
-        if (occupancy.empty()) {this->occupancy = 0;} else {this->occupancy = std::stod(occupancy);}
+        if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         this->charge = charge;
@@ -76,6 +76,7 @@ void Atom::parse_pdb(string s) {
         print_err("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         exit(1);
     }
+
     this->effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
 
     // DEBUG OUTPUT
