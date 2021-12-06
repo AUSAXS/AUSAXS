@@ -3,23 +3,26 @@
 #include <cmath>
 #include <utility>
 #include <memory>
-#include <fstream>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 
-#include "math/CubicSpline.h"
 #include "Fitter.h"
 
-#include <Math/SpecFuncMathCore.h>
+#include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
 
 using std::vector, std::shared_ptr;
 
+/**
+ * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.
+ */
 class SimpleLeastSquares : public Fitter {
     public:
         SimpleLeastSquares(const vector<double>& x, const vector<double>& y, const vector<double>& y_err) : x(x), y(y), y_err(y_err) {}
         ~SimpleLeastSquares() override {}
 
-        // Perform a least-squares fit of the form y = ax + b
+        /**
+         * @brief Perform a linear least-squares fit and calculate @a only the fitted parameters.
+         *        There are no guarantees on the goodness-of-fit. Use the standard @a fit() instead for that. 
+         * @return The fitted parameters (a, b) for the equation y = ax+b.
+         */
         std::pair<double, double> fit_params_only() {
             S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
             for (size_t i = 0; i < x.size(); i++) {
@@ -37,6 +40,10 @@ class SimpleLeastSquares : public Fitter {
             return std::make_pair(a, b);
         }
 
+        /**
+         * @brief Perform a linear least-squares fit. 
+         * @return A Fit object containing various information for the fit. 
+         */
         virtual shared_ptr<Fit> fit() override {
             if (delta == 0) {fit_params_only();}
             double a_err2 = S/delta; // squared sigmas

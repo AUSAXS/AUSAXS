@@ -13,12 +13,22 @@ class Protein;
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
-class Distances {
+class ScatteringHistogram {
 public:
-    Distances(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
-        : p_pp(p_pp), p_hh(p_hh), p_hp(p_hp), p_tot(p_tot), axes(axes) {setup_bin_dists();}
+    ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
+        : p_pp(p_pp), p_hh(p_hh), p_hp(p_hp), p_tot(p_tot), axes(axes) {setup();}
 
-    void setup_bin_dists();
+    void setup();
+
+    /**
+     * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
+     */
+    void apply_water_scaling_factor(const double& k);
+
+    /**
+     * @brief Removes any scaling applied to the water molecules.
+     */
+    void reset_water_scaling_factor() {apply_water_scaling_factor(1);}
 
     /**
      * @brief Prepare a plot of the distances contained in this class.
@@ -50,14 +60,12 @@ public:
      */
     vector<double> calc_debye_scattering_intensity() const;
 
-    /**
-     * @brief Returns the vector representing the x-axis of q-values. 
-     */
-    vector<double> get_xaxis() const;
+    const vector<double>& q_vals = q;
 
 private:
     vector<double> p_pp, p_hh, p_hp, p_tot; // binned distances
     vector<double> d; // the distance corresponding to each bin
+    vector<double> q; // the q values used as the x-axis
     vector<int> axes; // the axes used for the binned plots
 
     /**

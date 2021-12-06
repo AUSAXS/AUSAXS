@@ -11,6 +11,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
+#include "data/ScatteringHistogram.h"
+
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
 #include <Math/Functor.h>
@@ -33,46 +35,62 @@ public:
      * @param q the model q values.
      * @param I the model I values. 
      */
-    IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
+    // IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
+    // IntensityFitter(string input, ScatteringHistogram& h) : h(h) {setup(input);}
+    IntensityFitter(string input, std::shared_ptr<ScatteringHistogram> h) : h(h), xm(h->q_vals) {setup(input);}
     ~IntensityFitter() override {}
 
     /**
      * @brief Perform the fit.
      * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
      */
-    // shared_ptr<Fit> fit() override {
-    //     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
-    //     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    //     ROOT::Math::Functor functor(f, 2); // declare the function to be minimized and its number of parameters
-    //     minimizer->SetFunction(functor);
-    //     minimizer->SetVariable(0, "a", 0, 1e-4); // scaling factor
-    //     minimizer->SetVariable(1, "b", 0, 1e-4); // background
-    //     minimizer->Minimize();
-    //     const double* res = minimizer->X();
-    //     const double* err = minimizer->Errors();
-
-    //     bool converged = !minimizer->Status();
-    //     std::map<string, double> pars = {{"a", res[0]}, {"b", res[1]}};
-    //     std::map<string, double> errs = {{"a", err[0]}, {"b", err[1]}};
-    //     double funcalls = minimizer->NCalls();
-    //     fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
-    //     minimizer->PrintResults();
-    //     return fitted;
-    // }
-
     shared_ptr<Fit> fit() override {
+        ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
+        auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
+        ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
+        minimizer->SetFunction(functor);
+        minimizer->SetLimitedVariable(0, "c", 1, 1e-4, 0, 10); // scaling factor
+        minimizer->Minimize();
+        const double* res = minimizer->X();
+        const double* err = minimizer->Errors();
+
+        // apply c
+        h->apply_water_scaling_factor(res[0]);
+        vector<double> ym = h->calc_debye_scattering_intensity();
+        vector<double> Im = splice(ym);
+
+        // fit a, b
         SimpleLeastSquares fitter(Im, Io, sigma);
-        fitted = fitter.fit();
+        std::shared_ptr<Fit> ab_fit = fitter.fit();
+        
+        bool converged = !minimizer->Status();
+        std::map<string, double> pars = {{"c", res[0]}, {"a", ab_fit->params["a"]}, {"b", ab_fit->params["b"]}};
+        std::map<string, double> errs = {{"c", err[0]}, {"a", ab_fit->errs["a"]}, {"b", ab_fit->errs["b"]}};
+        double funcalls = minimizer->NCalls();
+        fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
+        minimizer->PrintResults();
         return fitted;
     }
+
+    // shared_ptr<Fit> fit() override {
+    //     SimpleLeastSquares fitter(Im_spliced, Io, sigma);
+    //     fitted = fitter.fit();
+    //     return fitted;
+    // }
 
     vector<shared_ptr<TGraph>> plot() const {
         if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
-        // calculate the scaled I model values
         double a = fitted->params["a"];
         double b = fitted->params["b"];
-        vector<double> I_scaled(qo.size()); // spliced scaled data
+        double c = fitted->params["c"];
+
+        h->apply_water_scaling_factor(c);
+        vector<double> ym = h->calc_debye_scattering_intensity();
+        vector<double> Im = splice(ym);
+
+        // calculate the scaled I model values
+        vector<double> I_scaled(qo.size()); // spliced data
         vector<double> ym_scaled(ym.size()); // original scaled data
         std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
         std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
@@ -89,9 +107,15 @@ public:
     unique_ptr<TGraphErrors> plot_residuals() {
         if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
 
-        // calculate the residuals
         double a = fitted->params["a"];
         double b = fitted->params["b"];
+        double c = fitted->params["c"];
+
+        h->apply_water_scaling_factor(c);
+        vector<double> ym = h->calc_debye_scattering_intensity();
+        vector<double> Im = splice(ym);
+
+        // calculate the residuals
         vector<double> residuals(qo.size());
         for (size_t i = 0; i < qo.size(); ++i) {
             residuals[i] = ((Io[i] - a*Im[i]-b)/sigma[i]);
@@ -105,24 +129,32 @@ public:
 
 private: 
     shared_ptr<Fit> fitted;
+    std::shared_ptr<ScatteringHistogram> h;
     vector<double> qo; // observed q values
     vector<double> Io; // observed I values
-    vector<double> Im; // model I values
     vector<double> sigma; // error in Io
 
-    vector<double>& xm; // full model x data
-    vector<double>& ym; // full model y data
+    const vector<double> &xm; // full x and y data from the model
 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.
      */
     double chi2(const double* params) const {
-        double k = params[0];
-        double a = params[1];
+        double c = params[0];
+
+        // apply c
+        h->apply_water_scaling_factor(c);
+        vector<double> ym = h->calc_debye_scattering_intensity();
+        vector<double> Im = splice(ym);
+
+        // fit a, b
+        SimpleLeastSquares fitter(Im, Io, sigma);
+        auto[a, b] = fitter.fit_params_only();
+
+        // calculate chi2
         double chi = 0;
         for (size_t i = 0; i < qo.size(); i++) {
-            double I = k*Im[i] + a;
-            chi += pow((Io[i] - I)/sigma[i], 2);
+            chi += pow((Io[i] - a*Im[i]-b)/sigma[i], 2);
         }
         return chi;
     }
@@ -130,19 +162,22 @@ private:
     /**
      * @brief Prepare this class for fitting.
      * @param file measured values to compare the model against.
-     * @param x model q values.
-     * @param y model I values.
      */
-    void setup(string file, vector<double>& x, vector<double>& y) {
-        std::tie(qo, Io, sigma) = read(file); // observed values
+    void setup(string file) {
+        std::tie(qo, Io, sigma) = read(file); // read observed values from input file
+    }
 
-        // since our model is not analytically derived, we cannot evaluate it at any random point we'd like
-        // thus we have to interpolate 
-        Im = vector<double>(qo.size()); // model values
-        CubicSpline s(x, y);
+    /**
+     * @brief Splice values from the model to fit the evaluation points defined by the q values of the input file. 
+     * @param ym the model y-values corresponding to xm
+     */
+    vector<double> splice(const vector<double>& ym) const {
+        vector<double> Im = vector<double>(qo.size()); // spliced model values
+        CubicSpline s(xm, ym);
         for (size_t i = 0; i < qo.size(); ++i) {
             Im[i] = s.spline(qo[i]);
         }
+        return Im;
     }
 
     std::tuple<vector<double>, vector<double>, vector<double>> read(string file) const {

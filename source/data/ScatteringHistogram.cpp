@@ -1,4 +1,4 @@
-#include "Distances.h"
+#include "ScatteringHistogram.h"
 #include "settings.h"
 #include "constants.h"
 
@@ -14,16 +14,29 @@
 using std::cout, std::endl;
 using namespace ROOT;
 
-void Distances::setup_bin_dists() {
+void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
     d = vector<double>(axes[0], 0);
     double d_width = (double) (axes[2]-axes[1])/axes[0];
     for (int i = 0; i < axes[0]; i++) {
         d[i] = axes[1] + d_width*i;
     }    
+
+    // prepare the q values for the intensity calculations
+    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
+    q = vector<double>(debye_axes[0]);
+    double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
+    for (int i = 0; i < debye_axes[0]; i++) {
+        q[i] = debye_axes[1] + i*debye_width;
+    }
 }
 
-vector<shared_ptr<TH1D>> Distances::plot_distance() const {
+void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
+    double k2 = pow(k, 2);
+    for (int i = 0; i < axes[0]; i++) {p_tot[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];}
+}
+
+vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
     vector<shared_ptr<TH1D>> hists = {
         std::make_shared<TH1D>("h_pp", "hist", axes[0], axes[1], axes[2]), 
         std::make_shared<TH1D>("h_hh", "hist", axes[0], axes[1], axes[2]), 
@@ -41,7 +54,7 @@ vector<shared_ptr<TH1D>> Distances::plot_distance() const {
     return hists;
 }
 
-unique_ptr<TH1D> Distances::plot_debye_scattering() const {
+unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     vector<double> Iq = calc_debye_scattering_intensity();
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axes[0], debye_axes[1], debye_axes[2]);
@@ -53,27 +66,25 @@ unique_ptr<TH1D> Distances::plot_debye_scattering() const {
     return h;
 }
 
-vector<double> Distances::calc_debye_scattering_intensity() const {
+vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
 
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(debye_axes[0], 0);
-    double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
-        double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
         for (size_t j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
-            if (q*d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
+            if (q[i]*d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
                 Iq[i] += p_tot[j];
             } else {
-                Iq[i] += p_tot[j]*sin(q*d[j])/(q*d[j]);
+                Iq[i] += p_tot[j]*sin(q[i]*d[j])/(q[i]*d[j]);
             }
         }
     }
     return Iq;
 }
 
-unique_ptr<TH1D> Distances::plot_guinier_approx() const {
+unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
     vector<double> Iq = calc_guinier_approx();
 
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
@@ -86,7 +97,7 @@ unique_ptr<TH1D> Distances::plot_guinier_approx() const {
     return h;
 }
 
-double Distances::calc_guinier_gyration_ratio_squared() const {
+double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     double num = 0, denom = 0;
     for (size_t i = 0; i < p_tot.size(); i++) {
         num += p_tot[i]*pow(d[i], 2);
@@ -95,27 +106,15 @@ double Distances::calc_guinier_gyration_ratio_squared() const {
     return num/denom;
 }
 
-vector<double> Distances::calc_guinier_approx() const {
+vector<double> ScatteringHistogram::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
     vector<double> Iq(debye_axes[0], 0);
-    double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     double log_conv = log10(exp(1)); // we have to convert natural log to log10
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
-        double q = debye_axes[1] + i*debye_width; // set the q value for this iteration
-        Iq[i] = -pow(q, 2)*Rg2/3*log_conv;
+        Iq[i] = -pow(q[i], 2)*Rg2/3*log_conv;
     }
 
     return Iq;
-}
-
-vector<double> Distances::get_xaxis() const {
-    const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
-    vector<double> x(debye_axes[0], 0);
-    double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
-    for (int i = 0; i < debye_axes[0]; i++) {
-        x[i] = debye_axes[1] + i*debye_width;
-    }
-    return x;
 }

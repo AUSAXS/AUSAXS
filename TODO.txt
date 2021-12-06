@@ -1,15 +1,12 @@
 Implement the hydration algorithm. 
-	- Ray-tracing placement of water molecules
-	- Change collision_checker from nlogn to const in grid size
 	- consider how to improve culling method
-	- Calculate volume based on aminosyrer (the sequence letters in pymol)
 	- Test it on a bunch of different .pdb files (6YG9)
 
 Grid:
 	- Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
 
-General: 
-	- Add destructors to avoid memory leaks
+Slices:
+	- Instead of operating on *Matrix, it should operator on its &vector data to avoid dereferencing
 
 Bundle all dependencies to make them easier to install
     - ROOT, Boost

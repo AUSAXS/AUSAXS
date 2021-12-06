@@ -1,7 +1,7 @@
 #pragma once
 
 // forwards declaration
-class Distances;
+class ScatteringHistogram;
 
 // includes
 #include <vector>
@@ -13,7 +13,7 @@ class Distances;
 #include "hydrate/Grid.h"
 #include "data/File.h"
 #include "data/constants.h"
-#include "data/Distances.h"
+#include "data/ScatteringHistogram.h"
 
 using std::vector, std::string, std::unique_ptr;
 using namespace ROOT;
@@ -33,7 +33,7 @@ public:
     /**
      * @brief Get the distances between each atom.
      */
-    shared_ptr<Distances> get_distances();
+    shared_ptr<ScatteringHistogram> get_distances();
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this protein. Note that the previous one will be deleted.
@@ -102,7 +102,7 @@ private:
     vector<shared_ptr<Hetatom>> hydration_atoms; // hydration layer
     shared_ptr<File> file; // the file backing this protein
     shared_ptr<Grid> grid = nullptr; // the grid representation of this protein
-    shared_ptr<Distances> distances = nullptr; // an object representing the distances between atoms
+    shared_ptr<ScatteringHistogram> distances = nullptr; // an object representing the distances between atoms
 
     /** Move the entire protein by a vector.
      * @param v the translation vector

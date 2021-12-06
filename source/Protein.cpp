@@ -92,7 +92,7 @@ void Protein::calc_distances() {
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    this->distances = std::make_shared<Distances>(p_pp, p_hh, p_hp, p_tot, axes);
+    this->distances = std::make_shared<ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
 void Protein::generate_new_hydration() {
@@ -172,7 +172,7 @@ void Protein::create_grid() {
     grid->add(hydration_atoms);
 }
 
-shared_ptr<Distances> Protein::get_distances() {
+shared_ptr<ScatteringHistogram> Protein::get_distances() {
     if (distances == nullptr) {calc_distances();}
     return distances;
 }
