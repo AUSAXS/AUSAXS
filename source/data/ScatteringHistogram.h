@@ -16,7 +16,7 @@ using namespace ROOT;
 class ScatteringHistogram {
 public:
     ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
-        : p_pp(p_pp), p_hh(p_hh), p_hp(p_hp), p_tot(p_tot), axes(axes) {setup();}
+        : _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp), _p_tot(p_tot), axes(axes) {setup();}
 
     void setup();
 
@@ -60,12 +60,16 @@ public:
      */
     vector<double> calc_debye_scattering_intensity() const;
 
-    const vector<double>& q_vals = q;
+    const vector<double>& q = _q;
+    const vector<double>& p_pp = _p_pp;
+    const vector<double>& p_hh = _p_hh;
+    const vector<double>& p_hp = _p_hp;
+    const vector<double>& p_tot = _p_tot;
 
 private:
-    vector<double> p_pp, p_hh, p_hp, p_tot; // binned distances
+    vector<double> _p_pp, _p_hh, _p_hp, _p_tot; // binned distances
     vector<double> d; // the distance corresponding to each bin
-    vector<double> q; // the q values used as the x-axis
+    vector<double> _q; // the q values used as the x-axis
     vector<int> axes; // the axes used for the binned plots
 
     /**

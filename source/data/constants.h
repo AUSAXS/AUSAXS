@@ -358,12 +358,32 @@ namespace constants {
             constexpr int CD = 2;
             const std::map<string, int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG", CG}, {"CD", CD}};
         }
+        namespace myristic_acid {
+            constexpr int C1 = 0;
+            constexpr int O1 = 0;
+            constexpr int O2 = 1;
+            constexpr int C2 = 2;
+            constexpr int C3 = 2;
+            constexpr int C4 = 2;
+            constexpr int C5 = 2;
+            constexpr int C6 = 2;
+            constexpr int C7 = 2;
+            constexpr int C8 = 2;
+            constexpr int C9 = 2;
+            constexpr int C10 = 2;
+            constexpr int C11 = 2;
+            constexpr int C12 = 2;
+            constexpr int C13 = 2;
+            constexpr int C14 = 3;
+            const std::map<string, int> get = {{"C1", C1}, {"O1", O1}, {"O2", O2}, {"C2", C2}, {"C3", C3}, {"C4", C4}, {"C5", C5}, {"C6", C6}, {"C7", C7},
+                {"C8", C8}, {"C9", C9}, {"C10", C10}, {"C11", C11}, {"C12", C12}, {"C13", C13}, {"C14", C14}};
+        }
 
         // get the number of hydrogen atoms attached to an atom of a specific acid. Example: get.at("GLY").at("CA") = 2
         const std::map<string, std::map<string, int>> get = {{"GLY", glycine::get}, {"ALA", alanine::get}, {"VAL", valine::get}, 
             {"LEU", leucine::get}, {"ILE", isoleucine::get}, {"PHE", phenylalanine::get}, {"TYR", tyrosine::get}, {"TRP", tryptophan::get}, 
             {"ASP", aspartic_acid::get}, {"GLU", glutamic_acid::get}, {"SER", serine::get}, {"THR", threonine::get}, {"ASN", asparagine::get}, 
             {"GLN", glutamine::get}, {"LYS", lysine::get}, {"ARG", arginine::get}, {"HIS", histidine::get}, {"MET", methionine::get}, 
-            {"CYS", cysteine::get}, {"PRO", proline::get}, {"HOH", water::get}};
+            {"CYS", cysteine::get}, {"PRO", proline::get}, {"HOH", water::get}, {"MYR", myristic_acid::get}};
     }
 }

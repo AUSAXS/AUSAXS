@@ -150,7 +150,7 @@ public:
     };
 
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<const Atom, vector<int>> members; // a map of all members of this grid and where they are located
+    std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // radius of each atom represented as a number of bins
     int rh = 0; // radius of each water molecule represented as a number of bins

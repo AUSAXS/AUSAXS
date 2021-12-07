@@ -44,12 +44,12 @@ public:
     /**
      * @brief Get a pointer to the protein atoms.
      */
-    vector<Atom>* get_protein_atoms() {return &protein_atoms;}
+    const vector<Atom>& get_protein_atoms() {return protein_atoms;}
 
     /**
      * @brief Get a pointer to the hydration atoms.
      */
-    vector<Hetatom>* get_hydration_atoms() {return &hydration_atoms;}
+    const vector<Hetatom>& get_hydration_atoms() {return hydration_atoms;}
 
     /** Calculate the center-mass coordinates for the protein.
      * @return The center-mass (x, y, z) coordinates. 
@@ -92,18 +92,17 @@ public:
      */
     double get_mass() const;
 
-protected: 
-    /**
-     * @brief Create a grid and fill it with the atoms of this protein. 
-     */
-    void create_grid();
-
 private:
-    shared_ptr<File> file; // the file backing this protein
+    shared_ptr<File> file = nullptr; // the file backing this protein
     vector<Atom>& protein_atoms; // atoms of the protein itself
     vector<Hetatom>& hydration_atoms; // hydration layer
     shared_ptr<Grid> grid = nullptr; // the grid representation of this protein
     shared_ptr<ScatteringHistogram> distances = nullptr; // an object representing the distances between atoms
+
+    /**
+     * @brief Create a grid and fill it with the atoms of this protein. 
+     */
+    void create_grid();
 
     /** Move the entire protein by a vector.
      * @param v the translation vector

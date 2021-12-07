@@ -160,19 +160,18 @@ void test_hydrate() {
     Grid grid(base, width, bins, radius);
 
     setting::grid::percent_water = 0;
-    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
-    vector<shared_ptr<Atom>> a = {atom};
+    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
-    vector<shared_ptr<Hetatom>> water = grid.hydrate();
+    vector<Hetatom> water = grid.hydrate();
 
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
-        IS_TRUE(water[0]->get_coords() == Vector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(water[1]->get_coords() == Vector3({6, 0, 0})); // (2r, 0, 0)
-        IS_TRUE(water[2]->get_coords() == Vector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(water[3]->get_coords() == Vector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(water[4]->get_coords() == Vector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(water[5]->get_coords() == Vector3({0, 0, 6})); // (0, 0, 2r)
+        IS_TRUE(water[0].get_coords() == Vector3({-6, 0, 0})); // (-2r, 0, 0)
+        IS_TRUE(water[1].get_coords() == Vector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[2].get_coords() == Vector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(water[3].get_coords() == Vector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(water[4].get_coords() == Vector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(water[5].get_coords() == Vector3({0, 0, 6})); // (0, 0, 2r)
     }
 }
 
@@ -183,8 +182,7 @@ void test_width() {
     int radius = 3;
     Grid grid(base, width, bins, radius);
 
-    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
-    vector<shared_ptr<Atom>> a = {atom};
+    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
     vector<vector<vector<char>>> &g = grid.grid;
 
@@ -193,24 +191,21 @@ void test_width() {
 
     // check water generation
     setting::grid::percent_water = 0;
-    vector<shared_ptr<Hetatom>> water = grid.hydrate();
+    vector<Hetatom> water = grid.hydrate();
     IS_TRUE(water.size() == 6);
     if (water.size() == 6) { // avoid crashing if the above fails
-        IS_TRUE(water[0]->get_coords() == Vector3({-6, 0, 0})); // (-2r, 0, 0)
-        IS_TRUE(water[1]->get_coords() == Vector3({6, 0, 0})); // (2r, 0, 0)
-        IS_TRUE(water[2]->get_coords() == Vector3({0, -6, 0})); // (0, -2r, 0)
-        IS_TRUE(water[3]->get_coords() == Vector3({0, 6, 0})); // (0, 2r, 0)
-        IS_TRUE(water[4]->get_coords() == Vector3({0, 0, -6})); // (0, 0, -2r)
-        IS_TRUE(water[5]->get_coords() == Vector3({0, 0, 6})); // (0, 0, 2r)
+        IS_TRUE(water[0].get_coords() == Vector3({-6, 0, 0})); // (-2r, 0, 0)
+        IS_TRUE(water[1].get_coords() == Vector3({6, 0, 0})); // (2r, 0, 0)
+        IS_TRUE(water[2].get_coords() == Vector3({0, -6, 0})); // (0, -2r, 0)
+        IS_TRUE(water[3].get_coords() == Vector3({0, 6, 0})); // (0, 2r, 0)
+        IS_TRUE(water[4].get_coords() == Vector3({0, 0, -6})); // (0, 0, -2r)
+        IS_TRUE(water[5].get_coords() == Vector3({0, 0, 6})); // (0, 0, 2r)
     }
 
     // test bounds
     grid = Grid(base, width, bins, 3);
 
-    shared_ptr<Atom> a1 = std::make_shared<Atom>(Atom({5, 0, -7}, 0, "C", "", 1));
-    shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, -5, 0}, 0, "C", "", 2));
-    a = {a1, a2};
-
+    a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
     grid.add(a);
     grid.expand_volume();
     g = grid.grid;
@@ -231,9 +226,9 @@ void test_remove() {
     int radius = 3;
     Grid grid(base, width, bins, radius);
 
-    shared_ptr<Atom> a1 = std::make_shared<Atom>(Atom({3, 0, 0}, 0, "C", "", 1));
-    shared_ptr<Atom> a2 = std::make_shared<Atom>(Atom({0, 3, 0}, 0, "C", "", 2));
-    vector<shared_ptr<Atom>> a = {a1, a2};
+    Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
+    Atom a2 = Atom({0, 3, 0}, 0, "C", "", 2);
+    vector<Atom> a = {a1, a2};
     grid.add(a);
     grid.expand_volume();
     grid.remove(a1);
@@ -259,16 +254,15 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     int radius = 3;
     Grid grid(base, width, bins, radius, radius, ch, setting::grid::csc);
 
-    shared_ptr<Atom> atom = std::make_shared<Atom>(Atom({0, 0, 0}, 0, "C", "", 0));
-    vector<shared_ptr<Atom>> a = {atom};
+    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
     grid.expand_volume();
 
-    vector<shared_ptr<Hetatom>> locs = grid.find_free_locs();
+    vector<Hetatom> locs = grid.find_free_locs();
     IS_TRUE(locs.size() == 6);
-    for (int i = 0; i < locs.size(); i++) {
-        cout << format("%1%\t%2%\t%3%") % locs[i]->get_x() % locs[i]->get_y() % locs[i]->get_z() << endl;
-    }
+    // for (int i = 0; i < locs.size(); i++) {
+    //     cout << format("%1%\t%2%\t%3%") % locs[i].get_x() % locs[i].get_y() % locs[i].get_z() << endl;
+    // }
 
     // since this needs to work with different placement strategies, we have to perform a more general check on the positions
     vector<Vector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
@@ -276,7 +270,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
         for (const auto& l : locs) {
             bool found = false;
             for (const auto& p : v) {
-                if (l->get_coords() == p) {found = true;}
+                if (l.get_coords() == p) {found = true;}
             }
             IS_TRUE(found);
         }

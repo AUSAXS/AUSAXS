@@ -24,7 +24,7 @@ public:
     // Assignment operator, w = v
     Vector& operator=(const Vector& v) {
         _N = v.N;
-        _data.assign(v.begin(), v.end());
+        _data = v.data;
         return *this;
     }
 

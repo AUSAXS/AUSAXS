@@ -17,10 +17,7 @@ using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 using namespace ROOT;
 
-void Protein::save(string path) {
-    file->update(protein_atoms, hydration_atoms); // update the File backing this Protein with our new atoms
-    file->write(path); // write to disk
-}
+void Protein::save(string path) {file->write(path);}
 
 void Protein::calc_distances() {
     update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
@@ -182,13 +179,13 @@ void Protein::update_effective_charge() {
     double displaced_charge = constants::charge::density::water*displaced_vol;
     double charge_per_atom = -displaced_charge/protein_atoms.size();
     cout << "Added " << charge_per_atom << " additional charge to each protein atom." << endl;
-    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge_per_atom] (const shared_ptr<Atom>& a) {a->add_effective_charge(charge_per_atom);});
+    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge_per_atom] (Atom& a) {a.add_effective_charge(charge_per_atom);});
 }
 
 double Protein::get_mass() const {
     double M = 0;
-    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const shared_ptr<Atom>& a) {M += a->get_mass();});
-    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const shared_ptr<Hetatom>& a) {M += a->get_mass();});
+    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
+    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});
     cout << "Protein mass is " << M*constants::unit::gm << endl;
     return M*constants::unit::gm;
 }

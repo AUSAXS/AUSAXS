@@ -23,16 +23,15 @@ public:
     /** 
      * @brief Constructor for the PDB_file class. 
      */
-    PDB_file(string filename) : File(filename) {
-        read();
-    }
+    PDB_file(string filename) : File(filename) {read();}
     ~PDB_file() override {}
     
     /**
      * @brief write this File to disk. 
      * @param path the output path.
      */
-    void write(string path) const override {
+    void write(string path) override {
+        refresh();
         std::ofstream output(path);
         if (!output.is_open()) {throw std::ios_base::failure("Error in PDB_file::write: Could not open file \"" + path + "\"");}
         output << as_pdb() << std::flush;

@@ -52,6 +52,12 @@ void test_vector3() {
     IS_TRUE(a == Vector3({-1, -2, -3}));
     v.x = 0;
     IS_TRUE(v == Vector3({0, 7, 9}));
+
+    {
+        Vector3 b = {1, 2, 3};
+        a = b;
+    }
+    IS_TRUE(a == Vector3({1, 2, 3}));
 }
 
 void test_vector() {
@@ -108,8 +114,8 @@ void test_matrix() {
     IS_TRUE(B*v == Vector({10, 16}));
 
     {
-        Matrix C = {{6, 5, 4}, {3, 2, 1}};
-        B = C;
+        Matrix D = {{6, 5, 4}, {3, 2, 1}};
+        B = D;
     }
     IS_TRUE(B == Matrix({{6, 5, 4}, {3, 2, 1}})); // assignment is not by reference
 

@@ -42,7 +42,7 @@ public:
     // Assignment operator, B = A
     Matrix& operator=(const Matrix& A) {
         _N = A.N; _M = A.M;
-        _data.assign(A.begin(), A.end());
+        _data = A.data;
         return *this;
     }
 

@@ -18,7 +18,7 @@ public:
             return placed_water;
         }
 
-        vector<std::pair<Hetatom&, int>> v(placed_water.size());
+        vector<std::pair<Hetatom, int>> v(placed_water.size());
         const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
         const vector<int> bins = grid->get_bins();
         const vector<vector<vector<char>>>& gref = grid->grid;

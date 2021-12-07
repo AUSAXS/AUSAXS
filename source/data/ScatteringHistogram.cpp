@@ -24,16 +24,16 @@ void ScatteringHistogram::setup() {
 
     // prepare the q values for the intensity calculations
     const vector<double>& debye_axes = setting::axes::scattering_intensity_plot_axes;
-    q = vector<double>(debye_axes[0]);
+    _q = vector<double>(debye_axes[0]);
     double debye_width = (double) (debye_axes[2]-debye_axes[1])/debye_axes[0];
     for (int i = 0; i < debye_axes[0]; i++) {
-        q[i] = debye_axes[1] + i*debye_width;
+        _q[i] = debye_axes[1] + i*debye_width;
     }
 }
 
 void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
     double k2 = pow(k, 2);
-    for (int i = 0; i < axes[0]; i++) {p_tot[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];}
+    for (int i = 0; i < axes[0]; i++) {_p_tot[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];}
 }
 
 vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {

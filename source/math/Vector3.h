@@ -5,15 +5,15 @@
 
 class Vector3 : public Vector {
 public:
-    using Vector::Vector;
-    Vector3(const Vector3&) = default;
-    Vector3() : Vector(3) {}
-    Vector3(Vector v) : Vector(v) {}
+    Vector3(const Vector3& v) : Vector(v.data) {} // copy constructor
+    Vector3() : Vector(3) {} // default empty constructor
+    Vector3(const std::initializer_list<double> l) : Vector(l) {} // initializer list {a, b, c, d}
+    Vector3(const Vector& v) : Vector(v) {}
     Vector3(double x, double y, double z) : Vector({x, y, z}) {}
     ~Vector3() override {}
 
     Vector3& operator=(const Vector3& v) {
-        _data.assign(v.begin(), v.end());
+        _data = v.data;
         return *this;
     }
 

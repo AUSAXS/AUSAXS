@@ -40,10 +40,10 @@ void test_calc_distances() {
     Protein protein("temp_dist.pdb");
     remove("temp_dist.pdb");
 
-    shared_ptr<Distances> d = protein.get_distances();
-    IS_TRUE(d->d_pp.size() == 6);
-    IS_TRUE(d->d_hh.size() == 3);
-    IS_TRUE(d->d_hp.size() == 12);
+    shared_ptr<ScatteringHistogram> d = protein.get_distances();
+    IS_TRUE(d->p_pp.size() == 6);
+    IS_TRUE(d->p_hh.size() == 3);
+    IS_TRUE(d->p_hp.size() == 12);
 }
 
 void test_get_cm() {
