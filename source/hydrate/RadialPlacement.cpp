@@ -89,21 +89,21 @@ public:
     vector<vector<int>> rot_bins_7rh; // rotation bins at 7rh radius
     vector<vector<int>> rot_bins_rarh; // rotation bins at rarh radius
 
-    vector<shared_ptr<Hetatom>> place() const override {
+    vector<Hetatom> place() const override {
         // dereference the values we'll need for better performance
         const vector<int> bins = grid->get_bins();
         vector<vector<vector<char>>>& gref = grid->grid;
 
         // we define a helper lambda
-        vector<shared_ptr<Hetatom>> placed_water;
+        vector<Hetatom> placed_water;
         auto add_loc = [&] (const vector<int> v) {
-            shared_ptr<Hetatom> a = Hetatom::create_new_water(grid->to_xyz(v));
+            Hetatom a = Hetatom::create_new_water(grid->to_xyz(v));
             grid->add(a);
             grid->expand_volume(a);
             placed_water.push_back(a);
         };
 
-        vector<shared_ptr<Atom>> atoms = grid->get_protein_atoms();
+        vector<Atom> atoms = grid->get_protein_atoms();
         for (auto const& a : atoms) {
             const vector<int>& loc = grid->members.at(a);
             const int x = loc[0], y = loc[1], z = loc[2];

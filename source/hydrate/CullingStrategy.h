@@ -26,7 +26,7 @@ public:
      * @brief Cull the water molecules.
      * @return The remaining molecules after the culling.
      */
-    virtual vector<shared_ptr<Hetatom>> cull(vector<shared_ptr<Hetatom>> placed_water) const = 0;
+    virtual vector<Hetatom> cull(vector<Hetatom>& placed_water) const = 0;
 
     /**
      * @brief Set the desired number of molecules after the culling. 

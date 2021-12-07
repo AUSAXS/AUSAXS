@@ -11,16 +11,16 @@ public:
     using PlacementStrategy::PlacementStrategy; // inherit constructor
     ~AxesPlacement() override {}
 
-    vector<shared_ptr<Hetatom>> place() const override {
+    vector<Hetatom> place() const override {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();
         const int ra = grid->ra; const int rh = grid->rh;
 
         // we define two helper functions so I can make the checks in the inner loop one-liners
-        vector<shared_ptr<Hetatom>> placed_water;
+        vector<Hetatom> placed_water;
         auto add_loc = [&] (const vector<int> v) {
-            shared_ptr<Hetatom> a = Hetatom::create_new_water(grid->to_xyz(v));
+            Hetatom a = Hetatom::create_new_water(grid->to_xyz(v));
             grid->add(a);
             grid->expand_volume(a);
             placed_water.push_back(a);
@@ -28,7 +28,7 @@ public:
 
         // loop over the location of all member atoms
         int r_eff = ra+rh;
-        vector<shared_ptr<Atom>> atoms = grid->get_protein_atoms();
+        vector<Atom> atoms = grid->get_protein_atoms();
         for (auto const& a : atoms) {
             const vector<int>& loc = grid->members.at(a);
             const int x = loc[0], y = loc[1], z = loc[2];

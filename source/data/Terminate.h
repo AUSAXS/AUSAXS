@@ -11,6 +11,9 @@ using std::string, std::left, std::right, std::setw;
 
 class Terminate : public Record {
 public: 
+    int serial, resSeq;
+    string resName, chainID, iCode;
+
     Terminate(int serial, string resName, string chainID, int resSeq, string iCode) {
         this->serial = serial;
         this->resName = resName;
@@ -95,8 +98,4 @@ public:
     }
     
     inline void set_serial(const int serial) {this->serial = serial;}
-
-private:
-    int serial, resSeq;
-    string resName, chainID, iCode;
 };

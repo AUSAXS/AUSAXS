@@ -7,6 +7,7 @@
 class Hetatom : public Atom {
 public:
     using Atom::Atom; // inherit constructors from Atom
+    Hetatom(const Atom& a) : Atom(std::move(a)) {}
     ~Hetatom() override {}
 
     RecordType get_type() const override {return HETATM;}
@@ -20,7 +21,7 @@ public:
     /**
      * @brief Create a new default water atom.
      */
-    static shared_ptr<Hetatom> create_new_water() {
+    static Hetatom create_new_water() {
         return create_new_water({0, 0, 0});
     }
 
@@ -28,7 +29,7 @@ public:
      * @brief Create a new water atom.
      * @param coords the coordinates for the new atom.
      */
-    static shared_ptr<Hetatom> create_new_water(Vector3 coords) {
-        return std::make_shared<Hetatom>(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
+    static Hetatom create_new_water(Vector3 coords) {
+        return Hetatom(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
     }
 };

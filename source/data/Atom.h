@@ -101,9 +101,12 @@ public:
     /** 
      * @brief Calculate the distance to another atom. 
      */
-    double distance(const shared_ptr<Atom> a) {
-        return coords.distance(a->get_coords());
-    }
+    double distance(const shared_ptr<Atom> a) {return coords.distance(a->get_coords());}
+
+    /** 
+     * @brief Calculate the distance to another atom. 
+     */
+    double distance(const Atom& a) {return coords.distance(a.get_coords());}
 
     /** 
      * @brief Prints the contents of this object to the terminal. (NOT FULLY IMPLEMENTED!)

@@ -10,7 +10,7 @@ public:
     ~CounterCulling() override {}
 
     // runs in O(n) where n is the number of water molecules
-    vector<shared_ptr<Hetatom>> cull(vector<shared_ptr<Hetatom>> placed_water) const override {
+    vector<Hetatom> cull(vector<Hetatom>& placed_water) const override {
         if (target_count == 0) {
             return placed_water;
         }
@@ -20,7 +20,7 @@ public:
             return placed_water;
         }
 
-        vector<shared_ptr<Hetatom>> final_water(placed_water.size(), nullptr); // the final water molecules that will be used
+        vector<Hetatom> final_water(placed_water.size()); // the final water molecules that will be used
         int c = 0; // counter
         int i = 0; // index
         for (const auto& a : placed_water) {

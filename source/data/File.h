@@ -23,13 +23,61 @@ public:
 
     Header header;
     Footer footer;
-    vector<shared_ptr<Record>> contents;
+    Terminate terminate;
+    vector<Atom> protein_atoms;
+    vector<Hetatom> hydration_atoms;
 
     /**
      * @brief Update the contents of this File to reflect the input Protein.
      * @param protein the protein to use.
      */
-    virtual void update(vector<shared_ptr<Atom>> protein_atoms, vector<shared_ptr<Hetatom>> hydration_atoms) = 0;
+    void update(vector<Atom>& patoms, vector<Hetatom>& hatoms) {
+        protein_atoms = patoms;
+        hydration_atoms = hatoms;
+        refresh();
+    }
+
+    /**
+     * @brief This method guarantees that the File is in a valid state for printing.
+     */
+    void refresh() {
+        bool terminate_inserted = false;
+        string chainID = "0"; int resSeq = 0; int serial = protein_atoms[0].get_serial();
+
+        auto insert_ter = [&] () {
+            // last atom before the terminate
+            // we need this to determine what chainID and resSeq to use for the terminate and hetatms
+            const Atom& a = protein_atoms[serial-1];
+            chainID = a.get_chainID();
+            resSeq = a.get_resSeq();
+            if (serial != 0) {terminate = Terminate(serial+1, a.get_resName(), a.get_chainID(), a.get_resSeq(), " ");}
+            terminate_inserted = true;
+        };
+
+        for (auto& a : protein_atoms) {
+            if (!terminate_inserted && a.get_type() == Record::RecordType::HETATM) {
+                insert_ter();
+                serial++;
+            }
+            a.set_serial(serial+1); // fix possible errors in the serial
+            serial++;
+        }
+
+        if (!terminate_inserted) {
+            insert_ter();
+            serial++;
+        }
+
+        chainID = protein_atoms[protein_atoms.size()].get_chainID();
+        resSeq = protein_atoms[protein_atoms.size()].get_resSeq();
+        for (auto& a : hydration_atoms) {
+            a.set_serial(serial+1);
+            a.set_resSeq(resSeq);
+            a.set_chainID(chainID);
+            resSeq++;
+            serial++;
+        }
+    }
 
     /**
      * @brief Read the file backing this File object. 
@@ -44,77 +92,13 @@ public:
 
     /**
      * @brief Get the protein atoms contained in this File. 
-     * @return The atoms from this file. 
      */
-    virtual vector<shared_ptr<Atom>> get_protein_atoms() const {
-        vector<shared_ptr<Atom>> atoms;
-        for (auto const& r : contents) {
-            if (r->get_type() == Record::ATOM) {
-                shared_ptr<Atom> a = std::static_pointer_cast<Atom>(r);
-                if (!a->is_water()) {
-                    atoms.push_back(a);
-                }
-            }
-        }
-        return atoms;
-    };
+    const vector<Atom>& get_protein_atoms() const {return protein_atoms;}
 
     /**
      * @brief Get the hydration atoms contained in this File. 
-     * @return The atoms from this file. 
      */
-    virtual vector<shared_ptr<Atom>> get_hydration_atoms() const {
-        vector<shared_ptr<Atom>> atoms;
-        for (auto const& r : contents) {
-            if (r->get_type() == Record::ATOM) {
-                shared_ptr<Atom> a = std::static_pointer_cast<Atom>(r);
-                if (a->is_water()) {
-                    atoms.push_back(a);
-                }
-            }
-        }
-        return atoms;
-    };
-
-    /**
-     * @brief Get the atoms contained in this File. 
-     * @return A pair of [protein, hydration] atoms contained in this File. 
-     */
-    std::pair<vector<shared_ptr<Atom>>, vector<shared_ptr<Hetatom>>> get_atoms() const {
-        vector<shared_ptr<Atom>> protein_atoms(contents.size());
-        vector<shared_ptr<Hetatom>> hydration_atoms(contents.size());
-        int c_pro = 0, c_hyd = 0; // counters 
-        for (auto const& r : contents) {
-            switch (r->get_type()) {
-                case Record::RecordType::ATOM: {
-                    shared_ptr<Atom> a = std::static_pointer_cast<Atom>(r);
-                    protein_atoms[c_pro] = a;
-                    c_pro++;
-                    break;
-                }
-                case Record::RecordType::HETATM: {
-                    shared_ptr<Hetatom> a = std::static_pointer_cast<Hetatom>(r);
-                    if (a->is_water()) {
-                        hydration_atoms[c_hyd] = a;
-                        c_hyd++;
-                    } else {
-                        protein_atoms[c_pro] = a;
-                        c_pro++;
-                    }
-                    break;
-                }
-                case Record::RecordType::TERMINATE: {
-                    break;
-                }
-                default: {
-                    throw std::runtime_error("This should never happen.");
-                }
-            };
-        }
-        protein_atoms.resize(c_pro);
-        hydration_atoms.resize(c_hyd);
-        return std::make_pair(protein_atoms, hydration_atoms);
-    }
+    const vector<Hetatom> get_hydration_atoms() const {return hydration_atoms;}
 
     /**
      * @brief Create a string representation of this File.
@@ -123,9 +107,19 @@ public:
     string as_pdb() const {
         string s;
         s += header.get();
-        for (size_t i = 0; i < contents.size(); i++) {
-            s += contents[i]->as_pdb();
+
+        size_t i_ter = terminate.serial;
+        bool printed_ter = false;
+        for (size_t i = 0; i < protein_atoms.size(); i++) {
+            if (i == i_ter) {
+                s += terminate.as_pdb();
+                printed_ter = true;
+            }
+            s += protein_atoms[i].as_pdb();
         }
+        if (!printed_ter) {s += terminate.as_pdb();}
+        for (size_t i = 0; i < hydration_atoms.size(); i++) {s += hydration_atoms[i].as_pdb();}
+
         s += footer.get();
         return s;
     };
@@ -134,16 +128,24 @@ public:
      * @brief Add an Atom record to this File. 
      * @param r Atom to be added. 
      */
-    virtual void add(const shared_ptr<Atom> r) {
-        contents.push_back(r);
+    virtual void add(const Atom r) {
+        protein_atoms.push_back(r);
+    }
+
+    /** 
+     * @brief Add a Hetatom record to this File. 
+     * @param r Hetatom to be added. 
+     */
+    virtual void add(const Hetatom r) {
+        hydration_atoms.push_back(r);
     }
 
     /**
      * @brief Add a Terminate record to this File. 
      * @param r Terminate to be added. 
      */
-    void add(const shared_ptr<Terminate> r) {
-        contents.push_back(r);
+    void add(const Terminate) {
+        // terminates.push_back(r);
     }
 
     /**

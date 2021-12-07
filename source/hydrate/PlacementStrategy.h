@@ -26,7 +26,7 @@ public:
      * @brief Place water molecules in the grid wherever possible.
      * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.
      */
-    virtual vector<shared_ptr<Hetatom>> place() const = 0;
+    virtual vector<Hetatom> place() const = 0;
 
 protected: 
     Grid* grid; // A reference to the grid used in Grid.

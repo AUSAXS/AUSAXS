@@ -42,7 +42,7 @@ public:
      * @param atoms the set of atoms to add to this grid.
      */
     template<typename T>
-    void add(const vector<shared_ptr<T>>& atoms) {
+    void add(const vector<T>& atoms) {
         static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
         for (auto const& a : atoms) {
             add(a);
@@ -53,13 +53,13 @@ public:
      * @brief Add a single atom to the grid. 
      * @param atom the atom to be added. 
      */
-    void add(const shared_ptr<Atom> atom);
+    void add(const Atom& atom);
 
     /**
      * @brief Remove a single atom from the grid.
      * @param atom the atom to be removed.
      */
-    void remove(const shared_ptr<Atom> atom);
+    void remove(const Atom& atom);
 
     /** 
      * @brief Expand the member atoms into actual spheres based on the radii ra and rh. 
@@ -70,19 +70,19 @@ public:
      * @brief Expand a single member atom into an actual sphere.
      * @param atom the member atom to be expanded. 
      */
-    void expand_volume(const shared_ptr<Atom> atom);
+    void expand_volume(const Atom& atom);
 
     /**
      * @brief Generate a new hydration layer for the grid.
      * @return Pointers to the new water molecules. 
      */
-    vector<shared_ptr<Hetatom>> hydrate();
+    vector<Hetatom> hydrate();
 
     /**
      * @brief Identify possible hydration binding locations for the structure. 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<shared_ptr<Hetatom>> find_free_locs();
+    vector<Hetatom> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.
@@ -105,12 +105,12 @@ public:
     /**
      * @brief Get all hydration atoms from this grid. 
      */
-    vector<shared_ptr<Atom>> get_hydration_atoms() const;
+    vector<Hetatom> get_hydration_atoms() const;
 
     /**
      * @brief Get all protein atoms from this grid. 
      */
-    vector<shared_ptr<Atom>> get_protein_atoms() const;
+    vector<Atom> get_protein_atoms() const;
 
     /**
      * @brief Get the total volume spanned by the atoms in this grid in Å^3.
@@ -150,7 +150,7 @@ public:
     };
 
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<const shared_ptr<Atom>, vector<int>> members; // a map of all members of this grid and where they are located
+    std::map<const Atom, vector<int>> members; // a map of all members of this grid and where they are located
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // radius of each atom represented as a number of bins
     int rh = 0; // radius of each water molecule represented as a number of bins

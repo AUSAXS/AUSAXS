@@ -68,16 +68,16 @@ void Grid::expand_volume() {
     }
 }
 
-vector<shared_ptr<Hetatom>> Grid::hydrate() {
-    vector<shared_ptr<Hetatom>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
+vector<Hetatom> Grid::hydrate() {
+    vector<Hetatom> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
     water_culler->set_target_count(setting::grid::percent_water*(members.size()-placed_water.size())); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 
-vector<shared_ptr<Hetatom>> Grid::find_free_locs() {
+vector<Hetatom> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     for (const auto& pair : members) {
-        if (pair.first->is_water()) {
+        if (pair.first.is_water()) {
             print_err("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
         }
     }
@@ -87,7 +87,7 @@ vector<shared_ptr<Hetatom>> Grid::find_free_locs() {
     }
 
     // place the water molecules with the chosen strategy
-    vector<shared_ptr<Hetatom>> placed_water = water_placer->place();
+    vector<Hetatom> placed_water = water_placer->place();
     cout << "Placed " << placed_water.size() << " HOH molecules." << endl;
     return placed_water;
 }
@@ -126,11 +126,24 @@ void Grid::set_radius_water(double radius) {
     this->rh = new_r;
 }
 
-vector<shared_ptr<Atom>> Grid::get_hydration_atoms() const {
-    vector<shared_ptr<Atom>> atoms(members.size());
+vector<Hetatom> Grid::get_hydration_atoms() const {
+    vector<Hetatom> atoms(members.size());
     int i = 0; // counter
     for (const auto& pair : members) {
-        if (pair.first->is_water()) {
+        if (pair.first.is_water()) {
+            atoms[i] = static_cast<Hetatom>(pair.first);
+            i++;
+        }
+    }
+    atoms.resize(i);
+    return atoms;
+}
+
+vector<Atom> Grid::get_protein_atoms() const {
+    vector<Atom> atoms(members.size());
+    int i = 0; // counter
+    for (const auto& pair : members) {
+        if (!pair.first.is_water()) {
             atoms[i] = pair.first;
             i++;
         }
@@ -139,26 +152,13 @@ vector<shared_ptr<Atom>> Grid::get_hydration_atoms() const {
     return atoms;
 }
 
-vector<shared_ptr<Atom>> Grid::get_protein_atoms() const {
-    vector<shared_ptr<Atom>> atoms(members.size());
-    int i = 0; // counter
-    for (const auto& pair : members) {
-        if (!pair.first->is_water()) {
-            atoms[i] = pair.first;
-            i++;
-        }
-    }
-    atoms.resize(i);
-    return atoms;
-}
-
-void Grid::expand_volume(const shared_ptr<Atom> atom) {
+void Grid::expand_volume(const Atom& atom) {
     vector<int> loc = members.at(atom);
-    const bool is_water = atom->is_water();
+    const bool is_water = atom.is_water();
     char marker = is_water ? 'h' : 'a';
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = atom->is_water() ? rh : ra; // determine which radius to use for the expansion
+    int r = is_water ? rh : ra; // determine which radius to use for the expansion
     int xm = std::max(loc[0]-r, 0), xp = std::min(loc[0]+r+1, bins[0]-1); // xminus and xplus
     int ym = std::max(loc[1]-r, 0), yp = std::min(loc[1]+r+1, bins[1]-1); // yminus and yplus
     int zm = std::max(loc[2]-r, 0), zp = std::min(loc[2]+r+1, bins[2]-1); // zminus and zplus
@@ -179,7 +179,7 @@ void Grid::expand_volume(const shared_ptr<Atom> atom) {
     grid[loc[0]][loc[1]][loc[2]] = is_water ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
-void Grid::remove(const shared_ptr<Atom> atom) {
+void Grid::remove(const Atom& atom) {
     if (__builtin_expect(members.count(atom) == 0, false)) {
         print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
         exit(1);
@@ -191,7 +191,7 @@ void Grid::remove(const shared_ptr<Atom> atom) {
     grid[x][y][z] = 0;
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = atom->is_water() ? rh : ra; // determine which radius to use for the expansion
+    int r = atom.is_water() ? rh : ra; // determine which radius to use for the expansion
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
@@ -210,16 +210,16 @@ void Grid::remove(const shared_ptr<Atom> atom) {
     }
 }
 
-void Grid::add(const shared_ptr<Atom> atom) {
-    vector<int> loc = to_bins(atom->get_coords());
+void Grid::add(const Atom& atom) {
+    vector<int> loc = to_bins(atom.get_coords());
     const int x = loc[0], y = loc[1], z = loc[2];
-    const bool is_water = atom->is_water();
+    const bool is_water = atom.is_water();
 
     // sanity check
     const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2];
     if (__builtin_expect(out_of_bounds, false)) {
         print_err("Error in Grid::add: Atom is located outside the grid!");
-        Vector3 coords = atom->get_coords();
+        Vector3 coords = atom.get_coords();
         print_err((format("Location: (%1%, %2%, %3%)") % coords[0] % coords[1] % coords[2]).str());
         exit(1);
     }

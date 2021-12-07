@@ -14,6 +14,7 @@ class ScatteringHistogram;
 #include "data/File.h"
 #include "data/constants.h"
 #include "data/ScatteringHistogram.h"
+#include "data/PDB_file.h"
 
 using std::vector, std::string, std::unique_ptr;
 using namespace ROOT;
@@ -23,12 +24,12 @@ public:
     /** Creates a new protein from the input .pdb or .xml file. 
      * @param path path to the input file. 
      */
-    Protein(string path);
+    Protein(const string& path) : file(std::make_shared<PDB_file>(path)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /** Writes this protein to disk.
      * @param path path to the destination. 
      */
-    void save(string path) const;
+    void save(string path);
 
     /**
      * @brief Get the distances between each atom.
@@ -43,12 +44,12 @@ public:
     /**
      * @brief Get a pointer to the protein atoms.
      */
-    vector<shared_ptr<Atom>>* get_protein_atoms() {return &protein_atoms;}
+    vector<Atom>* get_protein_atoms() {return &protein_atoms;}
 
     /**
      * @brief Get a pointer to the hydration atoms.
      */
-    vector<shared_ptr<Hetatom>>* get_hydration_atoms() {return &hydration_atoms;}
+    vector<Hetatom>* get_hydration_atoms() {return &hydration_atoms;}
 
     /** Calculate the center-mass coordinates for the protein.
      * @return The center-mass (x, y, z) coordinates. 
@@ -98,9 +99,9 @@ protected:
     void create_grid();
 
 private:
-    vector<shared_ptr<Atom>> protein_atoms; // atoms of the protein itself
-    vector<shared_ptr<Hetatom>> hydration_atoms; // hydration layer
     shared_ptr<File> file; // the file backing this protein
+    vector<Atom>& protein_atoms; // atoms of the protein itself
+    vector<Hetatom>& hydration_atoms; // hydration layer
     shared_ptr<Grid> grid = nullptr; // the grid representation of this protein
     shared_ptr<ScatteringHistogram> distances = nullptr; // an object representing the distances between atoms
 

@@ -63,13 +63,12 @@ int main(int argc, char const *argv[]) {
 
     Protein protein(argv[1]);
     protein.generate_new_hydration();
-    shared_ptr<Distances> d = protein.get_distances();
+    shared_ptr<ScatteringHistogram> d = protein.get_distances();
 
     setup_style();
 
 // Distance plot
     unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
-    const vector<int> axes = {60, 0, 60};
     auto hists = d->plot_distance();
 
     // use some nicer colors

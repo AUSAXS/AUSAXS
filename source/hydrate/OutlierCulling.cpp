@@ -13,12 +13,12 @@ public:
     ~OutlierCulling() override {}
 
     // runs in O(n ln n) where n is the number of water molecules
-    vector<shared_ptr<Hetatom>> cull(vector<shared_ptr<Hetatom>> placed_water) const override {
+    vector<Hetatom> cull(vector<Hetatom>& placed_water) const override {
         if (target_count == 0) {
             return placed_water;
         }
 
-        vector<std::pair<shared_ptr<Hetatom>, int>> v(placed_water.size());
+        vector<std::pair<Hetatom&, int>> v(placed_water.size());
         const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
         const vector<int> bins = grid->get_bins();
         const vector<vector<vector<char>>>& gref = grid->grid;
@@ -47,7 +47,7 @@ public:
         std::sort(v.begin(), v.end(), [](auto &left, auto &right) {return left.second < right.second;});
 
         // copy the first target_count entries in the sorted vector
-        vector<shared_ptr<Hetatom>> final_water(target_count, nullptr); // the final water molecules that will be used
+        vector<Hetatom> final_water(target_count); // the final water molecules that will be used
         for (int n = 0; n < target_count; n++) {
             final_water[n] = v[n].first;
         }
