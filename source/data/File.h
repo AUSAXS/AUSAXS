@@ -127,15 +127,15 @@ protected:
      */
     void refresh() {
         bool terminate_inserted = false;
-        string chainID = "0"; int resSeq = 0; int serial = protein_atoms[0].get_serial();
+        string chainID = "0"; int resSeq = 0; int serial = protein_atoms[0].serial;
 
         auto insert_ter = [&] () {
             // last atom before the terminate
             // we need this to determine what chainID and resSeq to use for the terminate and hetatms
-            const Atom& a = protein_atoms.at(serial-1-protein_atoms[0].get_serial());
-            chainID = a.get_chainID();
-            resSeq = a.get_resSeq();
-            if (serial != 0) {terminate = Terminate(serial, a.get_resName(), a.get_chainID(), a.get_resSeq(), " ");}
+            const Atom& a = protein_atoms.at(serial-1-protein_atoms[0].serial);
+            chainID = a.chainID;
+            resSeq = a.resSeq;
+            if (serial != 0) {terminate = Terminate(serial, a.resName, a.chainID, a.resSeq, " ");}
             terminate_inserted = true;
         };
 
@@ -155,8 +155,8 @@ protected:
             serial++;
         }
 
-        chainID = protein_atoms[protein_atoms.size()-1].get_chainID();
-        resSeq = protein_atoms[protein_atoms.size()-1].get_resSeq() + 1;
+        chainID = protein_atoms[protein_atoms.size()-1].chainID;
+        resSeq = protein_atoms[protein_atoms.size()-1].resSeq + 1;
         for (auto& a : hydration_atoms) {
             a.set_serial(serial);
             a.set_resSeq(resSeq);

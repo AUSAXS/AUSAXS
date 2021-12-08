@@ -60,24 +60,24 @@ void Atom::parse_pdb(string s) {
 
     // set all of the properties
     try {
-        this->serial = std::stoi(serial);
-        this->name = name;
-        this->altLoc = altLoc;
-        this->resName = resName;
-        this->chainID = chainID;
-        this->resSeq = std::stoi(resSeq);
-        this->iCode = iCode;
-        this->set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
-        if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
-        if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
+        _serial = std::stoi(serial);
+        _name = name;
+        _altLoc = altLoc;
+        _resName = resName;
+        _chainID = chainID;
+        _resSeq = std::stoi(resSeq);
+        _iCode = iCode;
+        set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
+        if (occupancy.empty()) {_occupancy = 1;} else {_occupancy = std::stod(occupancy);}
+        if (tempFactor.empty()) {_tempFactor = 0;} else {_tempFactor = std::stod(tempFactor);}
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
-        this->charge = charge;
+        _charge = charge;
     } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
         print_err("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         exit(1);
     }
 
-    this->effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+    _effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
 
     // DEBUG OUTPUT
     // cout << s << endl;
@@ -91,7 +91,7 @@ string Atom::as_pdb() const {
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
     //          format: "%6c%5c%2c%4c%1c%3c %1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c"
     ss << left << setw(6) << get_recName()                                   // 1 - 6
-        << right << setw(5) << get_serial()                                  // 7 - 11
+        << right << setw(5) << serial                                        // 7 - 11
         << " "                                                               // 12
         << " " << left << setw(3) << name                                    // 13 - 16
         << left << setw(1) << altLoc                                         // 17
@@ -101,13 +101,13 @@ string Atom::as_pdb() const {
         << right << setw(4) << resSeq                                        // 23 - 26
         << right << setw(1) << iCode                                         // 27
         << "   "                                                             // 28 - 30
-        << right << setw(8) << setf(get_x(), 8)                              // 31 - 38
-        << right << setw(8) << setf(get_y(), 8)                              // 39 - 46
-        << right << setw(8) << setf(get_z(), 8)                              // 47 - 54
-        << right << setw(6) << setf(get_occupancy(), 6)                      // 55 - 60
+        << right << setw(8) << setf(coords.x, 8)                             // 31 - 38
+        << right << setw(8) << setf(coords.y, 8)                             // 39 - 46
+        << right << setw(8) << setf(coords.z, 8)                             // 47 - 54
+        << right << setw(6) << setf(occupancy, 6)                            // 55 - 60
         << right << setw(6) << setf(tempFactor, 6)                           // 61 - 66
         << "          "                                                      // 67 - 76
-        << right << setw(2) << get_element()                                 // 77 - 78
+        << right << setw(2) << element                                       // 77 - 78
         << left << setw(2) << charge                                         // 79 - 80
         << endl;
     return ss.str();
@@ -116,7 +116,7 @@ string Atom::as_pdb() const {
 /** Prints the contents of this object to the terminal. */
 void Atom::print() {
     cout << "\nAtom no: " << serial << endl;
-    cout << setw(17) << "(x, y, z): (" << setw(6) << get_x() << ", " << setw(6) << get_y() << ", " << setw(6) << get_z() << ")" << endl;
+    cout << setw(17) << "(x, y, z): (" << setw(6) << coords.x << ", " << setw(6) << coords.y << ", " << setw(6) << coords.z << ")" << endl;
     cout << setw(16) << "Weight: " << std::to_string(occupancy) << endl;
     cout << setw(16) << "Symbol: " << element << endl;
     cout << setw(16) << "Molecule: " << name << endl;
@@ -124,7 +124,7 @@ void Atom::print() {
 }
 
 bool Atom::operator<(const Atom& rhs) const {
-    return serial < rhs.get_serial();
+    return serial < rhs.serial;
 }
 
 bool Atom::operator==(const Atom& rhs) const {

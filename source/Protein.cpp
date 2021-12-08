@@ -13,6 +13,8 @@
 #include "Protein.h"
 #include "settings.h"
 
+#include <chrono>
+
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 using namespace ROOT;
@@ -34,26 +36,33 @@ void Protein::calc_distances() {
 
 
     cout << "CALCULATING DISTANCES" << endl;
+    auto start = std::chrono::high_resolution_clock::now();
     // calculate p-p distances
     for (size_t i = 0; i < protein_atoms.size(); i++) {
+        const Atom& ai = protein_atoms[i]; 
         for (size_t j = 0; j < protein_atoms.size(); j++) {
-            double dist = protein_atoms[i].distance(protein_atoms[j]);
-            double weight = protein_atoms[i].get_effective_charge()*protein_atoms[j].get_effective_charge()
-                *protein_atoms[i].get_occupancy()*protein_atoms[j].get_occupancy(); // Z1*Z2*w1*w2
+            const Atom& aj = protein_atoms[j]; 
+            double dist = ai.distance(aj);
+            double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
 
             int index = std::round(dist/width);
             max_bin = std::max(index, max_bin);
-            p_pp[index] += weight;
-            p_tot[index] += weight;
+            p_pp[index] += 1;
+            p_tot[index] += 1;
         }
     }
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::seconds>(stop-start);
+    cout << "Loop took " << dur.count() << endl;
 
     for (size_t i = 0; i < hydration_atoms.size(); i++) {
+        const Hetatom& ai = hydration_atoms[i];
         // calculate h-h distances
         for (size_t j = 0; j < hydration_atoms.size(); j++) {
-            double dist = hydration_atoms[i].distance(hydration_atoms[j]);
-            double weight = hydration_atoms[i].get_effective_charge()*hydration_atoms[j].get_effective_charge()
-                *hydration_atoms[i].get_occupancy()*hydration_atoms[j].get_occupancy(); // Z1*Z2*w1*w2
+            const Hetatom& aj = hydration_atoms[j];
+            double dist = ai.distance(aj);
+            double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
+
             int index = std::round(dist/width);
             max_bin = std::max(index, max_bin);
             p_hh[index] += weight;
@@ -61,16 +70,16 @@ void Protein::calc_distances() {
         }
         // calculate h-p distances
         for (size_t j = 0; j < protein_atoms.size(); j++) {
-            double dist = hydration_atoms[i].distance(protein_atoms[j]);
-            double weight = hydration_atoms[i].get_effective_charge()*protein_atoms[j].get_effective_charge()
-                *hydration_atoms[i].get_occupancy()*protein_atoms[j].get_occupancy(); // Z1*Z2*w1*w2
+            const Atom& aj = protein_atoms[j];
+            double dist = ai.distance(aj);
+            double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
+
             int index = std::round(dist/width);
             max_bin = std::max(index, max_bin);
             p_hp[index] += 2*weight;
             p_tot[index] += 2*weight;
         }
     }
-    cout << "DONE" << endl;
 
     axes = {(int) (max_bin/setting::axes::scattering_intensity_plot_binned_width), 0, max_bin}; 
     cout << axes[0] << ", " << axes[1] << ", " << axes[2] << endl;
@@ -101,7 +110,7 @@ void Protein::generate_volume_file(string path) {
         for (size_t j = 0; j < g[0].size(); j++) {
             for (size_t k = 0; k < g[0][0].size(); k++) {
                 if (g[i][j][k] != 0) {
-                    Atom a(0, "C", "", "C", "", 1, "", Vector3(i, j, k), 1, 0, "C", "");
+                    Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3(i, j, k), 1, 0, "C", "");
                     filled.push_back(a);
                 }
             }
@@ -120,9 +129,9 @@ Vector3 Protein::get_cm() const {
         for (auto const& a : atoms) {
             double m = a.get_mass();
             M += m;
-            double x = a.get_x()*m;
-            double y = a.get_y()*m;
-            double z = a.get_z()*m;
+            double x = a.coords.x*m;
+            double y = a.coords.y*m;
+            double z = a.coords.y*m;
             cm += Vector3(x, y, z);
         }
         cm[0] = cm[0]/M;
@@ -138,10 +147,10 @@ double Protein::get_volume_acids() const {
     double v = 0;
     int cur_seq = 0; // sequence number of current acid
     for (auto const& a : protein_atoms) {
-        int a_seq = a.get_resSeq(); // sequence number of current atom
+        int a_seq = a.resSeq; // sequence number of current atom
         if (cur_seq != a_seq) { // check if we are still dealing with the same acid
             cur_seq = a_seq; // if not, update our current sequence number
-            v += constants::volume::get.at(a.get_resName()); // and add its volume to the running total
+            v += constants::volume::get.at(a.resName); // and add its volume to the running total
         }
     }
     return v;

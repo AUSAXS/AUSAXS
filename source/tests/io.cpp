@@ -76,13 +76,13 @@ void test_simple_pdb() {
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
-    IS_TRUE(a.get_serial() == 1);
-    IS_TRUE(a.get_x() == 2.1);
-    IS_TRUE(a.get_y() == 3.2);
-    IS_TRUE(a.get_z() == 4.3);
-    IS_TRUE(a.get_occupancy() == 0.50);
-    IS_TRUE(a.get_element() == "C");
-    IS_TRUE(a.get_resName() == "ARG");
+    IS_TRUE(a.serial == 1);
+    IS_TRUE(a.coords.x == 2.1);
+    IS_TRUE(a.coords.y == 3.2);
+    IS_TRUE(a.coords.z == 4.3);
+    IS_TRUE(a.occupancy == 0.50);
+    IS_TRUE(a.element == "C");
+    IS_TRUE(a.resName == "ARG");
 
     remove("temp.pdb");
     remove("temp2.pdb");
@@ -111,14 +111,14 @@ void test_simple_xml() {
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
-    IS_TRUE(a.get_serial() == 1) 
-    IS_TRUE(a.get_serial() == 1);
-    IS_TRUE(a.get_x() == 2.1);
-    IS_TRUE(a.get_y() == 3.2);
-    IS_TRUE(a.get_z() == 4.3);
-    IS_TRUE(a.get_occupancy() == 0.50);
-    IS_TRUE(a.get_element() == "O");
-    IS_TRUE(a.get_resName() == "HOH");
+    IS_TRUE(a.serial == 1) 
+    IS_TRUE(a.serial == 1);
+    IS_TRUE(a.coords.x == 2.1);
+    IS_TRUE(a.coords.y == 3.2);
+    IS_TRUE(a.coords.z == 4.3);
+    IS_TRUE(a.occupancy == 0.50);
+    IS_TRUE(a.element == "O");
+    IS_TRUE(a.resName == "HOH");
 
     remove("temp.xml");
     remove("temp2.xml");

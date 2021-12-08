@@ -1,12 +1,12 @@
-Implement the hydration algorithm. 
-	- consider how to improve culling method
-	- Test it on a bunch of different .pdb files (6YG9)
+Todo:
+	- [] SLICES: change *Matrix pointers to &vector<double> for better efficiency
+	- [] ATOM: Const uid 
+	- [] CONSTANTS: Rethink how to determine charge densities for arbitrary ligands
 
 Grid:
 	- Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
-
-Slices:
-	- Instead of operating on *Matrix, it should operator on its &vector data to avoid dereferencing
+	- Consider changing how it stores its atom data
+	- Consider how to improve culling method
 
 Bundle all dependencies to make them easier to install
     - ROOT, Boost

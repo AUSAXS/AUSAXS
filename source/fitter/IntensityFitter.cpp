@@ -37,7 +37,7 @@ public:
      */
     // IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
     // IntensityFitter(string input, ScatteringHistogram& h) : h(h) {setup(input);}
-    IntensityFitter(string input, std::shared_ptr<ScatteringHistogram> h) : h(h), xm(h->q_vals) {setup(input);}
+    IntensityFitter(string input, std::shared_ptr<ScatteringHistogram> h) : h(h), xm(h->q) {setup(input);}
     ~IntensityFitter() override {}
 
     /**

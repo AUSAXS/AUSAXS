@@ -53,7 +53,26 @@ public:
      * @brief Add a single atom to the grid. 
      * @param atom the atom to be added. 
      */
-    void add(const Atom& atom);
+    template<typename T>
+    void add(const T& atom) {
+        static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
+        vector<int> loc = to_bins(atom.coords);
+        const int x = loc[0], y = loc[1], z = loc[2];
+        const bool is_water = atom.is_water();
+
+        // sanity check
+        const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2];
+        if (__builtin_expect(out_of_bounds, false)) {
+            print_err("Error in Grid::add: Atom is located outside the grid!");
+            Vector3 coords = atom.coords;
+            print_err((format("Location: (%1%, %2%, %3%)") % coords[0] % coords[1] % coords[2]).str());
+            exit(1);
+        }
+
+        if (is_water) {volume++;}
+        members.insert({atom, loc});
+        grid[x][y][z] = is_water ? 'H' : 'A';
+    }
 
     /**
      * @brief Remove a single atom from the grid.
@@ -145,12 +164,12 @@ public:
      */
     vector<int> to_bins(const Vector3& v) const;
 
-    class Comparator {
-        public: bool operator() (const shared_ptr<Atom>& l, const shared_ptr<Atom>& r) const {return *l < *r;}
-    };
+    // We define our own comparison method for the map. We must do this since it must be able to hold duplicate atoms (water molecules),
+    // so we instead compare their unique identifiers
+    class Comparator {public: bool operator() (const Atom& l, const Atom& r) const {return l.uid < r.uid;}};
 
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<Atom, vector<int>> members; // a map of all members of this grid and where they are located
+    std::map<Atom, vector<int>, Comparator> members; // a map of all members of this grid and where they are located
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // radius of each atom represented as a number of bins
     int rh = 0; // radius of each water molecule represented as a number of bins

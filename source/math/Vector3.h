@@ -23,6 +23,8 @@ public:
         return *this;
     }
 
+    double distance(const Vector3& v) const {return sqrt(pow(x-v.x, 2) + pow(y-v.y, 2) + pow(z-v.z, 2));}
+
     // Approximate equality, w ~ v
     bool operator==(const Vector3& v) const {return x-v.x + y-v.y + z-v.z < precision; }
 

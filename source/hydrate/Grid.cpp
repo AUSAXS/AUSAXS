@@ -210,25 +210,6 @@ void Grid::remove(const Atom& atom) {
     }
 }
 
-void Grid::add(const Atom& atom) {
-    vector<int> loc = to_bins(atom.get_coords());
-    const int x = loc[0], y = loc[1], z = loc[2];
-    const bool is_water = atom.is_water();
-
-    // sanity check
-    const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2];
-    if (__builtin_expect(out_of_bounds, false)) {
-        print_err("Error in Grid::add: Atom is located outside the grid!");
-        Vector3 coords = atom.get_coords();
-        print_err((format("Location: (%1%, %2%, %3%)") % coords[0] % coords[1] % coords[2]).str());
-        exit(1);
-    }
-
-    if (is_water) {volume++;}
-    members.insert({atom, loc});
-    grid[x][y][z] = is_water ? 'H' : 'A';
-}
-
 vector<int> Grid::to_bins(const Vector3& v) const {
     int binx = std::round((v[0] - base.x)/width);
     int biny = std::round((v[1] - base.y)/width);

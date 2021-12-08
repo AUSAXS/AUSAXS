@@ -17,6 +17,10 @@
 using namespace ROOT;
 
 int main(int argc, char const *argv[]) {
+    setting::grid::psc = setting::grid::RadialStrategy;
+    setting::grid::ra = 3;
+    setting::grid::rh = 3;
+
     Protein protein(argv[1]);
     protein.generate_new_hydration();
     protein.generate_volume_file(argv[2]);

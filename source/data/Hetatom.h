@@ -8,6 +8,7 @@ class Hetatom : public Atom {
 public:
     using Atom::Atom; // inherit constructors from Atom
     Hetatom(const Atom& a) : Atom(std::move(a)) {}
+    // Hetatom(const Hetatom& a) : Atom(std::move(a)) {}
     ~Hetatom() override {}
 
     RecordType get_type() const override {return HETATM;}
