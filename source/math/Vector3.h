@@ -1,7 +1,7 @@
 #pragma once
 
 #include <initializer_list>
-#include "math/Vector.h"
+#include "Vector.h"
 
 class Vector3 : public Vector {
 public:

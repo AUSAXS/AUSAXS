@@ -26,67 +26,77 @@ void Protein::calc_distances() {
 
     // generous sizes - 1000Å should be enough for just about any structure
     vector<int> axes = {(int) (1000/setting::axes::scattering_intensity_plot_binned_width), 0, 1000}; 
-    int max_bin = 0; // keep track of the highest distance stored, so everything else can be removed. 
-
     vector<double> p_pp(axes[0], 0);
     vector<double> p_hh(axes[0], 0);
     vector<double> p_hp(axes[0], 0);
     vector<double> p_tot(axes[0], 0);
     double width = (double) (axes[2]-axes[1])/axes[0]; // very important to cast this operation to a double - divison by two ints
 
+    // extremely wasteful to calculate this from scratch every time
+    std::vector<float> data(protein_atoms.size()*4);
+    for (size_t i = 0; i < protein_atoms.size(); i++) {
+        const Atom& a = protein_atoms[i]; 
+        data[4*i] = a.coords.x;
+        data[4*i+1] = a.coords.y;
+        data[4*i+2] = a.coords.z;
+        data[4*i+3] = a.effective_charge*a.occupancy;
+    }
 
-    cout << "CALCULATING DISTANCES" << endl;
+    cout << "Entering loop. Size: " << protein_atoms.size() << endl;
     auto start = std::chrono::high_resolution_clock::now();
     // calculate p-p distances
-    for (size_t i = 0; i < protein_atoms.size(); i++) {
-        const Atom& ai = protein_atoms[i]; 
-        for (size_t j = 0; j < protein_atoms.size(); j++) {
-            const Atom& aj = protein_atoms[j]; 
-            double dist = ai.distance(aj);
-            double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
-
-            int index = std::round(dist/width);
-            max_bin = std::max(index, max_bin);
-            p_pp[index] += 1;
-            p_tot[index] += 1;
+    for (size_t i = 1; i < protein_atoms.size(); i++) {
+        for (size_t j = i; j < protein_atoms.size(); j++) {
+            // double dist = sqrt(pow(data[4*i] - data[4*j], 2) + pow(data[4*i+1] - data[4*j+1], 2) + pow(data[4*i+2] - data[4*j+2], 2));
+            double dist = sqrt((data[4*i] - data[4*j])*(data[4*i] - data[4*j]) + (data[4*i+1] - data[4*j+1])*(data[4*i+1] - data[4*j+1]) + 
+                (data[4*i+2] - data[4*j+2])*(data[4*i+2] - data[4*j+2]));
+            double weight = data[4*i+3]*data[4*j+3]; // Z1*Z2*w1*w2
+            p_pp[int(dist/width)] += 2*weight;
         }
     }
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::seconds>(stop-start);
-    cout << "Loop took " << dur.count() << endl;
+    p_pp[0] += protein_atoms.size();
 
-    for (size_t i = 0; i < hydration_atoms.size(); i++) {
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
+    cout << "Loop took " << dur.count() << " milliseconds." << endl;
+
+    for (size_t i = 1; i < hydration_atoms.size(); i++) {
         const Hetatom& ai = hydration_atoms[i];
         // calculate h-h distances
-        for (size_t j = 0; j < hydration_atoms.size(); j++) {
+        for (size_t j = i; j < hydration_atoms.size(); j++) {
             const Hetatom& aj = hydration_atoms[j];
             double dist = ai.distance(aj);
             double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
-
-            int index = std::round(dist/width);
-            max_bin = std::max(index, max_bin);
-            p_hh[index] += weight;
-            p_tot[index] += weight;
+            p_hh[std::round(dist/width)] += 2*weight;
         }
+        p_hh[0] += hydration_atoms.size();
+
         // calculate h-p distances
         for (size_t j = 0; j < protein_atoms.size(); j++) {
             const Atom& aj = protein_atoms[j];
             double dist = ai.distance(aj);
             double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
-
-            int index = std::round(dist/width);
-            max_bin = std::max(index, max_bin);
-            p_hp[index] += 2*weight;
-            p_tot[index] += 2*weight;
+            p_hp[std::round(dist/width)] += 2*weight;
         }
     }
 
-    axes = {(int) (max_bin/setting::axes::scattering_intensity_plot_binned_width), 0, max_bin}; 
-    cout << axes[0] << ", " << axes[1] << ", " << axes[2] << endl;
+    // downsize our axes to only the relevant area
+    int max_bin = 0;
+    for (int i = axes[0]-1; i >= 0; i--) {
+        if (p_pp[i] != 0 || p_hh[i] != 0 || p_hp[i] != 0) {
+            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
+            break;
+        }
+    }
     p_pp.resize(max_bin);
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
+    axes = {(int) (max_bin/setting::axes::scattering_intensity_plot_binned_width), 0, max_bin}; 
+
+    // calculate p_tot    
+    for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
+
     this->distances = std::make_shared<ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
