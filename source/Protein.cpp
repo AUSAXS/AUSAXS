@@ -33,49 +33,56 @@ void Protein::calc_distances() {
     double width = (double) (axes[2]-axes[1])/axes[0]; // very important to cast this operation to a double - divison by two ints
 
     // extremely wasteful to calculate this from scratch every time
-    std::vector<float> data(protein_atoms.size()*4);
-    for (size_t i = 0; i < protein_atoms.size(); i++) {
+    std::vector<float> data_p(protein_atoms.size()*4);
+    for (size_t i = 0; i < data_p.size(); i++) {
         const Atom& a = protein_atoms[i]; 
-        data[4*i] = a.coords.x;
-        data[4*i+1] = a.coords.y;
-        data[4*i+2] = a.coords.z;
-        data[4*i+3] = a.effective_charge*a.occupancy;
+        data_p[4*i] = a.coords.x;
+        data_p[4*i+1] = a.coords.y;
+        data_p[4*i+2] = a.coords.z;
+        data_p[4*i+3] = a.effective_charge*a.occupancy;
     }
 
-    cout << "Entering loop. Size: " << protein_atoms.size() << endl;
-    auto start = std::chrono::high_resolution_clock::now();
+    std::vector<float> data_h(hydration_atoms.size()*4);
+    for (size_t i = 0; i < data_h.size(); i++) {
+        const Hetatom& a = hydration_atoms[i]; 
+        data_h[4*i] = a.coords.x;
+        data_h[4*i+1] = a.coords.y;
+        data_h[4*i+2] = a.coords.z;
+        data_h[4*i+3] = a.effective_charge*a.occupancy;
+    }
+
     // calculate p-p distances
     for (size_t i = 1; i < protein_atoms.size(); i++) {
         for (size_t j = i; j < protein_atoms.size(); j++) {
-            // double dist = sqrt(pow(data[4*i] - data[4*j], 2) + pow(data[4*i+1] - data[4*j+1], 2) + pow(data[4*i+2] - data[4*j+2], 2));
-            double dist = sqrt((data[4*i] - data[4*j])*(data[4*i] - data[4*j]) + (data[4*i+1] - data[4*j+1])*(data[4*i+1] - data[4*j+1]) + 
-                (data[4*i+2] - data[4*j+2])*(data[4*i+2] - data[4*j+2]));
-            double weight = data[4*i+3]*data[4*j+3]; // Z1*Z2*w1*w2
-            p_pp[int(dist/width)] += 2*weight;
+            float weight = data_p[4*i+3]*data_p[4*j+3]; // Z1*Z2*w1*w2
+            float dx = data_p[4*i] - data_p[4*j];
+            float dy = data_p[4*i+1] - data_p[4*j+1];
+            float dz = data_p[4*i+2] - data_p[4*j+2];
+            float dist = sqrt(dx*dx + dy*dy + dz*dz);
+            p_pp[dist/width] += 2*weight;
         }
     }
     p_pp[0] += protein_atoms.size();
 
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start);
-    cout << "Loop took " << dur.count() << " milliseconds." << endl;
-
     for (size_t i = 1; i < hydration_atoms.size(); i++) {
-        const Hetatom& ai = hydration_atoms[i];
         // calculate h-h distances
         for (size_t j = i; j < hydration_atoms.size(); j++) {
-            const Hetatom& aj = hydration_atoms[j];
-            double dist = ai.distance(aj);
-            double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
+            float weight = data_h[4*i+3]*data_h[4*j+3]; // Z1*Z2*w1*w2
+            float dx = data_h[4*i] - data_h[4*j];
+            float dy = data_h[4*i+1] - data_h[4*j+1];
+            float dz = data_h[4*i+2] - data_h[4*j+2];
+            float dist = sqrt(dx*dx + dy*dy + dz*dz);
             p_hh[std::round(dist/width)] += 2*weight;
         }
         p_hh[0] += hydration_atoms.size();
 
         // calculate h-p distances
         for (size_t j = 0; j < protein_atoms.size(); j++) {
-            const Atom& aj = protein_atoms[j];
-            double dist = ai.distance(aj);
-            double weight = ai.effective_charge*aj.effective_charge*ai.occupancy*aj.occupancy; // Z1*Z2*w1*w2
+            float weight = data_h[4*i+3]*data_p[4*j+3]; // Z1*Z2*w1*w2
+            float dx = data_h[4*i] - data_p[4*j];
+            float dy = data_h[4*i+1] - data_p[4*j+1];
+            float dz = data_h[4*i+2] - data_p[4*j+2];
+            float dist = sqrt(dx*dx + dy*dy + dz*dz);
             p_hp[std::round(dist/width)] += 2*weight;
         }
     }

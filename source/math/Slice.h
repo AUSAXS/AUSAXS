@@ -1,10 +1,11 @@
 #pragma once
 
-class Matrix;
 class Vector;
 
 #include <vector>
 #include <stdexcept>
+
+using std::vector;
 
 class Slice {
     public:
@@ -31,16 +32,16 @@ bool operator!=(const Slice& s, const Vector& v);
 
 class VectorSlice : public Slice {
     public: 
-        VectorSlice(const Vector* v);
+        VectorSlice(const vector<double>& data);
         virtual ~VectorSlice() {}
 
         double& operator[](const int& i);
-        const Vector* parent;
+        const vector<double>& data;
 };
 
 class MutableSlice : public Slice {
     public:
-        MutableSlice(Matrix* const parent, const int& start, const int& step, const int& length);
+        MutableSlice(vector<double>& data, const int& N, const int& M, const int& start, const int& step, const int& length);
         virtual ~MutableSlice() {}
 
         double& operator[](const int& i);
@@ -51,34 +52,34 @@ class MutableSlice : public Slice {
         MutableSlice& operator+=(const Slice& v);
         MutableSlice& operator+=(const Vector& v);
 
-        Matrix* const parent;
+        vector<double>& data;
 };
 
 class ConstSlice : public Slice {
     public:
-        ConstSlice(const Matrix* parent, const int& start, const int& step, const int& length);
+        ConstSlice(const vector<double>& data, const int& N, const int& M, const int& start, const int& step, const int& length);
         virtual ~ConstSlice() {}
 
         const double& operator[](const int& i) const;
 
-        const Matrix* const parent;
+        const vector<double>& data;
 };
 
 class ConstRow : public ConstSlice {
     public: 
-        ConstRow(const Matrix* parent, const int& row);
+        ConstRow(const vector<double>& data, const int& N, const int& M, const int& row);
         ConstRow(const ConstSlice& s) : ConstSlice(std::move(s)) {}
 };
 
 class ConstColumn : public ConstSlice {
     public: 
-        ConstColumn(const Matrix* parent, const int& col);
+        ConstColumn(const vector<double>& data, const int& N, const int& M, const int& col);
         ConstColumn(const ConstSlice& s) : ConstSlice(std::move(s)) {}
 };
 
 class Row : public MutableSlice {
     public: 
-        Row(Matrix* const parent, const int& row);
+        Row(vector<double>& data, const int& N, const int& M, const int& row);
         Row(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
         Row& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
@@ -99,7 +100,7 @@ class Row : public MutableSlice {
 
 class Column : public MutableSlice {
     public: 
-        Column(Matrix* const parent, const int& col);
+        Column(vector<double>& data, const int& N, const int& M, const int& col);
         Column(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
         Column& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
