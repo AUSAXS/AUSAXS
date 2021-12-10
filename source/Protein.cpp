@@ -34,7 +34,7 @@ void Protein::calc_distances() {
 
     // extremely wasteful to calculate this from scratch every time
     std::vector<float> data_p(protein_atoms.size()*4);
-    for (size_t i = 0; i < data_p.size(); i++) {
+    for (size_t i = 0; i < protein_atoms.size(); i++) {
         const Atom& a = protein_atoms[i]; 
         data_p[4*i] = a.coords.x;
         data_p[4*i+1] = a.coords.y;
@@ -43,7 +43,7 @@ void Protein::calc_distances() {
     }
 
     std::vector<float> data_h(hydration_atoms.size()*4);
-    for (size_t i = 0; i < data_h.size(); i++) {
+    for (size_t i = 0; i < hydration_atoms.size(); i++) {
         const Hetatom& a = hydration_atoms[i]; 
         data_h[4*i] = a.coords.x;
         data_h[4*i+1] = a.coords.y;
@@ -72,9 +72,8 @@ void Protein::calc_distances() {
             float dy = data_h[4*i+1] - data_h[4*j+1];
             float dz = data_h[4*i+2] - data_h[4*j+2];
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_hh[std::round(dist/width)] += 2*weight;
+            p_hh[dist/width] += 2*weight;
         }
-        p_hh[0] += hydration_atoms.size();
 
         // calculate h-p distances
         for (size_t j = 0; j < protein_atoms.size(); j++) {
@@ -83,8 +82,19 @@ void Protein::calc_distances() {
             float dy = data_h[4*i+1] - data_p[4*j+1];
             float dz = data_h[4*i+2] - data_p[4*j+2];
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_hp[std::round(dist/width)] += 2*weight;
+            p_hp[dist/width] += 2*weight;
         }
+    }
+    p_hh[0] += hydration_atoms.size();
+
+    // calculate the missing h-p distance
+    for (size_t j = 0; j < protein_atoms.size(); j++) {
+        float weight = data_h[3]*data_p[4*j+3]; // Z1*Z2*w1*w2
+        float dx = data_h[0] - data_p[4*j];
+        float dy = data_h[1] - data_p[4*j+1];
+        float dz = data_h[2] - data_p[4*j+2];
+        float dist = sqrt(dx*dx + dy*dy + dz*dz);
+        p_hp[std::round(dist/width)] += 2*weight;
     }
 
     // downsize our axes to only the relevant area

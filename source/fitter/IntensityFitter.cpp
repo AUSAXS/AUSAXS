@@ -45,7 +45,7 @@ public:
      * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
      */
     shared_ptr<Fit> fit() override {
-        ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2");
+        ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS");
         auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
         ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
         minimizer->SetFunction(functor);
@@ -65,9 +65,10 @@ public:
         
         bool converged = !minimizer->Status();
         std::map<string, double> pars = {{"c", res[0]}, {"a", ab_fit->params["a"]}, {"b", ab_fit->params["b"]}};
-        std::map<string, double> errs = {{"c", err[0]}, {"a", ab_fit->errs["a"]}, {"b", ab_fit->errs["b"]}};
+        std::map<string, double> errs = {{"c", res[0]}, {"a", ab_fit->errs["a"]}, {"b", ab_fit->errs["b"]}};
         double funcalls = minimizer->NCalls();
         fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
+        minimizer->SetPrintLevel(3);
         minimizer->PrintResults();
         return fitted;
     }
