@@ -10,12 +10,17 @@
  * Consider how to improve culling method
 
 ## ScatteringHistogram:
- * OPTIMIZATION: Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
+ * Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
+ * Take a closer look at the form factor
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
  * ROOT
  * Boost
+
+# FITTING:
+FOXS SAXS fitting program
+ATSAS CRYSOL
 
 # Other personal notes
 ## Articles

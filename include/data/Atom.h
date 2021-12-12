@@ -10,7 +10,7 @@
 // my own stuff
 #include "data/Record.h"
 #include "Tools.h"
-#include "data/constants.h"
+#include "constants.h"
 #include "math/Vector3.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;

@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include "Protein.h"
+#include "data/Protein.h"
 #include "fitter/IntensityFitter.cpp"
 
 #include <TCanvas.h>
@@ -37,9 +37,9 @@ int main(int, char const *argv[]) {
     graphs[2]->SetMarkerStyle(7);
 
     // draw the graphs
-    graphs[0]->Draw("AP"); // Axes Line
-    graphs[1]->Draw("SAME L"); // Point
+    graphs[0]->Draw("AP"); // Axes points
     graphs[2]->Draw("SAME P"); // Point
+    graphs[1]->Draw("SAME L"); // Line
 
     // setup the canvas and save the plot
     string path = string(argv[3]) + "intensity_fit.pdf";

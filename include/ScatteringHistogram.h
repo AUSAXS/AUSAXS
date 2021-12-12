@@ -8,7 +8,7 @@ class Protein;
 #include <utility>
 #include "TH1D.h"
 #include "TCanvas.h"
-#include "Protein.h"
+#include "data/Protein.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;

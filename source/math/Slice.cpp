@@ -1,6 +1,6 @@
-#include "Slice.h"
-#include "Matrix.h"
-#include "Vector.h"
+#include "math/Slice.h"
+#include "math/Matrix.h"
+#include "math/Vector.h"
 
 #include <vector>
 

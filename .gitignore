@@ -4,6 +4,7 @@ temp
 figures/*
 output/*
 data/*
+perf.*
 
 *.pdf
 *.xml

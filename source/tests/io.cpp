@@ -5,7 +5,7 @@
 #include <filesystem>
 
 #include "tests/Test.h"
-#include "Protein.h"
+#include "data/Protein.h"
 
 using namespace ROOT;
 

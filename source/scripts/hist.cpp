@@ -10,7 +10,7 @@
 #include "TPad.h"
 #include "TLine.h"
 
-#include "Protein.h"
+#include "data/Protein.h"
 #include "plot_style.h"
 
 string input, output;

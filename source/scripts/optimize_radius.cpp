@@ -3,7 +3,7 @@
 #include <string>
 #include <float.h>
 
-#include "Protein.h"
+#include "data/Protein.h"
 #include "settings.h"
 
 #include "TCanvas.h"

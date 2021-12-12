@@ -13,7 +13,7 @@
 #include "data/Footer.h"
 #include "data/Atom.h"
 #include "data/Hetatom.h"
-#include "data/File.h"
+#include "io/File.h"
 #include "settings.h"
 
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr, std::shared_ptr; 

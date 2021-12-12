@@ -1,5 +1,5 @@
-#include "PlacementStrategy.h"
-#include "Grid.h"
+#include "hydrate/PlacementStrategy.h"
+#include "hydrate/Grid.h"
 #include "settings.h"
 
 #include <iomanip>

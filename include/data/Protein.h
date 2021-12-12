@@ -11,10 +11,10 @@ class ScatteringHistogram;
 // my own includes
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
-#include "data/File.h"
-#include "data/constants.h"
-#include "data/ScatteringHistogram.h"
-#include "data/PDB_file.h"
+#include "io/File.h"
+#include "constants.h"
+#include "ScatteringHistogram.h"
+#include "io/PDB_file.h"
 
 using std::vector, std::string, std::unique_ptr;
 using namespace ROOT;

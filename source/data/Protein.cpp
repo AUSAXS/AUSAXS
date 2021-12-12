@@ -8,9 +8,9 @@
 // my own includes
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
-#include "data/PDB_file.h"
-#include "data/constants.h"
-#include "Protein.h"
+#include "io/PDB_file.h"
+#include "constants.h"
+#include "data/Protein.h"
 #include "settings.h"
 
 #include <chrono>

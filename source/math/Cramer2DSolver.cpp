@@ -1,6 +1,6 @@
-#include "Matrix.h"
-#include "Vector.h"
-#include "LinearSolver.h"
+#include "math/Matrix.h"
+#include "math/Vector.h"
+#include "math/LinearSolver.h"
 
 #include <math.h>
 #include <stdexcept>

@@ -5,13 +5,13 @@
 #include <utility>
 
 // my own includes
-#include "Grid.h"
+#include "hydrate/Grid.h"
 #include "data/Atom.h"
 #include "data/Hetatom.h"
-#include "AxesPlacement.cpp"
-#include "RadialPlacement.cpp"
-#include "CounterCulling.cpp"
-#include "OutlierCulling.cpp"
+#include "hydrate/AxesPlacement.cpp"
+#include "hydrate/RadialPlacement.cpp"
+#include "hydrate/CounterCulling.cpp"
+#include "hydrate/OutlierCulling.cpp"
 #include "settings.h"
 #include "math/Vector3.h"
 

@@ -1,5 +1,5 @@
-#include "PlacementStrategy.h"
-#include "Grid.h"
+#include "hydrate/PlacementStrategy.h"
+#include "hydrate/Grid.h"
 
 /**
  * @brief This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a

@@ -1,6 +1,6 @@
-#include "Matrix.h"
-#include "Vector.h"
-#include "LUPDecomposition.h"
+#include "math/Matrix.h"
+#include "math/Vector.h"
+#include "math/LUPDecomposition.h"
 
 Matrix::Matrix(const Vector& v) : _N(v.N), _M(1), _data(v.data) {} // vector --> matrix constructor
 

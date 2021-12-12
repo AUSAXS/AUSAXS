@@ -80,6 +80,7 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
                 Iq[i] += p_tot[j]*sin(q[i]*d[j])/(q[i]*d[j]);
             }
         }
+        Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
     return Iq;
 }

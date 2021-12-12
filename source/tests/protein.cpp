@@ -4,9 +4,9 @@
 #include <fstream>
 
 #include "tests/Test.h"
-#include "Protein.h"
+#include "data/Protein.h"
 #include "hydrate/Grid.h"
-#include "data/constants.h"
+#include "constants.h"
 
 void create_test_file() {
     std::ofstream file("temp.pdb");

@@ -1,7 +1,7 @@
-#include "Fitter.h"
+#include "fitter/Fitter.h"
+#include "fitter/SimpleLeastSquares.h"
 #include "math/CubicSpline.h"
 #include "settings.h"
-#include "SimpleLeastSquares.h"
 
 #include <iostream>
 #include <fstream>
@@ -11,7 +11,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#include "data/ScatteringHistogram.h"
+#include "ScatteringHistogram.h"
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>

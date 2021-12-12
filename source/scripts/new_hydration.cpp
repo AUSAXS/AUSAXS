@@ -3,7 +3,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 
-#include "Protein.h"
+#include "data/Protein.h"
 #include "settings.h"
 
 string input, output;

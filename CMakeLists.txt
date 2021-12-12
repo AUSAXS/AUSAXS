@@ -19,6 +19,7 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${ROOT_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories("${CMAKE_SOURCE_DIR}/source")
+include_directories("${CMAKE_SOURCE_DIR}/include")
 
 list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})

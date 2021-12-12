@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "tests/Test.h"
-#include "Protein.h"
+#include "data/Protein.h"
 #include "hydrate/Grid.h"
 #include "settings.h"
 
@@ -276,21 +276,13 @@ int main(void)
 {
     cout << "Summary of Grid testing:" << std::endl;
     test_grid_generation();
-    cout << "1" << endl;
     test_simple_bounding_box();
-    cout << "2" << endl;
     test_complex_bounding_box();
-    cout << "3" << endl;
     test_find_free_locs(setting::grid::AxesStrategy);
-    cout << "4" << endl;
     test_find_free_locs(setting::grid::RadialStrategy);
-    cout << "5" << endl;
     test_hydrate();
-    cout << "6" << endl;
     test_volume_expansion();
-    cout << "7" << endl;
     test_width();
-    cout << "8" << endl;
     test_remove();
 
     if (passed_all) {
