@@ -8,7 +8,6 @@
 // my own includes
 #include "data/Atom.h"
 #include "hydrate/Grid.h"
-#include "io/PDB_file.h"
 #include "constants.h"
 #include "data/Protein.h"
 #include "settings.h"

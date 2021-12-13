@@ -22,17 +22,13 @@ using std::vector, std::string, std::unique_ptr, std::shared_ptr;
 
 class File {
 public: 
+    File() {}
+
     File(string filename) {
         reader = construct_reader(filename);
         read(filename);
     }
     virtual ~File() {}
-
-    Header header;
-    Footer footer;
-    Terminate terminate;
-    vector<Atom> protein_atoms;
-    vector<Hetatom> hydration_atoms;
 
     /**
      * @brief Update the contents of this file.
@@ -145,6 +141,12 @@ public:
             serial++;
         }
     }
+
+    Header header;
+    Footer footer;
+    Terminate terminate;
+    vector<Atom> protein_atoms;
+    vector<Hetatom> hydration_atoms;
 
 private:
     std::unique_ptr<Reader> reader;

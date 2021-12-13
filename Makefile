@@ -10,8 +10,12 @@ source_files := $(addprefix source/, $(shell find source/ -type f -not -wholenam
 .SECONDARY:
 
 .PHONY:
+gui: build/source/scripts/gui
+	$<
+
+.PHONY:
 hydrate/%: build/source/scripts/new_hydration
-	$< data/$* output/$*
+	$< data/$*.pdb output/$*.pdb
 	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 
 .PHONY:
