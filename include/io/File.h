@@ -13,12 +13,19 @@
 #include "data/Footer.h"
 #include "data/Atom.h"
 #include "data/Hetatom.h"
+#include "io/Reader.h"
+#include "io/Writer.h"
+#include "io/PDBWriter.h"
+#include "io/PDBReader.h"
 
 using std::vector, std::string, std::unique_ptr, std::shared_ptr; 
 
 class File {
 public: 
-    File(string filename) : filename(filename) {}
+    File(string filename) {
+        reader = construct_reader(filename);
+        read(filename);
+    }
     virtual ~File() {}
 
     Header header;
@@ -28,8 +35,7 @@ public:
     vector<Hetatom> hydration_atoms;
 
     /**
-     * @brief Update the contents of this File to reflect the input Protein.
-     * @param protein the protein to use.
+     * @brief Update the contents of this file.
      */
     void update(vector<Atom>& patoms, vector<Hetatom>& hatoms) {
         protein_atoms = patoms;
@@ -37,15 +43,17 @@ public:
     }
 
     /**
-     * @brief Read the file backing this File object. 
+     * @brief Fill this class with data from the specified file. 
      */
-    virtual void read() = 0;
+    virtual void read(const string& path) {reader->read(path);}
 
     /**
-     * @brief write this File to disk. 
-     * @param path the output path.
+     * @brief write this file to disk. 
      */
-    virtual void write(const string path) = 0;
+    virtual void write(const string path) {
+        writer = construct_writer(path);
+        writer->write(path);
+    }
 
     /**
      * @brief Get the protein atoms contained in this File. 
@@ -57,56 +65,29 @@ public:
      */
     const vector<Hetatom> get_hydration_atoms() const {return hydration_atoms;}
 
-    /**
-     * @brief Create a string representation of this File.
-     * @return The string representation. 
-     */
-    string as_pdb() const {
-        string s;
-        s += header.get();
-
-        size_t i_ter = terminate.serial;
-        bool printed_ter = false;
-        for (size_t i = 0; i < protein_atoms.size(); i++) {
-            if (i == i_ter) { // check if this is where the terminate is supposed to go
-                s += terminate.as_pdb(); // write it if so
-                printed_ter = true;
-            }
-            s += protein_atoms[i].as_pdb();
-        }
-        if (!printed_ter) {s += terminate.as_pdb();}
-        for (size_t i = 0; i < hydration_atoms.size(); i++) {s += hydration_atoms[i].as_pdb();}
-
-        s += footer.get();
-        return s;
-    };
-
     /** 
-     * @brief Add an Atom record to this File. 
-     * @param r Atom to be added. 
+     * @brief Add an Atom record to this file. 
      */
     virtual void add(const Atom r) {
         protein_atoms.push_back(r);
     }
 
     /** 
-     * @brief Add a Hetatom record to this File. 
-     * @param r Hetatom to be added. 
+     * @brief Add a Hetatom record to this file. 
      */
     virtual void add(const Hetatom r) {
         hydration_atoms.push_back(r);
     }
 
     /**
-     * @brief Add a Terminate record to this File. 
-     * @param r Terminate to be added. 
+     * @brief Add a Terminate record to this file. 
      */
     void add(const Terminate) {
         // terminates.push_back(r);
     }
 
     /**
-     * @brief Add a header or footer record to this File. 
+     * @brief Add a header or footer record to this file. 
      * @param type HEADER or FOOTER.
      * @param s string to be added. 
      */
@@ -121,7 +102,6 @@ public:
         }
     }
 
-protected:
     /**
      * @brief This method guarantees that the File is in a valid state for printing.
      */
@@ -166,5 +146,31 @@ protected:
         }
     }
 
-    string filename;
+private:
+    std::unique_ptr<Reader> reader;
+    std::unique_ptr<Writer> writer;
+
+    std::unique_ptr<Reader> construct_reader(const string& path) {
+        if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
+            print_err("Error in Protein::Protein: .xml input files are not supported.");
+            exit(1);
+        } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
+            return std::make_unique<PDBReader>(this);
+        } else { // anything else - we cannot handle this
+            print_err((format("Error in Protein::Protein: Invalid file extension of input file %1%.") % path).str());
+            exit(1);
+        }
+    }
+
+    std::unique_ptr<Writer> construct_writer(const string& path) {
+        if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
+            print_err("Error in Protein::Protein: .xml input files are not supported.");
+            exit(1);
+        } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
+            return std::make_unique<PDBWriter>(this);
+        } else { // anything else - we cannot handle this
+            print_err((format("Error in Protein::Protein: Invalid file extension of input file %1%.") % path).str());
+            exit(1);
+        }
+    }
 };

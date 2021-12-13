@@ -14,7 +14,6 @@ class ScatteringHistogram;
 #include "io/File.h"
 #include "constants.h"
 #include "ScatteringHistogram.h"
-#include "io/PDB_file.h"
 
 using std::vector, std::string, std::unique_ptr;
 using namespace ROOT;
@@ -24,7 +23,7 @@ public:
     /** Creates a new protein from the input .pdb or .xml file. 
      * @param path path to the input file. 
      */
-    Protein(const string& path) : file(std::make_shared<PDB_file>(path)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Protein(const string& path) : file(std::make_shared<File>(path)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /** Writes this protein to disk.
      * @param path path to the destination. 

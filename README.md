@@ -12,10 +12,11 @@
 ## ScatteringHistogram:
  * Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
  * Take a closer look at the form factor
+ * Convert `a` to a more sensible output (units)
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
- * ROOT
+ * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> CMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
  * Boost
 
 # FITTING:
