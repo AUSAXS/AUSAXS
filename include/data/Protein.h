@@ -8,12 +8,27 @@
 #include "Tools.h"
 #include "data/Atom.h"
 #include "data/Hetatom.h"
+#include "data/StateManager.h"
 
 using std::vector, std::string;
 
 class Protein {
 public: 
+    /**
+     * @brief Create a new protein based on vectors of atoms.
+     */
     Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms);
+
+    /**
+     * @brief Create a new protein from a list of input sources.
+     * @param input a list of paths to the input files. File extensions can be mixed. 
+     */
+    Protein(const vector<string>& input);
+
+    /**
+     * @brief Create a new protein from a single input source. 
+     * @param input the path to the input file. 
+     */
     Protein(const string& input);
     Protein() {}
 
@@ -65,9 +80,10 @@ public:
     vector<Hetatom> get_hydration_atoms() const;
 
 private:
-    vector<Body> bodies;
-    vector<Hetatom> hydration_atoms;
+    vector<Body> bodies; // the constituent bodies
+    vector<Hetatom> hydration_atoms; // stores the hydration atoms from the generated hydration layer
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
+    shared_ptr<StateManager> statemanager; // a state manager which keeps track of changes in the bodies
 
     /** 
      * @brief Move the entire protein by a vector.

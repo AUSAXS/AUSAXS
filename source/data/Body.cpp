@@ -123,11 +123,10 @@ void Body::generate_new_hydration() {
     hydration_atoms = vector<Hetatom>();
 
     // move protein to center of mass
-    Vector3 cm = get_cm();
-    translate(-cm);
+    translate(-get_cm());
 
-    grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
-    grid->add(protein_atoms);
+    // create the grid and hydrate it
+    create_grid();
     hydration_atoms = grid->hydrate();
 }
 
@@ -186,7 +185,7 @@ double Body::get_volume_grid() {
 void Body::create_grid() {
     grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
     grid->add(protein_atoms);
-    grid->add(hydration_atoms);
+    // grid->add(hydration_atoms);
 }
 
 shared_ptr<ScatteringHistogram> Body::get_distances() {
