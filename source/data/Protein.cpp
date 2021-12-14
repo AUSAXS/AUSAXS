@@ -24,12 +24,12 @@ void Protein::calc_distances() {
     update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
 
     // generous sizes - 1000Å should be enough for just about any structure
-    vector<int> axes = {(int) (1000/setting::axes::scattering_intensity_plot_binned_width), 0, 1000}; 
+    double width = setting::axes::scattering_intensity_plot_binned_width;
+    vector<int> axes = {int(1000/width), 0, 1000}; 
     vector<double> p_pp(axes[0], 0);
     vector<double> p_hh(axes[0], 0);
     vector<double> p_hp(axes[0], 0);
     vector<double> p_tot(axes[0], 0);
-    double width = (double) (axes[2]-axes[1])/axes[0]; // very important to cast this operation to a double - divison by two ints
 
     // extremely wasteful to calculate this from scratch every time
     std::vector<float> data_p(protein_atoms.size()*4);
@@ -61,7 +61,9 @@ void Protein::calc_distances() {
             p_pp[dist/width] += 2*weight;
         }
     }
-    p_pp[0] += protein_atoms.size();
+
+    // add self-correlation
+    for (size_t i = 0; i < protein_atoms.size(); i++) {p_pp[0] += data_p[4*i+3]*data_p[4*i+3];}
 
     for (size_t i = 1; i < hydration_atoms.size(); i++) {
         // calculate h-h distances
@@ -84,7 +86,9 @@ void Protein::calc_distances() {
             p_hp[dist/width] += 2*weight;
         }
     }
-    p_hh[0] += hydration_atoms.size();
+
+    // add self-correlation
+    for (size_t i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += data_h[4*i+3]*data_h[4*i+3];}
 
     // calculate the missing h-p distance
     for (size_t j = 0; j < protein_atoms.size(); j++) {
@@ -93,7 +97,7 @@ void Protein::calc_distances() {
         float dy = data_h[1] - data_p[4*j+1];
         float dz = data_h[2] - data_p[4*j+2];
         float dist = sqrt(dx*dx + dy*dy + dz*dz);
-        p_hp[std::round(dist/width)] += 2*weight;
+        p_hp[dist/width] += 2*weight;
     }
 
     // downsize our axes to only the relevant area
@@ -104,11 +108,12 @@ void Protein::calc_distances() {
             break;
         }
     }
+
     p_pp.resize(max_bin);
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    axes = {(int) (max_bin/setting::axes::scattering_intensity_plot_binned_width), 0, max_bin}; 
+    axes = {max_bin, 0, int(max_bin*width)}; 
 
     // calculate p_tot    
     for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
@@ -221,6 +226,5 @@ double Protein::get_mass() const {
     double M = 0;
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
     std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});
-    cout << "Protein mass is " << M*constants::unit::gm << endl;
-    return M*constants::unit::gm;
+    return M;
 }

@@ -87,7 +87,7 @@ public:
     void generate_volume_file(string path);
 
     /**
-     * @brief Calculate the total mass of this protein.
+     * @brief Calculate the total mass of this protein in Daltons.
      */
     double get_mass() const;
 

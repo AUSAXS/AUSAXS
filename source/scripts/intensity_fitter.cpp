@@ -15,6 +15,9 @@ using std::cout, std::endl;
 
 int main(int, char const *argv[]) {
     setting::grid::psc = setting::grid::RadialStrategy;
+    // setting::grid::width = 0.5;
+    // setting::grid::ra = 1.5;
+    // setting::grid::rh = 1.5;
 
     Protein protein(argv[1]);
     protein.generate_new_hydration();
@@ -75,6 +78,6 @@ int main(int, char const *argv[]) {
     c2->SaveAs(path.c_str());
 
     result->print();
-    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2) << endl;
+    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
     return 0;
 }

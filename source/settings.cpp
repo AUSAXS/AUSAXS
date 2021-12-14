@@ -21,4 +21,9 @@ namespace setting {
 
     namespace protein {
     }
+
+    namespace axes {
+        double scattering_intensity_plot_binned_width = 1;
+        std::vector<double> scattering_intensity_plot_axes = {1000, 0.001, 1.001};
+    }
 }

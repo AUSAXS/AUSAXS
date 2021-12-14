@@ -52,7 +52,8 @@ void parse_params(int argc, char const *argv[]) {
 int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
 
-    setting::grid::psc = setting::grid::RadialStrategy;
+    setting::grid::rh = 3;
+    // setting::grid::psc = setting::grid::RadialStrategy;
     // setting::grid::percent_water = 0;
 
     Protein protein(argv[1]);

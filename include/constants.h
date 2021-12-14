@@ -12,6 +12,7 @@ namespace constants {
     constexpr double Avogadro = 6.02214076e-23; // mol^-1
 
     namespace unit { // units with respect to the ones used in this file
+        constexpr double mg = 1.66054e-27; // Dalton --> mg
         constexpr double gm = 1.66054e-24; // Dalton --> grams
         constexpr double cm = 1e-8; // Ångström --> cm
     }
