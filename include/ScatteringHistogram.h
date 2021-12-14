@@ -1,14 +1,10 @@
 #pragma once
 
-// forwards declaration
-class Protein;
-
 #include <vector>
 #include <string>
 #include <utility>
 #include "TH1D.h"
 #include "TCanvas.h"
-#include "data/Protein.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
