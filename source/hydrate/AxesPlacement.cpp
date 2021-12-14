@@ -39,16 +39,16 @@ public:
             int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, bins[2]-1); // zminus and zplus
 
             // check collisions for x ± r_eff
-            if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) add_loc({xm, y, z});
-            if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) add_loc({xp, y, z});
+            if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {add_loc({xm, y, z});}
+            if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) {add_loc({xp, y, z});}
 
             // check collisions for y ± r_eff
-            if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) add_loc({x, ym, z});
-            if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) add_loc({x, yp, z});
+            if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) {add_loc({x, ym, z});}
+            if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) {add_loc({x, yp, z});}
 
             // check collisions for z ± r_eff
-            if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) add_loc({x, y, zm});
-            if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) add_loc({x, y, zp});
+            if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) {add_loc({x, y, zm});}
+            if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) {add_loc({x, y, zp});}
         }
 
         return placed_water;

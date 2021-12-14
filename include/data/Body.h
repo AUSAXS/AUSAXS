@@ -38,8 +38,8 @@ public:
      */
     void rotate(const double& alpha, const double& beta, const double& gamma);
 
-private:
     vector<Atom>& protein_atoms;
     vector<Hetatom>& hydration_atoms;
+private:
     std::unique_ptr<File> file;
 };

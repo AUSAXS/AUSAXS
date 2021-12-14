@@ -15,7 +15,8 @@ using std::cout, std::endl;
 
 int main(int, char const *argv[]) {
     setting::grid::psc = setting::grid::RadialStrategy;
-    // setting::grid::width = 0.5;
+    // setting::axes::scattering_intensity_plot_binned_width = 0.5;
+    setting::grid::width = 0.5;
     // setting::grid::ra = 1.5;
     // setting::grid::rh = 1.5;
 

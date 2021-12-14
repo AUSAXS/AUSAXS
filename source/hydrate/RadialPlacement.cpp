@@ -23,6 +23,7 @@ public:
         vector<vector<int>> bins_5rh;
         vector<vector<int>> bins_7rh;
         vector<vector<int>> bins_rarh;
+        vector<Vector3> locs_rarh;
         double ang = 2*M_PI/divisions;
 
         // we generate one octant of a sphere, and then reflect it to generate the rest
@@ -65,29 +66,33 @@ public:
             }
         }
 
+        double rarh = ra+rh;
         for (const auto& rot : rots) {
             const double xr = rot[0], yr = rot[1], zr = rot[2];
             bins_1rh.push_back({(int) std::trunc(rh*xr), (int) std::trunc(rh*yr), (int) std::trunc(rh*zr)});
             bins_3rh.push_back({(int) std::trunc(3*rh*xr), (int) std::trunc(3*rh*yr), (int) std::trunc(3*rh*zr)});
             bins_5rh.push_back({(int) std::trunc(5*rh*xr), (int) std::trunc(5*rh*yr), (int) std::trunc(5*rh*zr)});
             bins_7rh.push_back({(int) std::trunc(7*rh*xr), (int) std::trunc(7*rh*yr), (int) std::trunc(7*rh*zr)});
-            bins_rarh.push_back({(int) std::trunc((ra+rh)*xr), (int) std::trunc((ra+rh)*yr), (int) std::trunc((ra+rh)*zr)});
+            bins_rarh.push_back({(int) std::trunc((rarh)*xr), (int) std::trunc((rarh)*yr), (int) std::trunc((rarh)*zr)});
+            locs_rarh.push_back({(rarh)*xr, (rarh)*yr, (rarh)*zr});
         }
 
-        // rot_bins = bins;
+        // set the member vectors
         rot_bins_1rh = bins_1rh;
         rot_bins_3rh = bins_3rh;
         rot_bins_5rh = bins_5rh;
         rot_bins_7rh = bins_7rh;
         rot_bins_rarh = bins_rarh;
+        rot_locs_rarh = locs_rarh;
     }
 
-    // vector<vector<int>> rot_bins; // the bin offsets representing rotations
+    // the vectors representing the bin offsets of rotations
     vector<vector<int>> rot_bins_1rh; // rotation bins at 1rh radius
     vector<vector<int>> rot_bins_3rh; // rotation bins at 3rh radius
     vector<vector<int>> rot_bins_5rh; // rotation bins at 5rh radius
     vector<vector<int>> rot_bins_7rh; // rotation bins at 7rh radius
     vector<vector<int>> rot_bins_rarh; // rotation bins at rarh radius
+    vector<Vector3> rot_locs_rarh; // exact locations of the rarh bins
 
     vector<Hetatom> place() const override {
         // dereference the values we'll need for better performance
@@ -96,8 +101,8 @@ public:
 
         // we define a helper lambda
         vector<Hetatom> placed_water;
-        auto add_loc = [&] (const vector<int> v) {
-            Hetatom a = Hetatom::create_new_water(grid->to_xyz(v));
+        auto add_loc = [&] (const Vector3 exact_loc) {
+            Hetatom a = Hetatom::create_new_water(exact_loc);
             grid->add(a);
             grid->expand_volume(a);
             placed_water.push_back(a);
@@ -121,7 +126,10 @@ public:
 
                 // we have to make sure we don't check the direction of the atom we are trying to place this water on
                 const vector<int> skip_bin = {xr-rot_bins_1rh[i][0], yr-rot_bins_1rh[i][1], zr-rot_bins_1rh[i][2]};
-                if (gref[xr][yr][zr] == 0 && collision_check({xr, yr, zr}, skip_bin)) {add_loc({xr, yr, zr});};
+                if (gref[xr][yr][zr] == 0 && collision_check({xr, yr, zr}, skip_bin)) {
+                    Vector3 exact_loc = a.coords + rot_locs_rarh[i];
+                    add_loc(exact_loc);
+                };
             }
         }
 
