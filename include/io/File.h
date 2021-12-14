@@ -22,7 +22,7 @@ using std::vector, std::string, std::unique_ptr, std::shared_ptr;
 
 class File {
 public: 
-    File() {}
+    File(const vector<Atom> protein_atoms, const vector<Hetatom> hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
     File(string filename) {
         reader = construct_reader(filename);

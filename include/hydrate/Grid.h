@@ -51,28 +51,13 @@ public:
 
     /** 
      * @brief Add a single atom to the grid. 
-     * @param atom the atom to be added. 
      */
-    template<typename T>
-    void add(const T& atom) {
-        static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
-        vector<int> loc = to_bins(atom.coords);
-        const int x = loc[0], y = loc[1], z = loc[2];
-        const bool is_water = atom.is_water();
+    void add(const Atom& atom);
 
-        // sanity check
-        const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2];
-        if (__builtin_expect(out_of_bounds, false)) {
-            print_err("Error in Grid::add: Atom is located outside the grid!");
-            Vector3 coords = atom.coords;
-            print_err((format("Location: (%1%, %2%, %3%)") % coords[0] % coords[1] % coords[2]).str());
-            exit(1);
-        }
-
-        if (is_water) {volume++;}
-        members.insert({atom, loc});
-        grid[x][y][z] = is_water ? 'H' : 'A';
-    }
+    /** 
+     * @brief Add a single hetatom to the grid. 
+     */
+    void add(const Hetatom& atom);
 
     /**
      * @brief Remove a single atom from the grid.

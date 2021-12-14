@@ -10,6 +10,7 @@
 #include "TPad.h"
 #include "TLine.h"
 
+#include "data/Body.h"
 #include "data/Protein.h"
 #include "plot_style.h"
 
@@ -62,7 +63,7 @@ int main(int argc, char const *argv[]) {
     setting::grid::psc = setting::grid::RadialStrategy;
     setting::axes::scattering_intensity_plot_binned_width = 0.5;
 
-    Protein protein(argv[1]);
+    Body protein(argv[1]);
     protein.generate_new_hydration();
     shared_ptr<ScatteringHistogram> d = protein.get_distances();
 

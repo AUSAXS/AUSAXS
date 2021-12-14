@@ -1,11 +1,15 @@
 .vscode
 build
 temp
+external
 figures/*
 output/*
 data/*
 perf.*
+CMakeFiles
+lib
 
+*.cmake
 *.pdf
 *.xml
 *.pdb

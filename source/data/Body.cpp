@@ -157,18 +157,12 @@ Vector3 Body::get_cm() const {
         for (auto const& a : atoms) {
             double m = a.get_mass();
             M += m;
-            double x = a.coords.x*m;
-            double y = a.coords.y*m;
-            double z = a.coords.y*m;
-            cm += Vector3(x, y, z);
+            cm += a.coords*m;
         }
-        cm[0] = cm[0]/M;
-        cm[1] = cm[1]/M;
-        cm[2] = cm[2]/M;
     };
     weighted_sum(protein_atoms);
     weighted_sum(hydration_atoms);
-    return cm;
+    return cm/M;
 }
 
 double Body::get_volume_acids() const {
@@ -212,6 +206,10 @@ void Body::translate(const Vector3& v) {
 
 void Body::rotate(const double& alpha, const double& beta, const double& gamma) {}
 void Body::rotate(const Vector3& axis, const double& rad) {}
+
+void Body::update_effective_charge(const double& charge) {
+    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
+}
 
 void Body::update_effective_charge() {
     if (grid == nullptr) {create_grid();}

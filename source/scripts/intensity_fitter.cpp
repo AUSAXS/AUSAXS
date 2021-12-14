@@ -3,7 +3,7 @@
 #include <string>
 #include <iostream>
 
-#include "data/Protein.h"
+#include "data/Body.h"
 #include "fitter/IntensityFitter.cpp"
 
 #include <TCanvas.h>
@@ -16,11 +16,11 @@ using std::cout, std::endl;
 int main(int, char const *argv[]) {
     setting::grid::psc = setting::grid::RadialStrategy;
     // setting::axes::scattering_intensity_plot_binned_width = 0.5;
-    setting::grid::width = 0.5;
+    // setting::grid::width = 0.5;
     // setting::grid::ra = 1.5;
     // setting::grid::rh = 1.5;
 
-    Protein protein(argv[1]);
+    Body protein(argv[1]);
     protein.generate_new_hydration();
     std::shared_ptr<ScatteringHistogram> h = protein.get_distances();
 

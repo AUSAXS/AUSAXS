@@ -27,9 +27,11 @@ public:
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(std::make_unique<File>()), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms){}
+    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) 
+        : file(std::make_unique<File>(protein_atoms, hydration_atoms)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms){}
 
-    /** Writes this body to disk.
+    /** 
+     * @brief Writes this body to disk.
      * @param path path to the destination. 
      */
     void save(string path);
@@ -61,22 +63,22 @@ public:
     Vector3 get_cm() const;
 
     /**
-     * @brief Calculate the volume of this protein based on its constituent amino acids
+     * @brief Calculate the volume of this body based on its constituent amino acids
      */
     double get_volume_acids() const;
 
     /**
-     * @brief Calculate the volume of this protein based on the number of grid bins it spans
+     * @brief Calculate the volume of this body based on the number of grid bins it spans
      */
     double get_volume_grid();
 
     /**
-     * @brief Calculate the volume of this protein based on the number of C-alpha atoms
+     * @brief Calculate the volume of this body based on the number of C-alpha atoms
      */
     double get_volume_calpha() const;
 
     /**
-     * @brief Get the grid representation of this protein. 
+     * @brief Get the grid representation of this body. 
      */
     shared_ptr<Grid> get_grid() const {
         if (grid == nullptr) {
@@ -92,7 +94,7 @@ public:
     void generate_volume_file(string path);
 
     /**
-     * @brief Calculate the total mass of this protein in Daltons.
+     * @brief Calculate the total mass of this body in Daltons.
      */
     double get_mass() const;
 
@@ -132,10 +134,30 @@ public:
      */
     void update_effective_charge();
 
+    /**
+     * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
+     * @param charge the charge to be subtracted.
+     */
+    void update_effective_charge(const double& charge);
+
+    /**
+     * @brief Assignment operator overload
+     */
+    Body& operator=(const Body& body) {
+        protein_atoms = body.protein_atoms;
+        hydration_atoms = body.hydration_atoms;
+        file = body.file;
+        grid = body.grid;
+        distances = body.distances;
+        return *this;
+    }
+
 private:
     shared_ptr<File> file = nullptr; // the file backing this body
-    vector<Atom>& protein_atoms; // atoms of the body itself
-    vector<Hetatom>& hydration_atoms; // hydration layer
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
     shared_ptr<ScatteringHistogram> distances = nullptr; // an object representing the distances between atoms
+
+public: 
+    vector<Atom>& protein_atoms; // atoms of the body itself
+    vector<Hetatom>& hydration_atoms; // hydration layer
 };

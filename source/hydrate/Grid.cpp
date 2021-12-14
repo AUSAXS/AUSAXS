@@ -179,6 +179,39 @@ void Grid::expand_volume(const Atom& atom) {
     grid[loc[0]][loc[1]][loc[2]] = is_water ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
+void Grid::add(const Atom& atom) {
+    vector<int> loc = to_bins(atom.coords);
+    const int x = loc[0], y = loc[1], z = loc[2];
+
+    // sanity check
+    const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2] || x+y+z < 0;
+    if (__builtin_expect(out_of_bounds, false)) {
+        print_err("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
+        exit(1);
+    }
+
+    volume++;
+    members.insert({atom, loc});
+    grid[x][y][z] = 'A';
+}
+
+void Grid::add(const Hetatom& atom) {
+    vector<int> loc = to_bins(atom.coords);
+    const int x = loc[0], y = loc[1], z = loc[2];
+
+    // sanity check
+    const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2] || x+y+z < 0;
+    if (__builtin_expect(out_of_bounds, false)) {
+        print_err("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
+        exit(1);
+    }
+
+    const bool is_water = atom.is_water();
+    if (!is_water) {volume++;}
+    members.insert({atom, loc});
+    grid[x][y][z] = is_water ? 'H' : 'A';
+}
+
 void Grid::remove(const Atom& atom) {
     if (__builtin_expect(members.count(atom) == 0, false)) {
         print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");

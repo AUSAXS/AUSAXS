@@ -3,6 +3,7 @@
 #include <string>
 #include <boost/program_options.hpp>
 
+#include "data/Body.h"
 #include "data/Protein.h"
 #include "settings.h"
 
@@ -56,7 +57,7 @@ int main(int argc, char const *argv[]) {
     // setting::grid::psc = setting::grid::RadialStrategy;
     // setting::grid::percent_water = 0;
 
-    Protein protein(argv[1]);
+    Body protein(argv[1]);
     protein.generate_new_hydration();
     protein.save(argv[2]);
     return 0;

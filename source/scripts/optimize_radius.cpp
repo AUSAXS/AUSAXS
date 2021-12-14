@@ -10,9 +10,9 @@
 #include "TGraph.h"
 #include "TLine.h"
 
-class debug_protein : public Protein {
+class debug_protein : public Body {
 public:
-    using Protein::Protein;
+    using Body::Body;
     void refresh_grid() {create_grid();}
 };
 

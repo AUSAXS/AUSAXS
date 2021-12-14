@@ -31,6 +31,9 @@ public:
     // Two Vector3s are always compatible
     void compatibility_check(const Vector3&) const {}
 
+    // Returns a string representation of this object
+    std::string to_string() const {return "(" + std::to_string(x) + ", " + std::to_string(z) + ", " + std::to_string(z) + ")";}
+
     double& x = _data[0];
     double& y = _data[1];
     double& z = _data[2];

@@ -1,5 +1,4 @@
 # Todo
- * [x] SLICES: change *Matrix pointers to &vector<double> for better efficiency
  * [ ] ATOM: Const uid 
  * [ ] CONSTANTS: Rethink how to determine charge densities for arbitrary ligands
  * [ ] GRID: Fix AxesPlacement - exact water locations, iterate over grid
@@ -15,6 +14,9 @@
  * Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
  * Take a closer look at the form factor
  * Convert `a` to a more sensible output (units)
+
+## Body:
+ * Consider removing hydration_atoms, they're not supposed to be used anyway
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
