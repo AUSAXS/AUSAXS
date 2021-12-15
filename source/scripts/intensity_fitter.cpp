@@ -46,7 +46,7 @@ int main(int, char const *argv[]) {
     graphs[1]->Draw("SAME L"); // Line
 
     // setup the canvas and save the plot
-    string path = string(argv[3]) + "intensity_fit" + setting::figures::format;
+    string path = string(argv[3]) + "intensity_fit." + setting::figures::format;
     c1->SetTitle("Fit");
     c1->SetLogy();
     c1->SetLogx();
@@ -71,7 +71,7 @@ int main(int, char const *argv[]) {
     line->Draw("SAME");
 
     // setup the canvas and save the plot
-    path = string(argv[3]) + "residuals" + setting::figures::format;
+    path = string(argv[3]) + "residuals." + setting::figures::format;
     c2->SetTitle("Residuals");
     c2->SetLogx();
     c2->SetRightMargin(0.15);

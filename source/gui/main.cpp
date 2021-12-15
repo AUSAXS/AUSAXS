@@ -6,8 +6,10 @@
 #include <elements.hpp>
 #include <algorithm>
 #include <random>
+#include <iostream>
 
 using namespace cycfi::elements;
+using std::cout, std::endl;
 
 // Main window background color
 auto constexpr bkd_color = rgba(35, 35, 37, 255);
@@ -61,17 +63,32 @@ auto make_buttons(view& view_) {
 }
 
 auto make_controls(view& view_) {
-   auto  radio_button1 = radio_button("Scattering histogram");
-   auto  radio_button2 = radio_button("Distance histogram");
-   radio_button1.select(true);
+   auto im_intensity = image{"intensity.png"};
+   auto im_distance = image{"distances.png"};
+   auto radio_intensity = radio_button("Scattering histogram");
+   auto radio_distance = radio_button("Distance histogram");
+   radio_intensity.select(true);
+
+   auto im_shown = im_intensity;
+   radio_intensity.on_click = [&radio_intensity, &view_, &im_intensity, &im_shown] (bool) mutable {
+      cout << "Clicked on intensity button!" << endl;
+      // im_shown = im_intensity;
+      // view_.refresh(im_shown);
+   };
+
+   radio_distance.on_click = [&view_, &im_distance, &im_shown] (bool) mutable {
+      cout << "Clicked on distance button!" << endl;
+      // im_shown = im_distance;
+      // view_.refresh(im_shown);
+   };
 
    auto  radio_buttons =
          group("Radio Buttons",
             margin({10, 10, 20, 20},
                top_margin(25,
                   vtile(
-                     top_margin(10, align_left(radio_button1)),
-                     top_margin(10, align_left(radio_button2))
+                     top_margin(10, align_left(radio_intensity)),
+                     top_margin(10, align_left(radio_distance))
                   )
                )
             )
@@ -82,13 +99,13 @@ auto make_controls(view& view_) {
          htile(
             margin({ 20, 20, 20, 20 }, radio_buttons)
          ),
-         scroller(image{"distances.pdf"})
+         im_shown
       );
 }
 
 int main(int argc, char* argv[]) {
    app _app(argc, argv, "SAXS", "com.saxs.gui");
-   window _win(_app.name());
+   window _win(_app.name(), 15, rect{20, 20, 1000, 1500});
    _win.on_close = [&_app]() { _app.stop(); };
 
    view view_(_win);

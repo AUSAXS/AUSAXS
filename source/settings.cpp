@@ -5,7 +5,7 @@
 // Default settings
 namespace setting {
     namespace figures {
-        std::string format = ".pdf";
+        std::string format = "pdf";
     }
 
     namespace grid {

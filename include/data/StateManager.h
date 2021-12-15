@@ -9,7 +9,6 @@ using std::vector;
  */
 class StateManager {
     public:
-
         /**
          * @brief A small probe for signalling changes which can be dispatched to other classes. 
          */
@@ -68,6 +67,16 @@ class StateManager {
         std::shared_ptr<Signaller> get_probe(const int& i) {
             return probes[i];
         }
+
+        /**
+         * @brief Get a boolean vector which denotes if the state of a given body was changed. 
+         */
+        vector<bool> get_modified_bodies() const {return _modified;}
+
+        /**
+         * @brief Returns true if the hydration layer has been modified, false otherwise. 
+         */
+        bool get_modified_hydration() const {return _modified_hydration;}
 
     private:
         const int size;

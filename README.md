@@ -30,6 +30,8 @@ ATSAS CRYSOL
 
 # Other personal notes
 ## Articles
+ * Joachim (Jochen) Hub - molecular dynamics
+ * Aquaporin DDM
  * B. Jacrot rep prog phys ~ 1980
  * Peter Zipper ~1980
  * ATSAS Crysol

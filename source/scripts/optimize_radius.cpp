@@ -40,7 +40,7 @@ int main(int argc, char const *argv[]) {
     g->Draw("AL");
 
     // setup the canvas and save the plot
-    string path = string(argv[2]) + "radius_optimizer.pdf";
+    string path = string(argv[2]) + "radius_optimizer." + setting::figures::format;
     c1->SetRightMargin(0.15);
     c1->SetLeftMargin(0.15);
     c1->SaveAs(path.c_str());

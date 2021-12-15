@@ -62,6 +62,7 @@ int main(int argc, char const *argv[]) {
 
     setting::grid::psc = setting::grid::RadialStrategy;
     setting::axes::scattering_intensity_plot_binned_width = 0.5;
+    setting::figures::format = "png";
 
     Body protein(argv[1]);
     protein.generate_new_hydration();
@@ -95,7 +96,7 @@ int main(int argc, char const *argv[]) {
     legend->Draw();
 
     // setup the canvas and save the plot
-    string path = output + "distances" + setting::figures::format;
+    string path = output + "distances." + setting::figures::format;
     c1->SetRightMargin(0.15);
     c1->SetLeftMargin(0.15);
     c1->SaveAs(path.c_str());
@@ -147,7 +148,7 @@ int main(int argc, char const *argv[]) {
     gyration_ratio->Draw("SAME");
 
     // setup the canvas and save the plot
-    path = output + "intensity" + setting::figures::format;
+    path = output + "intensity." + setting::figures::format;
     c2->SetRightMargin(0.15);
     c2->SetLeftMargin(0.15);
     c2->SaveAs(path.c_str());

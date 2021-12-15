@@ -175,7 +175,7 @@ private:
             if (gref[xr][yr][zr] != 0) {
                 if (vector({xr, yr, zr}) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
                 return false;
-            };
+            }
 
             // check if we're in a cavity
             for (size_t j = 0; j < rot_bins_3rh.size(); j++) {
