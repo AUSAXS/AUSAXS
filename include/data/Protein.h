@@ -32,6 +32,11 @@ public:
     Protein(const string& input);
     Protein() {}
 
+    /**
+     * @brief Get the distances between each atom.
+     */
+    shared_ptr<ScatteringHistogram> get_distances();
+
     /** 
      * @brief Writes this body to disk.
      * @param path path to the destination. 
@@ -83,7 +88,7 @@ private:
     vector<Body> bodies; // the constituent bodies
     vector<Hetatom> hydration_atoms; // stores the hydration atoms from the generated hydration layer
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
-    shared_ptr<StateManager> statemanager; // a state manager which keeps track of changes in the bodies
+    shared_ptr<StateManager> statemanager = nullptr; // a state manager which keeps track of changes in the bodies
 
     /** 
      * @brief Move the entire protein by a vector.

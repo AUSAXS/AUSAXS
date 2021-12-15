@@ -2,7 +2,12 @@
 #include <vector>
 #include "math/Vector3.h"
 
+// Default settings
 namespace setting {
+    namespace figures {
+        std::string format = ".pdf";
+    }
+
     namespace grid {
         PlacementStrategyChoice psc = AxesStrategy; 
         CullingStrategyChoice csc = CounterStrategy;

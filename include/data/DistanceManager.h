@@ -1,4 +1,5 @@
 #include "data/Body.h"
+#include "data/StateManager.h"
 #include "ScatteringHistogram.h"
 
 /**

@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(Buttons LANGUAGES C CXX)
 
-set(ELEMENTS_ROOT "../../external/elements")
+set(ELEMENTS_ROOT "external/elements")
 if (NOT ELEMENTS_ROOT)
    message(FATAL_ERROR "ELEMENTS_ROOT is not set")
 endif()
@@ -17,22 +17,25 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${ELEMENTS_ROOT}/cmake")
 
 # If we are building outside the project, you need to set ELEMENTS_ROOT:
 if (NOT ELEMENTS_BUILD_EXAMPLES)
-   include(ElementsConfigCommon)
+#   include(ElementsConfigCommon)
    set(ELEMENTS_BUILD_EXAMPLES OFF)
    add_subdirectory(${ELEMENTS_ROOT} elements)
 endif()
 
-set(ELEMENTS_APP_PROJECT "Buttons")
-set(ELEMENTS_APP_TITLE "Buttons")
+set(ELEMENTS_APP_PROJECT "gui")
+set(ELEMENTS_APP_TITLE "gui")
 set(ELEMENTS_APP_COPYRIGHT "Copyright (c) 2016-2020 Joel de Guzman")
-set(ELEMENTS_APP_ID "com.cycfi.buttons")
+set(ELEMENTS_APP_ID "gui")
 set(ELEMENTS_APP_VERSION "1.0")
+set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/main.cpp)
+#set(ELEMENTS_APP_DEPENDENCIES ${LIBRARIES})
 
 set(ELEMENTS_APP_RESOURCES
-   ${CMAKE_CURRENT_SOURCE_DIR}/resources/power_180x632.png
-   ${CMAKE_CURRENT_SOURCE_DIR}/resources/phase_180x632.png
-   ${CMAKE_CURRENT_SOURCE_DIR}/resources/mail_180x632.png
-   ${CMAKE_CURRENT_SOURCE_DIR}/resources/transpo_180x632.png
+   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/power_180x632.png
+   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/phase_180x632.png
+   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/mail_180x632.png
+   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/transpo_180x632.png
 )
 
 include(ElementsConfigApp)
+#target_link_libraries(${ELEMENTS_APP_PROJECT} ${Boost_LIBRARIES})

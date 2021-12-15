@@ -2,8 +2,22 @@
 #include "data/Body.h"
 #include "io/File.h"
 
-Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) {bodies = {Body(protein_atoms, hydration_atoms)};}
-Protein::Protein(const string& input) {bodies = {Body(input)};}
+Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) {
+    bodies = {Body(protein_atoms, hydration_atoms)};
+    statemanager = std::make_shared<StateManager>(1);
+}
+
+Protein::Protein(const string& input) {
+    bodies = {Body(input)};
+    statemanager = std::make_shared<StateManager>(1);
+}
+
+Protein::Protein(const vector<string>& input) {
+    for (const auto& file : input) {
+        bodies.push_back(Body(file));
+    }
+    statemanager = std::make_shared<StateManager>(input.size());
+}
 
 void Protein::translate(const Vector3& v) {
     for (auto& body : bodies) {
@@ -91,9 +105,21 @@ Vector3 Protein::get_cm() const {
 
 vector<Hetatom> Protein::get_hydration_atoms() const {return hydration_atoms;}
 
-void Protein::generate_new_hydration() {}
+void Protein::generate_new_hydration() {
+    // delete the old hydration layer
+    hydration_atoms = vector<Hetatom>();
 
-void Protein::calc_distances() {}
+    // move protein to center of mass
+    translate(-get_cm());
+
+    // create the grid and hydrate it
+    create_grid();
+    hydration_atoms = grid->hydrate();
+}
+
+void Protein::calc_distances() {
+    
+}
 
 void Protein::update_effective_charge() {
     if (grid == nullptr) {create_grid();}

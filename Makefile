@@ -10,8 +10,8 @@ source_files := $(addprefix source/, $(shell find source/ -type f -not -wholenam
 .SECONDARY:
 
 .PHONY:
-gui: build/source/scripts/gui
-	$<
+gui: build/source/gui/gui
+	build/gui
 
 .PHONY:
 hydrate/%: build/source/scripts/new_hydration
@@ -61,3 +61,4 @@ build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
 	
 clean/build: 
 	@ rmdir -f build
+

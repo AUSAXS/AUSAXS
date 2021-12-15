@@ -1,9 +1,14 @@
 #pragma once
 #include <vector>
+#include <string>
 #include "math/Vector3.h"
 
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
+    namespace figures {
+        extern std::string format; // The output format.
+    }
+
     namespace grid {
         enum PlacementStrategyChoice {AxesStrategy, RadialStrategy};
         enum CullingStrategyChoice {CounterStrategy, OutlierStrategy};

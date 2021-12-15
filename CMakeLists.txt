@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
-project(Calibrate)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -g -flto -lboost_program_options -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -flto -lboost_program_options -Wall -Wextra")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
+project(SAXS)
 #----------------------------------------------------------------------------
 set(LIBRARIES "")
 set(sources "")
@@ -29,6 +29,7 @@ include(source/math/CMakeLists.txt)
 include(source/data/CMakeLists.txt)
 include(source/hydrate/CMakeLists.txt)
 include(source/CMakeLists.txt)
+include(source/gui/CMakeLists.txt)
 
 add_subdirectory(source/tests)
 add_subdirectory(source/scripts)
