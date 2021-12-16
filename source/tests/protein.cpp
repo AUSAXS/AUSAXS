@@ -25,6 +25,10 @@ void create_test_file() {
     file2.close();
     file3 << "ATOM      9  C   LYS A   1           0       0       0  1.00 00.00           C  ";
     file3.close();
+    // file1 << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n";
+    // file1.close();
+    // file2 << "ATOM      2  C   LYS A   1          -1       1      -1  1.00 00.00           C \n";
+    // file2.close();
 }
 
 void test_calc_distances() {
@@ -42,6 +46,8 @@ void test_calc_distances() {
 
          << "ATOM      9  C   LYS A   1           0       0       0  1.00 00.00           C  ";
     file.close();
+    // file << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n";
+    // file.close();
 
     // create some water molecules
     vector<Hetatom> atoms(10);
@@ -49,10 +55,13 @@ void test_calc_distances() {
         atoms[i] = Hetatom::create_new_water(Vector3(i, i, i));
     }
 
-    // Protein protein({"temp1.pdb", "temp2.pdb", "temp3.pdb"});
-    Protein protein("temp_dist.pdb");
+    vector<string> files = {"temp1.pdb", "temp2.pdb", "temp3.pdb"};
+    Protein protein(files);
+    // Protein protein("temp1.pdb");
     Body body("temp_dist.pdb");
     remove("temp_dist.pdb");
+
+    // body.protein_atoms = {};
 
     body.hydration_atoms = atoms;
     protein.hydration_atoms = atoms;
@@ -60,6 +69,52 @@ void test_calc_distances() {
     // we now have a protein consisting of three bodies with the exact same contents as a single body.
     // the idea is now to compare the ScatteringHistogram output from their distance calculations, since it
     // is far easier to do for the single body. 
+    shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
+    shared_ptr<ScatteringHistogram> d_p = protein.get_histogram();
+
+    // direct access to the histogram data (only p_tot is defined)
+    const vector<double>& p_tot = d_p->p_tot;
+    const vector<double>& b_tot = d_b->p_tot;
+
+    // compare each entry
+    for (size_t i = 0; i < b_tot.size(); i++) {
+        if (!approx(p_tot[i], b_tot[i])) {
+            IS_TRUE(false);
+            cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
+            // break;
+        }
+    }
+}
+
+void test_calc_distances2() {
+    // check if file was succesfully opened
+    std::ifstream input("data/2epe.pdb");
+    if (!input.is_open()) {return;}
+
+    string line; // placeholder for the current line
+    size_t counter = 1;
+    vector<string> files;
+    string out = "";
+    while(getline(input, line)) {
+        if (!(line.substr(0, 4) == "ATOM" || line.substr(0, 6) == "HETATOM")) {continue;}
+        out += line;
+        if (counter % 100 == 0) {
+            string file_name = "temp" + std::to_string(files.size()+1) + ".pdb";
+            files.push_back(file_name); 
+            std::ofstream file(file_name);
+            file << out;
+            file.close();
+            out = "";
+        }
+        counter++;
+    }
+
+    Protein protein(files);
+    Body body("data/2epe.pdb");
+
+    body.generate_new_hydration();
+    protein.hydration_atoms = body.hydration_atoms;
+
     shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
     shared_ptr<ScatteringHistogram> d_p = protein.get_histogram();
 

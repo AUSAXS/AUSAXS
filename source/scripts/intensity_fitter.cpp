@@ -22,7 +22,7 @@ int main(int, char const *argv[]) {
 
     Body protein(argv[1]);
     protein.generate_new_hydration();
-    std::shared_ptr<ScatteringHistogram> h = protein.get_distances();
+    std::shared_ptr<ScatteringHistogram> h = protein.get_histogram();
 
     IntensityFitter fitter(argv[2], h);
     std::shared_ptr<Fitter::Fit> result = fitter.fit();

@@ -3,8 +3,8 @@
 #include "io/File.h"
 
 Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    bodies = {Body(protein_atoms, hydration_atoms)};
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
+    bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
+    phm = std::make_unique<PartialHistogramManager>(bodies, this->hydration_atoms);
 }
 
 Protein::Protein(const string& input) {

@@ -66,7 +66,7 @@ int main(int argc, char const *argv[]) {
 
     Body protein(argv[1]);
     protein.generate_new_hydration();
-    shared_ptr<ScatteringHistogram> d = protein.get_distances();
+    shared_ptr<ScatteringHistogram> d = protein.get_histogram();
 
     setup_style();
 

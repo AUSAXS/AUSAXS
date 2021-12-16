@@ -45,8 +45,8 @@ void PartialHistogramManager::initialize() {
         CompactCoordinates current(bodies[n]);
 
         // calculate internal distances between atoms
-        for (size_t i = 1; i < current.size; i++) {
-            for (size_t j = i; j < current.size; j++) {
+        for (size_t i = 0; i < current.size; i++) {
+            for (size_t j = i+1; j < current.size; j++) {
                 float weight = current.data[4*i+3]*current.data[4*j+3];
                 float dx = current.data[4*i] - current.data[4*j];
                 float dy = current.data[4*i+1] - current.data[4*j+1];
@@ -205,8 +205,8 @@ void PartialHistogramManager::calc_hh() {
 
     // calculate internal distances for the hydration layer
     coords_h = CompactCoordinates(hydration_atoms);
-    for (size_t i = 1; i < hydration_atoms.size(); i++) {
-        for (size_t j = i; j < hydration_atoms.size(); j++) {
+    for (size_t i = 0; i < hydration_atoms.size(); i++) {
+        for (size_t j = i+1; j < hydration_atoms.size(); j++) {
             float weight = coords_h.data[4*i+3]*coords_h.data[4*j+3];
             float dx = coords_h.data[4*i] - coords_h.data[4*j];
             float dy = coords_h.data[4*i+1] - coords_h.data[4*j+1];
