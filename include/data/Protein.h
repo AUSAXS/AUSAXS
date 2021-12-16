@@ -9,6 +9,7 @@
 #include "data/Atom.h"
 #include "data/Hetatom.h"
 #include "data/StateManager.h"
+#include "data/PartialHistogramManager.h"
 
 using std::vector, std::string;
 
@@ -35,7 +36,7 @@ public:
     /**
      * @brief Get the distances between each atom.
      */
-    shared_ptr<ScatteringHistogram> get_distances();
+    shared_ptr<ScatteringHistogram> get_histogram();
 
     /** 
      * @brief Writes this body to disk.
@@ -84,11 +85,13 @@ public:
      */
     vector<Hetatom> get_hydration_atoms() const;
 
+    vector<Hetatom> hydration_atoms; // stores the hydration atoms from the generated hydration layer
 private:
     vector<Body> bodies; // the constituent bodies
-    vector<Hetatom> hydration_atoms; // stores the hydration atoms from the generated hydration layer
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
+    unique_ptr<PartialHistogramManager> phm = nullptr;
     shared_ptr<StateManager> statemanager = nullptr; // a state manager which keeps track of changes in the bodies
+    shared_ptr<ScatteringHistogram> histogram = nullptr; // an object representing the distances between atoms
 
     /** 
      * @brief Move the entire protein by a vector.
@@ -104,7 +107,7 @@ private:
     /** 
      * @brief Calculate the distances between each pair of atoms. 
      */
-    void calc_distances();
+    void calc_histogram();
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 

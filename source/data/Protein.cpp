@@ -2,21 +2,21 @@
 #include "data/Body.h"
 #include "io/File.h"
 
-Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) {
-    bodies = {Body(protein_atoms, hydration_atoms)};
+Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     statemanager = std::make_shared<StateManager>(1);
+    bodies = {Body(protein_atoms, hydration_atoms, statemanager->get_probe(0))};
 }
 
 Protein::Protein(const string& input) {
-    bodies = {Body(input)};
     statemanager = std::make_shared<StateManager>(1);
+    bodies = {Body(input, statemanager->get_probe(0))};
 }
 
 Protein::Protein(const vector<string>& input) {
-    for (const auto& file : input) {
-        bodies.push_back(Body(file));
-    }
     statemanager = std::make_shared<StateManager>(input.size());
+    for (size_t i = 0; i < input.size(); i++) {
+        bodies.push_back(Body(input[i], statemanager->get_probe(i)));
+    }
 }
 
 void Protein::translate(const Vector3& v) {
@@ -108,6 +108,7 @@ vector<Hetatom> Protein::get_hydration_atoms() const {return hydration_atoms;}
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
     hydration_atoms = vector<Hetatom>();
+    phm->signal_modified_hydration_layer();
 
     // move protein to center of mass
     translate(-get_cm());
@@ -117,8 +118,14 @@ void Protein::generate_new_hydration() {
     hydration_atoms = grid->hydrate();
 }
 
-void Protein::calc_distances() {
-    
+void Protein::calc_histogram() {
+    update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+    this->histogram = std::make_shared<ScatteringHistogram>(phm->calculate());
+}
+
+shared_ptr<ScatteringHistogram> Protein::get_histogram() {
+    if (histogram == nullptr) {calc_histogram();}
+    return histogram;
 }
 
 void Protein::update_effective_charge() {

@@ -1,7 +1,11 @@
 # Todo
- * [ ] ATOM: Const uid 
- * [ ] CONSTANTS: Rethink how to determine charge densities for arbitrary ligands
- * [ ] GRID: Fix AxesPlacement - exact water locations, iterate over grid
+ * [ ] Atom: Const uid 
+ * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands
+ * [ ] Grid: Fix AxesPlacement - exact water locations, iterate over grid
+ * [ ] General: Use std::array wherever possible instead of vectors. Less overhead. 
+ * [ ] PartialHistogramManager: Consider redoing the data structure of CompactCoordinates (arrays?)
+ * [ ] Try to derive an analytical solution of the chi2 problem. Differentiate chi2 with respect to each variable, and set each expression equal to zero. As long as it's not an iterative equation, it should be good. 
+ * [ ] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
 
 # Stuff to consider
 ## Grid:
@@ -17,6 +21,9 @@
 
 ## Body:
  * Consider removing hydration_atoms, they're not supposed to be used anyway
+
+## Protein: 
+ * When calculating the volume of the acids, the calculation is simply delegated to each individual body. However, if an amino acid happens to be cut in two halves in two different bodies, its volume is counted twice. 
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?

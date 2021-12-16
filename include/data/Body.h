@@ -14,6 +14,7 @@ class ScatteringHistogram;
 #include "io/File.h"
 #include "constants.h"
 #include "ScatteringHistogram.h"
+#include "data/StateManager.h"
 
 using std::vector, std::string, std::unique_ptr;
 
@@ -21,14 +22,17 @@ class Body {
 public:
     /** Create a new collection of atoms (body) from the input .pdb or .xml file. 
      * @param path path to the input file. 
+     * @param signaller a signalling object to signal changes of state
      */
-    Body(const string& path) : file(std::make_shared<File>(path)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body(const string& path, shared_ptr<StateManager::Signaller> signaller) 
+        : file(std::make_shared<File>(path)), signal(signaller), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) 
-        : file(std::make_unique<File>(protein_atoms, hydration_atoms)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms){}
+    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms, shared_ptr<StateManager::Signaller> signaller) 
+        : file(std::make_unique<File>(protein_atoms, hydration_atoms)), signal(signaller), 
+          protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /** 
      * @brief Writes this body to disk.
@@ -39,7 +43,7 @@ public:
     /**
      * @brief Get the distances between each atom.
      */
-    shared_ptr<ScatteringHistogram> get_distances();
+    shared_ptr<ScatteringHistogram> get_histogram();
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.
@@ -127,7 +131,7 @@ public:
     /** 
      * @brief Calculate the distances between each pair of atoms. 
      */
-    void calc_distances();
+    void calc_histogram();
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
@@ -148,14 +152,15 @@ public:
         hydration_atoms = body.hydration_atoms;
         file = body.file;
         grid = body.grid;
-        distances = body.distances;
+        histogram = body.histogram;
         return *this;
     }
 
 private:
     shared_ptr<File> file = nullptr; // the file backing this body
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
-    shared_ptr<ScatteringHistogram> distances = nullptr; // an object representing the distances between atoms
+    shared_ptr<ScatteringHistogram> histogram = nullptr; // an object representing the distances between atoms
+    shared_ptr<StateManager::Signaller> signal; // the signalling object to signal a change of state
 
 public: 
     vector<Atom>& protein_atoms; // atoms of the body itself

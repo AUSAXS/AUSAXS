@@ -14,8 +14,6 @@ public:
     ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
         : _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp), _p_tot(p_tot), axes(axes) {setup();}
 
-    void setup();
-
     /**
      * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
      */
@@ -73,4 +71,6 @@ private:
      * @return log10 I(q)
      */
     vector<double> calc_guinier_approx() const;
+
+    void setup();
 };

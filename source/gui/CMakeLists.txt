@@ -30,12 +30,5 @@ set(ELEMENTS_APP_VERSION "1.0")
 set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/main.cpp)
 #set(ELEMENTS_APP_DEPENDENCIES ${LIBRARIES})
 
-set(ELEMENTS_APP_RESOURCES
-   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/power_180x632.png
-   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/phase_180x632.png
-   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/mail_180x632.png
-   ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/resources/transpo_180x632.png
-)
-
 include(ElementsConfigApp)
 #target_link_libraries(${ELEMENTS_APP_PROJECT} ${Boost_LIBRARIES})

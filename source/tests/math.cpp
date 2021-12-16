@@ -20,9 +20,6 @@
 
 using std::cout, std::endl;
 
-// test if two doubles are approximately equal
-bool approx(double a, double b) {return a - 1e-9 < b && a + 1e-9 > b;}
-
 Vector GenRandVector(int m) {
     Vector v(m);
     for (int i = 0; i < m; i++)

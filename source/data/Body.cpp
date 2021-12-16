@@ -17,7 +17,7 @@ using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 
 void Body::save(string path) {file->write(path);}
 
-void Body::calc_distances() {
+void Body::calc_histogram() {
     update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
 
     // generous sizes - 1000Å should be enough for just about any structure
@@ -115,7 +115,7 @@ void Body::calc_distances() {
     // calculate p_tot    
     for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
 
-    this->distances = std::make_shared<ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
+    this->histogram = std::make_shared<ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
 void Body::generate_new_hydration() {
@@ -188,12 +188,14 @@ void Body::create_grid() {
     // grid->add(hydration_atoms);
 }
 
-shared_ptr<ScatteringHistogram> Body::get_distances() {
-    if (distances == nullptr) {calc_distances();}
-    return distances;
+shared_ptr<ScatteringHistogram> Body::get_histogram() {
+    if (histogram == nullptr) {calc_histogram();}
+    return histogram;
 }
 
 void Body::translate(const Vector3& v) {
+    signal->state_change();
+
     auto move = [&v] (auto& atoms) {
         for (auto& a : atoms) {
             a.translate(v);
@@ -203,14 +205,22 @@ void Body::translate(const Vector3& v) {
     move(hydration_atoms);
 }
 
-void Body::rotate(const double& alpha, const double& beta, const double& gamma) {}
-void Body::rotate(const Vector3& axis, const double& rad) {}
+void Body::rotate(const double&, const double&, const double&) {
+    signal->state_change();
+}
+
+void Body::rotate(const Vector3&, const double&) {
+    signal->state_change();
+}
 
 void Body::update_effective_charge(const double& charge) {
+    signal->state_change();
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
 }
 
 void Body::update_effective_charge() {
+    signal->state_change();
+
     if (grid == nullptr) {create_grid();}
     double displaced_vol = grid->get_volume();
     double displaced_charge = constants::charge::density::water*displaced_vol;
