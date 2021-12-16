@@ -105,7 +105,7 @@ class MasterHistogram {
  */
 class PartialHistogramManager {
     public:
-        PartialHistogramManager(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms, std::shared_ptr<StateManager> statemanager); 
+        PartialHistogramManager(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms, const StateManager& sm); 
 
         /**
          * @brief Calculate the total scattering histogram. 
@@ -116,17 +116,17 @@ class PartialHistogramManager {
          * @brief Get a signalling object for signalling a change of state. 
          *        Each body is supposed to hold one of these, and trigger it when they change state. 
          */
-        std::shared_ptr<StateManager::Signaller> get_probe(const int& i) {return statemanager->get_probe(i);}
+        std::shared_ptr<StateManager::Signaller> get_probe(const int& i) {return statemanager.get_probe(i);}
 
         /**
          * @brief Signal that the hydration layer was modified. 
          *        This is supposed to be used only by the Protein class, which has direct access to this object. Thus a signalling object is unnecessary. 
          */
-        void signal_modified_hydration_layer() {statemanager->modified_hydration_layer();}
+        void signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
 
     private:
         const size_t size; // number of managed bodies
-        std::shared_ptr<StateManager> statemanager; // a helper which keeps track of state changes in each body
+        StateManager statemanager; // a helper which keeps track of state changes in each body
         vector<CompactCoordinates> coords_p; // a compact representation of the relevant data from the managed bodies
         CompactCoordinates coords_h; // a compact representation of the hydration data
         const vector<Body>& bodies; // reference access to the managed bodies

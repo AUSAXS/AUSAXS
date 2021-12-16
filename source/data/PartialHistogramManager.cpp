@@ -4,7 +4,7 @@
 #include "ScatteringHistogram.h"
 #include "data/PartialHistogramManager.h"
 
-CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_atoms.size()) {
+CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_atoms.size()), data(4*size) {
     for (size_t i = 0; i < size; i++) {
         const Atom& a = body.protein_atoms[i]; 
         data[4*i] = a.coords.x;
@@ -14,7 +14,7 @@ CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_ato
     }
 }
 
-CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atoms.size()) {
+CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atoms.size()), data(4*size) {
     for (size_t i = 0; i < size; i++) {
         const Hetatom& a = atoms[i]; 
         data[4*i] = a.coords.x;
@@ -24,9 +24,9 @@ CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atom
     }
 }
 
-PartialHistogramManager::PartialHistogramManager(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms, std::shared_ptr<StateManager> statemanager) 
-    : size(bodies.size()), statemanager(statemanager), coords_p(size), bodies(bodies), hydration_atoms(hydration_atoms), 
-      partials_pp(size, vector<PartialHistogram>(size)), partials_hp(size) {}
+PartialHistogramManager::PartialHistogramManager(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms, const StateManager& sm) 
+    : size(bodies.size()), statemanager(sm), coords_p(size), bodies(bodies), hydration_atoms(hydration_atoms), 
+      partials_pp(size, vector<PartialHistogram>(size)), partials_hp(size) {initialize();}
 
 void PartialHistogramManager::initialize() {
     // generous sizes - 1000Å should be enough for just about any structure
@@ -61,7 +61,7 @@ void PartialHistogramManager::initialize() {
 
 ScatteringHistogram PartialHistogramManager::calculate() {
     // first we have to update the compact coordinate representations
-    const vector<bool> modified_state = statemanager->get_modified_bodies();
+    const vector<bool> modified_state = statemanager.get_modified_bodies();
     for (size_t i = 0; i < size; i++) {
         if (modified_state[i]) {
             coords_p[i] = CompactCoordinates(bodies[i]); 
@@ -69,7 +69,7 @@ ScatteringHistogram PartialHistogramManager::calculate() {
     }
 
     // check if the hydration layer was modified
-    if (statemanager->get_modified_hydration()) {
+    if (statemanager.get_modified_hydration()) {
         coords_h = CompactCoordinates(hydration_atoms); // if so, first update the compact coordinate representation
         calc_hh(); // then update the partial histogram
 

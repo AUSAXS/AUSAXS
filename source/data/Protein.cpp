@@ -3,20 +3,23 @@
 #include "io/File.h"
 
 Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    statemanager = std::make_shared<StateManager>(1);
-    bodies = {Body(protein_atoms, hydration_atoms, statemanager->get_probe(0))};
+    StateManager sm(1);
+    bodies = {Body(protein_atoms, hydration_atoms, sm.get_probe(0))};
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms, std::move(sm));
 }
 
 Protein::Protein(const string& input) {
-    statemanager = std::make_shared<StateManager>(1);
-    bodies = {Body(input, statemanager->get_probe(0))};
+    StateManager sm(1);
+    bodies = {Body(input, sm.get_probe(0))};
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms, std::move(sm));
 }
 
 Protein::Protein(const vector<string>& input) {
-    statemanager = std::make_shared<StateManager>(input.size());
+    StateManager sm(input.size());
     for (size_t i = 0; i < input.size(); i++) {
-        bodies.push_back(Body(input[i], statemanager->get_probe(i)));
+        bodies.push_back(Body(input[i], sm.get_probe(i)));
     }
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms, std::move(sm));
 }
 
 void Protein::translate(const Vector3& v) {
@@ -120,7 +123,11 @@ void Protein::generate_new_hydration() {
 
 void Protein::calc_histogram() {
     update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
-    this->histogram = std::make_shared<ScatteringHistogram>(phm->calculate());
+
+    ScatteringHistogram sh = phm->calculate();
+
+    vector<double> _;
+    histogram = std::make_shared<ScatteringHistogram>(_, _, _, sh.p_tot, sh.axes);
 }
 
 shared_ptr<ScatteringHistogram> Protein::get_histogram() {

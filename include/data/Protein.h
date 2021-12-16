@@ -15,6 +15,8 @@ using std::vector, std::string;
 
 class Protein {
 public: 
+    Protein() {}
+
     /**
      * @brief Create a new protein based on vectors of atoms.
      */
@@ -31,7 +33,6 @@ public:
      * @param input the path to the input file. 
      */
     Protein(const string& input);
-    Protein() {}
 
     /**
      * @brief Get the distances between each atom.
@@ -90,7 +91,6 @@ private:
     vector<Body> bodies; // the constituent bodies
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
     unique_ptr<PartialHistogramManager> phm = nullptr;
-    shared_ptr<StateManager> statemanager = nullptr; // a state manager which keeps track of changes in the bodies
     shared_ptr<ScatteringHistogram> histogram = nullptr; // an object representing the distances between atoms
 
     /** 

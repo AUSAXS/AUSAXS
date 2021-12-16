@@ -66,34 +66,16 @@ void test_calc_distances() {
     shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
     shared_ptr<ScatteringHistogram> d_p = protein.get_histogram();
 
-    // direct access to the histogram data
-    const vector<double>& p_pp = d_p->p_pp;
-    const vector<double>& p_hh = d_p->p_hh;
-    const vector<double>& p_hp = d_p->p_hp;
+    // direct access to the histogram data (only p_tot is defined)
     const vector<double>& p_tot = d_p->p_tot;
-
-    const vector<double>& b_pp = d_b->p_pp;
-    const vector<double>& b_hh = d_b->p_hh;
-    const vector<double>& b_hp = d_b->p_hp;
     const vector<double>& b_tot = d_b->p_tot;
 
     // compare each entry
     for (size_t i = 0; i < d_b->q.size(); i++) {
-        if (p_pp[i] != b_pp[i]) {
-            IS_TRUE(false);
-            break;
-        }
-        if (p_hh[i] != b_hh[i]) {
-            IS_TRUE(false);
-            break;
-        }
-        if (p_hp[i] != b_hp[i]) {
-            IS_TRUE(false);
-            break;
-        }
         if (p_tot[i] != b_tot[i]) {
             IS_TRUE(false);
-            break;
+            cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
+            // break;
         }
     }
 }

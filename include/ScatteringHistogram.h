@@ -12,7 +12,7 @@ using namespace ROOT;
 class ScatteringHistogram {
 public:
     ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
-        : _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp), _p_tot(p_tot), axes(axes) {setup();}
+        : _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp), _p_tot(p_tot), _axes(axes) {setup();}
 
     /**
      * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
@@ -59,12 +59,13 @@ public:
     const vector<double>& p_hh = _p_hh;
     const vector<double>& p_hp = _p_hp;
     const vector<double>& p_tot = _p_tot;
+    const vector<int>& axes = _axes;
 
 private:
     vector<double> _p_pp, _p_hh, _p_hp, _p_tot; // binned distances
     vector<double> d; // the distance corresponding to each bin
     vector<double> _q; // the q values used as the x-axis
-    vector<int> axes; // the axes used for the binned plots
+    vector<int> _axes; // the axes used for the binned plots
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 
