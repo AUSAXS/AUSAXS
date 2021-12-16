@@ -49,12 +49,9 @@ void test_calc_distances() {
         atoms[i] = Hetatom::create_new_water(Vector3(i, i, i));
     }
 
-    // create a dummy signalling object for the body
-    StateManager sm_dummy(1);
-    std::shared_ptr<StateManager::Signaller> dummy = sm_dummy.get_probe(0);
-
-    Protein protein({"temp1.pdb", "temp2.pdb", "temp3.pdb"});
-    Body body("temp_dist.pdb", dummy);
+    // Protein protein({"temp1.pdb", "temp2.pdb", "temp3.pdb"});
+    Protein protein("temp_dist.pdb");
+    Body body("temp_dist.pdb");
     remove("temp_dist.pdb");
 
     body.hydration_atoms = atoms;
@@ -71,11 +68,11 @@ void test_calc_distances() {
     const vector<double>& b_tot = d_b->p_tot;
 
     // compare each entry
-    for (size_t i = 0; i < d_b->q.size(); i++) {
-        if (p_tot[i] != b_tot[i]) {
+    for (size_t i = 0; i < b_tot.size(); i++) {
+        if (!approx(p_tot[i], b_tot[i])) {
             IS_TRUE(false);
             cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
-            // break;
+            break;
         }
     }
 }
@@ -94,8 +91,8 @@ void test_volume() {
 int main(void) {
     cout << "Summary of Protein testing:" << endl;
     create_test_file();
-    test_get_cm();
-    test_volume();
+    // test_get_cm();
+    // test_volume();
     test_calc_distances();
     remove("temp1.pdb");
     remove("temp2.pdb");

@@ -9,10 +9,6 @@
 #include "constants.h"
 #include "data/StateManager.h"
 
-// bodies require a signaller object, so we create a dummy one to give to all of them
-StateManager sm_dummy(1);
-std::shared_ptr<StateManager::Signaller> dummy = sm_dummy.get_probe(0);
-
 void create_test_file() {
     std::ofstream file("temp.pdb");
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
@@ -31,7 +27,7 @@ void create_test_file() {
 }
 
 void test_translate() {
-    Body body("temp.pdb", dummy);
+    Body body("temp.pdb");
     body.translate(Vector3({1, 1, 1}));
     IS_TRUE(body.protein_atoms[0].coords == Vector3({0, 0, 0}));
     IS_TRUE(body.protein_atoms[1].coords == Vector3({0, 2, 0}));
@@ -40,18 +36,18 @@ void test_translate() {
 }
 
 void test_get_mass() {
-    Body body("temp.pdb", dummy);
+    Body body("temp.pdb");
     IS_TRUE(approx(body.get_mass(), 12*constants::mass::C));
 }
 
 void test_get_cm() {
-    Body body("temp.pdb", dummy);
+    Body body("temp.pdb");
     Vector3 cm = body.get_cm();
     IS_TRUE(cm == Vector3({0, 0, 0}));
 }
 
 void test_volume() {
-    Body body("temp.pdb", dummy);
+    Body body("temp.pdb");
     IS_TRUE(body.get_volume_acids() == constants::volume::lysine);
 }
 

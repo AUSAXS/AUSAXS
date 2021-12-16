@@ -87,8 +87,8 @@ public:
     vector<Hetatom> get_hydration_atoms() const;
 
     vector<Hetatom> hydration_atoms; // stores the hydration atoms from the generated hydration layer
-private:
     vector<Body> bodies; // the constituent bodies
+private:
     shared_ptr<Grid> grid = nullptr; // the grid representation of this body
     unique_ptr<PartialHistogramManager> phm = nullptr;
     shared_ptr<ScatteringHistogram> histogram = nullptr; // an object representing the distances between atoms

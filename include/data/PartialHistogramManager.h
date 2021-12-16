@@ -105,7 +105,13 @@ class MasterHistogram {
  */
 class PartialHistogramManager {
     public:
-        PartialHistogramManager(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms, const StateManager& sm); 
+        PartialHistogramManager(vector<Body>& bodies, const vector<Hetatom>& hydration_atoms); 
+
+        /**
+         * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
+         *        They are unaffected by both rotations and translations, and so we precalculate them. 
+         */
+        void initialize();
 
         /**
          * @brief Calculate the total scattering histogram. 
@@ -139,18 +145,17 @@ class PartialHistogramManager {
         HydrationHistogram partials_hh; // the partial histogram for the hydration layer
 
         /**
-         * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
-         *        They are unaffected by both rotations and translations, and so we precalculate them. 
-         */
-        void initialize();
-
-        /**
-         * @brief Calculate the atom-atom distances between body @a i and all others. 
+         * @brief Calculate the atom-atom distances between body @a index and all others. 
          */
         void calc_pp(const size_t& index);
 
         /**
-         * @brief Calculate the hydration-atom distances between the hydration layer and body @a i.
+         * @brief Calculate the atom-atom distances between body @a n and @a m. 
+         */
+        void calc_pp(const size_t& n, const size_t& m);
+
+        /**
+         * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
          */
         void calc_hp(const size_t& index);
 

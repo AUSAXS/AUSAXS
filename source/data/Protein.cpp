@@ -3,23 +3,20 @@
 #include "io/File.h"
 
 Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    StateManager sm(1);
-    bodies = {Body(protein_atoms, hydration_atoms, sm.get_probe(0))};
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms, std::move(sm));
+    bodies = {Body(protein_atoms, hydration_atoms)};
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
 }
 
 Protein::Protein(const string& input) {
-    StateManager sm(1);
-    bodies = {Body(input, sm.get_probe(0))};
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms, std::move(sm));
+    bodies = {Body(input)};
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
 }
 
 Protein::Protein(const vector<string>& input) {
-    StateManager sm(input.size());
     for (size_t i = 0; i < input.size(); i++) {
-        bodies.push_back(Body(input[i], sm.get_probe(i)));
+        bodies.push_back(Body(input[i]));
     }
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms, std::move(sm));
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
 }
 
 void Protein::translate(const Vector3& v) {
@@ -135,7 +132,7 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
     return histogram;
 }
 
-void Protein::update_effective_charge() {
+void Protein::update_effective_charge() { 
     if (grid == nullptr) {create_grid();}
     double displaced_vol = grid->get_volume();
     double displaced_charge = constants::charge::density::water*displaced_vol;

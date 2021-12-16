@@ -21,11 +21,24 @@ class StateManager {
                 /**
                  * @brief Signal that the state of this object has changed. 
                  */
-                void state_change() const {owner->modified(id);}
+                virtual void state_change() const {owner->modified(id);}
 
             private: 
                 StateManager* const owner;
-                const int id;
+                int id;
+        };
+
+        /**
+         * @brief Dummy version of a Signaller object. This can be used to initialize an instance of Signaller. 
+         */
+        class UnboundSignaller : public Signaller {
+            public: 
+                UnboundSignaller() : Signaller(0, nullptr) {}
+
+                /**
+                 * @brief Does nothing.
+                 */
+                void state_change() const override {}
         };
 
         StateManager(const int& size) : size(size), _modified(size, true), _modified_hydration(true) {

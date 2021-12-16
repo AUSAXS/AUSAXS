@@ -88,13 +88,15 @@ void Body::calc_histogram() {
     for (size_t i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += data_h[4*i+3]*data_h[4*i+3];}
 
     // calculate the missing h-p distance
-    for (size_t j = 0; j < protein_atoms.size(); j++) {
-        float weight = data_h[3]*data_p[4*j+3]; // Z1*Z2*w1*w2
-        float dx = data_h[0] - data_p[4*j];
-        float dy = data_h[1] - data_p[4*j+1];
-        float dz = data_h[2] - data_p[4*j+2];
-        float dist = sqrt(dx*dx + dy*dy + dz*dz);
-        p_hp[dist/width] += 2*weight;
+    if (hydration_atoms.size() != 0) {
+        for (size_t j = 0; j < protein_atoms.size(); j++) {
+            float weight = data_h[3]*data_p[4*j+3]; // Z1*Z2*w1*w2
+            float dx = data_h[0] - data_p[4*j];
+            float dy = data_h[1] - data_p[4*j+1];
+            float dz = data_h[2] - data_p[4*j+2];
+            float dist = sqrt(dx*dx + dy*dy + dz*dz);
+            p_hp[dist/width] += 2*weight;
+        }
     }
 
     // downsize our axes to only the relevant area

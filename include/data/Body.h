@@ -24,15 +24,14 @@ public:
      * @param path path to the input file. 
      * @param signaller a signalling object to signal changes of state
      */
-    Body(const string& path, shared_ptr<StateManager::Signaller> signaller) 
-        : file(std::make_shared<File>(path)), signal(signaller), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body(const string& path) 
+        : file(std::make_shared<File>(path)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms, shared_ptr<StateManager::Signaller> signaller) 
-        : file(std::make_unique<File>(protein_atoms, hydration_atoms)), signal(signaller), 
-          protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) 
+        : file(std::make_unique<File>(protein_atoms, hydration_atoms)), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /** 
      * @brief Writes this body to disk.
@@ -145,6 +144,11 @@ public:
     void update_effective_charge(const double& charge);
 
     /**
+     * @brief Register a probe (listener) to this object, which will be notified of state changes. 
+     */
+    void register_probe(std::shared_ptr<StateManager::Signaller> signal) {signal = signal;}
+
+    /**
      * @brief Assignment operator overload
      */
     Body& operator=(const Body& body) {
@@ -157,10 +161,12 @@ public:
     }
 
 private:
-    shared_ptr<File> file = nullptr; // the file backing this body
-    shared_ptr<Grid> grid = nullptr; // the grid representation of this body
-    shared_ptr<ScatteringHistogram> histogram = nullptr; // an object representing the distances between atoms
-    shared_ptr<StateManager::Signaller> signal; // the signalling object to signal a change of state
+    shared_ptr<File> file = nullptr; // The file backing this body
+    shared_ptr<Grid> grid = nullptr; // The grid representation of this body
+    shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+
+    // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
+    shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
 
 public: 
     vector<Atom>& protein_atoms; // atoms of the body itself
