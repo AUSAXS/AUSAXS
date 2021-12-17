@@ -23,6 +23,11 @@ public:
     Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms);
 
     /**
+     * @brief Create a new protein based on vectors of atoms.
+     */
+    Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms);
+
+    /**
      * @brief Create a new protein from a list of input sources.
      * @param input a list of paths to the input files. File extensions can be mixed. 
      */
@@ -75,6 +80,17 @@ public:
      * @brief Calculate the total mass of this protein in Daltons.
      */
     double get_mass() const;
+
+    /**
+     * @brief Get the grid representation of this body. 
+     */
+    shared_ptr<Grid> get_grid() const {
+        if (grid == nullptr) {
+            print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
+            exit(1);
+        }
+        return grid;
+    }
 
     /**
      * @brief Get a copy of all protein atoms from the underlying bodies.

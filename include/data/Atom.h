@@ -127,7 +127,10 @@ public:
      * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
      * @return true if this is a water molecule, otherwise false. 
      */
-    virtual bool is_water() const {return false;}
+    virtual bool is_water() const {
+        cout << "CHECKING ATOM" << endl;
+        return false;
+    }
 
     // setters
     void set_coordinates(const Vector3 v) {_coords = v;}
@@ -187,11 +190,18 @@ public:
     bool operator<(const Atom& rhs) const;
 
     /**
-     * @brief Equality operator to determine if two atoms are equal
+     * @brief Equality operator to determine if two atoms are equal.
      *        Note that this is a @a content comparator, and thus determines if two atoms are equal based on their contents. 
-     * @param rhs the atom to compare against. 
+     * @param rhs Atom to compare against. 
      */
     bool operator==(const Atom& rhs) const;
+
+    /**
+     * @brief Inequality operator to determine if two atoms are equal. 
+     *        Note that this is a @a content comparator, and thus determines if two atoms are equal based on their contents. 
+     * @param rhs Atom to compare against. 
+     */
+    bool operator!=(const Atom& rhs) const {return !operator==(rhs);}
 
     Atom& operator=(const Atom& rhs) {
         _name = rhs.name; _altLoc = rhs.altLoc; _resName = rhs.resName; _chainID = rhs.chainID; _iCode = rhs.iCode; _element = rhs.element; _charge = rhs.charge;

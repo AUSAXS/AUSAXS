@@ -7,6 +7,13 @@ Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydra
     phm = std::make_unique<PartialHistogramManager>(bodies, this->hydration_atoms);
 }
 
+Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
+    for (size_t i = 0; i < protein_atoms.size(); i++) {
+        bodies.push_back(Body(protein_atoms[i], {}));
+    }
+    phm = std::make_unique<PartialHistogramManager>(bodies, this->hydration_atoms);
+}
+
 Protein::Protein(const string& input) {
     bodies = {Body(input)};
     phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
@@ -54,7 +61,7 @@ void Protein::create_grid() {
     grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
     for (auto const& body : bodies) {
         grid->add(body.protein_atoms);
-        grid->add(body.hydration_atoms);
+        // grid->add(body.hydration_atoms);
     }
 }
 
@@ -135,6 +142,7 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
 void Protein::update_effective_charge() { 
     if (grid == nullptr) {create_grid();}
     double displaced_vol = grid->get_volume();
+    cout << "Grid volume (protein): " << displaced_vol << endl;
     double displaced_charge = constants::charge::density::water*displaced_vol;
 
     // number of atoms

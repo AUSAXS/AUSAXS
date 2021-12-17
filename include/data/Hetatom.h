@@ -16,6 +16,7 @@ public:
     string get_recName() const override {return "HETATM";}
 
     bool is_water() const override {
+        cout << "CHECKING HETATOM: " << resName << endl;
         return resName == "HOH";
     }
     

@@ -25,10 +25,6 @@ void create_test_file() {
     file2.close();
     file3 << "ATOM      9  C   LYS A   1           0       0       0  1.00 00.00           C  ";
     file3.close();
-    // file1 << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n";
-    // file1.close();
-    // file2 << "ATOM      2  C   LYS A   1          -1       1      -1  1.00 00.00           C \n";
-    // file2.close();
 }
 
 void test_calc_distances() {
@@ -46,8 +42,6 @@ void test_calc_distances() {
 
          << "ATOM      9  C   LYS A   1           0       0       0  1.00 00.00           C  ";
     file.close();
-    // file << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n";
-    // file.close();
 
     // create some water molecules
     vector<Hetatom> atoms(10);
@@ -60,8 +54,6 @@ void test_calc_distances() {
     // Protein protein("temp1.pdb");
     Body body("temp_dist.pdb");
     remove("temp_dist.pdb");
-
-    // body.protein_atoms = {};
 
     body.hydration_atoms = atoms;
     protein.hydration_atoms = atoms;
@@ -86,37 +78,58 @@ void test_calc_distances() {
     }
 }
 
-void test_calc_distances2() {
-    // check if file was succesfully opened
-    std::ifstream input("data/2epe.pdb");
-    if (!input.is_open()) {return;}
-
-    string line; // placeholder for the current line
-    size_t counter = 1;
-    vector<string> files;
-    string out = "";
-    while(getline(input, line)) {
-        if (!(line.substr(0, 4) == "ATOM" || line.substr(0, 6) == "HETATOM")) {continue;}
-        out += line;
-        if (counter % 100 == 0) {
-            string file_name = "temp" + std::to_string(files.size()+1) + ".pdb";
-            files.push_back(file_name); 
-            std::ofstream file(file_name);
-            file << out;
-            file.close();
-            out = "";
-        }
-        counter++;
-    }
-
-    Protein protein(files);
+void test_calc_distances_2epe() {
     Body body("data/2epe.pdb");
 
+    // We iterate through the protein data from the body, and split it into multiple pieces of size 100.  
+    vector<vector<Atom>> patoms; // vector containing the pieces we split it into
+    vector<Atom> p_current(100); // vector containing the current piece
+    size_t index = 0; // current index in p_current
+    for (size_t i = 0; i < body.protein_atoms.size(); i++) {
+        p_current[index] = body.protein_atoms[i];
+        index++;
+        if (index == 100) { // if index is 100, reset to 0
+            patoms.push_back(p_current);
+            index = 0;
+        }
+    }
+
+    // add the final few atoms to our list
+    if (index != 0) {
+        p_current.resize(index);
+        patoms.push_back(p_current);
+    }
+
+    // create the atom, and perform a sanity check on our extracted list
+    Protein protein(patoms, {});
+    vector<Atom> protein_atoms = protein.get_protein_atoms();
+    vector<Atom> body_atoms = body.get_protein_atoms();
+
+    // sizes must be equal. this also serves as a separate consistency check on the body generation. 
+    if (protein_atoms.size() != body_atoms.size()) {
+        IS_TRUE(false);
+        cout << "Sizes " << protein_atoms.size() << " and " << body_atoms.size() << " should be equal. " << endl;
+        return;
+    }
+
+    // stronger consistency check - we check that all atoms are equal, and appear in the exact same order
+    for (size_t i = 0; i < protein_atoms.size(); i++) {
+        if (protein_atoms[i] != body_atoms[i]) {
+            IS_TRUE(false);
+            cout << "Comparison failed on index " << i << endl;
+            return;
+        }
+    }
+
+    // generate a hydration layer for the body, and copy it over to the protein
     body.generate_new_hydration();
     protein.hydration_atoms = body.hydration_atoms;
 
+    // generate the distance histograms
     shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
     shared_ptr<ScatteringHistogram> d_p = protein.get_histogram();
+
+    cout << "GRID SIZES: protein: " << protein.get_grid()->get_protein_atoms().size() << ", body: " << body.get_grid()->get_protein_atoms().size() << endl;
 
     // direct access to the histogram data (only p_tot is defined)
     const vector<double>& p_tot = d_p->p_tot;
@@ -144,11 +157,13 @@ void test_volume() {
 }
 
 int main(void) {
+    setting::grid::psc = setting::grid::RadialStrategy;
     cout << "Summary of Protein testing:" << endl;
     create_test_file();
     // test_get_cm();
     // test_volume();
-    test_calc_distances();
+    // test_calc_distances();
+    test_calc_distances_2epe();
     remove("temp1.pdb");
     remove("temp2.pdb");
     remove("temp3.pdb");

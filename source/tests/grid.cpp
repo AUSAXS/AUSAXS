@@ -157,6 +157,8 @@ void test_hydrate() {
     setting::grid::percent_water = 0;
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
+    IS_TRUE(grid.get_protein_atoms().size() == 1);
+
     vector<Hetatom> water = grid.hydrate();
 
     IS_TRUE(water.size() == 6);
@@ -168,6 +170,12 @@ void test_hydrate() {
         IS_TRUE(water[4].coords == Vector3({0, 0, -6})); // (0, 0, -2r)
         IS_TRUE(water[5].coords == Vector3({0, 0, 6})); // (0, 0, 2r)
     }
+
+    for (const auto& atom : grid.get_protein_atoms()) {
+        cout << atom.as_pdb() << endl;
+    } 
+
+    IS_TRUE(grid.get_protein_atoms().size() == 1);
 }
 
 void test_width() {
@@ -255,9 +263,9 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 
     vector<Hetatom> locs = grid.find_free_locs();
     IS_TRUE(locs.size() == 6);
-    for (int i = 0; i < locs.size(); i++) {
-        cout << format("%1%\t%2%\t%3%") % locs[i].coords.x % locs[i].coords.y % locs[i].coords.z << endl;
-    }
+    // for (int i = 0; i < locs.size(); i++) {
+    //     cout << format("%1%\t%2%\t%3%") % locs[i].coords.x % locs[i].coords.y % locs[i].coords.z << endl;
+    // }
 
     // since this needs to work with different placement strategies, we have to perform a more general check on the positions
     vector<Vector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
@@ -276,15 +284,15 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 int main(void)
 {
     cout << "Summary of Grid testing:" << std::endl;
-    test_grid_generation();
-    test_simple_bounding_box();
-    test_complex_bounding_box();
-    test_find_free_locs(setting::grid::AxesStrategy);
-    test_find_free_locs(setting::grid::RadialStrategy);
+    // test_grid_generation();
+    // test_simple_bounding_box();
+    // test_complex_bounding_box();
+    // test_find_free_locs(setting::grid::AxesStrategy);
+    // test_find_free_locs(setting::grid::RadialStrategy);
     test_hydrate();
-    test_volume_expansion();
-    test_width();
-    test_remove();
+    // test_volume_expansion();
+    // test_width();
+    // test_remove();
 
     if (passed_all) {
         cout << "\033[1;32m" << "All Grid tests passed." << "\033[0m" << endl;

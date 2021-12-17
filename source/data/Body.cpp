@@ -213,6 +213,7 @@ void Body::update_effective_charge() {
 
     if (grid == nullptr) {create_grid();}
     double displaced_vol = grid->get_volume();
+    cout << "Grid volume (body): " << displaced_vol << endl;
     double displaced_charge = constants::charge::density::water*displaced_vol;
     double charge_per_atom = -displaced_charge/protein_atoms.size();
     cout << "Added " << charge_per_atom << " additional charge to each protein atom." << endl;
