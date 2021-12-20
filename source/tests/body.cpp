@@ -32,12 +32,12 @@ void test_translate() {
     IS_TRUE(body.protein_atoms[0].coords == Vector3({0, 0, 0}));
     IS_TRUE(body.protein_atoms[1].coords == Vector3({0, 2, 0}));
     IS_TRUE(body.protein_atoms[2].coords == Vector3({2, 0, 0}));
-    IS_TRUE(body.protein_atoms[3].coords == Vector3({0, 0, 2}));
+    IS_TRUE(body.protein_atoms[3].coords == Vector3({2, 2, 0}));
 }
 
 void test_get_mass() {
     Body body("temp.pdb");
-    IS_TRUE(approx(body.get_mass(), 12*constants::mass::C));
+    IS_TRUE(approx(body.get_mass(), 9*constants::mass::C));
 }
 
 void test_get_cm() {

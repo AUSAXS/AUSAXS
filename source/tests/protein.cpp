@@ -27,7 +27,125 @@ void create_test_file() {
     file3.close();
 }
 
-void test_calc_distances() {
+// Test that the histograms are correct for proteins with only atoms (no waters)
+void test_calc_distances_atoms() {
+//*** TEST ATOMS ***//
+    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+    vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> b4 = {Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<vector<Atom>> atoms = {b1, b2, b3, b4};
+    Protein protein(atoms, {});
+
+    // set the weights to 1 so we can analytically determine the result
+    for (const auto& body : protein.bodies) {
+        for (auto& atom : body.protein_atoms) {
+            atom.set_effective_charge(1);
+        }
+    }
+    protein.updated_charge = true;
+
+    // calculate the histogram
+    shared_ptr<ScatteringHistogram> hist = protein.get_histogram();
+    const vector<double> d = hist->p_tot;
+
+    // calculation: 8 identical points. 
+    //      each point has:
+    //          1 line  of length 0
+    //          3 lines of length 2
+    //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+    //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+    const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
+    for (size_t i = 0; i < d_exp.size(); i++) {
+        if (d[i] != d_exp[i]) {
+            IS_TRUE(false);
+            cout << "Failed on index " << i << ". Values: " << d[i] << ", " << d_exp[i] << endl;
+            // break;
+        }
+    }
+}
+
+// Test that the histograms are correct for proteins with only waters (no atoms)
+void test_calc_distances_waters() {
+    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+    vector<Atom> a = {};
+    vector<Hetatom> w = {Hetatom(Vector3(-1, -1, -1), 1, "C", "C", 1), Hetatom(Vector3(-1, 1, -1), 1, "C", "C", 1), 
+                         Hetatom(Vector3(1, -1, -1), 1, "C", "C", 1),  Hetatom(Vector3(1, 1, -1), 1, "C", "C", 1), 
+                         Hetatom(Vector3(-1, -1, 1), 1, "C", "C", 1),  Hetatom(Vector3(-1, 1, 1), 1, "C", "C", 1),
+                         Hetatom(Vector3(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    Protein protein(a, w);
+
+    // set the weights to 1 so we can analytically determine the result
+    for (auto& atom : protein.hydration_atoms) {
+        atom.set_effective_charge(1);
+    }
+    protein.updated_charge = true;
+
+    // calculate the histogram
+    shared_ptr<ScatteringHistogram> hist = protein.get_histogram();
+    const vector<double> d = hist->p_tot;
+
+    // calculation: 8 identical points. 
+    //      each point has:
+    //          1 line  of length 0
+    //          3 lines of length 2
+    //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+    //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+    const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
+    for (size_t i = 0; i < d_exp.size(); i++) {
+        if (d[i] != d_exp[i]) {
+            IS_TRUE(false);
+            cout << "Failed on index " << i << ". Values: " << d[i] << ", " << d_exp[i] << endl;
+            // break;
+        }
+    }
+}
+
+// Test that the histograms are correct for proteins with both atoms and waters
+void test_calc_distances_both() {
+    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+    vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
+    vector<Hetatom> w = {Hetatom(Vector3(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<vector<Atom>> a = {b1, b2, b3};
+    Protein protein(a, w);
+
+    // set the weights to 1 so we can analytically determine the result
+    // waters
+    for (auto& atom : protein.hydration_atoms) {
+        atom.set_effective_charge(1);
+    }
+    // atoms
+    for (const auto& body : protein.bodies) {
+        for (auto& atom : body.protein_atoms) {
+            atom.set_effective_charge(1);
+        }
+    }
+    protein.updated_charge = true;
+
+    // calculate the histogram
+    shared_ptr<ScatteringHistogram> hist = protein.get_histogram();
+    const vector<double> d = hist->p_tot;
+
+    // calculation: 8 identical points. 
+    //      each point has:
+    //          1 line  of length 0
+    //          3 lines of length 2
+    //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+    //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+    const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
+    for (size_t i = 0; i < d_exp.size(); i++) {
+        if (d[i] != d_exp[i]) {
+            IS_TRUE(false);
+            cout << "Failed on index " << i << ". Values: " << d[i] << ", " << d_exp[i] << endl;
+            // break;
+        }
+    }
+}
+
+void test_calc_distances_simple_example() {
     std::ofstream file("temp_dist.pdb");
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
     file << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n"
@@ -51,7 +169,6 @@ void test_calc_distances() {
 
     vector<string> files = {"temp1.pdb", "temp2.pdb", "temp3.pdb"};
     Protein protein(files);
-    // Protein protein("temp1.pdb");
     Body body("temp_dist.pdb");
     remove("temp_dist.pdb");
 
@@ -73,7 +190,7 @@ void test_calc_distances() {
         if (!approx(p_tot[i], b_tot[i])) {
             IS_TRUE(false);
             cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
-            // break;
+            break;
         }
     }
 }
@@ -129,8 +246,6 @@ void test_calc_distances_2epe() {
     shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
     shared_ptr<ScatteringHistogram> d_p = protein.get_histogram();
 
-    cout << "GRID SIZES: protein: " << protein.get_grid()->get_protein_atoms().size() << ", body: " << body.get_grid()->get_protein_atoms().size() << endl;
-
     // direct access to the histogram data (only p_tot is defined)
     const vector<double>& p_tot = d_p->p_tot;
     const vector<double>& b_tot = d_b->p_tot;
@@ -140,7 +255,7 @@ void test_calc_distances_2epe() {
         if (!approx(p_tot[i], b_tot[i])) {
             IS_TRUE(false);
             cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
-            break;
+            // break;
         }
     }
 }
@@ -162,8 +277,11 @@ int main(void) {
     create_test_file();
     // test_get_cm();
     // test_volume();
-    // test_calc_distances();
-    test_calc_distances_2epe();
+    test_calc_distances_atoms();
+    test_calc_distances_waters();
+    test_calc_distances_both();
+    // test_calc_distances_simple_example();
+    // test_calc_distances_2epe();
     remove("temp1.pdb");
     remove("temp2.pdb");
     remove("temp3.pdb");

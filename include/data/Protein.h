@@ -102,12 +102,13 @@ public:
      */
     vector<Hetatom> get_hydration_atoms() const;
 
-    vector<Hetatom> hydration_atoms; // stores the hydration atoms from the generated hydration layer
-    vector<Body> bodies; // the constituent bodies
+    vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
+    vector<Body> bodies; // The constituent bodies
+    bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 private:
-    shared_ptr<Grid> grid = nullptr; // the grid representation of this body
+    shared_ptr<Grid> grid = nullptr; // The grid representation of this body
     unique_ptr<PartialHistogramManager> phm = nullptr;
-    shared_ptr<ScatteringHistogram> histogram = nullptr; // an object representing the distances between atoms
+    shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     /** 
      * @brief Move the entire protein by a vector.

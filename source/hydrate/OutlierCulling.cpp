@@ -23,7 +23,7 @@ public:
         const vector<int> bins = grid->get_bins();
         const vector<vector<vector<char>>>& gref = grid->grid;
         for (size_t n = 0; n < placed_water.size(); n++) {
-            const vector<int> loc = grid->members.at(placed_water[n]);
+            const vector<int> loc = grid->w_members.at(placed_water[n]);
             const int x = loc[0], y = loc[1], z = loc[2];
             int score = 0;
 

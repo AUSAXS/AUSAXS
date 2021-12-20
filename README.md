@@ -8,7 +8,7 @@
  * [ ] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
  * [ ] Make more tests. More specifically, a test of the histogram generation is needed. Create a small grid of known atoms, and compare the output histogram with the analytical one. 
  * [ ] Grid: Create a second map for storing placed water molecules. This fixes some current issues, and will also be needed for multithreading anyways. 
-
+ * [ ] Protein: something looks weird with the effective charges - run test_dist 1 & 2 from protein.cpp and look at the output
 # Stuff to consider
 ## Grid:
  * Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory

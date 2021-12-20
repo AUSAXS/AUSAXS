@@ -126,8 +126,9 @@ void Protein::generate_new_hydration() {
 }
 
 void Protein::calc_histogram() {
-    update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
-
+    if (!updated_charge) {
+        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+    }
     ScatteringHistogram sh = phm->calculate();
 
     vector<double> _;
@@ -142,7 +143,6 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
 void Protein::update_effective_charge() { 
     if (grid == nullptr) {create_grid();}
     double displaced_vol = grid->get_volume();
-    cout << "Grid volume (protein): " << displaced_vol << endl;
     double displaced_charge = constants::charge::density::water*displaced_vol;
 
     // number of atoms
@@ -154,4 +154,6 @@ void Protein::update_effective_charge() {
     for (auto& body : bodies) {
         body.update_effective_charge(charge_per_atom);
     }
+
+    updated_charge = true;
 }

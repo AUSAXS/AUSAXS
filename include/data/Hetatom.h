@@ -15,10 +15,7 @@ public:
 
     string get_recName() const override {return "HETATM";}
 
-    bool is_water() const override {
-        cout << "CHECKING HETATOM: " << resName << endl;
-        return resName == "HOH";
-    }
+    bool is_water() const override {return resName == "HOH";}
     
     /**
      * @brief Create a new default water atom.

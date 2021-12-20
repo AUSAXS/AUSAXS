@@ -18,9 +18,7 @@ using boost::format;
 
 class Atom : public Record {
 public:
-    Atom(const Atom& a) : _name(a.name), _altLoc(a.altLoc), _resName(a.resName), _chainID(a.chainID), _iCode(a.iCode), _element(a.element), 
-        _charge(a.charge), _occupancy(a.occupancy), _tempFactor(a.tempFactor), _serial(a.serial), _resSeq(a.resSeq), _coords(a.coords),
-        _effective_charge(a.effective_charge), _uid(a.uid) {}
+    Atom(const Atom& a);
 
     /** 
      * @brief Construct a new Atom object.
@@ -30,64 +28,19 @@ public:
      * @param name the molecule (e.g. HOH).
      * @param serial the serial number of this atom.
      */
-    Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial) {
-        // we use our setters so we can validate the input if necessary
-        set_coordinates(v);
-        set_occupancy(occupancy);
-        set_element(element);
-        set_name(name);
-        set_serial(serial);
-        _altLoc = "";
-        _resName = "";
-        _chainID = "";
-        _iCode = "";
-        _charge = "";
-        _resSeq = -1;
-        _tempFactor = -1;
-        _uid = uid_counter++;
-    }
+    Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial);
 
     /**
      * @brief Construct a new Atom object.
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
     Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
-        const string iCode, const Vector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
-            set_serial(serial);
-            set_name(name);
-            _altLoc = altLoc;
-            set_resName(resName);
-            _chainID = chainID;
-            _resSeq = resSeq;
-            _iCode = iCode;
-            set_coordinates(coords);
-            set_occupancy(occupancy);
-            _tempFactor = tempFactor;
-            set_element(element);
-            _charge = charge;
-            _effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
-            _uid = uid_counter++;
-    }
+        const string iCode, const Vector3 coords, const double occupancy, const double tempFactor, const string element, const string charge);
 
     /**
      * @brief Construct a new empty Atom object.
      */
-    Atom() {
-        _name = "";
-        _altLoc = "";
-        _resName = "";
-        _chainID = "";
-        _iCode = "";
-        _element = "";
-        _charge = "";
-        _serial = -1;
-        _resSeq = -1;
-        _occupancy = -1;
-        _tempFactor = -1;
-        _coords = {0, 0, 0};
-        _effective_charge = -1;
-        _uid = uid_counter++;
-    }
+    Atom();
 
     virtual ~Atom() override {}
 
@@ -127,10 +80,7 @@ public:
      * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
      * @return true if this is a water molecule, otherwise false. 
      */
-    virtual bool is_water() const {
-        cout << "CHECKING ATOM" << endl;
-        return false;
-    }
+    virtual bool is_water() const {return false;}
 
     // setters
     void set_coordinates(const Vector3 v) {_coords = v;}
@@ -203,15 +153,7 @@ public:
      */
     bool operator!=(const Atom& rhs) const {return !operator==(rhs);}
 
-    Atom& operator=(const Atom& rhs) {
-        _name = rhs.name; _altLoc = rhs.altLoc; _resName = rhs.resName; _chainID = rhs.chainID; _iCode = rhs.iCode; _element = rhs.element; _charge = rhs.charge;
-        _occupancy = rhs.occupancy; _tempFactor = rhs.tempFactor;
-        _serial = rhs.serial; _resSeq = rhs.resSeq;
-        _coords = rhs.coords;
-        _effective_charge = rhs.effective_charge;
-        _uid = rhs.uid;
-        return *this;
-    }
+    Atom& operator=(const Atom& rhs);
 
     const string &name = _name, &altLoc = _altLoc, &resName = _resName, &chainID = _chainID, &iCode = _iCode, &element = _element, &charge = _charge;
     const double &occupancy = _occupancy, &tempFactor = _tempFactor;

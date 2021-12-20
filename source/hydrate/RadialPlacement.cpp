@@ -108,9 +108,7 @@ public:
             placed_water.push_back(a);
         };
 
-        vector<Atom> atoms = grid->get_protein_atoms();
-        for (auto const& a : atoms) {
-            const vector<int>& loc = grid->members.at(a);
+        for (const auto&[atom, loc] : grid->a_members) {
             const int x = loc[0], y = loc[1], z = loc[2];
 
             for (size_t i = 0; i < rot_bins_rarh.size(); i++) {
@@ -127,7 +125,7 @@ public:
                 // we have to make sure we don't check the direction of the atom we are trying to place this water on
                 const vector<int> skip_bin = {xr-rot_bins_1rh[i][0], yr-rot_bins_1rh[i][1], zr-rot_bins_1rh[i][2]};
                 if (gref[xr][yr][zr] == 0 && collision_check({xr, yr, zr}, skip_bin)) {
-                    Vector3 exact_loc = a.coords + rot_locs_rarh[i];
+                    Vector3 exact_loc = atom.coords + rot_locs_rarh[i];
                     add_loc(exact_loc);
                 };
             }

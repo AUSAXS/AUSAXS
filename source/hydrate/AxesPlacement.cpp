@@ -28,9 +28,7 @@ public:
 
         // loop over the location of all member atoms
         int r_eff = ra+rh;
-        vector<Atom> atoms = grid->get_protein_atoms();
-        for (auto const& a : atoms) {
-            const vector<int>& loc = grid->members.at(a);
+        for (const auto&[_, loc] : grid->a_members) {
             const int x = loc[0], y = loc[1], z = loc[2];
 
             // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]

@@ -59,27 +59,16 @@ Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, P
     }
 }
 
-void Grid::expand_volume() {
-    vol_expanded = true;
-
-    // iterate through each member location
-    for (const auto& pair : members) {
-        expand_volume(pair.first);
-    }
-}
-
 vector<Hetatom> Grid::hydrate() {
     vector<Hetatom> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    water_culler->set_target_count(setting::grid::percent_water*(members.size()-placed_water.size())); // target is 10% of atoms
+    water_culler->set_target_count(setting::grid::percent_water*(a_members.size()-placed_water.size())); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 
 vector<Hetatom> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
-    for (const auto& pair : members) {
-        if (pair.first.is_water()) {
+    if (w_members.size() != 0) {
             print_err("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
-        }
     }
 
     if (!vol_expanded) {
@@ -88,20 +77,18 @@ vector<Hetatom> Grid::find_free_locs() {
 
     // place the water molecules with the chosen strategy
     vector<Hetatom> placed_water = water_placer->place();
-    cout << "Placed " << placed_water.size() << " HOH molecules." << endl;
     return placed_water;
 }
 
 vector<vector<int>> Grid::bounding_box() const {
-    if (__builtin_expect(members.size() == 0, false)) {
+    if (__builtin_expect(a_members.size() == 0, false)) {
         print_err("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
         exit(1);
     }
 
     // initialize the bounds as large as possible
     vector<vector<int>> box = {{bins[0], 0}, {bins[1], 0}, {bins[2], 0}};
-    for (const auto& pair : members) {
-        const vector<int>& loc = pair.second;
+    for (const auto& [_, loc] : a_members) {
         for (int i = 0; i < 3; i++) {
             if (box[i][0] > loc[i]) box[i][0] = loc[i]; // min
             if (box[i][1] < loc[i]) box[i][1] = loc[i]; // max
@@ -126,35 +113,50 @@ void Grid::set_radius_water(double radius) {
     this->rh = new_r;
 }
 
-vector<Hetatom> Grid::get_hydration_atoms() const {
-    vector<Hetatom> atoms(members.size());
+vector<Hetatom> Grid::get_waters() const {
+    vector<Hetatom> atoms(w_members.size());
     int i = 0; // counter
-    for (const auto& pair : members) {
-        if (pair.first.is_water()) {
-            atoms[i] = static_cast<Hetatom>(pair.first);
-            i++;
-        }
+    for (const auto&[water, _] : w_members) {
+        atoms[i] = water;
+        i++;
     }
     atoms.resize(i);
     return atoms;
 }
 
-vector<Atom> Grid::get_protein_atoms() const {
-    vector<Atom> atoms(members.size());
+vector<Atom> Grid::get_atoms() const {
+    vector<Atom> atoms(a_members.size());
     int i = 0; // counter
-    for (const auto& pair : members) {
-        if (!pair.first.is_water()) {
-            atoms[i] = pair.first;
-            i++;
-        }
+    for (const auto&[atom, _] : a_members) {
+        atoms[i] = atom;
+        i++;
     }
     atoms.resize(i);
     return atoms;
+}
+
+void Grid::expand_volume() {
+    vol_expanded = true;
+
+    // iterate through each member location
+    for (const auto&[atom, _] : a_members) {
+        expand_volume(atom);
+    }
+
+    for (const auto&[water, _] : w_members) {
+        expand_volume(water);
+    }
 }
 
 void Grid::expand_volume(const Atom& atom) {
-    vector<int> loc = members.at(atom);
-    const bool is_water = atom.is_water();
+    expand_volume(a_members.at(atom), false);
+}
+
+void Grid::expand_volume(const Hetatom& atom) {
+    expand_volume(w_members.at(atom), atom.is_water());
+}
+
+void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
     char marker = is_water ? 'h' : 'a';
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
@@ -191,7 +193,7 @@ void Grid::add(const Atom& atom) {
     }
 
     volume++;
-    members.insert({atom, loc});
+    a_members.insert({atom, loc});
     grid[x][y][z] = 'A';
 }
 
@@ -208,38 +210,87 @@ void Grid::add(const Hetatom& atom) {
 
     const bool is_water = atom.is_water();
     if (!is_water) {volume++;}
-    members.insert({atom, loc});
+    w_members.insert({atom, loc});
     grid[x][y][z] = is_water ? 'H' : 'A';
 }
 
 void Grid::remove(const Atom& atom) {
-    if (__builtin_expect(members.count(atom) == 0, false)) {
+    if (__builtin_expect(a_members.count(atom) == 0, false)) {
         print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
         exit(1);
     }
 
-    vector<int> loc = members.at(atom);
+    vector<int> loc = a_members.at(atom);
     const int x = loc[0], y = loc[1], z = loc[2];
-    members.erase(atom);
+
+    deflate_volume(atom);
+    a_members.erase(atom);
     grid[x][y][z] = 0;
+}
+
+void Grid::remove(const Hetatom& atom) {
+    if (__builtin_expect(w_members.count(atom) == 0, false)) {
+        print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
+        exit(1);
+    }
+
+    vector<int> loc = w_members.at(atom);
+    const int x = loc[0], y = loc[1], z = loc[2];
+
+    deflate_volume(atom);
+    w_members.erase(atom);
+    grid[x][y][z] = 0;
+}
+
+void Grid::deflate_volume() {
+    vol_expanded = false;
+
+    // iterate through each member location
+    for (const auto&[atom, _] : a_members) {
+        deflate_volume(atom);
+    }
+
+    for (const auto&[water, _] : w_members) {
+        deflate_volume(water);
+    }
+}
+
+void Grid::deflate_volume(const Atom& atom) {
+    deflate_volume(a_members.at(atom), false);
+}
+
+void Grid::deflate_volume(const Hetatom& atom) {
+    deflate_volume(w_members.at(atom), atom.is_water());
+}
+
+void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
+    const int x = loc[0], y = loc[1], z = loc[2];
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = atom.is_water() ? rh : ra; // determine which radius to use for the expansion
+    int r = is_water ? rh : ra; // determine which radius to use for the expansion
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
 
     // loop over each bin in the box
+    int removed_volume = 0;
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
-                    volume--;
+                    removed_volume--;
                     grid[i][j][k] = 0;
                 }
             }
         }
+    }
+
+    if (is_water) {
+        grid[x][y][z] = 'H'; // replace the center
+    } else {
+        grid[x][y][z] = 'A';
+        volume -= removed_volume; // only the actual atoms contributes to the volume
     }
 }
 

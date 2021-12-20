@@ -61,20 +61,43 @@ public:
 
     /**
      * @brief Remove a single atom from the grid.
-     * @param atom the atom to be removed.
      */
     void remove(const Atom& atom);
 
+    /**
+     * @brief Remove a single water molecule from the grid.
+     */
+    void remove(const Hetatom& atom);
+
     /** 
-     * @brief Expand the member atoms into actual spheres based on the radii ra and rh. 
+     * @brief Expand all member atoms and water molecules into actual spheres based on the radii ra and rh. 
      */
     void expand_volume();
 
     /** 
      * @brief Expand a single member atom into an actual sphere.
-     * @param atom the member atom to be expanded. 
      */
     void expand_volume(const Atom& atom);
+
+    /** 
+     * @brief Expand a single member atom into an actual sphere.
+     */
+    void expand_volume(const Hetatom& atom);
+
+    /** 
+     * @brief Deflate all member atoms and water molecules into actual spheres based on the radii ra and rh. 
+     */
+    void deflate_volume();
+
+    /** 
+     * @brief Deflate a single member atom into an actual sphere.
+     */
+    void deflate_volume(const Atom& atom);
+
+    /** 
+     * @brief Deflate a single member atom into an actual sphere.
+     */
+    void deflate_volume(const Hetatom& atom);
 
     /**
      * @brief Generate a new hydration layer for the grid.
@@ -107,14 +130,14 @@ public:
     void set_radius_water(double radius);
 
     /**
-     * @brief Get all hydration atoms from this grid. 
+     * @brief Get all water molecules from this grid. 
      */
-    vector<Hetatom> get_hydration_atoms() const;
+    vector<Hetatom> get_waters() const;
 
     /**
-     * @brief Get all protein atoms from this grid. 
+     * @brief Get all atoms from this grid. 
      */
-    vector<Atom> get_protein_atoms() const;
+    vector<Atom> get_atoms() const;
 
     /**
      * @brief Get the total volume spanned by the atoms in this grid in Å^3.
@@ -154,7 +177,8 @@ public:
     class Comparator {public: bool operator() (const Atom& l, const Atom& r) const {return l.uid < r.uid;}};
 
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<Atom, vector<int>, Comparator> members; // a map of all members of this grid and where they are located
+    std::map<Atom, vector<int>, Comparator> a_members; // a map of all member atoms and where they are located
+    std::map<Hetatom, vector<int>, Comparator> w_members; // a map of all member water molecules and where they are located
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // radius of each atom represented as a number of bins
     int rh = 0; // radius of each water molecule represented as a number of bins
@@ -166,4 +190,18 @@ private:
     bool vol_expanded = false; // a flag determining if the volume has been expanded 
     unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
     unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules
+
+    /** 
+     * @brief Expand a single member atom into an actual sphere.
+     * @param loc The bin location of the atom. 
+     * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
+     */
+    void expand_volume(const vector<int>& loc, const bool is_water);
+
+    /** 
+     * @brief Deflate a single member atom into an actual sphere.
+     * @param loc The bin location of the atom. 
+     * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
+     */
+    void deflate_volume(const vector<int>& loc, const bool is_water);
 };

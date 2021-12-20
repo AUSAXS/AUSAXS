@@ -94,11 +94,13 @@ namespace constants {
     }
 
     namespace hydrogen_atoms {
+        namespace none {
+            const std::map<string, int> get = {{"", 0}};
+        }
         namespace water {
             constexpr int O = 2;
             const std::map<string, int> get = {{"O", O}};
         }
-
         namespace glycine {
             constexpr int N = 1;
             constexpr int CA = 2;
@@ -385,6 +387,6 @@ namespace constants {
             {"LEU", leucine::get}, {"ILE", isoleucine::get}, {"PHE", phenylalanine::get}, {"TYR", tyrosine::get}, {"TRP", tryptophan::get}, 
             {"ASP", aspartic_acid::get}, {"GLU", glutamic_acid::get}, {"SER", serine::get}, {"THR", threonine::get}, {"ASN", asparagine::get}, 
             {"GLN", glutamine::get}, {"LYS", lysine::get}, {"ARG", arginine::get}, {"HIS", histidine::get}, {"MET", methionine::get}, 
-            {"CYS", cysteine::get}, {"PRO", proline::get}, {"HOH", water::get}, {"MYR", myristic_acid::get}};
+            {"CYS", cysteine::get}, {"PRO", proline::get}, {"HOH", water::get}, {"MYR", myristic_acid::get}, {"", none::get}};
     }
 }
