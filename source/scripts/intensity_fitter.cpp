@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "data/Body.h"
+#include "data/Protein.h"
 #include "fitter/IntensityFitter.cpp"
 
 #include <TCanvas.h>

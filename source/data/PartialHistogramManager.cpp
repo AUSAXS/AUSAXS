@@ -65,7 +65,39 @@ void PartialHistogramManager::initialize() {
     master = MasterHistogram(p_base, axes);
 }
 
-ScatteringHistogram PartialHistogramManager::calculate() {
+ScatteringHistogram PartialHistogramManager::calculate_all() {
+    Histogram total = calculate();
+
+    // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
+    vector<double> p_hh = partials_hh.p;
+    
+    vector<double> p_pp(total.axes[0]), p_hp(total.axes[0]);
+    // iterate through all partial histograms in the upper triangle
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < i; j++) {
+            PartialHistogram& current = partials_pp[i][j];
+
+            // iterate through each entry in the partial histogram
+            for (size_t k = 0; k < current.p.size(); k++) {
+                p_pp[k] += current.p[k]; // add to p_pp
+            }
+        }
+    }
+
+    // iterate through all partial hydration-protein histograms
+    for (size_t i = 0; i < size; i++) {
+        PartialHistogram& current = partials_hp[i];
+
+        // iterate through each entry in the partial histogram
+        for (size_t k = 0; k < current.p.size(); k++) {
+            p_hp[k] += current.p[k]; // add to p_pp
+        }
+    }
+
+    return ScatteringHistogram(p_pp, p_hh, p_hp, total.p, total.axes);
+}
+
+Histogram PartialHistogramManager::calculate() {
     if (master.p.size() == 0) {initialize();} // check if this object has already been initialized
 
     // first we have to update the compact coordinate representations
@@ -105,9 +137,7 @@ ScatteringHistogram PartialHistogramManager::calculate() {
             }
         }
     }
-
-    vector<double> _;
-    return ScatteringHistogram(_, _, _, master.p, master.axes);
+    return Histogram(master.p, master.axes);
 }
 
 void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {

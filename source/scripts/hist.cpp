@@ -62,9 +62,9 @@ int main(int argc, char const *argv[]) {
 
     setting::grid::psc = setting::grid::RadialStrategy;
     setting::axes::scattering_intensity_plot_binned_width = 0.5;
-    setting::figures::format = "png";
+    // setting::figures::format = "png";
 
-    Body protein(argv[1]);
+    Protein protein(argv[1]);
     protein.generate_new_hydration();
     shared_ptr<ScatteringHistogram> d = protein.get_histogram();
 

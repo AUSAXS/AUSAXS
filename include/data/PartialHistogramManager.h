@@ -4,6 +4,7 @@
 #include "data/Body.h"
 #include "data/StateManager.h"
 #include "ScatteringHistogram.h"
+#include "Histogram.h"
 
 /**
  * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
@@ -28,27 +29,16 @@ struct CompactCoordinates {
 };
 
 /**
- * @brief A simple data container for the partial histograms. 
+ * @brief Simple data containers defined for clarity.  
  */
-class PartialHistogram {
-    public:
-        PartialHistogram() {}
-        PartialHistogram(const vector<double>& p) : p(std::move(p)) {}
-
-        vector<double> p;
-};
-
-/**
- * @brief A simple data container for the hydration histogram. 
- *        This is only defined for consistency. 
- */
-typedef PartialHistogram HydrationHistogram;
+typedef Histogram PartialHistogram;
+typedef Histogram HydrationHistogram;
 
 /**
  * @brief We also define the MasterHistogram type, which is identical to a PartialHistogram. 
  *        We do this to make += and -= well-defined operations. 
  */
-class MasterHistogram {
+class MasterHistogram : public Histogram {
     public: 
         MasterHistogram() {}
 
@@ -57,7 +47,7 @@ class MasterHistogram {
          * @param p The current histogram. 
          * @param p_base The constant, unchanging part of the histogram. 
          */
-        MasterHistogram(const vector<double>& p_base, const vector<int>& axes) : p(p_base), axes(axes), p_base(std::move(p_base)) {}
+        MasterHistogram(const vector<double>& p_base, const vector<int>& axes) : Histogram(p_base, axes), p_base(std::move(p_base)) {}
 
         /**
          * @brief Add a PartialHistogram to the MasterHistogram. 
@@ -75,9 +65,6 @@ class MasterHistogram {
             std::transform(rhs.p.begin(), rhs.p.end(), p.begin(), p.begin(), [] (const double& r, const double& l) {return l-r;});
             return *this;
         }
-
-        vector<double> p; // The master histogram itself.
-        vector<int> axes; // The axes used for the histogram. 
 
     private:
         // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
@@ -114,9 +101,14 @@ class PartialHistogramManager {
         void initialize();
 
         /**
-         * @brief Calculate the total scattering histogram. 
+         * @brief Calculate only the total scattering histogram. 
          */
-        ScatteringHistogram calculate();
+        Histogram calculate();
+
+        /**
+         * @brief Calculate all contributions to the scattering histogram. 
+         */
+        ScatteringHistogram calculate_all();
 
         /**
          * @brief Get a signalling object for signalling a change of state. 

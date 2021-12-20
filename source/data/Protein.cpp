@@ -1,6 +1,7 @@
 #include "data/Protein.h"
 #include "data/Body.h"
 #include "io/File.h"
+#include "Histogram.h"
 
 Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
@@ -129,10 +130,7 @@ void Protein::calc_histogram() {
     if (!updated_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
-    ScatteringHistogram sh = phm->calculate();
-
-    vector<double> _;
-    histogram = std::make_shared<ScatteringHistogram>(_, _, _, sh.p_tot, sh.axes);
+    histogram = std::make_shared<ScatteringHistogram>(phm->calculate_all());
 }
 
 shared_ptr<ScatteringHistogram> Protein::get_histogram() {

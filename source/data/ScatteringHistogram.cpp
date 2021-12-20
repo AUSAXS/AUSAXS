@@ -16,10 +16,10 @@ using namespace ROOT;
 
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
-    d = vector<double>(axes[0], 0);
+    _d = vector<double>(axes[0], 0);
     double d_width = (double) (axes[2]-axes[1])/axes[0];
     for (int i = 0; i < axes[0]; i++) {
-        d[i] = axes[1] + d_width*i;
+        _d[i] = axes[1] + d_width*i;
     }    
 
     // prepare the q values for the intensity calculations
@@ -33,7 +33,7 @@ void ScatteringHistogram::setup() {
 
 void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
     double k2 = pow(k, 2);
-    for (int i = 0; i < axes[0]; i++) {_p_tot[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];}
+    for (int i = 0; i < axes[0]; i++) {p[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];} // p = p_tot, inherited from Histogram
 }
 
 vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
@@ -74,10 +74,10 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
     vector<double> Iq(debye_axes[0], 0);
     for (int i = 0; i < debye_axes[0]; i++) { // iterate through all q values
         for (size_t j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
-            if (q[i]*d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
+            if (q[i]*_d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
                 Iq[i] += p_tot[j];
             } else {
-                Iq[i] += p_tot[j]*sin(q[i]*d[j])/(q[i]*d[j]);
+                Iq[i] += p_tot[j]*sin(q[i]*_d[j])/(q[i]*_d[j]);
             }
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
@@ -101,7 +101,7 @@ unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
 double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     double num = 0, denom = 0;
     for (size_t i = 0; i < p_tot.size(); i++) {
-        num += p_tot[i]*pow(d[i], 2);
+        num += p_tot[i]*pow(_d[i], 2);
         denom += 2*p_tot[i];
     }
     return num/denom;

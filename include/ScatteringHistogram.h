@@ -3,16 +3,26 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include "Histogram.h"
 #include "TH1D.h"
 #include "TCanvas.h"
+#include <iostream>
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
-class ScatteringHistogram {
+class ScatteringHistogram : Histogram {
 public:
+    ScatteringHistogram(const ScatteringHistogram&& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
+        std::cout << "Called && constructor" << std::endl;
+    }
+
+    ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
+        std::cout << "Called & constructor" << std::endl;
+    }
+
     ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
-        : _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp), _p_tot(p_tot), _axes(axes) {setup();}
+        : Histogram(p_tot, axes), _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp) {setup();}
 
     /**
      * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
@@ -58,14 +68,12 @@ public:
     const vector<double>& p_pp = _p_pp;
     const vector<double>& p_hh = _p_hh;
     const vector<double>& p_hp = _p_hp;
-    const vector<double>& p_tot = _p_tot;
-    const vector<int>& axes = _axes;
+    const vector<double>& p_tot = p;
 
 private:
-    vector<double> _p_pp, _p_hh, _p_hp, _p_tot; // binned distances
-    vector<double> d; // the distance corresponding to each bin
+    vector<double> _p_pp, _p_hh, _p_hp; // binned distances
+    vector<double> _d; // the distance corresponding to each bin
     vector<double> _q; // the q values used as the x-axis
-    vector<int> _axes; // the axes used for the binned plots
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 

@@ -281,7 +281,7 @@ int main(void) {
     test_calc_distances_waters();
     test_calc_distances_both();
     // test_calc_distances_simple_example();
-    // test_calc_distances_2epe();
+    test_calc_distances_2epe();
     remove("temp1.pdb");
     remove("temp2.pdb");
     remove("temp3.pdb");
