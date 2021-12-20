@@ -166,18 +166,20 @@ void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
     int zm = std::max(loc[2]-r, 0), zp = std::min(loc[2]+r+1, bins[2]-1); // zminus and zplus
 
     // loop over each bin in the box
+    int added_volume = -1; // -1 because we overwrite the center
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
-                    if (!is_water) {volume++;};
+                    added_volume++;
                     grid[i][j][k] = marker;
                 }
             }
         }
     }
 
+    if (!is_water) {volume += added_volume;};
     grid[loc[0]][loc[1]][loc[2]] = is_water ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
@@ -209,7 +211,6 @@ void Grid::add(const Hetatom& atom) {
     }
 
     const bool is_water = atom.is_water();
-    if (!is_water) {volume++;}
     w_members.insert({atom, loc});
     grid[x][y][z] = is_water ? 'H' : 'A';
 }
@@ -226,6 +227,7 @@ void Grid::remove(const Atom& atom) {
     deflate_volume(atom);
     a_members.erase(atom);
     grid[x][y][z] = 0;
+    volume--;
 }
 
 void Grid::remove(const Hetatom& atom) {
@@ -273,13 +275,13 @@ void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
 
     // loop over each bin in the box
-    int removed_volume = 0;
+    int removed_volume = -1; // -1 because we overwrite the center
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
-                    removed_volume--;
+                    removed_volume++;
                     grid[i][j][k] = 0;
                 }
             }

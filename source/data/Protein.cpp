@@ -140,13 +140,15 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
 
 void Protein::update_effective_charge() { 
     if (grid == nullptr) {create_grid();}
-    double displaced_vol = grid->get_volume();
+    // double displaced_vol = grid->get_volume();
+    double displaced_vol = get_volume_acids();
     double displaced_charge = constants::charge::density::water*displaced_vol;
+    cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
 
     // number of atoms
     int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.protein_atoms.size();});
     double charge_per_atom = -displaced_charge/N;
-    cout << "Added " << charge_per_atom << " additional charge to each protein atom." << endl;
+    cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << N << ")." << endl;
 
     // subtract the charge from all protein atoms
     for (auto& body : bodies) {

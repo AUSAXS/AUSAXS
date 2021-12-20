@@ -15,10 +15,12 @@ class ScatteringHistogram : Histogram {
 public:
     ScatteringHistogram(const ScatteringHistogram&& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         std::cout << "Called && constructor" << std::endl;
+        setup();
     }
 
     ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         std::cout << "Called & constructor" << std::endl;
+        setup();
     }
 
     ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)

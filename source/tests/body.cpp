@@ -51,6 +51,11 @@ void test_volume() {
     IS_TRUE(body.get_volume_acids() == constants::volume::lysine);
 }
 
+void test_update_charge() {
+    Body body("temp.pdb");
+    body.update_effective_charge();
+}
+
 int main(void) {
     cout << "Summary of Body testing:" << endl;
     create_test_file();
@@ -58,6 +63,7 @@ int main(void) {
     test_translate();
     test_volume();
     test_get_mass();
+    test_update_charge();
     remove("temp.pdb");
 
     if (passed_all) {

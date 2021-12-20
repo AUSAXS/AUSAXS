@@ -66,7 +66,6 @@ class MasterHistogram : public Histogram {
             return *this;
         }
 
-    private:
         // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
         vector<double> p_base; 
 };

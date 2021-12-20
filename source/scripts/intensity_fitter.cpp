@@ -21,7 +21,7 @@ int main(int, char const *argv[]) {
     // setting::grid::ra = 1.5;
     // setting::grid::rh = 1.5;
 
-    Body protein(argv[1]);
+    Protein protein(argv[1]);
     protein.generate_new_hydration();
     std::shared_ptr<ScatteringHistogram> h = protein.get_histogram();
 

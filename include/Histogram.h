@@ -13,6 +13,22 @@ class Histogram {
         Histogram(const vector<double>& p) : p(p) {}
         Histogram(const vector<double>& p, const vector<int> axes) : p(p), axes(axes) {}
 
+        /**
+         * @brief Reduce the view axis to show only the non-zero area.
+         */
+        void shorten_axes() {
+            int max_bin = 0;
+            for (int i = axes[0]-1; i >= 0; i--) {
+                if (p[i] != 0) {
+                    max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
+                    break;
+                }
+            }
+            p.resize(max_bin);
+            double width = (double) (axes[2]-axes[1])/axes[0];
+            axes = {max_bin, 0, int(max_bin*width)};
+        }
+
         vector<double> p;
         vector<int> axes;
 };

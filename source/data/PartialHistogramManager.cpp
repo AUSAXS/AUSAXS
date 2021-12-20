@@ -67,11 +67,14 @@ void PartialHistogramManager::initialize() {
 
 ScatteringHistogram PartialHistogramManager::calculate_all() {
     Histogram total = calculate();
+    total.shorten_axes();
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     vector<double> p_hh = partials_hh.p;
+    p_hh.resize(total.axes[0]);
     
-    vector<double> p_pp(total.axes[0]), p_hp(total.axes[0]);
+    vector<double> p_pp = master.p_base;
+    vector<double> p_hp(total.axes[0], 0);
     // iterate through all partial histograms in the upper triangle
     for (size_t i = 0; i < size; i++) {
         for (size_t j = 0; j < i; j++) {
@@ -94,7 +97,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
         }
     }
 
-    return ScatteringHistogram(p_pp, p_hh, p_hp, total.p, total.axes);
+    return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axes);
 }
 
 Histogram PartialHistogramManager::calculate() {
@@ -161,7 +164,6 @@ void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {
     partials_pp[n][m].p = std::move(p_pp);
     master += partials_pp[n][m];
 }
-
 
 void PartialHistogramManager::calc_pp(const size_t& index) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;

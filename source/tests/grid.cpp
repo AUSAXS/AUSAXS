@@ -330,9 +330,12 @@ void test_expansion_deflation() {
 
     vector<Atom> a = {Atom({3, 0, 0}, 0, "C", "", 1), Atom({0, 3, 0}, 0, "C", "", 2)};
     grid.add(a);
+    IS_TRUE(grid.volume == 2);
+
     grid.expand_volume();
     grid.deflate_volume();
     vector<vector<vector<char>>> &g = grid.grid;
+    IS_TRUE(grid.volume == 2);
 
     for (int i = 0; i < bins; i++) {
         for (int j = 0; j < bins; j++) {
@@ -352,10 +355,10 @@ int main(void) {
     test_complex_bounding_box();
     test_add_remove();
     test_expansion_deflation();
+    test_volume_expansion();
     test_find_free_locs(setting::grid::AxesStrategy);
     test_find_free_locs(setting::grid::RadialStrategy);
     test_hydrate();
-    test_volume_expansion();
     test_width();
 
     if (passed_all) {

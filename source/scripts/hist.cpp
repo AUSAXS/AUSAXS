@@ -61,7 +61,7 @@ int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
 
     setting::grid::psc = setting::grid::RadialStrategy;
-    setting::axes::scattering_intensity_plot_binned_width = 0.5;
+    // setting::axes::scattering_intensity_plot_binned_width = 0.5;
     // setting::figures::format = "png";
 
     Protein protein(argv[1]);
