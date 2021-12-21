@@ -140,8 +140,8 @@ void test_all_data() {
         }
 
         if (file.path().extension() == ".pdb") { // check if the extension is .pdb
-            Protein* protein = new Protein(file.path().string());
-            protein->save("temp.pdb");
+            Protein protein = Protein(file.path().string());
+            protein.save("temp.pdb");
             IS_TRUE(compareFiles(file.path().string(), "temp.pdb"));
             remove("temp.pdb");
         }

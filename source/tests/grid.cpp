@@ -34,6 +34,7 @@ void test_grid_generation() {
     IS_TRUE(g[9][8][14] == 0);
 }
 
+// Test that the bounding box is correct for a single atom. 
 void test_simple_bounding_box() {
     Vector3 base(-10, -10, -10);
     int width = 1;
@@ -52,6 +53,7 @@ void test_simple_bounding_box() {
     IS_TRUE(box[2][1] == 10);
 }
 
+// Test that the bounding box is correct for a more general case. 
 void test_complex_bounding_box() {
     Vector3 base(-10, -10, -10);
     int width = 1;
@@ -71,6 +73,7 @@ void test_complex_bounding_box() {
     IS_TRUE(box[2][1] == 10);
 }
 
+// Test that the volume is expanded into the correct shape. 
 void test_volume_expansion() {
     Vector3 base(-10, -10, -10);
     int width = 1;
@@ -147,6 +150,30 @@ void test_volume_expansion() {
     IS_TRUE(g[13][13][13] == 0);
 }
 
+// Test that the volume is calculated correctly
+void test_volume() {
+    Vector3 base(-10, -10, -10);
+    double width = 1;
+    int bins = 21;
+    int radius = 1;
+    Grid grid(base, width, bins, radius); 
+
+    // cout << grid.get_volume() << endl;
+    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+    vector<Hetatom> w = {Hetatom({2, 2, 2}, 0, "C", "", 0), Hetatom({2, 2, 3}, 0, "C", "", 0)};
+    grid.add(a);
+    grid.add(w);
+    IS_TRUE(grid.volume == 1); // atoms are added as point-particles, and only occupy one unit of space.
+
+    grid.expand_volume();
+    IS_TRUE(grid.volume == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
+
+    grid.add(Atom({0, 0, -1}, 0, "C", "", 0));
+    grid.expand_volume();
+    IS_TRUE(grid.volume == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
+}
+
+// Test that the hydration algorithm generates waters at the expected locations
 void test_hydrate() {
     Vector3 base(-10, -10, -10);
     double width = 1;
@@ -175,6 +202,7 @@ void test_hydrate() {
     IS_TRUE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
 }
 
+// Test that nothing major breaks by changing the width.
 void test_width() {
     Vector3 base(-10, -10, -10);
     double width = 0.1;
@@ -219,6 +247,7 @@ void test_width() {
     IS_TRUE(box[2][1] == 100);
 }
 
+// Test that adding and removing atoms from the grid works as intended. 
 void test_add_remove() {
     Vector3 base(-10, -10, -10);
     double width = 1;
@@ -290,6 +319,7 @@ void test_add_remove() {
     IS_TRUE(g[loc_w3[0]][loc_w3[1]][loc_w3[2]] == 0);
 }
 
+// Test that the correct locations are found by find_free_locs. 
 void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     Vector3 base(-10, -10, -10);
     double width = 1;
@@ -321,6 +351,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 
 }
 
+// Test that expansion and deflation completely cancels each other. 
 void test_expansion_deflation() {
     Vector3 base(-10, -10, -10);
     double width = 1;
@@ -354,6 +385,7 @@ int main(void) {
     test_simple_bounding_box();
     test_complex_bounding_box();
     test_add_remove();
+    test_volume();
     test_expansion_deflation();
     test_volume_expansion();
     test_find_free_locs(setting::grid::AxesStrategy);

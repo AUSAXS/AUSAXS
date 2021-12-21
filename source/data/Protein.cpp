@@ -140,8 +140,8 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
 
 void Protein::update_effective_charge() { 
     if (grid == nullptr) {create_grid();}
-    // double displaced_vol = grid->get_volume();
-    double displaced_vol = get_volume_acids();
+    double displaced_vol = grid->get_volume();
+    // double displaced_vol = get_volume_acids();
     double displaced_charge = constants::charge::density::water*displaced_vol;
     cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
 

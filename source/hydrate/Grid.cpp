@@ -70,10 +70,7 @@ vector<Hetatom> Grid::find_free_locs() {
     if (w_members.size() != 0) {
             print_err("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
     }
-
-    if (!vol_expanded) {
-        expand_volume();
-    }
+    expand_volume();
 
     // place the water molecules with the chosen strategy
     vector<Hetatom> placed_water = water_placer->place();
@@ -136,8 +133,6 @@ vector<Atom> Grid::get_atoms() const {
 }
 
 void Grid::expand_volume() {
-    vol_expanded = true;
-
     // iterate through each member location
     for (const auto&[atom, _] : a_members) {
         expand_volume(atom);
@@ -149,29 +144,39 @@ void Grid::expand_volume() {
 }
 
 void Grid::expand_volume(const Atom& atom) {
-    expand_volume(a_members.at(atom), false);
+    MapVal& val = a_members.at(atom);
+    if (val.expanded_volume) {return;} // check if this location has already been expanded
+
+    val.expanded_volume = true; // mark this location as expanded
+    expand_volume(val.loc, false); // do the expansion
 }
 
 void Grid::expand_volume(const Hetatom& atom) {
-    expand_volume(w_members.at(atom), atom.is_water());
+    MapVal& val = w_members.at(atom);
+    if (val.expanded_volume) {return;} // check if this location has already been expanded
+
+    val.expanded_volume = true; // mark this location as expanded
+    expand_volume(val.loc, true); // do the expansion
 }
 
 void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
     char marker = is_water ? 'h' : 'a';
+    const int x = loc[0], y = loc[1], z = loc[2];
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(loc[0]-r, 0), xp = std::min(loc[0]+r+1, bins[0]-1); // xminus and xplus
-    int ym = std::max(loc[1]-r, 0), yp = std::min(loc[1]+r+1, bins[1]-1); // yminus and yplus
-    int zm = std::max(loc[2]-r, 0), zp = std::min(loc[2]+r+1, bins[2]-1); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
 
     // loop over each bin in the box
-    int added_volume = -1; // -1 because we overwrite the center
+    int added_volume = 0;
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
-                if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
+                if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
+                    if (grid[i][j][k] != 0) {continue;} // skip if the bin is already occupied
                     added_volume++;
                     grid[i][j][k] = marker;
                 }
@@ -180,7 +185,6 @@ void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
     }
 
     if (!is_water) {volume += added_volume;};
-    grid[loc[0]][loc[1]][loc[2]] = is_water ? 'H' : 'A'; // replace the center with a capital letter (better than doing another if-statement in the loop)
 }
 
 void Grid::add(const Atom& atom) {
@@ -194,8 +198,8 @@ void Grid::add(const Atom& atom) {
         exit(1);
     }
 
-    volume++;
-    a_members.insert({atom, loc});
+    if (grid[x][y][z] == 0) {volume++;} // can probably be removed
+    a_members.insert({atom, {loc, false}});
     grid[x][y][z] = 'A';
 }
 
@@ -211,7 +215,7 @@ void Grid::add(const Hetatom& atom) {
     }
 
     const bool is_water = atom.is_water();
-    w_members.insert({atom, loc});
+    w_members.insert({atom, {loc, false}});
     grid[x][y][z] = is_water ? 'H' : 'A';
 }
 
@@ -221,7 +225,7 @@ void Grid::remove(const Atom& atom) {
         exit(1);
     }
 
-    vector<int> loc = a_members.at(atom);
+    MapVal& loc = a_members.at(atom);
     const int x = loc[0], y = loc[1], z = loc[2];
 
     deflate_volume(atom);
@@ -236,7 +240,7 @@ void Grid::remove(const Hetatom& atom) {
         exit(1);
     }
 
-    vector<int> loc = w_members.at(atom);
+    MapVal loc = w_members.at(atom);
     const int x = loc[0], y = loc[1], z = loc[2];
 
     deflate_volume(atom);
@@ -245,8 +249,6 @@ void Grid::remove(const Hetatom& atom) {
 }
 
 void Grid::deflate_volume() {
-    vol_expanded = false;
-
     // iterate through each member location
     for (const auto&[atom, _] : a_members) {
         deflate_volume(atom);
@@ -258,11 +260,19 @@ void Grid::deflate_volume() {
 }
 
 void Grid::deflate_volume(const Atom& atom) {
-    deflate_volume(a_members.at(atom), false);
+    MapVal& val = a_members.at(atom);
+    if (!val.expanded_volume) {return;} // check if this location has already been expanded
+
+    val.expanded_volume = false; // mark this location as expanded
+    deflate_volume(val.loc, false); // do the expansion
 }
 
 void Grid::deflate_volume(const Hetatom& atom) {
-    deflate_volume(w_members.at(atom), atom.is_water());
+    MapVal& val = w_members.at(atom);
+    if (!val.expanded_volume) {return;} // check if this location has already been expanded
+
+    val.expanded_volume = false; // mark this location as expanded
+    deflate_volume(val.loc, true); // do the expansion
 }
 
 void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
@@ -281,6 +291,7 @@ void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
+                    if (grid[i][j][k] == 0) {continue;} // skip if bin is already empty
                     removed_volume++;
                     grid[i][j][k] = 0;
                 }

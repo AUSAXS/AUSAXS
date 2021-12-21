@@ -144,7 +144,7 @@ public:
      *        Water molecules are ignored.  
      */
     double get_volume() {
-        if (!vol_expanded) {expand_volume();} 
+        expand_volume();
         return pow(width, 3)*volume;
     }
 
@@ -176,9 +176,18 @@ public:
     // so we instead compare their unique identifiers
     class Comparator {public: bool operator() (const Atom& l, const Atom& r) const {return l.uid < r.uid;}};
 
+    struct MapVal {
+        vector<int> loc; // the bin location of the Atom key
+        bool expanded_volume; // whether the volume of this location has been expanded
+
+        // the two operator overloads makes this struct act just like a vector, but with an additional bool available when needed. 
+        int operator[](int index) {return loc[index];}
+        int operator[](int index) const {return loc[index];}
+    };
+
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<Atom, vector<int>, Comparator> a_members; // a map of all member atoms and where they are located
-    std::map<Hetatom, vector<int>, Comparator> w_members; // a map of all member water molecules and where they are located
+    std::map<Atom, MapVal, Comparator> a_members; // a map of all member atoms and where they are located
+    std::map<Hetatom, MapVal, Comparator> w_members; // a map of all member water molecules and where they are located
     int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // radius of each atom represented as a number of bins
     int rh = 0; // radius of each water molecule represented as a number of bins
@@ -187,7 +196,6 @@ private:
     Vector3 base; // base point of this grid
     double width; // distance between each grid point
     vector<int> bins; // the number of bins in each dimension
-    bool vol_expanded = false; // a flag determining if the volume has been expanded 
     unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
     unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules
 
@@ -196,7 +204,7 @@ private:
      * @param loc The bin location of the atom. 
      * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
      */
-    void expand_volume(const vector<int>& loc, const bool is_water);
+    void expand_volume(const vector<int>& val, const bool is_water);
 
     /** 
      * @brief Deflate a single member atom into an actual sphere.

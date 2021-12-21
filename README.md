@@ -17,6 +17,7 @@
  * Consider changing how it stores its atom data
  * Consider how to improve culling method
  * Consider removing all bounds checks
+ * Consider using vectors instead of maps for storage. Currently insertion scales horribly with the number of atoms. 
 
 ## ScatteringHistogram:
  * Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
