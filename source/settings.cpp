@@ -1,11 +1,15 @@
 #include "settings.h"
-#include <vector>
 #include "math/Vector3.h"
+
+#include <vector>
+#include <fstream>
+
+using std::string, std::vector;
 
 // Default settings
 namespace setting {
     namespace figures {
-        std::string format = "pdf";
+        string format = "pdf";
     }
 
     namespace grid {
@@ -13,7 +17,7 @@ namespace setting {
         CullingStrategyChoice csc = CounterStrategy;
 
         double percent_water = 0.1;
-        double ra = 1.5;
+        double ra = 2.4;
         double rh = 1.5;
         double width = 1; 
         int bins = 501;
@@ -29,6 +33,18 @@ namespace setting {
 
     namespace axes {
         double scattering_intensity_plot_binned_width = 1;
-        std::vector<double> scattering_intensity_plot_axes = {1000, 0.001, 1.001};
+        vector<double> scattering_intensity_plot_axes = {1000, 0.001, 1.001};
     }
+}
+
+void setting::reader::read(const string path) {
+    std::ifstream input(path);
+    if (!input.is_open()) {throw std::ios_base::failure("Error in settings::reader::read: Could not open file \"" + path + "\"");}
+
+    string line; // placeholder for the current line
+    while(getline(input, line)) {
+        if (line[0] == '#') {continue;} // # signifies comments
+        
+    }
+
 }

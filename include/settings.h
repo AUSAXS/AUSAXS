@@ -3,10 +3,12 @@
 #include <string>
 #include "math/Vector3.h"
 
+using std::string, std::vector;
+
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
     namespace figures {
-        extern std::string format; // The output format.
+        extern string format; // The output format.
     }
 
     namespace grid {
@@ -33,6 +35,11 @@ namespace setting {
 
     namespace axes {
         extern double scattering_intensity_plot_binned_width; // The width of each bin for the scattering plots.
-        extern std::vector<double> scattering_intensity_plot_axes; // Axes used for the Debye scattering intensity plots.
+        extern vector<double> scattering_intensity_plot_axes; // Axes used for the Debye scattering intensity plots.
     }
+
+    // Simple reader for reading settings from a text file
+    class reader {
+        static void read(const string path);
+    };
 }

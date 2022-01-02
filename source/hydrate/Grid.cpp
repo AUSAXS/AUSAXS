@@ -88,7 +88,7 @@ vector<vector<int>> Grid::bounding_box() const {
     for (const auto& [_, loc] : a_members) {
         for (int i = 0; i < 3; i++) {
             if (box[i][0] > loc[i]) box[i][0] = loc[i]; // min
-            if (box[i][1] < loc[i]) box[i][1] = loc[i]; // max
+            if (box[i][1] < loc[i]) box[i][1] = loc[i]+1; // max. +1 since this will often be used as loop limits
         }
     }
     return box;
@@ -199,6 +199,9 @@ void Grid::add(const Atom& atom) {
     }
 
     if (grid[x][y][z] == 0) {volume++;} // can probably be removed
+    else {
+        cout << "Collision! Location (i, j, k) = (" << x << ", " << y << ", " << z << ") is already occupied." << endl;
+    }
     a_members.insert({atom, {loc, false}});
     grid[x][y][z] = 'A';
 }
@@ -319,4 +322,11 @@ Vector3 Grid::to_xyz(const vector<int>& v) const {
     double y = base.y + width*v[1];
     double z = base.z + width*v[2];
     return {x, y, z};
+}
+
+double Grid::get_volume() {
+    cout << "Volume before expansion: " << volume << endl; 
+    expand_volume();
+    cout << "Volume after expansion: " << volume << endl; 
+    return pow(width, 3)*volume;
 }

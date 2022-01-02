@@ -143,10 +143,7 @@ public:
      * @brief Get the total volume spanned by the atoms in this grid in Å^3.
      *        Water molecules are ignored.  
      */
-    double get_volume() {
-        expand_volume();
-        return pow(width, 3)*volume;
-    }
+    double get_volume();
 
     /**
      * @brief Get the number of bins in each dimension.

@@ -46,11 +46,11 @@ void test_simple_bounding_box() {
 
     vector<vector<int>> box = grid.bounding_box();
     IS_TRUE(box[0][0] == 10);
-    IS_TRUE(box[0][1] == 10);
+    IS_TRUE(box[0][1] == 11);
     IS_TRUE(box[1][0] == 10);
-    IS_TRUE(box[1][1] == 10);
+    IS_TRUE(box[1][1] == 11);
     IS_TRUE(box[2][0] == 10);
-    IS_TRUE(box[2][1] == 10);
+    IS_TRUE(box[2][1] == 11);
 }
 
 // Test that the bounding box is correct for a more general case. 
@@ -66,11 +66,11 @@ void test_complex_bounding_box() {
 
     vector<vector<int>> box = grid.bounding_box();
     IS_TRUE(box[0][0] == 10);
-    IS_TRUE(box[0][1] == 15);
+    IS_TRUE(box[0][1] == 16);
     IS_TRUE(box[1][0] == 5);
-    IS_TRUE(box[1][1] == 10);
+    IS_TRUE(box[1][1] == 11);
     IS_TRUE(box[2][0] == 3);
-    IS_TRUE(box[2][1] == 10);
+    IS_TRUE(box[2][1] == 11);
 }
 
 // Test that the volume is expanded into the correct shape. 
@@ -240,11 +240,11 @@ void test_width() {
 
     vector<vector<int>> box = grid.bounding_box();
     IS_TRUE(box[0][0] == 100);
-    IS_TRUE(box[0][1] == 150);
+    IS_TRUE(box[0][1] == 151);
     IS_TRUE(box[1][0] == 50);
-    IS_TRUE(box[1][1] == 100);
+    IS_TRUE(box[1][1] == 101);
     IS_TRUE(box[2][0] == 30);
-    IS_TRUE(box[2][1] == 100);
+    IS_TRUE(box[2][1] == 101);
 }
 
 // Test that adding and removing atoms from the grid works as intended. 

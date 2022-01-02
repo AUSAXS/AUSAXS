@@ -171,4 +171,5 @@ private:
 public: 
     vector<Atom>& protein_atoms; // atoms of the body itself
     vector<Hetatom>& hydration_atoms; // hydration layer
+    bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 };

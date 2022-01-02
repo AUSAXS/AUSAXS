@@ -18,7 +18,9 @@ using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 void Body::save(string path) {file->write(path);}
 
 void Body::calc_histogram() {
-    update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+    if (!updated_charge) {
+        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+    }
 
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
@@ -88,8 +90,8 @@ void Body::calc_histogram() {
     for (size_t i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += data_h[4*i+3]*data_h[4*i+3];}
 
     // downsize our axes to only the relevant area
-    int max_bin = 0;
-    for (int i = axes[0]-1; i >= 0; i--) {
+    int max_bin = 10; // minimum size is 10
+    for (int i = axes[0]-1; i >= 10; i--) {
         if (p_pp[i] != 0 || p_hh[i] != 0 || p_hp[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
@@ -206,17 +208,21 @@ void Body::rotate(const Vector3&, const double&) {
 void Body::update_effective_charge(const double& charge) {
     signal->state_change();
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
+    updated_charge = true;
 }
 
 void Body::update_effective_charge() {
     signal->state_change();
 
-    if (grid == nullptr) {create_grid();}
-    double displaced_vol = grid->get_volume();
+    double displaced_vol = get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol;
+    cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
+
     double charge_per_atom = -displaced_charge/protein_atoms.size();
-    cout << "Added " << charge_per_atom << " additional charge to each protein atom." << endl;
+    cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << protein_atoms.size() << ")." << endl;
+
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge_per_atom] (Atom& a) {a.add_effective_charge(charge_per_atom);});
+    updated_charge = true;
 }
 
 double Body::get_mass() const {

@@ -49,7 +49,7 @@ public:
         auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
         ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
         minimizer->SetFunction(functor);
-        minimizer->SetLimitedVariable(0, "c", 5, 1e-4, 0, 10); // scaling factor
+        minimizer->SetLimitedVariable(0, "c", 5, 1e-4, 0, 100); // scaling factor
         minimizer->Minimize();
         const double* res = minimizer->X();
         const double* err = minimizer->Errors();
