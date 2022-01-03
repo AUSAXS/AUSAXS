@@ -10,6 +10,7 @@
  * [x] Grid: Create a second map for storing placed water molecules. This fixes some current issues, and will also be needed for multithreading anyways. 
  * [ ] Protein: something looks weird with the effective charges - run test_dist 1 & 2 from protein.cpp and look at the output
  * [ ] Grid: Something weird is going on with the volume, probably related to the above problem. Checkout a build from a few days ago and compare histograms. 
+ * [ ] Grid: Check consistency of centering when calculating histograms (appears to change result)
 
 # Stuff to consider
 ## Grid:

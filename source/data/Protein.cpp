@@ -158,7 +158,7 @@ void Protein::update_effective_charge() {
 }
 
 void Protein::center() {
-    if (!centered) {
+    if (!centered && setting::protein::center) {
         translate(-get_cm());
         centered = true;
     }

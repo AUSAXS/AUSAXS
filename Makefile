@@ -13,9 +13,12 @@ source_files := $(addprefix source/, $(shell find source/ -type f -not -wholenam
 gui: build/source/gui/gui
 	build/gui
 
+width := 1
+ra := 2.4
+rh := 1.5
 .PHONY:
 hydrate/%: build/source/scripts/new_hydration
-	$< data/$*.pdb output/$*.pdb
+	$< data/$*.pdb output/$*.pdb --width ${width} --radius_a ${ra} --radius_h ${rh}
 	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 
 .PHONY:
@@ -30,9 +33,12 @@ main/%: build/source/scripts/main
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
 	
+qlow := 0
+qhigh := 1000
+center := true
 .PHONY:
 intensity_fit/%: build/source/scripts/intensity_fitter
-	$< data/$*.pdb data/$*.RSR figures/
+	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --center ${center} --width ${width}
 
 #################################################################################
 ###				TESTS						 ###

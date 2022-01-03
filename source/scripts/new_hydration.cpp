@@ -16,7 +16,9 @@ void parse_params(int argc, char const *argv[]) {
         ("input,i", po::value<string>()->required(), "Path to the input file.")
         ("output,p", po::value<string>()->required(), "Path to the output file.")
         ("reduce,r", po::value<double>(), "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")
-        ("width,w", po::value<double>(), "The distance between each grid point (default: 1). Lower widths increases the precision.");
+        ("width,w", po::value<double>(), "The distance between each grid point (default: 1). Lower widths increases the precision.")
+        ("radius_h", po::value<double>(), "Radius of the hydration atoms.")
+        ("radius_a", po::value<double>(), "Radius of the protein atoms.");
 
     // set positional parameters
     boost::program_options::positional_options_description pos_desc;
@@ -43,6 +45,14 @@ void parse_params(int argc, char const *argv[]) {
         if (vm.count("width")) {
             setting::grid::width = vm["width"].as<double>();
             cout << "Width set to " << setting::grid::width << endl;
+        }
+        if (vm.count("radius_a")) {
+            setting::grid::ra = vm["radius_a"].as<double>();
+            cout << "Radius of protein atoms set to " << setting::grid::ra << "." << endl;
+        }
+        if (vm.count("radius_h")) {
+            setting::grid::rh = vm["radius_h"].as<double>();
+            cout << "Radius of hydration atoms set to " << setting::grid::rh << "." << endl;
         }
     } catch (const std::exception& e ) {
         std::cerr << e.what() << std::endl;

@@ -16,17 +16,20 @@ public:
     void refresh_grid() {create_grid();}
 };
 
-int main(int argc, char const *argv[]) {
+int main(int, char const *argv[]) {
     debug_protein protein(argv[1]);
     double acid_volume = protein.get_volume_acids();
     setting::grid::width = 0.3;
     setting::grid::base_point = {-50, -50, -50};
     setting::grid::bins = 500;
 
+    cout << "Average radius is " << cbrt(acid_volume/protein.protein_atoms.size()) << endl;
+    cout << "acid_vol: " << acid_volume << ", N: " << protein.protein_atoms.size() << endl;
+    exit(0);
     vector<double> ra(20);
     vector<double> diff(ra.size());
     double mindiff = DBL_MAX;
-    for (int i = 0; i < ra.size(); i++) {
+    for (size_t i = 0; i < ra.size(); i++) {
         ra[i] = 1+i*0.1;
         setting::grid::ra = ra[i];
         protein.refresh_grid();

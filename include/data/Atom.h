@@ -18,6 +18,8 @@ using boost::format;
 
 class Atom : public Record {
 public:
+    Atom(Atom&& a) noexcept;
+
     Atom(const Atom& a);
 
     /** 

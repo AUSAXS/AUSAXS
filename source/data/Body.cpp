@@ -142,7 +142,7 @@ void Body::generate_volume_file(string path) {
 }
 
 void Body::center() {
-    if (!centered) {
+    if (!centered && setting::protein::center) {
         translate(-get_cm());
         centered = true;
     }

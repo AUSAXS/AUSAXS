@@ -19,6 +19,7 @@ namespace setting {
         double percent_water = 0.1;
         double ra = 2.4;
         double rh = 1.5;
+        double ra_effective = 2.4;
         double width = 1; 
         int bins = 501;
         Vector3 base_point = {-250, -250, -250};
@@ -29,11 +30,17 @@ namespace setting {
     }
 
     namespace protein {
+        bool center = true; 
     }
 
     namespace axes {
         double scattering_intensity_plot_binned_width = 1;
         vector<double> scattering_intensity_plot_axes = {1000, 0.001, 1.001};
+    }
+
+    namespace fit {
+        double q_low = 0; // lower limit on the q value
+        double q_high = 1000; // upper limit on the q value
     }
 }
 

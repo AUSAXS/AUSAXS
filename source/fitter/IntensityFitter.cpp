@@ -211,6 +211,10 @@ private:
 
             if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
 
+            // check user-defined limits
+            if (_q < setting::fit::q_low) {continue;}
+            if (_q > setting::fit::q_high) {continue;}
+
             // add the values to our vectors
             q.push_back(_q);
             I.push_back(_I);
