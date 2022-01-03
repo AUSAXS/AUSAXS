@@ -199,9 +199,6 @@ void Grid::add(const Atom& atom) {
     }
 
     if (grid[x][y][z] == 0) {volume++;} // can probably be removed
-    else {
-        cout << "Collision! Location (i, j, k) = (" << x << ", " << y << ", " << z << ") is already occupied." << endl;
-    }
     a_members.insert({atom, {loc, false}});
     grid[x][y][z] = 'A';
 }
@@ -325,8 +322,6 @@ Vector3 Grid::to_xyz(const vector<int>& v) const {
 }
 
 double Grid::get_volume() {
-    cout << "Volume before expansion: " << volume << endl; 
     expand_volume();
-    cout << "Volume after expansion: " << volume << endl; 
     return pow(width, 3)*volume;
 }

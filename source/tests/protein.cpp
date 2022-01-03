@@ -197,7 +197,8 @@ void test_calc_distances_simple_example() {
 
 void test_calc_distances_2epe() {
     Body body("data/2epe.pdb");
-
+    body.center();
+    
     // We iterate through the protein data from the body, and split it into multiple pieces of size 100.  
     vector<vector<Atom>> patoms; // vector containing the pieces we split it into
     vector<Atom> p_current(100); // vector containing the current piece
@@ -234,6 +235,8 @@ void test_calc_distances_2epe() {
         if (protein_atoms[i] != body_atoms[i]) {
             IS_TRUE(false);
             cout << "Comparison failed on index " << i << endl;
+            cout << protein_atoms[i].as_pdb() << endl;
+            cout << body_atoms[i].as_pdb() << endl;
             return;
         }
     }
@@ -314,13 +317,13 @@ int main(void) {
     setting::grid::psc = setting::grid::RadialStrategy;
     cout << "Summary of Protein testing:" << endl;
     create_test_file();
-    // test_get_cm();
-    // test_volume();
+    test_get_cm();
+    test_volume();
     test_grid_placement();
-    // test_calc_distances_atoms();
-    // test_calc_distances_waters();
-    // test_calc_distances_both();
-    // test_calc_distances_simple_example();
+    test_calc_distances_atoms();
+    test_calc_distances_waters();
+    test_calc_distances_both();
+    test_calc_distances_simple_example();
     test_calc_distances_2epe();
     remove("temp1.pdb");
     remove("temp2.pdb");

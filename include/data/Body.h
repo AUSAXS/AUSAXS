@@ -106,6 +106,11 @@ public:
      */
     void create_grid();
 
+    /**
+     * @brief Center this Body on origo. 
+     */
+    void center();
+
     /** 
      * @brief Move the entire body by a vector.
      * @param v the translation vector
@@ -169,7 +174,8 @@ private:
     shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
 
 public: 
-    vector<Atom>& protein_atoms; // atoms of the body itself
-    vector<Hetatom>& hydration_atoms; // hydration layer
+    vector<Atom>& protein_atoms; // Atoms of the body itself
+    vector<Hetatom>& hydration_atoms; // Hydration layer
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
+    bool centered = false; // True if this object is centered, false otherwise
 };

@@ -93,6 +93,11 @@ public:
     }
 
     /**
+     * @brief Center this protein on origo. 
+     */
+    void center();
+
+    /**
      * @brief Get a copy of all protein atoms from the underlying bodies.
      */
     vector<Atom> get_protein_atoms() const;
@@ -105,6 +110,7 @@ public:
     vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
     vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
+    bool centered = false; // True if this object is centered, false otherwise. 
 private:
     shared_ptr<Grid> grid = nullptr; // The grid representation of this body
     unique_ptr<PartialHistogramManager> phm = nullptr;

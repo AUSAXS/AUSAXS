@@ -60,7 +60,6 @@ double Protein::get_volume_grid() {
 
 void Protein::create_grid() {
     grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
-    cout << "Filling grid" << endl;
     for (auto const& body : bodies) {
         grid->add(body.protein_atoms);
         // grid->add(body.hydration_atoms);
@@ -120,7 +119,7 @@ void Protein::generate_new_hydration() {
     phm->signal_modified_hydration_layer();
 
     // move protein to center of mass
-    translate(-get_cm());
+    center();
 
     // create the grid and hydrate it
     create_grid();
@@ -143,7 +142,7 @@ void Protein::update_effective_charge() {
     double displaced_vol = get_volume_grid();
     // double displaced_vol = get_volume_acids();
     double displaced_charge = constants::charge::density::water*displaced_vol;
-    cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
+    // cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
 
     // number of atoms
     int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.protein_atoms.size();});
@@ -156,4 +155,11 @@ void Protein::update_effective_charge() {
     }
 
     updated_charge = true;
+}
+
+void Protein::center() {
+    if (!centered) {
+        translate(-get_cm());
+        centered = true;
+    }
 }

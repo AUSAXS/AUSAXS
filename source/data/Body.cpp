@@ -115,7 +115,7 @@ void Body::generate_new_hydration() {
     hydration_atoms = vector<Hetatom>();
 
     // move protein to center of mass
-    translate(-get_cm());
+    center();
 
     // create the grid and hydrate it
     create_grid();
@@ -139,6 +139,13 @@ void Body::generate_volume_file(string path) {
     hydration_atoms = vector<Hetatom>();
     save(path);
     exit(0);
+}
+
+void Body::center() {
+    if (!centered) {
+        translate(-get_cm());
+        centered = true;
+    }
 }
 
 Vector3 Body::get_cm() const {
@@ -216,7 +223,7 @@ void Body::update_effective_charge() {
 
     double displaced_vol = get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol;
-    cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
+    // cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
 
     double charge_per_atom = -displaced_charge/protein_atoms.size();
     cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << protein_atoms.size() << ")." << endl;
