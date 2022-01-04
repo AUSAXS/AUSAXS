@@ -6,11 +6,10 @@
  * [ ] PartialHistogramManager: Consider redoing the data structure of CompactCoordinates (arrays?)
  * [ ] Try to derive an analytical solution of the chi2 problem. Differentiate chi2 with respect to each variable, and set each expression equal to zero. As long as it's not an iterative equation, it should be good. 
  * [ ] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
- * [x] Make more tests. More specifically, a test of the histogram generation is needed. Create a small grid of known atoms, and compare the output histogram with the analytical one. 
- * [x] Grid: Create a second map for storing placed water molecules. This fixes some current issues, and will also be needed for multithreading anyways. 
  * [ ] Protein: something looks weird with the effective charges - run test_dist 1 & 2 from protein.cpp and look at the output
  * [ ] Grid: Something weird is going on with the volume, probably related to the above problem. Checkout a build from a few days ago and compare histograms. 
  * [ ] Grid: Check consistency of centering when calculating histograms (appears to change result)
+ * [ ] General: Change system exits to throws
 
 # Stuff to consider
 ## Grid:

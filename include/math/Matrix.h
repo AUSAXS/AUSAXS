@@ -17,6 +17,7 @@ class Matrix {
     friend class MutableSlice;
 
 public: 
+    Matrix(Matrix&& A) noexcept : _N(std::move(A.N)), _M(std::move(A.M)), _data(std::move(A._data)) {}
     Matrix(const Matrix& A) : _N(A.N), _M(A.M), _data(A.data) {} // copy constructor
     Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) { // initializer lists {{a, b}, {c, d}}
         for (const auto& row : l) {

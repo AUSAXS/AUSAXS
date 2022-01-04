@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 
-#include "tests/Test.h"
+#include "Test.h"
 #include "data/Protein.h"
 #include "hydrate/Grid.h"
 #include "constants.h"
@@ -147,6 +147,15 @@ void test_translate() {
     IS_TRUE(body.protein_atoms[3].coords == Vector3({2, 2, 0}));
 }
 
+void test_rotate() {
+    vector<Atom> a = {Atom(Vector3(1, 0, 0), 1, "C", "C", 1)};
+    Body body(a, {});
+
+    Vector3 axis = {0, 1, 0};
+    body.rotate(axis, M_PI_2);
+    IS_EQUAL(Vector3({0, 0, 1}), body.protein_atoms[0].coords); 
+}
+
 void test_get_mass() {
     Body body("temp.pdb");
     IS_TRUE(approx(body.get_mass(), 9*constants::mass::C));
@@ -173,6 +182,7 @@ int main(void) {
     create_test_file();
     test_get_cm();
     test_translate();
+    test_rotate();
     test_calc_distances_atoms();
     test_calc_distances_waters();
     test_calc_distances_both();

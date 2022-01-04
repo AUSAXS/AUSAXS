@@ -206,10 +206,31 @@ void Body::translate(const Vector3& v) {
 
 void Body::rotate(const double&, const double&, const double&) {
     signal->state_change();
+    cout << "Not implemented yet. " << endl;
+    exit(1);
 }
 
-void Body::rotate(const Vector3&, const double&) {
+void Body::rotate(const Vector3& axis, const double& angle) {
     signal->state_change();
+
+    // we use the Euler-Rodrigues formulation
+    double a = 2*cos(angle); // multiplied by 2 compared to definition
+    double b = axis.x*sin(angle/2);
+    double c = axis.y*sin(angle/2);
+    double d = axis.z*sin(angle/2);
+
+    const Vector3 w = {b, c, d};
+    for (auto& atom : protein_atoms) {
+        const Vector3& v = atom.coords;
+        const Vector3 cross = w.cross(v);
+        atom.set_coordinates(v + a*(cross) + 2*(w.cross(cross)));
+    }
+
+    for (auto& atom : hydration_atoms) {
+        const Vector3& v = atom.coords;
+        const Vector3 cross = w.cross(v);
+        atom.set_coordinates(v + a*(cross) + 2*(w.cross(cross)));
+    }
 }
 
 void Body::update_effective_charge(const double& charge) {

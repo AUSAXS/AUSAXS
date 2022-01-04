@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 
-#include "tests/Test.h"
+#include "Test.h"
 #include "data/Body.h"
 #include "data/Protein.h"
 #include "hydrate/Grid.h"

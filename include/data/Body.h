@@ -125,6 +125,7 @@ public:
     void rotate(const Vector3& axis, const double& rad);
 
     /**
+     * ! Not implemented
      * @brief Euler angle rotation of all atoms. 
      * @param alpha radians to rotate about the z-axis.
      * @param beta radians to rotate about the y-axis. 

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include "tests/Test.h"
+#include "Test.h"
 #include "data/Protein.h"
 
 using namespace ROOT;

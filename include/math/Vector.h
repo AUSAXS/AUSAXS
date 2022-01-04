@@ -14,6 +14,7 @@
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
 public:
+    Vector(Vector&& v) noexcept : _N(std::move(v._N)), _data(std::move(v._data)) {}
     Vector(const Vector& v) : _N(v.size()), _data(v._data) {} // copy constructor
     Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {} // initializer list {a, b, c, d}
     Vector(const std::vector<double>& v) : _N(v.size()), _data(v) {} // std::vector --> Vector constructor
@@ -82,6 +83,9 @@ public:
         std::transform(begin(), end(), w.begin(), [&a](double x) {return x*a;});
         return w;
     }
+
+    // Scalar multiplication, a*w
+    friend Vector operator*(const double&a, const Vector& v) {return v*a;}
 
     // Scalar division, w/a
     Vector operator/(const double& a) const {

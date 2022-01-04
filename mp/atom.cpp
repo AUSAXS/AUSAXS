@@ -1,4 +1,4 @@
-#include "tests/Test.h"
+#include "Test.h"
 #include "data/Atom.h"
 #include "data/Hetatom.h"
 
