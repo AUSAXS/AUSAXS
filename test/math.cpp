@@ -18,6 +18,14 @@
 #include <TCanvas.h>
 #include <TGraph.h>
 
+#define REQUIRE_VEC_EQUAL(x, y) \
+    REQUIRE(x.size() == y.size()); \
+    for (size_t i = 0; i < x.size(); ++i) { \
+            if (x[i] != Approx(y[i])) { \
+                    REQUIRE(x[i] == Approx(y[i])); \
+            } \
+    }
+
 using std::cout, std::endl;
 
 Vector GenRandVector(int m) {
@@ -78,6 +86,12 @@ TEST_CASE("Vector3", "[math]") {
         REQUIRE(x.norm() == sqrt(1+4+9));
         REQUIRE(y.norm() == sqrt(16+25+36));
         REQUIRE(z.norm() == sqrt(49+64+81));
+
+        // normalize
+        x.normalize(); y.normalize(); z.normalize();
+        REQUIRE_VEC_EQUAL(x, (Vector3{0.2672612419124244, 0.5345224838248488, 0.8017837257372732}));
+        REQUIRE_VEC_EQUAL(y, (Vector3{0.4558423058385518, 0.5698028822981898, 0.6837634587578276}));
+        REQUIRE_VEC_EQUAL(z, (Vector3{0.5025707110324167, 0.5743665268941905, 0.6461623427559643}));
     }
 
     SECTION("assignment operators") {

@@ -135,7 +135,7 @@ TEST_CASE("histogram", "[body]") {
     }
 }
 
-TEST_CASE("Translate", "[body]") {
+TEST_CASE("translate", "[body]") {
     vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
@@ -149,39 +149,67 @@ TEST_CASE("Translate", "[body]") {
     REQUIRE(body.protein_atoms[3].coords == Vector3{2, 2, 0});
 }
 
-TEST_CASE("Rotate", "[body]") {
-    vector<Atom> a = {Atom(Vector3(1, 0, 0), 1, "C", "C", 1)};
-    Body body(a, {});
+TEST_CASE("rotate", "[body]") {
+    SECTION("simple rotations") {
+        vector<Atom> a = {Atom(Vector3(1, 0, 0), 1, "C", "C", 1), 
+                        Atom(Vector3(0, 1, 0), 1, "C", "C", 1), 
+                        Atom(Vector3(0, 0, 1), 1, "C", "C", 1)};
+        Body body(a, {});
 
-    Vector3 axis = {0, 1, 0};
-    body.rotate(axis, M_PI_2);
-    REQUIRE(Vector3({0, 0, 1}) == body.protein_atoms[0].coords); 
+        Vector3 axis = {0, 1, 0};
+        body.rotate(axis, M_PI_2);
+        REQUIRE(Vector3({0, 0, -1}) == body.protein_atoms[0].coords); 
+        REQUIRE(Vector3({0, 1, 0}) == body.protein_atoms[1].coords); 
+        REQUIRE(Vector3({1, 0, 0}) == body.protein_atoms[2].coords); 
+
+        axis = {1, 1, 1};
+        body.rotate(axis, M_PI/4);
+        REQUIRE(Vector3({-0.5058793634, 0.3106172175, -0.8047378541}) == body.protein_atoms[0].coords); 
+        REQUIRE(Vector3({-0.3106172175, 0.8047378541, 0.5058793634}) == body.protein_atoms[1].coords); 
+        REQUIRE(Vector3({0.8047378541, 0.5058793634, -0.3106172175}) == body.protein_atoms[2].coords); 
+    }
+
+    SECTION("complex rotations") {
+        vector<Atom> a = {Atom(Vector3(0, 2, 1), 1, "C", "C", 1), 
+                        Atom(Vector3(5, 1, 3), 1, "C", "C", 1), 
+                        Atom(Vector3(6, 1, 4), 1, "C", "C", 1),
+                        Atom(Vector3(3, 7, 2), 1, "C", "C", 1)};
+        Body body(a, {});
+
+        Vector3 axis = {0.5, 2, 1};
+        body.rotate(axis, 1.8);
+        REQUIRE(Vector3({0.5843819499, 1.6706126346, 1.3665837559}) == body.protein_atoms[0].coords); 
+        REQUIRE(Vector3({1.8656722055, 4.7666664324, -2.9661689675}) == body.protein_atoms[1].coords); 
+        REQUIRE(Vector3({2.6638285975, 5.6804357476, -3.692785794}) == body.protein_atoms[2].coords); 
+        REQUIRE(Vector3({0.0886646879, 7.4409765368, 2.5737145825}) == body.protein_atoms[3].coords); 
+    }
 }
 
 TEST_CASE("get_mass", "[body]") {
-    vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                        Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
+                        Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0"),
+                        Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0"),
+                        Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
-    REQUIRE(body.get_mass() == Approx(9*constants::mass::C));
+
+    REQUIRE(body.get_mass() == Approx(8*constants::mass::C));
 }
 
 TEST_CASE("get_cm", "[body]") {
-    vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                        Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
+                        Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0"),
+                        Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0"),
+                        Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
     Vector3 cm = body.get_cm();
     REQUIRE(cm == Vector3({0, 0, 0}));
 }
 
 TEST_CASE("get_volume", "[body]") {
-    vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                        Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
+                        Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0"),
+                        Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0"),
+                        Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
     REQUIRE(body.get_volume_acids() == constants::volume::lysine);
 }

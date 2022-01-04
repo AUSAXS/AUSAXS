@@ -122,7 +122,7 @@ public:
      * @param axis the rotation axis. 
      * @param rad the amount to rotate in radians. 
      */
-    void rotate(const Vector3& axis, const double& rad);
+    void rotate(Vector3& axis, const double& rad);
 
     /**
      * ! Not implemented

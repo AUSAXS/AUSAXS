@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "data/Body.h"
 #include "settings.h"
+#include "math/Matrix.h"
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
@@ -210,26 +211,34 @@ void Body::rotate(const double&, const double&, const double&) {
     exit(1);
 }
 
-void Body::rotate(const Vector3& axis, const double& angle) {
+void Body::rotate(Vector3& axis, const double& angle) {
     signal->state_change();
 
     // we use the Euler-Rodrigues formulation
-    double a = 2*cos(angle); // multiplied by 2 compared to definition
-    double b = axis.x*sin(angle/2);
-    double c = axis.y*sin(angle/2);
-    double d = axis.z*sin(angle/2);
+    axis.normalize();
+    double a = cos(angle/2);
+    double b = sin(angle/2);
+    double c = b;
+    double d = b;
+    b *= axis.x;
+    c *= axis.y;
+    d *= axis.z;
 
-    const Vector3 w = {b, c, d};
+    double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
+    double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
+
+    Matrix R{{aa+bb-cc-dd, 2*(bc-ad),   2*(bd+ac)}, 
+             {2*(bc+ad),   aa+cc-bb-dd, 2*(cd-ab)},
+             {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
+
     for (auto& atom : protein_atoms) {
         const Vector3& v = atom.coords;
-        const Vector3 cross = w.cross(v);
-        atom.set_coordinates(v + a*(cross) + 2*(w.cross(cross)));
+        atom.set_coordinates(R*v);
     }
 
     for (auto& atom : hydration_atoms) {
         const Vector3& v = atom.coords;
-        const Vector3 cross = w.cross(v);
-        atom.set_coordinates(v + a*(cross) + 2*(w.cross(cross)));
+        atom.set_coordinates(R*v);
     }
 }
 

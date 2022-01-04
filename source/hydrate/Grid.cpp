@@ -164,7 +164,7 @@ void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
     const int x = loc[0], y = loc[1], z = loc[2];
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = is_water ? rh : ra_effective; // determine which radius to use for the expansion
+    int r = is_water ? rh : ra; // determine which radius to use for the expansion
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
@@ -279,7 +279,7 @@ void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
     const int x = loc[0], y = loc[1], z = loc[2];
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = is_water ? rh : ra_effective; // determine which radius to use for the expansion
+    int r = is_water ? rh : ra; // determine which radius to use for the expansion
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus

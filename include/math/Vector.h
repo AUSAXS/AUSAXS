@@ -120,6 +120,11 @@ public:
         return *this;
     }
 
+    // Conversion to std::vector
+    operator vector<double>() {
+        return data;
+    }
+
     // Read-only indexing, w[i]
     const double& operator[](const int& i) const {return data[i];}
     
