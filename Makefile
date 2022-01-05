@@ -16,8 +16,9 @@ gui: build/source/gui/gui
 width := 1
 ra := 2.4
 rh := 1.5
+ps := Radial
 hydrate/%: build/source/scripts/new_hydration
-	$< data/$*.pdb output/$*.pdb --width ${width} --radius_a ${ra} --radius_h ${rh}
+	$< data/$*.pdb output/$*.pdb --width ${width} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
 	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 
 hist/%: build/source/scripts/hist
@@ -33,16 +34,11 @@ qlow := 0
 qhigh := 1000
 center := true
 intensity_fit/%: build/source/scripts/intensity_fitter
-	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --center ${center} --width ${width}
+	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --center ${center} --width ${width} --placement_strategy ${ps}
 
 #################################################################################
 ###				TESTS						 ###
 #################################################################################
-#tests: $(addprefix build/source/tests/, $(test_files))
-#	for program in $^ ; do \
-#	    $$program ; \
-#	done
-	
 test/%: $(shell find source/ -print) test/%.cpp
 	@ make -C build test
 	build/test [$(*F)] ~[broken] ~[manual]

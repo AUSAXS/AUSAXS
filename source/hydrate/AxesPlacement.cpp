@@ -2,9 +2,9 @@
 #include "hydrate/Grid.h"
 
 /**
- * @brief This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a
- *        water molecule at x±r, y±r, and z±r. If the location is valid, the molecule will be placed. This will typically generate
- *        a lot of molecules, and so a culling method may be useful afterwards. 
+ * @brief This strategy iterates through all atoms and attempts to place a water molecule at x±r, y±r, and z±r. 
+ *        If the location is valid, the molecule will be placed. This will typically generate a lot of molecules, 
+ *        and so a culling method may be useful afterwards. 
  */
 class AxesPlacement : public PlacementStrategy {
 public:
@@ -19,8 +19,8 @@ public:
 
         // we define two helper functions so I can make the checks in the inner loop one-liners
         vector<Hetatom> placed_water;
-        auto add_loc = [&] (const vector<int> v) {
-            Hetatom a = Hetatom::create_new_water(grid->to_xyz(v));
+        auto add_loc = [&] (const Vector3 exact_loc) {
+            Hetatom a = Hetatom::create_new_water(exact_loc);
             grid->add(a);
             grid->expand_volume(a);
             placed_water.push_back(a);
@@ -28,7 +28,7 @@ public:
 
         // loop over the location of all member atoms
         int r_eff = ra+rh;
-        for (const auto&[_, loc] : grid->a_members) {
+        for (const auto&[atom, loc] : grid->a_members) {
             const int x = loc[0], y = loc[1], z = loc[2];
 
             // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
@@ -37,16 +37,40 @@ public:
             int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, bins[2]-1); // zminus and zplus
 
             // check collisions for x ± r_eff
-            if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {add_loc({xm, y, z});}
-            if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) {add_loc({xp, y, z});}
+            if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {
+                Vector3 exact_loc = atom.coords;
+                exact_loc.x -= r_eff;
+                add_loc(exact_loc);
+            }
+            if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) {
+                Vector3 exact_loc = atom.coords;
+                exact_loc.x += r_eff;
+                add_loc(exact_loc);
+            }
 
             // check collisions for y ± r_eff
-            if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) {add_loc({x, ym, z});}
-            if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) {add_loc({x, yp, z});}
+            if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) {
+                Vector3 exact_loc = atom.coords;
+                exact_loc.y -= r_eff;
+                add_loc(exact_loc);
+            }
+            if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) {
+                Vector3 exact_loc = atom.coords;
+                exact_loc.y += r_eff;
+                add_loc(exact_loc);
+            }
 
             // check collisions for z ± r_eff
-            if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) {add_loc({x, y, zm});}
-            if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) {add_loc({x, y, zp});}
+            if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) {
+                Vector3 exact_loc = atom.coords;
+                exact_loc.z -= r_eff;
+                add_loc(exact_loc);
+            }
+            if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) {
+                Vector3 exact_loc = atom.coords;
+                exact_loc.z += r_eff;
+                add_loc(exact_loc);
+            }
         }
 
         return placed_water;

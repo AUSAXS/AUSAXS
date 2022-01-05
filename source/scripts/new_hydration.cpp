@@ -17,6 +17,7 @@ void parse_params(int argc, char const *argv[]) {
         ("output,p", po::value<string>()->required(), "Path to the output file.")
         ("reduce,r", po::value<double>(), "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")
         ("width,w", po::value<double>(), "The distance between each grid point (default: 1). Lower widths increases the precision.")
+        ("placement_strategy", po::value<string>(), "The placement strategy to use. Options: Radial, Axes, Jan.")
         ("radius_h", po::value<double>(), "Radius of the hydration atoms.")
         ("radius_a", po::value<double>(), "Radius of the protein atoms.");
 
@@ -54,6 +55,12 @@ void parse_params(int argc, char const *argv[]) {
             setting::grid::rh = vm["radius_h"].as<double>();
             cout << "Radius of hydration atoms set to " << setting::grid::rh << "." << endl;
         }
+        if (vm.count("placement_strategy")) {
+            string parsed = vm["placement_strategy"].as<string>();
+            if (parsed == "Radial") {setting::grid::psc = setting::grid::RadialStrategy;}
+            else if (parsed == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
+            else if (parsed == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
+        }
     } catch (const std::exception& e ) {
         std::cerr << e.what() << std::endl;
         exit(1);
@@ -63,11 +70,11 @@ void parse_params(int argc, char const *argv[]) {
 int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
 
-    setting::grid::rh = 3;
+    // setting::grid::rh = 3;
     // setting::grid::psc = setting::grid::RadialStrategy;
     // setting::grid::percent_water = 0;
 
-    Body protein(argv[1]);
+    Protein protein(argv[1]);
     protein.generate_new_hydration();
     protein.save(argv[2]);
     return 0;

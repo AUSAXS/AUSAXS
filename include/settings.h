@@ -12,7 +12,7 @@ namespace setting {
     }
 
     namespace grid {
-        enum PlacementStrategyChoice {AxesStrategy, RadialStrategy};
+        enum PlacementStrategyChoice {AxesStrategy, RadialStrategy, JanStrategy};
         enum CullingStrategyChoice {CounterStrategy, OutlierStrategy};
 
         extern PlacementStrategyChoice psc; // The choice of placement algorithm.

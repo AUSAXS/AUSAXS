@@ -27,6 +27,7 @@ void parse_params(int argc, char const *argv[]) {
         ("qlow", po::value<double>(), "The lower limit on the q-values used for the fit.")
         ("qhigh", po::value<double>(), "The upper limit on the q-values used for the fit.")
         ("center", po::value<bool>()->implicit_value(true), "Set true to center the structure, or false to not.")
+        ("placement_strategy", po::value<string>(), "The placement strategy to use. Options: Radial, Axes, Jan.")
         ("width", po::value<double>(), "The grid bin width used internally in Ångström. Default: 1");
 
     // set positional parameters
@@ -65,6 +66,13 @@ void parse_params(int argc, char const *argv[]) {
             setting::grid::width = vm["width"].as<double>();
             cout << "Grid bin width set to " << setting::grid::width << "." << endl;
         }
+        if (vm.count("placement_strategy")) {
+            string parsed = vm["placement_strategy"].as<string>();
+            if (parsed == "Radial") {setting::grid::psc = setting::grid::RadialStrategy;}
+            else if (parsed == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
+            else if (parsed == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
+        }
+
     } catch (const std::exception& e ) {
         std::cerr << e.what() << std::endl;
         exit(1);
@@ -73,7 +81,7 @@ void parse_params(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
-    setting::grid::psc = setting::grid::RadialStrategy;
+    // setting::grid::psc = setting::grid::RadialStrategy;
     // setting::axes::scattering_intensity_plot_binned_width = 0.5;
     // setting::grid::width = 0.5;
     setting::grid::ra = 1.5;
@@ -99,6 +107,14 @@ int main(int argc, char const *argv[]) {
     graphs[0]->SetMarkerStyle(7);
     graphs[2]->SetMarkerStyle(7);
 
+    // set titles
+    graphs[0]->SetTitle("Fit");
+    graphs[0]->GetXaxis()->SetTitle("q");
+    graphs[0]->GetXaxis()->CenterTitle();
+    graphs[0]->GetXaxis()->SetTitleOffset(1.05);
+    graphs[0]->GetYaxis()->SetTitle("Intensity");
+    graphs[0]->GetYaxis()->CenterTitle();
+
     // draw the graphs
     graphs[0]->Draw("AP"); // Axes points
     graphs[2]->Draw("SAME P"); // Point
@@ -106,7 +122,6 @@ int main(int argc, char const *argv[]) {
 
     // setup the canvas and save the plot
     string path = output + "intensity_fit." + setting::figures::format;
-    c1->SetTitle("Fit");
     c1->SetLogy();
     c1->SetLogx();
     c1->SetRightMargin(0.15);
@@ -116,7 +131,7 @@ int main(int argc, char const *argv[]) {
 //*** RESIDUAL PLOT ***//
     std::unique_ptr<TCanvas> c2 = std::make_unique<TCanvas>("c2", "canvas", 600, 600);
     std::unique_ptr<TGraphErrors> graph = fitter.plot_residuals();
-    std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, 1, 0); // solid black line at x=0
+    std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph->GetXaxis()->GetXmax(), 0); // solid black line at x=0
 
     // use some nicer colors
     graph->SetMarkerColor(kOrange+1);
@@ -128,6 +143,14 @@ int main(int argc, char const *argv[]) {
     // draw the graphs
     graph->Draw("AP");
     line->Draw("SAME");
+
+    // set titles
+    graph->SetTitle("Residuals");
+    graph->GetXaxis()->SetTitle("q");
+    graph->GetXaxis()->CenterTitle();
+    graph->GetXaxis()->SetTitleOffset(1.05);
+    graph->GetYaxis()->SetTitle("Residual");
+    graph->GetYaxis()->CenterTitle();
 
     // setup the canvas and save the plot
     path = string(argv[3]) + "residuals." + setting::figures::format;

@@ -10,6 +10,7 @@
 #include "data/Hetatom.h"
 #include "hydrate/AxesPlacement.cpp"
 #include "hydrate/RadialPlacement.cpp"
+#include "hydrate/JanPlacement.cpp"
 #include "hydrate/CounterCulling.cpp"
 #include "hydrate/OutlierCulling.cpp"
 #include "settings.h"
@@ -41,6 +42,9 @@ Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, P
         case RadialStrategy:
             water_placer = std::make_unique<RadialPlacement>(this);
             break;
+        case JanStrategy: 
+            water_placer = std::make_unique<JanPlacement>(this);
+            break;
         default: 
             print_err("Error in Grid::Grid: Unkown PlacementStrategy");
             exit(1);
@@ -61,7 +65,7 @@ Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, P
 
 vector<Hetatom> Grid::hydrate() {
     vector<Hetatom> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    water_culler->set_target_count(setting::grid::percent_water*(a_members.size()-placed_water.size())); // target is 10% of atoms
+    water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 
