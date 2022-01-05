@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "math/Vector3.h"
+#include "data/Axes.h"
 
 using std::string, std::vector;
 
@@ -37,7 +38,7 @@ namespace setting {
 
     namespace axes {
         extern double scattering_intensity_plot_binned_width; // The width of each bin for the scattering plots.
-        extern vector<double> scattering_intensity_plot_axes; // Axes used for the Debye scattering intensity plots.
+        extern Axes scattering_intensity_plot_axes; // Axes used for the Debye scattering intensity plots.
     }
 
     namespace fit {

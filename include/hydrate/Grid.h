@@ -5,6 +5,7 @@
 #include "PlacementStrategy.h"
 #include "CullingStrategy.h"
 #include "settings.h"
+#include "Exceptions.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 

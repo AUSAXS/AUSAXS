@@ -23,8 +23,7 @@ using namespace setting::grid;
 Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
     long long int total_bins = (long long) bins[0]*bins[1]*bins[2];
     if (total_bins > 32e9) {
-        print_err("Error in Grid: Too many bins.");
-        exit(1);
+        throw except::invalid_argument("Error in Grid: Too many bins.");
     } else if (total_bins > 4e9) {
         print_err("Warning in Grid: Consider lowering the number of bins.");
     }
@@ -46,8 +45,7 @@ Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, P
             water_placer = std::make_unique<JanPlacement>(this);
             break;
         default: 
-            print_err("Error in Grid::Grid: Unkown PlacementStrategy");
-            exit(1);
+            throw except::unknown_argument("Error in Grid::Grid: Unkown PlacementStrategy");
     }
 
     switch (csc) {
@@ -58,8 +56,7 @@ Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, P
             water_culler = std::make_unique<OutlierCulling>(this);
             break;
         default: 
-            print_err("Error in Grid::Grid: Unkown CullingStrategy");
-            exit(1);        
+            throw except::unknown_argument("Error in Grid::Grid: Unkown CullingStrategy");
     }
 }
 
@@ -83,8 +80,7 @@ vector<Hetatom> Grid::find_free_locs() {
 
 vector<vector<int>> Grid::bounding_box() const {
     if (__builtin_expect(a_members.size() == 0, false)) {
-        print_err("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
-        exit(1);
+        throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
     }
 
     // initialize the bounds as large as possible
@@ -198,8 +194,7 @@ void Grid::add(const Atom& atom) {
     // sanity check
     const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2] || x+y+z < 0;
     if (__builtin_expect(out_of_bounds, false)) {
-        print_err("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
-        exit(1);
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
     }
 
     if (grid[x][y][z] == 0) {volume++;} // can probably be removed
@@ -214,8 +209,7 @@ void Grid::add(const Hetatom& atom) {
     // sanity check
     const bool out_of_bounds = x >= bins[0] || y >= bins[1] || z >= bins[2] || x+y+z < 0;
     if (__builtin_expect(out_of_bounds, false)) {
-        print_err("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
-        exit(1);
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
     }
 
     const bool is_water = atom.is_water();
@@ -225,8 +219,7 @@ void Grid::add(const Hetatom& atom) {
 
 void Grid::remove(const Atom& atom) {
     if (__builtin_expect(a_members.count(atom) == 0, false)) {
-        print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
-        exit(1);
+        throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
     MapVal& loc = a_members.at(atom);
@@ -240,8 +233,7 @@ void Grid::remove(const Atom& atom) {
 
 void Grid::remove(const Hetatom& atom) {
     if (__builtin_expect(w_members.count(atom) == 0, false)) {
-        print_err("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
-        exit(1);
+        throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
     MapVal loc = w_members.at(atom);

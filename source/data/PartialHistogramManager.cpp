@@ -37,8 +37,8 @@ PartialHistogramManager::PartialHistogramManager(vector<Body>& bodies, const vec
 void PartialHistogramManager::initialize() {
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
-    vector<int> axes = {int(1000/width), 0, 1000}; 
-    vector<double> p_base(axes[0], 0);
+    Axes axes = {int(1000/width), 0, 1000}; 
+    vector<double> p_base(axes.bins, 0);
 
     for (size_t n = 0; n < size; n++) {
         // create more efficient access to the necessary variables
@@ -71,10 +71,10 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     vector<double> p_hh = partials_hh.p;
-    p_hh.resize(total.axes[0]);
+    p_hh.resize(total.axes.bins);
     
     vector<double> p_pp = master.p_base;
-    vector<double> p_hp(total.axes[0], 0);
+    vector<double> p_hp(total.axes.bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (size_t i = 0; i < size; i++) {
         for (size_t j = 0; j < i; j++) {
@@ -145,11 +145,11 @@ Histogram PartialHistogramManager::calculate() {
 
 void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const vector<int>& axes = master.axes; 
+    const Axes& axes = master.axes; 
 
     CompactCoordinates& coords_n = coords_p[n];
     CompactCoordinates& coords_m = coords_p[m];
-    vector<double> p_pp(axes[0], 0);
+    vector<double> p_pp(axes.bins, 0);
     for (size_t i = 0; i < coords_n.size; i++) {
         for (size_t j = 0; j < coords_m.size; j++) {
             float weight = coords_n.data[4*i+3]*coords_m.data[4*j+3];
@@ -167,13 +167,13 @@ void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {
 
 void PartialHistogramManager::calc_pp(const size_t& index) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const vector<int>& axes = master.axes; 
+    const Axes& axes = master.axes; 
     CompactCoordinates& coords_i = coords_p[index];
 
     // we do not want to calculate the self-correlation, so we have to skip entry 'index'
     for (size_t n = 0; n < index; n++) { // loop from (0, index]
         CompactCoordinates& coords_j = coords_p[n];
-        vector<double> p_pp(axes[0], 0);
+        vector<double> p_pp(axes.bins, 0);
         for (size_t i = 0; i < coords_i.size; i++) {
             for (size_t j = 0; j < coords_j.size; j++) {
                 float weight = coords_i.data[4*i+3]*coords_j.data[4*j+3];
@@ -191,7 +191,7 @@ void PartialHistogramManager::calc_pp(const size_t& index) {
 
     for (size_t n = index+1; n < size; n++) { // loop from (index, size]
         CompactCoordinates& coords_j = coords_p[n];
-        vector<double> p_pp(axes[0], 0);
+        vector<double> p_pp(axes.bins, 0);
         for (size_t i = 0; i < coords_i.size; i++) {
             for (size_t j = 0; j < coords_j.size; j++) {
                 float weight = coords_i.data[4*i+3]*coords_j.data[4*j+3];
@@ -210,8 +210,8 @@ void PartialHistogramManager::calc_pp(const size_t& index) {
 
 void PartialHistogramManager::calc_hp(const size_t& index) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const vector<int>& axes = master.axes; 
-    vector<double> p_hp(axes[0], 0);
+    const Axes& axes = master.axes; 
+    vector<double> p_hp(axes.bins, 0);
 
     CompactCoordinates& coords = coords_p[index];
     for (size_t i = 0; i < coords.size; i++) {
@@ -232,8 +232,8 @@ void PartialHistogramManager::calc_hp(const size_t& index) {
 
 void PartialHistogramManager::calc_hh() {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const vector<int>& axes = master.axes; 
-    vector<double> p_hh(axes[0], 0);
+    const Axes& axes = master.axes; 
+    vector<double> p_hh(axes.bins, 0);
 
     // calculate internal distances for the hydration layer
     coords_h = CompactCoordinates(hydration_atoms);

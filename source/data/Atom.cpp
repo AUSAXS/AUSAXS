@@ -103,8 +103,7 @@ void Atom::parse_pdb(string s) {
 
     // sanity check
     if (__builtin_expect(!(Record::get_type(recName) == Record::ATOM || Record::get_type(recName) == Record::HETATM), false)) {
-        print_err("Error in Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
-        exit(1);
+        throw except::parse_error("Error in Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
     }
 
     // remove any spaces from the numbers
@@ -140,8 +139,7 @@ void Atom::parse_pdb(string s) {
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         _charge = charge;
     } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
-        print_err("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
-        exit(1);
+        throw except::parse_error("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
     }
 
     _effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);

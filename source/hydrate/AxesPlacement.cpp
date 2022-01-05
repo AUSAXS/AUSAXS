@@ -17,7 +17,7 @@ public:
         const vector<int> bins = grid->get_bins();
         const int ra = grid->ra; const int rh = grid->rh;
 
-        // we define two helper functions so I can make the checks in the inner loop one-liners
+        // short lambda to actually place the generated water molecules
         vector<Hetatom> placed_water;
         auto add_loc = [&] (const Vector3 exact_loc) {
             Hetatom a = Hetatom::create_new_water(exact_loc);
@@ -27,7 +27,8 @@ public:
         };
 
         // loop over the location of all member atoms
-        int r_eff = ra+rh;
+        int r_eff = ra+rh;                           // the effective bin radius
+        double r_eff_real = r_eff*grid->get_width(); // the effective real radius
         for (const auto&[atom, loc] : grid->a_members) {
             const int x = loc[0], y = loc[1], z = loc[2];
 
@@ -39,36 +40,36 @@ public:
             // check collisions for x ± r_eff
             if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {
                 Vector3 exact_loc = atom.coords;
-                exact_loc.x -= r_eff;
+                exact_loc.x -= r_eff_real;
                 add_loc(exact_loc);
             }
             if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) {
                 Vector3 exact_loc = atom.coords;
-                exact_loc.x += r_eff;
+                exact_loc.x += r_eff_real;
                 add_loc(exact_loc);
             }
 
             // check collisions for y ± r_eff
             if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) {
                 Vector3 exact_loc = atom.coords;
-                exact_loc.y -= r_eff;
+                exact_loc.y -= r_eff_real;
                 add_loc(exact_loc);
             }
             if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) {
                 Vector3 exact_loc = atom.coords;
-                exact_loc.y += r_eff;
+                exact_loc.y += r_eff_real;
                 add_loc(exact_loc);
             }
 
             // check collisions for z ± r_eff
             if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) {
                 Vector3 exact_loc = atom.coords;
-                exact_loc.z -= r_eff;
+                exact_loc.z -= r_eff_real;
                 add_loc(exact_loc);
             }
             if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) {
                 Vector3 exact_loc = atom.coords;
-                exact_loc.z += r_eff;
+                exact_loc.z += r_eff_real;
                 add_loc(exact_loc);
             }
         }

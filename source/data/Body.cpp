@@ -25,11 +25,11 @@ void Body::calc_histogram() {
 
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
-    vector<int> axes = {int(1000/width), 0, 1000}; 
-    vector<double> p_pp(axes[0], 0);
-    vector<double> p_hh(axes[0], 0);
-    vector<double> p_hp(axes[0], 0);
-    vector<double> p_tot(axes[0], 0);
+    Axes axes = {int(1000/width), 0, 1000}; 
+    vector<double> p_pp(axes.bins, 0);
+    vector<double> p_hh(axes.bins, 0);
+    vector<double> p_hp(axes.bins, 0);
+    vector<double> p_tot(axes.bins, 0);
 
     // extremely wasteful to calculate this from scratch every time
     std::vector<float> data_p(protein_atoms.size()*4);
@@ -92,7 +92,7 @@ void Body::calc_histogram() {
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10
-    for (int i = axes[0]-1; i >= 10; i--) {
+    for (int i = axes.bins-1; i >= 10; i--) {
         if (p_pp[i] != 0 || p_hh[i] != 0 || p_hp[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;

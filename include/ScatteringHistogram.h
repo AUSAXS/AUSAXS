@@ -13,17 +13,15 @@ using namespace ROOT;
 
 class ScatteringHistogram : Histogram {
 public:
-    ScatteringHistogram(const ScatteringHistogram&& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
-        std::cout << "Called && constructor" << std::endl;
+    ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         setup();
     }
 
     ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
-        std::cout << "Called & constructor" << std::endl;
         setup();
     }
 
-    ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const vector<int>& axes)
+    ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const Axes& axes)
         : Histogram(p_tot, axes), _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp) {setup();}
 
     /**

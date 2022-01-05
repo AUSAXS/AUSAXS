@@ -12,6 +12,7 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include "ScatteringHistogram.h"
+#include "Exceptions.h"
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
@@ -20,12 +21,6 @@
 #include <TGraphErrors.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
-
-struct bad_order_except : public std::exception {
-    bad_order_except(const char* msg) : msg(msg) {}
-    const char* what() const throw() {return msg;}
-    const char* msg;
-};
 
 class IntensityFitter : public Fitter {
 public: 
@@ -80,7 +75,7 @@ public:
     // }
 
     vector<shared_ptr<TGraph>> plot() const {
-        if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
+        if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
         double a = fitted->params["a"];
         double b = fitted->params["b"];
@@ -106,7 +101,7 @@ public:
     }
 
     unique_ptr<TGraphErrors> plot_residuals() {
-        if (fitted == nullptr) {throw bad_order_except("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
+        if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
 
         double a = fitted->params["a"];
         double b = fitted->params["b"];

@@ -47,7 +47,7 @@ class MasterHistogram : public Histogram {
          * @param p The current histogram. 
          * @param p_base The constant, unchanging part of the histogram. 
          */
-        MasterHistogram(const vector<double>& p_base, const vector<int>& axes) : Histogram(p_base, axes), p_base(std::move(p_base)) {}
+        MasterHistogram(const vector<double>& p_base, const Axes& axes) : Histogram(p_base, axes), p_base(std::move(p_base)) {}
 
         /**
          * @brief Add a PartialHistogram to the MasterHistogram. 

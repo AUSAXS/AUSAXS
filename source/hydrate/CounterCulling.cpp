@@ -11,13 +11,11 @@ public:
 
     // runs in O(n) where n is the number of water molecules
     vector<Hetatom> cull(vector<Hetatom>& placed_water) const override {
-        cout << "Target count: " << target_count << endl;
         if (target_count == 0) {
             return placed_water;
         }
 
         int factor = std::floor(placed_water.size()/target_count); // reduction factor
-        cout << "Calculated reduction factor: " << target_count << endl;
         if (factor < 2) {
             return placed_water;
         }
