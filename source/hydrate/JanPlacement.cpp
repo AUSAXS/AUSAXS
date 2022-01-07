@@ -24,7 +24,7 @@ public:
         };
 
         // loop over the location of all member atoms
-        int r_eff = sqrt(8);
+        int r_eff = 3;
         vector<vector<int>> bounds = grid->bounding_box();
         for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
             for (int j = bounds[1][0]; j < bounds[1][1]; j++) {

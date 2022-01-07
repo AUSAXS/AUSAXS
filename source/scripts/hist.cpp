@@ -22,6 +22,7 @@ void parse_params(int argc, char const *argv[]) {
         ("help,h", "Show this message.")
         ("input,i", po::value<string>()->required(), "Path to the input file.")
         ("output,p", po::value<string>()->required(), "Path to the output file.")
+        ("placement_strategy", po::value<string>(), "The placement strategy to use. Options: Radial, Axes, Jan.")
         ("reduce,r", po::value<double>(), "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")
         ("width,w", po::value<double>(), "The distance between each grid point (default: 1). Lower widths increases the precision.");
 
@@ -51,6 +52,22 @@ void parse_params(int argc, char const *argv[]) {
             setting::grid::width = vm["width"].as<double>();
             cout << "Width set to " << setting::grid::width << endl;
         }
+        if (vm.count("placement_strategy")) {
+            string parsed = vm["placement_strategy"].as<string>();
+            if (parsed == "Radial") {
+                cout << "Using radial placement strategy." << endl;
+                setting::grid::psc = setting::grid::RadialStrategy;
+            }
+            else if (parsed == "Axes") {
+                cout << "Using axes placement strategy." << endl;
+                setting::grid::psc = setting::grid::AxesStrategy;
+            }
+            else if (parsed == "Jan") {
+                cout << "Using Jan placement strategy." << endl;
+                setting::grid::psc = setting::grid::JanStrategy;
+            }
+        }
+
     } catch ( const std::exception& e ) {
         std::cerr << e.what() << std::endl;
         exit(1);
@@ -60,7 +77,6 @@ void parse_params(int argc, char const *argv[]) {
 int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
 
-    // setting::grid::psc = setting::grid::RadialStrategy;
     // setting::axes::scattering_intensity_plot_binned_width = 0.5;
     // setting::figures::format = "png";
 
@@ -80,6 +96,13 @@ int main(int argc, char const *argv[]) {
     hists[2]->SetLineColor(kGreen+1);
     hists[3]->SetLineColor(kBlack);
 
+    // titles
+    hists[3]->GetXaxis()->SetTitle("Distance [#AA]");
+    hists[3]->GetXaxis()->CenterTitle();
+    hists[3]->GetYaxis()->SetTitle("Count");
+    hists[3]->GetYaxis()->CenterTitle();
+    hists[3]->GetYaxis()->SetTitleOffset(1.2);
+
     // draw the histograms on the canvas
     hists[3]->Draw("HIST L");
     hists[0]->Draw("SAME HIST L");
@@ -97,8 +120,7 @@ int main(int argc, char const *argv[]) {
 
     // setup the canvas and save the plot
     string path = output + "distances." + setting::figures::format;
-    c1->SetRightMargin(0.15);
-    c1->SetLeftMargin(0.15);
+    c1->SetLeftMargin(0.19);
     c1->SaveAs(path.c_str());
 
 // Debye scattering intensity plot
@@ -117,6 +139,14 @@ int main(int argc, char const *argv[]) {
     double ymin = hI_debye->GetMinimum();
     double ymax = hI_debye->GetMaximum();
     hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
+    
+    // titles
+    linpad->SetLeftMargin(0.19);
+    hI_debye->GetXaxis()->SetTitle("q");
+    hI_debye->GetXaxis()->CenterTitle();
+    hI_debye->GetYaxis()->SetTitle("Intensity");
+    hI_debye->GetYaxis()->CenterTitle();
+    hI_debye->GetYaxis()->SetTitleOffset(1.2);
     hI_debye->Draw("HIST L");
 
     // Guinier approximation
@@ -129,6 +159,8 @@ int main(int argc, char const *argv[]) {
     logpad->SetFrameFillStyle(4000);
     logpad->SetLogx();
     logpad->cd();
+    logpad->SetLeftMargin(0.19);
+
     auto hI_guinier = d->plot_guinier_approx();
     double offset = log10(ymax) - hI_guinier->GetMaximum(); // the offset from the debye plot (free variable in the guinier approx)
     for (int i = 1; i < hI_guinier->GetNbinsX(); i++) {hI_guinier->SetBinContent(i, hI_guinier->GetBinContent(i)+offset);} // apply the offset
@@ -149,8 +181,6 @@ int main(int argc, char const *argv[]) {
 
     // setup the canvas and save the plot
     path = output + "intensity." + setting::figures::format;
-    c2->SetRightMargin(0.15);
-    c2->SetLeftMargin(0.15);
     c2->SaveAs(path.c_str());
 
     return 0;

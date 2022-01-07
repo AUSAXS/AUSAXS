@@ -68,9 +68,18 @@ void parse_params(int argc, char const *argv[]) {
         }
         if (vm.count("placement_strategy")) {
             string parsed = vm["placement_strategy"].as<string>();
-            if (parsed == "Radial") {setting::grid::psc = setting::grid::RadialStrategy;}
-            else if (parsed == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
-            else if (parsed == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
+            if (parsed == "Radial") {
+                cout << "Using radial placement strategy." << endl;
+                setting::grid::psc = setting::grid::RadialStrategy;
+            }
+            else if (parsed == "Axes") {
+                cout << "Using axes placement strategy." << endl;
+                setting::grid::psc = setting::grid::AxesStrategy;
+            }
+            else if (parsed == "Jan") {
+                cout << "Using Jan placement strategy." << endl;
+                setting::grid::psc = setting::grid::JanStrategy;
+            }
         }
 
     } catch (const std::exception& e ) {
@@ -81,9 +90,7 @@ void parse_params(int argc, char const *argv[]) {
 
 int main(int argc, char const *argv[]) {
     parse_params(argc, argv);
-    // setting::grid::psc = setting::grid::RadialStrategy;
     // setting::axes::scattering_intensity_plot_binned_width = 0.5;
-    // setting::grid::width = 0.5;
     setting::grid::ra = 1.5;
     setting::grid::rh = 1.5;
 

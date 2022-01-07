@@ -22,7 +22,7 @@ hydrate/%: build/source/scripts/new_hydration
 	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 
 hist/%: build/source/scripts/hist
-	$< data/$*.pdb figures/
+	$< data/$*.pdb figures/ --width ${width} --placement_strategy ${ps}
 
 main/%: build/source/scripts/main
 	$< data/$*.pdb output/filled_volume.pdb
