@@ -78,8 +78,69 @@ int main(int argc, char* argv[]) {
 
    view view_(_win);
 
+
+   auto image1 = image{"intensity.png"};
+   auto image2 = image{"distances.png"};
+   auto radio_1 = radio_button("button 1");
+   auto radio_2 = radio_button("button 2");
+   auto radio_3 = radio_button("button 3");
+   radio_1.select(true);
+
+   auto image_shown = image1;
+   auto image_box = (layer(
+                            margin(
+                              {10, 10, 10, 10},
+                            //   image_shown
+                              link(image_shown) //doesnt build
+                           ),
+                           box(bkd_color_accent)
+                        )
+                    );
+
+   radio_1.on_click = [&view_, &image_shown, &image1] (bool release) mutable {
+      if (release) {
+          cout << "Clicked on first button!" << endl;
+          image_shown = image1;
+          view_.refresh();
+      }
+   };
+
+   radio_2.on_click = [&view_, &image_shown, &image2] (bool release) mutable {
+      if (release) {
+          cout << "Clicked on second button!" << endl;
+          image_shown = image2;
+          view_.refresh();
+      }
+   };
+   radio_3.on_click = [&view_, &image_shown, &image2] (bool release) mutable {
+      if (release) {
+          cout << "Clicked on third button!" << endl;
+          image_shown = image2;
+          view_.refresh();
+      }
+   };
+
+   auto radio_buttons =
+         group("Radio Buttons",
+            margin({10, 10, 20, 20},
+               top_margin(25,
+                  htile(
+                     top_margin(10, align_left(radio_1)),
+                     top_margin(10, align_left(radio_2)),
+                     top_margin(10, align_left(radio_3))
+                  )
+               )
+            )
+         );
+
+    auto image = vtile(
+         htile(
+            margin({20, 20, 20, 20}, radio_buttons)
+         ),
+         image_box
+      );
    view_.content(
-      make_controls(view_),
+      image,
       background
    );
 
