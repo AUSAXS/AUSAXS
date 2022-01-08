@@ -16,44 +16,49 @@ auto constexpr bkd_color_accent = rgba(55, 55, 57, 255);
 auto constexpr bkd_color = rgba(35, 35, 37, 255);
 auto background = box(bkd_color);
 
-auto make_controls(view& view_) {
-   auto image1 = image{"intensity.png"};
-   auto image2 = image{"distances.png"};
+// The different image types which can be plotted
+// auto image1 = image{"intensity.png"};
+// auto image2 = image{"distances.png"};
+
+// The currently shown image
+
+std::shared_ptr<cycfi::elements::image> image1, image2, image3; 
+std::shared_ptr<cycfi::elements::image> current_image;
+
+auto image_control(view& _view) {
    auto radio_1 = radio_button("button 1");
    auto radio_2 = radio_button("button 2");
    auto radio_3 = radio_button("button 3");
    radio_1.select(true);
 
-   auto image_shown = image1;
-   auto image_box = (layer(
-                            margin(
-                              {10, 10, 10, 10},
-                              image_shown
-                            //   link(image_shown) doesnt build
-                           ),
-                           box(bkd_color_accent)
-                        )
-                    );
-
-   radio_1.on_click = [&image_shown, &image1] (bool) mutable {
-      cout << "Clicked on first button!" << endl;
-    //   image_shown = image1;
+   radio_1.on_click = [&_view] (bool pressed) mutable {
+      if (pressed) {
+          cout << "Clicked on first button!" << endl;
+          *current_image = *image1;
+          _view.refresh();
+      }
    };
 
-   radio_2.on_click = [&image_shown, &image2] (bool) mutable {
-      cout << "Clicked on second button!" << endl;
-    //   image_shown = image2;
+   radio_2.on_click = [&_view] (bool pressed) mutable {
+      if (pressed) {
+          cout << "Clicked on second button!" << endl;
+          *current_image = *image2;
+          _view.refresh();
+      }
    };
-   radio_3.on_click = [&image_shown, &image2] (bool) mutable {
-      cout << "Clicked on third button!" << endl;
-    //   image_shown = image2;
+   radio_3.on_click = [&_view] (bool pressed) mutable {
+      if (pressed) {
+          cout << "Clicked on third button!" << endl;
+          *current_image = *image3;
+          _view.refresh();
+      }
    };
 
-   auto radio_buttons =
-         group("Radio Buttons",
+   return group("Radio Buttons",
             margin({10, 10, 20, 20},
                top_margin(25,
-                  htile(
+                  htile
+                  (
                      top_margin(10, align_left(radio_1)),
                      top_margin(10, align_left(radio_2)),
                      top_margin(10, align_left(radio_3))
@@ -61,14 +66,32 @@ auto make_controls(view& view_) {
                )
             )
          );
+}
 
-   return
-      vtile(
-         htile(
-            margin({20, 20, 20, 20}, radio_buttons)
-         ),
-         image_box
-      );
+auto make_controls(view& _view) {
+   image1 = share(image("intensity.png"));
+   image2 = share(image("distances.png"));
+   image3 = share(image("intensity.png"));
+
+   current_image = share(image("intensity.png")); //! Must be assigned this way - otherwise compiler optimizations may remove later assignments
+   auto image_box = layer
+                        (
+                           margin
+                           (
+                              {10, 10, 10, 10},
+                              link(*current_image)
+                           ),
+                           box(bkd_color_accent)
+                        );
+
+    return vtile
+            (
+               htile
+               (
+                  margin({20, 20, 20, 20}, image_control(_view))
+               ),
+               image_box
+            );
 }
 
 int main(int argc, char* argv[]) {
@@ -76,71 +99,12 @@ int main(int argc, char* argv[]) {
    window _win(_app.name(), 15, rect{20, 20, 1000, 1500});
    _win.on_close = [&_app]() { _app.stop(); };
 
-   view view_(_win);
+   view _view(_win);
 
-
-   auto image1 = image{"intensity.png"};
-   auto image2 = image{"distances.png"};
-   auto radio_1 = radio_button("button 1");
-   auto radio_2 = radio_button("button 2");
-   auto radio_3 = radio_button("button 3");
-   radio_1.select(true);
-
-   auto image_shown = image1;
-   auto image_box = (layer(
-                            margin(
-                              {10, 10, 10, 10},
-                            //   image_shown
-                              link(image_shown) //doesnt build
-                           ),
-                           box(bkd_color_accent)
-                        )
-                    );
-
-   radio_1.on_click = [&view_, &image_shown, &image1] (bool release) mutable {
-      if (release) {
-          cout << "Clicked on first button!" << endl;
-          image_shown = image1;
-          view_.refresh();
-      }
-   };
-
-   radio_2.on_click = [&view_, &image_shown, &image2] (bool release) mutable {
-      if (release) {
-          cout << "Clicked on second button!" << endl;
-          image_shown = image2;
-          view_.refresh();
-      }
-   };
-   radio_3.on_click = [&view_, &image_shown, &image2] (bool release) mutable {
-      if (release) {
-          cout << "Clicked on third button!" << endl;
-          image_shown = image2;
-          view_.refresh();
-      }
-   };
-
-   auto radio_buttons =
-         group("Radio Buttons",
-            margin({10, 10, 20, 20},
-               top_margin(25,
-                  htile(
-                     top_margin(10, align_left(radio_1)),
-                     top_margin(10, align_left(radio_2)),
-                     top_margin(10, align_left(radio_3))
-                  )
-               )
-            )
-         );
-
-    auto image = vtile(
-         htile(
-            margin({20, 20, 20, 20}, radio_buttons)
-         ),
-         image_box
-      );
-   view_.content(
-      image,
+   _view.content
+   (
+      // make_controls(_view),
+      make_controls(_view),
       background
    );
 
