@@ -32,12 +32,13 @@ link_libraries(${LIBRARIES})
 ############################################
 ##           Include sources              ##
 ############################################
+include(source/CMakeLists.txt)
 include(source/io/CMakeLists.txt)
 include(source/math/CMakeLists.txt)
 include(source/data/CMakeLists.txt)
 include(source/hydrate/CMakeLists.txt)
-include(source/CMakeLists.txt)
 include(source/gui/CMakeLists.txt)
+include(source/fitter/CMakeLists.txt)
 
 ############################################
 ##             Unit Testing               ##
