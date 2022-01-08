@@ -2,96 +2,33 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <boost/program_options.hpp>
-
-#include <TCanvas.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
-#include <TLine.h>
 
 #include "data/Body.h"
 #include "data/Protein.h"
 #include "fitter/IntensityFitter.h"
 #include "plots/PlotIntensityFit.h"
 #include "plots/PlotIntensityFitResiduals.h"
+#include "CLI11.hpp"
 
 using std::cout, std::endl;
 
-string input_structure, input_measurement, output;
-void parse_params(int argc, char const *argv[]) {
-    namespace po = boost::program_options;
-    po::options_description description("Usage: ./program <input structure path> <input measurement path> <output path> <optionals>");
-    description.add_options()
-        ("help,h", "Show this message.")
-        ("input_s", po::value<string>()->required(), "Path to the input structure file.")
-        ("input_m", po::value<string>()->required(), "Path to the input measurement file.")
-        ("output", po::value<string>()->required(), "Path to the output folder.")
-        ("qlow", po::value<double>(), "The lower limit on the q-values used for the fit.")
-        ("qhigh", po::value<double>(), "The upper limit on the q-values used for the fit.")
-        ("center", po::value<bool>()->implicit_value(true), "Set true to center the structure, or false to not.")
-        ("placement_strategy", po::value<string>(), "The placement strategy to use. Options: Radial, Axes, Jan.")
-        ("width", po::value<double>(), "The grid bin width used internally in Ångström. Default: 1");
-
-    // set positional parameters
-    boost::program_options::positional_options_description pos_desc;
-    pos_desc.add("input_s", 1); // input structure is always the first argument
-    pos_desc.add("input_m", 1); // input measurement is always the second argument
-    pos_desc.add("output", 2); // output is always the third argument
-    po::command_line_parser parser{argc, argv};
-    po::parsed_options parsed = parser.options(description).positional(pos_desc).run();
-    
-    try {
-        po::variables_map vm;
-        po::store(parsed, vm);
-        po::notify(vm);
-
-        input_structure = vm["input_s"].as<string>();
-        input_measurement = vm["input_m"].as<string>();
-        output = vm["output"].as<string>();
-        if(vm.count("help")) {
-            cout << description << endl;
-            exit(0);
-        }
-        if (vm.count("qlow")) {
-            setting::fit::q_low = vm["qlow"].as<double>();
-            cout << "Lower limit on input q-values set to " << setting::fit::q_low << "." << endl;
-        }
-        if (vm.count("qhigh")) {
-            setting::fit::q_high = vm["qhigh"].as<double>();
-            cout << "Upper limit on input q-values set to " << setting::fit::q_high << "." << endl;
-        }
-        if (vm.count("center")) {
-            setting::protein::center = vm["center"].as<bool>();
-            cout << "Structure will " << (setting::protein::center ? "be centered." : "not be centered.") << endl;
-        }
-        if (vm.count("width")) {
-            setting::grid::width = vm["width"].as<double>();
-            cout << "Grid bin width set to " << setting::grid::width << "." << endl;
-        }
-        if (vm.count("placement_strategy")) {
-            string parsed = vm["placement_strategy"].as<string>();
-            if (parsed == "Radial") {
-                cout << "Using radial placement strategy." << endl;
-                setting::grid::psc = setting::grid::RadialStrategy;
-            }
-            else if (parsed == "Axes") {
-                cout << "Using axes placement strategy." << endl;
-                setting::grid::psc = setting::grid::AxesStrategy;
-            }
-            else if (parsed == "Jan") {
-                cout << "Using Jan placement strategy." << endl;
-                setting::grid::psc = setting::grid::JanStrategy;
-            }
-        }
-
-    } catch (const std::exception& e ) {
-        std::cerr << e.what() << std::endl;
-        exit(1);
-    }
-}
-
 int main(int argc, char const *argv[]) {
-    parse_params(argc, argv);
+    CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
+
+    string input_structure, input_measurement, output, placement_strategy;
+    app.add_option("input_s", input_structure, "Path to the structure file.")->required()->check(CLI::ExistingFile);
+    app.add_option("input_m", input_measurement, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
+    app.add_option("output", output, "Path to save the hydrated file at.")->required();
+    app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
+    app.add_option("--width,-w", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
+    app.add_option("--placement_strategy", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.");
+    app.add_option("--radius_a", setting::grid::ra, "Radius of the protein atoms.");
+    app.add_option("--radius_h", setting::grid::rh, "Radius of the hydration atoms.");
+    app.add_option("--qlow", setting::fit::q_low, "Lower limit on used q values from measurement file.");
+    app.add_option("--qhigh", setting::fit::q_high, "Upper limit on used q values from measurement file.");
+    app.add_flag("--center,!--no-center", setting::protein::center, "Decides whether the protein will be centered. Default: true.");
+    CLI11_PARSE(app, argc, argv);
+
     // setting::axes::scattering_intensity_plot_binned_width = 0.5;
     // setting::grid::ra = 1.5;
     // setting::grid::rh = 1.5;

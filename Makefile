@@ -19,7 +19,8 @@ rh := 1.5
 ps := Radial
 hydrate/%: build/source/scripts/new_hydration
 	$< data/$*.pdb output/$*.pdb --width ${width} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
-	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
+#	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
+	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
 hist/%: build/source/scripts/hist
 	$< data/$*.pdb figures/ --width ${width} --placement_strategy ${ps}
@@ -32,9 +33,9 @@ optimize_radius/%: build/source/scripts/optimize_radius
 	
 qlow := 0
 qhigh := 1000
-center := true
+center := center
 intensity_fit/%: build/source/scripts/intensity_fitter
-	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --center ${center} --width ${width} --placement_strategy ${ps}
+	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --width ${width} --placement_strategy ${ps}
 
 #################################################################################
 ###				TESTS						 ###

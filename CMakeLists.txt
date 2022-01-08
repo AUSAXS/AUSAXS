@@ -9,8 +9,8 @@ project(SAXS)
 ############################################
 ##           Link libraries               ##
 ############################################
-set(LIBRARIES "")
-set(sources "")
+set(LIBRARIES)
+set(sources "${CMAKE_SOURCE_DIR}/external/CLI11.hpp")
 
 # ROOT
 find_package(ROOT REQUIRED)

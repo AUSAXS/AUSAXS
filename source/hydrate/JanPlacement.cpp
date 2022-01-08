@@ -2,9 +2,14 @@
 #include "hydrate/Grid.h"
 
 /**
- * @brief This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a
- *        water molecule at x±r, y±r, and z±r. If the location is valid, the molecule will be placed. This will typically generate
- *        a lot of molecules, and so a culling method may be useful afterwards. 
+ * @brief JanStrategy
+ * 
+ * This strategy iterates through all bins, and for every bin which is part of the volume of an atom, it attempts to place a
+ * water molecule at x±r, y±r, and z±r. If the location is valid, the molecule will be placed. This will typically generate
+ * a lot of molecules, and so a culling method may be useful afterwards. 
+ * 
+ * It only uses the atomic radius @a ra, and ignores the value set to the hydration atoms @a ra. 
+ * 
  */
 class JanPlacement : public PlacementStrategy {
 public:
@@ -24,7 +29,7 @@ public:
         };
 
         // loop over the location of all member atoms
-        int r_eff = 3;
+        int r_eff = grid->ra;
         vector<vector<int>> bounds = grid->bounding_box();
         for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
             for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
