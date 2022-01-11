@@ -13,17 +13,18 @@ source_files := $(addprefix source/, $(shell find source/ -type f -not -wholenam
 gui: build/source/gui/gui
 	build/gui
 
-width := 1
+gwidth := 1
+bwidth := 1
 ra := 2.4
 rh := 1.5
 ps := Radial
 hydrate/%: build/source/scripts/new_hydration
-	$< data/$*.pdb output/$*.pdb --width ${width} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
+	$< data/$*.pdb output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
 #	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
 hist/%: build/source/scripts/hist
-	$< data/$*.pdb figures/ --width ${width} --placement_strategy ${ps}
+	$< data/$*.pdb figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
 
 main/%: build/source/scripts/main
 	$< data/$*.pdb output/filled_volume.pdb
@@ -35,7 +36,7 @@ qlow := 0
 qhigh := 1000
 center := center
 intensity_fit/%: build/source/scripts/intensity_fitter
-	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --width ${width} --placement_strategy ${ps}
+	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
 
 #################################################################################
 ###				TESTS						 ###

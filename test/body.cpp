@@ -28,7 +28,7 @@ void create_test_file() {
 }
 
 // Test that the histograms are correct for proteins with only atoms (no waters)
-TEST_CASE("histogram", "[body]") {
+TEST_CASE("body_histogram", "[body]") {
     SECTION("atoms_only") {
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
         vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
@@ -185,7 +185,7 @@ TEST_CASE("rotate", "[body]") {
     }
 }
 
-TEST_CASE("get_mass", "[body]") {
+TEST_CASE("body_get_mass", "[body]") {
     vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
                         Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0"),
                         Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0"),
@@ -195,7 +195,7 @@ TEST_CASE("get_mass", "[body]") {
     REQUIRE(body.get_mass() == Approx(8*constants::mass::C));
 }
 
-TEST_CASE("get_cm", "[body]") {
+TEST_CASE("body_get_cm", "[body]") {
     vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
                         Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0"),
                         Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0"),
@@ -205,7 +205,7 @@ TEST_CASE("get_cm", "[body]") {
     REQUIRE(cm == Vector3({0, 0, 0}));
 }
 
-TEST_CASE("get_volume", "[body]") {
+TEST_CASE("body_get_volume", "[body]") {
     vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
                         Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0"),
                         Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0"),

@@ -38,6 +38,7 @@ void Protein::save(string path) {
     if (bodies.size() == 1) {
         bodies[0].hydration_atoms = hydration_atoms;
         bodies[0].save(path);
+        return;
     }
 
     // otherwise we'll have to create a new file
@@ -127,7 +128,7 @@ void Protein::generate_new_hydration() {
 }
 
 void Protein::calc_histogram() {
-    if (!updated_charge) {
+    if (!updated_charge && setting::protein::use_effective_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
     histogram = std::make_shared<ScatteringHistogram>(phm->calculate_all());

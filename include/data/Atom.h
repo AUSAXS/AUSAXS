@@ -112,8 +112,7 @@ public:
      */
     void set_element(string element) {
         if (__builtin_expect(constants::mass::atomic.count(element) == 0, false)) { // check that the weight is defined
-            print_err((format("Error in Atom::set_element: The weight of element \"%1%\" is not defined.") % element).str());
-            exit(1);
+            throw except::invalid_argument("Error in Atom::set_element: The weight of element " + element + " is not defined.");
         }
         _element = element;
     }
@@ -122,8 +121,7 @@ public:
 
     double get_mass() const {
         if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
-            print_err("Error in Atom::get_atomic_weight: Attempted to get atomic mass, but the element was not set!");
-            exit(1);
+            throw except::invalid_argument("Error in Atom::get_atomic_weight: Attempted to get atomic mass, but the element was not set!");
         }
         // mass of this nucleus + mass of attached H atoms
         return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");

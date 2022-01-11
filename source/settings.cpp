@@ -31,6 +31,7 @@ namespace setting {
 
     namespace protein {
         bool center = true; 
+        bool use_effective_charge = true;
     }
 
     namespace axes {
