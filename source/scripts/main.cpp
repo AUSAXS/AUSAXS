@@ -136,9 +136,15 @@ int main(int argc, char const *argv[]) {
 
 // DATABASE GENERATOR
     // SMILES::parse("CCN(CC)C(=O)COCCOCCNC(=O)COCCOCCNC(=O)CCC(C(=O)O)NC(=O)CCCCCCCCCCCCCCCCCCC(=O)O");
-    cout << "CCCCCCCCCCCCCC(=O)O" << endl;
-    cout << SMILES::reverse("CCCCCCCCCCCCCC(=O)O") << endl;
-    SMILES::parse(SMILES::reverse("CCCCCCCCCCCCCC(=O)O"));
+    // cout << "CCCCCCCCCCCCCC(=O)O" << endl;
+    // cout << SMILES::reverse("CCCCCCCCCCCCCC(=O)O") << endl;
+    // SMILES::parse(SMILES::reverse("CCCCCCCCCCCCCC(=O)O"));
+    // SMILES::print();
+
+    string smiles = "CCCCCCCCCCCCCC(=O)O";
+    cout << "Parsing " << smiles << endl;
+    cout << SMILES::reverse(smiles) << endl;
+    SMILES::parse(SMILES::reverse(smiles));
     SMILES::print();
     return 0;
 }

@@ -7,7 +7,6 @@
  * [ ] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
  * [ ] Protein: something looks weird with the effective charges - run test_dist 1 & 2 from protein.cpp and look at the output
  * [ ] Grid: Something weird is going on with the volume, probably related to the above problem. Checkout a build from a few days ago and compare histograms. 
- * [x] Replace Boost::program_options with CLI11. Maybe remove Boost dependency entirely. 
 
 # Stuff to consider
 ## Grid:

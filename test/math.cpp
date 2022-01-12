@@ -128,6 +128,39 @@ TEST_CASE("Vector3", "[math]") {
         REQUIRE(x.distance(z) == sqrt(108));
         REQUIRE(y.distance(z) == sqrt(27));
     }
+
+    SECTION("rotation") {
+        x = {1, 0, 0};
+        y = {0, 1, 0};
+        z = {0, 0, 1};
+
+        Vector3 axis = {0, 1, 0};
+        x.rotate(axis, M_PI_2);
+        y.rotate(axis, M_PI_2);
+        z.rotate(axis, M_PI_2);
+        REQUIRE(x == Vector3{0, 0, -1}); 
+        REQUIRE(y == Vector3{0, 1, 0}); 
+        REQUIRE(z == Vector3{1, 0, 0}); 
+
+        axis = {1, 1, 1};
+        x.rotate(axis, M_PI/4);
+        y.rotate(axis, M_PI/4);
+        z.rotate(axis, M_PI/4);
+        REQUIRE(x == Vector3{-0.5058793634, 0.3106172175, -0.8047378541}); 
+        REQUIRE(y == Vector3{-0.3106172175, 0.8047378541, 0.5058793634}); 
+        REQUIRE(z == Vector3{0.8047378541, 0.5058793634, -0.3106172175}); 
+
+        x = {0, 2, 1};
+        y = {5, 1, 3};
+        z = {3, 7, 2};
+        axis = {0.5, 2, 1};
+        x.rotate(axis, 1.8);
+        y.rotate(axis, 1.8);
+        z.rotate(axis, 1.8);
+        REQUIRE(x == Vector3{0.5843819499, 1.6706126346, 1.3665837559}); 
+        REQUIRE(y == Vector3{1.8656722055, 4.7666664324, -2.9661689675}); 
+        REQUIRE(z == Vector3{0.0886646879, 7.4409765368, 2.5737145825}); 
+    }
 }
 
 TEST_CASE("Vector", "[math]") {

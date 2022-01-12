@@ -17,14 +17,13 @@
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
-Atom::Atom(Atom&& a) noexcept : _name(std::move(a.name)), _altLoc(std::move(a.altLoc)), _resName(std::move(a.resName)), 
+Atom::Atom(Atom&& a) noexcept : coords(std::move(a.coords)), _name(std::move(a.name)), _altLoc(std::move(a.altLoc)), _resName(std::move(a.resName)), 
     _chainID(std::move(a.chainID)), _iCode(std::move(a.iCode)), _element(std::move(a.element)), _charge(std::move(a.charge)), 
-    _occupancy(std::move(a.occupancy)), _tempFactor(std::move(a.tempFactor)), _serial(std::move(a.serial)), 
-    _resSeq(std::move(a.resSeq)), _coords(std::move(a.coords)), _effective_charge(std::move(a.effective_charge)), 
-    _uid(std::move(a.uid)) {}
+    _occupancy(std::move(a.occupancy)), _tempFactor(std::move(a.tempFactor)), _serial(std::move(a.serial)), _resSeq(std::move(a.resSeq)), 
+    _effective_charge(std::move(a.effective_charge)), _uid(std::move(a.uid)) {}
 
-Atom::Atom(const Atom& a) : _name(a.name), _altLoc(a.altLoc), _resName(a.resName), _chainID(a.chainID), _iCode(a.iCode), _element(a.element), 
-    _charge(a.charge), _occupancy(a.occupancy), _tempFactor(a.tempFactor), _serial(a.serial), _resSeq(a.resSeq), _coords(a.coords),
+Atom::Atom(const Atom& a) :coords(a.coords), _name(a.name), _altLoc(a.altLoc), _resName(a.resName), _chainID(a.chainID), _iCode(a.iCode), 
+    _element(a.element), _charge(a.charge), _occupancy(a.occupancy), _tempFactor(a.tempFactor), _serial(a.serial), _resSeq(a.resSeq),
     _effective_charge(a.effective_charge), _uid(a.uid) {}
 
 Atom::Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial) {
@@ -79,7 +78,7 @@ Atom::Atom() {
     _resSeq = -1;
     _occupancy = -1;
     _tempFactor = -1;
-    _coords = {0, 0, 0};
+    coords = {0, 0, 0};
     _effective_charge = -1;
     _uid = uid_counter++;
 }
@@ -213,7 +212,7 @@ Atom& Atom::operator=(const Atom& rhs) {
     _name = rhs.name; _altLoc = rhs.altLoc; _resName = rhs.resName; _chainID = rhs.chainID; _iCode = rhs.iCode; _element = rhs.element; _charge = rhs.charge;
     _occupancy = rhs.occupancy; _tempFactor = rhs.tempFactor;
     _serial = rhs.serial; _resSeq = rhs.resSeq;
-    _coords = rhs.coords;
+    coords = rhs.coords;
     _effective_charge = rhs.effective_charge;
     _uid = rhs.uid;
     return *this;

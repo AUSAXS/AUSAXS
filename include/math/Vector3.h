@@ -1,7 +1,8 @@
 #pragma once
 
 #include <initializer_list>
-#include "Vector.h"
+#include "math/Vector.h"
+#include "math/Matrix.h"
 
 class Vector3 : public Vector {
 public:
@@ -40,6 +41,21 @@ public:
      * @brief Calculate the cross product of this vector with another. 
      */
     Vector3 cross(const Vector3& v) const {return {y*v.z - v.y*z, z*v.x - v.z*x, x*v.y - v.x*y};}
+
+    /**
+     * @brief Rotate this vector around an axis. 
+     * 
+     * @param axis The rotation axis. 
+     * @param angle The angle to rotate. 
+     */
+    void rotate(Vector3& axis, const double& angle);
+
+    /**
+     * @brief Rotate this vector by a rotation matrix.
+     * 
+     * @param matrix The rotation matrix. 
+     */
+    void rotate(Matrix& matrix);
 
     /**
      * @brief Output the string representation of this vector to a stream. 

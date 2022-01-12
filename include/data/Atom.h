@@ -74,7 +74,7 @@ public:
      * @param v the translation vector.
      */
     void translate(const Vector3 v) {
-        _coords += v;
+        coords += v;
     }
 
     /**
@@ -84,10 +84,10 @@ public:
     virtual bool is_water() const {return false;}
 
     // setters
-    void set_coordinates(const Vector3 v) {_coords = v;}
-    void set_x(const double x) {_coords.x = x;}
-    void set_y(const double y) {_coords.y = y;}
-    void set_z(const double z) {_coords.z = z;}
+    void set_coordinates(const Vector3 v) {coords = v;}
+    void set_x(const double x) {coords.x = x;}
+    void set_y(const double y) {coords.y = y;}
+    void set_z(const double z) {coords.z = z;}
     void set_occupancy(double occupancy) {_occupancy = occupancy;}
     void set_serial(const int serial) {_serial = serial;}
     void set_resSeq(const int resSeq) {_resSeq = resSeq;}
@@ -154,10 +154,10 @@ public:
 
     Atom& operator=(const Atom& rhs);
 
+    Vector3 coords;
     const string &name = _name, &altLoc = _altLoc, &resName = _resName, &chainID = _chainID, &iCode = _iCode, &element = _element, &charge = _charge;
     const double &occupancy = _occupancy, &tempFactor = _tempFactor;
     const int &serial = _serial, &resSeq = _resSeq;
-    const Vector3& coords = _coords;
     const double& effective_charge = _effective_charge;
     const int &uid = _uid;
 protected:
@@ -165,7 +165,6 @@ protected:
     string _name, _altLoc, _resName, _chainID, _iCode, _element, _charge;
     double _occupancy, _tempFactor;
     int _serial, _resSeq; 
-    Vector3 _coords;
 
     // other properties
     double _effective_charge;

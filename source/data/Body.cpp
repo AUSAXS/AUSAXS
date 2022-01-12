@@ -232,13 +232,11 @@ void Body::rotate(Vector3& axis, const double& angle) {
              {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
 
     for (auto& atom : protein_atoms) {
-        const Vector3& v = atom.coords;
-        atom.set_coordinates(R*v);
+        atom.coords.rotate(R);
     }
 
     for (auto& atom : hydration_atoms) {
-        const Vector3& v = atom.coords;
-        atom.set_coordinates(R*v);
+        atom.coords.rotate(R);
     }
 }
 
