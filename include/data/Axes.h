@@ -26,6 +26,6 @@ struct Axes {
             return *this;
         }
 
-        int bins;
+        size_t bins;
         double xmin, xmax;
 };

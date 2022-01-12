@@ -71,8 +71,6 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     vector<double> p_hh = partials_hh.p;
-    p_hh.resize(total.axes.bins);
-    
     vector<double> p_pp = master.p_base;
     vector<double> p_hp(total.axes.bins, 0);
     // iterate through all partial histograms in the upper triangle
@@ -81,7 +79,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
             PartialHistogram& current = partials_pp[i][j];
 
             // iterate through each entry in the partial histogram
-            for (size_t k = 0; k < current.p.size(); k++) {
+            for (size_t k = 0; k < total.axes.bins; k++) {
                 p_pp[k] += current.p[k]; // add to p_pp
             }
         }
@@ -92,10 +90,14 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
         PartialHistogram& current = partials_hp[i];
 
         // iterate through each entry in the partial histogram
-        for (size_t k = 0; k < current.p.size(); k++) {
+        for (size_t k = 0; k < total.axes.bins; k++) {
             p_hp[k] += current.p[k]; // add to p_pp
         }
     }
+
+    // p_hp is already resized
+    p_hh.resize(total.axes.bins);
+    p_pp.resize(total.axes.bins);
 
     return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axes);
 }

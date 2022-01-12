@@ -26,6 +26,7 @@ public:
 
     /**
      * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
+     *        Only affects the total histogram @a p_tot.
      */
     void apply_water_scaling_factor(const double& k);
 
