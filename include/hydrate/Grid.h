@@ -183,6 +183,17 @@ public:
         int operator[](int index) const {return loc[index];}
     };
 
+    template<typename T>
+    struct GridInfo {
+        T atom; // the atom itself
+        vector<int> loc; // the bin location of the Atom key
+        bool expanded_volume; // whether the volume of this location has been expanded
+
+        // the two operator overloads makes this struct act just like a vector, but with an additional bool available when needed. 
+        int operator[](int index) {return loc[index];}
+        int operator[](int index) const {return loc[index];}
+    };
+
     vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
     std::map<Atom, MapVal, Comparator> a_members; // a map of all member atoms and where they are located
     std::map<Hetatom, MapVal, Comparator> w_members; // a map of all member water molecules and where they are located

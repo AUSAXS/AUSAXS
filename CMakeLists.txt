@@ -30,6 +30,20 @@ list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})
 
 ############################################
+##                Doxygen                 ##
+############################################
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  set(sim3a_Doxygen "${CMAKE_CURRENT_BINARY_DIR}/saxs.dox")
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/saxs.dox.in ${sim3a_Doxygen} @ONLY)
+  add_custom_target(doc
+    ${DOXYGEN_EXECUTABLE} ${sim3a_Doxygen}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(DOXYGEN_FOUND)
+
+############################################
 ##           Include sources              ##
 ############################################
 include(source/CMakeLists.txt)
