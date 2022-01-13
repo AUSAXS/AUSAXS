@@ -1,11 +1,11 @@
 #pragma once
 
-// includes
 #include "data/Atom.h"
 #include "PlacementStrategy.h"
 #include "CullingStrategy.h"
 #include "settings.h"
 #include "Exceptions.h"
+#include "hydrate/GridMember.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
@@ -43,32 +43,45 @@ public:
      * @param atoms the set of atoms to add to this grid.
      */
     template<typename T>
-    void add(const vector<T>& atoms) {
+    vector<GridMember<T>> add(const vector<T>& atoms) {
         static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
+        vector<GridMember<T>> v(atoms.size());
+        size_t index = 0;
         for (auto const& a : atoms) {
-            add(a);
+            v[index++] = add(a);
         }
+        return v;
     }
 
     /** 
      * @brief Add a single atom to the grid. 
+     *        This is a constant-time operation. 
      */
-    void add(const Atom& atom);
+    GridMember<Atom> add(const Atom& atom, const bool& expand = false);
 
     /** 
      * @brief Add a single hetatom to the grid. 
+     *        This is a constant-time operation. 
      */
-    void add(const Hetatom& atom);
+    GridMember<Hetatom> add(const Hetatom& atom, const bool& expand = false);
 
     /**
      * @brief Remove a single atom from the grid.
+     *        This is linear in the number of stored elements. 
      */
     void remove(const Atom& atom);
 
     /**
      * @brief Remove a single water molecule from the grid.
+     *        This is linear in the number of stored elements. 
      */
     void remove(const Hetatom& atom);
+
+    /**
+     * @brief Remove multiple water molecule from the grid.
+     *        This is linear in the number of stored elements times the size of the input vector. 
+     */
+    void remove(const vector<Hetatom>& atom);
 
     /** 
      * @brief Expand all member atoms and water molecules into actual spheres based on the radii ra and rh. 
@@ -78,12 +91,12 @@ public:
     /** 
      * @brief Expand a single member atom into an actual sphere.
      */
-    void expand_volume(const Atom& atom);
+    void expand_volume(GridMember<Atom>& atom);
 
     /** 
      * @brief Expand a single member atom into an actual sphere.
      */
-    void expand_volume(const Hetatom& atom);
+    void expand_volume(GridMember<Hetatom>& atom);
 
     /** 
      * @brief Deflate all member atoms and water molecules into actual spheres based on the radii ra and rh. 
@@ -93,12 +106,12 @@ public:
     /** 
      * @brief Deflate a single member atom into an actual sphere.
      */
-    void deflate_volume(const Atom& atom);
+    void deflate_volume(GridMember<Atom>& atom);
 
     /** 
      * @brief Deflate a single member atom into an actual sphere.
      */
-    void deflate_volume(const Hetatom& atom);
+    void deflate_volume(GridMember<Hetatom>& atom);
 
     /**
      * @brief Generate a new hydration layer for the grid.
@@ -110,7 +123,7 @@ public:
      * @brief Identify possible hydration binding locations for the structure. 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<Hetatom> find_free_locs();
+    vector<GridMember<Hetatom>> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.
@@ -183,23 +196,12 @@ public:
         int operator[](int index) const {return loc[index];}
     };
 
-    template<typename T>
-    struct GridInfo {
-        T atom; // the atom itself
-        vector<int> loc; // the bin location of the Atom key
-        bool expanded_volume; // whether the volume of this location has been expanded
-
-        // the two operator overloads makes this struct act just like a vector, but with an additional bool available when needed. 
-        int operator[](int index) {return loc[index];}
-        int operator[](int index) const {return loc[index];}
-    };
-
-    vector<vector<vector<char>>> grid; // the actual grid. Datatype is char since we need at least four different values
-    std::map<Atom, MapVal, Comparator> a_members; // a map of all member atoms and where they are located
-    std::map<Hetatom, MapVal, Comparator> w_members; // a map of all member water molecules and where they are located
-    int volume = 0; // the number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-    int ra = 0; // radius of each atom represented as a number of bins
-    int rh = 0; // radius of each water molecule represented as a number of bins
+    vector<vector<vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
+    std::list<GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
+    std::list<GridMember<Hetatom>> w_members; // A list of all member water molecules and where they are located. 
+    int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
+    int ra = 0; // Radius of each atom represented as a number of bins
+    int rh = 0; // Radius of each water molecule represented as a number of bins
 
 private:
     Vector3 base; // base point of this grid

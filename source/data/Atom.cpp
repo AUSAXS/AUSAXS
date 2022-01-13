@@ -33,13 +33,6 @@ Atom::Atom(const Vector3 v, const double occupancy, const string element, const 
     set_element(element);
     set_name(name);
     set_serial(serial);
-    _altLoc = "";
-    _resName = "";
-    _chainID = "";
-    _iCode = "";
-    _charge = "";
-    _resSeq = -1;
-    _tempFactor = -1;
     _effective_charge = constants::charge::get.at(this->element);
     _uid = uid_counter++;
 }
@@ -66,22 +59,7 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         _uid = uid_counter++;
 }
 
-Atom::Atom() {
-    _name = "";
-    _altLoc = "";
-    _resName = "";
-    _chainID = "";
-    _iCode = "";
-    _element = "";
-    _charge = "";
-    _serial = -1;
-    _resSeq = -1;
-    _occupancy = -1;
-    _tempFactor = -1;
-    coords = {0, 0, 0};
-    _effective_charge = -1;
-    _uid = uid_counter++;
-}
+Atom::Atom() : _uid(uid_counter++) {}
 
 void Atom::parse_pdb(string s) {
     int pad_size = 81 - s.size();
@@ -209,9 +187,17 @@ bool Atom::operator==(const Atom& rhs) const {
 }
 
 Atom& Atom::operator=(const Atom& rhs) {
-    _name = rhs.name; _altLoc = rhs.altLoc; _resName = rhs.resName; _chainID = rhs.chainID; _iCode = rhs.iCode; _element = rhs.element; _charge = rhs.charge;
-    _occupancy = rhs.occupancy; _tempFactor = rhs.tempFactor;
-    _serial = rhs.serial; _resSeq = rhs.resSeq;
+    _name = rhs.name; 
+    _altLoc = rhs.altLoc; 
+    _resName = rhs.resName; 
+    _chainID = rhs.chainID; 
+    _iCode = rhs.iCode; 
+    _element = rhs.element; 
+    _charge = rhs.charge;
+    _occupancy = rhs.occupancy; 
+    _tempFactor = rhs.tempFactor;
+    _serial = rhs.serial; 
+    _resSeq = rhs.resSeq;
     coords = rhs.coords;
     _effective_charge = rhs.effective_charge;
     _uid = rhs.uid;

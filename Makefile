@@ -1,6 +1,8 @@
 # generate lists of files for easy use as dependencies
 pymol := pymol
 
+cmake_threads := 6
+
 test_files := $(basename $(shell find source/tests/ -maxdepth 1 -name "*.cpp" -printf "%P "))
 source_files := $(addprefix source/, $(shell find source/ -type f -not -wholename "source/tests/*" -printf "%P "))
 
@@ -51,7 +53,7 @@ tests: $(shell find source/ -print) $(shell find test/ -print) build/Makefile
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
 build/source/tests/%: $(shell find source/ -print) build/Makefile
-	@ make -C build $*	
+	@ make -C build $* -j${cmake_threads}
 
 #################################################################################
 ###				BUILD						 ###
@@ -59,14 +61,14 @@ build/source/tests/%: $(shell find source/ -print) build/Makefile
 .PHONY: build
 build: 
 	@ mkdir -p build; 
-	@ cd build; cmake ../
+	@ cd build; cmake ../ -j${cmake_threads}
 
 build/%: $(source_files) build/Makefile
-	@ cmake --build build/ --target $(*F)
+	@ cmake --build build/ --target $(*F) -j${cmake_threads}
 	
 build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
 	@ mkdir -p build
-	@ cd build; cmake ../
+	@ cd build; cmake ../ -j${cmake_threads}
 	
 clean/build: 
 	@ rmdir -f build

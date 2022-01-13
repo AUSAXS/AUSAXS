@@ -16,16 +16,20 @@ public:
     using PlacementStrategy::PlacementStrategy; // inherit constructor
     ~JanPlacement() override {}
 
-    vector<Hetatom> place() const override {
+    vector<GridMember<Hetatom>> place() const override {
         // dereference the values we'll need for better performance
         vector<vector<vector<char>>>& gref = grid->grid;
         const vector<int> bins = grid->get_bins();
 
         // place a water molecule (note: not added to the grid before the end of this method)
-        vector<Hetatom> placed_water;
+        vector<Hetatom> placed_water(grid->a_members.size());
+        size_t index = 0;
         auto add_loc = [&] (const vector<int> v) {
             Hetatom a = Hetatom::create_new_water(grid->to_xyz(v));
-            placed_water.push_back(a);
+            if (__builtin_expect(placed_water.size() <= index, false)) {
+                placed_water.resize(2*index);
+            }
+            placed_water[index++] = a;
         };
 
         // loop over the location of all member atoms
@@ -57,9 +61,10 @@ public:
         }
 
         // finally we can add the atoms to the grid
-        grid->add(placed_water);
+        placed_water.resize(index);
+        vector<GridMember<Hetatom>> v = grid->add(placed_water);
         grid->expand_volume();
 
-        return placed_water;
+        return v;
     }
 };

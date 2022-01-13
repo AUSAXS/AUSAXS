@@ -10,29 +10,36 @@ public:
     ~CounterCulling() override {}
 
     // runs in O(n) where n is the number of water molecules
-    vector<Hetatom> cull(vector<Hetatom>& placed_water) const override {
+    vector<Hetatom> cull(vector<GridMember<Hetatom>>& placed_water) const override {
         if (target_count == 0) {
-            return placed_water;
+            vector<Hetatom> final_water(placed_water.size());
+            std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Hetatom>& gm) {return gm.atom;});
+            return final_water;
         }
 
         int factor = std::floor(placed_water.size()/target_count); // reduction factor
         if (factor < 2) {
-            return placed_water;
+            vector<Hetatom> final_water(placed_water.size());
+            std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Hetatom>& gm) {return gm.atom;});
+            return final_water;
         }
 
         vector<Hetatom> final_water(placed_water.size()); // the final water molecules that will be used
-        int c = 0; // counter
-        int i = 0; // index
+        vector<Hetatom> removed_water(placed_water.size()); // the water molecules which will be removed
+        size_t rm_index = 0; // current index in removed_water
+        size_t pw_index = 0; // current index in placed_water
+        size_t counter = 0; // counter
         for (const auto& a : placed_water) {
-            c++;
-            if (c % factor != 0) {
-                grid->remove(a);
+            counter++;
+            if (counter % factor != 0) {
+                removed_water[rm_index++] = a.atom;
                 continue;
             }
-            final_water[i] = a;
-            i++;
+            final_water[pw_index++] = a.atom;
         }
-        final_water.resize(i);
+        removed_water.resize(rm_index);
+        final_water.resize(pw_index);
+        grid->remove(removed_water);
         return final_water;
     }
 };

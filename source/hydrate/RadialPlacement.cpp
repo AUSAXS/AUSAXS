@@ -94,22 +94,25 @@ public:
     vector<vector<int>> rot_bins_rarh; // rotation bins at rarh radius
     vector<Vector3> rot_locs_rarh; // exact locations of the rarh bins
 
-    vector<Hetatom> place() const override {
+    vector<GridMember<Hetatom>> place() const override {
         // dereference the values we'll need for better performance
         const vector<int> bins = grid->get_bins();
         vector<vector<vector<char>>>& gref = grid->grid;
 
         // we define a helper lambda
-        vector<Hetatom> placed_water;
+        vector<GridMember<Hetatom>> placed_water(grid->a_members.size());
+        size_t index = 0;
         auto add_loc = [&] (const Vector3 exact_loc) {
             Hetatom a = Hetatom::create_new_water(exact_loc);
-            grid->add(a);
-            grid->expand_volume(a);
-            placed_water.push_back(a);
+            GridMember<Hetatom> gm = grid->add(a, true);
+            if (__builtin_expect(placed_water.size() <= index, false)) {
+                placed_water.resize(2*index);
+            }
+            placed_water[index++] = gm;
         };
 
-        for (const auto&[atom, loc] : grid->a_members) {
-            const int x = loc[0], y = loc[1], z = loc[2];
+        for (const auto& atom : grid->a_members) {
+            const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
 
             for (size_t i = 0; i < rot_bins_rarh.size(); i++) {
                 int xr = x + rot_bins_rarh[i][0], yr = y + rot_bins_rarh[i][1], zr = z + rot_bins_rarh[i][2]; // new coordinates
@@ -125,12 +128,13 @@ public:
                 // we have to make sure we don't check the direction of the atom we are trying to place this water on
                 const vector<int> skip_bin = {xr-rot_bins_1rh[i][0], yr-rot_bins_1rh[i][1], zr-rot_bins_1rh[i][2]};
                 if (gref[xr][yr][zr] == 0 && collision_check({xr, yr, zr}, skip_bin)) {
-                    Vector3 exact_loc = atom.coords + rot_locs_rarh[i];
+                    Vector3 exact_loc = atom.atom.coords + rot_locs_rarh[i];
                     add_loc(exact_loc);
                 };
             }
         }
 
+        placed_water.resize(index);
         return placed_water;
     }
 

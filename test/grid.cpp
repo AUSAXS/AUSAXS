@@ -319,7 +319,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     grid.add(a);
     grid.expand_volume();
 
-    vector<Hetatom> locs = grid.find_free_locs();
+    vector<GridMember<Hetatom>> locs = grid.find_free_locs();
     REQUIRE(locs.size() == 6);
     // for (int i = 0; i < locs.size(); i++) {
     //     cout << format("%1%\t%2%\t%3%") % locs[i].coords.x % locs[i].coords.y % locs[i].coords.z << endl;
@@ -331,7 +331,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
         for (const auto& l : locs) {
             bool found = false;
             for (const auto& p : v) {
-                if (l.coords == p) {found = true;}
+                if (l.atom.coords == p) {found = true;}
             }
             REQUIRE(found);
         }

@@ -154,7 +154,7 @@ public:
 
     Atom& operator=(const Atom& rhs);
 
-    Vector3 coords;
+    Vector3 coords = {0, 0, 0};
     const string &name = _name, &altLoc = _altLoc, &resName = _resName, &chainID = _chainID, &iCode = _iCode, &element = _element, &charge = _charge;
     const double &occupancy = _occupancy, &tempFactor = _tempFactor;
     const int &serial = _serial, &resSeq = _resSeq;
@@ -162,13 +162,14 @@ public:
     const int &uid = _uid;
 protected:
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
-    string _name, _altLoc, _resName, _chainID, _iCode, _element, _charge;
-    double _occupancy, _tempFactor;
-    int _serial, _resSeq; 
+    string _name = "", _altLoc = "", _resName = "", _chainID = "", _iCode = "", _element = "", _charge = "";
+    double _occupancy = -1, _tempFactor = -1;
+    int _serial = -1, _resSeq = -1; 
 
     // other properties
-    double _effective_charge;
+    double _effective_charge = -1;
+    int _uid = -1;
 
-    int _uid;
+    // global counter for unique ids
     static inline int uid_counter = 0;
 };

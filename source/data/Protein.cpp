@@ -143,7 +143,7 @@ void Protein::update_effective_charge() {
     double displaced_vol = get_volume_grid();
     // double displaced_vol = get_volume_acids();
     double displaced_charge = constants::charge::density::water*displaced_vol;
-    cout << "Volume: acid: " << get_volume_acids() << ", grid: " << displaced_vol << endl;
+    // cout << "Volume: acid: " << get_volume_acids() << ", grid: " << displaced_vol << endl;
     cout << "Displaced charge: " << displaced_charge << endl;
 
     // number of atoms

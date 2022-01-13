@@ -6,6 +6,7 @@ class Grid;
 // includes
 #include "data/Hetatom.h"
 #include "hydrate/Grid.h"
+#include "hydrate/GridMember.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
@@ -26,14 +27,14 @@ public:
      * @brief Cull the water molecules.
      * @return The remaining molecules after the culling.
      */
-    virtual vector<Hetatom> cull(vector<Hetatom>& placed_water) const = 0;
+    virtual vector<Hetatom> cull(vector<GridMember<Hetatom>>& placed_water) const = 0;
 
     /**
      * @brief Set the desired number of molecules after the culling. 
      */
-    void set_target_count(int target_count) {this->target_count = target_count;}
+    void set_target_count(size_t target_count) {this->target_count = target_count;}
 
 protected: 
-    int target_count = 0; // The desired number of molecules after the culling.
+    size_t target_count = 0; // The desired number of molecules after the culling.
     Grid* grid; // A reference to the grid used in Grid.
 };

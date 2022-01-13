@@ -13,18 +13,20 @@ public:
     ~OutlierCulling() override {}
 
     // runs in O(n ln n) where n is the number of water molecules
-    vector<Hetatom> cull(vector<Hetatom>& placed_water) const override {
+    vector<Hetatom> cull(vector<GridMember<Hetatom>>& placed_water) const override {
         if (target_count == 0) {
-            return placed_water;
+            vector<Hetatom> final_water(placed_water.size());
+            std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Hetatom>& gm) {return gm.atom;});
+            return final_water;
         }
 
-        vector<std::pair<Hetatom, int>> v(placed_water.size());
+        vector<std::pair<GridMember<Hetatom>, int>> v(placed_water.size());
         const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
         const vector<int> bins = grid->get_bins();
         const vector<vector<vector<char>>>& gref = grid->grid;
-        for (size_t n = 0; n < placed_water.size(); n++) {
-            const Grid::MapVal& loc = grid->w_members.at(placed_water[n]);
-            const int x = loc[0], y = loc[1], z = loc[2];
+        size_t index = 0;
+        for (const auto& water : placed_water) {
+            const int x = water.loc[0], y = water.loc[1], z = water.loc[2];
             int score = 0;
 
             // create a box of size [x-2r, x+2r][y-2r, y+2r][z-2r, z+2r] within the bounds
@@ -40,7 +42,7 @@ public:
                     }
                 }
             }
-            v[n] = std::make_pair(placed_water[n], score);
+            v[index++] = std::make_pair(water, score);
         }
 
         // sort the scores
@@ -48,14 +50,16 @@ public:
 
         // copy the first target_count entries in the sorted vector
         vector<Hetatom> final_water(target_count); // the final water molecules that will be used
-        for (int n = 0; n < target_count; n++) {
-            final_water[n] = v[n].first;
+        vector<Hetatom> removed_water(placed_water.size() - target_count); // the water molecules which will be removed
+        size_t n = 0;
+        for (n = 0; n < target_count; n++) {
+            final_water[n] = v[n].first.atom;
+        }
+        for (; n < placed_water.size(); n++) {
+            removed_water[n] = v[n].first.atom;
         }
 
-        // remove the remaining entries
-        for (size_t n = target_count; n < v.size(); n++) {
-            grid->remove(v[n].first);
-        }
+        grid->remove(removed_water);
         return final_water;
     }
 };
