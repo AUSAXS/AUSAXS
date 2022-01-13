@@ -66,6 +66,7 @@ public:
         if (serial != rhs.serial) {return false;}
         // if (resSeq != rhs.resSeq) {return false;} // this is to fix io tests, since some pdb files randomly changes this order
         if (coords != rhs.coords) {return false;}
+        if (uid != rhs.uid) {return false;}
         return true;
     }
 };

@@ -63,11 +63,8 @@ Grid::Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, P
 
 vector<Hetatom> Grid::hydrate() {
     vector<GridMember<Hetatom>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    std::cout << "crash? hydrate1" << std::endl;
     water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
-    std::cout << "crash? hydrate2" << std::endl;
     auto temp = water_culler->cull(placed_water);
-    std::cout << "crash? hydrate3" << std::endl;
     return temp;
 }
 
@@ -259,8 +256,7 @@ void Grid::remove(const Hetatom& water) {
 }
 
 void Grid::remove(const vector<Hetatom>& waters) {
-    std::cout << "crash? remove1" << std::endl;
-    vector<GridMember<Hetatom>> removed(w_members.size());
+    vector<GridMember<Hetatom>> removed(waters.size());
     size_t index = 0;
     auto predicate = [&waters, &removed, &index] (const GridMember<Hetatom>& gm) {
         const Hetatom& current_element = gm.atom;
@@ -273,20 +269,15 @@ void Grid::remove(const vector<Hetatom>& waters) {
         return false;
     };
     
-    std::cout << "crash? remove2" << std::endl;
     size_t prev_size = w_members.size();
     w_members.remove_if(predicate);
     size_t cur_size = w_members.size();
-
-    removed.resize(index);
-    cout << "SIZE: " << cur_size << ", TOTAL: " << cur_size << ", REMOVED: " << index << endl;
 
     // sanity check
     if (__builtin_expect(prev_size - cur_size != waters.size(), false)) {
         throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
-    std::cout << "crash? remove3" << std::endl;
     for (auto& atom : removed) {
         const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
         deflate_volume(atom);
