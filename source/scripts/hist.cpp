@@ -33,9 +33,12 @@ int main(int argc, char const *argv[]) {
     // setting::axes::scattering_intensity_plot_binned_width = 0.5;
     // setting::figures::format = "png";
 
+    cout << "crash?" << endl;
     Protein protein(input);
     protein.generate_new_hydration();
+    cout << "crash?" << endl;
     shared_ptr<ScatteringHistogram> d = protein.get_histogram();
+    cout << "crash?" << endl;
 
     // Distance plot
     PlotDistance d_plot(d);

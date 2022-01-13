@@ -278,14 +278,12 @@ TEST_CASE("add & remove", "[grid]") {
     SECTION("remove") {
         grid.add(a);
         grid.add(w);
-        vector<Atom> ga = grid.get_atoms();
-        vector<Hetatom> wa = grid.get_waters();
 
         grid.remove(a2);
         grid.remove(w3);
         grid.remove(w1);
-        ga = grid.get_atoms();
-        wa = grid.get_waters();
+        vector<Atom> ga = grid.get_atoms();
+        vector<Hetatom> wa = grid.get_waters();
 
         // check sizes
         REQUIRE(ga.size() == 2);
@@ -304,6 +302,22 @@ TEST_CASE("add & remove", "[grid]") {
         REQUIRE(g[loc_a2[0]][loc_a2[1]][loc_a2[2]] == 0);
         REQUIRE(g[loc_w1[0]][loc_w1[1]][loc_w1[2]] == 0);
         REQUIRE(g[loc_w3[0]][loc_w3[1]][loc_w3[2]] == 0);
+    }
+
+    SECTION("remove_vector") {
+        grid.add(a);
+        grid.add(w);
+
+        // remove a list of hetatoms
+        vector<Hetatom> remove_water = {w1, w3};
+        grid.remove(remove_water);
+
+        // check the remaining one
+        vector<Atom> ga = grid.get_atoms();
+        vector<Hetatom> wa = grid.get_waters();
+        REQUIRE(wa.size() == 1);
+        REQUIRE(ga.size() == 3);
+        REQUIRE(wa[0] == w2);
     }
 }
 

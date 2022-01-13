@@ -16,7 +16,16 @@ struct GridMember {
     // the two operator overloads makes this struct act just like a vector, but with an additional bool available when needed. 
     int operator[](int index) {return loc[index];}
     int operator[](int index) const {return loc[index];}
-    bool operator==(const T& rhs) {return atom == rhs;} 
+
+    bool operator==(const T& rhs) const {return atom == rhs;}
+
+    bool operator==(const GridMember<T>& rhs) const {
+        if (atom != rhs.atom) {return false;}
+        if (loc != rhs.loc) {return false;}
+        if (expanded_volume != rhs.expanded_volume) {return false;}
+        return true;
+    } 
+
     GridMember& operator=(const GridMember<T>& rhs) {
         atom = rhs.atom;
         loc = rhs.loc;
