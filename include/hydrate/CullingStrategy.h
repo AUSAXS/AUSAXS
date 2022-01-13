@@ -16,12 +16,15 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 class CullingStrategy {
 public:
     /**
-     * @brief Construct a new Culling Strategy object.
-     * @param grid the Grid object to apply this Strategy to.
+     * @brief Constructor.
+     * @param grid The Grid object to apply this Strategy to.
      */
     CullingStrategy(Grid* grid) : grid(grid) {}
 
-    virtual ~CullingStrategy() {}
+    /**
+     * @brief Destructor.
+     */
+    virtual ~CullingStrategy() = default;
 
     /**
      * @brief Cull the water molecules.
@@ -30,7 +33,8 @@ public:
     virtual vector<Hetatom> cull(vector<GridMember<Hetatom>>& placed_water) const = 0;
 
     /**
-     * @brief Set the desired number of molecules after the culling. 
+     * @brief Set the desired number of water molecules after the culling. 
+     * @param target_count The target number of water molecules. 
      */
     void set_target_count(size_t target_count) {this->target_count = target_count;}
 

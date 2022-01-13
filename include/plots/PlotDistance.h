@@ -13,11 +13,27 @@
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
+/**
+ * @brief \class PlotDistance.
+ *               Plots a histogram of all distances. 
+ */
 class PlotDistance : public Plot {
     public:
+        /**
+         * @brief Constructor.
+         * @param d The ScatteringHistogram which will be plotted. 
+         */
         PlotDistance(shared_ptr<ScatteringHistogram> d) : d(d) {}
+
+        /**
+         * @brief Destructor. 
+         */
         ~PlotDistance() override = default;
 
+        /**
+         * @brief Save this plot at the given location.
+         * @param path Path to where this plot will be saved. Note that it will attempt to save in the specified format. 
+         */
         void save(const std::string& path) const override {
             unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
             auto hists = d->plot_distance();
@@ -56,5 +72,5 @@ class PlotDistance : public Plot {
         }
 
     private: 
-        const shared_ptr<ScatteringHistogram> d;
+        const shared_ptr<ScatteringHistogram> d; // The ScatteringHistogram backing this object. 
 };

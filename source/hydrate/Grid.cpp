@@ -256,28 +256,32 @@ void Grid::remove(const Hetatom& water) {
 }
 
 void Grid::remove(const vector<Hetatom>& waters) {
+    // we make a vector of all possible uids
     vector<bool> removed(Atom::uid_counter);
+    // and fill it with the uids that should be removed
     std::for_each(waters.begin(), waters.end(), [&removed] (const Hetatom& water) {removed[water.uid] = true;});
 
-    vector<GridMember<Hetatom>> removed_waters(waters.size());
-    size_t index = 0;
+    size_t index = 0; // current index in removed_waters
+    vector<GridMember<Hetatom>> removed_waters(waters.size()); // the waters which will be removed
     auto predicate = [&removed, &removed_waters, &index] (const GridMember<Hetatom>& gm) {
-        if (removed[gm.atom.uid]) {
+        if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_waters[index++] = gm;
             return true;
         }
         return false;
     };
-    
+
+    // we save the sizes so we can make a sanity check after the removal    
     size_t prev_size = w_members.size();
     w_members.remove_if(predicate);
     size_t cur_size = w_members.size();
 
     // sanity check
     if (__builtin_expect(prev_size - cur_size != waters.size(), false)) {
-        throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
+        throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
     }
 
+    // clean up the grid
     for (auto& atom : removed_waters) {
         const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
         deflate_volume(atom);

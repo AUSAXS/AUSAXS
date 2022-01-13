@@ -16,11 +16,14 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 class PlacementStrategy {
 public:
     /**
-     * @brief Construct a new Placement Strategy object.
-     * @param grid the Grid object to apply this Strategy to.
+     * @brief Constructor. 
+     * @param grid The Grid object to apply this Strategy to.
      */
     PlacementStrategy(Grid* grid) {this->grid = grid;}
 
+    /**
+     * @brief Destructor.
+     */
     virtual ~PlacementStrategy() {}
 
     /**

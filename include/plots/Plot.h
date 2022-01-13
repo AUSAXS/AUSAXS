@@ -7,15 +7,34 @@
 #include <TROOT.h>
 #include <TCanvas.h>
 
+/**
+ * @brief \class Plot.
+ *               Virtual super-class for all plotter objects. 
+ */
 class Plot {
     public: 
+        /**
+         * @brief Default constructor. 
+         */
         Plot() {if (!stylized) stylize();}
+
+        /**
+         * @brief Destructor.
+         */
         virtual ~Plot() = default;
 
+        /**
+         * @brief Write this plot to a given destination. 
+         * @param folder Path to the folder where this plot will be saved. 
+         */
         virtual void save(const std::string& folder) const = 0;    
     private: 
-        inline static bool stylized = false;
+        inline static bool stylized = false; // Whether the global style options have already been invoked. 
 
+        /**
+         * @brief Set the global ROOT style options. 
+         * @param palette The palette which will be used for all plots. Default: kViridis. 
+         */
         static void stylize(const EColorPalette palette = kViridis) {
             // static double labelsize = 0.06;
             // static double titlesize = 0.07;

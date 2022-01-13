@@ -9,18 +9,26 @@ class File;
 
 #include <fstream>
 
+/**
+ * @brief \class PDBWriter.
+ *               This class handles writing a File object into a PDB format data file.
+ */
 class PDBWriter : public Writer {
 public:
+    /**
+     * @brief Constructor. 
+     * @param file Path to where the backing File object will be saved. 
+     */
     PDBWriter(File* const file) : file(file) {}
 
     /**
-     * @brief write this File to disk. 
+     * @brief Write the backing File to disk. 
      * @param path the output path.
      */
     void write(const string& output_path) override;
 
 private: 
-    File* const file;
+    File* const file; // The File backing this Reader. 
 
     /**
      * @brief Create a string representation of this File.

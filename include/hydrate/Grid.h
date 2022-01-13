@@ -79,7 +79,7 @@ public:
 
     /**
      * @brief Remove multiple water molecule from the grid.
-     *        This is linear in the number of stored elements times the size of the input vector. 
+     *        This is linear in the number of stored elements. 
      */
     void remove(const vector<Hetatom>& atom);
 
@@ -182,19 +182,6 @@ public:
      * @return The bin location. 
      */
     vector<int> to_bins(const Vector3& v) const;
-
-    // We define our own comparison method for the map. We must do this since it must be able to hold duplicate atoms (water molecules),
-    // so we instead compare their unique identifiers
-    class Comparator {public: bool operator() (const Atom& l, const Atom& r) const {return l.uid < r.uid;}};
-
-    struct MapVal {
-        vector<int> loc; // the bin location of the Atom key
-        bool expanded_volume; // whether the volume of this location has been expanded
-
-        // the two operator overloads makes this struct act just like a vector, but with an additional bool available when needed. 
-        int operator[](int index) {return loc[index];}
-        int operator[](int index) const {return loc[index];}
-    };
 
     vector<vector<vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
     std::list<GridMember<Atom>> a_members; // A list of all member atoms and where they are located.

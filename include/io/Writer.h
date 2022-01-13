@@ -5,10 +5,14 @@
 
 using std::string;
 
+/**
+ * @brief \class Writer. 
+ *               Virtual super-class for all data file writers. 
+ */
 class Writer {
     public:
         /**
-         * @brief Read the file backing this File object. 
+         * @brief Write the contents of the backing File to a given path. 
          */
         virtual void write(const string&) {
             print_err("FATAL ERROR: This code should be unreachable.");
