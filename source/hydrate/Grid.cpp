@@ -256,15 +256,15 @@ void Grid::remove(const Hetatom& water) {
 }
 
 void Grid::remove(const vector<Hetatom>& waters) {
-    vector<GridMember<Hetatom>> removed(waters.size());
+    vector<bool> removed(Atom::uid_counter);
+    std::for_each(waters.begin(), waters.end(), [&removed] (const Hetatom& water) {removed[water.uid] = true;});
+
+    vector<GridMember<Hetatom>> removed_waters(waters.size());
     size_t index = 0;
-    auto predicate = [&waters, &removed, &index] (const GridMember<Hetatom>& gm) {
-        const Hetatom& current_element = gm.atom;
-        for (const auto& e : waters) {
-            if (e == current_element) {
-                removed.at(index++) = gm;
-                return true;
-            }
+    auto predicate = [&removed, &removed_waters, &index] (const GridMember<Hetatom>& gm) {
+        if (removed[gm.atom.uid]) {
+            removed_waters[index++] = gm;
+            return true;
         }
         return false;
     };
@@ -278,7 +278,7 @@ void Grid::remove(const vector<Hetatom>& waters) {
         throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
-    for (auto& atom : removed) {
+    for (auto& atom : removed_waters) {
         const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
         deflate_volume(atom);
         grid[x][y][z] = 0;

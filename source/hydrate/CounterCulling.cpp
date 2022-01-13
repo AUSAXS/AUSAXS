@@ -39,7 +39,6 @@ public:
         }
         removed_water.resize(rm_index);
         final_water.resize(pw_index);
-        std::cout << "FACTOR: " << factor << "PLACED WATER COUNT: " << placed_water.size() << "FINAL WATER COUNT: " << final_water.size() << ", REMOVE WATER COUNT: " << removed_water.size() << std::endl;
         grid->remove(removed_water);
         return final_water;
     }

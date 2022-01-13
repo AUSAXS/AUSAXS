@@ -160,6 +160,10 @@ public:
     const int &serial = _serial, &resSeq = _resSeq;
     const double& effective_charge = _effective_charge;
     const int &uid = _uid;
+
+    // global counter for unique ids
+    static inline int uid_counter = 0;
+
 protected:
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     string _name = "", _altLoc = "", _resName = "", _chainID = "", _iCode = "", _element = "", _charge = "";
@@ -169,7 +173,4 @@ protected:
     // other properties
     double _effective_charge = -1;
     int _uid = -1;
-
-    // global counter for unique ids
-    static inline int uid_counter = 0;
 };
