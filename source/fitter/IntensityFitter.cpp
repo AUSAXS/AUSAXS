@@ -1,17 +1,14 @@
-#include "fitter/Fitter.h"
-#include "fitter/SimpleLeastSquares.h"
-#include "fitter/IntensityFitter.h"
-#include "math/CubicSpline.h"
-#include "settings.h"
-
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
 #include <tuple>
 #include <map>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 
+#include "fitter/Fitter.h"
+#include "fitter/SimpleLeastSquares.h"
+#include "fitter/IntensityFitter.h"
+#include "math/CubicSpline.h"
+#include "settings.h"
 #include "ScatteringHistogram.h"
 #include "Exceptions.h"
 

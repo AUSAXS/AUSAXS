@@ -139,6 +139,14 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
     return histogram;
 }
 
+shared_ptr<Grid> Protein::get_grid() const {
+    if (grid == nullptr) {
+        print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
+        exit(1);
+    }
+    return grid;
+}
+
 void Protein::update_effective_charge() { 
     double displaced_vol = get_volume_grid();
     // double displaced_vol = get_volume_acids();

@@ -84,13 +84,13 @@ public:
     /**
      * @brief Get the grid representation of this body. 
      */
-    shared_ptr<Grid> get_grid() const {
-        if (grid == nullptr) {
-            print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
-            exit(1);
-        }
-        return grid;
-    }
+    shared_ptr<Grid> get_grid() const;
+
+    /**
+     * @brief Create a binding point between two bodies.
+     *        This binding will be a constraint for rigid-body optimization. 
+     */
+    void bind();
 
     /**
      * @brief Center this protein on origo. 
