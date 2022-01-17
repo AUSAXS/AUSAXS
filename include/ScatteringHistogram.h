@@ -12,7 +12,7 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
 class ScatteringHistogram : Histogram {
-public:
+  public:
     ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         setup();
     }
@@ -71,7 +71,7 @@ public:
     const vector<double>& p_hp = _p_hp;
     const vector<double>& p_tot = p;
 
-private:
+  private:
     vector<double> _p_pp, _p_hh, _p_hp; // binned distances
     vector<double> _d; // the distance corresponding to each bin
     vector<double> _q; // the q values used as the x-axis

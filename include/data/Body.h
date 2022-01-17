@@ -19,7 +19,7 @@ class ScatteringHistogram;
 using std::vector, std::string, std::unique_ptr;
 
 class Body {
-public:
+  public:
     /** Create a new collection of atoms (body) from the input .pdb or .xml file. 
      * @param path path to the input file. 
      * @param signaller a signalling object to signal changes of state
@@ -122,7 +122,7 @@ public:
      * @param axis the rotation axis. 
      * @param rad the amount to rotate in radians. 
      */
-    void rotate(Vector3& axis, const double& rad);
+    void rotate(const Vector3& axis, const double& rad);
 
     /**
      * ! Not implemented
@@ -166,7 +166,7 @@ public:
         return *this;
     }
 
-private:
+  private:
     shared_ptr<File> file = nullptr; // The file backing this body
     shared_ptr<Grid> grid = nullptr; // The grid representation of this body
     shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
@@ -174,7 +174,7 @@ private:
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
     shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
 
-public: 
+  public: 
     vector<Atom>& protein_atoms; // Atoms of the body itself
     vector<Hetatom>& hydration_atoms; // Hydration layer
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise

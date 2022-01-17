@@ -11,7 +11,7 @@
 using std::string, boost::format;
 
 class Record {
-public: 
+  public: 
     enum RecordType {HEADER, ATOM, HETATM, TERMINATE, FOOTER, NOTYPE};
     virtual ~Record() {}
     
@@ -27,7 +27,7 @@ public:
         exit(1);
     }
 
-private:
+  private:
     inline static const std::map<string, RecordType> type_map = {
         {"ATOM  ", ATOM}, {"HETATM", HETATM},
         {"TER   ", TERMINATE}, 

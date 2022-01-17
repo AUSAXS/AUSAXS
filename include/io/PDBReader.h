@@ -15,7 +15,7 @@ class File;
  * This class handles reading of input PDB format data files. 
  */
 class PDBReader : public Reader {
-public:
+  public:
     /**
      * @brief Constructor.
      * @param file Path to the input PDB format data file. 
@@ -28,6 +28,6 @@ public:
      */
     void read(const string& input_path) override;
 
-private: 
+  private: 
     File* const file; // The File backing this Reader. 
 };

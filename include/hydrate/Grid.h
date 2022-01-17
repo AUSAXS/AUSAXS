@@ -10,7 +10,7 @@
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
 class Grid {
-public:
+  public:
     /**
      * @brief Construct a new Grid object with standard atomic radii.
      * @param base the base point for the grid.
@@ -190,7 +190,7 @@ public:
     int ra = 0; // Radius of each atom represented as a number of bins
     int rh = 0; // Radius of each water molecule represented as a number of bins
 
-private:
+  private:
     Vector3 base; // base point of this grid
     double width; // distance between each grid point
     vector<int> bins; // the number of bins in each dimension

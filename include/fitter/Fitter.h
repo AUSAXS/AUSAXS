@@ -11,7 +11,7 @@
 using std::cout, std::endl, std::string, std::shared_ptr;
 
 class Fitter {
-public:
+  public:
     struct Fit {
         Fit() {}
         Fit(std::map<string, double>& params, std::map<string, double>& errs, const double& chi2, const int& dof, const int& calls, const bool& converged) : 

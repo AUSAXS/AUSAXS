@@ -4,7 +4,7 @@
 #include "Vector.h"
 
 class CubicSpline {
-public:
+  public:
     CubicSpline(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {setup();}
     CubicSpline(const Vector& x, const Vector& y) : x(x), y(y) {setup();}
 
@@ -13,7 +13,7 @@ public:
         return y[i] + b[i]*(z - x[i]) + c[i]*pow(z - x[i], 2) + d[i]*pow(z - x[i], 3);
     }
 
-private: 
+  private: 
     const Vector x, y;
     Vector b, c, d;
 

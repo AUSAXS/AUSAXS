@@ -8,7 +8,7 @@
 using std::string, std::vector;
 
 class Footer : Record {
-public: 
+  public: 
     Footer(){}
     ~Footer() override {}
 
@@ -42,6 +42,6 @@ public:
      */
     string get() const {return contents;};
 
-private: 
+  private: 
     string contents;
 };

@@ -14,7 +14,7 @@ class File;
  *               This class handles writing a File object into a PDB format data file.
  */
 class PDBWriter : public Writer {
-public:
+  public:
     /**
      * @brief Constructor. 
      * @param file Path to where the backing File object will be saved. 
@@ -27,7 +27,7 @@ public:
      */
     void write(const string& output_path) override;
 
-private: 
+  private: 
     File* const file; // The File backing this Reader. 
 
     /**

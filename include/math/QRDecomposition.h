@@ -5,7 +5,7 @@
 
 // QR decomposition by Gram-Schmidt orthogonalization
 class QRDecomposition : public Decomposition {
-public: 
+  public: 
     QRDecomposition(const Matrix& A) : Q(A) {decompose();}
 
     Matrix inverse() const {

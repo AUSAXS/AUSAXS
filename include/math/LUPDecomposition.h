@@ -10,7 +10,7 @@ class Matrix;
 #include <stdexcept>
 
 class LUPDecomposition : public Decomposition {
-public: 
+  public: 
     LUPDecomposition(const Matrix& A) : A(A.copy()) {decompose();}
 
     // follows the C implementation from Wikipedia: https://en.wikipedia.org/wiki/LU_decomposition
@@ -64,7 +64,7 @@ public:
     }
 
     int permutations;
-private: 
+  private: 
     Vector P;
     Matrix A;
 };

@@ -13,7 +13,7 @@
 
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
-public:
+  public:
     Vector(Vector&& v) noexcept : _N(std::move(v._N)), _data(std::move(v._data)) {}
     Vector(const Vector& v) : _N(v.size()), _data(v._data) {} // copy constructor
     Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {} // initializer list {a, b, c, d}
@@ -190,7 +190,7 @@ public:
     const size_t& N = _N; // read-only access to the dimension
     const std::vector<double>& data = _data; // read-only access to the data container
 
-protected:
+  protected:
     size_t _N;
     std::vector<double> _data;
     static constexpr double precision = 1e-9;

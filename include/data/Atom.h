@@ -16,7 +16,7 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
 class Atom : public Record {
-public:
+  public:
     Atom(Atom&& a) noexcept;
 
     Atom(const Atom& a);
@@ -164,7 +164,7 @@ public:
     // global counter for unique ids
     static inline int uid_counter = 0;
 
-protected:
+  protected:
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     string _name = "", _altLoc = "", _resName = "", _chainID = "", _iCode = "", _element = "", _charge = "";
     double _occupancy = -1, _tempFactor = -1;

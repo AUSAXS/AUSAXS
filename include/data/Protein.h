@@ -14,7 +14,7 @@
 using std::vector, std::string;
 
 class Protein {
-public: 
+  public: 
     Protein() {}
 
     /**
@@ -111,7 +111,7 @@ public:
     vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
     bool centered = false; // True if this object is centered, false otherwise. 
-private:
+  private:
     shared_ptr<Grid> grid = nullptr; // The grid representation of this body
     unique_ptr<PartialHistogramManager> phm = nullptr;
     shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms

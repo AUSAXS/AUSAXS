@@ -5,7 +5,7 @@
 #include "math/Vector3.h"
 
 class Hetatom : public Atom {
-public:
+  public:
     using Atom::Atom; // inherit constructors from Atom
     Hetatom(const Atom&& a) noexcept : Atom(std::move(a)) {}
     Hetatom(const Hetatom&& a) : Atom(std::move(a)) {}

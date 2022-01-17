@@ -10,7 +10,7 @@
 using std::string, std::left, std::right, std::setw;
 
 class Terminate : public Record {
-public: 
+  public: 
     int serial, resSeq;
     string resName, chainID, iCode;
 

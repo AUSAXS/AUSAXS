@@ -25,7 +25,7 @@
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
 class IntensityFitter : public Fitter {
-public: 
+  public: 
     /**
      * @brief Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
      * @param input the path to the file containing the measured values. 
@@ -53,7 +53,7 @@ public:
 
     unique_ptr<TGraphErrors> plot_residuals() const;
 
-private: 
+  private: 
     shared_ptr<Fit> fitted;
     std::shared_ptr<ScatteringHistogram> h;
     vector<double> qo; // observed q values

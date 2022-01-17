@@ -14,7 +14,7 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
  * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
  */
 class CullingStrategy {
-public:
+  public:
     /**
      * @brief Constructor.
      * @param grid The Grid object to apply this Strategy to.
@@ -38,7 +38,7 @@ public:
      */
     void set_target_count(size_t target_count) {this->target_count = target_count;}
 
-protected: 
+  protected: 
     size_t target_count = 0; // The desired number of molecules after the culling.
     Grid* grid; // A reference to the grid used in Grid.
 };

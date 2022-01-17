@@ -5,7 +5,7 @@
 #include "math/Matrix.h"
 
 class Vector3 : public Vector {
-public:
+  public:
     Vector3(Vector3&& v) noexcept : Vector(std::move(v)) {} // move constructor
     Vector3(const Vector3& v) : Vector(v.data) {} // copy constructor
     Vector3() : Vector(3) {} // default empty constructor
@@ -82,6 +82,13 @@ public:
      */
     void normalize() {
         operator=(operator/(norm()));
+    }
+
+    /**
+     * @brief Normalize this vector to unit length.
+     */
+    Vector3 normalize() const {
+        return operator/(norm());
     }
 
     // Allow mutable access to the data through the simple v.x, v.y, and v.z notation. 

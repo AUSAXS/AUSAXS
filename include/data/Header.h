@@ -8,7 +8,7 @@
 using std::string, std::vector;
 
 class Header : Record {
-public: 
+  public: 
     Header(){}
     ~Header() override {}
 
@@ -42,6 +42,6 @@ public:
      */
     string get() const {return contents;};
 
-private: 
+  private: 
     string contents;
 };

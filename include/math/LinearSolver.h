@@ -4,7 +4,7 @@
 #include "Vector.h"
 
 class LinearSolver {
-public:
+  public:
     virtual ~LinearSolver(){}
 
     enum Algorithm {Givens};
@@ -14,6 +14,6 @@ public:
      */
     virtual Vector solve(const Vector& b) const = 0;
 
-private: 
+  private: 
     Algorithm algorithm;
 };

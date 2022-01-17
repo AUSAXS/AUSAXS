@@ -16,7 +16,7 @@ class Matrix {
     friend class Column;
     friend class MutableSlice;
 
-public: 
+  public: 
     Matrix(Matrix&& A) noexcept : _N(std::move(A.N)), _M(std::move(A.M)), _data(std::move(A._data)) {}
     Matrix(const Matrix& A) : _N(A.N), _M(A.M), _data(A.data) {} // copy constructor
     Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) { // initializer lists {{a, b}, {c, d}}
@@ -195,7 +195,7 @@ public:
     const size_t &N = _N, &M = _M; // read-only access to the dimensions
     const std::vector<double>& data = _data; // read-only access to the data container
 
-private: 
+  private: 
     size_t _N, _M;
     std::vector<double> _data;
     static constexpr double precision = 1e-9;

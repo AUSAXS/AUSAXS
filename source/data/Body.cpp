@@ -211,11 +211,11 @@ void Body::rotate(const double&, const double&, const double&) {
     exit(1);
 }
 
-void Body::rotate(Vector3& axis, const double& angle) {
+void Body::rotate(const Vector3& axis_arg, const double& angle) {
     signal->state_change();
 
     // we use the Euler-Rodrigues formulation
-    axis.normalize();
+    Vector3 axis = axis_arg.normalize();
     double a = cos(angle/2);
     double b = sin(angle/2);
     double c = b;

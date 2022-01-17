@@ -25,7 +25,7 @@ using std::vector, std::string, std::unique_ptr, std::shared_ptr;
  * An abstract representation of an input file. Handles both reading and writing of files, and also stores the relevant file data. 
  */
 class File {
-public: 
+  public: 
     /**
      * @brief Constructor. 
      *        Construct a new File based on two vectors of atoms. 
@@ -175,7 +175,7 @@ public:
     vector<Atom> protein_atoms;
     vector<Hetatom> hydration_atoms;
 
-private:
+  private:
     std::unique_ptr<Reader> reader;
     std::unique_ptr<Writer> writer;
 
