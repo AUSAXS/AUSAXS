@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data/Protein.h"
+#include "rigidbody/RigidBody.h"
 
 /**
  * @brief \class TransformationStrategy. 
@@ -13,7 +14,7 @@ class TransformationStrategy {
     /**
      * @brief Construtor. 
      */
-    TransformationStrategy(const Protein& protein) : protein(protein) {}
+    TransformationStrategy(const RigidBody* protein) : protein(protein) {}
 
     /**
      * @brief Destructor.
@@ -38,5 +39,5 @@ class TransformationStrategy {
     virtual void translate(const Vector3& v, Body& body) = 0;
 
   protected: 
-    const Protein& protein; // A reference to the protein to be optimized. We need this to access its constituent bodies. 
+    const RigidBody* protein;
 };

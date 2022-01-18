@@ -266,3 +266,17 @@ double Body::get_mass() const {
     std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});
     return M;
 }
+
+Body& Body::operator=(const Body& rhs) {
+    protein_atoms = rhs.protein_atoms;
+    hydration_atoms = rhs.hydration_atoms;
+    file = rhs.file;
+    grid = rhs.grid;
+    histogram = rhs.histogram;
+    uid = rhs.uid;
+    return *this;
+}
+
+bool Body::operator==(const Body& rhs) const {
+    return uid == rhs.uid;
+}

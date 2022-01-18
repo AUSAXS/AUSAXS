@@ -31,6 +31,9 @@ class Constraint {
         if (r_base > 4) {
             throw except::invalid_argument("Error in Constraint::Constraint: The atoms being constrained are too far apart!");
         }
+
+        // as long as uid_counter does not change after object creation, this should be unique
+        uid = atom1->uid*Atom::uid_counter + atom2->uid;
     }
 
     /**
@@ -38,10 +41,21 @@ class Constraint {
      */
     double evaluate() {return transform(r_base - atom1->distance(*atom2));}
 
-  private:
+    /**
+     * @brief Check if a constraint is identical to this object. 
+     * 
+     * @param constraint The constraint to be checked for equality. 
+     */
+    bool operator==(const Constraint& constraint) const {
+        return atom1 == constraint.atom1 && atom2 == constraint.atom2;
+    }
+
+    size_t uid;                              // Unique identifier for this constraint. 
     double r_base;                           // The normal distance between the two atoms. 
     const std::shared_ptr<Atom> const atom1; // The first atom. 
     const std::shared_ptr<Atom> const atom2; // The second atom. 
+    const std::shared_ptr<Body> const body1; // The first body.
+    const std::shared_ptr<Body> const body2; // The second body.
 
     /**
      * @brief Transforms a distance into a proper constraint for least-squares fitting. 

@@ -170,21 +170,7 @@ bool Atom::operator<(const Atom& rhs) const {
 }
 
 bool Atom::operator==(const Atom& rhs) const {
-    if (get_type() != get_type()) {return false;}
-    if (name != rhs.name) {return false;}
-    if (altLoc != rhs.altLoc) {return false;}
-    if (resName != rhs.resName) {return false;}
-    if (chainID != rhs.chainID) {return false;}
-    if (iCode != rhs.iCode) {return false;}
-    if (element != rhs.element) {return false;}
-    if (charge != rhs.charge) {return false;}
-    if (occupancy != rhs.occupancy) {return false;}
-    if (tempFactor != rhs.tempFactor) {return false;}
-    if (serial != rhs.serial) {return false;}
-    // if (resSeq != rhs.resSeq) {return false;} // this is to fix io tests, since some pdb files randomly changes this order
-    if (coords != rhs.coords) {return false;}
-    if (uid != rhs.uid) {return false;}
-    return true;
+    return uid == rhs.uid;
 }
 
 Atom& Atom::operator=(const Atom& rhs) {

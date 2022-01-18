@@ -32,9 +32,10 @@ class RigidBody {
      */
     void create_constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2);
 
-  private:
     Protein& protein;
     std::vector<Constraint> constraints;
+
+  private:
     std::unique_ptr<BodySelectStrategy> body_selector;
 
     /**
