@@ -30,8 +30,13 @@ class Body {
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) 
+    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {}) 
         : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+    /**
+     * @brief Copy constructor. 
+     */
+    Body(const Body& body) : file(body.file), uid(body.uid), protein_atoms(body.protein_atoms), hydration_atoms(body.hydration_atoms) {}
 
     /** 
      * @brief Writes this body to disk.

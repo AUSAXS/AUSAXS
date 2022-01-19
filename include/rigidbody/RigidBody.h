@@ -32,12 +32,12 @@ class RigidBody {
      * 
      * This method is linear in the total number of atoms. For constant efficiency, also provide pointers to the bodies the two atoms are part of. 
      */
-    void create_constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2);
+    void create_constraint(const Atom* const atom1, const Atom* const atom2);
 
     /**
      * @brief Create a constraint for this rigid body. 
      */
-    void create_constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2, const std::shared_ptr<Body> const body1, const std::shared_ptr<Body> const body2);
+    void create_constraint(const Atom* const atom1, const Atom* const atom2, const Body* const body1, const Body* const body2);
 
     /**
      * @brief Create a constraint for this rigid body. 
@@ -79,5 +79,5 @@ class RigidBody {
      * @param atom1 The first return value will be a pointer to the host body of this atom. 
      * @param atom2 The second return value will be a pointer to the host body of this atom. 
      */
-    std::pair<std::unique_ptr<Body>, std::unique_ptr<Body>> find_host_bodies(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2) const noexcept(false);
+    std::pair<const Body*, const Body*> find_host_bodies(const Atom* const atom1, const Atom* const atom2) const noexcept(false);
 };

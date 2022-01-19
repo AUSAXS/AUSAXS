@@ -1,3 +1,5 @@
+#pragma once
+
 // includes
 #include <string>
 #include <vector>
@@ -15,27 +17,57 @@ using std::vector, std::string;
 
 class Protein {
   public: 
+    /**
+     * @brief Default constructor. 
+     */
     Protein() {}
 
     /**
-     * @brief Create a new protein based on vectors of atoms.
+     * @brief Constructor.
+     * 
+     * Create a new protein based on a set of bodies.
+     * 
+     * @param bodies The constituent bodies of this protein. 
+     * @param hydration_atoms The hydration layer. 
      */
-    Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms);
+    Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms = {});
 
     /**
-     * @brief Create a new protein based on vectors of atoms.
+     * @brief Constructor.
+     * 
+     * Create a new protein based on a set of atoms. 
+     * This will only create a single constituent body. 
+     * 
+     * @param protein_atoms The constituent atoms of this protein. 
+     * @param hydration_atoms The hydration layer. 
      */
-    Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms);
+    Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
 
     /**
-     * @brief Create a new protein from a list of input sources.
-     * @param input a list of paths to the input files. File extensions can be mixed. 
+     * @brief Constructor. 
+     * 
+     * Create a new protein based on a set of atom vectors. Each vector defines a constituent body. 
+     * 
+     * @param protein_atoms The constituent atoms of each body. 
+     * @param hydration_atoms The hydration layer. 
+     */
+    Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
+
+    /**
+     * @brief Constructor. 
+     * 
+     * Create a new protein based on a list of input file paths. 
+     * 
+     * @param input A list of paths to the input files. File extensions can be mixed. 
      */
     Protein(const vector<string>& input);
 
     /**
-     * @brief Create a new protein from a single input source. 
-     * @param input the path to the input file. 
+     * @brief Constructor.
+     * 
+     * Create a new protein based on a single input file path. 
+     * 
+     * @param input Path to the input file. 
      */
     Protein(const string& input);
 

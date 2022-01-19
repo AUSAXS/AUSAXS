@@ -38,13 +38,17 @@ class RigidTransform : public TransformationStrategy {
      *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
      *        TODO: redo this method in linear time, I know it must be possible. 
      */
-    vector<Body> get_connected(const Constraint& pivot) const {
+    vector<const Body*> get_connected(const Constraint& pivot) const {
         const vector<Constraint>& constraints = protein->constraints;
 
-        vector<size_t> groups(Body::uid_counter, -1);
-        for (size_t i = 0; i < protein->protein.bodies.size(); i++) {
-            groups[i] = i;
+        std::unordered_map<size_t, size_t> group;
+        std::for_each(protein->protein.bodies.begin(), protein->protein.bodies.end(), [&group] (const Body& body) {group[body.uid] = body.uid;});
+
+        std::cout << "\n\nIDS: ";
+        for (const auto& e : protein->protein.bodies) {
+            std::cout << " " << e.uid;
         }
+        std::cout << std::endl;
 
         for (size_t i = 0; i < constraints.size(); i++) {
             const Constraint& constraint = constraints[i];
@@ -54,17 +58,32 @@ class RigidTransform : public TransformationStrategy {
                 continue;
             }
 
-            size_t id1 = constraint.body1->uid;
-            size_t id2 = constraint.body2->uid;
-            if (groups[id1] != groups[id2]) {
-                std::for_each(groups.begin(), groups.end(), [&groups, &id1, &id2] (const int& index) {if (groups[index] == id2) {groups[index] = id1;}});
+            size_t id1 = group.at(constraint.body1->uid);
+            size_t id2 = group.at(constraint.body2->uid);
+            std::cout << "\tid1: " << id1 << ", id2: " << id2 << std::endl;
+            if (group.at(id1) != group.at(id2)) {
+                for (size_t i = 0; i < group.size(); i++) {
+                    if (group.at(i) == id2) {
+                        std::cout << "body " << i << " is part of group " << id2 << ", changing to group " << id1 << std::endl;
+                        group[i] = id1;
+                    }
+                }
+
+                // std::for_each(groups.begin(), groups.end(), [&groups, &id1, &id2] (const int& index) {if (groups[index] == id2) {groups[index] = id1;}});
             }
+
+            std::for_each(protein->protein.bodies.begin(), protein->protein.bodies.end(), [&group] (const Body& body) {std::cout << group[body.uid];});
+            std::cout << std::endl;
         }
 
-        size_t id = groups[pivot.body1->uid];
-        vector<Body> group;
-        std::copy_if(protein->protein.bodies.begin(), protein->protein.bodies.end(), group.begin(), [&groups, &id] (const Body& body) {return groups[body.uid] == id;});
-        return group;
+        size_t id = group.at(pivot.body1->uid);
+        vector<const Body*> connected;
+        for(const auto& body : protein->protein.bodies) {
+            if (group.at(body.uid) == id) {
+                connected.push_back(&body);
+            }
+        }
+        return connected;
     }
 
     /**
