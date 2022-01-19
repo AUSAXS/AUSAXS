@@ -29,8 +29,27 @@ class RigidBody {
 
     /**
      * @brief Create a constraint for this rigid body. 
+     * 
+     * This method is linear in the total number of atoms. For constant efficiency, also provide pointers to the bodies the two atoms are part of. 
      */
     void create_constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2);
+
+    /**
+     * @brief Create a constraint for this rigid body. 
+     */
+    void create_constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2, const std::shared_ptr<Body> const body1, const std::shared_ptr<Body> const body2);
+
+    /**
+     * @brief Create a constraint for this rigid body. 
+     * 
+     * This method is linear in the total number of atoms. For constant efficiency, also provide the bodies the two atoms are part of. 
+     */
+    void create_constraint(const Atom& atom1, const Atom& atom2);
+
+    /**
+     * @brief Create a constraint for this rigid body. 
+     */
+    void create_constraint(const Atom& atom1, const Atom& atom2, const Body& body1, const Body& body2);
 
     Protein& protein;
     std::vector<Constraint> constraints;
@@ -52,4 +71,13 @@ class RigidBody {
      * @brief Translate a body with the currently chosen transformation strategy. 
      */
     void translate();
+
+    /**
+     * @brief Find the bodies containing the argument atoms. Helper method for create_constraint. 
+     *        This is linear in the total number of atoms. 
+     * 
+     * @param atom1 The first return value will be a pointer to the host body of this atom. 
+     * @param atom2 The second return value will be a pointer to the host body of this atom. 
+     */
+    std::pair<std::unique_ptr<Body>, std::unique_ptr<Body>> find_host_bodies(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2) const noexcept(false);
 };

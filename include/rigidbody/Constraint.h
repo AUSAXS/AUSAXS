@@ -8,22 +8,33 @@
 /**
  * @brief \class Constraint. 
  * 
- * This class acts like a constraint on the distance between a pair of atoms. 
+ * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
+ * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 
+ * constrained atoms. 
  */
 class Constraint {
   public: 
     /**
-     * @brief Constructor.
+     * @brief Constructor. 
      * 
-     * Create a new constraint between a pair of atoms. The 
+     * Create a new constraint between a pair of atoms. 
      * 
      * @param atom1 
      * @param atom2 
+     * @param body1 
+     * @param body2 
      */
-    Constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2) : atom1(atom1), atom2(atom2) {
+    Constraint(const std::shared_ptr<Atom> const atom1, const std::shared_ptr<Atom> const atom2, const std::shared_ptr<Body> const body1, const std::shared_ptr<Body> const body2) 
+        : atom1(atom1), atom2(atom2), body1(body1), body2(body2) {
+
         // we only want to allow constraints between the backbone C-alpha structure
         if (atom1->element != "C" || atom2->element != "C") {
             throw except::invalid_argument("Error in Constraint::Constraint: Constraints only makes sense between the carbon-atoms of the backbone!");
+        }
+
+        // constraints within the same body doesn't make sense
+        if (body1->uid == body2->uid) {
+            throw except::invalid_argument("Error in Constraint::Constraint: Cannot create a constraint between atoms in the same body!");
         }
 
         // set the base radius and perform a sanity check
