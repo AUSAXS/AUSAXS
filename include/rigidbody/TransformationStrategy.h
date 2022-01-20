@@ -28,7 +28,7 @@ class TransformationStrategy {
      * @param angle The rotation angle in radians. 
      * @param body The body being rotated. 
      */
-    virtual void rotate(const Vector3& axis, const double rad, Body& body) = 0;
+    virtual void rotate(const Vector3& axis, const double rad, Constraint& constraint) = 0;
 
     /**
      * @brief Translate a body. 
@@ -36,7 +36,13 @@ class TransformationStrategy {
      * @param v The translation vector. 
      * @param body The body being translated. 
      */
-    virtual void translate(const Vector3& v, Body& body) = 0;
+    virtual void translate(const Vector3& v, Constraint& constraint) = 0;
+
+    /**
+     * @brief Get all bodies connected by constraints to the first body of the pivot. 
+     *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
+     */
+    vector<Body*> get_connected(const Constraint& pivot) const;
 
   protected: 
     const RigidBody* protein;

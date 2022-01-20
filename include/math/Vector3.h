@@ -1,6 +1,8 @@
 #pragma once
 
 #include <initializer_list>
+#include <tuple>
+
 #include "math/Vector.h"
 #include "math/Matrix.h"
 
@@ -80,15 +82,53 @@ class Vector3 : public Vector {
     /**
      * @brief Normalize this vector to unit length.
      */
-    void normalize() {
+    Vector3 normalize() {
         operator=(operator/(norm()));
+        return *this;
     }
 
     /**
-     * @brief Normalize this vector to unit length.
+     * @brief Get a copy of the normalized form of this vector.
      */
     Vector3 normalize() const {
         return operator/(norm());
+    }
+
+    /**
+     * @brief Get a copy of the normalized form of this vector.
+     */
+    Vector3 normalize_copy() const {
+        return operator/(norm());
+    }
+
+    /**
+     * @brief Generate a complete 3D basis from a single basis vector. 
+     *        Implementation based on the "frisvad" algorithm from https://backend.orbit.dtu.dk/ws/portalfiles/portal/126824972/onb_frisvad_jgt2012_v2.pdf.
+     * 
+     * @param n The first basis vector. 
+     */
+    static std::tuple<Vector3, Vector3, Vector3> generate_basis(const Vector3& v) {
+        Vector3 n = v.normalize_copy();
+
+        // Handle the singularity
+        if (n.z < -0.9999999) { 
+            Vector3 b1(0, -1, 0);
+            Vector3 b2(-1, 0, 0);
+            return std::make_tuple(n, b1, b2);
+        }
+        const float a = 1/(1 + n.z);
+        const float b = -n.x*n.y*a;
+        Vector3 b1(1-n.x*n.x*a, b, -n.x);
+        Vector3 b2(b, 1-n.y * n.y*a, -n.y);
+        return std::make_tuple(n, b1, b2);
+    }
+
+    /**
+     * @brief Generate a complete 3D basis from this vector. 
+     *        Implementation based on the "frisvad" algorithm from https://backend.orbit.dtu.dk/ws/portalfiles/portal/126824972/onb_frisvad_jgt2012_v2.pdf.
+     */
+    std::tuple<Vector3, Vector3, Vector3> generate_basis() {
+        return Vector3::generate_basis(*this);
     }
 
     // Allow mutable access to the data through the simple v.x, v.y, and v.z notation. 

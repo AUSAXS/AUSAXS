@@ -215,7 +215,7 @@ void Body::rotate(const Vector3& axis_arg, const double& angle) {
     signal->state_change();
 
     // we use the Euler-Rodrigues formulation
-    Vector3 axis = axis_arg.normalize();
+    Vector3 axis = axis_arg.normalize_copy();
     double a = cos(angle/2);
     double b = sin(angle/2);
     double c = b;

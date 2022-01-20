@@ -44,7 +44,7 @@ TEST_CASE("Constraints", "[rigidbody]") {
         rigidbody.add_constraint(constraint1);
         rigidbody.add_constraint(constraint2);
 
-        vector<const Body*> group = transform.get_connected(constraint1);
+        vector<Body*> group = transform.get_connected(constraint1);
         REQUIRE(group.size() == 1);
         REQUIRE(*group[0] == b1);
 

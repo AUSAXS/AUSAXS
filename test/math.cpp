@@ -161,6 +161,36 @@ TEST_CASE("Vector3", "[math]") {
         REQUIRE(y == Vector3{1.8656722055, 4.7666664324, -2.9661689675}); 
         REQUIRE(z == Vector3{0.0886646879, 7.4409765368, 2.5737145825}); 
     }
+
+    SECTION("normalize") {
+        x = {2, 0, 0};
+        REQUIRE(x.normalize() == Vector3{1, 0, 0});
+        REQUIRE(x.normalize_copy() == Vector3{1, 0, 0});
+
+        x = {1, 1, 0};
+        REQUIRE(x.normalize() == Vector3{1, 1, 0}*sqrt(2)/2);
+        REQUIRE(x.normalize_copy() == Vector3{1, 1, 0}*sqrt(2)/2);
+    }
+
+    SECTION("generate_basis") {
+        x = {2, 0, 0};
+        std::tie(x, y, z) = x.generate_basis();
+        REQUIRE(x == Vector3{1, 0, 0});
+        REQUIRE((y == Vector3{0, 1, 0} || y == Vector3{0, 0, 1} || y == Vector3{0, -1, 0} || y == Vector3{0, 0, -1}));
+        REQUIRE((z == Vector3{0, 1, 0} || z == Vector3{0, 0, 1} || z == Vector3{0, -1, 0} || z == Vector3{0, 0, -1}));
+
+        for (int i = 0; i < 10; i++) {
+            x = GenRandVector(3);
+            std::tie(x, y, z) = x.generate_basis();
+            REQUIRE(x.norm() == Approx(1));
+            REQUIRE(y.norm() == Approx(1));
+            REQUIRE(z.norm() == Approx(1));
+
+            REQUIRE(x.dot(y) == Approx(0).margin(1e-6));
+            REQUIRE(y.dot(z) == Approx(0).margin(1e-6));
+            REQUIRE(z.dot(x) == Approx(0).margin(1e-6));
+        }
+    }
 }
 
 TEST_CASE("Vector", "[math]") {
