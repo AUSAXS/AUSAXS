@@ -4,7 +4,8 @@
 
 #include "data/Protein.h"
 #include "rigidbody/Constraint.h"
-#include "rigidbody/BodySelectStrategy.h"
+#include "rigidbody/ConstraintSelectStrategy.h"
+#include "rigidbody/TransformationStrategy.h"
 
 class RigidBody {
   public:
@@ -55,7 +56,10 @@ class RigidBody {
     std::vector<Constraint> constraints;
 
   private:
-    std::unique_ptr<BodySelectStrategy> body_selector;
+    std::unique_ptr<ConstraintSelectStrategy> constraint_selector;
+    std::unique_ptr<TransformationStrategy> transform;
+
+    void driver();
 
     /**
      * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 

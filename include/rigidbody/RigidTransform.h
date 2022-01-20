@@ -25,17 +25,34 @@ class RigidTransform : public TransformationStrategy {
     ~RigidTransform() override = default;
 
     /**
-     * @brief Rotate a body. 
+     * @brief Rotate all bodies connected to one side of the constraint.
+     * 
+     * @param rad Rotation angle in radians.
+     * @param constraint The constraint. 
      */
-    void rotate(const Vector3& axis, const double rad, Constraint& constraint) override {
+    void rotate(const double rad, Constraint& constraint) override {
         vector<Body*> bodies = get_connected(constraint);
+
+        Vector3 r = constraint.atom1->coords - constraint.atom2->coords;
+        Vector3 u1, u2, u3;
+        std::tie(u1, u2, u3) = r.generate_basis();
+
+        std::for_each(bodies.begin(), bodies.end(), [&u1, &rad] (Body* body) {body->rotate(u1, rad);});
     }
 
     /**
-     * @brief Translate a body. 
+     * @brief Translate all bodies connected to one side of the constraint. 
+     * 
+     * @param v The translation vector. 
+     * @param constraint The constraint.
      */
-    void translate(const Vector3& v, Constraint& constraint) override {
+    void translate(const double& length, Constraint& constraint) override {
         vector<Body*> bodies = get_connected(constraint);
-        std::for_each(bodies.begin(), bodies.end(), [&v] (Body* const body) {body->translate(v);});
+
+        Vector3 r = constraint.atom1->coords - constraint.atom2->coords;
+        Vector3 u1, u2, u3;
+        std::tie(u1, u2, u3) = r.generate_basis();
+
+        std::for_each(bodies.begin(), bodies.end(), [&u1, &length] (Body* body) {body->translate(length*u1);});
     }
 };

@@ -2,23 +2,22 @@
 
 #include <random>
 
-#include "rigidbody/BodySelectStrategy.h"
-#include "data/Protein.h"
+#include "rigidbody/ConstraintSelectStrategy.h"
 
 /**
  * @brief \class RandomSelect
  * 
- * This selection strategy randomly selects a new Body. 
+ * This selection strategy randomly selects a new Constraint. 
  */
-class RandomSelect : public BodySelectStrategy {
+class RandomSelect : public ConstraintSelectStrategy {
   public: 
     /**
      * @brief Constructor.
      */
-    RandomSelect(const Protein& protein) : BodySelectStrategy(protein) {
+    RandomSelect(const vector<Constraint>& constraints) : ConstraintSelectStrategy(constraints) {
         std::random_device random;
         generator = std::mt19937(random());
-        distribution = std::uniform_int_distribution<int>(0, protein.bodies.size());
+        distribution = std::uniform_int_distribution<int>(0, constraints.size());
     }
 
     /**

@@ -24,19 +24,18 @@ class TransformationStrategy {
     /**
      * @brief Rotate a body. 
      * 
-     * @param axis The rotation axis. 
      * @param angle The rotation angle in radians. 
      * @param body The body being rotated. 
      */
-    virtual void rotate(const Vector3& axis, const double rad, Constraint& constraint) = 0;
+    virtual void rotate(const double rad, Constraint& constraint) = 0;
 
     /**
      * @brief Translate a body. 
      * 
-     * @param v The translation vector. 
+     * @param length The distance to translate. 
      * @param body The body being translated. 
      */
-    virtual void translate(const Vector3& v, Constraint& constraint) = 0;
+    virtual void translate(const double& length, Constraint& constraint) = 0;
 
     /**
      * @brief Get all bodies connected by constraints to the first body of the pivot. 
