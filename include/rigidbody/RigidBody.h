@@ -6,6 +6,7 @@
 #include "rigidbody/Constraint.h"
 #include "rigidbody/BodySelectStrategy.h"
 #include "rigidbody/TransformationStrategy.h"
+#include "fitter/IntensityFitter.h"
 
 class RigidBody {
   /**
@@ -106,12 +107,12 @@ class RigidBody {
     std::unique_ptr<BodySelectStrategy> body_selector;
     std::unique_ptr<TransformationStrategy> transform;
 
-    void driver();
+    void driver(const string& measurement_path);
 
     /**
      * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 
      */
-    double chi2() const;
+    double chi2(IntensityFitter& fitter) const;
 
     /**
      * @brief Rotate a body with the currently chosen transformation strategy. 

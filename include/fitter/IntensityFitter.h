@@ -34,7 +34,7 @@ class IntensityFitter : public Fitter {
      */
     // IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
     // IntensityFitter(string input, ScatteringHistogram& h) : h(h) {setup(input);}
-    IntensityFitter(string input, std::shared_ptr<Histogram> h) : h(h), xm(h->q) {setup(input);}
+    IntensityFitter(string input, std::shared_ptr<ScatteringHistogram> h) : h(h), xm(h->q) {setup(input);}
     ~IntensityFitter() override {}
 
     /**
@@ -55,7 +55,7 @@ class IntensityFitter : public Fitter {
 
   private: 
     shared_ptr<Fit> fitted;
-    std::shared_ptr<Histogram> h;
+    std::shared_ptr<ScatteringHistogram> h;
     vector<double> qo; // observed q values
     vector<double> Io; // observed I values
     vector<double> sigma; // error in Io

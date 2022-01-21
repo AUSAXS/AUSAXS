@@ -7,20 +7,14 @@
 CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_atoms.size()), data(4*size) {
     for (size_t i = 0; i < size; i++) {
         const Atom& a = body.protein_atoms[i]; 
-        data[4*i] = a.coords.x;
-        data[4*i+1] = a.coords.y;
-        data[4*i+2] = a.coords.z;
-        data[4*i+3] = a.effective_charge*a.occupancy;
+        data[i] = CompactCoordinates::Data(a.coords, a.effective_charge*a.occupancy);
     }
 }
 
 CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atoms.size()), data(4*size) {
     for (size_t i = 0; i < size; i++) {
         const Hetatom& a = atoms[i]; 
-        data[4*i] = a.coords.x;
-        data[4*i+1] = a.coords.y;
-        data[4*i+2] = a.coords.z;
-        data[4*i+3] = a.effective_charge*a.occupancy;
+        data[i] = CompactCoordinates::Data(a.coords, a.effective_charge*a.occupancy);
     }
 }
 
@@ -47,17 +41,17 @@ void PartialHistogramManager::initialize() {
         // calculate internal distances between atoms
         for (size_t i = 0; i < current.size; i++) {
             for (size_t j = i+1; j < current.size; j++) {
-                float weight = current.data[4*i+3]*current.data[4*j+3];
-                float dx = current.data[4*i] - current.data[4*j];
-                float dy = current.data[4*i+1] - current.data[4*j+1];
-                float dz = current.data[4*i+2] - current.data[4*j+2];
+                float weight = current.data[i].w*current.data[j].w;
+                float dx = current.data[i].x - current.data[j].x;
+                float dy = current.data[i].y - current.data[j].y;
+                float dz = current.data[i].z - current.data[j].z;
                 float dist = sqrt(dx*dx + dy*dy + dz*dz);
                 p_base[dist/width] += 2*weight;
             }
         }
 
         // calculate self-correlation
-        for (size_t i = 0; i < current.size; i++) {p_base[0] += current.data[4*i+3]*current.data[4*i+3];}
+        for (size_t i = 0; i < current.size; i++) {p_base[0] += current.data[i].w*current.data[i].w;}
 
         // store the coordinates for later
         coords_p[n] = std::move(current);
@@ -154,10 +148,10 @@ void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {
     vector<double> p_pp(axes.bins, 0);
     for (size_t i = 0; i < coords_n.size; i++) {
         for (size_t j = 0; j < coords_m.size; j++) {
-            float weight = coords_n.data[4*i+3]*coords_m.data[4*j+3];
-            float dx = coords_n.data[4*i] - coords_m.data[4*j];
-            float dy = coords_n.data[4*i+1] - coords_m.data[4*j+1];
-            float dz = coords_n.data[4*i+2] - coords_m.data[4*j+2];
+            float weight = coords_n.data[i].w*coords_m.data[j].w;
+            float dx = coords_n.data[i].x - coords_m.data[j].x;
+            float dy = coords_n.data[i].y - coords_m.data[j].y;
+            float dz = coords_n.data[i].z - coords_m.data[j].z;
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
             p_pp[dist/width] += 2*weight;
         }
@@ -178,10 +172,10 @@ void PartialHistogramManager::calc_pp(const size_t& index) {
         vector<double> p_pp(axes.bins, 0);
         for (size_t i = 0; i < coords_i.size; i++) {
             for (size_t j = 0; j < coords_j.size; j++) {
-                float weight = coords_i.data[4*i+3]*coords_j.data[4*j+3];
-                float dx = coords_i.data[4*i] - coords_j.data[4*j];
-                float dy = coords_i.data[4*i+1] - coords_j.data[4*j+1];
-                float dz = coords_i.data[4*i+2] - coords_j.data[4*j+2];
+                float weight = coords_i.data[i].w*coords_j.data[j].w;
+                float dx = coords_i.data[i].x - coords_j.data[j].x;
+                float dy = coords_i.data[i].y - coords_j.data[j].y;
+                float dz = coords_i.data[i].z - coords_j.data[j].z;
                 float dist = sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp[dist/width] += 2*weight;
             }
@@ -196,10 +190,10 @@ void PartialHistogramManager::calc_pp(const size_t& index) {
         vector<double> p_pp(axes.bins, 0);
         for (size_t i = 0; i < coords_i.size; i++) {
             for (size_t j = 0; j < coords_j.size; j++) {
-                float weight = coords_i.data[4*i+3]*coords_j.data[4*j+3];
-                float dx = coords_i.data[4*i] - coords_j.data[4*j];
-                float dy = coords_i.data[4*i+1] - coords_j.data[4*j+1];
-                float dz = coords_i.data[4*i+2] - coords_j.data[4*j+2];
+                float weight = coords_i.data[i].w*coords_j.data[j].w;
+                float dx = coords_i.data[i].x - coords_j.data[j].x;
+                float dy = coords_i.data[i].y - coords_j.data[j].y;
+                float dz = coords_i.data[i].z - coords_j.data[j].z;
                 float dist = sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp[dist/width] += 2*weight;
             }
@@ -218,10 +212,10 @@ void PartialHistogramManager::calc_hp(const size_t& index) {
     CompactCoordinates& coords = coords_p[index];
     for (size_t i = 0; i < coords.size; i++) {
         for (size_t j = 0; j < coords_h.size; j++) {
-            float weight = coords.data[4*i+3]*coords_h.data[4*j+3];
-            float dx = coords.data[4*i] - coords_h.data[4*j];
-            float dy = coords.data[4*i+1] - coords_h.data[4*j+1];
-            float dz = coords.data[4*i+2] - coords_h.data[4*j+2];
+            float weight = coords.data[i].w*coords_h.data[j].w;
+            float dx = coords.data[i].x - coords_h.data[j].x;
+            float dy = coords.data[i].y - coords_h.data[j].y;
+            float dz = coords.data[i].z - coords_h.data[j].z;
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
             p_hp[dist/width] += 2*weight;
         }
@@ -239,19 +233,19 @@ void PartialHistogramManager::calc_hh() {
 
     // calculate internal distances for the hydration layer
     coords_h = CompactCoordinates(hydration_atoms);
-    for (size_t i = 0; i < hydration_atoms.size(); i++) {
+    for (size_t i = 0; i < 4*hydration_atoms.size(); i++) {
         for (size_t j = i+1; j < hydration_atoms.size(); j++) {
-            float weight = coords_h.data[4*i+3]*coords_h.data[4*j+3];
-            float dx = coords_h.data[4*i] - coords_h.data[4*j];
-            float dy = coords_h.data[4*i+1] - coords_h.data[4*j+1];
-            float dz = coords_h.data[4*i+2] - coords_h.data[4*j+2];
+            float weight = coords_h.data[i].w*coords_h.data[j].w;
+            float dx = coords_h.data[i].x - coords_h.data[j].x;
+            float dy = coords_h.data[i].y - coords_h.data[j].y;
+            float dz = coords_h.data[i].z - coords_h.data[j].z;
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
             p_hh[dist/width] += 2*weight;
         }
     }
 
     // calculate self-correlation
-    for (size_t i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += coords_h.data[4*i+3]*coords_h.data[4*i+3];}
+    for (size_t i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
 
     master -= partials_hh; // subtract the previous hydration histogram
     partials_hh.p = std::move(p_hh);

@@ -1,4 +1,5 @@
 #include "rigidbody/TransformationStrategy.h"
+#include "rigidbody/RigidBody.h"
 
 vector<Body*> TransformationStrategy::get_connected(const Constraint& pivot) const {
     const vector<Constraint>& constraints = protein->constraints;       // easy access to the set of all constraints

@@ -1,5 +1,4 @@
 #include "rigidbody/RigidBody.h"
-#include "fitter/IntensityFitter.h"
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
@@ -30,16 +29,16 @@ void RigidBody::optimize() {
 }
 
 void RigidBody::driver(const string& measurement_path) {
-    Parameters params(protein);
-    double _chi2 = chi2(params);
+    // Parameters params(protein);
+    // double _chi2 = chi2(params);
 
-    IntensityFitter fitter(measurement_path, h);
-    for (unsigned int i = 0; i < 1000; i++) {
-        // select a body to be modified this iteration
-        Body& body = protein.bodies[body_selector->next()];
+    // IntensityFitter fitter(measurement_path, h);
+    // for (unsigned int i = 0; i < 1000; i++) {
+    //     // select a body to be modified this iteration
+    //     Body& body = protein.bodies[body_selector->next()];
 
 
-    }
+    // }
 }
 
 void RigidBody::add_constraint(const Constraint& constraint) {

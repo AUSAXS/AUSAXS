@@ -12,20 +12,26 @@
  *        in the cache at any given time. This is meant as a helper class to DistanceCalculator.
  */
 struct CompactCoordinates {
-    CompactCoordinates() {}
+  struct Data {
+    Data() {}
+    Data(const Vector3& v, const float& w) : x(v.x), y(v.y), z(v.z), w(w) {}
+    float x, y, z, w;
+  };
 
-    /**
-     * @brief Extract the necessary coordinates and weights from a body. 
-     */
-    CompactCoordinates(const Body& body);
+  CompactCoordinates() {}
 
-    /**
-     * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
-     */
-    CompactCoordinates(const vector<Hetatom>& atoms);
+  /**
+   * @brief Extract the necessary coordinates and weights from a body. 
+   */
+  CompactCoordinates(const Body& body);
 
-    size_t size;
-    vector<float> data;
+  /**
+   * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
+   */
+  CompactCoordinates(const vector<Hetatom>& atoms);
+
+  size_t size;
+  vector<Data> data;
 };
 
 /**

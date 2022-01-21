@@ -1,7 +1,10 @@
 #pragma once
 
 #include "data/Protein.h"
-#include "rigidbody/RigidBody.h"
+#include "rigidbody/Constraint.h"
+
+// forwards declaration
+class RigidBody;
 
 /**
  * @brief \class TransformationStrategy. 
