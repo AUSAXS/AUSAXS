@@ -28,10 +28,6 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
 
-    // setting::grid::rh = 3;
-    // setting::grid::psc = setting::grid::RadialStrategy;
-    // setting::grid::percent_water = 0;
-
     Protein protein(input);
     protein.generate_new_hydration();
     protein.save(output);

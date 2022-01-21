@@ -32,7 +32,8 @@ void RigidBody::driver(const string& measurement_path) {
     // Parameters params(protein);
     // double _chi2 = chi2(params);
 
-    // IntensityFitter fitter(measurement_path, h);
+    ScatteringHistogram h(protein.get_histogram());
+    IntensityFitter fitter(measurement_path, h);
     // for (unsigned int i = 0; i < 1000; i++) {
     //     // select a body to be modified this iteration
     //     Body& body = protein.bodies[body_selector->next()];

@@ -131,16 +131,11 @@ void Protein::generate_new_hydration() {
     hydration_atoms = grid->hydrate();
 }
 
-void Protein::calc_histogram() {
+ScatteringHistogram Protein::get_histogram() {
     if (!updated_charge && setting::protein::use_effective_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
-    histogram = std::make_shared<ScatteringHistogram>(phm->calculate_all());
-}
-
-shared_ptr<ScatteringHistogram> Protein::get_histogram() {
-    if (histogram == nullptr) {calc_histogram();}
-    return histogram;
+    return phm->calculate_all();
 }
 
 Histogram Protein::get_total_histogram() const {

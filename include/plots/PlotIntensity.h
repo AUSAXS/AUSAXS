@@ -16,7 +16,7 @@ using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
 class PlotIntensity : public Plot {
   public:
-    PlotIntensity(shared_ptr<ScatteringHistogram> d) : Plot(), d(d) {}
+    PlotIntensity(const ScatteringHistogram& d) : Plot(), d(d) {}
     ~PlotIntensity() override = default;
 
     void save(const std::string& path) const override {
@@ -29,7 +29,7 @@ class PlotIntensity : public Plot {
         linpad->SetLogx();
         linpad->SetLogy();
         linpad->cd();
-        auto hI_debye = d->plot_debye_scattering();
+        auto hI_debye = d.plot_debye_scattering();
         hI_debye->SetLineWidth(3);
         hI_debye->SetLineColor(kOrange+1);
         double ymin = hI_debye->GetMinimum();
@@ -57,7 +57,7 @@ class PlotIntensity : public Plot {
         logpad->cd();
         logpad->SetLeftMargin(0.19);
 
-        auto hI_guinier = d->plot_guinier_approx();
+        auto hI_guinier = d.plot_guinier_approx();
         double offset = log10(ymax) - hI_guinier->GetMaximum(); // the offset from the debye plot (free variable in the guinier approx)
         for (int i = 1; i < hI_guinier->GetNbinsX(); i++) {hI_guinier->SetBinContent(i, hI_guinier->GetBinContent(i)+offset);} // apply the offset
         hI_guinier->SetLineWidth(3);
@@ -68,7 +68,7 @@ class PlotIntensity : public Plot {
         hI_guinier->Draw("Y+ HIST L"); // Y+ creates a second axis on the right side
 
         // Vertical line at the Guinier gyration ratio
-        double Rg = sqrt(d->calc_guinier_gyration_ratio_squared());
+        double Rg = sqrt(d.calc_guinier_gyration_ratio_squared());
         unique_ptr<TLine> gyration_ratio = std::make_unique<TLine>(1./Rg, hI_guinier->GetMaximum(), 1./Rg, hI_guinier->GetMinimum());
         gyration_ratio->SetLineColor(kBlack);
         gyration_ratio->SetLineStyle(kDashed);
@@ -80,5 +80,5 @@ class PlotIntensity : public Plot {
     }
 
   private:
-    const shared_ptr<ScatteringHistogram> d;
+    const ScatteringHistogram& d;
 };

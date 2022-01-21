@@ -264,7 +264,7 @@ auto generate_button(view& _view) {
          if (pressed) {
             Protein protein(file_in);
             protein.generate_new_hydration();
-            shared_ptr<ScatteringHistogram> d = protein.get_histogram();
+            ScatteringHistogram d = protein.get_histogram();
 
             // Distance plot
             PlotDistance d_plot(d);

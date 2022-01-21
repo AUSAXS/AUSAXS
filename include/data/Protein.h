@@ -74,7 +74,7 @@ class Protein {
     /**
      * @brief Get the distances between each atom.
      */
-    shared_ptr<ScatteringHistogram> get_histogram();
+    ScatteringHistogram get_histogram();
 
     /**
      * @brief Get the total distance histogram only. 
@@ -164,11 +164,6 @@ class Protein {
      * @brief Create a grid and fill it with the atoms of this protein. 
      */
     void create_grid();
-
-    /** 
-     * @brief Calculate the distances between each pair of atoms. 
-     */
-    void calc_histogram();
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 

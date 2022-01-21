@@ -23,7 +23,7 @@ class PlotDistance : public Plot {
      * @brief Constructor.
      * @param d The ScatteringHistogram which will be plotted. 
      */
-    PlotDistance(shared_ptr<ScatteringHistogram> d) : d(d) {}
+    PlotDistance(const ScatteringHistogram& d) : d(d) {}
 
     /**
      * @brief Destructor. 
@@ -36,7 +36,7 @@ class PlotDistance : public Plot {
      */
     void save(const std::string& path) const override {
         unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
-        auto hists = d->plot_distance();
+        auto hists = d.plot_distance();
         
         // use some nicer colors
         hists[0]->SetLineColor(kOrange+1);
@@ -72,5 +72,5 @@ class PlotDistance : public Plot {
     }
 
   private: 
-    const shared_ptr<ScatteringHistogram> d; // The ScatteringHistogram backing this object. 
+    const ScatteringHistogram& d; // The ScatteringHistogram backing this object. 
 };

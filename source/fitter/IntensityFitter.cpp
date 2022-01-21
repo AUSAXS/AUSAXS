@@ -31,8 +31,8 @@ shared_ptr<Fitter::Fit> IntensityFitter::fit() {
     const double* err = minimizer->Errors();
 
     // apply c
-    h->apply_water_scaling_factor(res[0]);
-    vector<double> ym = h->calc_debye_scattering_intensity();
+    h.apply_water_scaling_factor(res[0]);
+    vector<double> ym = h.calc_debye_scattering_intensity();
     vector<double> Im = splice(ym);
 
     // fit a, b
@@ -56,8 +56,8 @@ vector<shared_ptr<TGraph>> IntensityFitter::plot() const {
     double b = fitted->params["b"];
     double c = fitted->params["c"];
 
-    h->apply_water_scaling_factor(c);
-    vector<double> ym = h->calc_debye_scattering_intensity();
+    h.apply_water_scaling_factor(c);
+    vector<double> ym = h.calc_debye_scattering_intensity();
     vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
@@ -82,8 +82,8 @@ unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() const {
     double b = fitted->params["b"];
     double c = fitted->params["c"];
 
-    h->apply_water_scaling_factor(c);
-    vector<double> ym = h->calc_debye_scattering_intensity();
+    h.apply_water_scaling_factor(c);
+    vector<double> ym = h.calc_debye_scattering_intensity();
     vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -102,8 +102,8 @@ double IntensityFitter::chi2(const double* params) const {
     double c = params[0];
 
     // apply c
-    h->apply_water_scaling_factor(c);
-    vector<double> ym = h->calc_debye_scattering_intensity();
+    h.apply_water_scaling_factor(c);
+    vector<double> ym = h.calc_debye_scattering_intensity();
     vector<double> Im = splice(ym);
 
     // fit a, b

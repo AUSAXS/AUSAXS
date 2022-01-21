@@ -30,12 +30,9 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
 
-    // setting::axes::scattering_intensity_plot_binned_width = 0.5;
-    // setting::figures::format = "png";
-
     Protein protein(input);
     protein.generate_new_hydration();
-    shared_ptr<ScatteringHistogram> d = protein.get_histogram();
+    ScatteringHistogram d = protein.get_histogram();
 
     // Distance plot
     PlotDistance d_plot(d);

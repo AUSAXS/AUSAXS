@@ -36,13 +36,9 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
 
-    // setting::axes::scattering_intensity_plot_binned_width = 0.5;
-    // setting::grid::ra = 1.5;
-    // setting::grid::rh = 1.5;
-
     Protein protein(input_structure);
     protein.generate_new_hydration();
-    std::shared_ptr<ScatteringHistogram> h = protein.get_histogram();
+    ScatteringHistogram h = protein.get_histogram();
 
     IntensityFitter fitter(input_measurement, h);
     std::shared_ptr<Fitter::Fit> result = fitter.fit();
