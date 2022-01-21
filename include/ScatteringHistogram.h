@@ -13,10 +13,17 @@ using namespace ROOT;
 
 class ScatteringHistogram : Histogram {
   public:
+
+    /**
+     * @brief Move constructor.
+     */
     ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         setup();
     }
 
+    /**
+     * @brief Copy constructor. 
+     */
     ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         setup();
     }

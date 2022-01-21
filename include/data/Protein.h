@@ -76,6 +76,12 @@ class Protein {
      */
     shared_ptr<ScatteringHistogram> get_histogram();
 
+    /**
+     * @brief Get the total distance histogram only. 
+     *        This is a slightly faster alternative to get_histogram() when only the total histogram is needed. 
+     */
+    Histogram get_total_histogram() const;
+
     /** 
      * @brief Writes this body to disk.
      * @param path path to the destination. 

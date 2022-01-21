@@ -143,6 +143,10 @@ shared_ptr<ScatteringHistogram> Protein::get_histogram() {
     return histogram;
 }
 
+Histogram Protein::get_total_histogram() const {
+    return phm->calculate();
+}
+
 shared_ptr<Grid> Protein::get_grid() const {
     if (grid == nullptr) {
         print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
