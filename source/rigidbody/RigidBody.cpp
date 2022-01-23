@@ -1,23 +1,11 @@
 #include "rigidbody/RigidBody.h"
+#include "rigidbody/Parameters.h"
+
+#include <random>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
 #include <Math/Functor.h>
-
-RigidBody::Parameters::Parameters(const Protein& protein) : params(protein.bodies.size()) {
-    const vector<Body>& bodies = protein.bodies;
-    for (unsigned int i = 0; i < params.size(); i++) {
-        id_to_index[bodies[i].uid] = i;
-    }
-}
-
-void RigidBody::Parameters::update(unsigned int uid, Vector3 dx, double drx, double dry, double drz) {
-    params[id_to_index[uid]] = Parameter{dx, drx, dry, drz};
-}
-
-const RigidBody::Parameters::Parameter RigidBody::Parameters::get(unsigned int uid) {
-    return params[id_to_index[uid]];
-}
 
 void RigidBody::optimize() {
     // ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS");
@@ -29,17 +17,20 @@ void RigidBody::optimize() {
 }
 
 void RigidBody::driver(const string& measurement_path) {
-    // Parameters params(protein);
-    // double _chi2 = chi2(params);
-
     ScatteringHistogram h(protein.get_histogram());
     IntensityFitter fitter(measurement_path, h);
-    // for (unsigned int i = 0; i < 1000; i++) {
-    //     // select a body to be modified this iteration
-    //     Body& body = protein.bodies[body_selector->next()];
 
+    Parameters params(protein);
+    double _chi2 = fitter.fit()->chi2;
 
-    // }
+    for (unsigned int i = 0; i < 1000; i++) {
+        // select a body to be modified this iteration
+        Body& body = protein.bodies[body_selector->next()];
+        Parameters::Parameter param = parameter_generator->next();
+
+        params.update(body.uid, param);
+        body.translate(param.dx);
+    }
 }
 
 void RigidBody::add_constraint(const Constraint& constraint) {
@@ -88,7 +79,6 @@ void RigidBody::create_constraint(const Atom& atom1, const Atom& atom2, const Bo
 }
 
 double RigidBody::chi2(IntensityFitter& fitter) const {
-    Histogram h = protein.get_total_histogram();
     std::shared_ptr<Fitter::Fit> result = fitter.fit();
-    return 0;
+    return result->chi2;
 }

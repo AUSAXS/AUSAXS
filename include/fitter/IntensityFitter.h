@@ -27,18 +27,23 @@ using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 class IntensityFitter : public Fitter {
   public: 
     /**
-     * @brief Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     * @brief Constructor.
+     *        Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     * 
      * @param input the path to the file containing the measured values. 
      * @param q the model q values.
      * @param I the model I values. 
      */
-    // IntensityFitter(string input, vector<double>& q, vector<double>& I) : xm(q), ym(I) {setup(input, q, I);}
-    // IntensityFitter(string input, ScatteringHistogram& h) : h(h) {setup(input);}
     IntensityFitter(string input, ScatteringHistogram& h) : h(h), xm(h.q) {setup(input);}
+
+    /**
+     * @brief Destructor.
+     */
     ~IntensityFitter() override {}
 
     /**
      * @brief Perform the fit.
+     * 
      * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
      */
     shared_ptr<Fit> fit() override;

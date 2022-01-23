@@ -9,6 +9,9 @@
  * [ ] Grid: Something weird is going on with the volume, probably related to the above problem. Checkout a build from a few days ago and compare histograms. 
 
 # Stuff to consider
+## General:
+ * Consider using Eigen as math backend
+
 ## Grid:
  * Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
  * Consider how to improve culling method
