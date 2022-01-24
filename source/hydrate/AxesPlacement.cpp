@@ -29,8 +29,6 @@ public:
             placed_water[index++] = gm;
         };
 
-        std::cout << "PLACE2 " << grid->axes.x << ", " << grid->axes.y << ", " << grid->axes.z << std::endl;
-
         // loop over the location of all member atoms
         int r_eff = ra+rh;                           // the effective bin radius
         double r_eff_real = r_eff*grid->get_width(); // the effective real radius

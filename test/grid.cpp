@@ -313,6 +313,45 @@ TEST_CASE("add_remove", "[grid]") {
     }
 }
 
+TEST_CASE("correct_volume", "[grid]") {
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    int width = 1;
+    int radius = 10; // we use a very large radius so the atoms will heavily overlap
+    Grid grid(axes, width, radius);
+
+    // atoms
+    Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
+    Atom a2 = Atom({0, 3, 0}, 0, "C", "", 2);
+    Atom a3 = Atom({0, 0, 3}, 0, "C", "", 3);
+    vector<Atom> a = {a1, a2, a3};
+
+    // waters
+    Hetatom w1 = Hetatom::create_new_water(Vector({0, 0, -3}));
+    Hetatom w2 = Hetatom::create_new_water(Vector({0, -3, 0}));
+    Hetatom w3 = Hetatom::create_new_water(Vector({-3, 0, 0}));
+    vector<Hetatom> w = {w1, w2, w3};
+
+    // single non-overlapping
+    REQUIRE(grid.volume == 0);
+    grid.add(a1);
+    REQUIRE(grid.volume != 0);
+    grid.remove(a1);
+    REQUIRE(grid.volume == 0);
+
+    grid.add(w1);
+    REQUIRE(grid.volume == 0);
+    grid.remove(w1);
+    REQUIRE(grid.volume == 0);
+
+    // multiple overlapping
+    grid.add(a);
+    grid.add(w);
+    REQUIRE(grid.volume != 0);
+    grid.remove(a);
+    grid.remove(w);
+    REQUIRE(grid.volume == 0);
+}
+
 // Test that the correct locations are found by find_free_locs. 
 void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);

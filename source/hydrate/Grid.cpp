@@ -8,6 +8,7 @@
 // my own includes
 #include "hydrate/Grid.h"
 #include "data/Atom.h"
+#include "data/Body.h"
 #include "data/Hetatom.h"
 #include "hydrate/AxesPlacement.cpp"
 #include "hydrate/RadialPlacement.cpp"
@@ -163,9 +164,9 @@ void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, axes.x.bins-1); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, axes.y.bins-1); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, axes.z.bins-1); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, axes.z.bins); // zminus and zplus
 
     // loop over each bin in the box
     int added_volume = 0;
@@ -185,13 +186,20 @@ void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
     if (!is_water) {volume += added_volume;};
 }
 
+vector<GridMember<Atom>> Grid::add(const Body* const body) {
+    return add(body->protein_atoms);
+}
+
+void Grid::remove(const Body* const body) {
+    remove(body->protein_atoms);
+}
+
 GridMember<Atom> Grid::add(const Atom& atom, const bool& expand) {
     vector<int> loc = to_bins(atom.coords);
-    const int x = loc[0], y = loc[1], z = loc[2];
+    const int &x = loc[0], &y = loc[1], &z = loc[2];
 
     // sanity check
     const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins || x+y+z < 0;
-    if (out_of_bounds) {std::cout << "OUT OF BOUNDS: " << axes.x << ", " << axes.y << ", " << axes.z << std::endl;}
     if (__builtin_expect(out_of_bounds, false)) {
         throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
     }
@@ -208,20 +216,18 @@ GridMember<Atom> Grid::add(const Atom& atom, const bool& expand) {
 
 GridMember<Hetatom> Grid::add(const Hetatom& water, const bool& expand) {
     vector<int> loc = to_bins(water.coords);
-    const int x = loc[0], y = loc[1], z = loc[2];
+    const int &x = loc[0], &y = loc[1], &z = loc[2];
 
     // sanity check
     const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins || x+y+z < 0;
-    if (out_of_bounds) {std::cout << "OUT OF BOUNDS: " << axes.x << ", " << axes.y << ", " << axes.z << std::endl;}
     if (__builtin_expect(out_of_bounds, false)) {
         throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string());
     }
 
-    const bool is_water = water.is_water();
     GridMember gm(water, loc);
     if (expand) {expand_volume(gm);}
     w_members.push_back(gm);
-    grid[x][y][z] = is_water ? 'H' : 'A';
+    grid[x][y][z] = 'H';
 
     return gm;
 }
@@ -253,6 +259,41 @@ void Grid::remove(const Hetatom& water) {
     deflate_volume(member);
     w_members.erase(pos);
     grid[x][y][z] = 0;
+}
+
+void Grid::remove(const vector<Atom>& atoms) {
+    // we make a vector of all possible uids
+    vector<bool> removed(Atom::uid_counter);
+    // and fill it with the uids that should be removed
+    std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& water) {removed[water.uid] = true;});
+
+    size_t index = 0; // current index in removed_waters
+    vector<GridMember<Atom>> removed_atoms(atoms.size()); // the waters which will be removed
+    auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
+        if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
+            removed_atoms[index++] = gm;
+            return true;
+        }
+        return false;
+    };
+
+    // we save the sizes so we can make a sanity check after the removal    
+    size_t prev_size = a_members.size();
+    a_members.remove_if(predicate);
+    size_t cur_size = a_members.size();
+
+    // sanity check
+    if (__builtin_expect(prev_size - cur_size != atoms.size(), false)) {
+        throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
+    }
+
+    // clean up the grid
+    for (auto& atom : removed_atoms) {
+        const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        deflate_volume(atom);
+        grid[x][y][z] = 0;
+        volume--;
+    }
 }
 
 void Grid::remove(const vector<Hetatom>& waters) {
@@ -319,9 +360,9 @@ void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, axes.x.bins-1); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, axes.y.bins-1); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, axes.z.bins-1); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, axes.z.bins); // zminus and zplus
 
     // loop over each bin in the box
     int removed_volume = -1; // -1 because we overwrite the center

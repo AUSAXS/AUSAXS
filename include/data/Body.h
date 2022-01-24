@@ -88,13 +88,7 @@ class Body {
     /**
      * @brief Get the grid representation of this body. 
      */
-    shared_ptr<Grid> get_grid() const {
-        if (grid == nullptr) {
-            print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
-            exit(1);
-        }
-        return grid;
-    }
+    shared_ptr<Grid> get_grid();
 
     /**
      * @brief Generate a PDB file at @p path showing the filled grid volume.

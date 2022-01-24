@@ -122,7 +122,7 @@ class Protein {
     /**
      * @brief Get the grid representation of this body. 
      */
-    shared_ptr<Grid> get_grid() const;
+    shared_ptr<Grid> get_grid();
 
     /**
      * @brief Create a binding point between two bodies.

@@ -8,6 +8,9 @@
 #include "settings.h"
 #include "Exceptions.h"
 
+// forwards declaration
+class Body;
+
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
 class Grid {
@@ -54,6 +57,13 @@ class Grid {
         return v;
     }
 
+    /**
+     * @brief Add the contents of a body to this grid.
+     * 
+     * @param body The body to be added. 
+     */
+    vector<GridMember<Atom>> add(const Body* const body);
+
     /** 
      * @brief Add a single atom to the grid. 
      *        This is a constant-time operation. 
@@ -65,6 +75,13 @@ class Grid {
      *        This is a constant-time operation. 
      */
     GridMember<Hetatom> add(const Hetatom& atom, const bool& expand = false);
+
+    /**
+     * @brief Remove the contents of a body from this grid. 
+     * 
+     * @param body The body to be removed. 
+     */
+    void remove(const Body* const body);
 
     /**
      * @brief Remove a single atom from the grid.
@@ -83,6 +100,12 @@ class Grid {
      *        This is linear in the number of stored elements. 
      */
     void remove(const vector<Hetatom>& atom);
+
+    /**
+     * @brief Remove multiple protein atoms from the grid.
+     *        This is linear in the number of stored elements. 
+     */
+    void remove(const vector<Atom>& atom);
 
     /** 
      * @brief Expand all member atoms and water molecules into actual spheres based on the radii ra and rh. 
@@ -187,9 +210,9 @@ class Grid {
     int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // Radius of each atom represented as a number of bins
     int rh = 0; // Radius of each water molecule represented as a number of bins
-    Axis3D axes;
 
   private:
+    Axis3D axes;
     double width; // distance between each grid point
     unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
     unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules

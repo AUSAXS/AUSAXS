@@ -123,6 +123,11 @@ void Body::generate_new_hydration() {
     hydration_atoms = grid->hydrate();
 }
 
+shared_ptr<Grid> Body::get_grid() {
+    if (grid == nullptr) {create_grid();}
+    return grid;
+}
+
 void Body::generate_volume_file(string path) {
     vector<vector<vector<char>>>& g = grid->grid;
     vector<Atom> filled;

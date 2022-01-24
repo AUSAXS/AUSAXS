@@ -143,11 +143,8 @@ Histogram Protein::get_total_histogram() const {
     return phm->calculate();
 }
 
-shared_ptr<Grid> Protein::get_grid() const {
-    if (grid == nullptr) {
-        print_err("Error in Protein::get_grid: Grid has not been instantiated!"); 
-        exit(1);
-    }
+shared_ptr<Grid> Protein::get_grid() {
+    if (grid == nullptr) {create_grid();}
     return grid;
 }
 

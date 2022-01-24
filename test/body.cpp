@@ -222,3 +222,32 @@ TEST_CASE("update_charge", "[broken],[body]") {
     Body body(a, {});
     body.update_effective_charge();
 }
+
+TEST_CASE("grid_add_remove_bodies", "[body]") {
+    vector<Atom> a1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> a2 = {Atom(Vector3( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3( 1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> a3 = {Atom(Vector3(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3(-1, 1,  1), 1, "C", "C", 1)};
+    vector<Atom> a4 = {Atom(Vector3( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3( 1, 1,  1), 1, "C", "C", 1)};
+    Body b1(a1), b2(a2), b3(a3), b4(a4);
+    vector<Body> bodies = {b1, b2, b3, b4};
+    Protein protein(bodies);
+
+    auto grid = protein.get_grid();
+    REQUIRE(grid->a_members.size() == 8);
+    grid->remove(&b2);
+    REQUIRE(grid->a_members.size() == 6);
+    grid->remove(&b1);
+    REQUIRE(grid->a_members.size() == 4);
+    grid->remove(&b3);
+    REQUIRE(grid->a_members.size() == 2);
+
+    auto remaining = grid->a_members;
+    for (const auto& e : remaining) {
+        REQUIRE((e == a4[0] || e == a4[1]));
+    }
+
+    // check volume
+    REQUIRE(grid->volume != 0);
+    grid->remove(&b4);
+    REQUIRE(grid->volume == 0);
+}
