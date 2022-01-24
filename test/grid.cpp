@@ -365,9 +365,6 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 
     vector<GridMember<Hetatom>> locs = grid.find_free_locs();
     REQUIRE(locs.size() == 6);
-    // for (int i = 0; i < locs.size(); i++) {
-    //     cout << format("%1%\t%2%\t%3%") % locs[i].coords.x % locs[i].coords.y % locs[i].coords.z << endl;
-    // }
 
     // since this needs to work with different placement strategies, we have to perform a more general check on the positions
     vector<Vector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};

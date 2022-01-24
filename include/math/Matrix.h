@@ -192,6 +192,19 @@ class Matrix {
         }
     }
 
+    /**
+     * @brief Generate a 3x3 extrinsic rotation matrix.
+     */
+    static Matrix rotation_matrix(const double alpha, const double beta, const double gamma) {
+        double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
+        double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);
+        double sinasinb = sina*sinb, cosasinb = cosa*sinb;
+
+        return Matrix{{cosb*cosg, sinasinb*cosg - cosa*sing, cosasinb*cosg + sina*sing}, 
+                      {cosb*sing, sinasinb*sing + cosa*cosg, cosasinb*sing - sina*cosg},
+                      {-sinb,     sina*cosb,                 cosa*cosb}};
+    }
+
     const size_t &N = _N, &M = _M; // read-only access to the dimensions
     const std::vector<double>& data = _data; // read-only access to the data container
 

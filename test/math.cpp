@@ -381,6 +381,18 @@ TEST_CASE("Matrix", "[math]") {
         REQUIRE(B.det() == Approx(-6));
         REQUIRE(C.det() == Approx(20));
     }
+
+    SECTION("rotations") {
+        // check basic rotations
+        Matrix R = Matrix::rotation_matrix(M_PI/2, 0, 0);
+        REQUIRE(R == Matrix{{1, 0, 0}, {0, 0, -1}, {0, 1, 0}});
+
+        R = Matrix::rotation_matrix(0, M_PI/2, 0);
+        REQUIRE(R == Matrix{{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}});
+
+        R = Matrix::rotation_matrix(0, 0, M_PI/2);
+        REQUIRE(R == Matrix{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}});
+    }
 }
 
 TEST_CASE("Slices", "[math]") {
