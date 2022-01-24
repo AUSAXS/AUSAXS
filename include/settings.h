@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include "math/Vector3.h"
-#include "data/Axes.h"
+#include "data/Axis.h"
 
 using std::string, std::vector;
 
@@ -24,8 +24,8 @@ namespace setting {
         extern double rh; // Radius of water molecules.
         extern double ra_effective; // Effective radius of protein atoms. This is based on the volume the average atom effectively occupies. 
         extern double width; // Width of each bin of the grid used to represent this protein.
-        extern int bins; // Default number of bins
-        extern Vector3 base_point; // Default base point
+
+        extern Limit3D axes; // Default axes for the grid 
 
         namespace placement {
             extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule
@@ -39,7 +39,7 @@ namespace setting {
 
     namespace axes {
         extern double scattering_intensity_plot_binned_width; // The width of each bin for the scattering plots.
-        extern Axes scattering_intensity_plot_axes; // Axes used for the Debye scattering intensity plots.
+        extern Axis scattering_intensity_plot_axis; // Axes used for the Debye scattering intensity plots.
     }
 
     namespace fit {

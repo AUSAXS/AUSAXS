@@ -1,11 +1,12 @@
 #pragma once
 
 #include "data/Atom.h"
-#include "PlacementStrategy.h"
-#include "CullingStrategy.h"
+#include "data/Axis.h"
+#include "hydrate/PlacementStrategy.h"
+#include "hydrate/CullingStrategy.h"
+#include "hydrate/GridMember.h"
 #include "settings.h"
 #include "Exceptions.h"
-#include "hydrate/GridMember.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
@@ -17,7 +18,7 @@ class Grid {
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(Vector3 base, double width, int bins) : Grid(base, width, {bins, bins, bins}, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {};
+    Grid(const Axis3D axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -26,7 +27,7 @@ class Grid {
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(Vector3 base, double width, int bins, int radius) : Grid(base, width, {bins, bins, bins}, radius, radius, setting::grid::psc, setting::grid::csc) {};
+    Grid(const Axis3D axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::psc, setting::grid::csc) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -36,7 +37,7 @@ class Grid {
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(Vector3 base, double width, vector<int> bins, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+    Grid(const Axis3D axes, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 
     /** 
      * @brief Add a set of atoms to the grid. 
@@ -143,6 +144,8 @@ class Grid {
      */
     void set_radius_water(double radius);
 
+    vector<int> get_bins() const;
+
     /**
      * @brief Get all water molecules from this grid. 
      */
@@ -158,11 +161,6 @@ class Grid {
      *        Water molecules are ignored.  
      */
     double get_volume();
-
-    /**
-     * @brief Get the number of bins in each dimension.
-     */
-    const vector<int> get_bins() const {return bins;}
 
     /**
      * @brief Get the width of each bin.
@@ -189,11 +187,10 @@ class Grid {
     int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // Radius of each atom represented as a number of bins
     int rh = 0; // Radius of each water molecule represented as a number of bins
+    Axis3D axes;
 
   private:
-    Vector3 base; // base point of this grid
     double width; // distance between each grid point
-    vector<int> bins; // the number of bins in each dimension
     unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
     unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules
 

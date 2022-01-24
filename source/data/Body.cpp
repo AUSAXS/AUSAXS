@@ -25,7 +25,7 @@ void Body::calc_histogram() {
 
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
-    Axes axes = {int(1000/width), 0, 1000}; 
+    Axis axes = Axis(1000/width, 0, 1000); 
     vector<double> p_pp(axes.bins, 0);
     vector<double> p_hh(axes.bins, 0);
     vector<double> p_hp(axes.bins, 0);
@@ -103,7 +103,7 @@ void Body::calc_histogram() {
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    axes = {max_bin, 0, int(max_bin*width)}; 
+    axes = Axis{max_bin, 0, max_bin*width}; 
 
     // calculate p_tot    
     for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
@@ -183,7 +183,8 @@ double Body::get_volume_grid() {
 }
 
 void Body::create_grid() {
-    grid = std::make_shared<Grid>(setting::grid::base_point, setting::grid::width, setting::grid::bins/setting::grid::width); 
+    Axis3D axes(setting::grid::axes, setting::grid::width);
+    grid = std::make_shared<Grid>(axes, setting::grid::width); 
     grid->add(protein_atoms);
     // grid->add(hydration_atoms);
 }

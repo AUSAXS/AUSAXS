@@ -14,10 +14,9 @@
 using namespace ROOT;
 
 TEST_CASE("grid_generation", "[grid]") {
-    Vector3 base(-10, -10, -10);
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
-    int bins = 21;
-    Grid grid(base, width, bins);
+    Grid grid(axes, width);
 
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
@@ -32,10 +31,9 @@ TEST_CASE("grid_generation", "[grid]") {
 }
 
 TEST_CASE("bounding_box", "[grid]") {
-    Vector3 base(-10, -10, -10);
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
-    int bins = 21;
-    Grid grid(base, width, bins);
+    Grid grid(axes, width);
 
     SECTION("simple") {
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
@@ -66,11 +64,10 @@ TEST_CASE("bounding_box", "[grid]") {
 }
 
 TEST_CASE("volume_expansion", "[grid]") {
-    Vector3 base(-10, -10, -10);
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
-    int bins = 21;
     int radius = 3;
-    Grid grid(base, width, bins, radius);
+    Grid grid(axes, width, radius);
 
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
@@ -142,11 +139,10 @@ TEST_CASE("volume_expansion", "[grid]") {
 }
 
 TEST_CASE("volume", "[grid]") {
-    Vector3 base(-10, -10, -10);
-    double width = 1;
-    int bins = 21;
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    int width = 1;
     int radius = 1;
-    Grid grid(base, width, bins, radius); 
+    Grid grid(axes, width, radius);
 
     // cout << grid.get_volume() << endl;
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
@@ -164,11 +160,10 @@ TEST_CASE("volume", "[grid]") {
 }
 
 TEST_CASE("hydrate", "[grid]") {
-    Vector3 base(-10, -10, -10);
-    double width = 1;
-    int bins = 21;
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    int width = 1;
     int radius = 3;
-    Grid grid(base, width, bins, radius);
+    Grid grid(axes, width, radius);
 
     // add a single atom to the grid, and hydrate it
     setting::grid::percent_water = 0;
@@ -192,55 +187,52 @@ TEST_CASE("hydrate", "[grid]") {
 }
 
 TEST_CASE("width", "[grid]") {
-    Vector3 base(-10, -10, -10);
     double width = 0.1;
-    int bins = 210;
     int radius = 3;
-    Grid grid(base, width, bins, radius);
+    Axis3D axes(-10, 10, -10, 10, -10, 10, width);
+    Grid grid(axes, width, radius);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
-    grid.add(a);
-    vector<vector<vector<char>>> &g = grid.grid;
+    SECTION("Test that the basics still work") {
+        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        grid.add(a);
+        vector<vector<vector<char>>>& g = grid.grid;
 
-    // check that it was placed correctly
-    REQUIRE(g[100][100][100] == 'A');
+        // check that it was placed correctly
+        REQUIRE(g[100][100][100] == 'A');
 
-    // check water generation
-    setting::grid::percent_water = 0;
-    vector<Hetatom> water = grid.hydrate();
-    REQUIRE(water.size() == 6);
-    if (water.size() == 6) { // avoid crashing if the above fails
-        REQUIRE(water[0].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-        REQUIRE(water[1].coords == Vector3{6, 0, 0}); // (2r, 0, 0)
-        REQUIRE(water[2].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-        REQUIRE(water[3].coords == Vector3{0, 6, 0}); // (0, 2r, 0)
-        REQUIRE(water[4].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-        REQUIRE(water[5].coords == Vector3{0, 0, 6}); // (0, 0, 2r)
+        // check water generation
+        setting::grid::percent_water = 0;
+        vector<Hetatom> water = grid.hydrate();
+        REQUIRE(water.size() == 6);
+        if (water.size() == 6) { // avoid crashing if the above fails
+            REQUIRE(water[0].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
+            REQUIRE(water[1].coords == Vector3{6, 0, 0}); // (2r, 0, 0)
+            REQUIRE(water[2].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
+            REQUIRE(water[3].coords == Vector3{0, 6, 0}); // (0, 2r, 0)
+            REQUIRE(water[4].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
+            REQUIRE(water[5].coords == Vector3{0, 0, 6}); // (0, 0, 2r)
+        }
     }
+    SECTION("Test bounds") {
+        vector<Atom> a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
+        grid.add(a);
+        grid.expand_volume();
 
-    // test bounds
-    grid = Grid(base, width, bins, 3);
-
-    a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
-    grid.add(a);
-    grid.expand_volume();
-    g = grid.grid;
-
-    vector<vector<int>> box = grid.bounding_box();
-    REQUIRE(box[0][0] == 100);
-    REQUIRE(box[0][1] == 151);
-    REQUIRE(box[1][0] == 50);
-    REQUIRE(box[1][1] == 101);
-    REQUIRE(box[2][0] == 30);
-    REQUIRE(box[2][1] == 101);
+        vector<vector<int>> box = grid.bounding_box();
+        REQUIRE(box[0][0] == 100);
+        REQUIRE(box[0][1] == 151);
+        REQUIRE(box[1][0] == 50);
+        REQUIRE(box[1][1] == 101);
+        REQUIRE(box[2][0] == 30);
+        REQUIRE(box[2][1] == 101);
+    }
 }
 
-TEST_CASE("add & remove", "[grid]") {
-    Vector3 base(-10, -10, -10);
-    double width = 1;
-    int bins = 21;
+TEST_CASE("add_remove", "[grid]") {
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    int width = 1;
     int radius = 3;
-    Grid grid(base, width, bins, radius);
+    Grid grid(axes, width, radius);
 
     // atoms
     Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
@@ -323,11 +315,10 @@ TEST_CASE("add & remove", "[grid]") {
 
 // Test that the correct locations are found by find_free_locs. 
 void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
-    Vector3 base(-10, -10, -10);
-    double width = 1;
-    vector<int> bins = {21, 21, 21};
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    int width = 1;
     int radius = 3;
-    Grid grid(base, width, bins, radius, radius, ch, setting::grid::csc);
+    Grid grid(axes, width, radius, radius, ch, setting::grid::csc);
 
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
@@ -359,11 +350,10 @@ TEST_CASE("find_free_locs", "[grid]") {
 
 // Test that expansion and deflation completely cancels each other. 
 TEST_CASE("volume_deflation", "[grid]") {
-    Vector3 base(-10, -10, -10);
-    double width = 1;
-    int bins = 21;
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    int width = 1;
     int radius = 3;
-    Grid grid(base, width, bins, radius);
+    Grid grid(axes, width, radius);
 
     vector<Atom> a = {Atom({3, 0, 0}, 0, "C", "", 1), Atom({0, 3, 0}, 0, "C", "", 2)};
     grid.add(a);
@@ -374,12 +364,15 @@ TEST_CASE("volume_deflation", "[grid]") {
     vector<vector<vector<char>>> &g = grid.grid;
     REQUIRE(grid.volume == 2);
 
-    for (int i = 0; i < bins; i++) {
-        for (int j = 0; j < bins; j++) {
-            for (int k = 0; k < bins; k++) {
+    vector<int> bins = grid.get_bins();
+    for (int i = 0; i < bins[0]; i++) {
+        for (int j = 0; j < bins[1]; j++) {
+            for (int k = 0; k < bins[2]; k++) {
                 if (__builtin_expect(i == 10 && j == 13 && k == 10, false)) {continue;} // center of the first atom
                 if (__builtin_expect(i == 13 && j == 10 && k == 10, false)) {continue;} // center of the second atom
-                REQUIRE(g[i][j][k] == 0);
+                if (g[i][j][k] != 0) {
+                    REQUIRE(false);
+                }
             }
         }
     }

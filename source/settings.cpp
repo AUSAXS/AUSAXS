@@ -21,8 +21,7 @@ namespace setting {
         double rh = 1.5;
         double ra_effective = 2.4;
         double width = 1; 
-        int bins = 501;
-        Vector3 base_point = {-250, -250, -250};
+        Limit3D axes(-250, 250, -250, 250, -250, 250);
 
         namespace placement {
             double min_score = 0.1; 
@@ -36,7 +35,7 @@ namespace setting {
 
     namespace axes {
         double scattering_intensity_plot_binned_width = 1;
-        Axes scattering_intensity_plot_axes = {1000, 0.001, 1.001};
+        Axis scattering_intensity_plot_axis = {1000, 0.001, 1.001};
     }
 
     namespace fit {

@@ -19,9 +19,10 @@ struct Parameters {
      * A small structure for storing a single set of parameters. 
      */
     struct Parameter {
+        Parameter() : dx(0, 0, 0), rx(0), ry(0), rz(0) {}
         Parameter(const Vector3& dx, const double& rx, const double& ry, const double& rz) : dx(dx), rx(rx), ry(ry), rz(rz) {}
-        Vector3 dx = {0, 0, 0};
-        double rx = 0, ry = 0, rz = 0;
+        Vector3 dx;
+        double rx, ry, rz;
     };
 
     /**

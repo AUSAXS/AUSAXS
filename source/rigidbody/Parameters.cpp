@@ -7,8 +7,12 @@ Parameters::Parameters(const Protein& protein) : params(protein.bodies.size()) {
     }
 }
 
+void Parameters::update(unsigned int uid, const Parameter& param) {
+    params[id_to_index[uid]] = param;
+}
+
 void Parameters::update(unsigned int uid, Vector3 dx, double drx, double dry, double drz) {
-    params[id_to_index[uid]] = Parameter{dx, drx, dry, drz};
+    update(uid, Parameter(dx, drx, dry, drz));
 }
 
 const Parameters::Parameter Parameters::get(unsigned int uid) {

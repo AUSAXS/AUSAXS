@@ -31,8 +31,8 @@ PartialHistogramManager::PartialHistogramManager(vector<Body>& bodies, const vec
 void PartialHistogramManager::initialize() {
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
-    Axes axes = {int(1000/width), 0, 1000}; 
-    vector<double> p_base(axes.bins, 0);
+    Axis axis = Axis(1000/width, 0, 1000); 
+    vector<double> p_base(axis.bins, 0);
 
     for (size_t n = 0; n < size; n++) {
         // create more efficient access to the necessary variables
@@ -56,24 +56,24 @@ void PartialHistogramManager::initialize() {
         // store the coordinates for later
         coords_p[n] = std::move(current);
     }
-    master = MasterHistogram(p_base, axes);
+    master = MasterHistogram(p_base, axis);
 }
 
 ScatteringHistogram PartialHistogramManager::calculate_all() {
     Histogram total = calculate();
-    total.shorten_axes();
+    total.shorten_axis();
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     vector<double> p_hh = partials_hh.p;
     vector<double> p_pp = master.p_base;
-    vector<double> p_hp(total.axes.bins, 0);
+    vector<double> p_hp(total.axis.bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (size_t i = 0; i < size; i++) {
         for (size_t j = 0; j < i; j++) {
             PartialHistogram& current = partials_pp[i][j];
 
             // iterate through each entry in the partial histogram
-            for (size_t k = 0; k < total.axes.bins; k++) {
+            for (int k = 0; k < total.axis.bins; k++) {
                 p_pp[k] += current.p[k]; // add to p_pp
             }
         }
@@ -84,16 +84,16 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
         PartialHistogram& current = partials_hp[i];
 
         // iterate through each entry in the partial histogram
-        for (size_t k = 0; k < total.axes.bins; k++) {
+        for (int k = 0; k < total.axis.bins; k++) {
             p_hp[k] += current.p[k]; // add to p_pp
         }
     }
 
     // p_hp is already resized
-    p_hh.resize(total.axes.bins);
-    p_pp.resize(total.axes.bins);
+    p_hh.resize(total.axis.bins);
+    p_pp.resize(total.axis.bins);
 
-    return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axes);
+    return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axis);
 }
 
 Histogram PartialHistogramManager::calculate() {
@@ -136,16 +136,15 @@ Histogram PartialHistogramManager::calculate() {
             }
         }
     }
-    return Histogram(master.p, master.axes);
+    return Histogram(master.p, master.axis);
 }
 
 void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const Axes& axes = master.axes; 
 
     CompactCoordinates& coords_n = coords_p[n];
     CompactCoordinates& coords_m = coords_p[m];
-    vector<double> p_pp(axes.bins, 0);
+    vector<double> p_pp(master.axis.bins, 0);
     for (size_t i = 0; i < coords_n.size; i++) {
         for (size_t j = 0; j < coords_m.size; j++) {
             float weight = coords_n.data[i].w*coords_m.data[j].w;
@@ -163,13 +162,12 @@ void PartialHistogramManager::calc_pp(const size_t& n, const size_t& m) {
 
 void PartialHistogramManager::calc_pp(const size_t& index) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const Axes& axes = master.axes; 
     CompactCoordinates& coords_i = coords_p[index];
 
     // we do not want to calculate the self-correlation, so we have to skip entry 'index'
     for (size_t n = 0; n < index; n++) { // loop from (0, index]
         CompactCoordinates& coords_j = coords_p[n];
-        vector<double> p_pp(axes.bins, 0);
+        vector<double> p_pp(master.axis.bins, 0);
         for (size_t i = 0; i < coords_i.size; i++) {
             for (size_t j = 0; j < coords_j.size; j++) {
                 float weight = coords_i.data[i].w*coords_j.data[j].w;
@@ -187,7 +185,7 @@ void PartialHistogramManager::calc_pp(const size_t& index) {
 
     for (size_t n = index+1; n < size; n++) { // loop from (index, size]
         CompactCoordinates& coords_j = coords_p[n];
-        vector<double> p_pp(axes.bins, 0);
+        vector<double> p_pp(master.axis.bins, 0);
         for (size_t i = 0; i < coords_i.size; i++) {
             for (size_t j = 0; j < coords_j.size; j++) {
                 float weight = coords_i.data[i].w*coords_j.data[j].w;
@@ -206,8 +204,7 @@ void PartialHistogramManager::calc_pp(const size_t& index) {
 
 void PartialHistogramManager::calc_hp(const size_t& index) {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const Axes& axes = master.axes; 
-    vector<double> p_hp(axes.bins, 0);
+    vector<double> p_hp(master.axis.bins, 0);
 
     CompactCoordinates& coords = coords_p[index];
     for (size_t i = 0; i < coords.size; i++) {
@@ -228,8 +225,7 @@ void PartialHistogramManager::calc_hp(const size_t& index) {
 
 void PartialHistogramManager::calc_hh() {
     const double& width = setting::axes::scattering_intensity_plot_binned_width;
-    const Axes& axes = master.axes; 
-    vector<double> p_hh(axes.bins, 0);
+    vector<double> p_hh(master.axis.bins, 0);
 
     // calculate internal distances for the hydration layer
     coords_h = CompactCoordinates(hydration_atoms);

@@ -17,19 +17,19 @@ class ScatteringHistogram : Histogram {
     /**
      * @brief Move constructor.
      */
-    ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
+    ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axis), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         setup();
     }
 
     /**
      * @brief Copy constructor. 
      */
-    ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axes), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
+    ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axis), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
         setup();
     }
 
-    ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const Axes& axes)
-        : Histogram(p_tot, axes), _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp) {setup();}
+    ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const Axis& axis)
+        : Histogram(p_tot, axis), _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp) {setup();}
 
     /**
      * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 

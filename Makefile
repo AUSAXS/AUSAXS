@@ -43,12 +43,13 @@ intensity_fit/%: build/source/scripts/intensity_fitter
 #################################################################################
 ###				TESTS						 ###
 #################################################################################
+tags := ""
 test/%: $(shell find source/ -print) test/%.cpp
-	@ make -C build test
-	build/test [$(*F)] ~[broken] ~[manual]
+	@ make -C build test -j${cmake_threads}
+	build/test [$(*F)] ~[broken] ~[manual] ${tags}
 
 tests: $(shell find source/ -print) $(shell find test/ -print) build/Makefile
-	@ make -C build test
+	@ make -C build test -j${cmake_threads}
 	build/test ~[broken] ~[manual]
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
