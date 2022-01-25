@@ -128,7 +128,7 @@ shared_ptr<Grid> Body::get_grid() {
     return grid;
 }
 
-void Body::generate_volume_file(string path) {
+void Body::generate_volume_file(const string& path) {
     vector<vector<vector<char>>>& g = grid->grid;
     vector<Atom> filled;
     for (size_t i = 0; i < g.size(); i++) {
@@ -211,13 +211,23 @@ void Body::translate(const Vector3& v) {
     move(hydration_atoms);
 }
 
-void Body::rotate(const double&, const double&, const double&) {
+void Body::rotate(const Matrix& R) {
+    for (auto& atom : protein_atoms) {
+        atom.coords.rotate(R);
+    }
+
+    for (auto& atom : hydration_atoms) {
+        atom.coords.rotate(R);
+    }
+}
+
+void Body::rotate(const double, const double, const double) {
     signal->state_change();
     cout << "Not implemented yet. " << endl;
     exit(1);
 }
 
-void Body::rotate(const Vector3& axis_arg, const double& angle) {
+void Body::rotate(const Vector3& axis_arg, const double angle) {
     signal->state_change();
 
     // we use the Euler-Rodrigues formulation
@@ -237,16 +247,10 @@ void Body::rotate(const Vector3& axis_arg, const double& angle) {
              {2*(bc+ad),   aa+cc-bb-dd, 2*(cd-ab)},
              {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
 
-    for (auto& atom : protein_atoms) {
-        atom.coords.rotate(R);
-    }
-
-    for (auto& atom : hydration_atoms) {
-        atom.coords.rotate(R);
-    }
+    rotate(R);
 }
 
-void Body::update_effective_charge(const double& charge) {
+void Body::update_effective_charge(const double charge) {
     signal->state_change();
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;

@@ -194,7 +194,7 @@ void Grid::remove(const Body* const body) {
     remove(body->protein_atoms);
 }
 
-GridMember<Atom> Grid::add(const Atom& atom, const bool& expand) {
+GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
     vector<int> loc = to_bins(atom.coords);
     const int &x = loc[0], &y = loc[1], &z = loc[2];
 
@@ -214,7 +214,7 @@ GridMember<Atom> Grid::add(const Atom& atom, const bool& expand) {
     return gm;
 }
 
-GridMember<Hetatom> Grid::add(const Hetatom& water, const bool& expand) {
+GridMember<Hetatom> Grid::add(const Hetatom& water, const bool expand) {
     vector<int> loc = to_bins(water.coords);
     const int &x = loc[0], &y = loc[1], &z = loc[2];
 

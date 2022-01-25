@@ -17,9 +17,20 @@ class Matrix {
     friend class MutableSlice;
 
   public: 
-    Matrix(Matrix&& A) noexcept : _N(std::move(A.N)), _M(std::move(A.M)), _data(std::move(A._data)) {}
-    Matrix(const Matrix& A) : _N(A.N), _M(A.M), _data(A.data) {} // copy constructor
-    Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) { // initializer lists {{a, b}, {c, d}}
+    /**
+     * @brief Move constructor. 
+     */
+    Matrix(Matrix&& A) noexcept : _N(A.N), _M(A.M), _data(std::move(A._data)) {}
+
+    /**
+     * @brief Copy constructor.
+     */
+    Matrix(const Matrix& A) : _N(A.N), _M(A.M), _data(A.data) {}
+
+    /**
+     * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 
+     */
+    Matrix(std::initializer_list<std::initializer_list<double>> l) : _N(l.size()), _M(l.begin()->size()) {
         for (const auto& row : l) {
             if (__builtin_expect(row.size() != M, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
             for (const auto& e : row) {
@@ -27,12 +38,31 @@ class Matrix {
             }
         }
     }
-    Matrix(const Vector& v); // vector --> matrix constructor
-    Matrix(const int n, const int m) : _N(n), _M(m), _data(N*M) {} // dimensional constructor
-    Matrix() : _N(0), _M(0), _data(0) {} // default constructor
-    ~Matrix() {}
 
-    static Matrix identity(const int& dim) {
+    /**
+     * @brief Construct a Matrix based on a vector.
+     */
+    Matrix(const Vector& v);
+
+    /**
+     * @brief Construct an empty Matrix of a given size. 
+     */
+    Matrix(const int n, const int m) : _N(n), _M(m), _data(N*M) {} 
+
+    /**
+     * @brief Default constructor.
+     */
+    Matrix() : _N(0), _M(0), _data(0) {}
+
+    /**
+     * @brief Destructor.
+     */
+    ~Matrix() = default;
+
+    /**
+     * @brief Get the identity matrix of a given dimension. 
+     */
+    static Matrix identity(const int dim) {
         Matrix A(dim, dim);
         for (int i = 0; i < dim; i++) {
             A[i][i] = 1;
@@ -71,14 +101,14 @@ class Matrix {
     }
 
     // Scalar multiplication, B*a
-    Matrix operator*(const double& a) const {
+    Matrix operator*(const double a) const {
         Matrix A(N, M);
         std::transform(begin(), end(), A.begin(), [&a] (const double& e) {return e*a;});
         return A;
     }
 
     // Scalar division, B/a
-    Matrix operator/(const double& a) const {
+    Matrix operator/(const double a) const {
         Matrix A(N, M);
         std::transform(begin(), end(), A.begin(), [&a] (const double& e) {return e/a;});
         return A;
@@ -129,15 +159,23 @@ class Matrix {
         return C;
     }
 
-    // Read-only indexing, A[i]
-    const ConstRow operator[](const int& i) const;
-    const ConstColumn col(const int& j) const;
-    const ConstRow row(const int& i) const;
+    // Read-only indexer
+    const ConstRow operator[](const int i) const;
+
+    // Read-only column indexer
+    const ConstColumn col(const int j) const;
+
+    // Read-only row indexer
+    const ConstRow row(const int i) const;
     
-    // Read/write indexing, A[i] = ...
-    Row operator[](const int& i);
-    Row row(const int& i);
-    Column col(const int& i);
+    // Read-write indexer
+    Row operator[](const int i);
+
+    // Read-write row indexer
+    Row row(const int i);
+
+    // Read-write column indexer
+    Column col(const int j);
 
     // Approximate equality, B ~ A
     bool operator==(const Matrix& A) const {
@@ -149,16 +187,23 @@ class Matrix {
     // Approximate inequality operator, w != v
     bool operator!=(const Matrix& A) const {return !operator==(A);}
 
+    /**
+     * @brief Get the determinant of this Matrix.
+     */
     double det() const;
 
-    // Returns a copy of this matrix
+    /**
+     * @brief Copy this Matrix. 
+     */
     Matrix copy() const {
         Matrix A(N, M);
         A._data.assign(data.begin(), data.end());
         return A;
     }
 
-    // Transpose
+    /**
+     * @brief Get the transpose of this Matrix.
+     */
     Matrix T() const {
         Matrix A(M, N);
         for (size_t row = 0; row < A.N; ++row) {
@@ -169,18 +214,27 @@ class Matrix {
         return A;
     }
 
-    const double& index(const int& i, const int& j) const {return data[M*i + j];}
-    double& index(const int& i, const int& j) {return _data[M*i + j];}
+    // Read-only indexer
+    const double& index(const int i, const int j) const {return data[M*i + j];}
 
-    // read-only iterators
+    // Read-write indexer
+    double& index(const int i, const int j) {return _data[M*i + j];}
+
+    // Read-only iterator
     const std::vector<double>::const_iterator begin() const {return data.begin();}
+
+    // Read-only iterator
     const std::vector<double>::const_iterator end() const {return data.end();}
 
-    // read-write iterators
+    // Read-write iterator
     std::vector<double>::iterator begin() {return _data.begin();}
+
+    // Read-write iterator
     std::vector<double>::iterator end() {return _data.end();}
 
-    // Print this matrix to the terminal.
+    /**
+     * @brief Format and print this Matrix to the terminal.
+     */
     void print(const std::string& message = "") const {
         if (message != "") {std::cout << message << std::endl;}
         for (size_t i = 0; i < N; i++) {

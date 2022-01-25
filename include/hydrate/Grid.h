@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 #include "data/Atom.h"
 #include "data/Axis.h"
 #include "hydrate/PlacementStrategy.h"
@@ -68,13 +70,13 @@ class Grid {
      * @brief Add a single atom to the grid. 
      *        This is a constant-time operation. 
      */
-    GridMember<Atom> add(const Atom& atom, const bool& expand = false);
+    GridMember<Atom> add(const Atom& atom, const bool expand = false);
 
     /** 
      * @brief Add a single hetatom to the grid. 
      *        This is a constant-time operation. 
      */
-    GridMember<Hetatom> add(const Hetatom& atom, const bool& expand = false);
+    GridMember<Hetatom> add(const Hetatom& atom, const bool expand = false);
 
     /**
      * @brief Remove the contents of a body from this grid. 

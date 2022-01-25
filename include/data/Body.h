@@ -21,6 +21,7 @@ using std::vector, std::string, std::unique_ptr;
 class Body {
   public:
     /** Create a new collection of atoms (body) from the input .pdb or .xml file. 
+     * 
      * @param path path to the input file. 
      * @param signaller a signalling object to signal changes of state
      */
@@ -40,6 +41,7 @@ class Body {
 
     /** 
      * @brief Writes this body to disk.
+     * 
      * @param path path to the destination. 
      */
     void save(string path);
@@ -93,7 +95,7 @@ class Body {
     /**
      * @brief Generate a PDB file at @p path showing the filled grid volume.
      */
-    void generate_volume_file(string path);
+    void generate_volume_file(const string& path);
 
     /**
      * @brief Calculate the total mass of this body in Daltons.
@@ -117,20 +119,29 @@ class Body {
     void translate(const Vector3& v);
 
     /**
-     * @brief Rotatate all atoms @a rad radians about the axis @a axis. 
+     * @brief Rotate all atoms by a given rotation matrix.
+     * 
+     * @param R The rotation matrix. 
+     */
+    void rotate(const Matrix& R);
+    
+    /**
+     * @brief Rotate all atoms @a rad radians about the axis @a axis. 
+     * 
      * @param axis the rotation axis. 
      * @param rad the amount to rotate in radians. 
      */
-    void rotate(const Vector3& axis, const double& rad);
+    void rotate(const Vector3& axis, const double rad);
 
     /**
      * ! Not implemented
      * @brief Euler angle rotation of all atoms. 
+     * 
      * @param alpha radians to rotate about the z-axis.
      * @param beta radians to rotate about the y-axis. 
      * @param gamma radians to rotate about the x-axis. 
      */
-    void rotate(const double& alpha, const double& beta, const double& gamma);
+    void rotate(const double alpha, const double beta, const double gamma);
 
     /** 
      * @brief Calculate the distances between each pair of atoms. 
@@ -144,9 +155,10 @@ class Body {
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
+     * 
      * @param charge the charge to be subtracted.
      */
-    void update_effective_charge(const double& charge);
+    void update_effective_charge(const double charge);
 
     /**
      * @brief Register a probe (listener) to this object, which will be notified of state changes. 

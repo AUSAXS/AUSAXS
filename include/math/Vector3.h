@@ -13,7 +13,7 @@ class Vector3 : public Vector {
     Vector3() : Vector(3) {} // default empty constructor
     Vector3(const std::initializer_list<double> l) : Vector(l) {} // initializer list {a, b, c, d}
     Vector3(const Vector& v) : Vector(v) {}
-    Vector3(double x, double y, double z) : Vector({x, y, z}) {}
+    Vector3(const double x, const double y, const double z) : Vector({x, y, z}) {}
     ~Vector3() override {}
 
     /**
@@ -35,7 +35,7 @@ class Vector3 : public Vector {
     }
 
     /**
-     * @brief Calculate the Euclidian distance to another vector. 
+     * @brief Get the Euclidian distance to another vector. 
      */
     double distance(const Vector3& v) const {return sqrt(pow(x-v.x, 2) + pow(y-v.y, 2) + pow(z-v.z, 2));}
 
@@ -50,14 +50,14 @@ class Vector3 : public Vector {
      * @param axis The rotation axis. 
      * @param angle The angle to rotate. 
      */
-    void rotate(Vector3& axis, const double& angle);
+    void rotate(const Vector3& axis, const double angle);
 
     /**
      * @brief Rotate this vector by a rotation matrix.
      * 
      * @param matrix The rotation matrix. 
      */
-    void rotate(Matrix& matrix);
+    void rotate(const Matrix& matrix);
 
     /**
      * @brief Output the string representation of this vector to a stream. 

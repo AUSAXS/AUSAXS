@@ -16,7 +16,7 @@ class StateManager {
      */
     class Signaller {
         public: 
-            Signaller(const int& id, StateManager* const owner) : owner(owner), id(id) {}
+            Signaller(const int id, StateManager* const owner) : owner(owner), id(id) {}
 
             /**
              * @brief Signal that the state of this object has changed. 
@@ -41,7 +41,7 @@ class StateManager {
             void state_change() const override {}
     };
 
-    StateManager(const int& size) : size(size), _modified(size, true), _modified_hydration(true) {
+    StateManager(const int size) : size(size), _modified(size, true), _modified_hydration(true) {
         for (int i = 0; i < size; i++) {probes.push_back(std::make_shared<Signaller>(i, this));}
     }
 
@@ -56,7 +56,7 @@ class StateManager {
      * @brief Mark that the protein atoms of a body was modified.
      * @param i index of the body. 
      */
-    void modified(const int& i) {
+    void modified(const int i) {
         _modified[i] = true;
     }
 
@@ -79,7 +79,7 @@ class StateManager {
     /**
      * @brief Get a pointer to the @a ith probe so it can be dispatched to other classes.
      */
-    std::shared_ptr<Signaller> get_probe(const int& i) {
+    std::shared_ptr<Signaller> get_probe(const int i) {
         return probes[i];
     }
 

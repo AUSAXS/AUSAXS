@@ -14,13 +14,40 @@
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 class Vector {
   public:
-    Vector(Vector&& v) noexcept : _N(std::move(v._N)), _data(std::move(v._data)) {}
-    Vector(const Vector& v) : _N(v.size()), _data(v._data) {} // copy constructor
-    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {} // initializer list {a, b, c, d}
-    Vector(const std::vector<double>& v) : _N(v.size()), _data(v) {} // std::vector --> Vector constructor
-    Vector(const int& n) : _N(n), _data(n) {} // dimensional constructor
-    Vector() : _N(0), _data(0) {} // default constructor
-    virtual ~Vector() {}
+    /**
+     * @brief Move constructor.
+     */
+    Vector(Vector&& v) noexcept : _N(v._N), _data(std::move(v._data)) {}
+
+    /**
+     * @brief Copy constructor.
+     */
+    Vector(const Vector& v) : _N(v.size()), _data(v._data) {}
+
+    /**
+     * @brief Construct a vector based on an initializer list.
+     */
+    Vector(const std::initializer_list<double> l) : _N(l.size()), _data(l) {}
+
+    /**
+     * @brief Construct a vector based on a std::vector. 
+     */
+    Vector(const std::vector<double>& v) : _N(v.size()), _data(v) {}
+
+    /**
+     * @brief Construct an empty vector of a given size. 
+     */
+    Vector(const int n) : _N(n), _data(n) {}
+
+    /**
+     * @brief Default constructor.
+     */
+    Vector() : _N(0), _data(0) {}
+
+    /**
+     * @brief Destructor. 
+     */
+    virtual ~Vector() = default;
 
     // Assignment operator, w = v
     Vector& operator=(const Vector& v) {
@@ -29,9 +56,9 @@ class Vector {
         return *this;
     }
 
-    template<class T>
+    // Slice assignment operator
     Vector& operator=(const Slice& s) {
-        if (__builtin_expect(!(s.N == 1 || s.M == 1), false)) {throw std::invalid_argument("Slice is not convertible to a vector.");}
+        if (__builtin_expect(!(s.N == 1 || s.M == 1), false)) {throw std::invalid_argument("Only 1D slices can be assigned to vectors. Size: " + std::to_string(s.N) + ", " + std::to_string(s.M));}
         _N = std::max(s.N, s.M);
         _data = std::vector<double>(N);
         for (size_t i = 0; i < N; i++) {
@@ -40,6 +67,7 @@ class Vector {
         return *this;
     }
 
+    // Initializer list assignment operator
     Vector& operator=(std::initializer_list<double> l) {
         _N = l.size();
         _data.assign(l);
@@ -78,17 +106,17 @@ class Vector {
     }
 
     // Scalar multiplication, w*a
-    Vector operator*(const double& a) const {
+    Vector operator*(const double a) const {
         Vector w(N);
         std::transform(begin(), end(), w.begin(), [&a](double x) {return x*a;});
         return w;
     }
 
     // Scalar multiplication, a*w
-    friend Vector operator*(const double&a, const Vector& v) {return v*a;}
+    friend Vector operator*(const double a, const Vector& v) {return v*a;}
 
     // Scalar division, w/a
-    Vector operator/(const double& a) const {
+    Vector operator/(const double a) const {
         Vector w(N);
         std::transform(begin(), end(), w.begin(), [&a](double x) {return x/a;});
         return w;
@@ -109,13 +137,13 @@ class Vector {
     }
 
     // Scalar division-assignment, w /= a
-    Vector& operator/=(const double& a) {
+    Vector& operator/=(const double a) {
         std::transform(begin(), end(), begin(), [&a](double x) {return x/a;});
         return *this;
     }
 
     // Scalar multiplication-assignment, w /= a
-    Vector& operator*=(const double& a) {
+    Vector& operator*=(const double a) {
         std::transform(begin(), end(), begin(), [&a](double x) {return x*a;});
         return *this;
     }
@@ -126,10 +154,10 @@ class Vector {
     }
 
     // Read-only indexing, w[i]
-    const double& operator[](const int& i) const {return data[i];}
+    const double& operator[](const int i) const {return data[i];}
     
     // Read/write indexing, w[i] = ...
-    double& operator[](const int& i) {return _data[i];}
+    double& operator[](const int i) {return _data[i];}
 
     // Approximate equality, w ~ v
     bool operator==(const Vector& v) const {
@@ -141,19 +169,32 @@ class Vector {
     // Approximate inequality operator, w != v
     bool operator!=(const Vector& v) const {return !operator==(v);}
 
-    // Dot product
+    /**
+     * @brief Get the dot product with another Vector.
+     */
     double dot(const Vector& v) const {
         compatibility_check(v);
         return std::inner_product(begin(), end(), v.begin(), 0.0);
     }
 
-    // Norm (magnitude)
+    /**
+     * @brief Get the norm of this Vector.
+     */
     double norm() const {return sqrt(dot(*this));}
 
-    // Euclidian distance to other vector
+    /**
+     * @brief Get the magnitude of this Vector.
+     */
+    double magnitude() const {return norm();}
+
+    /**
+     * @brief Get the Euclidian distance to another Vector.
+     */
     double distance(const Vector& v) const {return sqrt(distance2(v));};
 
-    // Euclidian distance squared to other vector
+    /**
+     * @brief Get the squared Euclidian distance to another Vector.
+     */
     double distance2(const Vector& v) const {
         compatibility_check(v);
         Vector w(N);
@@ -161,14 +202,18 @@ class Vector {
         return std::accumulate(w.begin(), w.end(), 0);
     }
 
-    // Returns a copy of this vector
+    /**
+     * @brief Get a copy of this Vector.
+     */
     Vector copy() const {
         Vector w(N);
         std::copy(begin(), end(), w.begin());
         return w;
     }
 
-    // Print this vector to the terminal
+    /**
+     * @brief Format and print this Vector to the terminal.
+     */
     void print(const std::string& message = "") const {
         if (message != "") {std::cout << message << std::endl;}
         for (const auto& e : data) {
@@ -177,15 +222,27 @@ class Vector {
         std::cout << std::endl;
     }
 
-    // read-only iterators
+    // Read-only iterator
     const std::vector<double>::const_iterator begin() const {return data.begin();}
+
+    // Read-only iterator
     const std::vector<double>::const_iterator end() const {return data.end();}
 
-    // read-write iterators
+    // Read-write iterator
     std::vector<double>::iterator begin() {return _data.begin();}
+
+    // Read-write iterator
     std::vector<double>::iterator end() {return _data.end();}
 
+    /**
+     * @brief Get the size of this Vector.
+     */
     size_t size() const {return N;};
+
+    /**
+     * @brief Get the dimension of this Vector.
+     */
+    size_t dim() const {return size();}
 
     const size_t& N = _N; // read-only access to the dimension
     const std::vector<double>& data = _data; // read-only access to the data container

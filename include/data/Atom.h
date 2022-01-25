@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <boost/algorithm/string.hpp>
 
 #include "data/Record.h"
 #include "Tools.h"
@@ -13,7 +12,6 @@
 #include "Exceptions.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-using boost::format;
 
 class Atom : public Record {
   public:
@@ -130,7 +128,7 @@ class Atom : public Record {
     /**
      * @brief Add @p charge to the effective charge of this atom. 
      */
-    void add_effective_charge(const double& charge) {_effective_charge += charge;}
+    void add_effective_charge(const double charge) {_effective_charge += charge;}
 
     /**
      * @brief Comparison function to allow this class to be a map key. 

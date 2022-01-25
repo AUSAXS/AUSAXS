@@ -21,15 +21,15 @@ Slice::operator Vector() const {
 void Slice::print() const {return operator Vector().print();}
 
 //*** CONST & MUTABLE SLICE ***//
-MutableSlice::MutableSlice(vector<double>& data, const int& N, const int& M, const int& start, const int& step, const int& length) 
+MutableSlice::MutableSlice(vector<double>& data, const int N, const int M, const int start, const int step, const int length) 
     : Slice(N, M, start, step, length), data(data) {}
-ConstSlice::ConstSlice(const vector<double>& data, const int& N, const int& M, const int& start, const int& step, const int& length) 
+ConstSlice::ConstSlice(const vector<double>& data, const int N, const int M, const int start, const int step, const int length) 
     : Slice(N, M, start, step, length), data(data) {}
 VectorSlice::VectorSlice(const vector<double>& data) : Slice(data.size(), 1, 0, 1, data.size()), data(data) {}
 
-double& MutableSlice::operator[](const int& i) {return data[start + i*step];}
-const double& MutableSlice::operator[](const int& i) const {return data[start + i*step];}
-const double& ConstSlice::operator[](const int& i) const {return data[start + i*step];}
+double& MutableSlice::operator[](const int i) {return data[start + i*step];}
+const double& MutableSlice::operator[](const int i) const {return data[start + i*step];}
+const double& ConstSlice::operator[](const int i) const {return data[start + i*step];}
 
 MutableSlice& MutableSlice::operator=(const Vector& v) {
     for (int i = 0; i < length; i++) {
@@ -54,14 +54,14 @@ MutableSlice& MutableSlice::operator-=(const Vector& v) {
 }
 
 //*** DERIVATIVES ***//
-Row::Row(vector<double>& data, const int& N, const int& M, const int& row) : MutableSlice(data, N, M, row*M, 1, M) {}
-ConstRow::ConstRow(const vector<double>& data, const int& N, const int& M, const int& row) : ConstSlice(data, N, M, row*M, 1, M) {}
-Column::Column(vector<double>& data, const int& N, const int& M, const int& col) : MutableSlice(data, N, M, col, M, N) {}
-ConstColumn::ConstColumn(const vector<double>& data, const int& N, const int& M, const int& col) : ConstSlice(data, N, M, col, M, N) {}
+Row::Row(vector<double>& data, const int N, const int M, const int row) : MutableSlice(data, N, 1, row*M, 1, M) {}
+ConstRow::ConstRow(const vector<double>& data, const int N, const int M, const int row) : ConstSlice(data, N, 1, row*M, 1, M) {}
+Column::Column(vector<double>& data, const int N, const int M, const int col) : MutableSlice(data, 1, M, col, M, N) {}
+ConstColumn::ConstColumn(const vector<double>& data, const int N, const int M, const int col) : ConstSlice(data, 1, M, col, M, N) {}
 
 Vector operator+(const Slice& s, const Vector& v) {return s.operator Vector().operator+(v);}
 Vector operator-(const Slice& s, const Vector& v) {return s.operator Vector().operator-(v);}
-Vector operator*(const Slice& s, const double& a) {return s.operator Vector().operator*(a);}
-Vector operator/(const Slice& s, const double& a) {return s.operator Vector().operator/(a);}
+Vector operator*(const Slice& s, const double a) {return s.operator Vector().operator*(a);}
+Vector operator/(const Slice& s, const double a) {return s.operator Vector().operator/(a);}
 bool operator==(const Slice& s, const Vector& v) {return s.operator Vector().operator==(v);}
 bool operator!=(const Slice& s, const Vector& v) {return s.operator Vector().operator!=(v);}

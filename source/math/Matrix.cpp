@@ -10,10 +10,10 @@ double Matrix::det() const {
     return decomp.determinant();
 }
 
-Row Matrix::row(const int& i) {return Row(_data, N, M, i);}
-Row Matrix::operator[](const int& i) {return Row(_data, N, M, i);}
-Column Matrix::col(const int& i) {return Column(_data, N, M, i);}
+Row Matrix::row(const int i) {return Row(_data, N, M, i);}
+Row Matrix::operator[](const int i) {return Row(_data, N, M, i);}
+Column Matrix::col(const int i) {return Column(_data, N, M, i);}
 
-const ConstRow Matrix::row(const int& i) const {return ConstRow(data, N, M, i);}
-const ConstRow Matrix::operator[](const int& i) const {return ConstRow(data, N, M, i);}
-const ConstColumn Matrix::col(const int& i) const {return ConstColumn(data, N, M, i);}
+const ConstRow Matrix::row(const int i) const {return ConstRow(data, N, M, i);}
+const ConstRow Matrix::operator[](const int i) const {return ConstRow(data, N, M, i);}
+const ConstColumn Matrix::col(const int i) const {return ConstColumn(data, N, M, i);}

@@ -1,20 +1,20 @@
 #include "math/Vector3.h"
 #include "math/Matrix.h"
 
-void Vector3::rotate(Matrix& matrix) {
+void Vector3::rotate(const Matrix& matrix) {
     *this = matrix*(*this);
 }
 
-void Vector3::rotate(Vector3& axis, const double& angle) {
+void Vector3::rotate(const Vector3& axis, const double angle) {
     // we use the Euler-Rodrigues formulation
-    axis.normalize();
+    Vector3 ax = axis.normalize_copy();
     double a = cos(angle/2);
     double b = sin(angle/2);
     double c = b;
     double d = b;
-    b *= axis.x;
-    c *= axis.y;
-    d *= axis.z;
+    b *= ax.x;
+    c *= ax.y;
+    d *= ax.z;
 
     double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
     double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
