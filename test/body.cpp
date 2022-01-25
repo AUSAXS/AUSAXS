@@ -271,3 +271,25 @@ TEST_CASE("split_body", "[body]") {
     CHECK(b2.protein_atoms.back().resSeq == 98);
     CHECK(b3.protein_atoms[0].resSeq == 99);
 }
+
+TEST_CASE("generate_sequential_constraints", "[body]") {
+    vector<int> splits = {9, 99};
+    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    vector<Constraint> constraints = BodySplitter::sequential_constraints(protein);
+
+    REQUIRE(constraints.size() == 2);
+
+    // check first constraint
+    Constraint& c1 = constraints[0];
+    REQUIRE(c1.atom1->name == "CA");
+    REQUIRE(c1.atom1->serial == 131);
+    REQUIRE(c1.atom2->name == "CA");
+    REQUIRE(c1.atom2->serial == 138);
+
+    // check second constraint
+    Constraint& c2 = constraints[1];
+    REQUIRE(c2.atom1->name == "CA");
+    REQUIRE(c2.atom1->serial == 809);
+    REQUIRE(c2.atom2->name == "CA");
+    REQUIRE(c2.atom2->serial == 814);
+}

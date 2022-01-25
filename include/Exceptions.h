@@ -51,4 +51,12 @@ namespace except {
         const char* what() const throw() {return msg.data();}
         const string msg;
     };
+
+    // Unexpected error. Used whenever we really did not expect something to go wrong, but it did. 
+    struct unexpected : public std::exception {
+        unexpected(const char* msg) : msg(msg) {}
+        unexpected(const string msg) : msg(msg) {}
+        const char* what() const throw() {return msg.data();}
+        const string msg;
+    };
 }

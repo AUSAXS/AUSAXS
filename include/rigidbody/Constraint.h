@@ -15,6 +15,11 @@
 class Constraint {
   public: 
     /**
+     * @brief Default constructor.
+     */
+    Constraint() {}
+
+    /**
      * @brief Constructor. 
      * 
      * Create a new constraint between a pair of atoms. 
@@ -24,7 +29,7 @@ class Constraint {
      * @param body1 
      * @param body2 
      */
-    Constraint(const Atom* const atom1, const Atom* const atom2, const Body* const body1, const Body* const body2) 
+    Constraint(const Atom* atom1, const Atom* atom2, const Body* body1, const Body* body2) 
         : atom1(atom1), atom2(atom2), body1(body1), body2(body2) {
 
         // we only want to allow constraints between the backbone C-alpha structure
@@ -63,10 +68,10 @@ class Constraint {
 
     size_t uid;              // Unique identifier for this constraint. 
     double r_base;           // The normal distance between the two atoms. 
-    const Atom* const atom1; // The first atom. 
-    const Atom* const atom2; // The second atom. 
-    const Body* const body1; // The first body.
-    const Body* const body2; // The second body.
+    const Atom* atom1; // The first atom. 
+    const Atom* atom2; // The second atom. 
+    const Body* body1; // The first body.
+    const Body* body2; // The second body.
 
     /**
      * @brief Transforms a distance into a proper constraint for least-squares fitting. 
