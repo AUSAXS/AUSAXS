@@ -15,6 +15,6 @@ void Parameters::update(unsigned int uid, Vector3 dx, double drx, double dry, do
     update(uid, Parameter(dx, drx, dry, drz));
 }
 
-const Parameters::Parameter Parameters::get(unsigned int uid) {
+const Parameter Parameters::get(unsigned int uid) {
     return params[id_to_index[uid]];
 }

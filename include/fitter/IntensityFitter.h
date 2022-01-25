@@ -34,12 +34,22 @@ class IntensityFitter : public Fitter {
      * @param q the model q values.
      * @param I the model I values. 
      */
-    IntensityFitter(string input, ScatteringHistogram& h) : h(h), xm(h.q) {setup(input);}
+    IntensityFitter(string input, const ScatteringHistogram& h) : h(h) {setup(input);}
+
+    /**
+     * @brief Constructor.
+     *        Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     * 
+     * @param input the path to the file containing the measured values. 
+     * @param q the model q values.
+     * @param I the model I values. 
+     */
+    IntensityFitter(string input, ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 
     /**
      * @brief Destructor.
      */
-    ~IntensityFitter() override {}
+    ~IntensityFitter() override = default;
 
     /**
      * @brief Perform the fit.
@@ -54,23 +64,41 @@ class IntensityFitter : public Fitter {
     //     return fitted;
     // }
 
-    vector<shared_ptr<TGraph>> plot() const;
+    /**
+     * @brief Make a plot of the fit. 
+     * 
+     * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
+     */
+    vector<shared_ptr<TGraph>> plot();
 
-    unique_ptr<TGraphErrors> plot_residuals() const;
+    /**
+     * @brief Make a residual plot of the fit.
+     * 
+     * @return A TGraphErrors with the residuals and their uncertainties. 
+     */
+    unique_ptr<TGraphErrors> plot_residuals();
+
+    /**
+     * @brief Change the scattering histogram used for the fit. 
+     */
+    void set_scattering_hist(const ScatteringHistogram& h);
+
+    /**
+     * @brief Change the scattering histogram used for the fit. 
+     */
+    void set_scattering_hist(ScatteringHistogram&& h);
 
   private: 
     shared_ptr<Fit> fitted;
-    ScatteringHistogram& h;
     vector<double> qo; // observed q values
     vector<double> Io; // observed I values
     vector<double> sigma; // error in Io
-
-    const vector<double> &xm; // full x and y data from the model
+    ScatteringHistogram h;
 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.
      */
-    double chi2(const double* params) const;
+    double chi2(const double* params);
 
     /**
      * @brief Prepare this class for fitting.

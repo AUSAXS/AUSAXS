@@ -8,23 +8,48 @@
 using std::vector;
 
 /**
+ * @brief \struct Parameter. 
+ * 
+ * A small structure for storing a single set of parameters. 
+ */
+struct Parameter {
+    /**
+     * @brief Default constructor.
+     */
+    Parameter() : dx(0, 0, 0), alpha(0), beta(0), gamma(0) {}
+
+    /**
+     * @brief Constructor.
+     * 
+     * @param dx The translation vector.
+     * @param alpha The first Euler angle.
+     * @param beta The second Euler angle.
+     * @param gamma The third Euler angle.
+     */
+    Parameter(const Vector3& dx,const double alpha, const double beta, const double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
+
+    /**
+     * @brief Get a string representation of this Parameter.
+     */
+    string to_string() const {
+        return "translation: " + dx.to_string() + ", angles: (" + std::to_string(alpha) + ", " + std::to_string(beta) + ", " + std::to_string(gamma) + ")"; 
+    }
+
+    /**
+     * @brief Output the string representation of this Parameter to a stream.
+     */
+    friend std::ostream& operator<<(std::ostream& os, const Vector3& v) {os << v.to_string(); return os;}
+
+    Vector3 dx;
+    double alpha, beta, gamma;
+};
+
+/**
  * @brief \struct Parameters.
  * 
  * A small structure for storing the current set of parameters. 
  */
 struct Parameters {
-    /**
-     * @brief \struct Parameter. 
-     * 
-     * A small structure for storing a single set of parameters. 
-     */
-    struct Parameter {
-        Parameter() : dx(0, 0, 0), rx(0), ry(0), rz(0) {}
-        Parameter(const Vector3& dx, const double& rx, const double& ry, const double& rz) : dx(dx), rx(rx), ry(ry), rz(rz) {}
-        Vector3 dx;
-        double rx, ry, rz;
-    };
-
     /**
      * @brief Constructor.
      * 

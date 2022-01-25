@@ -72,6 +72,11 @@ class ScatteringHistogram : Histogram {
      */
     vector<double> calc_debye_scattering_intensity() const;
 
+    /**
+     * @brief Assign another ScatteringHistogram to this object.
+     */
+    ScatteringHistogram& operator=(const ScatteringHistogram& h);
+
     const vector<double>& q = _q;
     const vector<double>& p_pp = _p_pp;
     const vector<double>& p_hh = _p_hh;

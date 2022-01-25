@@ -75,11 +75,6 @@ class Vector3 : public Vector {
     void compatibility_check(const Vector3&) const {}
 
     /**
-     * @brief Get a string representation of this vector. 
-     */
-    std::string to_string() const {return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";}
-
-    /**
      * @brief Normalize this vector to unit length.
      */
     Vector3 normalize() {

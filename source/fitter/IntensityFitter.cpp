@@ -49,7 +49,7 @@ shared_ptr<Fitter::Fit> IntensityFitter::fit() {
     return fitted;
 }
 
-vector<shared_ptr<TGraph>> IntensityFitter::plot() const {
+vector<shared_ptr<TGraph>> IntensityFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->params["a"];
@@ -70,12 +70,12 @@ vector<shared_ptr<TGraph>> IntensityFitter::plot() const {
     vector<double> xerr(sigma.size(), 0);
     vector<shared_ptr<TGraph>> graphs(3);
     graphs[0] = std::make_shared<TGraph>(qo.size(), &qo[0], &I_scaled[0]);
-    graphs[1] = std::make_shared<TGraph>(xm.size(), &xm[0], &ym_scaled[0]);
+    graphs[1] = std::make_shared<TGraph>(h.q.size(), &h.q[0], &ym_scaled[0]);
     graphs[2] = std::make_shared<TGraphErrors>(qo.size(), &qo[0], &Io[0], &xerr[0], &sigma[0]);
     return graphs;
 }
 
-unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() const {
+unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->params["a"];
@@ -98,7 +98,15 @@ unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() const {
     return graph;
 }
 
-double IntensityFitter::chi2(const double* params) const {
+void IntensityFitter::set_scattering_hist(ScatteringHistogram&& h) {
+    this->h = std::move(h);
+}
+
+void IntensityFitter::set_scattering_hist(const ScatteringHistogram& h) {
+    this->h = h;
+}
+
+double IntensityFitter::chi2(const double* params) {
     double c = params[0];
 
     // apply c
@@ -124,7 +132,7 @@ void IntensityFitter::setup(string file) {
 
 vector<double> IntensityFitter::splice(const vector<double>& ym) const {
     vector<double> Im = vector<double>(qo.size()); // spliced model values
-    CubicSpline s(xm, ym);
+    CubicSpline s(h.q, ym);
     for (size_t i = 0; i < qo.size(); ++i) {
         Im[i] = s.spline(qo[i]);
     }

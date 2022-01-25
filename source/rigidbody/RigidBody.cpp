@@ -17,19 +17,48 @@ void RigidBody::optimize() {
 }
 
 void RigidBody::driver(const string& measurement_path) {
-    ScatteringHistogram h(protein.get_histogram());
-    IntensityFitter fitter(measurement_path, h);
+    IntensityFitter fitter(measurement_path, protein.get_histogram());
 
     Parameters params(protein);
     double _chi2 = fitter.fit()->chi2;
 
-    for (unsigned int i = 0; i < 1000; i++) {
+    std::shared_ptr<Grid> grid = protein.get_grid();
+    for (int i = 0; i < 100; i++) {
         // select a body to be modified this iteration
         Body& body = protein.bodies[body_selector->next()];
-        Parameters::Parameter param = parameter_generator->next();
+        Parameter param = parameter_generator->next();
 
-        params.update(body.uid, param);
+        // remove the body from the grid        
+        grid->remove(&body);
+
+        // update the body to reflect the new params
+        Matrix R = Matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
         body.translate(param.dx);
+        body.rotate(R);
+
+        // add the body to the grid again
+        grid->add(&body);
+
+        // calculate the new chi2
+        fitter.set_scattering_hist(protein.get_histogram());
+        double __chi2 = fitter.fit()->chi2;
+
+        std::cout << "chi2 for new configuration: " << __chi2 << std::endl;
+
+        // if the old configuration was better
+        if (__chi2 > _chi2) {
+            grid->remove(&body);
+
+            Matrix R_inv = Matrix::rotation_matrix(-param.alpha, -param.beta, -param.gamma);
+            body.translate(-param.dx);
+            body.rotate(R_inv);
+
+            grid->add(&body);
+        } else {
+            // accept the changes
+            _chi2 = __chi2;
+            params.update(body.uid, param);
+        }
     }
 }
 

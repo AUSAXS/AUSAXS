@@ -103,7 +103,7 @@ class MutableSlice : public Slice {
     virtual ~MutableSlice() {}
 
     double& operator[](const int i);
-    const double& operator[](const int i) const;
+    const double& operator[](const int i) const override;
     MutableSlice& operator=(const Vector& v);
     MutableSlice& operator-=(const Slice& v);
     MutableSlice& operator-=(const Vector& v);
@@ -123,7 +123,7 @@ class ConstSlice : public Slice {
     ConstSlice(const vector<double>& data, const int N, const int M, const int start, const int step, const int length);
     virtual ~ConstSlice() {}
 
-    const double& operator[](const int i) const;
+    const double& operator[](const int i) const override;
 
     const vector<double>& data;
 };

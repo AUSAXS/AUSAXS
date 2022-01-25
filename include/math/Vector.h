@@ -6,6 +6,7 @@
 #include <numeric>
 #include <math.h>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <stdexcept>
 
@@ -212,15 +213,22 @@ class Vector {
     }
 
     /**
-     * @brief Format and print this Vector to the terminal.
+     * @brief Get a string representation of this Vector.
      */
-    void print(const std::string& message = "") const {
+    string to_string(const std::string& message = "") const {
         if (message != "") {std::cout << message << std::endl;}
+        std::stringstream s("(");
         for (const auto& e : data) {
-            std::cout << std::setw(8) << e << " ";
+            s << std::setw(8) << e << " ";
         }
-        std::cout << std::endl;
+        s << ")";
+        return s.str();
     }
+
+    /**
+     * @brief Output the string representation of this Vector to a stream. 
+     */
+    friend std::ostream& operator<<(std::ostream& os, const Vector& v) {os << v.to_string(); return os;}
 
     // Read-only iterator
     const std::vector<double>::const_iterator begin() const {return data.begin();}

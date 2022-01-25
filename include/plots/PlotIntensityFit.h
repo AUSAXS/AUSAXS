@@ -17,7 +17,7 @@ using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
 class PlotIntensityFit : public Plot {
   public:
-    PlotIntensityFit(const IntensityFitter& fitter) : Plot(), fitter(fitter) {}
+    PlotIntensityFit(IntensityFitter& fitter) : Plot(), fitter(fitter) {}
     ~PlotIntensityFit() override = default;
 
     void save(const std::string& path) const override {
@@ -55,5 +55,5 @@ class PlotIntensityFit : public Plot {
     }
 
   private:
-    const IntensityFitter& fitter;
+    IntensityFitter& fitter;
 };

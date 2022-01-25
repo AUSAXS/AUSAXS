@@ -17,7 +17,7 @@ using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
 class PlotIntensityFitResiduals : public Plot {
   public:
-    PlotIntensityFitResiduals(const IntensityFitter& fitter) : Plot(), fitter(fitter) {}
+    PlotIntensityFitResiduals(IntensityFitter& fitter) : Plot(), fitter(fitter) {}
     ~PlotIntensityFitResiduals() override = default;
 
     void save(const std::string& path) const override {
@@ -53,5 +53,5 @@ class PlotIntensityFitResiduals : public Plot {
     }
 
   private:
-    const IntensityFitter& fitter;
+    IntensityFitter& fitter;
 };
