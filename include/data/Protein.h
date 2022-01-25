@@ -30,7 +30,7 @@ class Protein {
      * @param bodies The constituent bodies of this protein. 
      * @param hydration_atoms The hydration layer. 
      */
-    Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Constructor.
@@ -41,7 +41,7 @@ class Protein {
      * @param protein_atoms The constituent atoms of this protein. 
      * @param hydration_atoms The hydration layer. 
      */
-    Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Constructor. 
@@ -51,7 +51,7 @@ class Protein {
      * @param protein_atoms The constituent atoms of each body. 
      * @param hydration_atoms The hydration layer. 
      */
-    Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Constructor. 
@@ -60,7 +60,7 @@ class Protein {
      * 
      * @param input A list of paths to the input files. File extensions can be mixed. 
      */
-    Protein(const vector<string>& input);
+    explicit Protein(const vector<string>& input);
 
     /**
      * @brief Constructor.
@@ -69,7 +69,7 @@ class Protein {
      * 
      * @param input Path to the input file. 
      */
-    Protein(const string& input);
+    explicit Protein(const string& input);
 
     /**
      * @brief Get the distances between each atom.

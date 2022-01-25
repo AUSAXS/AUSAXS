@@ -20,8 +20,6 @@ int main(int, char const *argv[]) {
     debug_protein protein(argv[1]);
     double acid_volume = protein.get_volume_acids();
     setting::grid::width = 0.3;
-    setting::grid::base_point = {-50, -50, -50};
-    setting::grid::bins = 500;
 
     cout << "Average radius is " << cbrt(acid_volume/protein.protein_atoms.size()) << endl;
     cout << "acid_vol: " << acid_volume << ", N: " << protein.protein_atoms.size() << endl;

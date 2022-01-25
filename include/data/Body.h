@@ -20,18 +20,26 @@ using std::vector, std::string, std::unique_ptr;
 
 class Body {
   public:
-    /** Create a new collection of atoms (body) from the input .pdb or .xml file. 
+    /**
+     * @brief Default constructor.
+     * 
+     * This is not a very efficient way of constructing a Body.
+     */
+    Body() : file(std::make_shared<File>()), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+    /** 
+     * @brief Create a new collection of atoms (body) from the input .pdb or .xml file. 
      * 
      * @param path path to the input file. 
      * @param signaller a signalling object to signal changes of state
      */
-    Body(const string& path) 
+    explicit Body(const string& path) 
         : file(std::make_shared<File>(path)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {}) 
+    explicit Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {}) 
         : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /**

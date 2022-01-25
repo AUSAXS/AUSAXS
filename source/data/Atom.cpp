@@ -156,7 +156,7 @@ string Atom::as_pdb() const {
 }
 
 /** Prints the contents of this object to the terminal. */
-void Atom::print() {
+void Atom::print() const {
     cout << "\nAtom no: " << serial << endl;
     cout << setw(17) << "(x, y, z): (" << setw(6) << coords.x << ", " << setw(6) << coords.y << ", " << setw(6) << coords.z << ")" << endl;
     cout << setw(16) << "Weight: " << std::to_string(occupancy) << endl;

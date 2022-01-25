@@ -59,6 +59,11 @@ class Vector3 : public Vector {
      */
     void rotate(const Matrix& matrix);
 
+    // /**
+    //  * @brief Get a string representation of this vector. 
+    //  */
+    // std::string to_string() const {return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")";}
+
     /**
      * @brief Output the string representation of this vector to a stream. 
      */

@@ -215,7 +215,7 @@ class Vector {
     /**
      * @brief Get a string representation of this Vector.
      */
-    string to_string(const std::string& message = "") const {
+    std::string to_string(const std::string& message = "") const {
         if (message != "") {std::cout << message << std::endl;}
         std::stringstream s("(");
         for (const auto& e : data) {

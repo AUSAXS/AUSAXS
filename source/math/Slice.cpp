@@ -18,7 +18,7 @@ Slice::operator Vector() const {
     return v;
 }
 
-void Slice::print() const {return operator Vector().print();}
+std::string Slice::to_string() const {return operator Vector().to_string();}
 
 //*** CONST & MUTABLE SLICE ***//
 MutableSlice::MutableSlice(vector<double>& data, const int N, const int M, const int start, const int step, const int length) 

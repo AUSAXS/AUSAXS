@@ -4,6 +4,7 @@ class Vector;
 
 #include <vector>
 #include <stdexcept>
+#include <iostream>
 
 using std::vector;
 
@@ -56,9 +57,14 @@ class Slice {
     virtual const double& operator[](const int j) const = 0;
 
     /**
-     * @brief Format and print the contents of this Slice to the terminal. 
+     * @brief Get a string representation of this Slice. 
      */
-    void print() const;
+    std::string to_string() const;
+
+    /**
+     * @brief Output the string representation of this vector to a stream. 
+     */
+    friend std::ostream& operator<<(std::ostream& os, const Slice& s) {os << s.to_string(); return os;}
 
     const size_t N, M;
     const int start, step, length;

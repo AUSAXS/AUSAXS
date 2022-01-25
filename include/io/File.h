@@ -27,12 +27,17 @@ using std::vector, std::string, std::unique_ptr, std::shared_ptr;
 class File {
   public: 
     /**
+     * @brief Default constructor.
+     */
+    File() {}
+
+    /**
      * @brief Constructor. 
      *        Construct a new File based on two vectors of atoms. 
      * @param protein_atoms A vector containing the constituent atoms of the molecule. 
      * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
      */
-    File(const vector<Atom> protein_atoms, const vector<Hetatom> hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
+    File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
     /**
      * @brief Constructor.

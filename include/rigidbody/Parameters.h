@@ -38,7 +38,7 @@ struct Parameter {
     /**
      * @brief Output the string representation of this Parameter to a stream.
      */
-    friend std::ostream& operator<<(std::ostream& os, const Vector3& v) {os << v.to_string(); return os;}
+    friend std::ostream& operator<<(std::ostream& os, const Parameter& p) {os << p.to_string(); return os;}
 
     Vector3 dx;
     double alpha, beta, gamma;

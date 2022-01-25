@@ -27,11 +27,11 @@ class ParameterGenerationStrategy {
      */
     virtual ~ParameterGenerationStrategy() = default;
 
-    Parameters::Parameter next() {
+    Parameter next() {
       auto[rx, ry, rz] = get_rotation();
       Vector3 x = get_translation();
       iteration++;
-      return Parameters::Parameter(x, rx, ry, rz);
+      return Parameter(x, rx, ry, rz);
     }
 
   protected:

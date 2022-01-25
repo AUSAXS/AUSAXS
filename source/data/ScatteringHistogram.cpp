@@ -127,4 +127,5 @@ ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h
     _p_hp = h.p_hp;
     _q = h.q;
     _d = h._d;
+    return *this;
 }

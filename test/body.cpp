@@ -7,6 +7,7 @@
 #include "hydrate/Grid.h"
 #include "constants.h"
 #include "data/StateManager.h"
+#include "data/BodySplitter.h"
 
 #include "catch2/catch.hpp"
 
@@ -250,4 +251,23 @@ TEST_CASE("grid_add_remove_bodies", "[body]") {
     REQUIRE(grid->volume != 0);
     grid->remove(&b4);
     REQUIRE(grid->volume == 0);
+}
+
+TEST_CASE("split_body", "[body]") {
+    vector<int> splits = {9, 99};
+    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+
+    // check sizes
+    REQUIRE(protein.bodies.size() == 3);
+    Body &b1 = protein.bodies[0], &b2 = protein.bodies[1], &b3 = protein.bodies[2];
+
+    REQUIRE(b1.protein_atoms.size() == 136);
+    REQUIRE(b2.protein_atoms.size() == 812-136);
+    REQUIRE(b3.protein_atoms.size() == 1606-812);
+
+    // check start and end resseq
+    CHECK(b1.protein_atoms.back().resSeq == 8);
+    CHECK(b2.protein_atoms[0].resSeq == 9);
+    CHECK(b2.protein_atoms.back().resSeq == 98);
+    CHECK(b3.protein_atoms[0].resSeq == 99);
 }

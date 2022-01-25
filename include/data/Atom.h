@@ -65,7 +65,7 @@ class Atom : public Record {
     /** 
      * @brief Prints the contents of this object to the terminal. (NOT FULLY IMPLEMENTED!)
      */
-    void print();
+    void print() const;
 
     /** 
      * @brief Move this atom by a vector.

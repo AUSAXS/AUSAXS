@@ -278,9 +278,9 @@ double Body::get_mass() const {
 }
 
 Body& Body::operator=(const Body& rhs) {
-    protein_atoms = rhs.protein_atoms;
-    hydration_atoms = rhs.hydration_atoms;
     file = rhs.file;
+    protein_atoms = file->protein_atoms;
+    hydration_atoms = file->hydration_atoms;
     grid = rhs.grid;
     histogram = rhs.histogram;
     uid = rhs.uid;
