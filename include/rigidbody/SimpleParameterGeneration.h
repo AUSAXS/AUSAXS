@@ -13,7 +13,7 @@ class SimpleParameterGeneration : public ParameterGenerationStrategy {
      * @param length_start The start length of the generated translation vectors. 
      * @param rad_start The start angle in radians of the generated rotations. 
      */
-    SimpleParameterGeneration(const int& iterations, const double& length_start, const double& rad_start) : ParameterGenerationStrategy(iterations, length_start, rad_start) {}
+    SimpleParameterGeneration(const int iterations, const double length_start, const double rad_start) : ParameterGenerationStrategy(iterations, length_start, rad_start) {}
 
     /**
      * @brief Destructor.
@@ -30,6 +30,7 @@ class SimpleParameterGeneration : public ParameterGenerationStrategy {
         double dr1 = rotation_dist(generator)*scaling;
         double dr2 = rotation_dist(generator)*scaling;
         double dr3 = rotation_dist(generator)*scaling;
+        return std::tuple(dr1, dr2, dr3);
     }
 
     Vector3 get_translation() override {       
@@ -38,5 +39,6 @@ class SimpleParameterGeneration : public ParameterGenerationStrategy {
         double dx = translation_dist(generator)*scaling;
         double dy = translation_dist(generator)*scaling;
         double dz = translation_dist(generator)*scaling;
+        return Vector3(dx, dy, dz);
     }
 };

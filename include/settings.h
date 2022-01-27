@@ -47,6 +47,16 @@ namespace setting {
         extern double q_high; // Upper limit on the used q-values
     }
 
+    namespace rigidbody {
+        enum TransformationStrategyChoice {RigidTransform};
+        enum ParameterGenerationStrategyChoice {Simple};
+        enum BodySelectStrategyChoice {RandomSelect, SequentialSelect};
+
+        extern TransformationStrategyChoice tsc;
+        extern ParameterGenerationStrategyChoice pgsc;
+        extern BodySelectStrategyChoice bssc;
+    }
+
     // Simple reader for reading settings from a text file
     class reader {
         static void read(const string path);

@@ -122,7 +122,7 @@ TEST_CASE("xml input", "[broken],[io]") {
  * @brief Load and copy each file in the data/ folder, and then compare the two files line-by-line.
  *        This is probably one of the strongest tests we can make for i/o
  */
-TEST_CASE("real_data", "[io]") {
+TEST_CASE("real_data", "[io],[files]") {
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
         if (file.path() == "data/6yg9.pdb") { // skip this file since it contains OQ5 ligands which we can't deal with yet
             cout << "Skipped 6yg9.pdb" << endl;

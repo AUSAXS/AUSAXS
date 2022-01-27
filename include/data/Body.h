@@ -113,7 +113,7 @@ class Body {
     /**
      * @brief Create a grid and fill it with the atoms of this body. 
      */
-    void create_grid();
+    shared_ptr<Grid> create_grid();
 
     /**
      * @brief Center this Body on origo. 

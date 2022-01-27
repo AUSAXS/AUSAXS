@@ -145,6 +145,11 @@ class Protein {
      */
     vector<Hetatom> get_hydration_atoms() const;
 
+    /**
+     * @brief Create a grid and fill it with the atoms of this protein. 
+     */
+    shared_ptr<Grid> create_grid();
+
     vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
     vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
@@ -159,11 +164,6 @@ class Protein {
      * @param v the translation vector.
      */
     void translate(const Vector3& v);
-
-    /**
-     * @brief Create a grid and fill it with the atoms of this protein. 
-     */
-    void create_grid();
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 

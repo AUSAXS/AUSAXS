@@ -34,13 +34,19 @@ namespace setting {
     }
 
     namespace axes {
-        double scattering_intensity_plot_binned_width = 1;
+        double scattering_intensity_plot_binned_width = 0.1;
         Axis scattering_intensity_plot_axis = {1000, 0.001, 1.001};
     }
 
     namespace fit {
         double q_low = 0; // lower limit on the q value
         double q_high = 1000; // upper limit on the q value
+    }
+
+    namespace rigidbody {
+        TransformationStrategyChoice tsc = RigidTransform;
+        ParameterGenerationStrategyChoice pgsc = Simple;
+        BodySelectStrategyChoice bssc = RandomSelect;
     }
 }
 

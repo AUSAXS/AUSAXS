@@ -38,7 +38,7 @@ class TransformationStrategy {
      * @param length The distance to translate. 
      * @param body The body being translated. 
      */
-    virtual void translate(const double& length, Constraint& constraint) = 0;
+    virtual void translate(const double length, Constraint& constraint) = 0;
 
     /**
      * @brief Get all bodies connected by constraints to the first body of the pivot. 

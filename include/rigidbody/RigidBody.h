@@ -18,12 +18,12 @@ class RigidBody {
      * 
      * @param protein The protein to be optimized. 
      */
-    RigidBody(Protein& protein) : protein(protein) {}
+    explicit RigidBody(Protein& protein);
 
     /**
      * @brief Perform a rigid-body optimization for this structure. 
      */
-    void optimize();
+    void optimize(const string& measurement_path);
 
     /**
      * @brief Add a constraint to this rigid body. 
@@ -61,8 +61,6 @@ class RigidBody {
     std::unique_ptr<BodySelectStrategy> body_selector;
     std::unique_ptr<TransformationStrategy> transform;
     std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
-
-    void driver(const string& measurement_path);
 
     /**
      * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 

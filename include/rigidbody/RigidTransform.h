@@ -46,7 +46,7 @@ class RigidTransform : public TransformationStrategy {
      * @param v The translation vector. 
      * @param constraint The constraint.
      */
-    void translate(const double& length, Constraint& constraint) override {
+    void translate(const double length, Constraint& constraint) override {
         vector<Body*> bodies = get_connected(constraint);
 
         Vector3 r = constraint.atom1->coords - constraint.atom2->coords;

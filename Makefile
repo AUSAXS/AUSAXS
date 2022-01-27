@@ -3,7 +3,6 @@ pymol := pymol
 
 cmake_threads := 6
 
-test_files := $(basename $(shell find source/tests/ -maxdepth 1 -name "*.cpp" -printf "%P "))
 source_files := $(addprefix source/, $(shell find source/ -type f -not -wholename "source/tests/*" -printf "%P "))
 
 #################################################################################
@@ -33,7 +32,10 @@ main/%: build/source/scripts/main
 
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
-	
+
+rigidbody/%: build/source/scripts/rigidbody_opt
+	$< data/$*.pdb data/$*.RSR figures/
+
 qlow := 0
 qhigh := 1000
 center := center
@@ -62,14 +64,14 @@ build/source/tests/%: $(shell find source/ -print) build/Makefile
 .PHONY: build
 build: 
 	@ mkdir -p build; 
-	@ cd build; cmake ../ -j${cmake_threads}
+	@ cd build; cmake ../
 
 build/%: $(source_files) build/Makefile
 	@ cmake --build build/ --target $(*F) -j${cmake_threads}
 	
 build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
 	@ mkdir -p build
-	@ cd build; cmake ../ -j${cmake_threads}
+	@ cd build; cmake ../
 	
 clean/build: 
 	@ rmdir -f build

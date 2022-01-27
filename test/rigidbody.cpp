@@ -1,5 +1,6 @@
 #include "rigidbody/RigidTransform.h"
 #include "rigidbody/RigidBody.h"
+#include "fitter/IntensityFitter.h"
 #include "data/Protein.h"
 
 #include "catch2/catch.hpp"
@@ -64,4 +65,16 @@ TEST_CASE("Constraints", "[rigidbody]") {
         group = transform.get_connected(constraint3);
         REQUIRE(group.size() == 4);
     }
+}
+
+TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
+    Protein protein("data/2epe.pdb");
+    protein.generate_new_hydration();
+    IntensityFitter fitter("data/2epe.RSR", protein.get_histogram());
+    double chi2 = fitter.fit()->chi2;
+
+    protein.generate_new_hydration();
+    fitter.set_scattering_hist(protein.get_histogram());
+    double _chi2 = fitter.fit()->chi2;
+    REQUIRE(chi2 == Approx(_chi2));
 }

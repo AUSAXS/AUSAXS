@@ -1,5 +1,10 @@
 #include "rigidbody/RigidBody.h"
 #include "rigidbody/Parameters.h"
+#include "rigidbody/RigidTransform.h"
+#include "rigidbody/SequentialSelect.h"
+#include "rigidbody/SimpleParameterGeneration.h"
+#include "rigidbody/RandomSelect.h"
+#include "Exceptions.h"
 
 #include <random>
 
@@ -7,20 +12,45 @@
 #include <Math/Factory.h>
 #include <Math/Functor.h>
 
-void RigidBody::optimize() {
-    // ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS");
-    // auto f = std::bind(&RigidBody::chi2, this, std::placeholders::_1);
-    // ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
-    // minimizer->SetFunction(functor);
-    // minimizer->SetLimitedVariable(0, "c", 5, 1e-4, 0, 100); // scaling factor
-    // minimizer->Minimize();
+RigidBody::RigidBody(Protein& protein) : protein(protein) {
+    // Set body transformation strategy
+    switch (setting::rigidbody::tsc) {
+        case setting::rigidbody::RigidTransform:
+            transform = std::make_unique<RigidTransform>(this); 
+            break;
+        default: 
+            throw except::unknown_argument("Error in RigidBody::RigidBody: Unkown TransformationStrategy.");
+    }
+
+    // Set parameter generation strategy
+    switch (setting::rigidbody::pgsc) {
+        case setting::rigidbody::Simple:
+            parameter_generator = std::make_unique<SimpleParameterGeneration>(1000, 5, M_PI/3);
+            break;
+        default: 
+            throw except::unknown_argument("Error in RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
+    }
+
+    // Set body selection strategy
+    switch (setting::rigidbody::bssc) {
+        case setting::rigidbody::RandomSelect:
+            body_selector = std::make_unique<RandomSelect>(protein);
+            break;
+        case setting::rigidbody::SequentialSelect:
+            body_selector = std::make_unique<SequentialSelect>(protein);
+            break;
+        default: 
+            throw except::unknown_argument("Error in RigidBody::RigidBody: Unknown BodySelectStrategy.");
+    }
 }
 
-void RigidBody::driver(const string& measurement_path) {
+void RigidBody::optimize(const string& measurement_path) {
     IntensityFitter fitter(measurement_path, protein.get_histogram());
 
     Parameters params(protein);
     double _chi2 = fitter.fit()->chi2;
+
+    std::cout << "Initial chi2: " << _chi2 << std::endl;
 
     std::shared_ptr<Grid> grid = protein.get_grid();
     for (int i = 0; i < 100; i++) {
@@ -33,11 +63,12 @@ void RigidBody::driver(const string& measurement_path) {
 
         // update the body to reflect the new params
         Matrix R = Matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        body.translate(param.dx);
-        body.rotate(R);
+        // body.translate(param.dx);
+        // body.rotate(R);
 
         // add the body to the grid again
         grid->add(&body);
+        protein.generate_new_hydration();
 
         // calculate the new chi2
         fitter.set_scattering_hist(protein.get_histogram());
@@ -50,8 +81,8 @@ void RigidBody::driver(const string& measurement_path) {
             grid->remove(&body);
 
             Matrix R_inv = Matrix::rotation_matrix(-param.alpha, -param.beta, -param.gamma);
-            body.translate(-param.dx);
-            body.rotate(R_inv);
+            // body.translate(-param.dx);
+            // body.rotate(R_inv);
 
             grid->add(&body);
         } else {

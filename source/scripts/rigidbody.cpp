@@ -9,6 +9,7 @@
 #include "plots/PlotIntensityFit.h"
 #include "plots/PlotIntensityFitResiduals.h"
 #include "rigidbody/RigidBody.h"
+#include "data/BodySplitter.h"
 #include "CLI11.hpp"
 
 using std::cout, std::endl;
@@ -37,24 +38,10 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
 
-    Protein protein(input_structure);
+    vector<int> splits = {9, 99};
+    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
     RigidBody body(protein);
 
-    protein.generate_new_hydration();
-    ScatteringHistogram h = protein.get_histogram();
-
-    IntensityFitter fitter(input_measurement, h);
-    std::shared_ptr<Fitter::Fit> result = fitter.fit();
-
-    // Fit plot
-    PlotIntensityFit plot_f(fitter);
-    plot_f.save(output + "intensity_fit." + setting::figures::format);
-
-    // Residual plot
-    PlotIntensityFitResiduals plot_r(fitter);
-    plot_r.save(output + "residuals." + setting::figures::format);
-
-    result->print();
-    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
+    body.optimize(input_measurement);
     return 0;
 }

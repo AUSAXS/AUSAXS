@@ -124,8 +124,7 @@ void Body::generate_new_hydration() {
 }
 
 shared_ptr<Grid> Body::get_grid() {
-    if (grid == nullptr) {create_grid();}
-    return grid;
+    return grid == nullptr ? create_grid() : grid;
 }
 
 void Body::generate_volume_file(const string& path) {
@@ -187,11 +186,12 @@ double Body::get_volume_grid() {
     return grid->get_volume();
 }
 
-void Body::create_grid() {
+shared_ptr<Grid> Body::create_grid() {
     Axis3D axes(setting::grid::axes, setting::grid::width);
     grid = std::make_shared<Grid>(axes, setting::grid::width); 
     grid->add(protein_atoms);
     // grid->add(hydration_atoms);
+    return grid;
 }
 
 shared_ptr<ScatteringHistogram> Body::get_histogram() {

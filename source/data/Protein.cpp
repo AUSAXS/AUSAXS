@@ -63,13 +63,14 @@ double Protein::get_volume_grid() {
     return grid->get_volume();
 }
 
-void Protein::create_grid() {
+shared_ptr<Grid> Protein::create_grid() {
     Axis3D axes(setting::grid::axes, setting::grid::width);
     grid = std::make_shared<Grid>(axes, setting::grid::width); 
     for (auto const& body : bodies) {
         grid->add(body.protein_atoms);
         // grid->add(body.hydration_atoms);
     }
+    return grid;
 }
 
 vector<Atom> Protein::get_protein_atoms() const {
@@ -144,8 +145,7 @@ Histogram Protein::get_total_histogram() const {
 }
 
 shared_ptr<Grid> Protein::get_grid() {
-    if (grid == nullptr) {create_grid();}
-    return grid;
+    return grid == nullptr ? create_grid() : grid;
 }
 
 void Protein::update_effective_charge() { 

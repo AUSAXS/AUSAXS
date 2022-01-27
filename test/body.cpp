@@ -11,23 +11,6 @@
 
 #include "catch2/catch.hpp"
 
-void create_test_file() {
-    std::ofstream file("temp.pdb");
-    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-    file << "ATOM      1  C   LYS A   1          -1      -1      -1  1.00 00.00           C \n"
-         << "ATOM      2  C   LYS A   1          -1       1      -1  1.00 00.00           C \n"
-         << "ATOM      3  C   LYS A   1           1      -1      -1  1.00 00.00           C \n"
-         << "ATOM      4  C   LYS A   1           1       1      -1  1.00 00.00           C \n"
-
-         << "ATOM      5  C   LYS A   1          -1      -1       1  1.00 00.00           C \n"
-         << "ATOM      6  C   LYS A   1          -1       1       1  1.00 00.00           C \n"
-         << "ATOM      7  C   LYS A   1           1      -1       1  1.00 00.00           C \n"
-         << "ATOM      8  C   LYS A   1           1       1       1  1.00 00.00           C \n"
-
-         << "ATOM      9  C   LYS A   1           0       0       0  1.00 00.00           C  ";
-    file.close();
-}
-
 // Test that the histograms are correct for proteins with only atoms (no waters)
 TEST_CASE("body_histogram", "[body]") {
     SECTION("atoms_only") {
@@ -253,7 +236,7 @@ TEST_CASE("grid_add_remove_bodies", "[body]") {
     REQUIRE(grid->volume == 0);
 }
 
-TEST_CASE("split_body", "[body]") {
+TEST_CASE("split_body", "[body],[files]") {
     vector<int> splits = {9, 99};
     Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
 
@@ -272,7 +255,7 @@ TEST_CASE("split_body", "[body]") {
     CHECK(b3.protein_atoms[0].resSeq == 99);
 }
 
-TEST_CASE("generate_sequential_constraints", "[body]") {
+TEST_CASE("generate_sequential_constraints", "[body],[files]") {
     vector<int> splits = {9, 99};
     Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
     vector<Constraint> constraints = BodySplitter::sequential_constraints(protein);

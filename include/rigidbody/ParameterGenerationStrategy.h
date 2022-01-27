@@ -15,7 +15,7 @@ class ParameterGenerationStrategy {
      * @param length_start The start length of the generated translation vectors. 
      * @param rad_start The start angle in radians of the generated rotations. 
      */
-    ParameterGenerationStrategy(const int& iterations, const double& length_start, const double& rad_start) : iterations(iterations) {
+    ParameterGenerationStrategy(const int iterations, const double length_start, const double rad_start) : iterations(iterations) {
       std::random_device random;
       generator = std::mt19937(random());
       translation_dist = std::uniform_int_distribution<int>(-length_start, length_start);
