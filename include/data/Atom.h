@@ -138,14 +138,34 @@ class Atom : public Record {
 
     /**
      * @brief Equality operator to determine if two atoms are equal.
-     *        Note that this is a @a content comparator, and thus determines if two atoms are equal based on their contents. 
+     *        Note that this compares their unique object identifier which is generated at object creation, completely disregarding
+     *        their contents. Unless a deliberate attempt at desyncing the id from the contents were made, equality of content follows
+     *        from equality of id. 
      * @param rhs Atom to compare against. 
      */
     bool operator==(const Atom& rhs) const;
 
     /**
-     * @brief Inequality operator to determine if two atoms are equal. 
+     * @brief Equality operator to determine if two atoms are equal.
      *        Note that this is a @a content comparator, and thus determines if two atoms are equal based on their contents. 
+     * @param rhs Atom to compare against. 
+     */
+    bool equals_content(const Atom& rhs) const;
+
+    /**
+     * @brief Equality operator to determine if two atoms are equal.
+     *        Note that this compares their unique object identifier which is generated at object creation, completely disregarding
+     *        their contents. Unless a deliberate attempt at desyncing the id from the contents were made, equality of content follows
+     *        from equality of id. 
+     * @param rhs Atom to compare against. 
+     */
+    bool equals(const Atom& rhs) const;
+
+    /**
+     * @brief Inequality operator to determine if two atoms are not equal.
+     *        Note that this compares their unique object identifier which is generated at object creation, completely disregarding
+     *        their contents. Unless a deliberate attempt at desyncing the id from the contents were made, inequality of content follows
+     *        from inequality of id. 
      * @param rhs Atom to compare against. 
      */
     bool operator!=(const Atom& rhs) const {return !operator==(rhs);}

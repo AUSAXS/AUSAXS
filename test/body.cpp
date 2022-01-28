@@ -13,6 +13,7 @@
 
 // Test that the histograms are correct for proteins with only atoms (no waters)
 TEST_CASE("body_histogram", "[body]") {
+    setting::axes::scattering_intensity_plot_binned_width = 1;
     SECTION("atoms_only") {
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
         vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),

@@ -1,5 +1,6 @@
 #include "rigidbody/RigidTransform.h"
 #include "rigidbody/RigidBody.h"
+#include "data/BodySplitter.h"
 #include "fitter/IntensityFitter.h"
 #include "data/Protein.h"
 
@@ -77,4 +78,15 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     fitter.set_scattering_hist(protein.get_histogram());
     double _chi2 = fitter.fit()->chi2;
     REQUIRE(chi2 == Approx(_chi2));
+}
+
+TEST_CASE("rigidbody_opt", "[rigidbody],[files]") {
+    vector<int> splits = {9, 99};
+    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    RigidBody body(protein);
+    body.generate_new_hydration();
+
+    IntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
+    double _chi2 = fitter.fit()->chi2;
+    std::cout << "Initial chi2: " << _chi2 << std::endl;
 }

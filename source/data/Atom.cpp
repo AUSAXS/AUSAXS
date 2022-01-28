@@ -173,6 +173,27 @@ bool Atom::operator==(const Atom& rhs) const {
     return uid == rhs.uid;
 }
 
+bool Atom::equals(const Atom& rhs) const {
+    return operator==(rhs);
+}
+
+bool Atom::equals_content(const Atom& rhs) const {
+    if (name != rhs.name) {std::cout << "NAME" << std::endl; return false;}
+    if (altLoc != rhs.altLoc) {std::cout << "ALTLOC" << std::endl;return false;}
+    if (resName != rhs.resName) {std::cout << "RESNAME" << std::endl;return false;}
+    if (chainID != rhs.chainID) {std::cout << "CHAINID" << std::endl;return false;}
+    if (iCode != rhs.iCode) {std::cout << "ICODE" << std::endl;return false;}
+    if (element != rhs.element) {std::cout << "ELEMENT" << std::endl;return false;}
+    if (charge != rhs.charge) {std::cout << "CHARGE" << std::endl;return false;}
+    if (occupancy != rhs.occupancy) {std::cout << "OCCUPANCY" << std::endl;return false;}
+    if (tempFactor != rhs.tempFactor) {std::cout << "TEMPFACTOR" << std::endl;return false;}
+    if (serial != rhs.serial) {std::cout << "SERIAL" << std::endl;return false;}
+    if (resSeq != rhs.resSeq) {std::cout << "RESSEQ" << std::endl;return false;}
+    if (coords != rhs.coords) {std::cout << "COORDS" << std::endl;return false;}
+    if (effective_charge != rhs.effective_charge) {std::cout << "EFFECTIVECHARGE" << std::endl;return false;}
+    return true;
+}
+
 Atom& Atom::operator=(const Atom& rhs) {
     _name = rhs.name; 
     _altLoc = rhs.altLoc; 

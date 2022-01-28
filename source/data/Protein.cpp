@@ -21,6 +21,7 @@ Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom
 
 Protein::Protein(const string& input) {
     bodies = {Body(input)};
+    hydration_atoms = bodies[0].hydration_atoms;
     phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
 }
 

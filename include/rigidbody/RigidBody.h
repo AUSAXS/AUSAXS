@@ -54,6 +54,11 @@ class RigidBody {
      */
     void create_constraint(const Atom& atom1, const Atom& atom2, const Body& body1, const Body& body2);
 
+    /**
+     * @brief Generate a new hydration layer.
+     */
+    void generate_new_hydration();
+
     Protein& protein;
     std::vector<Constraint> constraints;
 

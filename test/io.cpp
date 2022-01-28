@@ -28,12 +28,20 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         }
 
         // since a value of 5.90 is converted to 5.9 in the new file, we must manually compare entries where this can happen
-        Record::RecordType type = Record::get_type(l1.substr(0, 6)); 
-        if (type == Record::ATOM || type == Record::HETATM) { 
+        Record::RecordType type1 = Record::get_type(l1.substr(0, 6)); 
+        Record::RecordType type2 = Record::get_type(l2.substr(0, 6)); 
+        if (type1 != type2) {
+            print_err("File ended prematurely.");
+            return false;
+        }
+        if (type1 == Record::ATOM || type1 == Record::HETATM) { 
             a1.parse_pdb(l1);
             a2.parse_pdb(l2);
-            if (!(a1 == a2)) {
-                print_err("File comparison failed for \"" + p1 + "\" on lines");
+
+            // equality of atoms is based on their unique ID which is generated at object creation. Thus this will never be equal with this approach.
+            // instead we must compare their contents. 
+            if (!a1.equals_content(a2)) {
+                print_err("File atom comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
@@ -42,7 +50,7 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         // otherwise we just compare the lines themselves
         else {
             if (l1 != l2) {
-                print_err("File comparison failed for \"" + p1 + "\" on lines");
+                print_err("File line comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }

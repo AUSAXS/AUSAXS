@@ -17,6 +17,7 @@ bool approx(double v1, double v2) {
 }
 
 TEST_CASE("histogram", "[protein]") {
+    setting::axes::scattering_intensity_plot_binned_width = 1;
     SECTION("atoms only") {
     //*** TEST ATOMS ***//
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle

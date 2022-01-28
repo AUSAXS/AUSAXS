@@ -6,6 +6,7 @@
 #include "data/Hetatom.h"
 
 #include <fstream>
+#include <algorithm>
 
 void PDBWriter::write(const string& output_path) {
     file->refresh();
@@ -21,17 +22,21 @@ string PDBWriter::as_pdb() const {
     string s;
     s += f.header.get();
 
-    size_t i_ter = f.terminate.serial;
+    unsigned int i_ter = f.terminate.serial;
     bool printed_ter = false;
-    for (size_t i = 0; i < f.protein_atoms.size(); i++) {
+    for (unsigned int i = 0; i < f.protein_atoms.size(); i++) {
         if (i == i_ter) { // check if this is where the terminate is supposed to go
             s += f.terminate.as_pdb(); // write it if so
             printed_ter = true;
         }
         s += f.protein_atoms[i].as_pdb();
     }
+
+    // print terminate if missing
     if (!printed_ter) {s += f.terminate.as_pdb();}
-    for (size_t i = 0; i < f.hydration_atoms.size(); i++) {s += f.hydration_atoms[i].as_pdb();}
+
+    // print hetatoms
+    std::for_each(f.hydration_atoms.begin(), f.hydration_atoms.end(), [&s] (const Hetatom& atom) {s += atom.as_pdb();});
 
     s += f.footer.get();
     return s;

@@ -45,19 +45,21 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 }
 
 void RigidBody::optimize(const string& measurement_path) {
+    generate_new_hydration();
     IntensityFitter fitter(measurement_path, protein.get_histogram());
-
-    Parameters params(protein);
     double _chi2 = fitter.fit()->chi2;
 
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 
+    Parameters params(protein);
     std::shared_ptr<Grid> grid = protein.get_grid();
     for (int i = 0; i < 100; i++) {
+        std::cout << "1" << std::endl;
         // select a body to be modified this iteration
         Body& body = protein.bodies[body_selector->next()];
         Parameter param = parameter_generator->next();
 
+        std::cout << "2" << std::endl;
         // remove the body from the grid        
         grid->remove(&body);
 
@@ -67,17 +69,21 @@ void RigidBody::optimize(const string& measurement_path) {
         // body.rotate(R);
 
         // add the body to the grid again
+        std::cout << "3" << std::endl;
         grid->add(&body);
         protein.generate_new_hydration();
 
         // calculate the new chi2
+        std::cout << "4" << std::endl;
         fitter.set_scattering_hist(protein.get_histogram());
         double __chi2 = fitter.fit()->chi2;
 
         std::cout << "chi2 for new configuration: " << __chi2 << std::endl;
 
+        std::cout << "5" << std::endl;
         // if the old configuration was better
         if (__chi2 > _chi2) {
+            std::cout << "6a" << std::endl;
             grid->remove(&body);
 
             Matrix R_inv = Matrix::rotation_matrix(-param.alpha, -param.beta, -param.gamma);
@@ -86,11 +92,17 @@ void RigidBody::optimize(const string& measurement_path) {
 
             grid->add(&body);
         } else {
+            std::cout << "6b" << std::endl;
             // accept the changes
             _chi2 = __chi2;
             params.update(body.uid, param);
         }
+        std::cout << "7" << std::endl;
     }
+}
+
+void RigidBody::generate_new_hydration() {
+    protein.generate_new_hydration();
 }
 
 void RigidBody::add_constraint(const Constraint& constraint) {
