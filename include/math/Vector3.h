@@ -13,7 +13,7 @@ class Vector3 : public Vector {
     Vector3() : Vector(3) {} // default empty constructor
     Vector3(const std::initializer_list<double> l) : Vector(l) {} // initializer list {a, b, c, d}
     Vector3(const Vector& v) : Vector(v) {}
-    Vector3(const double x, const double y, const double z) : Vector({x, y, z}) {}
+    Vector3(double x, double y, double z) : Vector({x, y, z}) {}
     ~Vector3() override {}
 
     /**
@@ -50,7 +50,7 @@ class Vector3 : public Vector {
      * @param axis The rotation axis. 
      * @param angle The angle to rotate. 
      */
-    void rotate(const Vector3& axis, const double angle);
+    void rotate(const Vector3& axis, double angle);
 
     /**
      * @brief Rotate this vector by a rotation matrix.

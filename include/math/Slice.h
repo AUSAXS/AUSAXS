@@ -26,7 +26,7 @@ class Slice {
      * @param step The number of elements to skip between each index in the raw data array. 
      * @param length The total number of elements this Slice can access. 
      */
-    Slice(const int N, const int M, const int start, const int step, const int length) 
+    Slice(int N, int M, int start, int step, int length) 
         : N(N), M(M), start(start), step(step), length(length) {}
 
     /**
@@ -54,7 +54,7 @@ class Slice {
      * 
      * @param j The index to access.
      */
-    virtual const double& operator[](const int j) const = 0;
+    virtual const double& operator[](int j) const = 0;
 
     /**
      * @brief Get a string representation of this Slice. 
@@ -67,7 +67,7 @@ class Slice {
     friend std::ostream& operator<<(std::ostream& os, const Slice& s) {os << s.to_string(); return os;}
 
     const size_t N, M;
-    const int start, step, length;
+    int start, step, length;
 };
 
 // Add a Vector to this Slice. 
@@ -94,7 +94,7 @@ class VectorSlice : public Slice {
     VectorSlice(const vector<double>& data);
     virtual ~VectorSlice() {}
 
-    double& operator[](const int i);
+    double& operator[](int i);
     const vector<double>& data;
 };
 
@@ -105,11 +105,11 @@ class VectorSlice : public Slice {
  */
 class MutableSlice : public Slice {
   public:
-    MutableSlice(vector<double>& data, const int N, const int M, const int start, const int step, const int length);
+    MutableSlice(vector<double>& data, int N, int M, int start, int step, int length);
     virtual ~MutableSlice() {}
 
-    double& operator[](const int i);
-    const double& operator[](const int i) const override;
+    double& operator[](int i);
+    const double& operator[](int i) const override;
     MutableSlice& operator=(const Vector& v);
     MutableSlice& operator-=(const Slice& v);
     MutableSlice& operator-=(const Vector& v);
@@ -126,29 +126,29 @@ class MutableSlice : public Slice {
  */
 class ConstSlice : public Slice {
   public:
-    ConstSlice(const vector<double>& data, const int N, const int M, const int start, const int step, const int length);
+    ConstSlice(const vector<double>& data, int N, int M, int start, int step, int length);
     virtual ~ConstSlice() {}
 
-    const double& operator[](const int i) const override;
+    const double& operator[](int i) const override;
 
     const vector<double>& data;
 };
 
 class ConstRow : public ConstSlice {
   public: 
-    ConstRow(const vector<double>& data, const int N, const int M, const int row);
+    ConstRow(const vector<double>& data, int N, int M, int row);
     ConstRow(const ConstSlice& s) : ConstSlice(std::move(s)) {}
 };
 
 class ConstColumn : public ConstSlice {
   public: 
-    ConstColumn(const vector<double>& data, const int N, const int M, const int col);
+    ConstColumn(const vector<double>& data, int N, int M, int col);
     ConstColumn(const ConstSlice& s) : ConstSlice(std::move(s)) {}
 };
 
 class Row : public MutableSlice {
   public: 
-    Row(vector<double>& data, const int N, const int M, const int row);
+    Row(vector<double>& data, int N, int M, int row);
     Row(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
     Row& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
@@ -169,7 +169,7 @@ class Row : public MutableSlice {
 
 class Column : public MutableSlice {
   public: 
-    Column(vector<double>& data, const int N, const int M, const int col);
+    Column(vector<double>& data, int N, int M, int col);
     Column(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
     Column& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}

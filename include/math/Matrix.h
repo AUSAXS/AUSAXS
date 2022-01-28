@@ -11,6 +11,8 @@
 #include "Slice.h"
 #include "Vector.h"
 
+class Vector3;
+
 class Matrix {
     friend class Row;
     friend class Column;
@@ -47,7 +49,7 @@ class Matrix {
     /**
      * @brief Construct an empty Matrix of a given size. 
      */
-    Matrix(const int n, const int m) : _N(n), _M(m), _data(N*M) {} 
+    Matrix(int n, int m) : _N(n), _M(m), _data(N*M) {} 
 
     /**
      * @brief Default constructor.
@@ -62,7 +64,7 @@ class Matrix {
     /**
      * @brief Get the identity matrix of a given dimension. 
      */
-    static Matrix identity(const int dim) {
+    static Matrix identity(int dim) {
         Matrix A(dim, dim);
         for (int i = 0; i < dim; i++) {
             A[i][i] = 1;
@@ -101,14 +103,14 @@ class Matrix {
     }
 
     // Scalar multiplication, B*a
-    Matrix operator*(const double a) const {
+    Matrix operator*(double a) const {
         Matrix A(N, M);
         std::transform(begin(), end(), A.begin(), [&a] (const double& e) {return e*a;});
         return A;
     }
 
     // Scalar division, B/a
-    Matrix operator/(const double a) const {
+    Matrix operator/(double a) const {
         Matrix A(N, M);
         std::transform(begin(), end(), A.begin(), [&a] (const double& e) {return e/a;});
         return A;
@@ -160,29 +162,25 @@ class Matrix {
     }
 
     // Read-only indexer
-    const ConstRow operator[](const int i) const;
+    const ConstRow operator[](int i) const;
 
     // Read-only column indexer
-    const ConstColumn col(const int j) const;
+    const ConstColumn col(int j) const;
 
     // Read-only row indexer
-    const ConstRow row(const int i) const;
+    const ConstRow row(int i) const;
     
     // Read-write indexer
-    Row operator[](const int i);
+    Row operator[](int i);
 
     // Read-write row indexer
-    Row row(const int i);
+    Row row(int i);
 
     // Read-write column indexer
-    Column col(const int j);
+    Column col(int j);
 
     // Approximate equality, B ~ A
-    bool operator==(const Matrix& A) const {
-        compatibility_check(A);
-        Matrix diff = operator-(A); // difference matrix
-        return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, double x) {return sum + abs(x);}) < precision;
-    }
+    bool operator==(const Matrix& A) const;
 
     // Approximate inequality operator, w != v
     bool operator!=(const Matrix& A) const {return !operator==(A);}
@@ -195,30 +193,18 @@ class Matrix {
     /**
      * @brief Copy this Matrix. 
      */
-    Matrix copy() const {
-        Matrix A(N, M);
-        A._data.assign(data.begin(), data.end());
-        return A;
-    }
+    Matrix copy() const;
 
     /**
      * @brief Get the transpose of this Matrix.
      */
-    Matrix T() const {
-        Matrix A(M, N);
-        for (size_t row = 0; row < A.N; ++row) {
-            for (size_t col = 0; col < A.M; ++col) {
-                A[row][col] = index(col, row);
-            }
-        }
-        return A;
-    }
+    Matrix T() const;
 
     // Read-only indexer
-    const double& index(const int i, const int j) const {return data[M*i + j];}
+    const double& index(int i, int j) const {return data[M*i + j];}
 
     // Read-write indexer
-    double& index(const int i, const int j) {return _data[M*i + j];}
+    double& index(int i, int j) {return _data[M*i + j];}
 
     // Read-only iterator
     const std::vector<double>::const_iterator begin() const {return data.begin();}
@@ -235,29 +221,20 @@ class Matrix {
     /**
      * @brief Format and print this Matrix to the terminal.
      */
-    void print(const std::string& message = "") const {
-        if (message != "") {std::cout << message << std::endl;}
-        for (size_t i = 0; i < N; i++) {
-            std::cout << "\t" << std::setprecision(3);
-            for (size_t j = 0; j < M; j++) {
-                std::cout << std::setw(8) << index(i, j);
-            }
-            std::cout << std::endl;
-        }
-    }
+    void print(std::string message = "") const;
 
     /**
      * @brief Generate a 3x3 extrinsic rotation matrix.
      */
-    static Matrix rotation_matrix(const double alpha, const double beta, const double gamma) {
-        double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
-        double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);
-        double sinasinb = sina*sinb, cosasinb = cosa*sinb;
+    static Matrix rotation_matrix(double alpha, double beta, double gamma); 
 
-        return Matrix{{cosb*cosg, sinasinb*cosg - cosa*sing, cosasinb*cosg + sina*sing}, 
-                      {cosb*sing, sinasinb*sing + cosa*cosg, cosasinb*sing - sina*cosg},
-                      {-sinb,     sina*cosb,                 cosa*cosb}};
-    }
+    /**
+     * @brief Generate a 3x3 rotation matrix from a rotation axis and an angle around this axis. 
+     *        This uses the Euler-Rodrigues formulation.
+     * @param axis The rotation axis.
+     * @param angle The rotation angle.
+     */
+    static Matrix rotation_matrix(const Vector3& axis, double angle);
 
     const size_t &N = _N, &M = _M; // read-only access to the dimensions
     const std::vector<double>& data = _data; // read-only access to the data container

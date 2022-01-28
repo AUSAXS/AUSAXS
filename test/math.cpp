@@ -28,6 +28,10 @@
 
 using std::cout, std::endl;
 
+double GenRandScalar() {
+    return rand() % 100;
+}
+
 Vector GenRandVector(int m) {
     Vector v(m);
     for (int i = 0; i < m; i++)
@@ -607,4 +611,21 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
     c->SetRightMargin(0.15);
     c->SetLeftMargin(0.15);
     c->SaveAs(path.c_str());
+}
+
+TEST_CASE("orthonormal_rotations", "[math]") {
+    for (int i = 0; i < 10; i++) {
+        Vector3 angles = GenRandVector(3);
+        Matrix R = Matrix::rotation_matrix(angles.x, angles.y, angles.z);
+        Matrix Ri = R.T();
+        REQUIRE(R*Ri == Matrix::identity(3));
+    }
+
+    for (int i = 0; i < 10; i++) {
+        Vector3 axis = GenRandVector(3);
+        double angle = GenRandScalar();
+        Matrix R = Matrix::rotation_matrix(axis, angle);
+        Matrix Ri = R.T();
+        REQUIRE(R*Ri == Matrix::identity(3));
+    }
 }

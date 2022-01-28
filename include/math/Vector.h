@@ -38,7 +38,7 @@ class Vector {
     /**
      * @brief Construct an empty vector of a given size. 
      */
-    Vector(const int n) : _N(n), _data(n) {}
+    Vector(int n) : _N(n), _data(n) {}
 
     /**
      * @brief Default constructor.
@@ -107,17 +107,17 @@ class Vector {
     }
 
     // Scalar multiplication, w*a
-    Vector operator*(const double a) const {
+    Vector operator*(double a) const {
         Vector w(N);
         std::transform(begin(), end(), w.begin(), [&a](double x) {return x*a;});
         return w;
     }
 
     // Scalar multiplication, a*w
-    friend Vector operator*(const double a, const Vector& v) {return v*a;}
+    friend Vector operator*(double a, const Vector& v) {return v*a;}
 
     // Scalar division, w/a
-    Vector operator/(const double a) const {
+    Vector operator/(double a) const {
         Vector w(N);
         std::transform(begin(), end(), w.begin(), [&a](double x) {return x/a;});
         return w;
@@ -138,13 +138,13 @@ class Vector {
     }
 
     // Scalar division-assignment, w /= a
-    Vector& operator/=(const double a) {
+    Vector& operator/=(double a) {
         std::transform(begin(), end(), begin(), [&a](double x) {return x/a;});
         return *this;
     }
 
     // Scalar multiplication-assignment, w /= a
-    Vector& operator*=(const double a) {
+    Vector& operator*=(double a) {
         std::transform(begin(), end(), begin(), [&a](double x) {return x*a;});
         return *this;
     }
@@ -155,10 +155,10 @@ class Vector {
     }
 
     // Read-only indexing, w[i]
-    const double& operator[](const int i) const {return data[i];}
+    const double& operator[](int i) const {return data[i];}
     
     // Read/write indexing, w[i] = ...
-    double& operator[](const int i) {return _data[i];}
+    double& operator[](int i) {return _data[i];}
 
     // Approximate equality, w ~ v
     bool operator==(const Vector& v) const {
@@ -215,7 +215,7 @@ class Vector {
     /**
      * @brief Get a string representation of this Vector.
      */
-    std::string to_string(const std::string& message = "") const {
+    std::string to_string(std::string message = "") const {
         if (message != "") {std::cout << message << std::endl;}
         std::stringstream s("(");
         for (const auto& e : data) {

@@ -144,7 +144,7 @@ class Body {
      * @param axis the rotation axis. 
      * @param rad the amount to rotate in radians. 
      */
-    void rotate(const Vector3& axis, const double rad);
+    void rotate(const Vector3& axis, double rad);
 
     /**
      * ! Not implemented
@@ -154,7 +154,7 @@ class Body {
      * @param beta radians to rotate about the y-axis. 
      * @param gamma radians to rotate about the x-axis. 
      */
-    void rotate(const double alpha, const double beta, const double gamma);
+    void rotate(double alpha, double beta, double gamma);
 
     /** 
      * @brief Calculate the distances between each pair of atoms. 
@@ -171,7 +171,7 @@ class Body {
      * 
      * @param charge the charge to be subtracted.
      */
-    void update_effective_charge(const double charge);
+    void update_effective_charge(double charge);
 
     /**
      * @brief Register a probe (listener) to this object, which will be notified of state changes. 

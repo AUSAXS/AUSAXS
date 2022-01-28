@@ -221,36 +221,19 @@ void Body::rotate(const Matrix& R) {
     }
 }
 
-void Body::rotate(const double, const double, const double) {
+void Body::rotate(double, double, double) {
     signal->state_change();
     cout << "Not implemented yet. " << endl;
     exit(1);
 }
 
-void Body::rotate(const Vector3& axis_arg, const double angle) {
+void Body::rotate(const Vector3& axis, double angle) {
     signal->state_change();
-
-    // we use the Euler-Rodrigues formulation
-    Vector3 axis = axis_arg.normalize_copy();
-    double a = cos(angle/2);
-    double b = sin(angle/2);
-    double c = b;
-    double d = b;
-    b *= axis.x;
-    c *= axis.y;
-    d *= axis.z;
-
-    double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
-    double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
-
-    Matrix R{{aa+bb-cc-dd, 2*(bc-ad),   2*(bd+ac)}, 
-             {2*(bc+ad),   aa+cc-bb-dd, 2*(cd-ab)},
-             {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
-
+    Matrix R = Matrix::rotation_matrix(axis, angle);
     rotate(R);
 }
 
-void Body::update_effective_charge(const double charge) {
+void Body::update_effective_charge(double charge) {
     signal->state_change();
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;
