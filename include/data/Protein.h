@@ -23,6 +23,11 @@ class Protein {
     Protein() {}
 
     /**
+     * @brief Move constructor.
+     */
+    Protein(Protein&& protein) noexcept;
+
+    /**
      * @brief Constructor.
      * 
      * Create a new protein based on a set of bodies.

@@ -18,7 +18,7 @@ class RandomSelect : public BodySelectStrategy {
     RandomSelect(const Protein& protein) : BodySelectStrategy(protein) {
         std::random_device random;
         generator = std::mt19937(random());
-        distribution = std::uniform_int_distribution<int>(0, protein.bodies.size());
+        distribution = std::uniform_int_distribution<int>(0, protein.bodies.size()-1);
     }
 
     /**

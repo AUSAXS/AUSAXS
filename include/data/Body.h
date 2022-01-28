@@ -45,7 +45,12 @@ class Body {
     /**
      * @brief Copy constructor. 
      */
-    Body(const Body& body) : file(body.file), uid(body.uid), protein_atoms(body.protein_atoms), hydration_atoms(body.hydration_atoms) {}
+    Body(const Body& body) : file(body.file), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+    /**
+     * @brief Move constructor. 
+     */
+    Body(Body&& body) : file(std::move(body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /** 
      * @brief Writes this body to disk.

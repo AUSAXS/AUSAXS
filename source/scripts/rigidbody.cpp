@@ -42,6 +42,11 @@ int main(int argc, char const *argv[]) {
     Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
     RigidBody body(protein);
 
+    // std::cout << "PRINTING BODY" << std::endl;
+    // for (const auto& atom : body.protein.bodies[1].protein_atoms) {
+    //     std::cout << atom.as_pdb() << std::endl;
+    // }
+
     body.optimize(input_measurement);
     return 0;
 }

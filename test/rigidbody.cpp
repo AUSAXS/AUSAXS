@@ -3,6 +3,7 @@
 #include "data/BodySplitter.h"
 #include "fitter/IntensityFitter.h"
 #include "data/Protein.h"
+#include "rigidbody/RandomSelect.h"
 
 #include "catch2/catch.hpp"
 
@@ -82,11 +83,37 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 
 TEST_CASE("rigidbody_opt", "[rigidbody],[files]") {
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    Protein protein(BodySplitter::split("data/LAR1-2.pdb", splits));
     RigidBody body(protein);
     body.generate_new_hydration();
 
     IntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
     double _chi2 = fitter.fit()->chi2;
-    std::cout << "Initial chi2: " << _chi2 << std::endl;
+}
+
+TEST_CASE("body_selectors", "[rigidbody]") {
+    vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> b4 = {Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<vector<Atom>> atoms = {b1, b2, b3, b4};
+    Protein protein(atoms, {});
+
+    std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(protein);
+    std::vector<int> count(protein.bodies.size());
+    for (unsigned int i = 0; i < 100; i++) {
+        unsigned int num = strat->next();
+        if (num > count.size()-1) {
+            std::cout << "Strategy selected a body outside the allowed range. Number: " << num << std::endl;
+            REQUIRE(false);
+        } else {
+            count[num]++;
+        }
+    }
+
+    // check that each one was chosen at least 10 times
+    REQUIRE(count[0] > 10);
+    REQUIRE(count[1] > 10);
+    REQUIRE(count[2] > 10);
+    REQUIRE(count[3] > 10);
 }

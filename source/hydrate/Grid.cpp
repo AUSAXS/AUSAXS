@@ -262,17 +262,13 @@ void Grid::remove(const Hetatom& water) {
 }
 
 void Grid::remove(const vector<Atom>& atoms) {
-    std::cout << "REMOVE 1" << std::endl;    
-    
     // we make a vector of all possible uids
-    // std::unordered_map<int, int> removed;
-    vector<bool> removed(Atom::uid_counter);
+    std::unordered_map<int, bool> removed;
     // and fill it with the uids that should be removed
-    std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& water) {removed[water.uid] = true;});
+    std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& atom) {removed[atom.uid] = true;});
 
-    std::cout << "REMOVE 2" << std::endl;    
-    size_t index = 0; // current index in removed_waters
-    vector<GridMember<Atom>> removed_atoms(atoms.size()); // the waters which will be removed
+    size_t index = 0; // current index in removed_atoms
+    vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
     auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_atoms[index++] = gm;
@@ -281,7 +277,6 @@ void Grid::remove(const vector<Atom>& atoms) {
         return false;
     };
 
-    std::cout << "REMOVE 3" << std::endl;    
     // we save the sizes so we can make a sanity check after the removal    
     size_t prev_size = a_members.size();
     a_members.remove_if(predicate);
@@ -292,7 +287,6 @@ void Grid::remove(const vector<Atom>& atoms) {
         throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
     }
 
-    std::cout << "REMOVE 4" << std::endl;    
     // clean up the grid
     for (auto& atom : removed_atoms) {
         const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];

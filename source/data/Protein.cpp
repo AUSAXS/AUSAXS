@@ -19,6 +19,10 @@ Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom
     phm = std::make_unique<PartialHistogramManager>(bodies, this->hydration_atoms);
 }
 
+Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
+    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
+}
+
 Protein::Protein(const string& input) {
     bodies = {Body(input)};
     hydration_atoms = bodies[0].hydration_atoms;

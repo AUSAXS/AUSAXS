@@ -23,7 +23,7 @@ class RigidBody {
     /**
      * @brief Perform a rigid-body optimization for this structure. 
      */
-    void optimize(const string& measurement_path);
+    void optimize(string measurement_path);
 
     /**
      * @brief Add a constraint to this rigid body. 
