@@ -4,6 +4,7 @@
 #include <utility>
 #include <algorithm>
 #include <list>
+#include <limits>
 
 // my own includes
 #include "hydrate/Grid.h"
@@ -22,7 +23,32 @@ using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
 using namespace setting::grid;
 
-Grid::Grid(const Axis3D axes, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) : axes(axes) {
+Grid::Grid(const Axis3D& axes, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) : axes(axes) {
+    setup(width, ra, rh, psc, csc);
+}
+
+Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
+    // determine the bounding box, and expand it by 10% in each direction.
+    vector<int> imin, imax;
+    auto[min, max] = bounding_box(atoms);
+    for (auto& v : min) {
+        if (v < 0) {imin.push_back(std::round(v*1.1));}
+        else {imin.push_back(std::round(v*0.9));}
+    }
+    for (auto& v : max) {
+        if (v > 0) {imax.push_back(std::round(v*1.1) + 1);}
+        else {imax.push_back(std::round(v*0.9) + 1);}
+    }
+
+    // setup the rest of the class members
+    axes = Axis3D(imin, imax, setting::grid::width);
+    setup(width, ra, rh, psc, csc);
+
+    // finally add the atoms to the grid
+    add(atoms);
+}
+
+void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
     long long int total_bins = (long long) axes.x.bins*axes.y.bins*axes.z.bins;
     if (total_bins > 32e9) {
         throw except::invalid_argument("Error in Grid: Too many bins.");
@@ -93,6 +119,23 @@ vector<vector<int>> Grid::bounding_box() const {
         }
     }
     return box;
+}
+
+std::pair<Vector3, Vector3> Grid::bounding_box(const vector<Atom>& atoms) {
+    if (__builtin_expect(atoms.size() == 0, false)) {
+        throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
+    }
+
+    // initialize the bounds as large as possible
+    Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
+    Vector3 max = {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
+    for (const auto& atom : atoms) {
+        for (int i = 0; i < 3; i++) {
+            min[i] = std::min(min[i], atom.coords[i]);
+            max[i] = std::max(max[i], atom.coords[i]);
+        }
+    }
+    return std::make_pair(min, max);
 }
 
 void Grid::set_radius_atoms(double radius) {

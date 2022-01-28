@@ -5,6 +5,8 @@
 #include <initializer_list>
 #include <math.h>
 
+using std::vector;
+
 struct Limit {
     Limit(double min, double max) : min(min), max(max) {}
 
@@ -56,6 +58,7 @@ class Axis3D {
     Axis3D(const Limit3D& limits, double width) : x(limits.x, limits.x.span()/width), y(limits.y, limits.y.span()/width), z(limits.z, limits.z.span()/width) {}
     Axis3D(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, int bins) : x(bins, xmin, xmax), y(bins, ymin, ymax), z(bins, zmin, zmax) {}
     Axis3D(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, double width) : x((xmax-xmin)/width, xmin, xmax), y((ymax-ymin)/width, ymin, ymax), z((zmax-zmin)/width, zmin, zmax) {}
+    Axis3D(const vector<int>& min, const vector<int>& max, double width) : x((max[0]-min[0])/width, min[0], max[0]), y((max[1]-min[1])/width, min[1], max[1]), z((max[2]-min[2])/width, min[2], max[2]) {}
 
     Axis x, y, z;
 };

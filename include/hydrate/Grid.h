@@ -23,7 +23,7 @@ class Grid {
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
      */
-    Grid(const Axis3D axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+    Grid(const Axis3D& axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -32,7 +32,7 @@ class Grid {
      * @param bins the number of bins in all dimensions. 
      * @param radius the radius of each atom.
      */
-    Grid(const Axis3D axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::psc, setting::grid::csc) {}
+    Grid(const Axis3D& axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::psc, setting::grid::csc) {}
 
     /**
      * @brief Construct a new Grid object.
@@ -42,7 +42,11 @@ class Grid {
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(const Axis3D axes, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+    Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+
+    Grid(const vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+
+    Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 
     /** 
      * @brief Add a set of atoms to the grid. 
@@ -157,6 +161,8 @@ class Grid {
      */
     vector<vector<int>> bounding_box() const;
 
+    static std::pair<Vector3, Vector3> bounding_box(const vector<Atom>& atoms);
+
     /**
      * @brief Set the radius of all atoms (not water molecules!).
      * @param radius The new radius in Ångström.
@@ -191,6 +197,8 @@ class Grid {
      * @brief Get the width of each bin.
      */
     double get_width() const {return width;}
+
+    Axis3D get_axes() const {return axes;}
 
     /**
      * @brief Convert a vector of bin locations (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
@@ -232,4 +240,6 @@ class Grid {
      * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
      */
     void deflate_volume(const vector<int>& loc, const bool is_water);
+
+    void setup(double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 };

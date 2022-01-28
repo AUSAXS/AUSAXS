@@ -413,3 +413,37 @@ TEST_CASE("volume_deflation", "[grid]") {
         }
     }
 }
+
+TEST_CASE("space_saving_constructor", "[grid]") {
+    vector<Atom> atoms = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2), Atom({1, 1, 1}, 0, "C", "", 2)};
+
+    // check that bounding_box works
+    auto[min, max] = Grid::bounding_box(atoms);
+    REQUIRE(min.x == 0);
+    REQUIRE(min.y == -5);
+    REQUIRE(min.z == -7);
+    REQUIRE(max.x == 5);
+    REQUIRE(max.y == 1);
+    REQUIRE(max.z == 1);
+
+    // check that the grid constructor works as expected
+    Grid grid(atoms);
+    Axis3D axes = grid.get_axes();
+    REQUIRE(axes.x.min == 0);
+    REQUIRE(axes.y.min == -6);
+    REQUIRE(axes.z.min == -8);
+    REQUIRE(axes.x.max == 7);
+    REQUIRE(axes.y.max == 2);
+    REQUIRE(axes.z.max == 2);
+
+    // check that we're not using a ton of unnecessary bins
+    REQUIRE(axes.x.bins < 20);
+    REQUIRE(axes.y.bins < 20);
+    REQUIRE(axes.z.bins < 20);
+
+    // check that this is reflected in the grid itself
+    vector<vector<vector<char>>>& g = grid.grid;
+    REQUIRE(g.size() < 20);
+    REQUIRE(g[0].size() < 20);
+    REQUIRE(g[0][0].size() < 20);
+}

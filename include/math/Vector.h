@@ -217,9 +217,9 @@ class Vector {
      */
     std::string to_string(std::string message = "") const {
         if (message != "") {std::cout << message << std::endl;}
-        std::stringstream s("(");
+        std::stringstream s; s << "( ";
         for (const auto& e : data) {
-            s << std::setw(8) << e << " ";
+            s << std::setprecision(8) << e << " ";
         }
         s << ")";
         return s.str();

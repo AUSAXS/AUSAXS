@@ -54,8 +54,7 @@ void RigidBody::optimize(string measurement_path) {
     std::shared_ptr<Grid> grid = protein.get_grid();
     for (int i = 0; i < 100; i++) {
         // select a body to be modified this iteration
-        int id = body_selector->next();
-        Body& body = protein.bodies[id];
+        Body& body = protein.bodies[body_selector->next()];
         Parameter param = parameter_generator->next();
 
         // remove the body from the grid        
@@ -80,7 +79,7 @@ void RigidBody::optimize(string measurement_path) {
         if (__chi2 > _chi2) {
             grid->remove(&body);
 
-            Matrix R_inv = Matrix::rotation_matrix(-param.alpha, -param.beta, -param.gamma);
+            Matrix R_inv = R.T();
             body.translate(-param.dx);
             body.rotate(R_inv);
 
