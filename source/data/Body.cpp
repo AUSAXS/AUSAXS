@@ -16,6 +16,18 @@
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 
+Body::Body() : file(std::make_shared<File>()), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+Body::Body(const string& path) : file(std::make_shared<File>(path)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+Body::Body(const Body& body) : file(std::make_shared<File>(body.file->copy())), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+Body::Body(Body&& body) : file(std::move(body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+
+Body::~Body() {std::cout << "DESTROYING BODY" << std::endl;}
+
 void Body::save(string path) {file->write(path);}
 
 void Body::calc_histogram() {
@@ -261,11 +273,17 @@ double Body::get_mass() const {
 }
 
 Body& Body::operator=(const Body& rhs) {
-    file = rhs.file;
+    std::cout << "BODYPOINT 1" << std::endl;
+    file = std::make_shared<File>(rhs.file->copy());
+    std::cout << "BODYPOINT 2" << std::endl;
     protein_atoms = rhs.file->protein_atoms;
+    std::cout << "BODYPOINT 3" << std::endl;
     hydration_atoms = rhs.file->hydration_atoms;
+    std::cout << "BODYPOINT 4" << std::endl;
     grid = rhs.grid;
+    std::cout << "BODYPOINT 5" << std::endl;
     histogram = rhs.histogram;
+    std::cout << "BODYPOINT 6" << std::endl;
     uid = rhs.uid;
     return *this;
 }

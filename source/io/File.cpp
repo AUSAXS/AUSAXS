@@ -1,17 +1,14 @@
-#pragma once
-
-// includes
 #include <string>
 #include <vector>
 #include <utility>
 #include <stdexcept>
 
-// my own includes
 #include "io/File.h"
 
-File::File(const File& file) {}
+File::File(const File& file) : header(file.header), footer(file.footer), terminate(file.terminate), protein_atoms(file.protein_atoms), hydration_atoms(file.hydration_atoms) {}
 
-File::File(const File& file) noexcept {}
+File::File(const File&& file) noexcept : header(file.header), footer(file.footer), terminate(file.terminate), 
+    protein_atoms(std::move(file.protein_atoms)), hydration_atoms(std::move(file.hydration_atoms)) {}
 
 File::File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
@@ -19,6 +16,8 @@ File::File(string filename) {
     reader = construct_reader(filename);
     read(filename);
 }
+
+File::~File() {std::cout << "DESTROYING FILE" << std::endl;}
 
 void File::update(vector<Atom>& patoms, vector<Hetatom>& hatoms) {
     protein_atoms = patoms;
@@ -57,6 +56,10 @@ void File::add(const string type, const string s) {
         print_err("Error in File::add: string " + type + " is not \"HEADER\" or \"FOOTER\"!");
         exit(1);
     }
+}
+
+File File::copy() const {
+    return File(*this);
 }
 
 void File::refresh() {

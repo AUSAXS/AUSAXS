@@ -25,7 +25,7 @@ class Body {
      * 
      * This is not a very efficient way of constructing a Body.
      */
-    Body() : file(std::make_shared<File>()), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body();
 
     /** 
      * @brief Create a new collection of atoms (body) from the input .pdb or .xml file. 
@@ -33,24 +33,24 @@ class Body {
      * @param path path to the input file. 
      * @param signaller a signalling object to signal changes of state
      */
-    explicit Body(const string& path) 
-        : file(std::make_shared<File>(path)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    explicit Body(const string& path);
 
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    explicit Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {}) 
-        : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    explicit Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Copy constructor. 
      */
-    Body(const Body& body) : file(std::make_shared<File>(*(body.file))), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body(const Body& body);
 
     /**
      * @brief Move constructor. 
      */
-    Body(Body&& body) : file(std::move(body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body(Body&& body);
+
+    ~Body();
 
     /** 
      * @brief Writes this body to disk.

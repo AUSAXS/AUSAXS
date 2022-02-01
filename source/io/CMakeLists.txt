@@ -1,2 +1,3 @@
 list (APPEND sources ${CMAKE_CURRENT_LIST_DIR}/PDBReader.cpp
-	${CMAKE_CURRENT_LIST_DIR}/PDBWriter.cpp)
+	${CMAKE_CURRENT_LIST_DIR}/PDBWriter.cpp
+	${CMAKE_CURRENT_LIST_DIR}/File.cpp)
