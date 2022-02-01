@@ -54,9 +54,14 @@ void RigidBody::optimize(string measurement_path) {
     std::shared_ptr<Grid> grid = protein.get_grid();
     for (int i = 0; i < 100; i++) {
         // select a body to be modified this iteration
-        Body& body = protein.bodies[body_selector->next()];
+        int body_index = body_selector->next();
+        Body& body = protein.bodies[body_index];
         Parameter param = parameter_generator->next();
+        Body old_body(body);
+        Grid old_grid(*grid);
 
+        std::cout << "ORIGINAL ATOM: " << std::endl;
+        std::cout << body.protein_atoms[0].as_pdb() << std::endl;
         // remove the body from the grid        
         grid->remove(&body);
 
@@ -77,23 +82,22 @@ void RigidBody::optimize(string measurement_path) {
 
         // if the old configuration was better
         if (__chi2 > _chi2) {
-            grid->remove(&body);
-
-            Matrix R_inv = R.T();
-            body.translate(-param.dx);
-            body.rotate(R_inv);
-
-            grid->add(&body);
+            std::cout << "MODIFIED ATOM: " << std::endl;
+            std::cout << body.protein_atoms[0].as_pdb() << std::endl;
+            std::cout << old_body.protein_atoms[0].as_pdb() << std::endl;
+            body = old_body;
+            protein.set_grid(old_grid);
             protein.generate_new_hydration();
             fitter.set_scattering_hist(protein.get_histogram());
-            double __chi2 = fitter.fit()->chi2;
+            double ___chi2 = fitter.fit()->chi2;
 
-            std::cout << "rerolled changes. chi2 is now: " << __chi2 << std::endl;
+            std::cout << "\trerolled changes. chi2 is now: " << ___chi2 << std::endl;
 
         } else {
             // accept the changes
             _chi2 = __chi2;
             params.update(body.uid, param);
+            std::cout << "\tkeeping changes. new best chi2: " << _chi2 << std::endl;
         }
     }
 }

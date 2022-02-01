@@ -45,7 +45,7 @@ class Body {
     /**
      * @brief Copy constructor. 
      */
-    Body(const Body& body) : file(body.file), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+    Body(const Body& body) : file(std::make_shared<File>(*(body.file))), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
     /**
      * @brief Move constructor. 

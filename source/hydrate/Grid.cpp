@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <limits>
+#include <typeinfo>
 
 // my own includes
 #include "hydrate/Grid.h"
@@ -46,6 +47,15 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
 
     // finally add the atoms to the grid
     add(atoms);
+}
+
+Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, setting::grid::psc, setting::grid::csc) {
+    this->grid = grid.grid;
+    this->volume = grid.volume;
+    this->ra = grid.ra;
+    this->rh = grid.rh;
+    this->a_members = grid.a_members;
+    this->w_members = grid.w_members;
 }
 
 void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
@@ -451,4 +461,35 @@ Vector3 Grid::to_xyz(const vector<int>& v) const {
 double Grid::get_volume() {
     expand_volume();
     return pow(width, 3)*volume;
+}
+
+Grid Grid::copy() const {
+    return Grid(*this);
+}
+
+Grid& Grid::operator=(const Grid& rhs) {
+    grid = rhs.grid;
+    a_members = rhs.a_members;
+    w_members = rhs.w_members;
+    width = width;
+    volume = rhs.volume;
+    ra = rhs.ra;
+    rh = rhs.rh;
+    axes = rhs.axes;
+    // culler & placer cannot be modified after program is run, so they'll automatically be equal always
+    return *this;
+}
+
+bool Grid::operator==(const Grid& rhs) const {
+    // we do everything but check the contents of the grid. 
+    if (volume != rhs.volume) {return false;}
+    if (a_members.size() != rhs.a_members.size()) {return false;}
+    if (w_members.size() != rhs.w_members.size()) {return false;}
+    if (ra != rhs.ra) {return false;}
+    if (rh != rhs.rh) {return false;}
+    if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
+    if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
+    if (width != rhs.width) {return false;}
+    if (axes != rhs.axes) {return false;}
+    return true;
 }

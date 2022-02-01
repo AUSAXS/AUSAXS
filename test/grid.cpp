@@ -447,3 +447,13 @@ TEST_CASE("space_saving_constructor", "[grid]") {
     REQUIRE(g[0].size() < 20);
     REQUIRE(g[0][0].size() < 20);
 }
+
+TEST_CASE("copy", "[grid]") {
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Grid grid1(axes, 1);
+    grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
+    grid1.hydrate();
+
+    Grid grid2 = grid1.copy();
+    REQUIRE(grid2 == grid1);
+}

@@ -48,6 +48,11 @@ class Grid {
 
     Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 
+    /**
+     * @brief Copy constructor. 
+     */
+    Grid(const Grid& grid);
+
     /** 
      * @brief Add a set of atoms to the grid. 
      * @param atoms the set of atoms to add to this grid.
@@ -213,6 +218,26 @@ class Grid {
      * @return The bin location. 
      */
     vector<int> to_bins(const Vector3& v) const;
+
+    /**
+     * @brief Get a copy of this Grid. 
+     */
+    Grid copy() const;
+
+    /**
+     * @brief Set this Grid equal to another.
+     * 
+     * @param rhs The new Grid. 
+     */
+    Grid& operator=(const Grid& rhs);
+
+    /**
+     * @brief Check if this Grid is identical to another. 
+     *        Primarily intended to be used with tests.
+     * 
+     * @param rhs The Grid to compare against. 
+     */
+    bool operator==(const Grid& rhs) const;
 
     vector<vector<vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
     std::list<GridMember<Atom>> a_members; // A list of all member atoms and where they are located.

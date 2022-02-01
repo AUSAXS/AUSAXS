@@ -32,6 +32,16 @@ class File {
     File() {}
 
     /**
+     * @brief Copy constructor.
+     */
+    File(const File& file);
+
+    /**
+     * @brief Move constructor.
+     */
+    File(const File& file) noexcept;
+
+    /**
      * @brief Constructor. 
      *        Construct a new File based on two vectors of atoms. 
      * @param protein_atoms A vector containing the constituent atoms of the molecule. 
@@ -52,7 +62,7 @@ class File {
     /**
      * @brief Destructor.
      */
-    virtual ~File() {}
+    ~File() = default;
 
     /**
      * @brief Update the contents of this file.
@@ -68,13 +78,13 @@ class File {
      * @brief Fill this object with data from a given input data file. 
      * @param path Path to the input data file. 
      */
-    virtual void read(const string& path) {reader->read(path);}
+    void read(const string& path) {reader->read(path);}
 
     /**
      * @brief Write this file to disk. 
      * @param path Path to where this object will be written. 
      */
-    virtual void write(const string path) {
+    void write(const string path) {
         writer = construct_writer(path);
         writer->write(path);
     }
@@ -93,7 +103,7 @@ class File {
      * @brief Add an Atom record to this file. 
      * @param r The Atom record to be added.
      */
-    virtual void add(const Atom r) {
+    void add(const Atom r) {
         protein_atoms.push_back(r);
     }
 
@@ -101,7 +111,7 @@ class File {
      * @brief Add a Hetatom record to this file. 
      * @param r The Hetatom record to be added. 
      */
-    virtual void add(const Hetatom r) {
+    void add(const Hetatom r) {
         hydration_atoms.push_back(r);
     }
 

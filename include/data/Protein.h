@@ -130,6 +130,13 @@ class Protein {
     shared_ptr<Grid> get_grid();
 
     /**
+     * @brief Set the grid representation of this body. 
+     * 
+     * @param grid The new Grid. 
+     */
+    void set_grid(const Grid& grid);
+
+    /**
      * @brief Create a binding point between two bodies.
      *        This binding will be a constraint for rigid-body optimization. 
      */
