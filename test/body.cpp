@@ -277,3 +277,31 @@ TEST_CASE("generate_sequential_constraints", "[body],[files]") {
     REQUIRE(c2.atom2->name == "CA");
     REQUIRE(c2.atom2->serial == 814);
 }
+
+TEST_CASE("body_copy", "[body]") {
+    vector<Atom> a1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> a2 = {Atom(Vector3( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3( 1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> a3 = {Atom(Vector3(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3(-1, 1,  1), 1, "C", "C", 1)};
+    vector<Atom> a4 = {Atom(Vector3( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3( 1, 1,  1), 1, "C", "C", 1)};
+    Body b1(a1), b2(a2), b3(a3), b4(a4);
+
+    // copy constructor
+    Body b(b1);
+    REQUIRE(b.protein_atoms.size() == 2);
+    REQUIRE(b.protein_atoms[0] == a1[0]);
+    REQUIRE(b.protein_atoms[1] == a1[1]);
+
+    // check that they are backed by separate files
+    b.protein_atoms[0] = a2[0];
+    REQUIRE(b1.protein_atoms[0] == a1[0]);
+
+
+    // assignment
+    b = b3;
+    REQUIRE(b.protein_atoms.size() == 2);
+    REQUIRE(b.protein_atoms[0] == a3[0]);
+    REQUIRE(b.protein_atoms[1] == a3[1]);
+
+    b.protein_atoms[0] = a1[0];
+    REQUIRE(b3.protein_atoms[0] == a3[0]);
+}

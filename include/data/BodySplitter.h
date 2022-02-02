@@ -38,11 +38,11 @@ struct BodySplitter {
 
             // we can now in constant time look in our split vector to see if we should split at this atom
             if (split[resSeq]) {
-                end = atoms.begin() + i;                              // define the end index
-                vector<Atom> a(begin, end);                           // create a new vector of atoms based on the start and end iterators
-                bodies[index_body++] = Body(a);                       // create a body from this vector
-                begin = end;                                          // change the start index for the next split
-                split[resSeq] = false;                                // mark it as false so we won't split again on the next atom
+                end = atoms.begin() + i;        // define the end index
+                vector<Atom> a(begin, end);     // create a new vector of atoms based on the start and end iterators
+                bodies[index_body++] = Body(a); // create a body from this vector
+                begin = end;                    // change the start index for the next split
+                split[resSeq] = false;          // mark it as false so we won't split again on the next atom
             }
         }
 

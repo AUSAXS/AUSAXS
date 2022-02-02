@@ -5,7 +5,8 @@
 
 #include "io/File.h"
 
-File::File(const File& file) : header(file.header), footer(file.footer), terminate(file.terminate), protein_atoms(file.protein_atoms), hydration_atoms(file.hydration_atoms) {}
+File::File(const File& file) : header(file.header), footer(file.footer), terminate(file.terminate), 
+    protein_atoms(file.protein_atoms), hydration_atoms(file.hydration_atoms) {}
 
 File::File(const File&& file) noexcept : header(file.header), footer(file.footer), terminate(file.terminate), 
     protein_atoms(std::move(file.protein_atoms)), hydration_atoms(std::move(file.hydration_atoms)) {}

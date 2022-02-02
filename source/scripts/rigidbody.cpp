@@ -14,7 +14,7 @@
 
 using std::cout, std::endl;
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[]) { 
     CLI::App app{"Rigid-body optimization."};
 
     string input_structure, input_measurement, output, placement_strategy;
@@ -41,11 +41,6 @@ int main(int argc, char const *argv[]) {
     vector<int> splits = {9, 99};
     Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
     RigidBody body(protein);
-
-    // std::cout << "PRINTING BODY" << std::endl;
-    // for (const auto& atom : body.protein.bodies[1].protein_atoms) {
-    //     std::cout << atom.as_pdb() << std::endl;
-    // }
 
     body.optimize(input_measurement);
     return 0;
