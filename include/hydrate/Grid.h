@@ -118,6 +118,11 @@ class Grid {
      */
     void remove(const vector<Atom>& atom);
 
+    /**
+     * @brief Remove all waters from the grid.
+     */
+    void clear_waters();
+
     /** 
      * @brief Expand all member atoms and water molecules into actual spheres based on the radii ra and rh. 
      */

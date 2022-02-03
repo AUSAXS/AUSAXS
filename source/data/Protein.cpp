@@ -134,7 +134,8 @@ void Protein::generate_new_hydration() {
     center();
 
     // create the grid and hydrate it
-    create_grid();
+    if (grid == nullptr) {create_grid();}
+    else {grid->clear_waters();}
     hydration_atoms = grid->hydrate();
 }
 

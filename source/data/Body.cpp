@@ -273,9 +273,10 @@ double Body::get_mass() const {
 }
 
 Body& Body::operator=(const Body& rhs) {
-    file = std::make_shared<File>(rhs.file->copy());
-    protein_atoms = file->protein_atoms;
-    hydration_atoms = file->hydration_atoms;
+    std::shared_ptr<File> temp_file = std::make_shared<File>(*rhs.file);
+    protein_atoms = temp_file->protein_atoms;
+    hydration_atoms = temp_file->hydration_atoms;
+    file = temp_file;
     uid = rhs.uid;
     if (rhs.grid != nullptr) {grid = std::make_shared<Grid>(rhs.grid->copy());}
     return *this;
