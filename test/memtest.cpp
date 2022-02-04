@@ -38,41 +38,16 @@ TEST_CASE("body_assign", "[memtest]") {
 }
 
 TEST_CASE("grid_add", "[memtest]") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
-    int width = 1;
-    int radius = 3;
-    Grid grid(axes, width, radius);
+    vector<int> splits = {9, 99};
+    Protein protein(BodySplitter::split("data/LAR1-2.pdb", splits));
+    RigidBody rbody(protein);
+    rbody.protein.generate_new_hydration();
+    rbody.protein.clear_grid();
+    rbody.protein.generate_new_hydration();
+}
 
-    // atoms
-    Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
-    Atom a2 = Atom({0, 3, 0}, 0, "C", "", 2);
-    Atom a3 = Atom({0, 0, 3}, 0, "C", "", 3);
-    vector<Atom> a = {a1, a2, a3};
-
-    // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector({-3, 0, 0}));
-    vector<Hetatom> w = {w1, w2, w3};
-
-    // add atoms
-    grid.add(a);    
-    vector<Atom> ga = grid.get_atoms();
-    REQUIRE(grid.a_members.size() == 3); // check actual data
-    REQUIRE(ga.size() >= 3);
-    for (int i = 0; i < 3; i++) {
-        REQUIRE(ga[i] == a[i]); // check equality with what we added
-    }
-
-    // add waters
-    grid.add(w);
-    vector<Hetatom> wa = grid.get_waters();
-    REQUIRE(grid.a_members.size() == 3); // check actual data
-    REQUIRE(grid.w_members.size() == 3); // check actual data
-    REQUIRE(wa.size() >= 3);
-    for (int i = 0; i < 3; i++) {
-        REQUIRE(wa[i] == w[i]); // check equality with what we added
-    }
+TEST_CASE("compact_coordinates", "[memtest]") {
+    
 }
 
 TEST_CASE("file_assign", "[memtest]") {

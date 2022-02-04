@@ -158,6 +158,10 @@ void Protein::set_grid(const Grid& grid) {
     this->grid = std::make_shared<Grid>(grid);
 }
 
+void Protein::clear_grid() {
+    grid = nullptr;
+}
+
 void Protein::update_effective_charge() { 
     double displaced_vol = get_volume_grid();
     // double displaced_vol = get_volume_acids();

@@ -440,6 +440,15 @@ void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
     }
 }
 
+void Grid::clear_waters() {
+    vector<Hetatom> waters;
+    waters.reserve(w_members.size());
+
+    std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Hetatom>& water) {waters.push_back(water.atom);});
+    remove(waters);
+    assert(w_members.size() == 0);
+}
+
 vector<int> Grid::get_bins() const {
     return {axes.x.bins, axes.y.bins, axes.z.bins};
 }

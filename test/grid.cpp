@@ -311,6 +311,15 @@ TEST_CASE("add_remove", "[grid]") {
         REQUIRE(ga.size() == 3);
         REQUIRE(wa[0] == w2);
     }
+
+    SECTION("clear_waters") {
+        grid.add(a);
+        grid.add(w);
+
+        grid.clear_waters();
+        REQUIRE(grid.a_members.size() == 3);
+        REQUIRE(grid.w_members.size() == 0);
+    }
 }
 
 TEST_CASE("correct_volume", "[grid]") {

@@ -137,6 +137,11 @@ class Protein {
     void set_grid(const Grid& grid);
 
     /**
+     * @brief Clear the current grid.
+     */
+    void clear_grid();
+
+    /**
      * @brief Create a binding point between two bodies.
      *        This binding will be a constraint for rigid-body optimization. 
      */
