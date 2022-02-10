@@ -47,7 +47,70 @@ TEST_CASE("grid_add", "[memtest]") {
 }
 
 TEST_CASE("compact_coordinates", "[memtest]") {
-    
+    vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
+                       Atom(3, "C", "", "LYS", "", 1, "", Vector3( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3( 1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1,  1), 1, 0, "C", "0"),
+                       Atom(7, "C", "", "LYS", "", 1, "", Vector3( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3( 1, 1,  1), 1, 0, "C", "0")};
+
+    Body b1(a1);
+    Body b2(a2);
+
+    Protein protein({b1, b2});
+    RigidBody body(protein);
+
+    vector<double> chi2list = {1100, 900};
+    double _chi2 = 1000;
+    Parameters params(protein);
+    std::shared_ptr<Grid> grid = protein.get_grid();
+
+    for (unsigned int i = 0; i < chi2list.size(); i++) {
+        std::cout << "ITERATION " << i << std::endl;
+        int body_index = 0;
+        Body& body = protein.bodies[body_index];
+        Parameter param({1, 1, 1}, 1, 1, 1);
+
+        Body old_body(body);
+        Grid old_grid(grid->copy());
+
+        grid->remove(&body);
+
+        Matrix R = Matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
+        body.translate(param.dx);
+        body.rotate(R);
+
+        grid->add(&body);
+        protein.generate_new_hydration();
+
+        double __chi2 = chi2list[i];
+
+        if (__chi2 >= _chi2) {
+            protein.bodies[body_index] = old_body;
+            protein.generate_new_hydration();
+        } else {
+            // accept the changes
+            _chi2 = __chi2;
+            params.update(body.uid, param);
+        }
+    }
+}
+
+TEST_CASE("debug", "[memtest]") {
+    vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
+                       Atom(3, "C", "", "LYS", "", 1, "", Vector3( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3( 1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1,  1), 1, 0, "C", "0"),
+                       Atom(7, "C", "", "LYS", "", 1, "", Vector3( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3( 1, 1,  1), 1, 0, "C", "0")};
+
+    Body b1(a1);
+    Body b2(a2);
+
+    {
+        Body old_body(b2);
+        b1 = old_body;
+    }
+
+    for (const auto e : b1.protein_atoms) {
+        std::cout << e.as_pdb() << std::endl;
+    }
 }
 
 TEST_CASE("file_assign", "[memtest]") {
@@ -60,49 +123,9 @@ TEST_CASE("file_assign", "[memtest]") {
 
     std::shared_ptr<File> file2 = std::make_shared<File>();
     std::shared_ptr<File> file1 = std::make_shared<File>(atoms, waters);
-    vector<Atom>& file2a = file2->protein_atoms;
-    file2 = std::make_shared<File>(*file1);
-    file2a = file2->protein_atoms;
 
-    std::cout << file2a[0].as_pdb() << std::endl;
+    // MEMORY CORRUPT
+    // vector<Atom>& file2a = file2->protein_atoms;
+    // file2 = std::make_shared<File>(*file1);
+    // file2a = file2->protein_atoms;
 }
-
-// TEST_CASE("body_splitter", "[memtest]") {
-//     vector<int> splits = {9, 99};
-
-//     Body body("data/LAR1-2.pdb");
-//     vector<Atom>& atoms = body.protein_atoms;
-
-//     // we define a boolean vector with one entry for each residue sequence id
-//     vector<bool> split(atoms.back().resSeq, false);
-
-//     // we then mark the ids where we want to split as true
-//     std::for_each(splits.begin(), splits.end(), [&split] (const int id) {split[id] = true;});
-
-//     vector<Body> bodies(splits.size()+1);
-//     int index_body = 0; // current index in the bodies vector
-
-//     // the two iterators marks the indices in the atoms vector where we want to split next time
-//     vector<Atom>::const_iterator begin = atoms.begin(); // start at the beginning
-//     vector<Atom>::const_iterator end; // no defined end yet
-//     for (unsigned int i = 0; i < atoms.size(); i++) {
-//         int resSeq = std::max(atoms[i].resSeq, 0); // in some files resSeq starts negative
-
-//         // we can now in constant time look in our split vector to see if we should split at this atom
-//         if (split[resSeq]) {
-//             end = atoms.begin() + i;        // define the end index
-//             vector<Atom> a(begin, end);     // create a new vector of atoms based on the start and end iterators
-//             bodies[index_body++] = Body(a); // create a body from this vector
-//             begin = end;                    // change the start index for the next split
-//             split[resSeq] = false;          // mark it as false so we won't split again on the next atom
-//         }
-//     }
-
-//     // // add the final body
-//     // begin = end;
-//     // end = atoms.end();
-//     // vector<Atom> a(begin, end);
-//     // bodies[index_body] = Body(a);
-
-//     // Protein protein(bodies);
-// }

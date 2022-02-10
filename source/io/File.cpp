@@ -18,7 +18,7 @@ File::File(string filename) {
     read(filename);
 }
 
-File::~File() {std::cout << "DESTROYING FILE" << std::endl;}
+File::~File() = default;
 
 void File::update(vector<Atom>& patoms, vector<Hetatom>& hatoms) {
     protein_atoms = patoms;

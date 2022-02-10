@@ -337,7 +337,7 @@ void Grid::remove(const vector<Atom>& atoms) {
 
     // sanity check
     if (__builtin_expect(prev_size - cur_size != atoms.size(), false)) {
-        throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
+        throw except::invalid_operation("Error in Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
     }
 
     // clean up the grid

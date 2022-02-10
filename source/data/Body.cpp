@@ -22,11 +22,11 @@ Body::Body(const string& path) : file(std::make_shared<File>(path)), uid(uid_cou
 
 Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
-Body::Body(const Body& body) : file(std::make_shared<File>(body.file->copy())), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(const Body& body) : file(std::make_shared<File>(*body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
 Body::Body(Body&& body) : file(std::move(body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
-Body::~Body() {std::cout << "DESTROYING BODY" << std::endl;}
+Body::~Body() = default;
 
 void Body::save(string path) {file->write(path);}
 
@@ -233,10 +233,10 @@ void Body::rotate(const Matrix& R) {
     }
 }
 
-void Body::rotate(double, double, double) {
+void Body::rotate(double alpha, double beta, double gamma) {
     signal->state_change();
-    cout << "Not implemented yet. " << endl;
-    exit(1);
+    Matrix R = Matrix::rotation_matrix(alpha, beta, gamma);
+    rotate(R);
 }
 
 void Body::rotate(const Vector3& axis, double angle) {
@@ -278,7 +278,7 @@ Body& Body::operator=(const Body& rhs) {
     hydration_atoms = temp_file->hydration_atoms;
     file = temp_file;
     uid = rhs.uid;
-    if (rhs.grid != nullptr) {grid = std::make_shared<Grid>(rhs.grid->copy());}
+    if (rhs.grid != nullptr) {grid = rhs.grid;}
     return *this;
 }
 

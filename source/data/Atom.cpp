@@ -195,19 +195,19 @@ bool Atom::equals_content(const Atom& rhs) const {
 }
 
 Atom& Atom::operator=(const Atom& rhs) {
-    _name = rhs.name; 
-    _altLoc = rhs.altLoc; 
-    _resName = rhs.resName; 
-    _chainID = rhs.chainID; 
-    _iCode = rhs.iCode; 
-    _element = rhs.element; 
-    _charge = rhs.charge;
-    _occupancy = rhs.occupancy; 
-    _tempFactor = rhs.tempFactor;
-    _serial = rhs.serial; 
-    _resSeq = rhs.resSeq;
+    _name = rhs._name; 
+    _altLoc = rhs._altLoc; 
+    _resName = rhs._resName; 
+    _chainID = rhs._chainID; 
+    _iCode = rhs._iCode; 
+    _element = rhs._element; 
+    _charge = rhs._charge;
+    _occupancy = rhs._occupancy; 
+    _tempFactor = rhs._tempFactor;
+    _serial = rhs._serial; 
+    _resSeq = rhs._resSeq;
     coords = rhs.coords;
-    _effective_charge = rhs.effective_charge;
-    _uid = rhs.uid;
+    _effective_charge = rhs._effective_charge;
+    _uid = rhs._uid;
     return *this;
 }

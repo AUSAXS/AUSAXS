@@ -14,7 +14,7 @@
 struct CompactCoordinates {
   struct Data {
     Data() {}
-    Data(const Vector3& v, const float& w) : x(v.x), y(v.y), z(v.z), w(w) {}
+    Data(const Vector3& v, float w) : x(v.x), y(v.y), z(v.z), w(w) {}
     float x, y, z, w;
   };
 
@@ -119,7 +119,7 @@ class PartialHistogramManager {
      * @brief Get a signalling object for signalling a change of state. 
      *        Each body is supposed to hold one of these, and trigger it when they change state. 
      */
-    std::shared_ptr<StateManager::Signaller> get_probe(const int& i) {return statemanager.get_probe(i);}
+    std::shared_ptr<StateManager::Signaller> get_probe(unsigned int i) {return statemanager.get_probe(i);}
 
     /**
      * @brief Signal that the hydration layer was modified. 
@@ -144,17 +144,17 @@ class PartialHistogramManager {
     /**
      * @brief Calculate the atom-atom distances between body @a index and all others. 
      */
-    void calc_pp(const size_t& index);
+    void calc_pp(unsigned int index);
 
     /**
      * @brief Calculate the atom-atom distances between body @a n and @a m. 
      */
-    void calc_pp(const size_t& n, const size_t& m);
+    void calc_pp(unsigned int n, unsigned int m);
 
     /**
      * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
      */
-    void calc_hp(const size_t& index);
+    void calc_hp(unsigned int index);
 
     /**
      * @brief Calculate the hydration-hydration distances. 

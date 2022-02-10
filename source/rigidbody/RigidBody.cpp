@@ -4,13 +4,8 @@
 #include "rigidbody/SequentialSelect.h"
 #include "rigidbody/SimpleParameterGeneration.h"
 #include "rigidbody/RandomSelect.h"
+#include "fitter/SimpleIntensityFitter.h"
 #include "Exceptions.h"
-
-#include <random>
-
-#include <Math/Minimizer.h>
-#include <Math/Factory.h>
-#include <Math/Functor.h>
 
 RigidBody::RigidBody(Protein& protein) : protein(protein) {
     // Set body transformation strategy
@@ -46,7 +41,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 
 void RigidBody::optimize(string measurement_path) {
     generate_new_hydration();
-    IntensityFitter fitter(measurement_path, protein.get_histogram());
+    SimpleIntensityFitter fitter(measurement_path, protein.get_histogram());
     double _chi2 = fitter.fit()->chi2;
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 
@@ -83,7 +78,7 @@ void RigidBody::optimize(string measurement_path) {
         std::cout << "chi2 for new configuration: " << __chi2 << std::endl;
 
         // if the old configuration was better
-        if (__chi2 > _chi2) {
+        if (__chi2 >= _chi2) {
             // std::cout << "MODIFIED ATOM: " << std::endl;
             // std::cout << body.protein_atoms[0].as_pdb() << std::endl;
             // std::cout << old_body.protein_atoms[0].as_pdb() << std::endl;

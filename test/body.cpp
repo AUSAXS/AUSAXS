@@ -304,4 +304,15 @@ TEST_CASE("body_copy", "[body]") {
 
     b.protein_atoms[0] = a1[0];
     REQUIRE(b3.protein_atoms[0] == a3[0]);
+
+
+    // assignment with temporary bodies
+    b = Body();
+    {
+        Body b5(a1);
+        b = b5;
+    }
+    REQUIRE(b.protein_atoms.size() == 2);
+    REQUIRE(b.protein_atoms[0] == a1[0]);
+    REQUIRE(b.protein_atoms[1] == a1[1]);
 }
