@@ -1,6 +1,7 @@
 #pragma once
 
-#include "fitter/SimpleIntensityFitter.h"
+#include "fitter/Fitter.h"
+#include "math/SimpleLeastSquares.h"
 #include "math/CubicSpline.h"
 #include "settings.h"
 
@@ -23,7 +24,7 @@
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
-class IntensityFitter : public SimpleIntensityFitter {
+class SimpleIntensityFitter : public Fitter {
   public: 
     /**
      * @brief Constructor.
@@ -33,7 +34,7 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param q the model q values.
      * @param I the model I values. 
      */
-    IntensityFitter(string input, const ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
+    SimpleIntensityFitter(string input, const ScatteringHistogram& h) : h(h) {setup(input);}
 
     /**
      * @brief Constructor.
@@ -43,37 +44,71 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param q the model q values.
      * @param I the model I values. 
      */
-    IntensityFitter(string input, ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
+    SimpleIntensityFitter(string input, ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 
     /**
      * @brief Destructor.
      */
-    ~IntensityFitter() override = default;
+    ~SimpleIntensityFitter() override = default;
 
     /**
      * @brief Perform the fit.
      * 
      * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
      */
-    shared_ptr<Fit> fit() override;
+    virtual shared_ptr<Fit> fit() override;
 
     /**
      * @brief Make a plot of the fit. 
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    vector<shared_ptr<TGraph>> plot() override;
+    virtual vector<shared_ptr<TGraph>> plot();
 
     /**
      * @brief Make a residual plot of the fit.
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    unique_ptr<TGraphErrors> plot_residuals() override;
+    virtual unique_ptr<TGraphErrors> plot_residuals();
 
-  private: 
+    /**
+     * @brief Change the scattering histogram used for the fit. 
+     */
+    void set_scattering_hist(const ScatteringHistogram& h);
+
+    /**
+     * @brief Change the scattering histogram used for the fit. 
+     */
+    void set_scattering_hist(ScatteringHistogram&& h);
+
+  protected: 
+    shared_ptr<Fit> fitted;
+    vector<double> qo; // observed q values
+    vector<double> Io; // observed I values
+    vector<double> sigma; // error in Io
+    ScatteringHistogram h;
+
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.
      */
-    double chi2(const double* params) override;
+    virtual double chi2(const double* params);
+
+    /**
+     * @brief Prepare this class for fitting.
+     * @param file measured values to compare the model against.
+     */
+    void setup(string file);
+
+    /**
+     * @brief Splice values from the model to fit the evaluation points defined by the q values of the input file. 
+     * @param ym the model y-values corresponding to xm
+     */
+    vector<double> splice(const vector<double>& ym) const;
+
+    /**
+     * @brief Load a data file containing the observed I values. 
+     * @param file The file to be read. 
+     */
+    std::tuple<vector<double>, vector<double>, vector<double>> read(string file) const;
 };

@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "fitter/Fitter.h"
-#include "fitter/SimpleLeastSquares.h"
+#include "math/SimpleLeastSquares.h"
 
 #include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
 

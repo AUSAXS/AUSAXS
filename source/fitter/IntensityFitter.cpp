@@ -5,8 +5,8 @@
 #include <map>
 
 #include "fitter/Fitter.h"
-#include "fitter/SimpleLeastSquares.h"
 #include "fitter/IntensityFitter.h"
+#include "math/SimpleLeastSquares.h"
 #include "math/CubicSpline.h"
 #include "settings.h"
 #include "ScatteringHistogram.h"
@@ -98,14 +98,6 @@ unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() {
     return graph;
 }
 
-void IntensityFitter::set_scattering_hist(ScatteringHistogram&& h) {
-    this->h = std::move(h);
-}
-
-void IntensityFitter::set_scattering_hist(const ScatteringHistogram& h) {
-    this->h = h;
-}
-
 double IntensityFitter::chi2(const double* params) {
     double c = params[0];
 
@@ -124,59 +116,4 @@ double IntensityFitter::chi2(const double* params) {
         chi += pow((Io[i] - a*Im[i]-b)/sigma[i], 2);
     }
     return chi;
-}
-
-void IntensityFitter::setup(string file) {
-    std::tie(qo, Io, sigma) = read(file); // read observed values from input file
-}
-
-vector<double> IntensityFitter::splice(const vector<double>& ym) const {
-    vector<double> Im = vector<double>(qo.size()); // spliced model values
-    CubicSpline s(h.q, ym);
-    for (size_t i = 0; i < qo.size(); ++i) {
-        Im[i] = s.spline(qo[i]);
-    }
-    return Im;
-}
-
-std::tuple<vector<double>, vector<double>, vector<double>> IntensityFitter::read(string file) const {
-    // check if file was succesfully opened
-    std::ifstream input(file);
-    if (!input.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::read: Could not open file \"" + file + "\"");}
-
-    vector<double> q;
-    vector<double> I;
-    vector<double> sigma;
-    string line; // placeholder for the current line
-    while(getline(input, line)) {
-        if (line[0] == ' ') {line = line.substr(1);} // fix leading space
-        vector<string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
-
-        // determine if we are in some sort of header
-        if (tokens.size() < 3 || tokens.size() > 4) {continue;} // too many separators
-        bool skip = false;
-        for (int i = 0; i < 3; i++) { // check if they are numbers
-            if (!tokens[i].empty() && tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
-        }
-        if (skip) {continue;}
-
-        // now we are most likely beyond any headers
-        double _q, _I, _sigma;
-        _q = std::stod(tokens[0]); // we know for sure that the strings are convertible to numbers (boost check)
-        _I = std::stod(tokens[1]);
-        _sigma = std::stod(tokens[2]);
-
-        if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
-
-        // check user-defined limits
-        if (_q < setting::fit::q_low) {continue;}
-        if (_q > setting::fit::q_high) {continue;}
-
-        // add the values to our vectors
-        q.push_back(_q);
-        I.push_back(_I);
-        sigma.push_back(_sigma); 
-    }
-    return std::make_tuple(q, I, sigma);
 }
