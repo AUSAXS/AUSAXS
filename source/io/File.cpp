@@ -63,6 +63,15 @@ File File::copy() const {
     return File(*this);
 }
 
+File& File::operator=(const File& rhs) {
+    protein_atoms = rhs.protein_atoms;
+    hydration_atoms = rhs.hydration_atoms;
+    header = rhs.header;
+    footer = rhs.footer;
+    terminate = rhs.terminate;
+    return *this;
+}
+
 void File::refresh() {
     bool terminate_inserted = false;
     string chainID = "0"; int resSeq = 0; int serial = protein_atoms[0].serial;

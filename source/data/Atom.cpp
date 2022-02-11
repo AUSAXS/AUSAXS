@@ -17,14 +17,11 @@
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 using boost::format;
 
-Atom::Atom(Atom&& a) noexcept : coords(std::move(a.coords)), _name(std::move(a.name)), _altLoc(std::move(a.altLoc)), _resName(std::move(a.resName)), 
-    _chainID(std::move(a.chainID)), _iCode(std::move(a.iCode)), _element(std::move(a.element)), _charge(std::move(a.charge)), 
-    _occupancy(std::move(a.occupancy)), _tempFactor(std::move(a.tempFactor)), _serial(std::move(a.serial)), _resSeq(std::move(a.resSeq)), 
-    _effective_charge(std::move(a.effective_charge)), _uid(std::move(a.uid)) {}
+Atom::Atom(const Atom&& a) noexcept : coords(a.coords), name(a.name), altLoc(a.altLoc), resName(a.resName), chainID(a.chainID), iCode(a.iCode), element(a.element), 
+    charge(a.charge), occupancy(a.occupancy), tempFactor(a.tempFactor), serial(a.serial), resSeq(a.resSeq), effective_charge(a.effective_charge), uid(a.uid) {}
 
-Atom::Atom(const Atom& a) :coords(a.coords), _name(a.name), _altLoc(a.altLoc), _resName(a.resName), _chainID(a.chainID), _iCode(a.iCode), 
-    _element(a.element), _charge(a.charge), _occupancy(a.occupancy), _tempFactor(a.tempFactor), _serial(a.serial), _resSeq(a.resSeq),
-    _effective_charge(a.effective_charge), _uid(a.uid) {}
+Atom::Atom(const Atom& a) :coords(a.coords), name(a.name), altLoc(a.altLoc), resName(a.resName), chainID(a.chainID), iCode(a.iCode), element(a.element), 
+    charge(a.charge), occupancy(a.occupancy), tempFactor(a.tempFactor), serial(a.serial), resSeq(a.resSeq), effective_charge(a.effective_charge), uid(a.uid) {}
 
 Atom::Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial) {
     // we use our setters so we can validate the input if necessary
@@ -33,33 +30,33 @@ Atom::Atom(const Vector3 v, const double occupancy, const string element, const 
     set_element(element);
     set_name(name);
     set_serial(serial);
-    _effective_charge = constants::charge::get.at(this->element);
-    _uid = uid_counter++;
+    set_effective_charge(constants::charge::get.at(this->element));
+    uid = uid_counter++;
 }
 
 Atom::Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
     const string iCode, const Vector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
         set_serial(serial);
         set_name(name);
-        _altLoc = altLoc;
+        set_altLoc(altLoc);
         set_resName(resName);
-        _chainID = chainID;
-        _resSeq = resSeq;
-        _iCode = iCode;
+        set_chainID(chainID);
+        set_resSeq(resSeq);
+        set_iCode(iCode);
         set_coordinates(coords);
         set_occupancy(occupancy);
-        _tempFactor = tempFactor;
+        set_tempFactor(tempFactor);
         set_element(element);
-        _charge = charge;
+        set_charge(charge);
         try {
-            _effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+            effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
         } catch (const std::exception& e) {
             print_err("Could not set effective charge: unknown element, residual or atom (" + element + ", " + resName + ", " + name + ")");
         }
-        _uid = uid_counter++;
+        uid = uid_counter++;
 }
 
-Atom::Atom() : _uid(uid_counter++) {}
+Atom::Atom() : uid(uid_counter++) {}
 
 void Atom::parse_pdb(string s) {
     int pad_size = 81 - s.size();
@@ -103,23 +100,23 @@ void Atom::parse_pdb(string s) {
 
     // set all of the properties
     try {
-        _serial = std::stoi(serial);
-        _name = name;
-        _altLoc = altLoc;
-        _resName = resName;
-        _chainID = chainID;
-        _resSeq = std::stoi(resSeq);
-        _iCode = iCode;
+        this->serial = std::stoi(serial);
+        this->name = name;
+        this->altLoc = altLoc;
+        this->resName = resName;
+        this->chainID = chainID;
+        this->resSeq = std::stoi(resSeq);
+        this->iCode = iCode;
         set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
-        if (occupancy.empty()) {_occupancy = 1;} else {_occupancy = std::stod(occupancy);}
-        if (tempFactor.empty()) {_tempFactor = 0;} else {_tempFactor = std::stod(tempFactor);}
+        if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
+        if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
-        _charge = charge;
+        this->charge = charge;
     } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
         throw except::parse_error("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
     }
 
-    _effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+    effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
 
     // DEBUG OUTPUT
     // cout << s << endl;
@@ -195,19 +192,19 @@ bool Atom::equals_content(const Atom& rhs) const {
 }
 
 Atom& Atom::operator=(const Atom& rhs) {
-    _name = rhs._name; 
-    _altLoc = rhs._altLoc; 
-    _resName = rhs._resName; 
-    _chainID = rhs._chainID; 
-    _iCode = rhs._iCode; 
-    _element = rhs._element; 
-    _charge = rhs._charge;
-    _occupancy = rhs._occupancy; 
-    _tempFactor = rhs._tempFactor;
-    _serial = rhs._serial; 
-    _resSeq = rhs._resSeq;
+    name = rhs.name; 
+    altLoc = rhs.altLoc; 
+    resName = rhs.resName; 
+    chainID = rhs.chainID; 
+    iCode = rhs.iCode; 
+    element = rhs.element; 
+    charge = rhs.charge;
+    occupancy = rhs.occupancy; 
+    tempFactor = rhs.tempFactor;
+    serial = rhs.serial; 
+    resSeq = rhs.resSeq;
     coords = rhs.coords;
-    _effective_charge = rhs._effective_charge;
-    _uid = rhs._uid;
+    effective_charge = rhs.effective_charge;
+    uid = rhs.uid;
     return *this;
 }

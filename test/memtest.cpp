@@ -100,6 +100,20 @@ TEST_CASE("debug", "[memtest]") {
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1,  1), 1, 0, "C", "0"),
                        Atom(7, "C", "", "LYS", "", 1, "", Vector3( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3( 1, 1,  1), 1, 0, "C", "0")};
 
+    // vector<Hetatom> w = {};
+    // std::shared_ptr<File> f1 = std::make_shared<File>(a1, w);
+    // std::shared_ptr<File> f2 = std::make_shared<File>(a2, w);
+    // vector<Atom>& atoms = f1->protein_atoms;
+
+    // {
+    //     std::shared_ptr<File> old = std::make_shared<File>(a1, w);
+    //     f1 = old;
+    // }
+
+    // for (const auto e: f1->protein_atoms) {
+    //     std::cout << e.as_pdb() << std::endl;
+    // }
+
     Body b1(a1);
     Body b2(a2);
 

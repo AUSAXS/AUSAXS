@@ -121,6 +121,8 @@ class File {
 
     File copy() const;
 
+    File& operator=(const File& rhs);
+
     Header header;
     Footer footer;
     Terminate terminate;

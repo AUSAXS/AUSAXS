@@ -15,7 +15,7 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
 class Atom : public Record {
   public:
-    Atom(Atom&& a) noexcept;
+    Atom(const Atom&& a) noexcept;
 
     Atom(const Atom& a);
 
@@ -81,28 +81,34 @@ class Atom : public Record {
      */
     virtual bool is_water() const {return false;}
 
-    // setters
+
+
+//*** setters ***//
     void set_coordinates(const Vector3 v) {coords = v;}
-    void set_x(const double x) {coords.x = x;}
-    void set_y(const double y) {coords.y = y;}
-    void set_z(const double z) {coords.z = z;}
-    void set_occupancy(double occupancy) {_occupancy = occupancy;}
-    void set_serial(const int serial) {_serial = serial;}
-    void set_resSeq(const int resSeq) {_resSeq = resSeq;}
-    void set_effective_charge(double charge) {_effective_charge = charge;}
+    void set_x(double x) {coords.x = x;}
+    void set_y(double y) {coords.y = y;}
+    void set_z(double z) {coords.z = z;}
+    void set_occupancy(double occupancy) {this->occupancy = occupancy;}
+    void set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
+    void set_altLoc(string altLoc) {this->altLoc = altLoc;}
+    void set_serial(int serial) {this->serial = serial;}
+    void set_resSeq(int resSeq) {this->resSeq = resSeq;}
+    void set_effective_charge(double charge) {effective_charge = charge;}
+    void set_chainID(string chainID) {this->chainID = chainID;}
+    void set_iCode(string iCode) {this->iCode = iCode;}
+    void set_charge(string charge) {this->charge = charge;}
 
     /**
      * @brief Set the residue name for this atom.
      * @param resName the residue name, typically an amino acid such as LYS.
      */
-    void set_resName(string resName) {_resName = resName;}
-    void set_chainID(string chainID) {_chainID = chainID;}
+    void set_resName(string resName) {this->resName = resName;}
 
     /**
      * @brief Specify the position of this atom within its residue.
      * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
      */
-    void set_name(string name) {_name = name;}
+    void set_name(string name) {this->name = name;}
 
     /**
      * @brief Set the atomic element for this atom. Any spaces are removed. 
@@ -112,9 +118,24 @@ class Atom : public Record {
         if (__builtin_expect(constants::mass::atomic.count(element) == 0, false)) { // check that the weight is defined
             throw except::invalid_argument("Error in Atom::set_element: The weight of element " + element + " is not defined.");
         }
-        _element = element;
+        this->element = element;
     }
 
+//*** getters ***//
+    Vector3& get_coordinates() {return coords;}
+    const Vector3& get_coordinates() const {return coords;}
+    int get_serial() const {return serial;}
+    int get_resSeq() const {return resSeq;}
+    double get_occupancy() const {return occupancy;}
+    double get_tempFactor() const {return tempFactor;}
+    double get_effective_charge() const {return effective_charge;}
+    string get_altLoc() const {return altLoc;}
+    string get_chainID() const {return chainID;}
+    string get_iCode() const {return iCode;}
+    string get_charge() const {return charge;}
+    string get_resName() const {return resName;}
+    string get_name() const {return name;}
+    string get_element() const {return element;}
     virtual string get_recName() const {return "ATOM  ";}
 
     double get_mass() const {
@@ -128,7 +149,7 @@ class Atom : public Record {
     /**
      * @brief Add @p charge to the effective charge of this atom. 
      */
-    void add_effective_charge(const double charge) {_effective_charge += charge;}
+    void add_effective_charge(const double charge) {effective_charge += charge;}
 
     /**
      * @brief Comparison function to allow this class to be a map key. 
@@ -172,23 +193,16 @@ class Atom : public Record {
 
     Atom& operator=(const Atom& rhs);
 
+    // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     Vector3 coords = {0, 0, 0};
-    const string &name = _name, &altLoc = _altLoc, &resName = _resName, &chainID = _chainID, &iCode = _iCode, &element = _element, &charge = _charge;
-    const double &occupancy = _occupancy, &tempFactor = _tempFactor;
-    const int &serial = _serial, &resSeq = _resSeq;
-    const double& effective_charge = _effective_charge;
-    const int &uid = _uid;
+    string name = "", altLoc = "", resName = "", chainID = "", iCode = "", element = "", charge = "";
+    double occupancy = -1, tempFactor = -1;
+    int serial = -1, resSeq = -1; 
+
+    // other properties
+    double effective_charge = -1;
+    int uid = -1;
 
     // global counter for unique ids
     static inline int uid_counter = 0;
-
-  protected:
-    // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
-    string _name = "", _altLoc = "", _resName = "", _chainID = "", _iCode = "", _element = "", _charge = "";
-    double _occupancy = -1, _tempFactor = -1;
-    int _serial = -1, _resSeq = -1; 
-
-    // other properties
-    double _effective_charge = -1;
-    int _uid = -1;
 };

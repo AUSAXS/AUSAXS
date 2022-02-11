@@ -35,20 +35,20 @@ class Hetatom : public Atom {
     }
 
     Hetatom& operator=(const Hetatom& rhs) {
-        _name = rhs.name; 
-        _altLoc = rhs.altLoc; 
-        _resName = rhs.resName; 
-        _chainID = rhs.chainID; 
-        _iCode = rhs.iCode; 
-        _element = rhs.element; 
-        _charge = rhs.charge;
-        _occupancy = rhs.occupancy; 
-        _tempFactor = rhs.tempFactor;
-        _serial = rhs.serial; 
-        _resSeq = rhs.resSeq;
+        name = rhs.name; 
+        altLoc = rhs.altLoc; 
+        resName = rhs.resName; 
+        chainID = rhs.chainID; 
+        iCode = rhs.iCode; 
+        element = rhs.element; 
+        charge = rhs.charge;
+        occupancy = rhs.occupancy; 
+        tempFactor = rhs.tempFactor;
+        serial = rhs.serial; 
+        resSeq = rhs.resSeq;
         coords = rhs.coords;
-        _effective_charge = rhs.effective_charge;
-        _uid = rhs.uid;
+        effective_charge = rhs.effective_charge;
+        uid = rhs.uid;
         return *this;
     }
 
