@@ -37,6 +37,13 @@ TEST_CASE("body_assign", "[memtest]") {
     b2 = b1;
 }
 
+TEST_CASE("vector_assign", "[memtest]") {
+    vector<int> v = {1, 2, 3, 4};
+    int& v1 = v[0];
+    v.assign({0, 3});
+    std::cout << v1 << std::endl;
+}
+
 TEST_CASE("grid_add", "[memtest]") {
     vector<int> splits = {9, 99};
     Protein protein(BodySplitter::split("data/LAR1-2.pdb", splits));
@@ -46,6 +53,8 @@ TEST_CASE("grid_add", "[memtest]") {
     rbody.protein.generate_new_hydration();
 }
 
+#include "rigidbody/RandomSelect.h"
+#include "rigidbody/SimpleParameterGeneration.h"
 TEST_CASE("compact_coordinates", "[memtest]") {
     vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
                        Atom(3, "C", "", "LYS", "", 1, "", Vector3( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3( 1, 1, -1), 1, 0, "C", "0")};
@@ -55,38 +64,54 @@ TEST_CASE("compact_coordinates", "[memtest]") {
     Body b1(a1);
     Body b2(a2);
 
-    Protein protein({b1, b2});
-    RigidBody body(protein);
+    Protein protein = BodySplitter::split("data/LAR1-2.pdb", {9, 99});
+    RigidBody rigidbody(protein);
 
-    vector<double> chi2list = {1100, 900};
-    double _chi2 = 1000;
     Parameters params(protein);
     std::shared_ptr<Grid> grid = protein.get_grid();
 
-    for (unsigned int i = 0; i < chi2list.size(); i++) {
-        std::cout << "ITERATION " << i << std::endl;
-        int body_index = 0;
-        Body& body = protein.bodies[body_index];
-        Parameter param({1, 1, 1}, 1, 1, 1);
+    rigidbody.generate_new_hydration();
+    SimpleIntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
+    double _chi2 = fitter.fit()->chi2;
+    std::cout << "Initial chi2: " << _chi2 << std::endl;
+
+    RandomSelect bodyselector(rigidbody.protein);
+    SimpleParameterGeneration parameter_generator(10, 5, 0.3);
+
+    for (unsigned int i = 0; i < 10; i++) {
+        // select a body to be modified this iteration
+        int body_index = bodyselector.next();
+        Body& body = rigidbody.protein.bodies[body_index];
+        Parameter param = parameter_generator.next();
 
         Body old_body(body);
-        Grid old_grid(grid->copy());
-
         grid->remove(&body);
 
+        // update the body to reflect the new params
         Matrix R = Matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
         body.translate(param.dx);
         body.rotate(R);
-
+ 
+        // add the body to the grid again
         grid->add(&body);
-        protein.generate_new_hydration();
+        rigidbody.generate_new_hydration();
 
-        double __chi2 = chi2list[i];
+        // calculate the new chi2
+        auto h = rigidbody.protein.get_histogram();
+        fitter.set_scattering_hist(h);
+        double __chi2 = fitter.fit()->chi2;
 
+        std::cout << "new chi2: " << __chi2 << std::endl;
+        // if the old configuration was better
         if (__chi2 >= _chi2) {
-            protein.bodies[body_index] = old_body;
-            protein.generate_new_hydration();
+            std::cout << "REROLLING CHANGES" << std::endl;
+            body = old_body;
+            rigidbody.generate_new_hydration();
+            fitter.set_scattering_hist(protein.get_histogram());
+            double ___chi2 = fitter.fit()->chi2;
+            std::cout << "\tchi2 is now " << ___chi2 << std::endl;
         } else {
+            std::cout << "KEEPING CHANGES" << std::endl;
             // accept the changes
             _chi2 = __chi2;
             params.update(body.uid, param);
@@ -100,20 +125,6 @@ TEST_CASE("debug", "[memtest]") {
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1,  1), 1, 0, "C", "0"),
                        Atom(7, "C", "", "LYS", "", 1, "", Vector3( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3( 1, 1,  1), 1, 0, "C", "0")};
 
-    // vector<Hetatom> w = {};
-    // std::shared_ptr<File> f1 = std::make_shared<File>(a1, w);
-    // std::shared_ptr<File> f2 = std::make_shared<File>(a2, w);
-    // vector<Atom>& atoms = f1->protein_atoms;
-
-    // {
-    //     std::shared_ptr<File> old = std::make_shared<File>(a1, w);
-    //     f1 = old;
-    // }
-
-    // for (const auto e: f1->protein_atoms) {
-    //     std::cout << e.as_pdb() << std::endl;
-    // }
-
     Body b1(a1);
     Body b2(a2);
 
@@ -125,6 +136,35 @@ TEST_CASE("debug", "[memtest]") {
     for (const auto e : b1.protein_atoms) {
         std::cout << e.as_pdb() << std::endl;
     }
+}
+
+TEST_CASE("debug2", "[memtest]") {
+    vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0"),
+                       Atom(3, "C", "", "LYS", "", 1, "", Vector3( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3( 1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1,  1), 1, 0, "C", "0"),
+                       Atom(7, "C", "", "LYS", "", 1, "", Vector3( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3( 1, 1,  1), 1, 0, "C", "0")};
+
+    vector<Hetatom> w = {};
+    std::shared_ptr<File> f1 = std::make_shared<File>(a1, w);
+    std::shared_ptr<File> f2 = std::make_shared<File>(a2, w);
+    vector<Atom>& atoms = f1->protein_atoms;
+
+    {
+        std::shared_ptr<File> old = std::make_shared<File>(a1, w);
+        f1 = old;
+    }
+
+    for (const auto e: f1->protein_atoms) {
+        std::cout << e.as_pdb() << std::endl;
+    }
+}
+
+TEST_CASE("test", "[memtest]") {
+    vector<double> v1(0);
+    vector<double>& vref = v1; 
+    vector<double> v2(vref);
+
+    std::cout << v2.size() << std::endl;
 }
 
 TEST_CASE("file_assign", "[memtest]") {

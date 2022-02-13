@@ -9,7 +9,7 @@ using std::string, std::vector;
 
 class Footer : Record {
   public: 
-    Footer(){}
+    Footer() : contents("") {}
     ~Footer() override {}
 
     /**

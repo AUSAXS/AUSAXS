@@ -9,7 +9,7 @@ using std::string, std::vector;
 
 class Header : Record {
   public: 
-    Header(){}
+    Header() : contents("") {}
     ~Header() override {}
 
     /**

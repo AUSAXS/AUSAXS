@@ -1,5 +1,6 @@
 #include "data/Atom.h"
 #include "data/Body.h"
+#include "data/Protein.h"
 #include "data/StateManager.h"
 #include "ScatteringHistogram.h"
 #include "data/PartialHistogramManager.h"
@@ -18,11 +19,10 @@ CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atom
     }
 }
 
-PartialHistogramManager::PartialHistogramManager(vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) 
-    : size(bodies.size()), statemanager(size), coords_p(size), bodies(bodies), hydration_atoms(hydration_atoms), 
-      partials_pp(size, vector<PartialHistogram>(size)), partials_hp(size) 
+PartialHistogramManager::PartialHistogramManager(Protein* protein) 
+    : size(protein->bodies.size()), statemanager(size), coords_p(size), protein(protein), partials_pp(size, vector<PartialHistogram>(size)), partials_hp(size) 
     {
-        for (unsigned int i = 0; i < size; i++) {bodies[i].register_probe(statemanager.get_probe(i));}
+        for (unsigned int i = 0; i < size; i++) {protein->bodies[i].register_probe(statemanager.get_probe(i));}
     }
 
 /**
@@ -36,7 +36,7 @@ void PartialHistogramManager::initialize() {
 
     for (unsigned int n = 0; n < size; n++) {
         // create more efficient access to the necessary variables
-        CompactCoordinates current(bodies[n]);
+        CompactCoordinates current(protein->bodies[n]);
 
         // calculate internal distances between atoms
         for (unsigned int i = 0; i < current.size; i++) {
@@ -103,13 +103,13 @@ Histogram PartialHistogramManager::calculate() {
     const vector<bool> modified_state = statemanager.get_modified_bodies();
     for (unsigned int i = 0; i < size; i++) {
         if (modified_state[i]) {
-            coords_p[i] = CompactCoordinates(bodies[i]); // REMOVE - UNNECESSARY ON FIRST ITERATION
+            coords_p[i] = CompactCoordinates(protein->bodies[i]); //! REMOVE - UNNECESSARY ON FIRST ITERATION
         }
     }
 
     // check if the hydration layer was modified
     if (statemanager.get_modified_hydration()) {
-        coords_h = CompactCoordinates(hydration_atoms); // if so, first update the compact coordinate representation
+        coords_h = CompactCoordinates(protein->hydration_atoms); // if so, first update the compact coordinate representation
         calc_hh(); // then update the partial histogram
 
         // iterate through the lower triangle
@@ -136,6 +136,7 @@ Histogram PartialHistogramManager::calculate() {
             }
         }
     }
+    statemanager.reset();
     return Histogram(master.p, master.axis);
 }
 
@@ -228,9 +229,9 @@ void PartialHistogramManager::calc_hh() {
     vector<double> p_hh(master.axis.bins, 0);
 
     // calculate internal distances for the hydration layer
-    coords_h = CompactCoordinates(hydration_atoms);
-    for (unsigned int i = 0; i < 4*hydration_atoms.size(); i++) {
-        for (unsigned int j = i+1; j < hydration_atoms.size(); j++) {
+    coords_h = CompactCoordinates(protein->hydration_atoms);
+    for (unsigned int i = 0; i < 4*protein->hydration_atoms.size(); i++) {
+        for (unsigned int j = i+1; j < protein->hydration_atoms.size(); j++) {
             float weight = coords_h.data[i].w*coords_h.data[j].w;
             float dx = coords_h.data[i].x - coords_h.data[j].x;
             float dy = coords_h.data[i].y - coords_h.data[j].y;
@@ -241,7 +242,7 @@ void PartialHistogramManager::calc_hh() {
     }
 
     // calculate self-correlation
-    for (unsigned int i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
+    for (unsigned int i = 0; i < protein->hydration_atoms.size(); i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
 
     master -= partials_hh; // subtract the previous hydration histogram
     partials_hh.p = std::move(p_hh);
