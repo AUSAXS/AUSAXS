@@ -103,7 +103,17 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 }
 
 TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
-    
+    Protein protein("data/2epe.pdb");
+    SimpleIntensityFitter fitter("data/2epe.RSR", protein.get_histogram());
+
+    protein.generate_new_hydration();
+    double chi2 = fitter.fit()->chi2;
+
+    for (int i = 0; i < 10; i++) {
+        protein.generate_new_hydration();
+        double _chi2 = fitter.fit()->chi2;
+        REQUIRE(chi2 == Approx(_chi2));
+    }
 }
 
 TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {

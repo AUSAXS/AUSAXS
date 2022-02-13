@@ -68,7 +68,7 @@ TEST_CASE("compact_coordinates", "[memtest]") {
     RigidBody rigidbody(protein);
 
     Parameters params(protein);
-    std::shared_ptr<Grid> grid = protein.get_grid();
+    // std::shared_ptr<Grid> grid = protein.get_grid();
 
     rigidbody.generate_new_hydration();
     SimpleIntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
@@ -76,16 +76,16 @@ TEST_CASE("compact_coordinates", "[memtest]") {
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 
     RandomSelect bodyselector(rigidbody.protein);
-    SimpleParameterGeneration parameter_generator(10, 5, 0.3);
+    SimpleParameterGeneration parameter_generator(100, 5, 0.3);
 
-    for (unsigned int i = 0; i < 10; i++) {
+    for (unsigned int i = 0; i < 100; i++) {
         // select a body to be modified this iteration
         int body_index = bodyselector.next();
         Body& body = rigidbody.protein.bodies[body_index];
         Parameter param = parameter_generator.next();
 
         Body old_body(body);
-        grid->remove(&body);
+        // grid->remove(&body);
 
         // update the body to reflect the new params
         Matrix R = Matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
@@ -93,7 +93,8 @@ TEST_CASE("compact_coordinates", "[memtest]") {
         body.rotate(R);
  
         // add the body to the grid again
-        grid->add(&body);
+        // grid->add(&body);
+        std::shared_ptr<Grid> grid = protein.create_grid();
         rigidbody.generate_new_hydration();
 
         // calculate the new chi2
@@ -106,16 +107,18 @@ TEST_CASE("compact_coordinates", "[memtest]") {
         if (__chi2 >= _chi2) {
             std::cout << "REROLLING CHANGES" << std::endl;
             body = old_body;
-            rigidbody.generate_new_hydration();
-            fitter.set_scattering_hist(protein.get_histogram());
-            double ___chi2 = fitter.fit()->chi2;
-            std::cout << "\tchi2 is now " << ___chi2 << std::endl;
         } else {
             std::cout << "KEEPING CHANGES" << std::endl;
             // accept the changes
             _chi2 = __chi2;
             params.update(body.uid, param);
         }
+
+        grid = protein.create_grid();
+        rigidbody.generate_new_hydration();
+        fitter.set_scattering_hist(protein.get_histogram());
+        double ___chi2 = fitter.fit()->chi2;
+        std::cout << "\tchi2 is now " << ___chi2 << std::endl;
     }
 }
 

@@ -46,11 +46,7 @@ intensity_fit/%: build/source/scripts/intensity_fitter
 ###				TESTS						 ###
 #################################################################################
 tags := ""
-test/memtest: $(shell find source/ -print) test/memtest.cpp	
-	@ make -C build test -j${cmake_threads}
-	valgrind --suppressions=suppressions.txt --track-origins=yes build/test [memtest] ~[broken] ~[manual] ${tags}
-
-test/memtest/%: $(shell find source/ -print) test/memtest.cpp	
+memtest/%: $(shell find source/ -print) test/memtest.cpp	
 	@ make -C build test -j${cmake_threads}
 	valgrind --suppressions=suppressions.txt --track-origins=yes build/test ~[broken] ~[manual] [$*] ${tags}
 
