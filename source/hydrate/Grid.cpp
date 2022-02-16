@@ -454,9 +454,9 @@ vector<int> Grid::get_bins() const {
 }
 
 vector<int> Grid::to_bins(const Vector3& v) const {
-    int binx = std::round((v[0] - axes.x.min)/width);
-    int biny = std::round((v[1] - axes.y.min)/width);
-    int binz = std::round((v[2] - axes.z.min)/width);
+    int binx = std::round((v.x - axes.x.min)/width);
+    int biny = std::round((v.y - axes.y.min)/width);
+    int binz = std::round((v.z - axes.z.min)/width);
     return {binx, biny, binz};
 }
 

@@ -22,7 +22,7 @@ Body::Body(const string& path) : file(std::make_shared<File>(path)), uid(uid_cou
 
 Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
-Body::Body(const Body& body) : file(std::make_shared<File>(*body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(const Body& body) : file(std::make_shared<File>(body.protein_atoms, body.hydration_atoms)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
 Body::Body(Body&& body) : file(std::move(body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
@@ -214,13 +214,8 @@ shared_ptr<ScatteringHistogram> Body::get_histogram() {
 void Body::translate(const Vector3& v) {
     signal->state_change();
 
-    auto move = [&v] (auto& atoms) {
-        for (auto& a : atoms) {
-            a.translate(v);
-        }
-    };
-    move(protein_atoms);
-    move(hydration_atoms);
+    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
+    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
 }
 
 void Body::rotate(const Matrix& R) {

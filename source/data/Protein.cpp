@@ -4,36 +4,36 @@
 #include "Histogram.h"
 
 Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
-    phm = std::make_unique<PartialHistogramManager>(this->bodies, this->hydration_atoms);
+    phm = std::make_unique<PartialHistogramManager>(this);
 }
 
 Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
-    phm = std::make_unique<PartialHistogramManager>(bodies, this->hydration_atoms);
+    phm = std::make_unique<PartialHistogramManager>(this);
 }
 
 Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     for (size_t i = 0; i < protein_atoms.size(); i++) {
-        bodies.push_back(Body(protein_atoms[i], {}));
+        bodies.push_back(Body(protein_atoms[i], vector<Hetatom>(0)));
     }
-    phm = std::make_unique<PartialHistogramManager>(bodies, this->hydration_atoms);
+    phm = std::make_unique<PartialHistogramManager>(this);
 }
 
 Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
+    phm = std::make_unique<PartialHistogramManager>(this);
 }
 
 Protein::Protein(const string& input) {
     bodies = {Body(input)};
     hydration_atoms = bodies[0].hydration_atoms;
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
+    phm = std::make_unique<PartialHistogramManager>(this);
 }
 
 Protein::Protein(const vector<string>& input) {
     for (size_t i = 0; i < input.size(); i++) {
         bodies.push_back(Body(input[i]));
     }
-    phm = std::make_unique<PartialHistogramManager>(bodies, hydration_atoms);
+    phm = std::make_unique<PartialHistogramManager>(this);
 }
 
 void Protein::translate(const Vector3& v) {

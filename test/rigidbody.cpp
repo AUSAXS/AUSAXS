@@ -70,15 +70,50 @@ TEST_CASE("Constraints", "[rigidbody]") {
 }
 
 TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
+    Protein protein_2epe("data/2epe.pdb");
+    Protein protein_LAR12("data/LAR1-2.pdb");
+    protein_2epe.generate_new_hydration();
+    protein_LAR12.generate_new_hydration();
+
+    SECTION("intensity_fitter") {
+        IntensityFitter fitter("data/2epe.RSR", protein_2epe.get_histogram());
+        double chi2 = fitter.fit()->chi2;
+
+        fitter.set_scattering_hist(protein_LAR12.get_histogram());
+        double _chi2 = fitter.fit()->chi2;
+        REQUIRE(chi2 != Approx(_chi2));
+
+        fitter.set_scattering_hist(protein_2epe.get_histogram());
+        _chi2 = fitter.fit()->chi2;
+        REQUIRE(chi2 == Approx(_chi2));
+    }
+
+    SECTION("simple_intensity_fitter") {
+        SimpleIntensityFitter fitter("data/2epe.RSR", protein_2epe.get_histogram());
+        double chi2 = fitter.fit()->chi2;
+
+        fitter.set_scattering_hist(protein_LAR12.get_histogram());
+        double _chi2 = fitter.fit()->chi2;
+        REQUIRE(chi2 != Approx(_chi2));
+
+        fitter.set_scattering_hist(protein_2epe.get_histogram());
+        _chi2 = fitter.fit()->chi2;
+        REQUIRE(chi2 == Approx(_chi2));
+    }
+}
+
+TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
     Protein protein("data/2epe.pdb");
-    protein.generate_new_hydration();
-    IntensityFitter fitter("data/2epe.RSR", protein.get_histogram());
-    double chi2 = fitter.fit()->chi2;
+    SimpleIntensityFitter fitter("data/2epe.RSR", protein.get_histogram());
 
     protein.generate_new_hydration();
-    fitter.set_scattering_hist(protein.get_histogram());
-    double _chi2 = fitter.fit()->chi2;
-    REQUIRE(chi2 == Approx(_chi2));
+    double chi2 = fitter.fit()->chi2;
+
+    for (int i = 0; i < 10; i++) {
+        protein.generate_new_hydration();
+        double _chi2 = fitter.fit()->chi2;
+        REQUIRE(chi2 == Approx(_chi2));
+    }
 }
 
 TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {

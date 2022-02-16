@@ -18,8 +18,8 @@ class ParameterGenerationStrategy {
     ParameterGenerationStrategy(const int iterations, const double length_start, const double rad_start) : iterations(iterations) {
       std::random_device random;
       generator = std::mt19937(random());
-      translation_dist = std::uniform_int_distribution<int>(-length_start, length_start);
-      rotation_dist = std::uniform_int_distribution<int>(-rad_start, rad_start);
+      translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
+      rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
     }
 
     /**
@@ -35,11 +35,11 @@ class ParameterGenerationStrategy {
     }
 
   protected:
-    int iteration = 0;                                   // Current iteration. 
-    int iterations;                                      // The total number of iterations. Used to determine the current scaling. 
-    std::mt19937 generator;                              // The random number generator. 
-    std::uniform_int_distribution<int> translation_dist; // The random number distribution for translations. 
-    std::uniform_int_distribution<int> rotation_dist;    // The random number distribution for rotations. 
+    int iteration = 0;                                       // Current iteration. 
+    int iterations;                                          // The total number of iterations. Used to determine the current scaling. 
+    std::mt19937 generator;                                  // The random number generator. 
+    std::uniform_real_distribution<double> translation_dist; // The random number distribution for translations. 
+    std::uniform_real_distribution<double> rotation_dist;    // The random number distribution for rotations. 
 
     /**
      * @brief Get a new rotation offset based on the current iteration. 

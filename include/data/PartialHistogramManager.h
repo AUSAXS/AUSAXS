@@ -1,5 +1,8 @@
 #pragma once
 
+// forwards declaration
+class Protein;
+
 #include "data/Atom.h"
 #include "data/Body.h"
 #include "data/StateManager.h"
@@ -97,7 +100,7 @@ class MasterHistogram : public Histogram {
  */
 class PartialHistogramManager {
   public:
-    PartialHistogramManager(vector<Body>& bodies, const vector<Hetatom>& hydration_atoms); 
+    PartialHistogramManager(Protein* protein); 
 
     /**
      * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
@@ -128,18 +131,17 @@ class PartialHistogramManager {
     void signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
 
   private:
-    const size_t size; // number of managed bodies
-    StateManager statemanager; // a helper which keeps track of state changes in each body
-    vector<CompactCoordinates> coords_p; // a compact representation of the relevant data from the managed bodies
-    CompactCoordinates coords_h; // a compact representation of the hydration data
-    const vector<Body>& bodies; // reference access to the managed bodies
-    const vector<Hetatom>& hydration_atoms; // reference to the hydration layer 
+    const size_t size;                            // number of managed bodies
+    StateManager statemanager;                    // a helper which keeps track of state changes in each body
+    vector<CompactCoordinates> coords_p;          // a compact representation of the relevant data from the managed bodies
+    CompactCoordinates coords_h;                  // a compact representation of the hydration data
+    Protein* protein;                             // pointer to the parent Protein
 
     // histogram data
-    MasterHistogram master; // the current total histogram
+    MasterHistogram master;                       // the current total histogram
     vector<vector<PartialHistogram>> partials_pp; // the partial histograms
-    vector<HydrationHistogram> partials_hp; // the partial hydration-atom histograms
-    HydrationHistogram partials_hh; // the partial histogram for the hydration layer
+    vector<HydrationHistogram> partials_hp;       // the partial hydration-atom histograms
+    HydrationHistogram partials_hh;               // the partial histogram for the hydration layer
 
     /**
      * @brief Calculate the atom-atom distances between body @a index and all others. 

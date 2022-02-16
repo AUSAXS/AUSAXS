@@ -77,6 +77,11 @@ class ScatteringHistogram : Histogram {
      */
     ScatteringHistogram& operator=(const ScatteringHistogram& h);
 
+    /**
+     * @brief Assign another ScatteringHistogram to this object.
+     */
+    ScatteringHistogram& operator=(ScatteringHistogram&& h);
+
     const vector<double>& q = _q;
     const vector<double>& p_pp = _p_pp;
     const vector<double>& p_hh = _p_hh;

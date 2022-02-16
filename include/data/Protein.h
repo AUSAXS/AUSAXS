@@ -23,6 +23,13 @@ class Protein {
     Protein() {}
 
     /**
+     * @brief Copy constructor.
+     * 
+     * Proteins cannot be copied. 
+     */
+    Protein(const Protein& protein) = delete;
+
+    /**
      * @brief Move constructor.
      */
     Protein(Protein&& protein) noexcept;
