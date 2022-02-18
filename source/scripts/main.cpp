@@ -4,6 +4,7 @@
 #include <map>
 #include <fstream>
 #include <iostream>
+#include <memory>
 
 using std::string, std::cout, std::endl;
 
@@ -78,6 +79,23 @@ vector<T> create_vector(Type type) {
     }
 }
 
+template<typename T>
+class Image {
+    public:
+        Image(const CCP4::Header& header, std::ifstream& istream) : header(header) {
+            read(istream);
+        }
+
+    private:
+        const CCP4::Header header;
+        vector<T> data;
+
+        read(std::ifstream& istream) {
+            data = vector<vector<vector<T>>>(header.nx, vector<vector<T>>(header.ny, vector<T>(header.nz)));
+
+        }
+};
+
 int main(int argc, char const *argv[]) {
     std::ifstream input("data/A2M_map.ccp4", std::ios::binary);
     CCP4::Header header;
@@ -85,21 +103,22 @@ int main(int argc, char const *argv[]) {
 
     Type type;
     switch(header.mode) {
-        case 0: 
-            type = Type::int8;
-            break;
-        case 1:
-            type = Type::int16;
-            break;
-        case 2: 
-            type = Type::float32;
-            break;
-        case 6:
-            type = Type::uint16;
-            break;
-        case 12:
-            type = Type::float16;
-            break;
+        case 0: { // int8 --> short int
+            Image<short int> image(header, input);
+        }
+        case 1: { // int16 --> int
+            Image<int> image(header, input);
+        }
+        case 2: { // float32 --> float
+            Image<float> image(header, input);
+        }
+        case 6: { // uint16 --> unsigned int
+            Image<unsigned int> image(header, input);
+        }
+        case 12: { // float16 --> short float
+            // Image<short float> image(header, input);
+            //! short float doesn't exist in pure c++
+        }
         case 3:
         case 4:
             type = Type::complex64;
