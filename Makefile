@@ -28,7 +28,7 @@ hist/%: build/source/scripts/hist
 	$< data/$*.pdb figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
 
 main/%: build/source/scripts/main
-	$< data/$*.pdb output/filled_volume.pdb
+	$< $*
 
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
