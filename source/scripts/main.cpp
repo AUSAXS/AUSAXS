@@ -99,6 +99,32 @@ class Image {
 
             std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
             std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header.nx, 0, header.nx*header.cella_x, header.ny, 0, header.ny*header.cella_y);
+
+            float xmin = -3;
+            float xmax = 3;
+            unsigned int size = 100;
+            unsigned int err = 0; // number of values which doesn't fit in the histogram
+            vector<T> bins(size);
+            for (int y = 0; y < header.ny; y++) {
+                for (int x = 0; x < header.nx; x++) {
+                    unsigned int i = (index[x][y][layer] - xmin)/size;
+                    if (i < 0 || size < i) {
+                        err++;
+                    } else {
+                        bins[i]++;
+                    }
+                }
+            }
+
+            // find 2 highest elements in the bin sequence. if they account for more than 10% of the values, we want to remove them visually from the plot.
+            int N = header.nx*header.ny;
+            vector<vector<float>> skip_ranges;
+            unsigned int i1 = std::max_element(bins.begin(), bins.end());
+            if (bins[i1] > 0.1*N) {skip_ranges.push_back({xmin+i1*(xmax-xmin)/size});}
+            bins[i1] = 0;
+            unsigned int i2 = std::max_element(bins.begin(), bins.end());
+            if (bins[i2] > 0.1*N) {skip_ranges.push_back({xmin+i2*(xmax-xmin)/size});}
+
             for (int y = 0; y < header.ny; y++) {
                 for (int x = 0; x < header.nx; x++) {
                     // int my_bin = x + y*header.ny; // the logical choice of bins
