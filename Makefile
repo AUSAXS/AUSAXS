@@ -19,27 +19,30 @@ bwidth := 1
 ra := 2.4
 rh := 1.5
 ps := Radial
-hydrate/%: build/source/scripts/new_hydration
+hydrate/%: build/executable/new_hydration
 	$< data/$*.pdb output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
 #	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
-hist/%: build/source/scripts/hist
+hist/%: build/executable/hist
 	$< data/$*.pdb figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
 
-main/%: build/source/scripts/main
+main/%: build/executable/main
+	$< $*
+
+em/%: build/executable/em
 	$< $*
 
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
 
-rigidbody/%: build/source/scripts/rigidbody_opt
+rigidbody/%: build/executable/rigidbody_opt
 	$< data/$*.pdb data/$*.RSR figures/
 
 qlow := 0
 qhigh := 1000
 center := center
-intensity_fit/%: build/source/scripts/intensity_fitter
+intensity_fit/%: build/executable/intensity_fitter
 	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
 
 #################################################################################

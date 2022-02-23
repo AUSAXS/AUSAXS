@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+
+using std::string;
+
 /**
  * @brief This namespace contains all custom exceptions for this project. 
  */

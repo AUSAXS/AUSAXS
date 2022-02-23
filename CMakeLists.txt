@@ -11,7 +11,6 @@ project(SAXS)
 ##           Link libraries               ##
 ############################################
 set(LIBRARIES)
-set(sources "${CMAKE_SOURCE_DIR}/external/CLI11.hpp")
 
 # ROOT
 find_package(ROOT REQUIRED)
@@ -22,8 +21,8 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 
 include_directories(${ROOT_INCLUDE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories("${CMAKE_SOURCE_DIR}/source")
 include_directories("${CMAKE_SOURCE_DIR}/include")
+include_directories("${CMAKE_SOURCE_DIR}/source")
 include_directories("${CMAKE_SOURCE_DIR}/test")
 include_directories("${CMAKE_SOURCE_DIR}/external")
 
@@ -47,14 +46,11 @@ endif(DOXYGEN_FOUND)
 ############################################
 ##           Include sources              ##
 ############################################
-include(source/CMakeLists.txt)
-include(source/io/CMakeLists.txt)
-include(source/math/CMakeLists.txt)
-include(source/data/CMakeLists.txt)
-include(source/rigidbody/CMakeLists.txt)
-include(source/hydrate/CMakeLists.txt)
-include(source/fitter/CMakeLists.txt)
-include(source/gui/CMakeLists.txt)
+file(GLOB_RECURSE HEADERS "include/*.h")
+file(GLOB_RECURSE SOURCE "source/*.cpp")
+add_library(saxs ${HEADERS} ${SOURCE} external/CLI11.hpp)
+target_link_libraries(saxs ${LIBRARIES})
+#target_include_directories (saxs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 ############################################
 ##             Unit Testing               ##
@@ -63,8 +59,8 @@ message(STATUS "Compiling unit test")
 file(GLOB_RECURSE TEST_SRC
   "test/*.h"
   "test/*.cpp")
-add_executable(test ${TEST_SRC} ${sources})
-target_link_libraries(test ${LIBRARIES})
+add_executable(test ${TEST_SRC})
+target_link_libraries(test saxs)
 ############################################
 
-add_subdirectory(source/scripts)
+add_subdirectory(executable)

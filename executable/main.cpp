@@ -100,14 +100,17 @@ class Image {
             std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
             std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header.nx, 0, header.nx*header.cella_x, header.ny, 0, header.ny*header.cella_y);
 
-            float xmin = -3;
-            float xmax = 3;
+            double xmin = -3;
+            double xmax = 3;
             unsigned int size = 100;
+            double step = (xmax - xmin)/size;
             unsigned int err = 0; // number of values which doesn't fit in the histogram
             vector<T> bins(size);
             for (int y = 0; y < header.ny; y++) {
                 for (int x = 0; x < header.nx; x++) {
-                    unsigned int i = (index[x][y][layer] - xmin)/size;
+                    unsigned int i = (index(x, y, layer) - xmin)/step;
+                    std::cout << "equation: (" << index(x, y, layer) << " - " << xmin << ")/" << size << std::endl;
+                    std::cout << i << std::endl;
                     if (i < 0 || size < i) {
                         err++;
                     } else {
@@ -119,19 +122,35 @@ class Image {
             // find 2 highest elements in the bin sequence. if they account for more than 10% of the values, we want to remove them visually from the plot.
             int N = header.nx*header.ny;
             vector<vector<float>> skip_ranges;
-            unsigned int i1 = std::max_element(bins.begin(), bins.end());
-            if (bins[i1] > 0.1*N) {skip_ranges.push_back({xmin+i1*(xmax-xmin)/size});}
+            unsigned int i1 = std::max_element(bins.begin(), bins.end()) - bins.begin();
+            if (bins[i1] > 0.1*N) {skip_ranges.push_back({xmin+i1*step, xmin+(i1+1)*step});}
             bins[i1] = 0;
-            unsigned int i2 = std::max_element(bins.begin(), bins.end());
-            if (bins[i2] > 0.1*N) {skip_ranges.push_back({xmin+i2*(xmax-xmin)/size});}
+            unsigned int i2 = std::max_element(bins.begin(), bins.end()) - bins.begin();
+            if (bins[i2] > 0.1*N) {skip_ranges.push_back({xmin+i2*step, xmin+(i2+1)*step});}
 
+            // for (unsigned int i = 0; i < bins.size(); i++) {
+            //     std::cout << std::to_string(xmin + i*(xmax-xmin)/size) << ": " << bins[i] << std::endl;
+            // }
+
+            double negative_limit = 0;
             for (int y = 0; y < header.ny; y++) {
                 for (int x = 0; x < header.nx; x++) {
-                    // int my_bin = x + y*header.ny; // the logical choice of bins
-                    // int root_bin = (x + 1) + (y + 1)*(header.ny + 2); // index 0 is underflow bin and index bins+1 is overflow bin
-                    hist->SetBinContent(x, y, index(x, y, layer));
+                    T val = index(x, y, layer);
+                    bool skip = false;
+                    for (const auto range : skip_ranges) {
+                        if (range[0] < val && val < range[1]) {
+                            hist->SetBinContent(x, y, -1e6);
+                            skip = true;
+                            break;
+                        }
+                    }
+                    if (skip) {continue;}
+
+                    negative_limit = std::min(negative_limit, double(val));
+                    hist->SetBinContent(x, y, val);
                 }
             }
+            hist->SetMinimum(negative_limit);
 
             hist->GetXaxis()->SetTitle("Length [Angstrom]");
             hist->GetXaxis()->CenterTitle();
@@ -146,7 +165,7 @@ class Image {
             hist->GetZaxis()->SetTitleOffset(1.3);
             hist->GetZaxis()->SetNdivisions(505);
 
-            hist->Draw("cont4z");
+            hist->Draw("cont4z1");
 
             canvas->SetLeftMargin(0.14);
             canvas->SetRightMargin(0.16);

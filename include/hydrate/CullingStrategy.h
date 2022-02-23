@@ -5,7 +5,6 @@ class Grid;
 
 // includes
 #include "data/Hetatom.h"
-#include "hydrate/Grid.h"
 #include "hydrate/GridMember.h"
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
