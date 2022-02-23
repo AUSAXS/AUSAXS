@@ -1,11 +1,9 @@
 #pragma once
 
-// includes
 #include <string>
 #include <vector>
 #include <utility>
 
-// my own stuff
 #include "data/Body.h"
 #include "Tools.h"
 #include "data/Atom.h"

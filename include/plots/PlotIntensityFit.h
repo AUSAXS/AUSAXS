@@ -2,7 +2,7 @@
 
 #include "plots/Plot.h"
 #include "ScatteringHistogram.h"
-#include "fitter/IntensityFitter.h"
+#include "fitter/SimpleIntensityFitter.h"
 #include "settings.h"
 
 #include <memory.h>
@@ -17,7 +17,7 @@ using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
 class PlotIntensityFit : public Plot {
   public:
-    PlotIntensityFit(IntensityFitter& fitter) : Plot(), fitter(fitter) {}
+    PlotIntensityFit(SimpleIntensityFitter& fitter) : Plot(), fitter(fitter) {}
     ~PlotIntensityFit() override = default;
 
     void save(const std::string& path) const override {

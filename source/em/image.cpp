@@ -6,15 +6,89 @@
 #include <TStyle.h>
 
 #include <em/image.h>
+#include <data/Atom.h>
+#include <data/Protein.h>
+#include <fitter/SimpleIntensityFitter.h>
+#include "plots/PlotIntensityFit.h"
+#include "plots/PlotIntensityFitResiduals.h"
 #include <Exceptions.h>
 
 using namespace em;
 
-Image::Image(const ccp4::Header& header, std::ifstream& istream) : header(header) {
+ImageStack::ImageStack(string file) {
+    std::ifstream input("data/A2M_map.ccp4", std::ios::binary);
+    input.read(reinterpret_cast<char*>(&header), sizeof(header));
+    read(input, get_byte_size());
+}
+
+ImageStack::ImageStack(const ccp4::Header& header, std::ifstream& istream) : header(header) {
     read(istream, get_byte_size());
 }
 
-size_t Image::get_byte_size() const {
+std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
+    vector<Atom> atoms;
+    atoms.reserve(header.nx);
+    for (int x = 0; x < header.nx; x++) {
+        for (int y = 0; y < header.ny; y++) {
+            for (int z = 0; z < header.nz; z++) {
+                float val = index(x, y, z);
+                if (val < cutoff) {
+                    continue;
+                }
+
+                Vector3 coords{x*header.cella_x, y*header.cella_y, z*header.cella_z};
+                atoms.push_back(Atom(coords, val, "C", "C", 0));
+            }
+        }
+    }
+
+    return std::make_unique<Protein>(atoms);
+}
+
+std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
+    vector<Atom> atoms;
+    atoms.reserve(header.nx);
+    for (int x = 0; x < header.nx; x++) {
+        for (int y = 0; y < header.ny; y++) {
+            for (int z = 0; z < header.nz; z++) {
+                float val = index(x, y, z);
+                if (val < cutoff) {
+                    continue;
+                }
+
+                Vector3 coords{x*header.cella_x, y*header.cella_y, z*header.cella_z};
+                atoms.push_back(Atom(coords, val, "C", "C", 0));
+            }
+        }
+    }
+
+    Protein protein(atoms);
+    return std::make_unique<Grid>(atoms);
+}
+
+ScatteringHistogram ImageStack::calc_scattering_hist() const {
+    std::unique_ptr<Protein> protein = create_protein(0.1);
+    protein->generate_new_hydration();
+    return protein->get_histogram();
+}
+
+void ImageStack::fit(string filename) const {
+    SimpleIntensityFitter fitter(filename, calc_scattering_hist());
+    std::shared_ptr<Fitter::Fit> result = fitter.fit();
+
+    // Fit plot
+    PlotIntensityFit plot_f(fitter);
+    plot_f.save(output + "intensity_fit." + setting::figures::format);
+
+    // Residual plot
+    PlotIntensityFitResiduals plot_r(fitter);
+    plot_r.save(output + "residuals." + setting::figures::format);
+
+    result->print();
+    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
+}
+
+size_t ImageStack::get_byte_size() const {
     switch(header.mode) {
         case 0: // int8 --> short int
             return sizeof(short int);
@@ -42,7 +116,7 @@ size_t Image::get_byte_size() const {
     }
 }
 
-void Image::plot(unsigned int layer) const {
+void ImageStack::plot(unsigned int layer) const {
     gStyle->SetPalette(kThermometer);
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(0);
@@ -50,8 +124,8 @@ void Image::plot(unsigned int layer) const {
     std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
     std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header.nx, 0, header.nx*header.cella_x, header.ny, 0, header.ny*header.cella_y);
 
-    for (int y = 0; y < header.ny; y++) {
-        for (int x = 0; x < header.nx; x++) {
+    for (int x = 0; x < header.nx; x++) {
+        for (int y = 0; y < header.ny; y++) {
             hist->SetBinContent(x, y, index(x, y, layer));
         }
     }
@@ -76,7 +150,7 @@ void Image::plot(unsigned int layer) const {
     canvas->SaveAs("test.pdf");
 }
 
-void Image::plot_no_solution(unsigned int layer) const {
+void ImageStack::plot_no_solution(unsigned int layer) const {
     gStyle->SetPalette(kThermometer);
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(0);
@@ -154,7 +228,7 @@ void Image::plot_no_solution(unsigned int layer) const {
     canvas->SaveAs("test.pdf");
 }
 
-void Image::plot3d() const {
+void ImageStack::plot3d() const {
     gStyle->SetPalette(kThermometer);
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(0);
@@ -173,17 +247,22 @@ void Image::plot3d() const {
     canvas->SaveAs("test3d.pdf");
 }
 
-void Image::read(std::ifstream& istream, size_t byte_size) {
+void ImageStack::read(std::ifstream& istream, size_t byte_size) {
     data = vector<vector<vector<float>>>(header.nx, vector<vector<float>>(header.ny, vector<float>(header.nz)));
     for (int i = 0; i < header.nx; i++) {
         for (int j = 0; j < header.ny; j++) {
             for (int k = 0; k < header.nz; k++) {
-                istream.read(reinterpret_cast<char*>(&data[i][j][k]), byte_size);
+                istream.read(reinterpret_cast<char*>(&index(i, j, k)), byte_size);
+                // istream.read(reinterpret_cast<char*>(&data[k][i][j]), byte_size);
             }
         }
     }
 }
 
-float Image::index(unsigned int x, unsigned int y, unsigned int z) const {
+float& ImageStack::index(unsigned int x, unsigned int y, unsigned int z) {
+    return data[x][y][z];
+}
+
+float ImageStack::index(unsigned int x, unsigned int y, unsigned int z) const {
     return data[x][y][z];
 }
