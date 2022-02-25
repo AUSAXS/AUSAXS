@@ -37,7 +37,7 @@ std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
                 }
 
                 Vector3 coords{x*header.cella_x, y*header.cella_y, z*header.cella_z};
-                atoms.push_back(Atom(coords, val, "C", "C", 0));
+                atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, val, 0, "C", ""));
             }
         }
     }
@@ -78,14 +78,11 @@ void ImageStack::fit(string filename) const {
 
     // Fit plot
     PlotIntensityFit plot_f(fitter);
-    plot_f.save(output + "intensity_fit." + setting::figures::format);
+    plot_f.save("em_intensity_fit." + setting::figures::format);
 
     // Residual plot
     PlotIntensityFitResiduals plot_r(fitter);
-    plot_r.save(output + "residuals." + setting::figures::format);
-
-    result->print();
-    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
+    plot_r.save("em_residuals." + setting::figures::format);
 }
 
 size_t ImageStack::get_byte_size() const {

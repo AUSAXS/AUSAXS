@@ -1,5 +1,6 @@
 # Todo
  * [ ] Memory test all other executables.
+ * [ ] plots: Change intensity plots to static methods
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Atom: Const uid 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands

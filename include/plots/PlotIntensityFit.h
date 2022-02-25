@@ -55,5 +55,5 @@ class PlotIntensityFit : public Plot {
     }
 
   private:
-    IntensityFitter& fitter;
+    SimpleIntensityFitter& fitter;
 };

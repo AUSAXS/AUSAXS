@@ -152,7 +152,59 @@ string Atom::as_pdb() const {
     return ss.str();
 }
 
-/** Prints the contents of this object to the terminal. */
+Record::RecordType Atom::get_type() const {return ATOM;}
+
+double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
+void Atom::translate(const Vector3 v) {coords += v;}
+bool Atom::is_water() const {return false;}
+
+void Atom::set_coordinates(const Vector3 v) {coords = v;}
+void Atom::set_x(double x) {coords.x = x;}
+void Atom::set_y(double y) {coords.y = y;}
+void Atom::set_z(double z) {coords.z = z;}
+void Atom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
+void Atom::set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
+void Atom::set_altLoc(string altLoc) {this->altLoc = altLoc;}
+void Atom::set_serial(int serial) {this->serial = serial;}
+void Atom::set_resSeq(int resSeq) {this->resSeq = resSeq;}
+void Atom::set_effective_charge(double charge) {effective_charge = charge;}
+void Atom::set_chainID(string chainID) {this->chainID = chainID;}
+void Atom::set_iCode(string iCode) {this->iCode = iCode;}
+void Atom::set_charge(string charge) {this->charge = charge;}
+void Atom::set_resName(string resName) {this->resName = resName;}
+void Atom::set_name(string name) {this->name = name;}
+
+void Atom::set_element(string element) {
+    if (__builtin_expect(constants::mass::atomic.count(element) == 0, false)) { // check that the weight is defined
+        throw except::invalid_argument("Error in Atom::set_element: The weight of element " + element + " is not defined.");
+    }
+    this->element = element;
+}
+
+Vector3& Atom::get_coordinates() {return coords;}
+const Vector3& Atom::get_coordinates() const {return coords;}
+int Atom::get_serial() const {return serial;}
+int Atom::get_resSeq() const {return resSeq;}
+double Atom::get_occupancy() const {return occupancy;}
+double Atom::get_tempFactor() const {return tempFactor;}
+double Atom::get_effective_charge() const {return effective_charge;}
+string Atom::get_altLoc() const {return altLoc;}
+string Atom::get_chainID() const {return chainID;}
+string Atom::get_iCode() const {return iCode;}
+string Atom::get_charge() const {return charge;}
+string Atom::get_resName() const {return resName;}
+string Atom::get_name() const {return name;}
+string Atom::get_element() const {return element;}
+string Atom::get_recName() const {return "ATOM  ";}
+
+double Atom::get_mass() const {
+    if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
+        throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
+    }
+    // mass of this nucleus + mass of attached H atoms
+    return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
+};
+
 void Atom::print() const {
     cout << "\nAtom no: " << serial << endl;
     cout << setw(17) << "(x, y, z): (" << setw(6) << coords.x << ", " << setw(6) << coords.y << ", " << setw(6) << coords.z << ")" << endl;

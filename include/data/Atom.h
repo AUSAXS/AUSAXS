@@ -43,7 +43,7 @@ class Atom : public Record {
 
     virtual ~Atom() override {}
 
-    RecordType get_type() const override {return ATOM;}
+    RecordType get_type() const override;
 
     /**
      * @brief Set the properties of this Atom based on a .pdb format string. 
@@ -60,7 +60,7 @@ class Atom : public Record {
     /** 
      * @brief Calculate the distance to another atom. 
      */
-    double distance(const Atom& a) const {return coords.distance(a.coords);}
+    double distance(const Atom& a) const;
 
     /** 
      * @brief Prints the contents of this object to the terminal. (NOT FULLY IMPLEMENTED!)
@@ -71,80 +71,65 @@ class Atom : public Record {
      * @brief Move this atom by a vector.
      * @param v the translation vector.
      */
-    void translate(const Vector3 v) {
-        coords += v;
-    }
+    void translate(const Vector3 v);
 
     /**
      * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
      * @return true if this is a water molecule, otherwise false. 
      */
-    virtual bool is_water() const {return false;}
-
-
+    virtual bool is_water() const;
 
 //*** setters ***//
-    void set_coordinates(const Vector3 v) {coords = v;}
-    void set_x(double x) {coords.x = x;}
-    void set_y(double y) {coords.y = y;}
-    void set_z(double z) {coords.z = z;}
-    void set_occupancy(double occupancy) {this->occupancy = occupancy;}
-    void set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
-    void set_altLoc(string altLoc) {this->altLoc = altLoc;}
-    void set_serial(int serial) {this->serial = serial;}
-    void set_resSeq(int resSeq) {this->resSeq = resSeq;}
-    void set_effective_charge(double charge) {effective_charge = charge;}
-    void set_chainID(string chainID) {this->chainID = chainID;}
-    void set_iCode(string iCode) {this->iCode = iCode;}
-    void set_charge(string charge) {this->charge = charge;}
+    void set_coordinates(const Vector3 v);
+    void set_x(double x);
+    void set_y(double y);
+    void set_z(double z);
+    void set_occupancy(double occupancy);
+    void set_tempFactor(double tempFactor);
+    void set_altLoc(string altLoc);
+    void set_serial(int serial);
+    void set_resSeq(int resSeq);
+    void set_effective_charge(double charge);
+    void set_chainID(string chainID);
+    void set_iCode(string iCode);
+    void set_charge(string charge);
 
     /**
      * @brief Set the residue name for this atom.
      * @param resName the residue name, typically an amino acid such as LYS.
      */
-    void set_resName(string resName) {this->resName = resName;}
+    void set_resName(string resName);
 
     /**
      * @brief Specify the position of this atom within its residue.
      * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
      */
-    void set_name(string name) {this->name = name;}
+    void set_name(string name);
 
     /**
      * @brief Set the atomic element for this atom. Any spaces are removed. 
      * @param element the atomic element, e.g. He.
      */
-    void set_element(string element) {
-        if (__builtin_expect(constants::mass::atomic.count(element) == 0, false)) { // check that the weight is defined
-            throw except::invalid_argument("Error in Atom::set_element: The weight of element " + element + " is not defined.");
-        }
-        this->element = element;
-    }
+    void set_element(string element);
 
 //*** getters ***//
-    Vector3& get_coordinates() {return coords;}
-    const Vector3& get_coordinates() const {return coords;}
-    int get_serial() const {return serial;}
-    int get_resSeq() const {return resSeq;}
-    double get_occupancy() const {return occupancy;}
-    double get_tempFactor() const {return tempFactor;}
-    double get_effective_charge() const {return effective_charge;}
-    string get_altLoc() const {return altLoc;}
-    string get_chainID() const {return chainID;}
-    string get_iCode() const {return iCode;}
-    string get_charge() const {return charge;}
-    string get_resName() const {return resName;}
-    string get_name() const {return name;}
-    string get_element() const {return element;}
-    virtual string get_recName() const {return "ATOM  ";}
+    Vector3& get_coordinates();
+    const Vector3& get_coordinates() const;
+    int get_serial() const;
+    int get_resSeq() const;
+    double get_occupancy() const;
+    double get_tempFactor() const;
+    double get_effective_charge() const;
+    string get_altLoc() const;
+    string get_chainID() const;
+    string get_iCode() const;
+    string get_charge() const;
+    string get_resName() const;
+    string get_name() const;
+    string get_element() const;
+    virtual string get_recName() const;
 
-    double get_mass() const {
-        if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
-            throw except::invalid_argument("Error in Atom::get_atomic_weight: Attempted to get atomic mass, but the element was not set!");
-        }
-        // mass of this nucleus + mass of attached H atoms
-        return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
-    };
+    double get_mass() const;
 
     /**
      * @brief Add @p charge to the effective charge of this atom. 
