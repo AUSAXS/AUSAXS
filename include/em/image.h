@@ -11,34 +11,56 @@
 using std::vector;
 
 namespace em {
+    class Image {
+        public: 
+            Image(std::shared_ptr<ccp4::Header> header);
+
+            ~Image() = default;
+
+            void plot() const;
+
+            void plot_without_solution() const;
+
+            std::unique_ptr<Protein> create_protein(double cutoff) const;
+
+            float index(unsigned int x, unsigned int y) const;
+            float& index(unsigned int x, unsigned int y);
+
+        private:
+            std::shared_ptr<ccp4::Header> header;
+            vector<vector<float>> data;
+    };
+
     class ImageStack {
         public:
             ImageStack(string file);
 
-            ImageStack(const ccp4::Header& header, std::ifstream& istream);
+            ImageStack(std::shared_ptr<ccp4::Header> header, std::ifstream& istream);
 
             ~ImageStack() = default;
 
-            void plot_no_solution(unsigned int layer) const;
+            // 2D plot without background solution
+            void plot_without_solution(unsigned int layer) const;
 
+            // 2D plot
             void plot(unsigned int layer) const;
 
-            void plot3d() const;
+            // 3D plot
+            void plot() const;
 
             void fit(string filename) const;
-
-        private:
-            ccp4::Header header;
-            // vector<T> data;
-            vector<vector<vector<float>>> data;
-
-            void read(std::ifstream& istream, size_t byte_size);
 
             ScatteringHistogram calc_scattering_hist() const;
 
             std::unique_ptr<Grid> create_grid(double cutoff) const;
 
             std::unique_ptr<Protein> create_protein(double cutoff) const;
+
+        private:
+            std::shared_ptr<ccp4::Header> header;
+            vector<Image> data;
+
+            void read(std::ifstream& istream, size_t byte_size);
 
             size_t get_byte_size() const;
 
