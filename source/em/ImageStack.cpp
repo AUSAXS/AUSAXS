@@ -91,10 +91,6 @@ size_t ImageStack::get_byte_size() const {
     return header->get_byte_size();
 }
 
-void ImageStack::plot(unsigned int layer) const {
-    // data[layer].plot();
-}
-
 void ImageStack::plot_without_solution(unsigned int layer) const {
     data[layer].plot_without_solution();
 }

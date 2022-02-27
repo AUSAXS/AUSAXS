@@ -19,8 +19,6 @@ namespace em {
 
             ~Image() = default;
 
-            std::unique_ptr<TH2D> atoms_as_hist(double cutoff) const;
-
             std::unique_ptr<TH2D> as_hist() const;
 
             void plot_atoms() const;
@@ -47,9 +45,6 @@ namespace em {
 
             // 2D plot without background solution
             void plot_without_solution(unsigned int layer) const;
-
-            // 2D plot
-            void plot(unsigned int layer) const;
 
             // 3D plot
             void plot() const;

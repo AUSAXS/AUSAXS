@@ -30,23 +30,6 @@ vector<Atom> Image::generate_atoms(double cutoff) const {
     return atoms;
 }
 
-std::unique_ptr<TH2D> Image::atoms_as_hist(double cutoff) const {
-    vector<Atom> atoms = generate_atoms(cutoff);
-
-    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("ahist", "ahist", header->nx, 0, header->nx*header->cella_x, header->ny, 0, header->ny*header->cella_y);
-    for (int x = 0; x < header->nx; x++) {
-        for (int y = 0; y < header->ny; y++) {
-            float val = index(x, y);
-            if (val < cutoff) {
-                continue;
-            }
-            hist->SetBinContent(x, y, 1);
-        }
-    }
-
-    return hist;
-}
-
 std::unique_ptr<TH2D> Image::as_hist() const {
     std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->nx*header->cella_x, header->ny, 0, header->ny*header->cella_y);
     for (int x = 0; x < header->nx; x++) {
