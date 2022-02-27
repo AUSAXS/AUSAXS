@@ -3,6 +3,8 @@
 #include <fstream>
 #include <vector>
 
+#include <TH2D.h>
+
 #include <em/datatypes.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
@@ -17,11 +19,15 @@ namespace em {
 
             ~Image() = default;
 
-            void plot() const;
+            std::unique_ptr<TH2D> atoms_as_hist(double cutoff) const;
+
+            std::unique_ptr<TH2D> as_hist() const;
+
+            void plot_atoms() const;
 
             void plot_without_solution() const;
 
-            std::unique_ptr<Protein> create_protein(double cutoff) const;
+            vector<Atom> generate_atoms(double cutoff) const;
 
             float index(unsigned int x, unsigned int y) const;
             float& index(unsigned int x, unsigned int y);
@@ -49,6 +55,8 @@ namespace em {
             void plot() const;
 
             void fit(string filename) const;
+
+            Image& image(unsigned int layer);
 
             ScatteringHistogram calc_scattering_hist() const;
 

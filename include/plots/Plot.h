@@ -27,7 +27,7 @@ class Plot {
      * @brief Write this plot to a given destination. 
      * @param folder Path to the folder where this plot will be saved. 
      */
-    virtual void save(const std::string& folder) const = 0;    
+    virtual void save(std::string folder) const = 0;    
   private: 
     inline static bool stylized = false; // Whether the global style options have already been invoked. 
 

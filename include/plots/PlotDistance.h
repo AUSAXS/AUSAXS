@@ -34,7 +34,7 @@ class PlotDistance : public Plot {
      * @brief Save this plot at the given location.
      * @param path Path to where this plot will be saved. Note that it will attempt to save in the specified format. 
      */
-    void save(const std::string& path) const override {
+    void save(std::string path) const override {
         unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
         auto hists = d.plot_distance();
         

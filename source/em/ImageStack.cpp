@@ -21,6 +21,8 @@ ImageStack::ImageStack(string file) : header(std::make_shared<ccp4::Header>()) {
     read(input, get_byte_size());
 }
 
+Image& ImageStack::image(unsigned int layer) {return data[layer];}
+
 ImageStack::ImageStack(std::shared_ptr<ccp4::Header> header, std::ifstream& istream) : header(header) {
     read(istream, get_byte_size());
 }
@@ -28,9 +30,9 @@ ImageStack::ImageStack(std::shared_ptr<ccp4::Header> header, std::ifstream& istr
 std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
     vector<Atom> atoms;
     atoms.reserve(header->nx);
-    for (int x = 0; x < header->nx; x++) {
+    for (int z = 0; z < header->nz; z++) {
         for (int y = 0; y < header->ny; y++) {
-            for (int z = 0; z < header->nz; z++) {
+            for (int x = 0; x < header->nx; x++) {
                 float val = index(x, y, z);
                 if (val < cutoff) {
                     continue;
@@ -90,7 +92,7 @@ size_t ImageStack::get_byte_size() const {
 }
 
 void ImageStack::plot(unsigned int layer) const {
-    data[layer].plot();
+    // data[layer].plot();
 }
 
 void ImageStack::plot_without_solution(unsigned int layer) const {

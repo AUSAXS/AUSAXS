@@ -20,7 +20,7 @@ class PlotIntensityFit : public Plot {
     PlotIntensityFit(SimpleIntensityFitter& fitter) : Plot(), fitter(fitter) {}
     ~PlotIntensityFit() override = default;
 
-    void save(const std::string& path) const override {
+    void save(std::string path) const override {
         std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
         auto graphs = fitter.plot();
 

@@ -19,7 +19,7 @@ class PlotIntensity : public Plot {
     PlotIntensity(const ScatteringHistogram& d) : Plot(), d(d) {}
     ~PlotIntensity() override = default;
 
-    void save(const std::string& path) const override {
+    void save(std::string path) const override {
         unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
         
         // Debye scattering intensity

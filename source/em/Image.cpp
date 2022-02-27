@@ -12,38 +12,49 @@ Image::Image(std::shared_ptr<ccp4::Header> header) : header(header), data(header
 float Image::index(unsigned int x, unsigned int y) const {return data[x][y];}
 float& Image::index(unsigned int x, unsigned int y) {return data[x][y];}
 
-void Image::plot() const {
-    gStyle->SetPalette(kThermometer);
-    gStyle->SetOptStat(0);
-    gStyle->SetOptTitle(0);
+vector<Atom> Image::generate_atoms(double cutoff) const {
+    vector<Atom> atoms;
+    atoms.reserve(128);
+    for (int x = 0; x < header->nx; x++) {
+        for (int y = 0; y < header->ny; y++) {
+            float val = index(x, y);
+            if (val < cutoff) {
+                continue;
+            }
 
-    std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
+            Vector3 coords{x*header->cella_x, y*header->cella_y, 0};
+            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, val, 0, "C", ""));
+        }
+    }
+
+    return atoms;
+}
+
+std::unique_ptr<TH2D> Image::atoms_as_hist(double cutoff) const {
+    vector<Atom> atoms = generate_atoms(cutoff);
+
+    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("ahist", "ahist", header->nx, 0, header->nx*header->cella_x, header->ny, 0, header->ny*header->cella_y);
+    for (int x = 0; x < header->nx; x++) {
+        for (int y = 0; y < header->ny; y++) {
+            float val = index(x, y);
+            if (val < cutoff) {
+                continue;
+            }
+            hist->SetBinContent(x, y, 1);
+        }
+    }
+
+    return hist;
+}
+
+std::unique_ptr<TH2D> Image::as_hist() const {
     std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->nx*header->cella_x, header->ny, 0, header->ny*header->cella_y);
-
     for (int x = 0; x < header->nx; x++) {
         for (int y = 0; y < header->ny; y++) {
             hist->SetBinContent(x, y, index(x, y));
         }
     }
-
-    hist->GetXaxis()->SetTitle("Length [Angstrom]");
-    hist->GetXaxis()->CenterTitle();
-    hist->GetXaxis()->SetNdivisions(204);
-
-    hist->GetYaxis()->SetTitle("Length [Angstrom]");
-    hist->GetYaxis()->CenterTitle();
-    hist->GetYaxis()->SetNdivisions(204);
-
-    hist->GetZaxis()->SetTitle("Electron density [?]");
-    hist->GetZaxis()->CenterTitle();
-    hist->GetZaxis()->SetTitleOffset(1.3);
-    hist->GetZaxis()->SetNdivisions(505);
-
-    hist->Draw("cont4z");
-
-    canvas->SetLeftMargin(0.14);
-    canvas->SetRightMargin(0.16);
-    canvas->SaveAs("test.pdf");
+    return hist;
 }
 
 void Image::plot_without_solution() const {

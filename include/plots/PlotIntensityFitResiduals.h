@@ -20,7 +20,7 @@ class PlotIntensityFitResiduals : public Plot {
     PlotIntensityFitResiduals(SimpleIntensityFitter& fitter) : Plot(), fitter(fitter) {}
     ~PlotIntensityFitResiduals() override = default;
 
-    void save(const std::string& path) const override {
+    void save(std::string path) const override {
         std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
         std::unique_ptr<TGraphErrors> graph = fitter.plot_residuals();
         std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph->GetXaxis()->GetXmax(), 0); // solid black line at x=0

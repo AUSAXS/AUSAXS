@@ -3,7 +3,8 @@ pymol := pymol
 
 cmake_threads := 6
 
-source_files := $(addprefix source/, $(shell find source/ -type f -not -wholename "source/tests/*" -printf "%P "))
+source := $(addprefix source/, $(shell find source/ -printf "%P "))
+include := $(addprefix include/, $(shell find include/ -printf "%P "))
 
 #################################################################################
 ###				EXECUTABLES					 ###
@@ -73,7 +74,10 @@ build:
 	@ mkdir -p build; 
 	@ cd build; cmake ../
 
-build/%: $(source_files) build/Makefile
+build/executable/%: $(source) $(include) build/Makefile executable/%.cpp
+	@ cmake --build build/ --target $(*F) -j${cmake_threads}
+
+build/%: $(source) $(include) build/Makefile
 	@ cmake --build build/ --target $(*F) -j${cmake_threads}
 	
 build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
