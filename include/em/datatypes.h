@@ -2,8 +2,10 @@
 
 #include <array>
 #include <Exceptions.h>
+#include <iostream>
+#include <sstream>
 
-using std::array;
+using std::array, std::endl;
 
 namespace em {
     namespace ccp4 {
@@ -15,28 +17,28 @@ namespace em {
             Header() {}
 
             // members CANNOT be reordered!
-            int nx;
-            int ny;
-            int nz;
-            int mode;
-            int nxstart;
+            int nx; // # of cols
+            int ny; // # of rows
+            int nz; // # of sections
+            int mode; // bit format of data section
+            int nxstart; // start position of image
             int nystart;
             int nzstart;
-            int mx;
+            int mx; // grid size
             int my;
             int mz;
-            float cella_x;
+            float cella_x; // cell size
             float cella_y;
             float cella_z;
-            float cellb_alpha;
+            float cellb_alpha; // cell angles
             float cellb_beta;
             float cellb_gamma;
             int mapc;
             int mapr;
             int maps;
-            float dmin;
-            float dmax;
-            float dmean;
+            float dmin; // minimum pixel value
+            float dmax; // maximum pixel value
+            float dmean; // mean pixel value
             int ispg;
             int nsymbt;
             array<char, 8> extra1;
@@ -51,6 +53,23 @@ namespace em {
             float rms;
             int nlabl;
             array<char, 800> label;
+
+            std::string to_string() const {
+                std::stringstream s;
+                s << "HEADER CONTENTS: " << endl;
+                s << "Dimensions: (" << nx << ", " << ny << ", " << nz << ")" << endl;
+                s << "Offsets: (" << nxstart << ", " << nystart << ", " << nzstart << ")" << endl;
+                s << "Grid size: (" << mx << ", " << my << ", " << mz << ")" << endl;
+                s << "Cell size in Å: (" << cella_x << ", " << cella_y << ", " << cella_z << ")" << endl; 
+                s << "Cell angles in degrees: (" << cellb_alpha << ", " << cellb_beta << ", " << cellb_gamma << ")" << endl;
+                s << "Order of dimensions: " << mapc << ", " << mapr << ", " << maps << endl;
+                s << "Minimum pixel: " << dmin << ", maximum pixel: " << dmax << ", mean: " << dmean << endl;
+                s << "Space group number: " << ispg << endl;
+                s << "Extended header size: " << nsymbt << endl;
+                return s.str();
+            }
+
+            friend std::ostream& operator<<(std::ostream& os, const Header& h) {os << h.to_string(); return os;}
 
             size_t get_byte_size() const {
                 switch(mode) {

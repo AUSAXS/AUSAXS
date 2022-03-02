@@ -132,3 +132,7 @@ float& ImageStack::index(unsigned int x, unsigned int y, unsigned int layer) {
 float ImageStack::index(unsigned int x, unsigned int y, unsigned int layer) const {
     return data[layer].index(x, y);
 }
+
+std::shared_ptr<ccp4::Header> ImageStack::get_header() const {
+    return header;
+}

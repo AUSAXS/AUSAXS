@@ -59,6 +59,8 @@ namespace em {
 
             std::unique_ptr<Protein> create_protein(double cutoff) const;
 
+            std::shared_ptr<ccp4::Header> get_header() const;
+
         private:
             std::shared_ptr<ccp4::Header> header;
             vector<Image> data;

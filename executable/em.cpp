@@ -12,9 +12,12 @@ int main(int argc, char const *argv[]) {
     // image.fit("data/A2M_ma.RSR");
 
     em::ImageStack image("data/A2M_map.ccp4"); 
-    PlotImage plot(image.image(5));
+    PlotImage plot(image.image(std::stoi(argv[1])));
     plot.plot_atoms(0.2);
     plot.save("test.pdf");
+
+    auto header = image.get_header();
+    std::cout << *header << std::endl;
 
     return 0;
 }
