@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <vector>
+#include <list>
 
 #include <TH2D.h>
 
@@ -10,7 +11,7 @@
 #include <hydrate/Grid.h>
 #include <ScatteringHistogram.h>
 
-using std::vector;
+using std::vector, std::list;
 
 namespace em {
     class Image {
@@ -25,7 +26,7 @@ namespace em {
 
             void plot_without_solution() const;
 
-            vector<Atom> generate_atoms(double cutoff) const;
+            list<Atom> generate_atoms(double cutoff) const;
 
             float index(unsigned int x, unsigned int y) const;
             float& index(unsigned int x, unsigned int y);
@@ -60,6 +61,10 @@ namespace em {
             std::unique_ptr<Protein> create_protein(double cutoff) const;
 
             std::shared_ptr<ccp4::Header> get_header() const;
+
+            size_t size() const;
+
+            const vector<Image>& images() const;
 
         private:
             std::shared_ptr<ccp4::Header> header;

@@ -1,9 +1,11 @@
-#include <em/image.h>
+#include <list>
 
 #include <TH2D.h>
 #include <TH3D.h>
 #include <TCanvas.h>
 #include <TStyle.h>
+
+#include <em/image.h>
 
 using namespace em;
 
@@ -12,17 +14,25 @@ Image::Image(std::shared_ptr<ccp4::Header> header) : header(header), data(header
 float Image::index(unsigned int x, unsigned int y) const {return data[x][y];}
 float& Image::index(unsigned int x, unsigned int y) {return data[x][y];}
 
-vector<Atom> Image::generate_atoms(double cutoff) const {
-    vector<Atom> atoms;
-    atoms.reserve(128);
+list<Atom> Image::generate_atoms(double cutoff) const {
+    list<Atom> atoms;
+
+    // determine which comparison function to use
+    std::function<bool(double)> compare_positive = [&cutoff] (double val) {return val < cutoff;};
+    std::function<bool(double)> compare_negative = [&cutoff] (double val) {return val > cutoff;};
+    std::function<bool(double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
+
+    // loop through all pixels in this image
+    double xscale = header->cella_x/header->nx;
+    double yscale = header->cella_y/header->ny;
     for (int x = 0; x < header->nx; x++) {
         for (int y = 0; y < header->ny; y++) {
             float val = index(x, y);
-            if (val < cutoff) {
+            if (compare_func(val)) {
                 continue;
             }
 
-            Vector3 coords{x*header->cella_x, y*header->cella_y, 0};
+            Vector3 coords{x*xscale, y*yscale, 0};
             atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, val, 0, "C", ""));
         }
     }
@@ -31,7 +41,7 @@ vector<Atom> Image::generate_atoms(double cutoff) const {
 }
 
 std::unique_ptr<TH2D> Image::as_hist() const {
-    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->nx*header->cella_x, header->ny, 0, header->ny*header->cella_y);
+    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->cella_x, header->ny, 0, header->cella_y);
     for (int x = 0; x < header->nx; x++) {
         for (int y = 0; y < header->ny; y++) {
             hist->SetBinContent(x, y, index(x, y));
@@ -46,7 +56,7 @@ void Image::plot_without_solution() const {
     gStyle->SetOptTitle(0);
 
     std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
-    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->nx*header->cella_x, header->ny, 0, header->ny*header->cella_y);
+    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->cella_x, header->ny, 0, header->cella_y);
 
     float xmin = -3;
     float xmax = 3;

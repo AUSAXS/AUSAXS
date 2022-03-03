@@ -1,4 +1,5 @@
 #include <memory>
+#include <list>
 
 #include <TH2D.h>
 #include <TH3D.h>
@@ -14,6 +15,7 @@
 #include <Exceptions.h>
 
 using namespace em;
+using std::list;
 
 ImageStack::ImageStack(string file) : header(std::make_shared<ccp4::Header>()) {
     std::ifstream input("data/A2M_map.ccp4", std::ios::binary);
@@ -23,33 +25,38 @@ ImageStack::ImageStack(string file) : header(std::make_shared<ccp4::Header>()) {
 
 Image& ImageStack::image(unsigned int layer) {return data[layer];}
 
+size_t ImageStack::size() const {return header->nz;}
+
+const vector<Image>& ImageStack::images() const {return data;}
+
 ImageStack::ImageStack(std::shared_ptr<ccp4::Header> header, std::ifstream& istream) : header(header) {
     read(istream, get_byte_size());
 }
 
 std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
-    vector<Atom> atoms;
-    atoms.reserve(header->nx);
-    for (int z = 0; z < header->nz; z++) {
-        for (int y = 0; y < header->ny; y++) {
-            for (int x = 0; x < header->nx; x++) {
-                float val = index(x, y, z);
-                if (val < cutoff) {
-                    continue;
-                }
-
-                Vector3 coords{x*header->cella_x, y*header->cella_y, z*header->cella_z};
-                atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, val, 0, "C", ""));
-            }
-        }
+    // we use a list since we will have to append quite a few other lists to it
+    list<Atom> atoms;
+    int i = 0;
+    for (const Image& image: data) {
+        list<Atom> im_atoms = image.generate_atoms(cutoff);
+        std::cout << "Generating " << im_atoms.size() << " atoms for image " << ++i << std::endl;
+        atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
     }
 
-    return std::make_unique<Protein>(atoms);
+    // convert list to vector
+    vector<Atom> v;
+    v.reserve(atoms.size());
+    v.assign(std::move_iterator(atoms.begin()), std::move_iterator(atoms.end()));
+    return std::make_unique<Protein>(v);
 }
 
 std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
     vector<Atom> atoms;
     atoms.reserve(header->nx);
+
+    double xscale = header->cella_x/header->nx;
+    double yscale = header->cella_y/header->ny;
+    double zscale = header->cella_z/header->nz;
     for (int x = 0; x < header->nx; x++) {
         for (int y = 0; y < header->ny; y++) {
             for (int z = 0; z < header->nz; z++) {
@@ -58,7 +65,7 @@ std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
                     continue;
                 }
 
-                Vector3 coords{x*header->cella_x, y*header->cella_y, z*header->cella_z};
+                Vector3 coords{x*xscale, y*yscale, z*zscale};
                 atoms.push_back(Atom(coords, val, "C", "C", 0));
             }
         }
@@ -69,7 +76,7 @@ std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
 }
 
 ScatteringHistogram ImageStack::calc_scattering_hist() const {
-    std::unique_ptr<Protein> protein = create_protein(0.1);
+    std::unique_ptr<Protein> protein = create_protein(-1);
     protein->generate_new_hydration();
     return protein->get_histogram();
 }

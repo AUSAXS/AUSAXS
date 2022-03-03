@@ -10,9 +10,14 @@
 class PlotImage : public Plot {
     public:
         PlotImage(const em::Image& image) : image(image) {
-            canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
+            canvas = std::make_unique<TCanvas>("canvas", "canvas", 1200, 1200);
             pad1 = std::make_unique<TPad>("pad1", "", 0, 0, 1, 1);
             pad2 = std::make_unique<TPad>("pad2", "", 0, 0, 1, 1);
+
+            pad1->SetRightMargin(0.15);
+            pad2->SetRightMargin(0.15);
+            pad1->SetLeftMargin(0.11);
+            pad2->SetLeftMargin(0.11);
 
             pad1->Draw();
             pad1->cd();
@@ -45,18 +50,18 @@ class PlotImage : public Plot {
         ~PlotImage() = default;
 
         void save(std::string path) const override {
-            canvas->SetLeftMargin(0.14);
-            canvas->SetRightMargin(0.16);
-            canvas->SaveAs("test.pdf");
+            canvas->SaveAs(path.c_str());
         }
 
         void plot_atoms(double cutoff = 0.1) const {
-            const std::vector<Atom>& atoms = image.generate_atoms(cutoff);
-            std::vector<double> x(atoms.size());
-            std::vector<double> y(atoms.size());
-            for (unsigned int i = 0; i < atoms.size(); i++) {
-                x[i] = atoms[i].coords.x;
-                y[i] = atoms[i].coords.y;
+            const std::list<Atom>& atoms = image.generate_atoms(cutoff);
+            std::vector<double> x;
+            std::vector<double> y;
+            x.reserve(atoms.size());
+            y.reserve(atoms.size());
+            for (const Atom& atom : atoms) {
+                x.push_back(atom.coords.x);
+                y.push_back(atom.coords.y);
             }
             std::unique_ptr<TGraph> graph = std::make_unique<TGraph>(x.size(), x.data(), y.data());
             graph->SetMarkerStyle(kFullDotSmall);
@@ -75,15 +80,15 @@ class PlotImage : public Plot {
 
             std::unique_ptr<TH2D> hist = image.as_hist();
 
-            hist->GetXaxis()->SetTitle("Length [Angstrom]");
+            // hist->GetXaxis()->SetTitle("Length [Angstrom]");
             hist->GetXaxis()->CenterTitle();
             hist->GetXaxis()->SetNdivisions(204);
 
-            hist->GetYaxis()->SetTitle("Length [Angstrom]");
+            // hist->GetYaxis()->SetTitle("Length [Angstrom]");
             hist->GetYaxis()->CenterTitle();
             hist->GetYaxis()->SetNdivisions(204);
 
-            hist->GetZaxis()->SetTitle("Electron density [?]");
+            // hist->GetZaxis()->SetTitle("Electron density [?]");
             hist->GetZaxis()->CenterTitle();
             hist->GetZaxis()->SetTitleOffset(1.3);
             hist->GetZaxis()->SetNdivisions(505);
