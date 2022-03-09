@@ -80,5 +80,5 @@ class PlotIntensity : public Plot {
     }
 
   private:
-    const ScatteringHistogram& d;
+    const ScatteringHistogram d;
 };

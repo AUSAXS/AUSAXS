@@ -5,7 +5,7 @@
 #include <TCanvas.h>
 #include <TStyle.h>
 
-#include <em/image.h>
+#include <em/Image.h>
 
 using namespace em;
 

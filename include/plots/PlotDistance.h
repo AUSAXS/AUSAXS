@@ -72,5 +72,5 @@ class PlotDistance : public Plot {
     }
 
   private: 
-    const ScatteringHistogram& d; // The ScatteringHistogram backing this object. 
+    const ScatteringHistogram d; // The ScatteringHistogram backing this object. 
 };

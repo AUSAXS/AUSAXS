@@ -1,7 +1,8 @@
 #include <iostream>
 
-#include <em/image.h>
+#include <em/ImageStack.h>
 #include <plots/PlotImage.h>
+#include <plots/PlotIntensity.h>
 #include <Exceptions.h>
 
 using std::string;
@@ -15,7 +16,7 @@ int main(int argc, char const *argv[]) {
     PlotImage plot(image.image(std::stoi(argv[1])));
     plot.plot_atoms(-1);
     plot.save("temp.pdf");
-    image.save("test.pdb", -1);
+    image.save("test.pdb", -2);
 
     // int i = 0;
     // for (const auto& im : image.images()) {
@@ -29,5 +30,8 @@ int main(int argc, char const *argv[]) {
 
     // image.fit("data/A2M_ma.RSR");
 
+
+    PlotIntensity intensity(image.get_histogram(-2));
+    intensity.save("intensity.pdf");
     return 0;
 }

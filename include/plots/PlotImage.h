@@ -5,14 +5,14 @@
 #include <THStack.h>
 
 #include <plots/Plot.h>
-#include <em/image.h>
+#include <em/Image.h>
 
 class PlotImage : public Plot {
     public:
         PlotImage(const em::Image& image) : image(image) {
-            canvas = std::make_unique<TCanvas>("canvas", "canvas", 1200, 1200);
-            pad1 = std::make_unique<TPad>("pad1", "", 0, 0, 1, 1);
-            pad2 = std::make_unique<TPad>("pad2", "", 0, 0, 1, 1);
+            canvas = std::make_unique<TCanvas>("canvas", "PlotImageCanvas", 1200, 1200);
+            pad1 = std::make_unique<TPad>("pad1", "PlotImagePad1", 0, 0, 1, 1);
+            pad2 = std::make_unique<TPad>("pad2", "PlotImagePad2", 0, 0, 1, 1);
 
             pad1->SetRightMargin(0.15);
             pad2->SetRightMargin(0.15);
@@ -80,15 +80,15 @@ class PlotImage : public Plot {
 
             std::unique_ptr<TH2D> hist = image.as_hist();
 
-            // hist->GetXaxis()->SetTitle("Length [Angstrom]");
+            hist->GetXaxis()->SetTitle("Length [Angstrom]");
             hist->GetXaxis()->CenterTitle();
             hist->GetXaxis()->SetNdivisions(204);
 
-            // hist->GetYaxis()->SetTitle("Length [Angstrom]");
+            hist->GetYaxis()->SetTitle("Length [Angstrom]");
             hist->GetYaxis()->CenterTitle();
             hist->GetYaxis()->SetNdivisions(204);
 
-            // hist->GetZaxis()->SetTitle("Electron density [?]");
+            hist->GetZaxis()->SetTitle("Electron density [?]");
             hist->GetZaxis()->CenterTitle();
             hist->GetZaxis()->SetTitleOffset(1.3);
             hist->GetZaxis()->SetNdivisions(505);

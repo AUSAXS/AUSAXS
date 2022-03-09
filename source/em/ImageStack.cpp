@@ -6,7 +6,7 @@
 #include <TCanvas.h>
 #include <TStyle.h>
 
-#include <em/image.h>
+#include <em/ImageStack.h>
 #include <data/Atom.h>
 #include <data/Protein.h>
 #include <fitter/SimpleIntensityFitter.h>
@@ -76,14 +76,14 @@ std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
     return std::make_unique<Grid>(atoms);
 }
 
-ScatteringHistogram ImageStack::calc_scattering_hist() const {
-    std::unique_ptr<Protein> protein = create_protein(-1);
+ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
+    std::unique_ptr<Protein> protein = create_protein(cutoff);
     protein->generate_new_hydration();
     return protein->get_histogram();
 }
 
 void ImageStack::fit(string filename) const {
-    SimpleIntensityFitter fitter(filename, calc_scattering_hist());
+    SimpleIntensityFitter fitter(filename, get_histogram(-1));
     std::shared_ptr<Fitter::Fit> result = fitter.fit();
 
     // Fit plot
