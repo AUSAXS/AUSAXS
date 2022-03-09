@@ -20,11 +20,11 @@ class PlotIntensity : public Plot {
     ~PlotIntensity() override = default;
 
     void save(std::string path) const override {
-        unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
+        unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
         
         // Debye scattering intensity
         canvas->cd();
-        unique_ptr<TPad> linpad = std::make_unique<TPad>("linpad", "pad", 0, 0, 1, 1); // create a drawing pad
+        unique_ptr<TPad> linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
         linpad->Draw();
         linpad->SetLogx();
         linpad->SetLogy();
@@ -48,7 +48,7 @@ class PlotIntensity : public Plot {
         // Guinier approximation
         // we have to create a second drawing pad since our scattering intensity is now log10 I(q)
         canvas->cd();
-        unique_ptr<TPad> logpad = std::make_unique<TPad>("logpad", "pad", 0, 0, 1, 1); 
+        unique_ptr<TPad> logpad = std::make_unique<TPad>("PlotIntensityPad2", "logpad", 0, 0, 1, 1); 
         logpad->Draw();
         logpad->SetFillStyle(4000); // make this second plot transparent (otherwise it'd overwrite the first one)
         logpad->SetFillColor(0);

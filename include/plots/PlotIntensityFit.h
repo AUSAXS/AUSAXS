@@ -21,7 +21,7 @@ class PlotIntensityFit : public Plot {
     ~PlotIntensityFit() override = default;
 
     void save(std::string path) const override {
-        std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("canvas", "canvas", 600, 600);
+        std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotIntensityFitCanvas", "canvas", 600, 600);
         auto graphs = fitter.plot();
 
         // use some nicer colors
