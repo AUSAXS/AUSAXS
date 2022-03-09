@@ -1,4 +1,3 @@
-// includes
 #include <vector>
 #include <map>
 #include <utility>
@@ -7,22 +6,21 @@
 #include <limits>
 #include <typeinfo>
 
-// my own includes
-#include "hydrate/Grid.h"
-#include "data/Atom.h"
-#include "data/Body.h"
-#include "data/Hetatom.h"
-#include "hydrate/AxesPlacement.cpp"
-#include "hydrate/RadialPlacement.cpp"
-#include "hydrate/JanPlacement.cpp"
-#include "hydrate/CounterCulling.cpp"
-#include "hydrate/OutlierCulling.cpp"
-#include "settings.h"
-#include "math/Vector3.h"
+#include <hydrate/Grid.h>
+#include <data/Atom.h>
+#include <data/Body.h>
+#include <data/Hetatom.h>
+#include <hydrate/AxesPlacement.h>
+#include <hydrate/RadialPlacement.h>
+#include <hydrate/JanPlacement.h>
+#include <hydrate/CounterCulling.h>
+#include <hydrate/OutlierCulling.h>
+#include <settings.h>
+#include <math/Vector3.h>
 
-using boost::format;
-using std::vector, std::string, std::cout, std::endl, std::shared_ptr, std::unique_ptr;
+using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace setting::grid;
+using namespace grid;
 
 Grid::Grid(const Axis3D& axes, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) : axes(axes) {
     setup(width, ra, rh, psc, csc);
@@ -35,12 +33,12 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
 
     // expand the box by 10%
     for (auto& v : min) {
-        if (v < 0) {imin.push_back(std::round(v*1.1));}
-        else {imin.push_back(std::round(v*0.9));}
+        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));}
+        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}
     }
     for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*1.1) + 1);}
-        else {imax.push_back(std::round(v*0.9) + 1);}
+        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)) + 1);}
+        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)) + 1);}
     }
 
     // setup the rest of the class members
@@ -67,12 +65,12 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
 
     // expand the box by 10%
     for (auto& v : min) {
-        if (v < 0) {imin.push_back(std::round(v*1.1));}
-        else {imin.push_back(std::round(v*0.9));}
+        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));}
+        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}
     }
     for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*1.1) + 1);}
-        else {imax.push_back(std::round(v*0.9) + 1);}
+        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)) + 1);}
+        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)) + 1);}
     }
 
     // setup the rest of the class members
@@ -102,18 +100,18 @@ void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc
         print_err("Warning in Grid: Consider lowering the number of bins.");
     }
     this->width = width;
-    this->grid = vector(axes.x.bins, vector<vector<char>>(axes.y.bins, vector<char>(axes.z.bins, 0)));
+    this->grid = vector(axes.x.bins, vector(axes.y.bins, vector<char>(axes.z.bins, 0)));
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
 
     switch (psc) {
-        case AxesStrategy: 
+        case PlacementStrategyChoice::AxesStrategy: 
             water_placer = std::make_unique<AxesPlacement>(this);
             break;
-        case RadialStrategy:
+        case PlacementStrategyChoice::RadialStrategy:
             water_placer = std::make_unique<RadialPlacement>(this);
             break;
-        case JanStrategy: 
+        case PlacementStrategyChoice::JanStrategy: 
             water_placer = std::make_unique<JanPlacement>(this);
             break;
         default: 
@@ -121,10 +119,10 @@ void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc
     }
 
     switch (csc) {
-        case CounterStrategy: 
+        case CullingStrategyChoice::CounterStrategy: 
             water_culler = std::make_unique<CounterCulling>(this);
             break;
-        case OutlierStrategy: 
+        case CullingStrategyChoice::OutlierStrategy: 
             water_culler = std::make_unique<OutlierCulling>(this);
             break;
         default: 

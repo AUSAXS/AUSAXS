@@ -1,8 +1,10 @@
 #pragma once
 
-#include "plots/Plot.h"
-#include "ScatteringHistogram.h"
-#include "settings.h"
+#include <plots/Plot.h>
+#include <ScatteringHistogram.h>
+#include <settings.h>
+
+#include <TH2D.h>
 
 namespace plots {
   class PlotIntensity : public Plot {
@@ -12,7 +14,7 @@ namespace plots {
        * 
        * @param d The ScatteringHistogram to be plotted. 
        */
-      PlotIntensity(const ScatteringHistogram& d) : Plot(), d(d) {}
+      PlotIntensity(const ScatteringHistogram& d);
 
       /**
        * @brief Move constructor.
@@ -26,9 +28,17 @@ namespace plots {
        */
       ~PlotIntensity() override = default;
 
+      void plot_guinier_approx();
+
       void save(std::string path) const override;
 
     private:
       const ScatteringHistogram d;
+      unique_ptr<TCanvas> canvas;
+      unique_ptr<TPad> linpad;
+      unique_ptr<TPad> logpad;
+      double ymin, ymax;
+
+      void plot_intensity();
   };
 }

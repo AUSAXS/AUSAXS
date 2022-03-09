@@ -13,14 +13,15 @@ namespace setting {
     }
 
     namespace grid {
-        PlacementStrategyChoice psc = AxesStrategy; 
-        CullingStrategyChoice csc = CounterStrategy;
+        PlacementStrategyChoice psc = PlacementStrategyChoice::AxesStrategy; 
+        CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy;
 
         double percent_water = 0.1;
         double ra = 2.4;
         double rh = 1.5;
         double ra_effective = 2.4;
         double width = 1; 
+        double scaling = 0.25;
         Limit3D axes(-250, 250, -250, 250, -250, 250);
 
         namespace placement {
@@ -48,6 +49,10 @@ namespace setting {
         ParameterGenerationStrategyChoice pgsc = Simple;
         BodySelectStrategyChoice bssc = RandomSelect;
     }
+
+    namespace em {
+        unsigned int max_atoms = 50000;
+    }
 }
 
 void setting::reader::read(const string path) {
@@ -59,5 +64,4 @@ void setting::reader::read(const string path) {
         if (line[0] == '#') {continue;} // # signifies comments
         
     }
-
 }

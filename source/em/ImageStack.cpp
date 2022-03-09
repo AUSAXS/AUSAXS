@@ -6,6 +6,8 @@
 #include <TCanvas.h>
 #include <TStyle.h>
 
+#include <em/NoCulling.h>
+#include <em/CounterCulling.h>
 #include <em/ImageStack.h>
 #include <data/Atom.h>
 #include <data/Protein.h>
@@ -14,13 +16,27 @@
 #include "plots/PlotIntensityFitResiduals.h"
 #include <Exceptions.h>
 
+using namespace setting::em;
 using namespace em;
-using std::list;
 
-ImageStack::ImageStack(string file) : header(std::make_shared<ccp4::Header>()) {
+ImageStack::ImageStack(string file, CullingStrategyChoice csc) : header(std::make_shared<ccp4::Header>()) {
     std::ifstream input(file, std::ios::binary);
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     read(input, get_byte_size());
+    setup(csc);
+}
+
+void ImageStack::setup(CullingStrategyChoice csc) {
+    switch (csc) {
+        case CullingStrategyChoice::NoStrategy:
+            culler = std::make_unique<NoCulling>();
+            break;
+        case CullingStrategyChoice::CounterStrategy:
+            culler = std::make_unique<CounterCulling>();
+            break;
+        default: 
+            throw except::unknown_argument("Error in Grid::Grid: Unkown PlacementStrategy");
+    }
 }
 
 void ImageStack::save(string path, double cutoff) const {
@@ -36,16 +52,14 @@ const vector<Image>& ImageStack::images() const {return data;}
 
 std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
-    list<Atom> atoms;
+    std::list<Atom> atoms;
     for (const Image& image: data) {
-        list<Atom> im_atoms = image.generate_atoms(cutoff);
+        std::list<Atom> im_atoms = image.generate_atoms(cutoff);
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
     }
 
     // convert list to vector
-    vector<Atom> v;
-    v.reserve(atoms.size());
-    v.assign(std::move_iterator(atoms.begin()), std::move_iterator(atoms.end()));
+    vector<Atom> v = culler->cull(atoms);    
     return std::make_unique<Protein>(v);
 }
 
@@ -85,11 +99,11 @@ void ImageStack::fit(string filename) const {
     std::shared_ptr<Fitter::Fit> result = fitter.fit();
 
     // Fit plot
-    PlotIntensityFit plot_f(fitter);
+    plots::PlotIntensityFit plot_f(fitter);
     plot_f.save("em_intensity_fit." + setting::figures::format);
 
     // Residual plot
-    PlotIntensityFitResiduals plot_r(fitter);
+    plots::PlotIntensityFitResiduals plot_r(fitter);
     plot_r.save("em_residuals." + setting::figures::format);
 }
 

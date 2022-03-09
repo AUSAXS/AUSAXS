@@ -14,10 +14,10 @@ int main(int argc, char const *argv[]) {
     // image.fit("data/A2M_ma.RSR");
 
     em::ImageStack image("data/A2M_map.ccp4"); 
-    PlotImage plot(image.image(std::stoi(argv[1])));
+    plots::PlotImage plot(image.image(std::stoi(argv[1])));
     plot.plot_atoms(-1);
     plot.save("temp.pdf");
-    image.save("test.pdb", -2);
+    // image.save("test.pdb", -2);
 
     // int i = 0;
     // for (const auto& im : image.images()) {
@@ -32,11 +32,12 @@ int main(int argc, char const *argv[]) {
     // image.fit("data/A2M_ma.RSR");
 
     setting::axes::scattering_intensity_plot_binned_width = 1;
+    setting::protein::use_effective_charge = true;
 
     ScatteringHistogram h(image.get_histogram(-2));
 
-    PlotDistance distance(h);
-    PlotIntensity intensity(h);
+    plots::PlotDistance distance(h);
+    plots::PlotIntensity intensity(h);
     distance.save("distance.pdf");
     intensity.save("intensity.pdf");
     return 0;

@@ -1,11 +1,11 @@
 #include <em/CullingStrategy.h>
 
 namespace em {
-    class CounterCulling : public CullingStrategy {
+    class NoCulling : public CullingStrategy {
         public:
-            CounterCulling() {}
+            NoCulling() {}
 
-            ~CounterCulling() override = default;
+            ~NoCulling() override = default;
 
             vector<Atom> cull(list<Atom>& atoms) const override;
     };

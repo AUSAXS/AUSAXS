@@ -9,28 +9,30 @@ class Grid;
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
-/**
- * @brief This class defines the strategy used to place water molecules. See its subclasses for more information on how this is done. 
- */
-class PlacementStrategy {
-  public:
+namespace grid {
     /**
-     * @brief Constructor. 
-     * @param grid The Grid object to apply this Strategy to.
+     * @brief This class defines the strategy used to place water molecules. See its subclasses for more information on how this is done. 
      */
-    PlacementStrategy(Grid* grid) {this->grid = grid;}
+    class PlacementStrategy {
+        public:
+          /**
+           * @brief Constructor. 
+           * @param grid The Grid object to apply this Strategy to.
+           */
+          PlacementStrategy(Grid* grid) {this->grid = grid;}
 
-    /**
-     * @brief Destructor.
-     */
-    virtual ~PlacementStrategy() {}
+          /**
+           * @brief Destructor.
+           */
+          virtual ~PlacementStrategy() {}
 
-    /**
-     * @brief Place water molecules in the grid wherever possible.
-     * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.
-     */
-    virtual vector<GridMember<Hetatom>> place() const = 0;
+          /**
+           * @brief Place water molecules in the grid wherever possible.
+           * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.
+           */
+          virtual vector<GridMember<Hetatom>> place() const = 0;
 
-  protected: 
-    Grid* grid; // A reference to the grid used in Grid.
-};
+      protected: 
+          Grid* grid; // A reference to the grid used in Grid.
+    };
+}

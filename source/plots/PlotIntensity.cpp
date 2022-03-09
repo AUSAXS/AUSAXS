@@ -1,5 +1,3 @@
-#pragma once
-
 #include "plots/PlotIntensity.h"
 
 #include <TLegend.h>
@@ -12,36 +10,42 @@
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
-void plots::PlotIntensity::save(std::string path) const {
-    unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
-    
-    // Debye scattering intensity
-    canvas->cd();
-    unique_ptr<TPad> linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
-    linpad->Draw();
+plots::PlotIntensity::PlotIntensity(const ScatteringHistogram& d) : Plot(), d(d) {
+    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
+    linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
+
+    linpad->SetLeftMargin(0.19);
     linpad->SetLogx();
     linpad->SetLogy();
+
+    linpad->Draw();
     linpad->cd();
+    plot_intensity();
+}
+
+void plots::PlotIntensity::plot_intensity() {
+    // Debye scattering intensity
     auto hI_debye = d.plot_debye_scattering();
     hI_debye->SetLineWidth(3);
     hI_debye->SetLineColor(kOrange+1);
-    double ymin = hI_debye->GetMinimum();
-    double ymax = hI_debye->GetMaximum();
+    ymin = hI_debye->GetMinimum();
+    ymax = hI_debye->GetMaximum();
     hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
     
     // titles
-    linpad->SetLeftMargin(0.19);
     hI_debye->GetXaxis()->SetTitle("q");
     hI_debye->GetXaxis()->CenterTitle();
     hI_debye->GetYaxis()->SetTitle("Intensity");
     hI_debye->GetYaxis()->CenterTitle();
     hI_debye->GetYaxis()->SetTitleOffset(1.2);
-    hI_debye->Draw("HIST L");
+    hI_debye->DrawClone("HIST L");
+}
 
+void plots::PlotIntensity::plot_guinier_approx() {
     // Guinier approximation
     // we have to create a second drawing pad since our scattering intensity is now log10 I(q)
     canvas->cd();
-    unique_ptr<TPad> logpad = std::make_unique<TPad>("PlotIntensityPad2", "logpad", 0, 0, 1, 1); 
+    logpad = std::make_unique<TPad>("PlotIntensityPad2", "logpad", 0, 0, 1, 1); 
     logpad->Draw();
     logpad->SetFillStyle(4000); // make this second plot transparent (otherwise it'd overwrite the first one)
     logpad->SetFillColor(0);
@@ -58,7 +62,7 @@ void plots::PlotIntensity::save(std::string path) const {
     hI_guinier->SetLineStyle(kDashed);
     hI_guinier->SetAxisRange(log10(ymin*0.9), log10(ymax*1.1), "Y"); // use same limits as the debye plot
     hI_guinier->SetNdivisions(3, "Y"); // use only 3 labels on the y axis
-    hI_guinier->Draw("Y+ HIST L"); // Y+ creates a second axis on the right side
+    hI_guinier->DrawClone("Y+ HIST L"); // Y+ creates a second axis on the right side
 
     // Vertical line at the Guinier gyration ratio
     double Rg = sqrt(d.calc_guinier_gyration_ratio_squared());
@@ -66,8 +70,9 @@ void plots::PlotIntensity::save(std::string path) const {
     gyration_ratio->SetLineColor(kBlack);
     gyration_ratio->SetLineStyle(kDashed);
     gyration_ratio->SetLineWidth(3);
-    gyration_ratio->Draw("SAME");
+    gyration_ratio->DrawClone("SAME");
+}
 
-    // setup the canvas and save the plot
+void plots::PlotIntensity::save(std::string path) const {
     canvas->SaveAs(path.c_str());
 }

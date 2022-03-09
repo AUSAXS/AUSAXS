@@ -101,9 +101,9 @@ class Grid {
      * @param atoms the set of atoms to add to this grid.
      */
     template<typename T>
-    vector<GridMember<T>> add(const vector<T>& atoms) {
+    vector<grid::GridMember<T>> add(const vector<T>& atoms) {
         static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
-        vector<GridMember<T>> v(atoms.size());
+        vector<grid::GridMember<T>> v(atoms.size());
         size_t index = 0;
         for (auto const& a : atoms) {
             v[index++] = add(a);
@@ -116,19 +116,19 @@ class Grid {
      * 
      * @param body The body to be added. 
      */
-    vector<GridMember<Atom>> add(const Body* const body);
+    vector<grid::GridMember<Atom>> add(const Body* const body);
 
     /** 
      * @brief Add a single atom to the grid. 
      *        This is a constant-time operation. 
      */
-    GridMember<Atom> add(const Atom& atom, const bool expand = false);
+    grid::GridMember<Atom> add(const Atom& atom, const bool expand = false);
 
     /** 
      * @brief Add a single hetatom to the grid. 
      *        This is a constant-time operation. 
      */
-    GridMember<Hetatom> add(const Hetatom& atom, const bool expand = false);
+    grid::GridMember<Hetatom> add(const Hetatom& atom, const bool expand = false);
 
     /**
      * @brief Remove the contents of a body from this grid. 
@@ -174,12 +174,12 @@ class Grid {
     /** 
      * @brief Expand a single member atom into an actual sphere.
      */
-    void expand_volume(GridMember<Atom>& atom);
+    void expand_volume(grid::GridMember<Atom>& atom);
 
     /** 
      * @brief Expand a single member atom into an actual sphere.
      */
-    void expand_volume(GridMember<Hetatom>& atom);
+    void expand_volume(grid::GridMember<Hetatom>& atom);
 
     /** 
      * @brief Deflate all member atoms and water molecules into actual spheres based on the radii ra and rh. 
@@ -189,12 +189,12 @@ class Grid {
     /** 
      * @brief Deflate a single member atom into an actual sphere.
      */
-    void deflate_volume(GridMember<Atom>& atom);
+    void deflate_volume(grid::GridMember<Atom>& atom);
 
     /** 
      * @brief Deflate a single member atom into an actual sphere.
      */
-    void deflate_volume(GridMember<Hetatom>& atom);
+    void deflate_volume(grid::GridMember<Hetatom>& atom);
 
     /**
      * @brief Generate a new hydration layer for the grid.
@@ -206,7 +206,7 @@ class Grid {
      * @brief Identify possible hydration binding locations for the structure. 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<GridMember<Hetatom>> find_free_locs();
+    vector<grid::GridMember<Hetatom>> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.
@@ -288,8 +288,8 @@ class Grid {
     bool operator==(const Grid& rhs) const;
 
     vector<vector<vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
-    std::list<GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
-    std::list<GridMember<Hetatom>> w_members; // A list of all member water molecules and where they are located. 
+    std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
+    std::list<grid::GridMember<Hetatom>> w_members; // A list of all member water molecules and where they are located. 
     int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
     int ra = 0; // Radius of each atom represented as a number of bins
     int rh = 0; // Radius of each water molecule represented as a number of bins
@@ -297,8 +297,8 @@ class Grid {
   private:
     Axis3D axes;
     double width; // distance between each grid point
-    unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
-    unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules
+    unique_ptr<grid::PlacementStrategy> water_placer; // the strategy for placing water molecules
+    unique_ptr<grid::CullingStrategy> water_culler; // the strategy for culling the placed water molecules
 
     /** 
      * @brief Expand a single member atom into an actual sphere.

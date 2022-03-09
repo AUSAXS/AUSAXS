@@ -1,5 +1,3 @@
-#pragma once
-
 #include <plots/PlotIntensityFitResiduals.h>
 
 #include <memory.h>

@@ -13,17 +13,18 @@ namespace setting {
     }
 
     namespace grid {
-        enum PlacementStrategyChoice {AxesStrategy, RadialStrategy, JanStrategy};
-        enum CullingStrategyChoice {CounterStrategy, OutlierStrategy};
+        enum class PlacementStrategyChoice {AxesStrategy, RadialStrategy, JanStrategy};
+        enum class CullingStrategyChoice {CounterStrategy, OutlierStrategy};
 
         extern PlacementStrategyChoice psc; // The choice of placement algorithm.
         extern CullingStrategyChoice csc; // The choice of culling algorithm. 
-        extern double percent_water; // The number of generated water molecules as a percent of the number of atoms. 
 
+        extern double percent_water; // The number of generated water molecules as a percent of the number of atoms. 
         extern double ra; // Radius of protein atoms. 
         extern double rh; // Radius of water molecules.
         extern double ra_effective; // Effective radius of protein atoms. This is based on the volume the average atom effectively occupies. 
         extern double width; // Width of each bin of the grid used to represent this protein.
+        extern double scaling; // The percent increase in grid size in all dimensions when the grid size is automatically deduced based on an input vector of atoms. 
 
         extern Limit3D axes; // Default axes for the grid 
 
@@ -55,6 +56,14 @@ namespace setting {
         extern TransformationStrategyChoice tsc;
         extern ParameterGenerationStrategyChoice pgsc;
         extern BodySelectStrategyChoice bssc;
+    }
+
+    namespace em {
+        enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
+
+        extern CullingStrategyChoice csc; // The choice of culling algorithm. 
+
+        extern unsigned int max_atoms; // The maximum number of atoms which is generated from the input map. 
     }
 
     // Simple reader for reading settings from a text file

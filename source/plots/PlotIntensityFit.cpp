@@ -1,5 +1,3 @@
-#pragma once
-
 #include "plots/PlotIntensityFit.h"
 
 #include <memory.h>

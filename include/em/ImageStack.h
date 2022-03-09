@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <em/CullingStrategy.h>
 #include <em/datatypes.h>
 #include <em/Image.h>
 #include <data/Protein.h>
@@ -23,7 +24,7 @@ namespace em {
              * 
              * @param file Path to the input EM data file. 
              */
-            ImageStack(string file);
+            ImageStack(string file, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
 
             /**
              * @brief Destructor.
@@ -89,8 +90,11 @@ namespace em {
         private:
             std::shared_ptr<ccp4::Header> header;
             vector<Image> data;
+            std::unique_ptr<em::CullingStrategy> culler;
 
             void read(std::ifstream& istream, size_t byte_size);
+
+            void setup(setting::em::CullingStrategyChoice csc);
 
             size_t get_byte_size() const;
 

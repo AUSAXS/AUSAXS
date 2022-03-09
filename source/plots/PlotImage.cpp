@@ -1,5 +1,3 @@
-#pragma once
-
 #include <plots/PlotImage.h>
 #include <em/Image.h>
 
@@ -49,7 +47,7 @@ void plots::PlotImage::save(std::string path) const {
     canvas->SaveAs(path.c_str());
 }
 
-void plots::PlotImage::plot_atoms(double cutoff = 0.1) const {
+void plots::PlotImage::plot_atoms(double cutoff) const {
     const std::list<Atom>& atoms = image.generate_atoms(cutoff);
     std::vector<double> x;
     std::vector<double> y;

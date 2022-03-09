@@ -62,6 +62,7 @@ unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
 
     for (size_t i = 0; i < Iq.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
+        std::cout << "Bin " << i << ": " << Iq[i] << std::endl;
         h->SetBinContent(i+1, Iq[i]);
     }
     return h;

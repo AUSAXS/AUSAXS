@@ -1,5 +1,3 @@
-#pragma once
-
 #include "plots/PlotDistance.h"
 #include "ScatteringHistogram.h"
 #include "settings.h"

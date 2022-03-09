@@ -44,11 +44,11 @@ int main(int argc, char const *argv[]) {
     std::shared_ptr<Fitter::Fit> result = fitter.fit();
 
     // Fit plot
-    PlotIntensityFit plot_f(fitter);
+    plots::PlotIntensityFit plot_f(fitter);
     plot_f.save(output + "intensity_fit." + setting::figures::format);
 
     // Residual plot
-    PlotIntensityFitResiduals plot_r(fitter);
+    plots::PlotIntensityFitResiduals plot_r(fitter);
     plot_r.save(output + "residuals." + setting::figures::format);
 
     result->print();

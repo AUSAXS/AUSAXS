@@ -35,11 +35,12 @@ int main(int argc, char const *argv[]) {
     ScatteringHistogram d = protein.get_histogram();
 
     // Distance plot
-    PlotDistance d_plot(d);
+    plots::PlotDistance d_plot(d);
     d_plot.save(output + "distances." + setting::figures::format); 
 
     // Debye scattering intensity plot
-    PlotIntensity i_plot(d);
+    plots::PlotIntensity i_plot(d);
+    i_plot.plot_guinier_approx();
     i_plot.save(output + "intensity." + setting::figures::format);
     return 0;
 }
