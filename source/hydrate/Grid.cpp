@@ -29,9 +29,11 @@ Grid::Grid(const Axis3D& axes, double width, double ra, double rh, PlacementStra
 }
 
 Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
-    // determine the bounding box, and expand it by 10% in each direction.
+    // find the bounding box
     vector<int> imin, imax;
     auto[min, max] = bounding_box(atoms);
+
+    // expand the box by 10%
     for (auto& v : min) {
         if (v < 0) {imin.push_back(std::round(v*1.1));}
         else {imin.push_back(std::round(v*0.9));}
@@ -47,6 +49,40 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
 
     // finally add the atoms to the grid
     add(atoms);
+}
+
+Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc) {
+    vector<int> imin, imax;
+
+    // find the total bounding box containing all bodies
+    Vector3 min{0, 0, 0}, max{0, 0, 0};
+    for (const Body& body : bodies) {
+        auto[cmin, cmax] = bounding_box(body.protein_atoms);
+
+        for (int i = 0; i < 3; i++) {
+            if (cmin[i] < min[i]) {min[i] = cmin[i];}
+            if (cmax[i] > max[i]) {max[i] = cmax[i];}
+        }
+    }
+
+    // expand the box by 10%
+    for (auto& v : min) {
+        if (v < 0) {imin.push_back(std::round(v*1.1));}
+        else {imin.push_back(std::round(v*0.9));}
+    }
+    for (auto& v : max) {
+        if (v > 0) {imax.push_back(std::round(v*1.1) + 1);}
+        else {imax.push_back(std::round(v*0.9) + 1);}
+    }
+
+    // setup the rest of the class members
+    axes = Axis3D(imin, imax, setting::grid::width);
+    setup(width, ra, rh, psc, csc);
+
+    // finally add all atoms to the grid
+    for (const Body& body : bodies) {
+        add(body.protein_atoms);
+    }
 }
 
 Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, setting::grid::psc, setting::grid::csc) {
@@ -254,7 +290,7 @@ GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
     // sanity check
     const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins || x+y+z < 0;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string());
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string() + "\nBounds: " + axes.to_string());
     }
 
     if (grid[x][y][z] == 0) {volume++;} // can probably be removed
@@ -274,7 +310,7 @@ GridMember<Hetatom> Grid::add(const Hetatom& water, const bool expand) {
     // sanity check
     const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins || x+y+z < 0;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string());
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string() + "\nBounds: " + axes.to_string());
     }
 
     GridMember gm(water, loc);

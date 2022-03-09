@@ -18,7 +18,8 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 class Grid {
   public:
     /**
-     * @brief Construct a new Grid object with standard atomic radii.
+     * @brief Constructor.
+     * 
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
@@ -26,7 +27,8 @@ class Grid {
     Grid(const Axis3D& axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
 
     /**
-     * @brief Construct a new Grid object.
+     * @brief Constructor.
+     * 
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in all dimensions. 
@@ -35,18 +37,59 @@ class Grid {
     Grid(const Axis3D& axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::psc, setting::grid::csc) {}
 
     /**
-     * @brief Construct a new Grid object.
+     * @brief Constructor.
+     * 
      * @param base the base point for the grid.
      * @param width the distance between each point.
      * @param bins the number of bins in each dimension. 
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+    Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
 
+    /**
+     * @brief Space-saving constructor. 
+     * 
+     * Construct a new Grid with a volume only slightly larger than that spanned by the input vector. 
+     * 
+     * @param atoms The atoms to be stored in the Grid. 
+     */
     Grid(const vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
 
-    Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+    /**
+     * @brief Space-saving constructor. 
+     * 
+     * Construct a new Grid with a volume only slightly larger than that spanned by the input vector. 
+     * 
+     * @param atoms The atoms to be stored in the Grid. 
+     * @param width the distance between each point.
+     * @param bins the number of bins in each dimension. 
+     * @param ra the radius of each atom.
+     * @param rh the radius of each water molecule.
+     */
+    Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
+
+    /**
+     * @brief Space-saving constructor. 
+     * 
+     * Construct a new Grid with a volume only slightly larger than that spanned by the input bodies. 
+     * 
+     * @param bodies The bodies to be stored in the Grid. 
+     */
+    Grid(const vector<Body>& bodies) : Grid(bodies, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+
+    /**
+     * @brief Space-saving constructor. 
+     * 
+     * Construct a new Grid with a volume only slightly larger than that spanned by the input bodies. 
+     * 
+     * @param bodies The bodies to be stored in the Grid. 
+     * @param width the distance between each point.
+     * @param bins the number of bins in each dimension. 
+     * @param ra the radius of each atom.
+     * @param rh the radius of each water molecule.
+     */
+    Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
 
     /**
      * @brief Copy constructor. 

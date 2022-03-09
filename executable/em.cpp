@@ -3,6 +3,7 @@
 #include <em/ImageStack.h>
 #include <plots/PlotImage.h>
 #include <plots/PlotIntensity.h>
+#include <plots/PlotDistance.h>
 #include <Exceptions.h>
 
 using std::string;
@@ -30,8 +31,13 @@ int main(int argc, char const *argv[]) {
 
     // image.fit("data/A2M_ma.RSR");
 
+    setting::axes::scattering_intensity_plot_binned_width = 1;
 
-    PlotIntensity intensity(image.get_histogram(-2));
+    ScatteringHistogram h(image.get_histogram(-2));
+
+    PlotDistance distance(h);
+    PlotIntensity intensity(h);
+    distance.save("distance.pdf");
     intensity.save("intensity.pdf");
     return 0;
 }

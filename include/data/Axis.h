@@ -86,5 +86,11 @@ class Axis3D {
 
     bool operator!=(const Axis3D& rhs) const {return !operator==(rhs);}
 
+    std::string to_string() const {
+      return "Axes: \n\tx: " + x.to_string() + "\n\ty: " + y.to_string() + "\n\tz: " + z.to_string(); 
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Axis3D& axes) {os << axes.to_string(); return os;}
+
     Axis x, y, z;
 };

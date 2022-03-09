@@ -37,10 +37,8 @@ const vector<Image>& ImageStack::images() const {return data;}
 std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     list<Atom> atoms;
-    int i = 0;
     for (const Image& image: data) {
         list<Atom> im_atoms = image.generate_atoms(cutoff);
-        std::cout << "Generating " << im_atoms.size() << " atoms for image " << ++i << std::endl;
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
     }
 
@@ -78,7 +76,7 @@ std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
 
 ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
     std::unique_ptr<Protein> protein = create_protein(cutoff);
-    protein->generate_new_hydration();
+    // protein->generate_new_hydration();
     return protein->get_histogram();
 }
 

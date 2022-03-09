@@ -68,13 +68,18 @@ double Protein::get_volume_grid() {
     return grid->get_volume();
 }
 
+// shared_ptr<Grid> Protein::create_grid() {
+//     Axis3D axes(setting::grid::axes, setting::grid::width);
+//     grid = std::make_shared<Grid>(axes, setting::grid::width); 
+//     for (auto const& body : bodies) {
+//         grid->add(body.protein_atoms);
+//         // grid->add(body.hydration_atoms);
+//     }
+//     return grid;
+// }
+
 shared_ptr<Grid> Protein::create_grid() {
-    Axis3D axes(setting::grid::axes, setting::grid::width);
-    grid = std::make_shared<Grid>(axes, setting::grid::width); 
-    for (auto const& body : bodies) {
-        grid->add(body.protein_atoms);
-        // grid->add(body.hydration_atoms);
-    }
+    grid = std::make_shared<Grid>(bodies); 
     return grid;
 }
 
