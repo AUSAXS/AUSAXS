@@ -26,9 +26,13 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     // parse strategy
-    if (placement_strategy == "Radial") {setting::grid::psc = setting::grid::RadialStrategy;}
-    else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
-    else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
+    if (placement_strategy == "Radial") {setting::grid::psc = setting::grid::PlacementStrategyChoice::RadialStrategy;}
+    else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::PlacementStrategyChoice::AxesStrategy;}
+    else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::PlacementStrategyChoice::JanStrategy;}
+
+    setting::protein::use_effective_charge = false;
+    setting::axes::scattering_intensity_plot_axis = {1000, 0.001, 100.001};
+    setting::axes::scattering_intensity_plot_binned_width = 0.01;
 
     Protein protein(input);
     protein.generate_new_hydration();
@@ -42,5 +46,7 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensity i_plot(d);
     i_plot.plot_guinier_approx();
     i_plot.save(output + "intensity." + setting::figures::format);
+
+    std::cout << "Protein size: " << protein.atom_size() << std::endl;
     return 0;
 }

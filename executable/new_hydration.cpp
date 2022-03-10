@@ -24,9 +24,9 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     // parse strategy
-    if (placement_strategy == "Radial") {setting::grid::psc = setting::grid::RadialStrategy;}
-    else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::AxesStrategy;}
-    else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::JanStrategy;}
+    if (placement_strategy == "Radial") {setting::grid::psc = setting::grid::PlacementStrategyChoice::RadialStrategy;}
+    else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::PlacementStrategyChoice::AxesStrategy;}
+    else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::PlacementStrategyChoice::JanStrategy;}
 
     Protein protein(input);
     protein.generate_new_hydration();

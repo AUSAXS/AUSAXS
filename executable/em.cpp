@@ -31,8 +31,8 @@ int main(int argc, char const *argv[]) {
 
     // image.fit("data/A2M_ma.RSR");
 
-    setting::axes::scattering_intensity_plot_binned_width = 1;
-    setting::protein::use_effective_charge = true;
+    setting::axes::scattering_intensity_plot_binned_width = 0.1;
+    setting::protein::use_effective_charge = false;
 
     ScatteringHistogram h(image.get_histogram(-2));
 

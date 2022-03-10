@@ -172,6 +172,21 @@ class Protein {
      */
     shared_ptr<Grid> create_grid();
 
+    /**
+     * @brief Get the number of constituent bodies. 
+     */
+    size_t body_size() const;
+
+    /**
+     * @brief Get the total number of constituent atoms, excluding hydration. 
+     */
+    size_t atom_size() const;
+
+    /**
+     * @brief Get the total number of constituent atoms, excluding hydration. Equivalent to \a body_size. 
+     */    
+    size_t size() const {return atom_size();}
+
     vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
     vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise

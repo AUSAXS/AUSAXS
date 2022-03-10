@@ -17,7 +17,7 @@ using namespace ROOT;
 
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
-    _d = vector<double>(axis.bins, 0);
+    _d = vector<double>(axis.bins);
     double d_width = axis.width();
     for (int i = 0; i < axis.bins; i++) {
         _d[i] = axis.min + d_width*i;
@@ -45,7 +45,7 @@ vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
         std::make_shared<TH1D>("h_tot", "hist", axis.bins, axis.min, axis.max)
     };
 
-    for (int i = 1; i < axis.bins; i++) {
+    for (int i = 1; i < axis.bins; i++) { 
         hists[0]->SetBinContent(i, p_pp[i-1]);
         hists[1]->SetBinContent(i, p_hh[i-1]);
         hists[2]->SetBinContent(i, p_hp[i-1]);
@@ -60,7 +60,7 @@ unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
 
-    for (size_t i = 0; i < Iq.size(); i++) {
+    for (unsigned int i = 0; i < Iq.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
         std::cout << "Bin " << i << ": " << Iq[i] << std::endl;
         h->SetBinContent(i+1, Iq[i]);
@@ -75,7 +75,7 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(debye_axis.bins, 0);
     for (int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
-        for (size_t j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
+        for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
             if (q[i]*_d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
                 Iq[i] += p_tot[j];
             } else {
@@ -102,7 +102,7 @@ unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
 
 double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     double num = 0, denom = 0;
-    for (size_t i = 0; i < p_tot.size(); i++) {
+    for (unsigned int i = 0; i < p_tot.size(); i++) {
         num += p_tot[i]*pow(_d[i], 2);
         denom += 2*p_tot[i];
     }

@@ -167,6 +167,14 @@ void Protein::clear_grid() {
     grid = nullptr;
 }
 
+size_t Protein::body_size() const {
+    return bodies.size();
+}
+
+size_t Protein::atom_size() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.protein_atoms.size();});
+}
+
 void Protein::update_effective_charge() { 
     double displaced_vol = get_volume_grid();
     // double displaced_vol = get_volume_acids();
