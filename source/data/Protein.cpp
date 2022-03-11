@@ -175,6 +175,10 @@ size_t Protein::atom_size() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.protein_atoms.size();});
 }
 
+vector<double> Protein::calc_debye_scattering_intensity() const {
+    
+}
+
 void Protein::update_effective_charge() { 
     double displaced_vol = get_volume_grid();
     // double displaced_vol = get_volume_acids();

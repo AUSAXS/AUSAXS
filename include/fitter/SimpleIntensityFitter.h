@@ -28,21 +28,27 @@ class SimpleIntensityFitter : public Fitter {
   public: 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     *        Prepare a fit of the measured values in @a input to a model to be defined later. 
      * 
-     * @param input the path to the file containing the measured values. 
-     * @param q the model q values.
-     * @param I the model I values. 
+     * @param input The path to the file containing the measured values. 
+     */
+    SimpleIntensityFitter(string input) {setup(input);}
+
+    /**
+     * @brief Constructor.
+     *        Prepare a fit of the measured values in @a input to the model described by @a h.
+     * 
+     * @param input The path to the file containing the measured values. 
+     * @param h The ScatteringHistogram to fit. 
      */
     SimpleIntensityFitter(string input, const ScatteringHistogram& h) : h(h) {setup(input);}
 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     *        Prepare a fit of the measured values in @a input to the model described by @a h.
      * 
      * @param input the path to the file containing the measured values. 
-     * @param q the model q values.
-     * @param I the model I values. 
+     * @param h The ScatteringHistogram to fit. 
      */
     SimpleIntensityFitter(string input, ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 

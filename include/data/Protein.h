@@ -173,6 +173,15 @@ class Protein {
     shared_ptr<Grid> create_grid();
 
     /**
+     * @brief Calculate the Debye scattering intensity for this protein. 
+     *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
+     *        create a ScatteringHistogram and call its equivalent method instead. 
+     * 
+     * @return vector<double> 
+     */
+    vector<double> calc_debye_scattering_intensity() const;
+
+    /**
      * @brief Get the number of constituent bodies. 
      */
     size_t body_size() const;

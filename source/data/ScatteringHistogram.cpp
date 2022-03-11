@@ -123,13 +123,7 @@ vector<double> ScatteringHistogram::calc_guinier_approx() const {
 }
 
 ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) {
-    p = h.p;
-    _p_pp = h.p_pp;
-    _p_hh = h.p_hh;
-    _p_hp = h.p_hp;
-    _q = h.q;
-    _d = h._d;
-    return *this;
+    return operator=(ScatteringHistogram(h));
 }
 
 ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) {

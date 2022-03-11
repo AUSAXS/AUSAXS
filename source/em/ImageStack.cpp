@@ -64,6 +64,9 @@ std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
 }
 
 std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
+    std::cout << "Error in ImageStack::create_grid: Not implemented yet. " << std::endl;
+    exit(1);
+
     vector<Atom> atoms;
     atoms.reserve(header->nx);
 
@@ -95,8 +98,31 @@ ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
 }
 
 void ImageStack::fit(string filename) const {
-    SimpleIntensityFitter fitter(filename, get_histogram(-1));
-    std::shared_ptr<Fitter::Fit> result = fitter.fit();
+    SimpleIntensityFitter fitter(filename);
+
+    // fit function
+    unsigned int counter = 0;
+    std::function<double(const double*)> chi2 = [&] (const double* params) {
+        fitter.set_scattering_hist(get_histogram(params[0]));
+        double val = fitter.fit()->chi2;
+        std::cout << ++counter << ": " << params[0] << " with chi2: " << val << std::endl;
+        return val;
+    }; 
+
+    // perform the fit
+    ROOT::Math::Functor functor = ROOT::Math::Functor(chi2, 1);
+    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "migrad"); 
+    minimizer->SetFunction(functor);
+    minimizer->SetLimitedVariable(0, "cutoff", -4, 1, -10, -1);
+    minimizer->SetStrategy(2);
+    minimizer->SetPrintLevel(2);
+    minimizer->Minimize();
+    const double* result = minimizer->X();
+
+    // set optimal cutoff
+    std::cout << "Optimal cutoff is " << result[0] << std::endl;
+    fitter.set_scattering_hist(get_histogram(result[0]));
+    fitter.fit();
 
     // Fit plot
     plots::PlotIntensityFit plot_f(fitter);
