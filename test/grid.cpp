@@ -372,7 +372,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     grid.add(a);
     grid.expand_volume();
 
-    vector<GridMember<Hetatom>> locs = grid.find_free_locs();
+    vector<grid::GridMember<Hetatom>> locs = grid.find_free_locs();
     REQUIRE(locs.size() == 6);
 
     // since this needs to work with different placement strategies, we have to perform a more general check on the positions
@@ -389,8 +389,8 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
 }
 
 TEST_CASE("find_free_locs", "[grid]") {
-    test_find_free_locs(setting::grid::AxesStrategy);
-    test_find_free_locs(setting::grid::RadialStrategy);
+    test_find_free_locs(setting::grid::PlacementStrategyChoice::AxesStrategy);
+    test_find_free_locs(setting::grid::PlacementStrategyChoice::RadialStrategy);
 }
 
 // Test that expansion and deflation completely cancels each other. 

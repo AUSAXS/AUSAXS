@@ -167,6 +167,10 @@ void Protein::clear_grid() {
     grid = nullptr;
 }
 
+void Protein::clear_hydration() {
+    hydration_atoms.clear();
+}
+
 size_t Protein::body_size() const {
     return bodies.size();
 }
@@ -175,8 +179,38 @@ size_t Protein::atom_size() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.protein_atoms.size();});
 }
 
-vector<double> Protein::calc_debye_scattering_intensity() const {
-    
+vector<double> Protein::calc_debye_scattering_intensity() {
+    if (!updated_charge && setting::protein::use_effective_charge) {
+        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+    }
+
+    vector<Atom> atoms = get_protein_atoms();
+    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+    vector<double> Q = vector<double>(debye_axis.bins);
+    double debye_width = debye_axis.width();
+    for (int i = 0; i < debye_axis.bins; i++) {
+        Q[i] = debye_axis.min + i*debye_width;
+    }
+
+    vector<double> I;
+    I.reserve(Q.size());
+    for (const auto& q : Q) {
+        double sum = 0;
+        for (const auto& atom_i : atoms) {
+            for (const auto& atom_j : atoms) {
+                double fi = atom_i.get_effective_charge()*atom_i.get_occupancy();
+                double fj = atom_j.get_effective_charge()*atom_j.get_occupancy();
+                double qr = q*atom_i.distance(atom_j);
+                if (qr == 0) {
+                    sum += fi*fj;
+                } else {
+                    sum += fi*fj*sin(qr)/qr;
+                }
+            }
+        }
+        I.push_back(sum);
+    }
+    return I;
 }
 
 void Protein::update_effective_charge() { 

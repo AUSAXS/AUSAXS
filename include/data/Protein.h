@@ -147,6 +147,11 @@ class Protein {
     void clear_grid();
 
     /**
+     * @brief Remove all hydration atoms from this protein.
+     */
+    void clear_hydration();
+
+    /**
      * @brief Create a binding point between two bodies.
      *        This binding will be a constraint for rigid-body optimization. 
      */
@@ -173,13 +178,13 @@ class Protein {
     shared_ptr<Grid> create_grid();
 
     /**
-     * @brief Calculate the Debye scattering intensity for this protein. 
+     * @brief Calculate the Debye scattering intensity for this protein. Does not include hydration atoms. 
      *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
      *        create a ScatteringHistogram and call its equivalent method instead. 
      * 
      * @return vector<double> 
      */
-    vector<double> calc_debye_scattering_intensity() const;
+    vector<double> calc_debye_scattering_intensity();
 
     /**
      * @brief Get the number of constituent bodies. 

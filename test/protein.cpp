@@ -9,11 +9,45 @@
 
 #include "catch2/catch.hpp"
 
-bool approx(double v1, double v2) {
-    double tol = 1e-6;
-    if (v1-tol > v2) {return false;}
-    if (v1+tol < v2) {return false;}
+bool approx(double v1, double v2, double tol = 1e-6, double eps = 0.01) {
+    if (v1-tol > v2*(1+eps)) {return false;}
+    if (v1+tol < v2*(1-eps)) {return false;}
     return true;
+}
+
+TEST_CASE("compare_debye", "[protein]") {
+    vector<Atom> atoms = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
+                       Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
+                       Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
+                       Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    Protein protein(atoms, {});
+
+    vector<double> I_dumb = protein.calc_debye_scattering_intensity();
+    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity();
+
+    for (int i = 0; i < 8; i++) {
+        if (!approx(I_dumb[i], I_smart[i], 1e-1)) {
+            cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
+            REQUIRE(false);
+        }
+    }
+}
+
+TEST_CASE("compare_debye_real", "[protein],[files],[slow]") {
+    Protein protein("data/2epe.pdb");
+    protein.clear_hydration();
+
+    std::cout << "hydration atoms: " << protein.hydration_atoms.size() << std::endl; 
+
+    vector<double> I_dumb = protein.calc_debye_scattering_intensity();
+    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity();
+
+    for (int i = 0; i < 8; i++) {
+        if (!approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
+            cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
+            REQUIRE(false);
+        }
+    }
 }
 
 TEST_CASE("histogram", "[protein]") {

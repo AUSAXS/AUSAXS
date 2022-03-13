@@ -50,17 +50,18 @@ intensity_fit/%: build/executable/intensity_fitter
 ###				TESTS						 ###
 #################################################################################
 tags := ""
+exclude_tags := "~[broken] ~[manual] ~[slow]"
 memtest/%: $(shell find source/ -print) test/memtest.cpp	
 	@ make -C build test -j${cmake_threads}
-	valgrind --suppressions=suppressions.txt --track-origins=yes build/test ~[broken] ~[manual] [$*] ${tags}
+	valgrind --suppressions=suppressions.txt --track-origins=yes build/test $(exclude_tags) [$*] ${tags}
 
 test/%: $(shell find source/ -print) test/%.cpp
 	@ make -C build test -j${cmake_threads}
-	build/test [$(*F)] ~[broken] ~[manual] ${tags}
+	build/test [$(*F)] $(exclude_tags) ${tags}
 
 tests: $(shell find source/ -print) $(shell find test/ -print) build/Makefile
 	@ make -C build test -j${cmake_threads}
-	build/test ~[broken] ~[manual] ~[memtest]
+	build/test $(exclude_tags) ~[memtest]
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
 build/source/tests/%: $(shell find source/ -print) build/Makefile
