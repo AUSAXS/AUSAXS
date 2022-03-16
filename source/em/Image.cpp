@@ -38,7 +38,7 @@ list<Atom> Image::generate_atoms(double cutoff) const {
             }
 
             Vector3 coords{x*xscale, y*yscale, z*zscale};
-            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, 1, 0, "C", ""));
+            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, val, 0, "C", ""));
         }
     }
 

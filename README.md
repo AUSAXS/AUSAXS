@@ -1,4 +1,5 @@
 # Todo
+ * [ ] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
  * [ ] Memory test all other executables.
  * [ ] plots: Change intensity plots to static methods
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
@@ -26,8 +27,9 @@
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
  * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> DMinuit2=ON CMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
- * Boost
+ * Boost (Very minor dependency, consider removing it entirely.)
  * Elements
+ * CLI11
 
 # FITTING:
 FOXS SAXS fitting program

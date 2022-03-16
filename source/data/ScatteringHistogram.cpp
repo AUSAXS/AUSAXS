@@ -17,10 +17,12 @@ using namespace ROOT;
 
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
-    _d = vector<double>(axis.bins);
+    _d = vector<double>(axis.bins, 0);
     double d_width = axis.width();
-    for (int i = 0; i < axis.bins; i++) {
-        _d[i] = axis.min + d_width*i;
+
+    // we use the middle of each bin as the d-value, except for the very first one which we fix as 0 since it primarily contains self-correlation terms
+    for (int i = 1; i < axis.bins; i++) {
+        _d[i] = axis.min + d_width*(i+0.5);
     }    
 
     // prepare the q values for the intensity calculations
@@ -29,6 +31,15 @@ void ScatteringHistogram::setup() {
     double debye_width = debye_axis.width();
     for (int i = 0; i < debye_axis.bins; i++) {
         _q[i] = debye_axis.min + i*debye_width;
+    }
+
+    sinqd_table.initialize(_q, _d);
+    for (const double Q : q) {
+        for (const double D : _d) {
+            double qd = Q*D;
+            double val = qd < 1e-9 ? 1 : sin(qd)/qd;
+            sinqd_table.assign(Q, D, val);
+        }
     }
 }
 
@@ -79,7 +90,8 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
             if (q[i]*_d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
                 Iq[i] += p_tot[j];
             } else {
-                Iq[i] += p_tot[j]*sin(q[i]*_d[j])/(q[i]*_d[j]);
+                // Iq[i] += p_tot[j]*sin(q[i]*_d[j])/(q[i]*_d[j]);
+                Iq[i] += p_tot[j]*sinqd_table.lookup(q[i], _d[j]);
             }
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor

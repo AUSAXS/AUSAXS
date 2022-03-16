@@ -3,13 +3,13 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include "Histogram.h"
-#include "TH1D.h"
-#include "TCanvas.h"
-#include <iostream>
+
+#include <TH1D.h>
+
+#include <Histogram.h>
+#include <Table.h>
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-using namespace ROOT;
 
 class ScatteringHistogram : Histogram {
   public:
@@ -101,8 +101,9 @@ class ScatteringHistogram : Histogram {
 
   private:
     vector<double> _p_pp, _p_hh, _p_hp; // binned distances
-    vector<double> _d; // the distance corresponding to each bin
-    vector<double> _q; // the q values used as the x-axis
+    vector<double> _d; // The distance corresponding to each bin.
+    vector<double> _q; // The q values used as the x-axis.
+    LookupTable<double, double> sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 
