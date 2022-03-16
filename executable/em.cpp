@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
     setting::axes::scattering_intensity_plot_binned_width = 0.01;
     setting::protein::use_effective_charge = false;
 
-    // image.fit("data/A2M_ma.RSR");
+    image.fit("data/A2M_ma.RSR");
 
     ScatteringHistogram h(image.get_histogram(-4));
     plots::PlotDistance distance(h);

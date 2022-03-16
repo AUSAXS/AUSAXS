@@ -87,12 +87,7 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
     vector<double> Iq(debye_axis.bins, 0);
     for (int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
         for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
-            if (q[i]*_d[j] < 1e-9) { // if qd is very close to zero, we fix sin(qd)/qd to 1
-                Iq[i] += p_tot[j];
-            } else {
-                // Iq[i] += p_tot[j]*sin(q[i]*_d[j])/(q[i]*_d[j]);
-                Iq[i] += p_tot[j]*sinqd_table.lookup(q[i], _d[j]);
-            }
+            Iq[i] += p_tot[j]*sinqd_table.lookup(q[i], _d[j]);
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }

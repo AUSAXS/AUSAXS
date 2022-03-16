@@ -30,6 +30,7 @@ Maybe bundle them somehow to make it easier to install?
  * Boost (Very minor dependency, consider removing it entirely.)
  * Elements
  * CLI11
+ * catch2 for tests
 
 # FITTING:
 FOXS SAXS fitting program

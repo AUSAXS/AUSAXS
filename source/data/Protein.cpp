@@ -201,7 +201,7 @@ vector<double> Protein::calc_debye_scattering_intensity() {
                 double fi = atom_i.get_effective_charge()*atom_i.get_occupancy();
                 double fj = atom_j.get_effective_charge()*atom_j.get_occupancy();
                 double qr = q*atom_i.distance(atom_j);
-                if (qr == 0) {
+                if (qr < 1e-9) {
                     sum += fi*fj;
                 } else {
                     sum += fi*fj*sin(qr)/qr;
