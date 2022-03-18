@@ -21,7 +21,7 @@ void ScatteringHistogram::setup() {
     double d_width = axis.width();
 
     // we use the middle of each bin as the d-value, except for the very first one which we fix as 0 since it primarily contains self-correlation terms
-    for (int i = 1; i < axis.bins; i++) {
+    for (unsigned int i = 1; i < axis.bins; i++) {
         _d[i] = axis.min + d_width*(i+0.5);
     }    
 
@@ -29,7 +29,7 @@ void ScatteringHistogram::setup() {
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     _q = vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
-    for (int i = 0; i < debye_axis.bins; i++) {
+    for (unsigned int i = 0; i < debye_axis.bins; i++) {
         _q[i] = debye_axis.min + i*debye_width;
     }
 
@@ -45,7 +45,7 @@ void ScatteringHistogram::setup() {
 
 void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
     double k2 = pow(k, 2);
-    for (int i = 0; i < axis.bins; i++) {p[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];} // p = p_tot, inherited from Histogram
+    for (unsigned int i = 0; i < axis.bins; i++) {p[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];} // p = p_tot, inherited from Histogram
 }
 
 vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
@@ -56,7 +56,7 @@ vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
         std::make_shared<TH1D>("h_tot", "hist", axis.bins, axis.min, axis.max)
     };
 
-    for (int i = 1; i < axis.bins; i++) { 
+    for (unsigned int i = 1; i < axis.bins; i++) { 
         hists[0]->SetBinContent(i, p_pp[i-1]);
         hists[1]->SetBinContent(i, p_hh[i-1]);
         hists[2]->SetBinContent(i, p_hp[i-1]);
@@ -85,7 +85,7 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
 
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(debye_axis.bins, 0);
-    for (int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
+    for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
         for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
             Iq[i] += p_tot[j]*sinqd_table.lookup(q[i], _d[j]);
         }
@@ -100,7 +100,7 @@ unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
 
-    for (int i = 0; i < debye_axis.bins; i++) {
+    for (unsigned int i = 0; i < debye_axis.bins; i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
         h->SetBinContent(i+1, Iq[i]);
     }
@@ -122,7 +122,7 @@ vector<double> ScatteringHistogram::calc_guinier_approx() const {
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     vector<double> Iq(debye_axis.bins, 0);
     double log_conv = log10(exp(1)); // we have to convert natural log to log10
-    for (int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
+    for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
         Iq[i] = -pow(q[i], 2)*Rg2/3*log_conv;
     }
 

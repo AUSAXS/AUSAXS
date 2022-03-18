@@ -73,7 +73,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
             PartialHistogram& current = partials_pp[i][j];
 
             // iterate through each entry in the partial histogram
-            for (int k = 0; k < total.axis.bins; k++) {
+            for (unsigned int k = 0; k < total.axis.bins; k++) {
                 p_pp[k] += current.p[k]; // add to p_pp
             }
         }
@@ -84,7 +84,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
         PartialHistogram& current = partials_hp[i];
 
         // iterate through each entry in the partial histogram
-        for (int k = 0; k < total.axis.bins; k++) {
+        for (unsigned int k = 0; k < total.axis.bins; k++) {
             p_hp[k] += current.p[k]; // add to p_pp
         }
     }

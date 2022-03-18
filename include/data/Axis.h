@@ -56,7 +56,7 @@ class Axis {
         return (max-min)/bins;
     }
 
-    int bins;
+    unsigned int bins;
     double min, max;
 };
 

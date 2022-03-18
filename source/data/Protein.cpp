@@ -188,7 +188,7 @@ vector<double> Protein::calc_debye_scattering_intensity() {
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     vector<double> Q = vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
-    for (int i = 0; i < debye_axis.bins; i++) {
+    for (unsigned int i = 0; i < debye_axis.bins; i++) {
         Q[i] = debye_axis.min + i*debye_width;
     }
 

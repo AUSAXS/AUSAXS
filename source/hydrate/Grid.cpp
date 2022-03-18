@@ -155,7 +155,7 @@ vector<vector<int>> Grid::bounding_box() const {
     }
 
     // initialize the bounds as large as possible
-    vector<vector<int>> box = {{axes.x.bins, 0}, {axes.y.bins, 0}, {axes.z.bins, 0}};
+    vector<vector<int>> box = {{int(axes.x.bins), 0}, {int(axes.y.bins), 0}, {int(axes.z.bins), 0}};
     for (const auto& atom : a_members) {
         for (int i = 0; i < 3; i++) {
             if (box[i][0] > atom.loc[i]) box[i][0] = atom.loc[i]; // min
@@ -251,9 +251,9 @@ void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, axes.x.bins); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, axes.y.bins); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, axes.z.bins); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(axes.x.bins)); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(axes.y.bins)); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(axes.z.bins)); // zminus and zplus
 
     // loop over each bin in the box
     int added_volume = 0;
@@ -286,7 +286,7 @@ GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
     const int &x = loc[0], &y = loc[1], &z = loc[2];
 
     // sanity check
-    const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins || x+y+z < 0;
+    const bool out_of_bounds = x >= int(axes.x.bins) || y >= int(axes.y.bins) || z >= int(axes.z.bins) || x+y+z < 0;
     if (__builtin_expect(out_of_bounds, false)) {
         throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string() + "\nBounds: " + axes.to_string());
     }
@@ -306,7 +306,7 @@ GridMember<Hetatom> Grid::add(const Hetatom& water, const bool expand) {
     const int &x = loc[0], &y = loc[1], &z = loc[2];
 
     // sanity check
-    const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins || x+y+z < 0;
+    const bool out_of_bounds = x >= int(axes.x.bins) || y >= int(axes.y.bins) || z >= int(axes.z.bins) || x+y+z < 0;
     if (__builtin_expect(out_of_bounds, false)) {
         throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string() + "\nBounds: " + axes.to_string());
     }
@@ -447,9 +447,9 @@ void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, axes.x.bins); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, axes.y.bins); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, axes.z.bins); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(axes.x.bins)); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(axes.y.bins)); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(axes.z.bins)); // zminus and zplus
 
     // loop over each bin in the box
     int removed_volume = -1; // -1 because we overwrite the center
@@ -484,7 +484,7 @@ void Grid::clear_waters() {
 }
 
 vector<int> Grid::get_bins() const {
-    return {axes.x.bins, axes.y.bins, axes.z.bins};
+    return {int(axes.x.bins), int(axes.y.bins), int(axes.z.bins)};
 }
 
 vector<int> Grid::to_bins(const Vector3& v) const {
