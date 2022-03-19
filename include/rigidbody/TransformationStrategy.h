@@ -1,7 +1,7 @@
 #pragma once
 
-#include "data/Protein.h"
-#include "rigidbody/Constraint.h"
+#include <data/Protein.h>
+#include <rigidbody/Constraint.h>
 
 // forwards declaration
 class RigidBody;

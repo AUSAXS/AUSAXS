@@ -3,9 +3,9 @@
 #include <array>
 #include <algorithm>
 
-#include "data/Protein.h"
-#include "rigidbody/RigidBody.h"
-#include "rigidbody/TransformationStrategy.h"
+#include <data/Protein.h>
+#include <rigidbody/RigidBody.h>
+#include <rigidbody/TransformationStrategy.h>
 
 /**
  * @brief \class RigidTransform. 

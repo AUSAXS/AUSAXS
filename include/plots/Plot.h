@@ -9,7 +9,8 @@
 
 /**
  * @brief \class Plot.
- *               Virtual super-class for all plotter objects. 
+ * 
+ * Virtual super-class for all plotter objects. 
  */
 class Plot {
   public: 

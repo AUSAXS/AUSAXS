@@ -1,7 +1,7 @@
 #pragma once
 
-#include "rigidbody/Constraint.h"
-#include "data/Protein.h"
+#include <rigidbody/Constraint.h>
+#include <data/Protein.h>
 
 /**
  * @brief \class ConstraintSelectStrategy. 

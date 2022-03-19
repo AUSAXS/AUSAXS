@@ -2,7 +2,7 @@
 
 #include <random>
 
-#include "rigidbody/ParameterGenerationStrategy.h"
+#include <rigidbody/ParameterGenerationStrategy.h>
 
 class SimpleParameterGeneration : public ParameterGenerationStrategy {
   public: 

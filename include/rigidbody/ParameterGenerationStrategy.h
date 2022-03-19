@@ -3,8 +3,8 @@
 #include <tuple>
 #include <random>
 
-#include "math/Vector3.h"
-#include "rigidbody/Parameters.h"
+#include <math/Vector3.h>
+#include <rigidbody/Parameters.h>
 
 class ParameterGenerationStrategy {
   public:

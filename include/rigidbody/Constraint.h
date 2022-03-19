@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "data/Atom.h"
-#include "Exceptions.h"
+#include <data/Atom.h>
+#include <Exceptions.h>
 
 /**
  * @brief \class Constraint. 

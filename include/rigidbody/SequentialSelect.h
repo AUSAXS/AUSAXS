@@ -1,5 +1,9 @@
 #pragma once
 
+#include <random>
+
+#include <rigidbody/BodySelectStrategy.h>
+
 /**
  * @brief \class RandomSelect
  * 

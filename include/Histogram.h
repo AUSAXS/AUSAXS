@@ -9,10 +9,36 @@
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
+/**
+ * @brief \class Histogram. 
+ * 
+ * A representation of a histogram. 
+ */
 class Histogram {
   public:
+    /**
+     * @brief Default constructor.
+     */
     Histogram() {}
+
+    /**
+     * @brief Constructor. 
+     * 
+     * Construct a new histogram based on a list of bin values. 
+     * Note that the axis will not be initialized. 
+     * 
+     * @param p The bin values. 
+     */
     Histogram(const vector<double>& p) : p(p) {}
+
+    /**
+     * @brief Constructor.
+     * 
+     * Construct a new histogram based on a list of bin values and the axis it spans. 
+     * 
+     * @param p The bin values. 
+     * @param axis The axis they span. 
+     */
     Histogram(const vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
 
     /**
@@ -32,6 +58,6 @@ class Histogram {
         axis = Axis{max_bin, 0, max_bin*width};
     }
 
-    vector<double> p;
-    Axis axis;
+    vector<double> p; // The bin values. 
+    Axis axis;        // The axis spanned by this histogram. 
 };

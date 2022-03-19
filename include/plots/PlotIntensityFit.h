@@ -1,9 +1,9 @@
 #pragma once
 
-#include "plots/Plot.h"
-#include "ScatteringHistogram.h"
-#include "fitter/SimpleIntensityFitter.h"
-#include "settings.h"
+#include <plots/Plot.h>
+#include <ScatteringHistogram.h>
+#include <fitter/SimpleIntensityFitter.h>
+#include <settings.h>
 
 #include <memory.h>
 #include <string.h>

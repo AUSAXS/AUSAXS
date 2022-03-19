@@ -7,7 +7,8 @@
 namespace plots {
   /**
    * @brief \class PlotDistance.
-   *               Plots a histogram of all distances. 
+   * 
+   * Plots a histogram of all distances. 
    */
   class PlotDistance : public Plot {
     public:

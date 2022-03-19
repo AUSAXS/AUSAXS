@@ -5,6 +5,11 @@
 
 using std::string;
 
+/**
+ * @brief \namespace constants
+ * 
+ * This namespace contains all constants used in this project. 
+ */
 namespace constants {
     namespace radius {
         constexpr double electron = 0.0000281794; // electron radius in units of Ångström

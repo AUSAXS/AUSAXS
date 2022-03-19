@@ -2,8 +2,8 @@
 
 #include <random>
 
-#include "rigidbody/BodySelectStrategy.h"
-#include "data/Protein.h"
+#include <rigidbody/BodySelectStrategy.h>
+#include <data/Protein.h>
 
 /**
  * @brief \class RandomSelect

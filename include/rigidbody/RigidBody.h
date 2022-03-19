@@ -2,12 +2,12 @@
 
 #include <memory>
 
-#include "data/Protein.h"
-#include "rigidbody/Constraint.h"
-#include "rigidbody/BodySelectStrategy.h"
-#include "rigidbody/TransformationStrategy.h"
-#include "rigidbody/ParameterGenerationStrategy.h"
-#include "fitter/IntensityFitter.h"
+#include <data/Protein.h>
+#include <rigidbody/Constraint.h>
+#include <rigidbody/BodySelectStrategy.h>
+#include <rigidbody/TransformationStrategy.h>
+#include <rigidbody/ParameterGenerationStrategy.h>
+#include <fitter/IntensityFitter.h>
 
 class RigidBody {
   public:

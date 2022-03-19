@@ -1,7 +1,8 @@
 #pragma once
 
-#include "math/Vector3.h"
-#include "data/Protein.h"
+#include <math/Vector3.h>
+#include <data/Protein.h>
+
 #include <unordered_map>
 #include <vector>
 
