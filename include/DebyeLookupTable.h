@@ -43,7 +43,12 @@ namespace table {
             /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 
              */
-            double lookup(int row, int col) const;
+            double lookup(unsigned int q_index, unsigned int d_index) const;
+
+            /**
+             * @brief Look up a value in the table based on indices. This is a constant-time operation. 
+             */
+            double lookup(int q_index, int d_index) const;
 
             /**
              * @brief Check if this instance uses the default table. 

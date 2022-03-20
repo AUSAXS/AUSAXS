@@ -11,23 +11,35 @@ using std::string;
  * This namespace contains all constants used in this project. 
  */
 namespace constants {
+    /**
+     * @brief \namespace radius
+     * 
+     * This namespace contains all the radius constants used in this project. 
+     */
     namespace radius {
         constexpr double electron = 0.0000281794; // electron radius in units of Ångström
     }
     constexpr double Avogadro = 6.02214076e-23; // mol^-1
 
+    /**
+     * @brief \namespace unit
+     * 
+     * This namespace contains all the unit conversion constants used in this project. 
+     */
     namespace unit { // units with respect to the ones used in this file
         constexpr double mg = 1.66054e-27; // Dalton --> mg
         constexpr double gm = 1.66054e-24; // Dalton --> grams
         constexpr double cm = 1e-8; // Ångström --> cm
     }
 
+    // The 1-symbol names of all amino acids. 
     const std::map<string, char> name_1symbol_map = {{"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, 
         {"phenylalanine", 'F'}, {"tyrosine", 'Y'}, {"tryptophan", 'W'}, {"aspartic_acid", 'D'}, {"glutamic_acid", 'E'}, {"serine", 'S'}, 
         {"threonine", 'T'}, {"asparagine", 'N'}, {"glutamine", 'Q'}, {"lysine", 'K'}, {"arginine", 'R'}, {"histidine", 'H'}, {"methionine", 'M'}, 
         {"cysteine", 'C'}, {"proline", 'P'}
     };
 
+    // The 3-symbol names of all amino acids. 
     const std::map<string, string> name_3symbol_map = {{"glycine", "GLY"}, {"alanine", "ALA"}, {"valine", "VAL"}, {"leucine", "LEU"}, 
         {"isoleucine", "ILE"}, {"phenylalanine", "PHE"}, {"tyrosine", "TYR"}, {"tryptophan", "TRP"}, {"aspartic_acid", "ASP"}, {"glutamic_acid", "GLU"}, 
         {"serine", "SER"}, {"threonine", "THR"}, {"asparagine", "ASN"}, {"glutamine", "GLN"}, {"lysine", "LYS"}, {"arginine", "ARG"}, {"histidine", "HIS"}, 
@@ -35,8 +47,13 @@ namespace constants {
     };
 
 
-    // taken from https://doi.org/10.1088/0034-4885/39/10/001 
-    // all values are in Å^3
+    /**
+     * @brief \namespace volume
+     * 
+     * This namespace contains the volume of all amino acids. 
+     * They are taken from https://doi.org/10.1088/0034-4885/39/10/001.
+     * All values are in Å^3
+     */
     namespace volume {
         constexpr double glycine = 66.4;
         constexpr double alanine = 91.5;
@@ -67,7 +84,12 @@ namespace constants {
         };
     }
 
-    // atomic weights taken from https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf 
+    /**
+     * @brief \namespace mass 
+     * 
+     * This namespace contains the masses of the most common atomic elements encountered in SAXS. 
+     * The weights are taken from https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf. 
+     */
     namespace mass {
         constexpr double H = 1.008;
         constexpr double He = 4.003;
@@ -81,6 +103,11 @@ namespace constants {
         const std::map<string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
     }
 
+    /**
+     * @brief \namespace charge
+     * 
+     * This namespace contains the net charge of the most common atomic elements encountered in SAXS. 
+     */
     namespace charge {
         constexpr int H = 1;
         constexpr int He = 2;
@@ -98,6 +125,11 @@ namespace constants {
         }
     }
 
+    /**
+     * @brief \namespace hydrogen_atoms
+     * 
+     * This namespace contains the number of hydrogen atoms attached to all amino acids. 
+     */
     namespace hydrogen_atoms {
         namespace none {
             const std::map<string, int> get = {{"", 0}};

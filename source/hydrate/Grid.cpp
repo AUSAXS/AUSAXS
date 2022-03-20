@@ -33,12 +33,12 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
 
     // expand the box by 10%
     for (auto& v : min) {
-        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));}
-        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}
+        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));}     // if v is smaller than 0, multiply by 1+s
+        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}           //                    else multiply by 1-s
     }
     for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)) + 1);}
-        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)) + 1);}
+        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)) + 1);} // if v is larger than 0, multiply by 1+s
+        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)) + 1);}       //                   else multiply by 1-s
     }
 
     // setup the rest of the class members

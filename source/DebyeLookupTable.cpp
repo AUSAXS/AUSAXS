@@ -16,11 +16,11 @@ void DebyeLookupTable::initialize(const vector<double>& q, const vector<double>&
         if (default_table.is_empty()) {
             double width = setting::axes::scattering_intensity_plot_binned_width;
             vector<double> _d(default_size/width, 0);
-            for (unsigned int i = 1; i < d.size(); i++) {
+            for (unsigned int i = 1; i < _d.size(); i++) {
                 _d[i] = width*(i+0.5);
             }
 
-            initialize(default_table, q, d);
+            initialize(default_table, q, _d); // note we pass _d and not d
         }
 
         // assign the lambda lookup function to a default table lookup
@@ -44,8 +44,15 @@ double DebyeLookupTable::lookup(double q, double d) const {
 /**
  * @brief Look up a value in the table based on indices. This is a constant-time operation. 
  */
-double DebyeLookupTable::lookup(int row, int col) const {
-    return index_lookup_function(row, col);
+double DebyeLookupTable::lookup(unsigned int q_index, unsigned int d_index) const {
+    return index_lookup_function(q_index, d_index);
+}
+
+/**
+ * @brief Look up a value in the table based on indices. This is a constant-time operation. 
+ */
+double DebyeLookupTable::lookup(int q_index, int d_index) const {
+    return index_lookup_function(q_index, d_index);
 }
 
 /**
@@ -60,11 +67,11 @@ bool DebyeLookupTable::uses_default_table() const {
 
 void DebyeLookupTable::initialize(LookupTable<double, double>& table, const vector<double>& q, const vector<double>& d) {
     table.initialize(q, d);
-    for (const double Q : q) {
-        for (const double D : d) {
-            double qd = Q*D;
+    for (unsigned int i = 0; i < q.size(); i++) {
+        for (unsigned int j = 0; j < d.size(); j++) {
+            double qd = q[i]*d[j];
             double val = qd < tolerance ? 1 : sin(qd)/qd;
-            table.assign(Q, D, val);
+            table.assign_index(i, j, val);
         }
     }
 }
@@ -74,7 +81,7 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     Axis& axis = setting::axes::scattering_intensity_plot_axis;
     double width = setting::axes::scattering_intensity_plot_binned_width;
 
-    std::cout << "Checking if default table can be used.." << std::endl;
+    // std::cout << "Checking if default table can be used.." << std::endl;
     if (q.size() != axis.bins) {return false;}
     if (q[0] != axis.min) {return false;}
     if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) {return false;}
@@ -84,6 +91,7 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     if (d[d.size()-1] > default_size) {return false;} // check if too large for default table
     if (!approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
     if (!approx(d[3]-d[2], width)) {return false;} // check second width
+    // std::cout << "\tUsing default tables. " << std::endl;
 
     return true;
 }

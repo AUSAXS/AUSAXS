@@ -439,11 +439,11 @@ TEST_CASE("space_saving_constructor", "[grid]") {
     Grid grid(atoms);
     Axis3D axes = grid.get_axes();
     REQUIRE(axes.x.min == 0);
-    REQUIRE(axes.y.min == -6);
-    REQUIRE(axes.z.min == -8);
-    REQUIRE(axes.x.max == 7);
-    REQUIRE(axes.y.max == 2);
-    REQUIRE(axes.z.max == 2);
+    REQUIRE(axes.y.min == std::round(-5*(1 + setting::grid::scaling)));
+    REQUIRE(axes.z.min == std::round(-7*(1 + setting::grid::scaling)));
+    REQUIRE(axes.x.max == std::round(5*(1 + setting::grid::scaling))+1);
+    REQUIRE(axes.y.max == std::round(1*(1 + setting::grid::scaling))+1);
+    REQUIRE(axes.z.max == std::round(1*(1 + setting::grid::scaling))+1);
 
     // check that we're not using a ton of unnecessary bins
     REQUIRE(axes.x.bins < 20);

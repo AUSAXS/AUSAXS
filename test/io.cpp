@@ -25,15 +25,18 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         if (l1.empty()) {
             if (l2.empty()) {return true;} // if both lines are empty, we're at the end of both files
             if (Record::get_type(l2.substr(0, 6)) == Record::TERMINATE) {return true;} // we allow a single terminate of difference
-        }
-
-        // since a value of 5.90 is converted to 5.9 in the new file, we must manually compare entries where this can happen
-        Record::RecordType type1 = Record::get_type(l1.substr(0, 6)); 
-        Record::RecordType type2 = Record::get_type(l2.substr(0, 6)); 
-        if (type1 != type2) {
             print_err("File ended prematurely.");
             return false;
         }
+
+        Record::RecordType type1 = Record::get_type(l1.substr(0, 6)); 
+        Record::RecordType type2 = Record::get_type(l2.substr(0, 6)); 
+        if (type1 != type2) {
+            print_err("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal.");
+            return false;
+        }
+
+        // since a value of 5.90 is converted to 5.9 in the new file, we must manually compare entries where this can happen
         if (type1 == Record::ATOM || type1 == Record::HETATM) { 
             a1.parse_pdb(l1);
             a2.parse_pdb(l2);
@@ -142,10 +145,20 @@ TEST_CASE("real_data", "[io],[files]") {
         }
 
         if (file.path().extension() == ".pdb") { // check if the extension is .pdb
-            Protein protein = Protein(file.path().string());
+            cout << "Testing " << file.path().stem() << endl;
+            Protein protein(file.path().string());
+            std::cout << protein.bodies[0].get_file()->header.as_pdb() << std::endl;
             protein.save("temp.pdb");
             REQUIRE(compareFiles(file.path().string(), "temp.pdb"));
             remove("temp.pdb");
         }
     }
+}
+
+TEST_CASE("file_copied_correctly", "[io],[files]") {
+    Body body("data/2epe.pdb");
+    REQUIRE(!body.get_file()->header.get().empty());
+
+    Body body2 = body;
+    REQUIRE(!body2.get_file()->header.get().empty());
 }

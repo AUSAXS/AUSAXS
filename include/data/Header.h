@@ -10,6 +10,11 @@ using std::string, std::vector;
 class Header : Record {
   public: 
     Header() : contents("") {}
+
+    Header(const Header& header) noexcept : contents(header.contents) {}
+
+    Header(const Header&& header) noexcept : contents(std::move(header.contents)) {}
+
     ~Header() override {}
 
     /**
@@ -41,6 +46,11 @@ class Header : Record {
      * @return the .pdb format header string. 
      */
     string get() const {return contents;};
+
+    Header& operator=(const Header& header) {
+      contents = header.contents;
+      return *this;
+    }
 
   private: 
     string contents;

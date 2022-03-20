@@ -199,10 +199,7 @@ double Body::get_volume_grid() {
 }
 
 shared_ptr<Grid> Body::create_grid() {
-    Axis3D axes(setting::grid::axes, setting::grid::width);
-    grid = std::make_shared<Grid>(axes, setting::grid::width); 
-    grid->add(protein_atoms);
-    // grid->add(hydration_atoms);
+    grid = std::make_shared<Grid>(protein_atoms);
     return grid;
 }
 
@@ -268,7 +265,7 @@ double Body::get_mass() const {
 }
 
 Body& Body::operator=(const Body& rhs) {
-    *file = *rhs.file;
+    *file = *rhs.file; // we do NOT want a copy of the file!
     uid = rhs.uid;
     if (rhs.grid != nullptr) {grid = rhs.grid;}
     return *this;

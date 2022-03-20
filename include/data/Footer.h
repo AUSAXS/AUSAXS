@@ -10,6 +10,11 @@ using std::string, std::vector;
 class Footer : Record {
   public: 
     Footer() : contents("") {}
+
+    Footer(const Footer& footer) noexcept : contents(footer.contents) {}
+
+    Footer(const Footer&& footer) noexcept : contents(std::move(footer.contents)) {}
+
     ~Footer() override {}
 
     /**
@@ -41,6 +46,11 @@ class Footer : Record {
      * @return the .pdb format Footer string. 
      */
     string get() const {return contents;};
+
+    Footer& operator=(const Footer& footer) {
+      contents = footer.contents;
+      return *this;
+    }
 
   private: 
     string contents;

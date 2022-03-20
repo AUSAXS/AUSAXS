@@ -188,6 +188,11 @@ class Body {
      */
     bool operator==(const Body& rhs) const;
 
+    /**
+     * @brief Get the File backing this object. 
+     */
+    shared_ptr<File> get_file() const {return file;}
+
   private:
     shared_ptr<File> file = nullptr;                     // The file backing this body
     shared_ptr<Grid> grid = nullptr;                     // The grid representation of this body

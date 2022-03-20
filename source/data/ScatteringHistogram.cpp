@@ -34,13 +34,6 @@ void ScatteringHistogram::setup() {
     }
 
     sinqd_table.initialize(_q, _d);
-    for (const double Q : q) {
-        for (const double D : _d) {
-            double qd = Q*D;
-            double val = qd < 1e-9 ? 1 : sin(qd)/qd;
-            sinqd_table.assign(Q, D, val);
-        }
-    }
 }
 
 void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
@@ -87,7 +80,7 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
     vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
         for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
-            Iq[i] += p_tot[j]*sinqd_table.lookup(q[i], _d[j]);
+            Iq[i] += p_tot[j]*sinqd_table.lookup(i, j);
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }

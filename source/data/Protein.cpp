@@ -24,8 +24,10 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
 }
 
 Protein::Protein(const string& input) {
-    bodies = {Body(input)};
-    hydration_atoms = bodies[0].hydration_atoms;
+    Body b1(input);
+    bodies = {b1};
+    hydration_atoms = std::move(bodies[0].hydration_atoms);
+    bodies[0].hydration_atoms.clear();
     phm = std::make_unique<PartialHistogramManager>(this);
 }
 

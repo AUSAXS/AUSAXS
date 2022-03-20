@@ -11,6 +11,10 @@ include := $(addprefix include/, $(shell find include/ -printf "%P "))
 #################################################################################
 .SECONDARY:
 
+docs: build/Makefile
+	@ make -C build doc
+	firefox build/docs/html/index.html 
+
 .PHONY:
 gui: build/source/gui/gui
 	build/gui

@@ -38,7 +38,7 @@ class Table {
          * @param i The row index.
          * @param j The column index. 
          */
-        double& index(unsigned int i, unsigned int j) {return data[M*i + j];}
+        double& index(unsigned int i, unsigned int j) {return data.at(M*i + j);}
 
         unsigned int N, M;
         vector<double> data;

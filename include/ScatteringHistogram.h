@@ -7,7 +7,7 @@
 #include <TH1D.h>
 
 #include <Histogram.h>
-#include <Table.h>
+#include <DebyeLookupTable.h>
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
@@ -103,7 +103,7 @@ class ScatteringHistogram : Histogram {
     vector<double> _p_pp, _p_hh, _p_hp; // binned distances
     vector<double> _d; // The distance corresponding to each bin.
     vector<double> _q; // The q values used as the x-axis.
-    LookupTable<double, double> sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.
+    table::DebyeLookupTable sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.
 
     /**
      * @brief Calculate the guinier approximation of the scattering intensity. 
