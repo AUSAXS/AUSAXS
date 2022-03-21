@@ -147,7 +147,6 @@ TEST_CASE("real_data", "[io],[files]") {
         if (file.path().extension() == ".pdb") { // check if the extension is .pdb
             cout << "Testing " << file.path().stem() << endl;
             Protein protein(file.path().string());
-            std::cout << protein.bodies[0].get_file()->header.as_pdb() << std::endl;
             protein.save("temp.pdb");
             REQUIRE(compareFiles(file.path().string(), "temp.pdb"));
             remove("temp.pdb");
@@ -157,8 +156,15 @@ TEST_CASE("real_data", "[io],[files]") {
 
 TEST_CASE("file_copied_correctly", "[io],[files]") {
     Body body("data/2epe.pdb");
-    REQUIRE(!body.get_file()->header.get().empty());
+    CHECK(!body.get_file()->header.get().empty());
+    CHECK(!body.get_file()->footer.get().empty());
 
     Body body2 = body;
-    REQUIRE(!body2.get_file()->header.get().empty());
+    CHECK(!body2.get_file()->header.get().empty());
+    CHECK(!body2.get_file()->footer.get().empty());
+
+    Body body3;
+    body3 = body;
+    CHECK(!body3.get_file()->header.get().empty());
+    CHECK(!body3.get_file()->footer.get().empty());
 }

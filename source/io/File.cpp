@@ -13,6 +13,9 @@ File::File(const File&& file) noexcept : header(file.header), footer(file.footer
 
 File::File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
+File::File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate) 
+    : header(header), footer(footer), terminate(terminate), protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
+
 File::File(string filename) {
     reader = construct_reader(filename);
     read(filename);

@@ -48,6 +48,17 @@ class File {
     File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms);
 
     /**
+     * @brief Constructor. 
+     *        Construct a new File based on two vectors of atoms. 
+     * @param protein_atoms A vector containing the constituent atoms of the molecule. 
+     * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
+     * @param header The header of this file. 
+     * @param footer The footer of this file. 
+     * @param terminate The terminate of this file. 
+     */
+    File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate);
+
+    /**
      * @brief Constructor.
      *        Construct a new File based on a input molecular data file. 
      * @param filename Path to the input file. 
