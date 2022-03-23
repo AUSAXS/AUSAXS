@@ -72,6 +72,20 @@ unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     return h;
 }
 
+vector<double> ScatteringHistogram::calc_debye_scattering_intensity(vector<double>& q) const {
+    // calculate the scattering intensity based on the Debye equation
+    vector<double> Iq(q.size(), 0);
+    for (unsigned int i = 0; i < q.size(); i++) { // iterate through all q values
+        for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
+            double qd = q[i]*_d[j];
+            if (qd < 1e-6) {Iq[i] += 1;}
+            else {Iq[i] += p_tot[j]*std::sin(qd)/qd;}
+        }
+        Iq[i] *= exp(-q[i]*q[i]); // form factor
+    }
+    return Iq;
+}
+
 vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;

@@ -5,6 +5,7 @@
 #include <list>
 #include <limits>
 #include <typeinfo>
+#include <cassert>
 
 #include <hydrate/Grid.h>
 #include <data/Atom.h>

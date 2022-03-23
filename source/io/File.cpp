@@ -57,8 +57,7 @@ void File::add(const string type, const string s) {
     } else if (type == "FOOTER") {
         footer.add(s);
     } else {
-        print_err("Error in File::add: string " + type + " is not \"HEADER\" or \"FOOTER\"!");
-        exit(1);
+        throw except::invalid_argument("Error in File::add: string " + type + " is not \"HEADER\" or \"FOOTER\"!");
     }
 }
 
@@ -118,24 +117,20 @@ void File::refresh() {
 
 std::unique_ptr<Reader> File::construct_reader(const string& path) {
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
-        print_err("Error in Protein::Protein: .xml input files are not supported.");
-        exit(1);
+        throw except::invalid_argument("Error in File::construct_reader: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
         return std::make_unique<PDBReader>(this);
     } else { // anything else - we cannot handle this
-        print_err((format("Error in Protein::Protein: Invalid file extension of input file %1%.") % path).str());
-        exit(1);
+        throw except::invalid_argument("Error in File::construct_reader: Unsupported file extension of input file \"" + path + "\".");
     }
 }
 
 std::unique_ptr<Writer> File::construct_writer(const string& path) {
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
-        print_err("Error in Protein::Protein: .xml input files are not supported.");
-        exit(1);
+        throw except::invalid_argument("Error in File::construct_writer: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
         return std::make_unique<PDBWriter>(this);
     } else { // anything else - we cannot handle this
-        print_err((format("Error in Protein::Protein: Invalid file extension of input file %1%.") % path).str());
-        exit(1);
+        throw except::invalid_argument("Error in File::construct_writer: Unsupported file extension of input file \"" + path + "\".");
     }
 }

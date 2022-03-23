@@ -28,7 +28,8 @@ class SimpleIntensityFitter : public Fitter {
   public: 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to a model to be defined later. 
+     * 
+     * Prepare a fit of the measured values in @a input to a model to be defined later. 
      * 
      * @param input The path to the file containing the measured values. 
      */
@@ -36,7 +37,8 @@ class SimpleIntensityFitter : public Fitter {
 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to the model described by @a h.
+     * 
+     * Prepare a fit of the measured values in @a input to the model described by @a h.
      * 
      * @param input The path to the file containing the measured values. 
      * @param h The ScatteringHistogram to fit. 
@@ -45,12 +47,55 @@ class SimpleIntensityFitter : public Fitter {
 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to the model described by @a h.
+     * 
+     * Prepare a fit of the measured values in @a input to the model described by @a h.
      * 
      * @param input the path to the file containing the measured values. 
      * @param h The ScatteringHistogram to fit. 
      */
     SimpleIntensityFitter(string input, ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+
+    /**
+     * @brief Constructor. 
+     * 
+     * Prepare a fit to the data set defined by @a q, @a I, and @a sigma. 
+     * 
+     * @param q The scattering vectors.  
+     * @param I The corresponding intensities.  
+     * @param sigma The uncertainties in each measurement. 
+     */
+    SimpleIntensityFitter(vector<double>& q, vector<double>& I, vector<double>& sigma) : qo(q), Io(I), sigma(sigma) {}
+
+    /**
+     * @brief Constructor. 
+     * 
+     * Prepare a fit of the histogram @a h to the data set defined by @a q, @a I, and @a sigma. 
+     * 
+     * @param q The scattering vectors.  
+     * @param I The corresponding intensities.  
+     * @param sigma The uncertainties in each measurement. 
+     * @param h The histogram to be fitted. 
+     */
+    SimpleIntensityFitter(vector<double>& q, vector<double>& I, vector<double>& sigma, const ScatteringHistogram& h) : qo(q), Io(I), sigma(sigma), h(h) {}
+
+    /**
+     * @brief Constructor.
+     * 
+     * Prepare a fit of the first histogram to the second. A series of data points is extracted from @a h2 and used to fit @a h1.
+     * 
+     * @param data The data histogram. 
+     * @param model The model histogram. 
+     */
+    SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model);
+
+    /**
+     * @brief Constructor.
+     * 
+     * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+     * 
+     * @param model The model histogram. 
+     */
+    SimpleIntensityFitter(const ScatteringHistogram& model);
 
     /**
      * @brief Destructor.
@@ -102,19 +147,27 @@ class SimpleIntensityFitter : public Fitter {
 
     /**
      * @brief Prepare this class for fitting.
+     * 
      * @param file measured values to compare the model against.
      */
     void setup(string file);
 
     /**
      * @brief Splice values from the model to fit the evaluation points defined by the q values of the input file. 
+     * 
      * @param ym the model y-values corresponding to xm
      */
     vector<double> splice(const vector<double>& ym) const;
 
     /**
      * @brief Load a data file containing the observed I values. 
+     * 
      * @param file The file to be read. 
      */
     std::tuple<vector<double>, vector<double>, vector<double>> read(string file) const;
+
+    /**
+     * @brief Initialize this class based on a model histogram. 
+     */
+    void model_setup(const ScatteringHistogram& model);
 };

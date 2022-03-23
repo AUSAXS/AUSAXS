@@ -77,11 +77,18 @@ class ScatteringHistogram : Histogram {
     /**
      * @brief Calculate the intensity based on the Debye scattering equation.
      * 
-     * @param r the square of this parameter will be multiplied onto each I(q).
-     * 
      * @return I(q)
      */
     vector<double> calc_debye_scattering_intensity() const;
+
+    /**
+     * @brief Calculate the intensity based on the Debye scattering equation for a specific set of scattering vectors.
+     * 
+     * @param q The scattering vectors to calculate the intensity for. 
+     * 
+     * @return I(q)
+     */
+    vector<double> calc_debye_scattering_intensity(vector<double>& q) const;
 
     /**
      * @brief Assign another ScatteringHistogram to this object.

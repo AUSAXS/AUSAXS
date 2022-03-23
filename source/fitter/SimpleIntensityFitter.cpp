@@ -18,6 +18,31 @@
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
+SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model) : h(data) {
+    model_setup(model);
+}
+
+SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& model) {
+    model_setup(model);
+}
+
+void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model) {
+    double qmin = setting::fit::q_low;
+    double qmax = setting::fit::q_high;
+
+    // calculate q & sigma
+    qo.resize(100);
+    sigma.resize(100); 
+    double width = (qmax-qmin)/100;
+    for (unsigned int i = 0; i < 100; i++) {
+        qo[i] = qmin + i*width;
+        sigma[i] = 1;
+    }
+
+    // calculate the intensity
+    Io = model.calc_debye_scattering_intensity(qo);
+}
+
 shared_ptr<Fitter::Fit> SimpleIntensityFitter::fit() {
     vector<double> ym = h.calc_debye_scattering_intensity();
     vector<double> Im = splice(ym);

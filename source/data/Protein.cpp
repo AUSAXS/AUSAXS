@@ -1,7 +1,9 @@
-#include "data/Protein.h"
-#include "data/Body.h"
-#include "io/File.h"
-#include "Histogram.h"
+#include <cassert>
+
+#include <data/Protein.h>
+#include <data/Body.h>
+#include <io/File.h>
+#include <Histogram.h>
 
 Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);
@@ -69,16 +71,6 @@ double Protein::get_volume_grid() {
     if (grid == nullptr) {create_grid();}
     return grid->get_volume();
 }
-
-// shared_ptr<Grid> Protein::create_grid() {
-//     Axis3D axes(setting::grid::axes, setting::grid::width);
-//     grid = std::make_shared<Grid>(axes, setting::grid::width); 
-//     for (auto const& body : bodies) {
-//         grid->add(body.protein_atoms);
-//         // grid->add(body.hydration_atoms);
-//     }
-//     return grid;
-// }
 
 shared_ptr<Grid> Protein::create_grid() {
     grid = std::make_shared<Grid>(bodies); 

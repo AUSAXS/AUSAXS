@@ -1,14 +1,11 @@
 #pragma once
 
-// includes
 #include <string>
+#include <sstream>
 #include <map>
 #include <math.h>
-#include <boost/format.hpp>
 
-#include "Tools.h"
-
-using std::string, boost::format;
+#include <Exceptions.h>
 
 class Record {
   public: 
@@ -23,8 +20,7 @@ class Record {
         if (type_map.count(s) == 1) {
             return type_map.at(s);
         }
-        print_err((format("Error in Record::get_type: Could not determine type \"%1%\"") % s).str());
-        exit(1);
+        throw except::parse_error("Error in Record::get_type: Could not determine type \"" + s + "\"");
     }
 
   private:
@@ -37,7 +33,7 @@ class Record {
         {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
         {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET   ", HEADER}, {"HETNAM", HEADER},
         {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE  ", HEADER},
-        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END   ", FOOTER}};
+        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END   ", FOOTER}, {"END", FOOTER}};
 };
 
 // Fixed-length printing of numbers. std::setprecision does *not* count leading zeros, which breaks our strict formatting.

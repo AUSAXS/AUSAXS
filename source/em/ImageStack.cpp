@@ -97,9 +97,17 @@ ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
     return protein->get_histogram();
 }
 
+void ImageStack::fit(const ScatteringHistogram& h) const {
+    SimpleIntensityFitter fitter(h);
+    fit_helper(fitter);
+}
+
 void ImageStack::fit(string filename) const {
     SimpleIntensityFitter fitter(filename);
+    fit_helper(fitter);
+}
 
+void ImageStack::fit_helper(SimpleIntensityFitter& fitter) const {
     // fit function
     unsigned int counter = 0;
     std::function<double(const double*)> chi2 = [&] (const double* params) {

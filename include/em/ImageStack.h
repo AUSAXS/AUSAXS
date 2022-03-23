@@ -8,6 +8,7 @@
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
 #include <ScatteringHistogram.h>
+#include <fitter/SimpleIntensityFitter.h>
 
 using std::vector, std::list;
 
@@ -37,6 +38,13 @@ namespace em {
              * @param filename Path to the measurement file. 
              */
             void fit(string filename) const;
+
+            /**
+             * @brief Fit the cutoff value with the input histogram. 
+             * 
+             * @param h The histogram to fit to.  
+             */
+            void fit(const ScatteringHistogram& h) const;
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -97,6 +105,8 @@ namespace em {
             void setup(setting::em::CullingStrategyChoice csc);
 
             size_t get_byte_size() const;
+
+            void fit_helper(SimpleIntensityFitter& fitter) const;
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
             float index(unsigned int x, unsigned int y, unsigned int z) const;

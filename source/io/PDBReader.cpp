@@ -15,7 +15,7 @@ void PDBReader::read(const string& input_path) {
     string line; // placeholder for the current line
     File& f = *file;
     while(getline(input, line)) {
-        string type = line.substr(0, 6); // read the first 6 characters
+        string type = line.substr(0, std::min(6, int(line.size()-1))); // read the first 6 characters
         switch(Record::get_type(type)) {
             case Record::RecordType::HETATM: {
                 Hetatom atom;

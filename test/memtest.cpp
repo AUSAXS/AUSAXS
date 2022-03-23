@@ -136,7 +136,7 @@ TEST_CASE("debug", "[memtest]") {
         b1 = old_body;
     }
 
-    for (const auto e : b1.protein_atoms) {
+    for (const auto& e : b1.protein_atoms) {
         std::cout << e.as_pdb() << std::endl;
     }
 }
@@ -150,14 +150,14 @@ TEST_CASE("debug2", "[memtest]") {
     vector<Hetatom> w = {};
     std::shared_ptr<File> f1 = std::make_shared<File>(a1, w);
     std::shared_ptr<File> f2 = std::make_shared<File>(a2, w);
-    vector<Atom>& atoms = f1->protein_atoms;
+    // vector<Atom>& atoms = f1->protein_atoms;
 
     {
         std::shared_ptr<File> old = std::make_shared<File>(a1, w);
         f1 = old;
     }
 
-    for (const auto e: f1->protein_atoms) {
+    for (const auto& e: f1->protein_atoms) {
         std::cout << e.as_pdb() << std::endl;
     }
 }
