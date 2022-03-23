@@ -30,8 +30,8 @@ void plots::PlotIntensityFit::save(std::string path) const {
     graphs[0]->GetYaxis()->CenterTitle();
 
     // draw the graphs
-    graphs[0]->Draw("AP"); // Axes points
-    graphs[2]->Draw("SAME P"); // Point
+    graphs[2]->Draw("AP"); // Point
+    graphs[0]->Draw("SAME P"); // Axes points
     graphs[1]->Draw("SAME L"); // Line
 
     // setup the canvas and save the plot

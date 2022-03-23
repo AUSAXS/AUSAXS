@@ -1,4 +1,4 @@
-#include "plots/PlotIntensity.h"
+#include <plots/PlotIntensity.h>
 
 #include <TLegend.h>
 #include <TH1D.h>
@@ -39,6 +39,14 @@ void plots::PlotIntensity::plot_intensity() {
     hI_debye->GetYaxis()->CenterTitle();
     hI_debye->GetYaxis()->SetTitleOffset(1.2);
     hI_debye->DrawClone("HIST L");
+}
+
+void plots::PlotIntensity::plot_intensity(const Dataset& data, EColor color) {
+    auto graphs = data.plot();
+
+    graphs->SetMarkerStyle(7);
+    graphs->SetMarkerColor(color);
+    graphs->DrawClone("P");
 }
 
 void plots::PlotIntensity::plot_guinier_approx() {

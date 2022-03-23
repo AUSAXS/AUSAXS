@@ -46,7 +46,7 @@ namespace except {
         unknown_argument(const string msg) : msg(msg) {}
         const char* what() const throw() {return msg.data();}
         const string msg;
-    };
+    };    
 
     // Parse error. Used in almost all classes dealing with file inputs with a strict format. 
     struct parse_error : public std::exception {
@@ -60,6 +60,14 @@ namespace except {
     struct size_error : public std::exception {
         size_error(const char* msg) : msg(msg) {}
         size_error(const string msg) : msg(msg) {}
+        const char* what() const throw() {return msg.data();}
+        const string msg;
+    };
+
+    // IO error. Used when something is wrong with reading/writing files. 
+    struct io_error : public std::exception {
+        io_error(const char* msg) : msg(msg) {}
+        io_error(const string msg) : msg(msg) {}
         const char* what() const throw() {return msg.data();}
         const string msg;
     };

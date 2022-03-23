@@ -2,6 +2,11 @@
 
 #include <vector>
 #include <string>
+#include <memory>
+
+#include <TGraph.h>
+
+#include <data/Axis.h>
 
 /**
  * @brief A representation of a set of 2D data. 
@@ -33,9 +38,19 @@ class Dataset {
         ~Dataset() = default;
 
         /**
-         * @brief Reduce the number of data points to the specified amount.
+         * @brief Reduce the number of data points to the specified amount. 
+         * 
+         * @return The modified dataset. 
          */
-        void reduce(unsigned int target);
+        Dataset& reduce(unsigned int target);
+
+        /**
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         * 
+         * @param limits The new limits. 
+         * @return The modified dataset. 
+         */
+        Dataset& limit(const Limit& limits);
 
         /**
          * @brief Get the number of data points. 
@@ -49,6 +64,8 @@ class Dataset {
          * @param label The name of the data. 
          */
         std::vector<double>& get(const std::string label);
+
+        std::unique_ptr<TGraph> plot() const;
 
         std::string xlabel = "x";
         std::string ylabel = "y";

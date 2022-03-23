@@ -13,6 +13,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 }
 
 TEST_CASE("test_model", "[em],[files]") {
+    setting::protein::use_effective_charge = false;
     em::ImageStack image("data/maptest.ccp4");
     Protein protein("data/maptest.pdb");
 

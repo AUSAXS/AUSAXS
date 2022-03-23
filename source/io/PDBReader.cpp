@@ -1,16 +1,17 @@
-#include "io/PDBReader.h"
-#include "io/Reader.h"
-#include "io/File.h"
-#include "data/Terminate.h"
-#include "data/Atom.h"
-#include "data/Hetatom.h"
+#include <io/PDBReader.h>
+#include <io/Reader.h>
+#include <io/File.h>
+#include <data/Terminate.h>
+#include <data/Atom.h>
+#include <data/Hetatom.h>
+#include <Exceptions.h>
 
 #include <fstream>
 
 void PDBReader::read(const string& input_path) {
     // check if file was succesfully opened
     std::ifstream input(input_path);
-    if (!input.is_open()) {throw std::ios_base::failure("Error in PDB_file::read: Could not open file \"" + input_path + "\"");}
+    if (!input.is_open()) {throw except::io_error("Error in PDB_file::read: Could not open file \"" + input_path + "\"");}
 
     string line; // placeholder for the current line
     File& f = *file;

@@ -24,6 +24,11 @@ namespace plots {
       PlotIntensity(ScatteringHistogram&& d) : Plot(), d(std::move(d)) {}
 
       /**
+       * @brief Plot an additional data set as points. 
+       */
+      void plot_intensity(const Dataset& data, EColor color = kBlack);
+
+      /**
        * @brief Destructor.
        */
       ~PlotIntensity() override = default;

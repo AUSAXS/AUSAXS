@@ -63,7 +63,6 @@ unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     Dataset data = calc_debye_scattering_intensity();
     vector<double> I = data.get("I");
     vector<double> q = data.get("q");
-    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", q.size(), q[0], q[q.size()-1]);
 
     for (unsigned int i = 0; i < I.size(); i++) {

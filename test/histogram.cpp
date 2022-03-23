@@ -1,9 +1,10 @@
-#include "catch2/catch.hpp"
+#include <catch2/catch.hpp>
 
-#include "ScatteringHistogram.h"
-#include "data/Protein.h"
-#include "data/Atom.h"
-#include "data/Hetatom.h"
+#include <ScatteringHistogram.h>
+#include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Hetatom.h>
+#include <plots/PlotIntensity.h>
 
 TEST_CASE("check_scaling_factor", "[histogram]") {
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
@@ -50,4 +51,18 @@ TEST_CASE("dataset_works", "[histogram]") {
 
     data.reduce(2);
     CHECK(data.size() < x.size());
+}
+
+TEST_CASE("reduce", "[histogram],[files],[manual]") {
+    Protein protein("data/2epe.pdb");
+    auto h = protein.get_histogram();
+
+    plots::PlotIntensity plot(h);
+    plot.plot_intensity(h.calc_debye_scattering_intensity().reduce(20));
+    plot.save("reduce_test.pdf");
+}
+
+TEST_CASE("limit", "[histogram]") {
+    std::cout << "NOT IMPLEMENTED YET!" << std::endl;
+    exit(1);
 }

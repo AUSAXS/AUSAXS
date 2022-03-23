@@ -21,6 +21,8 @@ using namespace em;
 
 ImageStack::ImageStack(string file, CullingStrategyChoice csc) : header(std::make_shared<ccp4::Header>()) {
     std::ifstream input(file, std::ios::binary);
+    if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
+
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     read(input, get_byte_size());
     setup(csc);
