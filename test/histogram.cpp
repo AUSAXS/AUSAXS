@@ -34,3 +34,20 @@ TEST_CASE("check_scaling_factor", "[histogram]") {
         REQUIRE(p_pp[i] + p_hp[i] + p_hh[i] == Approx(hist.p_tot[i]));
     }
 }
+
+//#####################//
+//### DATASET TESTS ###//
+//#####################//
+TEST_CASE("dataset_works", "[histogram]") {
+    vector<double> x = {1, 2, 3, 4, 5};
+    vector<double> y = {10, 20, 30, 40, 50};
+    Dataset data(x, y, "i", "j");
+
+    vector<double> i = data.get("i");
+    vector<double> j = data.get("j");
+    CHECK(i == x);
+    CHECK(j == y);
+
+    data.reduce(2);
+    CHECK(data.size() < x.size());
+}

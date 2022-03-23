@@ -13,28 +13,28 @@ int main(int argc, char const *argv[]) {
     // image.plot(std::stoi(argv[1]));
     // image.fit("data/A2M_ma.RSR");
 
-    em::ImageStack image("data/A2M_map.ccp4"); 
+    em::ImageStack image("data/maptest.ccp4"); 
     // plots::PlotImage plot(image.image(std::stoi(argv[1])));
     // plot.plot_atoms(-1);
     // plot.save("temp.pdf");
     // image.save("test.pdb", -2);
 
-    // int i = 0;
-    // for (const auto& im : image.images()) {
-    //     PlotImage plot(im);
-    //     plot.plot_atoms(-1);
-    //     plot.save("temp/" + std::to_string(++i) + ".png");
-    // }
+    int i = 0;
+    for (const auto& im : image.images()) {
+        plots::PlotImage plot(im);
+        plot.plot_atoms(-1);
+        plot.save("temp/" + std::to_string(++i) + ".png");
+    }
 
-    setting::axes::scattering_intensity_plot_binned_width = 0.01;
-    setting::protein::use_effective_charge = false;
+    // setting::axes::scattering_intensity_plot_binned_width = 0.01;
+    // setting::protein::use_effective_charge = false;
 
-    image.fit("data/A2M_ma.RSR");
+    // image.fit("data/A2M_ma.RSR");
 
-    ScatteringHistogram h(image.get_histogram(-4));
-    plots::PlotDistance distance(h);
-    plots::PlotIntensity intensity(h);
-    distance.save("distance.pdf");
-    intensity.save("intensity.pdf");
-    return 0;
+    // ScatteringHistogram h(image.get_histogram(-4));
+    // plots::PlotDistance distance(h);
+    // plots::PlotIntensity intensity(h);
+    // distance.save("distance.pdf");
+    // intensity.save("intensity.pdf");
+    // return 0;
 }

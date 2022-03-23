@@ -7,6 +7,7 @@
 #include <TH1D.h>
 
 #include <Histogram.h>
+#include <Dataset.h>
 #include <DebyeLookupTable.h>
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
@@ -16,9 +17,7 @@ class ScatteringHistogram : Histogram {
     /**
      * @brief Default constructor.
      */
-    ScatteringHistogram() {
-        setup();
-    }
+    ScatteringHistogram() {}
 
     /**
      * @brief Move constructor.
@@ -79,7 +78,7 @@ class ScatteringHistogram : Histogram {
      * 
      * @return I(q)
      */
-    vector<double> calc_debye_scattering_intensity() const;
+    Dataset calc_debye_scattering_intensity() const;
 
     /**
      * @brief Calculate the intensity based on the Debye scattering equation for a specific set of scattering vectors.
@@ -88,7 +87,7 @@ class ScatteringHistogram : Histogram {
      * 
      * @return I(q)
      */
-    vector<double> calc_debye_scattering_intensity(vector<double>& q) const;
+    Dataset calc_debye_scattering_intensity(vector<double>& q) const;
 
     /**
      * @brief Assign another ScatteringHistogram to this object.
@@ -117,7 +116,7 @@ class ScatteringHistogram : Histogram {
      * 
      * @return log10 I(q)
      */
-    vector<double> calc_guinier_approx() const;
+    Dataset calc_guinier_approx() const;
 
     void setup();
 };

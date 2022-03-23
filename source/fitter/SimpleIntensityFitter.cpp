@@ -23,28 +23,23 @@ SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& data, co
 }
 
 SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& model) {
+    std::cout << "SIF COPY CONSTRUCTOR CALLED " << std::endl;
     model_setup(model);
 }
 
 void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model) {
-    double qmin = setting::fit::q_low;
-    double qmax = setting::fit::q_high;
+    std::cout << "SIF: PREPARING MODEL" << std::endl;
+    Dataset data = model.calc_debye_scattering_intensity();
+    data.reduce(100);
+    qo = data.get("q");
+    Io = data.get("I");
 
-    // calculate q & sigma
-    qo.resize(100);
-    sigma.resize(100); 
-    double width = (qmax-qmin)/100;
-    for (unsigned int i = 0; i < 100; i++) {
-        qo[i] = qmin + i*width;
-        sigma[i] = 1;
-    }
-
-    // calculate the intensity
-    Io = model.calc_debye_scattering_intensity(qo);
+    sigma.reserve(Io.size());
+    std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});
 }
 
 shared_ptr<Fitter::Fit> SimpleIntensityFitter::fit() {
-    vector<double> ym = h.calc_debye_scattering_intensity();
+    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
     SimpleLeastSquares fitter(Im, Io, sigma);
@@ -58,7 +53,7 @@ vector<shared_ptr<TGraph>> SimpleIntensityFitter::plot() {
     double a = fitted->params["a"];
     double b = fitted->params["b"];
 
-    vector<double> ym = h.calc_debye_scattering_intensity();
+    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
@@ -82,7 +77,7 @@ unique_ptr<TGraphErrors> SimpleIntensityFitter::plot_residuals() {
     double a = fitted->params["a"];
     double b = fitted->params["b"];
 
-    vector<double> ym = h.calc_debye_scattering_intensity();
+    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -106,7 +101,7 @@ void SimpleIntensityFitter::set_scattering_hist(const ScatteringHistogram& h) {
 }
 
 double SimpleIntensityFitter::chi2(const double* params) {
-    vector<double> ym = h.calc_debye_scattering_intensity();
+    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
     // fit a, b

@@ -13,7 +13,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 }
 
 TEST_CASE("test_model", "[em],[files]") {
-    em::ImageStack image("data/maptest_fmodel.ccp4");
+    em::ImageStack image("data/maptest.ccp4");
     Protein protein("data/maptest.pdb");
 
     image.fit(protein.get_histogram());

@@ -60,19 +60,22 @@ vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
 }
 
 unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
-    vector<double> Iq = calc_debye_scattering_intensity();
+    Dataset data = calc_debye_scattering_intensity();
+    vector<double> I = data.get("I");
+    vector<double> q = data.get("q");
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
-    unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
+    unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", q.size(), q[0], q[q.size()-1]);
 
-    for (unsigned int i = 0; i < Iq.size(); i++) {
+    for (unsigned int i = 0; i < I.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
-        std::cout << "Bin " << i << ": " << Iq[i] << std::endl;
-        h->SetBinContent(i+1, Iq[i]);
+        std::cout << "Bin " << i << ": " << I[i] << std::endl;
+        h->SetBinContent(i+1, I[i]);
     }
     return h;
 }
 
-vector<double> ScatteringHistogram::calc_debye_scattering_intensity(vector<double>& q) const {
+Dataset ScatteringHistogram::calc_debye_scattering_intensity(vector<double>& q) const {
+    std::cout << "CALC_DEBYE_SCATTERING_INTENSITY CALLED" << std::endl;
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); i++) { // iterate through all q values
@@ -83,10 +86,11 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity(vector<doubl
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    return Iq;
+    std::cout << "\tend" << std::endl;
+    return Dataset(q, Iq, "q", "I");
 }
 
-vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
+Dataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
 
@@ -98,11 +102,11 @@ vector<double> ScatteringHistogram::calc_debye_scattering_intensity() const {
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    return Iq;
+    return Dataset(q, Iq, "q", "I");
 }
 
 unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
-    vector<double> Iq = calc_guinier_approx();
+    vector<double> Iq = calc_guinier_approx().get("logI");
 
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
@@ -123,7 +127,7 @@ double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     return num/denom;
 }
 
-vector<double> ScatteringHistogram::calc_guinier_approx() const {
+Dataset ScatteringHistogram::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
@@ -133,7 +137,7 @@ vector<double> ScatteringHistogram::calc_guinier_approx() const {
         Iq[i] = -pow(q[i], 2)*Rg2/3*log_conv;
     }
 
-    return Iq;
+    return Dataset(q, Iq, "q", "logI");
 }
 
 ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) {
@@ -147,5 +151,6 @@ ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) {
     _p_hp = std::move(h.p_hp);
     _q = std::move(h.q);
     _d = std::move(h._d);
+    sinqd_table = std::move(h.sinqd_table);
     return *this;
 }
