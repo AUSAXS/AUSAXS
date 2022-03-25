@@ -4,6 +4,7 @@
 #include <sstream>
 #include <map>
 #include <math.h>
+#include <boost/algorithm/string.hpp>
 
 #include <Exceptions.h>
 
@@ -17,6 +18,8 @@ class Record {
     virtual string as_pdb() const = 0;
 
     static RecordType get_type(string s) {
+        boost::erase_all(s, " ");  // remove any spaces so we only match the type itself. some programs are inconsistent with spacing after e.g. END or TER
+        boost::erase_all(s, "\r"); // some programs adds a carriage return after e.g. END, which we have to remove
         if (type_map.count(s) == 1) {
             return type_map.at(s);
         }

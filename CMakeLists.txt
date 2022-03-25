@@ -46,8 +46,8 @@ endif(DOXYGEN_FOUND)
 ############################################
 file(GLOB_RECURSE HEADERS "include/*.h")
 file(GLOB_RECURSE SOURCES "source/*.cpp")
-add_library(saxs ${HEADERS} ${SOURCES})
-target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
+add_library(saxs ${HEADERS} ${SOURCES} external/CLI11.hpp)
+target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/external" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 
 ############################################
@@ -59,7 +59,7 @@ file(GLOB_RECURSE TEST_SRC
   "test/*.cpp")
 add_executable(test ${TEST_SRC})
 target_link_libraries(test saxs)
-target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/test" "${CMAKE_CURRENT_SOURCE_DIR}/external" "${CMAKE_CURRENT_SOURCE_DIR}external/CLI11.hpp")
+target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/test" "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
 
 ############################################

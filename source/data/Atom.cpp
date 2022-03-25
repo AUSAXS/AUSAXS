@@ -5,7 +5,6 @@
 #include <utility>
 #include <iomanip>
 #include <iostream>
-#include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 
 // my own stuff
@@ -15,7 +14,6 @@
 #include "math/Vector3.h"
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
-using boost::format;
 
 Atom::Atom(const Atom&& a) noexcept : coords(a.coords), name(a.name), altLoc(a.altLoc), resName(a.resName), chainID(a.chainID), iCode(a.iCode), element(a.element), 
     charge(a.charge), occupancy(a.occupancy), tempFactor(a.tempFactor), serial(a.serial), resSeq(a.resSeq), effective_charge(a.effective_charge), uid(a.uid) {}
