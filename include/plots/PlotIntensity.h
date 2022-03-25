@@ -21,7 +21,7 @@ namespace plots {
        * 
        * @param d The ScatteringHistogram to be plotted. 
        */
-      PlotIntensity(ScatteringHistogram&& d) : Plot(), d(std::move(d)) {}
+      PlotIntensity(ScatteringHistogram&& d);
 
       /**
        * @brief Plot an additional data set as points. 
@@ -45,5 +45,7 @@ namespace plots {
       double ymin, ymax;
 
       void plot_intensity();
+
+      void prepare_canvas();
   };
 }

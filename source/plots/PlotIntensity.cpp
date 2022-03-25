@@ -10,17 +10,12 @@
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
+plots::PlotIntensity::PlotIntensity(ScatteringHistogram&& d) : Plot(), d(std::move(d)) {
+    prepare_canvas();
+}
+
 plots::PlotIntensity::PlotIntensity(const ScatteringHistogram& d) : Plot(), d(d) {
-    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
-    linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
-
-    linpad->SetLeftMargin(0.19);
-    linpad->SetLogx();
-    linpad->SetLogy();
-
-    linpad->Draw();
-    linpad->cd();
-    plot_intensity();
+    prepare_canvas();
 }
 
 void plots::PlotIntensity::plot_intensity() {
@@ -46,7 +41,7 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data, EColor color) {
 
     graphs->SetMarkerStyle(7);
     graphs->SetMarkerColor(color);
-    graphs->DrawClone("P");
+    graphs->DrawClone("SAME P");
 }
 
 void plots::PlotIntensity::plot_guinier_approx() {
@@ -83,4 +78,17 @@ void plots::PlotIntensity::plot_guinier_approx() {
 
 void plots::PlotIntensity::save(std::string path) const {
     canvas->SaveAs(path.c_str());
+}
+
+void plots::PlotIntensity::prepare_canvas() {
+    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
+    linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
+
+    linpad->SetLeftMargin(0.19);
+    linpad->SetLogx();
+    linpad->SetLogy();
+
+    linpad->Draw();
+    linpad->cd();
+    plot_intensity();
 }

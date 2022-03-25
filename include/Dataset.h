@@ -79,6 +79,11 @@ class Dataset {
          */
         std::vector<double>& get(const std::string label);
 
+        /**
+         * @brief Scale all errors by some common factor. 
+         */
+        void scale_errors(double factor);
+
         std::unique_ptr<TGraph> plot() const;
 
         std::string xlabel = "x";
@@ -91,11 +96,15 @@ class Dataset {
         std::vector<double> yerr; // The error in the y coordinates
 
     private:
-        void check_sizes() const;
+        void validate_sizes() const;
 };
 
 class SAXSDataset : public Dataset {
     using Dataset::Dataset; // inherit constructors
 
-
+    public:
+        /**
+         * @brief Generate errors for the y-values mimicking what one would find experimentally. 
+         */
+        void simulate_errors();
 };

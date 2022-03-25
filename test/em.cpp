@@ -1,5 +1,6 @@
 #include <em/ImageStack.h>
 #include <plots/PlotImage.h>
+#include <plots/PlotIntensity.h>
 #include <fitter/SimpleIntensityFitter.h>
 
 #include "catch2/catch.hpp"
@@ -19,4 +20,23 @@ TEST_CASE("test_model", "[em],[files]") {
     Protein protein("data/maptest.pdb");
 
     image.fit(protein.get_histogram());
+}
+
+TEST_CASE("plot_pdb_as_points", "[em],[files]") {
+    Protein protein("data/maptest.pdb");
+
+    auto h = protein.get_histogram();
+    SAXSDataset data = h.calc_debye_scattering_intensity();
+    data.reduce(100);        // reduce to 100 datapoints
+    data.simulate_errors();  // simulate y errors
+    data.scale_errors(1000); // scale all errors so we can actually see them
+
+    for (unsigned int i = 0; i < data.size(); i++) {
+        std::cout << "VALS: " << data.x[i] << ", " << data.y[i] << std::endl;
+        std::cout << "ERRS: " << data.xerr[i] << ", " << data.yerr[i] << std::endl;
+    }
+
+    plots::PlotIntensity plot(protein.get_histogram()); // plot actual curve
+    plot.plot_intensity(data);                          // plot simulated data points
+    plot.save("plot_pdb_as_points_test.pdf");
 }

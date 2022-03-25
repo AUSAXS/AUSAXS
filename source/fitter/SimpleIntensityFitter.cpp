@@ -23,17 +23,17 @@ SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& data, co
 }
 
 SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& model) {
-    std::cout << "SIF COPY CONSTRUCTOR CALLED " << std::endl;
     model_setup(model);
 }
 
 void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model) {
-    std::cout << "SIF: PREPARING MODEL" << std::endl;
-    Dataset data = model.calc_debye_scattering_intensity();
+    SAXSDataset data = model.calc_debye_scattering_intensity();
     data.reduce(100);
+    data.simulate_errors();
     data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
     qo = data.get("q");
     Io = data.get("I");
+    // sigma = data.get("Ierr");
 
     sigma.reserve(Io.size());
     std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});
