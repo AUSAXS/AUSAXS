@@ -28,6 +28,20 @@ class Dataset {
         /**
          * @brief Constructor. 
          * 
+         * Create a new dataset based on a list of x and y coordinates, along with an error on the latter. 
+         */
+        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
+
+        /**
+         * @brief Constructor. 
+         * 
+         * Create a new dataset based on a list of x and y coordinates, along with errors for both.
+         */
+        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr, const std::vector<double>& xerr);
+
+        /**
+         * @brief Constructor. 
+         * 
          * Create a new labelled dataset based on a list of x and y coordinates. 
          */
         Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::string xlabel, const std::string ylabel);
@@ -69,9 +83,19 @@ class Dataset {
 
         std::string xlabel = "x";
         std::string ylabel = "y";
-        std::vector<double> x; // The x coordinates.
-        std::vector<double> y; // The y coordinates.
+        std::string xerrlabel = "xerr";
+        std::string yerrlabel = "yerr";
+        std::vector<double> x;    // The x coordinates.
+        std::vector<double> y;    // The y coordinates.
+        std::vector<double> xerr; // The error in the x coordinates
+        std::vector<double> yerr; // The error in the y coordinates
 
     private:
         void check_sizes() const;
+};
+
+class SAXSDataset : public Dataset {
+    using Dataset::Dataset; // inherit constructors
+
+
 };

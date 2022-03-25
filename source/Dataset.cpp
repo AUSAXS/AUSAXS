@@ -17,6 +17,11 @@ Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, con
         check_sizes();
 }
 
+Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : x(x), y(y), yerr(yerr) {}
+
+Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& xerr, const std::vector<double>& yerr)
+    : x(x), y(y), xerr(xerr), yerr(yerr) {}
+
 Dataset& Dataset::reduce(unsigned int target) {
     if (size() < target) {throw except::invalid_operation("Error in Dataset::reduce: Target cannot be larger than the size of the data set.");}
     vector<double> new_x; new_x.reserve(target);
