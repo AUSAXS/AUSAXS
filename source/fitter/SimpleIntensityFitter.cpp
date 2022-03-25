@@ -31,6 +31,7 @@ void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model) {
     std::cout << "SIF: PREPARING MODEL" << std::endl;
     Dataset data = model.calc_debye_scattering_intensity();
     data.reduce(100);
+    data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
     qo = data.get("q");
     Io = data.get("I");
 

@@ -44,13 +44,25 @@ TEST_CASE("dataset_works", "[histogram]") {
     vector<double> y = {10, 20, 30, 40, 50};
     Dataset data(x, y, "i", "j");
 
-    vector<double> i = data.get("i");
-    vector<double> j = data.get("j");
-    CHECK(i == x);
-    CHECK(j == y);
+    SECTION("get") {
+        vector<double> i = data.get("i");
+        vector<double> j = data.get("j");
+        CHECK(i == x);
+        CHECK(j == y);
+    }
 
-    data.reduce(2);
-    CHECK(data.size() < x.size());
+    SECTION("reduce") {
+        data.reduce(2);
+        CHECK(data.size() < x.size());
+    }
+
+    SECTION("limit") {
+        data.limit(Limit(2, 3));
+        vector<double> i = data.get("i");
+        vector<double> j = data.get("j");
+        CHECK(i == vector<double>{2, 3});
+        CHECK(j == vector<double>{20, 30});
+    }
 }
 
 TEST_CASE("reduce", "[histogram],[files],[manual]") {
@@ -60,9 +72,4 @@ TEST_CASE("reduce", "[histogram],[files],[manual]") {
     plots::PlotIntensity plot(h);
     plot.plot_intensity(h.calc_debye_scattering_intensity().reduce(20));
     plot.save("reduce_test.pdf");
-}
-
-TEST_CASE("limit", "[histogram]") {
-    std::cout << "NOT IMPLEMENTED YET!" << std::endl;
-    exit(1);
 }

@@ -38,18 +38,19 @@ Dataset& Dataset::reduce(unsigned int target) {
 std::size_t Dataset::size() const {return x.size();}
 
 Dataset& Dataset::limit(const Limit& limits) {
-    if (x[0] < limits.min && limits.max < x[size()-1]) {return *this;}
+    if (limits.min < x[0] && x[size()-1] < limits.max) {return *this;}
 
     vector<double> new_x; new_x.reserve(size());
     vector<double> new_y; new_y.reserve(size());
 
     unsigned int i = 0;
-    while(x[i] < limits.min) {i++;}
-    while (x[i] < limits.max) {
+    while (x[i] <= limits.max) {
         new_x.push_back(x[i]);
-        new_y.push_back(x[i++]);
+        new_y.push_back(y[i++]);
     }
 
+    x = std::move(new_x);
+    y = std::move(new_y);
     return *this;
 }
 
