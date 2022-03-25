@@ -40,7 +40,7 @@ void PDBReader::read(const string& input_path) {
                 f.add("FOOTER", line);
                 break;
             } default: {
-                throw std::ios_base::failure("Error in PDB_file::read: Malformed input file - unrecognized type.");
+                throw except::io_error("Error in PDB_file::read: Malformed input file - unrecognized type \"" + type + "\".");
             }
         };
     }

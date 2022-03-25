@@ -1,3 +1,5 @@
+#pragma once
+
 #include <em/CullingStrategy.h>
 
 namespace em {

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "math/Matrix.h"
 #include "math/Vector.h"
 #include "math/LinearSolver.h"

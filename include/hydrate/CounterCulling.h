@@ -1,3 +1,5 @@
+#pragma once
+
 #include "hydrate/CullingStrategy.h"
 #include "hydrate/Grid.h"
 

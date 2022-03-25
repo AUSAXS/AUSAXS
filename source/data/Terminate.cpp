@@ -18,7 +18,7 @@ Terminate::Terminate(int serial, string resName, string chainID, int resSeq, str
 Record::RecordType Terminate::get_type() const {return TERMINATE;}
 
 void Terminate::parse_pdb(const string s) {
-    if (s.size() == 7) {return;} // sometimes the terminate record consists only of "TER   "
+    if (s.size() < 28) {return;} // sometimes the terminate record consists only of "TER   "
 
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#TER
 
