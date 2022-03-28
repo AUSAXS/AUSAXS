@@ -1,3 +1,5 @@
+#pragma once
+
 #include <settings.h>
 #include <Table.h>
 

@@ -32,6 +32,7 @@ void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model, const 
     data.limit(limits);
     qo = data.get("q");
     Io = data.get("I");
+    // sigma = data.get("Ierr");
 
     sigma.reserve(Io.size());
     std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});

@@ -78,7 +78,7 @@ class ScatteringHistogram : Histogram {
      * 
      * @return I(q)
      */
-    Dataset calc_debye_scattering_intensity() const;
+    SAXSDataset calc_debye_scattering_intensity() const;
 
     /**
      * @brief Calculate the intensity based on the Debye scattering equation for a specific set of scattering vectors.
@@ -87,7 +87,7 @@ class ScatteringHistogram : Histogram {
      * 
      * @return I(q)
      */
-    Dataset calc_debye_scattering_intensity(vector<double>& q) const;
+    SAXSDataset calc_debye_scattering_intensity(vector<double>& q) const;
 
     /**
      * @brief Assign another ScatteringHistogram to this object.
@@ -116,7 +116,7 @@ class ScatteringHistogram : Histogram {
      * 
      * @return log10 I(q)
      */
-    Dataset calc_guinier_approx() const;
+    SAXSDataset calc_guinier_approx() const;
 
     void setup();
 };

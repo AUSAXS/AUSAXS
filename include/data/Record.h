@@ -4,6 +4,7 @@
 #include <sstream>
 #include <map>
 #include <math.h>
+#include <boost/algorithm/string.hpp>
 
 #include <Exceptions.h>
 
@@ -17,6 +18,8 @@ class Record {
     virtual string as_pdb() const = 0;
 
     static RecordType get_type(string s) {
+        boost::erase_all(s, " ");  // remove any spaces so we only match the type itself. some programs are inconsistent with spacing after e.g. END or TER
+        boost::erase_all(s, "\r"); // some programs adds a carriage return after END, which we have to remove
         if (type_map.count(s) == 1) {
             return type_map.at(s);
         }
@@ -25,15 +28,15 @@ class Record {
 
   private:
     inline static const std::map<string, RecordType> type_map = {
-        {"ATOM  ", ATOM}, {"HETATM", HETATM},
-        {"TER   ", TERMINATE}, 
-        {"HEADER", HEADER}, {"TITLE ", HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, 
-        {"EXPDTA", HEADER}, {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL  ", HEADER}, {"REMARK", HEADER}, 
-        {"DBREF ", HEADER}, {"SEQRES", HEADER}, {"FORMUL", HEADER}, {"HELIX ", HEADER}, {"SHEET ", HEADER}, 
+        {"ATOM"  , ATOM}, {"HETATM", HETATM},
+        {"TER"   , TERMINATE}, 
+        {"HEADER", HEADER}, {"TITLE" , HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, 
+        {"EXPDTA", HEADER}, {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL"  , HEADER}, {"REMARK", HEADER}, 
+        {"DBREF" , HEADER}, {"SEQRES", HEADER}, {"FORMUL", HEADER}, {"HELIX" , HEADER}, {"SHEET" , HEADER}, 
         {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
-        {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET   ", HEADER}, {"HETNAM", HEADER},
-        {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE  ", HEADER},
-        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END   ", FOOTER}, {"END", FOOTER}};
+        {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET"   , HEADER}, {"HETNAM", HEADER},
+        {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE"  , HEADER},
+        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END"   , FOOTER}};
 };
 
 // Fixed-length printing of numbers. std::setprecision does *not* count leading zeros, which breaks our strict formatting.

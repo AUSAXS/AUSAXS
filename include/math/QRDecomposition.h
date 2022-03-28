@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Decomposition.h"
 #include "Matrix.h"
 #include "Vector.h"

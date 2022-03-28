@@ -1,3 +1,5 @@
+#pragma once
+
 #include "hydrate/PlacementStrategy.h"
 #include "hydrate/Grid.h"
 #include "settings.h"

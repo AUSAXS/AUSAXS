@@ -16,7 +16,7 @@ void PDBReader::read(const string& input_path) {
     string line; // placeholder for the current line
     File& f = *file;
     while(getline(input, line)) {
-        string type = line.substr(0, std::min(6, int(line.size()-1))); // read the first 6 characters
+        string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
             case Record::RecordType::HETATM: {
                 Hetatom atom;
@@ -40,7 +40,7 @@ void PDBReader::read(const string& input_path) {
                 f.add("FOOTER", line);
                 break;
             } default: {
-                throw std::ios_base::failure("Error in PDB_file::read: Malformed input file - unrecognized type.");
+                throw except::io_error("Error in PDB_file::read: Malformed input file - unrecognized type \"" + type + "\".");
             }
         };
     }

@@ -1,5 +1,6 @@
 #include <catch2/catch.hpp>
 
+#include <Utility.h>
 #include <ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
@@ -73,3 +74,17 @@ TEST_CASE("reduce", "[histogram],[files],[manual]") {
     plot.plot_intensity(h.calc_debye_scattering_intensity().reduce(20));
     plot.save("reduce_test.pdf");
 }
+
+// TEST_CASE("utility", "[histogram]") {
+//     string s = "   hello   ";
+//     CHECK(remove_spaces(s) == "hello");
+
+    // s = "hello   ";
+    // CHECK(remove_spaces(s) == "hello");
+
+    // s = "   hello";
+    // CHECK(remove_spaces(s) == "hello");
+
+    // s = "   k    ";
+    // CHECK(remove_spaces(s) == "k");
+// }

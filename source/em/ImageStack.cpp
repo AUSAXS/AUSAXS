@@ -118,7 +118,6 @@ void ImageStack::fit_helper(SimpleIntensityFitter& fitter) const {
         return val;
     }; 
 
-    std::cout << "\tMINIMIZER STARTED " << std::endl;
     // perform the fit
     ROOT::Math::Functor functor = ROOT::Math::Functor(chi2, 1);
     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "migrad"); 
