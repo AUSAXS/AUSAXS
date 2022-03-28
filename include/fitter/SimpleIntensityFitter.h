@@ -85,8 +85,9 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @param data The data histogram. 
      * @param model The model histogram. 
+     * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model);
+    SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
 
     /**
      * @brief Constructor.
@@ -94,8 +95,9 @@ class SimpleIntensityFitter : public Fitter {
      * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
      * 
      * @param model The model histogram. 
+     * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const ScatteringHistogram& model);
+    SimpleIntensityFitter(const ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
 
     /**
      * @brief Destructor.
@@ -169,5 +171,5 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Initialize this class based on a model histogram. 
      */
-    void model_setup(const ScatteringHistogram& model);
+    void model_setup(const ScatteringHistogram& model, const Limit& limits);
 };

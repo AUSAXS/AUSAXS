@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <string>
 #include "math/Vector3.h"
@@ -46,6 +47,7 @@ namespace setting {
     namespace fit {
         extern double q_low; // Lower limit on the used q-values
         extern double q_high; // Upper limit on the used q-values
+        extern unsigned int N; // Number of points sampled when discretizing a model scattering curve
     }
 
     namespace rigidbody {

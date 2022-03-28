@@ -1,10 +1,7 @@
 #include <memory>
 #include <list>
-
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TCanvas.h>
-#include <TStyle.h>
+#include <algorithm>
+#include <filesystem>
 
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
@@ -19,7 +16,7 @@
 using namespace setting::em;
 using namespace em;
 
-ImageStack::ImageStack(string file, CullingStrategyChoice csc) : header(std::make_shared<ccp4::Header>()) {
+ImageStack::ImageStack(string file, CullingStrategyChoice csc) : filename(file), header(std::make_shared<ccp4::Header>()) {
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
 
@@ -47,6 +44,8 @@ void ImageStack::save(string path, double cutoff) const {
 }
 
 Image& ImageStack::image(unsigned int layer) {return data[layer];}
+
+const Image& ImageStack::image(unsigned int layer) const {return data[layer];}
 
 size_t ImageStack::size() const {return header->nz;}
 
@@ -100,8 +99,7 @@ ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
 }
 
 void ImageStack::fit(const ScatteringHistogram& h) const {
-    std::cout << "IMAGESTACK FIT CALLED " << std::endl;
-    SimpleIntensityFitter fitter(h);
+    SimpleIntensityFitter fitter(h, get_limits());
     fit_helper(fitter);
 }
 
@@ -111,7 +109,6 @@ void ImageStack::fit(string filename) const {
 }
 
 void ImageStack::fit_helper(SimpleIntensityFitter& fitter) const {
-    std::cout << "IMAGESTACK FIT HELPER CALLED " << std::endl;
     // fit function
     unsigned int counter = 0;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
@@ -126,7 +123,10 @@ void ImageStack::fit_helper(SimpleIntensityFitter& fitter) const {
     ROOT::Math::Functor functor = ROOT::Math::Functor(chi2, 1);
     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "migrad"); 
     minimizer->SetFunction(functor);
-    minimizer->SetLimitedVariable(0, "cutoff", 4, 1, 1, 10);
+
+    if (is_positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 4, 1, 1, 10);}
+    else {minimizer->SetLimitedVariable(0, "cutoff", -4, 1, -1, -10);}
+
     minimizer->SetStrategy(2);
     minimizer->SetPrintLevel(2);
     minimizer->Minimize();
@@ -176,4 +176,51 @@ float ImageStack::index(unsigned int x, unsigned int y, unsigned int layer) cons
 
 std::shared_ptr<ccp4::Header> ImageStack::get_header() const {
     return header;
+}
+
+Limit ImageStack::get_limits() const {
+    // get stem of filename
+    auto p = std::filesystem::path(filename);
+    string stem = p.stem();
+
+    // extract any number that is part of the stem
+    string num;
+    std::copy_if(stem.begin(), stem.end(), std::back_inserter(num), [] (char c) {return std::isdigit(c);});
+
+    // if no number is present, use default q-values
+    double max;
+    if (num.empty()) {
+        std::cout << "Could not parse resolution in filename \"" + filename + "\"; using default limits." << std::endl;
+        max = setting::fit::q_high;
+    }
+
+    // otherwise we assume it was the resolution
+    else {
+        std::cout << "Assuming \"" + num + "\" in filename \"" + filename + "\" refers to the resolution." << std::endl;
+        max = 2*M_PI/std::stod(num);
+    }
+
+    return Limit(setting::fit::q_low, max);
+}
+
+double ImageStack::mean() const {
+    double sum = 0;
+    for (int z = 0; z < header->nz; z++) {
+        sum += image(z).mean();
+    }
+    return sum/header->nz;
+}
+
+bool ImageStack::is_positively_stained() const {
+    // we count how many images where the maximum density is positive versus negative
+    double sign = 0;
+    for (int z = 0; z < header->nz; z++) {
+        Limit limit = image(z).limits();
+        if (std::abs(limit.min) < std::abs(limit.max)) {
+            sign--;
+        } else {
+            sign++;
+        }
+    }
+    return sign > 0;
 }

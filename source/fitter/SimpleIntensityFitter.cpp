@@ -18,20 +18,18 @@
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
-SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model) : h(data) {
-    model_setup(model);
+SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model, const Limit& limits) : h(data) {
+    model_setup(model, limits);
 }
 
-SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& model) {
-    std::cout << "SIF COPY CONSTRUCTOR CALLED " << std::endl;
-    model_setup(model);
+SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& model, const Limit& limits) {
+    model_setup(model, limits);
 }
 
-void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model) {
-    std::cout << "SIF: PREPARING MODEL" << std::endl;
+void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model, const Limit& limits) {
     Dataset data = model.calc_debye_scattering_intensity();
-    data.reduce(100);
-    data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.reduce(setting::fit::N);
+    data.limit(limits);
     qo = data.get("q");
     Io = data.get("I");
 

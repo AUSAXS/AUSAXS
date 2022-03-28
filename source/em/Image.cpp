@@ -54,3 +54,27 @@ std::unique_ptr<TH2D> Image::as_hist() const {
     }
     return hist;
 }
+
+double Image::mean() const {
+    double sum = 0;
+    for (int x = 0; x < header->nx; x++) {
+        for (int y = 0; y < header->ny; y++) {
+            sum += index(x, y);
+        }
+    }
+
+    return sum/(header->nx * header->ny);
+}
+
+Limit Image::limits() const {
+    double min = 1e9, max = -1e9;
+    for (int x = 0; x < header->nx; x++) {
+        for (int y = 0; y < header->ny; y++) {
+            double val = index(x, y);
+            min = std::min(min, val);
+            max = std::max(max, val);
+        }
+    }
+
+    return Limit(min, max);
+}

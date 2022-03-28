@@ -39,6 +39,16 @@ namespace em {
              */
             void set_z(unsigned int z);
 
+            /**
+             * @brief Get the mean density. 
+             */
+            double mean() const;
+
+            /**
+             * @brief Get the minimum and maximum density.
+             */
+            Limit limits() const;
+
             float index(unsigned int x, unsigned int y) const;
             float& index(unsigned int x, unsigned int y);
 

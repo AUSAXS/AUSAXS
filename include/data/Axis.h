@@ -26,6 +26,11 @@ struct Limit {
      */
     double span() const {return max-min;}
 
+    /**
+     * @brief Equality operator. Check if this Limit is equal to another.
+     */
+    bool operator==(const Limit& rhs) const {return min == rhs.min && max == rhs.max;}
+
     double min; // The minimum value of this limit. 
     double max; // The maximum value of this limit. 
 };
