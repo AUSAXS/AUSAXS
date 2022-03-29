@@ -127,6 +127,7 @@ namespace em {
             std::shared_ptr<ccp4::Header> header;
             vector<Image> data;
             std::unique_ptr<em::CullingStrategy> culler;
+            double resolution;
 
             void read(std::ifstream& istream, size_t byte_size);
 

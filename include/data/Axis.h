@@ -31,6 +31,25 @@ struct Limit {
      */
     bool operator==(const Limit& rhs) const {return min == rhs.min && max == rhs.max;}
 
+    /**
+     * @brief Inequality operator.
+     * 
+     * Check if this object is different from another. 
+     */
+    bool operator!=(const Limit& rhs) const {return !operator==(rhs);}
+
+    /**
+     * @brief Stream output operator. 
+     * 
+     * Allows this object to easily be output to a given stream. 
+     */
+    friend std::ostream& operator<<(std::ostream& os, const Limit& axis) {os << axis.to_string(); return os;}
+
+    /**
+     * @brief Get a string representation of this object. 
+     */
+    std::string to_string() const {return "Limits: (" + std::to_string(min) + ", " + std::to_string(max) + ")";}
+
     double min; // The minimum value of this limit. 
     double max; // The maximum value of this limit. 
 };

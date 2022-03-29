@@ -215,9 +215,11 @@ bool ImageStack::is_positively_stained() const {
     double sign = 0;
     for (int z = 0; z < header->nz; z++) {
         Limit limit = image(z).limits();
-        if (std::abs(limit.min) < std::abs(limit.max)) {
+        std::cout << "limits for image " << z << " (current val: " << sign << "): " << limit << std::endl;
+        double min = std::abs(limit.min), max = std::abs(limit.max);
+        if (1 <= min && max < min) {
             sign--;
-        } else {
+        } else if (1 <= max && min < max) {
             sign++;
         }
     }

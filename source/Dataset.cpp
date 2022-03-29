@@ -14,7 +14,7 @@ Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y) : x
 }
 
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const string xlabel, const string ylabel) 
-    : xlabel(xlabel), ylabel(ylabel), x(x), y(y), xerrlabel(xlabel+"err"), yerrlabel(ylabel+"err") {
+    : xlabel(xlabel), ylabel(ylabel), xerrlabel(xlabel+"err"), yerrlabel(ylabel+"err"), x(x), y(y) {
         validate_sizes();
 }
 

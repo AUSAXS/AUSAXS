@@ -31,7 +31,7 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
 
     SECTION("A2M_map.ccp4") {
         em::ImageStack image("data/A2M_map.ccp4");
-        CHECK(!image.is_positively_stained());
+        CHECK(image.is_positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
     }
 

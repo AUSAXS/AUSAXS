@@ -19,22 +19,22 @@ int main(int argc, char const *argv[]) {
     // plot.save("temp.pdf");
     // image.save("test.pdb", -2);
 
-    // int i = 0;
-    // for (const auto& im : image.images()) {
-    //     plots::PlotImage plot(im);
-    //     plot.plot_atoms(-1);
-    //     plot.save("temp/" + std::to_string(++i) + ".png");
-    // }
+    int i = 0;
+    for (const auto& im : image.images()) {
+        plots::PlotImage plot(im);
+        plot.plot_atoms(-1);
+        plot.save("temp/" + std::to_string(++i) + ".png");
+    }
 
     // setting::axes::scattering_intensity_plot_binned_width = 0.01;
     // setting::protein::use_effective_charge = false;
 
     // image.fit("data/A2M_ma.RSR");
 
-    ScatteringHistogram h(image.get_histogram(std::atof(argv[1])));
-    plots::PlotDistance distance(h);
-    plots::PlotIntensity intensity(h);
-    distance.save("distance.pdf");
-    intensity.save("intensity.pdf");
+    // ScatteringHistogram h(image.get_histogram(std::atof(argv[1])));
+    // plots::PlotDistance distance(h);
+    // plots::PlotIntensity intensity(h);
+    // distance.save("distance.pdf");
+    // intensity.save("intensity.pdf");
     return 0;
 }
