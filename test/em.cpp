@@ -53,6 +53,7 @@ TEST_CASE("plot_pdb_as_points", "[em],[files]") {
 
     auto h = protein.get_histogram();
     SAXSDataset data = h.calc_debye_scattering_intensity();
+    data.set_resolution(25); // set the resolution
     data.reduce(100);        // reduce to 100 datapoints
     data.simulate_errors();  // simulate y errors
     data.scale_errors(1000); // scale all errors so we can actually see them

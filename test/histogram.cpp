@@ -71,7 +71,9 @@ TEST_CASE("reduce", "[histogram],[files],[manual]") {
     auto h = protein.get_histogram();
 
     plots::PlotIntensity plot(h);
-    plot.plot_intensity(h.calc_debye_scattering_intensity().reduce(20));
+    SAXSDataset data = h.calc_debye_scattering_intensity();
+    data.reduce(20);
+    plot.plot_intensity(data);
     plot.save("reduce_test.pdf");
 }
 

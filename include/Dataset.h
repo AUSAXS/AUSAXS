@@ -56,7 +56,7 @@ class Dataset {
          * 
          * @return The modified dataset. 
          */
-        Dataset& reduce(unsigned int target);
+        void reduce(unsigned int target, bool log = false);
 
         /**
          * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
@@ -64,7 +64,7 @@ class Dataset {
          * @param limits The new limits. 
          * @return The modified dataset. 
          */
-        Dataset& limit(const Limit& limits);
+        void limit(const Limit& limits);
 
         /**
          * @brief Get the number of data points. 
@@ -107,4 +107,12 @@ class SAXSDataset : public Dataset {
          * @brief Generate errors for the y-values mimicking what one would find experimentally. 
          */
         void simulate_errors();
+
+        /**
+         * @brief Set the resolution of this dataset. 
+         */
+        void set_resolution(unsigned int resolution);
+
+    private:
+        unsigned int resolution = 0;
 };
