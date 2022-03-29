@@ -67,14 +67,13 @@ unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
 
     for (unsigned int i = 0; i < I.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
-        std::cout << "Bin " << i << ": " << I[i] << std::endl;
+        // std::cout << "Bin " << i << ": " << I[i] << std::endl;
         h->SetBinContent(i+1, I[i]);
     }
     return h;
 }
 
 SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(vector<double>& q) const {
-    std::cout << "CALC_DEBYE_SCATTERING_INTENSITY CALLED" << std::endl;
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); i++) { // iterate through all q values
@@ -85,7 +84,6 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(vector<double>&
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    std::cout << "\tend" << std::endl;
     return SAXSDataset(q, Iq, "q", "I");
 }
 

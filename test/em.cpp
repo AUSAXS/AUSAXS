@@ -54,14 +54,9 @@ TEST_CASE("plot_pdb_as_points", "[em],[files]") {
     auto h = protein.get_histogram();
     SAXSDataset data = h.calc_debye_scattering_intensity();
     data.set_resolution(25); // set the resolution
-    data.reduce(100);        // reduce to 100 datapoints
+    data.reduce(100, true);  // reduce to 100 datapoints
     data.simulate_errors();  // simulate y errors
-    data.scale_errors(1000); // scale all errors so we can actually see them
-
-    for (unsigned int i = 0; i < data.size(); i++) {
-        std::cout << "VALS: " << data.x[i] << ", " << data.y[i] << std::endl;
-        std::cout << "ERRS: " << data.xerr[i] << ", " << data.yerr[i] << std::endl;
-    }
+    // data.scale_errors(1000); // scale all errors so we can actually see them
 
     plots::PlotIntensity plot(protein.get_histogram()); // plot actual curve
     plot.plot_intensity(data);                          // plot simulated data points

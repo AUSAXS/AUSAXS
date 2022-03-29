@@ -34,7 +34,22 @@ void Dataset::reduce(unsigned int target, bool log) {
     vector<double> new_y; new_y.reserve(target);
 
     if (log) {
-        throw except::invalid_operation("Not implemented yet.");
+        double start = std::log10(x[0]); 
+        double end = std::log10(x[x.size()-1]);
+        double width = (end - start)/target;
+
+        unsigned int j = 0;
+        for (unsigned int i = 0; i < size(); i++) {
+            double val = std::log10(x[i]);
+            if (start + j*width < val) { // find the first x-value higher than our next sampling point
+                new_x.push_back(x[i]);
+                new_y.push_back(y[i]);
+                j++;
+            }
+            while (start + j*width < val) { // it may be necessary to skip a few sampled points, especially at the beginning
+                j++;
+            }
+        }
     } else {
         int ratio = std::floor(size()/target);
         for (unsigned int i = 0; i < size(); i++) {
@@ -99,7 +114,8 @@ void SAXSDataset::simulate_errors() {
     if (xerr.empty()) {xerr.resize(size());}
 
     double base = y[0]+1;
-    std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return log10(base-val) + 1;});
+    // std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return log10(base-val) + 1;});
+    std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return 20*log10(base-val)*std::sqrt(val) + 1;});
 }
 
 void SAXSDataset::set_resolution(unsigned int resolution) {

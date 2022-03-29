@@ -27,15 +27,17 @@ SimpleIntensityFitter::SimpleIntensityFitter(const ScatteringHistogram& model, c
 }
 
 void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model, const Limit& limits) {
-    Dataset data = model.calc_debye_scattering_intensity();
+    SAXSDataset data = model.calc_debye_scattering_intensity();
     data.reduce(setting::fit::N);
     data.limit(limits);
     qo = data.get("q");
     Io = data.get("I");
-    // sigma = data.get("Ierr");
 
-    sigma.reserve(Io.size());
-    std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});
+    data.simulate_errors();
+    sigma = data.get("Ierr");
+
+    // sigma.reserve(Io.size());
+    // std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});
 }
 
 shared_ptr<Fitter::Fit> SimpleIntensityFitter::fit() {
