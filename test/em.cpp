@@ -36,13 +36,13 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
     }
 
     SECTION("native10.ccp4") {
-        em::ImageStack image("data/native10.ccp4");
+        em::ImageStack image("data/native10.ccp4", 10);
         CHECK(image.is_positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/10));
     }
 
     SECTION("native25.ccp4") {
-        em::ImageStack image("data/native25.ccp4");
+        em::ImageStack image("data/native25.ccp4", 25);
         CHECK(image.is_positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/25));
     }

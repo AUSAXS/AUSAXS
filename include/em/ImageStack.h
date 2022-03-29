@@ -25,7 +25,7 @@ namespace em {
              * 
              * @param file Path to the input EM data file. 
              */
-            ImageStack(string file, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
+            ImageStack(string file, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
 
             /**
              * @brief Destructor.
@@ -127,7 +127,7 @@ namespace em {
             std::shared_ptr<ccp4::Header> header;
             vector<Image> data;
             std::unique_ptr<em::CullingStrategy> culler;
-            double resolution;
+            unsigned int resolution;
 
             void read(std::ifstream& istream, size_t byte_size);
 

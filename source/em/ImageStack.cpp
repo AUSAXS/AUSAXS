@@ -16,7 +16,7 @@
 using namespace setting::em;
 using namespace em;
 
-ImageStack::ImageStack(string file, CullingStrategyChoice csc) : filename(file), header(std::make_shared<ccp4::Header>()) {
+ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoice csc) : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution) {
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
 
@@ -178,28 +178,7 @@ std::shared_ptr<ccp4::Header> ImageStack::get_header() const {
 }
 
 Limit ImageStack::get_limits() const {
-    // get stem of filename
-    auto p = std::filesystem::path(filename);
-    string stem = p.stem();
-
-    // extract any number that is part of the stem
-    string num;
-    std::copy_if(stem.begin(), stem.end(), std::back_inserter(num), [] (char c) {return std::isdigit(c);});
-
-    // if no number is present, use default q-values
-    double max;
-    if (num.empty()) {
-        std::cout << "Could not parse resolution in filename \"" + filename + "\"; using default limits." << std::endl;
-        max = setting::fit::q_high;
-    }
-
-    // otherwise we assume it was the resolution
-    else {
-        std::cout << "Assuming \"" + num + "\" in filename \"" + filename + "\" refers to the resolution." << std::endl;
-        max = 2*M_PI/std::stod(num);
-    }
-
-    return Limit(setting::fit::q_low, max);
+    return resolution == 0 ? Limit(setting::fit::q_low, setting::fit::q_high) : Limit(setting::fit::q_low, 2*M_PI/resolution);
 }
 
 double ImageStack::mean() const {
@@ -215,11 +194,10 @@ bool ImageStack::is_positively_stained() const {
     double sign = 0;
     for (int z = 0; z < header->nz; z++) {
         Limit limit = image(z).limits();
-        std::cout << "limits for image " << z << " (current val: " << sign << "): " << limit << std::endl;
         double min = std::abs(limit.min), max = std::abs(limit.max);
-        if (1 <= min && max < min) {
+        if (1 <= min && max+1 < min) {
             sign--;
-        } else if (1 <= max && min < max) {
+        } else if (1 <= max && min+1 < max) {
             sign++;
         }
     }
