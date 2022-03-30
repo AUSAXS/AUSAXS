@@ -1,5 +1,6 @@
 #pragma once
 
+template<class T>
 class Vector;
 
 #include <vector>
@@ -37,7 +38,7 @@ class Slice {
     /**
      * @brief Get the dot product with a Vector.
      */
-    double dot(const Vector& v);
+    double dot(const Vector<double>& v);
 
     /**
      * @brief Get the norm of this Slice. 
@@ -47,7 +48,7 @@ class Slice {
     /**
      * @brief Cast this Slice into a Vector. 
      */
-    operator Vector() const;
+    operator Vector<double>() const;
 
     /**
      * @brief Mutable indexer in this Slice.
@@ -71,22 +72,22 @@ class Slice {
 };
 
 // Add a Vector to this Slice. 
-Vector operator+(const Slice& s, const Vector& v);
+Vector<double> operator+(const Slice& s, const Vector<double>& v);
 
 // Subtract a Vector from this Slice.
-Vector operator-(const Slice& s, const Vector& v);
+Vector<double> operator-(const Slice& s, const Vector<double>& v);
 
 // Multiply each element of this Slice with a constant. 
-Vector operator*(const Slice& s, const double a);
+Vector<double> operator*(const Slice& s, const double a);
 
 // Divide each element of this Slice with a constant.
-Vector operator/(const Slice& s, const double a);
+Vector<double> operator/(const Slice& s, const double a);
 
 // Check if this Slice is equal to a given Vector.
-bool operator==(const Slice& s, const Vector& v);
+bool operator==(const Slice& s, const Vector<double>& v);
 
 // Check if this Slice is not equal to a given Vector.
-bool operator!=(const Slice& s, const Vector& v);
+bool operator!=(const Slice& s, const Vector<double>& v);
 
 // VectorSlice class - unused. 
 class VectorSlice : public Slice {
@@ -110,11 +111,11 @@ class MutableSlice : public Slice {
 
     double& operator[](int i);
     const double& operator[](int i) const override;
-    MutableSlice& operator=(const Vector& v);
+    MutableSlice& operator=(const Vector<double>& v);
     MutableSlice& operator-=(const Slice& v);
-    MutableSlice& operator-=(const Vector& v);
+    MutableSlice& operator-=(const Vector<double>& v);
     MutableSlice& operator+=(const Slice& v);
-    MutableSlice& operator+=(const Vector& v);
+    MutableSlice& operator+=(const Vector<double>& v);
 
     vector<double>& data;
 };
@@ -151,7 +152,7 @@ class Row : public MutableSlice {
     Row(vector<double>& data, int N, int M, int row);
     Row(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
-    Row& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
+    Row& operator=(const Vector<double>& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
     Row& operator=(const Row& s) {
         for (int i = 0; i < length; i++) {
             operator[](i) = s[i];
@@ -172,7 +173,7 @@ class Column : public MutableSlice {
     Column(vector<double>& data, int N, int M, int col);
     Column(MutableSlice& s) : MutableSlice(std::move(s)) {}
 
-    Column& operator=(const Vector& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
+    Column& operator=(const Vector<double>& v) {MutableSlice s(*this); MutableSlice::operator=(v); return *this;}
     Column& operator=(const Column& s) {
         for (int i = 0; i < length; i++) {
             operator[](i) = s[i];

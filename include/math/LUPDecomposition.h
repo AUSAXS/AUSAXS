@@ -15,8 +15,8 @@ class LUPDecomposition : public Decomposition {
 
     // follows the C implementation from Wikipedia: https://en.wikipedia.org/wiki/LU_decomposition
     void decompose() {
-        Vector row;
-        P = Vector(A.N); // enumerate our matrix rows so we can keep track of permutations.
+        Vector<double> row;
+        P = Vector<double>(A.N); // enumerate our matrix rows so we can keep track of permutations.
         for (size_t i = 0; i < A.N; ++i) {P[i] = i;}
         permutations = 0;
 
@@ -65,6 +65,6 @@ class LUPDecomposition : public Decomposition {
 
     int permutations;
   private: 
-    Vector P;
+    Vector<double> P;
     Matrix A;
 };

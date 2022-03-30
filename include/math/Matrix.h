@@ -44,7 +44,7 @@ class Matrix {
     /**
      * @brief Construct a Matrix based on a vector.
      */
-    Matrix(const Vector& v);
+    Matrix(const Vector<double>& v);
 
     /**
      * @brief Construct an empty Matrix of a given size. 
@@ -131,11 +131,11 @@ class Matrix {
     }
 
     // Vector multiplication, A*v
-    friend Vector operator*(const Matrix& A, const Vector& v) {
+    friend Vector<double> operator*(const Matrix& A, const Vector<double>& v) {
         if (__builtin_expect(A.M != v.N, false)) {
             throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
         }
-        Vector w(A.N);
+        Vector<double> w(A.N);
         for (size_t row = 0; row < A.N; ++row) {
             for (size_t col = 0; col < A.M; ++col) {
                 w[row] += v[col]*A[row][col];

@@ -12,7 +12,7 @@ public:
     Cramer2DSolver(const Matrix& A) : A(A), N(A.N), M(A.M) {}
     ~Cramer2DSolver() override {}
 
-    Vector solve(const Vector& v) const override {
+    Vector<double> solve(const Vector<double>& v) const override {
         double a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
         double det = a*d - b*c;
         if (__builtin_expect(det == 0, false)) {throw std::invalid_argument("Determinant is zero, cannot solve equation.");}

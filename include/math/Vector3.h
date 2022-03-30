@@ -6,7 +6,7 @@
 #include "math/Vector.h"
 #include "math/Matrix.h"
 
-class Vector3 : public Vector {
+class Vector3 : public Vector<double> {
   public:
     /**
      * @brief Default constructor.

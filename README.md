@@ -1,14 +1,12 @@
 # Todo
- * [ ] ImageStack: Should keep track of resolution for generated q-values. 
- * [x] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
+ * [ ] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
  * [ ] Memory test all other executables.
  * [ ] plots: Change intensity plots to static methods
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Atom: Const uid 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands
  * [ ] Try to derive an analytical solution of the chi2 problem. Differentiate chi2 with respect to each variable, and set each expression equal to zero. As long as it's not an iterative equation, it should be good. 
- * [x] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
-
+ * [ ] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
 # Stuff to consider
 ## Grid:
  * Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
@@ -28,7 +26,7 @@
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
- * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> -DMinuit2=ON -DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
+ * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> Dminuit2=ON DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
  * Boost (Very minor dependency, consider removing it entirely.)
  * Elements
  * CLI11

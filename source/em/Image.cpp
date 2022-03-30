@@ -78,3 +78,6 @@ Limit Image::limits() const {
 
     return Limit(min, max);
 }
+
+vector<Limit> Image::minimum_area(double cutoff) const {
+}

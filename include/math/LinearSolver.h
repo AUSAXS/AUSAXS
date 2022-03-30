@@ -12,7 +12,7 @@ class LinearSolver {
     /**
      * @brief Solve a linear equation of the form Ax = b through a QR decomposition.
      */
-    virtual Vector solve(const Vector& b) const = 0;
+    virtual Vector<double> solve(const Vector<double>& b) const = 0;
 
   private: 
     Algorithm algorithm;

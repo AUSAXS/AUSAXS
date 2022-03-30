@@ -241,9 +241,9 @@ TEST_CASE("add_remove", "[grid]") {
     vector<Atom> a = {a1, a2, a3};
 
     // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector({-3, 0, 0}));
+    Hetatom w1 = Hetatom::create_new_water(Vector3({0, 0, -3}));
+    Hetatom w2 = Hetatom::create_new_water(Vector3({0, -3, 0}));
+    Hetatom w3 = Hetatom::create_new_water(Vector3({-3, 0, 0}));
     vector<Hetatom> w = {w1, w2, w3};
 
     SECTION("add") {
@@ -335,9 +335,9 @@ TEST_CASE("correct_volume", "[grid]") {
     vector<Atom> a = {a1, a2, a3};
 
     // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector({-3, 0, 0}));
+    Hetatom w1 = Hetatom::create_new_water(Vector3({0, 0, -3}));
+    Hetatom w2 = Hetatom::create_new_water(Vector3({0, -3, 0}));
+    Hetatom w3 = Hetatom::create_new_water(Vector3({-3, 0, 0}));
     vector<Hetatom> w = {w1, w2, w3};
 
     // single non-overlapping

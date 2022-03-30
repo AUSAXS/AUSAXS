@@ -49,12 +49,24 @@ namespace em {
              */
             Limit limits() const;
 
+            /**
+             * @brief Get the minimum area covering all pixels with a density more extreme than the cutoff. 
+             * 
+             * @param cutoff The density cutoff value. If positive, the area will cover pixels with a density @a higher than this. 
+             *               If negative, it will cover pixels with density @a lower than this. 
+             * 
+             * @return A vector containing the minimum and maximum x-indices covering the area. 
+             */
+            vector<Limit> minimum_area(double cutoff) const;
+
             float index(unsigned int x, unsigned int y) const;
             float& index(unsigned int x, unsigned int y);
 
         private:
             std::shared_ptr<ccp4::Header> header;
-            vector<vector<float>> data;
-            unsigned int z;
+            vector<vector<float>> data; // The actual data storage. 
+            unsigned int N; // The number of rows.  
+            unsigned int M; // The number of columns.
+            unsigned int z; // The z-index of this image in the ImageStack. 
     };
 }

@@ -6,7 +6,7 @@
 class CubicSpline {
   public:
     CubicSpline(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {setup();}
-    CubicSpline(const Vector& x, const Vector& y) : x(x), y(y) {setup();}
+    CubicSpline(const Vector<double>& x, const Vector<double>& y) : x(x), y(y) {setup();}
 
     double spline(const double& z) const {
         int i = search(0, x.size(), z);
@@ -14,19 +14,19 @@ class CubicSpline {
     }
 
   private: 
-    const Vector x, y;
-    Vector b, c, d;
+    const Vector<double> x, y;
+    Vector<double> b, c, d;
 
     void setup() {
         int n = x.size();
-        b = Vector(n);
-        c = Vector(n-1);
-        d = Vector(n-1);
-        Vector D(n);
-        Vector Q(n-1);
-        Vector B(n);
-        Vector h(n-1);
-        Vector p(n-1);
+        b = Vector<double>(n);
+        c = Vector<double>(n-1);
+        d = Vector<double>(n-1);
+        Vector<double> D(n);
+        Vector<double> Q(n-1);
+        Vector<double> B(n);
+        Vector<double> h(n-1);
+        Vector<double> p(n-1);
         for (int i = 0; i < n-1; i++) {
             h[i] = x[i+1]-x[i]; // definition of h (eq 15)
             p[i] = (y[i+1]-y[i])/h[i]; // definition of p (eq 6)

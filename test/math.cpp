@@ -31,8 +31,8 @@ double GenRandScalar() {
     return rand() % 100;
 }
 
-Vector GenRandVector(int m) {
-    Vector v(m);
+Vector<double> GenRandVector(int m) {
+    Vector<double> v(m);
     for (int i = 0; i < m; i++)
         v[i] = rand() % 100;
     return v;
@@ -197,9 +197,9 @@ TEST_CASE("Vector3", "[math]") {
 }
 
 TEST_CASE("Vector", "[math]") {
-    Vector x = {1, 2, 3, 4};
-    Vector y = {2, 3, 4, 5};
-    Vector z = {4, 3, 2, 1};
+    Vector<double> x = {1, 2, 3, 4};
+    Vector<double> y = {2, 3, 4, 5};
+    Vector<double> z = {4, 3, 2, 1};
 
     SECTION("basic operations") {
         // addition
@@ -366,9 +366,9 @@ TEST_CASE("Matrix", "[math]") {
         REQUIRE(C*B == Matrix{{8, 13, 18}, {11, 18, 25}});
 
         // vector multiplication
-        Vector v = {1, 2};
-        REQUIRE(A*v == Vector{5, 11});
-        REQUIRE(C*v == Vector{8, 11});
+        Vector<double> v = {1, 2};
+        REQUIRE(A*v == Vector<double>{5, 11});
+        REQUIRE(C*v == Vector<double>{8, 11});
 
         // transpose
         REQUIRE(A.T() == Matrix{{1, 3}, {2, 4}});
@@ -403,20 +403,20 @@ TEST_CASE("Slices", "[math]") {
         Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
         
         // row through operator[]
-        REQUIRE(A[0] == Vector{1, 1, 2, 2});
-        REQUIRE(A[1] == Vector{3, 3, 2, 2});
-        REQUIRE(A[2] == Vector{5, 5, 4, 4});
+        REQUIRE(A[0] == Vector<double>{1, 1, 2, 2});
+        REQUIRE(A[1] == Vector<double>{3, 3, 2, 2});
+        REQUIRE(A[2] == Vector<double>{5, 5, 4, 4});
 
         // explicit row
-        REQUIRE(A.row(0) == Vector{1, 1, 2, 2});
-        REQUIRE(A.row(1) == Vector{3, 3, 2, 2});
-        REQUIRE(A.row(2) == Vector{5, 5, 4, 4});
+        REQUIRE(A.row(0) == Vector<double>{1, 1, 2, 2});
+        REQUIRE(A.row(1) == Vector<double>{3, 3, 2, 2});
+        REQUIRE(A.row(2) == Vector<double>{5, 5, 4, 4});
 
         // col
-        REQUIRE(A.col(0) == Vector{1, 3, 5});
-        REQUIRE(A.col(1) == Vector{1, 3, 5});
-        REQUIRE(A.col(2) == Vector{2, 2, 4});
-        REQUIRE(A.col(3) == Vector{2, 2, 4});
+        REQUIRE(A.col(0) == Vector<double>{1, 3, 5});
+        REQUIRE(A.col(1) == Vector<double>{1, 3, 5});
+        REQUIRE(A.col(2) == Vector<double>{2, 2, 4});
+        REQUIRE(A.col(3) == Vector<double>{2, 2, 4});
     }
 
     // assignment
@@ -437,42 +437,42 @@ TEST_CASE("Slices", "[math]") {
         A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         A.row(0) -= A.row(1);
         A.row(1) -= A.row(2);
-        REQUIRE(A.row(0) == Vector{-8, -3, 0, 6});
-        REQUIRE(A.row(1) == Vector{3, 4, 1, -2});
+        REQUIRE(A.row(0) == Vector<double>{-8, -3, 0, 6});
+        REQUIRE(A.row(1) == Vector<double>{3, 4, 1, -2});
 
         A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         A.col(0) -= A.col(1);
         A.col(1) -= A.col(2);
-        REQUIRE(A.col(0) == Vector{-1, 4, 5});
-        REQUIRE(A.col(1) == Vector{0, 3, 0});
+        REQUIRE(A.col(0) == Vector<double>{-1, 4, 5});
+        REQUIRE(A.col(1) == Vector<double>{0, 3, 0});
 
         // plus-assignment
         A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         A.row(0) += A.row(1);
         A.row(1) += A.row(2);
-        REQUIRE(A.row(0) == Vector{10, 7, 4, 8});
-        REQUIRE(A.row(1) == Vector{15, 6, 3, 4});
+        REQUIRE(A.row(0) == Vector<double>{10, 7, 4, 8});
+        REQUIRE(A.row(1) == Vector<double>{15, 6, 3, 4});
 
         A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         A.col(0) += A.col(1);
         A.col(1) += A.col(2);
-        REQUIRE(A.col(0) == Vector{3, 14, 7});
-        REQUIRE(A.col(1) == Vector{4, 7, 2});
+        REQUIRE(A.col(0) == Vector<double>{3, 14, 7});
+        REQUIRE(A.col(1) == Vector<double>{4, 7, 2});
     }
 
     SECTION("vector cast") {
         Matrix A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
-        Vector a = A.col(2);
+        Vector<double> a = A.col(2);
         REQUIRE((a.N == 3 && a.data.size() == 3));
         REQUIRE(a == Vector{2, 2, 1});
-        REQUIRE((A.col(2).operator Vector().N == 3 && A.col(2).operator Vector().data.size() == 3)); // chain cast
+        REQUIRE((A.col(2).operator Vector<double>().N == 3 && A.col(2).operator Vector<double>().data.size() == 3)); // chain cast
     }
 
     SECTION("dot product") {
         Matrix A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
 
         // dot with vector
-        Vector b = {2, 3, 1, 5};
+        Vector<double> b = {2, 3, 1, 5};
         REQUIRE(A.row(0).dot(b) == (2+6+2+35));
         REQUIRE(A.row(2).dot(b) == (12+3+1+15));
 
@@ -495,7 +495,7 @@ TEST_CASE("Slices", "[math]") {
 
 TEST_CASE("Cramer", "[math]") {
     Matrix A = {{2, 3}, {3, -4}};
-    Vector b = {12, 1};
+    Vector<double> b = {12, 1};
     Cramer2DSolver solver1(A);
     REQUIRE(solver1.solve(b) == Vector{3, 2});
 
@@ -542,7 +542,7 @@ TEST_CASE("QRDecomposition", "[math]") {
 
 TEST_CASE("Givens", "[broken],[math]") {
     Matrix A = {{2, 3}, {3, -4}};
-    Vector b = {12, 1};
+    Vector<double> b = {12, 1};
     GivensSolver solver1(A);
     REQUIRE(solver1.solve(b) == Vector{3, 2});
 
@@ -580,8 +580,8 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
     double b = 2*M_PI; // the range is from 0 to this
     int len = 10;
     double step = b/len;
-    Vector x(len);
-    Vector y(len);
+    Vector<double> x(len);
+    Vector<double> y(len);
     for (int i = 0; i < len; i++) {
         x[i] = i*step;
         y[i] = sin(x[i]);

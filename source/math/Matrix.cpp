@@ -3,7 +3,7 @@
 #include "math/Vector3.h"
 #include "math/LUPDecomposition.h"
 
-Matrix::Matrix(const Vector& v) : _N(v.N), _M(1), _data(v.data) {} // vector --> matrix constructor
+Matrix::Matrix(const Vector<double>& v) : _N(v.N), _M(1), _data(v.data) {} // vector --> matrix constructor
 
 double Matrix::det() const {
     if (__builtin_expect(N != M, false)) {throw std::invalid_argument("Error in matrix determinant: Matrix is not square.");}

@@ -10,9 +10,9 @@ public:
     GivensSolver(const Matrix& A) : N(A.N), M(A.M) {decomp(A);}
     ~GivensSolver() override {}
 
-    Vector solve(const Vector& b) const override {
+    Vector<double> solve(const Vector<double>& b) const override {
         double theta, xp, xq;
-        Vector x = b.copy();
+        Vector<double> x = b.copy();
 
         // start by applying the rotations to b
         for (int p = 0; p < M; p++) {

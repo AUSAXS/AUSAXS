@@ -13,7 +13,7 @@ class QRDecomposition : public Decomposition {
     Matrix inverse() const {
 		// basically we just solve m equations of the form Ax = e_i, and construct A^-1 from the m solutions to this equation
 		Matrix A(Q.M, Q.N);
-		Vector e(Q.N);
+		Vector<double> e(Q.N);
 		for (size_t i = 0; i < Q.N; i++) {
 			e[i] = 1;
 			A.col(i) = solve(e);
@@ -23,9 +23,9 @@ class QRDecomposition : public Decomposition {
 	}
 
 	// solve an equation of the form QRx = b
-	Vector solve(Vector b) const {
+	Vector<double> solve(Vector<double> b) const {
 		b = Q.T()*b;
-		Vector x(b.N);
+		Vector<double> x(b.N);
 		for (int i = x.N-1; i >= 0; i--) {
 			x[i] = b[i];
 			for (size_t j = i+1; j < b.N; j++)

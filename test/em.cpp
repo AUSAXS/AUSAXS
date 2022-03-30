@@ -13,7 +13,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
     plot.save("test.pdf");
 }
 
-TEST_CASE("test_model", "[em],[files]") {
+TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
     em::ImageStack image("data/native10.ccp4");
