@@ -14,9 +14,9 @@
 class Vector3;
 
 class Matrix {
-    friend class Row;
-    friend class Column;
-    friend class MutableSlice;
+    template<typename> friend class Row;
+    template<typename> friend class Column;
+    template<typename> friend class MutableSlice;
 
   public: 
     /**

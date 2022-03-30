@@ -81,19 +81,19 @@ class Slice {
 
 // Add a Vector to this Slice. 
 template<typename T, typename Q>
-Vector<double> operator+(const Slice<T>& s, const Vector<Q>& v);
+Vector<T> operator+(const Slice<T>& s, const Vector<Q>& v);
 
 // Subtract a Vector from this Slice.
 template<typename T, typename Q>
-Vector<double> operator-(const Slice<T>& s, const Vector<Q>& v);
+Vector<T> operator-(const Slice<T>& s, const Vector<Q>& v);
 
 // Multiply each element of this Slice with a constant. 
 template<typename T>
-Vector<double> operator*(const Slice<T>& s, const double a);
+Vector<T> operator*(const Slice<T>& s, const double a);
 
 // Divide each element of this Slice with a constant.
 template<typename T>
-Vector<double> operator/(const Slice<T>& s, const double a);
+Vector<T> operator/(const Slice<T>& s, const double a);
 
 // Check if this Slice is equal to a given Vector.
 template<typename T, typename Q>
@@ -126,34 +126,34 @@ class MutableSlice : public Slice<T> {
 	
 		virtual ~MutableSlice() = default;
 
-		T& operator[](unsigned int i) override {return data[start + i*step];}
+		T& operator[](unsigned int i) {return data[this->start + i*this->step];}
 
-		const T& operator[](unsigned int i) const override {return data[start + i*step];}
+		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
 
 		MutableSlice& operator=(const Vector<T>& v) {
-			for (int i = 0; i < length; i++) {
+			for (int i = 0; i < this->length; i++) {
 				operator[](i) = v[i];
 			}
 			return *this;
 		}
 
 		template<typename Q>
-		MutableSlice& operator-=(const Slice<Q>& v) {return operator-=(s.operator Vector<Q>());}
+		MutableSlice& operator-=(const Slice<Q>& s) {return operator-=(s.operator Vector<Q>());}
 
 		template<typename Q>
 		MutableSlice& operator-=(const Vector<Q>& v) {
-			for (int i = 0; i < length; i++) {
+			for (int i = 0; i < this->length; i++) {
 				operator[](i) -= v[i];
 			}
 			return *this;
 		}
 
 		template<typename Q>
-		MutableSlice& operator+=(const Slice<Q>& v) {return operator+=(s.operator Vector<Q>());}
+		MutableSlice& operator+=(const Slice<Q>& s) {return operator+=(s.operator Vector<Q>());}
 
 		template<typename Q>
 		MutableSlice& operator+=(const Vector<Q>& v) {
-			for (int i = 0; i < length; i++) {
+			for (int i = 0; i < this->length; i++) {
 				operator[](i) += v[i];
 			}
 			return *this;
@@ -174,7 +174,7 @@ class ConstSlice : public Slice<T> {
 
 		virtual ~ConstSlice() = default;
 
-		const T& operator[](unsigned int i) const override {return data[start + i*step];}
+		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
 
 		const vector<T>& data;
 };
@@ -205,15 +205,15 @@ class Row : public MutableSlice<T> {
 		Row<T>& operator=(const Vector<T>& v) {MutableSlice<T> s(*this); MutableSlice<T>::operator=(v); return *this;}
 
 		Row<T>& operator=(const Row<T>& s) {
-			for (int i = 0; i < length; i++) {
-				operator[](i) = s[i];
+			for (int i = 0; i < this->length; i++) {
+				this->operator[](i) = s[i];
 			}
 			return *this;
 		}
 
 		Row<T>& operator=(const ConstRow<T>& s) {
-			for (int i = 0; i < length; i++) {
-				operator[](i) = s[i];
+			for (int i = 0; i < this->length; i++) {
+				this->operator[](i) = s[i];
 			}
 			return *this;
 		}
@@ -229,15 +229,15 @@ class Column : public MutableSlice<T> {
 		Column<T>& operator=(const Vector<T>& v) {MutableSlice<T> s(*this); MutableSlice<T>::operator=(v); return *this;}
 
 		Column<T>& operator=(const Column<T>& s) {
-			for (int i = 0; i < length; i++) {
-				operator[](i) = s[i];
+			for (int i = 0; i < this->length; i++) {
+				this->operator[](i) = s[i];
 			}
 			return *this;
 		}
 
 		Column<T>& operator=(const ConstColumn<T>& s) {
-			for (int i = 0; i < length; i++) {
-				operator[](i) = s[i];
+			for (int i = 0; i < this->length; i++) {
+				this->operator[](i) = s[i];
 			}
 			return *this;
 		}

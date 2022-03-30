@@ -59,7 +59,7 @@ class Vector {
         }
 
         // Slice assignment operator
-        Vector<T>& operator=(const Slice& s) {
+        Vector<T>& operator=(const Slice<T>& s) {
 			if (__builtin_expect(!(s.N == 1 || s.M == 1), false)) {throw std::invalid_argument("Only 1D slices can be assigned to vectors. Size: " + std::to_string(s.N) + ", " + std::to_string(s.M));}
 			_N = std::max(s.N, s.M);
 			_data = std::vector<double>(N);
