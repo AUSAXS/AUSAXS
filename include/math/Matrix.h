@@ -162,22 +162,22 @@ class Matrix {
     }
 
     // Read-only indexer
-    const ConstRow operator[](int i) const;
+    const ConstRow<double> operator[](unsigned int i) const;
 
     // Read-only column indexer
-    const ConstColumn col(int j) const;
+    const ConstColumn<double> col(unsigned int j) const;
 
     // Read-only row indexer
-    const ConstRow row(int i) const;
+    const ConstRow<double> row(unsigned int i) const;
     
     // Read-write indexer
-    Row operator[](int i);
+    Row<double> operator[](unsigned int i);
 
     // Read-write row indexer
-    Row row(int i);
+    Row<double> row(unsigned int i);
 
     // Read-write column indexer
-    Column col(int j);
+    Column<double> col(unsigned int j);
 
     // Approximate equality, B ~ A
     bool operator==(const Matrix& A) const;

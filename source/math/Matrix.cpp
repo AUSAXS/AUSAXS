@@ -73,10 +73,10 @@ bool Matrix::operator==(const Matrix& A) const {
     return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, double x) {return sum + abs(x);}) < precision;
 }
 
-Row Matrix::row(int i) {return Row(_data, N, M, i);}
-Row Matrix::operator[](int i) {return Row(_data, N, M, i);}
-Column Matrix::col(int i) {return Column(_data, N, M, i);}
+Row<double> Matrix::row(unsigned int i) {return Row<double>(_data, N, M, i);}
+Row<double> Matrix::operator[](unsigned int i) {return Row<double>(_data, N, M, i);}
+Column<double> Matrix::col(unsigned int i) {return Column<double>(_data, N, M, i);}
 
-const ConstRow Matrix::row(int i) const {return ConstRow(data, N, M, i);}
-const ConstRow Matrix::operator[](int i) const {return ConstRow(data, N, M, i);}
-const ConstColumn Matrix::col(int i) const {return ConstColumn(data, N, M, i);}
+const ConstRow<double> Matrix::row(unsigned int i) const {return ConstRow<double>(data, N, M, i);}
+const ConstRow<double> Matrix::operator[](unsigned int i) const {return ConstRow<double>(data, N, M, i);}
+const ConstColumn<double> Matrix::col(unsigned int i) const {return ConstColumn<double>(data, N, M, i);}
