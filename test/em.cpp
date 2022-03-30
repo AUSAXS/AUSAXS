@@ -16,8 +16,8 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 TEST_CASE("test_model", "[em],[files]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    em::ImageStack image("data/maptest.ccp4");
-    Protein protein("data/maptest.pdb");
+    em::ImageStack image("data/native10.ccp4");
+    Protein protein("data/native.pdb");
 
     image.fit(protein.get_histogram());
 }

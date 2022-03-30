@@ -28,7 +28,7 @@
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
- * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> DMinuit2=ON DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
+ * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> -DMinuit2=ON -DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
  * Boost (Very minor dependency, consider removing it entirely.)
  * Elements
  * CLI11
