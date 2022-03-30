@@ -8,11 +8,11 @@
 // QR decomposition by Gram-Schmidt orthogonalization
 class QRDecomposition : public Decomposition {
   public: 
-    QRDecomposition(const Matrix& A) : Q(A) {decompose();}
+    QRDecomposition(const Matrix<double>& A) : Q(A) {decompose();}
 
-    Matrix inverse() const {
+    Matrix<double> inverse() const {
 		// basically we just solve m equations of the form Ax = e_i, and construct A^-1 from the m solutions to this equation
-		Matrix A(Q.M, Q.N);
+		Matrix<double> A(Q.M, Q.N);
 		Vector<double> e(Q.N);
 		for (size_t i = 0; i < Q.N; i++) {
 			e[i] = 1;
@@ -45,7 +45,7 @@ class QRDecomposition : public Decomposition {
 	}
 
 	void decompose() override {
-        R = Matrix(Q.N, Q.M);
+        R = Matrix<double>(Q.N, Q.M);
 		double ujvi, ujuj;
 		for (size_t i = 0; i < Q.M; i++) {
 			for (size_t j = 0; j < i; j++) {
@@ -62,5 +62,5 @@ class QRDecomposition : public Decomposition {
 		}
 	}
 
-    Matrix Q, R;
+    Matrix<double> Q, R;
 };

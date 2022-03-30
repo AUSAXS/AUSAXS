@@ -4,7 +4,8 @@
 #include <tuple>
 
 #include "math/Vector.h"
-#include "math/Matrix.h"
+
+template<class T> class Matrix;
 
 class Vector3 : public Vector<double> {
   public:
@@ -81,7 +82,7 @@ class Vector3 : public Vector<double> {
      * 
      * @param matrix The rotation matrix. 
      */
-    void rotate(const Matrix& matrix);
+    void rotate(const Matrix<double>& matrix);
 
     /**
      * @brief Output the string representation of this vector to a stream. 

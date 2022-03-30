@@ -60,7 +60,7 @@ void RigidBody::optimize(string measurement_path) {
         grid->remove(&body);
 
         // update the body to reflect the new params
-        Matrix R = Matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
+        Matrix R = Matrix<double>::rotation_matrix(param.alpha, param.beta, param.gamma);
         body.translate(param.dx);
         body.rotate(R);
 

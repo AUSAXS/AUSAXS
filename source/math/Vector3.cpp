@@ -61,11 +61,11 @@ std::tuple<Vector3, Vector3, Vector3> Vector3::generate_basis() {
     return Vector3::generate_basis(*this);
 }
 
-void Vector3::rotate(const Matrix& matrix) {
+void Vector3::rotate(const Matrix<double>& matrix) {
     *this = matrix*(*this);
 }
 
 void Vector3::rotate(const Vector3& axis, double angle) {
-    Matrix R = Matrix::rotation_matrix(axis, angle);
+    Matrix R = Matrix<double>::rotation_matrix(axis, angle);
     rotate(R);
 }

@@ -1,0 +1,41 @@
+#include <math/Matrix.h>
+#include <math/LUPDecomposition.h>
+#include <math/Vector3.h>
+
+template<typename T>
+double Matrix<T>::det() const {
+    if (__builtin_expect(N != M, false)) {throw std::invalid_argument("Error in matrix determinant: Matrix is not square.");}
+    LUPDecomposition decomp(*this);
+    return decomp.determinant();
+}
+
+template<typename>
+Matrix<double> Matrix::rotation_matrix(const Vector3& axis, double angle) {
+    Vector3 ax = axis.normalize_copy();
+    double a = cos(angle/2);
+    double b = sin(angle/2);
+    double c = b;
+    double d = b;
+    b *= ax.x;
+    c *= ax.y;
+    d *= ax.z;
+
+    double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
+    double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
+
+    Matrix R{{aa+bb-cc-dd, 2*(bc-ad),   2*(bd+ac)}, 
+            {2*(bc+ad),   aa+cc-bb-dd, 2*(cd-ab)},
+            {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
+    return R;
+}
+
+template<typename>
+Matrix<double> Matrix::rotation_matrix(double alpha, double beta, double gamma) {
+    double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
+    double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);
+    double sinasinb = sina*sinb, cosasinb = cosa*sinb;
+
+    return Matrix{{cosb*cosg, sinasinb*cosg - cosa*sing, cosasinb*cosg + sina*sing}, 
+                    {cosb*sing, sinasinb*sing + cosa*cosg, cosasinb*sing - sina*cosg},
+                    {-sinb,     sina*cosb,                 cosa*cosb}};
+}

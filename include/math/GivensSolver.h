@@ -7,7 +7,7 @@
 
 class GivensSolver : public LinearSolver {
 public:
-    GivensSolver(const Matrix& A) : N(A.N), M(A.M) {decomp(A);}
+    GivensSolver(const Matrix<double>& A) : N(A.N), M(A.M) {decomp(A);}
     ~GivensSolver() override {}
 
     Vector<double> solve(const Vector<double>& b) const override {
@@ -35,10 +35,10 @@ public:
     }
 
 private: 
-    Matrix G;
+    Matrix<double> G;
     const int N, M;
 
-    void decomp(const Matrix& A) {
+    void decomp(const Matrix<double>& A) {
         G = A.copy();
         double Aqi, Api;
         for (int p = 0; p < M; p++) {

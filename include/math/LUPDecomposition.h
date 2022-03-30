@@ -1,8 +1,5 @@
 #pragma once
 
-// forwards declaration
-class Matrix;
-
 #include "Decomposition.h"
 #include "Matrix.h"
 #include "Vector.h"
@@ -11,7 +8,7 @@ class Matrix;
 
 class LUPDecomposition : public Decomposition {
   public: 
-    LUPDecomposition(const Matrix& A) : A(A.copy()) {decompose();}
+    LUPDecomposition(const Matrix<double>& A) : A(A.copy()) {decompose();}
 
     // follows the C implementation from Wikipedia: https://en.wikipedia.org/wiki/LU_decomposition
     void decompose() {
@@ -66,5 +63,5 @@ class LUPDecomposition : public Decomposition {
     int permutations;
   private: 
     Vector<double> P;
-    Matrix A;
+    Matrix<double> A;
 };

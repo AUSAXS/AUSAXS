@@ -72,8 +72,7 @@ class Slice {
         /**
          * @brief Output the string representation of this vector to a stream. 
          */
-        template<typename Q>
-        friend std::ostream& operator<<(std::ostream& os, const Slice<Q>& s) {os << s.to_string(); return os;}
+        friend std::ostream& operator<<(std::ostream& os, const Slice<T>& s) {os << s.to_string(); return os;}
 
         const size_t N, M;
         int start, step, length;
@@ -81,27 +80,27 @@ class Slice {
 
 // Add a Vector to this Slice. 
 template<typename T, typename Q>
-Vector<T> operator+(const Slice<T>& s, const Vector<Q>& v);
+Vector<T> operator+(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator+(v);}
 
 // Subtract a Vector from this Slice.
 template<typename T, typename Q>
-Vector<T> operator-(const Slice<T>& s, const Vector<Q>& v);
+Vector<T> operator-(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator-(v);}
 
 // Multiply each element of this Slice with a constant. 
 template<typename T>
-Vector<T> operator*(const Slice<T>& s, const double a);
+Vector<T> operator*(const Slice<T>& s, const double a) {return s.operator Vector<T>().operator*(a);}
 
 // Divide each element of this Slice with a constant.
 template<typename T>
-Vector<T> operator/(const Slice<T>& s, const double a);
+Vector<T> operator/(const Slice<T>& s, const double a) {return s.operator Vector<T>().operator/(a);}
 
 // Check if this Slice is equal to a given Vector.
 template<typename T, typename Q>
-bool operator==(const Slice<T>& s, const Vector<Q>& v);
+bool operator==(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator==(v);}
 
 // Check if this Slice is not equal to a given Vector.
 template<typename T, typename Q>
-bool operator!=(const Slice<T>& s, const Vector<Q>& v);
+bool operator!=(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator!=(v);}
 
 // VectorSlice class - unused. 
 template<typename T>
@@ -242,21 +241,3 @@ class Column : public MutableSlice<T> {
 			return *this;
 		}
 };
-
-template<typename T, typename Q>
-Vector<Q> operator+(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator+(v);}
-
-template<typename T, typename Q>
-Vector<Q> operator-(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator-(v);}
-
-template<typename T>
-Vector<T> operator*(const Slice<T>& s, const double a) {return s.operator Vector<T>().operator*(a);}
-
-template<typename T>
-Vector<T> operator/(const Slice<T>& s, const double a) {return s.operator Vector<T>().operator/(a);}
-
-template<typename T, typename Q>
-bool operator==(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator==(v);}
-
-template<typename T, typename Q>
-bool operator!=(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator!=(v);}

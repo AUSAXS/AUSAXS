@@ -9,7 +9,7 @@
 
 class Cramer2DSolver : public LinearSolver {
 public:
-    Cramer2DSolver(const Matrix& A) : A(A), N(A.N), M(A.M) {}
+    Cramer2DSolver(const Matrix<double>& A) : A(A), N(A.N), M(A.M) {}
     ~Cramer2DSolver() override {}
 
     Vector<double> solve(const Vector<double>& v) const override {
@@ -23,6 +23,6 @@ public:
     }
 
 private: 
-    const Matrix A;
+    const Matrix<double> A;
     const int N, M;
 };

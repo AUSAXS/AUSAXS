@@ -38,8 +38,8 @@ Vector<double> GenRandVector(int m) {
     return v;
 }
 
-Matrix GenRandMatrix(int n, int m) {
-    Matrix M(n, m);
+Matrix<double> GenRandMatrix(int n, int m) {
+    Matrix<double> M(n, m);
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++)
             M[i][j] = rand() % 100;
@@ -295,9 +295,9 @@ TEST_CASE("Vector", "[math]") {
 }
 
 TEST_CASE("Matrix", "[math]") {
-    Matrix A({{1, 2}, {3, 4}});
-    Matrix B({{5, 6}, {7, 8}});
-    Matrix C({{2, 3}, {3, 4}});
+    Matrix<double> A({{1, 2}, {3, 4}});
+    Matrix<double> B({{5, 6}, {7, 8}});
+    Matrix<double> C({{2, 3}, {3, 4}});
 
     SECTION("basic operations") {
         // addition
@@ -348,22 +348,22 @@ TEST_CASE("Matrix", "[math]") {
 
         A = C;
         B = C;
-        C = Matrix{{0, 0}, {0, 0}};
+        C = Matrix<double>{{0, 0}, {0, 0}};
         REQUIRE(A == Matrix{{2, 3}, {3, 4}});
         REQUIRE(B == Matrix{{2, 3}, {3, 4}});
 
         A = B.copy();
         C = A.copy();
-        B = Matrix::identity(2);
+        B = Matrix<double>::identity(2);
         REQUIRE(A == Matrix{{2, 3}, {3, 4}});
         REQUIRE(C == A);
     }
 
     SECTION("multiplication") {
         // matrix multiplication
-        B = Matrix{{1, 2, 3}, {2, 3, 4}};
-        REQUIRE(A*B == Matrix{{5, 8, 11}, {11, 18, 25}});
-        REQUIRE(C*B == Matrix{{8, 13, 18}, {11, 18, 25}});
+        B = Matrix<double>{{1, 2, 3}, {2, 3, 4}};
+        REQUIRE(A*B == Matrix<double>{{5, 8, 11}, {11, 18, 25}});
+        REQUIRE(C*B == Matrix<double>{{8, 13, 18}, {11, 18, 25}});
 
         // vector multiplication
         Vector<double> v = {1, 2};
@@ -371,9 +371,9 @@ TEST_CASE("Matrix", "[math]") {
         REQUIRE(C*v == Vector<double>{8, 11});
 
         // transpose
-        REQUIRE(A.T() == Matrix{{1, 3}, {2, 4}});
-        REQUIRE(B.T() == Matrix{{1, 2}, {2, 3}, {3, 4}});
-        REQUIRE(C.T() == Matrix{{2, 3}, {3, 4}});
+        REQUIRE(A.T() == Matrix<double>{{1, 3}, {2, 4}});
+        REQUIRE(B.T() == Matrix<double>{{1, 2}, {2, 3}, {3, 4}});
+        REQUIRE(C.T() == Matrix<double>{{2, 3}, {3, 4}});
     }
 
     SECTION("determinants") {
@@ -387,13 +387,13 @@ TEST_CASE("Matrix", "[math]") {
 
     SECTION("rotations") {
         // check basic rotations
-        Matrix R = Matrix::rotation_matrix(M_PI/2, 0, 0);
+        Matrix R = Matrix<double>::rotation_matrix(M_PI/2, 0, 0);
         REQUIRE(R == Matrix{{1, 0, 0}, {0, 0, -1}, {0, 1, 0}});
 
-        R = Matrix::rotation_matrix(0, M_PI/2, 0);
+        R = Matrix<double>::rotation_matrix(0, M_PI/2, 0);
         REQUIRE(R == Matrix{{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}});
 
-        R = Matrix::rotation_matrix(0, 0, M_PI/2);
+        R = Matrix<double>::rotation_matrix(0, 0, M_PI/2);
         REQUIRE(R == Matrix{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}});
     }
 }
@@ -461,7 +461,7 @@ TEST_CASE("Slices", "[math]") {
     }
 
     SECTION("vector cast") {
-        Matrix A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+        Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         Vector<double> a = A.col(2);
         REQUIRE((a.N == 3 && a.data.size() == 3));
         REQUIRE(a == Vector{2, 2, 1});
@@ -469,7 +469,7 @@ TEST_CASE("Slices", "[math]") {
     }
 
     SECTION("dot product") {
-        Matrix A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+        Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
 
         // dot with vector
         Vector<double> b = {2, 3, 1, 5};
@@ -487,14 +487,14 @@ TEST_CASE("Slices", "[math]") {
     }
 
     SECTION("norm") {
-        Matrix A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+        Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         REQUIRE(A.col(0).norm() == sqrt(1+81+36));
         REQUIRE(A.row(0).norm() == sqrt(1+4+4+49));
     }
 }
 
 TEST_CASE("Cramer", "[math]") {
-    Matrix A = {{2, 3}, {3, -4}};
+    Matrix<double> A = {{2, 3}, {3, -4}};
     Vector<double> b = {12, 1};
     Cramer2DSolver solver1(A);
     REQUIRE(solver1.solve(b) == Vector{3, 2});
@@ -522,9 +522,9 @@ TEST_CASE("Cramer", "[math]") {
 }
 
 TEST_CASE("QRDecomposition", "[math]") {
-    Matrix A = {{1, 2}, {3, 4}};
+    Matrix<double> A = {{1, 2}, {3, 4}};
     QRDecomposition qr(A);
-    REQUIRE(A*qr.inverse() == Matrix::identity(2));
+    REQUIRE(A*qr.inverse() == Matrix<double>::identity(2));
     REQUIRE(qr.abs_determinant() == Approx(2));
 
     // randomized tests on 5x5 matrices
@@ -536,12 +536,12 @@ TEST_CASE("QRDecomposition", "[math]") {
         Vector x = solver.solve(b);
         Vector Ax = A*x;
         REQUIRE(Ax == b);
-        REQUIRE(solver.inverse()*A == Matrix::identity(5));
+        REQUIRE(solver.inverse()*A == Matrix<double>::identity(5));
     }
 }
 
 TEST_CASE("Givens", "[broken],[math]") {
-    Matrix A = {{2, 3}, {3, -4}};
+    Matrix<double> A = {{2, 3}, {3, -4}};
     Vector<double> b = {12, 1};
     GivensSolver solver1(A);
     REQUIRE(solver1.solve(b) == Vector{3, 2});
@@ -615,16 +615,16 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
 TEST_CASE("orthonormal_rotations", "[math]") {
     for (int i = 0; i < 10; i++) {
         Vector3 angles = GenRandVector(3);
-        Matrix R = Matrix::rotation_matrix(angles.x, angles.y, angles.z);
+        Matrix R = Matrix<double>::rotation_matrix(angles.x, angles.y, angles.z);
         Matrix Ri = R.T();
-        REQUIRE(R*Ri == Matrix::identity(3));
+        REQUIRE(R*Ri == Matrix<double>::identity(3));
     }
 
     for (int i = 0; i < 10; i++) {
         Vector3 axis = GenRandVector(3);
         double angle = GenRandScalar();
-        Matrix R = Matrix::rotation_matrix(axis, angle);
+        Matrix R = Matrix<double>::rotation_matrix(axis, angle);
         Matrix Ri = R.T();
-        REQUIRE(R*Ri == Matrix::identity(3));
+        REQUIRE(R*Ri == Matrix<double>::identity(3));
     }
 }

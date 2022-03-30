@@ -136,7 +136,7 @@ class Body {
      * 
      * @param R The rotation matrix. 
      */
-    void rotate(const Matrix& R);
+    void rotate(const Matrix<double>& R);
     
     /**
      * @brief Rotate all atoms @a rad radians about the axis @a axis. 

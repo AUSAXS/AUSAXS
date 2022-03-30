@@ -215,7 +215,7 @@ void Body::translate(const Vector3& v) {
     std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
 }
 
-void Body::rotate(const Matrix& R) {
+void Body::rotate(const Matrix<double>& R) {
     for (auto& atom : protein_atoms) {
         atom.coords.rotate(R);
     }
@@ -227,13 +227,13 @@ void Body::rotate(const Matrix& R) {
 
 void Body::rotate(double alpha, double beta, double gamma) {
     signal->state_change();
-    Matrix R = Matrix::rotation_matrix(alpha, beta, gamma);
+    Matrix R = Matrix<double>::rotation_matrix(alpha, beta, gamma);
     rotate(R);
 }
 
 void Body::rotate(const Vector3& axis, double angle) {
     signal->state_change();
-    Matrix R = Matrix::rotation_matrix(axis, angle);
+    Matrix R = Matrix<double>::rotation_matrix(axis, angle);
     rotate(R);
 }
 
