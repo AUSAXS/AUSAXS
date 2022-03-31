@@ -1,4 +1,5 @@
 # Todo
+ * [ ] IO: Support multiple terminate statements
  * [ ] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
  * [ ] Memory test all other executables.
  * [ ] plots: Change intensity plots to static methods

@@ -32,7 +32,7 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         Record::RecordType type1 = Record::get_type(l1.substr(0, 6)); 
         Record::RecordType type2 = Record::get_type(l2.substr(0, 6)); 
         if (type1 != type2) {
-            print_err("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal.");
+            print_err("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal in line " + std::to_string(i) + ".");
             return false;
         }
 
@@ -48,7 +48,10 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
-        } 
+        }
+
+        // sometimes nothing is written after TER in the pdb files
+        else if (type1 == Record::TERMINATE) {continue;}
 
         // otherwise we just compare the lines themselves
         else {

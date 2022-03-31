@@ -72,10 +72,11 @@ void Dataset::limit(const Limit& limits) {
     vector<double> new_x; new_x.reserve(size());
     vector<double> new_y; new_y.reserve(size());
 
-    unsigned int i = 0;
-    while (x[i] <= limits.max) {
+    for (unsigned int i = 0; i < size(); i++) {
+        double val = x[i];
+        if (val < limits.min || limits.max < val) {continue;}
         new_x.push_back(x[i]);
-        new_y.push_back(y[i++]);
+        new_y.push_back(y[i]);
     }
 
     x = std::move(new_x);

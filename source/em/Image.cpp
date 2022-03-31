@@ -8,17 +8,21 @@
 #include <em/Image.h>
 
 using namespace em;
+using std::list, std::vector;
 
-Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : header(header), data(header->nx, vector<float>(header->ny)), z(layer) {}
+Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : header(header), N(header->nx), M(header->ny), data(N, M), z(layer) {}
+
+Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data) {}
 
 void Image::set_z(unsigned int z) {
     this->z = z;
 }
 
-float Image::index(unsigned int x, unsigned int y) const {return data[x][y];}
-float& Image::index(unsigned int x, unsigned int y) {return data[x][y];}
+float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
+float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
 list<Atom> Image::generate_atoms(double cutoff) const {
+    if (header == nullptr) {throw except::invalid_operation("Error in Image::as_hist: Header must be initialized to use this method.");}
     list<Atom> atoms;
 
     // determine which comparison function to use
@@ -27,11 +31,11 @@ list<Atom> Image::generate_atoms(double cutoff) const {
     std::function<bool(double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
 
     // loop through all pixels in this image
-    double xscale = header->cella_x/header->nx;
-    double yscale = header->cella_y/header->ny;
+    double xscale = header->cella_x/N;
+    double yscale = header->cella_y/M;
     double zscale = header->cella_z/header->nz;
-    for (int x = 0; x < header->nx; x++) {
-        for (int y = 0; y < header->ny; y++) {
+    for (unsigned int x = 0; x < N; x++) {
+        for (unsigned int y = 0; y < M; y++) {
             float val = index(x, y);
             if (compare_func(val)) {
                 continue;
@@ -46,9 +50,10 @@ list<Atom> Image::generate_atoms(double cutoff) const {
 }
 
 std::unique_ptr<TH2D> Image::as_hist() const {
+    if (header == nullptr) {throw except::invalid_operation("Error in Image::as_hist: Header must be initialized to use this method.");}
     std::unique_ptr<TH2D> hist = std::make_unique<TH2D>("hist", "hist", header->nx, 0, header->cella_x, header->ny, 0, header->cella_y);
-    for (int x = 0; x < header->nx; x++) {
-        for (int y = 0; y < header->ny; y++) {
+    for (unsigned int x = 0; x < N; x++) {
+        for (unsigned int y = 0; y < M; y++) {
             hist->SetBinContent(x, y, index(x, y));
         }
     }
@@ -57,19 +62,19 @@ std::unique_ptr<TH2D> Image::as_hist() const {
 
 double Image::mean() const {
     double sum = 0;
-    for (int x = 0; x < header->nx; x++) {
-        for (int y = 0; y < header->ny; y++) {
+    for (unsigned int x = 0; x < N; x++) {
+        for (unsigned int y = 0; y < M; y++) {
             sum += index(x, y);
         }
     }
 
-    return sum/(header->nx * header->ny);
+    return sum/(N*M);
 }
 
 Limit Image::limits() const {
     double min = 1e9, max = -1e9;
-    for (int x = 0; x < header->nx; x++) {
-        for (int y = 0; y < header->ny; y++) {
+    for (unsigned int x = 0; x < N; x++) {
+        for (unsigned int y = 0; y < M; y++) {
             double val = index(x, y);
             min = std::min(min, val);
             max = std::max(max, val);
@@ -79,5 +84,26 @@ Limit Image::limits() const {
     return Limit(min, max);
 }
 
-vector<Limit> Image::minimum_area(double cutoff) const {
+MatrixBounds Image::minimum_area(double cutoff) const {
+    MatrixBounds bounds(N);
+
+    std::function<bool(double)> accept_positive = [&cutoff] (double val) {return val > cutoff;};
+    std::function<bool(double)> accept_negative = [&cutoff] (double val) {return val < cutoff;};
+    std::function<bool(double)> accept_func = 0 <= cutoff ? accept_positive : accept_negative;
+
+    for (unsigned int x = 0; x < N; x++) {
+        bool min_set = false;
+        for (unsigned int y = 0; y < M; y++) {
+            if (!accept_func(index(x, y))) {continue;}
+            if (!min_set) {
+                bounds[x].min = y; // update min val to this index
+                bounds[x].max = y; // also set max in case this is the only entry
+                min_set = true;
+            } else {
+                bounds[x].max = y;
+            }
+        }
+    }
+
+    return bounds;
 }

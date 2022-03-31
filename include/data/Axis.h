@@ -14,6 +14,11 @@ using std::vector;
  */
 struct Limit {
     /**
+     * @brief Default constructor.
+     */
+    Limit() : min(0), max(0) {}
+
+    /**
      * @brief Constructor. 
      * 
      * @param min Minimum value of the limit. 

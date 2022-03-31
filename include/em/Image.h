@@ -9,8 +9,27 @@
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
 #include <ScatteringHistogram.h>
+#include <math/Matrix.h>
 
-using std::vector, std::list;
+/**
+ * @brief Describes the bounds of some object contained within a 2D matrix. 
+ */
+class MatrixBounds {
+    public:
+        MatrixBounds(unsigned int size) : bounds(size) {}
+
+        Limit& get_bounds(unsigned int x) {return bounds[x];}
+        
+        void set_bounds(unsigned int x, const Limit& bounds) {this->bounds[x] = bounds;}
+
+        Limit& operator[](unsigned int x) {return bounds[x];}
+
+        const Limit& operator[](unsigned int x) const {return bounds[x];}
+
+        unsigned int size() const {return bounds.size();}
+
+        vector<Limit> bounds;
+};
 
 namespace em {
     /**
@@ -28,11 +47,13 @@ namespace em {
              */
             Image(std::shared_ptr<ccp4::Header> header, unsigned int layer = 0);
 
+            Image(const Matrix<float>& data);
+
             ~Image() = default;
 
             std::unique_ptr<TH2D> as_hist() const;
 
-            list<Atom> generate_atoms(double cutoff) const;
+            std::list<Atom> generate_atoms(double cutoff) const;
 
             /**
              * @brief Set the z location of this object. 
@@ -57,16 +78,16 @@ namespace em {
              * 
              * @return A vector containing the minimum and maximum x-indices covering the area. 
              */
-            vector<Limit> minimum_area(double cutoff) const;
+            MatrixBounds minimum_area(double cutoff) const;
 
             float index(unsigned int x, unsigned int y) const;
             float& index(unsigned int x, unsigned int y);
 
         private:
             std::shared_ptr<ccp4::Header> header;
-            vector<vector<float>> data; // The actual data storage. 
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
+            Matrix<float> data; // The actual data storage. 
             unsigned int z; // The z-index of this image in the ImageStack. 
     };
 }
