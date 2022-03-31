@@ -11,8 +11,7 @@
 #include <math/Slice.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
-
-class LUPDecomposition;
+#include <math/LUPDecomposition.h>
 
 template<typename Q>
 class Matrix {
