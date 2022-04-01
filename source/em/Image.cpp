@@ -95,7 +95,7 @@ const ObjectBounds2D& Image::setup_bounds(double cutoff) {
 
     for (unsigned int x = 0; x < N; x++) {
         bounds[x].min = 0;
-        bounds[x].max = M-1;
+        bounds[x].max = 0;
         bool min_set = false;
         for (unsigned int y = 0; y < M; y++) {
             if (!accept_func(index(x, y))) {continue;}

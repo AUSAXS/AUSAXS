@@ -3,6 +3,11 @@
 #include <algorithm>
 #include <filesystem>
 
+//! ##### Remove ##### !
+#include <chrono>
+using namespace std::chrono;
+//! ################## !
+
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
 #include <em/ImageStack.h>
@@ -77,7 +82,10 @@ std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
 }
 
 ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
+    auto start = high_resolution_clock::now();
     std::unique_ptr<Protein> protein = create_protein(cutoff);
+    auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
+    std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
     // protein->generate_new_hydration();
     return protein->get_histogram();
 }
@@ -98,9 +106,14 @@ void ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     // fit function
     unsigned int counter = 0;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
+        std::cout << "\nStep " << ++counter << std::endl;
+        auto start = high_resolution_clock::now();
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->chi2;
-        std::cout << ++counter << ": " << params[0] << " with chi2: " << val << std::endl;
+        auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
+        std::cout << "\tTotal time: " << duration.count() << std::endl;
+
+        std::cout << "\tEvaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 
 

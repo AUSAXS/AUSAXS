@@ -27,16 +27,16 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
     em::ImageStack image("data/native10.ccp4");
 
     ObjectBounds3D bounds = image.minimum_volume(1);
-    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+    std::cout << "Cutoff = 1: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 
     bounds = image.minimum_volume(2);
-    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+    std::cout << "Cutoff = 2: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 
     bounds = image.minimum_volume(3);
-    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+    std::cout << "Cutoff = 3: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 
     bounds = image.minimum_volume(4);
-    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+    std::cout << "Cutoff = 4: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 }
 
 TEST_CASE("plot_pdb_as_points", "[em],[files]") {
@@ -114,6 +114,59 @@ TEST_CASE("minimum_area", "[em]") {
         CHECK(bounds[4].max == 5);
         CHECK(bounds[5].min == 1);
         CHECK(bounds[5].max == 4);
+    }
+
+    SECTION("complicated_bounds") {
+        Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
+        em::Image image2(data2);
+
+        // cutoff = 1
+        ObjectBounds2D bounds = image2.setup_bounds(1);
+        REQUIRE(bounds.size() == 6);
+        CHECK(bounds[0].min == 1);
+        CHECK(bounds[0].max == 5);
+        CHECK(bounds[1].min == 1);
+        CHECK(bounds[1].max == 4);
+        CHECK(bounds[2].min == 1);
+        CHECK(bounds[2].max == 4);
+        CHECK(bounds[3].min == 0);
+        CHECK(bounds[3].max == 4);
+        CHECK(bounds[4].min == 1);
+        CHECK(bounds[4].max == 4);
+        CHECK(bounds[5].min == 0);
+        CHECK(bounds[5].max == 5);
+
+        // cutoff = 2
+        bounds = image2.setup_bounds(2);
+        REQUIRE(bounds.size() == 6);
+        CHECK(bounds[0].min == 2);
+        CHECK(bounds[0].max == 4);
+        CHECK(bounds[1].min == 1);
+        CHECK(bounds[1].max == 4);
+        CHECK(bounds[2].min == 2);
+        CHECK(bounds[2].max == 2);
+        CHECK(bounds[3].min == 0);
+        CHECK(bounds[3].max == 3);
+        CHECK(bounds[4].min == 2);
+        CHECK(bounds[4].max == 2);
+        CHECK(bounds[5].min == 0);
+        CHECK(bounds[5].max == 3);
+
+        // cutoff = 3
+        bounds = image2.setup_bounds(2);
+        REQUIRE(bounds.size() == 6);
+        CHECK(bounds[0].min == 3);
+        CHECK(bounds[0].max == 3);
+        CHECK(bounds[1].min == 1);
+        CHECK(bounds[1].max == 4);
+        CHECK(bounds[2].min == 0);
+        CHECK(bounds[2].max == 0);
+        CHECK(bounds[3].min == 3);
+        CHECK(bounds[3].max == 3);
+        CHECK(bounds[4].min == 0);
+        CHECK(bounds[4].max == 0);
+        CHECK(bounds[5].min == 0);
+        CHECK(bounds[5].max == 2);
     }
 
     SECTION("correct_bounded_area") {
