@@ -10,9 +10,9 @@
 using namespace em;
 using std::list, std::vector;
 
-Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : header(header), N(header->nx), M(header->ny), data(N, M), z(layer) {}
+Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(header->nx), M(header->ny), header(header), data(N, M), z(layer), bounds(N, M) {}
 
-Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data) {}
+Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), bounds(N, M) {}
 
 void Image::set_z(unsigned int z) {
     this->z = z;
@@ -35,7 +35,7 @@ list<Atom> Image::generate_atoms(double cutoff) const {
     double yscale = header->cella_y/M;
     double zscale = header->cella_z/header->nz;
     for (unsigned int x = 0; x < N; x++) {
-        for (unsigned int y = 0; y < M; y++) {
+        for (unsigned int y = bounds[x].min; y < bounds[x].max; y++) {
             float val = index(x, y);
             if (compare_func(val)) {
                 continue;
@@ -84,14 +84,18 @@ Limit Image::limits() const {
     return Limit(min, max);
 }
 
-MatrixBounds Image::minimum_area(double cutoff) const {
-    MatrixBounds bounds(N);
+const ObjectBounds2D& Image::get_bounds() const {
+    return bounds;
+}
 
+const ObjectBounds2D& Image::setup_bounds(double cutoff) {
     std::function<bool(double)> accept_positive = [&cutoff] (double val) {return val > cutoff;};
     std::function<bool(double)> accept_negative = [&cutoff] (double val) {return val < cutoff;};
     std::function<bool(double)> accept_func = 0 <= cutoff ? accept_positive : accept_negative;
 
     for (unsigned int x = 0; x < N; x++) {
+        bounds[x].min = 0;
+        bounds[x].max = M-1;
         bool min_set = false;
         for (unsigned int y = 0; y < M; y++) {
             if (!accept_func(index(x, y))) {continue;}

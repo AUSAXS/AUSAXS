@@ -61,7 +61,7 @@ memtest/%: $(shell find source/ -print) test/memtest.cpp
 
 test/%: $(shell find source/ -print) test/%.cpp
 	@ make -C build test -j${cmake_threads}
-	build/test [$(*F)] $(exclude_tags) ${tags}
+	build/test [$(*F)] ${tags}
 
 tests: $(shell find source/ -print) $(shell find test/ -print) build/Makefile
 	@ make -C build test -j${cmake_threads}

@@ -16,6 +16,11 @@
 using namespace setting::em;
 using namespace em;
 
+ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution, CullingStrategyChoice csc) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {
+    data = images;
+    setup(csc);
+}
+
 ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoice csc) : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution) {
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
@@ -26,6 +31,8 @@ ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoi
 }
 
 void ImageStack::setup(CullingStrategyChoice csc) {
+    determine_staining();
+
     switch (csc) {
         case CullingStrategyChoice::NoStrategy:
             culler = std::make_unique<NoCulling>();
@@ -47,7 +54,7 @@ Image& ImageStack::image(unsigned int layer) {return data[layer];}
 
 const Image& ImageStack::image(unsigned int layer) const {return data[layer];}
 
-size_t ImageStack::size() const {return header->nz;}
+size_t ImageStack::size() const {return size_z;}
 
 const vector<Image>& ImageStack::images() const {return data;}
 
@@ -67,29 +74,6 @@ std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
 std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
     std::cout << "Error in ImageStack::create_grid: Not implemented yet. " << std::endl;
     exit(1);
-
-    vector<Atom> atoms;
-    atoms.reserve(header->nx);
-
-    double xscale = header->cella_x/header->nx;
-    double yscale = header->cella_y/header->ny;
-    double zscale = header->cella_z/header->nz;
-    for (int x = 0; x < header->nx; x++) {
-        for (int y = 0; y < header->ny; y++) {
-            for (int z = 0; z < header->nz; z++) {
-                float val = index(x, y, z);
-                if (val < cutoff) {
-                    continue;
-                }
-
-                Vector3 coords{x*xscale, y*yscale, z*zscale};
-                atoms.push_back(Atom(coords, val, "C", "C", 0));
-            }
-        }
-    }
-
-    Protein protein(atoms);
-    return std::make_unique<Grid>(atoms);
 }
 
 ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
@@ -98,17 +82,19 @@ ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
     return protein->get_histogram();
 }
 
-void ImageStack::fit(const ScatteringHistogram& h) const {
+void ImageStack::fit(const ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
+    determine_minimum_bounds();
     fit_helper(fitter);
 }
 
-void ImageStack::fit(string filename) const {
+void ImageStack::fit(string filename) {
     SimpleIntensityFitter fitter(filename);
+    determine_minimum_bounds();
     fit_helper(fitter);
 }
 
-void ImageStack::fit_helper(SimpleIntensityFitter& fitter) const {
+void ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     // fit function
     unsigned int counter = 0;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
@@ -150,17 +136,19 @@ size_t ImageStack::get_byte_size() const {
 }
 
 void ImageStack::read(std::ifstream& istream, size_t byte_size) {
-    data = vector<Image>(header->nz, Image(header));
-    for (int i = 0; i < header->nx; i++) {
-        for (int j = 0; j < header->ny; j++) {
-            for (int k = 0; k < header->nz; k++) {
+    size_x = header->nx; size_y = header->ny; size_z = header->nz;
+
+    data = vector<Image>(size_z, Image(header));
+    for (unsigned int i = 0; i < size_x; i++) {
+        for (unsigned int j = 0; j < size_y; j++) {
+            for (unsigned int k = 0; k < size_z; k++) {
                 istream.read(reinterpret_cast<char*>(&index(i, j, k)), byte_size);
             }
         }
     }
 
     // set z values
-    for (int z = 0; z < header->nz; z++) {
+    for (unsigned int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
 }
@@ -183,16 +171,18 @@ Limit ImageStack::get_limits() const {
 
 double ImageStack::mean() const {
     double sum = 0;
-    for (int z = 0; z < header->nz; z++) {
+    for (unsigned int z = 0; z < size_z; z++) {
         sum += image(z).mean();
     }
-    return sum/header->nz;
+    return sum/size_z;
 }
 
-bool ImageStack::is_positively_stained() const {
+bool ImageStack::is_positively_stained() const {return staining > 0;}
+
+void ImageStack::determine_staining() {
     // we count how many images where the maximum density is positive versus negative
     double sign = 0;
-    for (int z = 0; z < header->nz; z++) {
+    for (unsigned int z = 0; z < size_z; z++) {
         Limit limit = image(z).limits();
         double min = std::abs(limit.min), max = std::abs(limit.max);
         if (1 <= min && max+1 < min) {
@@ -201,5 +191,22 @@ bool ImageStack::is_positively_stained() const {
             sign++;
         }
     }
-    return sign > 0;
+
+    // set the staining type so we don't have to calculate it again later
+    if (sign > 0) {staining = 1;}
+    else {staining = -1;}
+}
+
+ObjectBounds3D ImageStack::minimum_volume(double cutoff) {
+    ObjectBounds3D bounds(size_x, size_y, size_z);
+    for (unsigned int z = 0; z < size_z; z++) {
+        bounds[z] = image(z).setup_bounds(cutoff);
+    }
+
+    return bounds;
+}
+
+void ImageStack::determine_minimum_bounds() {
+    double cutoff = is_positively_stained() ? 1 : -1;
+    std::for_each(data.begin(), data.end(), [&cutoff] (Image& image) {image.setup_bounds(cutoff);});
 }

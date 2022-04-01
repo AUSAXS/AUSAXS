@@ -28,6 +28,13 @@ namespace em {
             ImageStack(string file, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
 
             /**
+             * @brief Constructor.
+             * 
+             * @param resolution 
+             */
+            ImageStack(const vector<Image>& images, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
+
+            /**
              * @brief Destructor.
              */
             ~ImageStack() = default;
@@ -37,14 +44,14 @@ namespace em {
              * 
              * @param filename Path to the measurement file. 
              */
-            void fit(string filename) const;
+            void fit(string filename);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            void fit(const ScatteringHistogram& h) const;
+            void fit(const ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -122,12 +129,26 @@ namespace em {
              */
             double mean() const;
 
+            ObjectBounds3D minimum_volume(double cutoff);
+
         private:
             std::string filename;
             std::shared_ptr<ccp4::Header> header;
             vector<Image> data;
             std::unique_ptr<em::CullingStrategy> culler;
             unsigned int resolution;
+            int staining = 0; // 0 if not determined yet, -1 if negatively stained, +1 if positively stained
+            unsigned int size_x, size_y, size_z;
+
+            /**
+             * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
+             */
+            void determine_minimum_bounds();
+
+            /**
+             * @brief Determine what type of staining (positive or negative) was used by analyzing the map.
+             */
+            void determine_staining();
 
             void read(std::ifstream& istream, size_t byte_size);
 
@@ -143,9 +164,10 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            void fit_helper(SimpleIntensityFitter& fitter) const;
+            void fit_helper(SimpleIntensityFitter& fitter);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
+
             float index(unsigned int x, unsigned int y, unsigned int z) const;
     };
 }

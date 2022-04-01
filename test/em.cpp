@@ -18,8 +18,25 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::protein::use_effective_charge = false;
     em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
-
     image.fit(protein.get_histogram());
+}
+
+TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
+    setting::fit::q_high = 0.4;
+    setting::protein::use_effective_charge = false;
+    em::ImageStack image("data/native10.ccp4");
+
+    ObjectBounds3D bounds = image.minimum_volume(1);
+    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+
+    bounds = image.minimum_volume(2);
+    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+
+    bounds = image.minimum_volume(3);
+    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
+
+    bounds = image.minimum_volume(4);
+    std::cout << "Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 }
 
 TEST_CASE("plot_pdb_as_points", "[em],[files]") {
@@ -67,33 +84,56 @@ TEST_CASE("minimum_area", "[em]") {
     Matrix data = Matrix<float>{{0, -5, -5, -5, 0, 0}, {0, -5, 5, 5, 0, 0}, {0, 0, 5, 5, 0, 0}, {0, 5, 0, 0, 5, 0}, {0, 5, 5, 5, 0, 0}, {0, -5, 0, 5, -5, 0}};
     em::Image image(data);
 
-    MatrixBounds bounds = image.minimum_area(1);
-    REQUIRE(bounds.size() == 6);
-    CHECK(bounds[0].min == 0);
-    CHECK(bounds[0].max == 0);
-    CHECK(bounds[1].min == 2);
-    CHECK(bounds[1].max == 3);
-    CHECK(bounds[2].min == 2);
-    CHECK(bounds[2].max == 3);
-    CHECK(bounds[3].min == 1);
-    CHECK(bounds[3].max == 4);
-    CHECK(bounds[4].min == 1);
-    CHECK(bounds[4].max == 3);
-    CHECK(bounds[5].min == 3);
-    CHECK(bounds[5].max == 3);
+    SECTION("correct_bounds") {
+        ObjectBounds2D bounds = image.setup_bounds(1);
+        REQUIRE(bounds.size() == 6);
+        CHECK(bounds[0].min == 0);
+        CHECK(bounds[0].max == 5);
+        CHECK(bounds[1].min == 2);
+        CHECK(bounds[1].max == 3);
+        CHECK(bounds[2].min == 2);
+        CHECK(bounds[2].max == 3);
+        CHECK(bounds[3].min == 1);
+        CHECK(bounds[3].max == 4);
+        CHECK(bounds[4].min == 1);
+        CHECK(bounds[4].max == 3);
+        CHECK(bounds[5].min == 3);
+        CHECK(bounds[5].max == 3);
 
-    bounds = image.minimum_area(-1);
-    REQUIRE(bounds.size() == 6);
-    CHECK(bounds[0].min == 1);
-    CHECK(bounds[0].max == 3);
-    CHECK(bounds[1].min == 1);
-    CHECK(bounds[1].max == 1);
-    CHECK(bounds[2].min == 0);
-    CHECK(bounds[2].max == 0);
-    CHECK(bounds[3].min == 0);
-    CHECK(bounds[3].max == 0);
-    CHECK(bounds[4].min == 0);
-    CHECK(bounds[4].max == 0);
-    CHECK(bounds[5].min == 1);
-    CHECK(bounds[5].max == 4);
+        bounds = image.setup_bounds(-1);
+        REQUIRE(bounds.size() == 6);
+        CHECK(bounds[0].min == 1);
+        CHECK(bounds[0].max == 3);
+        CHECK(bounds[1].min == 1);
+        CHECK(bounds[1].max == 1);
+        CHECK(bounds[2].min == 0);
+        CHECK(bounds[2].max == 5);
+        CHECK(bounds[3].min == 0);
+        CHECK(bounds[3].max == 5);
+        CHECK(bounds[4].min == 0);
+        CHECK(bounds[4].max == 5);
+        CHECK(bounds[5].min == 1);
+        CHECK(bounds[5].max == 4);
+    }
+
+    SECTION("correct_bounded_area") {
+        ObjectBounds2D bounds = image.setup_bounds(1);
+        CHECK(bounds.total_area() == 6*6);
+        CHECK(bounds.bounded_area() == 18);
+
+        bounds = image.setup_bounds(-1);
+        CHECK(bounds.bounded_area() == 26);
+    }
+
+    SECTION("correct_bounds_imagestack") {
+        Matrix data2 = Matrix<float>{{0, -5, -5, -5, 0, 0}, {0, -5, 5, 5, 0, 0}, {0, 0, 5, 5, 0, 0}, {0, 5, 0, 0, 5, 0}, {0, 5, 5, 5, 0, 0}, {0, -5, 0, 5, -5, 0}};
+        em::ImageStack images({data, data2});
+        
+        ObjectBounds3D bounds = images.minimum_volume(1);
+        CHECK(bounds.total_volume() == 2*6*6);
+        CHECK(bounds.bounded_volume() == 36);
+
+        bounds = images.minimum_volume(-1);
+        CHECK(bounds.bounded_volume() == 52);
+    }
 }

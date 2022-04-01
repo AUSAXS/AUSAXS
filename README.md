@@ -1,4 +1,5 @@
 # Todo
+ * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
  * [ ] Memory test all other executables.
