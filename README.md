@@ -1,4 +1,5 @@
 # Todo
+ * [ ] EM: Make a single plot showing the evolution of best fits for files with resolution between 10 and 25. Maybe do both best fit and just use the cutoff value from 10. 
  * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
