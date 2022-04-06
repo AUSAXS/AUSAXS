@@ -172,3 +172,11 @@ std::tuple<vector<double>, vector<double>, vector<double>> SimpleIntensityFitter
     }
     return std::make_tuple(q, I, sigma);
 }
+
+unsigned int SimpleIntensityFitter::degrees_of_freedom() const {
+    return qo.size() - 2;
+}
+
+unsigned int SimpleIntensityFitter::dof() const {
+    return degrees_of_freedom();
+}

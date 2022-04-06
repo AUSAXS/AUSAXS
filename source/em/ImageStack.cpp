@@ -2,6 +2,7 @@
 #include <list>
 #include <algorithm>
 #include <filesystem>
+#include <cmath>
 
 //! ##### Remove ##### !
 #include <chrono>
@@ -82,27 +83,31 @@ std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
 }
 
 ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
-    auto start = high_resolution_clock::now();
+    // auto start = high_resolution_clock::now();
     std::unique_ptr<Protein> protein = create_protein(cutoff);
-    auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
-    std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
+    // auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
+    // std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
     // protein->generate_new_hydration();
     return protein->get_histogram();
 }
 
-void ImageStack::fit(const ScatteringHistogram& h) {
+ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) const {
+    return get_histogram(res->params.at("cutoff"));
+}
+
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
     determine_minimum_bounds();
-    fit_helper(fitter);
+    return fit_helper(fitter);
 }
 
-void ImageStack::fit(string filename) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
     SimpleIntensityFitter fitter(filename);
     determine_minimum_bounds();
-    fit_helper(fitter);
+    return fit_helper(fitter);
 }
 
-void ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     // fit function
     unsigned int counter = 0;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
@@ -129,19 +134,17 @@ void ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     minimizer->SetPrintLevel(2);
     minimizer->Minimize();
     const double* result = minimizer->X();
+    const double* errs = minimizer->Errors();
 
-    // set optimal cutoff
-    std::cout << "Optimal cutoff is " << result[0] << std::endl;
-    fitter.set_scattering_hist(get_histogram(result[0]));
-    fitter.fit();
+    shared_ptr<EMFit> res = std::make_shared<EMFit>();
+    res->params = {{"cutoff", result[0]}};
+    res->errs = {{"cutoff", errs[0]}};
+    res->dof = fitter.dof() - 1;
+    res->chi2 = minimizer->MinValue();
+    res->calls = minimizer->NCalls();
+    res->converged = minimizer->Status() == 0;
 
-    // Fit plot
-    plots::PlotIntensityFit plot_f(fitter);
-    plot_f.save("em_intensity_fit." + setting::figures::format);
-
-    // Residual plot
-    plots::PlotIntensityFitResiduals plot_r(fitter);
-    plot_r.save("em_residuals." + setting::figures::format);
+    return res;
 }
 
 size_t ImageStack::get_byte_size() const {

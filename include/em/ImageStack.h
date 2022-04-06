@@ -20,6 +20,8 @@ namespace em {
      */
     class ImageStack {
         public:
+            class EMFit : public Fitter::Fit {using Fitter::Fit::Fit;};
+
             /**
              * @brief Constructor.
              * 
@@ -44,14 +46,14 @@ namespace em {
              * 
              * @param filename Path to the measurement file. 
              */
-            void fit(string filename);
+            std::shared_ptr<EMFit> fit(string filename);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            void fit(const ScatteringHistogram& h);
+            std::shared_ptr<EMFit> fit(const ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -71,6 +73,11 @@ namespace em {
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
             ScatteringHistogram get_histogram(double cutoff) const;
+
+            /**
+             * @brief Get the fitted ScatteringHistogram.
+             */
+            ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
 
             /**
              * @brief Create a new Grid based on this object. 
@@ -164,7 +171,7 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            void fit_helper(SimpleIntensityFitter& fitter);
+            std::shared_ptr<EMFit> fit_helper(SimpleIntensityFitter& fitter);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 

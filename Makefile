@@ -51,6 +51,20 @@ intensity_fit/%: build/executable/intensity_fitter
 	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
 
 #################################################################################
+###			     SIMULATIONS					 ###
+#################################################################################
+resolution = 25
+simulate/%: data/%.pdb
+	@phenix.fmodel data/$*.pdb high_resolution=$(resolution)
+	@phenix.mtz2map mtz_file=$*.pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$*
+	@rm $*.pdb.mtz
+	@mv $*_fmodel.ccp4 sim/$*_$(resolution).ccp4
+
+stuff/%: build/executable/stuff data/%.pdb
+	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4 sim/native_24.ccp4 sim/native_25.ccp4
+#	@$< data/$*.pdb $(shell find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
+
+#################################################################################
 ###				TESTS						 ###
 #################################################################################
 tags := ""

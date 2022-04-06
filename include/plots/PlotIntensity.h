@@ -14,19 +14,26 @@ namespace plots {
        * 
        * @param d The ScatteringHistogram to be plotted. 
        */
-      PlotIntensity(const ScatteringHistogram& d);
+      PlotIntensity(const ScatteringHistogram& d, int color = kBlack);
 
       /**
        * @brief Move constructor.
        * 
        * @param d The ScatteringHistogram to be plotted. 
        */
-      PlotIntensity(ScatteringHistogram&& d);
+      PlotIntensity(ScatteringHistogram&& d, int color = kBlack);
+
+      /**
+       * @brief Constructor.
+       * 
+       * @param d The dataset to be plotted.
+       */
+      PlotIntensity(const SAXSDataset& d, int color = kBlack);
 
       /**
        * @brief Plot an additional data set as points. 
        */
-      void plot_intensity(const Dataset& data, EColor color = kBlack);
+      void plot_intensity(const Dataset& data, int color = kBlack, double alpha = 1);
 
       /**
        * @brief Destructor.
@@ -44,7 +51,7 @@ namespace plots {
       unique_ptr<TPad> logpad;
       double ymin, ymax;
 
-      void plot_intensity();
+      void plot_intensity(int color);
 
       void prepare_canvas();
   };

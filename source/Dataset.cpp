@@ -62,6 +62,8 @@ void Dataset::reduce(unsigned int target, bool log) {
 
     x = std::move(new_x);
     y = std::move(new_y);
+
+    draw_as_line = false;
 }
 
 std::size_t Dataset::size() const {return x.size();}

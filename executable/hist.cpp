@@ -10,6 +10,7 @@
 
 int main(int argc, char const *argv[]) { 
     CLI::App app{"Generate a distance histogram and a scattering intensity plot for a given input data file."};
+    app.prefix_command(false);
 
     std::string input, output, placement_strategy;
     app.add_option("input", input, "Path to the data file.")->required()->check(CLI::ExistingFile);

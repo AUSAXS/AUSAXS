@@ -135,6 +135,16 @@ class SimpleIntensityFitter : public Fitter {
      */
     void set_scattering_hist(ScatteringHistogram&& h);
 
+    /**
+     * @brief Get the number of degrees of freedom. 
+     */
+    unsigned int degrees_of_freedom() const;
+
+    /**
+     * @brief Get the number of degrees of freedom. 
+     */
+    unsigned int dof() const;
+
   protected: 
     shared_ptr<Fit> fitted;
     vector<double> qo; // observed q values

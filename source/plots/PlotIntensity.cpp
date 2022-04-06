@@ -1,4 +1,5 @@
 #include <plots/PlotIntensity.h>
+#include <Exceptions.h>
 
 #include <TLegend.h>
 #include <TH1D.h>
@@ -10,19 +11,28 @@
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
-plots::PlotIntensity::PlotIntensity(ScatteringHistogram&& d) : Plot(), d(std::move(d)) {
+plots::PlotIntensity::PlotIntensity(ScatteringHistogram&& d, int color) : Plot(), d(std::move(d)) {
     prepare_canvas();
+    plot_intensity(color);
 }
 
-plots::PlotIntensity::PlotIntensity(const ScatteringHistogram& d) : Plot(), d(d) {
+plots::PlotIntensity::PlotIntensity(const ScatteringHistogram& d, int color) : Plot(), d(d) {
     prepare_canvas();
+    plot_intensity(color);
 }
 
-void plots::PlotIntensity::plot_intensity() {
+plots::PlotIntensity::PlotIntensity(const SAXSDataset& d, int color) : Plot() {
+    prepare_canvas();
+    plot_intensity(d, color);
+}
+
+void plots::PlotIntensity::plot_intensity(int color) {
+    if (d.q.empty()) {throw except::invalid_operation("Error in PlotIntensity::plot_intensity: Class was not initialized with a histogram, and it has not been manually set.");}
+
     // Debye scattering intensity
     auto hI_debye = d.plot_debye_scattering();
     hI_debye->SetLineWidth(3);
-    hI_debye->SetLineColor(kOrange+1);
+    hI_debye->SetLineColor(color);
     ymin = hI_debye->GetMinimum();
     ymax = hI_debye->GetMaximum();
     hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
@@ -36,15 +46,22 @@ void plots::PlotIntensity::plot_intensity() {
     hI_debye->DrawClone("HIST L");
 }
 
-void plots::PlotIntensity::plot_intensity(const Dataset& data, EColor color) {
+void plots::PlotIntensity::plot_intensity(const Dataset& data, int color, double alpha) {
     auto graphs = data.plot();
 
-    graphs->SetMarkerStyle(7);
-    graphs->SetMarkerColor(color);
-    graphs->DrawClone("SAME P");
+    if (data.draw_as_line) {
+        graphs->SetLineColorAlpha(color, alpha);
+        graphs->DrawClone("SAME L");
+    } else {
+        graphs->SetMarkerStyle(7);
+        graphs->SetMarkerColorAlpha(color, alpha);
+        graphs->DrawClone("SAME P");
+    }
 }
 
 void plots::PlotIntensity::plot_guinier_approx() {
+    if (d.q.empty()) {throw except::invalid_operation("Error in PlotIntensity::plot_guinier_approx: Class was not initialized with a histogram, and it has not been manually set.");}
+
     // Guinier approximation
     // we have to create a second drawing pad since our scattering intensity is now log10 I(q)
     canvas->cd();
@@ -90,5 +107,4 @@ void plots::PlotIntensity::prepare_canvas() {
 
     linpad->Draw();
     linpad->cd();
-    plot_intensity();
 }

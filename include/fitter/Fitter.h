@@ -14,6 +14,7 @@ class Fitter {
   public:
     struct Fit {
         Fit() {}
+
         Fit(std::map<string, double>& params, std::map<string, double>& errs, const double chi2, const int dof, const int calls, const bool converged) : 
             params(params), errs(errs), chi2(chi2), dof(dof), calls(calls), converged(converged) {}
 

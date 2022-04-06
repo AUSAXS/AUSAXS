@@ -94,6 +94,7 @@ class Dataset {
         std::vector<double> y;    // The y coordinates.
         std::vector<double> xerr; // The error in the x coordinates
         std::vector<double> yerr; // The error in the y coordinates
+        bool draw_as_line = true;
 
     private:
         void validate_sizes() const;
