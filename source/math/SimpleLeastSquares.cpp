@@ -4,12 +4,11 @@
 #include <utility>
 #include <memory>
 
-#include "fitter/Fitter.h"
-#include "math/SimpleLeastSquares.h"
+#include <fitter/Fitter.h>
+#include <math/SimpleLeastSquares.h>
+#include <Exceptions.h>
 
 #include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
-
-using std::vector, std::shared_ptr;
 
 std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
@@ -28,7 +27,7 @@ std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     return std::make_pair(a, b);
 }
 
-shared_ptr<Fitter::Fit> SimpleLeastSquares::fit() {
+std::shared_ptr<Fitter::Fit> SimpleLeastSquares::fit() {
     if (delta == 0) {fit_params_only();}
     double a_err2 = S/delta; // squared sigmas
     double b_err2 = Sxx/delta; 
@@ -36,9 +35,9 @@ shared_ptr<Fitter::Fit> SimpleLeastSquares::fit() {
     // double cov_ab = -Sx/delta;
     double Q = ROOT::Math::inc_gamma((double) x.size()/2 -1, chi2()/2);
 
-    shared_ptr<Fit> f = std::make_shared<Fit>();
+    std::shared_ptr<Fit> f = std::make_shared<Fit>();
     f->params = {{"a", a}, {"b", b}};
-    f->errs = {{"a", sqrt(a_err2)}, {"b", sqrt(b_err2)}};
+    f->errors = {{"a", sqrt(a_err2)}, {"b", sqrt(b_err2)}};
     f->dof = x.size() - 2;
     f->chi2 = chi2();
     f->calls = 1;
@@ -53,3 +52,13 @@ double SimpleLeastSquares::chi2() const {
     }
     return chi;
 }
+
+std::vector<std::shared_ptr<TGraph>> SimpleLeastSquares::plot() {
+    throw except::unexpected("Error in SimpleLeastSquares::plot: Not implemented.");
+}
+
+std::unique_ptr<TGraphErrors> SimpleLeastSquares::plot_residuals() {
+    throw except::unexpected("Error in SimpleLeastSquares::plot_residuals: Not implemented.");
+}
+
+unsigned int SimpleLeastSquares::dof() const {return x.size() - 2;}

@@ -5,15 +5,22 @@
 #include <plots/PlotIntensity.h>
 #include <plots/PlotDistance.h>
 #include <Exceptions.h>
+#include <settings.h>
 
 using std::string;
 
 int main(int argc, char const *argv[]) {
     string pdb_file = argv[1];
 
+    // plot pdb file
     Protein protein(pdb_file);
-    plots::PlotIntensity plot(protein.get_histogram()); // plot actual curve
+    SAXSDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    data.reduce(setting::fit::N);
+    data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.simulate_errors();
+    plots::PlotIntensity plot(data);
 
+    // prepare fit colors
     setting::em::max_atoms = 2000;
     gStyle->SetPalette(kSolar);
     auto cols = TColor::GetPalette();

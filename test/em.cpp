@@ -1,6 +1,8 @@
 #include <em/ImageStack.h>
 #include <plots/PlotImage.h>
 #include <plots/PlotIntensity.h>
+#include <plots/PlotIntensityFit.h>
+#include <plots/PlotIntensityFitResiduals.h>
 #include <fitter/SimpleIntensityFitter.h>
 
 #include "catch2/catch.hpp"
@@ -16,9 +18,20 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    em::ImageStack image("data/native10.ccp4");
+    em::ImageStack image("data/native25.ccp4");
     Protein protein("data/native.pdb");
-    image.fit(protein.get_histogram());
+    auto res = image.fit(protein.get_histogram());
+
+    // set optimal cutoff
+    std::cout << "Optimal cutoff is " << res->params.at("cutoff") << std::endl;
+
+    // Fit plot
+    plots::PlotIntensityFit plot_f(res);
+    plot_f.save("em_intensity_fit." + setting::figures::format);
+
+    // Residual plot
+    plots::PlotIntensityFitResiduals plot_r(res);
+    plot_r.save("em_residuals." + setting::figures::format);
 }
 
 TEST_CASE("check_bound_savings", "[em],[files],[slow]") {

@@ -13,20 +13,20 @@ using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
 plots::PlotIntensity::PlotIntensity(ScatteringHistogram&& d, int color) : Plot(), d(std::move(d)) {
     prepare_canvas();
-    plot_intensity(color);
+    initial_intensity_plot(color);
 }
 
 plots::PlotIntensity::PlotIntensity(const ScatteringHistogram& d, int color) : Plot(), d(d) {
     prepare_canvas();
-    plot_intensity(color);
+    initial_intensity_plot(color);
 }
 
 plots::PlotIntensity::PlotIntensity(const SAXSDataset& d, int color) : Plot() {
     prepare_canvas();
-    plot_intensity(d, color);
+    initial_intensity_plot(d, color);
 }
 
-void plots::PlotIntensity::plot_intensity(int color) {
+void plots::PlotIntensity::initial_intensity_plot(int color) {
     if (d.q.empty()) {throw except::invalid_operation("Error in PlotIntensity::plot_intensity: Class was not initialized with a histogram, and it has not been manually set.");}
 
     // Debye scattering intensity
@@ -46,16 +46,33 @@ void plots::PlotIntensity::plot_intensity(int color) {
     hI_debye->DrawClone("HIST L");
 }
 
+void plots::PlotIntensity::initial_intensity_plot(const Dataset& data, int color) {
+    auto graph = data.plot();
+    graph->SetLineWidth(3);
+    graph->SetLineColor(color);
+    ymin = graph->GetYaxis()->GetXmin();
+    ymax = graph->GetYaxis()->GetXmax();
+    graph->GetYaxis()->SetRangeUser(ymin*0.9, ymax*1.1);
+    
+    // titles
+    graph->GetXaxis()->SetTitle("q");
+    graph->GetXaxis()->CenterTitle();
+    graph->GetYaxis()->SetTitle("Intensity");
+    graph->GetYaxis()->CenterTitle();
+    graph->GetYaxis()->SetTitleOffset(1.2);
+    graph->DrawClone("AP");
+}
+
 void plots::PlotIntensity::plot_intensity(const Dataset& data, int color, double alpha) {
-    auto graphs = data.plot();
+    auto graph = data.plot();
 
     if (data.draw_as_line) {
-        graphs->SetLineColorAlpha(color, alpha);
-        graphs->DrawClone("SAME L");
+        graph->SetLineColorAlpha(color, alpha);
+        graph->DrawClone("SAME L");
     } else {
-        graphs->SetMarkerStyle(7);
-        graphs->SetMarkerColorAlpha(color, alpha);
-        graphs->DrawClone("SAME P");
+        graph->SetMarkerStyle(7);
+        graph->SetMarkerColorAlpha(color, alpha);
+        graph->DrawClone("SAME P");
     }
 }
 

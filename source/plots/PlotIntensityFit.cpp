@@ -8,10 +8,27 @@
 #include <TH1D.h>
 #include <TLine.h>
 
-void plots::PlotIntensityFit::save(std::string path) const {
-    std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotIntensityFitCanvas", "canvas", 600, 600);
+plots::PlotIntensityFit::PlotIntensityFit(SimpleIntensityFitter& fitter) : Plot() {
+    prepare_canvas();
     auto graphs = fitter.plot();
+    plot(graphs);
+}
 
+plots::PlotIntensityFit::PlotIntensityFit(const Fitter::Fit& fit) : Plot() {
+    prepare_canvas();
+    plot(fit.normal_plot);
+}
+
+plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<Fitter::Fit> fit) : Plot() {
+    prepare_canvas();
+    plot(fit->normal_plot);
+}
+
+void plots::PlotIntensityFit::save(std::string path) const {
+    canvas->SaveAs(path.c_str());
+}
+
+void plots::PlotIntensityFit::plot(const std::vector<std::shared_ptr<TGraph>>& graphs) const {
     // use some nicer colors
     graphs[0]->SetLineColor(kBlack);
     graphs[1]->SetMarkerColor(kBlack);
@@ -30,14 +47,24 @@ void plots::PlotIntensityFit::save(std::string path) const {
     graphs[0]->GetYaxis()->CenterTitle();
 
     // draw the graphs
-    graphs[2]->Draw("AP"); // Point
-    graphs[0]->Draw("SAME P"); // Axes points
-    graphs[1]->Draw("SAME L"); // Line
+    graphs[2]->DrawClone("AP"); // Point
+    graphs[0]->DrawClone("SAME P"); // Axes points
+    graphs[1]->DrawClone("SAME L"); // Line
+}
 
-    // setup the canvas and save the plot
-    canvas->SetLogy();
-    canvas->SetLogx();
-    canvas->SetRightMargin(0.15);
-    canvas->SetLeftMargin(0.15);
-    canvas->SaveAs(path.c_str());
+void plots::PlotIntensityFit::prepare_canvas() {
+    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
+    linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
+
+    linpad->SetLeftMargin(0.19);
+    linpad->SetLogx();
+    linpad->SetLogy();
+
+    linpad->Draw();
+    linpad->cd();
+
+    // canvas->SetLogy();
+    // canvas->SetLogx();
+    // canvas->SetRightMargin(0.15);
+    // canvas->SetLeftMargin(0.15);
 }

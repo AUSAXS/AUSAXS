@@ -116,14 +116,14 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    virtual vector<shared_ptr<TGraph>> plot();
+    virtual vector<shared_ptr<TGraph>> plot() override;
 
     /**
      * @brief Make a residual plot of the fit.
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    virtual unique_ptr<TGraphErrors> plot_residuals();
+    virtual unique_ptr<TGraphErrors> plot_residuals() override;
 
     /**
      * @brief Change the scattering histogram used for the fit. 
@@ -143,7 +143,7 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Get the number of degrees of freedom. 
      */
-    unsigned int dof() const;
+    unsigned int dof() const override;
 
   protected: 
     shared_ptr<Fit> fitted;

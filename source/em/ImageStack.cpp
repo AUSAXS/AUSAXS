@@ -77,7 +77,7 @@ std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
     return std::make_unique<Protein>(v);
 }
 
-std::unique_ptr<Grid> ImageStack::create_grid(double cutoff) const {
+std::unique_ptr<Grid> ImageStack::create_grid(double) const {
     std::cout << "Error in ImageStack::create_grid: Not implemented yet. " << std::endl;
     exit(1);
 }
@@ -133,18 +133,11 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     minimizer->SetStrategy(2);
     minimizer->SetPrintLevel(2);
     minimizer->Minimize();
+
     const double* result = minimizer->X();
-    const double* errs = minimizer->Errors();
+    chi2(result);
 
-    shared_ptr<EMFit> res = std::make_shared<EMFit>();
-    res->params = {{"cutoff", result[0]}};
-    res->errs = {{"cutoff", errs[0]}};
-    res->dof = fitter.dof() - 1;
-    res->chi2 = minimizer->MinValue();
-    res->calls = minimizer->NCalls();
-    res->converged = minimizer->Status() == 0;
-
-    return res;
+    return std::make_shared<EMFit>(fitter, minimizer, minimizer->MinValue());
 }
 
 size_t ImageStack::get_byte_size() const {

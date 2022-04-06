@@ -51,7 +51,9 @@ namespace plots {
       unique_ptr<TPad> logpad;
       double ymin, ymax;
 
-      void plot_intensity(int color);
+      void initial_intensity_plot(int color);
+
+      void initial_intensity_plot(const Dataset& data, int color);
 
       void prepare_canvas();
   };

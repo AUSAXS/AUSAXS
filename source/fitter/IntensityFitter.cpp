@@ -38,12 +38,8 @@ shared_ptr<Fitter::Fit> IntensityFitter::fit() {
     // fit a, b
     SimpleLeastSquares fitter(Im, Io, sigma);
     std::shared_ptr<Fit> ab_fit = fitter.fit();
-    
-    bool converged = !minimizer->Status();
-    std::map<string, double> pars = {{"c", res[0]}, {"a", ab_fit->params["a"]}, {"b", ab_fit->params["b"]}};
-    std::map<string, double> errs = {{"c", res[0]}, {"a", ab_fit->errs["a"]}, {"b", ab_fit->errs["b"]}};
-    double funcalls = minimizer->NCalls();
-    fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
+
+    fitted = std::make_shared<Fit>(fitter, minimizer, minimizer->MinValue());
     minimizer->SetPrintLevel(3);
     minimizer->PrintResults();
     return fitted;

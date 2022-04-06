@@ -24,7 +24,21 @@ namespace plots {
        * 
        * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
        */
-      PlotIntensityFitResiduals(SimpleIntensityFitter& fitter) : Plot(), fitter(fitter) {}
+      PlotIntensityFitResiduals(SimpleIntensityFitter& fitter);
+
+      /**
+       * @brief Constructor.
+       * 
+       * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+       */
+      PlotIntensityFitResiduals(const Fitter::Fit& fit);
+
+      /**
+       * @brief Constructor.
+       * 
+       * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+       */
+      PlotIntensityFitResiduals(const std::shared_ptr<Fitter::Fit> fit);
 
       /**
        * @brief Destructor.
@@ -39,6 +53,10 @@ namespace plots {
       void save(std::string path) const override;
 
     private:
-      SimpleIntensityFitter& fitter;
+      std::unique_ptr<TCanvas> canvas;
+
+      void plot(const std::shared_ptr<TGraph> graph) const;
+
+      void prepare_canvas();
   };
 }

@@ -8,9 +8,27 @@
 #include <TH1D.h>
 #include <TLine.h>
 
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(SimpleIntensityFitter& fitter) : Plot() {
+    prepare_canvas();
+    std::shared_ptr<TGraph> graph = fitter.plot_residuals();
+    plot(graph);
+}
+
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const Fitter::Fit& fit) : Plot() {
+    prepare_canvas();
+    plot(fit.residual_plot);
+}
+
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_ptr<Fitter::Fit> fit) : Plot() {
+    prepare_canvas();
+    plot(fit->residual_plot);
+}
+
 void plots::PlotIntensityFitResiduals::save(std::string path) const {
-    std::unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotIntensityFitResidualsCanvas", "canvas", 600, 600);
-    std::unique_ptr<TGraphErrors> graph = fitter.plot_residuals();
+    canvas->SaveAs(path.c_str());
+}
+
+void plots::PlotIntensityFitResiduals::plot(const std::shared_ptr<TGraph> graph) const {
     std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph->GetXaxis()->GetXmax(), 0); // solid black line at x=0
 
     // use some nicer colors
@@ -20,10 +38,6 @@ void plots::PlotIntensityFitResiduals::save(std::string path) const {
 
     graph->SetMarkerStyle(7);
 
-    // draw the graphs
-    graph->Draw("AP");
-    line->Draw("SAME");
-
     // set titles
     graph->SetTitle("Residuals");
     graph->GetXaxis()->SetTitle("q");
@@ -32,10 +46,14 @@ void plots::PlotIntensityFitResiduals::save(std::string path) const {
     graph->GetYaxis()->SetTitle("Residual");
     graph->GetYaxis()->CenterTitle();
 
-    // setup the canvas and save the plot
-    canvas->SetTitle("Residuals");
+    // draw the graphs
+    graph->DrawClone("AP");
+    line->DrawClone("SAME");
+}
+
+void plots::PlotIntensityFitResiduals::prepare_canvas() {
+    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
     canvas->SetLogx();
     canvas->SetRightMargin(0.15);
     canvas->SetLeftMargin(0.15);
-    canvas->SaveAs(path.c_str());
 }
