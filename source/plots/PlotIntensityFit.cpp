@@ -53,18 +53,9 @@ void plots::PlotIntensityFit::plot(const std::vector<std::shared_ptr<TGraph>>& g
 }
 
 void plots::PlotIntensityFit::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
-    linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
-
-    linpad->SetLeftMargin(0.19);
-    linpad->SetLogx();
-    linpad->SetLogy();
-
-    linpad->Draw();
-    linpad->cd();
-
-    // canvas->SetLogy();
-    // canvas->SetLogx();
-    // canvas->SetRightMargin(0.15);
-    // canvas->SetLeftMargin(0.15);
+    canvas = std::make_unique<TCanvas>("PlotIntensityFitCanvas", "canvas", 600, 600);
+    canvas->SetLogy();
+    canvas->SetLogx();
+    canvas->SetRightMargin(0.15);
+    canvas->SetLeftMargin(0.15);
 }

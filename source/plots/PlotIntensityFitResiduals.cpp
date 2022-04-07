@@ -52,7 +52,7 @@ void plots::PlotIntensityFitResiduals::plot(const std::shared_ptr<TGraph> graph)
 }
 
 void plots::PlotIntensityFitResiduals::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
+    canvas = std::make_unique<TCanvas>("PlotIntensityFitResidualsCanvas", "canvas", 600, 600);
     canvas->SetLogx();
     canvas->SetRightMargin(0.15);
     canvas->SetLeftMargin(0.15);

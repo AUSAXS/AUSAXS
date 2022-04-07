@@ -9,12 +9,6 @@
 #include <string.h>
 #include <vector>
 
-#include <TLegend.h>
-#include <TH1D.h>
-#include <TLine.h>
-
-using std::unique_ptr, std::shared_ptr, std::string, std::vector;
-
 namespace plots {
 
   /**
@@ -60,7 +54,6 @@ namespace plots {
 
     private:
       std::unique_ptr<TCanvas> canvas;
-      std::unique_ptr<TPad> linpad;
 
       void plot(const std::vector<std::shared_ptr<TGraph>>& graphs) const;
 
