@@ -52,9 +52,10 @@ void plots::PlotIntensity::initial_intensity_plot(const Dataset& data, int color
     graph->SetLineColor(color);
     ymin = graph->GetYaxis()->GetXmin();
     ymax = graph->GetYaxis()->GetXmax();
-    graph->GetYaxis()->SetRangeUser(ymin*0.9, ymax*1.1);
     
     // titles
+    graph->GetHistogram()->SetMinimum(ymin*0.9);
+    graph->GetHistogram()->SetMaximum(ymax*1.1);
     graph->GetXaxis()->SetTitle("q");
     graph->GetXaxis()->CenterTitle();
     graph->GetYaxis()->SetTitle("Intensity");
@@ -66,6 +67,9 @@ void plots::PlotIntensity::initial_intensity_plot(const Dataset& data, int color
 void plots::PlotIntensity::plot_intensity(const Dataset& data, int color, double alpha) {
     auto graph = data.plot();
 
+    linpad->cd();
+    graph->GetHistogram()->SetMinimum(ymin*0.9);
+    graph->GetHistogram()->SetMaximum(ymax*1.1);
     if (data.draw_as_line) {
         graph->SetLineColorAlpha(color, alpha);
         graph->DrawClone("SAME L");
@@ -74,6 +78,16 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data, int color, double
         graph->SetMarkerColorAlpha(color, alpha);
         graph->DrawClone("SAME P");
     }
+}
+
+void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fitter::Fit> fit, int color, double alpha) {
+    auto graph = fit->normal_plot[1];
+
+    linpad->cd();
+    graph->GetHistogram()->SetMinimum(ymin*0.9);
+    graph->GetHistogram()->SetMaximum(ymax*1.1);
+    graph->SetLineColorAlpha(color, alpha);
+    graph->DrawClone("SAME L");
 }
 
 void plots::PlotIntensity::plot_guinier_approx() {

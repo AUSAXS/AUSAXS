@@ -39,12 +39,12 @@ void plots::PlotIntensityFit::plot(const std::vector<std::shared_ptr<TGraph>>& g
     graphs[2]->SetMarkerStyle(7);
 
     // set titles
-    graphs[0]->SetTitle("Fit");
-    graphs[0]->GetXaxis()->SetTitle("q");
-    graphs[0]->GetXaxis()->CenterTitle();
-    graphs[0]->GetXaxis()->SetTitleOffset(1.05);
-    graphs[0]->GetYaxis()->SetTitle("Intensity");
-    graphs[0]->GetYaxis()->CenterTitle();
+    graphs[2]->SetTitle("Fit");
+    graphs[2]->GetXaxis()->SetTitle("q");
+    graphs[2]->GetXaxis()->CenterTitle();
+    graphs[2]->GetXaxis()->SetTitleOffset(1.05);
+    graphs[2]->GetYaxis()->SetTitle("Intensity");
+    graphs[2]->GetYaxis()->CenterTitle();
 
     // draw the graphs
     graphs[2]->DrawClone("AP"); // Point

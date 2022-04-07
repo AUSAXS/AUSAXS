@@ -135,9 +135,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     minimizer->Minimize();
 
     const double* result = minimizer->X();
-    chi2(result);
-
-    return std::make_shared<EMFit>(fitter, minimizer, minimizer->MinValue());
+    return std::make_shared<EMFit>(fitter, minimizer, chi2(result));
 }
 
 size_t ImageStack::get_byte_size() const {

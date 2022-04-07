@@ -18,12 +18,18 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    em::ImageStack image("data/native25.ccp4");
+    setting::em::max_atoms = 50000;
+    em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
     // set optimal cutoff
     std::cout << "Optimal cutoff is " << res->params.at("cutoff") << std::endl;
+
+    // Fit intensity plot (debug, should be equal to the next one)
+    plots::PlotIntensity plot_i(protein.get_histogram(), kBlack);
+    plot_i.plot_intensity(res, kBlue);
+    plot_i.save("em_intensity.pdf");
 
     // Fit plot
     plots::PlotIntensityFit plot_f(res);

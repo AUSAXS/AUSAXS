@@ -119,7 +119,7 @@ void SAXSDataset::simulate_errors() {
     double base = y[0]+1;
     // std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return log10(base-val) + 1;});
     // std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return 20*log10(base-val)*std::sqrt(val) + 1;});
-    std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return std::sqrt(val);});
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&base] (double y, double x) {return 1000*std::pow(y, 0.25)/x;});
 }
 
 void SAXSDataset::set_resolution(unsigned int resolution) {

@@ -90,7 +90,8 @@ unique_ptr<TGraphErrors> SimpleIntensityFitter::plot_residuals() {
 
     // prepare the TGraph
     vector<double> xerr(sigma.size(), 0);
-    unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &sigma[0]);
+    // unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &sigma[0]);
+    unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &xerr[0]);
     return graph;
 }
 

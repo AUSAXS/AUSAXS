@@ -12,16 +12,19 @@ using std::string;
 int main(int argc, char const *argv[]) {
     string pdb_file = argv[1];
 
+    setting::protein::use_effective_charge = false;
+    setting::fit::q_high = 0.4;
+
     // plot pdb file
     Protein protein(pdb_file);
     SAXSDataset data = protein.get_histogram().calc_debye_scattering_intensity();
-    data.reduce(setting::fit::N);
+    data.reduce(setting::fit::N, true);
     data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
     data.simulate_errors();
     plots::PlotIntensity plot(data);
 
     // prepare fit colors
-    setting::em::max_atoms = 2000;
+    setting::em::max_atoms = 10000;
     gStyle->SetPalette(kSolar);
     auto cols = TColor::GetPalette();
 
@@ -29,8 +32,8 @@ int main(int argc, char const *argv[]) {
     for (int i = 2; i < argc; i++) {
         std::cout << "Now fitting " << argv[i] << "..." << std::endl;
         em::ImageStack image(argv[i]);
-        auto fit = image.fit(pdb_file);
-        plot.plot_intensity(image.get_histogram(fit).calc_debye_scattering_intensity(), cols.At(color_step*(i-1)));
+        auto fit = image.fit(protein.get_histogram());
+        plot.plot_intensity(fit, cols.At(color_step*(i-1)));
     }
 
     plot.save("figures/stuff.pdf");

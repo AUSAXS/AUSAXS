@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fitter/Fitter.h>
 #include <plots/Plot.h>
 #include <ScatteringHistogram.h>
 #include <settings.h>
@@ -34,6 +35,11 @@ namespace plots {
        * @brief Plot an additional data set as points. 
        */
       void plot_intensity(const Dataset& data, int color = kBlack, double alpha = 1);
+
+      /**
+       * @brief Plot the result of a fit. 
+       */
+      void plot_intensity(const std::shared_ptr<Fitter::Fit> fit, int color = kBlack, double alpha = 1);
 
       /**
        * @brief Destructor.
