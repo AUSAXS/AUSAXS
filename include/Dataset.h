@@ -19,6 +19,15 @@ class Dataset {
         Dataset() {}
 
         /**
+         * @brief Constructor.
+         * 
+         * Create a new dataset based on an input file. Format is assumed to be x | y | yerr
+         * 
+         * @param file 
+         */
+        Dataset(const std::string file);
+
+        /**
          * @brief Constructor. 
          * 
          * Create a new dataset based on a list of x and y coordinates. 
@@ -84,6 +93,11 @@ class Dataset {
          */
         void scale_errors(double factor);
 
+        /**
+         * @brief Scale the y-values (and their associated errors) by some common factor.
+         */
+        void scale_y(double factor);
+
         std::unique_ptr<TGraph> plot() const;
 
         std::string xlabel = "x";
@@ -98,6 +112,8 @@ class Dataset {
 
     private:
         void validate_sizes() const;
+
+        void read(const std::string file);
 };
 
 class SAXSDataset : public Dataset {

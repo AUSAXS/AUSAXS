@@ -1,11 +1,12 @@
 #pragma once
 
+#include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <plots/Plot.h>
 #include <ScatteringHistogram.h>
-#include <settings.h>
 
-#include <TH2D.h>
+#include <memory>
+#include <string>
 
 namespace plots {
   class PlotIntensity : public Plot {
@@ -39,7 +40,7 @@ namespace plots {
       /**
        * @brief Plot the result of a fit. 
        */
-      void plot_intensity(const std::shared_ptr<Fitter::Fit> fit, int color = kBlack, double alpha = 1);
+      void plot_intensity(const std::shared_ptr<Fit> fit, int color = kBlack, double alpha = 1);
 
       /**
        * @brief Destructor.

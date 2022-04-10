@@ -18,7 +18,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    setting::em::max_atoms = 50000;
+    setting::em::max_atoms = 10000;
     em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
     auto res = image.fit(protein.get_histogram());
@@ -38,6 +38,36 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
     // Residual plot
     plots::PlotIntensityFitResiduals plot_r(res);
     plot_r.save("em_residuals." + setting::figures::format);
+}
+
+TEST_CASE("check_simulated_errors", "[em],[files]") {
+    SAXSDataset data1("data/2epe.RSR");
+    data1.scale_y(10000);
+    SAXSDataset data2 = data1;
+    data1.simulate_errors();
+    plots::PlotIntensity plot(data1, kBlack);
+    plot.plot_intensity(data2, kRed);
+    plot.save("temp/compare_errors.pdf");
+}
+
+TEST_CASE("dataset_can_read_rsr", "[em],[dataset],[files]") {
+    SAXSDataset data("data/2epe.RSR");
+    vector<double>& x = data.x;
+    vector<double>& y = data.y;
+    vector<double>& yerr = data.yerr;
+
+    vector<double> validate_x = {9.81300045E-03, 1.06309997E-02, 1.14489999E-02, 1.22659998E-02, 1.30840000E-02, 1.39020002E-02, 1.47200003E-02, 1.55379996E-02, 1.63550004E-02, 1.71729997E-02};
+    vector<double> validate_y = {6.67934353E-03, 7.27293547E-03, 8.74083303E-03, 9.22449585E-03, 9.13867634E-03, 9.21153929E-03, 9.37998667E-03, 8.67372658E-03, 9.23649967E-03, 9.22480784E-03};
+    vector<double> validate_yerr = {1.33646582E-03, 1.01892441E-03, 8.62116576E-04, 7.71059655E-04, 6.87870081E-04, 6.30189374E-04, 4.98525158E-04, 4.69041377E-04, 4.46073769E-04, 4.26004088E-04};
+
+    REQUIRE(x.size() == 104);
+    REQUIRE(y.size() == 104);
+    REQUIRE(yerr.size() == 104);
+    for (unsigned int i = 0; i < validate_x.size(); i++) {
+        CHECK(x[i] == Approx(validate_x[i]));
+        CHECK(y[i] == Approx(validate_y[i]));
+        CHECK(yerr[i] == Approx(validate_yerr[i]));
+    }
 }
 
 TEST_CASE("check_bound_savings", "[em],[files],[slow]") {

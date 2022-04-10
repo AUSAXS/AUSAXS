@@ -1,13 +1,12 @@
 #pragma once
 
+#include <fitter/Fit.h>
 #include <plots/Plot.h>
 #include <ScatteringHistogram.h>
 #include <fitter/IntensityFitter.h>
-#include <settings.h>
 
-#include <memory.h>
-#include <string.h>
-#include <vector>
+#include <memory>
+#include <string>
 
 namespace plots {
   /**
@@ -31,14 +30,14 @@ namespace plots {
        * 
        * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
        */
-      PlotIntensityFitResiduals(const Fitter::Fit& fit);
+      PlotIntensityFitResiduals(const Fit& fit);
 
       /**
        * @brief Constructor.
        * 
        * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
        */
-      PlotIntensityFitResiduals(const std::shared_ptr<Fitter::Fit> fit);
+      PlotIntensityFitResiduals(const std::shared_ptr<Fit> fit);
 
       /**
        * @brief Destructor.

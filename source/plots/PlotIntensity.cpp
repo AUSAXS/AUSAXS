@@ -1,3 +1,4 @@
+#include <fitter/Fit.h>
 #include <plots/PlotIntensity.h>
 #include <Exceptions.h>
 
@@ -80,7 +81,7 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data, int color, double
     }
 }
 
-void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fitter::Fit> fit, int color, double alpha) {
+void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, int color, double alpha) {
     auto graph = fit->normal_plot[1];
 
     linpad->cd();

@@ -6,6 +6,9 @@
 #include <TStyle.h>
 #include <TROOT.h>
 #include <TCanvas.h>
+#include <TGraph.h>
+
+#include <plots/PlotOptions.h>
 
 /**
  * @brief \class Plot.
@@ -28,7 +31,20 @@ class Plot {
      * @brief Write this plot to a given destination. 
      * @param folder Path to the folder where this plot will be saved. 
      */
-    virtual void save(std::string folder) const = 0;    
+    virtual void save(std::string folder) const = 0;
+
+    static void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options) {
+      // prepare visuals
+      graph->SetLineColorAlpha(options.color, options.alpha);
+      graph->SetMarkerColorAlpha(options.color, options.alpha);
+      graph->SetMarkerStyle(options.marker_style);
+
+      // draw it
+      std::string draw_options = options.use_existing_axes ? "SAME " : "";
+      if (options.line) {graph->DrawClone(std::string(draw_options + "L").c_str());}
+      if (options.markers) {graph->DrawClone(std::string(draw_options + "P").c_str());}
+    }
+
   private: 
     inline static bool stylized = false; // Whether the global style options have already been invoked. 
 

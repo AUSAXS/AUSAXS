@@ -1,26 +1,16 @@
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-#include <tuple>
-#include <map>
-
-#include "fitter/Fitter.h"
-#include "fitter/IntensityFitter.h"
-#include "math/SimpleLeastSquares.h"
-#include "math/CubicSpline.h"
-#include "settings.h"
-#include "ScatteringHistogram.h"
-#include "Exceptions.h"
+#include <fitter/Fit.h>
+#include <fitter/IntensityFitter.h>
+#include <math/SimpleLeastSquares.h>
+#include <ScatteringHistogram.h>
+#include <Exceptions.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
 #include <Math/Functor.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
-shared_ptr<Fitter::Fit> IntensityFitter::fit() {
+shared_ptr<Fit> IntensityFitter::fit() {
     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS");
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
     ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters

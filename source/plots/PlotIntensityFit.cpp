@@ -14,12 +14,12 @@ plots::PlotIntensityFit::PlotIntensityFit(SimpleIntensityFitter& fitter) : Plot(
     plot(graphs);
 }
 
-plots::PlotIntensityFit::PlotIntensityFit(const Fitter::Fit& fit) : Plot() {
+plots::PlotIntensityFit::PlotIntensityFit(const Fit& fit) : Plot() {
     prepare_canvas();
     plot(fit.normal_plot);
 }
 
-plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<Fitter::Fit> fit) : Plot() {
+plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<Fit> fit) : Plot() {
     prepare_canvas();
     plot(fit->normal_plot);
 }

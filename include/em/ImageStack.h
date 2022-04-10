@@ -20,7 +20,7 @@ namespace em {
      */
     class ImageStack {
         public:
-            class EMFit : public Fitter::Fit {using Fitter::Fit::Fit;};
+            class EMFit : public Fit {using Fit::Fit;};
 
             /**
              * @brief Constructor.

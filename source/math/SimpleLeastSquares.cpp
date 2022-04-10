@@ -4,6 +4,7 @@
 #include <utility>
 #include <memory>
 
+#include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <math/SimpleLeastSquares.h>
 #include <Exceptions.h>
@@ -27,7 +28,7 @@ std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     return std::make_pair(a, b);
 }
 
-std::shared_ptr<Fitter::Fit> SimpleLeastSquares::fit() {
+std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     if (delta == 0) {fit_params_only();}
     double a_err2 = S/delta; // squared sigmas
     double b_err2 = Sxx/delta; 

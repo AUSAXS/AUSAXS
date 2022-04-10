@@ -1,11 +1,12 @@
-#include "rigidbody/RigidBody.h"
-#include "rigidbody/Parameters.h"
-#include "rigidbody/RigidTransform.h"
-#include "rigidbody/SequentialSelect.h"
-#include "rigidbody/SimpleParameterGeneration.h"
-#include "rigidbody/RandomSelect.h"
-#include "fitter/SimpleIntensityFitter.h"
-#include "Exceptions.h"
+#include <rigidbody/RigidBody.h>
+#include <rigidbody/Parameters.h>
+#include <rigidbody/RigidTransform.h>
+#include <rigidbody/SequentialSelect.h>
+#include <rigidbody/SimpleParameterGeneration.h>
+#include <rigidbody/RandomSelect.h>
+#include <fitter/SimpleIntensityFitter.h>
+#include <Exceptions.h>
+#include <math/Matrix.h>
 
 RigidBody::RigidBody(Protein& protein) : protein(protein) {
     // Set body transformation strategy
@@ -143,6 +144,6 @@ void RigidBody::create_constraint(const Atom& atom1, const Atom& atom2, const Bo
 }
 
 double RigidBody::chi2(IntensityFitter& fitter) const {
-    std::shared_ptr<Fitter::Fit> result = fitter.fit();
+    std::shared_ptr<Fit> result = fitter.fit();
     return result->chi2;
 }

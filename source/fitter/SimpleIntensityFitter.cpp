@@ -1,20 +1,19 @@
 #include <iostream>
 #include <fstream>
-#include <stdexcept>
 #include <tuple>
-#include <map>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
-#include "fitter/SimpleIntensityFitter.h"
-#include "math/CubicSpline.h"
-#include "settings.h"
-#include "ScatteringHistogram.h"
-#include "Exceptions.h"
+#include <fitter/SimpleIntensityFitter.h>
+#include <math/CubicSpline.h>
+#include <math/SimpleLeastSquares.h>
+#include <settings.h>
+#include <ScatteringHistogram.h>
+#include <Exceptions.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
 #include <Math/Functor.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
@@ -40,7 +39,7 @@ void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model, const 
     // std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});
 }
 
-shared_ptr<Fitter::Fit> SimpleIntensityFitter::fit() {
+shared_ptr<Fit> SimpleIntensityFitter::fit() {
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 

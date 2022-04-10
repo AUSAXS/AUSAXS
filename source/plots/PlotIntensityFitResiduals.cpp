@@ -14,12 +14,12 @@ plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(SimpleIntensityFitte
     plot(graph);
 }
 
-plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const Fitter::Fit& fit) : Plot() {
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const Fit& fit) : Plot() {
     prepare_canvas();
     plot(fit.residual_plot);
 }
 
-plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_ptr<Fitter::Fit> fit) : Plot() {
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_ptr<Fit> fit) : Plot() {
     prepare_canvas();
     plot(fit->residual_plot);
 }

@@ -1,13 +1,21 @@
 #include <vector>
-
-#include <Dataset.h>
-#include <Exceptions.h>
 #include <cmath>
+#include <fstream>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 #include <TGraph.h>
 #include <TGraphErrors.h>
 
-using std::vector;
+#include <Dataset.h>
+#include <Exceptions.h>
+#include <settings.h>
+
+using std::vector, std::string;
+
+Dataset::Dataset(const string file) {
+    read(file);
+}
 
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {
     validate_sizes();
@@ -112,17 +120,59 @@ void Dataset::scale_errors(double factor) {
     if (!yerr.empty()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
 }
 
+void Dataset::scale_y(double factor) {
+    std::transform(y.begin(), y.end(), y.begin(), [&factor] (double val) {return val*factor;});
+    if (!yerr.empty()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
+}
+
 void SAXSDataset::simulate_errors() {
     if (yerr.empty()) {yerr.resize(size());}
     if (xerr.empty()) {xerr.resize(size());}
 
     double base = y[0]+1;
-    // std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return log10(base-val) + 1;});
-    // std::transform(y.begin(), y.end(), yerr.begin(), [&base] (double val) {return 20*log10(base-val)*std::sqrt(val) + 1;});
-    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&base] (double y, double x) {return 1000*std::pow(y, 0.25)/x;});
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&base] (double y, double x) {return std::pow(y, 0.75)*x;});
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&base] (double y, double x) {return std::pow(y*x, 0.85);});
 }
 
 void SAXSDataset::set_resolution(unsigned int resolution) {
     this->resolution = resolution;
     limit(Limit(0, 2*M_PI/resolution));
+}
+
+void Dataset::read(const string file) {
+    // check if file was succesfully opened
+    std::ifstream input(file);
+    if (!input.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::read: Could not open file \"" + file + "\"");}
+
+    string line; // placeholder for the current line
+    while(getline(input, line)) {
+        if (line[0] == ' ') {line = line.substr(1);} // fix leading space
+        vector<string> tokens;
+        boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
+
+        // determine if we are in some sort of header
+        if (tokens.size() < 3 || tokens.size() > 4) {continue;} // too many separators
+        bool skip = false;
+        for (int i = 0; i < 3; i++) { // check if they are numbers
+            if (!tokens[i].empty() && tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
+        }
+        if (skip) {continue;}
+
+        // now we are most likely beyond any headers
+        double _q, _I, _sigma;
+        _q = std::stod(tokens[0]); // we know for sure that the strings are convertible to numbers (boost check)
+        _I = std::stod(tokens[1]);
+        _sigma = std::stod(tokens[2]);
+
+        if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
+
+        // check user-defined limits
+        if (_q < setting::fit::q_low) {continue;}
+        if (_q > setting::fit::q_high) {continue;}
+
+        // add the values to our vectors
+        x.push_back(_q);
+        y.push_back(_I);
+        yerr.push_back(_sigma); 
+    }
 }

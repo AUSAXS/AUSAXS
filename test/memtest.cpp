@@ -1,8 +1,9 @@
 #include "catch2/catch.hpp"
 
-#include "data/Atom.h"
-#include "data/Protein.h"
-#include "data/BodySplitter.h"
+#include <data/Atom.h>
+#include <data/Protein.h>
+#include <data/BodySplitter.h>
+#include <math/Matrix.h>
 
 /**
  * @brief These tests are meant to be run with valgrind to help identify memory issues. 

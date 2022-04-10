@@ -19,6 +19,10 @@ using namespace std::chrono;
 #include "plots/PlotIntensityFitResiduals.h"
 #include <Exceptions.h>
 
+#include <Math/Minimizer.h>
+#include <Math/Factory.h>
+#include <Math/Functor.h>
+
 using namespace setting::em;
 using namespace em;
 

@@ -2,13 +2,11 @@
 
 #include <vector>
 #include <string>
-#include <cmath>
 #include <utility>
 #include <memory>
 
-#include "fitter/Fitter.h"
-
-#include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
+#include <fitter/Fit.h>
+#include <fitter/Fitter.h>
 
 /**
  * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.
