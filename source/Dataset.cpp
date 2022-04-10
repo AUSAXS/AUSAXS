@@ -70,8 +70,8 @@ void Dataset::reduce(unsigned int target, bool log) {
 
     x = std::move(new_x);
     y = std::move(new_y);
-
-    draw_as_line = false;
+    plot_options.draw_line = false;
+    plot_options.draw_markers = true;
 }
 
 std::size_t Dataset::size() const {return x.size();}
@@ -175,4 +175,12 @@ void Dataset::read(const string file) {
         y.push_back(_I);
         yerr.push_back(_sigma); 
     }
+}
+
+void Dataset::set_plot_options(const plots::PlotOptions& options) {this->plot_options = options;}
+
+void Dataset::draw(const Dataset& data) {
+    plots::PlotOptions options = data.plot_options;
+    std::shared_ptr<TGraph> graph = data.plot();
+    plots::draw(graph, options);
 }

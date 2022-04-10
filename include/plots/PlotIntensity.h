@@ -30,17 +30,17 @@ namespace plots {
        * 
        * @param d The dataset to be plotted.
        */
-      PlotIntensity(const SAXSDataset& d, int color = kBlack);
+      PlotIntensity(const SAXSDataset& d);
 
       /**
        * @brief Plot an additional data set as points. 
        */
-      void plot_intensity(const Dataset& data, int color = kBlack, double alpha = 1);
+      void plot_intensity(const Dataset& data);
 
       /**
        * @brief Plot the result of a fit. 
        */
-      void plot_intensity(const std::shared_ptr<Fit> fit, int color = kBlack, double alpha = 1);
+      void plot_intensity(const std::shared_ptr<Fit> fit, const PlotOptions& options);
 
       /**
        * @brief Destructor.
@@ -60,7 +60,7 @@ namespace plots {
 
       void initial_intensity_plot(int color);
 
-      void initial_intensity_plot(const Dataset& data, int color);
+      void initial_intensity_plot(const Dataset& data);
 
       void prepare_canvas();
   };

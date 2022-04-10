@@ -22,73 +22,62 @@ plots::PlotIntensity::PlotIntensity(const ScatteringHistogram& d, int color) : P
     initial_intensity_plot(color);
 }
 
-plots::PlotIntensity::PlotIntensity(const SAXSDataset& d, int color) : Plot() {
+plots::PlotIntensity::PlotIntensity(const SAXSDataset& d) : Plot() {
     prepare_canvas();
-    initial_intensity_plot(d, color);
+    initial_intensity_plot(d);
 }
 
 void plots::PlotIntensity::initial_intensity_plot(int color) {
     if (d.q.empty()) {throw except::invalid_operation("Error in PlotIntensity::plot_intensity: Class was not initialized with a histogram, and it has not been manually set.");}
 
     // Debye scattering intensity
-    auto hI_debye = d.plot_debye_scattering();
-    hI_debye->SetLineWidth(3);
-    hI_debye->SetLineColor(color);
+    std::shared_ptr<TH1D> hI_debye = d.plot_debye_scattering();
+    PlotOptions options;
+    options.xlabel = "q";
+    options.ylabel = "Intensity";
+    options.linewidth = 3;
+    options.color = color;
+
     ymin = hI_debye->GetMinimum();
     ymax = hI_debye->GetMaximum();
     hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
     
-    // titles
-    hI_debye->GetXaxis()->SetTitle("q");
-    hI_debye->GetXaxis()->CenterTitle();
-    hI_debye->GetYaxis()->SetTitle("Intensity");
-    hI_debye->GetYaxis()->CenterTitle();
-    hI_debye->GetYaxis()->SetTitleOffset(1.2);
-    hI_debye->DrawClone("HIST L");
+    draw(hI_debye, options);
 }
 
-void plots::PlotIntensity::initial_intensity_plot(const Dataset& data, int color) {
-    auto graph = data.plot();
-    graph->SetLineWidth(3);
-    graph->SetLineColor(color);
+void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
+    std::shared_ptr<TGraph> graph = data.plot();
+    plots::PlotOptions options = data.plot_options;
+    options.xlabel = "q";
+    options.ylabel = "Intensity";
+
     ymin = graph->GetYaxis()->GetXmin();
     ymax = graph->GetYaxis()->GetXmax();
-    
-    // titles
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
-    graph->GetXaxis()->SetTitle("q");
-    graph->GetXaxis()->CenterTitle();
-    graph->GetYaxis()->SetTitle("Intensity");
-    graph->GetYaxis()->CenterTitle();
-    graph->GetYaxis()->SetTitleOffset(1.2);
-    graph->DrawClone("AP");
+    draw(graph, options);
 }
 
-void plots::PlotIntensity::plot_intensity(const Dataset& data, int color, double alpha) {
-    auto graph = data.plot();
+void plots::PlotIntensity::plot_intensity(const Dataset& data) {
+    std::shared_ptr<TGraph> graph = data.plot();
+    PlotOptions options(data.plot_options);
+    options.use_existing_axes = true;
 
     linpad->cd();
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
-    if (data.draw_as_line) {
-        graph->SetLineColorAlpha(color, alpha);
-        graph->DrawClone("SAME L");
-    } else {
-        graph->SetMarkerStyle(7);
-        graph->SetMarkerColorAlpha(color, alpha);
-        graph->DrawClone("SAME P");
-    }
+    draw(graph, options);
 }
 
-void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, int color, double alpha) {
-    auto graph = fit->normal_plot[1];
+void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, const PlotOptions& plot_options) {
+    std::shared_ptr<TGraph> graph = fit->normal_plot[1];
+    PlotOptions options(plot_options);
+    options.use_existing_axes = true;
 
     linpad->cd();
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
-    graph->SetLineColorAlpha(color, alpha);
-    graph->DrawClone("SAME L");
+    draw(graph, options);
 }
 
 void plots::PlotIntensity::plot_guinier_approx() {

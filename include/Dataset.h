@@ -7,6 +7,7 @@
 #include <TGraph.h>
 
 #include <data/Axis.h>
+#include <plots/PlotOptions.h>
 
 /**
  * @brief A representation of a set of 2D data. 
@@ -100,6 +101,10 @@ class Dataset {
 
         std::unique_ptr<TGraph> plot() const;
 
+        void set_plot_options(const plots::PlotOptions& options);
+
+        static void draw(const Dataset& data);
+
         std::string xlabel = "x";
         std::string ylabel = "y";
         std::string xerrlabel = "xerr";
@@ -108,7 +113,7 @@ class Dataset {
         std::vector<double> y;    // The y coordinates.
         std::vector<double> xerr; // The error in the x coordinates
         std::vector<double> yerr; // The error in the y coordinates
-        bool draw_as_line = true;
+        plots::PlotOptions plot_options; 
 
     private:
         void validate_sizes() const;

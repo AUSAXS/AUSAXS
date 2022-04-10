@@ -44,9 +44,20 @@ TEST_CASE("check_simulated_errors", "[em],[files]") {
     SAXSDataset data1("data/2epe.RSR");
     data1.scale_y(10000);
     SAXSDataset data2 = data1;
-    data1.simulate_errors();
-    plots::PlotIntensity plot(data1, kBlack);
-    plot.plot_intensity(data2, kRed);
+    data2.simulate_errors();
+
+    data1.plot_options.color = kBlack;
+    data1.plot_options.draw_line = false;
+    data1.plot_options.draw_markers = true;
+    data1.plot_options.linewidth = 2;
+
+    data2.plot_options.color = kOrange+2;
+    data2.plot_options.draw_line = false;
+    data2.plot_options.draw_markers = true;
+    data2.plot_options.linewidth = 2;
+
+    plots::PlotIntensity plot(data1);
+    plot.plot_intensity(data2);
     plot.save("temp/compare_errors.pdf");
 }
 
