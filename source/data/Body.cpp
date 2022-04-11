@@ -209,7 +209,7 @@ shared_ptr<ScatteringHistogram> Body::get_histogram() {
 }
 
 void Body::translate(const Vector3& v) {
-    signal->state_change();
+    changed_state();
 
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
     std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
@@ -226,25 +226,25 @@ void Body::rotate(const Matrix<double>& R) {
 }
 
 void Body::rotate(double alpha, double beta, double gamma) {
-    signal->state_change();
+    changed_state();
     Matrix R = Matrix<double>::rotation_matrix(alpha, beta, gamma);
     rotate(R);
 }
 
 void Body::rotate(const Vector3& axis, double angle) {
-    signal->state_change();
+    changed_state();
     Matrix R = Matrix<double>::rotation_matrix(axis, angle);
     rotate(R);
 }
 
 void Body::update_effective_charge(double charge) {
-    signal->state_change();
+    changed_state();
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;
 }
 
 void Body::update_effective_charge() {
-    signal->state_change();
+    changed_state();
 
     double displaced_vol = get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol;
@@ -274,3 +274,5 @@ Body& Body::operator=(const Body& rhs) {
 bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
+
+void Body::changed_state() const {signal->state_change();}

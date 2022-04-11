@@ -16,7 +16,7 @@
  */
 class ObjectBounds2D {
     public:
-        ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bounds(size_x, Limit(0, size_y-1)), N(size_x), M(size_y) {}
+        ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bounds(size_x, Limit(0, size_y)), N(size_x), M(size_y) {}
 
         Limit& operator[](unsigned int x) {return bounds[x];}
 
@@ -54,9 +54,7 @@ class ObjectBounds3D {
 
 namespace em {
     /**
-     * @brief \class Image
-     * 
-     * Supporting class for ImageStack. This is not meant to be instantiated elsewhere. 
+     * @brief Supporting class for ImageStack. This is not meant to be instantiated elsewhere. 
      */
     class Image {
         public: 
@@ -70,6 +68,8 @@ namespace em {
 
             Image(const Matrix<float>& data);
 
+            Image(const Matrix<float>& data, std::shared_ptr<ccp4::Header> header, unsigned int layer);
+            
             ~Image() = default;
 
             std::unique_ptr<TH2D> as_hist() const;

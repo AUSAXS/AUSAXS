@@ -72,12 +72,12 @@ namespace em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            ScatteringHistogram get_histogram(double cutoff) const;
+            ScatteringHistogram get_histogram(double cutoff);
 
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
+            ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res);
 
             /**
              * @brief Create a new Grid based on this object. 
@@ -146,6 +146,8 @@ namespace em {
             unsigned int resolution;
             int staining = 0; // 0 if not determined yet, -1 if negatively stained, +1 if positively stained
             unsigned int size_x, size_y, size_z;
+            vector<double> charge_levels = {1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 100000};
+            std::unique_ptr<Protein> protein;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.

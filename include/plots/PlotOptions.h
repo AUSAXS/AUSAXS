@@ -32,7 +32,8 @@ namespace plots {
             std::string xlabel = "";
             std::string ylabel = "";
     };
-
+    
+    [[maybe_unused]]
     static void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options) {
         // prepare visuals
         graph->SetLineColorAlpha(options.color, options.alpha);
@@ -58,6 +59,7 @@ namespace plots {
         if (options.draw_markers) {graph->DrawClone(std::string(draw_options + "P").c_str());}
     }
 
+    [[maybe_unused]]
     static void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options) {
         // prepare visuals
         hist->SetLineColorAlpha(options.color, options.alpha);

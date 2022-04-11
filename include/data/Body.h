@@ -193,6 +193,11 @@ class Body {
      */
     shared_ptr<File> get_file() const {return file;}
 
+    /**
+     * @brief Signal that this object has changed its internal state.
+     */
+    void changed_state() const;
+
   private:
     shared_ptr<File> file = nullptr;                     // The file backing this body
     shared_ptr<Grid> grid = nullptr;                     // The grid representation of this body

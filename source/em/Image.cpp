@@ -14,6 +14,8 @@ Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(heade
 
 Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), bounds(N, M) {}
 
+Image::Image(const Matrix<float>& data, std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
+
 void Image::set_z(unsigned int z) {
     this->z = z;
 }
@@ -22,7 +24,7 @@ float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
 list<Atom> Image::generate_atoms(double cutoff) const {
-    if (header == nullptr) {throw except::invalid_operation("Error in Image::as_hist: Header must be initialized to use this method.");}
+    if (__builtin_expect(header == nullptr, false)) {throw except::invalid_operation("Error in Image::generate_atoms: Header must be initialized to use this method.");}
     list<Atom> atoms;
 
     // determine which comparison function to use
