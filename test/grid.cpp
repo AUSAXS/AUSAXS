@@ -428,12 +428,12 @@ TEST_CASE("space_saving_constructor", "[grid]") {
 
     // check that bounding_box works
     auto[min, max] = Grid::bounding_box(atoms);
-    REQUIRE(min.x == 0);
-    REQUIRE(min.y == -5);
-    REQUIRE(min.z == -7);
-    REQUIRE(max.x == 5);
-    REQUIRE(max.y == 1);
-    REQUIRE(max.z == 1);
+    REQUIRE(min.x() == 0);
+    REQUIRE(min.y() == -5);
+    REQUIRE(min.z() == -7);
+    REQUIRE(max.x() == 5);
+    REQUIRE(max.y() == 1);
+    REQUIRE(max.z() == 1);
 
     // check that the grid constructor works as expected
     Grid grid(atoms);

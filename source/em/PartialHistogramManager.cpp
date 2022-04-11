@@ -32,12 +32,15 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     auto comparator = [] (const Atom& atom1, const Atom& atom2) {return atom1.occupancy < atom2.occupancy;};
     std::sort(atoms.begin(), atoms.end(), comparator);
 
-    unsigned int charge_index = 0, current_index = 0;
+    unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
 
     vector<Body> bodies(charge_levels.size());
-    vector<Atom> current_atoms(atoms.size()/2);
-    for (unsigned int atom_index = 0; atom_index < atoms.size(); atom_index++) {
+    vector<Atom> current_atoms(atoms.size());
+    
+    while (atoms[atom_index].occupancy < cutoff) {atom_index++;} // search for first atom with charge larger than the cutoff
+    while (charge < cutoff) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
+    for (; atom_index < atoms.size(); atom_index++) {
         if (atoms[atom_index].occupancy < charge) {
             current_atoms[current_index++] = atoms[atom_index];
         } else {
@@ -47,7 +50,7 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
 
             // prepare the next body
             current_index = 1;
-            current_atoms.resize(atoms.size()/2);
+            current_atoms.resize(atoms.size());
             current_atoms[0] = atoms[atom_index]; // add the atom of the current iteration
 
             // increment the charge level
@@ -61,8 +64,12 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     return std::make_unique<Protein>(bodies);
 }
 
+ScatteringHistogram em::PartialHistogramManager::get_histogram_slow(double cutoff) const {
+    return Protein(generate_atoms(cutoff)).get_histogram();
+}
+
 void em::PartialHistogramManager::update_protein(double cutoff) {
-    if (protein == nullptr || protein->bodies.empty()) {std::cout << "Initializing primary protein." << std::endl; protein = generate_protein(cutoff); return;}
+    if (protein == nullptr || protein->bodies.empty()) {protein = generate_protein(cutoff); return;}
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
 
     for (unsigned int i = 0; i < charge_levels.size(); i++) {

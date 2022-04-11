@@ -88,9 +88,9 @@ TEST_CASE("pdb input", "[io]") {
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
     CHECK(a.serial == 1);
-    CHECK(a.coords.x == 2.1);
-    CHECK(a.coords.y == 3.2);
-    CHECK(a.coords.z == 4.3);
+    CHECK(a.coords.x() == 2.1);
+    CHECK(a.coords.y() == 3.2);
+    CHECK(a.coords.z() == 4.3);
     CHECK(a.occupancy == 0.50);
     CHECK(a.element == "C");
     CHECK(a.resName == "ARG");
@@ -121,9 +121,9 @@ TEST_CASE("xml input", "[broken],[io]") {
     // we now compare the loaded values with the expected.
     CHECK(a.serial == 1);
     CHECK(a.serial == 1);
-    CHECK(a.coords.x == 2.1);
-    CHECK(a.coords.y == 3.2);
-    CHECK(a.coords.z == 4.3);
+    CHECK(a.coords.x() == 2.1);
+    CHECK(a.coords.y() == 3.2);
+    CHECK(a.coords.z() == 4.3);
     CHECK(a.occupancy == 0.50);
     CHECK(a.element == "O");
     CHECK(a.resName == "HOH");

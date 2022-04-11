@@ -20,6 +20,11 @@ namespace em {
 
             void update_protein(double cutoff);
 
+            /**
+             * @brief Alternate slower approach to generating the histogram. 
+             */
+            ScatteringHistogram get_histogram_slow(double cutoff) const;
+        
         private:
             const ImageStack& images; 
             std::unique_ptr<CullingStrategy> culler;
@@ -29,7 +34,5 @@ namespace em {
             std::unique_ptr<Protein>generate_protein(double cutoff) const;
 
             std::vector<Atom> generate_atoms(double cutoff) const;
-
-            // void update_protein(double cutoff);
     };
 }

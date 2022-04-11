@@ -53,13 +53,13 @@ TEST_CASE("Vector3", "[math]") {
 
     SECTION("basic operations") {
         // access
-        REQUIRE(x.x == 1);
-        REQUIRE(x.y == 2);
-        REQUIRE(x.z == 3);
+        REQUIRE(x.x() == 1);
+        REQUIRE(x.y() == 2);
+        REQUIRE(x.z() == 3);
 
-        REQUIRE(y.x == 4);
-        REQUIRE(y.y == 5);
-        REQUIRE(y.z == 6);
+        REQUIRE(y.x() == 4);
+        REQUIRE(y.y() == 5);
+        REQUIRE(y.z() == 6);
 
         // addition
         REQUIRE(x+y == Vector3{5, 7, 9});
@@ -615,7 +615,7 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
 TEST_CASE("orthonormal_rotations", "[math]") {
     for (int i = 0; i < 10; i++) {
         Vector3 angles = GenRandVector(3);
-        Matrix R = Matrix<double>::rotation_matrix(angles.x, angles.y, angles.z);
+        Matrix R = Matrix<double>::rotation_matrix(angles.x(), angles.y(), angles.z());
         Matrix Ri = R.T();
         REQUIRE(R*Ri == Matrix<double>::identity(3));
     }

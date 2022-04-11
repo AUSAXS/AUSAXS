@@ -54,8 +54,8 @@ void plots::PlotImage::plot_atoms(double cutoff) const {
     x.reserve(atoms.size());
     y.reserve(atoms.size());
     for (const Atom& atom : atoms) {
-        x.push_back(atom.coords.x);
-        y.push_back(atom.coords.y);
+        x.push_back(atom.coords.x());
+        y.push_back(atom.coords.y());
     }
     std::unique_ptr<TGraph> graph = std::make_unique<TGraph>(x.size(), x.data(), y.data());
     graph->SetMarkerStyle(kFullDotSmall);

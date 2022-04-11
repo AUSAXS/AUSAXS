@@ -128,8 +128,12 @@ class Vector3 : public Vector<double> {
      */
     std::tuple<Vector3, Vector3, Vector3> generate_basis();
 
-    // Allow mutable access to the data through the simple v.x, v.y, and v.z notation. 
-    double& x = _data[0];
-    double& y = _data[1];
-    double& z = _data[2];
+    inline double& x() {return data[0];}
+    inline const double& x() const {return data[0];}
+
+    inline double& y() {return data[1];}
+    inline const double& y() const {return data[1];}
+
+    inline double& z() {return data[2];}
+    inline const double& z() const {return data[2];}
 };

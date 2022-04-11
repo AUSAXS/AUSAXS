@@ -19,32 +19,32 @@ class Vector {
         /**
          * @brief Move constructor.
          */
-        Vector(Vector<T>&& v) noexcept : _N(v._N), _data(std::move(v._data)) {}
+        Vector(Vector<T>&& v) noexcept : N(v.N), data(std::move(v.data)) {}
 
         /**
          * @brief Copy constructor.
          */
-        Vector(const Vector<T>& v) : _N(v.size()), _data(v._data) {}
+        Vector(const Vector<T>& v) : N(v.size()), data(v.data) {}
 
         /**
          * @brief Construct a vector based on an initializer list.
          */
-        Vector(const std::initializer_list<T> l) : _N(l.size()), _data(l) {}
+        Vector(const std::initializer_list<T> l) : N(l.size()), data(l) {}
 
         /**
          * @brief Construct a vector based on a std::vector. 
          */
-        Vector(const std::vector<T>& v) : _N(v.size()), _data(v) {}
+        Vector(const std::vector<T>& v) : N(v.size()), data(v) {}
 
         /**
          * @brief Construct an empty vector of a given size. 
          */
-        Vector(unsigned int n) : _N(n), _data(n) {}
+        Vector(unsigned int n) : N(n), data(n) {}
 
         /**
          * @brief Default constructor.
          */
-        Vector() : _N(0), _data(0) {}
+        Vector() : N(0), data(0) {}
 
         /**
          * @brief Destructor. 
@@ -53,26 +53,26 @@ class Vector {
 
         // Assignment operator, w = v
         Vector<T>& operator=(const Vector<T>& v) {
-            _N = v.N;
-            _data = v.data;
+            N = v.N;
+            data = v.data;
             return *this;
         }
 
         // Slice assignment operator
         Vector<T>& operator=(const Slice<T>& s) {
 			if (__builtin_expect(!(s.N == 1 || s.M == 1), false)) {throw std::invalid_argument("Only 1D slices can be assigned to vectors. Size: " + std::to_string(s.N) + ", " + std::to_string(s.M));}
-			_N = std::max(s.N, s.M);
-			_data = std::vector<double>(N);
+			N = std::max(s.N, s.M);
+			data = std::vector<double>(N);
 			for (size_t i = 0; i < N; i++) {
-				_data[i] = s[i];
+				data[i] = s[i];
 			}
 			return *this;
 		}
 
         // Initializer list assignment operator
         Vector<T>& operator=(std::initializer_list<double> l) {
-			_N = l.size();
-			_data.assign(l);
+			N = l.size();
+			data.assign(l);
 			return *this;
 		}
 
@@ -163,7 +163,7 @@ class Vector {
         const T& operator[](unsigned int i) const {return data[i];}
         
         // Read/write indexing, w[i] = ...
-        T& operator[](unsigned int i) {return _data[i];}
+        T& operator[](unsigned int i) {return data[i];}
 
         // Approximate equality, w ~ v
         template<typename Q>
@@ -247,27 +247,25 @@ class Vector {
         const typename std::vector<T>::const_iterator end() const {return data.end();}
 
         // Read-write iterator
-        typename std::vector<T>::iterator begin() {return _data.begin();}
+        typename std::vector<T>::iterator begin() {return data.begin();}
 
         // Read-write iterator
-        typename std::vector<T>::iterator end() {return _data.end();}
+        typename std::vector<T>::iterator end() {return data.end();}
 
         /**
          * @brief Get the size of this Vector.
          */
-        size_t size() const {return N;};
+        inline size_t size() const {return N;};
 
         /**
          * @brief Get the dimension of this Vector.
          */
-        size_t dim() const {return size();}
+        inline size_t dim() const {return size();}
 
-        const size_t& N = _N; // read-only access to the dimension
-        const std::vector<T>& data = _data; // read-only access to the data container
+        size_t N;
+        std::vector<T> data;
 
     protected:
-        size_t _N;
-        std::vector<T> _data;
         static constexpr double precision = 1e-9;
 
         // check if the vector is compatible with ours

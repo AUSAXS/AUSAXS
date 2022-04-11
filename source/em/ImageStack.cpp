@@ -68,19 +68,6 @@ size_t ImageStack::size() const {return size_z;}
 
 const vector<Image>& ImageStack::images() const {return data;}
 
-// std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
-//     // we use a list since we will have to append quite a few other lists to it
-//     std::list<Atom> atoms;
-//     for (const Image& image: data) {
-//         std::list<Atom> im_atoms = image.generate_atoms(cutoff);
-//         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
-//     }
-
-//     // convert list to vector
-//     vector<Atom> v = culler->cull(atoms);    
-//     return std::make_unique<Protein>(v);
-// }
-
 std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
@@ -91,29 +78,7 @@ std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
 
     // convert list to vector
     vector<Atom> v = culler->cull(atoms);    
-
-    // sort vector so we can slice it into levels of charge density
-    auto comparator = [] (const Atom& atom1, const Atom& atom2) {return atom1.charge < atom2.charge;};
-    std::sort(v.begin(), v.end(), comparator);
-
-    unsigned int charge_index = 0, current_index = 0;
-    double charge = charge_levels[charge_index]; // initialize charge
-
-    vector<Body> bodies(charge_levels.size());
-    vector<Atom> current_atoms(v.size()/2);
-    for (unsigned int atom_index = 0; atom_index < v.size(); atom_index++) {
-        if (v[atom_index].charge < charge) {
-            current_atoms[current_index] = v[atom_index];
-        } else {
-            current_atoms.resize(current_index);
-            bodies[charge_index] = Body(current_atoms);
-            current_index = 0;
-            current_atoms.resize(v.size()/2);
-            charge = charge_levels[++charge_index];
-        }
-    }
-
-    return std::make_unique<Protein>(bodies);
+    return std::make_unique<Protein>(v);
 }
 
 std::unique_ptr<Grid> ImageStack::create_grid(double) const {
@@ -121,36 +86,16 @@ std::unique_ptr<Grid> ImageStack::create_grid(double) const {
     exit(1);
 }
 
-ScatteringHistogram ImageStack::get_histogram(double cutoff) {
-    if (protein->bodies.empty()) {std::cout << "Initializing primary protein." << std::endl; protein = create_protein(cutoff); return protein->get_histogram();}
-    std::unique_ptr<Protein> new_protein = create_protein(cutoff);
-
-    std::cout << "Old protein bodies: " << protein->body_size() << ", new protein bodies: " << new_protein->body_size() << std::endl;
-
-    for (unsigned int i = 0; i < charge_levels.size(); i++) {
-        if (charge_levels[i] < cutoff) {
-            protein->bodies[i].protein_atoms.clear();
-            protein->bodies[i].changed_state();
-        } else if (i+1 < charge_levels.size() && cutoff < charge_levels[i+1]) {
-            protein->bodies[i+1] = new_protein->bodies[i+1];
-            protein->bodies[i+1].changed_state();
-            break;
-        }
-    }
-
+ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
+    // auto start = high_resolution_clock::now();
+    std::unique_ptr<Protein> protein = create_protein(cutoff);
+    // auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
+    // std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
+    // protein->generate_new_hydration();
     return protein->get_histogram();
 }
 
-// ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
-//     // auto start = high_resolution_clock::now();
-//     std::unique_ptr<Protein> protein = create_protein(cutoff);
-//     // auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
-//     // std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
-//     // protein->generate_new_hydration();
-//     return protein->get_histogram();
-// }
-
-ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) {
+ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) const {
     return get_histogram(res->params.at("cutoff"));
 }
 

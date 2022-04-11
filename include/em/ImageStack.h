@@ -72,12 +72,12 @@ namespace em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            ScatteringHistogram get_histogram(double cutoff);
+            ScatteringHistogram get_histogram(double cutoff) const;
 
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res);
+            ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
 
             /**
              * @brief Create a new Grid based on this object. 

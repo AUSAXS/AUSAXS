@@ -138,9 +138,9 @@ string Atom::as_pdb() const {
         << right << setw(4) << resSeq                                        // 23 - 26
         << right << setw(1) << iCode                                         // 27
         << "   "                                                             // 28 - 30
-        << right << setw(8) << setf(coords.x, 8)                             // 31 - 38
-        << right << setw(8) << setf(coords.y, 8)                             // 39 - 46
-        << right << setw(8) << setf(coords.z, 8)                             // 47 - 54
+        << right << setw(8) << setf(coords.x(), 8)                             // 31 - 38
+        << right << setw(8) << setf(coords.y(), 8)                             // 39 - 46
+        << right << setw(8) << setf(coords.z(), 8)                             // 47 - 54
         << right << setw(6) << setf(occupancy, 6)                            // 55 - 60
         << right << setw(6) << setf(tempFactor, 6)                           // 61 - 66
         << "          "                                                      // 67 - 76
@@ -157,9 +157,9 @@ void Atom::translate(const Vector3 v) {coords += v;}
 bool Atom::is_water() const {return false;}
 
 void Atom::set_coordinates(const Vector3 v) {coords = v;}
-void Atom::set_x(double x) {coords.x = x;}
-void Atom::set_y(double y) {coords.y = y;}
-void Atom::set_z(double z) {coords.z = z;}
+void Atom::set_x(double x) {coords.x() = x;}
+void Atom::set_y(double y) {coords.y() = y;}
+void Atom::set_z(double z) {coords.z() = z;}
 void Atom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
 void Atom::set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
 void Atom::set_altLoc(string altLoc) {this->altLoc = altLoc;}
@@ -205,7 +205,7 @@ double Atom::get_mass() const {
 
 void Atom::print() const {
     cout << "\nAtom no: " << serial << endl;
-    cout << setw(17) << "(x, y, z): (" << setw(6) << coords.x << ", " << setw(6) << coords.y << ", " << setw(6) << coords.z << ")" << endl;
+    cout << setw(17) << "(x, y, z): (" << setw(6) << coords.x() << ", " << setw(6) << coords.y() << ", " << setw(6) << coords.z() << ")" << endl;
     cout << setw(16) << "Weight: " << std::to_string(occupancy) << endl;
     cout << setw(16) << "Symbol: " << element << endl;
     cout << setw(16) << "Molecule: " << name << endl;

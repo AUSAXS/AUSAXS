@@ -17,7 +17,7 @@ class Protein;
 struct CompactCoordinates {
   struct Data {
     Data() {}
-    Data(const Vector3& v, float w) : x(v.x), y(v.y), z(v.z), w(w) {}
+    Data(const Vector3& v, float w) : x(v.x()), y(v.y()), z(v.z()), w(w) {}
     float x, y, z, w;
   };
 

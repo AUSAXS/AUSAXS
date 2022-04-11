@@ -33,36 +33,36 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
         // check collisions for x ± r_eff
         if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {
             Vector3 exact_loc = atom.atom.coords;
-            exact_loc.x -= r_eff_real;
+            exact_loc.x() -= r_eff_real;
             add_loc(exact_loc);
         }
         if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) {
             Vector3 exact_loc = atom.atom.coords;
-            exact_loc.x += r_eff_real;
+            exact_loc.x() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for y ± r_eff
         if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) {
             Vector3 exact_loc = atom.atom.coords;
-            exact_loc.y -= r_eff_real;
+            exact_loc.y() -= r_eff_real;
             add_loc(exact_loc);
         }
         if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) {
             Vector3 exact_loc = atom.atom.coords;
-            exact_loc.y += r_eff_real;
+            exact_loc.y() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for z ± r_eff
         if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) {
             Vector3 exact_loc = atom.atom.coords;
-            exact_loc.z -= r_eff_real;
+            exact_loc.z() -= r_eff_real;
             add_loc(exact_loc);
         }
         if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) {
             Vector3 exact_loc = atom.atom.coords;
-            exact_loc.z += r_eff_real;
+            exact_loc.z() += r_eff_real;
             add_loc(exact_loc);
         }
     }

@@ -47,18 +47,18 @@ void Body::calc_histogram() {
     std::vector<float> data_p(protein_atoms.size()*4);
     for (size_t i = 0; i < protein_atoms.size(); i++) {
         const Atom& a = protein_atoms[i]; 
-        data_p[4*i] = a.coords.x;
-        data_p[4*i+1] = a.coords.y;
-        data_p[4*i+2] = a.coords.z;
+        data_p[4*i] = a.coords.x();
+        data_p[4*i+1] = a.coords.y();
+        data_p[4*i+2] = a.coords.z();
         data_p[4*i+3] = a.effective_charge*a.occupancy;
     }
 
     std::vector<float> data_h(hydration_atoms.size()*4);
     for (size_t i = 0; i < hydration_atoms.size(); i++) {
         const Hetatom& a = hydration_atoms[i]; 
-        data_h[4*i] = a.coords.x;
-        data_h[4*i+1] = a.coords.y;
-        data_h[4*i+2] = a.coords.z;
+        data_h[4*i] = a.coords.x();
+        data_h[4*i+1] = a.coords.y();
+        data_h[4*i+2] = a.coords.z();
         data_h[4*i+3] = a.effective_charge*a.occupancy;
     }
 

@@ -286,9 +286,9 @@ class Matrix {
             double b = sin(angle/2);
             double c = b;
             double d = b;
-            b *= ax.x;
-            c *= ax.y;
-            d *= ax.z;
+            b *= ax.x();
+            c *= ax.y();
+            d *= ax.z();
 
             double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
             double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
