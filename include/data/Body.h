@@ -198,13 +198,14 @@ class Body {
      */
     void changed_state() const;
 
+    shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
   private:
     shared_ptr<File> file = nullptr;                     // The file backing this body
     shared_ptr<Grid> grid = nullptr;                     // The grid representation of this body
     shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-    shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
+    // shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
 
   public: 
     size_t uid;                           // An unique identifier for this body

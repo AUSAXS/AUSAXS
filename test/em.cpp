@@ -144,32 +144,32 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
 TEST_CASE("partial_histogram_manager", "[em]") {
     setting::protein::use_effective_charge = false;
 
-    SECTION("basic functionality works") {
-        std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
-        header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+    // SECTION("basic functionality works") {
+    //     std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+    //     header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
 
-        Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-        em::Image image(data, header, 0);
-        em::ImageStack images({image});
+    //     Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
+    //     em::Image image(data, header, 0);
+    //     em::ImageStack images({image});
 
-        em::PartialHistogramManager manager(images);
-        manager.set_cutoff_levels({2, 4, 6, 8});
-        manager.update_protein(0);
-        std::shared_ptr<Protein> protein = manager.get_protein();
+    //     em::PartialHistogramManager manager(images);
+    //     manager.set_cutoff_levels({2, 4, 6, 8});
+    //     manager.update_protein(0);
+    //     std::shared_ptr<Protein> protein = manager.get_protein();
 
-        REQUIRE(protein->body_size() == 4);
-        CHECK(protein->bodies[0].protein_atoms.size() == 3);
-        CHECK(protein->bodies[1].protein_atoms.size() == 4);
-        CHECK(protein->bodies[2].protein_atoms.size() == 4);
-        CHECK(protein->bodies[3].protein_atoms.size() == 1);
+    //     REQUIRE(protein->body_size() == 4);
+    //     CHECK(protein->bodies[0].protein_atoms.size() == 3);
+    //     CHECK(protein->bodies[1].protein_atoms.size() == 4);
+    //     CHECK(protein->bodies[2].protein_atoms.size() == 4);
+    //     CHECK(protein->bodies[3].protein_atoms.size() == 1);
 
-        manager.update_protein(3);
-        REQUIRE(protein->body_size() == 4);
-        CHECK(protein->bodies[0].protein_atoms.size() == 0);
-        CHECK(protein->bodies[1].protein_atoms.size() == 2);
-        CHECK(protein->bodies[2].protein_atoms.size() == 4);
-        CHECK(protein->bodies[3].protein_atoms.size() == 1);
-    }
+    //     manager.update_protein(3);
+    //     REQUIRE(protein->body_size() == 4);
+    //     CHECK(protein->bodies[0].protein_atoms.size() == 0);
+    //     CHECK(protein->bodies[1].protein_atoms.size() == 2);
+    //     CHECK(protein->bodies[2].protein_atoms.size() == 4);
+    //     CHECK(protein->bodies[3].protein_atoms.size() == 1);
+    // }
 
     SECTION("simple comparison with standard approach") {
         std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
@@ -183,7 +183,9 @@ TEST_CASE("partial_histogram_manager", "[em]") {
         manager.set_cutoff_levels({2, 4, 6, 8});
 
         // try an arbitrary cutoff level
+        std::cout << "CHECKPOINT" << std::endl;
         ScatteringHistogram h1 = manager.get_histogram_slow(3);
+        std::cout << "CHECKPOINT" << std::endl;
         ScatteringHistogram h2 = manager.get_histogram(3);
         REQUIRE(h1.p_tot.size() == h2.p_tot.size());
         for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
@@ -216,44 +218,44 @@ TEST_CASE("partial_histogram_manager", "[em]") {
         }
     }
 
-    SECTION("comparison with standard approach") {
-        setting::em::max_atoms = 10000;
-        em::ImageStack images("data/A2M_map.ccp4");
-        em::PartialHistogramManager manager(images);
+    // SECTION("comparison with standard approach") {
+    //     setting::em::max_atoms = 10000;
+    //     em::ImageStack images("data/A2M_map.ccp4");
+    //     em::PartialHistogramManager manager(images);
 
-        // try an arbitrary cutoff level
-        ScatteringHistogram h1 = manager.get_histogram_slow(4);
-        ScatteringHistogram h2 = manager.get_histogram(4);
-        REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-        for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-            if (h1.p_tot[i] != h2.p_tot[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
-                REQUIRE(false);
-            }
-        }
+    //     // try an arbitrary cutoff level
+    //     ScatteringHistogram h1 = manager.get_histogram_slow(4);
+    //     ScatteringHistogram h2 = manager.get_histogram(4);
+    //     REQUIRE(h1.p_tot.size() == h2.p_tot.size());
+    //     for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
+    //         if (h1.p_tot[i] != h2.p_tot[i]) {
+    //             cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+    //             REQUIRE(false);
+    //         }
+    //     }
 
-        // try a lower cutoff level
-        h1 = manager.get_histogram_slow(2);
-        h2 = manager.get_histogram(2);
-        REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-        for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-            if (h1.p_tot[i] != h2.p_tot[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
-                REQUIRE(false);
-            }
-        }
+    //     // try a lower cutoff level
+    //     h1 = manager.get_histogram_slow(2);
+    //     h2 = manager.get_histogram(2);
+    //     REQUIRE(h1.p_tot.size() == h2.p_tot.size());
+    //     for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
+    //         if (h1.p_tot[i] != h2.p_tot[i]) {
+    //             cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+    //             REQUIRE(false);
+    //         }
+    //     }
 
-        // try a higher cutoff level
-        h1 = manager.get_histogram_slow(5);
-        h2 = manager.get_histogram(5);
-        REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-        for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-            if (h1.p_tot[i] != h2.p_tot[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
-                REQUIRE(false);
-            }
-        }
-    }
+    //     // try a higher cutoff level
+    //     h1 = manager.get_histogram_slow(5);
+    //     h2 = manager.get_histogram(5);
+    //     REQUIRE(h1.p_tot.size() == h2.p_tot.size());
+    //     for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
+    //         if (h1.p_tot[i] != h2.p_tot[i]) {
+    //             cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+    //             REQUIRE(false);
+    //         }
+    //     }
+    // }
 }
 
 TEST_CASE("minimum_area", "[em]") {

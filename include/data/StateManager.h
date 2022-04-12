@@ -1,9 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <utility>
-
-using std::vector;
+#include <memory>
 
 /**
  * @brief A state manager which keeps track of changes in each body. 
@@ -16,12 +14,12 @@ class StateManager {
      */
     class Signaller {
         public: 
-            Signaller(const int id, StateManager* const owner) : owner(owner), id(id) {}
+            Signaller(unsigned int id, StateManager* const owner);
 
             /**
              * @brief Signal that the state of this object has changed. 
              */
-            virtual void state_change() const {owner->modified(id);}
+            virtual void state_change() const;
 
         private: 
             StateManager* const owner;
@@ -33,69 +31,61 @@ class StateManager {
      */
     class UnboundSignaller : public Signaller {
         public: 
-            UnboundSignaller() : Signaller(0, nullptr) {}
+            UnboundSignaller();
 
             /**
              * @brief Does nothing.
              */
-            void state_change() const override {}
+            void state_change() const override;
     };
 
-    StateManager(const int size) : size(size), _modified(size, true), _modified_hydration(true) {
-        for (int i = 0; i < size; i++) {probes.push_back(std::make_shared<Signaller>(i, this));}
-    }
+    StateManager(unsigned int size);
 
     /**
      * @brief Mark that the protein atoms of all bodies were modified. 
      */
-    void modified_all() {
-        _modified = vector<bool>(size, true);
-    }
+    void modified_all();
 
     /**
      * @brief Mark that the protein atoms of a body was modified.
      * @param i index of the body. 
      */
-    void modified(const int i) {
-        _modified[i] = true;
-    }
+    void modified(const int i);
 
     /**
      * @brief Mark that the hydration atoms of a body was modified.
      * @param i index of the body. 
      */
-    void modified_hydration_layer() {
-        _modified_hydration = true;
-    }
+    void modified_hydration_layer();
 
     /**
      * @brief Reset all marks to false.
      */
-    void reset() {
-        _modified = vector<bool>(size, false);
-        _modified_hydration = false;
-    }
+    void reset();
 
     /**
      * @brief Get a pointer to the @a ith probe so it can be dispatched to other classes.
      */
-    std::shared_ptr<Signaller> get_probe(const int i) {
-        return probes[i];
-    }
+    std::shared_ptr<Signaller> get_probe(unsigned int i);
 
     /**
      * @brief Get a boolean vector which denotes if the state of a given body was changed. 
      */
-    vector<bool> get_modified_bodies() const {return _modified;}
+    std::vector<bool> get_modified_bodies() const;
+
+    /**
+     * @brief Check if a given body has been marked as modified.
+     */
+    [[nodiscard]] bool is_modified(unsigned int i);
 
     /**
      * @brief Returns true if the hydration layer has been modified, false otherwise. 
      */
-    bool get_modified_hydration() const {return _modified_hydration;}
+    bool get_modified_hydration() const;
 
   private:
     const int size;
-    vector<bool> _modified;
+    std::vector<bool> _modified;
     bool _modified_hydration;
-    vector<std::shared_ptr<Signaller>> probes;
+    std::vector<std::shared_ptr<Signaller>> probes;
 };

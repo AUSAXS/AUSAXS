@@ -268,6 +268,7 @@ Body& Body::operator=(const Body& rhs) {
     *file = *rhs.file; // we do NOT want a copy of the file!
     uid = rhs.uid;
     if (rhs.grid != nullptr) {grid = rhs.grid;}
+    changed_state();
     return *this;
 }
 

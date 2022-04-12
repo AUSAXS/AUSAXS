@@ -97,6 +97,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 }
 
 Histogram PartialHistogramManager::calculate() {
+    std::cout << "Calculating histogram." << std::endl;
     if (master.p.size() == 0) {initialize();} // check if this object has already been initialized
 
     // first we have to update the compact coordinate representations
@@ -132,7 +133,10 @@ Histogram PartialHistogramManager::calculate() {
                 }
             }
             if (modified_state[i]) { // if a body was modified
+                std::cout << "Body " << i << " was modified." << std::endl;
                 calc_hp(i); // update its partial histogram with the hydration layer
+            } else {
+                std::cout << "Body " << i << " was not modified." << std::endl;
             }
         }
     }

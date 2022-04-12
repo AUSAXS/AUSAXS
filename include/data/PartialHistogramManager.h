@@ -130,9 +130,11 @@ class PartialHistogramManager {
      */
     void signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
 
-  private:
     const size_t size;                            // number of managed bodies
     StateManager statemanager;                    // a helper which keeps track of state changes in each body
+  private:
+    // const size_t size;                            // number of managed bodies
+    // StateManager statemanager;                    // a helper which keeps track of state changes in each body
     vector<CompactCoordinates> coords_p;          // a compact representation of the relevant data from the managed bodies
     CompactCoordinates coords_h;                  // a compact representation of the hydration data
     Protein* protein;                             // pointer to the parent Protein

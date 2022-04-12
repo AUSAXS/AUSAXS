@@ -17,8 +17,11 @@ std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) con
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
     for (const Image& image: images.images()) {
+        std::cout << "ATOMS CHECKPOINT" << std::endl;
         std::list<Atom> im_atoms = image.generate_atoms(cutoff);
+        std::cout << "ATOMS CHECKPOINT" << std::endl;
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
+        std::cout << "ATOMS CHECKPOINT" << std::endl;
     }
 
     // convert list to vector
@@ -65,21 +68,71 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
 }
 
 ScatteringHistogram em::PartialHistogramManager::get_histogram_slow(double cutoff) const {
-    return Protein(generate_atoms(cutoff)).get_histogram();
+    Protein protein(generate_atoms(cutoff));
+    std::cout << "ATOMS IN SLOW APPROACH" << std::endl;
+    for (const auto& a : protein.bodies[0].protein_atoms) {std::cout << a.as_pdb() << std::endl;}
+    return protein.get_histogram();
 }
 
 void em::PartialHistogramManager::update_protein(double cutoff) {
-    if (protein == nullptr || protein->bodies.empty()) {protein = generate_protein(cutoff); return;}
+    if (protein == nullptr || protein->bodies.empty()) {
+        protein = generate_protein(cutoff); 
+        protein->bind_body_signallers();
+
+        unsigned int i = 0;
+        for (const auto& b : protein->bodies) {
+            b.changed_state();
+        }
+
+        previous_cutoff = cutoff;
+        return;
+    }
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
 
-    for (unsigned int i = 0; i < charge_levels.size(); i++) {
-        if (charge_levels[i] < cutoff) {
-            protein->bodies[i].protein_atoms.clear();
-            protein->bodies[i].changed_state();
-        } else if (i+1 < charge_levels.size() && cutoff < charge_levels[i+1]) {
-            protein->bodies[i] = new_protein->bodies[i];
-            protein->bodies[i].changed_state();
-            break;
+    std::cout << "\nFAST APPROACH NEW PROTEIN" << std::endl;
+    unsigned int i = 0;
+    for (const auto& b : new_protein->bodies) {
+        std::cout << "BODY " << i++ << std::endl;
+        b.changed_state();
+        for (const auto& a : b.protein_atoms) {
+            std::cout << "\t" << a.as_pdb() << std::endl;
+        }
+    }
+
+    if (cutoff < previous_cutoff) {
+        std::cout << "\nCutoff smaller than previous cutoff. " << std::endl;
+        for (unsigned int i = 0; i < charge_levels.size()-1; i++) {
+            std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
+            if (charge_levels[i] < previous_cutoff) {
+                std::cout << "\tReplacing body " << i << std::endl;
+                protein->bodies[i] = new_protein->bodies[i];
+                protein->bodies[i].changed_state();
+            } else {
+                std::cout << "\tReplacing body " << i << std::endl;
+                protein->bodies[i] = new_protein->bodies[i];
+                protein->bodies[i].changed_state();
+                break;
+            }
+        }        
+    } else {
+        std::cout << "\nCutoff larger than previous cutoff. " << std::endl;
+        for (unsigned int i = 0; i < charge_levels.size(); i++) {
+            std::cout << "Charge level " << charge_levels[i] << " compared with current cutoff " << cutoff << std::endl;
+            if (cutoff < charge_levels[i]) {
+                std::cout << "\tReplacing body " << i << std::endl;
+                protein->bodies[i] = new_protein->bodies[i];
+                protein->bodies[i].changed_state();
+            }
+        }
+    }
+
+    std::cout << "\nFAST APPROACH FINAL" << std::endl;
+    i = 0;
+    for (const auto& b : protein->bodies) {
+        std::cout << "BODY " << i++ << (std::dynamic_pointer_cast<StateManager::UnboundSignaller>(b.signal) == nullptr ? " IS UNBOUND." : " IS BOUND.") << std::endl;
+        b.changed_state();
+        for (const auto& a : b.protein_atoms) {
+            std::cout << "\t" << a.as_pdb() << std::endl;
         }
     }
 }

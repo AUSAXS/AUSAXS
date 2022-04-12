@@ -30,6 +30,7 @@ namespace em {
             std::unique_ptr<CullingStrategy> culler;
             std::shared_ptr<Protein> protein;
             std::vector<double> charge_levels = {1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 100000};
+            double previous_cutoff = 0;
 
             std::unique_ptr<Protein>generate_protein(double cutoff) const;
 

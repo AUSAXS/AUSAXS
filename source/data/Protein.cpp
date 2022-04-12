@@ -7,11 +7,13 @@
 
 Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);
+    bind_body_signallers();
 }
 
 Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
     phm = std::make_unique<PartialHistogramManager>(this);
+    bind_body_signallers();
 }
 
 Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
@@ -19,10 +21,12 @@ Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom
         bodies.push_back(Body(protein_atoms[i], vector<Hetatom>(0)));
     }
     phm = std::make_unique<PartialHistogramManager>(this);
+    bind_body_signallers();
 }
 
 Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
     phm = std::make_unique<PartialHistogramManager>(this);
+    bind_body_signallers();
 }
 
 Protein::Protein(const string& input) {
@@ -31,6 +35,7 @@ Protein::Protein(const string& input) {
     hydration_atoms = std::move(bodies[0].hydration_atoms);
     bodies[0].hydration_atoms.clear();
     phm = std::make_unique<PartialHistogramManager>(this);
+    bind_body_signallers();
 }
 
 Protein::Protein(const vector<string>& input) {
@@ -38,6 +43,7 @@ Protein::Protein(const vector<string>& input) {
         bodies.push_back(Body(input[i]));
     }
     phm = std::make_unique<PartialHistogramManager>(this);
+    bind_body_signallers();
 }
 
 void Protein::translate(const Vector3& v) {
@@ -231,5 +237,13 @@ void Protein::center() {
     if (!centered && setting::protein::center) {
         translate(-get_cm());
         centered = true;
+    }
+}
+
+void Protein::bind_body_signallers() {
+    if (phm == nullptr) {throw except::unexpected("Error in Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
+    for (unsigned int i = 0; i < bodies.size(); i++) {
+        std::cout << "Registering probe to body " << i << std::endl;
+        bodies[i].register_probe(phm->get_probe(i));
     }
 }

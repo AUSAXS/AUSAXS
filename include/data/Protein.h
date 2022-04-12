@@ -201,6 +201,11 @@ class Protein {
      */    
     size_t size() const {return atom_size();}
 
+    /**
+     * @brief Bind the signaller objects in each body to the histogram manager. 
+     */
+    void bind_body_signallers();
+
     vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
     vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
