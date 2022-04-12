@@ -17,9 +17,14 @@ class StateManager {
 				Signaller() {}
 
 				/**
-				 * @brief Signal that the state of this object has changed. 
+				 * @brief Signal that the external state (i.e. position, rotation) of this object has changed. 
 				 */
-				virtual void state_change() const = 0;
+				virtual void external_change() const = 0;
+
+				/**
+				 * @brief Signal that the internal state (removed or added atoms) of this object has changed.
+				 */
+				virtual void internal_change() const = 0;
 		};
 
 		/**
@@ -30,9 +35,14 @@ class StateManager {
 				BoundSignaller(unsigned int id, StateManager* const owner);
 
 				/**
-				 * @brief Signal that the state of this object has changed. 
+				 * @brief Signal that the external state (i.e. position, rotation) of this object has changed. 
 				 */
-				virtual void state_change() const;
+				virtual void external_change() const;
+
+				/**
+				 * @brief Signal that the internal state (removed or added atoms) of this object has changed.
+				 */
+				virtual void internal_change() const;
 
 			private: 
 				StateManager* const owner;
@@ -49,21 +59,39 @@ class StateManager {
 				/**
 				 * @brief Does nothing.
 				 */
-				void state_change() const override;
+				void internal_change() const override;
+
+				/**
+				 * @brief Does nothing.
+				 */
+				void external_change() const override;
 		};
 
 		StateManager(unsigned int size);
 
 		/**
-		 * @brief Mark that the protein atoms of all bodies were modified. 
+		 * @brief Mark that the protein atoms of all bodies were internally modified. 
 		 */
-		void modified_all();
+		void internally_modified_all();
 
 		/**
-		 * @brief Mark that the protein atoms of a body was modified.
+		 * @brief Mark that the protein atoms of all bodies were externally modified. 
+		 */
+		void externally_modified_all();
+
+		/**
+		 * @brief Mark that the protein atoms of a body was internally modified.
+		 * 
 		 * @param i index of the body. 
 		 */
-		void modified(const int i);
+		void internally_modified(const int i);
+
+		/**
+		 * @brief Mark that the protein atoms of a body was externally modified.
+		 * 
+		 * @param i index of the body. 
+		 */
+		void externally_modified(const int i);
 
 		/**
 		 * @brief Mark that the hydration atoms of a body was modified.
@@ -84,12 +112,19 @@ class StateManager {
 		/**
 		 * @brief Get a boolean vector which denotes if the state of a given body was changed. 
 		 */
-		std::vector<bool> get_modified_bodies() const;
+		std::vector<bool> get_externally_modified_bodies() const;
+
+		std::vector<bool> get_internally_modified_bodies() const;
 
 		/**
 		 * @brief Check if a given body has been marked as modified.
 		 */
-		[[nodiscard]] bool is_modified(unsigned int i);
+		[[nodiscard]] bool is_externally_modified(unsigned int i);
+
+		/**
+		 * @brief Check if a given body has been marked as modified.
+		 */
+		[[nodiscard]] bool is_internally_modified(unsigned int i);
 
 		/**
 		 * @brief Returns true if the hydration layer has been modified, false otherwise. 
@@ -98,7 +133,8 @@ class StateManager {
 
 	private:
 		const int size;
-		std::vector<bool> _modified;
+		std::vector<bool> _externally_modified;
+		std::vector<bool> _internally_modified;
 		bool _modified_hydration;
 		std::vector<std::shared_ptr<BoundSignaller>> probes;
 };

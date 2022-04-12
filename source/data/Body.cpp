@@ -276,6 +276,6 @@ bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
 
-void Body::changed_state() const {signal->state_change();}
+void Body::changed_state() const {signal->external_change();}
 
 void Body::register_probe(std::shared_ptr<StateManager::BoundSignaller> signal) {this->signal = signal;}

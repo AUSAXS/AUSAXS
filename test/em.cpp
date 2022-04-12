@@ -266,7 +266,7 @@ TEST_CASE("minimum_area", "[em]") {
         ObjectBounds2D bounds = image.setup_bounds(1);
         REQUIRE(bounds.size() == 6);
         CHECK(bounds[0].min == 0);
-        CHECK(bounds[0].max == 5);
+        CHECK(bounds[0].max == 0);
         CHECK(bounds[1].min == 2);
         CHECK(bounds[1].max == 3);
         CHECK(bounds[2].min == 2);
@@ -285,11 +285,11 @@ TEST_CASE("minimum_area", "[em]") {
         CHECK(bounds[1].min == 1);
         CHECK(bounds[1].max == 1);
         CHECK(bounds[2].min == 0);
-        CHECK(bounds[2].max == 5);
+        CHECK(bounds[2].max == 0);
         CHECK(bounds[3].min == 0);
-        CHECK(bounds[3].max == 5);
+        CHECK(bounds[3].max == 0);
         CHECK(bounds[4].min == 0);
-        CHECK(bounds[4].max == 5);
+        CHECK(bounds[4].max == 0);
         CHECK(bounds[5].min == 1);
         CHECK(bounds[5].max == 4);
     }
@@ -300,22 +300,6 @@ TEST_CASE("minimum_area", "[em]") {
 
         // cutoff = 1
         ObjectBounds2D bounds = image2.setup_bounds(1);
-        REQUIRE(bounds.size() == 6);
-        CHECK(bounds[0].min == 1);
-        CHECK(bounds[0].max == 5);
-        CHECK(bounds[1].min == 1);
-        CHECK(bounds[1].max == 4);
-        CHECK(bounds[2].min == 1);
-        CHECK(bounds[2].max == 4);
-        CHECK(bounds[3].min == 0);
-        CHECK(bounds[3].max == 4);
-        CHECK(bounds[4].min == 1);
-        CHECK(bounds[4].max == 4);
-        CHECK(bounds[5].min == 0);
-        CHECK(bounds[5].max == 5);
-
-        // cutoff = 2
-        bounds = image2.setup_bounds(2);
         REQUIRE(bounds.size() == 6);
         CHECK(bounds[0].min == 2);
         CHECK(bounds[0].max == 4);
@@ -329,6 +313,22 @@ TEST_CASE("minimum_area", "[em]") {
         CHECK(bounds[4].max == 2);
         CHECK(bounds[5].min == 0);
         CHECK(bounds[5].max == 3);
+
+        // cutoff = 2
+        bounds = image2.setup_bounds(2);
+        REQUIRE(bounds.size() == 6);
+        CHECK(bounds[0].min == 3);
+        CHECK(bounds[0].max == 3);
+        CHECK(bounds[1].min == 1);
+        CHECK(bounds[1].max == 4);
+        CHECK(bounds[2].min == 0);
+        CHECK(bounds[2].max == 0);
+        CHECK(bounds[3].min == 3);
+        CHECK(bounds[3].max == 3);
+        CHECK(bounds[4].min == 0);
+        CHECK(bounds[4].max == 0);
+        CHECK(bounds[5].min == 0);
+        CHECK(bounds[5].max == 2);
 
         // cutoff = 3
         bounds = image2.setup_bounds(2);
@@ -350,10 +350,10 @@ TEST_CASE("minimum_area", "[em]") {
     SECTION("correct_bounded_area") {
         ObjectBounds2D bounds = image.setup_bounds(1);
         CHECK(bounds.total_area() == 6*6);
-        CHECK(bounds.bounded_area() == 18);
+        CHECK(bounds.bounded_area() == 13);
 
         bounds = image.setup_bounds(-1);
-        CHECK(bounds.bounded_area() == 26);
+        CHECK(bounds.bounded_area() == 11);
     }
 
     SECTION("correct_bounds_imagestack") {
@@ -362,9 +362,9 @@ TEST_CASE("minimum_area", "[em]") {
         
         ObjectBounds3D bounds = images.minimum_volume(1);
         CHECK(bounds.total_volume() == 2*6*6);
-        CHECK(bounds.bounded_volume() == 36);
+        CHECK(bounds.bounded_volume() == 26);
 
         bounds = images.minimum_volume(-1);
-        CHECK(bounds.bounded_volume() == 52);
+        CHECK(bounds.bounded_volume() == 22);
     }
 }

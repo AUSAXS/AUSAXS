@@ -55,11 +55,15 @@ double SimpleLeastSquares::chi2() const {
 }
 
 std::vector<std::shared_ptr<TGraph>> SimpleLeastSquares::plot() {
-    throw except::unexpected("Error in SimpleLeastSquares::plot: Not implemented.");
+    std::cout << "Plots are not created for SimpleLeastSquare fits" << std::endl;
+    // throw except::unexpected("Error in SimpleLeastSquares::plot: Not implemented.");
+    return std::vector<std::shared_ptr<TGraph>>(3);
 }
 
 std::unique_ptr<TGraphErrors> SimpleLeastSquares::plot_residuals() {
-    throw except::unexpected("Error in SimpleLeastSquares::plot_residuals: Not implemented.");
+    std::cout << "Plots are not created for SimpleLeastSquare fits" << std::endl;
+    // throw except::unexpected("Error in SimpleLeastSquares::plot_residuals: Not implemented.");
+    return std::make_unique<TGraphErrors>();
 }
 
 unsigned int SimpleLeastSquares::dof() const {return x.size() - 2;}

@@ -79,11 +79,6 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
 
-        unsigned int i = 0;
-        for (const auto& b : protein->bodies) {
-            b.changed_state();
-        }
-
         previous_cutoff = cutoff;
         return;
     }
@@ -93,7 +88,6 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     unsigned int i = 0;
     for (const auto& b : new_protein->bodies) {
         std::cout << "BODY " << i++ << std::endl;
-        b.changed_state();
         for (const auto& a : b.protein_atoms) {
             std::cout << "\t" << a.as_pdb() << std::endl;
         }
@@ -106,11 +100,9 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
             if (charge_levels[i] < previous_cutoff) {
                 std::cout << "\tReplacing body " << i << std::endl;
                 protein->bodies[i] = new_protein->bodies[i];
-                protein->bodies[i].changed_state();
             } else {
                 std::cout << "\tReplacing body " << i << std::endl;
                 protein->bodies[i] = new_protein->bodies[i];
-                protein->bodies[i].changed_state();
                 break;
             }
         }        
@@ -121,7 +113,6 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
             if (cutoff < charge_levels[i]) {
                 std::cout << "\tReplacing body " << i << std::endl;
                 protein->bodies[i] = new_protein->bodies[i];
-                protein->bodies[i].changed_state();
             }
         }
     }
@@ -129,8 +120,7 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     std::cout << "\nFAST APPROACH FINAL" << std::endl;
     i = 0;
     for (const auto& b : protein->bodies) {
-        std::cout << "BODY " << i++ << (std::dynamic_pointer_cast<StateManager::UnboundSignaller>(b.signal) == nullptr ? " IS UNBOUND." : " IS BOUND.") << std::endl;
-        b.changed_state();
+        std::cout << "BODY " << i++ << std::endl;
         for (const auto& a : b.protein_atoms) {
             std::cout << "\t" << a.as_pdb() << std::endl;
         }

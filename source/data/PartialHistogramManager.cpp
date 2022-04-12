@@ -33,6 +33,36 @@ const StateManager& PartialHistogramManager::get_state_manager() const {return s
 
 StateManager& PartialHistogramManager::get_state_manager() {return statemanager;}
 
+void PartialHistogramManager::calc_self_correlation(unsigned int index) {
+    double width = setting::axes::scattering_intensity_plot_binned_width;
+    CompactCoordinates current(protein->bodies[index]);
+
+    // calculate internal distances between atoms
+    vector<double> p_pp(master.axis.bins, 0);
+    for (unsigned int i = 0; i < current.size; i++) {
+        for (unsigned int j = i+1; j < current.size; j++) {
+            float weight = current.data[i].w*current.data[j].w;
+            float dx = current.data[i].x - current.data[j].x;
+            float dy = current.data[i].y - current.data[j].y;
+            float dz = current.data[i].z - current.data[j].z;
+            float dist = sqrt(dx*dx + dy*dy + dz*dz);
+            p_pp[dist/width] += 2*weight;
+        }
+    }
+
+    // calculate self-correlation
+    for (unsigned int i = 0; i < current.size; i++) {p_pp[0] += current.data[i].w*current.data[i].w;}
+
+    // store the coordinates for later
+    coords_p[index] = std::move(current);
+
+    master.base -= partials_pp[index][index];
+    master -= partials_pp[index][index];
+    partials_pp[index][index].p = std::move(p_pp);
+    master += partials_pp[index][index];
+    master.base += partials_pp[index][index];
+}
+
 /**
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
@@ -73,7 +103,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     vector<double> p_hh = partials_hh.p;
-    vector<double> p_pp = master.p_base;
+    vector<double> p_pp = master.base.p;
     vector<double> p_hp(total.axis.bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < size; i++) {
@@ -109,7 +139,7 @@ Histogram PartialHistogramManager::calculate() {
     if (master.p.size() == 0) {initialize();} // check if this object has already been initialized
 
     // first we have to update the compact coordinate representations
-    const vector<bool> modified_state = statemanager.get_modified_bodies();
+    const vector<bool> modified_state = statemanager.get_externally_modified_bodies();
     for (unsigned int i = 0; i < size; i++) {
         if (modified_state[i]) {
             coords_p[i] = CompactCoordinates(protein->bodies[i]); //! REMOVE - UNNECESSARY ON FIRST ITERATION
@@ -153,7 +183,7 @@ Histogram PartialHistogramManager::calculate() {
 }
 
 void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
-    const double& width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::scattering_intensity_plot_binned_width;
 
     CompactCoordinates& coords_n = coords_p[n];
     CompactCoordinates& coords_m = coords_p[m];
@@ -174,7 +204,7 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
 }
 
 void PartialHistogramManager::calc_pp(unsigned int index) {
-    const double& width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::scattering_intensity_plot_binned_width;
     CompactCoordinates& coords_i = coords_p[index];
 
     // we do not want to calculate the self-correlation, so we have to skip entry 'index'
@@ -216,7 +246,7 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
 }
 
 void PartialHistogramManager::calc_hp(unsigned int index) {
-    const double& width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::scattering_intensity_plot_binned_width;
     vector<double> p_hp(master.axis.bins, 0);
 
     CompactCoordinates& coords = coords_p[index];

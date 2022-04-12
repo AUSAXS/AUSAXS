@@ -56,7 +56,7 @@ class MasterHistogram : public Histogram {
      * @param p The current histogram. 
      * @param p_base The constant, unchanging part of the histogram. 
      */
-    MasterHistogram(const vector<double>& p_base, const Axis& axis) : Histogram(p_base, axis), p_base(std::move(p_base)) {}
+    MasterHistogram(const vector<double>& p_base, const Axis& axis) : Histogram(p_base, axis), base(std::move(p_base)) {}
 
     /**
      * @brief Add a PartialHistogram to the MasterHistogram. 
@@ -76,7 +76,7 @@ class MasterHistogram : public Histogram {
     }
 
     // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
-    vector<double> p_base; 
+    Histogram base;
 };
 
 /**
@@ -166,4 +166,9 @@ class PartialHistogramManager {
      * @brief Calculate the hydration-hydration distances. 
      */
     void calc_hh();
+
+    /**
+     * @brief Calculate the self-correlation of a body. 
+     */
+    void calc_self_correlation(unsigned int index);
 };

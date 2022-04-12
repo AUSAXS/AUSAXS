@@ -42,6 +42,22 @@ class Histogram {
     Histogram(const vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
 
     /**
+     * @brief Add another Histogram to this one.
+     */
+    Histogram& operator+=(const Histogram& rhs) {
+        std::transform(p.begin(), p.end(), rhs.p.begin(), p.begin(), std::plus<double>());
+        return *this;
+    }
+
+    /**
+     * @brief Subtract another Histogram from this one.
+     */
+    Histogram& operator-=(const Histogram& rhs) {
+        std::transform(p.begin(), p.end(), rhs.p.begin(), p.begin(), std::minus<double>());
+        return *this;
+    }
+
+    /**
      * @brief Reduce the view axis to show only the non-zero area. 
      *        Minimum size is 10 units.
      */
