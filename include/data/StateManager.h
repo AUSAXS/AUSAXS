@@ -8,84 +8,97 @@
  *        This is meant to be used in conjunction with DistanceCalculator, such that it only recalculates what is absolutely necessary. 
  */
 class StateManager {
-  public:
-    /**
-     * @brief A small probe for signalling changes which can be dispatched to other classes. 
-     */
-    class Signaller {
-        public: 
-            Signaller(unsigned int id, StateManager* const owner);
+	public:
+		/**
+		 * @brief A small probe for signalling changes which can be dispatched to other classes. 
+		 */
+		class Signaller {
+			public: 
+				Signaller() {}
 
-            /**
-             * @brief Signal that the state of this object has changed. 
-             */
-            virtual void state_change() const;
+				/**
+				 * @brief Signal that the state of this object has changed. 
+				 */
+				virtual void state_change() const = 0;
+		};
 
-        private: 
-            StateManager* const owner;
-            int id;
-    };
+		/**
+		 * @brief A small probe for signalling changes which can be dispatched to other classes. 
+		 */
+		class BoundSignaller : public Signaller {
+			public: 
+				BoundSignaller(unsigned int id, StateManager* const owner);
 
-    /**
-     * @brief Dummy version of a Signaller object. This can be used to initialize an instance of Signaller. 
-     */
-    class UnboundSignaller : public Signaller {
-        public: 
-            UnboundSignaller();
+				/**
+				 * @brief Signal that the state of this object has changed. 
+				 */
+				virtual void state_change() const;
 
-            /**
-             * @brief Does nothing.
-             */
-            void state_change() const override;
-    };
+			private: 
+				StateManager* const owner;
+				int id;
+		};
 
-    StateManager(unsigned int size);
+		/**
+		 * @brief Dummy version of a Signaller object. This can be used to initialize an instance of Signaller. 
+		 */
+		class UnboundSignaller : public Signaller {
+			public: 
+				UnboundSignaller() {}
 
-    /**
-     * @brief Mark that the protein atoms of all bodies were modified. 
-     */
-    void modified_all();
+				/**
+				 * @brief Does nothing.
+				 */
+				void state_change() const override;
+		};
 
-    /**
-     * @brief Mark that the protein atoms of a body was modified.
-     * @param i index of the body. 
-     */
-    void modified(const int i);
+		StateManager(unsigned int size);
 
-    /**
-     * @brief Mark that the hydration atoms of a body was modified.
-     * @param i index of the body. 
-     */
-    void modified_hydration_layer();
+		/**
+		 * @brief Mark that the protein atoms of all bodies were modified. 
+		 */
+		void modified_all();
 
-    /**
-     * @brief Reset all marks to false.
-     */
-    void reset();
+		/**
+		 * @brief Mark that the protein atoms of a body was modified.
+		 * @param i index of the body. 
+		 */
+		void modified(const int i);
 
-    /**
-     * @brief Get a pointer to the @a ith probe so it can be dispatched to other classes.
-     */
-    std::shared_ptr<Signaller> get_probe(unsigned int i);
+		/**
+		 * @brief Mark that the hydration atoms of a body was modified.
+		 * @param i index of the body. 
+		 */
+		void modified_hydration_layer();
 
-    /**
-     * @brief Get a boolean vector which denotes if the state of a given body was changed. 
-     */
-    std::vector<bool> get_modified_bodies() const;
+		/**
+		 * @brief Reset all marks to false.
+		 */
+		void reset();
 
-    /**
-     * @brief Check if a given body has been marked as modified.
-     */
-    [[nodiscard]] bool is_modified(unsigned int i);
+		/**
+		 * @brief Get a pointer to the @a ith probe so it can be dispatched to other classes.
+		 */
+		std::shared_ptr<BoundSignaller> get_probe(unsigned int i);
 
-    /**
-     * @brief Returns true if the hydration layer has been modified, false otherwise. 
-     */
-    bool get_modified_hydration() const;
+		/**
+		 * @brief Get a boolean vector which denotes if the state of a given body was changed. 
+		 */
+		std::vector<bool> get_modified_bodies() const;
 
-  private:
-    const int size;
-    std::vector<bool> _modified;
-    bool _modified_hydration;
-    std::vector<std::shared_ptr<Signaller>> probes;
+		/**
+		 * @brief Check if a given body has been marked as modified.
+		 */
+		[[nodiscard]] bool is_modified(unsigned int i);
+
+		/**
+		 * @brief Returns true if the hydration layer has been modified, false otherwise. 
+		 */
+		bool get_modified_hydration() const;
+
+	private:
+		const int size;
+		std::vector<bool> _modified;
+		bool _modified_hydration;
+		std::vector<std::shared_ptr<BoundSignaller>> probes;
 };

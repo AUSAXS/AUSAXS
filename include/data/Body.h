@@ -176,7 +176,7 @@ class Body {
     /**
      * @brief Register a probe (listener) to this object, which will be notified of state changes. 
      */
-    void register_probe(std::shared_ptr<StateManager::Signaller> signal) {signal = signal;}
+    void register_probe(std::shared_ptr<StateManager::BoundSignaller> signal);
 
     /**
      * @brief Assign another body to this object. 

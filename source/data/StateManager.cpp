@@ -3,20 +3,18 @@
 #include <memory>
 #include <iostream>
 
-StateManager::Signaller::Signaller(unsigned int id, StateManager* const owner) : owner(owner), id(id) {}
+StateManager::BoundSignaller::BoundSignaller(unsigned int id, StateManager* const owner) : owner(owner), id(id) {}
 
-void StateManager::Signaller::state_change() const {
+void StateManager::BoundSignaller::state_change() const {
     owner->modified(id);
     std::cout << "Signalling object is bound, and a signal was sent." << std::endl;
 }
-
-StateManager::UnboundSignaller::UnboundSignaller() : Signaller(0, nullptr) {}
 
 void StateManager::UnboundSignaller::state_change() const {std::cout << "Signalling object is not bound to anything." << std::endl;}
 
 StateManager::StateManager(unsigned int size) : size(size), _modified(size, true), _modified_hydration(true) {
     for (unsigned int i = 0; i < size; i++) {
-        probes.push_back(std::make_shared<Signaller>(i, this));
+        probes.push_back(std::make_shared<BoundSignaller>(i, this));
     }
 }
 
@@ -37,7 +35,7 @@ void StateManager::reset() {
     _modified_hydration = false;
 }
 
-std::shared_ptr<StateManager::Signaller> StateManager::get_probe(unsigned int i) {return probes[i];}
+std::shared_ptr<StateManager::BoundSignaller> StateManager::get_probe(unsigned int i) {return probes[i];}
 
 std::vector<bool> StateManager::get_modified_bodies() const {return _modified;}
 

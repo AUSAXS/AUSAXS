@@ -29,7 +29,7 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
     bind_body_signallers();
 }
 
-Protein::Protein(const string& input) {
+Protein::Protein(string input) {
     Body b1(input);
     bodies = {b1};
     hydration_atoms = std::move(bodies[0].hydration_atoms);
@@ -247,3 +247,5 @@ void Protein::bind_body_signallers() {
         bodies[i].register_probe(phm->get_probe(i));
     }
 }
+
+std::shared_ptr<PartialHistogramManager> Protein::get_histogram_manager() const {return phm;}

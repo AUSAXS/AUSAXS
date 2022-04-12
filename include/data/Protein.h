@@ -11,8 +11,6 @@
 #include "data/StateManager.h"
 #include "data/PartialHistogramManager.h"
 
-using std::vector, std::string;
-
 class Protein {
   public: 
     /**
@@ -40,7 +38,7 @@ class Protein {
      * @param bodies The constituent bodies of this protein. 
      * @param hydration_atoms The hydration layer. 
      */
-    explicit Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const std::vector<Body>& bodies, const std::vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Constructor.
@@ -51,7 +49,7 @@ class Protein {
      * @param protein_atoms The constituent atoms of this protein. 
      * @param hydration_atoms The hydration layer. 
      */
-    explicit Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const std::vector<Atom>& protein_atoms, const std::vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Constructor. 
@@ -61,7 +59,7 @@ class Protein {
      * @param protein_atoms The constituent atoms of each body. 
      * @param hydration_atoms The hydration layer. 
      */
-    explicit Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Hetatom>& hydration_atoms = {});
 
     /**
      * @brief Constructor. 
@@ -70,7 +68,7 @@ class Protein {
      * 
      * @param input A list of paths to the input files. File extensions can be mixed. 
      */
-    explicit Protein(const vector<string>& input);
+    explicit Protein(const std::vector<std::string>& input);
 
     /**
      * @brief Constructor.
@@ -79,7 +77,7 @@ class Protein {
      * 
      * @param input Path to the input file. 
      */
-    explicit Protein(const string& input);
+    explicit Protein(std::string input);
 
     /**
      * @brief Get the distances between each atom.
@@ -96,7 +94,7 @@ class Protein {
      * @brief Writes this body to disk.
      * @param path path to the destination. 
      */
-    void save(string path);
+    void save(std::string path);
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.
@@ -132,7 +130,7 @@ class Protein {
     /**
      * @brief Get the grid representation of this body. 
      */
-    shared_ptr<Grid> get_grid();
+    std::shared_ptr<Grid> get_grid();
 
     /**
      * @brief Set the grid representation of this body. 
@@ -165,17 +163,17 @@ class Protein {
     /**
      * @brief Get a copy of all protein atoms from the underlying bodies.
      */
-    vector<Atom> get_protein_atoms() const;
+    std::vector<Atom> get_protein_atoms() const;
 
     /**
      * @brief Get a copy of the hydration atoms. Use the member variable for reference access. 
      */
-    vector<Hetatom> get_hydration_atoms() const;
+    std::vector<Hetatom> get_hydration_atoms() const;
 
     /**
      * @brief Create a grid and fill it with the atoms of this protein. 
      */
-    shared_ptr<Grid> create_grid();
+    std::shared_ptr<Grid> create_grid();
 
     /**
      * @brief Calculate the Debye scattering intensity for this protein. Does not include hydration atoms. 
@@ -184,7 +182,7 @@ class Protein {
      * 
      * @return vector<double> 
      */
-    vector<double> calc_debye_scattering_intensity();
+    std::vector<double> calc_debye_scattering_intensity();
 
     /**
      * @brief Get the number of constituent bodies. 
@@ -206,14 +204,16 @@ class Protein {
      */
     void bind_body_signallers();
 
-    vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
-    vector<Body> bodies; // The constituent bodies
+    std::shared_ptr<PartialHistogramManager> get_histogram_manager() const;
+
+    std::vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
+    std::vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
     bool centered = false; // True if this object is centered, false otherwise. 
   private:
-    shared_ptr<Grid> grid = nullptr; // The grid representation of this body
-    unique_ptr<PartialHistogramManager> phm = nullptr;
-    shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+    std::shared_ptr<Grid> grid = nullptr; // The grid representation of this body
+    std::shared_ptr<PartialHistogramManager> phm = nullptr;
+    std::shared_ptr<ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     /** 
      * @brief Move the entire protein by a vector.

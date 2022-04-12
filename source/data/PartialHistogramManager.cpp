@@ -25,6 +25,14 @@ PartialHistogramManager::PartialHistogramManager(Protein* protein)
         for (unsigned int i = 0; i < size; i++) {protein->bodies[i].register_probe(statemanager.get_probe(i));}
     }
 
+std::shared_ptr<StateManager::BoundSignaller> PartialHistogramManager::get_probe(unsigned int i) {return statemanager.get_probe(i);}
+
+void PartialHistogramManager::signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
+
+const StateManager& PartialHistogramManager::get_state_manager() const {return statemanager;}
+
+StateManager& PartialHistogramManager::get_state_manager() {return statemanager;}
+
 /**
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */

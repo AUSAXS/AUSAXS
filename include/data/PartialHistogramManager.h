@@ -122,19 +122,21 @@ class PartialHistogramManager {
      * @brief Get a signalling object for signalling a change of state. 
      *        Each body is supposed to hold one of these, and trigger it when they change state. 
      */
-    std::shared_ptr<StateManager::Signaller> get_probe(unsigned int i) {return statemanager.get_probe(i);}
+    std::shared_ptr<StateManager::BoundSignaller> get_probe(unsigned int i);
 
     /**
      * @brief Signal that the hydration layer was modified. 
      *        This is supposed to be used only by the Protein class, which has direct access to this object. Thus a signalling object is unnecessary. 
      */
-    void signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
+    void signal_modified_hydration_layer();
 
+    const StateManager& get_state_manager() const;
+
+    StateManager& get_state_manager();
+
+  private:
     const size_t size;                            // number of managed bodies
     StateManager statemanager;                    // a helper which keeps track of state changes in each body
-  private:
-    // const size_t size;                            // number of managed bodies
-    // StateManager statemanager;                    // a helper which keeps track of state changes in each body
     vector<CompactCoordinates> coords_p;          // a compact representation of the relevant data from the managed bodies
     CompactCoordinates coords_h;                  // a compact representation of the hydration data
     Protein* protein;                             // pointer to the parent Protein
