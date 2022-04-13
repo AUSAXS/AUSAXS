@@ -28,8 +28,12 @@ std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) con
 std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cutoff) const {
     vector<Atom> atoms = generate_atoms(cutoff);
 
+    std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
+    std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
+    std::function<bool(double, double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
+
     // sort vector so we can slice it into levels of charge density
-    auto comparator = [] (const Atom& atom1, const Atom& atom2) {return atom1.occupancy < atom2.occupancy;};
+    auto comparator = [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.occupancy, atom2.occupancy);};
     std::sort(atoms.begin(), atoms.end(), comparator);
 
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
@@ -38,12 +42,17 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     vector<Body> bodies(charge_levels.size());
     vector<Atom> current_atoms(atoms.size());
     
-    while (atoms[atom_index].occupancy < cutoff) {atom_index++;} // search for first atom with charge larger than the cutoff
-    while (charge < cutoff) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
+    while (compare_func(atoms[atom_index].occupancy, cutoff)) {atom_index++;} // search for first atom with charge larger than the cutoff
+    while (compare_func(charge, cutoff)) {std::cout << "Compared " << charge << " with " << cutoff << " (evaluated true)" << std::endl; charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
     for (; atom_index < atoms.size(); atom_index++) {
-        if (atoms[atom_index].occupancy < charge) {
+        if (compare_func(atoms[atom_index].occupancy, charge)) {
+            std::cout << atoms[atom_index].occupancy << " compared with " << charge << " evaluated to true!" << std::endl;
+            std::cout << "Adding atom " << atom_index << " to body " << charge_index << std::endl;
             current_atoms[current_index++] = atoms[atom_index];
         } else {
+            std::cout << "Finished with body " << charge_index << std::endl;
+            std::cout << "Adding atom " << atom_index << " to body " << charge_index+1 << std::endl;
+
             // create the body for this charge bin
             current_atoms.resize(current_index);
             bodies[charge_index] = Body(current_atoms);
@@ -93,13 +102,13 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
     std::function<bool(double, double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
 
-    if (cutoff < previous_cutoff) {
+    if (compare_func(cutoff, previous_cutoff)) {
         // since cutoff is smaller than previously, we have to change all bins in the range [cutoff, previous_cutoff]
 
         // skip all bins before the relevant range
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
-        while (current_cutoff < cutoff && charge_index < charge_levels.size()) {
+        while (compare_func(current_cutoff, cutoff) && charge_index < charge_levels.size()) {
             std::cout << "Current cutoff " << current_cutoff << " is smaller than cutoff " << cutoff << ", skipping bin " << charge_index << std::endl;
             current_cutoff = charge_levels[++charge_index];}
 
@@ -124,7 +133,7 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
         // skip all bins before the relevant range
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
-        while (current_cutoff < previous_cutoff && charge_index < charge_levels.size()) {
+        while (compare_func(current_cutoff, previous_cutoff) && charge_index < charge_levels.size()) {
             std::cout << "Current cutoff " << current_cutoff << " is smaller than previous cutoff " << previous_cutoff << ", skipping bin " << charge_index << std::endl;
             current_cutoff = charge_levels[++charge_index];}
 
