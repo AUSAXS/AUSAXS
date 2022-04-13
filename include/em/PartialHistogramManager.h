@@ -12,13 +12,15 @@ namespace em {
         public:
             PartialHistogramManager(const ImageStack& images);
 
+            ~PartialHistogramManager() = default;
+
             ScatteringHistogram get_histogram(double cutoff);
 
             std::shared_ptr<Protein> get_protein() const;
 
-            void set_cutoff_levels(std::vector<double> levels);
+            std::shared_ptr<Protein> get_protein(double cutoff);
 
-            void update_protein(double cutoff);
+            void set_cutoff_levels(std::vector<double> levels);
 
             /**
              * @brief Alternate slower approach to generating the histogram. 
@@ -27,10 +29,11 @@ namespace em {
         
         private:
             const ImageStack& images; 
-            std::unique_ptr<CullingStrategy> culler;
             std::shared_ptr<Protein> protein;
             std::vector<double> charge_levels = {1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 100000};
             double previous_cutoff = 0;
+
+            void update_protein(double cutoff);
 
             std::unique_ptr<Protein>generate_protein(double cutoff) const;
 

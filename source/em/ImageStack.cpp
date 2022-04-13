@@ -12,6 +12,7 @@ using namespace std::chrono;
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
 #include <em/ImageStack.h>
+#include <em/PartialHistogramManager.h>
 #include <data/Atom.h>
 #include <data/Protein.h>
 #include <fitter/SimpleIntensityFitter.h>
@@ -26,12 +27,16 @@ using namespace std::chrono;
 using namespace setting::em;
 using namespace em;
 
-ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution, CullingStrategyChoice csc) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {
+ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution, CullingStrategyChoice csc) 
+    : size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
+
     data = images;
     setup(csc);
 }
 
-ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoice csc) : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution) {
+ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoice csc) 
+    : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
+
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
 
@@ -39,6 +44,8 @@ ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoi
     read(input, get_byte_size());
     setup(csc);
 }
+
+ImageStack::~ImageStack() = default;
 
 void ImageStack::setup(CullingStrategyChoice csc) {
     determine_staining();
@@ -56,7 +63,7 @@ void ImageStack::setup(CullingStrategyChoice csc) {
 }
 
 void ImageStack::save(string path, double cutoff) const {
-    std::unique_ptr<Protein> protein = create_protein(cutoff);
+    std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
     protein->save(path);
 }
 
@@ -68,19 +75,6 @@ size_t ImageStack::size() const {return size_z;}
 
 const vector<Image>& ImageStack::images() const {return data;}
 
-std::unique_ptr<Protein> ImageStack::create_protein(double cutoff) const {
-    // we use a list since we will have to append quite a few other lists to it
-    std::list<Atom> atoms;
-    for (const Image& image: data) {
-        std::list<Atom> im_atoms = image.generate_atoms(cutoff);
-        atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
-    }
-
-    // convert list to vector
-    vector<Atom> v = culler->cull(atoms);    
-    return std::make_unique<Protein>(v);
-}
-
 std::unique_ptr<Grid> ImageStack::create_grid(double) const {
     std::cout << "Error in ImageStack::create_grid: Not implemented yet. " << std::endl;
     exit(1);
@@ -88,11 +82,10 @@ std::unique_ptr<Grid> ImageStack::create_grid(double) const {
 
 ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
     // auto start = high_resolution_clock::now();
-    std::unique_ptr<Protein> protein = create_protein(cutoff);
     // auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
     // std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
     // protein->generate_new_hydration();
-    return protein->get_histogram();
+    return phm->get_histogram(cutoff);
 }
 
 ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) const {

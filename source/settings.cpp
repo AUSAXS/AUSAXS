@@ -52,7 +52,9 @@ namespace setting {
     }
 
     namespace em {
-        unsigned int max_atoms = 50000;
+        CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; 
+        unsigned int sample_frequency = 1; 
+        // unsigned int max_atoms = 50000;
     }
 }
 

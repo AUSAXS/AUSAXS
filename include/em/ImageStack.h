@@ -10,9 +10,9 @@
 #include <ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
 
-using std::vector, std::list;
-
 namespace em {
+    class PartialHistogramManager;
+
     /**
      * @brief \class ImageStack
      * 
@@ -27,26 +27,26 @@ namespace em {
              * 
              * @param file Path to the input EM data file. 
              */
-            ImageStack(string file, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
+            ImageStack(std::string file, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
 
             /**
              * @brief Constructor.
              * 
              * @param resolution 
              */
-            ImageStack(const vector<Image>& images, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
+            ImageStack(const std::vector<Image>& images, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
 
             /**
              * @brief Destructor.
              */
-            ~ImageStack() = default;
+            ~ImageStack();;
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
              * @param filename Path to the measurement file. 
              */
-            std::shared_ptr<EMFit> fit(string filename);
+            std::shared_ptr<EMFit> fit(std::string filename);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
@@ -87,13 +87,6 @@ namespace em {
             std::unique_ptr<Grid> create_grid(double cutoff) const;
 
             /**
-             * @brief Create a new Protein based on this object. 
-             * 
-             * @param cutoff The cutoff value. If positive, atoms will be generated at all pixel values higher than this. If negative, they will be generated at pixels lower than this. 
-             */
-            std::unique_ptr<Protein> create_protein(double cutoff) const;
-
-            /**
              * @brief Get the header of the input file. 
              */
             std::shared_ptr<ccp4::Header> get_header() const;
@@ -106,7 +99,7 @@ namespace em {
             /**
              * @brief Get a reference to all images stored in this object. 
              */
-            const vector<Image>& images() const;
+            const std::vector<Image>& images() const;
 
             /**
              * @brief Save this structure as a .pdb file. 
@@ -114,7 +107,7 @@ namespace em {
              * @param path Path to save location.
              * @param cutoff The cutoff value. If positive, atoms will be generated at all pixel values higher than this. If negative, they will be generated at pixels lower than this. 
              */
-            void save(string path, double cutoff) const;
+            void save(std::string path, double cutoff) const;
 
             /**
              * @brief Determine if this map is positively stained. 
@@ -141,13 +134,12 @@ namespace em {
         private:
             std::string filename;
             std::shared_ptr<ccp4::Header> header;
-            vector<Image> data;
+            std::vector<Image> data;
             std::unique_ptr<em::CullingStrategy> culler;
             unsigned int resolution;
             int staining = 0; // 0 if not determined yet, -1 if negatively stained, +1 if positively stained
             unsigned int size_x, size_y, size_z;
-            vector<double> charge_levels = {1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 100000};
-            std::unique_ptr<Protein> protein;
+            std::unique_ptr<em::PartialHistogramManager> phm;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.

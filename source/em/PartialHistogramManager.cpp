@@ -2,11 +2,10 @@
 
 #include <em/PartialHistogramManager.h>
 #include <em/ImageStack.h>
-#include <em/CounterCulling.h>
 #include <ScatteringHistogram.h>
 #include <data/Protein.h>
 
-em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) :images(images), culler(std::make_unique<CounterCulling>()) {}
+em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}
 
 ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
     update_protein(cutoff);
@@ -22,7 +21,7 @@ std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) con
     }
 
     // convert list to vector
-    return culler->cull(atoms);
+    return std::vector<Atom>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
 }
 
 std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cutoff) const {
@@ -43,29 +42,27 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     vector<Atom> current_atoms(atoms.size());
     
     while (compare_func(atoms[atom_index].occupancy, cutoff)) {atom_index++;} // search for first atom with charge larger than the cutoff
-    while (compare_func(charge, cutoff)) {std::cout << "Compared " << charge << " with " << cutoff << " (evaluated true)" << std::endl; charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
-    for (; atom_index < atoms.size(); atom_index++) {
+    while (compare_func(charge, cutoff)) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
+    while (atom_index < atoms.size()) {
         if (compare_func(atoms[atom_index].occupancy, charge)) {
-            std::cout << atoms[atom_index].occupancy << " compared with " << charge << " evaluated to true!" << std::endl;
-            std::cout << "Adding atom " << atom_index << " to body " << charge_index << std::endl;
-            current_atoms[current_index++] = atoms[atom_index];
+            current_atoms[current_index++] = atoms[atom_index++];
         } else {
-            std::cout << "Finished with body " << charge_index << std::endl;
-            std::cout << "Adding atom " << atom_index << " to body " << charge_index+1 << std::endl;
-
             // create the body for this charge bin
             current_atoms.resize(current_index);
             bodies[charge_index] = Body(current_atoms);
 
             // prepare the next body
-            current_index = 1;
+            current_index = 0;
             current_atoms.resize(atoms.size());
-            current_atoms[0] = atoms[atom_index]; // add the atom of the current iteration
 
             // increment the charge level
+            if (__builtin_expect(charge_index+1 == charge_levels.size(), false)) {
+                throw except::unexpected("Error in em::PartialHistogramManager::generate_protein: Reached end of charge levels list.");
+            }
             charge = charge_levels[++charge_index];
         }
     }
+    
     // create the final body of the loop
     current_atoms.resize(current_index);
     bodies[charge_index] = Body(current_atoms);
@@ -87,17 +84,6 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     }
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
 
-    std::cout << "\nFAST APPROACH NEW PROTEIN" << std::endl;
-    {
-        unsigned int i = 0;
-        for (const auto& b : new_protein->bodies) {
-            std::cout << "BODY " << i++ << std::endl;
-            for (const auto& a : b.protein_atoms) {
-                std::cout << "\t" << a.as_pdb() << std::endl;
-            }
-        }
-    }
-
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
     std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
     std::function<bool(double, double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
@@ -109,7 +95,6 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
         while (compare_func(current_cutoff, cutoff) && charge_index < charge_levels.size()) {
-            std::cout << "Current cutoff " << current_cutoff << " is smaller than cutoff " << cutoff << ", skipping bin " << charge_index << std::endl;
             current_cutoff = charge_levels[++charge_index];}
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
@@ -118,11 +103,14 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], previous_cutoff)) {
                 // if so, we replace it with the new contents
-                std::cout << "\tReplacing body " << charge_index << std::endl;
                 protein->bodies[charge_index] = new_protein->bodies[charge_index];
             } else {
+                // if we have the same number of atoms as earlier, nothing has changed
+                if (new_protein->bodies[charge_index].protein_atoms.size() == protein->bodies[charge_index].protein_atoms.size()) {
+                    break;
+                }
+
                 // otherwise we replace it and stop iterating
-                std::cout << "\tReplacing body " << charge_index << std::endl;
                 protein->bodies[charge_index] = new_protein->bodies[charge_index];
                 break;
             }
@@ -134,7 +122,6 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
         unsigned int charge_index = 0;
         double current_cutoff = charge_levels[0];
         while (compare_func(current_cutoff, previous_cutoff) && charge_index < charge_levels.size()) {
-            std::cout << "Current cutoff " << current_cutoff << " is smaller than previous cutoff " << previous_cutoff << ", skipping bin " << charge_index << std::endl;
             current_cutoff = charge_levels[++charge_index];}
 
         // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
@@ -143,11 +130,9 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], cutoff)) {
                 // if so, we replace it with the new contents
-                std::cout << "\tReplacing body " << charge_index << std::endl;
                 protein->bodies[charge_index] = new_protein->bodies[charge_index];
             } else {
                 // otherwise we replace it and stop iterating
-                std::cout << "\tReplacing body " << charge_index << std::endl;
                 protein->bodies[charge_index] = new_protein->bodies[charge_index];
                 break;
             }
@@ -155,23 +140,21 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
 
     }
 
-    {
-        std::cout << "\nFAST APPROACH FINAL" << std::endl;
-        unsigned int i = 0;
-        for (const auto& b : protein->bodies) {
-            std::cout << "BODY " << i++ << std::endl;
-            for (const auto& a : b.protein_atoms) {
-                std::cout << "\t" << a.as_pdb() << std::endl;
-            }
-        }
-    }
-
     previous_cutoff = cutoff;
 }
 
 std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {return protein;}
 
+std::shared_ptr<Protein> em::PartialHistogramManager::get_protein(double cutoff) {
+    update_protein(cutoff);
+    return protein;
+}
+
 void em::PartialHistogramManager::set_cutoff_levels(std::vector<double> levels) {
+    // make sure the last bin can contain all atoms
+    if (std::abs(levels[levels.size()-1] < 10000)) {
+        levels.push_back(levels[0] < 0 ? -10000 : 10000);
+    } 
     charge_levels = levels;
     if (protein != nullptr) {protein->bodies.clear();} // we must reset the bodies to ensure they remain in sync with the new levels
 }

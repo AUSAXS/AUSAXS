@@ -39,6 +39,7 @@ namespace em {
             void set_target_count(size_t target_count) {this->target_count = target_count;}
 
         protected: 
-            unsigned int target_count = setting::em::max_atoms; // The desired number of molecules after the culling.
+            // unsigned int target_count = setting::em::max_atoms; // The desired number of molecules after the culling.
+            unsigned int target_count = 50000; // The desired number of molecules after the culling.
     };
 }

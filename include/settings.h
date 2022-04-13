@@ -62,10 +62,10 @@ namespace setting {
 
     namespace em {
         enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
-
         extern CullingStrategyChoice csc; // The choice of culling algorithm. 
 
-        extern unsigned int max_atoms; // The maximum number of atoms which is generated from the input map. 
+        extern unsigned int sample_frequency; // How often a bin is sampled in any direction. 
+        // extern unsigned int max_atoms; // The maximum number of atoms which is generated from the input map. 
     }
 
     // Simple reader for reading settings from a text file

@@ -2,6 +2,7 @@
 
 #include <data/StateManager.h>
 #include <data/Protein.h>
+#include <em/PartialHistogramManager.h>
 
 using std::vector, std::shared_ptr;
 
@@ -70,4 +71,131 @@ TEST_CASE("protein_manager", "[managers]") {
     protein.bodies[0].changed_external_state();
     protein.bodies[4].changed_external_state();
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, true});
+}
+
+TEST_CASE("partial_histogram_manager", "[managers]") {
+    setting::protein::use_effective_charge = false;
+
+    auto compare = [] (em::PartialHistogramManager& manager, double cutoff) {
+        ScatteringHistogram h1 = manager.get_histogram_slow(cutoff);
+        ScatteringHistogram h2 = manager.get_histogram(cutoff);
+
+        if (h1.p.size() != h2.p.size()) {
+            cout << "Unequal sizes. " << endl;
+            return false;
+        }
+        for (unsigned int i = 0; i < h1.p.size(); i++) {
+            if (h1.p[i] != h2.p[i]) {
+                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
+                return false;
+            }
+        }
+        return true;
+    };
+
+    SECTION("basic functionality works") {
+        std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+        header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+
+        Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
+        em::Image image(data, header, 0);
+        em::ImageStack images({image});
+
+        em::PartialHistogramManager manager(images);
+        manager.set_cutoff_levels({2, 4, 6, 8});
+        std::shared_ptr<Protein> protein = manager.get_protein(0);
+
+        REQUIRE(protein->body_size() == 5);
+        CHECK(protein->bodies[0].protein_atoms.size() == 3);
+        CHECK(protein->bodies[1].protein_atoms.size() == 4);
+        CHECK(protein->bodies[2].protein_atoms.size() == 4);
+        CHECK(protein->bodies[3].protein_atoms.size() == 1);
+
+        protein = manager.get_protein(3);
+        REQUIRE(protein->body_size() == 5);
+        CHECK(protein->bodies[0].protein_atoms.size() == 0);
+        CHECK(protein->bodies[1].protein_atoms.size() == 2);
+        CHECK(protein->bodies[2].protein_atoms.size() == 4);
+        CHECK(protein->bodies[3].protein_atoms.size() == 1);
+    }
+
+    SECTION("simple comparison with standard approach") {
+        SECTION("positive") {
+            std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+            header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+
+            Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
+            em::Image image(data, header, 0);
+            em::ImageStack images({image});
+
+            em::PartialHistogramManager manager(images);
+            manager.set_cutoff_levels({2, 4, 6, 8});
+
+            // try an arbitrary cutoff level
+            REQUIRE(compare(manager, 3));
+
+            // try a lower cutoff level
+            REQUIRE(compare(manager, 1));
+
+            // try a higher cutoff level
+            REQUIRE(compare(manager, 4));
+
+            // some more tests
+            REQUIRE(compare(manager, 5));
+            REQUIRE(compare(manager, 2));
+            REQUIRE(compare(manager, 3.6));
+            REQUIRE(compare(manager, 1));
+        }
+
+        SECTION("negative") {
+            std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+            header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+
+            Matrix data = Matrix<float>{{-1, -2, -3, -4, -5, -6}, {-0.5, -1.5, -2.5, -3.5, -4.5, -5.5}};
+            em::Image image(data, header, 0);
+            em::ImageStack images({image});
+
+            em::PartialHistogramManager manager(images);
+            manager.set_cutoff_levels({-2, -4, -6, -8});
+
+            // try an arbitrary cutoff level
+            REQUIRE(compare(manager, -3));
+
+            // try a lower cutoff level
+            REQUIRE(compare(manager, -1));
+
+            // try a higher cutoff level
+            REQUIRE(compare(manager, -4));
+
+            // some more tests
+            REQUIRE(compare(manager, -5));
+            REQUIRE(compare(manager, -2));
+            REQUIRE(compare(manager, -3.6));
+            REQUIRE(compare(manager, -1));
+        }
+
+        SECTION("real example") {
+            // setting::em::max_atoms = 10;
+            em::ImageStack images("data/maptest.ccp4");
+            em::PartialHistogramManager manager(images);
+
+            REQUIRE(compare(manager, 4));
+            REQUIRE(compare(manager, 3));
+            REQUIRE(compare(manager, 2));
+            REQUIRE(compare(manager, 5));
+            REQUIRE(compare(manager, 6));
+        }
+    }
+
+    SECTION("comparison with standard approach") {
+        // setting::em::max_atoms = 10000;
+        em::ImageStack images("data/A2M_map.ccp4");
+        em::PartialHistogramManager manager(images);
+
+        REQUIRE(compare(manager, 4));
+        REQUIRE(compare(manager, 3));
+        REQUIRE(compare(manager, 2));
+        REQUIRE(compare(manager, 5));
+        REQUIRE(compare(manager, 6));
+    }
 }

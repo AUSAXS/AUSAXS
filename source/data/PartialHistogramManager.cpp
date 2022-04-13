@@ -181,10 +181,7 @@ Histogram PartialHistogramManager::calculate() {
                 }
             }
             if (externally_modified[i]) { // if a body was modified
-                std::cout << "Body " << i << " was modified." << std::endl;
                 calc_hp(i); // update its partial histogram with the hydration layer
-            } else {
-                std::cout << "Body " << i << " was not modified." << std::endl;
             }
         }
     }
