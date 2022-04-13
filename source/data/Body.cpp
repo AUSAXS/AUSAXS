@@ -209,7 +209,7 @@ shared_ptr<ScatteringHistogram> Body::get_histogram() {
 }
 
 void Body::translate(const Vector3& v) {
-    changed_state();
+    changed_external_state();
 
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
     std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
@@ -226,25 +226,25 @@ void Body::rotate(const Matrix<double>& R) {
 }
 
 void Body::rotate(double alpha, double beta, double gamma) {
-    changed_state();
+    changed_external_state();
     Matrix R = Matrix<double>::rotation_matrix(alpha, beta, gamma);
     rotate(R);
 }
 
 void Body::rotate(const Vector3& axis, double angle) {
-    changed_state();
+    changed_external_state();
     Matrix R = Matrix<double>::rotation_matrix(axis, angle);
     rotate(R);
 }
 
 void Body::update_effective_charge(double charge) {
-    changed_state();
+    changed_external_state();
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;
 }
 
 void Body::update_effective_charge() {
-    changed_state();
+    changed_external_state();
 
     double displaced_vol = get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol;
@@ -268,7 +268,7 @@ Body& Body::operator=(const Body& rhs) {
     *file = *rhs.file; // we do NOT want a copy of the file!
     uid = rhs.uid;
     if (rhs.grid != nullptr) {grid = rhs.grid;}
-    changed_state();
+    changed_internal_state();
     return *this;
 }
 
@@ -276,6 +276,8 @@ bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
 
-void Body::changed_state() const {signal->external_change();}
+void Body::changed_external_state() const {signal->external_change();}
+
+void Body::changed_internal_state() const {signal->internal_change();}
 
 void Body::register_probe(std::shared_ptr<StateManager::BoundSignaller> signal) {this->signal = signal;}

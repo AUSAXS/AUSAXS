@@ -135,13 +135,23 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 }
 
 Histogram PartialHistogramManager::calculate() {
-    const vector<bool> modified_state = statemanager.get_externally_modified_bodies();
-    if (__builtin_expect(master.p.size() == 0, false)) { // check if this object has already been initialized
+    const vector<bool> externally_modified = statemanager.get_externally_modified_bodies();
+    const vector<bool> internally_modified = statemanager.get_internally_modified_bodies();
+
+    // check if the object has already been initialized
+    if (__builtin_expect(master.p.size() == 0, false)) {
         initialize(); 
-    } else { // first we have to update the compact coordinate representations
+    } 
+    
+    // if not, we must first check if the coordinates have been changed in any of the bodies
+    else {
         for (unsigned int i = 0; i < size; i++) {
-            if (modified_state[i]) {
-                coords_p[i] = CompactCoordinates(protein->bodies[i]); //! REMOVE - UNNECESSARY ON FIRST ITERATION
+            if (internally_modified[i]) {
+                // if the internal state was modified, we have to recalculate the self-correlation
+                calc_self_correlation(i);
+            } else if (externally_modified[i]) {
+                // if the external state was modified, we have to update the coordinate representations
+                coords_p[i] = CompactCoordinates(protein->bodies[i]);
             }
         }
     }
@@ -154,7 +164,7 @@ Histogram PartialHistogramManager::calculate() {
         // iterate through the lower triangle
         for (unsigned int i = 0; i < size; i++) {
             for (unsigned int j = 0; j < i; j++) {
-                if (modified_state[i] || modified_state[j]) {
+                if (externally_modified[i] || externally_modified[j]) {
                     calc_pp(i, j);
                 }
             }
@@ -166,11 +176,11 @@ Histogram PartialHistogramManager::calculate() {
     else {
         for (unsigned int i = 0; i < size; i++) {
             for (unsigned int j = 0; j < i; j++) {
-                if (modified_state[i] || modified_state[j]) { // if either of the two bodies were modified
+                if (externally_modified[i] || externally_modified[j]) { // if either of the two bodies were modified
                     calc_pp(i, j); // recalculate their partial histogram
                 }
             }
-            if (modified_state[i]) { // if a body was modified
+            if (externally_modified[i]) { // if a body was modified
                 std::cout << "Body " << i << " was modified." << std::endl;
                 calc_hp(i); // update its partial histogram with the hydration layer
             } else {

@@ -17,11 +17,8 @@ std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) con
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
     for (const Image& image: images.images()) {
-        std::cout << "ATOMS CHECKPOINT" << std::endl;
         std::list<Atom> im_atoms = image.generate_atoms(cutoff);
-        std::cout << "ATOMS CHECKPOINT" << std::endl;
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
-        std::cout << "ATOMS CHECKPOINT" << std::endl;
     }
 
     // convert list to vector
@@ -68,10 +65,7 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
 }
 
 ScatteringHistogram em::PartialHistogramManager::get_histogram_slow(double cutoff) const {
-    Protein protein(generate_atoms(cutoff));
-    std::cout << "ATOMS IN SLOW APPROACH" << std::endl;
-    for (const auto& a : protein.bodies[0].protein_atoms) {std::cout << a.as_pdb() << std::endl;}
-    return protein.get_histogram();
+    return Protein(generate_atoms(cutoff)).get_histogram();
 }
 
 void em::PartialHistogramManager::update_protein(double cutoff) {
@@ -93,29 +87,21 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
         }
     }
 
-    if (cutoff < previous_cutoff) {
-        std::cout << "\nCutoff smaller than previous cutoff. " << std::endl;
-        for (unsigned int i = 0; i < charge_levels.size()-1; i++) {
-            std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
-            if (charge_levels[i] < previous_cutoff) {
-                std::cout << "\tReplacing body " << i << std::endl;
-                protein->bodies[i] = new_protein->bodies[i];
-            } else {
-                std::cout << "\tReplacing body " << i << std::endl;
-                protein->bodies[i] = new_protein->bodies[i];
-                break;
-            }
-        }        
-    } else {
-        std::cout << "\nCutoff larger than previous cutoff. " << std::endl;
-        for (unsigned int i = 0; i < charge_levels.size(); i++) {
-            std::cout << "Charge level " << charge_levels[i] << " compared with current cutoff " << cutoff << std::endl;
-            if (cutoff < charge_levels[i]) {
-                std::cout << "\tReplacing body " << i << std::endl;
-                protein->bodies[i] = new_protein->bodies[i];
-            }
+    std::function<bool(double)> compare_positive = [&] (double val) {return val < previous_cutoff;};
+    std::function<bool(double)> compare_negative = [&] (double val) {return val > previous_cutoff;};
+    std::function<bool(double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
+
+    for (unsigned int i = 0; i < charge_levels.size()-1; i++) {
+        std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
+        if (compare_func(charge_levels[i])) {
+            std::cout << "\tReplacing body " << i << std::endl;
+            protein->bodies[i] = new_protein->bodies[i];
+        } else {
+            std::cout << "\tReplacing body " << i << std::endl;
+            protein->bodies[i] = new_protein->bodies[i];
+            break;
         }
-    }
+    }        
 
     std::cout << "\nFAST APPROACH FINAL" << std::endl;
     i = 0;

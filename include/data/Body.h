@@ -194,9 +194,16 @@ class Body {
     shared_ptr<File> get_file() const {return file;}
 
     /**
-     * @brief Signal that this object has changed its internal state.
+     * @brief Signal that this object has changed its external state.
+     *        This triggers recalculating all external distances between this body and everything else the next time a histogram is requested. 
      */
-    void changed_state() const;
+    void changed_external_state() const;
+
+    /**
+     * @brief Signal that this object has changed its internal state.
+     *        This triggers recalculating all distances, both external and internal, between this body and everything else the next time a histogram is requested. 
+     */
+    void changed_internal_state() const;    
 
     shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
   private:

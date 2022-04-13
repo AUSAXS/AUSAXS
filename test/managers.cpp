@@ -53,21 +53,21 @@ TEST_CASE("protein_manager", "[managers]") {
     CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
     Body body;
     body.register_probe(probe0);
-    body.changed_state();
+    body.changed_external_state();
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, false});
 
     manager.reset();
     CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
     protein.bind_body_signallers();
-    protein.bodies[0].changed_state();
-    protein.bodies[2].changed_state();
+    protein.bodies[0].changed_external_state();
+    protein.bodies[2].changed_external_state();
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, true, false, false});
 
     manager.reset();
     CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
     protein.bodies[0] = Body();
     protein.bodies[4] = Body();
-    protein.bodies[0].changed_state();
-    protein.bodies[4].changed_state();
+    protein.bodies[0].changed_external_state();
+    protein.bodies[4].changed_external_state();
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, true});
 }

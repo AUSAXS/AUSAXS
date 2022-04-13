@@ -144,6 +144,23 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
 TEST_CASE("partial_histogram_manager", "[em]") {
     setting::protein::use_effective_charge = false;
 
+    auto compare = [] (em::PartialHistogramManager& manager, double cutoff) {
+        ScatteringHistogram h1 = manager.get_histogram_slow(cutoff);
+        ScatteringHistogram h2 = manager.get_histogram(cutoff);
+
+        if (h1.p.size() != h2.p.size()) {
+            cout << "Unequal sizes. " << endl;
+            return false;
+        }
+        for (unsigned int i = 0; i < h1.p.size(); i++) {
+            if (h1.p[i] != h2.p[i]) {
+                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
+                return false;
+            }
+        }
+        return true;
+    };
+
     // SECTION("basic functionality works") {
     //     std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
     //     header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
@@ -172,49 +189,58 @@ TEST_CASE("partial_histogram_manager", "[em]") {
     // }
 
     SECTION("simple comparison with standard approach") {
-        std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
-        header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+        // SECTION("positive") {
+        //     std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+        //     header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
 
-        Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-        em::Image image(data, header, 0);
-        em::ImageStack images({image});
+        //     Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
+        //     em::Image image(data, header, 0);
+        //     em::ImageStack images({image});
 
-        em::PartialHistogramManager manager(images);
-        manager.set_cutoff_levels({2, 4, 6, 8});
+        //     em::PartialHistogramManager manager(images);
+        //     manager.set_cutoff_levels({2, 4, 6, 8});
 
-        // try an arbitrary cutoff level
-        std::cout << "CHECKPOINT" << std::endl;
-        ScatteringHistogram h1 = manager.get_histogram_slow(3);
-        std::cout << "CHECKPOINT" << std::endl;
-        ScatteringHistogram h2 = manager.get_histogram(3);
-        REQUIRE(h1.p.size() == h2.p.size());
-        for (unsigned int i = 0; i < h1.p.size(); i++) {
-            if (h1.p[i] != h2.p[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
-                REQUIRE(false);
-            }
-        }
+        //     // try an arbitrary cutoff level
+        //     REQUIRE(compare(manager, 3));
 
-        // try a lower cutoff level
-        h1 = manager.get_histogram_slow(1);
-        h2 = manager.get_histogram(1);
-        REQUIRE(h1.p.size() == h2.p.size());
-        for (unsigned int i = 0; i < h1.p.size(); i++) {
-            if (h1.p[i] != h2.p[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
-                REQUIRE(false);
-            }
-        }
+        //     // try a lower cutoff level
+        //     REQUIRE(compare(manager, 1));
 
-        // try a higher cutoff level
-        h1 = manager.get_histogram_slow(4);
-        h2 = manager.get_histogram(4);
-        REQUIRE(h1.p.size() == h2.p.size());
-        for (unsigned int i = 0; i < h1.p.size(); i++) {
-            if (h1.p[i] != h2.p[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
-                REQUIRE(false);
-            }
+        //     // try a higher cutoff level
+        //     REQUIRE(compare(manager, 4));
+
+        //     // some more tests
+        //     REQUIRE(compare(manager, 5));
+        //     REQUIRE(compare(manager, 2));
+        //     REQUIRE(compare(manager, 3.6));
+        //     REQUIRE(compare(manager, 1));
+        // }
+
+        SECTION("negative") {
+            std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+            header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+
+            Matrix data = Matrix<float>{{-1, -2, -3, -4, -5, -6}, {-0.5, -1.5, -2.5, -3.5, -4.5, -5.5}};
+            em::Image image(data, header, 0);
+            em::ImageStack images({image});
+
+            em::PartialHistogramManager manager(images);
+            manager.set_cutoff_levels({-2, -4, -6, -8});
+
+            // try an arbitrary cutoff level
+            compare(manager, -3);
+
+            // try a lower cutoff level
+            // compare(manager, -1);
+
+            // try a higher cutoff level
+            // compare(manager, -4);
+
+            // some more tests
+            // compare(manager, -5);
+            // compare(manager, -2);
+            // compare(manager, -3.6);
+            // compare(manager, -1);
         }
     }
 
