@@ -175,7 +175,6 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
         }
 
         SECTION("real example") {
-            // setting::em::max_atoms = 10;
             em::ImageStack images("data/maptest.ccp4");
             em::PartialHistogramManager manager(images);
 
@@ -188,8 +187,8 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
     }
 
     SECTION("comparison with standard approach") {
-        // setting::em::max_atoms = 10000;
-        em::ImageStack images("data/A2M_map.ccp4");
+        setting::em::sample_frequency = 2;
+        em::ImageStack images("data/A2M_ma.ccp4");
         em::PartialHistogramManager manager(images);
 
         REQUIRE(compare(manager, 4));

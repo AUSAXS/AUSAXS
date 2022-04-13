@@ -15,8 +15,10 @@ ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
 std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
-    for (const Image& image: images.images()) {
-        std::list<Atom> im_atoms = image.generate_atoms(cutoff);
+    const std::vector<Image>& imagestack = images.images();
+    unsigned int step = setting::em::sample_frequency;
+    for (unsigned int i = 0; i < imagestack.size(); i += step) {
+        std::list<Atom> im_atoms = imagestack[i].generate_atoms(cutoff);
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms
     }
 

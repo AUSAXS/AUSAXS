@@ -4,12 +4,10 @@
 #include <vector>
 #include <fstream>
 
-using std::string, std::vector;
-
 // Default settings
 namespace setting {
     namespace figures {
-        string format = "pdf";
+        std::string format = "pdf";
     }
 
     namespace grid {
@@ -54,15 +52,16 @@ namespace setting {
     namespace em {
         CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; 
         unsigned int sample_frequency = 1; 
+        std::vector<double> charge_levels = {1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5, 5.25, 5.5, 5.75, 6, 100000};
         // unsigned int max_atoms = 50000;
     }
 }
 
-void setting::reader::read(const string path) {
+void setting::reader::read(const std::string path) {
     std::ifstream input(path);
     if (!input.is_open()) {throw std::ios_base::failure("Error in settings::reader::read: Could not open file \"" + path + "\"");}
 
-    string line; // placeholder for the current line
+    std::string line; // placeholder for the current line
     while(getline(input, line)) {
         if (line[0] == '#') {continue;} // # signifies comments
         

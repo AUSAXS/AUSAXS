@@ -70,7 +70,7 @@ class Vector {
 		}
 
         // Initializer list assignment operator
-        Vector<T>& operator=(std::initializer_list<double> l) {
+        Vector<T>& operator=(std::initializer_list<T> l) {
 			N = l.size();
 			data.assign(l);
 			return *this;
@@ -81,7 +81,7 @@ class Vector {
         Vector<T> operator+(const Vector<Q>& v) const {
 			compatibility_check(v);
 			Vector w(N);
-			std::transform(begin(), end(), v.begin(), w.begin(), std::plus<double>());
+			std::transform(begin(), end(), v.begin(), w.begin(), std::plus<T>());
 			return w;
 		}
 
@@ -90,14 +90,14 @@ class Vector {
         Vector<T> operator-(const Vector<Q>& v) const {
 			compatibility_check(v);
 			Vector w(N);
-			std::transform(begin(), end(), v.begin(), w.begin(), std::minus<double>());
+			std::transform(begin(), end(), v.begin(), w.begin(), std::minus<T>());
 			return w;
 		}
 
         // Minus operator, -w
         Vector<T> operator-() const {
 			Vector w(N);
-			std::transform(begin(), end(), w.begin(), std::negate<double>());
+			std::transform(begin(), end(), w.begin(), std::negate<T>());
 			return w;
 		}
 
@@ -106,14 +106,14 @@ class Vector {
         Vector<T> operator*(const Vector<Q>& v) const {
 			compatibility_check(v);
 			Vector w(N);
-			std::transform(begin(), end(), v.begin(), w.begin(), std::multiplies<double>());
+			std::transform(begin(), end(), v.begin(), w.begin(), std::multiplies<T>());
 			return w;
 		}
 
         // Scalar multiplication, w*a
         Vector<T> operator*(double a) const {
 			Vector w(N);
-			std::transform(begin(), end(), w.begin(), [&a](double x) {return x*a;});
+			std::transform(begin(), end(), w.begin(), [&a] (T x) {return x*a;});
 			return w;
 		}
 
@@ -122,7 +122,7 @@ class Vector {
         // Scalar division, w/a
         Vector<T> operator/(double a) const {
 			Vector w(N);
-			std::transform(begin(), end(), w.begin(), [&a](double x) {return x/a;});
+			std::transform(begin(), end(), w.begin(), [&a] (T x) {return x/a;});
 			return w;
 		}
 
@@ -144,13 +144,13 @@ class Vector {
 
         // Scalar division-assignment, w /= a
         Vector<T>& operator/=(double a) {
-			std::transform(begin(), end(), begin(), [&a](double x) {return x/a;});
+			std::transform(begin(), end(), begin(), [&a] (T x) {return x/a;});
 			return *this;
 		}
 
         // Scalar multiplication-assignment, w /= a
         Vector<T>& operator*=(double a) {
-			std::transform(begin(), end(), begin(), [&a](double x) {return x*a;});
+			std::transform(begin(), end(), begin(), [&a] (T x) {return x*a;});
 			return *this;
 		}
 
@@ -169,8 +169,8 @@ class Vector {
         template<typename Q>
         bool operator==(const Vector<Q>& v) const {
 			compatibility_check(v);
-			Vector a = operator-(v); // difference vector
-			return std::accumulate(a.begin(), a.end(), 0.0, [] (double sum, double x) {return sum + abs(x);}) < precision;
+			Vector<T> a = operator-(v); // difference vector
+			return std::accumulate(a.begin(), a.end(), 0.0, [] (double sum, T x) {return sum + abs(x);}) < precision;
 		}
 
         // Approximate inequality operator, w != v
@@ -208,8 +208,8 @@ class Vector {
         template<typename Q>
         double distance2(const Vector<Q>& v) const {
 			compatibility_check(v);
-			Vector w(N);
-			std::transform(begin(), end(), v.begin(), w.begin(), [] (double x1, double x2) {return pow((x1-x2), 2);});
+			Vector<T> w(N);
+			std::transform(begin(), end(), v.begin(), w.begin(), [] (T x1, Q x2) {return pow((x1-x2), 2);});
 			return std::accumulate(w.begin(), w.end(), 0);
 		}
 

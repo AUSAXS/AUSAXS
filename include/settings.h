@@ -5,12 +5,10 @@
 #include "math/Vector3.h"
 #include "data/Axis.h"
 
-using std::string, std::vector;
-
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
     namespace figures {
-        extern string format; // The output format.
+        extern std::string format; // The output format.
     }
 
     namespace grid {
@@ -65,11 +63,12 @@ namespace setting {
         extern CullingStrategyChoice csc; // The choice of culling algorithm. 
 
         extern unsigned int sample_frequency; // How often a bin is sampled in any direction. 
+        extern std::vector<double> charge_levels; // The charge levels used by the histogram manager. 
         // extern unsigned int max_atoms; // The maximum number of atoms which is generated from the input map. 
     }
 
     // Simple reader for reading settings from a text file
     class reader {
-        static void read(const string path);
+        static void read(const std::string path);
     };
 }

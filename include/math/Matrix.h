@@ -81,7 +81,7 @@ class Matrix {
         Matrix<Q> operator+(const Matrix<R>& A) const {
             compatibility_check(A);
             Matrix<Q> B(N, M);
-            std::transform(begin(), end(), A.begin(), B.begin(), std::plus<double>());
+            std::transform(begin(), end(), A.begin(), B.begin(), std::plus<Q>());
             return B;
         }
 
@@ -90,28 +90,28 @@ class Matrix {
         Matrix<Q> operator-(const Matrix<R>& A) const {
             compatibility_check(A);
             Matrix<Q> B(N, M);
-            std::transform(begin(), end(), A.begin(), B.begin(), std::minus<double>());
+            std::transform(begin(), end(), A.begin(), B.begin(), std::minus<Q>());
             return B;
         }
 
         // Negation operator, -A
         Matrix<Q> operator-() const {
             Matrix<Q> A(N, M);
-            std::transform(begin(), end(), A.begin(), std::negate<double>());
+            std::transform(begin(), end(), A.begin(), std::negate<Q>());
             return A;
         }
 
         // Scalar multiplication, B*a
         Matrix<Q> operator*(double a) const {
             Matrix<Q> A(N, M);
-            std::transform(begin(), end(), A.begin(), [&a] (const double& e) {return e*a;});
+            std::transform(begin(), end(), A.begin(), [&a] (Q e) {return e*a;});
             return A;
         }
 
         // Scalar division, B/a
         Matrix<Q> operator/(double a) const {
             Matrix<Q> A(N, M);
-            std::transform(begin(), end(), A.begin(), [&a] (const double& e) {return e/a;});
+            std::transform(begin(), end(), A.begin(), [&a] (Q e) {return e/a;});
             return A;
         }
 
@@ -119,7 +119,7 @@ class Matrix {
         template<typename R>
         Matrix<Q>& operator+=(const Matrix<R>& A) {
             compatibility_check(A);
-            std::transform(begin(), end(), A.begin(), begin(), std::plus<double>());
+            std::transform(begin(), end(), A.begin(), begin(), std::plus<Q>());
             return *this;
         }
 
@@ -127,7 +127,7 @@ class Matrix {
         template<typename R>
         Matrix<Q>& operator-=(const Matrix<R>& A) {
             compatibility_check(A);
-            std::transform(begin(), end(), A.begin(), begin(), std::minus<double>());
+            std::transform(begin(), end(), A.begin(), begin(), std::minus<Q>());
             return *this;
         }
 
@@ -183,8 +183,8 @@ class Matrix {
         template<typename R>
         bool operator==(const Matrix<R>& A) const {
             compatibility_check(A);
-            Matrix diff = operator-(A); // difference matrix
-            return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, double x) {return sum + abs(x);}) < precision;
+            Matrix<Q> diff = operator-(A); // difference matrix
+            return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, Q x) {return sum + abs(x);}) < precision;
         }
 
         // Approximate inequality operator, w != v

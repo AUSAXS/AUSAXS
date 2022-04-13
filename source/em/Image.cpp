@@ -36,8 +36,10 @@ list<Atom> Image::generate_atoms(double cutoff) const {
     double xscale = header->cella_x/N;
     double yscale = header->cella_y/M;
     double zscale = header->cella_z/header->nz;
-    for (unsigned int x = 0; x < N; x++) {
-        for (unsigned int y = bounds[x].min; y < bounds[x].max; y++) {
+
+    unsigned int step = setting::em::sample_frequency;
+    for (unsigned int x = 0; x < N; x += step) {
+        for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
             float val = index(x, y);
             if (compare_func(val)) {
                 continue;

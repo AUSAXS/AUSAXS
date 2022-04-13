@@ -24,7 +24,6 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensity plot(data);
 
     // prepare fit colors
-    setting::em::max_atoms = 10000;
     gStyle->SetPalette(kSolar);
     auto cols = TColor::GetPalette();
 

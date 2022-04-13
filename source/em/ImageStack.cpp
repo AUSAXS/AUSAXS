@@ -49,6 +49,7 @@ ImageStack::~ImageStack() = default;
 
 void ImageStack::setup(CullingStrategyChoice csc) {
     determine_staining();
+    if (negatively_stained()) {std::transform(charge_levels.begin(), charge_levels.end(), charge_levels.begin(), std::negate<double>());}
 
     switch (csc) {
         case CullingStrategyChoice::NoStrategy:
@@ -81,10 +82,6 @@ std::unique_ptr<Grid> ImageStack::create_grid(double) const {
 }
 
 ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
-    // auto start = high_resolution_clock::now();
-    // auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
-    // std::cout << "\tTook " << duration.count() << " seconds to prepare protein with " << protein->atom_size() << " atoms." << std::endl;
-    // protein->generate_new_hydration();
     return phm->get_histogram(cutoff);
 }
 
@@ -124,7 +121,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "migrad"); 
     minimizer->SetFunction(functor);
 
-    if (is_positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 4, 1, 1, 10);}
+    if (positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 4, 1, 1, 10);}
     else {minimizer->SetLimitedVariable(0, "cutoff", -4, 1, -1, -10);}
 
     minimizer->SetStrategy(2);
@@ -181,7 +178,9 @@ double ImageStack::mean() const {
     return sum/size_z;
 }
 
-bool ImageStack::is_positively_stained() const {return staining > 0;}
+bool ImageStack::positively_stained() const {return staining > 0;}
+
+bool ImageStack::negatively_stained() const {return staining < 0;}
 
 void ImageStack::determine_staining() {
     // we count how many images where the maximum density is positive versus negative
@@ -211,6 +210,6 @@ ObjectBounds3D ImageStack::minimum_volume(double cutoff) {
 }
 
 void ImageStack::determine_minimum_bounds() {
-    double cutoff = is_positively_stained() ? 1 : -1;
+    double cutoff = positively_stained() ? 1 : -1;
     std::for_each(data.begin(), data.end(), [&cutoff] (Image& image) {image.setup_bounds(cutoff);});
 }
