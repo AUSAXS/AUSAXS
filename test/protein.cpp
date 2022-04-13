@@ -72,7 +72,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // calculate the histogram
         ScatteringHistogram hist = protein.get_histogram();
-        const vector<double> d = hist.p_tot;
+        const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -107,7 +107,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // calculate the histogram
         ScatteringHistogram hist = protein.get_histogram();
-        const vector<double> d = hist.p_tot;
+        const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -149,7 +149,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // calculate the histogram
         ScatteringHistogram hist = protein.get_histogram();
-        const vector<double> d = hist.p_tot;
+        const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -198,14 +198,14 @@ TEST_CASE("histogram", "[protein]") {
         shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
         ScatteringHistogram d_p = protein.get_histogram();
 
-        // direct access to the histogram data (only p_tot is defined)
-        const vector<double>& p_tot = d_p.p_tot;
-        const vector<double>& b_tot = d_b->p_tot;
+        // direct access to the histogram data (only p is defined)
+        const vector<double>& p = d_p.p;
+        const vector<double>& b_tot = d_b->p;
 
         // compare each entry
         for (size_t i = 0; i < b_tot.size(); i++) {
-            if (!approx(p_tot[i], b_tot[i])) {
-                cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
+            if (!approx(p[i], b_tot[i])) {
+                cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -264,14 +264,14 @@ TEST_CASE("histogram", "[protein]") {
         shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
         ScatteringHistogram d_p = protein.get_histogram();
 
-        // direct access to the histogram data (only p_tot is defined)
-        const vector<double>& p_tot = d_p.p_tot;
-        const vector<double>& b_tot = d_b->p_tot;
+        // direct access to the histogram data (only p is defined)
+        const vector<double>& p = d_p.p;
+        const vector<double>& b_tot = d_b->p;
 
         // compare each entry
         for (size_t i = 0; i < b_tot.size(); i++) {
-            if (!approx(p_tot[i], b_tot[i])) {
-                cout << "Failed on index " << i << ". Values: " << p_tot[i] << ", " << b_tot[i] << endl;
+            if (!approx(p[i], b_tot[i])) {
+                cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -300,9 +300,9 @@ TEST_CASE("histogram", "[protein]") {
         ScatteringHistogram h1 = protein1.get_histogram();
         ScatteringHistogram h2 = protein2.get_histogram();
 
-        // direct access to the histogram data (only p_tot is defined)
-        const vector<double>& p1 = h1.p_tot;
-        const vector<double>& p2 = h2.p_tot;
+        // direct access to the histogram data (only p is defined)
+        const vector<double>& p1 = h1.p;
+        const vector<double>& p2 = h2.p;
 
         // compare each entry
         for (size_t i = 0; i < p1.size(); i++) {

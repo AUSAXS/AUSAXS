@@ -187,10 +187,10 @@ TEST_CASE("partial_histogram_manager", "[em]") {
         ScatteringHistogram h1 = manager.get_histogram_slow(3);
         std::cout << "CHECKPOINT" << std::endl;
         ScatteringHistogram h2 = manager.get_histogram(3);
-        REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-        for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-            if (h1.p_tot[i] != h2.p_tot[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+        REQUIRE(h1.p.size() == h2.p.size());
+        for (unsigned int i = 0; i < h1.p.size(); i++) {
+            if (h1.p[i] != h2.p[i]) {
+                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -198,10 +198,10 @@ TEST_CASE("partial_histogram_manager", "[em]") {
         // try a lower cutoff level
         h1 = manager.get_histogram_slow(1);
         h2 = manager.get_histogram(1);
-        REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-        for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-            if (h1.p_tot[i] != h2.p_tot[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+        REQUIRE(h1.p.size() == h2.p.size());
+        for (unsigned int i = 0; i < h1.p.size(); i++) {
+            if (h1.p[i] != h2.p[i]) {
+                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -209,10 +209,10 @@ TEST_CASE("partial_histogram_manager", "[em]") {
         // try a higher cutoff level
         h1 = manager.get_histogram_slow(4);
         h2 = manager.get_histogram(4);
-        REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-        for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-            if (h1.p_tot[i] != h2.p_tot[i]) {
-                cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+        REQUIRE(h1.p.size() == h2.p.size());
+        for (unsigned int i = 0; i < h1.p.size(); i++) {
+            if (h1.p[i] != h2.p[i]) {
+                cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -226,10 +226,10 @@ TEST_CASE("partial_histogram_manager", "[em]") {
     //     // try an arbitrary cutoff level
     //     ScatteringHistogram h1 = manager.get_histogram_slow(4);
     //     ScatteringHistogram h2 = manager.get_histogram(4);
-    //     REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-    //     for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-    //         if (h1.p_tot[i] != h2.p_tot[i]) {
-    //             cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+    //     REQUIRE(h1.p.size() == h2.p.size());
+    //     for (unsigned int i = 0; i < h1.p.size(); i++) {
+    //         if (h1.p[i] != h2.p[i]) {
+    //             cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
     //             REQUIRE(false);
     //         }
     //     }
@@ -237,10 +237,10 @@ TEST_CASE("partial_histogram_manager", "[em]") {
     //     // try a lower cutoff level
     //     h1 = manager.get_histogram_slow(2);
     //     h2 = manager.get_histogram(2);
-    //     REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-    //     for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-    //         if (h1.p_tot[i] != h2.p_tot[i]) {
-    //             cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+    //     REQUIRE(h1.p.size() == h2.p.size());
+    //     for (unsigned int i = 0; i < h1.p.size(); i++) {
+    //         if (h1.p[i] != h2.p[i]) {
+    //             cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
     //             REQUIRE(false);
     //         }
     //     }
@@ -248,10 +248,10 @@ TEST_CASE("partial_histogram_manager", "[em]") {
     //     // try a higher cutoff level
     //     h1 = manager.get_histogram_slow(5);
     //     h2 = manager.get_histogram(5);
-    //     REQUIRE(h1.p_tot.size() == h2.p_tot.size());
-    //     for (unsigned int i = 0; i < h1.p_tot.size(); i++) {
-    //         if (h1.p_tot[i] != h2.p_tot[i]) {
-    //             cout << "Failed on index " << i << ". Values: " << h1.p_tot[i] << ", " << h2.p_tot[i] << endl;
+    //     REQUIRE(h1.p.size() == h2.p.size());
+    //     for (unsigned int i = 0; i < h1.p.size(); i++) {
+    //         if (h1.p[i] != h2.p[i]) {
+    //             cout << "Failed on index " << i << ". Values: " << h1.p[i] << ", " << h2.p[i] << endl;
     //             REQUIRE(false);
     //         }
     //     }

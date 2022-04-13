@@ -12,7 +12,7 @@
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
-class ScatteringHistogram : Histogram {
+class ScatteringHistogram : public Histogram {
   public:
     /**
      * @brief Default constructor.
@@ -22,19 +22,19 @@ class ScatteringHistogram : Histogram {
     /**
      * @brief Move constructor.
      */
-    ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axis), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
+    ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axis), p_pp(sh.p_pp), p_hh(sh.p_hh), p_hp(sh.p_hp) {
         setup();
     }
 
     /**
      * @brief Copy constructor. 
      */
-    ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axis), _p_pp(sh.p_pp), _p_hh(sh.p_hh), _p_hp(sh.p_hp) {
+    ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axis), p_pp(sh.p_pp), p_hh(sh.p_hh), p_hp(sh.p_hp) {
         setup();
     }
 
     ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const Axis& axis)
-        : Histogram(p_tot, axis), _p_pp(p_pp), _p_hh(p_hh), _p_hp(p_hp) {setup();}
+        : Histogram(p_tot, axis), p_pp(p_pp), p_hh(p_hh), p_hp(p_hp) {setup();}
 
     /**
      * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
@@ -99,16 +99,11 @@ class ScatteringHistogram : Histogram {
      */
     ScatteringHistogram& operator=(ScatteringHistogram&& h);
 
-    const vector<double>& q = _q;
-    const vector<double>& p_pp = _p_pp;
-    const vector<double>& p_hh = _p_hh;
-    const vector<double>& p_hp = _p_hp;
-    const vector<double>& p_tot = p;
+    vector<double> p_pp, p_hh, p_hp; // binned distances
+    vector<double> d; // The distance corresponding to each bin.
+    vector<double> q; // The q values used as the x-axis.
 
   private:
-    vector<double> _p_pp, _p_hh, _p_hp; // binned distances
-    vector<double> _d; // The distance corresponding to each bin.
-    vector<double> _q; // The q values used as the x-axis.
     table::DebyeLookupTable sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.
 
     /**

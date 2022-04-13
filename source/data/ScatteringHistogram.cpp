@@ -1,39 +1,38 @@
-#include "ScatteringHistogram.h"
-#include "settings.h"
-#include "constants.h"
-#include "data/Axis.h"
+#include <ScatteringHistogram.h>
+#include <settings.h>
+#include <constants.h>
+#include <data/Axis.h>
 
 #include <utility>
 #include <math.h>
 #include <algorithm>
 #include <iostream>
-#include <stdexcept>
 
-#include "TH1D.h"
-#include "TCanvas.h"
+#include <TH1D.h>
+#include <TCanvas.h>
 
 using std::cout, std::endl;
 using namespace ROOT;
 
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
-    _d = vector<double>(axis.bins, 0);
+    d = vector<double>(axis.bins, 0);
     double d_width = axis.width();
 
     // we use the middle of each bin as the d-value, except for the very first one which we fix as 0 since it primarily contains self-correlation terms
     for (unsigned int i = 1; i < axis.bins; i++) {
-        _d[i] = axis.min + d_width*(i+0.5);
+        d[i] = axis.min + d_width*(i+0.5);
     }    
 
     // prepare the q values for the intensity calculations
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
-    _q = vector<double>(debye_axis.bins);
+    q = vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
-        _q[i] = debye_axis.min + i*debye_width;
+        q[i] = debye_axis.min + i*debye_width;
     }
 
-    sinqd_table.initialize(_q, _d);
+    sinqd_table.initialize(q, d);
 }
 
 void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
@@ -53,7 +52,7 @@ vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
         hists[0]->SetBinContent(i, p_pp[i-1]);
         hists[1]->SetBinContent(i, p_hh[i-1]);
         hists[2]->SetBinContent(i, p_hp[i-1]);
-        hists[3]->SetBinContent(i, p_tot[i-1]);
+        hists[3]->SetBinContent(i, p[i-1]);
     }
 
     return hists;
@@ -77,10 +76,10 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(vector<double>&
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); i++) { // iterate through all q values
-        for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
-            double qd = q[i]*_d[j];
+        for (unsigned int j = 0; j < p.size(); j++) { // iterate through the distance histogram
+            double qd = q[i]*d[j];
             if (qd < 1e-6) {Iq[i] += 1;}
-            else {Iq[i] += p_tot[j]*std::sin(qd)/qd;}
+            else {Iq[i] += p[j]*std::sin(qd)/qd;}
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
@@ -94,8 +93,8 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
-        for (unsigned int j = 0; j < p_tot.size(); j++) { // iterate through the distance histogram
-            Iq[i] += p_tot[j]*sinqd_table.lookup(i, j);
+        for (unsigned int j = 0; j < p.size(); j++) { // iterate through the distance histogram
+            Iq[i] += p[j]*sinqd_table.lookup(i, j);
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
@@ -117,9 +116,9 @@ unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
 
 double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     double num = 0, denom = 0;
-    for (unsigned int i = 0; i < p_tot.size(); i++) {
-        num += p_tot[i]*pow(_d[i], 2);
-        denom += 2*p_tot[i];
+    for (unsigned int i = 0; i < p.size(); i++) {
+        num += p[i]*pow(d[i], 2);
+        denom += 2*p[i];
     }
     return num/denom;
 }
@@ -143,11 +142,11 @@ ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h
 
 ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) {
     p = std::move(h.p);
-    _p_pp = std::move(h.p_pp);
-    _p_hh = std::move(h.p_hh);
-    _p_hp = std::move(h.p_hp);
-    _q = std::move(h.q);
-    _d = std::move(h._d);
+    p_pp = std::move(h.p_pp);
+    p_hh = std::move(h.p_hh);
+    p_hp = std::move(h.p_hp);
+    q = std::move(h.q);
+    d = std::move(h.d);
     sinqd_table = std::move(h.sinqd_table);
     return *this;
 }

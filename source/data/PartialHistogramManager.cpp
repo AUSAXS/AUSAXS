@@ -19,6 +19,18 @@ CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atom
     }
 }
 
+MasterHistogram::MasterHistogram(const vector<double>& p_base, const Axis& axis) : Histogram(p_base, axis), base(std::move(p_base)) {}
+
+MasterHistogram& MasterHistogram::operator+=(const PartialHistogram& rhs) {
+    p += rhs.p;
+    return *this;
+}
+
+MasterHistogram& MasterHistogram::operator-=(const PartialHistogram& rhs) {
+    p -= rhs.p;
+    return *this;
+}
+
 PartialHistogramManager::PartialHistogramManager(Protein* protein) 
     : size(protein->bodies.size()), statemanager(size), coords_p(size), protein(protein), partials_pp(size, vector<PartialHistogram>(size)), partials_hp(size) 
     {
@@ -71,30 +83,18 @@ void PartialHistogramManager::initialize() {
     double width = setting::axes::scattering_intensity_plot_binned_width;
     Axis axis = Axis(1000/width, 0, 1000); 
     vector<double> p_base(axis.bins, 0);
-
-    for (unsigned int n = 0; n < size; n++) {
-        // create more efficient access to the necessary variables
-        CompactCoordinates current(protein->bodies[n]);
-
-        // calculate internal distances between atoms
-        for (unsigned int i = 0; i < current.size; i++) {
-            for (unsigned int j = i+1; j < current.size; j++) {
-                float weight = current.data[i].w*current.data[j].w;
-                float dx = current.data[i].x - current.data[j].x;
-                float dy = current.data[i].y - current.data[j].y;
-                float dz = current.data[i].z - current.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
-                p_base[dist/width] += 2*weight;
-            }
-        }
-
-        // calculate self-correlation
-        for (unsigned int i = 0; i < current.size; i++) {p_base[0] += current.data[i].w*current.data[i].w;}
-
-        // store the coordinates for later
-        coords_p[n] = std::move(current);
-    }
     master = MasterHistogram(p_base, axis);
+
+    partials_hh = PartialHistogram(axis);
+    for (unsigned int n = 0; n < size; n++) {
+        partials_hp[n] = PartialHistogram(axis);
+        partials_pp[n][n] = PartialHistogram(axis);
+        calc_self_correlation(n);
+
+        for (unsigned int k = 0; k < n; k++) {
+            partials_pp[n][k] = PartialHistogram(axis);
+        }
+    }
 }
 
 ScatteringHistogram PartialHistogramManager::calculate_all() {
@@ -135,14 +135,14 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 }
 
 Histogram PartialHistogramManager::calculate() {
-    std::cout << "Calculating histogram." << std::endl;
-    if (master.p.size() == 0) {initialize();} // check if this object has already been initialized
-
-    // first we have to update the compact coordinate representations
     const vector<bool> modified_state = statemanager.get_externally_modified_bodies();
-    for (unsigned int i = 0; i < size; i++) {
-        if (modified_state[i]) {
-            coords_p[i] = CompactCoordinates(protein->bodies[i]); //! REMOVE - UNNECESSARY ON FIRST ITERATION
+    if (__builtin_expect(master.p.size() == 0, false)) { // check if this object has already been initialized
+        initialize(); 
+    } else { // first we have to update the compact coordinate representations
+        for (unsigned int i = 0; i < size; i++) {
+            if (modified_state[i]) {
+                coords_p[i] = CompactCoordinates(protein->bodies[i]); //! REMOVE - UNNECESSARY ON FIRST ITERATION
+            }
         }
     }
 

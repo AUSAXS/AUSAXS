@@ -243,7 +243,6 @@ void Protein::center() {
 void Protein::bind_body_signallers() {
     if (phm == nullptr) {throw except::unexpected("Error in Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
     for (unsigned int i = 0; i < bodies.size(); i++) {
-        std::cout << "Registering probe to body " << i << std::endl;
         bodies[i].register_probe(phm->get_probe(i));
     }
 }

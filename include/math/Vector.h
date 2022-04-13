@@ -262,6 +262,11 @@ class Vector {
          */
         inline size_t dim() const {return size();}
 
+        void resize(unsigned int size) {
+            N = size;
+            data.resize(size);
+        }
+
         size_t N;
         std::vector<T> data;
 

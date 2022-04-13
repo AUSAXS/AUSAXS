@@ -30,7 +30,7 @@ TEST_CASE("body_histogram", "[body]") {
 
         // calculate the histogram
         shared_ptr<ScatteringHistogram> hist = body.get_histogram();
-        const vector<double> d = hist->p_tot;
+        const vector<double> d = hist->p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -64,7 +64,7 @@ TEST_CASE("body_histogram", "[body]") {
 
         // calculate the histogram
         shared_ptr<ScatteringHistogram> hist = body.get_histogram();
-        const vector<double> d = hist->p_tot;
+        const vector<double> d = hist->p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -102,7 +102,7 @@ TEST_CASE("body_histogram", "[body]") {
 
         // calculate the histogram
         shared_ptr<ScatteringHistogram> hist = body.get_histogram();
-        const vector<double> d = hist->p_tot;
+        const vector<double> d = hist->p;
 
         // calculation: 8 identical points. 
         //      each point has:

@@ -7,18 +7,16 @@ StateManager::BoundSignaller::BoundSignaller(unsigned int id, StateManager* cons
 
 void StateManager::BoundSignaller::external_change() const {
     owner->externally_modified(id);
-    std::cout << "Signalling object is bound, and a signal was sent." << std::endl;
 }
 
 void StateManager::BoundSignaller::internal_change() const {
     owner->internally_modified(id);
     owner->externally_modified(id);
-    std::cout << "Signalling object is bound, and a signal was sent." << std::endl;
 }
 
-void StateManager::UnboundSignaller::external_change() const {std::cout << "Signalling object is not bound to anything." << std::endl;}
+void StateManager::UnboundSignaller::external_change() const {}
 
-void StateManager::UnboundSignaller::internal_change() const {std::cout << "Signalling object is not bound to anything." << std::endl;}
+void StateManager::UnboundSignaller::internal_change() const {}
 
 StateManager::StateManager(unsigned int size) : size(size), _externally_modified(size, true), _internally_modified(size, true), _modified_hydration(true) {
     for (unsigned int i = 0; i < size; i++) {
