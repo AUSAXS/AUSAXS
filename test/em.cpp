@@ -189,32 +189,32 @@ TEST_CASE("partial_histogram_manager", "[em]") {
     // }
 
     SECTION("simple comparison with standard approach") {
-        // SECTION("positive") {
-        //     std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
-        //     header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+        SECTION("positive") {
+            std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+            header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
 
-        //     Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
-        //     em::Image image(data, header, 0);
-        //     em::ImageStack images({image});
+            Matrix data = Matrix<float>{{1, 2, 3, 4, 5, 6}, {0.5, 1.5, 2.5, 3.5, 4.5, 5.5}};
+            em::Image image(data, header, 0);
+            em::ImageStack images({image});
 
-        //     em::PartialHistogramManager manager(images);
-        //     manager.set_cutoff_levels({2, 4, 6, 8});
+            em::PartialHistogramManager manager(images);
+            manager.set_cutoff_levels({2, 4, 6, 8});
 
-        //     // try an arbitrary cutoff level
-        //     REQUIRE(compare(manager, 3));
+            // try an arbitrary cutoff level
+            REQUIRE(compare(manager, 3));
 
-        //     // try a lower cutoff level
-        //     REQUIRE(compare(manager, 1));
+            // try a lower cutoff level
+            REQUIRE(compare(manager, 1));
 
-        //     // try a higher cutoff level
-        //     REQUIRE(compare(manager, 4));
+            // try a higher cutoff level
+            REQUIRE(compare(manager, 4));
 
-        //     // some more tests
-        //     REQUIRE(compare(manager, 5));
-        //     REQUIRE(compare(manager, 2));
-        //     REQUIRE(compare(manager, 3.6));
-        //     REQUIRE(compare(manager, 1));
-        // }
+            // some more tests
+            REQUIRE(compare(manager, 5));
+            REQUIRE(compare(manager, 2));
+            REQUIRE(compare(manager, 3.6));
+            REQUIRE(compare(manager, 1));
+        }
 
         SECTION("negative") {
             std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
@@ -228,19 +228,19 @@ TEST_CASE("partial_histogram_manager", "[em]") {
             manager.set_cutoff_levels({-2, -4, -6, -8});
 
             // try an arbitrary cutoff level
-            compare(manager, -3);
+            REQUIRE(compare(manager, -3));
 
             // try a lower cutoff level
-            // compare(manager, -1);
+            REQUIRE(compare(manager, -1));
 
             // try a higher cutoff level
-            // compare(manager, -4);
+            REQUIRE(compare(manager, -4));
 
             // some more tests
-            // compare(manager, -5);
-            // compare(manager, -2);
-            // compare(manager, -3.6);
-            // compare(manager, -1);
+            REQUIRE(compare(manager, -5));
+            REQUIRE(compare(manager, -2));
+            REQUIRE(compare(manager, -3.6));
+            REQUIRE(compare(manager, -1));
         }
     }
 

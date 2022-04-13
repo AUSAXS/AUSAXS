@@ -79,38 +79,85 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
 
     std::cout << "\nFAST APPROACH NEW PROTEIN" << std::endl;
-    unsigned int i = 0;
-    for (const auto& b : new_protein->bodies) {
-        std::cout << "BODY " << i++ << std::endl;
-        for (const auto& a : b.protein_atoms) {
-            std::cout << "\t" << a.as_pdb() << std::endl;
+    {
+        unsigned int i = 0;
+        for (const auto& b : new_protein->bodies) {
+            std::cout << "BODY " << i++ << std::endl;
+            for (const auto& a : b.protein_atoms) {
+                std::cout << "\t" << a.as_pdb() << std::endl;
+            }
         }
     }
 
-    std::function<bool(double)> compare_positive = [&] (double val) {return val < previous_cutoff;};
-    std::function<bool(double)> compare_negative = [&] (double val) {return val > previous_cutoff;};
-    std::function<bool(double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
+    std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
+    std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
+    std::function<bool(double, double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
 
-    for (unsigned int i = 0; i < charge_levels.size()-1; i++) {
-        std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
-        if (compare_func(charge_levels[i])) {
-            std::cout << "\tReplacing body " << i << std::endl;
-            protein->bodies[i] = new_protein->bodies[i];
-        } else {
-            std::cout << "\tReplacing body " << i << std::endl;
-            protein->bodies[i] = new_protein->bodies[i];
-            break;
+    if (cutoff < previous_cutoff) {
+        // since cutoff is smaller than previously, we have to change all bins in the range [cutoff, previous_cutoff]
+
+        // skip all bins before the relevant range
+        unsigned int charge_index = 0;
+        double current_cutoff = charge_levels[0];
+        while (current_cutoff < cutoff && charge_index < charge_levels.size()) {
+            std::cout << "Current cutoff " << current_cutoff << " is smaller than cutoff " << cutoff << ", skipping bin " << charge_index << std::endl;
+            current_cutoff = charge_levels[++charge_index];}
+
+        // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
+        for (; charge_index < charge_levels.size()-1; charge_index++) {
+            // std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
+            // check if the current bin is inside the range
+            if (compare_func(charge_levels[charge_index], previous_cutoff)) {
+                // if so, we replace it with the new contents
+                std::cout << "\tReplacing body " << charge_index << std::endl;
+                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+            } else {
+                // otherwise we replace it and stop iterating
+                std::cout << "\tReplacing body " << charge_index << std::endl;
+                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+                break;
+            }
         }
-    }        
+    } else {
+        // since cutoff is larger than previously, we have to change all bins in the range [previous_cutoff, cutoff]
 
-    std::cout << "\nFAST APPROACH FINAL" << std::endl;
-    i = 0;
-    for (const auto& b : protein->bodies) {
-        std::cout << "BODY " << i++ << std::endl;
-        for (const auto& a : b.protein_atoms) {
-            std::cout << "\t" << a.as_pdb() << std::endl;
+        // skip all bins before the relevant range
+        unsigned int charge_index = 0;
+        double current_cutoff = charge_levels[0];
+        while (current_cutoff < previous_cutoff && charge_index < charge_levels.size()) {
+            std::cout << "Current cutoff " << current_cutoff << " is smaller than previous cutoff " << previous_cutoff << ", skipping bin " << charge_index << std::endl;
+            current_cutoff = charge_levels[++charge_index];}
+
+        // iterate through the remaining bins, and use a break statement to stop when we leave the relevant range
+        for (; charge_index < charge_levels.size()-1; charge_index++) {
+            // std::cout << "Charge level " << charge_levels[i] << " compared with previous cutoff " << previous_cutoff << std::endl;
+            // check if the current bin is inside the range
+            if (compare_func(charge_levels[charge_index], cutoff)) {
+                // if so, we replace it with the new contents
+                std::cout << "\tReplacing body " << charge_index << std::endl;
+                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+            } else {
+                // otherwise we replace it and stop iterating
+                std::cout << "\tReplacing body " << charge_index << std::endl;
+                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+                break;
+            }
+        }
+
+    }
+
+    {
+        std::cout << "\nFAST APPROACH FINAL" << std::endl;
+        unsigned int i = 0;
+        for (const auto& b : protein->bodies) {
+            std::cout << "BODY " << i++ << std::endl;
+            for (const auto& a : b.protein_atoms) {
+                std::cout << "\t" << a.as_pdb() << std::endl;
+            }
         }
     }
+
+    previous_cutoff = cutoff;
 }
 
 std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {return protein;}
