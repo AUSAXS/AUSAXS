@@ -42,7 +42,6 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
 
 TEST_CASE("check_simulated_errors", "[em],[files]") {
     SAXSDataset data1("data/2epe.RSR");
-    data1.scale_y(10000);
     SAXSDataset data2 = data1;
     data2.simulate_errors();
 
