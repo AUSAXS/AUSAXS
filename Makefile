@@ -93,11 +93,11 @@ build:
 	@ mkdir -p build; 
 	@ cd build; cmake ../
 
-build/executable/%: $(source) $(include) build/Makefile executable/%.cpp
-	@ cmake --build build/ --target $(*F) -j${cmake_threads}
+build/executable/%: $(source) $(include) executable/%.cpp
+	@ cmake --build build/ --target $(*F) -j${cmake_threads} 
 
-build/%: $(source) $(include) build/Makefile
-	@ cmake --build build/ --target $(*F) -j${cmake_threads}
+build/%: $(source) $(include)
+	@ cmake --build build/ --target $(*F) -j${cmake_threads} 
 	
 build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
 	@ mkdir -p build

@@ -6,25 +6,30 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 project(SAXS VERSION 0.0)
 
+
 ############################################
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
+#set(FETCHCONTENT_UPDATES_DISCONNECT ON)
 
 FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        17a04f88d90d3687bd561e89dab40e4ba6a55b83
+  GIT_TAG f4af9f69265d009a457aa99d1075cfba78652a66
+  GIT_PROGRESS TRUE
 )
 
 include(FetchContent)
 FetchContent_Declare(
   CLI11
   GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-  GIT_TAG        607ab9429f46dec7c05f03513622df78f17afd2b
+  GIT_TAG b9be5b9444772324459989177108a6a65b8b2769
+  GIT_PROGRESS TRUE
 )
 
 FetchContent_MakeAvailable(Catch2 CLI11)
+
 
 ############################################
 ##           Link libraries               ##
@@ -44,6 +49,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})
 link_libraries(CLI11::CLI11)
+
 
 ############################################
 ##                Doxygen                 ##
