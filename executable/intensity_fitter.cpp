@@ -1,4 +1,5 @@
-// includes
+#include <CLI/CLI.hpp>
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -6,9 +7,9 @@
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <fitter/IntensityFitter.h>
+#include <fitter/Fit.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
-#include <CLI11.hpp>
 
 using std::cout, std::endl;
 
@@ -41,7 +42,7 @@ int main(int argc, char const *argv[]) {
     ScatteringHistogram h = protein.get_histogram();
 
     IntensityFitter fitter(input_measurement, h);
-    std::shared_ptr<Fitter::Fit> result = fitter.fit();
+    std::shared_ptr<Fit> result = fitter.fit();
 
     // Fit plot
     plots::PlotIntensityFit plot_f(fitter);

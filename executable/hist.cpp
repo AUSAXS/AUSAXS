@@ -1,4 +1,5 @@
-// includes
+#include <CLI/CLI.hpp>
+
 #include <vector>
 #include <string>
 
@@ -6,7 +7,6 @@
 #include <data/Protein.h>
 #include <plots/PlotDistance.h>
 #include <plots/PlotIntensity.h>
-#include <CLI11.hpp>
 
 int main(int argc, char const *argv[]) { 
     CLI::App app{"Generate a distance histogram and a scattering intensity plot for a given input data file."};

@@ -17,7 +17,14 @@ FetchContent_Declare(
   GIT_TAG        17a04f88d90d3687bd561e89dab40e4ba6a55b83
 )
 
-FetchContent_MakeAvailable(Catch2)
+include(FetchContent)
+FetchContent_Declare(
+  CLI11
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11
+  GIT_TAG        607ab9429f46dec7c05f03513622df78f17afd2b
+)
+
+FetchContent_MakeAvailable(Catch2 CLI11)
 
 ############################################
 ##           Link libraries               ##
@@ -36,7 +43,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})
-
+link_libraries(CLI11::CLI11)
 
 ############################################
 ##                Doxygen                 ##
@@ -58,8 +65,8 @@ endif(DOXYGEN_FOUND)
 ############################################
 file(GLOB_RECURSE HEADERS "include/*.h")
 file(GLOB_RECURSE SOURCES "source/*.cpp")
-add_library(saxs ${HEADERS} ${SOURCES} external/CLI11.hpp)
-target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/external" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
+add_library(saxs ${HEADERS} ${SOURCES})
+target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
 
 
 ############################################

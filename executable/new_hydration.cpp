@@ -1,12 +1,11 @@
-// includes
+#include <CLI/CLI.hpp>
+
 #include <vector>
 #include <string>
 
-#include "data/Body.h"
-#include "data/Protein.h"
-#include "settings.h"
-
-#include "CLI11.hpp"
+#include <data/Body.h>
+#include <data/Protein.h>
+#include <settings.h>
 
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer for a given input data file."};
