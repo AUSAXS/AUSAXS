@@ -1,11 +1,11 @@
+#include <catch2/catch_all.hpp>
+
 #include <em/ImageStack.h>
 #include <plots/PlotImage.h>
 #include <plots/PlotIntensity.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
 #include <fitter/SimpleIntensityFitter.h>
-
-#include "catch2/catch.hpp"
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
     em::ImageStack image("data/A2M_map.ccp4"); 
@@ -74,9 +74,9 @@ TEST_CASE("dataset_can_read_rsr", "[em],[dataset],[files]") {
     REQUIRE(y.size() == 104);
     REQUIRE(yerr.size() == 104);
     for (unsigned int i = 0; i < validate_x.size(); i++) {
-        CHECK(x[i] == Approx(validate_x[i]));
-        CHECK(y[i] == Approx(validate_y[i]));
-        CHECK(yerr[i] == Approx(validate_yerr[i]));
+        CHECK_THAT(x[i], Catch::Matchers::WithinRel(validate_x[i]));
+        CHECK_THAT(y[i], Catch::Matchers::WithinRel(validate_y[i]));
+        CHECK_THAT(yerr[i], Catch::Matchers::WithinRel(validate_yerr[i]));
     }
 }
 

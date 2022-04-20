@@ -1,11 +1,23 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -lboost_program_options -Wall -Wextra -g") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
-project(SAXS)
+project(SAXS VERSION 0.0)
 
+############################################
+##            Dependencies                ##
+############################################
+include(FetchContent)
+
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        17a04f88d90d3687bd561e89dab40e4ba6a55b83
+)
+
+FetchContent_MakeAvailable(Catch2)
 
 ############################################
 ##           Link libraries               ##
@@ -58,8 +70,7 @@ file(GLOB_RECURSE TEST_SRC
   "test/*.h"
   "test/*.cpp")
 add_executable(test ${TEST_SRC})
-target_link_libraries(test saxs)
-target_include_directories(test PRIVATE "${CMAKE_SOURCE_DIR}/test" "${CMAKE_CURRENT_SOURCE_DIR}/external")
+target_link_libraries(test PRIVATE saxs Catch2::Catch2WithMain)
 
 
 ############################################

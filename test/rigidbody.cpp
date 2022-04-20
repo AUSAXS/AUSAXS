@@ -1,11 +1,11 @@
-#include "rigidbody/RigidTransform.h"
-#include "rigidbody/RigidBody.h"
-#include "data/BodySplitter.h"
-#include "fitter/IntensityFitter.h"
-#include "data/Protein.h"
-#include "rigidbody/RandomSelect.h"
+#include <catch2/catch_all.hpp>
 
-#include "catch2/catch.hpp"
+#include <rigidbody/RigidTransform.h>
+#include <rigidbody/RigidBody.h>
+#include <data/BodySplitter.h>
+#include <fitter/IntensityFitter.h>
+#include <data/Protein.h>
+#include <rigidbody/RandomSelect.h>
 
 TEST_CASE("Constraints", "[rigidbody]") {
     Atom a1(Vector3(-1, -1, -1), 1, "C", "C", 1);
@@ -81,11 +81,11 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
         double _chi2 = fitter.fit()->chi2;
-        REQUIRE(chi2 != Approx(_chi2));
+        REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
         fitter.set_scattering_hist(protein_2epe.get_histogram());
         _chi2 = fitter.fit()->chi2;
-        REQUIRE(chi2 == Approx(_chi2));
+        REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 
     SECTION("simple_intensity_fitter") {
@@ -94,11 +94,11 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
         double _chi2 = fitter.fit()->chi2;
-        REQUIRE(chi2 != Approx(_chi2));
+        REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
         fitter.set_scattering_hist(protein_2epe.get_histogram());
         _chi2 = fitter.fit()->chi2;
-        REQUIRE(chi2 == Approx(_chi2));
+        REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 }
 
@@ -112,7 +112,7 @@ TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
     for (int i = 0; i < 10; i++) {
         protein.generate_new_hydration();
         double _chi2 = fitter.fit()->chi2;
-        REQUIRE(chi2 == Approx(_chi2));
+        REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 }
 

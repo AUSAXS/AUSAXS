@@ -1,15 +1,14 @@
-// includes
+#include <catch2/catch_all.hpp>
+
 #include <vector>
 #include <string>
 #include <fstream>
 
-#include "data/Protein.h"
-#include "hydrate/Grid.h"
-#include "constants.h"
-#include "data/StateManager.h"
-#include "data/BodySplitter.h"
-
-#include "catch2/catch.hpp"
+#include <constants.h>
+#include <hydrate/Grid.h>
+#include <data/Protein.h>
+#include <data/StateManager.h>
+#include <data/BodySplitter.h>
 
 // Test that the histograms are correct for proteins with only atoms (no waters)
 TEST_CASE("body_histogram", "[body]") {
@@ -177,7 +176,7 @@ TEST_CASE("body_get_mass", "[body]") {
                         Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
 
-    REQUIRE(body.get_mass() == Approx(8*constants::mass::C));
+    REQUIRE_THAT(body.get_mass(), Catch::Matchers::WithinRel(8*constants::mass::C));
 }
 
 TEST_CASE("body_get_cm", "[body]") {

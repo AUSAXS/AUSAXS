@@ -1,11 +1,11 @@
-// includes
+#include <catch2/catch_all.hpp>
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <filesystem>
 
-#include "data/Protein.h"
-#include "catch2/catch.hpp"
+#include <data/Protein.h>
 
 using namespace ROOT;
 

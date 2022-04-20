@@ -1,29 +1,22 @@
+#include <catch2/catch_all.hpp>
+
 #include <vector>
 #include <string>
 #include <iostream>
 #include <random>
 
-#include "math/Matrix.h"
-#include "math/Vector.h"
-#include "math/Vector3.h"
-#include "math/Cramer2DSolver.h"
-#include "math/GivensSolver.h"
-#include "math/CubicSpline.h"
-#include "math/LUPDecomposition.h"
-#include "math/QRDecomposition.h"
-#include "Tools.h"
-#include "catch2/catch.hpp"
+#include <math/Matrix.h>
+#include <math/Vector.h>
+#include <math/Vector3.h>
+#include <math/Cramer2DSolver.h>
+#include <math/GivensSolver.h>
+#include <math/CubicSpline.h>
+#include <math/LUPDecomposition.h>
+#include <math/QRDecomposition.h>
+#include <Tools.h>
 
 #include <TCanvas.h>
 #include <TGraph.h>
-
-#define REQUIRE_VEC_EQUAL(x, y) \
-    REQUIRE(x.size() == y.size()); \
-    for (size_t i = 0; i < x.size(); ++i) { \
-            if (x[i] != Approx(y[i])) { \
-                    REQUIRE(x[i] == Approx(y[i])); \
-            } \
-    }
 
 using std::cout, std::endl;
 
@@ -92,9 +85,9 @@ TEST_CASE("Vector3", "[math]") {
 
         // normalize
         x.normalize(); y.normalize(); z.normalize();
-        REQUIRE_VEC_EQUAL(x, (Vector3{0.2672612419124244, 0.5345224838248488, 0.8017837257372732}));
-        REQUIRE_VEC_EQUAL(y, (Vector3{0.4558423058385518, 0.5698028822981898, 0.6837634587578276}));
-        REQUIRE_VEC_EQUAL(z, (Vector3{0.5025707110324167, 0.5743665268941905, 0.6461623427559643}));
+        REQUIRE_THAT(x, Catch::Matchers::Approx(Vector3{0.2672612419124244, 0.5345224838248488, 0.8017837257372732}.data));
+        REQUIRE_THAT(y, Catch::Matchers::Approx(Vector3{0.4558423058385518, 0.5698028822981898, 0.6837634587578276}.data));
+        REQUIRE_THAT(z, Catch::Matchers::Approx(Vector3{0.5025707110324167, 0.5743665268941905, 0.6461623427559643}.data));
     }
 
     SECTION("assignment operators") {
@@ -185,13 +178,13 @@ TEST_CASE("Vector3", "[math]") {
         for (int i = 0; i < 10; i++) {
             x = GenRandVector(3);
             std::tie(x, y, z) = x.generate_basis();
-            REQUIRE(x.norm() == Approx(1));
-            REQUIRE(y.norm() == Approx(1));
-            REQUIRE(z.norm() == Approx(1));
+            REQUIRE_THAT(x.norm(), Catch::Matchers::WithinAbs(1, 1e-6));
+            REQUIRE_THAT(y.norm(), Catch::Matchers::WithinAbs(1, 1e-6));
+            REQUIRE_THAT(z.norm(), Catch::Matchers::WithinAbs(1, 1e-6));
 
-            REQUIRE(x.dot(y) == Approx(0).margin(1e-6));
-            REQUIRE(y.dot(z) == Approx(0).margin(1e-6));
-            REQUIRE(z.dot(x) == Approx(0).margin(1e-6));
+            REQUIRE_THAT(x.dot(y), Catch::Matchers::WithinAbs(0, 1e-6));
+            REQUIRE_THAT(y.dot(z), Catch::Matchers::WithinAbs(0, 1e-6));
+            REQUIRE_THAT(z.dot(x), Catch::Matchers::WithinAbs(0, 1e-6));
         }
     }
 }
@@ -380,9 +373,9 @@ TEST_CASE("Matrix", "[math]") {
         A = {{4, 1}, {2, 3}};
         B = {{-2, 3, -1}, {5, -1, 4}, {4, -8, 2}};
         C = {{5, -7, 2, 2}, {0, 3, 0, -4}, {-5, -8, 0, 3}, {0, 5, 0, -6}};
-        REQUIRE(A.det() == Approx(10));
-        REQUIRE(B.det() == Approx(-6));
-        REQUIRE(C.det() == Approx(20));
+        REQUIRE_THAT(A.det(), Catch::Matchers::WithinAbs(10, 1e-3));
+        REQUIRE_THAT(B.det(), Catch::Matchers::WithinAbs(-6, 1e-3));
+        REQUIRE_THAT(C.det(), Catch::Matchers::WithinAbs(20, 1e-3));
     }
 
     SECTION("rotations") {
@@ -525,7 +518,7 @@ TEST_CASE("QRDecomposition", "[math]") {
     Matrix<double> A = {{1, 2}, {3, 4}};
     QRDecomposition qr(A);
     REQUIRE(A*qr.inverse() == Matrix<double>::identity(2));
-    REQUIRE(qr.abs_determinant() == Approx(2));
+    REQUIRE_THAT(qr.abs_determinant(), Catch::Matchers::WithinAbs(2, 1e-3));
 
     // randomized tests on 5x5 matrices
     srand(time(NULL)); // seed rng

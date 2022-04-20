@@ -1,14 +1,13 @@
-// includes
+#include <catch2/catch_all.hpp>
+
 #include <vector>
 #include <string>
 #include <fstream>
 
-#include "data/Body.h"
-#include "data/Protein.h"
-#include "hydrate/Grid.h"
-#include "settings.h"
-#include "catch2/catch.hpp"
-
+#include <data/Body.h>
+#include <data/Protein.h>
+#include <hydrate/Grid.h>
+#include <settings.h>
 #include <math/Vector3.h>
  
 using namespace ROOT;

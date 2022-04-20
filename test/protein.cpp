@@ -1,4 +1,5 @@
-// includes
+#include <catch2/catch_all.hpp>
+
 #include <vector>
 #include <string>
 #include <fstream>
@@ -6,8 +7,6 @@
 #include "data/Protein.h"
 #include "hydrate/Grid.h"
 #include "constants.h"
-
-#include "catch2/catch.hpp"
 
 bool approx(double v1, double v2, double tol = 1e-6, double eps = 0.01) {
     if (v1-tol > v2*(1+eps)) {return false;}
@@ -336,7 +335,7 @@ TEST_CASE("get_volume", "[protein]") {
     vector<vector<Atom>> ap = {b1, b2, b3, b4};
     Protein protein(ap, {});
 
-    REQUIRE(protein.get_volume_acids() == Approx(4*constants::volume::lysine));
+    REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::lysine));
 }
 
 /**
@@ -354,7 +353,7 @@ TEST_CASE("compare grid placement", "[protein]") {
     Protein protein(a, w);
     Body body(a, w);
 
-    REQUIRE(protein.get_volume_grid() == Approx(body.get_volume_grid()));
+    REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(body.get_volume_grid()));
     shared_ptr<Grid> gp = protein.get_grid();
     shared_ptr<Grid> gb = body.get_grid();
 

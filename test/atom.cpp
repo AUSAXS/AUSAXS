@@ -1,7 +1,7 @@
+#include <catch2/catch_all.hpp>
+
 #include "data/Atom.h"
 #include "data/Hetatom.h"
-
-#include "catch2/catch.hpp"
 
 TEST_CASE("Atom", "[atom]") {
     // "element", "resName", and "name" are used for some internal logic, and must have reasonable values. "" can also be used. 

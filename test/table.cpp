@@ -1,7 +1,7 @@
+#include <catch2/catch_all.hpp>
+
 #include <DebyeLookupTable.h>
 #include <data/Atom.h>
-
-#include "catch2/catch.hpp"
 
 // Define the hash function for atoms so we can use them in our tests
 namespace std {

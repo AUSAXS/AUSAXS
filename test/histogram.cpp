@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <Utility.h>
 #include <ScatteringHistogram.h>
@@ -23,17 +23,17 @@ TEST_CASE("check_scaling_factor", "[histogram]") {
 
     hist.apply_water_scaling_factor(2);
     for (size_t i = 0; i < p_pp.size(); i++) {
-        REQUIRE(p_pp[i] + 2*p_hp[i] + 4*p_hh[i] == Approx(hist.p[i]));
+        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist.p[i]));
     }
 
     hist.apply_water_scaling_factor(3);
     for (size_t i = 0; i < p_pp.size(); i++) {
-        REQUIRE(p_pp[i] + 3*p_hp[i] + 9*p_hh[i] == Approx(hist.p[i]));
+        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist.p[i]));
     }
 
     hist.reset_water_scaling_factor();
     for (size_t i = 0; i < p_pp.size(); i++) {
-        REQUIRE(p_pp[i] + p_hp[i] + p_hh[i] == Approx(hist.p[i]));
+        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist.p[i]));
     }
 }
 
