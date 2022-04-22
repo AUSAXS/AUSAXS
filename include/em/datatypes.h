@@ -86,16 +86,16 @@ namespace em {
                         return sizeof(unsigned int);
 
                     case 12: // float16 --> short float
-                        throw except::parse_error("Short float data format is not currently supported.");
+                        throw except::parse_error("Error in Header::get_byte_size: Short float data format is not currently supported.");
 
                     case 3: // complex32 (2x 16bit int)
-                        throw except::parse_error("Complex data format is not currently supported.");
+                        throw except::parse_error("Error in Header::get_byte_size: Complex data format is not currently supported.");
 
                     case 4: // complex64 (2x 32bit float)
-                        throw except::parse_error("Complex data format is not currently supported.");
+                        throw except::parse_error("Error in Header::get_byte_size: Complex data format is not currently supported.");
 
                     default:
-                        throw except::parse_error("Unrecognized data format (mode " + std::to_string(mode) + ").");
+                        throw except::parse_error("Error in Header::get_byte_size: Unrecognized data format (mode " + std::to_string(mode) + ").");
                 }
             }
         };

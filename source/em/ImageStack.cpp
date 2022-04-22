@@ -121,8 +121,8 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "migrad"); 
     minimizer->SetFunction(functor);
 
-    if (positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 4, 1, 1, 10);}
-    else {minimizer->SetLimitedVariable(0, "cutoff", -4, 1, -1, -10);}
+    if (positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 2, 1, 1, 10);}
+    else {minimizer->SetLimitedVariable(0, "cutoff", -2, 1, -1, -10);}
 
     minimizer->SetStrategy(2);
     minimizer->SetPrintLevel(2);

@@ -130,9 +130,9 @@ void SAXSDataset::simulate_errors() {
     if (xerr.empty()) {xerr.resize(size());}
 
     double y0 = y[0];
-    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(x, -0.6)*std::pow(y, 0.75)/1000;});
-    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*y0, 0.35)/(5000*x) + std::pow(x, 8)*std::pow(y0 - y + 0.1, 0.75);});
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*y0, 0.35)/(5000*x) + std::pow(x, 8)*std::pow(y0 - y + 0.1, 0.75);});
 }
 
 void SAXSDataset::set_resolution(unsigned int resolution) {

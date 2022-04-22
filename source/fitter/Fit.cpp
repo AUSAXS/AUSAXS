@@ -26,10 +26,16 @@ template<typename T>
 struct print_element {
     print_element(T t, int width) : t(t), width(width) {}
 
-    friend std::ostream& operator<<(std::ostream& os, const print_element<T> e) {os << std::left << std::setw(e.width) << std::setprecision(e.width) << e.t; return os;}
+    friend std::ostream& operator<<(std::ostream& os, const print_element<T> e) {
+        std::stringstream ss; ss << e.t;
+        std::string val = ss.str();
+        if (val.size() > e.width) {val = val.substr(0, e.width);}
+
+        os << std::left << std::setw(e.width) << e.t; return os;
+    }
 
     T t;
-    int width;
+    unsigned int width;
 };
 
 std::string Fit::to_string() const {
@@ -38,11 +44,11 @@ std::string Fit::to_string() const {
        << "\n|                       FIT REPORT                         |"
        << "\n+----------------------------------------------------------+"
        << "\n| Converged: " << (converged ? "yes" : "no ") << "                              Fevals: " << print_element(calls, 4) << " |"
-       << "\n| chi2: " << print_element(chi2, 10) << "    dof: " << print_element(dof, 6) << "    chi2/dof: " << print_element(chi2/dof, 10) << " |"
+       << "\n| chi2: " << print_element(chi2, 10) << "   dof: " << print_element(dof, 6) << "   chi2/dof: " << print_element(chi2/dof, 12) << " |"
        << "\n+----------------------------------------------------------+"
-       << "\n| PAR  | VAL        | UNC        |                         |";
+       << "\n| PAR      | VAL          | UNC          |                 |";
     for (const auto& e : params) {
-        ss << "\n| " << print_element(e.first, 4) << " | " << print_element(e.second, 10) << " | " << print_element(errors.at(e.first), 10)  << " |                         |";
+        ss << "\n| " << print_element(e.first, 8) << " | " << print_element(e.second, 12) << " | " << print_element(errors.at(e.first), 12)  << " |                 |";
     }
     ss << "\n+----------------------------------------------------------+";
 

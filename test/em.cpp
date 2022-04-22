@@ -19,7 +19,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    setting::em::sample_frequency = 1;
     em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
     auto res = image.fit(protein.get_histogram());
