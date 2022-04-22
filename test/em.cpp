@@ -9,7 +9,7 @@
 #include <fitter/SimpleIntensityFitter.h>
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
-    em::ImageStack image("data/A2M_map.ccp4"); 
+    em::ImageStack image("data/A2M_ma.ccp4"); 
 
     plots::PlotImage plot(image.image(5));
     // plot.plot_atoms(0.1);
@@ -121,7 +121,7 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
         CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
     }
 
-    SECTION("A2M_map.ccp4") {
+    SECTION("A2M_ma.ccp4") {
         em::ImageStack image("data/A2M_ma.ccp4");
         CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
