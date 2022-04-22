@@ -5,8 +5,6 @@
 #include <initializer_list>
 #include <math.h>
 
-using std::vector;
-
 /**
  * @brief \class Limit
  * 
@@ -171,9 +169,12 @@ class Axis {
     /**
      * @brief Get the bin width. 
      */
-    double width() const {
-        return (max-min)/bins;
-    }
+    double width() const {return (max-min)/bins;}
+
+    /**
+     * @brief Get the bin width.
+     */
+    double step() const {return width();}
 
     unsigned int bins; // The number of equidistant bins. 
     double min;        // The minimum value spanned by this Axis. 
@@ -241,7 +242,7 @@ class Axis3D {
      * @param max A 3D vector containing the maximum values for each coordinate. 
      * @param width The bin width. 
      */
-    Axis3D(const vector<int>& min, const vector<int>& max, double width) : x((max[0]-min[0])/width, min[0], max[0]), y((max[1]-min[1])/width, min[1], max[1]), z((max[2]-min[2])/width, min[2], max[2]) {}
+    Axis3D(const std::vector<int>& min, const std::vector<int>& max, double width) : x((max[0]-min[0])/width, min[0], max[0]), y((max[1]-min[1])/width, min[1], max[1]), z((max[2]-min[2])/width, min[2], max[2]) {}
 
     /**
      * @brief Assignment operator. 

@@ -132,6 +132,30 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     return std::make_shared<EMFit>(fitter, minimizer, chi2(result));
 }
 
+Dataset ImageStack::cutoff_scan(const Axis& points, const ScatteringHistogram& h) {
+    vector<double> cutoffs;
+    vector<double> chi2;
+    cutoffs.reserve(points.bins);
+    chi2.reserve(points.bins);
+
+    unsigned int count = 1;
+    double step = points.step();
+    // for (double cutoff = points.min; cutoff < points.max; cutoff += step) {
+    for (double cutoff = points.max; cutoff > points.min; cutoff -= step) {
+        cutoffs.push_back(cutoff);
+
+        SimpleIntensityFitter fitter(h, get_limits());
+        determine_minimum_bounds();
+        fitter.set_scattering_hist(get_histogram(cutoff));
+        double val = fitter.fit()->chi2;
+
+        chi2.push_back(val);
+        std::cout << "\t" << count++ << ": Evaluated cutoff value " << cutoff << " with chi2 " << val << std::endl;
+    }
+
+    return Dataset(cutoffs, chi2, "cutoff", "chi2");
+}
+
 size_t ImageStack::get_byte_size() const {
     return header->get_byte_size();
 }

@@ -2,10 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <em/ImageStack.h>
-#include <plots/PlotImage.h>
-#include <plots/PlotIntensity.h>
-#include <plots/PlotIntensityFit.h>
-#include <plots/PlotIntensityFitResiduals.h>
+#include <plots/all.h>
 #include <fitter/SimpleIntensityFitter.h>
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
@@ -39,6 +36,18 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
     // Residual plot
     plots::PlotIntensityFitResiduals plot_r(res);
     plot_r.save("em_residuals." + setting::figures::format);
+}
+
+TEST_CASE("generate_landscape", "[em],[files],[slow],[manual]") {
+    setting::fit::q_high = 0.4;
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 1;
+    em::ImageStack image("data/native10.ccp4");
+    Protein protein("data/native.pdb");
+    auto res = image.cutoff_scan({1000, 1, 6}, protein.get_histogram());
+
+    plots::PlotDataset plot(res);
+    plot.save("temp/em/chi2_landscape.pdf");
 }
 
 TEST_CASE("check_simulated_errors", "[em],[files]") {

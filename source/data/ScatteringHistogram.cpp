@@ -11,7 +11,7 @@
 #include <TH1D.h>
 #include <TCanvas.h>
 
-using std::cout, std::endl;
+using std::cout, std::endl, std::shared_ptr, std::unique_ptr;
 using namespace ROOT;
 
 void ScatteringHistogram::setup() {

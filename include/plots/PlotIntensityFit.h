@@ -10,52 +10,52 @@
 
 namespace plots {
 
-  /**
-   * @brief \class PlotIntensityFit
-   * 
-   * Plot both the measured and fitted scattering curve. 
-   * Remember to set the correct ScatteringPlot with the optimized values in the fitter before using this class. 
-   */
-  class PlotIntensityFit : public Plot {
-    public:
-      /**
-       * @brief Constructor.
-       * 
-       * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-       */
-      PlotIntensityFit(SimpleIntensityFitter& fitter);
+	/**
+	 * @brief \class PlotIntensityFit
+	 * 
+	 * Plot both the measured and fitted scattering curve. 
+	 * Remember to set the correct ScatteringPlot with the optimized values in the fitter before using this class. 
+	 */
+	class PlotIntensityFit : public Plot {
+		public:
+		/**
+		 * @brief Constructor.
+		 * 
+		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+		 */
+		PlotIntensityFit(SimpleIntensityFitter& fitter);
 
-      /**
-       * @brief Constructor.
-       * 
-       * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-       */
-      PlotIntensityFit(const Fit& fit);
+		/**
+		 * @brief Constructor.
+		 * 
+		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+		 */
+		PlotIntensityFit(const Fit& fit);
 
-      /**
-       * @brief Constructor.
-       * 
-       * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-       */
-      PlotIntensityFit(const std::shared_ptr<Fit> fit);
+		/**
+		 * @brief Constructor.
+		 * 
+		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+		 */
+		PlotIntensityFit(const std::shared_ptr<Fit> fit);
 
-      /**
-       * @brief Destructor.
-       */
-      ~PlotIntensityFit() override = default;
+		/**
+		 * @brief Destructor.
+		 */
+		~PlotIntensityFit() override = default;
 
-      /**
-       * @brief Create and save the plot at the given path. 
-       * 
-       * @param path Save location and format. 
-       */
-      void save(std::string path) const override;
+		/**
+		 * @brief Create and save the plot at the given path. 
+		 * 
+		 * @param path Save location and format. 
+		 */
+		void save(std::string path) const override;
 
-    private:
-      std::unique_ptr<TCanvas> canvas;
+		private:
+		std::unique_ptr<TCanvas> canvas;
 
-      void plot(const std::vector<std::shared_ptr<TGraph>>& graphs) const;
+		void plot(const std::vector<std::shared_ptr<TGraph>>& graphs) const;
 
-      void prepare_canvas();
-  };
+		void prepare_canvas();
+	};
 }

@@ -10,8 +10,6 @@
 #include <Dataset.h>
 #include <DebyeLookupTable.h>
 
-using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-
 class ScatteringHistogram : public Histogram {
   public:
     /**
@@ -33,7 +31,7 @@ class ScatteringHistogram : public Histogram {
         setup();
     }
 
-    ScatteringHistogram(const vector<double>& p_pp, const vector<double>& p_hh, const vector<double>& p_hp, const vector<double>& p_tot, const Axis& axis)
+    ScatteringHistogram(const std::vector<double>& p_pp, const std::vector<double>& p_hh, const std::vector<double>& p_hp, const std::vector<double>& p_tot, const Axis& axis)
         : Histogram(p_tot, axis), p_pp(p_pp), p_hh(p_hh), p_hp(p_hp) {setup();}
 
     /**
@@ -52,21 +50,21 @@ class ScatteringHistogram : public Histogram {
      * 
      * @return A vector of histograms of the form (atom-atom hist, water-water hist, atom-water hist, total hist))
      */
-    vector<shared_ptr<TH1D>> plot_distance() const;
+    std::vector<std::shared_ptr<TH1D>> plot_distance() const;
 
     /**
      * @brief Prepare a plot of the Debye scattering intensities.
      * 
      * @return A histogram of the scattering intensity. 
      */
-    unique_ptr<TH1D> plot_debye_scattering() const;
+    std::unique_ptr<TH1D> plot_debye_scattering() const;
 
     /**
      * @brief Prepare a plot of the Guinier gyration ratio. 
      * 
      * @return A histogram with logarithmic base-10 y-axis. 
      */
-    unique_ptr<TH1D> plot_guinier_approx() const;
+    std::unique_ptr<TH1D> plot_guinier_approx() const;
 
     /**
      * @brief Calculate the squared Guinier gyration ratio. 
@@ -87,7 +85,7 @@ class ScatteringHistogram : public Histogram {
      * 
      * @return I(q)
      */
-    SAXSDataset calc_debye_scattering_intensity(vector<double>& q) const;
+    SAXSDataset calc_debye_scattering_intensity(std::vector<double>& q) const;
 
     /**
      * @brief Assign another ScatteringHistogram to this object.
@@ -99,9 +97,9 @@ class ScatteringHistogram : public Histogram {
      */
     ScatteringHistogram& operator=(ScatteringHistogram&& h);
 
-    vector<double> p_pp, p_hh, p_hp; // binned distances
-    vector<double> d; // The distance corresponding to each bin.
-    vector<double> q; // The q values used as the x-axis.
+    std::vector<double> p_pp, p_hh, p_hp; // binned distances
+    std::vector<double> d; // The distance corresponding to each bin.
+    std::vector<double> q; // The q values used as the x-axis.
 
   private:
     table::DebyeLookupTable sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.

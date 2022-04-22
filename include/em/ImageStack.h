@@ -56,6 +56,16 @@ namespace em {
             std::shared_ptr<EMFit> fit(const ScatteringHistogram& h);
 
             /**
+             * @brief Perform a scan of the cutoff values. 
+             * 
+             * @param points The cutoff values to be evaluated. 
+             * @param h The histogram to be fitted. 
+             * 
+             * @return A Dataset with the scanned cutoff values and their corresponding chi2 values. 
+             */
+            Dataset cutoff_scan(const Axis& points, const ScatteringHistogram& h);
+
+            /**
              * @brief Get a specific Image stored in this object. 
              * 
              * @param layer The vertical location of the Image. 
