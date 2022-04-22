@@ -34,17 +34,17 @@ struct print_element {
 
 std::string Fit::to_string() const {
     std::stringstream ss;
-    ss << "\n+----------------------------------------------------------+"
+    ss << "+----------------------------------------------------------+"
        << "\n|                       FIT REPORT                         |"
        << "\n+----------------------------------------------------------+"
-       << "\n| Converged: " << (converged ? "yes" : "no ") << "                               Fevals: " << print_element(calls, 4) << " |"
-       << "\n| chi2: " << print_element(chi2, 10) << " dof: " << print_element(dof, 6) << " chi2/dof: " << print_element(chi2/dof, 10) << "   |"
+       << "\n| Converged: " << (converged ? "yes" : "no ") << "                              Fevals: " << print_element(calls, 4) << " |"
+       << "\n| chi2: " << print_element(chi2, 10) << "    dof: " << print_element(dof, 6) << "    chi2/dof: " << print_element(chi2/dof, 10) << " |"
        << "\n+----------------------------------------------------------+"
-       << "\n| PAR |     VAL     |     UNC     |                        |";
+       << "\n| PAR  | VAL        | UNC        |                         |";
     for (const auto& e : params) {
-        ss << "| " << print_element(e.first, 4) << " | " << print_element(e.second, 10) << " | " << print_element(errors.at(e.first), 10)  << "                       |\n";
+        ss << "\n| " << print_element(e.first, 4) << " | " << print_element(e.second, 10) << " | " << print_element(errors.at(e.first), 10)  << " |                         |";
     }
-    ss << "+----------------------------------------------------------+\n";
+    ss << "\n+----------------------------------------------------------+";
 
     return ss.str();
 }

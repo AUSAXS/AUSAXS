@@ -7,8 +7,8 @@ class FitReporter {
         static void report(const Fit& fit);
         static void report(const std::vector<Fit>& fits, std::vector<std::string> titles = {});
 
-        static void save(const Fit& fit, std::string path);
-        static void save(const std::vector<Fit>& fits, std::string path);
+        static void save(std::string path, const Fit& fit);
+        static void save(std::string path, const std::vector<Fit>& fits, std::vector<std::string> titles = {});
 
     private:
         static std::function<std::string(std::string)> get_title_reporter(std::vector<std::string> titles); 
