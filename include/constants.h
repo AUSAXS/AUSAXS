@@ -5,6 +5,14 @@
 
 using std::string;
 
+constexpr double simple_pow(double val, unsigned int power) {
+    double sum = 1;
+    for (unsigned int i = 0; i < power; i++) {
+        sum *= val;
+    }
+    return sum;
+}
+
 /**
  * @brief \namespace constants
  * 
@@ -30,6 +38,8 @@ namespace constants {
         constexpr double mg = 1.66054e-27; // Dalton --> mg
         constexpr double gm = 1.66054e-24; // Dalton --> grams
         constexpr double cm = 1e-8; // Ångström --> cm
+
+        constexpr double mL = simple_pow(unit::cm, 3); // Ångström^3 --> mL
     }
 
     // The 1-symbol names of all amino acids. 
@@ -91,13 +101,13 @@ namespace constants {
      * The weights are taken from https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf. 
      */
     namespace mass {
-        constexpr double H = 1.008;
-        constexpr double He = 4.003;
-        constexpr double Li = 7.016;
-        constexpr double C = 12.011;
-        constexpr double N = 14.003;
-        constexpr double O = 15.995;
-        constexpr double S = 31.972;
+        constexpr double H = 1.008;  // Hydrogen mass
+        constexpr double He = 4.003; // Helium mass
+        constexpr double Li = 7.016; // Lithium mass
+        constexpr double C = 12.011; // Carbon mass
+        constexpr double N = 14.003; // Nitrogen mass
+        constexpr double O = 15.995; // Oxygen mass
+        constexpr double S = 31.972; // Sulphur mass
 
         // get the weight of an atom
         const std::map<string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
@@ -109,13 +119,14 @@ namespace constants {
      * This namespace contains the net charge of the most common atomic elements encountered in SAXS. 
      */
     namespace charge {
-        constexpr int H = 1;
-        constexpr int He = 2;
-        constexpr int Li = 3;
-        constexpr int C = 6;
-        constexpr int N = 7;
-        constexpr int O = 8;
-        constexpr int S = 16;
+        constexpr int e = 1;  // Electron charge
+        constexpr int H = 1;  // Hydrogen charge
+        constexpr int He = 2; // Helium charge
+        constexpr int Li = 3; // Lithium charge 
+        constexpr int C = 6;  // Carbon charge
+        constexpr int N = 7;  // Nitrogen charge
+        constexpr int O = 8;  // Oxygen charge
+        constexpr int S = 16; // Sulphur charge
 
         // get the charge Z of an atom
         const std::map<string, int> get = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};

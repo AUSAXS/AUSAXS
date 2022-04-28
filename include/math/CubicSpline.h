@@ -62,7 +62,7 @@ class CubicSpline {
     int search(int l, int r, double z) const {
         int mid = l+(r-l)/2; // middle index to compare with
         if (l == r)
-            return l-1;
+            return std::max(l-1, 0);
         if (z < x[mid])
             return search(l, mid, z);
         return search(mid+1, r, z);

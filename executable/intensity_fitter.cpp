@@ -54,8 +54,17 @@ int main(int argc, char const *argv[]) {
 
     FitReporter::report(result);
 
-    SAXSDataset data = fitter.get_model_dataset();
-    cout << "intercept is " << fitter.get_intercept() << endl;
-    cout << "concentration is: " << result->params["b"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
+    vector<double> q;
+    for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}
+
+    SAXSDataset data = fitter.get_model_dataset(q);
+    plots::PlotDataset plot_d(data);
+    plot_d.save(output + "fitted_model." + setting::figures::format);
+
+    // double intercept = result->params["b"];
+    double I0 = fitter.get_intercept();
+    double deltarhoV2 = constants::charge::density::water*constants::charge::e/constants::unit::mL;
+    double re2 = pow(constants::radius::electron*constants::unit::cm, 2);
+    cout << "concentration is: " << I0*protein.get_mass()/(deltarhoV2*re2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
     return 0;
 }

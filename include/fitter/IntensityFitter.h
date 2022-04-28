@@ -73,6 +73,11 @@ class IntensityFitter : public SimpleIntensityFitter {
      */
     SAXSDataset get_model_dataset(const vector<double>& q);
 
+    /**
+     * @brief Get the dataset being fitted. 
+     */
+    SAXSDataset get_dataset() const;
+
   private: 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.

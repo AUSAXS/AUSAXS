@@ -113,6 +113,7 @@ double IntensityFitter::chi2(const double* params) {
     return chi;
 }
 
+#include <math/CubicSpline.h>
 double IntensityFitter::get_intercept() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
  
@@ -120,44 +121,47 @@ double IntensityFitter::get_intercept() {
     double b = fitted->params["b"];
     double c = fitted->params["c"];
 
-    h.apply_water_scaling_factor(c);
+    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
+    CubicSpline s(h.q, ym);
+    return a*s.spline(0) + b;
 
-    vector<double> qq = {0};
-    vector<double> yy = h.calc_debye_scattering_intensity(qq).get("I");
-    return a*yy[0] + b;
+    // h.apply_water_scaling_factor(c);
+    // vector<double> qq = {0};
+    // vector<double> yy = h.calc_debye_scattering_intensity(qq).get("I");
+    // return a*yy[0] + b;
 }
 
 SAXSDataset IntensityFitter::get_model_dataset() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->params["a"];
     double b = fitted->params["b"];
     double c = fitted->params["c"];
 
-    SAXSDataset data;
-    
+    h.apply_water_scaling_factor(c);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
     std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
-    std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
-    apply fit to the intensities before returning
-
-    data.x = qo;
-    data.y = Im;
-    data.xlabel = "q";
-    data.ylabel = "I";
-    return data;
+    return SAXSDataset(qo, Im, "q", "I"); 
 }
 
 SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->params["a"];
     double b = fitted->params["b"];
     double c = fitted->params["c"];
 
-    apply fit to the intensities before returning
+    h.apply_water_scaling_factor(c);
+    SAXSDataset data = h.calc_debye_scattering_intensity(q);
+    std::transform(data.y.begin(), data.y.end(), data.y.begin(), [&a, &b] (double I) {return I*a+b;});
+    return data;
+}
 
-    return h.calc_debye_scattering_intensity(q);
+SAXSDataset IntensityFitter::get_dataset() const {
+    SAXSDataset data(qo, Io, sigma);
+    data.xlabel = "q";
+    data.ylabel = "I";
+    return data;
 }
