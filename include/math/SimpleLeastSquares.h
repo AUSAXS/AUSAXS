@@ -7,13 +7,30 @@
 
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
+#include <Dataset.h>
 
 /**
  * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.
  */
 class SimpleLeastSquares : public Fitter {
   public:
-    SimpleLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& y_err) : x(x), y(y), y_err(y_err) {}
+    /**
+     * @brief Constructor.
+     * 
+     * Prepare a linear least-squares fit for the given dataset. 
+     */
+    SimpleLeastSquares(const Dataset& data);
+
+    /**
+     * @brief Constructor.
+     * 
+     * Prepare a linear least-squares fit for the inputs. 
+     */
+    SimpleLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& y_err);
+
+    /**
+     * @brief Destructor.
+     */
     ~SimpleLeastSquares() override {}
 
     /**

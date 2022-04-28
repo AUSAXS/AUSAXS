@@ -72,7 +72,7 @@ unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     return h;
 }
 
-SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(vector<double>& q) const {
+SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(const vector<double>& q) const {
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); i++) { // iterate through all q values

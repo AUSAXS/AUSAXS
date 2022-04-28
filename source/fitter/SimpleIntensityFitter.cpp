@@ -34,9 +34,6 @@ void SimpleIntensityFitter::model_setup(const ScatteringHistogram& model, const 
 
     data.simulate_errors();
     sigma = data.get("Ierr");
-
-    // sigma.reserve(Io.size());
-    // std::transform(Io.begin(), Io.end(), sigma.begin(), [] (double& val) {return 0.05*val;});
 }
 
 shared_ptr<Fit> SimpleIntensityFitter::fit() {
@@ -102,20 +99,21 @@ void SimpleIntensityFitter::set_scattering_hist(const ScatteringHistogram& h) {
     this->h = h;
 }
 
-double SimpleIntensityFitter::chi2(const double* params) {
-    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
-    vector<double> Im = splice(ym);
+double SimpleIntensityFitter::chi2(const double*) {
+    throw except::invalid_operation("Error in SimpleIntensityFitter::chi2: Not implemented.");
+    // vector<double> ym = h.calc_debye_scattering_intensity().get("I");
+    // vector<double> Im = splice(ym);
 
-    // fit a, b
-    SimpleLeastSquares fitter(Im, Io, sigma);
-    auto[a, b] = fitter.fit_params_only();
+    // // fit a, b
+    // SimpleLeastSquares fitter(Im, Io, sigma);
+    // auto[a, b] = fitter.fit_params_only();
 
-    // calculate chi2
-    double chi = 0;
-    for (size_t i = 0; i < qo.size(); i++) {
-        chi += pow((Io[i] - a*Im[i]-b)/sigma[i], 2);
-    }
-    return chi;
+    // // calculate chi2
+    // double chi = 0;
+    // for (size_t i = 0; i < qo.size(); i++) {
+    //     chi += pow((Io[i] - a*Im[i]-b)/sigma[i], 2);
+    // }
+    // return chi;
 }
 
 void SimpleIntensityFitter::setup(string file) {

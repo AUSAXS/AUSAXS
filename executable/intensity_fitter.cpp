@@ -8,8 +8,8 @@
 #include <data/Protein.h>
 #include <fitter/IntensityFitter.h>
 #include <fitter/Fit.h>
-#include <plots/PlotIntensityFit.h>
-#include <plots/PlotIntensityFitResiduals.h>
+#include <plots/all.h>
+#include <fitter/FitReporter.h>
 
 using std::cout, std::endl;
 
@@ -52,7 +52,10 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensityFitResiduals plot_r(fitter);
     plot_r.save(output + "residuals." + setting::figures::format);
 
-    result->print();
-    cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
+    FitReporter::report(result);
+
+    SAXSDataset data = fitter.get_model_dataset();
+    cout << "intercept is " << fitter.get_intercept() << endl;
+    cout << "concentration is: " << result->params["b"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
     return 0;
 }

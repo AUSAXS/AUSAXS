@@ -4,6 +4,13 @@
 #include <fitter/Fitter.h>
 #include <ScatteringHistogram.h>
 
+#include <Dataset.h>
+
+/**
+ * @brief Perform a simple chi2 fit of a data set to a scattering curve. 
+ * 
+ * This is just a wrapper around SimpleLeastSquares. 
+ */
 class SimpleIntensityFitter : public Fitter {
   public: 
     /**
@@ -38,25 +45,16 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Constructor. 
      * 
-     * Prepare a fit to the data set defined by @a q, @a I, and @a sigma. 
-     * 
-     * @param q The scattering vectors.  
-     * @param I The corresponding intensities.  
-     * @param sigma The uncertainties in each measurement. 
+     * Prepare a fit to the dataset.
      */
-    SimpleIntensityFitter(std::vector<double>& q, std::vector<double>& I, std::vector<double>& sigma) : qo(q), Io(I), sigma(sigma) {}
+    SimpleIntensityFitter(const Dataset& data) : qo(data.x), Io(data.y), sigma(data.yerr) {}
 
     /**
      * @brief Constructor. 
      * 
-     * Prepare a fit of the histogram @a h to the data set defined by @a q, @a I, and @a sigma. 
-     * 
-     * @param q The scattering vectors.  
-     * @param I The corresponding intensities.  
-     * @param sigma The uncertainties in each measurement. 
-     * @param h The histogram to be fitted. 
+     * Prepare a fit of the histogram to the dataset. 
      */
-    SimpleIntensityFitter(std::vector<double>& q, std::vector<double>& I, std::vector<double>& sigma, const ScatteringHistogram& h) : qo(q), Io(I), sigma(sigma), h(h) {}
+    SimpleIntensityFitter(const Dataset& data, const ScatteringHistogram& hist) : qo(data.x), Io(data.y), sigma(data.yerr), h(hist) {}
 
     /**
      * @brief Constructor.

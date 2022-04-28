@@ -11,10 +11,11 @@
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
 shared_ptr<Fit> IntensityFitter::fit() {
-    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS");
+    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
     ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
     minimizer->SetFunction(functor);
+    minimizer->SetPrintLevel(0);
     minimizer->SetLimitedVariable(0, "c", 5, 1e-4, 0, 100); // scaling factor
     minimizer->Minimize();
     const double* res = minimizer->X();
@@ -32,7 +33,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
     // update fitter object
     bool converged = !minimizer->Status();
     std::map<string, double> pars = {{"c", res[0]}, {"a", ab_fit->params["a"]}, {"b", ab_fit->params["b"]}};
-    std::map<string, double> errs = {{"c", res[0]}, {"a", ab_fit->errors["a"]}, {"b", ab_fit->errors["b"]}};
+    std::map<string, double> errs = {{"c", err[0]}, {"a", ab_fit->errors["a"]}, {"b", ab_fit->errors["b"]}};
     double funcalls = minimizer->NCalls();
     fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
 
@@ -81,7 +82,7 @@ unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() {
     // calculate the residuals
     vector<double> residuals(qo.size());
     for (size_t i = 0; i < qo.size(); ++i) {
-        residuals[i] = ((Io[i] - a*Im[i]-b)/sigma[i]);
+        residuals[i] = ((Io[i] - (a*Im[i]+b))/sigma[i]);
     }
 
     // prepare the TGraph
@@ -106,7 +107,57 @@ double IntensityFitter::chi2(const double* params) {
     // calculate chi2
     double chi = 0;
     for (size_t i = 0; i < qo.size(); i++) {
-        chi += pow((Io[i] - a*Im[i]-b)/sigma[i], 2);
+        double v = (Io[i] - (a*Im[i]+b))/sigma[i];
+        chi += v*v;
     }
     return chi;
+}
+
+double IntensityFitter::get_intercept() {
+    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+ 
+    double a = fitted->params["a"];
+    double b = fitted->params["b"];
+    double c = fitted->params["c"];
+
+    h.apply_water_scaling_factor(c);
+
+    vector<double> qq = {0};
+    vector<double> yy = h.calc_debye_scattering_intensity(qq).get("I");
+    return a*yy[0] + b;
+}
+
+SAXSDataset IntensityFitter::get_model_dataset() {
+    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+ 
+    double a = fitted->params["a"];
+    double b = fitted->params["b"];
+    double c = fitted->params["c"];
+
+    SAXSDataset data;
+    
+    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
+    vector<double> Im = splice(ym);
+    std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
+    std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
+
+    apply fit to the intensities before returning
+
+    data.x = qo;
+    data.y = Im;
+    data.xlabel = "q";
+    data.ylabel = "I";
+    return data;
+}
+
+SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
+    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+ 
+    double a = fitted->params["a"];
+    double b = fitted->params["b"];
+    double c = fitted->params["c"];
+
+    apply fit to the intensities before returning
+
+    return h.calc_debye_scattering_intensity(q);
 }

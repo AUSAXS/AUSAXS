@@ -4,25 +4,31 @@
 #include <fitter/SimpleIntensityFitter.h>
 #include <ScatteringHistogram.h>
 
+/**
+ * @brief Fit an intensity curve to a dataset. 
+ * 
+ * Three parameters will be fitted: 
+ *    a: The slope of the curve
+ *    b: The intercept of the curve
+ *    c: The scaling factor for the hydration shell
+ */
 class IntensityFitter : public SimpleIntensityFitter {
   public: 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     *        Prepare a fit of the histogram to the measured values. 
      * 
-     * @param input the path to the file containing the measured values. 
-     * @param q the model q values.
-     * @param I the model I values. 
+     * @param input The path to the file containing the measured values. 
+     * @param h The histogram.
      */
     IntensityFitter(std::string input, const ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
 
     /**
      * @brief Constructor.
-     *        Prepare a fit of the measured values in @a input to the model described by @a q and @a I.
+     *        Prepare a fit of the histogram to the measured values. 
      * 
-     * @param input the path to the file containing the measured values. 
-     * @param q the model q values.
-     * @param I the model I values. 
+     * @param input The path to the file containing the measured values. 
+     * @param h The histogram.
      */
     IntensityFitter(std::string input, ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
 
@@ -51,6 +57,21 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
     std::unique_ptr<TGraphErrors> plot_residuals() override;
+
+    /**
+     * @brief Get the intercept of the model. This might be useful for calculating the concentration.
+     */
+    double get_intercept();
+
+    /**
+     * @brief Get the model dataset for the points specified by the input data file. 
+     */
+    SAXSDataset get_model_dataset();
+
+    /**
+     * @brief Get the model dataset for the points specified by @a q. 
+     */
+    SAXSDataset get_model_dataset(const vector<double>& q);
 
   private: 
     /**

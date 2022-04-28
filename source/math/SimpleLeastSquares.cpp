@@ -11,6 +11,10 @@
 
 #include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
 
+SimpleLeastSquares::SimpleLeastSquares(const Dataset& data) : x(data.x), y(data.y), y_err(data.yerr) {}
+
+SimpleLeastSquares::SimpleLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& y_err) : x(x), y(y), y_err(y_err) {}
+
 std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
     for (size_t i = 0; i < x.size(); i++) {

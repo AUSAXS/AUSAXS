@@ -85,7 +85,7 @@ class ScatteringHistogram : public Histogram {
      * 
      * @return I(q)
      */
-    SAXSDataset calc_debye_scattering_intensity(std::vector<double>& q) const;
+    SAXSDataset calc_debye_scattering_intensity(const std::vector<double>& q) const;
 
     /**
      * @brief Assign another ScatteringHistogram to this object.

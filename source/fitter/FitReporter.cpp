@@ -7,6 +7,8 @@ void FitReporter::report(const Fit& fit) {
     std::cout << fit.to_string() << std::endl;
 }
 
+void FitReporter::report(const std::shared_ptr<Fit> fit) {report(*fit);}
+
 void FitReporter::report(const std::vector<Fit>& fits, std::vector<std::string> titles) {
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("Error in FitReporter::report: Size of fits and titles must be equal.");}
 
