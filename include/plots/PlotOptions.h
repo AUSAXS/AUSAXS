@@ -1,14 +1,12 @@
 #pragma once
 
 #include <string>
-#include <initializer_list>
+#include <any>
 
 #include <TROOT.h>
 #include <TGraph.h>
 #include <TH1D.h>
 #include <TAxis.h>
-
-#include <Dataset.h>
 
 namespace plots {
     /**
@@ -18,19 +16,43 @@ namespace plots {
         public:
             PlotOptions() {}
 
-            PlotOptions(int color) : color(color) {}
+            PlotOptions(int color);
 
-            int color = kBlack;
-            double alpha = 1;
-            int marker_style = 7;
-            unsigned int linewidth = 1;
-            unsigned int markersize = 1;
-            bool draw_line = true;
-            bool draw_markers = false;
-            bool use_existing_axes = false;
-            std::string title = "";
-            std::string xlabel = "";
-            std::string ylabel = "";
+            int color = kBlack;             // Color
+            double alpha = 1;               // Opacity
+            int marker_style = 7;           // Marker style
+            unsigned int line_width = 1;     // Line width
+            unsigned int marker_size = 1;    // Marker size
+            bool draw_line = true;          // Draw a line through the points
+            bool draw_errors = true;        // Draw error bars if possible
+            bool draw_markers = false;      // Draw a marker for each point
+            bool use_existing_axes = false; // Draw with existing axes. Must be false for the first plot on each canvas. 
+            std::string title = "";         // Title
+            std::string xlabel = "";        // Label for the x-axis
+            std::string ylabel = "";        // Label for the y-axis
+
+            void set(std::map<std::string, std::any> options);
+
+        private: 
+            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL};
+            const inline static std::map<option, std::vector<std::string>> aliases = {
+                {option::COLOR, {"color", "colour", "c"}},
+                {option::ALPHA, {"alpha"}},
+                {option::MARKER_STYLE, {"markerstyle", "marker_style", "ms"}},
+                {option::LINE_WIDTH, {"linewidth", "line_width", "lw"}},
+                {option::MARKER_SIZE, {"markersize", "marker_size", "s"}},
+                {option::DRAW_LINE, {"drawline", "draw_line"}},
+                {option::DRAW_ERROR, {"drawerror", "draw_error", "drawerrors", "draw_errors"}},
+                {option::DRAW_MARKER, {"drawmarker", "draw_marker", "drawmarkers", "draw_markers"}},
+                {option::USE_EXISTING_AXES, {"useexistingaxes", "use-existing-axes", "use_existing_axes"}},
+                {option::TITLE, {"title"}},
+                {option::XLABEL, {"xlabel"}},
+                {option::YLABEL, {"ylabel"}}
+            };
+
+            void parse(std::string key, std::any val);
+
+            void set(const option opt, std::string name, std::any val);
     };
     
     [[maybe_unused]]
@@ -39,8 +61,8 @@ namespace plots {
         graph->SetLineColorAlpha(options.color, options.alpha);
         graph->SetMarkerColorAlpha(options.color, options.alpha);
         graph->SetMarkerStyle(options.marker_style);
-        graph->SetLineWidth(options.linewidth);
-        graph->SetMarkerSize(options.markersize);
+        graph->SetLineWidth(options.line_width);
+        graph->SetMarkerSize(options.marker_size);
 
         if (!options.title.empty()) {graph->SetTitle(options.title.c_str());};
         if (!options.xlabel.empty()) {
@@ -65,8 +87,8 @@ namespace plots {
         hist->SetLineColorAlpha(options.color, options.alpha);
         hist->SetMarkerColorAlpha(options.color, options.alpha);
         hist->SetMarkerStyle(options.marker_style);
-        hist->SetLineWidth(options.linewidth);
-        hist->SetMarkerSize(options.markersize);
+        hist->SetLineWidth(options.line_width);
+        hist->SetMarkerSize(options.marker_size);
 
         if (!options.title.empty()) {hist->SetTitle(options.title.c_str());};
         if (!options.xlabel.empty()) {

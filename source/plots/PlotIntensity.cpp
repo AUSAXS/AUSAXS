@@ -35,7 +35,7 @@ void plots::PlotIntensity::initial_intensity_plot(int color) {
     PlotOptions options;
     options.xlabel = "q";
     options.ylabel = "Intensity";
-    options.linewidth = 3;
+    options.line_width = 3;
     options.color = color;
 
     ymin = hI_debye->GetMinimum();

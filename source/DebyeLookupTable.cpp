@@ -1,5 +1,5 @@
 #include <DebyeLookupTable.h>
-#include <Utility.h>
+#include <utility/Utility.h>
 
 using namespace table;
 

@@ -1,6 +1,7 @@
 #include <vector>
 #include <cmath>
 #include <fstream>
+#include <random>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
@@ -133,6 +134,19 @@ void SAXSDataset::simulate_errors() {
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(x, -0.6)*std::pow(y, 0.75)/1000;});
     std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
+}
+
+void SAXSDataset::simulate_noise() {
+    if (yerr.empty()) {simulate_errors();}
+
+    std::random_device dev;
+    std::mt19937 gen(dev());
+    auto fun = [&] (double y, double yerr) {
+        auto gauss = std::normal_distribution<double>(y, yerr);
+        return gauss(gen);
+    };
+
+    std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), fun);
 }
 
 void SAXSDataset::set_resolution(unsigned int resolution) {

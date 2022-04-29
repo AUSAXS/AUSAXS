@@ -1,9 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <fitter/FitReporter.h>
+#include <plots/PlotOptions.h>
 
 using std::vector, std::string;
 
-TEST_CASE("FitReporter", "[utility],[manual]") {
+TEST_CASE("fitreporter", "[utility],[manual]") {
     Fit fit;
     fit.converged = true;
     fit.calls = 100;
@@ -39,5 +40,19 @@ TEST_CASE("FitReporter", "[utility],[manual]") {
         SECTION("File printing") {
             FitReporter::save("temp/fitreport2.txt", fits, titles);
         }
+    }
+}
+
+TEST_CASE("plotoptions", "[utility]") {
+    plots::PlotOptions options;
+
+    SECTION("set") {
+        options.set({{"xlabel", "label for x"}, {"ylabel", string("label for y")}, {"drawline", true}, {"draw_errors", true}, {"color", kBlue}, {"alpha", 0.3}});
+        CHECK(options.xlabel == "label for x");
+        CHECK(options.ylabel == "label for y");
+        CHECK(options.draw_line == true);
+        CHECK(options.draw_errors == true);
+        CHECK(options.color == kBlue);
+        CHECK(options.alpha == 0.3);
     }
 }

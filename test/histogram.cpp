@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <Utility.h>
+#include <utility/Utility.h>
 #include <ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <data/Atom.h>

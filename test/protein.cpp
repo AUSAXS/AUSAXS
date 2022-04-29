@@ -5,15 +5,10 @@
 #include <string>
 #include <fstream>
 
-#include "data/Protein.h"
-#include "hydrate/Grid.h"
-#include "constants.h"
-
-bool approx(double v1, double v2, double tol = 1e-6, double eps = 0.01) {
-    if (v1-tol > v2*(1+eps)) {return false;}
-    if (v1+tol < v2*(1-eps)) {return false;}
-    return true;
-}
+#include <data/Protein.h>
+#include <hydrate/Grid.h>
+#include <constants.h>
+#include <utility/Utility.h>
 
 TEST_CASE("compare_debye", "[protein]") {
     vector<Atom> atoms = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),

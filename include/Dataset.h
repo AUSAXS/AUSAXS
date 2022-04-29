@@ -131,6 +131,11 @@ class SAXSDataset : public Dataset {
         void simulate_errors();
 
         /**
+         * @brief Simulate Gaussian noise on the y-values based on the errors. 
+         */
+        void simulate_noise();
+
+        /**
          * @brief Set the resolution of this dataset. 
          */
         void set_resolution(unsigned int resolution);
