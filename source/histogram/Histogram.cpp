@@ -1,4 +1,4 @@
-#include <Histogram.h>
+#include <histogram/Histogram.h>
 
 #include <algorithm>
 

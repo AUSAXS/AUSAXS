@@ -1,9 +1,7 @@
-#pragma once
-
 #include <data/BodySplitter.h>
 #include <data/Body.h>
 #include <data/Atom.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 
 #include <algorithm>
 

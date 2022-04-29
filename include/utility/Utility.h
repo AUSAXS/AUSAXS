@@ -17,11 +17,7 @@ namespace utility {
      * @brief Remove spaces from both ends of a string. 
      *        Note that the input string is modified. 
      */
-    // std::string remove_spaces(std::string s) {
-    //     std::string::iterator end_pos = std::remove(s.begin(), s.end(), ' ');
-    //     s.erase(end_pos, s.end());
-    //     return s;
-    // }
+    std::string remove_spaces(std::string s);
 
     /**
      * @brief Create all parent directories of the path.

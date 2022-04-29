@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <utility/Utility.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
 #include <data/Hetatom.h>

@@ -1,5 +1,5 @@
-#include "hydrate/OutlierCulling.h"
-#include "hydrate/Grid.h"
+#include <hydrate/OutlierCulling.h>
+#include <hydrate/Grid.h>
 
 #include <utility>
 

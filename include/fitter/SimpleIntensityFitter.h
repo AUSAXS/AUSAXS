@@ -2,9 +2,9 @@
 
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 
-#include <Dataset.h>
+#include <utility/Dataset.h>
 
 /**
  * @brief Perform a simple chi2 fit of a data set to a scattering curve. 

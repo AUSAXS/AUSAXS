@@ -15,7 +15,7 @@ using namespace std::chrono;
 #include <fitter/SimpleIntensityFitter.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>

@@ -2,7 +2,7 @@
 
 #include <fitter/Fit.h>
 #include <plots/Plot.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
 
 #include <memory>

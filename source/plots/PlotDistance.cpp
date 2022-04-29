@@ -1,6 +1,6 @@
-#include "plots/PlotDistance.h"
-#include "ScatteringHistogram.h"
-#include "settings.h"
+#include <plots/PlotDistance.h>
+#include <histogram/DebyeLookupTable.h>
+#include <utility/Settings.h>
 #include <utility/Utility.h>
 
 #include <memory.h>

@@ -1,6 +1,6 @@
 #include <hydrate/RadialPlacement.h>
 #include <hydrate/Grid.h>
-#include <settings.h>
+#include <utility/Settings.h>
 
 void grid::RadialPlacement::prepare_rotations(const int divisions) {
     const int rh = grid->rh, ra = grid->ra;

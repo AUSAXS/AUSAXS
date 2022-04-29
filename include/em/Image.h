@@ -8,7 +8,7 @@
 #include <em/Datatypes.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 #include <math/Matrix.h>
 
 /**

@@ -4,7 +4,7 @@
 #include <data/Terminate.h>
 #include <data/Atom.h>
 #include <data/Hetatom.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 
 #include <fstream>
 

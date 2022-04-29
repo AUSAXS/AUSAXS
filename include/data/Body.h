@@ -1,8 +1,5 @@
 #pragma once
 
-// forwards declaration
-class ScatteringHistogram;
-
 #include <vector>
 #include <map>
 #include <memory>
@@ -10,8 +7,8 @@ class ScatteringHistogram;
 #include <data/Atom.h>
 #include <hydrate/Grid.h>
 #include <io/File.h>
-#include <constants.h>
-#include <ScatteringHistogram.h>
+#include <utility/Constants.h>
+#include <histogram/ScatteringHistogram.h>
 #include <data/StateManager.h>
 
 class Body {

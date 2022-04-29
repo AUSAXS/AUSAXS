@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Record.h"
+#include <data/Record.h>
 
 /**
  * @brief \class Terminate

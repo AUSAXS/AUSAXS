@@ -1,5 +1,5 @@
 #include <plots/PlotDataset.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 #include <utility/Utility.h>
 
 #include <memory.h>

@@ -8,7 +8,7 @@
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
-#include <settings.h>
+#include <utility/Settings.h>
 #include <math/Vector3.h>
  
 using namespace ROOT;

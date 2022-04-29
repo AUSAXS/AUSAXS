@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Decomposition.h"
-#include "Vector.h"
-
-#include <stdexcept>
+#include <math/Decomposition.h>
+#include <math/Vector.h>
 
 template<typename T> class Matrix;
 

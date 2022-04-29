@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <filesystem>
 
-#include <settings.h>
+#include <utility/Settings.h>
 
 bool utility::approx(double v1, double v2, double abs, double eps) {
     if (v1-abs > v2*(1+eps)) {return false;}
@@ -10,11 +10,11 @@ bool utility::approx(double v1, double v2, double abs, double eps) {
     return true;
 }
 
-// std::string remove_spaces(std::string s) {
-//     std::string::iterator end_pos = std::remove(s.begin(), s.end(), ' ');
-//     s.erase(end_pos, s.end());
-//     return s;
-// }
+std::string utility::remove_spaces(std::string s) {
+    std::string::iterator end_pos = std::remove(s.begin(), s.end(), ' ');
+    s.erase(end_pos, s.end());
+    return s;
+}
 
 void utility::print_warning(std::string text) {
     std::cout << "\033[1;31m" << text << "\033[0m" << std::endl;

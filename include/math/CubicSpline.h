@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Matrix.h"
-#include "Vector.h"
+#include <math/Matrix.h>
+#include <math/Vector.h>
 
 class CubicSpline {
   public:

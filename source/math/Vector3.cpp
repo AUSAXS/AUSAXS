@@ -1,5 +1,5 @@
-#include "math/Vector3.h"
-#include "math/Matrix.h"
+#include <math/Vector3.h>
+#include <math/Matrix.h>
 
 Vector3::Vector3(Vector3&& v) noexcept : Vector(std::move(v)) {} // move constructor
 Vector3::Vector3(const Vector3& v) : Vector(v.data) {} // copy constructor

@@ -77,8 +77,10 @@ namespace plots {
 
         // draw it
         std::string draw_options = options.use_existing_axes ? "SAME " : "A";
-        if (options.draw_line) {graph->DrawClone(std::string(draw_options + "L").c_str());}
-        if (options.draw_markers) {graph->DrawClone(std::string(draw_options + "P").c_str());}
+        if (options.draw_line) {draw_options += "L";}
+        if (options.draw_markers) {draw_options += "P";}
+        if (options.draw_errors) {graph->DrawClone(draw_options.c_str());}
+        else {graph->TGraph::DrawClone(draw_options.c_str());}
     }
 
     [[maybe_unused]]

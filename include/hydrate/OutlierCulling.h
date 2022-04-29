@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hydrate/CullingStrategy.h"
-#include "hydrate/Grid.h"
+#include <hydrate/CullingStrategy.h>
+#include <hydrate/Grid.h>
 
 namespace grid {
     /**

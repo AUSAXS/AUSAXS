@@ -6,12 +6,12 @@
 #include <algorithm>
 
 // my own includes
-#include "data/Atom.h"
-#include "hydrate/Grid.h"
-#include "constants.h"
-#include "data/Body.h"
-#include "settings.h"
-#include "math/Matrix.h"
+#include <data/Atom.h>
+#include <hydrate/Grid.h>
+#include <utility/Constants.h>
+#include <data/Body.h>
+#include <utility/Settings.h>
+#include <math/Matrix.h>
 
 using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;

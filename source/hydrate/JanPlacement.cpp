@@ -1,5 +1,5 @@
-#include "hydrate/JanPlacement.h"
-#include "hydrate/Grid.h"
+#include <hydrate/JanPlacement.h>
+#include <hydrate/Grid.h>
 
 vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance

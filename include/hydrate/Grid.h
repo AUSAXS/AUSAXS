@@ -2,13 +2,13 @@
 
 #include <list>
 
-#include "data/Atom.h"
-#include "data/Axis.h"
-#include "hydrate/PlacementStrategy.h"
-#include "hydrate/CullingStrategy.h"
-#include "hydrate/GridMember.h"
-#include "settings.h"
-#include "Exceptions.h"
+#include <data/Atom.h>
+#include <data/Axis.h>
+#include <hydrate/PlacementStrategy.h>
+#include <hydrate/CullingStrategy.h>
+#include <hydrate/GridMember.h>
+#include <utility/Settings.h>
+#include <utility/Exceptions.h>
 
 // forwards declaration
 class Body;

@@ -1,6 +1,6 @@
 #include <fitter/Fit.h>
 #include <plots/PlotIntensity.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 #include <utility/Utility.h>
 
 #include <TLegend.h>

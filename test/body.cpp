@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-#include <constants.h>
+#include <utility/Constants.h>
 #include <hydrate/Grid.h>
 #include <data/Protein.h>
 #include <data/StateManager.h>

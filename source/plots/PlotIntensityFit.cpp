@@ -1,4 +1,4 @@
-#include "plots/PlotIntensityFit.h"
+#include <plots/PlotIntensityFit.h>
 #include <utility/Utility.h>
 
 #include <memory.h>

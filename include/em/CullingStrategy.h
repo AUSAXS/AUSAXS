@@ -4,7 +4,7 @@
 #include <list>
 
 #include <data/Atom.h>
-#include <settings.h>
+#include <utility/Settings.h>
 
 namespace em {
     /**

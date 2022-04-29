@@ -8,7 +8,7 @@
 #include <em/Image.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
 
 namespace em {

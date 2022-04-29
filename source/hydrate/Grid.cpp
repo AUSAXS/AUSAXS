@@ -16,7 +16,7 @@
 #include <hydrate/JanPlacement.h>
 #include <hydrate/CounterCulling.h>
 #include <hydrate/OutlierCulling.h>
-#include <settings.h>
+#include <utility/Settings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
 

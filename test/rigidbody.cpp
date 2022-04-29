@@ -3,10 +3,10 @@
 
 #include <rigidbody/RigidTransform.h>
 #include <rigidbody/RigidBody.h>
-#include <data/BodySplitter.h>
-#include <fitter/IntensityFitter.h>
-#include <data/Protein.h>
 #include <rigidbody/RandomSelect.h>
+#include <fitter/IntensityFitter.h>
+#include <data/BodySplitter.h>
+#include <data/Protein.h>
 
 TEST_CASE("Constraints", "[rigidbody]") {
     Atom a1(Vector3(-1, -1, -1), 1, "C", "C", 1);

@@ -6,8 +6,8 @@ class Protein;
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/StateManager.h>
-#include <ScatteringHistogram.h>
-#include <Histogram.h>
+#include <histogram/ScatteringHistogram.h>
+#include <histogram/Histogram.h>
 
 /**
  * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 

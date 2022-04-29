@@ -1,9 +1,9 @@
-#include "data/Atom.h"
-#include "data/Body.h"
-#include "data/Protein.h"
-#include "data/StateManager.h"
-#include "ScatteringHistogram.h"
-#include "data/PartialHistogramManager.h"
+#include <data/Atom.h>
+#include <data/Body.h>
+#include <data/Protein.h>
+#include <data/StateManager.h>
+#include <histogram/ScatteringHistogram.h>
+#include <data/PartialHistogramManager.h>
 
 CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_atoms.size()), data(size) {
     for (unsigned int i = 0; i < size; i++) {

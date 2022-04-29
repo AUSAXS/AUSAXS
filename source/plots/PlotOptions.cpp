@@ -1,5 +1,5 @@
 #include <plots/PlotOptions.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 
 #include <algorithm>
 #include <typeindex>

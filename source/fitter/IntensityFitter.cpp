@@ -1,8 +1,9 @@
 #include <fitter/Fit.h>
 #include <fitter/IntensityFitter.h>
 #include <math/SimpleLeastSquares.h>
-#include <ScatteringHistogram.h>
-#include <Exceptions.h>
+#include <math/CubicSpline.h>
+#include <histogram/ScatteringHistogram.h>
+#include <utility/Exceptions.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
@@ -113,7 +114,6 @@ double IntensityFitter::chi2(const double* params) {
     return chi;
 }
 
-#include <math/CubicSpline.h>
 double IntensityFitter::get_intercept() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
  
@@ -121,14 +121,10 @@ double IntensityFitter::get_intercept() {
     double b = fitted->params["b"];
     double c = fitted->params["c"];
 
+    h.apply_water_scaling_factor(c);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     CubicSpline s(h.q, ym);
     return a*s.spline(0) + b;
-
-    // h.apply_water_scaling_factor(c);
-    // vector<double> qq = {0};
-    // vector<double> yy = h.calc_debye_scattering_intensity(qq).get("I");
-    // return a*yy[0] + b;
 }
 
 SAXSDataset IntensityFitter::get_model_dataset() {

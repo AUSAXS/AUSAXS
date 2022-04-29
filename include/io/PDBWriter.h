@@ -2,10 +2,10 @@
 
 class File;
 
-#include "io/Writer.h"
-#include "data/Terminate.h"
-#include "data/Atom.h"
-#include "data/Hetatom.h"
+#include <io/Writer.h>
+#include <data/Terminate.h>
+#include <data/Atom.h>
+#include <data/Hetatom.h>
 
 /**
  * @brief \class PDBWriter.

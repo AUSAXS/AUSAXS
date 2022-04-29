@@ -1,5 +1,5 @@
 #include <fitter/FitReporter.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 #include <string>
 #include <fstream>
 

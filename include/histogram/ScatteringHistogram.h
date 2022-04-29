@@ -6,9 +6,9 @@
 
 #include <TH1D.h>
 
-#include <Histogram.h>
-#include <Dataset.h>
-#include <DebyeLookupTable.h>
+#include <histogram/Histogram.h>
+#include <histogram/DebyeLookupTable.h>
+#include <utility/Dataset.h>
 
 class ScatteringHistogram : public Histogram {
   public:

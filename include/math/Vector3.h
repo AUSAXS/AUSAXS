@@ -2,7 +2,7 @@
 
 #include <initializer_list>
 
-#include "math/Vector.h"
+#include <math/Vector.h>
 
 template<class T> class Matrix;
 

@@ -8,9 +8,9 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 
-#include <Dataset.h>
-#include <Exceptions.h>
-#include <settings.h>
+#include <utility/Dataset.h>
+#include <utility/Exceptions.h>
+#include <utility/Settings.h>
 
 using std::vector, std::string;
 

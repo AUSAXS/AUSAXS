@@ -2,12 +2,11 @@
 
 #include <vector>
 #include <string>
-#include <utility>
 #include <memory>
 
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
-#include <Dataset.h>
+#include <utility/Dataset.h>
 
 /**
  * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.

@@ -1,6 +1,6 @@
-#include <ScatteringHistogram.h>
-#include <settings.h>
-#include <constants.h>
+#include <histogram/ScatteringHistogram.h>
+#include <utility/Settings.h>
+#include <utility/Constants.h>
 #include <data/Axis.h>
 
 #include <utility>

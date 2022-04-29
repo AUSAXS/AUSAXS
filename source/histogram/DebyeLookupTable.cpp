@@ -1,4 +1,4 @@
-#include <DebyeLookupTable.h>
+#include <histogram/DebyeLookupTable.h>
 #include <utility/Utility.h>
 
 using namespace table;

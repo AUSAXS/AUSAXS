@@ -57,15 +57,8 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
     SAXSDataset data2 = data1;
     data2.simulate_errors();
 
-    data1.plot_options.color = kBlack;
-    data1.plot_options.draw_line = false;
-    data1.plot_options.draw_markers = true;
-    data1.plot_options.line_width = 2;
-
-    data2.plot_options.color = kOrange+2;
-    data2.plot_options.draw_line = false;
-    data2.plot_options.draw_markers = true;
-    data2.plot_options.line_width = 2;
+    data1.plot_options.set({{"color", kBlack}, {"draw_line", false}, {"draw_markers", true}, {"lw", 2}});
+    data2.plot_options.set({{"color", kOrange+2}, {"draw_line", false}, {"draw_markers", true}, {"lw", 2}});
 
     plots::PlotIntensity plot(data1);
     plot.plot_intensity(data2);
@@ -78,15 +71,8 @@ TEST_CASE("check_simulated_noise", "[em],[files],[manual]") {
     data2.simulate_errors();
     data2.simulate_noise();
 
-    data1.plot_options.color = kBlack;
-    data1.plot_options.draw_line = false;
-    data1.plot_options.draw_markers = true;
-    data1.plot_options.line_width = 2;
-
-    data2.plot_options.color = kOrange+2;
-    data2.plot_options.draw_line = false;
-    data2.plot_options.draw_markers = true;
-    data2.plot_options.line_width = 2;
+    data1.plot_options.set({{"color", kBlack}, {"draw_line", false}, {"draw_markers", true}, {"draw_errors", false}, {"lw", 2}});
+    data2.plot_options.set({{"color", kOrange+2}, {"draw_line", false}, {"draw_markers", true}, {"draw_errors", false}, {"lw", 2}});
 
     plots::PlotIntensity plot(data1);
     plot.plot_intensity(data2);

@@ -2,6 +2,8 @@
 
 #include <em/CullingStrategy.h>
 
+#include <vector>
+
 namespace em {
     class NoCulling : public CullingStrategy {
         public:

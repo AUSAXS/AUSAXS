@@ -3,16 +3,16 @@
 #include <string>
 #include <vector>
 
-#include "data/Record.h"
-#include "data/Terminate.h"
-#include "data/Header.h"
-#include "data/Footer.h"
-#include "data/Atom.h"
-#include "data/Hetatom.h"
-#include "io/Reader.h"
-#include "io/Writer.h"
-#include "io/PDBWriter.h"
-#include "io/PDBReader.h"
+#include <data/Record.h>
+#include <data/Terminate.h>
+#include <data/Header.h>
+#include <data/Footer.h>
+#include <data/Atom.h>
+#include <data/Hetatom.h>
+#include <io/Reader.h>
+#include <io/Writer.h>
+#include <io/PDBWriter.h>
+#include <io/PDBReader.h>
 
 /**
  * @brief \class File

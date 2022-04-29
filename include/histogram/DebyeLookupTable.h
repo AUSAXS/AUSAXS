@@ -1,7 +1,7 @@
 #pragma once
 
-#include <settings.h>
-#include <Table.h>
+#include <utility/Settings.h>
+#include <utility/Table.h>
 
 namespace table {
     /**

@@ -3,7 +3,7 @@
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <io/File.h>
-#include <Histogram.h>
+#include <histogram/Histogram.h>
 
 Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);

@@ -7,9 +7,9 @@
 #include <fitter/SimpleIntensityFitter.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
-#include <settings.h>
-#include <ScatteringHistogram.h>
-#include <Exceptions.h>
+#include <utility/Settings.h>
+#include <histogram/ScatteringHistogram.h>
+#include <utility/Exceptions.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Decomposition.h"
-#include "Matrix.h"
-#include "Vector.h"
-#include "Slice.h"
+#include <math/Decomposition.h>
+#include <math/Matrix.h>
+#include <math/Vector.h>
+#include <math/Slice.h>
 
 // QR decomposition by Gram-Schmidt orthogonalization
 class QRDecomposition : public Decomposition {

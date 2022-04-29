@@ -2,7 +2,7 @@
 
 #include <fitter/Fit.h>
 #include <fitter/SimpleIntensityFitter.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 
 /**
  * @brief Fit an intensity curve to a dataset. 

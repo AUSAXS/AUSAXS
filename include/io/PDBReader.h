@@ -2,10 +2,10 @@
 
 class File;
 
-#include "io/Reader.h"
-#include "data/Terminate.h"
-#include "data/Atom.h"
-#include "data/Hetatom.h"
+#include <io/Reader.h>
+#include <data/Terminate.h>
+#include <data/Atom.h>
+#include <data/Hetatom.h>
 
 /**
  * @brief \class PDBReader. 

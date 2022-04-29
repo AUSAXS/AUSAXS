@@ -3,7 +3,7 @@
 #include <memory>
 
 #include <data/Atom.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 
 /**
  * @brief \class Constraint. 

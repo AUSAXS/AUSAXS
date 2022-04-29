@@ -4,8 +4,8 @@
 class Grid;
 
 // includes
-#include "data/Hetatom.h"
-#include "hydrate/GridMember.h"
+#include <data/Hetatom.h>
+#include <hydrate/GridMember.h>
 
 namespace grid {
   /**

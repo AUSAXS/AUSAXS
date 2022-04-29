@@ -9,7 +9,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include "Slice.h"
+#include <math/Slice.h>
 
 #define safe_math true
 
@@ -156,7 +156,7 @@ class Vector {
 		}
 
         // Conversion to std::vector
-        operator vector<T>() {
+        operator std::vector<T>() {
 			return data;
 		}
 

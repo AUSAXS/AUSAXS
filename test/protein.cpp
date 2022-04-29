@@ -8,7 +8,7 @@
 
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
-#include <constants.h>
+#include <utility/Constants.h>
 #include <utility/Utility.h>
 
 using std::cout, std::endl;

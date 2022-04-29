@@ -1,4 +1,4 @@
-#include "rigidbody/Parameters.h"
+#include <rigidbody/Parameters.h>
 
 Parameters::Parameters(const Protein& protein) : params(protein.bodies.size()) {
     const vector<Body>& bodies = protein.bodies;

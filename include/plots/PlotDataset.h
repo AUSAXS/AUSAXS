@@ -1,7 +1,7 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 
 #include <memory>
 #include <string>

@@ -2,7 +2,7 @@
 
 #include <em/PartialHistogramManager.h>
 #include <em/ImageStack.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 #include <data/Protein.h>
 
 em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}

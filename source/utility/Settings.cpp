@@ -1,5 +1,5 @@
-#include "settings.h"
-#include "math/Vector3.h"
+#include <utility/Settings.h>
+#include <math/Vector3.h>
 
 #include <vector>
 #include <fstream>

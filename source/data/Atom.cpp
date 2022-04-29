@@ -9,7 +9,7 @@
 #include <data/Record.h>
 #include <data/Atom.h>
 #include <math/Vector3.h>
-#include <constants.h>
+#include <utility/Constants.h>
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 

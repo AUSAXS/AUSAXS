@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hydrate/PlacementStrategy.h"
-#include "hydrate/Grid.h"
-#include "settings.h"
+#include <hydrate/PlacementStrategy.h>
+#include <hydrate/Grid.h>
+#include <utility/Settings.h>
 
 namespace grid {
     /**

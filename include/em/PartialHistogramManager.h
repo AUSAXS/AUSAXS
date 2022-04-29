@@ -5,7 +5,7 @@
 #include <em/ImageStack.h>
 #include <em/CullingStrategy.h>
 #include <data/Protein.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 
 namespace em {
     class PartialHistogramManager {

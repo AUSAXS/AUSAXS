@@ -5,7 +5,7 @@
 #include <rigidbody/SimpleParameterGeneration.h>
 #include <rigidbody/RandomSelect.h>
 #include <fitter/SimpleIntensityFitter.h>
-#include <Exceptions.h>
+#include <utility/Exceptions.h>
 #include <math/Matrix.h>
 
 RigidBody::RigidBody(Protein& protein) : protein(protein) {

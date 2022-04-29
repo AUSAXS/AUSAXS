@@ -5,8 +5,6 @@ class Vector;
 
 #include <vector>
 
-using std::vector;
-
 /**
  * @brief \class Slice
  * 
@@ -104,11 +102,11 @@ bool operator!=(const Slice<T>& s, const Vector<Q>& v) {return s.operator Vector
 template<typename T>
 class VectorSlice : public Slice<T> {
 	public: 
-		VectorSlice(const vector<T>& data) : Slice<T>(data.size(), 1, 0, 1, data.size()), data(data) {}
+		VectorSlice(const std::vector<T>& data) : Slice<T>(data.size(), 1, 0, 1, data.size()), data(data) {}
 		virtual ~VectorSlice() {}
 
 		T& operator[](int i) override;
-		const vector<T>& data;
+		const std::vector<T>& data;
 };
 
 /**
@@ -119,7 +117,7 @@ class VectorSlice : public Slice<T> {
 template<typename T>
 class MutableSlice : public Slice<T> {
 	public:
-		MutableSlice(vector<T>& data, int N, int M, int start, int step, int length) : Slice<T>(N, M, start, step, length), data(data) {}
+		MutableSlice(std::vector<T>& data, int N, int M, int start, int step, int length) : Slice<T>(N, M, start, step, length), data(data) {}
 	
 		virtual ~MutableSlice() = default;
 
@@ -156,7 +154,7 @@ class MutableSlice : public Slice<T> {
 			return *this;
 		}
 
-		vector<T>& data;
+		std::vector<T>& data;
 };
 
 /**
@@ -167,19 +165,19 @@ class MutableSlice : public Slice<T> {
 template<typename T>
 class ConstSlice : public Slice<T> {
 	public:
-		ConstSlice(const vector<T>& data, int N, int M, int start, int step, int length) : Slice<T>(N, M, start, step, length), data(data) {}
+		ConstSlice(const std::vector<T>& data, int N, int M, int start, int step, int length) : Slice<T>(N, M, start, step, length), data(data) {}
 
 		virtual ~ConstSlice() = default;
 
 		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
 
-		const vector<T>& data;
+		const std::vector<T>& data;
 };
 
 template<typename T>
 class ConstRow : public ConstSlice<T> {
 	public: 
-		ConstRow(const vector<T>& data, int N, int M, int row) : ConstSlice<T>(data, N, 1, row*M, 1, M) {}
+		ConstRow(const std::vector<T>& data, int N, int M, int row) : ConstSlice<T>(data, N, 1, row*M, 1, M) {}
 
 		ConstRow(const ConstSlice<T>& s) : ConstSlice<T>(std::move(s)) {}
 };
@@ -187,7 +185,7 @@ class ConstRow : public ConstSlice<T> {
 template<typename T>
 class ConstColumn : public ConstSlice<T> {
 	public: 
-		ConstColumn(const vector<T>& data, int N, int M, int col) : ConstSlice<T>(data, 1, M, col, M, N) {}
+		ConstColumn(const std::vector<T>& data, int N, int M, int col) : ConstSlice<T>(data, 1, M, col, M, N) {}
 
 		ConstColumn(const ConstSlice<T>& s) : ConstSlice<T>(std::move(s)) {}
 };
@@ -195,7 +193,7 @@ class ConstColumn : public ConstSlice<T> {
 template<typename T>
 class Row : public MutableSlice<T> {
 	public: 
-		Row(vector<T>& data, int N, int M, int row) : MutableSlice<T>(data, N, 1, row*M, 1, M) {}
+		Row(std::vector<T>& data, int N, int M, int row) : MutableSlice<T>(data, N, 1, row*M, 1, M) {}
 
 		Row(MutableSlice<T>& s) : MutableSlice<T>(std::move(s)) {}
 
@@ -219,7 +217,7 @@ class Row : public MutableSlice<T> {
 template<typename T>
 class Column : public MutableSlice<T> {
 	public: 
-		Column(vector<T>& data, int N, int M, int col) : MutableSlice<T>(data, 1, M, col, M, N) {}
+		Column(std::vector<T>& data, int N, int M, int col) : MutableSlice<T>(data, 1, M, col, M, N) {}
 
 		Column(MutableSlice<T>& s) : MutableSlice<T>(std::move(s)) {}
 

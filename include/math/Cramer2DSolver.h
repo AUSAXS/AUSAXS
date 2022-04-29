@@ -1,11 +1,10 @@
 #pragma once
 
-#include "math/Matrix.h"
-#include "math/Vector.h"
-#include "math/LinearSolver.h"
+#include <math/Matrix.h>
+#include <math/Vector.h>
+#include <math/LinearSolver.h>
 
 #include <math.h>
-#include <stdexcept>
 
 class Cramer2DSolver : public LinearSolver {
 public:

@@ -5,7 +5,7 @@ class TPad;
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <plots/Plot.h>
-#include <ScatteringHistogram.h>
+#include <histogram/ScatteringHistogram.h>
 
 #include <memory>
 #include <string>

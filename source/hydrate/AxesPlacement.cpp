@@ -1,5 +1,5 @@
-#include "hydrate/AxesPlacement.h"
-#include "hydrate/Grid.h"
+#include <hydrate/AxesPlacement.h>
+#include <hydrate/Grid.h>
 
 vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
