@@ -42,7 +42,7 @@ namespace plots {
 		/**
 		 * @brief Destructor.
 		 */
-		~PlotIntensityFitResiduals() override = default;
+		~PlotIntensityFitResiduals() override;
 
 		/**
 		 * @brief Create and save the plot at the given path. 

@@ -1,8 +1,5 @@
-#include <memory>
-#include <list>
 #include <algorithm>
-#include <filesystem>
-#include <cmath>
+#include <fstream>
 
 //! ##### Remove ##### !
 #include <chrono>
@@ -16,8 +13,8 @@ using namespace std::chrono;
 #include <data/Atom.h>
 #include <data/Protein.h>
 #include <fitter/SimpleIntensityFitter.h>
-#include "plots/PlotIntensityFit.h"
-#include "plots/PlotIntensityFitResiduals.h"
+#include <plots/PlotIntensityFit.h>
+#include <plots/PlotIntensityFitResiduals.h>
 #include <Exceptions.h>
 
 #include <Math/Minimizer.h>

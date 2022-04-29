@@ -3,8 +3,6 @@
 #include "hydrate/CullingStrategy.h"
 #include "hydrate/Grid.h"
 
-#include <utility>
-
 namespace grid {
     /**
      * @brief Iterate through all water molecules, and count how many other molecules are nearby. Atoms counts as +1, while other water molecules counts as -2. 

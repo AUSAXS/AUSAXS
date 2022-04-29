@@ -13,11 +13,11 @@ class Record {
     enum RecordType {HEADER, ATOM, HETATM, TERMINATE, FOOTER, NOTYPE};
     virtual ~Record() {}
     
-    virtual void parse_pdb(const string s) = 0;
+    virtual void parse_pdb(const std::string s) = 0;
     virtual RecordType get_type() const = 0;
-    virtual string as_pdb() const = 0;
+    virtual std::string as_pdb() const = 0;
 
-    static RecordType get_type(string s) {
+    static RecordType get_type(std::string s) {
         boost::erase_all(s, " ");  // remove any spaces so we only match the type itself. some programs are inconsistent with spacing after e.g. END or TER
         boost::erase_all(s, "\r"); // some programs adds a carriage return after END, which we have to remove
         if (type_map.count(s) == 1) {
@@ -62,7 +62,7 @@ inline __setp setf(const double number, const int precision) {
     setter.number = number;
     int p = 1; // the dot will always take up a slot
 
-    string num = std::to_string(number);
+    std::string num = std::to_string(number);
     if (num[0] == '-') {
         p++; // -1 since the sign takes up a slot
     }
@@ -74,7 +74,7 @@ inline __setp setf(const double number, const int precision) {
 
     p++; // another slot is taken by 0
     size_t fsig = num.find_first_not_of("0", p); // find first significant decimal after the dot
-    if (fsig != string::npos) { // number is of the form 0.00312...
+    if (fsig != std::string::npos) { // number is of the form 0.00312...
         p = fsig;
     }
     setter.prec = precision - p;

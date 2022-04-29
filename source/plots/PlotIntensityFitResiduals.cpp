@@ -1,4 +1,5 @@
 #include <plots/PlotIntensityFitResiduals.h>
+#include <utility/Utility.h>
 
 #include <memory.h>
 #include <string.h>
@@ -7,6 +8,7 @@
 #include <TLegend.h>
 #include <TH1D.h>
 #include <TLine.h>
+#include <TCanvas.h>
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(SimpleIntensityFitter& fitter) : Plot() {
     prepare_canvas();
@@ -24,7 +26,10 @@ plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_pt
     plot(fit->residual_plot);
 }
 
+plots::PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
+
 void plots::PlotIntensityFitResiduals::save(std::string path) const {
+    utility::create_directories(path);
     canvas->SaveAs(path.c_str());
 }
 

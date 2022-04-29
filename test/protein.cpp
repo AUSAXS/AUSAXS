@@ -4,11 +4,14 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
 #include <constants.h>
 #include <utility/Utility.h>
+
+using std::cout, std::endl;
 
 TEST_CASE("compare_debye", "[protein]") {
     vector<Atom> atoms = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
@@ -21,7 +24,7 @@ TEST_CASE("compare_debye", "[protein]") {
     vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().get("I");
 
     for (int i = 0; i < 8; i++) {
-        if (!approx(I_dumb[i], I_smart[i], 1e-1)) {
+        if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
             cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
             REQUIRE(false);
         }
@@ -38,7 +41,7 @@ TEST_CASE("compare_debye_real", "[protein],[files],[slow]") {
     vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().get("I");
 
     for (int i = 0; i < 8; i++) {
-        if (!approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
+        if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
             cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
             REQUIRE(false);
         }
@@ -199,7 +202,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // compare each entry
         for (size_t i = 0; i < b_tot.size(); i++) {
-            if (!approx(p[i], b_tot[i])) {
+            if (!utility::approx(p[i], b_tot[i])) {
                 cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
                 REQUIRE(false);
             }
@@ -265,7 +268,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // compare each entry
         for (size_t i = 0; i < b_tot.size(); i++) {
-            if (!approx(p[i], b_tot[i])) {
+            if (!utility::approx(p[i], b_tot[i])) {
                 cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
                 REQUIRE(false);
             }
@@ -301,7 +304,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // compare each entry
         for (size_t i = 0; i < p1.size(); i++) {
-            if (!approx(p1[i], p2[i])) {
+            if (!utility::approx(p1[i], p2[i])) {
                 cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << endl;
                 REQUIRE(false);
             }

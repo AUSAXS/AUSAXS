@@ -4,12 +4,15 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #include <constants.h>
 #include <hydrate/Grid.h>
 #include <data/Protein.h>
 #include <data/StateManager.h>
 #include <data/BodySplitter.h>
+
+using std::cout, std::endl;
 
 // Test that the histograms are correct for proteins with only atoms (no waters)
 TEST_CASE("body_histogram", "[body]") {

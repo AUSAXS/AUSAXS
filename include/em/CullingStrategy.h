@@ -6,8 +6,6 @@
 #include <data/Atom.h>
 #include <settings.h>
 
-using std::vector, std::list;
-
 namespace em {
     /**
      * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
@@ -29,7 +27,7 @@ namespace em {
              * 
              * @return The remaining atoms after the culling.
              */
-            virtual vector<Atom> cull(list<Atom>& atoms) const = 0;
+            virtual std::vector<Atom> cull(std::list<Atom>& atoms) const = 0;
 
             /**
              * @brief Set the desired number of atoms after the culling. 

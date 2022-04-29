@@ -1,5 +1,7 @@
 #pragma once
 
+class TPad;
+
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <plots/Plot.h>
@@ -33,6 +35,11 @@ namespace plots {
 		PlotIntensity(const SAXSDataset& d);
 
 		/**
+		 * @brief Destructor.
+		 */
+		~PlotIntensity() override;
+
+		/**
 		 * @brief Plot an additional data set as points. 
 		 */
 		void plot_intensity(const Dataset& data);
@@ -41,11 +48,6 @@ namespace plots {
 		 * @brief Plot the result of a fit. 
 		 */
 		void plot_intensity(const std::shared_ptr<Fit> fit, const PlotOptions& options);
-
-		/**
-		 * @brief Destructor.
-		 */
-		~PlotIntensity() override = default;
 
 		void plot_guinier_approx();
 

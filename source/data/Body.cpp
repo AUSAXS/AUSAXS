@@ -18,7 +18,7 @@ using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 
 Body::Body() : file(std::make_shared<File>()), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
-Body::Body(const string& path) : file(std::make_shared<File>(path)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(string path) : file(std::make_shared<File>(path)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
 Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
 
@@ -139,7 +139,7 @@ shared_ptr<Grid> Body::get_grid() {
     return grid == nullptr ? create_grid() : grid;
 }
 
-void Body::generate_volume_file(const string& path) {
+void Body::generate_volume_file(string path) {
     vector<vector<vector<char>>>& g = grid->grid;
     vector<Atom> filled;
     for (size_t i = 0; i < g.size(); i++) {

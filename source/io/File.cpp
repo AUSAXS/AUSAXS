@@ -1,9 +1,6 @@
-#include <string>
-#include <vector>
-#include <utility>
-#include <stdexcept>
+#include <io/File.h>
 
-#include "io/File.h"
+using std::string, std::vector;
 
 File::File(const File& file) : header(file.header), footer(file.footer), terminate(file.terminate), 
     protein_atoms(file.protein_atoms), hydration_atoms(file.hydration_atoms) {}
@@ -28,9 +25,9 @@ void File::update(vector<Atom>& patoms, vector<Hetatom>& hatoms) {
     hydration_atoms = hatoms;
 }
 
-void File::read(const string& path) {reader->read(path);}
+void File::read(string path) {reader->read(path);}
 
-void File::write(const string path) {
+void File::write(string path) {
     writer = construct_writer(path);
     writer->write(path);
 }
@@ -115,7 +112,7 @@ void File::refresh() {
     }
 }
 
-std::unique_ptr<Reader> File::construct_reader(const string& path) {
+std::unique_ptr<Reader> File::construct_reader(string path) {
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
         throw except::invalid_argument("Error in File::construct_reader: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
@@ -125,7 +122,7 @@ std::unique_ptr<Reader> File::construct_reader(const string& path) {
     }
 }
 
-std::unique_ptr<Writer> File::construct_writer(const string& path) {
+std::unique_ptr<Writer> File::construct_writer(string path) {
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
         throw except::invalid_argument("Error in File::construct_writer: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file

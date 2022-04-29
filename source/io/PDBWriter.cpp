@@ -9,13 +9,13 @@
 #include <fstream>
 #include <algorithm>
 
-void PDBWriter::write(const string& output_path) {
+void PDBWriter::write(string output_path) {
     file->refresh();
     std::ofstream output(output_path);
     if (!output.is_open()) {throw std::ios_base::failure("Error in PDB_file::write: Could not open file \"" + output_path + "\"");}
     output << as_pdb() << std::flush;
     output.close();
-    cout << "Output written to file " + output_path + "." << endl;
+    std::cout << "Output written to file " + output_path + "." << std::endl;
 }
 
 string PDBWriter::as_pdb() const {

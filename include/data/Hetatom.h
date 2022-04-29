@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Atom.h"
-#include "Record.h"
-#include "math/Vector3.h"
+#include <data/Atom.h>
+#include <data/Record.h>
+#include <math/Vector3.h>
 
 class Hetatom : public Atom {
   public:

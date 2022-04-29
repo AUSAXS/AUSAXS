@@ -5,10 +5,12 @@
 #include <string>
 #include <fstream>
 #include <filesystem>
+#include <iostream>
 
 #include <data/Protein.h>
+#include <utility/Utility.h>
 
-using namespace ROOT;
+using std::cout, std::endl;
 
 bool compareFiles(const std::string& p1, const std::string& p2) {
     std::ifstream f1(p1, std::ifstream::binary);
@@ -26,14 +28,14 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         if (l1.empty()) {
             if (l2.empty()) {return true;} // if both lines are empty, we're at the end of both files
             if (Record::get_type(l2.substr(0, 6)) == Record::TERMINATE) {return true;} // we allow a single terminate of difference
-            print_err("File ended prematurely.");
+            utility::print_warning("File ended prematurely.");
             return false;
         }
 
         Record::RecordType type1 = Record::get_type(l1.substr(0, 6)); 
         Record::RecordType type2 = Record::get_type(l2.substr(0, 6)); 
         if (type1 != type2) {
-            print_err("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal in line " + std::to_string(i) + ".");
+            utility::print_warning("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal in line " + std::to_string(i) + ".");
             return false;
         }
 
@@ -45,7 +47,7 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
             // equality of atoms is based on their unique ID which is generated at object creation. Thus this will never be equal with this approach.
             // instead we must compare their contents. 
             if (!a1.equals_content(a2)) {
-                print_err("File atom comparison failed for \"" + p1 + "\" on lines");
+                utility::print_warning("File atom comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
@@ -57,7 +59,7 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
         // otherwise we just compare the lines themselves
         else {
             if (l1 != l2) {
-                print_err("File line comparison failed for \"" + p1 + "\" on lines");
+                utility::print_warning("File line comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }

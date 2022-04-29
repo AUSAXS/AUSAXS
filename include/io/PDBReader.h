@@ -7,8 +7,6 @@ class File;
 #include "data/Atom.h"
 #include "data/Hetatom.h"
 
-#include <fstream>
-
 /**
  * @brief \class PDBReader. 
  * 
@@ -26,7 +24,7 @@ class PDBReader : public Reader {
      * @brief Read a PDB format data file.
      * @param input_path Path to the input PDB format data file. 
      */
-    void read(const string& input_path) override;
+    void read(std::string input_path) override;
 
   private: 
     File* const file; // The File backing this Reader. 

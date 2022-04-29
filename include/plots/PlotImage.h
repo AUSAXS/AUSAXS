@@ -25,7 +25,7 @@ namespace plots {
             /**
              * @brief Destructor. 
              */
-            ~PlotImage() = default;
+            ~PlotImage();
 
             /**
              * @brief Save this image at the given location in the specified format. 

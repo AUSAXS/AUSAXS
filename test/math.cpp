@@ -15,7 +15,6 @@
 #include <math/CubicSpline.h>
 #include <math/LUPDecomposition.h>
 #include <math/QRDecomposition.h>
-#include <Tools.h>
 
 #include <TCanvas.h>
 #include <TGraph.h>
@@ -601,7 +600,7 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
     g2->Draw("SAME *");
 
     // setup the canvas and save the plot
-    string path = "temp/cubicspline.pdf";
+    std::string path = "temp/cubicspline.pdf";
     c->SetRightMargin(0.15);
     c->SetLeftMargin(0.15);
     c->SaveAs(path.c_str());

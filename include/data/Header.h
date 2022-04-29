@@ -5,8 +5,6 @@
 #include <vector>
 #include "data/Record.h"
 
-using std::string, std::vector;
-
 class Header : Record {
   public: 
     Header() : contents("") {}
@@ -27,25 +25,25 @@ class Header : Record {
      * @brief Parse a .pdb format header string. This is equivalent to the add method.
      * @param s the .pdb format header string.
      */
-    void parse_pdb(const string s) override {add(s);}
+    void parse_pdb(std::string s) override {add(s);}
 
     /**
      * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.
      * @return the .pdb format header string. 
      */
-    string as_pdb() const override {return get();}
+    std::string as_pdb() const override {return get();}
 
     /**
      * @brief Add a header line to the internal storage of this Header. 
      * @param s the header line. 
      */
-    void add(const string s) {contents += s + "\n";}
+    void add(const std::string s) {contents += s + "\n";}
 
     /**
      * @brief Get the .pdb format representation of this Header.
      * @return the .pdb format header string. 
      */
-    string get() const {return contents;};
+    std::string get() const {return contents;};
 
     Header& operator=(const Header& header) {
       contents = header.contents;

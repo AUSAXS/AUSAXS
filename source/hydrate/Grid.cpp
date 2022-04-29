@@ -18,6 +18,7 @@
 #include <hydrate/OutlierCulling.h>
 #include <settings.h>
 #include <math/Vector3.h>
+#include <utility/Utility.h>
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace setting::grid;
@@ -98,7 +99,7 @@ void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc
     if (total_bins > 32e9) {
         throw except::invalid_argument("Error in Grid: Too many bins.");
     } else if (total_bins > 4e9) {
-        print_err("Warning in Grid: Consider lowering the number of bins.");
+        utility::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
     }
     this->width = width;
     this->grid = vector(axes.x.bins, vector(axes.y.bins, vector<char>(axes.z.bins, 0)));
@@ -141,7 +142,7 @@ vector<Hetatom> Grid::hydrate() {
 vector<GridMember<Hetatom>> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     if (w_members.size() != 0) {
-            print_err("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
+            utility::print_warning("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
     }
     expand_volume();
 
@@ -186,7 +187,7 @@ std::pair<Vector3, Vector3> Grid::bounding_box(const vector<Atom>& atoms) {
 void Grid::set_radius_atoms(double radius) {
     int new_r = int(radius/width); // convert the radius to a "bin-radius"
     if (this->ra != 0 && this->ra != new_r) {
-        print_err("Warning in Grid::set_radius: The radius is already set for this grid!");
+        utility::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
     }
     this->ra = new_r;
 }
@@ -194,7 +195,7 @@ void Grid::set_radius_atoms(double radius) {
 void Grid::set_radius_water(double radius) {
     int new_r = int(radius/width); // convert the radius to a "bin-radius"
     if (this->rh != 0 && this->rh != new_r) {
-        print_err("Warning in Grid::set_radius: The radius is already set for this grid!");
+        utility::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
     }
     this->rh = new_r;
 }

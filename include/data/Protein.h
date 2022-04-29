@@ -2,14 +2,13 @@
 
 #include <string>
 #include <vector>
-#include <utility>
+#include <memory>
 
-#include "data/Body.h"
-#include "Tools.h"
-#include "data/Atom.h"
-#include "data/Hetatom.h"
-#include "data/StateManager.h"
-#include "data/PartialHistogramManager.h"
+#include <data/Body.h>
+#include <data/Atom.h>
+#include <data/Hetatom.h>
+#include <data/StateManager.h>
+#include <data/PartialHistogramManager.h>
 
 class Protein {
   public: 

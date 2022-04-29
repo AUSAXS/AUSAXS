@@ -5,7 +5,9 @@
 #include <data/Protein.h>
 #include <em/PartialHistogramManager.h>
 
-using std::vector, std::shared_ptr;
+#include <iostream>
+
+using std::vector, std::shared_ptr, std::cout, std::endl;
 
 TEST_CASE("state_manager", "[managers]") {
     unsigned int size = 5;

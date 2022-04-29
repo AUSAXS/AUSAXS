@@ -1,6 +1,7 @@
 #include "plots/PlotDistance.h"
 #include "ScatteringHistogram.h"
 #include "settings.h"
+#include <utility/Utility.h>
 
 #include <memory.h>
 #include <string.h>
@@ -8,10 +9,15 @@
 
 #include <TLegend.h>
 #include <TH1D.h>
+#include <TCanvas.h>
 
 using std::unique_ptr, std::string;
 
+plots::PlotDistance::~PlotDistance() = default;
+
 void plots::PlotDistance::save(string path) const {
+    utility::create_directories(path);
+
     unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotDistanceCanvas", "canvas", 600, 600);
     auto hists = d.plot_distance();
     

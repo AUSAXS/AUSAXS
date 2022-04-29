@@ -1,7 +1,6 @@
 #pragma once
 
 #include <initializer_list>
-#include <tuple>
 
 #include "math/Vector.h"
 

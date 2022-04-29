@@ -7,8 +7,6 @@ class File;
 #include "data/Atom.h"
 #include "data/Hetatom.h"
 
-#include <fstream>
-
 /**
  * @brief \class PDBWriter.
  *               This class handles writing a File object into a PDB format data file.
@@ -25,7 +23,7 @@ class PDBWriter : public Writer {
      * @brief Write the backing File to disk. 
      * @param path the output path.
      */
-    void write(const string& output_path) override;
+    void write(std::string output_path) override;
 
   private: 
     File* const file; // The File backing this Reader. 
@@ -34,5 +32,5 @@ class PDBWriter : public Writer {
      * @brief Create a string representation of this File.
      * @return The string representation. 
      */
-    string as_pdb() const;
+    std::string as_pdb() const;
 };

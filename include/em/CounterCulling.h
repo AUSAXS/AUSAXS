@@ -9,6 +9,6 @@ namespace em {
 
             ~CounterCulling() override = default;
 
-            vector<Atom> cull(list<Atom>& atoms) const override;
+            std::vector<Atom> cull(std::list<Atom>& atoms) const override;
     };
 }

@@ -1,9 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include <em/CullingStrategy.h>
-#include <em/datatypes.h>
+#include <em/Datatypes.h>
 #include <em/Image.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>

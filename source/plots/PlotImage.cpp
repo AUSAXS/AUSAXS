@@ -1,9 +1,11 @@
 #include <plots/PlotImage.h>
 #include <em/Image.h>
+#include <utility/Utility.h>
 
 #include <TH2D.h>
 #include <TGraph.h>
 #include <THStack.h>
+#include <TCanvas.h>
 
 plots::PlotImage::PlotImage(const em::Image& image) : image(image) {
     canvas = std::make_unique<TCanvas>("PlotImageCanvas", "canvas", 1200, 1200);
@@ -43,7 +45,10 @@ plots::PlotImage::PlotImage(const em::Image& image) : image(image) {
     pad2->cd();
 }
 
+plots::PlotImage::~PlotImage() = default;
+
 void plots::PlotImage::save(std::string path) const {
+    utility::create_directories(path);
     canvas->SaveAs(path.c_str());
 }
 

@@ -17,14 +17,14 @@ namespace plots {
 			PlotDataset(const Dataset& d);
 
 			/**
+			 * @brief Destructor.
+			 */
+			~PlotDataset() override;
+
+			/**
 			 * @brief Plot an additional data set as points. 
 			 */
 			void plot(const Dataset& data);
-
-			/**
-			 * @brief Destructor.
-			 */
-			~PlotDataset() override = default;
 
 			void save(std::string path) const override;
 

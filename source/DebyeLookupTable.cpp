@@ -89,8 +89,8 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
 
     // check d
     if (d[d.size()-1] > default_size) {return false;} // check if too large for default table
-    if (!approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
-    if (!approx(d[3]-d[2], width)) {return false;} // check second width
+    if (!utility::approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
+    if (!utility::approx(d[3]-d[2], width)) {return false;} // check second width
     // std::cout << "\tUsing default tables. " << std::endl;
 
     return true;

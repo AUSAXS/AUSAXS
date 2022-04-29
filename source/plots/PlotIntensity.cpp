@@ -1,10 +1,13 @@
 #include <fitter/Fit.h>
 #include <plots/PlotIntensity.h>
 #include <Exceptions.h>
+#include <utility/Utility.h>
 
 #include <TLegend.h>
 #include <TH1D.h>
 #include <TLine.h>
+#include <TCanvas.h>
+#include <TPad.h>
 
 #include <memory.h>
 #include <string.h>
@@ -26,6 +29,8 @@ plots::PlotIntensity::PlotIntensity(const SAXSDataset& d) : Plot() {
     prepare_canvas();
     initial_intensity_plot(d);
 }
+
+plots::PlotIntensity::~PlotIntensity() = default;
 
 void plots::PlotIntensity::initial_intensity_plot(int color) {
     if (d.q.empty()) {throw except::invalid_operation("Error in PlotIntensity::plot_intensity: Class was not initialized with a histogram, and it has not been manually set.");}
@@ -115,6 +120,7 @@ void plots::PlotIntensity::plot_guinier_approx() {
 }
 
 void plots::PlotIntensity::save(std::string path) const {
+    utility::create_directories(path);
     canvas->SaveAs(path.c_str());
 }
 

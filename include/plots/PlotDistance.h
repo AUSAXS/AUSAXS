@@ -21,7 +21,7 @@ namespace plots {
 		/**
 		 * @brief Destructor. 
 		 */
-		~PlotDistance() override = default;
+		~PlotDistance() override;
 
 		/**
 		 * @brief Save this plot at the given location.

@@ -1,18 +1,11 @@
 #pragma once
 
-#include <map>
 #include <string>
 #include <vector>
-#include <utility>
 #include <memory>
 
 #include <data/Record.h>
-#include <Tools.h>
-#include <constants.h>
 #include <math/Vector3.h>
-#include <Exceptions.h>
-
-using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
 class Atom : public Record {
   public:
@@ -28,14 +21,14 @@ class Atom : public Record {
      * @param name the molecule (e.g. HOH).
      * @param serial the serial number of this atom.
      */
-    Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial);
+    Atom(const Vector3 v, const double occupancy, std::string element, std::string name, int serial);
 
     /**
      * @brief Construct a new Atom object.
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
-    Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
-        const string iCode, const Vector3 coords, const double occupancy, const double tempFactor, const string element, const string charge);
+    Atom(int serial, std::string name, std::string altLoc, std::string resName, std::string chainID, int resSeq, 
+        std::string iCode, const Vector3 coords, double occupancy, double tempFactor, std::string element, std::string charge);
 
     /**
      * @brief Construct a new empty Atom object.
@@ -50,13 +43,13 @@ class Atom : public Record {
      * @brief Set the properties of this Atom based on a .pdb format string. 
      * @param s A .pdb format ATOM string. 
      */
-    void parse_pdb(const string s) override;
+    void parse_pdb(std::string s) override;
 
     /**
      * @brief Create a .pdb format string representation of this Atom. 
      * @return The string representation of this Atom. 
      */
-    string as_pdb() const override;
+    std::string as_pdb() const override;
 
     /** 
      * @brief Calculate the distance to another atom. 
@@ -87,31 +80,31 @@ class Atom : public Record {
     void set_z(double z);
     void set_occupancy(double occupancy);
     void set_tempFactor(double tempFactor);
-    void set_altLoc(string altLoc);
+    void set_altLoc(std::string altLoc);
     void set_serial(int serial);
     void set_resSeq(int resSeq);
     void set_effective_charge(double charge);
-    void set_chainID(string chainID);
-    void set_iCode(string iCode);
-    void set_charge(string charge);
+    void set_chainID(std::string chainID);
+    void set_iCode(std::string iCode);
+    void set_charge(std::string charge);
 
     /**
      * @brief Set the residue name for this atom.
      * @param resName the residue name, typically an amino acid such as LYS.
      */
-    void set_resName(string resName);
+    void set_resName(std::string resName);
 
     /**
      * @brief Specify the position of this atom within its residue.
      * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
      */
-    void set_name(string name);
+    void set_name(std::string name);
 
     /**
      * @brief Set the atomic element for this atom. Any spaces are removed. 
      * @param element the atomic element, e.g. He.
      */
-    void set_element(string element);
+    void set_element(std::string element);
 
 //*** getters ***//
     Vector3& get_coordinates();
@@ -121,14 +114,14 @@ class Atom : public Record {
     double get_occupancy() const;
     double get_tempFactor() const;
     double get_effective_charge() const;
-    string get_altLoc() const;
-    string get_chainID() const;
-    string get_iCode() const;
-    string get_charge() const;
-    string get_resName() const;
-    string get_name() const;
-    string get_element() const;
-    virtual string get_recName() const;
+    std::string get_altLoc() const;
+    std::string get_chainID() const;
+    std::string get_iCode() const;
+    std::string get_charge() const;
+    std::string get_resName() const;
+    std::string get_name() const;
+    std::string get_element() const;
+    virtual std::string get_recName() const;
 
     double get_mass() const;
 
@@ -181,7 +174,7 @@ class Atom : public Record {
 
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     Vector3 coords = {0, 0, 0};
-    string name = "", altLoc = "", resName = "", chainID = "", iCode = "", element = "", charge = "";
+    std::string name = "", altLoc = "", resName = "", chainID = "", iCode = "", element = "", charge = "";
     double occupancy = -1, tempFactor = -1;
     int serial = -1, resSeq = -1; 
 

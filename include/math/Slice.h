@@ -4,8 +4,6 @@ template<class T>
 class Vector;
 
 #include <vector>
-#include <stdexcept>
-#include <iostream>
 
 using std::vector;
 

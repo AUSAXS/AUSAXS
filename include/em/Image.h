@@ -5,7 +5,7 @@
 
 #include <TH2D.h>
 
-#include <em/datatypes.h>
+#include <em/Datatypes.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
 #include <ScatteringHistogram.h>

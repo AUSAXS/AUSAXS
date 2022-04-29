@@ -7,8 +7,6 @@ class Grid;
 #include "data/Hetatom.h"
 #include "hydrate/GridMember.h"
 
-using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-
 namespace grid {
   /**
    * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
@@ -30,7 +28,7 @@ namespace grid {
        * @brief Cull the water molecules.
        * @return The remaining molecules after the culling.
        */
-      virtual vector<Hetatom> cull(vector<GridMember<Hetatom>>& placed_water) const = 0;
+      virtual std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const = 0;
 
       /**
        * @brief Set the desired number of water molecules after the culling. 

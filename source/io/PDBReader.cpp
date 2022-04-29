@@ -8,7 +8,7 @@
 
 #include <fstream>
 
-void PDBReader::read(const string& input_path) {
+void PDBReader::read(std::string input_path) {
     // check if file was succesfully opened
     std::ifstream input(input_path);
     if (!input.is_open()) {throw except::io_error("Error in PDB_file::read: Could not open file \"" + input_path + "\"");}

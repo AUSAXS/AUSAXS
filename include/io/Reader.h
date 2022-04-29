@@ -1,9 +1,6 @@
 #pragma once
 
-#include <Tools.h>
 #include <string>
-
-using std::string;
 
 /**
  * @brief \class Reader. 
@@ -14,8 +11,5 @@ class Reader {
     /**
      * @brief Read the data stored in a file. 
      */
-    virtual void read(const string&) {
-        print_err("FATAL ERROR: This code should be unreachable.");
-        exit(1);
-    }
+    virtual void read(std::string);
 };

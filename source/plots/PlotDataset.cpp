@@ -1,9 +1,12 @@
 #include <plots/PlotDataset.h>
 #include <Exceptions.h>
+#include <utility/Utility.h>
 
 #include <memory.h>
 #include <string.h>
 #include <vector>
+
+#include <TCanvas.h>
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
@@ -11,6 +14,8 @@ plots::PlotDataset::PlotDataset(const Dataset& data) : Plot() {
     prepare_canvas();
     initial_plot(data);
 }
+
+plots::PlotDataset::~PlotDataset() = default;
 
 void plots::PlotDataset::initial_plot(const Dataset& data) {
     std::shared_ptr<TGraph> graph = data.plot();
@@ -30,6 +35,7 @@ void plots::PlotDataset::plot(const Dataset& data) {
 }
 
 void plots::PlotDataset::save(std::string path) const {
+    utility::create_directories(path);
     canvas->SaveAs(path.c_str());
 }
 

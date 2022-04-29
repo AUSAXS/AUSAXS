@@ -2,8 +2,6 @@
 
 #include <string>
 #include <vector>
-#include <utility>
-#include <stdexcept>
 
 #include "data/Record.h"
 #include "data/Terminate.h"
@@ -15,8 +13,6 @@
 #include "io/Writer.h"
 #include "io/PDBWriter.h"
 #include "io/PDBReader.h"
-
-using std::vector, std::string, std::unique_ptr, std::shared_ptr; 
 
 /**
  * @brief \class File
@@ -45,7 +41,7 @@ class File {
      * @param protein_atoms A vector containing the constituent atoms of the molecule. 
      * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
      */
-    File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms);
+    File(const std::vector<Atom>& protein_atoms, const std::vector<Hetatom>& hydration_atoms);
 
     /**
      * @brief Constructor. 
@@ -56,14 +52,14 @@ class File {
      * @param footer The footer of this file. 
      * @param terminate The terminate of this file. 
      */
-    File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate);
+    File(const std::vector<Atom>& protein_atoms, const std::vector<Hetatom>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate);
 
     /**
      * @brief Constructor.
      *        Construct a new File based on a input molecular data file. 
      * @param filename Path to the input file. 
      */
-    File(string filename);
+    File(std::string filename);
 
     /**
      * @brief Destructor.
@@ -75,29 +71,29 @@ class File {
      * @param patoms The new constituent atoms of the molecule. 
      * @param hatoms The new hydration layer. 
      */
-    void update(vector<Atom>& patoms, vector<Hetatom>& hatoms);
+    void update(std::vector<Atom>& patoms, std::vector<Hetatom>& hatoms);
 
     /**
      * @brief Fill this object with data from a given input data file. 
      * @param path Path to the input data file. 
      */
-    void read(const string& path);
+    void read(std::string path);
 
     /**
      * @brief Write this file to disk. 
      * @param path Path to where this object will be written. 
      */
-    void write(const string path);
+    void write(std::string path);
 
     /**
      * @brief Get the protein atoms contained in this File. 
      */
-    const vector<Atom>& get_protein_atoms() const;
+    const std::vector<Atom>& get_protein_atoms() const;
 
     /**
      * @brief Get the hydration atoms contained in this File. 
      */
-    const vector<Hetatom> get_hydration_atoms() const;
+    const std::vector<Hetatom> get_hydration_atoms() const;
 
     /** 
      * @brief Add an Atom record to this file. 
@@ -122,7 +118,7 @@ class File {
      * @param type HEADER or FOOTER.
      * @param s The text string to be added. 
      */
-    void add(const string type, const string s);
+    void add(std::string type, std::string s);
 
     /**
      * @brief Internally updates the consistency of the currently stored data. This ensures this object is in a valid
@@ -137,8 +133,8 @@ class File {
     Header header;
     Footer footer;
     Terminate terminate;
-    vector<Atom> protein_atoms;
-    vector<Hetatom> hydration_atoms;
+    std::vector<Atom> protein_atoms;
+    std::vector<Hetatom> hydration_atoms;
 
   private:
     std::unique_ptr<Reader> reader;
@@ -148,10 +144,10 @@ class File {
      * @brief Construct a Reader appropriate for the file format deduced from the input data file. 
      * @param path Path to the input data file. 
      */
-    std::unique_ptr<Reader> construct_reader(const string& path);
+    std::unique_ptr<Reader> construct_reader(std::string path);
     /**
      * @brief Construct a Writer appropriate for the file format deduced from the output save path.
      * @param path Path to where this object will be written. 
      */
-    std::unique_ptr<Writer> construct_writer(const string& path);
+    std::unique_ptr<Writer> construct_writer(std::string path);
 };

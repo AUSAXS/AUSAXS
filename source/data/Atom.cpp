@@ -1,4 +1,3 @@
-// includes
 #include <map>
 #include <string>
 #include <vector>
@@ -7,11 +6,10 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-// my own stuff
-#include "data/Record.h"
-#include "Tools.h"
-#include "data/Atom.h"
-#include "math/Vector3.h"
+#include <data/Record.h>
+#include <data/Atom.h>
+#include <math/Vector3.h>
+#include <constants.h>
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 
@@ -49,7 +47,7 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         try {
             effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
         } catch (const std::exception& e) {
-            print_err("Could not set effective charge: unknown element, residual or atom (" + element + ", " + resName + ", " + name + ")");
+            throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
         uid = uid_counter++;
 }

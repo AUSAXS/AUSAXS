@@ -5,6 +5,7 @@
 #include <data/Protein.h>
 #include <data/BodySplitter.h>
 #include <math/Matrix.h>
+#include <rigidbody/RigidBody.h>
 
 /**
  * @brief These tests are meant to be run with valgrind to help identify memory issues. 

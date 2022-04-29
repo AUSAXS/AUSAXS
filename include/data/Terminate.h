@@ -10,7 +10,7 @@
 class Terminate : public Record {
   public: 
     int serial, resSeq;
-    string resName, chainID, iCode;
+    std::string resName, chainID, iCode;
 
     /**
      * @brief Constructor.
@@ -21,7 +21,7 @@ class Terminate : public Record {
      * @param resSeq The residue sequence identifier. 
      * @param iCode iCode. 
      */
-    Terminate(int serial, string resName, string chainID, int resSeq, string iCode);
+    Terminate(int serial, std::string resName, std::string chainID, int resSeq, std::string iCode);
 
     /**
      * @brief Default constructor. 
@@ -45,16 +45,16 @@ class Terminate : public Record {
      * 
      * @param s the .pdb format terminate string.
      */
-    void parse_pdb(const string s) override;
+    void parse_pdb(std::string s) override;
 
     /**
      * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.
      * @return the .pdb format header string. 
      */
-    string as_pdb() const override;
+    std::string as_pdb() const override;
     
     /**
      * @brief Set the serial of this record.
      */
-    void set_serial(const int serial);
+    void set_serial(int serial);
 };

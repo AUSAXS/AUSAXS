@@ -13,6 +13,8 @@
 #include <math/Vector3.h>
 #include <math/LUPDecomposition.h>
 
+#define safe_math true
+
 template<typename Q>
 class Matrix {
     public: 
@@ -307,9 +309,11 @@ class Matrix {
         // check if the matrix is compatible with ours
         template<typename R>
         void compatibility_check(const Matrix<R>& A) const {
-            if (__builtin_expect(N != A.N || M != A.M, false)) {
-                throw std::invalid_argument("Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
-                    std::to_string(A.N) + ", " + std::to_string(A.M) + "]).");
-            }
+            #if (safe_math)
+                if (__builtin_expect(N != A.N || M != A.M, false)) {
+                    throw std::invalid_argument("Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
+                        std::to_string(A.N) + ", " + std::to_string(A.M) + "]).");
+                }
+            #endif
         }
 };
