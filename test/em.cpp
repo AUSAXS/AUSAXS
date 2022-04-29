@@ -43,12 +43,17 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
 TEST_CASE("generate_landscape", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
+    setting::em::sample_frequency = 2;
     em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
-    auto res = image.cutoff_scan({1000, 1, 6}, protein.get_histogram());
+    ScatteringHistogram hist(protein.get_histogram());
+
+    Dataset res = image.cutoff_scan({10, 1, 6}, hist);
+    Dataset fit = image.fit(hist)->evaluated_points;
+    fit.plot_options.set({{"draw_line", false}, {"draw_points", true}, {"color", kOrange+2}});
 
     plots::PlotDataset plot(res);
+    plot.plot(fit);
     plot.save("temp/em/chi2_landscape.pdf");
 }
 

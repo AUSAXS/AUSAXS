@@ -10,6 +10,7 @@
 #include <hydrate/Grid.h>
 #include <histogram/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
+#include <utility/Multiset.h>
 
 namespace em {
     class PartialHistogramManager;
@@ -62,7 +63,7 @@ namespace em {
              * @param points The cutoff values to be evaluated. 
              * @param h The histogram to be fitted. 
              * 
-             * @return A Dataset with the scanned cutoff values and their corresponding chi2 values. 
+             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
             Dataset cutoff_scan(const Axis& points, const ScatteringHistogram& h);
 

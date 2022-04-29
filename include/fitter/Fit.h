@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <fitter/Fitter.h>
+#include <utility/Dataset.h>
 
 class Fit {
     public:
@@ -28,6 +29,7 @@ class Fit {
          */
         std::string to_string() const;
 
+        Dataset evaluated_points;
         std::vector<std::shared_ptr<TGraph>> normal_plot;
         std::shared_ptr<TGraph> residual_plot;
         std::map<std::string, double> params;

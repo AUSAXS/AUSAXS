@@ -100,15 +100,18 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     // fit function
+    vector<double> cutoffs;
+    vector<double> chi2s;
     unsigned int counter = 0;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
-        std::cout << "\nStep " << ++counter << std::endl;
         auto start = high_resolution_clock::now();
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->chi2;
         auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
-        std::cout << "\tTotal time: " << duration.count() << std::endl;
 
+        cutoffs.push_back(params[0]);
+        chi2s.push_back(val);
+        std::cout << "\nStep " << ++counter << " took " << duration.count() << " seconds." << std::endl;
         std::cout << "\tEvaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 
@@ -126,7 +129,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     minimizer->Minimize();
 
     const double* result = minimizer->X();
-    return std::make_shared<EMFit>(fitter, minimizer, chi2(result));
+    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, minimizer, chi2(result));
+    emfit->evaluated_points = Dataset(cutoffs, chi2s, "cutoff", "chi2");
+    return emfit;
 }
 
 Dataset ImageStack::cutoff_scan(const Axis& points, const ScatteringHistogram& h) {
@@ -137,7 +142,6 @@ Dataset ImageStack::cutoff_scan(const Axis& points, const ScatteringHistogram& h
 
     unsigned int count = 1;
     double step = points.step();
-    // for (double cutoff = points.min; cutoff < points.max; cutoff += step) {
     for (double cutoff = points.max; cutoff > points.min; cutoff -= step) {
         cutoffs.push_back(cutoff);
 
