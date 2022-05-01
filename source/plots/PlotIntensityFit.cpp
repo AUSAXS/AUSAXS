@@ -18,12 +18,12 @@ plots::PlotIntensityFit::PlotIntensityFit(SimpleIntensityFitter& fitter) : Plot(
 
 plots::PlotIntensityFit::PlotIntensityFit(const Fit& fit) : Plot() {
     prepare_canvas();
-    plot(fit.normal_plot);
+    plot(fit.figures);
 }
 
 plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<Fit> fit) : Plot() {
     prepare_canvas();
-    plot(fit->normal_plot);
+    plot(fit->figures);
 }
 
 plots::PlotIntensityFit::~PlotIntensityFit() = default;
@@ -33,28 +33,16 @@ void plots::PlotIntensityFit::save(std::string path) const {
     canvas->SaveAs(path.c_str());
 }
 
-void plots::PlotIntensityFit::plot(const std::vector<std::shared_ptr<TGraph>>& graphs) const {
-    // use some nicer colors
-    graphs[0]->SetLineColor(kBlack);
-    graphs[1]->SetMarkerColor(kBlack);
-    graphs[2]->SetMarkerColor(kOrange+1);
-    graphs[2]->SetLineColor(kOrange+1);
+void plots::PlotIntensityFit::plot(const Multiset& graphs) const {
+    PlotOptions options0, options1, options2;
 
-    graphs[0]->SetMarkerStyle(7);
-    graphs[2]->SetMarkerStyle(7);
+    options0.set({{"color", kBlack}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}});
+    options1.set({{"color", kBlack}, {"share_axis", true}, {"draw_markers", true}, {"draw_line", false}});
+    options2.set({{"color", kOrange+1}, {"share_axis", true}});
 
-    // set titles
-    graphs[2]->SetTitle("Fit");
-    graphs[2]->GetXaxis()->SetTitle("q");
-    graphs[2]->GetXaxis()->CenterTitle();
-    graphs[2]->GetXaxis()->SetTitleOffset(1.05);
-    graphs[2]->GetYaxis()->SetTitle("Intensity");
-    graphs[2]->GetYaxis()->CenterTitle();
-
-    // draw the graphs
-    graphs[2]->DrawClone("AP"); // Point
-    graphs[0]->DrawClone("SAME P"); // Axes points
-    graphs[1]->DrawClone("SAME L"); // Line
+    graphs[2].draw();
+    graphs[0].draw();
+    graphs[1].draw();
 }
 
 void plots::PlotIntensityFit::prepare_canvas() {

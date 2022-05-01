@@ -43,7 +43,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
     return fitted;
 }
 
-vector<shared_ptr<TGraph>> IntensityFitter::plot() {
+Multiset IntensityFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->params["a"];
@@ -62,14 +62,14 @@ vector<shared_ptr<TGraph>> IntensityFitter::plot() {
 
     // prepare the TGraphs
     vector<double> xerr(sigma.size(), 0);
-    vector<shared_ptr<TGraph>> graphs(3);
-    graphs[0] = std::make_shared<TGraph>(qo.size(), &qo[0], &I_scaled[0]);
-    graphs[1] = std::make_shared<TGraph>(h.q.size(), &h.q[0], &ym_scaled[0]);
-    graphs[2] = std::make_shared<TGraphErrors>(qo.size(), &qo[0], &Io[0], &xerr[0], &sigma[0]);
+    Multiset graphs(3);
+    graphs.get_data(0) = SAXSDataset(qo, I_scaled);
+    graphs.get_data(1) = SAXSDataset(h.q, ym_scaled);
+    graphs.get_data(2) = SAXSDataset(qo, Io, xerr, sigma);
     return graphs;
 }
 
-unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() {
+Dataset IntensityFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->params["a"];
@@ -88,9 +88,7 @@ unique_ptr<TGraphErrors> IntensityFitter::plot_residuals() {
 
     // prepare the TGraph
     vector<double> xerr(sigma.size(), 0);
-    // unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &sigma[0]);
-    unique_ptr<TGraphErrors> graph = std::make_unique<TGraphErrors>(qo.size(), &qo[0], &residuals[0], &xerr[0], &xerr[0]);
-    return graph;
+    return Dataset(qo, residuals, xerr, sigma);
 }
 
 double IntensityFitter::chi2(const double* params) {

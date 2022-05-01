@@ -49,14 +49,14 @@ class IntensityFitter : public SimpleIntensityFitter {
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    std::vector<std::shared_ptr<TGraph>> plot() override;
+    Multiset plot() override;
 
     /**
      * @brief Make a residual plot of the fit.
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    std::unique_ptr<TGraphErrors> plot_residuals() override;
+    Dataset plot_residuals() override;
 
     /**
      * @brief Get the intercept of the model. This might be useful for calculating the concentration.

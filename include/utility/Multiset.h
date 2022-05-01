@@ -9,11 +9,16 @@ class Multiset {
     public:
         Multiset() {}
 
+        explicit Multiset(unsigned int size) : data(3) {}
+
         explicit Multiset(const std::vector<Dataset>& data);
 
         explicit Multiset(const Dataset& data);
 
         Multiset(const Dataset& data1, const Dataset& data2);
+
+        const Dataset& operator[](unsigned int i) const;
+        Dataset& operator[](unsigned int i);
 
         const Dataset& get_data(std::string name) const;
         Dataset& get_data(std::string name);

@@ -11,8 +11,8 @@ Fit::Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double ch
         errors.insert({minimizer->VariableName(i), errs[i]});
     }
 
-    normal_plot = fitter.plot();
-    residual_plot = fitter.plot_residuals();
+    figures = fitter.plot();
+    residuals = fitter.plot_residuals();
 
     converged = minimizer->Status() == 0;
     calls = minimizer->NCalls();

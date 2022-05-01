@@ -8,9 +8,8 @@
 #include <utility>
 #include <memory>
 
-#include <Math/Minimizer.h>
-#include <TGraph.h>
-#include <TGraphErrors.h>
+#include <utility/Multiset.h>
+#include <utility/Dataset.h>
 
 class Fit;
 
@@ -25,14 +24,14 @@ class Fitter {
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    virtual std::vector<std::shared_ptr<TGraph>> plot() = 0;
+    virtual Multiset plot() = 0;
 
     /**
      * @brief Make a residual plot of the fit.
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    virtual std::unique_ptr<TGraphErrors> plot_residuals() = 0;
+    virtual Dataset plot_residuals() = 0;
 
     virtual unsigned int dof() const = 0;
 };

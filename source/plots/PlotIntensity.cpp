@@ -75,7 +75,7 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data) {
 }
 
 void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, const PlotOptions& plot_options) {
-    std::shared_ptr<TGraph> graph = fit->normal_plot[1];
+    std::shared_ptr<TGraph> graph = fit->figures.get_data(1).plot();
     PlotOptions options(plot_options);
     options.use_existing_axes = true;
 

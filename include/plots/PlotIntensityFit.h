@@ -54,7 +54,7 @@ namespace plots {
 		private:
 		std::unique_ptr<TCanvas> canvas;
 
-		void plot(const std::vector<std::shared_ptr<TGraph>>& graphs) const;
+		void plot(const Multiset& graphs) const;
 
 		void prepare_canvas();
 	};

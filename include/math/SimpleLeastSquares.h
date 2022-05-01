@@ -6,7 +6,6 @@
 
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
-#include <utility/Dataset.h>
 
 /**
  * @brief A simple linear least-squares fitter for fitting the linear relationship y = ax+b.
@@ -45,9 +44,9 @@ class SimpleLeastSquares : public Fitter {
      */
     virtual std::shared_ptr<Fit> fit() override;
 
-    std::vector<std::shared_ptr<TGraph>> plot() override;
+    Multiset plot() override;
 
-    std::unique_ptr<TGraphErrors> plot_residuals() override;
+    Dataset plot_residuals() override;
 
     unsigned int dof() const override;
 

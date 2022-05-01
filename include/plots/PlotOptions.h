@@ -31,7 +31,7 @@ namespace plots {
             std::string xlabel = "";        // Label for the x-axis
             std::string ylabel = "";        // Label for the y-axis
 
-            void set(std::map<std::string, std::any> options);
+            PlotOptions& set(std::map<std::string, std::any> options);
 
         private: 
             enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL};
@@ -56,53 +56,11 @@ namespace plots {
     };
     
     [[maybe_unused]]
-    static void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options) {
-        // prepare visuals
-        graph->SetLineColorAlpha(options.color, options.alpha);
-        graph->SetMarkerColorAlpha(options.color, options.alpha);
-        graph->SetMarkerStyle(options.marker_style);
-        graph->SetLineWidth(options.line_width);
-        graph->SetMarkerSize(options.marker_size);
-
-        if (!options.title.empty()) {graph->SetTitle(options.title.c_str());};
-        if (!options.xlabel.empty()) {
-            graph->GetXaxis()->SetTitle(options.xlabel.c_str());
-            graph->GetXaxis()->CenterTitle();
-        }
-        if (!options.ylabel.empty()) {
-            graph->GetYaxis()->SetTitle(options.ylabel.c_str());
-            graph->GetYaxis()->CenterTitle();
-            graph->GetYaxis()->SetTitleOffset(1.2);
-        }
-
-        // draw it
-        std::string draw_options = options.use_existing_axes ? "SAME " : "A";
-        if (options.draw_line) {draw_options += "L";}
-        if (options.draw_markers) {draw_options += "P";}
-        if (options.draw_errors) {graph->DrawClone(draw_options.c_str());}
-        else {graph->TGraph::DrawClone(draw_options.c_str());}
-    }
+    void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options);
 
     [[maybe_unused]]
-    static void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options) {
-        // prepare visuals
-        hist->SetLineColorAlpha(options.color, options.alpha);
-        hist->SetMarkerColorAlpha(options.color, options.alpha);
-        hist->SetMarkerStyle(options.marker_style);
-        hist->SetLineWidth(options.line_width);
-        hist->SetMarkerSize(options.marker_size);
+    void draw(const std::shared_ptr<TGraph> graph);
 
-        if (!options.title.empty()) {hist->SetTitle(options.title.c_str());};
-        if (!options.xlabel.empty()) {
-            hist->GetXaxis()->SetTitle(options.xlabel.c_str());
-            hist->GetXaxis()->CenterTitle();
-        }
-        if (!options.ylabel.empty()) {
-            hist->GetYaxis()->SetTitle(options.ylabel.c_str());
-            hist->GetYaxis()->CenterTitle();
-            hist->GetYaxis()->SetTitleOffset(1.2);
-        }
-
-        hist->DrawClone("HIST L");
-    }
+    [[maybe_unused]]
+    void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options);
 }

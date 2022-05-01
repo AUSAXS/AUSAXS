@@ -5,6 +5,9 @@
 
 #include <fitter/Fitter.h>
 #include <utility/Dataset.h>
+#include <utility/Multiset.h>
+
+#include <Math/Minimizer.h>
 
 class Fit {
     public:
@@ -30,8 +33,8 @@ class Fit {
         std::string to_string() const;
 
         Dataset evaluated_points;
-        std::vector<std::shared_ptr<TGraph>> normal_plot;
-        std::shared_ptr<TGraph> residual_plot;
+        Multiset figures;
+        Dataset residuals;
         std::map<std::string, double> params;
         std::map<std::string, double> errors;
         double chi2;

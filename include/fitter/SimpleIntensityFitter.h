@@ -4,8 +4,6 @@
 #include <fitter/Fitter.h>
 #include <histogram/ScatteringHistogram.h>
 
-#include <utility/Dataset.h>
-
 /**
  * @brief Perform a simple chi2 fit of a data set to a scattering curve. 
  * 
@@ -94,14 +92,14 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    virtual std::vector<std::shared_ptr<TGraph>> plot() override;
+    virtual Multiset plot() override;
 
     /**
      * @brief Make a residual plot of the fit.
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    virtual std::unique_ptr<TGraphErrors> plot_residuals() override;
+    virtual Dataset plot_residuals() override;
 
     /**
      * @brief Change the scattering histogram used for the fit. 

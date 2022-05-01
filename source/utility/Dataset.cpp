@@ -199,3 +199,7 @@ void Dataset::draw(const Dataset& data) {
     std::shared_ptr<TGraph> graph = data.plot();
     plots::draw(graph, options);
 }
+
+void Dataset::draw() const {
+    draw(*this);
+}

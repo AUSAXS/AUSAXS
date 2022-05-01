@@ -99,11 +99,30 @@ class Dataset {
          */
         void scale_y(double factor);
 
+        /**
+         * @brief Plot this dataset.
+         */
         std::unique_ptr<TGraph> plot() const;
 
+        /**
+         * @brief Set the plot options of this dataset.
+         */
         void set_plot_options(const plots::PlotOptions& options);
 
+        /**
+         * @brief Draw a dataset with its currently set plot options.
+         */
         static void draw(const Dataset& data);
+
+        /**
+         * @brief Draw this dataset with its currently set plot options.
+         */
+        void draw() const;
+
+        /**
+         * @brief Draw this dataset with another set of plot options.
+         */
+        void draw(const plots::PlotOptions options) const;
 
         std::string xlabel = "x";
         std::string ylabel = "y";
@@ -116,8 +135,16 @@ class Dataset {
         plots::PlotOptions plot_options; 
 
     private:
+        /**
+         * @brief Validate the sizes of the stored vectors. 
+         */
         void validate_sizes() const;
 
+        /**
+         * @brief Read a dataset from a file.
+         * 
+         * @param file Path to the input file. 
+         */
         void read(const std::string file);
 };
 
