@@ -36,13 +36,13 @@ void plots::PlotIntensityFit::save(std::string path) const {
 void plots::PlotIntensityFit::plot(const Multiset& graphs) const {
     PlotOptions options0, options1, options2;
 
-    options0.set({{"color", kBlack}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}});
-    options1.set({{"color", kBlack}, {"share_axis", true}, {"draw_markers", true}, {"draw_line", false}});
-    options2.set({{"color", kOrange+1}, {"share_axis", true}});
+    options2.set("markers", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}});
+    options1.set("line", {{"color", kBlack}, {"share_axis", true}});
+    options0.set("markers", {{"color", kBlack}, {"share_axis", true}});
 
-    graphs[2].draw();
-    graphs[0].draw();
-    graphs[1].draw();
+    draw(graphs[2], options2);
+    draw(graphs[0], options0);
+    draw(graphs[1], options1);
 }
 
 void plots::PlotIntensityFit::prepare_canvas() {

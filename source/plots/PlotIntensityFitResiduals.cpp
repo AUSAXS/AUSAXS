@@ -12,18 +12,18 @@
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(SimpleIntensityFitter& fitter) : Plot() {
     prepare_canvas();
-    std::shared_ptr<TGraph> graph = fitter.plot_residuals();
+    Dataset graph = fitter.plot_residuals();
     plot(graph);
 }
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const Fit& fit) : Plot() {
     prepare_canvas();
-    plot(fit.residual_plot);
+    plot(fit.residuals);
 }
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_ptr<Fit> fit) : Plot() {
     prepare_canvas();
-    plot(fit->residual_plot);
+    plot(fit->residuals);
 }
 
 plots::PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
@@ -33,26 +33,12 @@ void plots::PlotIntensityFitResiduals::save(std::string path) const {
     canvas->SaveAs(path.c_str());
 }
 
-void plots::PlotIntensityFitResiduals::plot(const std::shared_ptr<TGraph> graph) const {
-    std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph->GetXaxis()->GetXmax(), 0); // solid black line at x=0
+void plots::PlotIntensityFitResiduals::plot(const Dataset graph) const {
+    std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph.x.back(), 0); // solid black line at x=0
+    PlotOptions options("markers", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Residuals"}, {"xlabel", "q"}, {"ylabel", "Residual"}});
 
-    // use some nicer colors
-    graph->SetMarkerColor(kOrange+1);
-    graph->SetLineColor(kOrange+1);
+    draw(graph, options);
     line->SetLineColor(kBlack);
-
-    graph->SetMarkerStyle(7);
-
-    // set titles
-    graph->SetTitle("Residuals");
-    graph->GetXaxis()->SetTitle("q");
-    graph->GetXaxis()->CenterTitle();
-    graph->GetXaxis()->SetTitleOffset(1.05);
-    graph->GetYaxis()->SetTitle("Residual");
-    graph->GetYaxis()->CenterTitle();
-
-    // draw the graphs
-    graph->DrawClone("AP");
     line->DrawClone("SAME");
 }
 

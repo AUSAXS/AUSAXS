@@ -3,8 +3,12 @@
 #include <string.h>
 #include <memory.h>
 
+#include <plots/PlotOptions.h>
+#include <utility/Dataset.h>
+
 #include <TStyle.h>
 #include <TROOT.h>
+#include <TGraph.h>
 
 namespace plots {
 	/**
@@ -63,4 +67,19 @@ namespace plots {
 			stylized = true;
 		}
 	};
+
+	[[maybe_unused]]
+	void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options);
+
+	[[maybe_unused]]
+	void draw(const std::shared_ptr<TGraph> graph);
+
+	[[maybe_unused]]
+	void draw(const Dataset& data);
+
+	[[maybe_unused]]
+	void draw(const Dataset& data, const PlotOptions& options);
+
+	[[maybe_unused]]
+	void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options);
 }

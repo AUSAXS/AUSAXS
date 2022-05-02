@@ -114,16 +114,6 @@ class Dataset {
          */
         static void draw(const Dataset& data);
 
-        /**
-         * @brief Draw this dataset with its currently set plot options.
-         */
-        void draw() const;
-
-        /**
-         * @brief Draw this dataset with another set of plot options.
-         */
-        void draw(const plots::PlotOptions options) const;
-
         std::string xlabel = "x";
         std::string ylabel = "y";
         std::string xerrlabel = "xerr";

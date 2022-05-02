@@ -9,7 +9,7 @@ class Multiset {
     public:
         Multiset() {}
 
-        explicit Multiset(unsigned int size) : data(3) {}
+        explicit Multiset(unsigned int size) : data(size) {}
 
         explicit Multiset(const std::vector<Dataset>& data);
 

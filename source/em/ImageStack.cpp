@@ -134,9 +134,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     emfit->evaluated_points = Dataset(cutoffs, chi2s, "cutoff", "chi2");
 
     // normalize to absolute scale
-    double c = 5*constants::unit::mg/constants::unit::mL;
-    double M = phm->get_protein()->get_mass();
-    double I_theo = c*M*4e20;
+    // double c = 5*constants::unit::mg/constants::unit::mL;
+    // double M = phm->get_protein()->get_mass();
+    // double I_theo = c*M*4e20;
 
     return emfit;
 }

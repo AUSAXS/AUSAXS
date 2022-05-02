@@ -193,13 +193,3 @@ void Dataset::read(const string file) {
 }
 
 void Dataset::set_plot_options(const plots::PlotOptions& options) {this->plot_options = options;}
-
-void Dataset::draw(const Dataset& data) {
-    plots::PlotOptions options = data.plot_options;
-    std::shared_ptr<TGraph> graph = data.plot();
-    plots::draw(graph, options);
-}
-
-void Dataset::draw() const {
-    draw(*this);
-}
