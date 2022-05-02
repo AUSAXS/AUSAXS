@@ -9,9 +9,9 @@
 using namespace plots;
 using std::string;
 
-PlotOptions::PlotOptions(int color) : color(color) {
-    draw_line = true;
-}
+PlotOptions::PlotOptions() : draw_line(true) {}
+
+PlotOptions::PlotOptions(int color) : color(color), draw_line(true) {}
 
 PlotOptions::PlotOptions(string style, std::map<std::string, std::any> options) {
     parse(style, true);

@@ -15,6 +15,7 @@ class Atom : public Record {
 
     /** 
      * @brief Construct a new Atom object.
+     * 
      * @param v a TVector3 containing the x, y, z coordinates of the atom. 
      * @param occupancy the occupancy of this atom.
      * @param element the atomic element of the base atom.
@@ -25,6 +26,7 @@ class Atom : public Record {
 
     /**
      * @brief Construct a new Atom object.
+     * 
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
     Atom(int serial, std::string name, std::string altLoc, std::string resName, std::string chainID, int resSeq, 
@@ -41,6 +43,7 @@ class Atom : public Record {
 
     /**
      * @brief Set the properties of this Atom based on a .pdb format string. 
+     * 
      * @param s A .pdb format ATOM string. 
      */
     void parse_pdb(std::string s) override;
@@ -63,12 +66,14 @@ class Atom : public Record {
 
     /** 
      * @brief Move this atom by a vector.
+     * 
      * @param v the translation vector.
      */
     void translate(const Vector3 v);
 
     /**
      * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
+     * 
      * @return true if this is a water molecule, otherwise false. 
      */
     virtual bool is_water() const;
@@ -90,18 +95,21 @@ class Atom : public Record {
 
     /**
      * @brief Set the residue name for this atom.
+     * 
      * @param resName the residue name, typically an amino acid such as LYS.
      */
     void set_resName(std::string resName);
 
     /**
      * @brief Specify the position of this atom within its residue.
+     * 
      * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
      */
     void set_name(std::string name);
 
     /**
      * @brief Set the atomic element for this atom. Any spaces are removed. 
+     * 
      * @param element the atomic element, e.g. He.
      */
     void set_element(std::string element);
@@ -123,7 +131,17 @@ class Atom : public Record {
     std::string get_element() const;
     virtual std::string get_recName() const;
 
+    /**
+     * @brief Get the mass of this Atom.
+     * 
+     * @return The mass in u.
+     */
     double get_mass() const;
+
+    /**
+     * @brief Get the number of protons in this atom.
+     */
+    unsigned int Z() const;
 
     /**
      * @brief Add @p charge to the effective charge of this atom. 
@@ -132,6 +150,7 @@ class Atom : public Record {
 
     /**
      * @brief Comparison function to allow this class to be a map key. 
+     * 
      * @param rhs Atom to compare against.
      */
     bool operator<(const Atom& rhs) const;

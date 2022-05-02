@@ -104,9 +104,19 @@ class Body {
     void generate_volume_file(std::string path);
 
     /**
-     * @brief Calculate the total mass of this body in Daltons.
+     * @brief Calculate the molar mass of this body in Daltons.
      */
-    double get_mass() const;
+    double get_molar_mass() const;
+
+    /**
+     * @brief Get the absolute mass of this body in kg.
+     */
+    double get_absolute_mass() const;
+
+    /**
+     * @brief Get the total charge of this body.
+     */
+    double get_total_charge() const;
 
     /**
      * @brief Create a grid and fill it with the atoms of this body. 
@@ -196,16 +206,16 @@ class Body {
      * @brief Signal that this object has changed its internal state.
      *        This triggers recalculating all distances, both external and internal, between this body and everything else the next time a histogram is requested. 
      */
-    void changed_internal_state() const;    
+    void changed_internal_state() const;
 
-    std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
+    // std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
   private:
     std::shared_ptr<File> file = nullptr;                     // The file backing this body
     std::shared_ptr<Grid> grid = nullptr;                     // The grid representation of this body
     std::shared_ptr<histogram::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-    // shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
+    shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
 
   public: 
     size_t uid;                           // An unique identifier for this body

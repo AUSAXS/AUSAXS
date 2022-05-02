@@ -71,8 +71,16 @@ double Protein::get_volume_acids() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_volume_acids();});
 }
 
-double Protein::get_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_mass();});
+double Protein::get_molar_mass() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_molar_mass();});
+}
+
+double Protein::get_absolute_mass() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_absolute_mass();});
+}
+
+double Protein::get_total_charge() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_charge();});
 }
 
 double Protein::get_volume_grid() {
@@ -223,7 +231,7 @@ void Protein::update_effective_charge() {
     std::cout << "Displaced charge: " << displaced_charge << std::endl;
 
     // number of atoms
-    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.protein_atoms.size();});
+    unsigned int N = size();
     double charge_per_atom = -displaced_charge/N;
     std::cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << N << ")." << std::endl;
 

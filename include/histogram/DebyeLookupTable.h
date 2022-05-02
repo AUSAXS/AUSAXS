@@ -63,7 +63,7 @@ namespace table {
             LookupTable<double, double> table;                          // The specialized table for this specific instance. 
             inline static LookupTable<double, double> default_table;    // The shared default table. 
             inline static int default_size = 500;                       // The size of the default table in Ångström. 
-            inline static double tolerance = 1e-9;                      // The minimum x-value where sin(x)/x is manually set to 1.
+            inline static double tolerance = 1e-6;                      // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
 
             /**
              * @brief Initialize a given table based on the input vectors.  

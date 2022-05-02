@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]) {
 
     Protein protein(input);
     protein.generate_new_hydration();
-    ScatteringHistogram d = protein.get_histogram();
+    histogram::ScatteringHistogram d = protein.get_histogram();
 
     // Distance plot
     plots::PlotDistance d_plot(d);

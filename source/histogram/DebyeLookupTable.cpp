@@ -71,7 +71,13 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const vect
     for (unsigned int i = 0; i < q.size(); i++) {
         for (unsigned int j = 0; j < d.size(); j++) {
             double qd = q[i]*d[j];
-            double val = qd < tolerance ? 1 : sin(qd)/qd;
+            double val;
+            if (__builtin_expect(qd < tolerance, false)) {
+                double qd2 = qd*qd;
+                val = 1 - qd2/6 + qd2*qd2/120;
+            } else {
+                val = sin(qd)/qd;
+            }
             table.assign_index(i, j, val);
         }
     }
@@ -82,7 +88,7 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     Axis& axis = setting::axes::scattering_intensity_plot_axis;
     double width = setting::axes::scattering_intensity_plot_binned_width;
 
-    // std::cout << "Checking if default table can be used.." << std::endl;
+    std::cout << "Checking if default table can be used.." << std::endl;
     if (q.size() != axis.bins) {return false;}
     if (q[0] != axis.min) {return false;}
     if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) {return false;}
@@ -92,7 +98,7 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     if (d[d.size()-1] > default_size) {return false;} // check if too large for default table
     if (!utility::approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
     if (!utility::approx(d[3]-d[2], width)) {return false;} // check second width
-    // std::cout << "\tUsing default tables. " << std::endl;
+    std::cout << "\tUsing default tables. " << std::endl;
 
     return true;
 }

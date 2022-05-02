@@ -1,15 +1,18 @@
 # Todo
- * [ ] EM: Make a single plot showing the evolution of best fits for files with resolution between 10 and 25. Maybe do both best fit and just use the cutoff value from 10. 
+ * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z
+ * [ ] Atom: Rename "effective charge" to "relative charge". Apply this change globally. 
+ * [x] EM: Make a single plot showing the evolution of best fits for files with resolution between 10 and 25. Maybe do both best fit and just use the cutoff value from 10. 
  * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
- * [ ] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
+ * [x] ScatteringHistogram: Consider creating a lookup-table for sin(qd)/qd factors
  * [ ] Memory test all other executables.
  * [ ] plots: Change intensity plots to static methods
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Atom: Const uid 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands
  * [ ] Try to derive an analytical solution of the chi2 problem. Differentiate chi2 with respect to each variable, and set each expression equal to zero. As long as it's not an iterative equation, it should be good. 
- * [ ] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
+ * [x] Make a superclass for ScatteringHistogram (maybe just use PartialHistogram?) which contains only p_tot, and defines all operations which uses only this. Then change the return type of PartialHistogramManager to this - right now some operations are ill-defined on it. 
+
 # Stuff to consider
 ## Grid:
  * Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory

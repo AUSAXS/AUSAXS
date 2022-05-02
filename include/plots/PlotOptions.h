@@ -14,7 +14,7 @@ namespace plots {
      */
     class PlotOptions {
         public:
-            PlotOptions() {}
+            PlotOptions();
 
             PlotOptions(int color);
 

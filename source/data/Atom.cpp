@@ -194,12 +194,19 @@ string Atom::get_element() const {return element;}
 string Atom::get_recName() const {return "ATOM  ";}
 
 double Atom::get_mass() const {
-    if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
+    if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {
         throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
     }
     // mass of this nucleus + mass of attached H atoms
     return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
 };
+
+unsigned int Atom::Z() const {
+    if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
+        throw except::invalid_argument("Error in Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
+    }
+    return constants::charge::get.at(element);
+}
 
 void Atom::print() const {
     cout << "\nAtom no: " << serial << endl;

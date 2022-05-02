@@ -257,7 +257,15 @@ void Body::update_effective_charge() {
     updated_charge = true;
 }
 
-double Body::get_mass() const {
+double Body::get_total_charge() const {
+    return std::accumulate(protein_atoms.begin(), protein_atoms.end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
+}
+
+double Body::get_molar_mass() const {
+    return get_absolute_mass()*constants::Avogadro;
+}
+
+double Body::get_absolute_mass() const {
     double M = 0;
     std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
     std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});

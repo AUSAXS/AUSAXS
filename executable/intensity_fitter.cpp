@@ -63,8 +63,13 @@ int main(int argc, char const *argv[]) {
 
     // double intercept = result->params["b"];
     double I0 = fitter.get_intercept();
-    double deltarhoV2 = constants::charge::density::water*constants::charge::e/constants::unit::mL;
+    double V = protein.get_volume_grid();
+    double Z_protein = protein.get_total_charge();
+    double Z_water = constants::charge::density::water*V;
+    double DrhoV2 = std::pow(Z_protein - Z_water, 2);
     double re2 = pow(constants::radius::electron*constants::unit::cm, 2);
-    cout << "concentration is: " << I0*protein.get_mass()/(deltarhoV2*re2)*constants::unit::mg/pow(constants::unit::cm, 3) << endl;
+    double m = protein.get_absolute_mass();
+
+    cout << "concentration is: " << I0*m/(DrhoV2*re2)*constants::unit::mg/pow(constants::unit::cm, 2) << endl;
     return 0;
 }

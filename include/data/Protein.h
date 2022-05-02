@@ -102,16 +102,22 @@ class Protein {
 
     /**
      * @brief Calculate the volume of this protein based on its constituent amino acids
+     * 
+     * @return The volume in Å^3.
      */
     double get_volume_acids() const;
 
     /**
-     * @brief Calculate the volume of this protein based on the number of grid bins it spans
+     * @brief Calculate the volume of this protein based on the number of grid bins it spans.
+     * 
+     * @return The volume in Å^3.
      */
     double get_volume_grid();
 
     /**
      * @brief Calculate the volume of this protein based on the number of C-alpha atoms
+     * 
+     * @return The volume in Å^3.
      */
     double get_volume_calpha() const;
 
@@ -122,9 +128,21 @@ class Protein {
     Vector3 get_cm() const;
 
     /**
-     * @brief Calculate the total mass of this protein in Daltons.
+     * @brief Calculate the molar mass of this protein in Daltons.
      */
-    double get_mass() const;
+    double get_molar_mass() const;
+
+    /**
+     * @brief Get the absolute mass of this body.
+     * 
+     * @return The mass in kg.
+     */
+    double get_absolute_mass() const;
+
+    /**
+     * @brief Get the total charge of this body. 
+     */
+    double get_total_charge() const;
 
     /**
      * @brief Get the grid representation of this body. 
