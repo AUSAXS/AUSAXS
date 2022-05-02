@@ -8,7 +8,7 @@
 
 #include <TCanvas.h>
 
-using std::unique_ptr, std::shared_ptr, std::string, std::vector;
+using std::string, std::vector;
 
 plots::PlotDataset::PlotDataset(const Dataset& data) : Plot() {
     prepare_canvas();
@@ -18,12 +18,8 @@ plots::PlotDataset::PlotDataset(const Dataset& data) : Plot() {
 plots::PlotDataset::~PlotDataset() = default;
 
 void plots::PlotDataset::initial_plot(const Dataset& data) {
-    std::shared_ptr<TGraph> graph = data.plot();
-    plots::PlotOptions options = data.plot_options;
-    options.xlabel = "cutoff";
-    options.ylabel = "chi2";
-
-    draw(graph, options);
+    plots::PlotOptions options("line", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+    draw(data, options);
 }
 
 void plots::PlotDataset::plot(const Dataset& data) {

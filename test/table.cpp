@@ -4,6 +4,8 @@
 #include <histogram/DebyeLookupTable.h>
 #include <data/Atom.h>
 
+using std::vector;
+
 // Define the hash function for atoms so we can use them in our tests
 namespace std {
     template <>
@@ -16,7 +18,7 @@ TEST_CASE("lookup_tables", "[table]") {
     SECTION("integer table") {
         vector<unsigned int> rows = {1, 2, 3};
         vector<unsigned int> cols = {1, 2, 3};
-        LookupTable<unsigned int, unsigned int> table(rows, cols);
+        table::LookupTable<unsigned int, unsigned int> table(rows, cols);
 
         for (unsigned int r : rows) {
             for (unsigned int c : cols) {
@@ -38,7 +40,7 @@ TEST_CASE("lookup_tables", "[table]") {
     SECTION("double table") {
         vector<double> rows = {0.35, -2.5, 10.2};
         vector<double> cols = {-3.1, -5.05, 6.7};
-        LookupTable<double, double> table(rows, cols);
+        table::LookupTable<double, double> table(rows, cols);
 
         for (double r : rows) {
             for (double c : cols) {
@@ -61,7 +63,7 @@ TEST_CASE("lookup_tables", "[table]") {
         vector<Atom> atoms1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1), Atom(Vector3(1, -1, -1), 1, "C", "C", 1)};
         vector<Atom> atoms2 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
 
-        LookupTable<Atom, Atom> table(atoms1, atoms2);
+        table::LookupTable<Atom, Atom> table(atoms1, atoms2);
 
         for (unsigned int i = 0; i < atoms1.size(); i++) {
             for (unsigned int j = 0; j < atoms2.size(); j++) {

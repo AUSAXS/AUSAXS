@@ -32,7 +32,7 @@ TEST_CASE("body_histogram", "[body]") {
         body.updated_charge = true;
 
         // calculate the histogram
-        shared_ptr<ScatteringHistogram> hist = body.get_histogram();
+        shared_ptr<histogram::ScatteringHistogram> hist = body.get_histogram();
         const vector<double> d = hist->p;
 
         // calculation: 8 identical points. 
@@ -66,7 +66,7 @@ TEST_CASE("body_histogram", "[body]") {
         body.updated_charge = true;
 
         // calculate the histogram
-        shared_ptr<ScatteringHistogram> hist = body.get_histogram();
+        shared_ptr<histogram::ScatteringHistogram> hist = body.get_histogram();
         const vector<double> d = hist->p;
 
         // calculation: 8 identical points. 
@@ -104,7 +104,7 @@ TEST_CASE("body_histogram", "[body]") {
         body.updated_charge = true;
 
         // calculate the histogram
-        shared_ptr<ScatteringHistogram> hist = body.get_histogram();
+        shared_ptr<histogram::ScatteringHistogram> hist = body.get_histogram();
         const vector<double> d = hist->p;
 
         // calculation: 8 identical points. 

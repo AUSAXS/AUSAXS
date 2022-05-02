@@ -15,7 +15,7 @@ namespace plots {
 		 * @brief Constructor.
 		 * @param d The ScatteringHistogram which will be plotted. 
 		 */
-		PlotDistance(const ScatteringHistogram& d) : d(d) {}
+		PlotDistance(const histogram::ScatteringHistogram& d) : d(d) {}
 
 		/**
 		 * @brief Destructor. 
@@ -29,6 +29,6 @@ namespace plots {
 		void save(std::string path) const override;
 
 		private: 
-		const ScatteringHistogram d; // The ScatteringHistogram backing this object. 
+		const histogram::ScatteringHistogram d; // The ScatteringHistogram backing this object. 
 	};
 }

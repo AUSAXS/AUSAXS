@@ -78,15 +78,15 @@ std::unique_ptr<Grid> ImageStack::create_grid(double) const {
     exit(1);
 }
 
-ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
+histogram::ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
     return phm->get_histogram(cutoff);
 }
 
-ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) const {
+histogram::ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) const {
     return get_histogram(res->params.at("cutoff"));
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const ScatteringHistogram& h) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const histogram::ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
     determine_minimum_bounds();
     return fit_helper(fitter);
@@ -141,7 +141,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     return emfit;
 }
 
-Dataset ImageStack::cutoff_scan(const Axis& points, const ScatteringHistogram& h) {
+Dataset ImageStack::cutoff_scan(const Axis& points, const histogram::ScatteringHistogram& h) {
     vector<double> cutoffs;
     vector<double> chi2;
     cutoffs.reserve(points.bins);

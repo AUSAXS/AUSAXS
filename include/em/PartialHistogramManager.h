@@ -14,7 +14,7 @@ namespace em {
 
             ~PartialHistogramManager() = default;
 
-            ScatteringHistogram get_histogram(double cutoff);
+            histogram::ScatteringHistogram get_histogram(double cutoff);
 
             std::shared_ptr<Protein> get_protein() const;
 
@@ -25,7 +25,7 @@ namespace em {
             /**
              * @brief Alternate slower approach to generating the histogram. 
              */
-            ScatteringHistogram get_histogram_slow(double cutoff) const;
+            histogram::ScatteringHistogram get_histogram_slow(double cutoff) const;
         
         private:
             const ImageStack& images; 

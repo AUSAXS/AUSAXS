@@ -7,7 +7,7 @@
 
 em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}
 
-ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
+histogram::ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
     update_protein(cutoff);
     return protein->get_histogram();
 }
@@ -72,7 +72,7 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     return std::make_unique<Protein>(bodies);
 }
 
-ScatteringHistogram em::PartialHistogramManager::get_histogram_slow(double cutoff) const {
+histogram::ScatteringHistogram em::PartialHistogramManager::get_histogram_slow(double cutoff) const {
     return Protein(generate_atoms(cutoff)).get_histogram();
 }
 

@@ -39,7 +39,7 @@ int main(int argc, char const *argv[]) {
 
     Protein protein(input_structure);
     protein.generate_new_hydration();
-    ScatteringHistogram h = protein.get_histogram();
+    histogram::ScatteringHistogram h = protein.get_histogram();
 
     IntensityFitter fitter(input_measurement, h);
     std::shared_ptr<Fit> result = fitter.fit();

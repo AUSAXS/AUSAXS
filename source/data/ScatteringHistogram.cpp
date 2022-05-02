@@ -11,8 +11,9 @@
 #include <TH1D.h>
 #include <TCanvas.h>
 
-using std::cout, std::endl, std::shared_ptr, std::unique_ptr;
+using std::vector;
 using namespace ROOT;
+using namespace histogram;
 
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
@@ -40,8 +41,8 @@ void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
     for (unsigned int i = 0; i < axis.bins; i++) {p[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];} // p = p_tot, inherited from Histogram
 }
 
-vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
-    vector<shared_ptr<TH1D>> hists = {
+vector<std::shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
+    vector<std::shared_ptr<TH1D>> hists = {
         std::make_shared<TH1D>("h_pp", "hist", axis.bins, axis.min, axis.max), 
         std::make_shared<TH1D>("h_hh", "hist", axis.bins, axis.min, axis.max), 
         std::make_shared<TH1D>("h_hp", "hist", axis.bins, axis.min, axis.max), 
@@ -58,11 +59,11 @@ vector<shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
     return hists;
 }
 
-unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
+std::unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     Dataset data = calc_debye_scattering_intensity();
     vector<double> I = data.get("I");
     vector<double> q = data.get("q");
-    unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", q.size(), q[0], q[q.size()-1]);
+    std::unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", q.size(), q[0], q[q.size()-1]);
 
     for (unsigned int i = 0; i < I.size(); i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin
@@ -101,11 +102,11 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     return SAXSDataset(q, Iq, "q", "I");
 }
 
-unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
+std::unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
     vector<double> Iq = calc_guinier_approx().get("logI");
 
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
-    unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
+    std::unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
 
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
         // in ROOT histograms, bin 0 is an underflow bin, and n+1 is an overflow bin

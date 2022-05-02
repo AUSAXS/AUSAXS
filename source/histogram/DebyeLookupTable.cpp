@@ -1,6 +1,7 @@
 #include <histogram/DebyeLookupTable.h>
 #include <utility/Utility.h>
 
+using std::vector;
 using namespace table;
 
 DebyeLookupTable::DebyeLookupTable() {}

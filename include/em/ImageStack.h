@@ -55,7 +55,7 @@ namespace em {
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<EMFit> fit(const ScatteringHistogram& h);
+            std::shared_ptr<EMFit> fit(const histogram::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -65,7 +65,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            Dataset cutoff_scan(const Axis& points, const ScatteringHistogram& h);
+            Dataset cutoff_scan(const Axis& points, const histogram::ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -84,12 +84,12 @@ namespace em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            ScatteringHistogram get_histogram(double cutoff) const;
+            histogram::ScatteringHistogram get_histogram(double cutoff) const;
 
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
+            histogram::ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
 
             /**
              * @brief Create a new Grid based on this object. 

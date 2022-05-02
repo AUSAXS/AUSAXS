@@ -120,7 +120,7 @@ void Body::calc_histogram() {
     // calculate p_tot    
     for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
 
-    histogram = std::make_shared<ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
+    histogram = std::make_shared<histogram::ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
 void Body::generate_new_hydration() {
@@ -203,7 +203,7 @@ shared_ptr<Grid> Body::create_grid() {
     return grid;
 }
 
-shared_ptr<ScatteringHistogram> Body::get_histogram() {
+shared_ptr<histogram::ScatteringHistogram> Body::get_histogram() {
     if (histogram == nullptr) {calc_histogram();}
     return histogram;
 }

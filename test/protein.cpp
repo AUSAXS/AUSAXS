@@ -69,7 +69,7 @@ TEST_CASE("histogram", "[protein]") {
         protein.updated_charge = true;
 
         // calculate the histogram
-        ScatteringHistogram hist = protein.get_histogram();
+        histogram::ScatteringHistogram hist = protein.get_histogram();
         const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
@@ -104,7 +104,7 @@ TEST_CASE("histogram", "[protein]") {
         protein.updated_charge = true;
 
         // calculate the histogram
-        ScatteringHistogram hist = protein.get_histogram();
+        histogram::ScatteringHistogram hist = protein.get_histogram();
         const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
@@ -146,7 +146,7 @@ TEST_CASE("histogram", "[protein]") {
         protein.updated_charge = true;
 
         // calculate the histogram
-        ScatteringHistogram hist = protein.get_histogram();
+        histogram::ScatteringHistogram hist = protein.get_histogram();
         const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
@@ -193,8 +193,8 @@ TEST_CASE("histogram", "[protein]") {
         // we now have a protein consisting of three bodies with the exact same contents as a single body.
         // the idea is now to compare the ScatteringHistogram output from their distance calculations, since it
         // is far easier to do for the single body. 
-        shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
-        ScatteringHistogram d_p = protein.get_histogram();
+        shared_ptr<histogram::ScatteringHistogram> d_b = body.get_histogram();
+        histogram::ScatteringHistogram d_p = protein.get_histogram();
 
         // direct access to the histogram data (only p is defined)
         const vector<double>& p = d_p.p;
@@ -259,8 +259,8 @@ TEST_CASE("histogram", "[protein]") {
         protein.hydration_atoms = body.hydration_atoms;
 
         // generate the distance histograms
-        shared_ptr<ScatteringHistogram> d_b = body.get_histogram();
-        ScatteringHistogram d_p = protein.get_histogram();
+        shared_ptr<histogram::ScatteringHistogram> d_b = body.get_histogram();
+        histogram::ScatteringHistogram d_p = protein.get_histogram();
 
         // direct access to the histogram data (only p is defined)
         const vector<double>& p = d_p.p;
@@ -295,8 +295,8 @@ TEST_CASE("histogram", "[protein]") {
         protein2.set_grid(grid2);
 
         // generate the distance histograms
-        ScatteringHistogram h1 = protein1.get_histogram();
-        ScatteringHistogram h2 = protein2.get_histogram();
+        histogram::ScatteringHistogram h1 = protein1.get_histogram();
+        histogram::ScatteringHistogram h2 = protein2.get_histogram();
 
         // direct access to the histogram data (only p is defined)
         const vector<double>& p1 = h1.p;

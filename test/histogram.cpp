@@ -17,7 +17,7 @@ TEST_CASE("check_scaling_factor", "[histogram]") {
     vector<vector<Atom>> a = {b1, b2, b3};
     Protein protein(a, w);
 
-    ScatteringHistogram hist = protein.get_histogram();
+    histogram::ScatteringHistogram hist = protein.get_histogram();
     vector<double> p_pp = hist.p_pp;
     vector<double> p_hp = hist.p_hp;
     vector<double> p_hh = hist.p_hh;

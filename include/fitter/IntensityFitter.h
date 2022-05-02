@@ -21,7 +21,7 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param input The path to the file containing the measured values. 
      * @param h The histogram.
      */
-    IntensityFitter(std::string input, const ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
+    IntensityFitter(std::string input, const histogram::ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
 
     /**
      * @brief Constructor.
@@ -30,7 +30,7 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param input The path to the file containing the measured values. 
      * @param h The histogram.
      */
-    IntensityFitter(std::string input, ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
+    IntensityFitter(std::string input, histogram::ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
 
     /**
      * @brief Destructor.
@@ -71,7 +71,7 @@ class IntensityFitter : public SimpleIntensityFitter {
     /**
      * @brief Get the model dataset for the points specified by @a q. 
      */
-    SAXSDataset get_model_dataset(const vector<double>& q);
+    SAXSDataset get_model_dataset(const std::vector<double>& q);
 
     /**
      * @brief Get the dataset being fitted. 

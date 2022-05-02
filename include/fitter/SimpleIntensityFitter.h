@@ -28,7 +28,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param input The path to the file containing the measured values. 
      * @param h The ScatteringHistogram to fit. 
      */
-    SimpleIntensityFitter(std::string input, const ScatteringHistogram& h) : h(h) {setup(input);}
+    SimpleIntensityFitter(std::string input, const histogram::ScatteringHistogram& h) : h(h) {setup(input);}
 
     /**
      * @brief Constructor.
@@ -38,7 +38,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param input the path to the file containing the measured values. 
      * @param h The ScatteringHistogram to fit. 
      */
-    SimpleIntensityFitter(std::string input, ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+    SimpleIntensityFitter(std::string input, histogram::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 
     /**
      * @brief Constructor. 
@@ -52,7 +52,7 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * Prepare a fit of the histogram to the dataset. 
      */
-    SimpleIntensityFitter(const Dataset& data, const ScatteringHistogram& hist) : qo(data.x), Io(data.y), sigma(data.yerr), h(hist) {}
+    SimpleIntensityFitter(const Dataset& data, const histogram::ScatteringHistogram& hist) : qo(data.x), Io(data.y), sigma(data.yerr), h(hist) {}
 
     /**
      * @brief Constructor.
@@ -63,7 +63,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param model The model histogram. 
      * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const ScatteringHistogram& data, const ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
+    SimpleIntensityFitter(const histogram::ScatteringHistogram& data, const histogram::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
 
     /**
      * @brief Constructor.
@@ -73,7 +73,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param model The model histogram. 
      * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
+    SimpleIntensityFitter(const histogram::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
 
     /**
      * @brief Destructor.
@@ -104,12 +104,12 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Change the scattering histogram used for the fit. 
      */
-    void set_scattering_hist(const ScatteringHistogram& h);
+    void set_scattering_hist(const histogram::ScatteringHistogram& h);
 
     /**
      * @brief Change the scattering histogram used for the fit. 
      */
-    void set_scattering_hist(ScatteringHistogram&& h);
+    void set_scattering_hist(histogram::ScatteringHistogram&& h);
 
     /**
      * @brief Get the number of degrees of freedom. 
@@ -126,7 +126,7 @@ class SimpleIntensityFitter : public Fitter {
     std::vector<double> qo; // observed q values
     std::vector<double> Io; // observed I values
     std::vector<double> sigma; // error in Io
-    ScatteringHistogram h;
+    histogram::ScatteringHistogram h;
 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.
@@ -157,5 +157,5 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Initialize this class based on a model histogram. 
      */
-    void model_setup(const ScatteringHistogram& model, const Limit& limits);
+    void model_setup(const histogram::ScatteringHistogram& model, const Limit& limits);
 };

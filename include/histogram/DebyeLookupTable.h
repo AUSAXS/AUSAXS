@@ -27,7 +27,7 @@ namespace table {
              * @param q The scattering vector to generate lookup values for. 
              * @param d The distance histogram to generate lookup values for. 
              */
-            DebyeLookupTable(const vector<double>& q, const vector<double>& d);
+            DebyeLookupTable(const std::vector<double>& q, const std::vector<double>& d);
 
             /**
              * @brief Initialize this class for the given input. 
@@ -35,7 +35,7 @@ namespace table {
              * @param q The scattering vector to generate lookup values for. 
              * @param d The distance histogram to generate lookup values for. 
              */
-            void initialize(const vector<double>& q, const vector<double>& d);
+            void initialize(const std::vector<double>& q, const std::vector<double>& d);
 
             /**
              * @brief Look up a value in the table based on @a q and @a d values. This is an amortized constant-time operation. 
@@ -72,7 +72,7 @@ namespace table {
              * @param q The scattering vector to generate lookup values for. 
              * @param d The distance histogram to generate lookup values for. 
              */
-            static void initialize(LookupTable<double, double>& table, const vector<double>& q, const vector<double>& d);
+            static void initialize(LookupTable<double, double>& table, const std::vector<double>& q, const std::vector<double>& d);
 
             /**
              * @brief Determine if the two arguments are based on the default settings. 
@@ -80,6 +80,6 @@ namespace table {
              * @param q The scattering vector.
              * @param d The histogram bins.
              */
-            static bool is_default(const vector<double>& q, const vector<double>& d);
+            static bool is_default(const std::vector<double>& q, const std::vector<double>& d);
     };
 }

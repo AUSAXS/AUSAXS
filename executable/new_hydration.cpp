@@ -5,7 +5,7 @@
 
 #include <data/Body.h>
 #include <data/Protein.h>
-#include <settings.h>
+#include <utility/Settings.h>
 
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer for a given input data file."};

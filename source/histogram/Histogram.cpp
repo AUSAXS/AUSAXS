@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+using namespace histogram;
+
 Histogram::Histogram(const Vector<double>& p) : p(p) {}
 
 Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
