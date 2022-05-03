@@ -68,8 +68,8 @@ int main(int argc, char const *argv[]) {
     double Z_water = constants::charge::density::water*V;
     double DrhoV2 = std::pow(Z_protein - Z_water, 2);
     double re2 = pow(constants::radius::electron*constants::unit::cm, 2);
-    double m = protein.get_absolute_mass();
+    double m = protein.get_absolute_mass()*constants::unit::gm;
 
-    cout << "concentration is: " << I0*m/(DrhoV2*re2)*constants::unit::mg/pow(constants::unit::cm, 2) << endl;
+    cout << "concentration is: " << I0*m/(DrhoV2*re2) << endl;
     return 0;
 }

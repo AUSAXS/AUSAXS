@@ -35,7 +35,7 @@ namespace constants {
      * This namespace contains all the unit conversion constants used in this project. 
      */
     namespace unit { // units with respect to the ones used in this file
-        constexpr double mg = 1.66054e-27; // Dalton --> mg
+        constexpr double mg = 1.66054e-21; // Dalton --> mg
         constexpr double gm = 1.66054e-24; // Dalton --> grams
         constexpr double cm = 1e-8; // Ångström --> cm
 
