@@ -83,6 +83,27 @@ double Protein::get_total_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_charge();});
 }
 
+double Protein::get_relative_charge() {
+    double V = get_volume_grid();
+    double Z_protein = get_total_charge();
+    double Z_water = constants::charge::density::water*V;
+    return Z_protein - Z_water;
+}
+
+double Protein::get_relative_charge_density() {
+    double V = get_volume_grid();
+    double Z_protein = get_total_charge();
+    double Z_water = constants::charge::density::water*V;
+    return (Z_protein - Z_water)/V;
+}
+
+double Protein::get_relative_mass_density() {
+    double V = get_volume_grid();
+    double m_protein = get_absolute_mass();
+    double m_water = constants::mass::density::water*V;
+    return (m_protein - m_water)/V;
+}
+
 double Protein::get_volume_grid() {
     if (grid == nullptr) {create_grid();}
     return grid->get_volume();

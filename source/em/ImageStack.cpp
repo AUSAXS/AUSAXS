@@ -99,19 +99,25 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
+    // convert the calculated intensities to absolute scale
+    auto protein = phm->get_protein(1);
+    double c = 5;                                                         // concentration
+    double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
+    double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
+    double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
+    double I0 = DrhoV2*re2*c/m;
+    fitter.normalize_intensity(I0);
+
     // fit function
     unsigned int counter = 0;
     Dataset evaluated_points("cutoff", "chi2");
     std::function<double(const double*)> chi2 = [&] (const double* params) {
-        auto start = high_resolution_clock::now();
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->chi2;
-        auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
 
         evaluated_points.x.push_back(params[0]);
         evaluated_points.y.push_back(val);
-        std::cout << "\nStep " << ++counter << " took " << duration.count() << " seconds." << std::endl;
-        std::cout << "\tEvaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
+        std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 
 

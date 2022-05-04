@@ -26,7 +26,7 @@ Atom::Atom(const Vector3 v, const double occupancy, const string element, const 
     set_element(element);
     set_name(name);
     set_serial(serial);
-    set_effective_charge(constants::charge::get.at(this->element));
+    set_effective_charge(constants::charge::atomic.at(this->element));
     uid = uid_counter++;
 }
 
@@ -45,7 +45,7 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         set_element(element);
         set_charge(charge);
         try {
-            effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+            effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
         } catch (const std::exception& e) {
             throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
@@ -112,7 +112,7 @@ void Atom::parse_pdb(string s) {
         throw except::parse_error("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
     }
 
-    effective_charge = constants::charge::get.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+    effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
 
     // DEBUG OUTPUT
     // cout << s << endl;
@@ -205,7 +205,7 @@ unsigned int Atom::Z() const {
     if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
         throw except::invalid_argument("Error in Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
     }
-    return constants::charge::get.at(element);
+    return constants::charge::atomic.at(element);
 }
 
 void Atom::print() const {

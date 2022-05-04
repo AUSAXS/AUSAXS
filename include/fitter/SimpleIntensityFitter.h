@@ -49,14 +49,14 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * Prepare a fit to the dataset.
      */
-    SimpleIntensityFitter(const Dataset& data) : qo(data.x), Io(data.y), sigma(data.yerr) {}
+    SimpleIntensityFitter(const SAXSDataset& data) : data(data) {}
 
     /**
      * @brief Constructor. 
      * 
      * Prepare a fit of the histogram to the dataset. 
      */
-    SimpleIntensityFitter(const Dataset& data, const histogram::ScatteringHistogram& hist) : qo(data.x), Io(data.y), sigma(data.yerr), h(hist) {}
+    SimpleIntensityFitter(const SAXSDataset& data, const histogram::ScatteringHistogram& hist) : data(data), h(hist) {}
 
     /**
      * @brief Constructor.
@@ -116,6 +116,11 @@ class SimpleIntensityFitter : public Fitter {
     void set_scattering_hist(histogram::ScatteringHistogram&& h);
 
     /**
+     * @brief Normalize all internally calculated intensities such that they start at this value.  
+     */
+    void normalize_intensity(double I0);
+
+    /**
      * @brief Get the number of degrees of freedom. 
      */
     unsigned int degrees_of_freedom() const;
@@ -131,11 +136,10 @@ class SimpleIntensityFitter : public Fitter {
     virtual std::shared_ptr<Fit> get_fit() const override;
 
   protected: 
-    std::shared_ptr<Fit> fitted;
-    std::vector<double> qo; // observed q values
-    std::vector<double> Io; // observed I values
-    std::vector<double> sigma; // error in Io
-    histogram::ScatteringHistogram h;
+    std::shared_ptr<Fit> fitted;      // The previous fit result
+    SAXSDataset data;                 // Observed data set
+    double I0 = -1;                   // Normalization intensity
+    histogram::ScatteringHistogram h; // The scattering histogram to fit
 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.
@@ -161,7 +165,7 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @param file The file to be read. 
      */
-    std::tuple<std::vector<double>, std::vector<double>, std::vector<double>> read(std::string file) const;
+    SAXSDataset read(std::string file) const;
 
     /**
      * @brief Initialize this class based on a model histogram. 

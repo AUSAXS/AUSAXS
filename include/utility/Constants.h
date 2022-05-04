@@ -30,16 +30,43 @@ namespace constants {
     constexpr double Avogadro = 6.02214076e-23; // mol^-1
 
     /**
-     * @brief \namespace unit
+     * @brief \namespace Relative units.
      * 
      * This namespace contains all the unit conversion constants used in this project. 
+     * The basic units are for:
+     *     mass: Dalton
+     *     length: Å
+     *     charge: e
      */
-    namespace unit { // units with respect to the ones used in this file
-        constexpr double mg = 1.66054e-21; // Dalton --> mg
+    namespace unit {
         constexpr double gm = 1.66054e-24; // Dalton --> grams
+        constexpr double mg = 1.66054e-21; // Dalton --> mg
         constexpr double cm = 1e-8; // Ångström --> cm
 
         constexpr double mL = simple_pow(unit::cm, 3); // Ångström^3 --> mL
+    }
+
+    /**
+     * @brief \namespace Absolute units.
+     * 
+     * This namespace contains all the absolute unit conversion constants. 
+     */
+    namespace SI {
+        namespace mass {
+            constexpr double gm = 1e-3;
+            constexpr double mg = 1e-6;
+            constexpr double u = 1.66053*1e-27;
+        }
+
+        namespace length {
+            constexpr double cm = 1e-3;
+            constexpr double A = 1e-8; // Ångström
+        }
+
+        namespace volume {
+            constexpr double A3 = 1e-24; // Ångström^3
+            constexpr double cm3 = 1e-9;
+        }
     }
 
     // The 1-symbol names of all amino acids. 
@@ -111,6 +138,10 @@ namespace constants {
 
         // get the weight of an atom
         const std::map<string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+
+        namespace density {
+            constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3; // u/Å^3
+        }
     }
 
     /**
@@ -129,7 +160,7 @@ namespace constants {
         constexpr int S = 16; // Sulphur charge
 
         // get the charge Z of an atom
-        const std::map<string, int> get = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+        const std::map<string, int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3

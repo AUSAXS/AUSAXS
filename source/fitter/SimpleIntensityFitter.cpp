@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <tuple>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
 
@@ -26,23 +25,29 @@ SimpleIntensityFitter::SimpleIntensityFitter(const histogram::ScatteringHistogra
 }
 
 void SimpleIntensityFitter::model_setup(const histogram::ScatteringHistogram& model, const Limit& limits) {
-    SAXSDataset data = model.calc_debye_scattering_intensity();
+    data = model.calc_debye_scattering_intensity();
     data.reduce(setting::fit::N);
     data.limit(limits);
-    qo = data.get("q");
-    Io = data.get("I");
-
     data.simulate_errors();
-    sigma = data.get("Ierr");
+    if (I0 > 0) {data.normalize(I0);}
 }
 
 shared_ptr<Fit> SimpleIntensityFitter::fit() {
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
-    SimpleLeastSquares fitter(Im, Io, sigma);
+    // we want to fit a*Im + b to Io
+    Dataset fit_data(Im, data.y, data.yerr);
+    if (I0 > 0) {fit_data.normalize(I0);}
+
+    SimpleLeastSquares fitter(fit_data);
     fitted = fitter.fit();
     return fitted;
+}
+
+void SimpleIntensityFitter::normalize_intensity(double new_I0) {
+    if (I0 < 0) {data.normalize(new_I0);} // if y0 has not been set yet, we must rescale the data
+    I0 = new_I0;
 }
 
 Multiset SimpleIntensityFitter::plot() {
@@ -55,17 +60,17 @@ Multiset SimpleIntensityFitter::plot() {
     vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
-    vector<double> I_scaled(qo.size()); // spliced data
+    vector<double> I_scaled(data.size()); // spliced data
     vector<double> ym_scaled(ym.size()); // original scaled data
     std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    vector<double> xerr(sigma.size(), 0);
+    vector<double> xerr(data.size(), 0);
     Multiset graphs(3);
-    graphs.get_data(0) = SAXSDataset(qo, I_scaled);
+    graphs.get_data(0) = SAXSDataset(data.x, I_scaled);
     graphs.get_data(1) = SAXSDataset(h.q, ym_scaled);
-    graphs.get_data(2) = SAXSDataset(qo, Io, xerr, sigma);
+    graphs.get_data(2) = SAXSDataset(data.x, data.y, xerr, data.yerr);
     return graphs;
 }
 
@@ -79,14 +84,14 @@ Dataset SimpleIntensityFitter::plot_residuals() {
     vector<double> Im = splice(ym);
 
     // calculate the residuals
-    vector<double> residuals(qo.size());
-    for (size_t i = 0; i < qo.size(); ++i) {
-        residuals[i] = ((Io[i] - a*Im[i]-b)/sigma[i]);
+    vector<double> residuals(data.size());
+    for (size_t i = 0; i < data.size(); ++i) {
+        residuals[i] = ((data.y[i] - a*Im[i]-b)/data.yerr[i]);
     }
 
     // prepare the dataset
-    vector<double> xerr(sigma.size(), 0);
-    return Dataset(qo, residuals, xerr, sigma);
+    vector<double> xerr(data.size(), 0);
+    return Dataset(data.x, residuals, xerr, data.yerr);
 }
 
 void SimpleIntensityFitter::set_scattering_hist(histogram::ScatteringHistogram&& h) {
@@ -115,26 +120,24 @@ double SimpleIntensityFitter::chi2(const double*) {
 }
 
 void SimpleIntensityFitter::setup(string file) {
-    std::tie(qo, Io, sigma) = read(file); // read observed values from input file
+    data = read(file); // read observed values from input file
 }
 
 vector<double> SimpleIntensityFitter::splice(const vector<double>& ym) const {
-    vector<double> Im = vector<double>(qo.size()); // spliced model values
+    vector<double> Im = vector<double>(data.size()); // spliced model values
     CubicSpline s(h.q, ym);
-    for (size_t i = 0; i < qo.size(); ++i) {
-        Im[i] = s.spline(qo[i]);
+    for (size_t i = 0; i < data.size(); ++i) {
+        Im[i] = s.spline(data.x[i]);
     }
     return Im;
 }
 
-std::tuple<vector<double>, vector<double>, vector<double>> SimpleIntensityFitter::read(string file) const {
+SAXSDataset SimpleIntensityFitter::read(string file) const {
     // check if file was succesfully opened
     std::ifstream input(file);
     if (!input.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::read: Could not open file \"" + file + "\"");}
 
-    vector<double> q;
-    vector<double> I;
-    vector<double> sigma;
+    SAXSDataset temp;
     string line; // placeholder for the current line
     while(getline(input, line)) {
         if (line[0] == ' ') {line = line.substr(1);} // fix leading space
@@ -162,15 +165,15 @@ std::tuple<vector<double>, vector<double>, vector<double>> SimpleIntensityFitter
         if (_q > setting::fit::q_high) {continue;}
 
         // add the values to our vectors
-        q.push_back(_q);
-        I.push_back(_I);
-        sigma.push_back(_sigma); 
+        temp.x.push_back(_q);
+        temp.y.push_back(_I);
+        temp.yerr.push_back(_sigma); 
     }
-    return std::make_tuple(q, I, sigma);
+    return temp;
 }
 
 unsigned int SimpleIntensityFitter::degrees_of_freedom() const {
-    return qo.size() - 2;
+    return data.size() - 2;
 }
 
 unsigned int SimpleIntensityFitter::dof() const {

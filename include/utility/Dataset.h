@@ -108,6 +108,11 @@ class Dataset {
         void scale_y(double factor);
 
         /**
+         * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
+         */
+        void normalize(double y0);
+
+        /**
          * @brief Plot this dataset.
          */
         std::unique_ptr<TGraph> plot() const;

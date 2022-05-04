@@ -20,13 +20,6 @@ class SimpleLeastSquares : public Fitter {
     SimpleLeastSquares(const Dataset& data);
 
     /**
-     * @brief Constructor.
-     * 
-     * Prepare a linear least-squares fit for the inputs. 
-     */
-    SimpleLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& y_err);
-
-    /**
      * @brief Destructor.
      */
     virtual ~SimpleLeastSquares() override = default;
@@ -65,7 +58,7 @@ class SimpleLeastSquares : public Fitter {
     unsigned int dof() const override;
 
   private:
-    const std::vector<double> &x, &y, &y_err;
+    const Dataset& data;
     double S, Sx, Sy, Sxx, Sxy, delta = 0;
     double a, b;
 

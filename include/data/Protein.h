@@ -122,8 +122,7 @@ class Protein {
     double get_volume_calpha() const;
 
     /** 
-     * @brief Calculate the center-mass coordinates for the protein.
-     * @return The center-mass (x, y, z) coordinates. 
+     * @brief Calculate the center-mass coordinates.
      */
     Vector3 get_cm() const;
 
@@ -133,26 +132,40 @@ class Protein {
     double get_molar_mass() const;
 
     /**
-     * @brief Get the absolute mass of this body.
+     * @brief Get the absolute mass.
      * 
      * @return The mass in kg.
      */
     double get_absolute_mass() const;
 
     /**
-     * @brief Get the total charge of this body. 
+     * @brief Get the total charge. 
      */
     double get_total_charge() const;
 
     /**
-     * @brief Get the grid representation of this body. 
+     * @brief Get the relative charge density. 
+     */
+    double get_relative_charge_density();
+
+    /**
+     * @brief Get the relative mass density.
+     */
+    double get_relative_mass_density();
+
+    /**
+     * @brief Get the relative charge.
+     *        This is the total charge subtracted by the total charge of water of the same volume. 
+     */
+    double get_relative_charge();
+
+    /**
+     * @brief Get the grid representation. 
      */
     std::shared_ptr<Grid> get_grid();
 
     /**
-     * @brief Set the grid representation of this body. 
-     * 
-     * @param grid The new Grid. 
+     * @brief Set the grid representation. 
      */
     void set_grid(const Grid& grid);
 
@@ -162,7 +175,7 @@ class Protein {
     void clear_grid();
 
     /**
-     * @brief Remove all hydration atoms from this protein.
+     * @brief Remove all hydration atoms.
      */
     void clear_hydration();
 

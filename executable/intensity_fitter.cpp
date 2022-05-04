@@ -63,10 +63,7 @@ int main(int argc, char const *argv[]) {
 
     // double intercept = result->params["b"];
     double I0 = fitter.get_intercept();
-    double V = protein.get_volume_grid();
-    double Z_protein = protein.get_total_charge();
-    double Z_water = constants::charge::density::water*V;
-    double DrhoV2 = std::pow(Z_protein - Z_water, 2);
+    double DrhoV2 = std::pow(protein.get_relative_charge(), 2);
     double re2 = pow(constants::radius::electron*constants::unit::cm, 2);
     double m = protein.get_absolute_mass()*constants::unit::mg;
 

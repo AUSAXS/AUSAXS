@@ -38,46 +38,6 @@ TEST_CASE("check_scaling_factor", "[histogram]") {
     }
 }
 
-//#####################//
-//### DATASET TESTS ###//
-//#####################//
-TEST_CASE("dataset_works", "[histogram]") {
-    vector<double> x = {1, 2, 3, 4, 5};
-    vector<double> y = {10, 20, 30, 40, 50};
-    Dataset data(x, y, "i", "j");
-
-    SECTION("get") {
-        vector<double> i = data.get("i");
-        vector<double> j = data.get("j");
-        CHECK(i == x);
-        CHECK(j == y);
-    }
-
-    SECTION("reduce") {
-        data.reduce(2);
-        CHECK(data.size() < x.size());
-    }
-
-    SECTION("limit") {
-        data.limit(Limit(2, 3));
-        vector<double> i = data.get("i");
-        vector<double> j = data.get("j");
-        CHECK(i == vector<double>{2, 3});
-        CHECK(j == vector<double>{20, 30});
-    }
-}
-
-TEST_CASE("reduce", "[histogram],[files],[manual]") {
-    Protein protein("data/2epe.pdb");
-    auto h = protein.get_histogram();
-
-    plots::PlotIntensity plot(h);
-    SAXSDataset data = h.calc_debye_scattering_intensity();
-    data.reduce(20);
-    plot.plot_intensity(data);
-    plot.save("reduce_test.pdf");
-}
-
 // TEST_CASE("utility", "[histogram]") {
 //     string s = "   hello   ";
 //     CHECK(remove_spaces(s) == "hello");

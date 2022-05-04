@@ -60,53 +60,6 @@ TEST_CASE("generate_landscape", "[em],[files],[slow],[manual]") {
     plot.save("temp/em/chi2_landscape.pdf");
 }
 
-TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
-    SAXSDataset data1("data/2epe.RSR");
-    SAXSDataset data2 = data1;
-    data2.simulate_errors();
-
-    data1.plot_options.set({{"color", kBlack}, {"draw_line", false}, {"draw_markers", true}, {"lw", 2}});
-    data2.plot_options.set({{"color", kOrange+2}, {"draw_line", false}, {"draw_markers", true}, {"lw", 2}});
-
-    plots::PlotIntensity plot(data1);
-    plot.plot_intensity(data2);
-    plot.save("temp/compare_errors.pdf");
-}
-
-TEST_CASE("check_simulated_noise", "[em],[files],[manual]") {
-    SAXSDataset data1("data/2epe.RSR");
-    SAXSDataset data2 = data1;
-    data2.simulate_errors();
-    data2.simulate_noise();
-
-    data1.plot_options.set({{"color", kBlack}, {"draw_line", false}, {"draw_markers", true}, {"draw_errors", false}, {"lw", 2}});
-    data2.plot_options.set({{"color", kOrange+2}, {"draw_line", false}, {"draw_markers", true}, {"draw_errors", false}, {"lw", 2}});
-
-    plots::PlotIntensity plot(data1);
-    plot.plot_intensity(data2);
-    plot.save("temp/compare_noise.pdf");
-}
-
-TEST_CASE("dataset_can_read_rsr", "[em],[dataset],[files]") {
-    SAXSDataset data("data/2epe.RSR");
-    vector<double>& x = data.x;
-    vector<double>& y = data.y;
-    vector<double>& yerr = data.yerr;
-
-    vector<double> validate_x = {9.81300045E-03, 1.06309997E-02, 1.14489999E-02, 1.22659998E-02, 1.30840000E-02, 1.39020002E-02, 1.47200003E-02, 1.55379996E-02, 1.63550004E-02, 1.71729997E-02};
-    vector<double> validate_y = {6.67934353E-03, 7.27293547E-03, 8.74083303E-03, 9.22449585E-03, 9.13867634E-03, 9.21153929E-03, 9.37998667E-03, 8.67372658E-03, 9.23649967E-03, 9.22480784E-03};
-    vector<double> validate_yerr = {1.33646582E-03, 1.01892441E-03, 8.62116576E-04, 7.71059655E-04, 6.87870081E-04, 6.30189374E-04, 4.98525158E-04, 4.69041377E-04, 4.46073769E-04, 4.26004088E-04};
-
-    REQUIRE(x.size() == 104);
-    REQUIRE(y.size() == 104);
-    REQUIRE(yerr.size() == 104);
-    for (unsigned int i = 0; i < validate_x.size(); i++) {
-        CHECK_THAT(x[i], Catch::Matchers::WithinRel(validate_x[i]));
-        CHECK_THAT(y[i], Catch::Matchers::WithinRel(validate_y[i]));
-        CHECK_THAT(yerr[i], Catch::Matchers::WithinRel(validate_yerr[i]));
-    }
-}
-
 TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;

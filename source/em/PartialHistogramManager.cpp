@@ -145,7 +145,10 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     previous_cutoff = cutoff;
 }
 
-std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {return protein;}
+std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {
+    if (protein == nullptr) {throw except::nullptr_error("Error in PartialHistogramManager::get_protein: Protein has not been initialized yet.");}
+    return protein;
+}
 
 std::shared_ptr<Protein> em::PartialHistogramManager::get_protein(double cutoff) {
     update_protein(cutoff);

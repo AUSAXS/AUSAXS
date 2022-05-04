@@ -11,19 +11,17 @@
 
 #include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
 
-SimpleLeastSquares::SimpleLeastSquares(const Dataset& data) : x(data.x), y(data.y), y_err(data.yerr) {}
-
-SimpleLeastSquares::SimpleLeastSquares(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& y_err) : x(x), y(y), y_err(y_err) {}
+SimpleLeastSquares::SimpleLeastSquares(const Dataset& data) : data(data) {}
 
 std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
-    for (size_t i = 0; i < x.size(); i++) {
-        double sig2 = pow(y_err[i], 2);
+    for (size_t i = 0; i < data.size(); i++) {
+        double sig2 = pow(data.yerr[i], 2);
         S += 1./sig2;
-        Sx += x[i]/sig2;
-        Sy += y[i]/sig2;
-        Sxx += pow(x[i], 2)/sig2;
-        Sxy += x[i]*y[i]/sig2;
+        Sx += data.x[i]/sig2;
+        Sy += data.y[i]/sig2;
+        Sxx += pow(data.x[i], 2)/sig2;
+        Sxy += data.x[i]*data.y[i]/sig2;
     }
 
     delta = S*Sxx - pow(Sx, 2);
@@ -38,12 +36,12 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     double b_err2 = Sxx/delta; 
 
     // double cov_ab = -Sx/delta;
-    double Q = ROOT::Math::inc_gamma((double) x.size()/2 -1, chi2()/2);
+    double Q = ROOT::Math::inc_gamma((double) data.size()/2 -1, chi2()/2);
 
     std::shared_ptr<Fit> f = std::make_shared<Fit>();
     f->params = {{"a", a}, {"b", b}};
     f->errors = {{"a", sqrt(a_err2)}, {"b", sqrt(b_err2)}};
-    f->dof = x.size() - 2;
+    f->dof = data.size() - 2;
     f->chi2 = chi2();
     f->calls = 1;
     f->converged = Q > 0.001;
@@ -52,8 +50,8 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
 
 double SimpleLeastSquares::chi2() const {
     double chi = 0;
-    for (size_t i = 0; i < x.size(); ++i) {
-        chi += pow((y[i] - a*x[i] - b)/y_err[i], 2);
+    for (size_t i = 0; i < data.size(); ++i) {
+        chi += pow((data.y[i] - a*data.x[i] - b)/data.yerr[i], 2);
     }
     return chi;
 }
@@ -68,7 +66,7 @@ Dataset SimpleLeastSquares::plot_residuals() {
     return Dataset();
 }
 
-unsigned int SimpleLeastSquares::dof() const {return x.size() - 2;}
+unsigned int SimpleLeastSquares::dof() const {return data.size() - 2;}
 
 std::shared_ptr<Fit> SimpleLeastSquares::get_fit() const {
     throw except::unexpected("Error in SimpleLeastSquares::get_fit: Not implemented yet. ");

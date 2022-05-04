@@ -27,8 +27,11 @@ shared_ptr<Fit> IntensityFitter::fit() {
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
-    // fit a, b
-    SimpleLeastSquares fitter(Im, Io, sigma);
+    // we want to fit a*Im + b to Io
+    Dataset fit_data(Im, data.y, data.yerr);
+    if (I0 > 0) {fit_data.normalize(I0);}
+
+    SimpleLeastSquares fitter(fit_data);
     std::shared_ptr<Fit> ab_fit = fitter.fit();
 
     // update fitter object
@@ -36,7 +39,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
     std::map<string, double> pars = {{"c", res[0]}, {"a", ab_fit->params["a"]}, {"b", ab_fit->params["b"]}};
     std::map<string, double> errs = {{"c", err[0]}, {"a", ab_fit->errors["a"]}, {"b", ab_fit->errors["b"]}};
     double funcalls = minimizer->NCalls();
-    fitted = std::make_shared<Fit>(pars, errs, chi2(res), qo.size()-2, funcalls, converged);
+    fitted = std::make_shared<Fit>(pars, errs, chi2(res), data.size()-2, funcalls, converged);
 
     minimizer->SetPrintLevel(3);
     minimizer->PrintResults();
@@ -55,17 +58,17 @@ Multiset IntensityFitter::plot() {
     vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
-    vector<double> I_scaled(qo.size()); // spliced data
+    vector<double> I_scaled(data.size()); // spliced data
     vector<double> ym_scaled(ym.size()); // original scaled data
     std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    vector<double> xerr(sigma.size(), 0);
+    vector<double> xerr(data.size(), 0);
     Multiset graphs(3);
-    graphs.get_data(0) = SAXSDataset(qo, I_scaled);
+    graphs.get_data(0) = SAXSDataset(data.x, I_scaled);
     graphs.get_data(1) = SAXSDataset(h.q, ym_scaled);
-    graphs.get_data(2) = SAXSDataset(qo, Io, xerr, sigma);
+    graphs.get_data(2) = SAXSDataset(data.x, data.y, xerr, data.yerr);
     return graphs;
 }
 
@@ -81,14 +84,14 @@ Dataset IntensityFitter::plot_residuals() {
     vector<double> Im = splice(ym);
 
     // calculate the residuals
-    vector<double> residuals(qo.size());
-    for (size_t i = 0; i < qo.size(); ++i) {
-        residuals[i] = ((Io[i] - (a*Im[i]+b))/sigma[i]);
+    vector<double> residuals(data.size());
+    for (size_t i = 0; i < data.size(); ++i) {
+        residuals[i] = ((data.y[i] - (a*Im[i]+b))/data.yerr[i]);
     }
 
     // prepare the TGraph
-    vector<double> xerr(sigma.size(), 0);
-    return Dataset(qo, residuals, xerr, sigma);
+    vector<double> xerr(data.size(), 0);
+    return Dataset(data.x, residuals, xerr, data.yerr);
 }
 
 double IntensityFitter::chi2(const double* params) {
@@ -99,14 +102,17 @@ double IntensityFitter::chi2(const double* params) {
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
-    // fit a, b
-    SimpleLeastSquares fitter(Im, Io, sigma);
+    // we want to fit a*Im + b to Io
+    Dataset fit_data(Im, data.y, data.yerr);
+    if (I0 == -1) {fit_data.normalize(I0);}
+
+    SimpleLeastSquares fitter(fit_data);
     auto[a, b] = fitter.fit_params_only();
 
     // calculate chi2
     double chi = 0;
-    for (size_t i = 0; i < qo.size(); i++) {
-        double v = (Io[i] - (a*Im[i]+b))/sigma[i];
+    for (size_t i = 0; i < data.size(); i++) {
+        double v = (data.x[i] - (a*Im[i]+b))/data.yerr[i];
         chi += v*v;
     }
     return chi;
@@ -137,7 +143,7 @@ SAXSDataset IntensityFitter::get_model_dataset() {
     vector<double> Im = splice(ym);
     std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
 
-    return SAXSDataset(qo, Im, "q", "I"); 
+    return SAXSDataset(data.x, Im, "q", "I"); 
 }
 
 SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
@@ -154,8 +160,5 @@ SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
 }
 
 SAXSDataset IntensityFitter::get_dataset() const {
-    SAXSDataset data(qo, Io, sigma);
-    data.xlabel = "q";
-    data.ylabel = "I";
     return data;
 }

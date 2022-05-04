@@ -134,6 +134,13 @@ void Dataset::scale_y(double factor) {
     if (!yerr.empty()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
 }
 
+void Dataset::normalize(double y0) {
+    double thisy0 = y[0];
+    scale_y(y0/thisy0);
+
+    std::cout << "Scaling y0 down from " << thisy0 << " to " << y0 << ". New value: " << y[0] << std::endl;
+}
+
 void SAXSDataset::simulate_errors() {
     if (yerr.empty()) {yerr.resize(size());}
     if (xerr.empty()) {xerr.resize(size());}
