@@ -176,3 +176,8 @@ unsigned int SimpleIntensityFitter::degrees_of_freedom() const {
 unsigned int SimpleIntensityFitter::dof() const {
     return degrees_of_freedom();
 }
+
+std::shared_ptr<Fit> SimpleIntensityFitter::get_fit() const {
+    if (fitted == nullptr) {throw except::bad_order("Error in SimpleIntensityFitter::get_fit: Cannot get the fit results before a fit has been made!");}
+    return fitted;
+}

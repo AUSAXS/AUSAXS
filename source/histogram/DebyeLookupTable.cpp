@@ -28,6 +28,8 @@ void DebyeLookupTable::initialize(const vector<double>& q, const vector<double>&
         lookup_function = [] (double q, double d) {return default_table.lookup(q, d);};
         index_lookup_function = [] (int i, int j) {return default_table.lookup_index(i, j);};
     } else {
+        utility::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables. ");
+
         // assign the lambda lookup function to a custom table lookup
         initialize(table, q, d);
         lookup_function = [&] (double q, double d) {return table.lookup(q, d);};
@@ -88,7 +90,6 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     Axis& axis = setting::axes::scattering_intensity_plot_axis;
     double width = setting::axes::scattering_intensity_plot_binned_width;
 
-    std::cout << "Checking if default table can be used.." << std::endl;
     if (q.size() != axis.bins) {return false;}
     if (q[0] != axis.min) {return false;}
     if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) {return false;}
@@ -98,7 +99,6 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     if (d[d.size()-1] > default_size) {return false;} // check if too large for default table
     if (!utility::approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
     if (!utility::approx(d[3]-d[2], width)) {return false;} // check second width
-    std::cout << "\tUsing default tables. " << std::endl;
 
     return true;
 }

@@ -10,6 +10,7 @@ Fit::Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double ch
         params.insert({minimizer->VariableName(i), result[i]});
         errors.insert({minimizer->VariableName(i), errs[i]});
     }
+    add_fit(fitter);
 
     figures = fitter.plot();
     residuals = fitter.plot_residuals();
@@ -19,8 +20,31 @@ Fit::Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double ch
     dof = fitter.dof() - vars;
 }
 
+Fit::Fit(const ROOT::Math::Minimizer* const minimizer, double chi2) : chi2(chi2) {
+    unsigned int vars = minimizer->NDim();
+    const double* result = minimizer->X();
+    const double* errs = minimizer->Errors();
+    for (unsigned int i = 0; i < vars; i++) {
+        params.insert({minimizer->VariableName(i), result[i]});
+        errors.insert({minimizer->VariableName(i), errs[i]});
+    }
+
+    if (chi2 == -1) {chi2 = minimizer->MinValue();}
+}
+
 Fit::Fit(std::map<std::string, double>& params, std::map<std::string, double>& errs, const double chi2, const int dof, const int calls, const bool converged) : 
     params(params), errors(errs), chi2(chi2), dof(dof), calls(calls), converged(converged) {}
+
+void Fit::add_fit(Fitter& fitter) {
+    add_fit(fitter.get_fit());
+}
+
+void Fit::add_fit(std::shared_ptr<Fit> fit) {
+    for (const auto e : fit->params) {
+        params.insert({e.first, e.second});
+        errors.insert({e.first, fit->errors.at(e.first)});
+    }
+}
 
 template<typename T>
 struct print_element {

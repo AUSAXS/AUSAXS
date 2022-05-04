@@ -69,3 +69,8 @@ Dataset SimpleLeastSquares::plot_residuals() {
 }
 
 unsigned int SimpleLeastSquares::dof() const {return x.size() - 2;}
+
+std::shared_ptr<Fit> SimpleLeastSquares::get_fit() const {
+    throw except::unexpected("Error in SimpleLeastSquares::get_fit: Not implemented yet. ");
+    return nullptr;
+}

@@ -100,17 +100,16 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     // fit function
-    vector<double> cutoffs;
-    vector<double> chi2s;
     unsigned int counter = 0;
+    Dataset evaluated_points("cutoff", "chi2");
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         auto start = high_resolution_clock::now();
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->chi2;
         auto duration = duration_cast<seconds>(high_resolution_clock::now() - start);
 
-        cutoffs.push_back(params[0]);
-        chi2s.push_back(val);
+        evaluated_points.x.push_back(params[0]);
+        evaluated_points.y.push_back(val);
         std::cout << "\nStep " << ++counter << " took " << duration.count() << " seconds." << std::endl;
         std::cout << "\tEvaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
@@ -130,13 +129,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
 
     const double* result = minimizer->X();
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, minimizer, chi2(result));
-
-    emfit->evaluated_points = Dataset(cutoffs, chi2s, "cutoff", "chi2");
-
-    // normalize to absolute scale
-    // double c = 5*constants::unit::mg/constants::unit::mL;
-    // double M = phm->get_protein()->get_mass();
-    // double I_theo = c*M*4e20;
+    emfit->evaluated_points = evaluated_points;
 
     return emfit;
 }

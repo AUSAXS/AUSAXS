@@ -7,7 +7,11 @@
 /**
  * @brief Perform a simple chi2 fit of a data set to a scattering curve. 
  * 
- * This is just a wrapper around SimpleLeastSquares. 
+ * Two parameters will be fitted: 
+ *    a: The slope of the curve.
+ *    b: The intercept of the curve.
+ * 
+ * This is just a convenient wrapper around SimpleLeastSquares. 
  */
 class SimpleIntensityFitter : public Fitter {
   public: 
@@ -78,7 +82,7 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Destructor.
      */
-    ~SimpleIntensityFitter() override = default;
+    virtual ~SimpleIntensityFitter() override = default;
 
     /**
      * @brief Perform the fit.
@@ -120,6 +124,11 @@ class SimpleIntensityFitter : public Fitter {
      * @brief Get the number of degrees of freedom. 
      */
     unsigned int dof() const override;
+
+    /**
+     * @brief Get the result of the last fit() call. 
+     */
+    virtual std::shared_ptr<Fit> get_fit() const override;
 
   protected: 
     std::shared_ptr<Fit> fitted;

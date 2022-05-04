@@ -15,10 +15,21 @@ class Fit {
 
         /**
          * @brief Smart constructor.
-         * 
-         * Construct a new Fit object based on a Fitter and Minimizer. 
+         *        
+         * Construct a new Fit object based on a Fitter and Minimizer. This is meant to be used when the minimizer optimizes some parameter 
+         * changing the histograms being fitted by the fitter.
          */
         Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double chi2);
+
+        /**
+         * @brief Constructor.
+         * 
+         * Create a new Fit object based on a minimizer. If no chi2 value is provided, it is assumed to be equal to the function minimum. 
+         * 
+         * @param minimizer 
+         * @param chi2 
+         */
+        Fit(const ROOT::Math::Minimizer* const minimizer, double chi2 = -1);
 
         /**
          * @brief Constructor.
@@ -26,6 +37,16 @@ class Fit {
          * Construct a new Fit object. 
          */
         Fit(std::map<std::string, double>& params, std::map<std::string, double>& errs, const double chi2, const int dof, const int calls, const bool converged);
+
+        /**
+         * @brief Add the parameters from another fit to this one. This is useful to add the parameters from an inner fit to an outer one. 
+         */
+        void add_fit(Fitter& fit);
+
+        /**
+         * @brief Add the parameters from another fit to this one. This is useful to add the parameters from an inner fit to an outer one. 
+         */
+        void add_fit(std::shared_ptr<Fit> fit);
 
         /**
          * @brief Get a string representation of this object. 

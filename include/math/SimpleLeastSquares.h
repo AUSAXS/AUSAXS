@@ -29,7 +29,7 @@ class SimpleLeastSquares : public Fitter {
     /**
      * @brief Destructor.
      */
-    ~SimpleLeastSquares() override {}
+    virtual ~SimpleLeastSquares() override = default;
 
     /**
      * @brief Perform a linear least-squares fit and calculate @a only the fitted parameters.
@@ -44,10 +44,24 @@ class SimpleLeastSquares : public Fitter {
      */
     virtual std::shared_ptr<Fit> fit() override;
 
+    /**
+     * @brief Get a multiset containing the fitted curve of the last fit() call. 
+     */
     Multiset plot() override;
 
+    /**
+     * @brief Get a dataset containing the residuals of the last fit() call. 
+     */
     Dataset plot_residuals() override;
 
+    /**
+     * @brief Get the result of the last fit() call.
+     */
+    virtual std::shared_ptr<Fit> get_fit() const override; 
+
+    /**
+     * @brief Get the number of degrees of freedom.
+     */
     unsigned int dof() const override;
 
   private:

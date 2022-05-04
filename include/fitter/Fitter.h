@@ -33,5 +33,7 @@ class Fitter {
      */
     virtual Dataset plot_residuals() = 0;
 
+    virtual std::shared_ptr<Fit> get_fit() const = 0;
+
     virtual unsigned int dof() const = 0;
 };

@@ -6,6 +6,7 @@
 #include <em/ImageStack.h>
 #include <plots/all.h>
 #include <fitter/SimpleIntensityFitter.h>
+#include <fitter/FitReporter.h>
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
     em::ImageStack image("data/A2M_ma.ccp4"); 
@@ -18,7 +19,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 TEST_CASE("test_model", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
+    setting::em::sample_frequency = 2;
     em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
     auto res = image.fit(protein.get_histogram());
@@ -38,6 +39,8 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
     // Residual plot
     plots::PlotIntensityFitResiduals plot_r(res);
     plot_r.save("em_residuals." + setting::figures::format);
+
+    FitReporter::report(res);
 }
 
 TEST_CASE("generate_landscape", "[em],[files],[slow],[manual]") {
