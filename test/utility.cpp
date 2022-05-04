@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <fitter/FitReporter.h>
 #include <plots/PlotOptions.h>
+#include <utility/Utility.h>
 
 using std::vector, std::string;
 
@@ -55,4 +56,22 @@ TEST_CASE("plotoptions", "[utility]") {
         CHECK(options.color == kBlue);
         CHECK(options.alpha == 0.3);
     }
+}
+
+TEST_CASE("utility", "[utility]") {
+    string s = "result should be 92 alright";
+    CHECK(utility::extract_number<string>(s) == "92");
+    CHECK(utility::extract_number<int>(s) == 92);
+
+    s = "okay now it should be 311.51";
+    CHECK(utility::extract_number<string>(s) == "311.51");
+    CHECK(utility::extract_number<double>(s) == 311.51);
+
+    s = "ad713e15.c";
+    CHECK(utility::extract_number<string>(s) == "713");
+    CHECK(utility::extract_number<int>(s) == 713);
+
+    s = "814.98.txt";
+    CHECK(utility::extract_number<string>(s) == "814.98");
+    CHECK(utility::extract_number<double>(s) == 814.98);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 namespace utility {
     /**
@@ -18,6 +19,19 @@ namespace utility {
      *        Note that the input string is modified. 
      */
     std::string remove_spaces(std::string s);
+
+    template<typename T>
+    T extract_number(std::string s) {
+        std::stringstream ss(extract_number<std::string>(s));
+        T val; ss >> val;
+        return val;
+    }
+
+    /**
+     * @brief Remove the extension from a filename. 
+     *        This is just a simple wrapper around filesystem::path::replace_extension.
+     */
+    std::string remove_extension(std::string path);
 
     /**
      * @brief Create all parent directories of the path.

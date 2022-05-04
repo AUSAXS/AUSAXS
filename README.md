@@ -1,5 +1,5 @@
 # Todo
- * [ ] intensity_fitter: Fix units on concentration
+ * [x] intensity_fitter: Fix units on concentration
  * [ ] EM: Create a bunch of figures illustrating cutoff as function of concentration, chi2 landscape for concentrations, fitted values as function of concentrations
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Normalize intensities. 

@@ -180,7 +180,7 @@ TEST_CASE("body_get_mass", "[body]") {
                         Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
 
-    REQUIRE_THAT(body.get_mass(), Catch::Matchers::WithinRel(8*constants::mass::C));
+    REQUIRE_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::C));
 }
 
 TEST_CASE("body_get_cm", "[body]") {

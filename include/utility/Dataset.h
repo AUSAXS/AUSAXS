@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <any>
 
 #include <TGraph.h>
 
@@ -31,6 +32,13 @@ class Dataset {
         /**
          * @brief Constructor. 
          * 
+         * Create a new empty dataset with the given labels.
+         */
+        Dataset(std::string xlabel, std::string ylabel);
+
+        /**
+         * @brief Constructor. 
+         * 
          * Create a new dataset based on a list of x and y coordinates. 
          */
         Dataset(const std::vector<double>& x, const std::vector<double>& y);
@@ -54,7 +62,7 @@ class Dataset {
          * 
          * Create a new labelled dataset based on a list of x and y coordinates. 
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::string xlabel, const std::string ylabel);
+        Dataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel);
 
         /**
          * @brief Destructor. 
@@ -108,6 +116,19 @@ class Dataset {
          * @brief Set the plot options of this dataset.
          */
         void set_plot_options(const plots::PlotOptions& options);
+
+        /**
+         * @brief Set the plot options of this dataset.
+         */
+        void set_plot_options(const std::map<std::string, std::any>& options);
+
+        /**
+         * @brief Set the plot options of this dataset.
+         * 
+         * @param style The plotting style. Should be one of the accepted variations of "markers", "errors", or "line". 
+         * @param options The other plot options.
+         */
+        void set_plot_options(std::string style, std::map<std::string, std::any> options = {});
 
         /**
          * @brief Draw a dataset with its currently set plot options.

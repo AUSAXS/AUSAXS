@@ -30,3 +30,18 @@ void utility::create_directories(std::string& path) {
         path += "." + setting::figures::format;
     }
 }
+
+std::string utility::remove_extension(std::string path) {
+    return std::filesystem::path(path).replace_extension("");
+}
+
+
+template<>
+std::string utility::extract_number<std::string>(std::string s) {
+    unsigned int start = 0;
+    while (!std::isdigit(s[start]) && start != s.size()) {start++;}
+    unsigned int end = start;
+    while ((std::isdigit(s[end]) || s[end] == '.') && end != s.size()) {end++;}
+    while (end > 0 && s[end-1] == '.') {end--;}
+    return s.substr(start, end-start);
+}

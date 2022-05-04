@@ -18,13 +18,21 @@ Dataset::Dataset(const string file) {
     read(file);
 }
 
+Dataset::Dataset(std::string xlabel, std::string ylabel) : xlabel(xlabel), ylabel(ylabel), xerrlabel(xlabel+"err"), yerrlabel(ylabel+"err") {
+    plot_options.xlabel = xlabel;
+    plot_options.ylabel = ylabel;
+}
+
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {
     validate_sizes();
 }
 
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const string xlabel, const string ylabel) 
     : xlabel(xlabel), ylabel(ylabel), xerrlabel(xlabel+"err"), yerrlabel(ylabel+"err"), x(x), y(y) {
-        validate_sizes();
+    
+    validate_sizes();
+    plot_options.xlabel = xlabel;
+    plot_options.ylabel = ylabel;
 }
 
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : x(x), y(y), yerr(yerr) {
@@ -192,4 +200,8 @@ void Dataset::read(const string file) {
     }
 }
 
-void Dataset::set_plot_options(const plots::PlotOptions& options) {this->plot_options = options;}
+void Dataset::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
+
+void Dataset::set_plot_options(const std::map<std::string, std::any>& options) {plot_options.set(options);}
+
+void Dataset::set_plot_options(std::string style, std::map<std::string, std::any> options) {plot_options.set(style, options);}
