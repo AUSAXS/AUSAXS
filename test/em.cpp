@@ -101,7 +101,7 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
     em::ImageStack image("data/native10.ccp4");
     auto hist = image.get_histogram(2);
     auto data = hist.calc_debye_scattering_intensity();
-    data.normalize(1.4);
+    data.normalize(1.1);
     data.simulate_errors();
     data.save("temp/em/simulated_errors.txt");
 

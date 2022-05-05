@@ -151,15 +151,15 @@ void Dataset::save(std::string path) const {
 
     // prepare header & writer function
     std::function<string(unsigned int)> writer;
-    string header;
+    string header = "broken header";
     if (yerr.empty()) {
-        header = xlabel + " " + ylabel;
+        header = xlabel + " " + ylabel + "\n";
         writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + "\n";};
     } else if (xerr.empty()) {
-        header = xlabel + " " + ylabel + " " + yerrlabel;
+        header = xlabel + " " + ylabel + " " + yerrlabel + "\n";
         writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(yerr[i]) + "\n";};
     } else {writer = [&] (unsigned int i) {
-        header = xlabel + " " + ylabel + " " + xerrlabel + " " + yerrlabel;
+        header = xlabel + " " + ylabel + " " + xerrlabel + " " + yerrlabel + "\n";
         return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(xerr[i]) + " " + std::to_string(yerr[i]) + "\n";};
     }
 
@@ -178,8 +178,8 @@ void SAXSDataset::simulate_errors() {
 
     double y0 = y[0];
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
-    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(x, -0.6)*std::pow(y, 0.75)/1000;});
-    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
 }
 
 void SAXSDataset::simulate_noise() {

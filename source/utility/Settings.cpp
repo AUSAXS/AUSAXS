@@ -53,7 +53,7 @@ namespace setting {
         CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; 
         unsigned int sample_frequency = 1; 
         std::vector<double> charge_levels = {1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75, 4, 4.25, 4.5, 4.75, 5, 5.25, 5.5, 5.75, 6, 100000};
-        // unsigned int max_atoms = 50000;
+        double concentration = 2;
     }
 }
 

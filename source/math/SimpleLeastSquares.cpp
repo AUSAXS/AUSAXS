@@ -50,8 +50,10 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
 
 double SimpleLeastSquares::chi2() const {
     double chi = 0;
-    std::cout << "START" << std::endl;
+    // std::cout << "START" << std::endl;
     for (size_t i = 0; i < data.size(); ++i) {
+        // double chi2 = pow((data.y[i] - (a*data.x[i] + b))/data.yerr[i], 2);
+        // std::cout << "index " << i << ": " << chi2 << std::endl;
         chi += pow((data.y[i] - (a*data.x[i] + b))/data.yerr[i], 2);
     }
 

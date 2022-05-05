@@ -16,16 +16,16 @@ namespace setting {
         enum class CullingStrategyChoice {CounterStrategy, OutlierStrategy};
 
         extern PlacementStrategyChoice psc; // The choice of placement algorithm.
-        extern CullingStrategyChoice csc; // The choice of culling algorithm. 
+        extern CullingStrategyChoice csc;   // The choice of culling algorithm. 
 
         extern double percent_water; // The number of generated water molecules as a percent of the number of atoms. 
-        extern double ra; // Radius of protein atoms. 
-        extern double rh; // Radius of water molecules.
-        extern double ra_effective; // Effective radius of protein atoms. This is based on the volume the average atom effectively occupies. 
-        extern double width; // Width of each bin of the grid used to represent this protein.
-        extern double scaling; // The percent increase in grid size in all dimensions when the grid size is automatically deduced based on an input vector of atoms. 
+        extern double ra;            // Radius of protein atoms. 
+        extern double rh;            // Radius of water molecules.
+        extern double ra_effective;  // Effective radius of protein atoms. This is based on the volume the average atom effectively occupies. 
+        extern double width;         // Width of each bin of the grid used to represent this protein.
+        extern double scaling;       // The percent increase in grid size in all dimensions when the grid size is automatically deduced based on an input vector of atoms. 
 
-        extern Limit3D axes; // Default axes for the grid 
+        extern Limit3D axes;         // Default axes for the grid 
 
         namespace placement {
             extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule
@@ -33,18 +33,18 @@ namespace setting {
     }
 
     namespace protein {
-        extern bool center; // Decides if the structure will be centered at origo. 
+        extern bool center;               // Decides if the structure will be centered at origo. 
         extern bool use_effective_charge; // Decides whether the charge of the displaced water will be included. 
     }
 
     namespace axes {
         extern double scattering_intensity_plot_binned_width; // The width of each bin for the scattering plots.
-        extern Axis scattering_intensity_plot_axis; // Axes used for the Debye scattering intensity plots.
+        extern Axis scattering_intensity_plot_axis;           // Axes used for the Debye scattering intensity plots.
     }
 
     namespace fit {
-        extern double q_low; // Lower limit on the used q-values
-        extern double q_high; // Upper limit on the used q-values
+        extern double q_low;   // Lower limit on the used q-values
+        extern double q_high;  // Upper limit on the used q-values
         extern unsigned int N; // Number of points sampled when discretizing a model scattering curve
     }
 
@@ -62,9 +62,9 @@ namespace setting {
         enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
         extern CullingStrategyChoice csc; // The choice of culling algorithm. 
 
-        extern unsigned int sample_frequency; // How often a bin is sampled in any direction. 
+        extern unsigned int sample_frequency;     // How often a bin is sampled in any direction. 
         extern std::vector<double> charge_levels; // The charge levels used by the histogram manager. 
-        // extern unsigned int max_atoms; // The maximum number of atoms which is generated from the input map. 
+        extern double concentration;              // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
     }
 
     // Simple reader for reading settings from a text file

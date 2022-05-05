@@ -105,7 +105,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
     // convert the calculated intensities to absolute scale
     auto protein = phm->get_protein(1);
-    double c = 5;                                                         // concentration
+    double c = setting::em::concentration;                                // concentration
     double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
     double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
     double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
