@@ -8,6 +8,7 @@
 #include <TGraph.h>
 #include <TGraphErrors.h>
 
+#include <utility/Utility.h>
 #include <utility/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Settings.h>
@@ -141,8 +142,38 @@ void Dataset::normalize(double y0) {
     std::cout << "Scaling y0 down from " << thisy0 << " to " << y0 << ". New value: " << y[0] << std::endl;
 }
 
+void Dataset::save(std::string path) const {
+    utility::create_directories(path);
+
+    // check if file was succesfully opened
+    std::ofstream output(path);
+    if (!output.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::save: Could not open file \"" + path + "\"");}
+
+    // prepare header & writer function
+    std::function<string(unsigned int)> writer;
+    string header;
+    if (yerr.empty()) {
+        header = xlabel + " " + ylabel;
+        writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + "\n";};
+    } else if (xerr.empty()) {
+        header = xlabel + " " + ylabel + " " + yerrlabel;
+        writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(yerr[i]) + "\n";};
+    } else {writer = [&] (unsigned int i) {
+        header = xlabel + " " + ylabel + " " + xerrlabel + " " + yerrlabel;
+        return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(xerr[i]) + " " + std::to_string(yerr[i]) + "\n";};
+    }
+
+    // write to disk
+    output << header;
+    for (unsigned int i = 0; i < size(); i++) {
+        output << writer(i);
+    }
+    output.close();
+}
+
 void SAXSDataset::simulate_errors() {
     if (yerr.empty()) {yerr.resize(size());}
+    else {throw except::invalid_operation("Error in Dataset::simulate_errors: Dataset already contains errors!");}
     if (xerr.empty()) {xerr.resize(size());}
 
     double y0 = y[0];
@@ -205,6 +236,7 @@ void Dataset::read(const string file) {
         y.push_back(_I);
         yerr.push_back(_sigma); 
     }
+    input.close();
 }
 
 void Dataset::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}

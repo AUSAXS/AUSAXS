@@ -104,15 +104,16 @@ double IntensityFitter::chi2(const double* params) {
 
     // we want to fit a*Im + b to Io
     Dataset fit_data(Im, data.y, data.yerr);
-    if (I0 == -1) {fit_data.normalize(I0);}
+    if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
     auto[a, b] = fitter.fit_params_only();
 
     // calculate chi2
+    std::cout << "FITDATA: " << fit_data.y[0] << ", DATA: " << data.y[0] << std::endl;
     double chi = 0;
     for (size_t i = 0; i < data.size(); i++) {
-        double v = (data.x[i] - (a*Im[i]+b))/data.yerr[i];
+        double v = (data.y[i] - (a*Im[i]+b))/data.yerr[i];
         chi += v*v;
     }
     return chi;
@@ -154,9 +155,9 @@ SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
     double c = fitted->params["c"];
 
     h.apply_water_scaling_factor(c);
-    SAXSDataset data = h.calc_debye_scattering_intensity(q);
-    std::transform(data.y.begin(), data.y.end(), data.y.begin(), [&a, &b] (double I) {return I*a+b;});
-    return data;
+    SAXSDataset model = h.calc_debye_scattering_intensity(q);
+    std::transform(model.y.begin(), model.y.end(), model.y.begin(), [&a, &b] (double I) {return I*a+b;});
+    return model;
 }
 
 SAXSDataset IntensityFitter::get_dataset() const {

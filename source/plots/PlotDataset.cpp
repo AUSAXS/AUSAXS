@@ -18,17 +18,14 @@ plots::PlotDataset::PlotDataset(const Dataset& data) : Plot() {
 plots::PlotDataset::~PlotDataset() = default;
 
 void plots::PlotDataset::initial_plot(const Dataset& data) {
-    plots::PlotOptions options = data.plot_options;
-    options.set({{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-
-    draw(data, options);
+    draw(data, canvas);
 }
 
 void plots::PlotDataset::plot(const Dataset& data) {
     plots::PlotOptions options = data.plot_options;
     options.use_existing_axes = true;
 
-    draw(data, options);
+    draw(data, options, canvas);
 }
 
 void plots::PlotDataset::save(std::string path) const {

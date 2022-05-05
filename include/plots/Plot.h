@@ -69,17 +69,17 @@ namespace plots {
 	};
 
 	[[maybe_unused]]
-	void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options);
+	void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
 
 	[[maybe_unused]]
-	void draw(const std::shared_ptr<TGraph> graph);
+	void draw(const std::shared_ptr<TGraph> graph, const std::shared_ptr<TCanvas> canvas = nullptr);
 
 	[[maybe_unused]]
-	void draw(const Dataset& data);
+	void draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas = nullptr);
 
 	[[maybe_unused]]
-	void draw(const Dataset& data, const PlotOptions& options);
+	void draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
 
 	[[maybe_unused]]
-	void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options);
+	void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
 }

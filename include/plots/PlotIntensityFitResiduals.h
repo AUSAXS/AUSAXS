@@ -52,7 +52,7 @@ namespace plots {
 		void save(std::string path) const override;
 
 		private:
-		std::unique_ptr<TCanvas> canvas;
+		std::shared_ptr<TCanvas> canvas;
 
 		void plot(const Dataset graph) const;
 

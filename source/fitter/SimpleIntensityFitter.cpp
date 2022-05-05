@@ -42,6 +42,7 @@ shared_ptr<Fit> SimpleIntensityFitter::fit() {
 
     SimpleLeastSquares fitter(fit_data);
     fitted = fitter.fit();
+
     return fitted;
 }
 

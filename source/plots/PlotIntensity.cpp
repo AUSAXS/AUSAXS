@@ -47,7 +47,7 @@ void plots::PlotIntensity::initial_intensity_plot(int color) {
     ymax = hI_debye->GetMaximum();
     hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
     
-    draw(hI_debye, options);
+    draw(hI_debye, options, canvas);
 }
 
 void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
@@ -60,7 +60,7 @@ void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
     ymax = graph->GetYaxis()->GetXmax();
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
-    draw(graph, options);
+    draw(graph, options, canvas);
 }
 
 void plots::PlotIntensity::plot_intensity(const Dataset& data) {
@@ -71,7 +71,7 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data) {
     linpad->cd();
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
-    draw(graph, options);
+    draw(graph, options, canvas);
 }
 
 void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, const PlotOptions& plot_options) {
@@ -82,7 +82,7 @@ void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, const 
     linpad->cd();
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
-    draw(graph, options);
+    draw(graph, options, canvas);
 }
 
 void plots::PlotIntensity::plot_guinier_approx() {

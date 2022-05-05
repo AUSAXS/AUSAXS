@@ -92,6 +92,11 @@ namespace em {
             histogram::ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
 
             /**
+             * @brief Get the protein generated with the chosen cutoff value.
+             */
+            std::shared_ptr<Protein> get_protein(double cutoff) const;
+
+            /**
              * @brief Create a new Grid based on this object. 
              * 
              * @param cutoff The cutoff value. If positive, atoms will be generated at all pixel values higher than this. If negative, they will be generated at pixels lower than this. 

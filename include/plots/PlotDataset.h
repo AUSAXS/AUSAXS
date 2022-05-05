@@ -29,7 +29,7 @@ namespace plots {
 			void save(std::string path) const override;
 
 		private:
-			std::unique_ptr<TCanvas> canvas;
+			std::shared_ptr<TCanvas> canvas;
 
 			void initial_plot(const Dataset& data);
 

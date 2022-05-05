@@ -86,6 +86,10 @@ histogram::ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<E
     return get_histogram(res->params.at("cutoff"));
 }
 
+std::shared_ptr<Protein> ImageStack::get_protein(double cutoff) const {
+    return phm->get_protein(cutoff);
+}
+
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const histogram::ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
     determine_minimum_bounds();

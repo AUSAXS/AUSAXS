@@ -35,6 +35,8 @@ namespace plots {
             bool draw_errors = true;        // Draw error bars if possible
             bool draw_markers = false;      // Draw a marker for each point
             bool use_existing_axes = false; // Draw with existing axes. Must be false for the first plot on each canvas. 
+            bool logx = false;              // Log scale for the x-axis. Only valid if use_existing_axes is false.  
+            bool logy = false;              // Log scale for the y-axis. Only valid if use_existing_axes is false. 
             std::string title = "";         // Title
             std::string xlabel = "";        // Label for the x-axis
             std::string ylabel = "";        // Label for the y-axis
@@ -44,7 +46,7 @@ namespace plots {
             PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
 
         private: 
-            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL};
+            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY};
             const inline static std::map<option, std::vector<std::string>> aliases = {
                 {option::COLOR, {"color", "colour", "c"}},
                 {option::ALPHA, {"alpha"}},
@@ -57,7 +59,9 @@ namespace plots {
                 {option::USE_EXISTING_AXES, {"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}},
                 {option::TITLE, {"title"}},
                 {option::XLABEL, {"xlabel"}},
-                {option::YLABEL, {"ylabel"}}
+                {option::YLABEL, {"ylabel"}},
+                {option::LOGX, {"logx", "log_x"}},
+                {option::LOGY, {"logy", "log_y"}}
             };
 
             void parse(std::string key, std::any val);

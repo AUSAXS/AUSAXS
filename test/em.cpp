@@ -93,6 +93,23 @@ TEST_CASE("plot_pdb_as_points", "[em],[files]") {
     plot.save("plot_pdb_as_points_test.pdf");
 }
 
+TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
+    setting::fit::q_high = 0.4;
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 2;
+
+    em::ImageStack image("data/native10.ccp4");
+    auto hist = image.get_histogram(2);
+    auto data = hist.calc_debye_scattering_intensity();
+    data.normalize(1.4);
+    data.simulate_errors();
+    data.save("temp/em/simulated_errors.txt");
+
+    data.set_plot_options("errors", {{"logx", true}, {"logy", true}});
+    plots::PlotDataset plot(data);
+    plot.save("temp/em/check_errors.pdf");
+}
+
 TEST_CASE("staining_and_limits", "[em],[files]") {
     SECTION("maptest.ccp4") {
         em::ImageStack image("data/maptest.ccp4");

@@ -121,6 +121,12 @@ void PlotOptions::set(const option opt, string name, std::any val) {
         case option::YLABEL: 
             ylabel = get_string(name, val);
             break;
+        case option::LOGX: 
+            logx = get_bool(name, val);
+            break;
+        case option::LOGY: 
+            logy = get_bool(name, val);
+            break;
         default: 
             throw except::unexpected("Error in PlotOptions::set: Received unhandled valid option \"" + name + "\".");
     }

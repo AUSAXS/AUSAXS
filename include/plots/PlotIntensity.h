@@ -55,7 +55,7 @@ namespace plots {
 
 		private:
 		const histogram::ScatteringHistogram d;
-		std::unique_ptr<TCanvas> canvas;
+		std::shared_ptr<TCanvas> canvas;
 		std::unique_ptr<TPad> linpad;
 		std::unique_ptr<TPad> logpad;
 		double ymin, ymax;

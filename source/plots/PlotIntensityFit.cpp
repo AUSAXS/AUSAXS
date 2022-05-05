@@ -40,9 +40,9 @@ void plots::PlotIntensityFit::plot(const Multiset& graphs) const {
     options1.set("line", {{"color", kBlack}, {"share_axis", true}});
     options0.set("markers", {{"color", kBlack}, {"share_axis", true}});
 
-    draw(graphs[2], options2);
-    draw(graphs[0], options0);
-    draw(graphs[1], options1);
+    draw(graphs[2], options2, canvas);
+    draw(graphs[0], options0, canvas);
+    draw(graphs[1], options1, canvas);
 }
 
 void plots::PlotIntensityFit::prepare_canvas() {

@@ -140,6 +140,11 @@ class Dataset {
          */
         static void draw(const Dataset& data);
 
+        /**
+         * @brief Write this dataset to the specified file. 
+         */
+        void save(std::string path) const;
+
         std::string xlabel = "x";
         std::string ylabel = "y";
         std::string xerrlabel = "xerr";
