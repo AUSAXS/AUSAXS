@@ -25,8 +25,8 @@ using namespace setting::em;
 using namespace em;
 
 ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution, CullingStrategyChoice csc) 
-    : size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
-
+    : resolution(resolution), size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
+    
     data = images;
     setup(csc);
 }

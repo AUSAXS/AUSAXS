@@ -18,44 +18,44 @@ namespace plots {
 	 */
 	class PlotIntensityFit : public Plot {
 		public:
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-		 */
-		PlotIntensityFit(SimpleIntensityFitter& fitter);
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+			 */
+			PlotIntensityFit(SimpleIntensityFitter& fitter);
 
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-		 */
-		PlotIntensityFit(const Fit& fit);
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+			 */
+			PlotIntensityFit(const Fit& fit);
 
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-		 */
-		PlotIntensityFit(const std::shared_ptr<Fit> fit);
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+			 */
+			PlotIntensityFit(const std::shared_ptr<Fit> fit);
 
-		/**
-		 * @brief Destructor.
-		 */
-		~PlotIntensityFit() override;
+			/**
+			 * @brief Destructor.
+			 */
+			~PlotIntensityFit() override;
 
-		/**
-		 * @brief Create and save the plot at the given path. 
-		 * 
-		 * @param path Save location and format. 
-		 */
-		void save(std::string path) const override;
+			/**
+			 * @brief Create and save the plot at the given path. 
+			 * 
+			 * @param path Save location and format. 
+			 */
+			void save(std::string path) const override;
 
 		private:
-		std::shared_ptr<TCanvas> canvas;
+			std::shared_ptr<TCanvas> canvas;
 
-		void plot(const Multiset& graphs) const;
+			void plot(const Multiset& graphs) const;
 
-		void prepare_canvas();
+			void prepare_canvas();
 	};
 }

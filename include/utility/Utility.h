@@ -42,4 +42,9 @@ namespace utility {
      * @brief Print a warning message. The text will be red in the terminal. 
      */
     void print_warning(std::string text);
+
+    /**
+     * @brief Get a unique identifier. 
+     */
+    unsigned int uid();
 }

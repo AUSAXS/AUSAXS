@@ -14,7 +14,7 @@ int main(int argc, char const *argv[]) {
     string pdb_file = argv[1];
 
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
     // plot pdb file
@@ -36,7 +36,8 @@ int main(int argc, char const *argv[]) {
     for (int i = 2; i < argc; i++) {
         std::cout << "Now fitting " << argv[i] << "..." << std::endl;
         string current_file = argv[i];
-        em::ImageStack image(current_file);
+        unsigned int resolution = utility::extract_number<unsigned int>(current_file);
+        em::ImageStack image(current_file, resolution);
         auto hist = protein.get_histogram();
         auto fit = image.fit(hist);
 
@@ -44,8 +45,8 @@ int main(int argc, char const *argv[]) {
         fits.push_back(*fit);
         paths.push_back(current_file);
 
-        // prepare dataset for concentration v. resolution plot
-        fitted_vals.x.push_back(utility::extract_number<unsigned int>(current_file));
+        // prepare dataset for cutoff v. resolution plot
+        fitted_vals.x.push_back(resolution);
         fitted_vals.y.push_back(fit->params["cutoff"]);
         fitted_vals.yerr.push_back(fit->errors["cutoff"]);
 
@@ -53,8 +54,8 @@ int main(int argc, char const *argv[]) {
         plot.plot_intensity(fit, cols.At(color_step*(i-1)));
 
         // chi2 landscape plot
-        Dataset contour = image.cutoff_scan({10, 0, 6}, hist);
-        Dataset evaluated_points = image.fit(hist)->evaluated_points;
+        Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
+        Dataset evaluated_points = fit->evaluated_points;
         evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
         plots::PlotDataset plot(contour);

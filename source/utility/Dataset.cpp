@@ -136,10 +136,7 @@ void Dataset::scale_y(double factor) {
 }
 
 void Dataset::normalize(double y0) {
-    double thisy0 = y[0];
-    scale_y(y0/thisy0);
-
-    std::cout << "Scaling y0 down from " << thisy0 << " to " << y0 << ". New value: " << y[0] << std::endl;
+    scale_y(y0/y[0]);
 }
 
 void Dataset::save(std::string path) const {
@@ -173,13 +170,14 @@ void Dataset::save(std::string path) const {
 
 void SAXSDataset::simulate_errors() {
     if (yerr.empty()) {yerr.resize(size());}
-    else {throw except::invalid_operation("Error in Dataset::simulate_errors: Dataset already contains errors!");}
+    else {utility::print_warning("Warning in Dataset::simulate_errors: Overwriting existing errors.");}
     if (xerr.empty()) {xerr.resize(size());}
 
     double y0 = y[0];
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
-    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y0/std::pow(x, 1.2)*1e-5 + 1e-4*y0;});
 }
 
 void SAXSDataset::simulate_noise() {

@@ -1,8 +1,8 @@
 # Todo
  * [x] intensity_fitter: Fix units on concentration
- * [ ] EM: Create a bunch of figures illustrating cutoff as function of concentration, chi2 landscape for concentrations, fitted values as function of concentrations
+ * [x] EM: Create a bunch of figures illustrating cutoff as function of concentration, chi2 landscape for concentrations, fitted values as function of concentrations
  * [ ] General: Consistency check of DrhoM
- * [ ] EM: Normalize intensities. 
+ * [x] EM: Normalize intensities. 
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z
  * [ ] Atom: Rename "effective charge" to "relative charge". Apply this change globally. 

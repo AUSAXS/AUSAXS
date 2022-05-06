@@ -19,18 +19,17 @@ TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
     plot.save("temp/compare_errors.pdf");
 }
 
-TEST_CASE("dataset_sim_noise", "[dataset],[files],[manual]") {
-    SAXSDataset data1("data/2epe.RSR");
-    SAXSDataset data2 = data1;
-    data2.simulate_errors();
-    data2.simulate_noise();
+TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
+    vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    vector<double> y = {2, 3, 1, 5, 1, 3, 2, 6, 7, 3};
+    vector<double> yerr = {0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5};
+    SAXSDataset data(x, y, yerr);
+    data.simulate_noise();
 
-    data1.plot_options.set({{"color", kBlack}, {"draw_line", false}, {"draw_markers", true}, {"draw_errors", false}, {"lw", 2}});
-    data2.plot_options.set({{"color", kOrange+2}, {"draw_line", false}, {"draw_markers", true}, {"draw_errors", false}, {"lw", 2}});
-
-    plots::PlotIntensity plot(data1);
-    plot.plot_intensity(data2);
-    plot.save("temp/compare_noise.pdf");
+    // make histogram of (data.y - y)/yerr, should be gaussian
+    // probably requires an implementation of generate_random_dataset or something like that - 10 points is not enough
+    for (unsigned int i = 0; i < yerr.size(); i++) {
+    }
 }
 
 TEST_CASE("dataset_read", "[dataset],[files]") {

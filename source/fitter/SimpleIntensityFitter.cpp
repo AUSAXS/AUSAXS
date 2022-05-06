@@ -26,10 +26,11 @@ SimpleIntensityFitter::SimpleIntensityFitter(const histogram::ScatteringHistogra
 
 void SimpleIntensityFitter::model_setup(const histogram::ScatteringHistogram& model, const Limit& limits) {
     data = model.calc_debye_scattering_intensity();
-    data.reduce(setting::fit::N);
+    data.reduce(setting::fit::N, true);
     data.limit(limits);
     data.simulate_errors();
     if (I0 > 0) {data.normalize(I0);}
+    // data.simulate_noise();
 }
 
 shared_ptr<Fit> SimpleIntensityFitter::fit() {

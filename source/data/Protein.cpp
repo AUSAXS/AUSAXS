@@ -54,6 +54,14 @@ void Protein::translate(const Vector3& v) {
     }
 }
 
+SAXSDataset Protein::simulate_dataset() {
+    SAXSDataset data = get_histogram().calc_debye_scattering_intensity();
+    data.reduce(setting::fit::N, true);
+    data.simulate_errors();
+    data.simulate_noise();
+    return data;
+}
+
 void Protein::save(string path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {

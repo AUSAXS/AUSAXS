@@ -89,6 +89,11 @@ class Protein {
      */
     histogram::Histogram get_total_histogram() const;
 
+    /**
+     * @brief Simulate a SAXS dataset based on this protein.
+     */
+    SAXSDataset simulate_dataset();
+
     /** 
      * @brief Writes this body to disk.
      * @param path path to the destination. 

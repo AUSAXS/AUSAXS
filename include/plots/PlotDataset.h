@@ -26,7 +26,18 @@ namespace plots {
 			 */
 			void plot(const Dataset& data);
 
+            /**
+             * @brief Save this image at the given location in the specified format. 
+             * 
+             * @param path The path & format of the image. 
+             */
 			void save(std::string path) const override;
+
+			/**
+			 * @brief Plot and save the input dataset and the specified location. 
+			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
+			 */
+			static void quick_plot(const Dataset& data, std::string path);
 
 		private:
 			std::shared_ptr<TCanvas> canvas;

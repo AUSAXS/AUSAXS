@@ -16,7 +16,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
     plot.save("test.pdf");
 }
 
-TEST_CASE("test_model", "[em],[files],[slow]") {
+TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
@@ -41,6 +41,37 @@ TEST_CASE("test_model", "[em],[files],[slow]") {
     plot_r.save("em_residuals." + setting::figures::format);
 
     FitReporter::report(res);
+}
+
+TEST_CASE("check_chi2", "[em],[files]") {
+    setting::fit::q_high = 0.4;
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 2;
+    Protein protein("data/2epe.pdb");
+    SAXSDataset data = protein.simulate_dataset();
+
+    SimpleIntensityFitter fitter(data, protein.get_histogram());
+    auto res = fitter.fit();
+    REQUIRE_THAT(res->chi2/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
+    plots::PlotIntensityFit plot1(res);
+    plot1.save("temp/em/check_chi2_1.pdf");
+
+    // check that reduced chi2 is ~1
+    std::cout << "Reduced chi2 is " << res->chi2/res->dof << std::endl;
+
+    data.scale_errors(2);
+    fitter = SimpleIntensityFitter(data, protein.get_histogram());
+    res = fitter.fit();
+    REQUIRE_THAT(res->chi2/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
+    plots::PlotIntensityFit plot2(res);
+    plot2.save("temp/em/check_chi2_2.pdf");
+
+    data.scale_errors(1./4);
+    fitter = SimpleIntensityFitter(data, protein.get_histogram());
+    res = fitter.fit();
+    REQUIRE_THAT(res->chi2/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
+    plots::PlotIntensityFit plot3(res);
+    plot3.save("temp/em/check_chi2_3.pdf");
 }
 
 TEST_CASE("generate_landscape", "[em],[files],[slow],[manual]") {

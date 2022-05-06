@@ -33,6 +33,11 @@ void plots::PlotDataset::save(std::string path) const {
     canvas->SaveAs(path.c_str());
 }
 
+void plots::PlotDataset::quick_plot(const Dataset& data, std::string path) {
+    plots::PlotDataset plot(data);
+    plot.save(path);
+}
+
 void plots::PlotDataset::prepare_canvas() {
     canvas = std::make_unique<TCanvas>("PlotDatasetCanvas", "canvas", 600, 600);
 }
