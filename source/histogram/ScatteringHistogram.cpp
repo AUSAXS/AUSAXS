@@ -13,7 +13,7 @@
 
 using std::vector;
 using namespace ROOT;
-using namespace histogram;
+using namespace hist;
 
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents

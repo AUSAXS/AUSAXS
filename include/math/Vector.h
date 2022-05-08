@@ -253,6 +253,9 @@ class Vector {
         // Read-write iterator
         typename std::vector<T>::iterator end() {return data.end();}
 
+        // Add data to the end of this Vector. 
+        void push_back(T val) {data.push_back(val); N++;}
+
         /**
          * @brief Get the size of this Vector.
          */

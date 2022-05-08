@@ -18,14 +18,14 @@ namespace plots {
 		 * 
 		 * @param d The ScatteringHistogram to be plotted. 
 		 */
-		PlotIntensity(const histogram::ScatteringHistogram& d, int color = kBlack);
+		PlotIntensity(const hist::ScatteringHistogram& d, int color = kBlack);
 
 		/**
 		 * @brief Move constructor.
 		 * 
 		 * @param d The ScatteringHistogram to be plotted. 
 		 */
-		PlotIntensity(histogram::ScatteringHistogram&& d, int color = kBlack);
+		PlotIntensity(hist::ScatteringHistogram&& d, int color = kBlack);
 
 		/**
 		 * @brief Constructor.
@@ -54,7 +54,7 @@ namespace plots {
 		void save(std::string path) const override;
 
 		private:
-		const histogram::ScatteringHistogram d;
+		const hist::ScatteringHistogram d;
 		std::shared_ptr<TCanvas> canvas;
 		std::unique_ptr<TPad> linpad;
 		std::unique_ptr<TPad> logpad;

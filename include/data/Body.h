@@ -55,7 +55,7 @@ class Body {
     /**
      * @brief Get the distances between each atom.
      */
-    std::shared_ptr<histogram::ScatteringHistogram> get_histogram();
+    std::shared_ptr<hist::ScatteringHistogram> get_histogram();
 
     /** 
      * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.
@@ -212,7 +212,7 @@ class Body {
   private:
     std::shared_ptr<File> file = nullptr;                     // The file backing this body
     std::shared_ptr<Grid> grid = nullptr;                     // The grid representation of this body
-    std::shared_ptr<histogram::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+    std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
     shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 

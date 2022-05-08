@@ -1,9 +1,11 @@
 #include <plots/Plot.h>
 #include <utility/Exceptions.h>
+#include <histogram/Histogram.h>
 
-#include <TGraphErrors.h>
 #include <TPad.h>
+#include <TH1D.h>
 #include <TCanvas.h>
+#include <TGraphErrors.h>
 
 void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     // handle colors and markers
@@ -54,6 +56,12 @@ void plots::draw(const Dataset& data, const PlotOptions& options, const std::sha
     if (!data.yerr.empty()) {graph = std::make_shared<TGraphErrors>(data.x.size(), data.x.data(), data.y.data(), data.xerr.data(), data.yerr.data());}
     else {graph = std::make_shared<TGraph>(data.x.size(), data.x.data(), data.y.data());}
     draw(graph, options, canvas);
+}
+
+void plots::draw(const hist::Histogram& hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
+    std::shared_ptr<TH1D> h = std::make_unique<TH1D>("hist", "hist", hist.axis.bins, hist.axis.min, hist.axis.max);
+    std::for_each(hist.p.begin(), hist.p.end(), [&h] (double val) {h->Fill(val);});
+    draw(h, options, canvas);
 }
 
 void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {

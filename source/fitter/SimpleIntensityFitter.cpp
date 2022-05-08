@@ -16,15 +16,15 @@
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
-SimpleIntensityFitter::SimpleIntensityFitter(const histogram::ScatteringHistogram& data, const histogram::ScatteringHistogram& model, const Limit& limits) : h(data) {
+SimpleIntensityFitter::SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
     model_setup(model, limits);
 }
 
-SimpleIntensityFitter::SimpleIntensityFitter(const histogram::ScatteringHistogram& model, const Limit& limits) {
+SimpleIntensityFitter::SimpleIntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) {
     model_setup(model, limits);
 }
 
-void SimpleIntensityFitter::model_setup(const histogram::ScatteringHistogram& model, const Limit& limits) {
+void SimpleIntensityFitter::model_setup(const hist::ScatteringHistogram& model, const Limit& limits) {
     data = model.calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.limit(limits);
@@ -96,11 +96,11 @@ Dataset SimpleIntensityFitter::plot_residuals() {
     return Dataset(data.x, residuals, xerr, data.yerr);
 }
 
-void SimpleIntensityFitter::set_scattering_hist(histogram::ScatteringHistogram&& h) {
+void SimpleIntensityFitter::set_scattering_hist(hist::ScatteringHistogram&& h) {
     this->h = std::move(h);
 }
 
-void SimpleIntensityFitter::set_scattering_hist(const histogram::ScatteringHistogram& h) {
+void SimpleIntensityFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
     this->h = h;
 }
 

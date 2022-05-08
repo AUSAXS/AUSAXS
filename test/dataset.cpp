@@ -20,16 +20,18 @@ TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
 }
 
 TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
-    vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    vector<double> y = {2, 3, 1, 5, 1, 3, 2, 6, 7, 3};
-    vector<double> yerr = {0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5};
-    SAXSDataset data(x, y, yerr);
+    Dataset data = Dataset::generate_random_data(10000);
+    Dataset data2(data);
     data.simulate_noise();
 
-    // make histogram of (data.y - y)/yerr, should be gaussian
-    // probably requires an implementation of generate_random_dataset or something like that - 10 points is not enough
-    for (unsigned int i = 0; i < yerr.size(); i++) {
+    hist::Histogram hist;
+    for (unsigned int i = 0; i < data.size(); i++) {
+        double diff = (data2.y[i] - data.y[i])/data2.yerr[i];
+        hist.p.push_back(diff);
     }
+
+    hist.generate_axis();
+    plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.pdf");
 }
 
 TEST_CASE("dataset_read", "[dataset],[files]") {

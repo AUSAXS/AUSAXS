@@ -32,7 +32,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param input The path to the file containing the measured values. 
      * @param h The ScatteringHistogram to fit. 
      */
-    SimpleIntensityFitter(std::string input, const histogram::ScatteringHistogram& h) : h(h) {setup(input);}
+    SimpleIntensityFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
 
     /**
      * @brief Constructor.
@@ -42,7 +42,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param input the path to the file containing the measured values. 
      * @param h The ScatteringHistogram to fit. 
      */
-    SimpleIntensityFitter(std::string input, histogram::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+    SimpleIntensityFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 
     /**
      * @brief Constructor. 
@@ -56,7 +56,7 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * Prepare a fit of the histogram to the dataset. 
      */
-    SimpleIntensityFitter(const SAXSDataset& data, const histogram::ScatteringHistogram& hist) : data(data), h(hist) {}
+    SimpleIntensityFitter(const SAXSDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
 
     /**
      * @brief Constructor.
@@ -67,7 +67,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param model The model histogram. 
      * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const histogram::ScatteringHistogram& data, const histogram::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
+    SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
 
     /**
      * @brief Constructor.
@@ -77,7 +77,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param model The model histogram. 
      * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const histogram::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
+    SimpleIntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
 
     /**
      * @brief Destructor.
@@ -108,12 +108,12 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Change the scattering histogram used for the fit. 
      */
-    void set_scattering_hist(const histogram::ScatteringHistogram& h);
+    void set_scattering_hist(const hist::ScatteringHistogram& h);
 
     /**
      * @brief Change the scattering histogram used for the fit. 
      */
-    void set_scattering_hist(histogram::ScatteringHistogram&& h);
+    void set_scattering_hist(hist::ScatteringHistogram&& h);
 
     /**
      * @brief Normalize all internally calculated intensities such that they start at this value.  
@@ -136,10 +136,10 @@ class SimpleIntensityFitter : public Fitter {
     virtual std::shared_ptr<Fit> get_fit() const override;
 
   protected: 
-    std::shared_ptr<Fit> fitted;      // The previous fit result
-    SAXSDataset data;                 // Observed data set
-    double I0 = -1;                   // Normalization intensity
-    histogram::ScatteringHistogram h; // The scattering histogram to fit
+    std::shared_ptr<Fit> fitted; // The previous fit result
+    SAXSDataset data;            // Observed data set
+    double I0 = -1;              // Normalization intensity
+    hist::ScatteringHistogram h; // The scattering histogram to fit
 
     /**
      * @brief Calculate chi2 for a given choice of parameters @a params.
@@ -170,5 +170,5 @@ class SimpleIntensityFitter : public Fitter {
     /**
      * @brief Initialize this class based on a model histogram. 
      */
-    void model_setup(const histogram::ScatteringHistogram& model, const Limit& limits);
+    void model_setup(const hist::ScatteringHistogram& model, const Limit& limits);
 };

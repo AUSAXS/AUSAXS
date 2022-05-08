@@ -15,12 +15,12 @@
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
-plots::PlotIntensity::PlotIntensity(histogram::ScatteringHistogram&& d, int color) : Plot(), d(std::move(d)) {
+plots::PlotIntensity::PlotIntensity(hist::ScatteringHistogram&& d, int color) : Plot(), d(std::move(d)) {
     prepare_canvas();
     initial_intensity_plot(color);
 }
 
-plots::PlotIntensity::PlotIntensity(const histogram::ScatteringHistogram& d, int color) : Plot(), d(d) {
+plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, int color) : Plot(), d(d) {
     prepare_canvas();
     initial_intensity_plot(color);
 }

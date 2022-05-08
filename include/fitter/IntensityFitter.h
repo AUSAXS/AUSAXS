@@ -21,7 +21,7 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param input The path to the file containing the measured values. 
      * @param h The histogram.
      */
-    IntensityFitter(std::string input, const histogram::ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
+    IntensityFitter(std::string input, const hist::ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
 
     /**
      * @brief Constructor.
@@ -30,7 +30,7 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param input The path to the file containing the measured values. 
      * @param h The histogram.
      */
-    IntensityFitter(std::string input, histogram::ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
+    IntensityFitter(std::string input, hist::ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
 
     /**
      * @brief Destructor.

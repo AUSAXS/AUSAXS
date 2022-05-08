@@ -80,7 +80,7 @@ TEST_CASE("generate_landscape", "[em],[files],[slow],[manual]") {
     setting::em::sample_frequency = 2;
     em::ImageStack image("data/native10.ccp4");
     Protein protein("data/native.pdb");
-    histogram::ScatteringHistogram hist(protein.get_histogram());
+    hist::ScatteringHistogram hist(protein.get_histogram());
 
     Dataset res = image.cutoff_scan({10, 1, 6}, hist);
     Dataset fit = image.fit(hist)->evaluated_points;

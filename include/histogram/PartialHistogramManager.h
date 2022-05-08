@@ -9,7 +9,7 @@ class Protein;
 #include <histogram/ScatteringHistogram.h>
 #include <histogram/Histogram.h>
 
-namespace histogram {
+namespace hist {
 		/**
 		 * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
 		 *        The idea is that by only extracting the absolute necessities for the distance calculation, more values can be stored

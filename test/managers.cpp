@@ -29,7 +29,7 @@ TEST_CASE("state_manager", "[managers]") {
 TEST_CASE("partial_histogram_manager_works", "[managers]") {
     vector<Body> bodies(5);
     Protein protein(bodies);
-    shared_ptr<histogram::PartialHistogramManager> phm = protein.get_histogram_manager();
+    shared_ptr<hist::PartialHistogramManager> phm = protein.get_histogram_manager();
     StateManager& manager = phm->get_state_manager();
 
     manager.reset();
@@ -42,7 +42,7 @@ TEST_CASE("protein_manager", "[managers]") {
     vector<Body> bodies(5);
     Protein protein(bodies);
 
-    shared_ptr<histogram::PartialHistogramManager> phm = protein.get_histogram_manager();
+    shared_ptr<hist::PartialHistogramManager> phm = protein.get_histogram_manager();
     StateManager& manager = phm->get_state_manager();
 
     manager.reset();
@@ -80,8 +80,8 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
     setting::protein::use_effective_charge = false;
 
     auto compare = [] (em::PartialHistogramManager& manager, double cutoff) {
-        histogram::ScatteringHistogram h1 = manager.get_histogram_slow(cutoff);
-        histogram::ScatteringHistogram h2 = manager.get_histogram(cutoff);
+        hist::ScatteringHistogram h1 = manager.get_histogram_slow(cutoff);
+        hist::ScatteringHistogram h2 = manager.get_histogram(cutoff);
 
         if (h1.p.size() != h2.p.size()) {
             cout << "Unequal sizes. " << endl;

@@ -145,6 +145,20 @@ class Dataset {
          */
         void save(std::string path) const;
 
+        /**
+         * @brief Simulate Gaussian noise on the y-values based on the errors. 
+         */
+        void simulate_noise();
+
+        /**
+         * @brief Generate a randomized dataset.
+         * 
+         * @param size Size of the dataset.
+         * @param min Minimum generated value.
+         * @param max Maxium generated value. 
+         */
+        static Dataset generate_random_data(unsigned int size, double min = 0, double max = 1);
+
         std::string xlabel = "x";
         std::string ylabel = "y";
         std::string xerrlabel = "xerr";
@@ -177,11 +191,6 @@ class SAXSDataset : public Dataset {
          * @brief Generate errors for the y-values mimicking what one would find experimentally. 
          */
         void simulate_errors();
-
-        /**
-         * @brief Simulate Gaussian noise on the y-values based on the errors. 
-         */
-        void simulate_noise();
 
         /**
          * @brief Set the resolution of this dataset. 

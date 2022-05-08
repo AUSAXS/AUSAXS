@@ -5,7 +5,7 @@
 #include <histogram/ScatteringHistogram.h>
 #include <histogram/PartialHistogramManager.h>
 
-using namespace histogram;
+using namespace hist;
 
 CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_atoms.size()), data(size) {
     for (unsigned int i = 0; i < size; i++) {

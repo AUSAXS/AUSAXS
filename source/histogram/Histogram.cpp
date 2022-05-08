@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-using namespace histogram;
+using namespace hist;
 
 Histogram::Histogram(const Vector<double>& p) : p(p) {}
 
@@ -32,4 +32,14 @@ void Histogram::shorten_axis() {
     p.resize(max_bin);
     double width = axis.width();
     axis = Axis{max_bin, 0, max_bin*width};
+}
+
+void Histogram::generate_axis(unsigned int size) {
+    auto[min, max] = std::minmax_element(p.begin(), p.end());
+    axis.min = *min; axis.max = *max;
+    axis.bins = size;
+}
+
+void Histogram::set_axis(const Axis& axis) {
+    this->axis = axis;
 }

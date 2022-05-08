@@ -55,7 +55,7 @@ namespace em {
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<EMFit> fit(const histogram::ScatteringHistogram& h);
+            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -65,7 +65,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            Dataset cutoff_scan(const Axis& points, const histogram::ScatteringHistogram& h);
+            Dataset cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -84,12 +84,12 @@ namespace em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            histogram::ScatteringHistogram get_histogram(double cutoff) const;
+            hist::ScatteringHistogram get_histogram(double cutoff) const;
 
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            histogram::ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
+            hist::ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.

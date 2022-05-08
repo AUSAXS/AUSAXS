@@ -81,13 +81,13 @@ class Protein {
     /**
      * @brief Get the distances between each atom.
      */
-    histogram::ScatteringHistogram get_histogram();
+    hist::ScatteringHistogram get_histogram();
 
     /**
      * @brief Get the total distance histogram only. 
      *        This is a slightly faster alternative to get_histogram() when only the total histogram is needed. 
      */
-    histogram::Histogram get_total_histogram() const;
+    hist::Histogram get_total_histogram() const;
 
     /**
      * @brief Simulate a SAXS dataset based on this protein.
@@ -239,7 +239,7 @@ class Protein {
      */
     void bind_body_signallers();
 
-    std::shared_ptr<histogram::PartialHistogramManager> get_histogram_manager() const;
+    std::shared_ptr<hist::PartialHistogramManager> get_histogram_manager() const;
 
     std::vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
     std::vector<Body> bodies; // The constituent bodies
@@ -247,8 +247,8 @@ class Protein {
     bool centered = false; // True if this object is centered, false otherwise. 
   private:
     std::shared_ptr<Grid> grid = nullptr; // The grid representation of this body
-    std::shared_ptr<histogram::PartialHistogramManager> phm = nullptr;
-    std::shared_ptr<histogram::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+    std::shared_ptr<hist::PartialHistogramManager> phm = nullptr;
+    std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     /** 
      * @brief Move the entire protein by a vector.

@@ -168,6 +168,33 @@ void Dataset::save(std::string path) const {
     output.close();
 }
 
+Dataset Dataset::generate_random_data(unsigned int size, double min, double max) {
+    std::random_device dev;
+    std::mt19937 gen(dev());
+    auto uniform = std::uniform_real_distribution<double>(min, max);
+
+    vector<double> x(size), y(size), yerr(size);
+    for (unsigned int i = 0; i < size; i++) {
+        x[i] = i;
+        y[i] = uniform(gen);
+        yerr[i] = y[i]*0.1;
+    }
+    return Dataset(x, y, yerr);
+}
+
+void Dataset::simulate_noise() {
+    if (yerr.empty()) {throw except::invalid_operation("Error in Dataset::simulate_noise: Cannot simulate noise without yerrs.");}
+
+    std::random_device dev;
+    std::mt19937 gen(dev());
+    auto fun = [&] (double y, double yerr) {
+        auto gauss = std::normal_distribution<double>(y, yerr);
+        return gauss(gen);
+    };
+
+    std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), fun);
+}
+
 void SAXSDataset::simulate_errors() {
     if (yerr.empty()) {yerr.resize(size());}
     else {utility::print_warning("Warning in Dataset::simulate_errors: Overwriting existing errors.");}
@@ -178,19 +205,6 @@ void SAXSDataset::simulate_errors() {
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
     std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y0/std::pow(x, 1.2)*1e-5 + 1e-4*y0;});
-}
-
-void SAXSDataset::simulate_noise() {
-    if (yerr.empty()) {simulate_errors();}
-
-    std::random_device dev;
-    std::mt19937 gen(dev());
-    auto fun = [&] (double y, double yerr) {
-        auto gauss = std::normal_distribution<double>(y, yerr);
-        return gauss(gen);
-    };
-
-    std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), fun);
 }
 
 void SAXSDataset::set_resolution(unsigned int resolution) {

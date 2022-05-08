@@ -1,16 +1,16 @@
-	#pragma once
+#pragma once
 
-	#include <vector>
-	#include <string>
-	#include <utility>
+#include <vector>
+#include <string>
+#include <utility>
 
-	#include <TH1D.h>
+#include <TH1D.h>
 
-	#include <histogram/Histogram.h>
-	#include <histogram/DebyeLookupTable.h>
-	#include <utility/Dataset.h>
+#include <histogram/Histogram.h>
+#include <histogram/DebyeLookupTable.h>
+#include <utility/Dataset.h>
 
-namespace histogram {
+namespace hist {
 	class ScatteringHistogram : public Histogram {
 		public:
 			/**

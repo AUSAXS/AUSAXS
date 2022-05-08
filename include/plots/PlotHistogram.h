@@ -1,30 +1,25 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <utility/Dataset.h>
+#include <histogram/Histogram.h>
 
 #include <memory>
 #include <string>
 
 namespace plots {
-	class PlotDataset : public Plot {
+	class PlotHistogram : public Plot {
 		public:
 			/**
 			 * @brief Copy constructor.
 			 * 
-			 * @param d The Dataset to be plotted. 
+			 * @param h The Histogram to be plotted. 
 			 */
-			PlotDataset(const Dataset& d);
+			PlotHistogram(const hist::Histogram& h);
 
 			/**
 			 * @brief Destructor.
 			 */
-			~PlotDataset() override;
-
-			/**
-			 * @brief Plot an additional Dataset. 
-			 */
-			void plot(const Dataset& data);
+			~PlotHistogram() override;
 
             /**
              * @brief Save this image at the given location in the specified format. 
@@ -35,14 +30,14 @@ namespace plots {
 
 			/**
 			 * @brief Plot and save the input dataset and the specified location. 
-			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
+			 * 	      This is a convenient shortcut for quickly creating a histogram. 
 			 */
-			static void quick_plot(const Dataset& data, std::string path);
+			static void quick_plot(const hist::Histogram& hist, std::string path);
 
 		private:
 			std::shared_ptr<TCanvas> canvas;
 
-			void initial_plot(const Dataset& data);
+			void initial_plot(const hist::Histogram& hist);
 
 			void prepare_canvas();
 		};

@@ -5,7 +5,7 @@
 #include <io/File.h>
 #include <histogram/Histogram.h>
 
-using namespace histogram;
+using namespace hist;
 
 Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);
