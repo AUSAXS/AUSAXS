@@ -32,6 +32,11 @@ class Multiset {
         size_t size() const;
 
         /**
+         * @brief Check if this Multifram is empty.
+         */
+        bool empty() const;
+
+        /**
          * @brief Add a Dataset to the end of this Multiset.
          */
         void push_back(const Dataset& data);
@@ -40,6 +45,26 @@ class Multiset {
          * @brief Add a Dataset to the end of this Multiset.
          */
         void push_back(const Dataset&& data);
+
+        /**
+         * @brief Read-only iterator.
+         */
+		const std::vector<Dataset>::const_iterator begin() const;
+
+        /**
+         * @brief Read-only iterator.
+         */
+        const std::vector<Dataset>::const_iterator end() const;
+
+        /**
+         * @brief Read-write iterator.
+         */
+        std::vector<Dataset>::iterator begin();
+
+        /**
+         * @brief Read-write iterator.
+         */
+        std::vector<Dataset>::iterator end();
 
     private:
         std::vector<Dataset> data;

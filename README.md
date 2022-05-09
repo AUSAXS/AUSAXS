@@ -8,6 +8,7 @@
  * [ ] Fix fitter for EM
  * [ ] Test higher resolutions of native
  * [ ] Check if there are online databases of EM maps
+ * [ ] PlotOptions: Refactor to better handling similar to sim3a.
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z

@@ -2,6 +2,7 @@
 
 #include <plots/Plot.h>
 #include <utility/Dataset.h>
+#include <utility/Multiset.h>
 
 #include <memory>
 #include <string>
@@ -15,6 +16,13 @@ namespace plots {
 			 * @param d The Dataset to be plotted. 
 			 */
 			PlotDataset(const Dataset& d);
+
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param d The Multiset to be plotted. 
+			 */
+			PlotDataset(const Multiset& d);
 
 			/**
 			 * @brief Destructor.

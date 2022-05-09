@@ -35,6 +35,11 @@ std::string utility::remove_extension(std::string path) {
     return std::filesystem::path(path).replace_extension("");
 }
 
+std::string utility::stem_append(std::string path, std::string s) {
+    std::filesystem::path p(path);
+    return p.parent_path().string() + "/" + p.stem().string() + s + p.extension().string();
+}
+
 template<>
 std::string utility::extract_number<std::string>(std::string s) {
     unsigned int start = 0;
@@ -45,6 +50,9 @@ std::string utility::extract_number<std::string>(std::string s) {
     return s.substr(start, end-start);
 }
 
-std::string utility::uid() {return std::to_string(i++);}
+std::string utility::uid() {
+    static unsigned int i = 0;
+    return std::to_string(i++);
+}
 
 std::string utility::uid(std::string s) {return s + uid();}

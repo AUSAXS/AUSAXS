@@ -39,11 +39,16 @@ namespace utility {
     void create_directories(std::string& path);
 
     /**
+     * @brief Append a string to the stem of a path. 
+     *        Example: path = "dir/file.txt", s = "_raw" --> "dir/file_raw.txt"
+     */
+    std::string stem_append(std::string path, std::string s);
+
+    /**
      * @brief Print a warning message. The text will be red in the terminal. 
      */
     void print_warning(std::string text);
 
-    static unsigned int i = 0;
     /**
      * @brief Get a unique identifier.
      */

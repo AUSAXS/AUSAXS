@@ -45,6 +45,8 @@ namespace plots {
 
             PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
 
+            PlotOptions& set(int color, std::map<std::string, std::any> options = {});
+
         private: 
             enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY};
             const inline static std::map<option, std::vector<std::string>> aliases = {

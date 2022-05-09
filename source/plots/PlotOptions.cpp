@@ -21,12 +21,18 @@ PlotOptions::PlotOptions(string style, std::map<std::string, std::any> options) 
 PlotOptions& PlotOptions::set(string style, std::map<string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
-    std::for_each(options.begin(), options.end(), [this] (const auto& opt) {parse(opt.first, opt.second);});
+    set(options);
     return *this;
 }
 
 PlotOptions& PlotOptions::set(std::map<string, std::any> options) {
     std::for_each(options.begin(), options.end(), [this] (const auto& opt) {parse(opt.first, opt.second);});
+    return *this;
+}
+
+PlotOptions& PlotOptions::set(int color, std::map<std::string, std::any> options) {
+    parse("color", color);
+    set(options);
     return *this;
 }
 

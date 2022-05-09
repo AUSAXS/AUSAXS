@@ -1,5 +1,6 @@
 #include <plots/PlotDataset.h>
 #include <utility/Utility.h>
+#include <utility/Exceptions.h>
 
 #include <memory.h>
 #include <string.h>
@@ -12,6 +13,16 @@ using std::string, std::vector;
 plots::PlotDataset::PlotDataset(const Dataset& data) : Plot() {
     prepare_canvas();
     initial_plot(data);
+}
+
+plots::PlotDataset::PlotDataset(const Multiset& data) {
+    if (data.empty()) {throw except::size_error("Error in PlotDataset::PlotDataset: The given Multiset is empty!");}
+
+    prepare_canvas();
+    initial_plot(data[0]);
+    for (unsigned int i = 0; i < data.size(); i++) {
+        plot(data[i]);
+    }
 }
 
 plots::PlotDataset::~PlotDataset() = default;

@@ -257,6 +257,8 @@ void Dataset::read(const string file) {
 
 void Dataset::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
 
-void Dataset::set_plot_options(const std::map<std::string, std::any>& options) {plot_options.set(options);}
+void Dataset::add_plot_options(const std::map<std::string, std::any>& options) {plot_options.set(options);}
 
-void Dataset::set_plot_options(std::string style, std::map<std::string, std::any> options) {plot_options.set(style, options);}
+void Dataset::add_plot_options(std::string style, std::map<std::string, std::any> options) {plot_options.set(style, options);}
+
+void Dataset::add_plot_options(int color, std::map<std::string, std::any> options) {plot_options.set(color, options);}

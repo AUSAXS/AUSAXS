@@ -14,7 +14,7 @@ int main(int argc, char const *argv[]) {
     string pdb_file = argv[1];
 
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
+    setting::em::sample_frequency = 2;
     setting::fit::q_high = 0.4;
 
     // plot pdb file
@@ -23,15 +23,9 @@ int main(int argc, char const *argv[]) {
     data.reduce(setting::fit::N, true);
     data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
     data.simulate_errors();
-    plots::PlotIntensity plot(data);
-
-    // prepare fit colors
-    gStyle->SetPalette(kSolar);
-    auto cols = TColor::GetPalette();
 
     vector<Fit> fits;
     vector<string> paths;
-    unsigned int color_step = (cols.GetSize()-1)/argc;
     Dataset fitted_vals("resolution", "cutoff");
     Multiset intensities;
     for (int i = 2; i < argc; i++) {
@@ -53,16 +47,15 @@ int main(int argc, char const *argv[]) {
 
         // actually plot this iteration
         intensities.push_back(fit->figures[1]);
-        plot.plot_intensity(fit, cols.At(color_step*(i-1)));
 
         // chi2 contour plot
-        Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
-        Dataset evaluated_points = fit->evaluated_points;
-        evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
+        // Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
+        // Dataset evaluated_points = fit->evaluated_points;
+        // evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
-        plots::PlotDataset plot_c(contour);
-        plot_c.plot(evaluated_points);
-        plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".pdf");
+        // plots::PlotDataset plot_c(contour);
+        // plot_c.plot(evaluated_points);
+        // plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".pdf");
     }
     
     // write fit report to disk
@@ -70,10 +63,11 @@ int main(int argc, char const *argv[]) {
     FitReporter::save("figures/fits/EMfit.txt", fits, paths);
 
     // generate concentration v. resolution plot
-    fitted_vals.set_plot_options("errors");
+    fitted_vals.add_plot_options("errors");
     plots::PlotDataset d_plot(fitted_vals);
     d_plot.save("figures/stuff/fitted_vals.pdf");
 
-    plot.save("figures/stuff/fits.pdf");
+    plots::PlotResolutionComparison plot_r(intensities);
+    plot_r.save("figures/stuff/fits.pdf");
     return 0;
 }

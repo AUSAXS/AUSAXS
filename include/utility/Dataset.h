@@ -118,22 +118,30 @@ class Dataset {
         std::unique_ptr<TGraph> plot() const;
 
         /**
-         * @brief Set the plot options of this dataset.
+         * @brief Overwrite the plot options for this dataset.
          */
         void set_plot_options(const plots::PlotOptions& options);
 
         /**
-         * @brief Set the plot options of this dataset.
+         * @brief Change the plot options for this dataset.
          */
-        void set_plot_options(const std::map<std::string, std::any>& options);
+        void add_plot_options(const std::map<std::string, std::any>& options);
 
         /**
-         * @brief Set the plot options of this dataset.
+         * @brief Change the plot options for this dataset.
          * 
          * @param style The plotting style. Should be one of the accepted variations of "markers", "errors", or "line". 
          * @param options The other plot options.
          */
-        void set_plot_options(std::string style, std::map<std::string, std::any> options = {});
+        void add_plot_options(std::string style, std::map<std::string, std::any> options = {});
+
+        /**
+         * @brief Change the plot options for this dataset.
+         * 
+         * @param color The color.
+         * @param options The other plot options.
+         */
+        void add_plot_options(int color, std::map<std::string, std::any> options = {});
 
         /**
          * @brief Write this dataset to the specified file. 

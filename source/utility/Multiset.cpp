@@ -33,7 +33,13 @@ Dataset& Multiset::get_data(unsigned int i) {
     return data[i];
 }
 
-size_t Multiset::size() const {return data.size();}
+size_t Multiset::size() const {
+    return data.size();
+}
+
+bool Multiset::empty() const {
+    return data.empty();
+}
 
 void Multiset::push_back(const Dataset& new_data) {
     data.push_back(new_data);
@@ -42,3 +48,9 @@ void Multiset::push_back(const Dataset& new_data) {
 void Multiset::push_back(const Dataset&& new_data) {
     data.push_back(std::move(new_data));
 }
+
+const std::vector<Dataset>::const_iterator Multiset::begin() const {return data.begin();}
+const std::vector<Dataset>::const_iterator Multiset::end() const {return data.end();}
+
+std::vector<Dataset>::iterator Multiset::begin() {return data.begin();}
+std::vector<Dataset>::iterator Multiset::end() {return data.end();}

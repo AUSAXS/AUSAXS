@@ -10,4 +10,5 @@
 #include <plots/PlotIntensity.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
+#include <plots/PlotResolutionComparison.h>
 #include <plots/PlotOptions.h>

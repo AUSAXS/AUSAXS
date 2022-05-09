@@ -28,11 +28,11 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     }
 
     // handle log scale
-    if (options.logx) {
+    if (options.logx && !options.use_existing_axes) {
         if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
         canvas->SetLogx();
     }
-    if (options.logy) {
+    if (options.logy && !options.use_existing_axes) {
         if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
         canvas->SetLogy();
     }
@@ -85,11 +85,11 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
     }
 
     // handle log scale
-    if (options.logx) {
+    if (options.logx && !options.use_existing_axes) {
         if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
         canvas->SetLogx();
     }
-    if (options.logy) {
+    if (options.logy && !options.use_existing_axes) {
         if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
         canvas->SetLogy();
     }

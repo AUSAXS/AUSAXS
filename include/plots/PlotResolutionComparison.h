@@ -1,8 +1,7 @@
 #pragma once
 
-#pragma once
-
 #include <plots/Plot.h>
+#include <plots/PlotDataset.h>
 #include <utility/Multiset.h>
 
 #include <memory>
@@ -16,7 +15,7 @@ namespace plots {
 			 * 
 			 * @param d The Multiset to be plotted. 
 			 */
-			PlotResolutionComparison(const Multiset& d, int color = kSolar);
+			PlotResolutionComparison(Multiset d, int color = kSolar);
 
 			/**
 			 * @brief Destructor.
@@ -38,6 +37,7 @@ namespace plots {
 
 		private:
 			std::shared_ptr<TCanvas> canvas;
+			std::unique_ptr<PlotDataset> raw;
 
             /**
              * @brief Plot the first Dataset. 
