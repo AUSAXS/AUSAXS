@@ -1,8 +1,14 @@
 # Todo
- * [x] intensity_fitter: Fix units on concentration
- * [x] EM: Create a bunch of figures illustrating cutoff as function of concentration, chi2 landscape for concentrations, fitted values as function of concentrations
+ * [ ] udregn præcis voxel størrelse for alle resolutions
+ * [ ] gentag alt for de andre filer
+ * [ ] residual plots for em
+ * [ ] flow diagram med hvad vi rent faktisk laver
+ * [ ] chi2 vs opløsning for optimeret fit
+ * [ ] sammenligningsfigur separer kurver med faktor x^n
+ * [ ] Fix fitter for EM
+ * [ ] Test higher resolutions of native
+ * [ ] Check if there are online databases of EM maps
  * [ ] General: Consistency check of DrhoM
- * [x] EM: Normalize intensities. 
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z
  * [ ] Atom: Rename "effective charge" to "relative charge". Apply this change globally. 
