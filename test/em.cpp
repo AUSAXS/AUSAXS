@@ -7,6 +7,7 @@
 #include <plots/all.h>
 #include <fitter/SimpleIntensityFitter.h>
 #include <fitter/FitReporter.h>
+#include <utility/Multiset.h>
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
     em::ImageStack image("data/A2M_ma.ccp4"); 
@@ -109,6 +110,58 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
     std::cout << "Cutoff = 4: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 }
 
+TEST_CASE("repeat_chi2_contour", "[em],[files]") {
+    unsigned int repeats = 10;
+
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 2;
+    setting::fit::q_high = 0.4;
+
+    // prepare measured data
+    Protein protein("data/native.pdb");
+    SAXSDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    data.reduce(setting::fit::N, true);
+    data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.simulate_errors();
+
+    // prepare fit data
+    em::ImageStack image("sim/native_25.ccp4");
+    auto hist = protein.get_histogram();
+
+    vector<Fit> fits;
+    Multiset contours;
+    Multiset evaluations;
+    for (unsigned int i = 0; i < repeats; i++) {
+        auto fit = image.fit(hist);
+        fits.push_back(*fit);
+
+        // chi2 contour plot
+        Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
+        Dataset evaluated_points = fit->evaluated_points;
+        evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
+
+        plots::PlotDataset plot_c(contour);
+        plot_c.plot(evaluated_points);
+        plot_c.save("figures/temp/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
+
+        contour.plot_options.set("line", {{"color", kBlack}, {"alpha", 0.1}});
+        contours.push_back(contour);
+        evaluations.push_back(evaluated_points);
+    }
+
+    Dataset optimal_vals;
+    optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"alpha", 0.1}}));
+    for (const Fit& fit : fits) {
+        optimal_vals.x.push_back(fit.params.at("cutoff"));
+        optimal_vals.y.push_back(fit.chi2);
+        std::cout << "(x, y): " << "(" << fit.params.at("cutoff") << ", " << fit.chi2 << ")" << std::endl;
+    }
+    contours.push_back(optimal_vals);
+
+    plots::PlotDataset plot_c(contours);
+    plot_c.save("figures/temp/em/repeat_chi2_contours.pdf");
+}
+
 TEST_CASE("plot_pdb_as_points", "[em],[files]") {
     Protein protein("data/maptest.pdb");
 
@@ -136,7 +189,7 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
     data.simulate_errors();
     data.save("temp/em/simulated_errors.txt");
 
-    data.set_plot_options("errors", {{"logx", true}, {"logy", true}});
+    data.add_plot_options("errors", {{"logx", true}, {"logy", true}});
     plots::PlotDataset plot(data);
     plot.save("temp/em/check_errors.pdf");
 }

@@ -150,18 +150,17 @@ Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistog
     cutoffs.reserve(points.bins);
     chi2.reserve(points.bins);
 
-    unsigned int count = 1;
+    unsigned int count = 0;
     double step = points.step();
+    SimpleIntensityFitter fitter(h, get_limits());
+    determine_minimum_bounds();
     for (double cutoff = points.max; cutoff > points.min; cutoff -= step) {
-        cutoffs.push_back(cutoff);
-
-        SimpleIntensityFitter fitter(h, get_limits());
-        determine_minimum_bounds();
         fitter.set_scattering_hist(get_histogram(cutoff));
         double val = fitter.fit()->chi2;
 
         chi2.push_back(val);
-        std::cout << "\t" << count++ << ": Evaluated cutoff value " << cutoff << " with chi2 " << val << std::endl;
+        cutoffs.push_back(cutoff);
+        std::cout << "Step " << count++ << ": Evaluated cutoff value " << cutoff << " with chi2 " << val << std::endl;
     }
 
     return Dataset(cutoffs, chi2, "cutoff", "chi2");

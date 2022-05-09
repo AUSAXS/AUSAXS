@@ -66,7 +66,6 @@ class Multiset {
          */
         std::vector<Dataset>::iterator end();
 
-    private:
         std::vector<Dataset> data;
         std::map<std::string, unsigned int> names;
 };

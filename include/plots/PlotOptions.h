@@ -26,6 +26,19 @@ namespace plots {
              */
             PlotOptions(std::string style, std::map<std::string, std::any> options);
 
+            /**
+             * @brief Copy constructor.
+             */
+            PlotOptions(const PlotOptions& opt);
+
+            PlotOptions& set(std::map<std::string, std::any> options);
+
+            PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
+
+            PlotOptions& set(int color, std::map<std::string, std::any> options = {});
+
+            PlotOptions& operator=(const PlotOptions& opt);
+
             int color = kBlack;             // Color
             double alpha = 1;               // Opacity
             int marker_style = 7;           // Marker style
@@ -41,33 +54,51 @@ namespace plots {
             std::string xlabel = "";        // Label for the x-axis
             std::string ylabel = "";        // Label for the y-axis
 
-            PlotOptions& set(std::map<std::string, std::any> options);
-
-            PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
-
-            PlotOptions& set(int color, std::map<std::string, std::any> options = {});
-
         private: 
             enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY};
-            const inline static std::map<option, std::vector<std::string>> aliases = {
-                {option::COLOR, {"color", "colour", "c"}},
-                {option::ALPHA, {"alpha"}},
-                {option::MARKER_STYLE, {"markerstyle", "marker_style", "ms"}},
-                {option::LINE_WIDTH, {"linewidth", "line_width", "lw"}},
-                {option::MARKER_SIZE, {"markersize", "marker_size", "s"}},
-                {option::DRAW_LINE, {"drawline", "draw_line", "drawlines", "draw_lines", "line", "lines"}},
-                {option::DRAW_ERROR, {"drawerror", "draw_error", "drawerrors", "draw_errors", "error", "errors"}},
-                {option::DRAW_MARKER, {"drawmarker", "draw_marker", "drawmarkers", "draw_markers", "draw_points", "drawpoints", "markers", "marker"}},
-                {option::USE_EXISTING_AXES, {"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}},
-                {option::TITLE, {"title"}},
-                {option::XLABEL, {"xlabel"}},
-                {option::YLABEL, {"ylabel"}},
-                {option::LOGX, {"logx", "log_x"}},
-                {option::LOGY, {"logy", "log_y"}}
+
+            struct ISmartOption {
+                ISmartOption(option opt, std::vector<std::string> aliases) : opt(opt), aliases(aliases) {}
+                virtual ~ISmartOption() = default;
+
+                virtual void parse(const std::any val) = 0;
+
+                option opt;
+                std::vector<std::string> aliases;
+            };
+
+            template<typename T>
+            struct SmartOption : ISmartOption {
+                SmartOption(option opt, std::vector<std::string> aliases, T& value) : ISmartOption(opt, aliases), value(value) {}
+                ~SmartOption() override = default;
+
+                void parse(const std::any val) override;
+
+                T& value;
+            };
+
+            template<typename T>
+            std::shared_ptr<SmartOption<T>> make_shared(option opt, std::vector<std::string> aliases, T& val) {
+                return std::make_shared<SmartOption<T>>(opt, aliases, val);
+            }
+
+            const std::vector<std::shared_ptr<ISmartOption>> options = {
+                make_shared(option::COLOR, {"color", "colour", "c"}, color),
+                make_shared(option::ALPHA, {"alpha"}, alpha),
+                make_shared(option::MARKER_STYLE, {"markerstyle", "marker_style", "ms"}, marker_style),
+                make_shared(option::LINE_WIDTH, {"linewidth", "line_width", "lw"}, line_width),
+                make_shared(option::MARKER_SIZE, {"markersize", "marker_size", "s"}, marker_size),
+                make_shared(option::DRAW_LINE, {"drawline", "draw_line", "drawlines", "draw_lines", "line", "lines"}, draw_line),
+                make_shared(option::DRAW_ERROR, {"drawerror", "draw_error", "drawerrors", "draw_errors", "error", "errors"}, draw_errors),
+                make_shared(option::DRAW_MARKER, {"drawmarker", "draw_marker", "drawmarkers", "draw_markers", "draw_points", "drawpoints", "markers", "marker"}, draw_markers),
+                make_shared(option::USE_EXISTING_AXES, {"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}, use_existing_axes),
+                make_shared(option::TITLE, {"title"}, title),
+                make_shared(option::XLABEL, {"xlabel"}, xlabel),
+                make_shared(option::YLABEL, {"ylabel"}, ylabel),
+                make_shared(option::LOGX, {"logx", "log_x"}, logx),
+                make_shared(option::LOGY, {"logy", "log_y"}, logy)
             };
 
             void parse(std::string key, std::any val);
-
-            void set(const option opt, std::string name, std::any val);
     };    
 }

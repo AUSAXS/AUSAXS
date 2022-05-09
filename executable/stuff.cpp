@@ -14,7 +14,7 @@ int main(int argc, char const *argv[]) {
     string pdb_file = argv[1];
 
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
     // plot pdb file
@@ -27,7 +27,6 @@ int main(int argc, char const *argv[]) {
     vector<Fit> fits;
     vector<string> paths;
     Dataset fitted_vals("resolution", "cutoff");
-    Multiset intensities;
     for (int i = 2; i < argc; i++) {
         std::cout << "Now fitting " << argv[i] << "..." << std::endl;
         string current_file = argv[i];
@@ -45,17 +44,19 @@ int main(int argc, char const *argv[]) {
         fitted_vals.y.push_back(fit->params["cutoff"]);
         fitted_vals.yerr.push_back(fit->errors["cutoff"]);
 
-        // actually plot this iteration
-        intensities.push_back(fit->figures[1]);
-
         // chi2 contour plot
-        // Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
-        // Dataset evaluated_points = fit->evaluated_points;
-        // evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
+        Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
+        Dataset evaluated_points = fit->evaluated_points;
+        evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
-        // plots::PlotDataset plot_c(contour);
-        // plot_c.plot(evaluated_points);
-        // plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".pdf");
+        plots::PlotDataset plot_c(contour);
+        plot_c.plot(evaluated_points);
+        plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".png");
+
+        // generate residual v. resolution plot
+        Dataset& residuals = fit->residuals;
+        residuals.add_plot_options("errors", {{"logx", true}, {"xlabel", "q"}, {"ylabel", "residual"}});
+        plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/residuals/" + std::filesystem::path(current_file).stem().string() + ".pdf");
     }
     
     // write fit report to disk
@@ -64,9 +65,18 @@ int main(int argc, char const *argv[]) {
 
     // generate concentration v. resolution plot
     fitted_vals.add_plot_options("errors");
-    plots::PlotDataset d_plot(fitted_vals);
-    d_plot.save("figures/stuff/fitted_vals.pdf");
+    plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/cutoff.pdf");
 
+    // generate chi2 v. resolution plot
+    vector<double> chi2(fits.size());
+    std::transform(fits.begin(), fits.end(), chi2.begin(), [] (const Fit& fit) {return fit.chi2;});
+    fitted_vals.y = chi2;
+    fitted_vals.add_plot_options({{"ylabel", "chi2"}});
+    plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/chi2.pdf");
+
+    // generate intensity comparison plots
+    Multiset intensities;
+    std::transform(fits.begin(), fits.end(), std::back_inserter(intensities.data), [] (const Fit& fit) {return fit.figures[1];});
     plots::PlotResolutionComparison plot_r(intensities);
     plot_r.save("figures/stuff/fits.pdf");
     return 0;
