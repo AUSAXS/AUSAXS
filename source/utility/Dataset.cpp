@@ -86,6 +86,10 @@ void Dataset::reduce(unsigned int target, bool log) {
 
 std::size_t Dataset::size() const {return x.size();}
 
+Dataset Dataset::copy() const {
+    return Dataset(*this);
+}
+
 void Dataset::limit(const Limit& limits) {
     if (limits.min < x[0] && x[size()-1] < limits.max) {return;}
 

@@ -8,7 +8,7 @@
 #include <TCanvas.h>
 
 plots::PlotImage::PlotImage(const em::Image& image) : image(image) {
-    canvas = std::make_unique<TCanvas>("PlotImageCanvas", "canvas", 1200, 1200);
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 1200, 1200);
     pad1 = std::make_unique<TPad>("PlotImagePad1", "pad1", 0, 0, 1, 1);
     pad2 = std::make_unique<TPad>("PlotImagePad2", "pad2", 0, 0, 1, 1);
 

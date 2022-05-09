@@ -18,7 +18,7 @@ plots::PlotDistance::~PlotDistance() = default;
 void plots::PlotDistance::save(string path) const {
     utility::create_directories(path);
 
-    unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>("PlotDistanceCanvas", "canvas", 600, 600);
+    unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
     auto hists = d.plot_distance();
     
     // use some nicer colors

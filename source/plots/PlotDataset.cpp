@@ -1,5 +1,4 @@
 #include <plots/PlotDataset.h>
-#include <utility/Exceptions.h>
 #include <utility/Utility.h>
 
 #include <memory.h>
@@ -39,5 +38,5 @@ void plots::PlotDataset::quick_plot(const Dataset& data, std::string path) {
 }
 
 void plots::PlotDataset::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotDatasetCanvas", "canvas", 600, 600);
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
 }

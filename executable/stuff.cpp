@@ -33,6 +33,7 @@ int main(int argc, char const *argv[]) {
     vector<string> paths;
     unsigned int color_step = (cols.GetSize()-1)/argc;
     Dataset fitted_vals("resolution", "cutoff");
+    Multiset intensities;
     for (int i = 2; i < argc; i++) {
         std::cout << "Now fitting " << argv[i] << "..." << std::endl;
         string current_file = argv[i];
@@ -51,16 +52,17 @@ int main(int argc, char const *argv[]) {
         fitted_vals.yerr.push_back(fit->errors["cutoff"]);
 
         // actually plot this iteration
+        intensities.push_back(fit->figures[1]);
         plot.plot_intensity(fit, cols.At(color_step*(i-1)));
 
-        // chi2 landscape plot
+        // chi2 contour plot
         Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
         Dataset evaluated_points = fit->evaluated_points;
         evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
-        plots::PlotDataset plot(contour);
-        plot.plot(evaluated_points);
-        plot.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".pdf");
+        plots::PlotDataset plot_c(contour);
+        plot_c.plot(evaluated_points);
+        plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".pdf");
     }
     
     // write fit report to disk

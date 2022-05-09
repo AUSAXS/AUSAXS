@@ -35,7 +35,6 @@ std::string utility::remove_extension(std::string path) {
     return std::filesystem::path(path).replace_extension("");
 }
 
-
 template<>
 std::string utility::extract_number<std::string>(std::string s) {
     unsigned int start = 0;
@@ -45,3 +44,7 @@ std::string utility::extract_number<std::string>(std::string s) {
     while (end > 0 && s[end-1] == '.') {end--;}
     return s.substr(start, end-start);
 }
+
+std::string utility::uid() {return std::to_string(i++);}
+
+std::string utility::uid(std::string s) {return s + uid();}

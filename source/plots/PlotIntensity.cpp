@@ -125,7 +125,7 @@ void plots::PlotIntensity::save(std::string path) const {
 }
 
 void plots::PlotIntensity::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotIntensityCanvas", "canvas", 600, 600);
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
     linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
 
     linpad->SetLeftMargin(0.19);

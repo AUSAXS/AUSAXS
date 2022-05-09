@@ -43,7 +43,7 @@ void plots::PlotIntensityFitResiduals::plot(const Dataset graph) const {
 }
 
 void plots::PlotIntensityFitResiduals::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotIntensityFitResidualsCanvas", "canvas", 600, 600);
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
     canvas->SetLogx();
     canvas->SetRightMargin(0.15);
     canvas->SetLeftMargin(0.15);

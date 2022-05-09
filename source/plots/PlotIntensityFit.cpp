@@ -46,7 +46,7 @@ void plots::PlotIntensityFit::plot(const Multiset& graphs) const {
 }
 
 void plots::PlotIntensityFit::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotIntensityFitCanvas", "canvas", 600, 600);
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
     canvas->SetLogy();
     canvas->SetLogx();
     canvas->SetRightMargin(0.15);

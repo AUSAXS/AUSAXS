@@ -43,8 +43,14 @@ namespace utility {
      */
     void print_warning(std::string text);
 
+    static unsigned int i = 0;
     /**
-     * @brief Get a unique identifier. 
+     * @brief Get a unique identifier.
      */
-    unsigned int uid();
+    std::string uid();
+
+    /**
+     * @brief Append a unique identifier to a string.
+     */
+    std::string uid(std::string s);
 }

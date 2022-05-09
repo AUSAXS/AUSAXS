@@ -136,11 +136,6 @@ class Dataset {
         void set_plot_options(std::string style, std::map<std::string, std::any> options = {});
 
         /**
-         * @brief Draw a dataset with its currently set plot options.
-         */
-        static void draw(const Dataset& data);
-
-        /**
          * @brief Write this dataset to the specified file. 
          */
         void save(std::string path) const;
@@ -149,6 +144,11 @@ class Dataset {
          * @brief Simulate Gaussian noise on the y-values based on the errors. 
          */
         void simulate_noise();
+
+        /**
+         * @brief Create a copy of this Dataset.
+         */
+        Dataset copy() const;
 
         /**
          * @brief Generate a randomized dataset.

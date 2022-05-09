@@ -1,30 +1,27 @@
 #pragma once
 
+#pragma once
+
 #include <plots/Plot.h>
-#include <utility/Dataset.h>
+#include <utility/Multiset.h>
 
 #include <memory>
 #include <string>
 
 namespace plots {
-	class PlotDataset : public Plot {
+	class PlotResolutionComparison : public Plot {
 		public:
 			/**
 			 * @brief Constructor.
 			 * 
-			 * @param d The Dataset to be plotted. 
+			 * @param d The Multiset to be plotted. 
 			 */
-			PlotDataset(const Dataset& d);
+			PlotResolutionComparison(const Multiset& d, int color = kSolar);
 
 			/**
 			 * @brief Destructor.
 			 */
-			~PlotDataset() override;
-
-			/**
-			 * @brief Plot an additional Dataset. 
-			 */
-			void plot(const Dataset& data);
+			~PlotResolutionComparison() override;
 
             /**
              * @brief Save this image at the given location in the specified format. 
@@ -37,13 +34,24 @@ namespace plots {
 			 * @brief Plot and save the input dataset and the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(const Dataset& data, std::string path);
+			static void quick_plot(const Multiset& data, std::string path);
 
 		private:
 			std::shared_ptr<TCanvas> canvas;
 
-			void initial_plot(const Dataset& data);
+            /**
+             * @brief Plot the first Dataset. 
+             */
+			void initial_plot(Dataset& data);
 
+			/**
+			 * @brief Plot an additional Dataset. 
+			 */
+			void plot(Dataset& data);
+
+            /**
+             * @brief Prepare the canvas for plotting.
+             */
 			void prepare_canvas();
 		};
 }

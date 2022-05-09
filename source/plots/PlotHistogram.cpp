@@ -27,5 +27,5 @@ void plots::PlotHistogram::initial_plot(const hist::Histogram& hist) {
 }
 
 void plots::PlotHistogram::prepare_canvas() {
-    canvas = std::make_unique<TCanvas>("PlotHistogramCanvas", "canvas", 600, 600);
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
 }

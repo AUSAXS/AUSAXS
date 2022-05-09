@@ -32,3 +32,13 @@ const Dataset& Multiset::get_data(unsigned int i) const {
 Dataset& Multiset::get_data(unsigned int i) {
     return data[i];
 }
+
+size_t Multiset::size() const {return data.size();}
+
+void Multiset::push_back(const Dataset& new_data) {
+    data.push_back(new_data);
+}
+
+void Multiset::push_back(const Dataset&& new_data) {
+    data.push_back(std::move(new_data));
+}
