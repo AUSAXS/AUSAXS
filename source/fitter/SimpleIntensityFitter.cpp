@@ -52,7 +52,7 @@ void SimpleIntensityFitter::normalize_intensity(double new_I0) {
     I0 = new_I0;
 }
 
-Multiset SimpleIntensityFitter::plot() {
+Fit::Plots SimpleIntensityFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->params["a"];
@@ -69,10 +69,10 @@ Multiset SimpleIntensityFitter::plot() {
 
     // prepare the TGraphs
     vector<double> xerr(data.size(), 0);
-    Multiset graphs(3);
-    graphs.get_data(0) = SAXSDataset(data.x, I_scaled);
-    graphs.get_data(1) = SAXSDataset(h.q, ym_scaled);
-    graphs.get_data(2) = SAXSDataset(data.x, data.y, xerr, data.yerr);
+    Fit::Plots graphs;
+    graphs.intensity_interpolated = SAXSDataset(data.x, I_scaled);
+    graphs.intensity = SAXSDataset(h.q, ym_scaled);
+    graphs.data = SAXSDataset(data.x, data.y, xerr, data.yerr);
     return graphs;
 }
 

@@ -2,8 +2,9 @@
 
 #include <vector>
 #include <string>
-#include "math/Vector3.h"
-#include "data/Axis.h"
+
+#include <math/Vector3.h>
+#include <utility/Axis.h>
 
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {

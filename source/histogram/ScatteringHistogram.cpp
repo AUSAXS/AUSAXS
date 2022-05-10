@@ -1,7 +1,7 @@
 #include <histogram/ScatteringHistogram.h>
 #include <utility/Settings.h>
 #include <utility/Constants.h>
-#include <data/Axis.h>
+#include <utility/Axis.h>
 
 #include <utility>
 #include <math.h>

@@ -7,7 +7,7 @@
 
 #include <TGraph.h>
 
-#include <data/Axis.h>
+#include <utility/Axis.h>
 #include <plots/PlotOptions.h>
 
 /**

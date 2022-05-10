@@ -3,10 +3,14 @@
 #include <string>
 #include <any>
 
+#include <utility/Axis.h>
+
 #include <TROOT.h>
 #include <TGraph.h>
 #include <TH1D.h>
 #include <TAxis.h>
+
+extern double inf;
 
 namespace plots {
     /**
@@ -50,12 +54,14 @@ namespace plots {
             bool use_existing_axes = false; // Draw with existing axes. Must be false for the first plot on each canvas. 
             bool logx = false;              // Log scale for the x-axis. Only valid if use_existing_axes is false.  
             bool logy = false;              // Log scale for the y-axis. Only valid if use_existing_axes is false. 
+            Limit ylimits;                  // Limits on the y-axis
+            Limit xlimits;                  // Limits on the x-axis
             std::string title = "";         // Title
             std::string xlabel = "";        // Label for the x-axis
             std::string ylabel = "";        // Label for the y-axis
 
         private: 
-            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY};
+            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY, YLIM, XLIM};
 
             struct ISmartOption {
                 ISmartOption(option opt, std::vector<std::string> aliases) : opt(opt), aliases(aliases) {}
@@ -96,7 +102,9 @@ namespace plots {
                 make_shared(option::XLABEL, {"xlabel"}, xlabel),
                 make_shared(option::YLABEL, {"ylabel"}, ylabel),
                 make_shared(option::LOGX, {"logx", "log_x"}, logx),
-                make_shared(option::LOGY, {"logy", "log_y"}, logy)
+                make_shared(option::LOGY, {"logy", "log_y"}, logy),
+                make_shared(option::XLIM, {"xlim", "x_lim"}, xlimits),
+                make_shared(option::YLIM, {"ylim", "y_lim"}, ylimits)
             };
 
             void parse(std::string key, std::any val);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <data/Axis.h>
+#include <utility/Axis.h>
 #include <math/Vector.h>
 
 namespace hist {

@@ -149,8 +149,12 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         evaluations.push_back(evaluated_points);
     }
 
+    auto compare_contours = [&fits] (const Fit& fit) {
+        Dataset& base = fits[0].figures[1];
+    };
+
     Dataset optimal_vals;
-    optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"alpha", 0.1}}));
+    optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"alpha", 0.1}, {"ylim", vector{0, inf}}}));
     for (const Fit& fit : fits) {
         optimal_vals.x.push_back(fit.params.at("cutoff"));
         optimal_vals.y.push_back(fit.chi2);

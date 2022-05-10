@@ -60,9 +60,9 @@ double SimpleLeastSquares::chi2() const {
     return chi;
 }
 
-Multiset SimpleLeastSquares::plot() {
+Fit::Plots SimpleLeastSquares::plot() {
     throw except::unexpected("Error in SimpleLeastSquares::plot: Not implemented yet. ");
-    return Multiset();
+    return Fit::Plots();
 }
 
 Dataset SimpleLeastSquares::plot_residuals() {

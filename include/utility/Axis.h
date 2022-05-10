@@ -53,6 +53,11 @@ struct Limit {
      */
     std::string to_string() const {return "Limits: (" + std::to_string(min) + ", " + std::to_string(max) + ")";}
 
+    /**
+     * @brief Check if this Limit is empty (min == max == 0).
+     */
+    bool empty() const {return min == 0 && max == 0;}
+
     double min; // The minimum value of this limit. 
     double max; // The maximum value of this limit. 
 };

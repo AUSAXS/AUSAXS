@@ -40,7 +40,7 @@ class SimpleLeastSquares : public Fitter {
     /**
      * @brief Get a multiset containing the fitted curve of the last fit() call. 
      */
-    Multiset plot() override;
+    Fit::Plots plot() override;
 
     /**
      * @brief Get a dataset containing the residuals of the last fit() call. 

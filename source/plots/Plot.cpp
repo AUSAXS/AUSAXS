@@ -37,6 +37,20 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
         canvas->SetLogy();
     }
 
+    // handle axis limits
+    if (!options.xlimits.empty()) {
+        Limit limits;
+        if (std::isinf(options.xlimits.min)) {limits.min = graph->GetXaxis()->GetXmin();}
+        if (std::isinf(options.xlimits.max)) {limits.max = graph->GetXaxis()->GetXmax();}
+        graph->GetXaxis()->SetRangeUser(limits.min, limits.max);
+    }
+    if (!options.ylimits.empty()) {
+        Limit limits;
+        if (std::isinf(options.ylimits.min)) {limits.min = graph->GetYaxis()->GetXmin();}
+        if (std::isinf(options.ylimits.max)) {limits.max = graph->GetYaxis()->GetXmax();}
+        graph->GetXaxis()->SetRangeUser(limits.min, limits.max);
+    }
+
     // prepare draw options
     std::string draw_options = options.use_existing_axes ? "SAME " : "A";
     if (options.draw_line) {draw_options += "L";}
@@ -82,6 +96,20 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
         hist->GetYaxis()->SetTitle(options.ylabel.c_str());
         hist->GetYaxis()->CenterTitle();
         hist->GetYaxis()->SetTitleOffset(1.2);
+    }
+
+    // handle axis limits
+    if (!options.xlimits.empty()) {
+        Limit limits;
+        if (std::isinf(options.xlimits.min)) {limits.min = hist->GetXaxis()->GetXmin();}
+        if (std::isinf(options.xlimits.max)) {limits.max = hist->GetXaxis()->GetXmax();}
+        hist->GetXaxis()->SetRangeUser(limits.min, limits.max);
+    }
+    if (!options.ylimits.empty()) {
+        Limit limits;
+        if (std::isinf(options.ylimits.min)) {limits.min = hist->GetYaxis()->GetXmin();}
+        if (std::isinf(options.ylimits.max)) {limits.max = hist->GetYaxis()->GetXmax();}
+        hist->GetXaxis()->SetRangeUser(limits.min, limits.max);
     }
 
     // handle log scale

@@ -96,7 +96,7 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    virtual Multiset plot() override;
+    virtual Fit::Plots plot() override;
 
     /**
      * @brief Make a residual plot of the fit.

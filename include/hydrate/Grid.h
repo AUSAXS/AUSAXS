@@ -3,12 +3,12 @@
 #include <list>
 
 #include <data/Atom.h>
-#include <data/Axis.h>
 #include <hydrate/PlacementStrategy.h>
 #include <hydrate/CullingStrategy.h>
 #include <hydrate/GridMember.h>
 #include <utility/Settings.h>
 #include <utility/Exceptions.h>
+#include <utility/Axis.h>
 
 // forwards declaration
 class Body;

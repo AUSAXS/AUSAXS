@@ -3,11 +3,14 @@
 
 #include <algorithm>
 #include <typeindex>
+#include <initializer_list>
 
 #include <TGraphErrors.h>
 
 using namespace plots;
 using std::string;
+
+double inf = std::numeric_limits<double>::infinity();
 
 PlotOptions::PlotOptions() : draw_line(true) {}
 
@@ -48,6 +51,31 @@ void PlotOptions::parse(string key, std::any val) {
         }
     }
     throw except::parse_error("Error in PlotOptions::parse: Unknown option \"" + key + "\".");
+}
+
+template<>
+void PlotOptions::SmartOption<Limit>::parse(const std::any val) {
+    // handle actual Limit case: Limit(1.5, 2.5)
+    if (std::type_index{typeid(Limit)} == val.type()) {
+        value = std::any_cast<Limit>(val);
+    } 
+
+    // handle double list initializer like {1.5, 2.5}
+    else if (std::type_index{typeid(std::vector<double>)} == val.type()) {
+        std::vector<double> vals(std::any_cast<std::vector<double>>(val));
+        if (vals.size() != 2) {throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
+        value = Limit(vals[0], vals[1]);
+    } 
+    
+    // handle integer list initializer like {1, 2}
+    else if (std::type_index{typeid(std::vector<int>)} == val.type()) {
+        std::vector<int> vals(std::any_cast<std::vector<int>>(val));
+        if (vals.size() != 2) {throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
+        value = Limit(vals[0], vals[1]);
+    } 
+    
+    // otherwise throw
+    else { throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a pair of two values. Received \"" + std::string(typeid(val.type()).name()) + "\".");}
 }
 
 template<>

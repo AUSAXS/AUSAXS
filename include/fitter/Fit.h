@@ -3,14 +3,21 @@
 #include <string>
 #include <vector>
 
-#include <fitter/Fitter.h>
 #include <utility/Dataset.h>
 #include <utility/Multiset.h>
 
 #include <Math/Minimizer.h>
 
+class Fitter;
+
 class Fit {
     public:
+        struct Plots {
+            Dataset intensity;              // The full intensity line
+            Dataset intensity_interpolated; // The intensity line interpolated at the data points. 
+            Dataset data;                   // The data itself
+        };
+
         Fit() {}
 
         /**
@@ -54,7 +61,7 @@ class Fit {
         std::string to_string() const;
 
         Dataset evaluated_points;
-        Multiset figures;
+        Plots figures;
         Dataset residuals;
         std::map<std::string, double> params;
         std::map<std::string, double> errors;

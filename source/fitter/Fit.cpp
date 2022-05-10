@@ -1,4 +1,6 @@
 #include <fitter/Fit.h>
+#include <fitter/Fitter.h>
+
 #include <iomanip>
 #include <sstream>
 

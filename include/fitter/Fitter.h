@@ -10,8 +10,7 @@
 
 #include <utility/Multiset.h>
 #include <utility/Dataset.h>
-
-class Fit;
+#include <fitter/Fit.h>
 
 class Fitter {
   public:
@@ -24,7 +23,7 @@ class Fitter {
      * 
      * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
      */
-    virtual Multiset plot() = 0;
+    virtual Fit::Plots plot() = 0;
 
     /**
      * @brief Make a residual plot of the fit.
