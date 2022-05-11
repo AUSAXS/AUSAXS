@@ -1,14 +1,12 @@
 #pragma once
 
+#include <vector>
 #include <string>
 #include <any>
+#include <map>
+#include <memory>
 
 #include <utility/Axis.h>
-
-#include <TROOT.h>
-#include <TGraph.h>
-#include <TH1D.h>
-#include <TAxis.h>
 
 extern double inf;
 
@@ -43,7 +41,7 @@ namespace plots {
 
             PlotOptions& operator=(const PlotOptions& opt);
 
-            int color = kBlack;             // Color
+            int color = 1;                  // Color. Default is kBlack = 1
             double alpha = 1;               // Opacity
             int marker_style = 7;           // Marker style
             unsigned int line_width = 1;    // Line width
@@ -51,6 +49,7 @@ namespace plots {
             bool draw_line = false;         // Draw a line through the points
             bool draw_errors = true;        // Draw error bars if possible
             bool draw_markers = false;      // Draw a marker for each point
+            bool draw_bars = false;         // Draw bars for a histogram.
             bool use_existing_axes = false; // Draw with existing axes. Must be false for the first plot on each canvas. 
             bool logx = false;              // Log scale for the x-axis. Only valid if use_existing_axes is false.  
             bool logy = false;              // Log scale for the y-axis. Only valid if use_existing_axes is false. 
@@ -61,7 +60,7 @@ namespace plots {
             std::string ylabel = "";        // Label for the y-axis
 
         private: 
-            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY, YLIM, XLIM};
+            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, DRAW_BARS, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY, YLIM, XLIM};
 
             struct ISmartOption {
                 ISmartOption(option opt, std::vector<std::string> aliases) : opt(opt), aliases(aliases) {}
@@ -94,9 +93,10 @@ namespace plots {
                 make_shared(option::MARKER_STYLE, {"markerstyle", "marker_style", "ms"}, marker_style),
                 make_shared(option::LINE_WIDTH, {"linewidth", "line_width", "lw"}, line_width),
                 make_shared(option::MARKER_SIZE, {"markersize", "marker_size", "s"}, marker_size),
-                make_shared(option::DRAW_LINE, {"drawline", "draw_line", "drawlines", "draw_lines", "line", "lines"}, draw_line),
-                make_shared(option::DRAW_ERROR, {"drawerror", "draw_error", "drawerrors", "draw_errors", "error", "errors"}, draw_errors),
-                make_shared(option::DRAW_MARKER, {"drawmarker", "draw_marker", "drawmarkers", "draw_markers", "draw_points", "drawpoints", "markers", "marker"}, draw_markers),
+                make_shared(option::DRAW_LINE, {"line", "lines"}, draw_line),
+                make_shared(option::DRAW_ERROR, {"error", "errors"}, draw_errors),
+                make_shared(option::DRAW_MARKER, {"marker", "markers", "point", "points"}, draw_markers),
+                make_shared(option::DRAW_BARS, {"bars", "bars"}, draw_bars),
                 make_shared(option::USE_EXISTING_AXES, {"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}, use_existing_axes),
                 make_shared(option::TITLE, {"title"}, title),
                 make_shared(option::XLABEL, {"xlabel"}, xlabel),

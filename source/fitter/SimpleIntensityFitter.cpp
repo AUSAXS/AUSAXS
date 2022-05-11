@@ -30,7 +30,7 @@ void SimpleIntensityFitter::model_setup(const hist::ScatteringHistogram& model, 
     data.limit(limits);
     data.simulate_errors();
     if (I0 > 0) {data.normalize(I0);}
-    data.simulate_noise();
+    if (setting::em::simulation::noise) {data.simulate_noise();}
 }
 
 shared_ptr<Fit> SimpleIntensityFitter::fit() {

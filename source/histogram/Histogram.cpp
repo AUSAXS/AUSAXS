@@ -43,3 +43,13 @@ void Histogram::generate_axis(unsigned int size) {
 void Histogram::set_axis(const Axis& axis) {
     this->axis = axis;
 }
+
+size_t Histogram::size() const {return p.size();}
+
+void Histogram::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
+
+void Histogram::add_plot_options(const std::map<std::string, std::any>& options) {plot_options.set(options);}
+
+void Histogram::add_plot_options(std::string style, std::map<std::string, std::any> options) {plot_options.set(style, options);}
+
+void Histogram::add_plot_options(int color, std::map<std::string, std::any> options) {plot_options.set(color, options);}

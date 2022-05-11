@@ -10,7 +10,11 @@ Fit::Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double ch
     const double* errs = minimizer->Errors();
     for (unsigned int i = 0; i < vars; i++) {
         params.insert({minimizer->VariableName(i), result[i]});
-        errors.insert({minimizer->VariableName(i), errs[i]});
+        if (minimizer->ProvidesError()) {
+            errors.insert({minimizer->VariableName(i), errs[i]});
+        } else {
+            std::cout << "Minimizer does NOT provide error estimates!" << std::endl;
+        }
     }
     add_fit(fitter);
 

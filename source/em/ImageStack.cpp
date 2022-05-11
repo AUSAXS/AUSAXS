@@ -127,7 +127,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
 
     // perform the fit
     ROOT::Math::Functor functor = ROOT::Math::Functor(chi2, 1);
-    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "migrad"); 
+    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS2"); 
     minimizer->SetFunction(functor);
 
     if (positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 2, 1, 1, 10);}

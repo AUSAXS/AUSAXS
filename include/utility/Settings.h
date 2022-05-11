@@ -66,6 +66,10 @@ namespace setting {
         extern unsigned int sample_frequency;     // How often a bin is sampled in any direction. 
         extern std::vector<double> charge_levels; // The charge levels used by the histogram manager. 
         extern double concentration;              // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
+
+        namespace simulation {
+            extern bool noise; // Whether to generate noise for the simulations. 
+        }
     }
 
     // Simple reader for reading settings from a text file

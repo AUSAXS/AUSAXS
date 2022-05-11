@@ -55,6 +55,7 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     std::string draw_options = options.use_existing_axes ? "SAME " : "A";
     if (options.draw_line) {draw_options += "L";}
     if (options.draw_markers) {draw_options += "P";}
+    if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
 
     // draw it
     if (options.draw_errors) {graph->DrawClone(draw_options.c_str());}
@@ -73,6 +74,7 @@ void plots::draw(const Dataset& data, const PlotOptions& options, const std::sha
 }
 
 void plots::draw(const hist::Histogram& hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
+    if (hist.axis.empty()) {throw except::invalid_argument("Error in Plot::draw: The axis of a histogram must be defined before plotting.");}
     std::shared_ptr<TH1D> h = std::make_unique<TH1D>("hist", "hist", hist.axis.bins, hist.axis.min, hist.axis.max);
     std::for_each(hist.p.begin(), hist.p.end(), [&h] (double val) {h->Fill(val);});
     draw(h, options, canvas);
@@ -121,6 +123,13 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
         if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
         canvas->SetLogy();
     }
+
+    // prepare draw options
+    std::string draw_options = options.use_existing_axes ? "HIST SAME " : "HIST ";
+    if (options.draw_bars) {draw_options += "B";}
+    if (options.draw_line) {draw_options += "L";}
+    if (options.draw_markers) {draw_options += "P";}
+    if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
 
     hist->DrawClone("HIST L");
 }

@@ -10,6 +10,7 @@
 #include <TStyle.h>
 #include <TROOT.h>
 #include <TGraph.h>
+#include <TH1D.h>
 
 namespace plots {
 	/**
