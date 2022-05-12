@@ -113,7 +113,7 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
 }
 
 TEST_CASE("repeat_chi2_contour", "[em],[files]") {
-    unsigned int repeats = 50;
+    unsigned int repeats = 10;
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
@@ -168,7 +168,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
             fits.push_back(*fit);
 
             // chi2 contour plot
-            Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
+            Dataset contour = image.cutoff_scan({100, 1.5, 2.5}, hist);
             Dataset evaluated_points = fit->evaluated_points;
             evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
@@ -176,7 +176,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
             plot_c.plot(evaluated_points);
             plot_c.save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
 
-            contour.plot_options.set("line", {{"color", kBlack}, {"alpha", 0.1}});
+            contour.plot_options.set("line", {{"color", kBlack}, {"alpha", 1.}});
             contours.push_back(contour);
             evaluations.push_back(evaluated_points);
         }
