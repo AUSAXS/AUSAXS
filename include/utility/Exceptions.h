@@ -56,6 +56,14 @@ namespace except {
         const string msg;
     };
 
+    // Disabled error. Used when an inherited method is disabled for some reason.  
+    struct disabled : public std::exception {
+        disabled(const char* msg) : msg(msg) {}
+        disabled(const string msg) : msg(msg) {}
+        const char* what() const throw() {return msg.data();}
+        const string msg;
+    };
+
     // Size error. Used when something is wrong with sizes. 
     struct size_error : public std::exception {
         size_error(const char* msg) : msg(msg) {}

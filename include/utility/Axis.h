@@ -31,6 +31,11 @@
 			double span() const {return max-min;}
 
 			/**
+			 * @brief Get the center of this limit.
+			 */
+			double center() const {return span()/2;}
+
+			/**
 			 * @brief Equality operator. Check if this Limit is equal to another.
 			 */
 			bool operator==(const Limit& rhs) const {return min == rhs.min && max == rhs.max;}

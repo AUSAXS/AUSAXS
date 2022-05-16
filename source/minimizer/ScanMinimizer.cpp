@@ -1,2 +1,0 @@
-#include <minimizer/ScanMinimizer.h>
-
