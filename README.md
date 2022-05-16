@@ -1,4 +1,5 @@
 # Todo
+ * [ ] Use nothrow
  * [ ] udregn præcis voxel størrelse for alle resolutions
  * [ ] gentag alt for de andre filer
  * [x] residual plots for em

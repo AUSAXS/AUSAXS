@@ -8,9 +8,9 @@ namespace mini {
 	 */
 	class Golden : public Minimizer {
 		public:
-            Golden() {}
+            Golden(double(&func)(double*), std::string par, Limit bounds);
 
-            Golden(std::string par, Limit limits);
+            Golden(std::function<double(double*)> func, std::string par, Limit bounds);
 
 			/**
 			 * @brief Perform the minimization.
@@ -23,30 +23,40 @@ namespace mini {
 			 * @param par The name of the parameter.
 			 * @param guess The start value of the parameter. 
 			 */
-			void add_parameter(std::string par, double guess);
+			void add_parameter(std::string par, double guess) override;
 
 			/**
 			 * @brief Add a parameter with limits.
 			 * 
 			 * @param par The name of the parameter.
 			 * @param guess The start value of the parameter. 
-			 * @param limits The limits of the parameter.
+			 * @param bounds The bounds of the parameter.
 			 */
-			void add_parameter(std::string par, double guess, Limit limits);
+			void add_parameter(std::string par, double guess, Limit bounds) override;
 
 			/**
 			 * @brief Add a parameter with limits.
 			 * 
 			 * @param par The name of the parameter.
-			 * @param limits The limits of the parameter.
+			 * @param bounds The bounds on the parameter.
 			 */
-			void add_parameter(std::string par, Limit limits);
+			void add_parameter(std::string par, Limit bounds);
+
+            /**
+             * @brief Generate a landscape of the function.
+             */
+            Dataset landscape(unsigned int evals = 100) const;
+
+            /**
+             * @brief Get the evaluated points and their function values.
+             */
+            Dataset get_evaluated_points() const;
 
         private:
             inline static const double phi = (1 + std::sqrt(5))/2;
             inline static const double invphi = 1/phi;
             inline static const double invphi2 = invphi*invphi;
-            Limit limit;
+            Limit bounds;
 
             /**
              * @brief Golden-section search. 

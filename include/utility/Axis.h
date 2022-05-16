@@ -33,7 +33,7 @@
 			/**
 			 * @brief Get the center of this limit.
 			 */
-			double center() const {return span()/2;}
+			double center() const {return min + span()/2;}
 
 			/**
 			 * @brief Equality operator. Check if this Limit is equal to another.

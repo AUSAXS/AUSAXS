@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility/Axis.h>
+#include <utility/Dataset.h>
 
 #include <string>
 #include <vector>
@@ -13,46 +14,41 @@ namespace mini {
      */
     class Minimizer {
         public:
-            class Result {
-                public:
-                    /**
-                     * @brief Default constructor.
-                     */
-                    Result() {}
+            struct Result {
+                /**
+                 * @brief Default constructor.
+                 */
+                Result() {}
 
-                    /**
-                     * @brief Construct a Result. 
-                     * 
-                     * @param params The parameter values. 
-                     * @param errors The parameter errors. 
-                     * @param function_val The function value.
-                     */
-                    Result(const std::map<std::string, double>& params, const std::map<std::string, double>& errors, double function_val);
+                /**
+                 * @brief Construct a Result. 
+                 * 
+                 * @param params The parameter values. 
+                 * @param errors The parameter errors. 
+                 * @param function_val The function value.
+                 */
+                Result(const std::map<std::string, double>& params, const std::map<std::string, double>& errors, double function_val);
 
-                    /**
-                     * @brief Construct a Result. 
-                     * 
-                     * @param values The parameter values. 
-                     * @param errors The parameter errors. 
-                     * @param names The parameter names.
-                     * @param function_val The function value.
-                     */
-                    Result(const std::vector<double>& values, const std::vector<double>& errors, const std::vector<std::string>& names, double function_val);
+                /**
+                 * @brief Construct a Result. 
+                 * 
+                 * @param values The parameter values. 
+                 * @param errors The parameter errors. 
+                 * @param names The parameter names.
+                 * @param function_val The function value.
+                 */
+                Result(const std::vector<double>& values, const std::vector<double>& errors, const std::vector<std::string>& names, double function_val);
 
-                    /**
-                     * @brief Get the optimal parameters. 
-                     */
-                    std::map<std::string, double> parameters() const;
+                std::map<std::string, double> parameters;
+                std::map<std::string, double> errors;
+                double fval;
+            };
 
-                    /**
-                     * @brief Get the errors of the parameters. 
-                     */
-                    std::map<std::string, double> errors() const;
+            struct Evaluation {
+                Evaluation(std::vector<double> vals, double fval) : vals(vals), fval(fval) {}
 
-                private: 
-                    std::map<std::string, double> params;
-                    std::map<std::string, double> errs;
-                    double fval;
+                std::vector<double> vals;
+                double fval;
             };
 
             /**
@@ -63,14 +59,26 @@ namespace mini {
             /**
              * @brief Constructor.
              * 
-             * Initialize this minimizer with a function.
+             * Initialize this minimizer with a function and dimensionality.
              */
-            Minimizer(double(&f)(double*));
+            Minimizer(double(&function)(double*), unsigned int dimensionality);
+
+            /**
+             * @brief Constructor.
+             * 
+             * Initialize this minimizer with a function and dimensionality.
+             */
+            Minimizer(std::function<double(double*)> function, unsigned int dimensionality);
 
             /**
              * @brief Set the function to be minimized.
              */
-            void set_function(double(&f)(double*));
+            virtual void set_function(double(&f)(double*), unsigned int dimensionality = 0);
+
+            /**
+             * @brief Set the function to be minimized.
+             */
+            virtual void set_function(std::function<double(double*)> function, unsigned int dimensionality = 0);
 
             /**
              * @brief Perform the minimization.
@@ -90,14 +98,26 @@ namespace mini {
              * 
              * @param par The name of the parameter.
              * @param guess The start value of the parameter. 
-             * @param limits The limits of the parameter.
+             * @param limits The bounds on the parameter.
              */
-            virtual void add_parameter(std::string par, double guess, Limit limits) = 0;
+            virtual void add_parameter(std::string par, double guess, Limit bounds) = 0;
 
-        protected:
+            /**
+             * @brief Change whether the evaluations are recorded or not.
+             */
+            void record_evaluations(bool setting);
+
             double tol = 1e-6;
+        protected:
             std::function<double(double*)> function;
             std::vector<double> params;
             std::vector<std::string> param_names;
+            unsigned int dimensionality;
+            std::vector<Evaluation> evaluations;
+
+        private:
+            std::function<double(double*)> wrapper;
+            std::function<double(double*)> raw;
+
     };
 }
