@@ -10,6 +10,19 @@
 
 namespace mini {
     /**
+     * @brief A representation of a parameter.
+     */
+    struct Parameter {
+        Parameter(std::string name, double guess, const Limit& bounds) : name(name), guess(guess), bounds(bounds) {}
+
+        bool is_bounded() const {return bounds.empty();}
+
+        std::string name;
+        double guess;
+        Limit bounds;
+    };
+
+    /**
      * @brief A common interface for global minimizers. 
      */
     class Minimizer {
@@ -88,19 +101,9 @@ namespace mini {
             /**
              * @brief Add a parameter.
              * 
-             * @param par The name of the parameter.
-             * @param guess The start value of the parameter. 
+             * @param param The parameter. 
              */
-            virtual void add_parameter(std::string par, double guess) = 0;
-
-            /**
-             * @brief Add a parameter with limits.
-             * 
-             * @param par The name of the parameter.
-             * @param guess The start value of the parameter. 
-             * @param limits The bounds on the parameter.
-             */
-            virtual void add_parameter(std::string par, double guess, Limit bounds) = 0;
+            virtual void add_parameter(const Parameter& param) = 0;
 
             /**
              * @brief Change whether the evaluations are recorded or not.
@@ -110,8 +113,6 @@ namespace mini {
             double tol = 1e-6;
         protected:
             std::function<double(double*)> function;
-            std::vector<double> params;
-            std::vector<std::string> param_names;
             unsigned int dimensionality;
             std::vector<Evaluation> evaluations;
 

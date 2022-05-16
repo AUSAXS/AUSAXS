@@ -78,7 +78,6 @@ target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PR
 ############################################
 ##             Unit Testing               ##
 ############################################
-message(STATUS "Compiling unit test")
 file(GLOB_RECURSE TEST_SRC
   "test/*.h"
   "test/*.cpp")
