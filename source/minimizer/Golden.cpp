@@ -4,16 +4,17 @@
 
 using namespace mini;
 
-Golden::Golden(double(&func)(double*), std::string par, Limit bounds) : Minimizer(func, 1) {
-    add_parameter(par, bounds);
+Golden::Golden(double(&func)(double*), const Parameter& param) : Minimizer(func, 1) {
+    add_parameter(param);
 }
 
-Golden::Golden(std::function<double(double*)> func, std::string par, Limit bounds) : Minimizer(func, 1) {
-    add_parameter(par, bounds);
+Golden::Golden(std::function<double(double*)> func, const Parameter& param) : Minimizer(func, 1) {
+    add_parameter(param);
 }
 
-Limit Golden::search(double a, double b) const {
+Limit Golden::search(const Limit bounds) const {
     // Code adapted from the python implementation from Wikipedia: https://en.wikipedia.org/wiki/Golden-section_search 
+    double a = bounds.min, b = bounds.max;
     double temp = a + b;
     
     // sort such that a < b
@@ -60,11 +61,12 @@ Limit Golden::search(double a, double b) const {
 }
 
 Dataset Golden::landscape(unsigned int evals) const {
+    if (parameters.empty()) {throw except::bad_order("Error in Golden::landscape: No parameters were supplied.");}
     std::vector<double> x(evals), y(evals);
 
-    double step = bounds.span()/evals;
+    double step = parameters[0].bounds.span()/evals;
     for (unsigned int i = 0; i < evals; i++) {
-        double val = bounds.min + i*step;
+        double val = parameters[0].bounds.min + i*step;
         x[i] = val;
         y[i] = function(&val);
     }
@@ -84,28 +86,16 @@ Dataset Golden::get_evaluated_points() const {
 }
 
 Minimizer::Result Golden::minimize() const {
-    Limit optimal_interval = search(bounds.min, bounds.max);
-    double opt = optimal_interval.center();
-    double err = std::max(opt-optimal_interval.min, optimal_interval.max-opt); // use largest error
-    double opt_val = function(&opt); // function value at minimum
+    if (parameters.empty()) {throw except::bad_order("Error in Golden::minimize: No parameters were supplied.");}
+    Limit optimal_interval = search(parameters[0].bounds);
+    FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
 
-    return Minimizer::Result({{param_names[0], opt}}, {{param_names[0], err}}, opt_val);
+    return Minimizer::Result(p, function(&p.val));
 }
 
-void Golden::add_parameter(std::string, double) {
-    throw except::disabled("Error in Golden::add_parameter: The parameter must be supplied with limits for this minimizer.");
-}
-
-void Golden::add_parameter(std::string par, double, Limit bounds) {
-    if (!param_names.empty()) {throw except::invalid_operation("Error in Golden::add_parameter: This minimizer only supports 1D problems.");}
-
-    utility::print_warning("Warning in Golden::add_parameter: Guess value will be ignored.");
-    add_parameter(par, bounds);
-}
-
-void Golden::add_parameter(std::string par, Limit bounds) {
-    if (!param_names.empty()) {throw except::invalid_operation("Error in Golden::add_parameter: This minimizer only supports 1D problems.");}
-
-    param_names.push_back(par);
-    this->bounds = bounds;
+void Golden::add_parameter(const Parameter& param) {
+    if (!param.has_bounds()) {throw except::invalid_argument("Error in Golden::add_parameter: The parameter must be supplied with limits for this minimizer.");}
+    if (!parameters.empty()) {throw except::invalid_operation("Error in Golden::add_parameter: This minimizer only supports 1D problems.");}
+    if (param.has_guess()) {utility::print_warning("Warning in Golden::add_parameter: Guess value will be ignored.");}
+    parameters.push_back(param);
 }

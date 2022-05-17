@@ -169,12 +169,16 @@ class Dataset {
 
         std::string xlabel = "x";
         std::string ylabel = "y";
+        std::string ylabel = "z";
         std::string xerrlabel = "xerr";
         std::string yerrlabel = "yerr";
+        std::string yerrlabel = "zerr";
         std::vector<double> x;    // The x coordinates.
         std::vector<double> y;    // The y coordinates.
+        std::vector<double> z;    // The z coordinates.
         std::vector<double> xerr; // The error in the x coordinates
         std::vector<double> yerr; // The error in the y coordinates
+        std::vector<double> zerr; // The error in the z coordinates.
         plots::PlotOptions plot_options; 
 
     private:
