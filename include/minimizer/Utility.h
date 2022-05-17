@@ -9,14 +9,38 @@ namespace mini {
      * @brief A representation of a parameter.
      */
     struct Parameter {
-        Parameter(std::string name, double guess = 0, Limit bounds = {0, 0}) : name(name), guess(guess), bounds(bounds) {}
+        /**
+         * @brief Create a Parameter with a guess value and bounds.
+         * 
+         * @param name The name of the parameter.
+         * @param guess The guess value.
+         * @param bounds The bounds. 
+         */
+        Parameter(std::string name, double guess = 0, Limit bounds = {0, 0});
 
-        bool has_bounds() const noexcept {return bounds.has_value();}
-        bool has_guess() const noexcept {return guess.has_value();}
+        /**
+         * @brief Create a Parameter without a guess value.
+         * 
+         * @param name The name of the parameter.
+         * @param bounds The bounds.
+         */
+        Parameter(std::string name, Limit bounds);
 
-        std::string name;
-        std::optional<double> guess;
-        std::optional<Limit> bounds;
+        /**
+         * @brief Check if this parameter is bounded.
+         */
+        [[nodiscard]]
+        bool has_bounds() const noexcept;
+
+        /**
+         * @brief Check if this parameter has a guess value.
+         */
+        [[nodiscard]]
+        bool has_guess() const noexcept;
+
+        std::string name;            // The name of this parameter.
+        std::optional<double> guess; // The guess value.
+        std::optional<Limit> bounds; // The bounds of this parameter. 
     };
 
     struct FittedParameter {
@@ -27,7 +51,7 @@ namespace mini {
          * @param val Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(std::string name, double val, Limit error) : name(name), val(val), error(error) {}
+        FittedParameter(std::string name, double val, Limit error);
 
         /**
          * @brief Create a FittedParameter with symmetric errors.
@@ -36,7 +60,7 @@ namespace mini {
          * @param val Optimal value of this parameter.
          * @param error Symmetrical errors of this parameter.
          */
-        FittedParameter(std::string name, double val, double error) : name(name), val(val), error({-error, +error}) {}
+        FittedParameter(std::string name, double val, double error);
 
         /**
          * @brief Create a FittedParameter from a Parameter with asymmetric errors.
@@ -45,7 +69,7 @@ namespace mini {
          * @param val Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(const Parameter& param, double val, Limit error) : name(param.name), val(val), error(error) {}
+        FittedParameter(const Parameter& param, double val, Limit error);
 
         /**
          * @brief Create a FittedParameter from a Parameter with symmetric errors.
@@ -54,7 +78,7 @@ namespace mini {
          * @param val Optimal value of this parameter.
          * @param error Symmetrical errors of this parameter.
          */
-        FittedParameter(const Parameter& param, double val, double error) : name(param.name), val(val), error(-error, +error) {}
+        FittedParameter(const Parameter& param, double val, double error);
 
         std::string name; // The name of this parameter.
         double val;       // The optimal value of this parameter.
@@ -83,12 +107,14 @@ namespace mini {
          */
         Result(const std::vector<FittedParameter>& params, double fval);
 
+        FittedParameter get_parameter(std::string name) const;
+
         std::vector<FittedParameter> parameters;
         double fval;
     };
 
     struct Evaluation {
-        Evaluation(std::vector<double> vals, double fval) : vals(vals), fval(fval) {}
+        Evaluation(std::vector<double> vals, double fval);
 
         std::vector<double> vals;
         double fval;

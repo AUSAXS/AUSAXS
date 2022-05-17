@@ -2,6 +2,7 @@
 
 #include <utility/Axis.h>
 #include <utility/Dataset.h>
+#include <minimizer/Utility.h>
 
 #include <string>
 #include <vector>
@@ -59,7 +60,7 @@ namespace mini {
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            virtual Dataset landscape() const = 0;
+            virtual Dataset landscape(unsigned int bins) const = 0;
 
             /**
              * @brief Change whether the evaluations are recorded or not.

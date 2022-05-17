@@ -169,10 +169,10 @@ class Dataset {
 
         std::string xlabel = "x";
         std::string ylabel = "y";
-        std::string ylabel = "z";
+        std::string zlabel = "z";
         std::string xerrlabel = "xerr";
         std::string yerrlabel = "yerr";
-        std::string yerrlabel = "zerr";
+        std::string zerrlabel = "zerr";
         std::vector<double> x;    // The x coordinates.
         std::vector<double> y;    // The y coordinates.
         std::vector<double> z;    // The z coordinates.

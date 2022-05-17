@@ -43,7 +43,7 @@ TestFunction RosenbrockModified([] (double* pars) {
 );
 
 TEST_CASE("1d_landscape", "[minimizer],[manual]") {
-    mini::Golden mini(problem04.function, "x1", problem04.bounds[0]);
+    mini::Golden mini(problem04.function, {"x1", problem04.bounds[0]});
     auto res = mini.minimize();
 
     Dataset evaluations = mini.get_evaluated_points();
@@ -63,7 +63,7 @@ TEST_CASE("1d_landscape", "[minimizer],[manual]") {
 
 TEST_CASE("golden_minimizer", "[minimizer]") {
     auto GoldenTest = [] (const TestFunction& test) {
-        mini::Golden mini(test.function, "a", test.bounds[0]);
+        mini::Golden mini(test.function, {"a", test.bounds[0]});
         auto res = mini.minimize();
         CHECK_THAT(res.parameters.at("a"), Catch::Matchers::WithinRel(test.min[0], mini.tol));
     };

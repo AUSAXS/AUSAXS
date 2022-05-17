@@ -64,9 +64,9 @@ Dataset Golden::landscape(unsigned int evals) const {
     if (parameters.empty()) {throw except::bad_order("Error in Golden::landscape: No parameters were supplied.");}
     std::vector<double> x(evals), y(evals);
 
-    double step = parameters[0].bounds.span()/evals;
+    double step = parameters[0].bounds.value().span()/evals;
     for (unsigned int i = 0; i < evals; i++) {
-        double val = parameters[0].bounds.min + i*step;
+        double val = parameters[0].bounds.value().min + i*step;
         x[i] = val;
         y[i] = function(&val);
     }
@@ -85,12 +85,12 @@ Dataset Golden::get_evaluated_points() const {
     return Dataset(x, y, "x", "f(x)");
 }
 
-Minimizer::Result Golden::minimize() const {
+Result Golden::minimize() const {
     if (parameters.empty()) {throw except::bad_order("Error in Golden::minimize: No parameters were supplied.");}
-    Limit optimal_interval = search(parameters[0].bounds);
+    Limit optimal_interval = search(parameters[0].bounds.value());
     FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
 
-    return Minimizer::Result(p, function(&p.val));
+    return Result(p, function(&p.val));
 }
 
 void Golden::add_parameter(const Parameter& param) {
