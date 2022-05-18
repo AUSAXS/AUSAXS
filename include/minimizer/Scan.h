@@ -11,7 +11,7 @@ namespace mini {
 			/**
 			 * @brief Perform the minimization.
 			 */
-			Result minimize() const override;
+			Result minimize() override;
 
 			/**
 			 * @brief Add a parameter.

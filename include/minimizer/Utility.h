@@ -46,12 +46,23 @@ namespace mini {
         [[nodiscard]]
         bool has_name() const noexcept;
 
+        /**
+         * @brief Check if this parameter has been initialized.
+         */
+        [[nodiscard]]
+        bool empty() const noexcept;
+
         std::string name;            // The name of this parameter.
         std::optional<double> guess; // The guess value.
         std::optional<Limit> bounds; // The bounds of this parameter. 
     };
 
     struct FittedParameter {
+        /**
+         * @brief Default constructor.
+         */
+        FittedParameter() {}
+
         /**
          * @brief Create a FittedParameter with asymmetric errors.
          * 
@@ -115,7 +126,30 @@ namespace mini {
          */
         Result(const std::vector<FittedParameter>& params, double fval);
 
+        /**
+         * @brief Get a parameter based on its name from this result.
+         */
         FittedParameter get_parameter(std::string name) const;
+
+        /**
+         * @brief Get a parameter based on its index from this result.
+         */
+        FittedParameter get_parameter(unsigned int index) const;
+
+        /**
+         * @brief Add a parameter to this result.
+         */
+        void add_parameter(const FittedParameter& param);
+
+        /**
+         * @brief Get the number of parameters in this result.
+         */
+        size_t size() const noexcept;
+
+        /**
+         * @brief Get the number of parameters in this result.
+         */
+        size_t dim() const noexcept;
 
         std::vector<FittedParameter> parameters;
         double fval;

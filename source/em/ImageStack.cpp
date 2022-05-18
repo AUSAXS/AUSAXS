@@ -74,8 +74,7 @@ size_t ImageStack::size() const {return size_z;}
 const vector<Image>& ImageStack::images() const {return data;}
 
 std::unique_ptr<Grid> ImageStack::create_grid(double) const {
-    std::cout << "Error in ImageStack::create_grid: Not implemented yet. " << std::endl;
-    exit(1);
+    throw except::unexpected("Error in Imagestack::create_grid: Not implemented yet.");
 }
 
 hist::ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
@@ -126,7 +125,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     }; 
 
     // perform the fit
-    ROOT::Math::Functor functor = ROOT::Math::Functor(chi2, 1);
+    ROOT::Math::Functor functor(chi2, 1);
     ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS2"); 
     minimizer->SetFunction(functor);
 

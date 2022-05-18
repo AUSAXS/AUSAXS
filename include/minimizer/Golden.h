@@ -8,14 +8,14 @@ namespace mini {
 	 */
 	class Golden : public Minimizer {
 		public:
-            Golden(double(&func)(double*), const Parameter& param);
+            Golden(double(&func)(const double*), const Parameter& param);
 
-            Golden(std::function<double(double*)> func, const Parameter& param);
+            Golden(std::function<double(const double*)> func, const Parameter& param);
 
 			/**
 			 * @brief Perform the minimization.
 			 */
-			Result minimize() const override;
+			Result minimize() override;
 
 			/**
 			 * @brief Add a parameter.

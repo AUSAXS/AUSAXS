@@ -25,34 +25,34 @@ namespace mini {
              * 
              * Initialize this minimizer with a function and dimensionality.
              */
-            Minimizer(double(&function)(double*), unsigned int dimensionality);
+            Minimizer(double(&function)(const double*));
 
             /**
              * @brief Constructor.
              * 
              * Initialize this minimizer with a function and dimensionality.
              */
-            Minimizer(std::function<double(double*)> function, unsigned int dimensionality);
+            Minimizer(std::function<double(const double*)> function);
 
             /**
              * @brief Set the function to be minimized.
              */
-            virtual void set_function(double(&f)(double*), unsigned int dimensionality = 0);
+            virtual void set_function(double(&function)(const double*));
 
             /**
              * @brief Set the function to be minimized.
              */
-            virtual void set_function(std::function<double(double*)> function, unsigned int dimensionality = 0);
+            virtual void set_function(std::function<double(const double*)> function);
 
             /**
              * @brief Perform the minimization.
              */
-            virtual Result minimize() const = 0;
+            virtual Result minimize() = 0;
 
             /**
              * @brief Add a parameter.
              */
-            virtual void add_parameter(const Parameter& param) = 0;
+            virtual void add_parameter(const Parameter& param);
 
             /**
              * @brief Generate a landscape of the function values. 
@@ -68,13 +68,21 @@ namespace mini {
             double tol = 1e-6;
         protected:
             std::vector<Parameter> parameters;
-            std::function<double(double*)> function;
-            unsigned int dimensionality;
+            std::function<double(const double*)> function;
             std::vector<Evaluation> evaluations;
 
-        private:
-            std::function<double(double*)> wrapper;
-            std::function<double(double*)> raw;
+            /**
+             * @brief Check if the function is set.
+             */
+            bool is_function_set() const noexcept;
 
+            /**
+             * @brief Check if at least one parameter has been provided.
+             */
+            bool is_parameter_set() const noexcept;
+
+        private:
+            std::function<double(const double*)> wrapper;
+            std::function<double(const double*)> raw;
     };
 }

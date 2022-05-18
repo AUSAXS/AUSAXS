@@ -4,11 +4,11 @@
 
 using namespace mini;
 
-Golden::Golden(double(&func)(double*), const Parameter& param) : Minimizer(func, 1) {
+Golden::Golden(double(&func)(const double*), const Parameter& param) : Minimizer(func) {
     add_parameter(param);
 }
 
-Golden::Golden(std::function<double(double*)> func, const Parameter& param) : Minimizer(func, 1) {
+Golden::Golden(std::function<double(const double*)> func, const Parameter& param) : Minimizer(func) {
     add_parameter(param);
 }
 
@@ -85,8 +85,9 @@ Dataset Golden::get_evaluated_points() const {
     return Dataset(x, y, "x", "f(x)");
 }
 
-Result Golden::minimize() const {
-    if (parameters.empty()) {throw except::bad_order("Error in Golden::minimize: No parameters were supplied.");}
+Result Golden::minimize() {
+    if (!is_parameter_set()) {throw except::bad_order("Error in Golden::minimize: No parameters were supplied.");}
+    if (!is_function_set()) {throw except::bad_order("Error in Golden::minimize: No function was set.");}
     Limit optimal_interval = search(parameters[0].bounds.value());
     FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
 
