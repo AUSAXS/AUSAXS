@@ -31,7 +31,7 @@ namespace mini {
              * @param package The package containing the algorithm.
              * @param algorithm The name of the algorithm. 
              */
-            ROOT(std::string package, std::string algorithm, double(&f)(double*), std::map<std::string, double> params = {});
+            ROOT(std::string package, std::string algorithm, double(&f)(double*), Parameter param = Parameter());
 
             /**
              * @brief Perform the minimization.
@@ -40,19 +40,15 @@ namespace mini {
 
             /**
              * @brief Add a parameter.
-             * 
-             * @param par The name of the parameter.
-             * @param guess The start value of the parameter. 
              */
-            void add_parameter(std::string par, double guess);
+            void add_parameter(const Parameter& param) override;
 
             /**
-             * @brief Add a parameter with limits.
-             * 
-             * @param par The name of the parameter.
-             * @param guess The start value of the parameter. 
-             * @param limits The limits of the parameter.
+             * @brief Generate a landscape of the function.
              */
-            void add_parameter(std::string par, double guess, Limit limits);
+            Dataset landscape(unsigned int evals = 100) const override;
+
+        private: 
+            
     };
 }

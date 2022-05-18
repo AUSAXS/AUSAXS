@@ -51,8 +51,6 @@ namespace mini {
 
             /**
              * @brief Add a parameter.
-             * 
-             * @param param The parameter. 
              */
             virtual void add_parameter(const Parameter& param) = 0;
 

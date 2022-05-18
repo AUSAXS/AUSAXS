@@ -19,9 +19,6 @@ namespace mini {
 
 			/**
 			 * @brief Add a parameter.
-			 * 
-			 * @param par The name of the parameter.
-			 * @param guess The start value of the parameter. 
 			 */
 			void add_parameter(const Parameter& param) override;
 

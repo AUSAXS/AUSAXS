@@ -9,6 +9,8 @@ namespace mini {
      * @brief A representation of a parameter.
      */
     struct Parameter {
+        Parameter() {}
+
         /**
          * @brief Create a Parameter with a guess value and bounds.
          * 
@@ -37,6 +39,12 @@ namespace mini {
          */
         [[nodiscard]]
         bool has_guess() const noexcept;
+
+        /**
+         * @brief Check if this parameter is named.
+         */
+        [[nodiscard]]
+        bool has_name() const noexcept;
 
         std::string name;            // The name of this parameter.
         std::optional<double> guess; // The guess value.

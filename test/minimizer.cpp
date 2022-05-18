@@ -65,7 +65,7 @@ TEST_CASE("golden_minimizer", "[minimizer]") {
     auto GoldenTest = [] (const TestFunction& test) {
         mini::Golden mini(test.function, {"a", test.bounds[0]});
         auto res = mini.minimize();
-        CHECK_THAT(res.parameters.at("a"), Catch::Matchers::WithinRel(test.min[0], mini.tol));
+        CHECK_THAT(res.get_parameter("a"), Catch::Matchers::WithinRel(test.min[0], mini.tol));
     };
 
     GoldenTest(problem04);
@@ -77,11 +77,11 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
 }
 
 TEST_CASE("root_minimizer", "[minimizer]") {
-    auto GoldenTest = [] (const TestFunction& test, std::pair<double, double> guess) {
+    auto ROOTTest = [] (const TestFunction& test, std::pair<double, double> guess) {
         mini::ROOT mini(test.function, {{"x1", guess.first}, {"x2", guess.second}}, test.bounds);
         auto res = mini.minimize();
-        CHECK_THAT(res.parameters.at("x1"), Catch::Matchers::WithinRel(test.min[0], mini.tol));
-        CHECK_THAT(res.parameters.at("x2"), Catch::Matchers::WithinRel(test.min[1], mini.tol));
+        CHECK_THAT(res.get_parameter("x1"), Catch::Matchers::WithinRel(test.min[0], mini.tol));
+        CHECK_THAT(res.get_parameter("x2"), Catch::Matchers::WithinRel(test.min[1], mini.tol));
     };
 
     GoldenTest(Decanomial);
