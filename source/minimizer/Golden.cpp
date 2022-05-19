@@ -89,10 +89,12 @@ Dataset Golden::get_evaluated_points() const {
 Result Golden::minimize() {
     if (!is_parameter_set()) {throw except::bad_order("Error in Golden::minimize: No parameters were supplied.");}
     if (!is_function_set()) {throw except::bad_order("Error in Golden::minimize: No function was set.");}
-    Limit optimal_interval = search(parameters[0].bounds.value());
-    FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
-    std::cout << p << std::endl;
 
+    Limit optimal_interval = search(parameters[0].bounds.value());
+
+    double val = optimal_interval.center();
+    Limit errs = optimal_interval - val;
+    FittedParameter p(parameters[0], val, errs);
     return Result(p, function(&p.val));
 }
 

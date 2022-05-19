@@ -15,7 +15,7 @@ class Limit {
         /**
          * @brief Default constructor.
          */
-        Limit() : min(0), max(0) {}
+        Limit() noexcept : min(0), max(0) {}
 
         /**
          * @brief Constructor. 
@@ -23,7 +23,7 @@ class Limit {
          * @param min Minimum value of the limit. 
          * @param max Maximum value of the limit. 
          */
-        Limit(double min, double max) : min(min), max(max) {}
+        Limit(double min, double max) noexcept : min(min), max(max) {}
 
         /**
          * @brief Get the interval spanned by this limit. 
@@ -50,7 +50,8 @@ class Limit {
         /**
          * @brief Subtract a constant from both ends of this limit. 
          */
-        Limit& operator-(double rhs) {max-=rhs; min-=rhs; return *this;}
+        //! Must MAKE A COPY
+        Limit operator-(double rhs) {max-=rhs; min-=rhs}
 
         /**
          * @brief Stream output operator. 
