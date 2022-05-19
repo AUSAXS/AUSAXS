@@ -4,6 +4,7 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 
 void FitReporter::report(const Fit& fit) {
     std::cout << fit.to_string() << std::endl;

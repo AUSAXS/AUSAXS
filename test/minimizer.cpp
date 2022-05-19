@@ -71,7 +71,7 @@ TEST_CASE("golden_minimizer", "[minimizer]") {
     auto GoldenTest = [] (const TestFunction& test) {
         mini::Golden mini(test.function, {"a", test.bounds[0]});
         auto res = mini.minimize();
-        CHECK_THAT(res.get_parameter("a").val, Catch::Matchers::WithinRel(test.min[0], mini.tol));
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinRel(test.min[0], mini.tol));
     };
 
     SECTION("problem04") {GoldenTest(problem04);}
@@ -83,15 +83,23 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
 }
 
 TEST_CASE("root_minimizer", "[minimizer]") {
-    auto ROOTTest = [] (const TestFunction& test, std::vector<double> guess) {
+    auto ROOTTest1D = [] (const TestFunction& test) {
+        mini::ROOTMinimizer mini("Minuit2", "migrad", test.function, {"a", test.bounds[0]});
+        auto res = mini.minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinRel(test.min[0], mini.tol));
+    };
+    auto ROOTTest2D = [] (const TestFunction& test, std::vector<double> guess) {
         std::vector<mini::Parameter> params = {{"x1", guess[0], test.bounds[0]}, {"x2", guess[1], test.bounds[1]}};
         mini::ROOTMinimizer mini("GSLSimAn", "migrad", test.function, params);
         auto res = mini.minimize();
-        CHECK_THAT(res.get_parameter("x1").val, Catch::Matchers::WithinRel(test.min[0], mini.tol));
-        CHECK_THAT(res.get_parameter("x2").val, Catch::Matchers::WithinRel(test.min[1], mini.tol));
+        CHECK_THAT(res.get_parameter("x1").value, Catch::Matchers::WithinRel(test.min[0], mini.tol));
+        CHECK_THAT(res.get_parameter("x2").value, Catch::Matchers::WithinRel(test.min[1], mini.tol));
     };
 
-    SECTION("Decanomial") {ROOTTest(Decanomial, Decanomial.get_center());}
-    SECTION("Hosaki") {ROOTTest(Hosaki, Hosaki.get_center());}
-    SECTION("RosenbrockModified") {ROOTTest(RosenbrockModified, RosenbrockModified.get_center());}
+    SECTION("problem04") {ROOTTest1D(problem04);}
+    SECTION("problem13") {ROOTTest1D(problem13);}
+    SECTION("problem18") {ROOTTest1D(problem18);}
+    SECTION("Decanomial") {ROOTTest2D(Decanomial, Decanomial.get_center());}
+    SECTION("Hosaki") {ROOTTest2D(Hosaki, Hosaki.get_center());}
+    SECTION("RosenbrockModified") {ROOTTest2D(RosenbrockModified, RosenbrockModified.get_center());}
 }

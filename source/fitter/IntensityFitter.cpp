@@ -4,6 +4,7 @@
 #include <math/CubicSpline.h>
 #include <histogram/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
+#include <minimizer/ROOTMinimizer.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
@@ -12,18 +13,12 @@
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
 shared_ptr<Fit> IntensityFitter::fit() {
-    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Migrad");
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    ROOT::Math::Functor functor(f, 1); // declare the function to be minimized and its number of parameters
-    minimizer->SetFunction(functor);
-    minimizer->SetPrintLevel(0);
-    minimizer->SetLimitedVariable(0, "c", 5, 1e-4, 0, 100); // scaling factor
-    minimizer->Minimize();
-    const double* res = minimizer->X();
-    const double* err = minimizer->Errors();
+    mini::ROOTMinimizer mini("Minuit2", "migrad", f, {"c", 5, {0, 100}});
+    auto res = mini.minimize();
 
     // apply c
-    h.apply_water_scaling_factor(res[0]);
+    h.apply_water_scaling_factor(res.get_parameter("c").value);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
@@ -35,23 +30,16 @@ shared_ptr<Fit> IntensityFitter::fit() {
     std::shared_ptr<Fit> ab_fit = fitter.fit();
 
     // update fitter object
-    bool converged = !minimizer->Status();
-    std::map<string, double> pars = {{"c", res[0]}, {"a", ab_fit->params["a"]}, {"b", ab_fit->params["b"]}};
-    std::map<string, double> errs = {{"c", err[0]}, {"a", ab_fit->errors["a"]}, {"b", ab_fit->errors["b"]}};
-    double funcalls = minimizer->NCalls();
-    fitted = std::make_shared<Fit>(pars, errs, chi2(res), data.size()-2, funcalls, converged);
-
-    minimizer->SetPrintLevel(3);
-    minimizer->PrintResults();
+    fitted = std::make_shared<Fit>(res, res.fval, data.size()-2);
     return fitted;
 }
 
 Fit::Plots IntensityFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
-    double c = fitted->params["c"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
+    double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
@@ -75,9 +63,9 @@ Fit::Plots IntensityFitter::plot() {
 Dataset IntensityFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
-    double c = fitted->params["c"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
+    double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
@@ -122,9 +110,9 @@ double IntensityFitter::chi2(const double* params) {
 double IntensityFitter::get_intercept() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
  
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
-    double c = fitted->params["c"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
+    double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
@@ -135,9 +123,9 @@ double IntensityFitter::get_intercept() {
 SAXSDataset IntensityFitter::get_model_dataset() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
-    double c = fitted->params["c"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
+    double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
@@ -150,9 +138,9 @@ SAXSDataset IntensityFitter::get_model_dataset() {
 SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
-    double c = fitted->params["c"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
+    double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
     SAXSDataset model = h.calc_debye_scattering_intensity(q);

@@ -33,7 +33,7 @@ TEST_CASE("consistency_check", "[fitter]") {
     hist::Histogram optimal_vals;
     for (unsigned int i = 0; i < repeats; i++) {
         auto fit = image.fit(hist);
-        optimal_vals.p.push_back(fit->params.at("cutoff"));
+        optimal_vals.p.push_back(fit->get_parameter("cutoff").value);
     }
     optimal_vals.generate_axis(10);
 

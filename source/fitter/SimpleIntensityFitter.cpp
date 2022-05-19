@@ -55,8 +55,8 @@ void SimpleIntensityFitter::normalize_intensity(double new_I0) {
 Fit::Plots SimpleIntensityFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
 
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
@@ -79,8 +79,8 @@ Fit::Plots SimpleIntensityFitter::plot() {
 Dataset SimpleIntensityFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
-    double a = fitted->params["a"];
-    double b = fitted->params["b"];
+    double a = fitted->get_parameter("a").value;
+    double b = fitted->get_parameter("b").value;
 
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);

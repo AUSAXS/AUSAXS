@@ -1,4 +1,6 @@
 # Todo
+ * [ ] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
+ * [ ] Fit: Inherit from Result since they share everything anyways
  * [ ] Use nothrow
  * [ ] udregn præcis voxel størrelse for alle resolutions
  * [ ] gentag alt for de andre filer

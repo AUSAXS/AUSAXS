@@ -16,10 +16,7 @@ using namespace std::chrono;
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
 #include <utility/Exceptions.h>
-
-#include <Math/Minimizer.h>
-#include <Math/Factory.h>
-#include <Math/Functor.h>
+#include <minimizer/Golden.h>
 
 using namespace setting::em;
 using namespace em;
@@ -82,7 +79,7 @@ hist::ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
 }
 
 hist::ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit> res) const {
-    return get_histogram(res->params.at("cutoff"));
+    return get_histogram(res->get_parameter("cutoff").value);
 }
 
 std::shared_ptr<Protein> ImageStack::get_protein(double cutoff) const {
@@ -117,28 +114,19 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->chi2;
-
-        evaluated_points.x.push_back(params[0]);
-        evaluated_points.y.push_back(val);
         std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 
 
     // perform the fit
-    ROOT::Math::Functor functor(chi2, 1);
-    ROOT::Math::Minimizer* minimizer = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "BFGS2"); 
-    minimizer->SetFunction(functor);
+    double guess; Limit bounds;
+    if (positively_stained()) {guess = 2; bounds = Limit(1, 10);}
+    else {guess = -2; bounds = Limit(-10, -1);}
+    mini::Golden mini(chi2, {"cutoff", guess, bounds});
+    auto res = mini.minimize();
 
-    if (positively_stained()) {minimizer->SetLimitedVariable(0, "cutoff", 2, 1, 1, 10);}
-    else {minimizer->SetLimitedVariable(0, "cutoff", -2, 1, -1, -10);}
-
-    minimizer->SetStrategy(2);
-    minimizer->SetPrintLevel(2);
-    minimizer->Minimize();
-
-    const double* result = minimizer->X();
-    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, minimizer, chi2(result));
-    emfit->evaluated_points = evaluated_points;
+    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, res, res.fval);
+    emfit->evaluated_points = mini.get_evaluated_points();
 
     return emfit;
 }

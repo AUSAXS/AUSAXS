@@ -1,45 +1,23 @@
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
+#include <utility/Exceptions.h>
 
 #include <iomanip>
 #include <sstream>
 
-Fit::Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double chi2) : chi2(chi2) {
-    unsigned int vars = minimizer->NDim();
-    const double* result = minimizer->X();
-    const double* errs = minimizer->Errors();
-    for (unsigned int i = 0; i < vars; i++) {
-        params.insert({minimizer->VariableName(i), result[i]});
-        if (minimizer->ProvidesError()) {
-            errors.insert({minimizer->VariableName(i), errs[i]});
-        } else {
-            std::cout << "Minimizer does NOT provide error estimates!" << std::endl;
-        }
-    }
-    add_fit(fitter);
+Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) : Fit(res, chi2, 0) {
+    dof = fitter.dof() - res.dim();
 
+    add_fit(fitter);
     figures = fitter.plot();
     residuals = fitter.plot_residuals();
-
-    converged = minimizer->Status() == 0;
-    calls = minimizer->NCalls();
-    dof = fitter.dof() - vars;
 }
 
-Fit::Fit(const ROOT::Math::Minimizer* const minimizer, double chi2) : chi2(chi2) {
-    unsigned int vars = minimizer->NDim();
-    const double* result = minimizer->X();
-    const double* errs = minimizer->Errors();
-    for (unsigned int i = 0; i < vars; i++) {
-        params.insert({minimizer->VariableName(i), result[i]});
-        errors.insert({minimizer->VariableName(i), errs[i]});
-    }
-
-    if (chi2 == -1) {chi2 = minimizer->MinValue();}
+Fit::Fit(const mini::Result& res, double chi2, double dof) : chi2(chi2), dof(dof) {
+    params = res.parameters;
+    calls = res.fevals;
+    converged = res.status == 0;
 }
-
-Fit::Fit(std::map<std::string, double>& params, std::map<std::string, double>& errs, const double chi2, const int dof, const int calls, const bool converged) : 
-    params(params), errors(errs), chi2(chi2), dof(dof), calls(calls), converged(converged) {}
 
 void Fit::add_fit(Fitter& fitter) {
     add_fit(fitter.get_fit());
@@ -47,9 +25,19 @@ void Fit::add_fit(Fitter& fitter) {
 
 void Fit::add_fit(std::shared_ptr<Fit> fit) {
     for (const auto e : fit->params) {
-        params.insert({e.first, e.second});
-        errors.insert({e.first, fit->errors.at(e.first)});
+        params.push_back(e);
     }
+}
+
+mini::FittedParameter Fit::get_parameter(unsigned int index) const {
+    if (params.size() <= index) {throw except::out_of_bounds("Error in Fit::get_parameter: Index \"" + std::to_string(index) + "\" is out of range (" + std::to_string(params.size()) + ").");}
+    return params[index];
+} 
+
+mini::FittedParameter Fit::get_parameter(std::string name) const {
+    auto pos = std::find_if(params.begin(), params.end(), [&name] (const mini::FittedParameter& param) {return param.name == name;});
+    if (pos == params.end()) {throw except::unknown_argument("Error in Fit::get_parameter: No parameter named \"" + name + "\" was found.");}
+    return *pos;
 }
 
 template<typename T>
@@ -78,7 +66,7 @@ std::string Fit::to_string() const {
        << "\n+----------------------------------------------------------+"
        << "\n| PAR      | VAL          | UNC          |                 |";
     for (const auto& e : params) {
-        ss << "\n| " << print_element(e.first, 8) << " | " << print_element(e.second, 12) << " | " << print_element(errors.at(e.first), 12)  << " |                 |";
+        ss << "\n| " << print_element(e.name, 8) << " | " << print_element(e.value, 12) << " | " << print_element(e.error.center(), 12)  << " |                 |";
     }
     ss << "\n+----------------------------------------------------------+";
 

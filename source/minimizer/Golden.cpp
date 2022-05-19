@@ -91,7 +91,7 @@ Result Golden::minimize() {
 
     Limit optimal_interval = search(parameters[0].bounds.value());
     FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
-    return Result(p, function(&p.val));
+    return Result(p, function(&p.value), fevals);
 }
 
 void Golden::add_parameter(const Parameter& param) {

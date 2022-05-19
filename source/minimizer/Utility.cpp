@@ -5,8 +5,8 @@
 
 using namespace mini;
 
-Result::Result(const FittedParameter& param, double fval) : parameters({param}), fval(fval) {}
-Result::Result(const std::vector<FittedParameter>& params, double fval) : parameters(params), fval(fval) {}
+Result::Result(const FittedParameter& param, double fval, unsigned int fevals) : parameters({param}), fval(fval), fevals(fevals) {}
+Result::Result(const std::vector<FittedParameter>& params, double fval, unsigned int fevals) : parameters(params), fval(fval), fevals(fevals) {}
 void Result::add_parameter(const FittedParameter& param) {parameters.push_back(param);}
 size_t Result::size() const noexcept {return parameters.size();}
 size_t Result::dim() const noexcept {return size();}
@@ -31,7 +31,7 @@ Parameter::Parameter(std::string name, double guess, Limit bounds) : name(name),
 bool Parameter::has_bounds() const noexcept {return bounds.has_value();}
 bool Parameter::has_guess() const noexcept {return guess.has_value();}
 bool Parameter::has_name() const noexcept {return !name.empty();}
-bool Parameter::empty() const noexcept {return has_bounds() || has_guess() || has_name();}
+bool Parameter::empty() const noexcept {return !(has_name() && (has_bounds() || has_guess()));}
 std::string Parameter::to_string() const noexcept {
     std::string s = name;
     if (has_guess()) {s += " guess " + std::to_string(guess.value());}
@@ -40,10 +40,10 @@ std::string Parameter::to_string() const noexcept {
 }
 
 
-FittedParameter::FittedParameter(std::string name, double val, Limit error) : name(name), val(val), error(error) {}
-FittedParameter::FittedParameter(std::string name, double val, double error) : name(name), val(val), error({-error, +error}) {}
-FittedParameter::FittedParameter(const Parameter& param, double val, Limit error) : name(param.name), val(val), error(error) {}
-FittedParameter::FittedParameter(const Parameter& param, double val, double error) : name(param.name), val(val), error(-error, +error) {}
+FittedParameter::FittedParameter(std::string name, double val, Limit error) : name(name), value(val), error(error) {}
+FittedParameter::FittedParameter(std::string name, double val, double error) : name(name), value(val), error({-error, +error}) {}
+FittedParameter::FittedParameter(const Parameter& param, double val, Limit error) : name(param.name), value(val), error(error) {}
+FittedParameter::FittedParameter(const Parameter& param, double val, double error) : name(param.name), value(val), error(-error, +error) {}
 std::string FittedParameter::to_string() const noexcept {
-    return name + " " + std::to_string(val) + " " + error.to_string();
+    return name + " " + std::to_string(value) + " " + error.to_string();
 }

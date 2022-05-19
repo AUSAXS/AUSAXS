@@ -5,8 +5,7 @@
 
 #include <utility/Dataset.h>
 #include <utility/Multiset.h>
-
-#include <Math/Minimizer.h>
+#include <minimizer/Utility.h>
 
 class Fitter;
 
@@ -21,30 +20,19 @@ class Fit {
         Fit() {}
 
         /**
-         * @brief Smart constructor.
-         *        
-         * Construct a new Fit object based on a Fitter and Minimizer. This is meant to be used when the minimizer optimizes some parameter 
-         * changing the histograms being fitted by the fitter.
+         * @brief Constructor.
+         * 
+         * Create a new Fit object based on a fitter and a minimizer result.
          */
-        Fit(Fitter& fitter, const ROOT::Math::Minimizer* const minimizer, double chi2);
+        Fit(Fitter& fitter, const mini::Result& res, double chi2);
 
         /**
          * @brief Constructor.
          * 
-         * Create a new Fit object based on a minimizer. If no chi2 value is provided, it is assumed to be equal to the function minimum. 
-         * 
-         * @param minimizer 
-         * @param chi2 
+         * Create a new Fit object based on a minimizer result.
          */
-        Fit(const ROOT::Math::Minimizer* const minimizer, double chi2 = -1);
-
-        /**
-         * @brief Constructor.
-         * 
-         * Construct a new Fit object. 
-         */
-        Fit(std::map<std::string, double>& params, std::map<std::string, double>& errs, const double chi2, const int dof, const int calls, const bool converged);
-
+        Fit(const mini::Result& res, double chi2, double dof);
+        
         /**
          * @brief Add the parameters from another fit to this one. This is useful to add the parameters from an inner fit to an outer one. 
          */
@@ -56,6 +44,16 @@ class Fit {
         void add_fit(std::shared_ptr<Fit> fit);
 
         /**
+         * @brief Get a parameter by index.
+         */
+        mini::FittedParameter get_parameter(unsigned int index) const;
+
+        /**
+         * @brief Get a parameter by name.
+         */
+        mini::FittedParameter get_parameter(std::string name) const;
+
+        /**
          * @brief Get a string representation of this object. 
          */
         std::string to_string() const;
@@ -63,8 +61,7 @@ class Fit {
         Dataset evaluated_points;
         Plots figures;
         Dataset residuals;
-        std::map<std::string, double> params;
-        std::map<std::string, double> errors;
+        std::vector<mini::FittedParameter> params;
         double chi2;
         unsigned int dof;
         unsigned int calls;

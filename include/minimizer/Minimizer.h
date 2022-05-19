@@ -65,11 +65,12 @@ namespace mini {
              */
             void record_evaluations(bool setting);
 
-            double tol = 1e-6;
+            double tol = 1e-4;
         protected:
             std::vector<Parameter> parameters;
             std::function<double(const double*)> function;
             std::vector<Evaluation> evaluations;
+            unsigned int fevals = 0;
 
             /**
              * @brief Check if the function is set.

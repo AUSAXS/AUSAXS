@@ -28,7 +28,7 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     auto res = image.fit(protein.get_histogram());
 
     // set optimal cutoff
-    std::cout << "Optimal cutoff is " << res->params.at("cutoff") << std::endl;
+    std::cout << "Optimal cutoff is " << res->get_parameter("cutoff").value << std::endl;
 
     // Fit intensity plot (debug, should be equal to the next one)
     plots::PlotIntensity plot_i(protein.get_histogram(), kBlack);
@@ -184,9 +184,9 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         Dataset optimal_vals;
         optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"alpha", 0.5}, {"ylim", vector{0, inf}}}));
         for (const Fit& fit : fits) {
-            optimal_vals.x.push_back(fit.params.at("cutoff"));
+            optimal_vals.x.push_back(fit.get_parameter("cutoff").value);
             optimal_vals.y.push_back(fit.chi2);
-            std::cout << "(x, y): " << "(" << fit.params.at("cutoff") << ", " << fit.chi2 << ")" << std::endl;
+            std::cout << "(x, y): " << "(" << fit.get_parameter("cutoff").value << ", " << fit.chi2 << ")" << std::endl;
         }
         contours.push_back(optimal_vals);
 

@@ -19,7 +19,10 @@ void Minimizer::set_function(double(&f)(const double*)) {
 }
 
 void Minimizer::set_function(std::function<double(const double*)> f) {
-    raw = f;
+    raw = [f, this] (const double* par) {
+        fevals++;
+        return f(par);
+    };
     wrapper = [this] (const double* par) {
         double fval = raw(par);
         std::vector<double> pars(par, par+parameters.size());

@@ -61,7 +61,7 @@ namespace mini {
              * @param function The function to minimize. 
              * @param params A list of parameters.
              */
-            ROOTMinimizer(std::string package, std::string algorithm, double(&function)(const double*), std::vector<Parameter> params = {});
+            ROOTMinimizer(std::string package, std::string algorithm, double(&function)(const double*), std::vector<Parameter> params);
 
             /**
              * @brief Constructor.
@@ -73,7 +73,12 @@ namespace mini {
              * @param function The function to minimize. 
              * @param params A list of parameters.
              */
-            ROOTMinimizer(std::string package, std::string algorithm, std::function<double(const double*)> function, std::vector<Parameter> params = {});
+            ROOTMinimizer(std::string package, std::string algorithm, std::function<double(const double*)> function, std::vector<Parameter> params);
+
+            /**
+             * @brief Destructor.
+             */
+            ~ROOTMinimizer() noexcept;
 
             /**
              * @brief Perform the minimization.

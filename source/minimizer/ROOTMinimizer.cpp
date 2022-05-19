@@ -16,6 +16,7 @@ ROOTMinimizer::ROOTMinimizer(std::string package, std::string algorithm, double(
 ROOTMinimizer::ROOTMinimizer(std::string package, std::string algorithm, std::function<double(const double*)> function, Parameter param) {
         create_minimizer(package, algorithm);
         set_function(function);
+        std::cout << param << std::endl;
         if (!param.empty()) {add_parameter(param);}
 }
 
@@ -29,6 +30,10 @@ ROOTMinimizer::ROOTMinimizer(std::string package, std::string algorithm, std::fu
         create_minimizer(package, algorithm);
         set_function(function);
         std::for_each(params.begin(), params.end(), [this] (const Parameter& param) {add_parameter(param);});
+}
+
+ROOTMinimizer::~ROOTMinimizer() noexcept {
+    free(mini);
 }
 
 void ROOTMinimizer::create_minimizer(std::string package, std::string algorithm) {
@@ -46,6 +51,8 @@ Result ROOTMinimizer::minimize() {
     mini->PrintResults();
 
     Result res;
+    res.fevals = fevals;
+    res.status = mini->Status();
     unsigned int vars = mini->NDim();
     const double* result = mini->X();
     const double* error = mini->Errors();
@@ -53,7 +60,7 @@ Result ROOTMinimizer::minimize() {
     for (unsigned int i = 0; i < vars; i++) {
         FittedParameter param;
         param.name = mini->VariableName(i);
-        param.val = result[i];
+        param.value = result[i];
         if (mini->ProvidesError()) {
             param.error = {-error[i], error[i]};
         } else {
@@ -72,6 +79,7 @@ void ROOTMinimizer::prepare_minimizer() {
     if (mini == nullptr) {throw except::unexpected("Error in ROOTMinimizer::prepare_minimizer: Minimizer has not been initialized.");}
     functor = ROOT::Math::Functor(function, parameters.size());
     mini->SetFunction(functor);
+    mini->SetTolerance(tol);
 
     unsigned int var_counter = 0;
     for (const Parameter& param : parameters) {
