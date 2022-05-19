@@ -28,37 +28,36 @@ class Limit {
         /**
          * @brief Get the interval spanned by this limit. 
          */
-        double span() const {return max-min;}
+        double span() const noexcept {return max-min;}
 
         /**
          * @brief Get the center of this limit.
          */
-        double center() const {return min + span()/2;}
+        double center() const noexcept {return min + span()/2;}
 
         /**
          * @brief Equality operator. Check if this Limit is equal to another.
          */
-        bool operator==(const Limit& rhs) const {return min == rhs.min && max == rhs.max;}
+        bool operator==(const Limit& rhs) const noexcept {return min == rhs.min && max == rhs.max;}
 
         /**
          * @brief Inequality operator.
          * 
          * Check if this object is different from another. 
          */
-        bool operator!=(const Limit& rhs) const {return !operator==(rhs);}
+        bool operator!=(const Limit& rhs) const noexcept {return !operator==(rhs);}
 
         /**
          * @brief Subtract a constant from both ends of this limit. 
          */
-        //! Must MAKE A COPY
-        Limit operator-(double rhs) {max-=rhs; min-=rhs}
+        Limit operator-(double rhs) const noexcept {return Limit(min-rhs, max-rhs);}
 
         /**
          * @brief Stream output operator. 
          * 
          * Allows this object to easily be output to a given stream. 
          */
-        friend std::ostream& operator<<(std::ostream& os, const Limit& axis) {os << axis.to_string(); return os;}
+        friend std::ostream& operator<<(std::ostream& os, const Limit& axis) noexcept {os << axis.to_string(); return os;}
 
         /**
          * @brief Get a string representation of this object. 
@@ -82,7 +81,7 @@ class Limit {
  */
 class Limit3D {
     public:
-        Limit3D() {}
+        Limit3D() noexcept {}
         /**
          * @brief Constructor.
          * 
@@ -92,20 +91,20 @@ class Limit3D {
          * @param y The limit on the y-axis. 
          * @param z The limit on the z-axis. 
          */
-        Limit3D(const Limit& x, const Limit& y, const Limit& z) : x(x), y(y), z(z) {}
+        Limit3D(const Limit& x, const Limit& y, const Limit& z) noexcept : x(x), y(y), z(z) {}
 
         /**
          * @brief Constructor. 
          * 
          * Construct a new 3D limit based on the minimum and maximum values along each axis. 
          */
-        Limit3D(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax) : x(xmin, xmax), y(ymin, ymax), z(zmin, zmax) {}
+        Limit3D(double xmin, double xmax, double ymin, double ymax, double zmin, double zmax) noexcept : x(xmin, xmax), y(ymin, ymax), z(zmin, zmax) {}
 
         /**
          * @brief Check if this object is fully initialized. Returns false if any of its Limits are empty.
          */
         [[nodiscard]] 
-        bool empty() const {return x.empty() || y.empty() || z.empty();}
+        bool empty() const noexcept {return x.empty() || y.empty() || z.empty();}
 
         Limit x; // The 1D limit on the x-axis. 
         Limit y; // The 1D limit on the y-axis. 

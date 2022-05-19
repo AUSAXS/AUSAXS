@@ -40,31 +40,10 @@ std::string Parameter::to_string() const noexcept {
 }
 
 
-#include <iostream>
-FittedParameter::FittedParameter(std::string name, double val, Limit error) : name(name), val(val), error(error) {
-    std::cout << "CONSTRUCTOR 1" << std::endl;
-    std::cout << name << " " << this->name << std::endl;
-    std::cout << val << " " << this->val << std::endl;
-    std::cout << error << " " << this->error << std::endl;
-}
-FittedParameter::FittedParameter(std::string name, double val, double error) : name(name), val(val), error({-error, +error}) {
-    std::cout << "CONSTRUCTOR 2" << std::endl;
-    std::cout << name << " " << this->name << std::endl;
-    std::cout << val << " " << this->val << std::endl;
-    std::cout << error << " " << this->error << std::endl;
-}
-FittedParameter::FittedParameter(const Parameter& param, double val, Limit error) : name(param.name), val(val), error(error) {
-    std::cout << "CONSTRUCTOR 3" << std::endl;
-    std::cout << name << " " << this->name << std::endl;
-    std::cout << val << " " << this->val << std::endl;
-    std::cout << error << " " << this->error << std::endl;
-}
-FittedParameter::FittedParameter(const Parameter& param, double val, double error) : name(param.name), val(val), error(-error, +error) {
-    std::cout << "CONSTRUCTOR 4" << std::endl;
-    std::cout << name << " " << this->name << std::endl;
-    std::cout << val << " " << this->val << std::endl;
-    std::cout << error << " " << this->error << std::endl;
-}
+FittedParameter::FittedParameter(std::string name, double val, Limit error) : name(name), val(val), error(error) {}
+FittedParameter::FittedParameter(std::string name, double val, double error) : name(name), val(val), error({-error, +error}) {}
+FittedParameter::FittedParameter(const Parameter& param, double val, Limit error) : name(param.name), val(val), error(error) {}
+FittedParameter::FittedParameter(const Parameter& param, double val, double error) : name(param.name), val(val), error(-error, +error) {}
 std::string FittedParameter::to_string() const noexcept {
     return name + " " + std::to_string(val) + " " + error.to_string();
 }
