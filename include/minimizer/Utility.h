@@ -52,6 +52,18 @@ namespace mini {
         [[nodiscard]]
         bool empty() const noexcept;
 
+        /**
+         * @brief Get a string representation of this parameter.
+         */
+        std::string to_string() const noexcept;
+
+        /**
+		 * @brief Stream output operator. 
+		 * 
+		 * Allows this object to easily be output to a given stream. 
+		 */
+		friend std::ostream& operator<<(std::ostream& os, const Parameter& param) {os << param.to_string(); return os;}
+
         std::string name;            // The name of this parameter.
         std::optional<double> guess; // The guess value.
         std::optional<Limit> bounds; // The bounds of this parameter. 
@@ -98,6 +110,18 @@ namespace mini {
          * @param error Symmetrical errors of this parameter.
          */
         FittedParameter(const Parameter& param, double val, double error);
+
+        /**
+         * @brief Get a string representation of this parameter.
+         */
+        std::string to_string() const noexcept;
+
+        /**
+		 * @brief Stream output operator. 
+		 * 
+		 * Allows this object to easily be output to a given stream. 
+		 */
+		friend std::ostream& operator<<(std::ostream& os, const FittedParameter& param) {os << param.to_string(); return os;}
 
         std::string name; // The name of this parameter.
         double val;       // The optimal value of this parameter.

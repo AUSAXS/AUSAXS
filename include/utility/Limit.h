@@ -62,13 +62,13 @@ class Limit {
         /**
          * @brief Get a string representation of this object. 
          */
-        std::string to_string() const {return "Limits: (" + std::to_string(min) + ", " + std::to_string(max) + ")";}
+        std::string to_string(std::string prepend = "") const noexcept {return prepend + "(" + std::to_string(min) + ", " + std::to_string(max) + ")";}
 
         /**
          * @brief Check if this Limit is empty (min == max == 0).
          */
         [[nodiscard]] 
-        bool empty() const {return min == 0 && max == 0;}
+        bool empty() const noexcept {return min == 0 && max == 0;}
 
         double min; // The minimum value of this limit. 
         double max; // The maximum value of this limit. 
