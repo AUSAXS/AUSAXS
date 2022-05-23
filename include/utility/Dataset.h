@@ -9,6 +9,7 @@
 
 #include <utility/Axis.h>
 #include <plots/PlotOptions.h>
+#include <utility/PointSet.h>
 
 /**
  * @brief A representation of a set of 2D data. 
@@ -159,6 +160,46 @@ class Dataset {
         Dataset copy() const;
 
         /**
+         * @brief Get the point at a given index.
+         */
+        Point2D get_point(unsigned int index) const noexcept {
+            return Point2D(x[index], y[index]);
+        }
+
+        /**
+         * @brief Get the point with the smallest y-value.
+         */
+        Point2D find_minimum() const noexcept {
+            auto it = std::min_element(y.begin(), y.end());
+            unsigned int index = it - y.begin();
+            return get_point(index);
+        }
+
+        /**
+         * @brief Add a new datapoint to the end of this dataset. 
+         */
+        void push_back(const Point2D& point) noexcept {
+            x.push_back(point.x);
+            y.push_back(point.y);
+            if (has_xerr()) {xerr.push_back(point.xerr);}
+            if (has_yerr()) {yerr.push_back(point.yerr);}
+        }
+
+        /**
+         * @brief Check if this dataset has errors on the x-values.
+         */
+        [[nodiscard]] bool has_xerr() const noexcept {
+            return x.size() == xerr.size();
+        }
+
+        /**
+         * @brief Check if this dataset has errors on the y-values.
+         */
+        [[nodiscard]] bool has_yerr() const noexcept {
+            return y.size() == yerr.size();
+        }
+
+        /**
          * @brief Generate a randomized dataset.
          * 
          * @param size Size of the dataset.
@@ -167,18 +208,10 @@ class Dataset {
          */
         static Dataset generate_random_data(unsigned int size, double min = 0, double max = 1);
 
-        std::string xlabel = "x";
-        std::string ylabel = "y";
-        std::string zlabel = "z";
-        std::string xerrlabel = "xerr";
-        std::string yerrlabel = "yerr";
-        std::string zerrlabel = "zerr";
-        std::vector<double> x;    // The x coordinates.
-        std::vector<double> y;    // The y coordinates.
-        std::vector<double> z;    // The z coordinates.
-        std::vector<double> xerr; // The error in the x coordinates
-        std::vector<double> yerr; // The error in the y coordinates
-        std::vector<double> zerr; // The error in the z coordinates.
+        std::string xlabel = "x", xerrlabel = "xerr";
+        std::string ylabel = "y", yerrlabel = "yerr";
+        std::vector<double> x, xerr;
+        std::vector<double> y, yerr;
         plots::PlotOptions plot_options; 
 
     private:

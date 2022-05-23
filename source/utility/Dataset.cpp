@@ -19,7 +19,7 @@ Dataset::Dataset(const string file) {
     read(file);
 }
 
-Dataset::Dataset(std::string xlabel, std::string ylabel) : xlabel(xlabel), ylabel(ylabel), xerrlabel(xlabel+"err"), yerrlabel(ylabel+"err") {
+Dataset::Dataset(std::string xlabel, std::string ylabel) : xlabel(xlabel), xerrlabel(xlabel+"err"), ylabel(ylabel), yerrlabel(ylabel+"err") {
     plot_options.xlabel = xlabel;
     plot_options.ylabel = ylabel;
 }
@@ -29,7 +29,7 @@ Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y) : x
 }
 
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const string xlabel, const string ylabel) 
-    : xlabel(xlabel), ylabel(ylabel), xerrlabel(xlabel+"err"), yerrlabel(ylabel+"err"), x(x), y(y) {
+    : xlabel(xlabel), xerrlabel(xlabel+"err"), ylabel(ylabel), yerrlabel(ylabel+"err"), x(x), y(y) {
     
     validate_sizes();
     plot_options.xlabel = xlabel;
@@ -42,7 +42,7 @@ Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, con
 }
 
 Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& xerr, const std::vector<double>& yerr)
-    : x(x), y(y), xerr(xerr), yerr(yerr) {
+    : x(x), xerr(xerr), y(y), yerr(yerr) {
         validate_sizes();
     }
 

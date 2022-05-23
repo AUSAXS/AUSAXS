@@ -115,7 +115,7 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
 }
 
 TEST_CASE("repeat_chi2_contour", "[em],[files]") {
-    unsigned int repeats = 50;
+    unsigned int repeats = 5;
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
@@ -183,16 +183,22 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
             evaluations.push_back(fit);
         }
 
-        Dataset optimal_vals;
-        optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}}));
+        Dataset fit_mins;
+        fit_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}}));
         for (const auto& val : optvals) {
-            optimal_vals.x.push_back(val.first);
-            optimal_vals.y.push_back(val.second);
+            fit_mins.push_back({val.first, val.second});
             std::cout << "(x, y): " << "(" << val.first << ", " << val.second << ")" << std::endl;
         }
 
+        Dataset scan_mins;
+        scan_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kBlue+2}, {"ms", 8}, {"s", 0.8}}));
+        for (const Dataset& contour : contours) {
+            scan_mins.push_back(contour.find_minimum());
+        }
+
         plots::PlotDataset plot_c(contours);
-        plot_c.plot(optimal_vals);
+        plot_c.plot(fit_mins);
+        plot_c.plot(scan_mins);
         plot_c.save("figures/test/em/repeat_chi2_contours.pdf");
     }
 }
