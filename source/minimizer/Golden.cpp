@@ -4,6 +4,10 @@
 
 using namespace mini;
 
+Golden::Golden(double(&func)(const double*)) : Minimizer(func) {}
+
+Golden::Golden(std::function<double(const double*)> func) : Minimizer(func) {}
+
 Golden::Golden(double(&func)(const double*), const Parameter& param) : Minimizer(func) {
     add_parameter(param);
 }
@@ -85,7 +89,7 @@ Dataset Golden::get_evaluated_points() const {
     return Dataset(x, y, "x", "f(x)");
 }
 
-Result Golden::minimize() {
+Result Golden::minimize_override() {
     if (!is_parameter_set()) {throw except::bad_order("Error in Golden::minimize: No parameters were supplied.");}
     if (!is_function_set()) {throw except::bad_order("Error in Golden::minimize: No function was set.");}
 

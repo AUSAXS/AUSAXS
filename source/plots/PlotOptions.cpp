@@ -113,6 +113,10 @@ template<>
 void PlotOptions::SmartOption<unsigned int>::parse(const std::any val) {
     if (std::type_index{typeid(unsigned int)} == val.type()) {
         value = std::any_cast<unsigned int>(val);
+    } else if (std::type_index{typeid(int)} == val.type()) {
+        int parsed_val = std::any_cast<int>(val);
+        if (parsed_val < 0) {throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be strictly positive.");}
+        value = parsed_val;
     } else {
         throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
@@ -122,6 +126,8 @@ template<>
 void PlotOptions::SmartOption<double>::parse(const std::any val) {
     if (std::type_index{typeid(double)} == val.type()) {
         value = std::any_cast<double>(val);
+    } else if (std::type_index{typeid(int)} == val.type()) {
+        value = std::any_cast<int>(val);
     } else {
         throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a double. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
@@ -142,5 +148,9 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     title = opt.title; 
     xlabel = opt.xlabel; 
     ylabel = opt.ylabel; 
+    draw_bars = opt.draw_bars;
+    ylimits = opt.ylimits;
+    xlimits = opt.xlimits;
+
     return *this;
 }

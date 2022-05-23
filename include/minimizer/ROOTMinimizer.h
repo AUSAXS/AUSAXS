@@ -81,18 +81,23 @@ namespace mini {
             ~ROOTMinimizer() noexcept;
 
             /**
-             * @brief Perform the minimization.
-             */
-            Result minimize() override;
-
-            /**
              * @brief Generate a landscape of the function.
              */
             Dataset landscape(unsigned int evals = 100) const override;
 
+            /**
+             * @brief Get the evaluated points and their function values.
+             */
+            Dataset get_evaluated_points() const override;
+
         private: 
             ROOT::Math::Minimizer* mini;
             ROOT::Math::Functor functor;
+
+            /**
+             * @brief Perform the minimization.
+             */
+            Result minimize_override() override;
             
             /**
              * @brief Create a ROOT minimizer.

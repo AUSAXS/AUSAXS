@@ -23,7 +23,7 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    em::ImageStack image("data/native10.ccp4");
+    em::ImageStack image("data/native_10.ccp4");
     Protein protein("data/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
@@ -81,15 +81,17 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    em::ImageStack image("data/native25.ccp4");
+    em::ImageStack image("sim/native_25.ccp4");
     Protein protein("data/native.pdb");
     hist::ScatteringHistogram hist(protein.get_histogram());
 
-    Dataset res = image.cutoff_scan({1000, 1.5, 2.5}, hist);
-    Dataset fit = image.fit(hist)->evaluated_points;
+    Multiset data = image.cutoff_scan_fit({100, 0, 4}, hist);
+
+    Dataset& scan = data[0];
+    Dataset& fit = data[1];
     fit.plot_options.set("markers", {{"color", kOrange+2}});
 
-    plots::PlotDataset plot(res);
+    plots::PlotDataset plot(scan);
     plot.plot(fit);
     plot.save("figures/test/em/chi2_landscape.pdf");
 }
@@ -97,7 +99,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
-    em::ImageStack image("data/native10.ccp4");
+    em::ImageStack image("sim/native_10.ccp4");
 
     ObjectBounds3D bounds = image.minimum_volume(1);
     std::cout << "Cutoff = 1: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
@@ -113,7 +115,7 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
 }
 
 TEST_CASE("repeat_chi2_contour", "[em],[files]") {
-    unsigned int repeats = 10;
+    unsigned int repeats = 50;
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
@@ -130,7 +132,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
     em::ImageStack image("sim/native_25.ccp4");
     auto hist = protein.get_histogram();
 
-    vector<Fit> fits;
+    vector<std::pair<double, double>> optvals;
     Multiset contours;
     Multiset evaluations;
 
@@ -164,33 +166,33 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
     SECTION("with_noise") {
         setting::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
-            auto fit = image.fit(hist);
-            fits.push_back(*fit);
+            Multiset data = image.cutoff_scan_fit({100, 1, 2.5}, hist);
+            Dataset& fit = data[1];
+            optvals.push_back({fit.x[fit.size()-1], fit.y[fit.size()-1]});
 
             // chi2 contour plot
-            Dataset contour = image.cutoff_scan({100, 1.5, 2.5}, hist);
-            Dataset evaluated_points = fit->evaluated_points;
-            evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
+            Dataset& scan = data[0];
+            fit.plot_options.set("markers", {{"color", kOrange+2}});
 
-            plots::PlotDataset plot_c(contour);
-            plot_c.plot(evaluated_points);
+            plots::PlotDataset plot_c(scan);
+            plot_c.plot(fit);
             plot_c.save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
 
-            contour.plot_options.set("line", {{"color", kBlack}, {"alpha", 1.}});
-            contours.push_back(contour);
-            evaluations.push_back(evaluated_points);
+            scan.plot_options.set("line", {{"color", kBlack}, {"alpha", 1.}});
+            contours.push_back(scan);
+            evaluations.push_back(fit);
         }
 
         Dataset optimal_vals;
-        optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"alpha", 0.5}, {"ylim", vector{0, inf}}}));
-        for (const Fit& fit : fits) {
-            optimal_vals.x.push_back(fit.get_parameter("cutoff").value);
-            optimal_vals.y.push_back(fit.chi2);
-            std::cout << "(x, y): " << "(" << fit.get_parameter("cutoff").value << ", " << fit.chi2 << ")" << std::endl;
+        optimal_vals.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}}));
+        for (const auto& val : optvals) {
+            optimal_vals.x.push_back(val.first);
+            optimal_vals.y.push_back(val.second);
+            std::cout << "(x, y): " << "(" << val.first << ", " << val.second << ")" << std::endl;
         }
-        contours.push_back(optimal_vals);
 
         plots::PlotDataset plot_c(contours);
+        plot_c.plot(optimal_vals);
         plot_c.save("figures/test/em/repeat_chi2_contours.pdf");
     }
 }

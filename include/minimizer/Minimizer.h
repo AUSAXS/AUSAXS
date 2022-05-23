@@ -47,7 +47,10 @@ namespace mini {
             /**
              * @brief Perform the minimization.
              */
-            virtual Result minimize() = 0;
+            Result minimize() {
+                clear_evaluated_points();
+                return minimize_override();
+            }
 
             /**
              * @brief Add a parameter.
@@ -55,10 +58,25 @@ namespace mini {
             virtual void add_parameter(const Parameter& param);
 
             /**
+             * @brief Remove any set parameters.
+             */
+            void clear_parameters() noexcept;
+
+            /**
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            virtual Dataset landscape(unsigned int bins) const = 0;
+            virtual Dataset landscape(unsigned int bins = 100) const = 0;
+
+            /**
+             * @brief Get the evaluated points. 
+             */
+            virtual Dataset get_evaluated_points() const = 0;
+
+            /**
+             * @brief Check if this minimizer has been initialized.
+             */
+            bool empty() const noexcept;
 
             /**
              * @brief Change whether the evaluations are recorded or not.
@@ -73,6 +91,11 @@ namespace mini {
             unsigned int fevals = 0;
 
             /**
+             * @brief Clear the evaluated points.
+             */
+            void clear_evaluated_points() noexcept;
+
+            /**
              * @brief Check if the function is set.
              */
             bool is_function_set() const noexcept;
@@ -85,5 +108,11 @@ namespace mini {
         private:
             std::function<double(const double*)> wrapper;
             std::function<double(const double*)> raw;
+
+            /**
+             * @brief The minimization function to be defined by subclasses. 
+             *        Should be kept private, such that it can only be accessed through the common minimize() function defined here.
+             */
+            virtual Result minimize_override() = 0;
     };
 }

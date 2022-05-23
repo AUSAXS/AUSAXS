@@ -13,7 +13,7 @@
 #include <histogram/Histogram.h>
 
 TEST_CASE("consistency_check", "[fitter]") {
-    unsigned int repeats = 10;
+    unsigned int repeats = 100;
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;

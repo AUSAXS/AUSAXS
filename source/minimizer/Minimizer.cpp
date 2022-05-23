@@ -33,6 +33,14 @@ void Minimizer::set_function(std::function<double(const double*)> f) {
     function = wrapper;
 }
 
+bool Minimizer::empty() const noexcept {
+    return !is_function_set() && !is_parameter_set();
+}
+
+void Minimizer::clear_parameters() noexcept {
+    parameters.clear();
+}
+
 void Minimizer::record_evaluations(bool setting) {
     function = setting ? wrapper : raw;
 }
@@ -44,8 +52,12 @@ void Minimizer::add_parameter(const Parameter& param) {
     parameters.push_back(param);
 }
 
+void Minimizer::clear_evaluated_points() noexcept {
+    evaluations.clear();
+}
+
 bool Minimizer::is_function_set() const noexcept {
-    return bool(function); // functions are implicitly convertable to a bool which is true if a function has been set
+    return bool(function); // functions are explicitly convertable to a bool which is true if a function has been set
 }
 
 bool Minimizer::is_parameter_set() const noexcept {

@@ -8,14 +8,13 @@ namespace mini {
 	 */
 	class Golden : public Minimizer {
 		public:
+            Golden(double(&func)(const double*));
+
+            Golden(std::function<double(const double*)> func);
+
             Golden(double(&func)(const double*), const Parameter& param);
 
             Golden(std::function<double(const double*)> func, const Parameter& param);
-
-			/**
-			 * @brief Perform the minimization.
-			 */
-			Result minimize() override;
 
 			/**
 			 * @brief Add a parameter.
@@ -30,12 +29,17 @@ namespace mini {
             /**
              * @brief Get the evaluated points and their function values.
              */
-            Dataset get_evaluated_points() const;
+            Dataset get_evaluated_points() const override;
 
         private:
             inline static const double phi = (1 + std::sqrt(5))/2;
             inline static const double invphi = 1/phi;
             inline static const double invphi2 = invphi*invphi;
+
+			/**
+			 * @brief Perform the minimization.
+			 */
+			Result minimize_override() override;
 
             /**
              * @brief Golden-section search. 

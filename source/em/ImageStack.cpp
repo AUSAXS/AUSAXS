@@ -99,6 +99,22 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
+    auto func = prepare_function(fitter);
+
+    // perform the fit
+    double guess; Limit bounds;
+    if (positively_stained()) {guess = 2; bounds = Limit(1, 10);}
+    else {guess = -2; bounds = Limit(-10, -1);}
+
+    mini::Golden minimizer(func, {"cutoff", guess, bounds});
+    auto res = minimizer.minimize();
+
+    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, res, res.fval);
+    emfit->evaluated_points = minimizer.get_evaluated_points();
+    return emfit;
+}
+
+std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensityFitter& fitter) {
     // convert the calculated intensities to absolute scale
     auto protein = phm->get_protein(1);
     double c = setting::em::concentration;                                // concentration
@@ -109,48 +125,50 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     fitter.normalize_intensity(I0);
 
     // fit function
-    unsigned int counter = 0;
-    Dataset evaluated_points("cutoff", "chi2");
+    static unsigned int counter;
+    counter = 0; // must be in separate line since we want to reset it every time this function is called
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->chi2;
         std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 
-
-    // perform the fit
-    double guess; Limit bounds;
-    if (positively_stained()) {guess = 2; bounds = Limit(1, 10);}
-    else {guess = -2; bounds = Limit(-10, -1);}
-    mini::Golden mini(chi2, {"cutoff", guess, bounds});
-    auto res = mini.minimize();
-
-    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, res, res.fval);
-    emfit->evaluated_points = mini.get_evaluated_points();
-
-    return emfit;
+    return chi2;
 }
 
 Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
-    vector<double> cutoffs;
-    vector<double> chi2;
-    cutoffs.reserve(points.bins);
-    chi2.reserve(points.bins);
-
-    unsigned int count = 0;
-    double step = points.step();
     SimpleIntensityFitter fitter(h, get_limits());
     determine_minimum_bounds();
-    for (double cutoff = points.max; cutoff > points.min; cutoff -= step) {
-        fitter.set_scattering_hist(get_histogram(cutoff));
-        double val = fitter.fit()->chi2;
+    auto func = prepare_function(fitter);
 
-        chi2.push_back(val);
-        cutoffs.push_back(cutoff);
-        std::cout << "Step " << count++ << ": Evaluated cutoff value " << cutoff << " with chi2 " << val << std::endl;
-    }
+    mini::Golden minimizer(func, mini::Parameter{"cutoff", Limit(points.min, points.max)});
+    return minimizer.landscape(points.bins);
+}
 
-    return Dataset(cutoffs, chi2, "cutoff", "chi2");
+Multiset ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
+    SimpleIntensityFitter fitter(h, get_limits());
+    determine_minimum_bounds();
+    auto func = prepare_function(fitter);
+
+    // cutoff scan
+    Multiset data;
+    mini::Golden minimizer(func, mini::Parameter{"cutoff", Limit(points.min, points.max)});
+    data.push_back(minimizer.landscape(points.bins));
+
+    // fit
+    double guess; Limit bounds;
+    if (positively_stained()) {guess = 2; bounds = Limit(1, 10);}
+    else {guess = -2; bounds = Limit(-10, -1);}
+    minimizer.clear_parameters();
+    minimizer.add_parameter({"cutoff", guess, bounds});
+    auto res = minimizer.minimize();
+    data.push_back(minimizer.get_evaluated_points());
+
+    // manually append the minimum as the last entry
+    data[1].x.push_back(res.get_parameter("cutoff").value);
+    data[1].y.push_back(res.fval);
+
+    return data;
 }
 
 size_t ImageStack::get_byte_size() const {

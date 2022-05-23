@@ -9,11 +9,6 @@ namespace mini {
 	class Scan : public Minimizer {
 		public:
 			/**
-			 * @brief Perform the minimization.
-			 */
-			Result minimize() override;
-
-			/**
 			 * @brief Add a parameter.
 			 * 
 			 * @param par The name of the parameter.
@@ -29,5 +24,11 @@ namespace mini {
 			 * @param limits The limits of the parameter.
 			 */
 			void add_parameter(std::string par, double guess, Limit limits);
+
+		private:
+			/**
+			 * @brief Perform the minimization.
+			 */
+			Result minimize_override() override;
 	};
 }

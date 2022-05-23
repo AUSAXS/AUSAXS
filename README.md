@@ -1,4 +1,5 @@
 # Todo
+ * [ ] Plots: Use multigraphs https://root.cern/root/html534/TMultiGraph.html for limit handling.
  * [ ] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
  * [ ] Fit: Inherit from Result since they share everything anyways
  * [ ] Use nothrow

@@ -11,6 +11,7 @@
 #include <histogram/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
 #include <utility/Multiset.h>
+#include <minimizer/Minimizer.h>
 
 namespace em {
     class PartialHistogramManager;
@@ -66,6 +67,18 @@ namespace em {
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
             Dataset cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
+
+            /**
+             * @brief Perform a scan & fit of the cutoff values. 
+             * 
+             * @param points The cutoff values to be evaluated. 
+             * @param h The histogram to be fitted. 
+             * 
+             * @return A Multiset containing 
+             *             1. A dataset with the scanned cutoff values and their corresponding chi2 values. 
+             *             2. A dataset with the evaluated cutoff values by the fitter. The last entry will be the found minimum.
+             */
+            Multiset cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -191,6 +204,12 @@ namespace em {
              * @param fitter The fitter object to fit. 
              */
             std::shared_ptr<EMFit> fit_helper(SimpleIntensityFitter& fitter);
+
+            /**
+             * @brief Prepare the fitting function. 
+             *        Note that the lifetime of the returned function is the same as that of the fitter.
+             */
+            std::function<double(const double*)> prepare_function(SimpleIntensityFitter& fitter);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 

@@ -39,16 +39,25 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
 
     // handle axis limits
     if (!options.xlimits.empty()) {
-        Limit limits;
-        if (std::isinf(options.xlimits.min)) {limits.min = graph->GetXaxis()->GetXmin();}
-        if (std::isinf(options.xlimits.max)) {limits.max = graph->GetXaxis()->GetXmax();}
-        graph->GetXaxis()->SetRangeUser(limits.min, limits.max);
+        Limit limits = options.xlimits;
+        // check if new bounds are within current bounds
+        if (!(graph->GetXaxis()->GetXmin() < limits.min && limits.max < graph->GetXaxis()->GetXmax())) {
+            // replace infs
+            if (std::isinf(options.xlimits.min)) {limits.min = graph->GetXaxis()->GetXmin();}
+            if (std::isinf(options.xlimits.max)) {limits.max = graph->GetXaxis()->GetXmax();}
+
+            // set new range
+            graph->GetXaxis()->SetRangeUser(limits.min, limits.max);
+        }
     }
     if (!options.ylimits.empty()) {
-        Limit limits;
-        if (std::isinf(options.ylimits.min)) {limits.min = graph->GetYaxis()->GetXmin();}
-        if (std::isinf(options.ylimits.max)) {limits.max = graph->GetYaxis()->GetXmax();}
-        graph->GetXaxis()->SetRangeUser(limits.min, limits.max);
+        Limit limits = options.ylimits;
+        // check if new bounds are within current bounds
+        if (!(graph->GetYaxis()->GetXmin() < limits.min && limits.max < graph->GetYaxis()->GetXmax())) {
+            // set range
+            if (!std::isinf(options.ylimits.min)) {graph->GetHistogram()->SetMinimum(limits.min);} 
+            if (!std::isinf(options.ylimits.max)) {graph->GetHistogram()->SetMaximum(limits.max);}
+        }
     }
 
     // prepare draw options
