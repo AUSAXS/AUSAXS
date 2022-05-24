@@ -19,13 +19,16 @@ plots::PlotDataset::PlotDataset(const Multiset& data) {
     if (data.empty()) {throw except::size_error("Error in PlotDataset::PlotDataset: The given Multiset is empty!");}
 
     prepare_canvas();
-    draw(data);
+    draw(data, canvas);
 }
 
 plots::PlotDataset::~PlotDataset() = default;
 
 void plots::PlotDataset::initial_plot(const Dataset& data) {
-    draw(data, canvas);
+    plots::PlotOptions options = data.plot_options;
+    options.use_existing_axes = false;
+
+    draw(data, options, canvas);
 }
 
 void plots::PlotDataset::plot(const Dataset& data) {

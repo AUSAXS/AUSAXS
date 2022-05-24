@@ -72,23 +72,27 @@ namespace plots {
 	};
 
 	[[maybe_unused]]
-	void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const std::shared_ptr<TGraph> graph, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const std::shared_ptr<TGraph> graph, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const hist::Histogram& hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const hist::Histogram& hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas = nullptr);
+	void draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas);
+
+	namespace detail {
+		void handle_log(const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
+	}
 }

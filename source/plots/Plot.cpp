@@ -8,6 +8,17 @@
 #include <TGraphErrors.h>
 #include <TMultiGraph.h>
 
+void plots::detail::handle_log(const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
+    if (options.logx && !options.use_existing_axes) {
+        if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
+        canvas->SetLogx();
+    }
+    if (options.logy && !options.use_existing_axes) {
+        if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
+        canvas->SetLogy();
+    }
+}
+
 void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     // handle colors and markers
     graph->SetLineColorAlpha(options.color, options.alpha);
@@ -29,14 +40,7 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     }
 
     // handle log scale
-    if (options.logx && !options.use_existing_axes) {
-        if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
-        canvas->SetLogx();
-    }
-    if (options.logy && !options.use_existing_axes) {
-        if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
-        canvas->SetLogy();
-    }
+    detail::handle_log(options, canvas);
 
     // handle axis limits
     if (!options.xlimits.empty()) {
@@ -86,6 +90,9 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
         graph.Add(g, draw_options.c_str());
     }    
 
+    // handle log
+    detail::handle_log(data[0].plot_options, canvas);
+
     graph.DrawClone("A");
 }
 
@@ -95,8 +102,14 @@ void plots::draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas) {
 
 void plots::draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     std::shared_ptr<TGraph> graph;
-    if (!data.yerr.empty()) {graph = std::make_shared<TGraphErrors>(data.x.size(), data.x.data(), data.y.data(), data.xerr.data(), data.yerr.data());}
-    else {graph = std::make_shared<TGraph>(data.x.size(), data.x.data(), data.y.data());}
+    if (data.has_yerr()) {
+        if (data.has_xerr()) {
+            graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), data.xerr.data(), data.yerr.data());
+        } else {
+            graph = std::make_shared<TGraphErrors>(data.size(), nullptr, data.y.data(), data.xerr.data(), data.yerr.data());
+        }
+    }
+    else {graph = std::make_shared<TGraph>(data.size(), data.x.data(), data.y.data());}
     draw(graph, options, canvas);
 }
 
@@ -142,14 +155,7 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
     }
 
     // handle log scale
-    if (options.logx && !options.use_existing_axes) {
-        if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
-        canvas->SetLogx();
-    }
-    if (options.logy && !options.use_existing_axes) {
-        if (canvas == nullptr) {throw except::nullptr_error("Error in Plot::draw: Can only set log scale if canvas is provided.");}
-        canvas->SetLogy();
-    }
+    detail::handle_log(options, canvas);
 
     // prepare draw options
     std::string draw_options = options.use_existing_axes ? "HIST SAME " : "HIST ";

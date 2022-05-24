@@ -33,20 +33,22 @@ int main(int argc, char const *argv[]) {
         unsigned int resolution = utility::extract_number<unsigned int>(current_file);
         em::ImageStack image(current_file, resolution);
         auto hist = protein.get_histogram();
-        auto fit = image.fit(hist);
+
+        auto landscape = image.cutoff_scan_fit({10, 0, 6}, hist);
+        auto fit = landscape.fit;
+        auto contour = landscape.contour;
 
         // prepare writing the fit results
-        fits.push_back(*fit);
+        fits.push_back(fit);
         paths.push_back(current_file);
 
         // prepare dataset for cutoff v. resolution plot
         fitted_vals.x.push_back(resolution);
-        fitted_vals.y.push_back(fit->get_parameter("cutoff").value);
-        fitted_vals.yerr.push_back(fit->get_parameter("cutoff").mean_error());
+        fitted_vals.y.push_back(fit.get_parameter("cutoff").value);
+        fitted_vals.yerr.push_back(fit.get_parameter("cutoff").mean_error());
 
         // chi2 contour plot
-        Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
-        Dataset evaluated_points = fit->evaluated_points;
+        Dataset evaluated_points = fit.evaluated_points;
         evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
         plots::PlotDataset plot_c(contour);
@@ -54,17 +56,17 @@ int main(int argc, char const *argv[]) {
         plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".png");
 
         // generate residual v. resolution plot
-        Dataset& residuals = fit->residuals;
+        Dataset& residuals = fit.residuals;
         residuals.add_plot_options("errors", {{"logx", true}, {"xlabel", "q"}, {"ylabel", "residual"}});
-        plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/residuals/" + std::filesystem::path(current_file).stem().string() + ".pdf");
+        plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/residuals/" + std::filesystem::path(current_file).stem().string() + ".png");
     }
     
     // write fit report to disk
     FitReporter::report(fits, paths);
     FitReporter::save("figures/fits/EMfit.txt", fits, paths);
 
-    // generate concentration v. resolution plot
-    fitted_vals.add_plot_options("errors");
+    // generate cutoff v. resolution plot
+    fitted_vals.add_plot_options("markers");
     plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/cutoff.pdf");
 
     // generate chi2 v. resolution plot

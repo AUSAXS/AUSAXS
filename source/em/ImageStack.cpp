@@ -145,15 +145,15 @@ Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistog
     return minimizer.landscape(points.bins);
 }
 
-Multiset ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
+ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
     determine_minimum_bounds();
     auto func = prepare_function(fitter);
 
     // cutoff scan
-    Multiset data;
+    Landscape landscape;
     mini::Golden minimizer(func, mini::Parameter{"cutoff", Limit(points.min, points.max)});
-    data.push_back(minimizer.landscape(points.bins));
+    landscape.contour = minimizer.landscape(points.bins);
 
     // fit
     double guess; Limit bounds;
@@ -162,13 +162,12 @@ Multiset ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringH
     minimizer.clear_parameters();
     minimizer.add_parameter({"cutoff", guess, bounds});
     auto res = minimizer.minimize();
-    data.push_back(minimizer.get_evaluated_points());
 
-    // manually append the minimum as the last entry
-    data[1].x.push_back(res.get_parameter("cutoff").value);
-    data[1].y.push_back(res.fval);
+    EMFit emfit(fitter, res, res.fval);
+    emfit.evaluated_points = minimizer.get_evaluated_points();
+    landscape.fit = emfit;
 
-    return data;
+    return landscape;
 }
 
 size_t ImageStack::get_byte_size() const {

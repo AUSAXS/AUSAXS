@@ -25,6 +25,14 @@ namespace em {
         public:
             class EMFit : public Fit {using Fit::Fit;};
 
+            struct Landscape {
+                Landscape() {}
+                Landscape(const EMFit& fit, const Dataset& contour) : fit(fit), contour(contour) {}
+
+                EMFit fit;
+                Dataset contour;
+            };
+
             /**
              * @brief Constructor.
              * 
@@ -74,11 +82,9 @@ namespace em {
              * @param points The cutoff values to be evaluated. 
              * @param h The histogram to be fitted. 
              * 
-             * @return A Multiset containing 
-             *             1. A dataset with the scanned cutoff values and their corresponding chi2 values. 
-             *             2. A dataset with the evaluated cutoff values by the fitter. The last entry will be the found minimum.
+             * @return A Landscape containing both the fit and scan.
              */
-            Multiset cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
+            Landscape cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 

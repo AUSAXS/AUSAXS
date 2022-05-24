@@ -1,12 +1,13 @@
 #include <minimizer/Scan.h>
 #include <utility/Exceptions.h>
+#include <utility/Utility.h>
 
 using namespace mini;
 
 Dataset Scan::landscape(unsigned int evals) const {
     if (parameters.size() == 1) {
-        Limit& bounds = parameters[0].bounds.value();
-        for (double val = bounds.min; val < bounds.max; val += bounds.span()/bins) {
+        const Limit& bounds = parameters[0].bounds.value();
+        for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
             function(&val);
         }
         return get_evaluated_points();
@@ -14,10 +15,14 @@ Dataset Scan::landscape(unsigned int evals) const {
     
     else if (parameters.size() == 2) {
         throw except::unexpected("Error in Scan::landscape: Not implemented.");
+    } 
+    
+    else {
+        throw except::unexpected("Error in Scan::landscape: Not implemented.");
     }
 }
 
-void Scan::looper(std::vector<double>& p, unsigned int index) const {
+void Scan::looper(std::vector<double>&, unsigned int) const {
     throw except::unexpected("Error in Scan::looper: Not implemented.");
     // Limit bounds = parameters[index].bounds.value();
     // for (double val = bounds.min; val < bounds.max; val += bounds.span()/bins) {

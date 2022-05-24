@@ -117,26 +117,32 @@ std::vector<double>& Dataset::get(const string label) {
 
 void Dataset::validate_sizes() const {
     if (x.size() != y.size()
-        || (!yerr.empty() && yerr.size() != x.size())
-        || (!xerr.empty() && xerr.size() != x.size())) 
+        || (has_yerr() && yerr.size() != x.size())
+        || (has_xerr() && xerr.size() != x.size())) 
         {
             throw except::size_error("Error in Dataset::Dataset: x and y must have same size!");
     }
 }
 
 std::unique_ptr<TGraph> Dataset::plot() const {
-    if (!yerr.empty()) {return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), xerr.data(), yerr.data());}
-    else {return std::make_unique<TGraph>(x.size(), x.data(), y.data());}
+    if (has_yerr()) {
+        if (!has_xerr()) {
+            return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), nullptr, yerr.data());
+        }        
+        return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), xerr.data(), yerr.data());
+    }
+    else {
+        return std::make_unique<TGraph>(x.size(), x.data(), y.data());}
 }
 
 void Dataset::scale_errors(double factor) {
-    if (!xerr.empty()) {std::transform(xerr.begin(), xerr.end(), xerr.begin(), [&factor] (double val) {return factor*val;});}
-    if (!yerr.empty()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
+    if (has_xerr()) {std::transform(xerr.begin(), xerr.end(), xerr.begin(), [&factor] (double val) {return factor*val;});}
+    if (has_yerr()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
 }
 
 void Dataset::scale_y(double factor) {
     std::transform(y.begin(), y.end(), y.begin(), [&factor] (double val) {return val*factor;});
-    if (!yerr.empty()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
+    if (has_yerr()) {std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});}
 }
 
 void Dataset::normalize(double y0) {
@@ -187,7 +193,7 @@ Dataset Dataset::generate_random_data(unsigned int size, double min, double max)
 }
 
 void Dataset::simulate_noise() {
-    if (yerr.empty()) {throw except::invalid_operation("Error in Dataset::simulate_noise: Cannot simulate noise without yerrs.");}
+    if (!has_yerr()) {throw except::invalid_operation("Error in Dataset::simulate_noise: Cannot simulate noise without yerrs.");}
 
     std::random_device dev;
     std::mt19937 gen(dev());
