@@ -47,3 +47,6 @@ FittedParameter::FittedParameter(const Parameter& param, double val, double erro
 std::string FittedParameter::to_string() const noexcept {
     return name + " " + std::to_string(value) + " " + error.to_string();
 }
+double FittedParameter::mean_error() const noexcept {
+    return (value - error.min)*0.5 + (error.max - value)*0.5;
+}

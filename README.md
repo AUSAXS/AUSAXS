@@ -1,5 +1,5 @@
 # Todo
- * [ ] Plots: Use multigraphs https://root.cern/root/html534/TMultiGraph.html for limit handling.
+ * [x] Plots: Use multigraphs https://root.cern/root/html534/TMultiGraph.html for limit handling.
  * [ ] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
  * [ ] Fit: Inherit from Result since they share everything anyways
  * [ ] Use nothrow
@@ -8,11 +8,9 @@
  * [x] residual plots for em
  * [ ] flow diagram med hvad vi rent faktisk laver
  * [ ] chi2 vs opløsning for optimeret fit
- * [x] sammenligningsfigur separer kurver med faktor x^n
  * [ ] Fix fitter for EM
  * [ ] Test higher resolutions of native
  * [ ] Check if there are online databases of EM maps
- * [x] PlotOptions: Refactor to better handling similar to sim3a.
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z

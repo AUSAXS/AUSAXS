@@ -41,8 +41,8 @@ int main(int argc, char const *argv[]) {
 
         // prepare dataset for cutoff v. resolution plot
         fitted_vals.x.push_back(resolution);
-        fitted_vals.y.push_back(fit->params["cutoff"]);
-        fitted_vals.yerr.push_back(fit->errors["cutoff"]);
+        fitted_vals.y.push_back(fit->get_parameter("cutoff").value);
+        fitted_vals.yerr.push_back(fit->get_parameter("cutoff").mean_error());
 
         // chi2 contour plot
         Dataset contour = image.cutoff_scan({100, 0, 6}, hist);
@@ -76,7 +76,7 @@ int main(int argc, char const *argv[]) {
 
     // generate intensity comparison plots
     Multiset intensities;
-    std::transform(fits.begin(), fits.end(), std::back_inserter(intensities.data), [] (const Fit& fit) {return fit.figures[1];});
+    std::transform(fits.begin(), fits.end(), std::back_inserter(intensities.data), [] (const Fit& fit) {return fit.figures.intensity;});
     plots::PlotResolutionComparison plot_r(intensities);
     plot_r.save("figures/stuff/fits.pdf");
     return 0;

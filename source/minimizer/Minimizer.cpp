@@ -13,6 +13,14 @@ Minimizer::Minimizer(std::function<double(const double*)> f) {
     set_function(f);
 }
 
+Result Minimizer::minimize() {
+    if (!is_parameter_set()) {throw except::bad_order("Error in Minimizer::minimize: No parameters were supplied.");}
+    if (!is_function_set()) {throw except::bad_order("Error in Minimizer::minimize: No function was set.");}
+
+    clear_evaluated_points();
+    return minimize_override();
+}
+
 void Minimizer::set_function(double(&f)(const double*)) {
     raw = std::bind(f, std::placeholders::_1);
     set_function(raw);

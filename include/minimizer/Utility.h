@@ -117,6 +117,12 @@ namespace mini {
         std::string to_string() const noexcept;
 
         /**
+         * @brief Get the mean error. 
+         *        If the errors are asymmetric, this returns their mean. If not, the error is returned. 
+         */
+        double mean_error() const noexcept;
+
+        /**
 		 * @brief Stream output operator. 
 		 * 
 		 * Allows this object to easily be output to a given stream. 

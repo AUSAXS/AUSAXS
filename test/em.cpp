@@ -115,7 +115,7 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
 }
 
 TEST_CASE("repeat_chi2_contour", "[em],[files]") {
-    unsigned int repeats = 5;
+    unsigned int repeats = 50;
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
@@ -129,7 +129,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
     data.simulate_errors();
 
     // prepare fit data
-    em::ImageStack image("sim/native_25.ccp4");
+    em::ImageStack image("sim/native_10.ccp4");
     auto hist = protein.get_histogram();
 
     vector<std::pair<double, double>> optvals;
@@ -153,20 +153,20 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         }
     };
 
-    SECTION("check_equality_no_noise") {
-        setting::em::sample_frequency = 2;
-        setting::em::simulation::noise = false;
-        for (unsigned int i = 0; i < repeats; i++) {
-            Dataset contour = image.cutoff_scan({10, 0, 6}, hist);
-            contours.push_back(contour);
-            compare_contours(contour);
-        }
-    }
+    // SECTION("check_equality_no_noise") {
+    //     setting::em::sample_frequency = 2;
+    //     setting::em::simulation::noise = false;
+    //     for (unsigned int i = 0; i < repeats; i++) {
+    //         Dataset contour = image.cutoff_scan({10, 0, 6}, hist);
+    //         contours.push_back(contour);
+    //         compare_contours(contour);
+    //     }
+    // }
 
     SECTION("with_noise") {
         setting::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
-            Multiset data = image.cutoff_scan_fit({100, 1, 2.5}, hist);
+            Multiset data = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
             Dataset& fit = data[1];
             optvals.push_back({fit.x[fit.size()-1], fit.y[fit.size()-1]});
 
@@ -200,6 +200,19 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         plot_c.plot(fit_mins);
         plot_c.plot(scan_mins);
         plot_c.save("figures/test/em/repeat_chi2_contours.pdf");
+
+
+        // Difference plot
+        REQUIRE(scan_mins.size() == fit_mins.size());
+
+        Dataset diff;
+        diff.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}));
+        for (unsigned int i = 0; i < scan_mins.size(); i++) {
+            double delta_x = fit_mins.x[i] - scan_mins.x[i];
+            double delta_y = fit_mins.y[i] - scan_mins.y[i];
+            diff.push_back({delta_x, delta_y});
+        }
+        plots::PlotDataset::quick_plot(diff, "figures/test/em/diff.pdf");        
     }
 }
 

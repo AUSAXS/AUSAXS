@@ -8,27 +8,26 @@ namespace mini {
 	 */
 	class Scan : public Minimizer {
 		public:
-			/**
-			 * @brief Add a parameter.
-			 * 
-			 * @param par The name of the parameter.
-			 * @param guess The start value of the parameter. 
-			 */
-			void add_parameter(std::string par, double guess);
+            /**
+             * @brief Generate a landscape of the function.
+             */
+            Dataset landscape(unsigned int evals) const override;
 
-			/**
-			 * @brief Add a parameter with limits.
-			 * 
-			 * @param par The name of the parameter.
-			 * @param guess The start value of the parameter. 
-			 * @param limits The limits of the parameter.
-			 */
-			void add_parameter(std::string par, double guess, Limit limits);
+            /**
+             * @brief Get the evaluated points and their function values.
+             */
+            Dataset get_evaluated_points() const override;
+
+			void add_parameter(const Parameter& param);
 
 		private:
+			unsigned int bins = 100;
+
 			/**
 			 * @brief Perform the minimization.
 			 */
 			Result minimize_override() override;
+
+			void looper(std::vector<double>& p, unsigned int index) const;
 	};
 }

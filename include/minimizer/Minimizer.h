@@ -47,10 +47,7 @@ namespace mini {
             /**
              * @brief Perform the minimization.
              */
-            Result minimize() {
-                clear_evaluated_points();
-                return minimize_override();
-            }
+            Result minimize();
 
             /**
              * @brief Add a parameter.

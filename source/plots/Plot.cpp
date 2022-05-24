@@ -6,6 +6,7 @@
 #include <TH1D.h>
 #include <TCanvas.h>
 #include <TGraphErrors.h>
+#include <TMultiGraph.h>
 
 void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     // handle colors and markers
@@ -69,6 +70,23 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     // draw it
     if (options.draw_errors) {graph->DrawClone(draw_options.c_str());}
     else {graph->TGraph::DrawClone(draw_options.c_str());}
+}
+
+void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
+    TMultiGraph graph;
+    for (const Dataset& d : data) {
+        PlotOptions options = d.plot_options;
+
+        std::string draw_options;
+        if (options.draw_line) {draw_options += "L";}
+        if (options.draw_markers) {draw_options += "P";}
+        if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
+        TGraph* g = new TGraph(*d.plot()); // TMultiGraph owns its TGraph pointers
+
+        graph.Add(g, draw_options.c_str());
+    }    
+
+    graph.DrawClone("A");
 }
 
 void plots::draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas) {

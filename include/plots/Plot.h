@@ -5,6 +5,7 @@
 
 #include <plots/PlotOptions.h>
 #include <utility/Dataset.h>
+#include <utility/Multiset.h>
 #include <histogram/Histogram.h>
 
 #include <TStyle.h>
@@ -87,4 +88,7 @@ namespace plots {
 
 	[[maybe_unused]]
 	void draw(const hist::Histogram& hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas = nullptr);
+
+	[[maybe_unused]]
+	void draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas = nullptr);
 }
