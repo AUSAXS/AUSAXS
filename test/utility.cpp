@@ -1,9 +1,28 @@
 #include <catch2/catch_test_macros.hpp>
 #include <fitter/FitReporter.h>
 #include <plots/PlotOptions.h>
+#include <plots/PlotDataset.h>
 #include <utility/Utility.h>
 
 using std::vector, std::string;
+
+TEST_CASE("plots", "[utility],[manual]") {
+    Dataset data;
+    data.x = {1, 2, 3, 4, 5};
+    data.y = {2, 3, 4, 5, 6};
+    data.yerr = {0.5, 0.5, 0.5, 0.5, 0.5};
+
+    std::cout << "FIRST" << std::endl;
+    plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/default.png");
+
+    std::cout << "SECOND" << std::endl;
+    data.add_plot_options("markers");
+    plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/markers.png");
+
+    std::cout << "THIRD" << std::endl;
+    data.add_plot_options("errors");
+    plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/errors.png");
+}
 
 TEST_CASE("fitreporter", "[utility],[manual]") {
     Fit fit;

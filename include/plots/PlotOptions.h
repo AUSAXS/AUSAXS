@@ -47,8 +47,8 @@ namespace plots {
             int marker_style = 7;           // Marker style
             unsigned int line_width = 1;    // Line width
             double marker_size = 1;         // Marker size
-            bool draw_line = false;         // Draw a line through the points
-            bool draw_errors = true;        // Draw error bars if possible
+            bool draw_line = true;          // Draw a line through the points
+            bool draw_errors = false;       // Draw error bars if possible
             bool draw_markers = false;      // Draw a marker for each point
             bool draw_bars = false;         // Draw bars for a histogram.
             bool use_existing_axes = false; // Draw with existing axes. Must be false for the first plot on each canvas. 

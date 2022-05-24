@@ -68,12 +68,11 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     // prepare draw options
     std::string draw_options = options.use_existing_axes ? "SAME " : "A";
     if (options.draw_line) {draw_options += "L";}
-    if (options.draw_markers) {draw_options += "P";}
+    if (options.draw_markers || options.draw_errors) {draw_options += "P";}
     if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
 
     // draw it
-    if (options.draw_errors) {graph->DrawClone(draw_options.c_str());}
-    else {graph->TGraph::DrawClone(draw_options.c_str());}
+    graph->DrawClone(draw_options.c_str());
 }
 
 void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
@@ -83,7 +82,7 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
 
         std::string draw_options;
         if (options.draw_line) {draw_options += "L";}
-        if (options.draw_markers) {draw_options += "P";}
+        if (options.draw_markers || options.draw_errors) {draw_options += "P";}
         if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
         TGraph* g = new TGraph(*d.plot()); // TMultiGraph owns its TGraph pointers
 
@@ -102,11 +101,11 @@ void plots::draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas) {
 
 void plots::draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     std::shared_ptr<TGraph> graph;
-    if (data.has_yerr()) {
+    if (data.has_yerr() && options.draw_errors) {
         if (data.has_xerr()) {
             graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), data.xerr.data(), data.yerr.data());
         } else {
-            graph = std::make_shared<TGraphErrors>(data.size(), nullptr, data.y.data(), data.xerr.data(), data.yerr.data());
+            graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), nullptr, data.yerr.data());
         }
     }
     else {graph = std::make_shared<TGraph>(data.size(), data.x.data(), data.y.data());}
@@ -161,7 +160,7 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
     std::string draw_options = options.use_existing_axes ? "HIST SAME " : "HIST ";
     if (options.draw_bars) {draw_options += "B";}
     if (options.draw_line) {draw_options += "L";}
-    if (options.draw_markers) {draw_options += "P";}
+    if (options.draw_markers || options.draw_errors) {draw_options += "P";}
     if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
 
     hist->DrawClone("HIST L");

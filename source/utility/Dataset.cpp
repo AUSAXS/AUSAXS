@@ -126,10 +126,10 @@ void Dataset::validate_sizes() const {
 
 std::unique_ptr<TGraph> Dataset::plot() const {
     if (has_yerr()) {
-        if (!has_xerr()) {
-            return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), nullptr, yerr.data());
+        if (has_xerr()) {
+            return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), xerr.data(), yerr.data());
         }        
-        return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), xerr.data(), yerr.data());
+        return std::make_unique<TGraphErrors>(x.size(), x.data(), y.data(), nullptr, yerr.data());
     }
     else {
         return std::make_unique<TGraph>(x.size(), x.data(), y.data());}

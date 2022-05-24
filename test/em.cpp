@@ -85,10 +85,10 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     Protein protein("data/native.pdb");
     hist::ScatteringHistogram hist(protein.get_histogram());
 
-    Multiset data = image.cutoff_scan_fit({100, 0, 4}, hist);
+    auto data = image.cutoff_scan_fit({100, 0, 4}, hist);
 
-    Dataset& scan = data[0];
-    Dataset& fit = data[1];
+    Dataset& scan = data.contour;
+    Dataset& fit = data.fit.evaluated_points;
     fit.plot_options.set("markers", {{"color", kOrange+2}});
 
     plots::PlotDataset plot(scan);
@@ -166,12 +166,12 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
     SECTION("with_noise") {
         setting::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
-            Multiset data = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
-            Dataset& fit = data[1];
+            auto data = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
+            Dataset& fit = data.fit.evaluated_points;
             optvals.push_back({fit.x[fit.size()-1], fit.y[fit.size()-1]});
 
             // chi2 contour plot
-            Dataset& scan = data[0];
+            Dataset& scan = data.contour;
             fit.plot_options.set("markers", {{"color", kOrange+2}});
 
             plots::PlotDataset plot_c(scan);
