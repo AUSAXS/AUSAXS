@@ -29,15 +29,23 @@ void Fit::add_fit(std::shared_ptr<Fit> fit) {
     }
 }
 
-mini::FittedParameter Fit::get_parameter(unsigned int index) const {
+const mini::FittedParameter& Fit::get_parameter(unsigned int index) const {
     if (params.size() <= index) {throw except::out_of_bounds("Error in Fit::get_parameter: Index \"" + std::to_string(index) + "\" is out of range (" + std::to_string(params.size()) + ").");}
     return params[index];
 } 
 
-mini::FittedParameter Fit::get_parameter(std::string name) const {
+mini::FittedParameter& Fit::get_parameter(unsigned int index) {
+    return const_cast<mini::FittedParameter&>(std::as_const(*this).get_parameter(index));
+} 
+
+const mini::FittedParameter& Fit::get_parameter(std::string name) const {
     auto pos = std::find_if(params.begin(), params.end(), [&name] (const mini::FittedParameter& param) {return param.name == name;});
     if (pos == params.end()) {throw except::unknown_argument("Error in Fit::get_parameter: No parameter named \"" + name + "\" was found.");}
     return *pos;
+}
+
+mini::FittedParameter& Fit::get_parameter(std::string name) {
+    return const_cast<mini::FittedParameter&>(std::as_const(*this).get_parameter(name));
 }
 
 template<typename T>
@@ -66,7 +74,7 @@ std::string Fit::to_string() const {
        << "\n+----------------------------------------------------------+"
        << "\n| PAR      | VAL          | UNC          |                 |";
     for (const auto& e : params) {
-        ss << "\n| " << print_element(e.name, 8) << " | " << print_element(e.value, 12) << " | " << print_element(e.error.center(), 12)  << " |                 |";
+        ss << "\n| " << print_element(e.name, 8) << " | " << print_element(e.value, 12) << " | " << print_element(e.mean_error(), 12)  << " |                 |";
     }
     ss << "\n+----------------------------------------------------------+";
 

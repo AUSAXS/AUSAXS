@@ -42,27 +42,21 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     // handle log scale
     detail::handle_log(options, canvas);
 
-    // handle axis limits
+    // handle xlimits
     if (!options.xlimits.empty()) {
         Limit limits = options.xlimits;
-        // check if new bounds are within current bounds
-        if (!(graph->GetXaxis()->GetXmin() < limits.min && limits.max < graph->GetXaxis()->GetXmax())) {
-            // replace infs
-            if (std::isinf(options.xlimits.min)) {limits.min = graph->GetXaxis()->GetXmin();}
-            if (std::isinf(options.xlimits.max)) {limits.max = graph->GetXaxis()->GetXmax();}
+        // replace infs
+        if (std::isinf(limits.min)) {limits.min = graph->GetXaxis()->GetXmin();}
+        if (std::isinf(limits.max)) {limits.max = graph->GetXaxis()->GetXmax();}
 
-            // set new range
-            graph->GetXaxis()->SetRangeUser(limits.min, limits.max);
-        }
+        // set new range
+        graph->GetXaxis()->SetRangeUser(options.xlimits.min, options.xlimits.max);
     }
+
+    // handle ylimits
     if (!options.ylimits.empty()) {
-        Limit limits = options.ylimits;
-        // check if new bounds are within current bounds
-        if (!(graph->GetYaxis()->GetXmin() < limits.min && limits.max < graph->GetYaxis()->GetXmax())) {
-            // set range
-            if (!std::isinf(options.ylimits.min)) {graph->GetHistogram()->SetMinimum(limits.min);} 
-            if (!std::isinf(options.ylimits.max)) {graph->GetHistogram()->SetMaximum(limits.max);}
-        }
+        if (!std::isinf(options.ylimits.min)) {graph->SetMinimum(options.ylimits.min);} 
+        if (!std::isinf(options.ylimits.max)) {graph->SetMaximum(options.ylimits.max);}
     }
 
     // prepare draw options
@@ -76,6 +70,8 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
 }
 
 void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
+    PlotOptions options = data[0].plot_options;
+
     TMultiGraph graph;
     for (const Dataset& d : data) {
         PlotOptions options = d.plot_options;
@@ -86,11 +82,43 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
         if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
         TGraph* g = new TGraph(*d.plot()); // TMultiGraph owns its TGraph pointers
 
+        g->SetLineColorAlpha(options.color, options.alpha);
+        g->SetMarkerColorAlpha(options.color, options.alpha);
+        g->SetMarkerStyle(options.marker_style);
+        g->SetLineWidth(options.line_width);
+        g->SetMarkerSize(options.marker_size);
+
         graph.Add(g, draw_options.c_str());
     }    
 
+    std::string labels = options.title + ";" + options.xlabel + ";" + options.ylabel;
+
     // handle log
-    detail::handle_log(data[0].plot_options, canvas);
+    detail::handle_log(options, canvas);
+
+    // set title & labels
+    graph.SetTitle(labels.c_str());
+    graph.GetXaxis()->CenterTitle();
+    graph.GetYaxis()->CenterTitle();
+
+    // handle xlimits
+    if (!options.xlimits.empty()) {
+        Limit limits = options.xlimits;
+        // replace infs
+        if (std::isinf(limits.min)) {limits.min = graph.GetXaxis()->GetXmin();}
+        if (std::isinf(limits.max)) {limits.max = graph.GetXaxis()->GetXmax();}
+
+        // set new range
+        graph.GetXaxis()->SetRangeUser(options.xlimits.min, options.xlimits.max);
+    }
+
+    // handle ylimits
+    if (!options.ylimits.empty()) {
+        std::cout << "Current ylimits: (" << graph.GetYaxis()->GetXmin() << ", " << graph.GetYaxis()->GetXmax() << ")" << std::endl;
+        std::cout << "New ylimits: " << options.ylimits << std::endl;
+        if (!std::isinf(options.ylimits.min)) {graph.SetMinimum(options.ylimits.min);} 
+        if (!std::isinf(options.ylimits.max)) {graph.SetMaximum(options.ylimits.max);}
+    }
 
     graph.DrawClone("A");
 }
@@ -139,18 +167,21 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
         hist->GetYaxis()->SetTitleOffset(1.2);
     }
 
-    // handle axis limits
+    // handle xlimits
     if (!options.xlimits.empty()) {
-        Limit limits;
-        if (std::isinf(options.xlimits.min)) {limits.min = hist->GetXaxis()->GetXmin();}
-        if (std::isinf(options.xlimits.max)) {limits.max = hist->GetXaxis()->GetXmax();}
-        hist->GetXaxis()->SetRangeUser(limits.min, limits.max);
+        Limit limits = options.xlimits;
+        // replace infs
+        if (std::isinf(limits.min)) {limits.min = hist->GetXaxis()->GetXmin();}
+        if (std::isinf(limits.max)) {limits.max = hist->GetXaxis()->GetXmax();}
+
+        // set new range
+        hist->GetXaxis()->SetRangeUser(options.xlimits.min, options.xlimits.max);
     }
+
+    // handle ylimits
     if (!options.ylimits.empty()) {
-        Limit limits;
-        if (std::isinf(options.ylimits.min)) {limits.min = hist->GetYaxis()->GetXmin();}
-        if (std::isinf(options.ylimits.max)) {limits.max = hist->GetYaxis()->GetXmax();}
-        hist->GetXaxis()->SetRangeUser(limits.min, limits.max);
+        if (!std::isinf(options.ylimits.min)) {hist->SetMinimum(options.ylimits.min);} 
+        if (!std::isinf(options.ylimits.max)) {hist->SetMaximum(options.ylimits.max);}
     }
 
     // handle log scale

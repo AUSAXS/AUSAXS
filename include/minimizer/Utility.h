@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility/Limit.h>
+#include <utility/PointSet.h>
 
 #include <optional>
 
@@ -111,6 +112,8 @@ namespace mini {
          */
         FittedParameter(const Parameter& param, double value, double error);
 
+        operator Point1D() const noexcept {return Point1D(value, mean_error());}
+
         /**
          * @brief Get a string representation of this parameter.
          */
@@ -121,6 +124,16 @@ namespace mini {
          *        If the errors are asymmetric, this returns their mean. If not, the error is returned. 
          */
         double mean_error() const noexcept;
+
+        /**
+         * @brief Set a symmetric error. 
+         */
+        void set_error(double error) noexcept;
+
+        /**
+         * @brief Set an asymmetric error. 
+         */
+        void set_error(double min, double max) noexcept;
 
         /**
 		 * @brief Stream output operator. 

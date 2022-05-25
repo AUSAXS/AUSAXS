@@ -50,3 +50,11 @@ std::string FittedParameter::to_string() const noexcept {
 double FittedParameter::mean_error() const noexcept {
     return (value - error.min)*0.5 + (error.max - value)*0.5;
 }
+
+void FittedParameter::set_error(double error) noexcept {
+    this->error = Limit(-error, error);
+}
+
+void FittedParameter::set_error(double min, double max) noexcept {
+    this->error = Limit(min, max);
+}

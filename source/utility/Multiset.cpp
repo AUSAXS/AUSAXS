@@ -49,6 +49,12 @@ void Multiset::push_back(const Dataset&& new_data) {
     data.push_back(std::move(new_data));
 }
 
+void Multiset::ylimits(double min, double max) noexcept {ylimits({min, max});}
+
+void Multiset::ylimits(const Limit& limit) noexcept {
+    std::for_each(begin(), end(), [&limit] (Dataset& data) {data.ylimits(limit);});
+}
+
 const std::vector<Dataset>::const_iterator Multiset::begin() const {return data.begin();}
 const std::vector<Dataset>::const_iterator Multiset::end() const {return data.end();}
 

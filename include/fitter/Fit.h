@@ -46,12 +46,22 @@ class Fit {
         /**
          * @brief Get a parameter by index.
          */
-        mini::FittedParameter get_parameter(unsigned int index) const;
+        const mini::FittedParameter& get_parameter(unsigned int index) const;
+
+        /**
+         * @brief Get a parameter by index.
+         */
+        mini::FittedParameter& get_parameter(unsigned int index);
 
         /**
          * @brief Get a parameter by name.
          */
-        mini::FittedParameter get_parameter(std::string name) const;
+        const mini::FittedParameter& get_parameter(std::string name) const;
+
+        /**
+         * @brief Get a parameter by name.
+         */
+        mini::FittedParameter& get_parameter(std::string name);
 
         /**
          * @brief Get a string representation of this object. 

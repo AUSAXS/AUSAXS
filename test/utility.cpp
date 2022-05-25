@@ -8,20 +8,30 @@ using std::vector, std::string;
 
 TEST_CASE("plots", "[utility],[manual]") {
     Dataset data;
-    data.x = {1, 2, 3, 4, 5};
-    data.y = {2, 3, 4, 5, 6};
-    data.yerr = {0.5, 0.5, 0.5, 0.5, 0.5};
+    data.x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
+    data.y = {-5, -3, 4, 8, 12, 7, 3, 1, -3, -5, -9};
+    data.yerr = vector<double>(data.size(), 0.5);
 
-    std::cout << "FIRST" << std::endl;
-    plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/default.png");
+    SECTION("markers") {
+        plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/default.png");
 
-    std::cout << "SECOND" << std::endl;
-    data.add_plot_options("markers");
-    plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/markers.png");
+        data.add_plot_options("markers");
+        plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/markers.png");
 
-    std::cout << "THIRD" << std::endl;
-    data.add_plot_options("errors");
-    plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/errors.png");
+        data.add_plot_options("errors");
+        plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/errors.png");
+    }
+
+    SECTION("limits") {
+        data.add_plot_options("markers", {{"ylimits", Limit(3, 5)}});
+        plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/limits.png");
+    }
+
+    SECTION("log") {
+        data.ylimits(1, inf);
+        data.add_plot_options({{"logy", true}});
+        plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/log.png");
+    }
 }
 
 TEST_CASE("fitreporter", "[utility],[manual]") {

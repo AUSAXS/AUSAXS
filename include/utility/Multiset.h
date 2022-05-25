@@ -47,6 +47,16 @@ class Multiset {
         void push_back(const Dataset&& data);
 
         /**
+         * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
+         */
+        void ylimits(const Limit& limit) noexcept;
+
+        /**
+         * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
+         */
+        void ylimits(double min, double max) noexcept;
+
+        /**
          * @brief Read-only iterator.
          */
 		const std::vector<Dataset>::const_iterator begin() const;

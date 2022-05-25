@@ -6,6 +6,20 @@
 
 #include <iostream>
 
+TEST_CASE("dataset_ylimits", "[dataset]") {
+    Dataset data;
+    data.x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    data.y = {-10, -6, -4, -1, 2, 1, 3, 6, 7, 9};
+
+    Limit limit(0, 5);
+    data.ylimits(limit);
+    REQUIRE(data.x.size() == data.y.size());
+    for (unsigned int i = 0; i < data.size(); i++) {
+        CHECK(limit.min <= data.y[i]);
+        CHECK(data.y[i] <= limit.max);
+    }
+}
+
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
     SAXSDataset data1("data/2epe.RSR");
     SAXSDataset data2 = data1;

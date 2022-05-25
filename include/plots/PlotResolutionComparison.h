@@ -36,22 +36,6 @@ namespace plots {
 			static void quick_plot(const Multiset& data, std::string path);
 
 		private:
-			std::shared_ptr<TCanvas> canvas;
-			std::unique_ptr<PlotDataset> raw;
-
-            /**
-             * @brief Plot the first Dataset. 
-             */
-			void initial_plot(Dataset& data);
-
-			/**
-			 * @brief Plot an additional Dataset. 
-			 */
-			void plot(Dataset& data);
-
-            /**
-             * @brief Prepare the canvas for plotting.
-             */
-			void prepare_canvas();
+			std::unique_ptr<PlotDataset> raw, staggered;
 		};
 }

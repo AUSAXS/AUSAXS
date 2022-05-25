@@ -7,11 +7,12 @@
 #include <utility/Exceptions.h>
 #include <utility/Settings.h>
 #include <utility/Utility.h>
+#include <math/Statistics.h>
 
 using std::string;
 
 int main(int argc, char const *argv[]) {
-    unsigned int loops = 10; // how many times each map is fitted to get an average chi2
+    unsigned int loops = 2; // how many times each map is fitted to get an average chi2
 
     string pdb_file = argv[1];
 
@@ -37,17 +38,43 @@ int main(int argc, char const *argv[]) {
         em::ImageStack image(current_file, resolution);
         auto hist = protein.get_histogram();
 
-        auto landscape = image.cutoff_scan_fit({100, 0, 6}, hist);
-        auto fit = landscape.fit;
-        auto contour = landscape.contour;
 
-        // prepare writing the fit results
+        //#######################################//
+        //#    Repeat fits & combine results    #//
+        //#######################################//
+        vector<Fit> cur_fits;
+        for (unsigned int i = 0; i < loops; i++) {
+            cur_fits.push_back(*image.fit(hist));
+        }
+
+        std::vector<double> holder(loops);
+        Fit fit = cur_fits[0];
+
+        // use mean chi2
+        std::transform(cur_fits.begin(), cur_fits.end(), holder.begin(), [] (const Fit& fit) {return fit.chi2;});
+        fit.chi2 = stats::mean(holder);
+
+        // use total fevals
+        fit.calls = std::accumulate(cur_fits.begin(), cur_fits.end(), 0, [] (unsigned int sum, const Fit& fit) {return sum + fit.calls;});
+
+        // use mean cutoff
+        stats::MeasurementSeries ms(loops);
+        std::transform(cur_fits.begin(), cur_fits.end(), ms.begin(), [] (const Fit& fit) {return fit.get_parameter("cutoff");});
+
+        auto& p_cutoff = fit.get_parameter("cutoff");
+        p_cutoff.value = ms.weighted_mean();
+        p_cutoff.set_error(ms.error_of_mean());
+
         fits.push_back(fit);
         paths.push_back(current_file);
 
+        //#######################################//
+        //#           Prepare plots             #//
+        //#######################################//
+
         // prepare dataset for cutoff v. resolution plot
         auto cutoff = fit.get_parameter("cutoff");
-        fitted_vals.push_back({resolution, cutoff.value, cutoff.mean_error()});
+        fitted_vals.push_back({double(resolution), cutoff.value, cutoff.mean_error()});
 
         // prepare voxel size v. resolution plot
         auto header = image.get_header();
@@ -55,7 +82,7 @@ int main(int argc, char const *argv[]) {
             !utility::equal(header->nx, header->ny, header->nz)) {
                 throw except::size_error("Error in stuff: Header dimensions are not equal!");
         }
-        voxel_sizes.push_back({resolution, header->cella_x/header->nx});
+        voxel_sizes.push_back({double(resolution), header->cella_x/header->nx});
 
         // chi2 contour plot
         // Dataset evaluated_points = fit.evaluated_points;
@@ -93,6 +120,7 @@ int main(int argc, char const *argv[]) {
     // generate intensity comparison plots
     Multiset intensities;
     std::transform(fits.begin(), fits.end(), std::back_inserter(intensities.data), [] (const Fit& fit) {return fit.figures.intensity;});
+    intensities.ylimits(1e-4, inf);
     plots::PlotResolutionComparison plot_r(intensities);
     plot_r.save("figures/stuff/fits.pdf");
     return 0;

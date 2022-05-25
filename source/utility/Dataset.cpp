@@ -192,6 +192,25 @@ Dataset Dataset::generate_random_data(unsigned int size, double min, double max)
     return Dataset(x, y, yerr);
 }
 
+void Dataset::ylimits(double min, double max) noexcept {ylimits({min, max});}
+
+void Dataset::ylimits(const Limit& limits) noexcept {
+    std::vector<double> newx(size()), newy(size()), newxerr(size()), newyerr(size());
+    for (unsigned int i = 0; i < size(); i++) {
+        if (limits.min <= y[i] && y[i] <= limits.max) {
+            newx.push_back(x[i]);
+            newy.push_back(y[i]);
+            if (has_xerr()) {newxerr.push_back(xerr[i]);}
+            if (has_yerr()) {newyerr.push_back(yerr[i]);}
+        }
+    }
+
+    x = std::move(newx);
+    y = std::move(newy);
+    xerr = std::move(newxerr);
+    yerr = std::move(newyerr);
+}
+
 void Dataset::simulate_noise() {
     if (!has_yerr()) {throw except::invalid_operation("Error in Dataset::simulate_noise: Cannot simulate noise without yerrs.");}
 

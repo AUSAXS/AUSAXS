@@ -104,8 +104,8 @@ namespace plots {
                 make_shared(option::YLABEL, {"ylabel"}, ylabel),
                 make_shared(option::LOGX, {"logx", "log_x"}, logx),
                 make_shared(option::LOGY, {"logy", "log_y"}, logy),
-                make_shared(option::XLIM, {"xlim", "x_lim"}, xlimits),
-                make_shared(option::YLIM, {"ylim", "y_lim"}, ylimits)
+                make_shared(option::XLIM, {"xlim", "x_lim", "xlimits", "xlimit"}, xlimits),
+                make_shared(option::YLIM, {"ylim", "y_lim", "ylimits", "ylimit"}, ylimits)
             };
 
             void parse(std::string key, std::any val);

@@ -208,6 +208,16 @@ class Dataset {
          */
         static Dataset generate_random_data(unsigned int size, double min = 0, double max = 1);
 
+        /**
+         * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
+         */
+        void ylimits(double min, double max) noexcept;
+
+        /**
+         * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
+         */
+        void ylimits(const Limit& limit) noexcept;
+
         std::string xlabel = "x", xerrlabel = "xerr";
         std::string ylabel = "y", yerrlabel = "yerr";
         std::vector<double> x, xerr;
