@@ -81,11 +81,11 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    em::ImageStack image("sim/native_25.ccp4");
+    em::ImageStack image("sim/native_10.ccp4");
     Protein protein("data/native.pdb");
     hist::ScatteringHistogram hist(protein.get_histogram());
 
-    auto data = image.cutoff_scan_fit({100, 0, 4}, hist);
+    auto data = image.cutoff_scan_fit({1000, 1, 2}, hist);
 
     Dataset& scan = data.contour;
     Dataset& fit = data.fit.evaluated_points;
@@ -216,7 +216,47 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
     }
 }
 
-TEST_CASE("plot_pdb_as_points", "[em],[files]") {
+TEST_CASE("voxelplot", "[em],[files],[manual]") {
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 1;
+    setting::fit::q_high = 0.4;
+    em::ImageStack image("sim/native_25.ccp4");
+
+    SECTION("check voxel count") {
+        CHECK(image.image(25).count_voxels(2) == 72);
+        CHECK(image.image(30).count_voxels(10) == 38);
+        CHECK(image.image(35).count_voxels(10) == 74);
+
+        // The following generates the actual plots where the number of voxels can be counted.
+        // plots::PlotImage p25(image.image(25));
+        // p25.plot_atoms(2);
+        // p25.save("figures/test/em/voxels/25.png");
+        // std::cout << "25.png: " << image.image(25).count_voxels(2) << std::endl;
+
+        // plots::PlotImage p30(image.image(30));
+        // p30.plot_atoms(10);
+        // p30.save("figures/test/em/voxels/30.png");
+        // std::cout << "30.png: " << image.image(30).count_voxels(10) << std::endl;
+
+        // plots::PlotImage p35(image.image(35));
+        // p35.plot_atoms(10);
+        // p35.save("figures/test/em/voxels/35.png");
+        // std::cout << "35.png: " << image.image(35).count_voxels(10) << std::endl;
+    }
+
+    SECTION("make voxelcount plot") {
+        Dataset data;
+        Axis range(1000, 0, 6);
+        for (const double& val : range.as_vector()) {
+            data.push_back({val, double(image.count_voxels(val))});
+        }
+
+        data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}});
+        plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
+    }
+}
+
+TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
     Protein protein("data/maptest.pdb");
 
     auto h = protein.get_histogram();

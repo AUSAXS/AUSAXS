@@ -1,4 +1,8 @@
 # Todo
+ * [ ] EM: Shouldn't errors be simulated on the histogram from the protein? And not from the EM?
+ * [ ] ScanFit: Modify to find local minimum after scan is complete.
+ * [ ] Plots: optimal chi2 v. resolution (average over 10 runs) (also try without simulated errors)
+ * [x] Plots: Number of number of voxels v. cutoff
  * [x] Plots: Use multigraphs https://root.cern/root/html534/TMultiGraph.html for limit handling.
  * [ ] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
  * [ ] Fit: Inherit from Result since they share everything anyways

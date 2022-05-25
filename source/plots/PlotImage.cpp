@@ -89,3 +89,8 @@ std::unique_ptr<TH2D> plots::PlotImage::plot_hist() const {
     hist->DrawClone("cont4z");
     return hist;
 }
+
+void plots::PlotImage::quick_plot(const em::Image& image, std::string path) {
+    plots::PlotImage p(image);
+    p.save(path);
+}

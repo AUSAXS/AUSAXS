@@ -31,6 +31,10 @@ void utility::create_directories(std::string& path) {
     }
 }
 
+bool utility::equal(double a, double b, double c) {
+    return a == b && b == c;
+}
+
 std::string utility::remove_extension(std::string path) {
     return std::filesystem::path(path).replace_extension("");
 }
@@ -38,6 +42,10 @@ std::string utility::remove_extension(std::string path) {
 std::string utility::stem_append(std::string path, std::string s) {
     std::filesystem::path p(path);
     return p.parent_path().string() + "/" + p.stem().string() + s + p.extension().string();
+}
+
+std::string utility::stem(std::string path) {
+    return std::filesystem::path(path).stem();    
 }
 
 template<>

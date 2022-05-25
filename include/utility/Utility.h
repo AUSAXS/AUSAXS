@@ -45,6 +45,16 @@ namespace utility {
     std::string stem_append(std::string path, std::string s);
 
     /**
+     * @brief Get the stem of a path.
+     */
+    std::string stem(std::string path);
+
+    /**
+     * @brief Check if three values are equal.
+     */
+    bool equal(double a, double b, double c);
+
+    /**
      * @brief Print a warning message. The text will be red in the terminal. 
      */
     void print_warning(std::string text);

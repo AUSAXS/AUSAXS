@@ -96,6 +96,18 @@ class Axis {
 		double step() const noexcept {return width();}
 
 		/**
+		 * @brief Get a vector representation of this Axis.
+		 */
+		std::vector<double> as_vector() const noexcept {
+			std::vector<double> v(bins);
+			double w = width();
+			for (unsigned int i = 0; i < bins; i++) {
+				v[i] = min + i*w;
+			}
+			return v;
+		}
+
+		/**
 		 * @brief Check if this Axis is empty.
 		 */
 		[[nodiscard]] 

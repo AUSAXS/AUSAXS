@@ -12,6 +12,7 @@ namespace detail {
 struct Point1D : detail::IPoint {
     Point1D() {}
     Point1D(double x) : x(x) {}
+    Point1D(double x, double xerr) : x(x), xerr(xerr) {}
 
     static unsigned int dim() {return 1;}
 
@@ -21,6 +22,8 @@ struct Point1D : detail::IPoint {
 struct Point2D : Point1D {
     Point2D() {}
     Point2D(double x, double y) : Point1D(x), y(y) {}
+    Point2D(double x, double y, double yerr) : Point1D(x), y(y), yerr(yerr) {}
+    Point2D(double x, double y, double xerr, double yerr) : Point1D(x, xerr), y(y), yerr(yerr) {}
 
     static unsigned int dim() {return 2;}
 

@@ -41,6 +41,12 @@ namespace plots {
              */
             void plot_atoms(double cutoff = 0.1) const;
 
+			/**
+			 * @brief Plot and save the input Image at the specified location. 
+			 * 	      This is a convenient shortcut for quickly creating a plot of a single Image. 
+			 */
+            static void quick_plot(const em::Image& image, std::string path);
+
         private:
             std::unique_ptr<TCanvas> canvas;
             std::unique_ptr<TPad> pad1;

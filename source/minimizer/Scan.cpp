@@ -4,7 +4,31 @@
 
 using namespace mini;
 
+Scan::Scan(double(&func)(const double*)) : Minimizer(func) {}
+
+Scan::Scan(std::function<double(const double*)> func) : Minimizer(func) {}
+
+Scan::Scan(double(&func)(const double*), const Parameter& param) : Minimizer(func) {
+    add_parameter(param);
+}
+
+Scan::Scan(std::function<double(const double*)> func, const Parameter& param) : Minimizer(func) {
+    add_parameter(param);
+}
+
+void Scan::set_evals(unsigned int evals) noexcept {
+    bins = evals;
+}
+
 Dataset Scan::landscape(unsigned int evals) const {
+    // check if the minimizer has already been called
+    if (!evaluations.empty()) {
+        // if so, we can just reuse its result
+        Dataset data;
+        std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back({eval.vals[0], eval.fval});});
+        return data;
+    }
+
     if (parameters.size() == 1) {
         const Limit& bounds = parameters[0].bounds.value();
         for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {

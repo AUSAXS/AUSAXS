@@ -80,7 +80,18 @@ TEST_CASE("golden_minimizer", "[minimizer]") {
 }
 
 TEST_CASE("scan_minimizer", "[minimizer]") {
+    auto ScanTest1D = [] (const TestFunction& test) {
+        mini::Scan mini(test.function, {"a", test.bounds[0]});
+        mini.set_evals(1000);
+        auto res = mini.minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinRel(test.min[0], 1));
+    };
+
+    SECTION("problem04") {ScanTest1D(problem04);}
+    SECTION("problem13") {ScanTest1D(problem13);}
+    SECTION("problem18") {ScanTest1D(problem18);}
 }
+
 
 TEST_CASE("root_minimizer", "[minimizer]") {
     auto ROOTTest1D = [] (const TestFunction& test) {

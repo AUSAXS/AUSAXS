@@ -77,6 +77,11 @@ namespace em {
             std::list<Atom> generate_atoms(double cutoff) const;
 
             /**
+             * @brief Count the number of voxels for a given cutoff value.
+             */
+            unsigned int count_voxels(double cutoff) const;
+
+            /**
              * @brief Set the z location of this object. 
              */
             void set_z(unsigned int z);

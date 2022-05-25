@@ -42,7 +42,7 @@ namespace plots {
 			void save(std::string path) const override;
 
 			/**
-			 * @brief Plot and save the input dataset and the specified location. 
+			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
 			static void quick_plot(const Dataset& data, std::string path);

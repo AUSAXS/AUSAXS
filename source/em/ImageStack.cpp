@@ -170,6 +170,10 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist
     return landscape;
 }
 
+unsigned int ImageStack::count_voxels(double cutoff) const {
+    return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (double sum, const Image& im) {return sum + im.count_voxels(cutoff);});
+}
+
 size_t ImageStack::get_byte_size() const {
     return header->get_byte_size();
 }

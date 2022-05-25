@@ -11,6 +11,8 @@
 using std::string;
 
 int main(int argc, char const *argv[]) {
+    unsigned int loops = 10; // how many times each map is fitted to get an average chi2
+
     string pdb_file = argv[1];
 
     setting::protein::use_effective_charge = false;
@@ -27,6 +29,7 @@ int main(int argc, char const *argv[]) {
     vector<Fit> fits;
     vector<string> paths;
     Dataset fitted_vals("resolution", "cutoff");
+    Dataset voxel_sizes("resolution", "voxel size [Angstrom]");
     for (int i = 2; i < argc; i++) {
         std::cout << "Now fitting " << argv[i] << "..." << std::endl;
         string current_file = argv[i];
@@ -34,7 +37,7 @@ int main(int argc, char const *argv[]) {
         em::ImageStack image(current_file, resolution);
         auto hist = protein.get_histogram();
 
-        auto landscape = image.cutoff_scan_fit({10, 0, 6}, hist);
+        auto landscape = image.cutoff_scan_fit({100, 0, 6}, hist);
         auto fit = landscape.fit;
         auto contour = landscape.contour;
 
@@ -43,22 +46,29 @@ int main(int argc, char const *argv[]) {
         paths.push_back(current_file);
 
         // prepare dataset for cutoff v. resolution plot
-        fitted_vals.x.push_back(resolution);
-        fitted_vals.y.push_back(fit.get_parameter("cutoff").value);
-        fitted_vals.yerr.push_back(fit.get_parameter("cutoff").mean_error());
+        auto cutoff = fit.get_parameter("cutoff");
+        fitted_vals.push_back({resolution, cutoff.value, cutoff.mean_error()});
+
+        // prepare voxel size v. resolution plot
+        auto header = image.get_header();
+        if (!utility::equal(header->cella_x, header->cella_y, header->cella_z) || 
+            !utility::equal(header->nx, header->ny, header->nz)) {
+                throw except::size_error("Error in stuff: Header dimensions are not equal!");
+        }
+        voxel_sizes.push_back({resolution, header->cella_x/header->nx});
 
         // chi2 contour plot
-        Dataset evaluated_points = fit.evaluated_points;
-        evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
+        // Dataset evaluated_points = fit.evaluated_points;
+        // evaluated_points.plot_options.set("markers", {{"color", kOrange+2}});
 
-        plots::PlotDataset plot_c(contour);
-        plot_c.plot(evaluated_points);
-        plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".png");
+        // plots::PlotDataset plot_c(contour);
+        // plot_c.plot(evaluated_points);
+        // plot_c.save("figures/stuff/landscapes/" + std::filesystem::path(current_file).stem().string() + ".png");
 
         // generate residual v. resolution plot
         Dataset& residuals = fit.residuals;
         residuals.add_plot_options("errors", {{"logx", true}, {"xlabel", "q"}, {"ylabel", "residual"}});
-        plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/residuals/" + std::filesystem::path(current_file).stem().string() + ".png");
+        plots::PlotDataset::quick_plot(residuals, "figures/stuff/residuals/" + std::filesystem::path(current_file).stem().string() + ".png");
     }
     
     // write fit report to disk
@@ -75,6 +85,10 @@ int main(int argc, char const *argv[]) {
     fitted_vals.y = chi2;
     fitted_vals.add_plot_options({{"ylabel", "chi2"}});
     plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/chi2.pdf");
+
+    // generate voxel size v. resolution plot
+    voxel_sizes.add_plot_options("marker");
+    plots::PlotDataset::quick_plot(voxel_sizes, "figures/stuff/voxel_sizes.pdf");
 
     // generate intensity comparison plots
     Multiset intensities;

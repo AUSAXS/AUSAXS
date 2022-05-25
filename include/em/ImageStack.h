@@ -106,6 +106,11 @@ namespace em {
             hist::ScatteringHistogram get_histogram(double cutoff) const;
 
             /**
+             * @brief Count the number of voxels for a given cutoff.
+             */
+            unsigned int count_voxels(double cutoff) const;
+
+            /**
              * @brief Get the fitted ScatteringHistogram.
              */
             hist::ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
