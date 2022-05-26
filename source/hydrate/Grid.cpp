@@ -152,6 +152,7 @@ vector<GridMember<Hetatom>> Grid::find_free_locs() {
 }
 
 vector<vector<int>> Grid::bounding_box() const {
+    std::cout << "grid bounding box" << std::endl;
     if (__builtin_expect(a_members.size() == 0, false)) {
         throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
     }
@@ -168,6 +169,7 @@ vector<vector<int>> Grid::bounding_box() const {
 }
 
 std::pair<Vector3, Vector3> Grid::bounding_box(const vector<Atom>& atoms) {
+    std::cout << "grid bounding box" << std::endl;
     if (__builtin_expect(atoms.size() == 0, false)) {
         throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
     }

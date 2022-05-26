@@ -227,7 +227,7 @@ TEST_CASE("plot_images", "[em],[files],[manual]") {
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
         // plot.plot_atoms(-1);
-        plot.save("figures/test/em/images/" + utility::stem(file) + "/" + std::to_string(++i) + ".png");
+        plot.save("figures/test/em/images/" + utility::stem(file) + "/" + std::to_string(i) + ".png");
     }
 }
 

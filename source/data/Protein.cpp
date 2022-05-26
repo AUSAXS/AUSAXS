@@ -190,7 +190,10 @@ ScatteringHistogram Protein::get_histogram() {
     return phm->calculate_all();
 }
 
-Histogram Protein::get_total_histogram() const {
+Histogram Protein::get_total_histogram() {
+    if (!updated_charge && setting::protein::use_effective_charge) {
+        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
+    }
     return phm->calculate();
 }
 

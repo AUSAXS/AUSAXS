@@ -57,14 +57,14 @@ namespace em {
              * 
              * @param filename Path to the measurement file. 
              */
-            std::shared_ptr<EMFit> fit(std::string filename);
+            std::shared_ptr<EMFit> fit(std::string filename, mini::Parameter param = {});
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h);
+            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h, mini::Parameter param = {});
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -220,7 +220,7 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::shared_ptr<EMFit> fit_helper(SimpleIntensityFitter& fitter);
+            std::shared_ptr<EMFit> fit_helper(SimpleIntensityFitter& fitter, mini::Parameter param = {});
 
             /**
              * @brief Prepare the fitting function. 

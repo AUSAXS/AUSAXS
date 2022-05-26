@@ -87,7 +87,7 @@ class Protein {
      * @brief Get the total distance histogram only. 
      *        This is a slightly faster alternative to get_histogram() when only the total histogram is needed. 
      */
-    hist::Histogram get_total_histogram() const;
+    hist::Histogram get_total_histogram();
 
     /**
      * @brief Simulate a SAXS dataset based on this protein.

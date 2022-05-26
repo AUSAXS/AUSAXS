@@ -16,6 +16,7 @@ using namespace std::chrono;
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
 #include <utility/Exceptions.h>
+#include <utility/Utility.h>
 #include <minimizer/Golden.h>
 
 #include <filesystem>
@@ -97,27 +98,29 @@ std::shared_ptr<Protein> ImageStack::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
     SimpleIntensityFitter fitter(h, get_limits());
     determine_minimum_bounds();
-    return fit_helper(fitter);
+    return fit_helper(fitter, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename, mini::Parameter param) {
     SimpleIntensityFitter fitter(filename);
     determine_minimum_bounds();
-    return fit_helper(fitter);
+    return fit_helper(fitter, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter, mini::Parameter param) {
     auto func = prepare_function(fitter);
 
     // perform the fit
-    double guess; Limit bounds;
-    if (positively_stained()) {guess = 2; bounds = Limit(1, 10);}
-    else {guess = -2; bounds = Limit(-10, -1);}
+    if (param.empty()) {
+        param.name = "cutoff";
+        if (positively_stained()) {param.guess = 2; param.bounds = Limit(1, 8);}
+        else {param.guess = -2; param.bounds = Limit(-8, -1);}
+    }
 
-    mini::Golden minimizer(func, {"cutoff", guess, bounds});
+    mini::Golden minimizer(func, param);
     auto res = minimizer.minimize();
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, res, res.fval);
@@ -127,13 +130,14 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
 
 std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensityFitter& fitter) {
     // convert the calculated intensities to absolute scale
-    auto protein = phm->get_protein(1);
-    double c = setting::em::concentration;                                // concentration
-    double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
-    double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
-    double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
-    double I0 = DrhoV2*re2*c/m;
-    fitter.normalize_intensity(I0);
+    utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
+    // auto protein = phm->get_protein(1);
+    // double c = setting::em::concentration;                                // concentration
+    // double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
+    // double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
+    // double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
+    // double I0 = DrhoV2*re2*c/m;
+    // fitter.normalize_intensity(I0);
 
     // fit function
     static unsigned int counter;

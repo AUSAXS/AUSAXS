@@ -1,4 +1,5 @@
 # Todo
+ * [ ] EMFitter: Handle absolute scale properly.
  * [ ] EM: Shouldn't errors be simulated on the histogram from the protein? And not from the EM?
  * [ ] ScanFit: Modify to find local minimum after scan is complete.
  * [ ] Plots: optimal chi2 v. resolution (average over 10 runs) (also try without simulated errors)
