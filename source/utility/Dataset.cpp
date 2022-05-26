@@ -195,7 +195,7 @@ Dataset Dataset::generate_random_data(unsigned int size, double min, double max)
 void Dataset::ylimits(double min, double max) noexcept {ylimits({min, max});}
 
 void Dataset::ylimits(const Limit& limits) noexcept {
-    std::vector<double> newx(size()), newy(size()), newxerr(size()), newyerr(size());
+    std::vector<double> newx, newy, newxerr, newyerr;
     for (unsigned int i = 0; i < size(); i++) {
         if (limits.min <= y[i] && y[i] <= limits.max) {
             newx.push_back(x[i]);
@@ -253,9 +253,9 @@ void Dataset::read(const string file) {
         boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
 
         // determine if we are in some sort of header
-        if (tokens.size() < 3 || tokens.size() > 4) {continue;} // too many separators
+        if (tokens.size() < 2 || tokens.size() > 4) {continue;} // too many separators
         bool skip = false;
-        for (int i = 0; i < 3; i++) { // check if they are numbers
+        for (unsigned int i = 0; i < tokens.size(); i++) { // check if they are numbers
             if (!tokens[i].empty() && tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
         }
         if (skip) {continue;}
@@ -264,8 +264,6 @@ void Dataset::read(const string file) {
         double _q, _I, _sigma;
         _q = std::stod(tokens[0]); // we know for sure that the strings are convertible to numbers (boost check)
         _I = std::stod(tokens[1]);
-        _sigma = std::stod(tokens[2]);
-
         if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
 
         // check user-defined limits
@@ -275,7 +273,12 @@ void Dataset::read(const string file) {
         // add the values to our vectors
         x.push_back(_q);
         y.push_back(_I);
-        yerr.push_back(_sigma); 
+
+        // if x | y | yerr
+        if (tokens.size() == 3) {
+            _sigma = std::stod(tokens[2]);
+            yerr.push_back(_sigma); 
+        }
     }
     input.close();
 }

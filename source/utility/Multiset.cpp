@@ -1,6 +1,8 @@
 #include <utility/Multiset.h>
 #include <utility/Exceptions.h>
 
+#include <filesystem>
+
 Multiset::Multiset(const std::vector<Dataset>& data) : data(data) {}
 
 Multiset::Multiset(const Dataset& data) : data({data}) {}
@@ -53,6 +55,22 @@ void Multiset::ylimits(double min, double max) noexcept {ylimits({min, max});}
 
 void Multiset::ylimits(const Limit& limit) noexcept {
     std::for_each(begin(), end(), [&limit] (Dataset& data) {data.ylimits(limit);});
+}
+
+void Multiset::save(std::string path) const {
+    for (unsigned int i = 0; i < size(); i++) {
+        data[i].save(path + "/" + std::to_string(i) + ".txt");
+    }
+}
+
+#include <iostream>
+void Multiset::read(std::string path) {
+    for (const auto& file : std::filesystem::recursive_directory_iterator(path)) { // loop over all files in the directory
+        if (file.path().extension() == ".txt") {
+            Dataset set(file.path().string());
+            data.push_back(set);
+        }
+    }
 }
 
 const std::vector<Dataset>::const_iterator Multiset::begin() const {return data.begin();}

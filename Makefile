@@ -68,7 +68,7 @@ stuff/%: build/executable/stuff data/%.pdb
 ###				TESTS						 ###
 #################################################################################
 tags := ""
-exclude_tags := "~[broken] ~[manual] ~[slow]"
+exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 memtest/%: $(shell find source/ -print) test/memtest.cpp	
 	@ make -C build test -j${cmake_threads}
 	valgrind --suppressions=suppressions.txt --track-origins=yes build/test $(exclude_tags) [$*] ${tags}

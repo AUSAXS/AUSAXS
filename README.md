@@ -29,6 +29,9 @@
  * [ ] Try to derive an analytical solution of the chi2 problem. Differentiate chi2 with respect to each variable, and set each expression equal to zero. As long as it's not an iterative equation, it should be good. 
 
 # Stuff to consider
+## Compiler flags:
+ * fno-finite-math-only: Can probably be removed, not sure of performance benefits. Note that its removal would specifically break limit handling of plots where std::isinf checks are used. 
+
 ## Grid:
  * Consider simply calculating and using the bounding box at initialization as the entire grid instead of wasting memory
  * Consider how to improve culling method

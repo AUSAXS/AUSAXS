@@ -39,9 +39,6 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
         graph->GetYaxis()->SetTitleOffset(1.2);
     }
 
-    // handle log scale
-    detail::handle_log(options, canvas);
-
     // handle xlimits
     if (!options.xlimits.empty()) {
         Limit limits = options.xlimits;
@@ -58,6 +55,9 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
         if (!std::isinf(options.ylimits.min)) {graph->SetMinimum(options.ylimits.min);} 
         if (!std::isinf(options.ylimits.max)) {graph->SetMaximum(options.ylimits.max);}
     }
+
+    // handle log scale
+    detail::handle_log(options, canvas);
 
     // prepare draw options
     std::string draw_options = options.use_existing_axes ? "SAME " : "A";
@@ -93,9 +93,6 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
 
     std::string labels = options.title + ";" + options.xlabel + ";" + options.ylabel;
 
-    // handle log
-    detail::handle_log(options, canvas);
-
     // set title & labels
     graph.SetTitle(labels.c_str());
     graph.GetXaxis()->CenterTitle();
@@ -114,11 +111,12 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
 
     // handle ylimits
     if (!options.ylimits.empty()) {
-        std::cout << "Current ylimits: (" << graph.GetYaxis()->GetXmin() << ", " << graph.GetYaxis()->GetXmax() << ")" << std::endl;
-        std::cout << "New ylimits: " << options.ylimits << std::endl;
         if (!std::isinf(options.ylimits.min)) {graph.SetMinimum(options.ylimits.min);} 
         if (!std::isinf(options.ylimits.max)) {graph.SetMaximum(options.ylimits.max);}
     }
+
+    // handle log
+    detail::handle_log(options, canvas);
 
     graph.DrawClone("A");
 }

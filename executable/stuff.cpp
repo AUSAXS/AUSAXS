@@ -97,7 +97,7 @@ int main(int argc, char const *argv[]) {
         residuals.add_plot_options("errors", {{"logx", true}, {"xlabel", "q"}, {"ylabel", "residual"}});
         plots::PlotDataset::quick_plot(residuals, "figures/stuff/residuals/" + std::filesystem::path(current_file).stem().string() + ".png");
     }
-    
+
     // write fit report to disk
     FitReporter::report(fits, paths);
     FitReporter::save("figures/fits/EMfit.txt", fits, paths);
@@ -120,6 +120,7 @@ int main(int argc, char const *argv[]) {
     // generate intensity comparison plots
     Multiset intensities;
     std::transform(fits.begin(), fits.end(), std::back_inserter(intensities.data), [] (const Fit& fit) {return fit.figures.intensity;});
+    intensities.save("temp/multiset");
     intensities.ylimits(1e-4, inf);
     plots::PlotResolutionComparison plot_r(intensities);
     plot_r.save("figures/stuff/fits.pdf");

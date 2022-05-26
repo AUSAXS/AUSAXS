@@ -6,12 +6,24 @@
 
 #include <iostream>
 
+TEST_CASE("debug", "[dataset],[disable]") {
+    Multiset data("temp/multiset");
+    std::cout << data[0].size() << std::endl;
+    std::cout << data[1].size() << std::endl;
+    std::cout << data[2].size() << std::endl;
+    std::cout << data[3].size() << std::endl;
+    std::cout << data[4].size() << std::endl;
+
+    plots::PlotResolutionComparison plot_r(data);
+    plot_r.save("figures/stuff/fits.pdf");
+}
+
 TEST_CASE("dataset_ylimits", "[dataset]") {
     Dataset data;
     data.x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     data.y = {-10, -6, -4, -1, 2, 1, 3, 6, 7, 9};
 
-    Limit limit(0, 5);
+    Limit limit(0.5, 5);
     data.ylimits(limit);
     REQUIRE(data.x.size() == data.y.size());
     for (unsigned int i = 0; i < data.size(); i++) {

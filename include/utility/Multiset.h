@@ -9,6 +9,8 @@ class Multiset {
     public:
         Multiset() {}
 
+        Multiset(std::string path) {read(path);}
+
         explicit Multiset(unsigned int size) : data(size) {}
 
         explicit Multiset(const std::vector<Dataset>& data);
@@ -57,6 +59,12 @@ class Multiset {
         void ylimits(double min, double max) noexcept;
 
         /**
+         * @brief Save this Multiset at the given location.
+         *        All constituent Datasets will be saved in a folder with the specified name. 
+         */
+        void save(std::string path) const;
+
+        /**
          * @brief Read-only iterator.
          */
 		const std::vector<Dataset>::const_iterator begin() const;
@@ -78,4 +86,10 @@ class Multiset {
 
         std::vector<Dataset> data;
         std::map<std::string, unsigned int> names;
+
+    private:
+        /**
+         * @brief Read a saved Multiset.
+         */
+        void read(std::string path);
 };
