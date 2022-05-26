@@ -12,7 +12,7 @@
 using std::string;
 
 int main(int argc, char const *argv[]) {
-    unsigned int loops = 2; // how many times each map is fitted to get an average chi2
+    unsigned int loops = 10; // how many times each map is fitted to get an average chi2
 
     string pdb_file = argv[1];
 
@@ -120,8 +120,6 @@ int main(int argc, char const *argv[]) {
     // generate intensity comparison plots
     Multiset intensities;
     std::transform(fits.begin(), fits.end(), std::back_inserter(intensities.data), [] (const Fit& fit) {return fit.figures.intensity;});
-    intensities.save("temp/multiset");
-    intensities.ylimits(1e-4, inf);
     plots::PlotResolutionComparison plot_r(intensities);
     plot_r.save("figures/stuff/fits.pdf");
     return 0;

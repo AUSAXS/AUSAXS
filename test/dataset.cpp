@@ -15,7 +15,7 @@ TEST_CASE("debug", "[dataset],[disable]") {
     std::cout << data[4].size() << std::endl;
 
     plots::PlotResolutionComparison plot_r(data);
-    plot_r.save("figures/stuff/fits.pdf");
+    plot_r.save("figures/test/dataset/debug.pdf");
 }
 
 TEST_CASE("dataset_ylimits", "[dataset]") {

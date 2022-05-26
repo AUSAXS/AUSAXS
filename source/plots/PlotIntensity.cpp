@@ -63,6 +63,11 @@ void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
     draw(graph, options, canvas);
 }
 
+void plots::PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, std::string path) {
+    PlotIntensity plot(h);
+    plot.save(path);
+}
+
 void plots::PlotIntensity::plot_intensity(const Dataset& data) {
     std::shared_ptr<TGraph> graph = data.plot();
     PlotOptions options(data.plot_options);

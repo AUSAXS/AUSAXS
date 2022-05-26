@@ -26,7 +26,6 @@ rh := 1.5
 ps := Radial
 hydrate/%: build/executable/new_hydration
 	$< data/$*.pdb output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
-#	$(pymol) output/$*.pdb -d "show spheres; color orange, hetatm"
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
 hist/%: build/executable/hist
@@ -53,16 +52,20 @@ intensity_fit/%: build/executable/intensity_fitter
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-resolution = 25
+resolution_min = 25
+resolution_max = 25
 simulate/%: data/%.pdb
-	@phenix.fmodel data/$*.pdb high_resolution=$(resolution)
-	@phenix.mtz2map mtz_file=$*.pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$*
-	@rm $*.pdb.mtz
-	@mv $*_fmodel.ccp4 sim/$*_$(resolution).ccp4
+	@for i in `seq $(resolution_min) $(resolution_max)`; do \
+		echo "Building map " $$i;\
+		phenix.fmodel data/$*.pdb high_resolution=$$i;\
+		phenix.mtz2map mtz_file=$*.pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$*;\
+		rm $*.pdb.mtz;\
+		mv $*_fmodel.ccp4 sim/$*_$$i.ccp4;\
+	done
 
 stuff/%: build/executable/stuff data/%.pdb
-	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4 sim/native_24.ccp4 sim/native_25.ccp4
-#	@$< data/$*.pdb $(shell find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
+#	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4
+	@$< data/$*.pdb $(shell find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
 
 #################################################################################
 ###				TESTS						 ###

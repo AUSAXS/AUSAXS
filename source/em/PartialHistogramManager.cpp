@@ -8,8 +8,13 @@
 em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}
 
 hist::ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
+    std::cout << "get_histogram CHECKPOINT" << std::endl;
     update_protein(cutoff);
-    return protein->get_histogram();
+    std::cout << "get_histogram CHECKPOINT" << std::endl;
+    auto tmp = protein->get_histogram();
+    std::cout << "get_histogram CHECKPOINT" << std::endl;
+    return tmp;
+    // return protein->get_histogram();
 }
 
 std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) const {
@@ -27,7 +32,11 @@ std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) con
 }
 
 std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cutoff) const {
+    std::cout << "start" << std::endl;
     vector<Atom> atoms = generate_atoms(cutoff);
+    if (atoms.empty()) {except::size_error("Error in PartialHistogramManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");}
+    if (atoms.size() == 0) {except::size_error("Error in PartialHistogramManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");}
+    std::cout << "size is " << atoms.size() << std::endl;
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
     std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
@@ -43,6 +52,8 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     vector<Body> bodies(charge_levels.size());
     vector<Atom> current_atoms(atoms.size());
     
+    std::cout << "before while" << std::endl;
+    std::cout << "size is " << atoms.size() << std::endl;
     while (compare_func(atoms[atom_index].occupancy, cutoff)) {atom_index++;} // search for first atom with charge larger than the cutoff
     while (compare_func(charge, cutoff)) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
     while (atom_index < atoms.size()) {
@@ -77,13 +88,18 @@ hist::ScatteringHistogram em::PartialHistogramManager::get_histogram_slow(double
 }
 
 void em::PartialHistogramManager::update_protein(double cutoff) {
+    std::cout << "update_protein CHECKPOINT" << std::endl;
     if (protein == nullptr || protein->bodies.empty()) {
+        std::cout << "update_protein CHECKPOINT" << std::endl;
         protein = generate_protein(cutoff); 
+        std::cout << "update_protein CHECKPOINT" << std::endl;
         protein->bind_body_signallers();
+        std::cout << "update_protein CHECKPOINT" << std::endl;
 
         previous_cutoff = cutoff;
         return;
     }
+    std::cout << "update_protein CHECKPOINT" << std::endl;
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};

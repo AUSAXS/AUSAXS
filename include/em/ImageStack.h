@@ -200,6 +200,12 @@ namespace em {
              */
             void determine_staining();
 
+            /**
+             * @brief Check if the extension is valid.
+             *        Throws an exception if not.
+             */
+            void validate_extension(string file) const;
+            
             void read(std::ifstream& istream, size_t byte_size);
 
             void setup(setting::em::CullingStrategyChoice csc);

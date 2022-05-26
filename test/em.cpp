@@ -23,7 +23,7 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    em::ImageStack image("data/native_10.ccp4");
+    em::ImageStack image("sim/native_10.ccp4");
     Protein protein("data/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
@@ -216,11 +216,26 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
     }
 }
 
+TEST_CASE("plot_images", "[em],[files],[manual]") {
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 1;
+    setting::fit::q_high = 0.4;
+
+    string file = "data/A2M_ma.map";
+
+    em::ImageStack image("sim/native_23.ccp4");
+    for (unsigned int i = 0; i < image.size(); i++) {
+        plots::PlotImage plot(image.image(i));
+        // plot.plot_atoms(-1);
+        plot.save("figures/test/em/images/" + utility::stem(file) + "/" + std::to_string(++i) + ".png");
+    }
+}
+
 TEST_CASE("voxelplot", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
-    em::ImageStack image("sim/native_25.ccp4");
+    em::ImageStack image("sim/native_23.ccp4");
 
     SECTION("check voxel count") {
         CHECK(image.image(25).count_voxels(2) == 72);

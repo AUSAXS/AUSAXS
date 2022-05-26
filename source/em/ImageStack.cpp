@@ -18,6 +18,8 @@ using namespace std::chrono;
 #include <utility/Exceptions.h>
 #include <minimizer/Golden.h>
 
+#include <filesystem>
+
 using namespace setting::em;
 using namespace em;
 
@@ -28,8 +30,17 @@ ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution, Cul
     setup(csc);
 }
 
+void ImageStack::validate_extension(string file) const {
+    string extension = std::filesystem::path(file).extension().string();
+    if (extension == ".ccp4") {return;}
+    if (extension == ".map") {return;}
+    throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
+}
+
 ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoice csc) 
     : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
+
+    validate_extension(file);
 
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
