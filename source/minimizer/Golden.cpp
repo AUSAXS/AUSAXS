@@ -66,14 +66,19 @@ Limit Golden::search(const Limit bounds) const {
 
 Dataset Golden::landscape(unsigned int evals) const {
     if (parameters.empty()) {throw except::bad_order("Error in Golden::landscape: No parameters were supplied.");}
-    std::vector<double> x(evals), y(evals);
+    std::vector<double> x, y;
 
-    double step = parameters[0].bounds.value().span()/evals;
-    for (unsigned int i = 0; i < evals; i++) {
-        double val = parameters[0].bounds.value().min + i*step;
-        x[i] = val;
-        y[i] = function(&val);
+    auto bounds = parameters[0].bounds.value();
+    for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
+        double fval = function(&val);
+        if (std::isnan(fval) || std::isinf(fval)) {
+            utility::print_warning("Warning in Golden::landscape: Function value is nan or inf and will be skipped.");
+            continue;
+        }
+        x.push_back(val);
+        y.push_back(fval);
     }
+
     return Dataset(x, y);
 }
 

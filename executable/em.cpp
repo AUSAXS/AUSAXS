@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]) {
     auto res = map.fit(pdb_h, mini::Parameter("cutoff", 0.05, {0.01, 0.1}));
     FitReporter::report(res);
 
-    auto scan = map.cutoff_scan(Axis(10, 0, 0.1), pdb_h);
+    auto scan = map.cutoff_scan(Axis(100, 0.01, 0.1), pdb_h);
     plots::PlotDataset::quick_plot(scan, "figures/em/scan.pdf");
     return 0;
 }
