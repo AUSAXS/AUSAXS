@@ -113,6 +113,11 @@ class Axis {
 		[[nodiscard]] 
 		bool empty() const noexcept {return bins==0;}
 
+		/**
+		 * @brief Get the limits of this Axis.
+		 */
+		Limit limits() const noexcept {return Limit(min, max);}
+
 		unsigned int bins; // The number of equidistant bins. 
 		double min;        // The minimum value spanned by this Axis. 
 		double max;        // The maximum value spanned by this Axis. 

@@ -1,4 +1,5 @@
 # Todo
+ * [ ] EMFitter: Consider a smarter approach to determining what value to use for minimum bounds. (`determine_minimum_bounds` method)
  * [ ] EMFitter: Handle absolute scale properly.
  * [ ] EM: Shouldn't errors be simulated on the histogram from the protein? And not from the EM?
  * [ ] ScanFit: Modify to find local minimum after scan is complete.

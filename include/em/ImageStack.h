@@ -181,19 +181,33 @@ namespace em {
             ObjectBounds3D minimum_volume(double cutoff);
 
         private:
+            enum class Staining{undecided, positive, negative};
+            Staining staining = Staining::undecided;
             std::string filename;
             std::shared_ptr<ccp4::Header> header;
             std::vector<Image> data;
-            std::unique_ptr<em::CullingStrategy> culler;
+            std::unique_ptr<em::CullingStrategy> culler; //! Can be removed?
             unsigned int resolution;
-            int staining = 0; // 0 if not determined yet, -1 if negatively stained, +1 if positively stained
             unsigned int size_x, size_y, size_z;
             std::unique_ptr<em::PartialHistogramManager> phm;
 
             /**
-             * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
+             * @brief Set the staining of this object based on the sign of the parameter.
              */
-            void determine_minimum_bounds();
+            void set_staining(double val);
+
+            /**
+             * @brief Set the staining of this object.
+             */
+            void set_staining(Staining staining) noexcept;
+
+            /**
+             * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
+             * 
+             * @param min_val The smallest possible value. Must be positive - sign is determined based on the determine_staining() method.
+             * TODO Determine a better, more dynamic approach to determining this minimum. 
+             */
+            void determine_minimum_bounds(double min_val);
 
             /**
              * @brief Determine what type of staining (positive or negative) was used by analyzing the map.

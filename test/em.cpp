@@ -222,13 +222,22 @@ TEST_CASE("plot_images", "[em],[files],[manual]") {
     setting::fit::q_high = 0.4;
 
     string file = "data/A2M_ma.map";
-
-    em::ImageStack image("sim/native_23.ccp4");
+    em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
         // plot.plot_atoms(-1);
         plot.save("figures/test/em/images/" + utility::stem(file) + "/" + std::to_string(i) + ".png");
     }
+}
+
+TEST_CASE("get_histogram", "[em],[files],[manual]") {
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 1;
+
+    string file = "data/A2M_ma.map";
+    em::ImageStack image(file);
+    auto hist = image.get_histogram(0.05);
+    plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
 }
 
 TEST_CASE("voxelplot", "[em],[files],[manual]") {
