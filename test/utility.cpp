@@ -36,11 +36,11 @@ TEST_CASE("plots", "[utility],[manual]") {
 
 TEST_CASE("fitreporter", "[utility],[manual]") {
     Fit fit;
-    fit.converged = true;
-    fit.calls = 100;
-    fit.chi2 = 1000;
+    fit.status = true;
+    fit.fevals = 100;
+    fit.fval = 1000;
     fit.dof = 3;
-    fit.params = {{"a", 2, 0.5}, {"b", 3, 0.4}, {"c", 4, 0.3}};
+    fit.parameters = {{"a", 2, 0.5}, {"b", 3, 0.4}, {"c", 4, 0.3}};
 
     SECTION("Single") {
         SECTION("Terminal printing") {
@@ -53,11 +53,11 @@ TEST_CASE("fitreporter", "[utility],[manual]") {
 
     SECTION("Multi") {
         Fit fit2;
-        fit.converged = false;
-        fit2.calls = 20;
-        fit2.chi2 = 200;
+        fit.status = false;
+        fit2.fevals = 20;
+        fit2.fval = 200;
         fit2.dof = 6;
-        fit2.params = {{"a", 1, 0.1}, {"b", 0.5, 0.3}, {"c", 8, 0.6}};
+        fit2.parameters = {{"a", 1, 0.1}, {"b", 0.5, 0.3}, {"c", 8, 0.6}};
 
         vector<Fit> fits = {fit, fit2};
         vector<string> titles = {"First fit", "Second fit"};

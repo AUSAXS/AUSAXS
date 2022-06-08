@@ -10,7 +10,7 @@ namespace mini {
      * @brief A representation of a parameter.
      */
     struct Parameter {
-        Parameter() {}
+        Parameter() noexcept {}
 
         /**
          * @brief Create a Parameter with a guess value and bounds.
@@ -19,7 +19,7 @@ namespace mini {
          * @param guess The guess value.
          * @param bounds The bounds. 
          */
-        Parameter(std::string name, double guess = 0, Limit bounds = {0, 0});
+        Parameter(std::string name, double guess = 0, Limit bounds = {0, 0}) noexcept;
 
         /**
          * @brief Create a Parameter without a guess value.
@@ -27,7 +27,7 @@ namespace mini {
          * @param name The name of the parameter.
          * @param bounds The bounds.
          */
-        Parameter(std::string name, Limit bounds);
+        Parameter(std::string name, Limit bounds) noexcept;
 
         /**
          * @brief Check if this parameter is bounded.
@@ -63,7 +63,7 @@ namespace mini {
 		 * 
 		 * Allows this object to easily be output to a given stream. 
 		 */
-		friend std::ostream& operator<<(std::ostream& os, const Parameter& param) {os << param.to_string(); return os;}
+		friend std::ostream& operator<<(std::ostream& os, const Parameter& param) noexcept {os << param.to_string(); return os;}
 
         std::string name;            // The name of this parameter.
         std::optional<double> guess; // The guess value.
@@ -74,7 +74,7 @@ namespace mini {
         /**
          * @brief Default constructor.
          */
-        FittedParameter() {}
+        FittedParameter() noexcept {}
 
         /**
          * @brief Create a FittedParameter with asymmetric errors.
@@ -83,7 +83,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(std::string name, double value, Limit error);
+        FittedParameter(std::string name, double value, Limit error) noexcept;
 
         /**
          * @brief Create a FittedParameter with symmetric errors.
@@ -92,7 +92,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Symmetrical errors of this parameter.
          */
-        FittedParameter(std::string name, double value, double error);
+        FittedParameter(std::string name, double value, double error) noexcept;
 
         /**
          * @brief Create a FittedParameter from a Parameter with asymmetric errors.
@@ -101,7 +101,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(const Parameter& param, double value, Limit error);
+        FittedParameter(const Parameter& param, double value, Limit error) noexcept;
 
         /**
          * @brief Create a FittedParameter from a Parameter with symmetric errors.
@@ -110,7 +110,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Symmetrical errors of this parameter.
          */
-        FittedParameter(const Parameter& param, double value, double error);
+        FittedParameter(const Parameter& param, double value, double error) noexcept;
 
         operator Point1D() const noexcept {return Point1D(value, mean_error());}
 
@@ -140,7 +140,7 @@ namespace mini {
 		 * 
 		 * Allows this object to easily be output to a given stream. 
 		 */
-		friend std::ostream& operator<<(std::ostream& os, const FittedParameter& param) {os << param.to_string(); return os;}
+		friend std::ostream& operator<<(std::ostream& os, const FittedParameter& param) noexcept {os << param.to_string(); return os;}
 
         std::string name; // The name of this parameter.
         double value;     // The optimal value of this parameter.
@@ -151,7 +151,7 @@ namespace mini {
         /**
          * @brief Default constructor.
          */
-        Result() {}
+        Result() noexcept {}
 
         /**
          * @brief Construct a Result. 
@@ -160,7 +160,7 @@ namespace mini {
          * @param fval The function value.
          * @param fevals The number of function evaluations.
          */
-        Result(const FittedParameter& param, double fval, unsigned int fevals);
+        Result(const FittedParameter& param, double fval, unsigned int fevals) noexcept;
 
         /**
          * @brief Construct a Result. 
@@ -169,7 +169,7 @@ namespace mini {
          * @param fval The function value.
          * @param fevals The number of function evaluations.
          */
-        Result(const std::vector<FittedParameter>& params, double fval, unsigned int fevals);
+        Result(const std::vector<FittedParameter>& params, double fval, unsigned int fevals) noexcept;
 
         /**
          * @brief Get a parameter based on its name from this result.
@@ -184,7 +184,7 @@ namespace mini {
         /**
          * @brief Add a parameter to this result.
          */
-        void add_parameter(const FittedParameter& param);
+        void add_parameter(const FittedParameter& param) noexcept;
 
         /**
          * @brief Get the number of parameters in this result.

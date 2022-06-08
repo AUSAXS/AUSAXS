@@ -1,22 +1,19 @@
 # Todo
  * [ ] EMFitter: Consider a smarter approach to determining what value to use for minimum bounds. (`determine_minimum_bounds` method)
  * [ ] EMFitter: Handle absolute scale properly.
- * [ ] EM: Shouldn't errors be simulated on the histogram from the protein? And not from the EM?
+ * [x] EM: Shouldn't errors be simulated on the histogram from the protein? And not from the EM?
  * [ ] ScanFit: Modify to find local minimum after scan is complete.
- * [ ] Plots: optimal chi2 v. resolution (average over 10 runs) (also try without simulated errors)
- * [x] Plots: Number of number of voxels v. cutoff
- * [x] Plots: Use multigraphs https://root.cern/root/html534/TMultiGraph.html for limit handling.
- * [ ] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
- * [ ] Fit: Inherit from Result since they share everything anyways
+ * [x] Plots: optimal chi2 v. resolution (average over 10 runs) (also try without simulated errors)
+ * [x] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
+ * [x] Fit: Inherit from Result since they share everything anyways
  * [ ] Use nothrow
- * [ ] udregn præcis voxel størrelse for alle resolutions
+ * [x] udregn præcis voxel størrelse for alle resolutions
  * [ ] gentag alt for de andre filer
- * [x] residual plots for em
  * [ ] flow diagram med hvad vi rent faktisk laver
- * [ ] chi2 vs opløsning for optimeret fit
- * [ ] Fix fitter for EM
- * [ ] Test higher resolutions of native
- * [ ] Check if there are online databases of EM maps
+ * [x] chi2 vs opløsning for optimeret fit
+ * [x] Fix fitter for EM
+ * [x] Test higher resolutions of native
+ * [x] Check if there are online databases of EM maps
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z
@@ -24,7 +21,7 @@
  * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] Memory test all other executables.
- * [ ] plots: Change intensity plots to static methods
+ * [x] plots: Change intensity plots to static methods
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Atom: Const uid 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands

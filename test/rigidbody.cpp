@@ -78,27 +78,27 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 
     SECTION("intensity_fitter") {
         IntensityFitter fitter("data/2epe.RSR", protein_2epe.get_histogram());
-        double chi2 = fitter.fit()->chi2;
+        double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
-        double _chi2 = fitter.fit()->chi2;
+        double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
         fitter.set_scattering_hist(protein_2epe.get_histogram());
-        _chi2 = fitter.fit()->chi2;
+        _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 
     SECTION("simple_intensity_fitter") {
         SimpleIntensityFitter fitter("data/2epe.RSR", protein_2epe.get_histogram());
-        double chi2 = fitter.fit()->chi2;
+        double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
-        double _chi2 = fitter.fit()->chi2;
+        double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
         fitter.set_scattering_hist(protein_2epe.get_histogram());
-        _chi2 = fitter.fit()->chi2;
+        _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 }
@@ -108,11 +108,11 @@ TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
     SimpleIntensityFitter fitter("data/2epe.RSR", protein.get_histogram());
 
     protein.generate_new_hydration();
-    double chi2 = fitter.fit()->chi2;
+    double chi2 = fitter.fit()->fval;
 
     for (int i = 0; i < 10; i++) {
         protein.generate_new_hydration();
-        double _chi2 = fitter.fit()->chi2;
+        double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 }
@@ -124,7 +124,7 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     rbody.generate_new_hydration();
 
     IntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
-    double _chi2 = fitter.fit()->chi2;
+    double _chi2 = fitter.fit()->fval;
 }
 
 TEST_CASE("body_selectors", "[rigidbody]") {

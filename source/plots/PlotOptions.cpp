@@ -19,6 +19,7 @@ PlotOptions::PlotOptions(int color) : color(color), draw_line(true) {}
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
 PlotOptions::PlotOptions(string style, std::map<std::string, std::any> options) {
+    draw_line = draw_markers = draw_errors = false;
     parse(style, true);
     set(options);
 }

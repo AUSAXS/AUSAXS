@@ -55,6 +55,7 @@ Result ROOTMinimizer::minimize_override() {
     mini->PrintResults();
 
     Result res;
+    res.fval = mini->MinValue();
     res.fevals = fevals;
     res.status = mini->Status();
     unsigned int vars = mini->NDim();

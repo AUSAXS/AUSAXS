@@ -40,11 +40,11 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     double Q = ROOT::Math::inc_gamma((double) data.size()/2 -1, chi2()/2);
 
     std::shared_ptr<Fit> f = std::make_shared<Fit>();
-    f->params = {{"a", a, sqrt(a_err2)}, {"b", b, sqrt(b_err2)}};
+    f->parameters = {{"a", a, sqrt(a_err2)}, {"b", b, sqrt(b_err2)}};
     f->dof = data.size() - 2;
-    f->chi2 = chi2();
-    f->calls = 1;
-    f->converged = Q > 0.001;
+    f->fval = chi2();
+    f->fevals = 1;
+    f->status = Q > 0.001 ? 0 : 1;
     return f;
 }
 

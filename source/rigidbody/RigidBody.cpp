@@ -43,7 +43,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 void RigidBody::optimize(string measurement_path) {
     generate_new_hydration();
     SimpleIntensityFitter fitter(measurement_path, protein.get_histogram());
-    double _chi2 = fitter.fit()->chi2;
+    double _chi2 = fitter.fit()->fval;
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 
     Parameters params(protein);
@@ -71,7 +71,7 @@ void RigidBody::optimize(string measurement_path) {
 
         // calculate the new chi2
         fitter.set_scattering_hist(protein.get_histogram());
-        double __chi2 = fitter.fit()->chi2;
+        double __chi2 = fitter.fit()->fval;
 
         std::cout << "chi2 for new configuration: " << __chi2 << std::endl;
 
@@ -81,7 +81,7 @@ void RigidBody::optimize(string measurement_path) {
             protein.set_grid(old_grid);
             protein.generate_new_hydration();
             fitter.set_scattering_hist(protein.get_histogram());
-            double ___chi2 = fitter.fit()->chi2;
+            double ___chi2 = fitter.fit()->fval;
 
             std::cout << "\trerolled changes. chi2 is now: " << ___chi2 << std::endl << std::endl;
 
@@ -145,5 +145,5 @@ void RigidBody::create_constraint(const Atom& atom1, const Atom& atom2, const Bo
 
 double RigidBody::chi2(IntensityFitter& fitter) const {
     std::shared_ptr<Fit> result = fitter.fit();
-    return result->chi2;
+    return result->fval;
 }

@@ -31,6 +31,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
 
     // update fitter object
     fitted = std::make_shared<Fit>(res, res.fval, data.size()-2);
+    fitted->add_fit(ab_fit);
     return fitted;
 }
 
@@ -98,7 +99,6 @@ double IntensityFitter::chi2(const double* params) {
     auto[a, b] = fitter.fit_params_only();
 
     // calculate chi2
-    std::cout << "FITDATA: " << fit_data.y[0] << ", DATA: " << data.y[0] << std::endl;
     double chi = 0;
     for (size_t i = 0; i < data.size(); i++) {
         double v = (data.y[i] - (a*Im[i]+b))/data.yerr[i];

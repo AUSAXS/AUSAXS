@@ -75,7 +75,7 @@ TEST_CASE("compact_coordinates", "[memtest]") {
 
     rigidbody.generate_new_hydration();
     SimpleIntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
-    double _chi2 = fitter.fit()->chi2;
+    double _chi2 = fitter.fit()->fval;
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 
     RandomSelect bodyselector(rigidbody.protein);
@@ -103,7 +103,7 @@ TEST_CASE("compact_coordinates", "[memtest]") {
         // calculate the new chi2
         auto h = rigidbody.protein.get_histogram();
         fitter.set_scattering_hist(h);
-        double __chi2 = fitter.fit()->chi2;
+        double __chi2 = fitter.fit()->fval;
 
         std::cout << "new chi2: " << __chi2 << std::endl;
         // if the old configuration was better
@@ -120,7 +120,7 @@ TEST_CASE("compact_coordinates", "[memtest]") {
         grid = protein.create_grid();
         rigidbody.generate_new_hydration();
         fitter.set_scattering_hist(protein.get_histogram());
-        double ___chi2 = fitter.fit()->chi2;
+        double ___chi2 = fitter.fit()->fval;
         std::cout << "\tchi2 is now " << ___chi2 << std::endl;
     }
 }

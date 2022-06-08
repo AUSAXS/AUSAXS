@@ -55,24 +55,24 @@ TEST_CASE("check_chi2", "[em],[files]") {
 
     SimpleIntensityFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
-    REQUIRE_THAT(res->chi2/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
+    REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot1(res);
     plot1.save("figures/test/em/check_chi2_1.pdf");
 
     // check that reduced chi2 is ~1
-    std::cout << "Reduced chi2 is " << res->chi2/res->dof << std::endl;
+    std::cout << "Reduced chi2 is " << res->fval/res->dof << std::endl;
 
     data.scale_errors(2);
     fitter = SimpleIntensityFitter(data, protein.get_histogram());
     res = fitter.fit();
-    REQUIRE_THAT(res->chi2/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
+    REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot2(res);
     plot2.save("figures/test/em/check_chi2_2.pdf");
 
     data.scale_errors(1./4);
     fitter = SimpleIntensityFitter(data, protein.get_histogram());
     res = fitter.fit();
-    REQUIRE_THAT(res->chi2/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
+    REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot3(res);
     plot3.save("figures/test/em/check_chi2_3.pdf");
 }
@@ -221,7 +221,7 @@ TEST_CASE("plot_images", "[em],[files],[manual]") {
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
-    string file = "data/A2M_ma.map";
+    string file = "data/A2M/emd_12753.map";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));

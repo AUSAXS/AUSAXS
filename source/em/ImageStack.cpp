@@ -152,7 +152,7 @@ std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensit
     counter = 0; // must be in separate line since we want to reset it every time this function is called
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         fitter.set_scattering_hist(get_histogram(params[0]));
-        double val = fitter.fit()->chi2;
+        double val = fitter.fit()->fval;
         std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 

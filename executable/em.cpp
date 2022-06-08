@@ -11,7 +11,9 @@ int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
 
-    string mapfile = "data/A2M_ma.map";
+    string mapfile = "data/A2M/emd_12748.map";
+    // mini::Parameter param("cutoff", 0.05, {0.01, 0.1}); // 12747
+    mini::Parameter param("cutoff", 0.05, {0.01, 0.06}); // 12748
     em::ImageStack map(mapfile); 
 
     //* STRUCTURE FIT
@@ -20,7 +22,7 @@ int main(int argc, char const *argv[]) {
 
         Protein pdb(pdbfile);
         auto pdb_h = pdb.get_histogram();
-        auto res = map.fit(pdb_h, mini::Parameter("cutoff", 0.05, {0.01, 0.1}));
+        auto res = map.fit(pdb_h, param);
         FitReporter::report(res);
 
         auto scan = map.cutoff_scan(Axis(100, 0.01, 0.1), pdb_h);
@@ -31,7 +33,7 @@ int main(int argc, char const *argv[]) {
     if (true) {
         string mfile = "data/A2M_ma.RSR";
 
-        auto res = map.fit(mfile, mini::Parameter("cutoff", 0.05, {0.01, 0.1}));
+        auto res = map.fit(mfile, param);
         FitReporter::report(res);
 
         auto scan = map.cutoff_scan(Axis(100, 0.01, 0.1), mfile);
