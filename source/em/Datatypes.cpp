@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-std::string em::ccp4::Header::to_string() const {
+std::string em::ccp4::Header::to_string() const noexcept {
     std::stringstream s;
     s << "HEADER CONTENTS: \n";
     s << "Dimensions: (" << nx << ", " << ny << ", " << nz << ")\n";
@@ -45,4 +45,10 @@ size_t em::ccp4::Header::get_byte_size() const {
         default:
             throw except::parse_error("Error in Header::get_byte_size: Unrecognized data format (mode " + std::to_string(mode) + ").");
     }
+}
+
+void em::ccp4::Header::rotate(int x, int y, int z) noexcept {
+    mapc = x;
+    mapr = y;
+    maps = z;
 }

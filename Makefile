@@ -31,6 +31,10 @@ hydrate/%: build/executable/new_hydration
 hist/%: build/executable/hist
 	$< data/$*.pdb figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
 
+order := ""
+rotate/%: build/executable/rotate_map
+	$< data/$* ${order}
+
 main/%: build/executable/main
 	$< $*
 

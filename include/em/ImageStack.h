@@ -76,6 +76,8 @@ namespace em {
              */
             Dataset cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
 
+            Dataset cutoff_scan(const Axis& points, std::string file);
+
             /**
              * @brief Perform a scan & fit of the cutoff values. 
              * 
@@ -235,6 +237,14 @@ namespace em {
              * @param fitter The fitter object to fit. 
              */
             std::shared_ptr<EMFit> fit_helper(SimpleIntensityFitter& fitter, mini::Parameter param = {});
+
+            /**
+             * @brief A helper function for the cutoff scanning method.
+             * 
+             * @param points The range to scan.
+             * @param fitter The fitting object.
+             */
+            Dataset cutoff_scan_helper(const Axis& points, SimpleIntensityFitter& fitter);
 
             /**
              * @brief Prepare the fitting function. 

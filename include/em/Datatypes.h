@@ -49,11 +49,26 @@ namespace em {
             int nlabl;
             std::array<char, 800> label;
 
-            std::string to_string() const;
+            /**
+             * @brief Create a string representation of this object.
+             */
+            std::string to_string() const noexcept;
 
+            /**
+             * @brief Output this object to a stream.
+             */
             friend std::ostream& operator<<(std::ostream& os, const Header& h) {os << h.to_string(); return os;}
 
+            /**
+             * @brief Get the byte size of each voxel.
+             */
             size_t get_byte_size() const;
+
+            /**
+             * @brief Rotate the map contents. This does not affect the operation of this program.
+             *        The arguments must be some permutation of {1, 2, 3}.
+             */
+            void rotate(int x, int y, int z) noexcept;
         };
         static_assert(sizeof(Header) == 1024, "Size of CCP4 is wrong.");
     }

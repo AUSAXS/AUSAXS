@@ -3,7 +3,7 @@
 #include <float.h>
 
 #include "data/Protein.h"
-#include "settings.h"
+#include "utility/Settings.h"
 
 #include "TCanvas.h"
 #include "TGraph.h"
@@ -20,8 +20,8 @@ int main(int, char const *argv[]) {
     double acid_volume = protein.get_volume_acids();
     setting::grid::width = 0.3;
 
-    cout << "Average radius is " << cbrt(acid_volume/protein.protein_atoms.size()) << endl;
-    cout << "acid_vol: " << acid_volume << ", N: " << protein.protein_atoms.size() << endl;
+    std::cout << "Average radius is " << cbrt(acid_volume/protein.protein_atoms.size()) << std::endl;
+    std::cout << "acid_vol: " << acid_volume << ", N: " << protein.protein_atoms.size() << std::endl;
     exit(0);
     vector<double> ra(20);
     vector<double> diff(ra.size());

@@ -21,3 +21,6 @@ target_link_libraries(rigidbody_opt saxs)
 
 add_executable(stuff stuff.cpp)
 target_link_libraries(stuff saxs)
+
+add_executable(rotate_map rotate_map.cpp)
+target_link_libraries(rotate_map saxs)

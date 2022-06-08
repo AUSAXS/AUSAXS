@@ -109,17 +109,16 @@ void ImageStack::set_staining(Staining staining) noexcept {
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
     SimpleIntensityFitter fitter(h, get_limits());
-    determine_minimum_bounds(param.bounds->min); //! Use a more general approach! This may crash
     return fit_helper(fitter, param);
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename, mini::Parameter param) {
     SimpleIntensityFitter fitter(filename);
-    determine_minimum_bounds(param.bounds->min); //! Use a more general approach! This may crash
     return fit_helper(fitter, param);
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter, mini::Parameter param) {
+    determine_minimum_bounds(param.bounds->min); //! Use a more general approach! This may crash
     auto func = prepare_function(fitter);
 
     // perform the fit
@@ -160,8 +159,17 @@ std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensit
     return chi2;
 }
 
+Dataset ImageStack::cutoff_scan(const Axis& points, string file) {
+    SimpleIntensityFitter fitter(file);
+    return cutoff_scan_helper(points, fitter);
+}
+
 Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
+    return cutoff_scan_helper(points, fitter);
+}
+
+Dataset ImageStack::cutoff_scan_helper(const Axis& points, SimpleIntensityFitter& fitter) {
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
 
