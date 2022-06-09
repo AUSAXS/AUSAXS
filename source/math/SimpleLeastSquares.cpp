@@ -14,6 +14,8 @@
 
 SimpleLeastSquares::SimpleLeastSquares(const Dataset& data) : data(data) {}
 
+SimpleLeastSquares::SimpleLeastSquares(Dataset&& data) : data(std::move(data)) {}
+
 std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
     for (size_t i = 0; i < data.size(); i++) {

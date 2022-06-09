@@ -45,6 +45,12 @@ namespace plots {
 			~PlotIntensityFit() override;
 
 			/**
+			 * @brief Plot and save the input dataset at the specified location. 
+			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
+			 */
+			static void quick_plot(const std::shared_ptr<Fit> fit, std::string path);
+
+			/**
 			 * @brief Create and save the plot at the given path. 
 			 * 
 			 * @param path Save location and format. 

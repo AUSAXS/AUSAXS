@@ -28,6 +28,11 @@ plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<Fit> fit) : Plot
 
 plots::PlotIntensityFit::~PlotIntensityFit() = default;
 
+void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<Fit> fit, std::string path) {
+    PlotIntensityFit plot(fit);
+    plot.save(path);
+}
+
 void plots::PlotIntensityFit::save(std::string path) const {
     utility::create_directories(path);
     canvas->SaveAs(path.c_str());

@@ -59,6 +59,12 @@ namespace plots {
 			 */
 			static void quick_plot(const hist::ScatteringHistogram& h, std::string path);
 
+			/**
+			 * @brief Plot and save the input dataset at the specified location. 
+			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
+			 */
+			static void quick_plot(const SAXSDataset& d, std::string path);
+
 		private:
 			const hist::ScatteringHistogram d;
 			std::shared_ptr<TCanvas> canvas;

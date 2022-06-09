@@ -60,6 +60,31 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
     plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.pdf");
 }
 
+TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
+    Dataset data("data/test/SASDL32.dat");
+    data.rebin();
+    data.save("temp/dataset/rebin.dat");
+}
+
+TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
+    SECTION("lysozyme") {
+        Dataset data("data/2epe.RSR");
+        CHECK(data.is_logarithmic());
+    }
+
+    SECTION("A2M") {
+        Dataset data("data/A2M_ma.RSR");
+        CHECK(data.is_logarithmic());
+    }
+
+    SECTION("linear") {
+        vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        vector<double> y = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+        Dataset data(x, y);
+        CHECK(!data.is_logarithmic());
+    }
+}
+
 TEST_CASE("dataset_read", "[dataset],[files]") {
     SAXSDataset data("data/2epe.RSR");
     vector<double>& x = data.x;

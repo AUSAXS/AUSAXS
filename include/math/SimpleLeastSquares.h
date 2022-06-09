@@ -13,11 +13,18 @@
 class SimpleLeastSquares : public Fitter {
   public:
     /**
-     * @brief Constructor.
+     * @brief Copy constructor.
      * 
      * Prepare a linear least-squares fit for the given dataset. 
      */
     SimpleLeastSquares(const Dataset& data);
+
+    /**
+     * @brief Move constructor.
+     * 
+     * Prepare a linear least-squares fit for the given dataset. 
+     */
+    SimpleLeastSquares(Dataset&& data);
 
     /**
      * @brief Destructor.
@@ -58,7 +65,7 @@ class SimpleLeastSquares : public Fitter {
     unsigned int dof() const override;
 
   private:
-    const Dataset& data;
+    const Dataset data;
     double S, Sx, Sy, Sxx, Sxy, delta = 0;
     double a, b;
 

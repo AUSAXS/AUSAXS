@@ -12,6 +12,7 @@
 #include <utility/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Settings.h>
+#include <math/SimpleLeastSquares.h>
 
 using std::vector, std::string;
 
@@ -282,6 +283,77 @@ void Dataset::read(const string file) {
     }
     input.close();
 }
+
+bool Dataset::is_logarithmic() const noexcept {
+    // generate a new dataset containing exp(Deltax) and fit it with linear regression.
+    // if the fit is decent, the data must have been logaritmic
+    Dataset exp_data;
+    for (unsigned int i = 1; i < size(); i++) {
+        exp_data.push_back({x[i], std::exp(x[i]-x[i-1]), 1});
+    }
+
+    SimpleLeastSquares fit(std::move(exp_data));
+    auto res = fit.fit();
+
+    std::cout << "DATASET IS_LOGARITHMIC FIT CHI: " << res->fval/res->dof << std::endl;
+    std::cout << "chi: " << res->fval << std::endl;
+    std::cout << "dof: " << res->dof << std::endl;
+    return res->fval/res->dof < 10;
+}
+
+void Dataset::rebin() noexcept {
+    Dataset data; // rebinned dataset
+
+    for (unsigned int i = 0; i < size(); i++) {
+        // determine how many data points to fold into one
+        unsigned int fold;
+        if (0.1 < x[i]) {fold = 8;}
+        else if (0.06 < x[i]) {fold = 4;}
+        else if (0.03 < x[i]) {fold = 2;}
+        else {fold = 1;}
+
+        std::cout << "now folding " << i << " to " << i + fold << std::endl;
+
+        // loop over each data point to be folded
+        double siginv = 0, sumw = 0, qsum = 0;
+        unsigned int ss = 0;
+        for (; ss < fold; ss++) {
+            if (i == size()) {break;}
+            siginv += (std::pow(yerr[i], -2));
+            sumw += y[i]/(std::pow(yerr[i], 2));
+            qsum += x[i];
+            i++;
+
+        }
+
+        // average their values into a single new one
+        double q = qsum/ss;
+        double I = sumw/siginv;
+        double Ierr = std::pow(siginv, -0.5);
+        data.push_back(Point2D(q, I, Ierr));
+    }
+    data.save("temp/dataset/test.dat");
+    *this = data;
+}
+
+Point2D Dataset::get_point(unsigned int index) const noexcept {return Point2D(x[index], y[index]);}
+
+Point2D Dataset::find_minimum() const noexcept {
+    auto it = std::min_element(y.begin(), y.end());
+    unsigned int index = it - y.begin();
+    return get_point(index);
+}
+
+void Dataset::push_back(const Point2D& point) noexcept {
+    x.push_back(point.x);
+    y.push_back(point.y);
+    if (has_xerr()) {xerr.push_back(point.xerr);}
+    if (has_yerr()) {yerr.push_back(point.yerr);}
+}
+
+bool Dataset::has_xerr() const noexcept {return x.size() == xerr.size();}
+
+bool Dataset::has_yerr() const noexcept {return y.size() == yerr.size();}
 
 void Dataset::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
 

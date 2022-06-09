@@ -17,45 +17,50 @@ namespace plots {
 	 */
 	class PlotIntensityFitResiduals : public Plot {
 		public:
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+			 */
+			PlotIntensityFitResiduals(SimpleIntensityFitter& fitter);
 
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-		 */
-		PlotIntensityFitResiduals(SimpleIntensityFitter& fitter);
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+			 */
+			PlotIntensityFitResiduals(const Fit& fit);
 
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-		 */
-		PlotIntensityFitResiduals(const Fit& fit);
+			/**
+			 * @brief Constructor.
+			 * 
+			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
+			 */
+			PlotIntensityFitResiduals(const std::shared_ptr<Fit> fit);
 
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
-		 */
-		PlotIntensityFitResiduals(const std::shared_ptr<Fit> fit);
+			/**
+			 * @brief Destructor.
+			 */
+			~PlotIntensityFitResiduals() override;
 
-		/**
-		 * @brief Destructor.
-		 */
-		~PlotIntensityFitResiduals() override;
+			/**
+			 * @brief Plot and save the input dataset at the specified location. 
+			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
+			 */
+			static void quick_plot(const std::shared_ptr<Fit> fit, std::string path);
 
-		/**
-		 * @brief Create and save the plot at the given path. 
-		 * 
-		 * @param path Save location and format. 
-		 */
-		void save(std::string path) const override;
+			/**
+			 * @brief Create and save the plot at the given path. 
+			 * 
+			 * @param path Save location and format. 
+			 */
+			void save(std::string path) const override;
 
 		private:
-		std::shared_ptr<TCanvas> canvas;
+			std::shared_ptr<TCanvas> canvas;
 
-		void plot(const Dataset graph) const;
+			void plot(const Dataset graph) const;
 
-		void prepare_canvas();
+			void prepare_canvas();
 	};
 }

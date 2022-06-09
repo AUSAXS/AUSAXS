@@ -221,7 +221,7 @@ TEST_CASE("plot_images", "[em],[files],[manual]") {
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
-    string file = "data/A2M/emd_12753.map";
+    string file = "data/lysozyme/emd_23957.map";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));

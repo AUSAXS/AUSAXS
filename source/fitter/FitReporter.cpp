@@ -31,6 +31,10 @@ void FitReporter::save(std::string path, const Fit& fit) {
     out.close();
 }
 
+void FitReporter::save(std::string path, const std::shared_ptr<Fit> fit) {
+    save(path, *fit);
+}
+
 void FitReporter::save(std::string path, const std::vector<Fit>& fits, std::vector<std::string> titles) {
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("Error in FitReporter::report: Size of fits and titles must be equal.");}
     utility::create_directories(path);

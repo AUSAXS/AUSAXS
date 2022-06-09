@@ -16,10 +16,10 @@ using std::cout, std::endl;
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
-    string input_structure, input_measurement, output, placement_strategy;
+    string input_structure, input_measurement, output = "figures/", placement_strategy;
     app.add_option("input_s", input_structure, "Path to the structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("input_m", input_measurement, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
-    app.add_option("output", output, "Path to save the hydrated file at.")->required();
+    app.add_option("input_m", input_measurement, "Path to the measured data.")->required()->check(CLI::ExistingFile);
+    app.add_option("--output,-o", output, "Path to save the generated figures at.");
     app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,-w", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
     app.add_option("--bin_width", setting::axes::scattering_intensity_plot_binned_width, "Bin width for the distance histograms. Default: 1.");

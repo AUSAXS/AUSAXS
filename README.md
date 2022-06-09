@@ -1,19 +1,12 @@
 # Todo
+ * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
+ * [ ] EMFitter: Base body cutoff values on map. Right now no performance improvement is gained for low densities.
  * [ ] EMFitter: Consider a smarter approach to determining what value to use for minimum bounds. (`determine_minimum_bounds` method)
  * [ ] EMFitter: Handle absolute scale properly.
- * [x] EM: Shouldn't errors be simulated on the histogram from the protein? And not from the EM?
  * [ ] ScanFit: Modify to find local minimum after scan is complete.
- * [x] Plots: optimal chi2 v. resolution (average over 10 runs) (also try without simulated errors)
- * [x] Fits: Verify they still work as expected after refactoring to use custom Minimizer class instead. 
- * [x] Fit: Inherit from Result since they share everything anyways
  * [ ] Use nothrow
- * [x] udregn præcis voxel størrelse for alle resolutions
  * [ ] gentag alt for de andre filer
  * [ ] flow diagram med hvad vi rent faktisk laver
- * [x] chi2 vs opløsning for optimeret fit
- * [x] Fix fitter for EM
- * [x] Test higher resolutions of native
- * [x] Check if there are online databases of EM maps
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z
@@ -21,7 +14,6 @@
  * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] Memory test all other executables.
- * [x] plots: Change intensity plots to static methods
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Atom: Const uid 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands

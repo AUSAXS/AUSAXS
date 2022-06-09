@@ -9,6 +9,7 @@ class FitReporter {
         static void report(const std::vector<Fit>& fits, std::vector<std::string> titles = {});
 
         static void save(std::string path, const Fit& fit);
+        static void save(std::string path, const std::shared_ptr<Fit> fit);
         static void save(std::string path, const std::vector<Fit>& fits, std::vector<std::string> titles = {});
 
     private:

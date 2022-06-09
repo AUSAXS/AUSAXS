@@ -28,6 +28,11 @@ plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_pt
 
 plots::PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
 
+void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<Fit> fit, std::string path) {
+    PlotIntensityFitResiduals plot(fit);
+    plot.save(path);
+}
+
 void plots::PlotIntensityFitResiduals::save(std::string path) const {
     utility::create_directories(path);
     canvas->SaveAs(path.c_str());

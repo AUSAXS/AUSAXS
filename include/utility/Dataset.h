@@ -99,6 +99,12 @@ class Dataset {
         std::vector<double>& get(const std::string label);
 
         /**
+         * @brief Check if the data is logarithmic. 
+         *        This may be wrong if the x-data is very noisy.
+         */
+        bool is_logarithmic() const noexcept;
+
+        /**
          * @brief Scale all errors by some common factor. 
          */
         void scale_errors(double factor);
@@ -162,42 +168,33 @@ class Dataset {
         /**
          * @brief Get the point at a given index.
          */
-        Point2D get_point(unsigned int index) const noexcept {
-            return Point2D(x[index], y[index]);
-        }
+        Point2D get_point(unsigned int index) const noexcept;
 
         /**
          * @brief Get the point with the smallest y-value.
          */
-        Point2D find_minimum() const noexcept {
-            auto it = std::min_element(y.begin(), y.end());
-            unsigned int index = it - y.begin();
-            return get_point(index);
-        }
+        Point2D find_minimum() const noexcept;
 
         /**
          * @brief Add a new datapoint to the end of this dataset. 
          */
-        void push_back(const Point2D& point) noexcept {
-            x.push_back(point.x);
-            y.push_back(point.y);
-            if (has_xerr()) {xerr.push_back(point.xerr);}
-            if (has_yerr()) {yerr.push_back(point.yerr);}
-        }
+        void push_back(const Point2D& point) noexcept;
 
         /**
          * @brief Check if this dataset has errors on the x-values.
          */
-        [[nodiscard]] bool has_xerr() const noexcept {
-            return x.size() == xerr.size();
-        }
+        [[nodiscard]] bool has_xerr() const noexcept;
 
         /**
          * @brief Check if this dataset has errors on the y-values.
          */
-        [[nodiscard]] bool has_yerr() const noexcept {
-            return y.size() == yerr.size();
-        }
+        [[nodiscard]] bool has_yerr() const noexcept;
+
+        /**
+         * @brief Rebin the data to a logarithmic scale. 
+         *        This follows the typical rebinning algorithm used experimentally.
+         */
+        void rebin() noexcept;
 
         /**
          * @brief Generate a randomized dataset.
