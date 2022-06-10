@@ -56,15 +56,31 @@ namespace em {
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
              * @param filename Path to the measurement file. 
+             * @param param The cutoff parameter.
              */
-            std::shared_ptr<EMFit> fit(std::string filename, mini::Parameter param = {});
+            std::shared_ptr<EMFit> fit(std::string filename, mini::Parameter param);
+
+            /**
+             * @brief Fit the cutoff value with the input experimental data file. 
+             * 
+             * @param filename Path to the measurement file. 
+             */
+            std::shared_ptr<EMFit> fit(std::string filename);
+
+            /**
+             * @brief Fit the cutoff value with the input histogram. 
+             * 
+             * @param h The histogram to fit to.  
+             * @param param The cutoff parameter.
+             */
+            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h, mini::Parameter param);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h, mini::Parameter param = {});
+            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -192,6 +208,11 @@ namespace em {
             unsigned int resolution;
             unsigned int size_x, size_y, size_z;
             std::unique_ptr<em::PartialHistogramManager> phm;
+
+            /**
+             * @brief Update the cutoff sections that will be used.
+             */
+            void update_charge_levels(Limit limit) const noexcept;
 
             /**
              * @brief Set the staining of this object based on the sign of the parameter.

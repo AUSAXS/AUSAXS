@@ -107,26 +107,41 @@ void ImageStack::set_staining(Staining staining) noexcept {
     this->staining = staining;
 }
 
+void ImageStack::update_charge_levels(Limit limit) const noexcept {
+    setting::em::charge_levels.clear();
+    for (unsigned int i = 0; i < 20; i++) {
+        setting::em::charge_levels.push_back(limit.min + i*limit.span()/20);
+    }
+}
+
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
+    Limit lim = {0, header->dmax};
+    mini::Parameter param("cutoff", lim.center(), lim);
+    fit(h, param);
+}
+
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
+    if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
     SimpleIntensityFitter fitter(h, get_limits());
     return fit_helper(fitter, param);
 }
 
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
+    Limit lim = {0, header->dmax};
+    mini::Parameter param("cutoff", lim.center(), lim);
+    fit(h, param);
+}
+
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename, mini::Parameter param) {
+    if (!param.has_bounds()) {return fit(filename);} // ensure parameter bounds are present
     SimpleIntensityFitter fitter(filename);
     return fit_helper(fitter, param);
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter& fitter, mini::Parameter param) {
-    determine_minimum_bounds(param.bounds->min); //! Use a more general approach! This may crash
+    update_charge_levels(*param.bounds);
+    determine_minimum_bounds(param.bounds->min);
     auto func = prepare_function(fitter);
-
-    // perform the fit
-    if (param.empty()) {
-        param.name = "cutoff";
-        if (positively_stained()) {param.guess = 2; param.bounds = Limit(1, 8);}    //! Find a better approach - will not always work
-        else {param.guess = -2; param.bounds = Limit(-8, -1);}                      //! Same
-    }
 
     mini::Golden minimizer(func, param);
     auto res = minimizer.minimize();
@@ -257,21 +272,22 @@ bool ImageStack::positively_stained() const {return staining == Staining::positi
 bool ImageStack::negatively_stained() const {return staining == Staining::negative;}
 
 void ImageStack::determine_staining() {
-    // we count how many images where the maximum density is positive versus negative
-    double sign = 0;
-    for (unsigned int z = 0; z < size_z; z++) {
-        Limit limit = image(z).limits();
-        double min = std::abs(limit.min), max = std::abs(limit.max);
-        if (1 <= min && max+1 < min) {
-            sign--;
-        } else if (1 <= max && min+1 < max) {
-            sign++;
-        }
-    }
+    staining = Staining::positive;
+    // // we count how many images where the maximum density is positive versus negative
+    // double sign = 0;
+    // for (unsigned int z = 0; z < size_z; z++) {
+    //     Limit limit = image(z).limits();
+    //     double min = std::abs(limit.min), max = std::abs(limit.max);
+    //     if (1 <= min && max+1 < min) {
+    //         sign--;
+    //     } else if (1 <= max && min+1 < max) {
+    //         sign++;
+    //     }
+    // }
 
-    // set the staining type so we don't have to calculate it again later
-    if (sign > 0) {staining = Staining::positive;}
-    else {staining = Staining::negative;}
+    // // set the staining type so we don't have to calculate it again later
+    // if (sign > 0) {staining = Staining::positive;}
+    // else {staining = Staining::negative;}
 }
 
 ObjectBounds3D ImageStack::minimum_volume(double cutoff) {
