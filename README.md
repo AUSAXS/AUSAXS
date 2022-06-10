@@ -1,4 +1,5 @@
 # Todo
+ * [ ] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
  * [ ] EMFitter: Base body cutoff values on map. Right now no performance improvement is gained for low densities.
  * [ ] EMFitter: Consider a smarter approach to determining what value to use for minimum bounds. (`determine_minimum_bounds` method)

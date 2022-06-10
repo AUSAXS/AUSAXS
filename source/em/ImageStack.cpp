@@ -24,11 +24,11 @@ using namespace std::chrono;
 using namespace setting::em;
 using namespace em;
 
-ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution, CullingStrategyChoice csc) 
+ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution) 
     : resolution(resolution), size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
     
     data = images;
-    setup(csc);
+    setup();
 }
 
 void ImageStack::validate_extension(string file) const {
@@ -38,7 +38,7 @@ void ImageStack::validate_extension(string file) const {
     throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
-ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoice csc) 
+ImageStack::ImageStack(string file, unsigned int resolution) 
     : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
 
     validate_extension(file);
@@ -48,24 +48,17 @@ ImageStack::ImageStack(string file, unsigned int resolution, CullingStrategyChoi
 
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     read(input, get_byte_size());
-    setup(csc);
+    setup();
 }
 
 ImageStack::~ImageStack() = default;
 
-void ImageStack::setup(CullingStrategyChoice csc) {
+void ImageStack::setup() {
     determine_staining();
-    if (negatively_stained()) {std::transform(charge_levels.begin(), charge_levels.end(), charge_levels.begin(), std::negate<double>());}
-
-    switch (csc) {
-        case CullingStrategyChoice::NoStrategy:
-            culler = std::make_unique<NoCulling>();
-            break;
-        case CullingStrategyChoice::CounterStrategy:
-            culler = std::make_unique<CounterCulling>();
-            break;
-        default: 
-            throw except::unknown_argument("Error in Grid::Grid: Unkown PlacementStrategy");
+    if (negatively_stained()) {
+        vector<double> levels = phm->get_charge_levels();
+        std::transform(levels.begin(), levels.end(), levels.begin(), std::negate<double>());
+        phm->set_charge_levels(levels);
     }
 }
 
@@ -108,16 +101,17 @@ void ImageStack::set_staining(Staining staining) noexcept {
 }
 
 void ImageStack::update_charge_levels(Limit limit) const noexcept {
-    setting::em::charge_levels.clear();
+    vector<double> levels;
     for (unsigned int i = 0; i < 20; i++) {
-        setting::em::charge_levels.push_back(limit.min + i*limit.span()/20);
+        levels.push_back(limit.min + i*limit.span()/20);
     }
+    phm->set_charge_levels(levels);
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {0, header->dmax};
+    Limit lim = {header->dmax/100, header->dmax};
     mini::Parameter param("cutoff", lim.center(), lim);
-    fit(h, param);
+    return fit(h, param);
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
@@ -126,15 +120,15 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {0, header->dmax};
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
+    Limit lim = {header->dmax/100, header->dmax};
     mini::Parameter param("cutoff", lim.center(), lim);
-    fit(h, param);
+    return fit(file, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string filename, mini::Parameter param) {
-    if (!param.has_bounds()) {return fit(filename);} // ensure parameter bounds are present
-    SimpleIntensityFitter fitter(filename);
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter param) {
+    if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
+    SimpleIntensityFitter fitter(file);
     return fit_helper(fitter, param);
 }
 
@@ -179,12 +173,28 @@ Dataset ImageStack::cutoff_scan(const Axis& points, string file) {
     return cutoff_scan_helper(points, fitter);
 }
 
+Dataset ImageStack::cutoff_scan(unsigned int points, string file) {
+    Axis axis(points, header->dmax/100, header->dmax);
+    return cutoff_scan(axis, file);
+}
+
 Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
     return cutoff_scan_helper(points, fitter);
 }
 
+Dataset ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
+    Axis axis(points, header->dmax/100, header->dmax);
+    return cutoff_scan(axis, h);
+}
+
+ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
+    Axis axis(points, header->dmax/100, header->dmax);
+    return cutoff_scan_fit(axis, h);
+}
+
 Dataset ImageStack::cutoff_scan_helper(const Axis& points, SimpleIntensityFitter& fitter) {
+    update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
 
@@ -194,6 +204,7 @@ Dataset ImageStack::cutoff_scan_helper(const Axis& points, SimpleIntensityFitter
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
     SimpleIntensityFitter fitter(h, get_limits());
+    update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
 
@@ -300,7 +311,8 @@ ObjectBounds3D ImageStack::minimum_volume(double cutoff) {
 }
 
 void ImageStack::determine_minimum_bounds(double min_val) {
-    set_staining(min_val);
-    double cutoff = positively_stained() ? std::abs(min_val) : -std::abs(min_val);
-    std::for_each(data.begin(), data.end(), [&cutoff] (Image& image) {image.setup_bounds(cutoff);});
+    // set_staining(min_val);
+    // double cutoff = positively_stained() ? std::abs(min_val) : -std::abs(min_val);
+    // std::for_each(data.begin(), data.end(), [&cutoff] (Image& image) {image.setup_bounds(cutoff);});
+    std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
 }

@@ -161,11 +161,15 @@ std::shared_ptr<Protein> em::PartialHistogramManager::get_protein(double cutoff)
     return protein;
 }
 
-void em::PartialHistogramManager::set_cutoff_levels(std::vector<double> levels) {
+void em::PartialHistogramManager::set_charge_levels(std::vector<double> levels) noexcept {
     // make sure the last bin can contain all atoms
     if (std::abs(levels[levels.size()-1] < 10000)) {
         levels.push_back(levels[0] < 0 ? -10000 : 10000);
     } 
     charge_levels = levels;
-    if (protein != nullptr) {protein->bodies.clear();} // we must reset the bodies to ensure they remain in sync with the new levels
+    protein = nullptr; // the protein must be generated anew to ensure the bodies remains in sync with the new levels
+}
+
+std::vector<double> em::PartialHistogramManager::get_charge_levels() const noexcept {
+    return charge_levels;
 }

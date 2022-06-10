@@ -41,13 +41,12 @@ namespace em {
              */
             std::shared_ptr<Protein> get_protein(double cutoff);
 
-            /**
-             * @brief Set the cutoff levels. 
-             */
-            void set_cutoff_levels(std::vector<double> levels);
+            void set_charge_levels(std::vector<double> levels) noexcept;
+
+            std::vector<double> get_charge_levels() const noexcept;
 
             /**
-             * @brief Alternate slower approach to generating the histogram. 
+             * @brief Alternate unoptimized approach to generating the histogram. 
              *        This is primarily meant for debugging purposes. 
              */
             hist::ScatteringHistogram get_histogram_slow(double cutoff) const;
@@ -55,7 +54,7 @@ namespace em {
         private:
             const ImageStack& images; 
             std::shared_ptr<Protein> protein;
-            std::vector<double> charge_levels = {1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 100000};
+            std::vector<double> charge_levels;
             double previous_cutoff = 0;
 
             /**

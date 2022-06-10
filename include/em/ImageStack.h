@@ -38,14 +38,14 @@ namespace em {
              * 
              * @param file Path to the input EM data file. 
              */
-            ImageStack(std::string file, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
+            ImageStack(std::string file, unsigned int resolution = 0);
 
             /**
              * @brief Constructor.
              * 
              * @param resolution 
              */
-            ImageStack(const std::vector<Image>& images, unsigned int resolution = 0, setting::em::CullingStrategyChoice csc = setting::em::CullingStrategyChoice::CounterStrategy);
+            ImageStack(const std::vector<Image>& images, unsigned int resolution = 0);
 
             /**
              * @brief Destructor.
@@ -55,17 +55,17 @@ namespace em {
             /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
-             * @param filename Path to the measurement file. 
+             * @param file Path to the measurement file. 
              * @param param The cutoff parameter.
              */
-            std::shared_ptr<EMFit> fit(std::string filename, mini::Parameter param);
+            std::shared_ptr<EMFit> fit(std::string file, mini::Parameter param);
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
-             * @param filename Path to the measurement file. 
+             * @param file Path to the measurement file. 
              */
-            std::shared_ptr<EMFit> fit(std::string filename);
+            std::shared_ptr<EMFit> fit(std::string file);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
@@ -92,7 +92,35 @@ namespace em {
              */
             Dataset cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
 
+            /**
+             * @brief Perform a scan of the cutoff values. 
+             * 
+             * @param points The number of points.
+             * @param h The histogram to be fitted. 
+             * 
+             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+             */
+            Dataset cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h);
+
+            /**
+             * @brief Perform a scan of the cutoff values. 
+             * 
+             * @param points The cutoff values to be evaluated. 
+             * @param h The measurement file to compare with. 
+             * 
+             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+             */
             Dataset cutoff_scan(const Axis& points, std::string file);
+
+            /**
+             * @brief Perform a scan of the cutoff values. 
+             * 
+             * @param points The number of points.
+             * @param h The measurement file to compare with. 
+             * 
+             * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
+             */
+            Dataset cutoff_scan(unsigned int points, std::string file);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -103,6 +131,16 @@ namespace em {
              * @return A Landscape containing both the fit and scan.
              */
             Landscape cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
+
+            /**
+             * @brief Perform a scan & fit of the cutoff values. 
+             * 
+             * @param points The number of points.
+             * @param h The histogram to be fitted. 
+             * 
+             * @return A Landscape containing both the fit and scan.
+             */
+            Landscape cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -204,7 +242,6 @@ namespace em {
             std::string filename;
             std::shared_ptr<ccp4::Header> header;
             std::vector<Image> data;
-            std::unique_ptr<em::CullingStrategy> culler; //! Can be removed?
             unsigned int resolution;
             unsigned int size_x, size_y, size_z;
             std::unique_ptr<em::PartialHistogramManager> phm;
@@ -245,7 +282,7 @@ namespace em {
             
             void read(std::ifstream& istream, size_t byte_size);
 
-            void setup(setting::em::CullingStrategyChoice csc);
+            void setup();
 
             /**
              * @brief Get the data byte size of the CCP file. 
