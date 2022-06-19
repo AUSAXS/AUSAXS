@@ -9,7 +9,8 @@ using std::string;
 
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    setting::em::sample_frequency = 1;
+    setting::fit::q_high = 2;
 
     // string mapfile = "data/lysozyme/emd_23957.map";
     // string mapfile = "data/A2M/emd_12747.map";
@@ -17,7 +18,8 @@ int main(int argc, char const *argv[]) {
     // string mapfile = "data/A2M/emd_12752.map"; // tryp
     // string mapfile = "data/A2M/emd_12753.map"; // tryp
     // string mapfile = "data/SHOC2/emd_25044.map";
-    string mapfile = "data/SHOC2/emd_26667.map";
+    // string mapfile = "data/SHOC2/emd_26667.map";
+    string mapfile = "data/flipped_ns_igefceria.mrc";
 
     // string pdbfile = "data/2epe.pdb";
     string pdbfile = "data/native.pdb";
@@ -47,7 +49,7 @@ int main(int argc, char const *argv[]) {
     }
 
     //* MEASUREMENT FIT
-    if (true) {
+    if (false) {
         string path = "figures/em/measurement_fit/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
 
         auto res = map.fit(mfile);
@@ -59,6 +61,16 @@ int main(int argc, char const *argv[]) {
 
         auto scan = map.cutoff_scan(100, mfile);
         plots::PlotDataset::quick_plot(scan, path + "scan.pdf");
+    }
+
+    //* GENERATE INTENSITY & PDB
+    if (true) {
+        // unsigned int c;
+        // for(const em::Image& image : map.images()) {
+        //     plots::PlotImage::quick_plot(image, "figures/em/images/" + utility::stem(mapfile) + "/" + std::to_string(c++) + ".png");
+        // }
+        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(3)), "figures/em/cut/intensity.pdf");
+        map.save("data/output/" + utility::stem(mapfile) + ".pdb", map.level(1));
     }
 
     return 0;

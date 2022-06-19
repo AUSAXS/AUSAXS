@@ -111,6 +111,12 @@ namespace em {
             float index(unsigned int x, unsigned int y) const;
             float& index(unsigned int x, unsigned int y);
 
+            /**
+             * @brief Get the squared sum of all entries in this image. 
+             *        This is intended as a helper method for the RMS method of the ImageStack class.
+             */
+            double squared_sum() const;
+
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
         private:

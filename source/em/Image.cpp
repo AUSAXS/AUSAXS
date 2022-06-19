@@ -59,6 +59,16 @@ unsigned int Image::count_voxels(double cutoff) const {
     return l.size();
 }
 
+double Image::squared_sum() const {
+    double sum = 0;
+    for (unsigned int x = 0; x < N; x++) {
+        for (unsigned int y = 0; y < M; y++) {
+            sum += std::pow(index(x, y), 2);
+        }
+    }
+    return sum;
+}
+
 std::unique_ptr<TH2D> Image::as_hist() const {
     if (header == nullptr) {throw except::invalid_operation("Error in Image::as_hist: Header must be initialized to use this method.");}
     std::unique_ptr<TH2D> hist = std::make_unique<TH2D>(utility::uid("hist").c_str(), "hist", header->nx, 0, header->cella_x, header->ny, 0, header->cella_y);

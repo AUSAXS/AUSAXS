@@ -15,7 +15,7 @@ namespace hist {
             /**
              * @brief Default constructor.
              */
-            Histogram() {}
+            Histogram() noexcept {}
 
             /**
              * @brief Constructor. 
@@ -25,7 +25,7 @@ namespace hist {
              * 
              * @param p The bin values. 
              */
-            Histogram(const Vector<double>& p);
+            Histogram(const Vector<double>& p) noexcept;
 
             /**
              * @brief Constructor.
@@ -35,7 +35,7 @@ namespace hist {
              * @param p The bin values. 
              * @param axis The axis they span. 
              */
-            Histogram(const Vector<double>& p, const Axis& axis);
+            Histogram(const Vector<double>& p, const Axis& axis) noexcept;
 
             /**
              * @brief Constructor.
@@ -44,17 +44,17 @@ namespace hist {
              * 
              * @param axis The axis range. 
              */
-            Histogram(const Axis& axis);
+            Histogram(const Axis& axis) noexcept;
 
             /**
              * @brief Add another Histogram to this one.
              */
-            Histogram& operator+=(const Histogram& rhs);
+            Histogram& operator+=(const Histogram& rhs) noexcept;
 
             /**
              * @brief Subtract another Histogram from this one.
              */
-            Histogram& operator-=(const Histogram& rhs);
+            Histogram& operator-=(const Histogram& rhs) noexcept;
 
             /**
              * @brief Reduce the view axis to show only the non-zero area. 
@@ -70,13 +70,23 @@ namespace hist {
             /**
              * @brief Set the axis of this Histogram.
              */
-            void set_axis(const Axis& axis);
+            void set_axis(const Axis& axis) noexcept;
+
+            /**
+             * @brief Get the minimum value. 
+             */
+            [[nodiscard]] Limit span() const noexcept;
+
+            /**
+             * @brief Get the positive span of this histogram.
+             *        This can be useful for setting log ranges. 
+             */
+            [[nodiscard]] Limit span_positive() const noexcept;
 
             /**
              * @brief Get the size of this Histogram.
              */
-            [[nodiscard]]
-            size_t size() const;
+            [[nodiscard]] size_t size() const noexcept;
 
             /**
              * @brief Overwrite the plot options for this Histogram.

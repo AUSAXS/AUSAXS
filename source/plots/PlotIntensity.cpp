@@ -36,6 +36,7 @@ void plots::PlotIntensity::initial_intensity_plot(int color) {
     if (d.q.empty()) {throw except::invalid_operation("Error in PlotIntensity::plot_intensity: Class was not initialized with a histogram, and it has not been manually set.");}
 
     // Debye scattering intensity
+    auto h = d.calc_debye_scattering_intensity();
     std::shared_ptr<TH1D> hI_debye = d.plot_debye_scattering();
     PlotOptions options;
     options.xlabel = "q";
@@ -43,10 +44,9 @@ void plots::PlotIntensity::initial_intensity_plot(int color) {
     options.line_width = 3;
     options.color = color;
 
-    ymin = hI_debye->GetMinimum();
+    ymin = std::max(hI_debye->GetMinimum(), Double_t(1e-6));
     ymax = hI_debye->GetMaximum();
     hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
-    
     draw(hI_debye, options, canvas);
 }
 
@@ -56,7 +56,7 @@ void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
     options.xlabel = "q";
     options.ylabel = "Intensity";
 
-    ymin = graph->GetYaxis()->GetXmin();
+    ymin = std::max(graph->GetYaxis()->GetXmin(), Double_t(1e-6));
     ymax = graph->GetYaxis()->GetXmax();
     graph->GetHistogram()->SetMinimum(ymin*0.9);
     graph->GetHistogram()->SetMaximum(ymax*1.1);
@@ -67,7 +67,6 @@ void plots::PlotIntensity::quick_plot(const SAXSDataset& d, std::string path) {
     PlotIntensity plot(d);
     plot.save(path);
 }
-
 
 void plots::PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, std::string path) {
     PlotIntensity plot(h);
@@ -102,7 +101,7 @@ void plots::PlotIntensity::plot_guinier_approx() {
     // Guinier approximation
     // we have to create a second drawing pad since our scattering intensity is now log10 I(q)
     canvas->cd();
-    logpad = std::make_unique<TPad>("PlotIntensityPad2", "logpad", 0, 0, 1, 1); 
+    logpad = std::make_unique<TPad>(utility::uid("PlotIntensityPad").c_str(), "logpad", 0, 0, 1, 1); 
     logpad->Draw();
     logpad->SetFillStyle(4000); // make this second plot transparent (otherwise it'd overwrite the first one)
     logpad->SetFillColor(0);
@@ -137,7 +136,7 @@ void plots::PlotIntensity::save(std::string path) const {
 
 void plots::PlotIntensity::prepare_canvas() {
     canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
-    linpad = std::make_unique<TPad>("PlotIntensityPad1", "linpad", 0, 0, 1, 1); // create a drawing pad
+    linpad = std::make_unique<TPad>(utility::uid("PlotIntensityPad").c_str(), "linpad", 0, 0, 1, 1); // create a drawing pad
 
     linpad->SetLeftMargin(0.19);
     linpad->SetLogx();

@@ -4,18 +4,18 @@
 
 using namespace hist;
 
-Histogram::Histogram(const Vector<double>& p) : p(p) {}
+Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {}
 
-Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
+Histogram::Histogram(const Vector<double>& p, const Axis& axis) noexcept : p(p), axis(axis) {}
 
-Histogram::Histogram(const Axis& axis) : p(axis.bins), axis(axis) {}
+Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
 
-Histogram& Histogram::operator+=(const Histogram& rhs) {
+Histogram& Histogram::operator+=(const Histogram& rhs) noexcept {
     p += rhs.p;
     return *this;
 }
 
-Histogram& Histogram::operator-=(const Histogram& rhs) {
+Histogram& Histogram::operator-=(const Histogram& rhs) noexcept {
     p -= rhs.p;
     return *this;
 }
@@ -35,16 +35,38 @@ void Histogram::shorten_axis() {
 }
 
 void Histogram::generate_axis(unsigned int size) {
-    auto[min, max] = std::minmax_element(p.begin(), p.end());
-    axis.min = *min; axis.max = *max;
+    Limit limits = span();
+    axis.min = limits.min; axis.max = limits.max;
     axis.bins = size;
 }
 
-void Histogram::set_axis(const Axis& axis) {
+void Histogram::set_axis(const Axis& axis) noexcept {
     this->axis = axis;
 }
 
-size_t Histogram::size() const {return p.size();}
+Limit Histogram::span() const noexcept {
+    if (axis.empty()) {
+        auto[min, max] = std::minmax_element(p.begin(), p.end());
+        return Limit(*min, *max);
+    }
+    return axis.limits();
+}
+
+Limit Histogram::span_positive() const noexcept {
+    if (size() == 0) {
+        return Limit(0, 0);
+    }
+
+    Limit limits(p[0], p[0]);
+    for (double val : p) {
+        if (0 < val) {
+            limits.min = std::min(val, limits.min);
+        }
+        limits.max = std::max(val, limits.max);
+    }
+}
+
+size_t Histogram::size() const noexcept {return p.size();}
 
 void Histogram::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
 

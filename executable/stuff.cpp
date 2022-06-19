@@ -51,11 +51,11 @@ int main(int argc, char const *argv[]) {
         Fit fit = cur_fits[0];
 
         // use mean chi2
-        std::transform(cur_fits.begin(), cur_fits.end(), holder.begin(), [] (const Fit& fit) {return fit.chi2;});
-        fit.chi2 = stats::mean(holder);
+        std::transform(cur_fits.begin(), cur_fits.end(), holder.begin(), [] (const Fit& fit) {return fit.fval;});
+        fit.fval = stats::mean(holder);
 
         // use total fevals
-        fit.calls = std::accumulate(cur_fits.begin(), cur_fits.end(), 0, [] (unsigned int sum, const Fit& fit) {return sum + fit.calls;});
+        fit.fevals = std::accumulate(cur_fits.begin(), cur_fits.end(), 0, [] (unsigned int sum, const Fit& fit) {return sum + fit.fevals;});
 
         // use mean cutoff
         stats::MeasurementSeries ms(loops);
@@ -108,7 +108,7 @@ int main(int argc, char const *argv[]) {
 
     // generate chi2 v. resolution plot
     vector<double> chi2(fits.size());
-    std::transform(fits.begin(), fits.end(), chi2.begin(), [] (const Fit& fit) {return fit.chi2;});
+    std::transform(fits.begin(), fits.end(), chi2.begin(), [] (const Fit& fit) {return fit.fval;});
     fitted_vals.y = chi2;
     fitted_vals.add_plot_options({{"ylabel", "chi2"}});
     plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/chi2.pdf");

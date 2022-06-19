@@ -60,7 +60,7 @@ vector<std::shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
 }
 
 std::unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
-    Dataset data = calc_debye_scattering_intensity();
+    SAXSDataset data = calc_debye_scattering_intensity();
     vector<double> I = data.get("I");
     vector<double> q = data.get("q");
     std::unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", q.size(), q[0], q[q.size()-1]);

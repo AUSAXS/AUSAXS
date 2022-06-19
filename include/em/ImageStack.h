@@ -236,6 +236,16 @@ namespace em {
 
             ObjectBounds3D minimum_volume(double cutoff);
 
+            /**
+             * @brief Get the cutoff corresponding to a PyMOL level. This is just the number of sigmas of the root-mean-square deviation.
+             */
+            double level(double sigma) const;
+
+            /**
+             * @brief Calculate the root-mean-square of this map. 
+             */
+            double rms() const;
+
         private:
             enum class Staining{undecided, positive, negative};
             Staining staining = Staining::undecided;

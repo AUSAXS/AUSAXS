@@ -35,6 +35,7 @@ void ImageStack::validate_extension(string file) const {
     string extension = std::filesystem::path(file).extension().string();
     if (extension == ".ccp4") {return;}
     if (extension == ".map") {return;}
+    if (extension == ".mrc") {return;}
     throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
@@ -315,4 +316,17 @@ void ImageStack::determine_minimum_bounds(double min_val) {
     // double cutoff = positively_stained() ? std::abs(min_val) : -std::abs(min_val);
     // std::for_each(data.begin(), data.end(), [&cutoff] (Image& image) {image.setup_bounds(cutoff);});
     std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
+}
+
+double ImageStack::level(double sigma) const {
+    return sigma*rms();
+}
+
+double ImageStack::rms() const {
+    static double rms = 0; // only initialized once
+    if (rms == 0) {
+        double sum = std::accumulate(data.begin(), data.end(), 0.0, [] (double sum, const Image& image) {return sum + image.squared_sum();});
+        rms = std::sqrt(sum/(header->nx*header->ny*header->nz));
+    }
+    return rms;
 }

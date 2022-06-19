@@ -174,12 +174,22 @@ namespace mini {
         /**
          * @brief Get a parameter based on its name from this result.
          */
-        FittedParameter get_parameter(std::string name) const;
+        FittedParameter const& get_parameter(std::string name) const;
+
+        /**
+         * @brief Get a parameter based on its name from this result.
+         */
+        FittedParameter& get_parameter(std::string name);
 
         /**
          * @brief Get a parameter based on its index from this result.
          */
-        FittedParameter get_parameter(unsigned int index) const;
+        FittedParameter const& get_parameter(unsigned int index) const;
+
+        /**
+         * @brief Get a parameter based on its index from this result.
+         */
+        FittedParameter& get_parameter(unsigned int index);
 
         /**
          * @brief Add a parameter to this result.

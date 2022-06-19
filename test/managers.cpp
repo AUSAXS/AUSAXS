@@ -105,7 +105,7 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
         em::ImageStack images({image});
 
         em::PartialHistogramManager manager(images);
-        manager.set_cutoff_levels({2, 4, 6, 8});
+        manager.set_charge_levels({2, 4, 6, 8});
         std::shared_ptr<Protein> protein = manager.get_protein(0);
 
         REQUIRE(protein->body_size() == 5);
@@ -132,7 +132,7 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
             em::ImageStack images({image});
 
             em::PartialHistogramManager manager(images);
-            manager.set_cutoff_levels({2, 4, 6, 8});
+            manager.set_charge_levels({2, 4, 6, 8});
 
             // try an arbitrary cutoff level
             REQUIRE(compare(manager, 3));
@@ -159,7 +159,7 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
             em::ImageStack images({image});
 
             em::PartialHistogramManager manager(images);
-            manager.set_cutoff_levels({-2, -4, -6, -8});
+            manager.set_charge_levels({-2, -4, -6, -8});
 
             // try an arbitrary cutoff level
             REQUIRE(compare(manager, -3));

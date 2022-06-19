@@ -6,7 +6,11 @@
 #include <data/Protein.h>
 #include <utility/Utility.h>
 
-em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}
+em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {
+    auto header = images.get_header();
+    Axis axis(20, header->dmin, header->dmax);
+    set_charge_levels(axis);
+}
 
 hist::ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
     update_protein(cutoff);
@@ -31,10 +35,14 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     vector<Atom> atoms = generate_atoms(cutoff);
     vector<Body> bodies(charge_levels.size());
     vector<Atom> current_atoms(atoms.size());
-    
+
     if (atoms.empty()) {
         utility::print_warning("Warning in PartialHistogramManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
         return std::make_unique<Protein>(bodies);
+    }
+
+    if (charge_levels.empty()) {
+        throw except::out_of_bounds("Error in PartialHistogramManager::generate_protein: charge_levels is empty.");
     }
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
@@ -159,6 +167,10 @@ std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {
 std::shared_ptr<Protein> em::PartialHistogramManager::get_protein(double cutoff) {
     update_protein(cutoff);
     return protein;
+}
+
+void em::PartialHistogramManager::set_charge_levels(Axis levels) noexcept {
+    set_charge_levels(levels.as_vector());
 }
 
 void em::PartialHistogramManager::set_charge_levels(std::vector<double> levels) noexcept {
