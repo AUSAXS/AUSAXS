@@ -64,6 +64,7 @@ Limit Histogram::span_positive() const noexcept {
         }
         limits.max = std::max(val, limits.max);
     }
+    return limits;
 }
 
 size_t Histogram::size() const noexcept {return p.size();}

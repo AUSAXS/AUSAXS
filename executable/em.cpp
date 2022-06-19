@@ -10,7 +10,9 @@ using std::string;
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
-    setting::fit::q_high = 2;
+    // setting::fit::q_high = 2;
+    // setting::axes::scattering_intensity_plot_axis = {1000, 1e-3, 2};
+    // setting::axes::scattering_intensity_plot_binned_width = 0.01;
 
     // string mapfile = "data/lysozyme/emd_23957.map";
     // string mapfile = "data/A2M/emd_12747.map";
@@ -69,8 +71,13 @@ int main(int argc, char const *argv[]) {
         // for(const em::Image& image : map.images()) {
         //     plots::PlotImage::quick_plot(image, "figures/em/images/" + utility::stem(mapfile) + "/" + std::to_string(c++) + ".png");
         // }
-        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(3)), "figures/em/cut/intensity.pdf");
-        map.save("data/output/" + utility::stem(mapfile) + ".pdb", map.level(1));
+        string path = "figures/em/cut/" + utility::stem(mapfile) + "/";
+        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(3)), path + "intensity3.pdf");
+        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(2.5)), path + "intensity25.pdf");
+        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(2)), path + "intensity2.pdf");
+        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(1.5)), path + "intensity15.pdf");
+        plots::PlotIntensity::quick_plot(map.get_histogram(map.level(1)), path + "intensity1.pdf");
+        map.save("data/output/" + utility::stem(mapfile) + ".pdb", map.level(3));
     }
 
     return 0;

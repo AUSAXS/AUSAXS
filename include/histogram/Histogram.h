@@ -73,12 +73,12 @@ namespace hist {
             void set_axis(const Axis& axis) noexcept;
 
             /**
-             * @brief Get the minimum value. 
+             * @brief Get the spanned range of this histogram. 
              */
             [[nodiscard]] Limit span() const noexcept;
 
             /**
-             * @brief Get the positive span of this histogram.
+             * @brief Get the positive spanned range of this histogram.
              *        This can be useful for setting log ranges. 
              */
             [[nodiscard]] Limit span_positive() const noexcept;

@@ -6,11 +6,7 @@
 #include <data/Protein.h>
 #include <utility/Utility.h>
 
-em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {
-    auto header = images.get_header();
-    Axis axis(20, header->dmin, header->dmax);
-    set_charge_levels(axis);
-}
+em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}
 
 hist::ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
     update_protein(cutoff);
@@ -97,6 +93,12 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
         previous_cutoff = cutoff;
         return;
     }
+
+    // sanity check
+    if (charge_levels.empty()) {
+        throw except::unexpected("Error in PartialHistogramManager::update_protein: charge_levels is empty.");
+    }
+
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
     std::cout << "Found " << new_protein->atom_size() << " voxels with a cutoff larger than " << cutoff << std::endl;
 
@@ -167,6 +169,12 @@ std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {
 std::shared_ptr<Protein> em::PartialHistogramManager::get_protein(double cutoff) {
     update_protein(cutoff);
     return protein;
+}
+
+void em::PartialHistogramManager::set_charge_levels() noexcept {
+    auto header = images.get_header();
+    Axis axis(20, 0, header->dmax); //! Only works for positive levels
+    set_charge_levels(axis.as_vector());
 }
 
 void em::PartialHistogramManager::set_charge_levels(Axis levels) noexcept {

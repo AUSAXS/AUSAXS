@@ -19,7 +19,7 @@ class Dataset {
         /**
          * @brief Default constructor.
          */
-        Dataset() {}
+        Dataset() noexcept {}
 
         /**
          * @brief Constructor.
@@ -35,35 +35,35 @@ class Dataset {
          * 
          * Create a new empty dataset with the given labels.
          */
-        Dataset(std::string xlabel, std::string ylabel);
+        Dataset(std::string xlabel, std::string ylabel) noexcept;
 
         /**
          * @brief Constructor. 
          * 
          * Create a new dataset based on a list of x and y coordinates. 
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y);
+        Dataset(const std::vector<double>& x, const std::vector<double>& y) noexcept;
 
         /**
          * @brief Constructor. 
          * 
          * Create a new dataset based on a list of x and y coordinates, along with an error on the latter. 
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
+        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) noexcept;
 
         /**
          * @brief Constructor. 
          * 
          * Create a new dataset based on a list of x and y coordinates, along with errors for both.
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr, const std::vector<double>& xerr);
+        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr, const std::vector<double>& xerr) noexcept;
 
         /**
          * @brief Constructor. 
          * 
          * Create a new labelled dataset based on a list of x and y coordinates. 
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel);
+        Dataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) noexcept;
 
         /**
          * @brief Destructor. 
@@ -214,6 +214,17 @@ class Dataset {
          * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
          */
         void ylimits(const Limit& limit) noexcept;
+
+        /**
+         * @brief Get the spanned y-range. 
+         */
+        [[nodiscard]] Limit span() const noexcept;
+
+        /**
+         * @brief Get the positive spanned y-range.
+         *        This can be useful for setting log ranges. 
+         */
+        [[nodiscard]] Limit span_positive() const noexcept;
 
         std::string xlabel = "x", xerrlabel = "xerr";
         std::string ylabel = "y", yerrlabel = "yerr";

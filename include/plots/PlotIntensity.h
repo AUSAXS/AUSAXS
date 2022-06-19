@@ -70,7 +70,7 @@ namespace plots {
 			std::shared_ptr<TCanvas> canvas;
 			std::unique_ptr<TPad> linpad;
 			std::unique_ptr<TPad> logpad;
-			double ymin, ymax;
+			Limit limits;
 
 			void initial_intensity_plot(int color);
 

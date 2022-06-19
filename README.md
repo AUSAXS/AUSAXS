@@ -1,4 +1,6 @@
 # Todo
+ * [ ] EM: Remove all negative stain functionality. Implement a simple "converter" that can multiply all map entries by -1 if needed. Simpler code without losing support for anything. 
+ * [ ] Dataset & Histogram: Basically same class, can maybe be combined somehow?
  * [ ] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
  * [ ] EMFitter: Base body cutoff values on map. Right now no performance improvement is gained for low densities.

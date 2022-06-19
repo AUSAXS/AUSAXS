@@ -37,30 +37,18 @@ void plots::PlotIntensity::initial_intensity_plot(int color) {
 
     // Debye scattering intensity
     auto h = d.calc_debye_scattering_intensity();
-    std::shared_ptr<TH1D> hI_debye = d.plot_debye_scattering();
-    PlotOptions options;
-    options.xlabel = "q";
-    options.ylabel = "Intensity";
-    options.line_width = 3;
-    options.color = color;
-
-    ymin = std::max(hI_debye->GetMinimum(), Double_t(1e-6));
-    ymax = hI_debye->GetMaximum();
-    hI_debye->SetAxisRange(ymin*0.9, ymax*1.1, "Y"); // fix the axis range so we can match it with the guinier approx
-    draw(hI_debye, options, canvas);
+    h.add_plot_options("line", {{"lw", 3}, {"c", color}});
+    initial_intensity_plot(h);
 }
 
 void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
-    std::shared_ptr<TGraph> graph = data.plot();
+    limits = data.span_positive();
+
     plots::PlotOptions options = data.plot_options;
     options.xlabel = "q";
     options.ylabel = "Intensity";
-
-    ymin = std::max(graph->GetYaxis()->GetXmin(), Double_t(1e-6));
-    ymax = graph->GetYaxis()->GetXmax();
-    graph->GetHistogram()->SetMinimum(ymin*0.9);
-    graph->GetHistogram()->SetMaximum(ymax*1.1);
-    draw(graph, options, canvas);
+    options.ylimits = limits;
+    draw(data, options, canvas);
 }
 
 void plots::PlotIntensity::quick_plot(const SAXSDataset& d, std::string path) {
@@ -79,8 +67,8 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data) {
     options.use_existing_axes = true;
 
     linpad->cd();
-    graph->GetHistogram()->SetMinimum(ymin*0.9);
-    graph->GetHistogram()->SetMaximum(ymax*1.1);
+    graph->GetHistogram()->SetMinimum(limits.min*0.9);
+    graph->GetHistogram()->SetMaximum(limits.max*1.1);
     draw(graph, options, canvas);
 }
 
@@ -90,8 +78,8 @@ void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, const 
     options.use_existing_axes = true;
 
     linpad->cd();
-    graph->GetHistogram()->SetMinimum(ymin*0.9);
-    graph->GetHistogram()->SetMaximum(ymax*1.1);
+    graph->GetHistogram()->SetMinimum(limits.min*0.9);
+    graph->GetHistogram()->SetMaximum(limits.max*1.1);
     draw(graph, options, canvas);
 }
 
@@ -111,12 +99,12 @@ void plots::PlotIntensity::plot_guinier_approx() {
     logpad->SetLeftMargin(0.19);
 
     auto hI_guinier = d.plot_guinier_approx();
-    double offset = log10(ymax) - hI_guinier->GetMaximum(); // the offset from the debye plot (free variable in the guinier approx)
+    double offset = log10(limits.max) - hI_guinier->GetMaximum(); // the offset from the debye plot (free variable in the guinier approx)
     for (int i = 1; i < hI_guinier->GetNbinsX(); i++) {hI_guinier->SetBinContent(i, hI_guinier->GetBinContent(i)+offset);} // apply the offset
     hI_guinier->SetLineWidth(3);
     hI_guinier->SetLineColor(kAzure+1);
     hI_guinier->SetLineStyle(kDashed);
-    hI_guinier->SetAxisRange(log10(ymin*0.9), log10(ymax*1.1), "Y"); // use same limits as the debye plot
+    hI_guinier->SetAxisRange(log10(limits.min*0.9), log10(limits.max*1.1), "Y"); // use same limits as the debye plot
     hI_guinier->SetNdivisions(3, "Y"); // use only 3 labels on the y axis
     hI_guinier->DrawClone("Y+ HIST L"); // Y+ creates a second axis on the right side
 

@@ -42,6 +42,11 @@ namespace em {
             std::shared_ptr<Protein> get_protein(double cutoff);
 
             /**
+             * @brief Set the charge levels to default values.
+             */
+            void set_charge_levels() noexcept;
+
+            /**
              * @brief Set the charge levels.
              */
             void set_charge_levels(std::vector<double> levels) noexcept;

@@ -55,6 +55,7 @@ ImageStack::ImageStack(string file, unsigned int resolution)
 ImageStack::~ImageStack() = default;
 
 void ImageStack::setup() {
+    phm->set_charge_levels(); // set default charge levels
     determine_staining();
     if (negatively_stained()) {
         vector<double> levels = phm->get_charge_levels();

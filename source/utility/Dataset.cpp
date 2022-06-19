@@ -20,16 +20,16 @@ Dataset::Dataset(const string file) {
     read(file);
 }
 
-Dataset::Dataset(std::string xlabel, std::string ylabel) : xlabel(xlabel), xerrlabel(xlabel+"err"), ylabel(ylabel), yerrlabel(ylabel+"err") {
+Dataset::Dataset(std::string xlabel, std::string ylabel) noexcept: xlabel(xlabel), xerrlabel(xlabel+"err"), ylabel(ylabel), yerrlabel(ylabel+"err") {
     plot_options.xlabel = xlabel;
     plot_options.ylabel = ylabel;
 }
 
-Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {
+Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y) noexcept: x(x), y(y) {
     validate_sizes();
 }
 
-Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const string xlabel, const string ylabel) 
+Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const string xlabel, const string ylabel) noexcept 
     : xlabel(xlabel), xerrlabel(xlabel+"err"), ylabel(ylabel), yerrlabel(ylabel+"err"), x(x), y(y) {
     
     validate_sizes();
@@ -37,12 +37,12 @@ Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, con
     plot_options.ylabel = ylabel;
 }
 
-Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : x(x), y(y), yerr(yerr) {
+Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) noexcept: x(x), y(y), yerr(yerr) {
     xerr.resize(yerr.size());
     validate_sizes();
 }
 
-Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& xerr, const std::vector<double>& yerr)
+Dataset::Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& xerr, const std::vector<double>& yerr) noexcept
     : x(x), xerr(xerr), y(y), yerr(yerr) {
         validate_sizes();
     }
@@ -210,6 +210,26 @@ void Dataset::ylimits(const Limit& limits) noexcept {
     y = std::move(newy);
     xerr = std::move(newxerr);
     yerr = std::move(newyerr);
+}
+
+[[nodiscard]] Limit Dataset::span() const noexcept {
+    auto[min, max] = std::minmax_element(y.begin(), y.end());
+    return Limit(*min, *max);
+}
+
+[[nodiscard]] Limit Dataset::span_positive() const noexcept {
+    if (size() == 0) {
+        return Limit(0, 0);
+    }
+
+    Limit limits(y[0], y[0]);
+    for (double val : y) {
+        if (0 < val) {
+            limits.min = std::min(val, limits.min);
+        }
+        limits.max = std::max(val, limits.max);
+    }
+    return limits;
 }
 
 void Dataset::simulate_noise() {
