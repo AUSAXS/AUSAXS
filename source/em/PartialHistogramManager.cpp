@@ -173,7 +173,7 @@ std::shared_ptr<Protein> em::PartialHistogramManager::get_protein(double cutoff)
 
 void em::PartialHistogramManager::set_charge_levels() noexcept {
     auto header = images.get_header();
-    Axis axis(20, 0, header->dmax); //! Only works for positive levels
+    Axis axis(20, 0, header->dmax);
     set_charge_levels(axis.as_vector());
 }
 

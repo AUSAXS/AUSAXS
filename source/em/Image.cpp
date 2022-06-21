@@ -28,11 +28,6 @@ list<Atom> Image::generate_atoms(double cutoff) const {
     if (__builtin_expect(header == nullptr, false)) {throw except::invalid_operation("Error in Image::generate_atoms: Header must be initialized to use this method.");}
     list<Atom> atoms;
 
-    // determine which comparison function to use
-    std::function<bool(double)> compare_positive = [&cutoff] (double val) {return val < cutoff;};
-    std::function<bool(double)> compare_negative = [&cutoff] (double val) {return val > cutoff;};
-    std::function<bool(double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
-
     // loop through all pixels in this image
     double xscale = header->cella_x/N;
     double yscale = header->cella_y/M;
@@ -42,7 +37,7 @@ list<Atom> Image::generate_atoms(double cutoff) const {
     for (unsigned int x = 0; x < N; x += step) {
         for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
             float val = index(x, y);
-            if (compare_func(val)) {
+            if (val < cutoff) {
                 continue;
             }
 
@@ -110,16 +105,12 @@ const ObjectBounds2D& Image::get_bounds() const {
 }
 
 const ObjectBounds2D& Image::setup_bounds(double cutoff) {
-    std::function<bool(double)> accept_positive = [&cutoff] (double val) {return val > cutoff;};
-    std::function<bool(double)> accept_negative = [&cutoff] (double val) {return val < cutoff;};
-    std::function<bool(double)> accept_func = 0 <= cutoff ? accept_positive : accept_negative;
-
     for (unsigned int x = 0; x < N; x++) {
         bounds[x].min = 0;
         bounds[x].max = 0;
         bool min_set = false;
         for (unsigned int y = 0; y < M; y++) {
-            if (!accept_func(index(x, y))) {continue;}
+            if (index(x, y) < cutoff) {continue;}
             if (!min_set) {
                 bounds[x].min = y; // update min val to this index
                 bounds[x].max = y; // also set max in case this is the only entry

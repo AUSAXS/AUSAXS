@@ -1,11 +1,6 @@
 #include <algorithm>
 #include <fstream>
 
-//! ##### Remove ##### !
-#include <chrono>
-using namespace std::chrono;
-//! ################## !
-
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
 #include <em/ImageStack.h>
@@ -28,15 +23,7 @@ ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution)
     : resolution(resolution), size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
     
     data = images;
-    setup();
-}
-
-void ImageStack::validate_extension(string file) const {
-    string extension = std::filesystem::path(file).extension().string();
-    if (extension == ".ccp4") {return;}
-    if (extension == ".map") {return;}
-    if (extension == ".mrc") {return;}
-    throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
+    phm->set_charge_levels(); // set default charge levels
 }
 
 ImageStack::ImageStack(string file, unsigned int resolution) 
@@ -49,19 +36,17 @@ ImageStack::ImageStack(string file, unsigned int resolution)
 
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     read(input, get_byte_size());
-    setup();
+    phm->set_charge_levels(); // set default charge levels
 }
 
 ImageStack::~ImageStack() = default;
 
-void ImageStack::setup() {
-    phm->set_charge_levels(); // set default charge levels
-    determine_staining();
-    if (negatively_stained()) {
-        vector<double> levels = phm->get_charge_levels();
-        std::transform(levels.begin(), levels.end(), levels.begin(), std::negate<double>());
-        phm->set_charge_levels(levels);
-    }
+void ImageStack::validate_extension(string file) const {
+    string extension = std::filesystem::path(file).extension().string();
+    if (extension == ".ccp4") {return;}
+    if (extension == ".map") {return;}
+    if (extension == ".mrc") {return;}
+    throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
 void ImageStack::save(string path, double cutoff) const {
@@ -91,15 +76,6 @@ hist::ScatteringHistogram ImageStack::get_histogram(const std::shared_ptr<EMFit>
 
 std::shared_ptr<Protein> ImageStack::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
-}
-
-void ImageStack::set_staining(double val) {
-    if (val == 0) {throw except::invalid_argument("Error in ImageStack::set_staining: Argument is 0, sign cannot be deduced.");}
-    staining = val < 0 ? Staining::negative : Staining::positive;
-}
-
-void ImageStack::set_staining(Staining staining) noexcept {
-    this->staining = staining;
 }
 
 void ImageStack::update_charge_levels(Limit limit) const noexcept {
@@ -216,11 +192,10 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist
     landscape.contour = minimizer.landscape(points.bins);
 
     // fit
-    double guess; Limit bounds;
-    if (positively_stained()) {guess = 2; bounds = Limit(1, 10);}   //! Find a better approach - this will not always work
-    else {guess = -2; bounds = Limit(-10, -1);}                     //! Same
+    double l = level(1);
+    Limit limit(0.5*l, 5*l);
     minimizer.clear_parameters();
-    minimizer.add_parameter({"cutoff", guess, bounds});
+    minimizer.add_parameter({"cutoff", limit.center(), limit});
     auto res = minimizer.minimize();
 
     EMFit emfit(fitter, res, res.fval);
@@ -278,29 +253,6 @@ double ImageStack::mean() const {
         sum += image(z).mean();
     }
     return sum/size_z;
-}
-
-bool ImageStack::positively_stained() const {return staining == Staining::positive;}
-
-bool ImageStack::negatively_stained() const {return staining == Staining::negative;}
-
-void ImageStack::determine_staining() {
-    staining = Staining::positive;
-    // // we count how many images where the maximum density is positive versus negative
-    // double sign = 0;
-    // for (unsigned int z = 0; z < size_z; z++) {
-    //     Limit limit = image(z).limits();
-    //     double min = std::abs(limit.min), max = std::abs(limit.max);
-    //     if (1 <= min && max+1 < min) {
-    //         sign--;
-    //     } else if (1 <= max && min+1 < max) {
-    //         sign++;
-    //     }
-    // }
-
-    // // set the staining type so we don't have to calculate it again later
-    // if (sign > 0) {staining = Staining::positive;}
-    // else {staining = Staining::negative;}
 }
 
 ObjectBounds3D ImageStack::minimum_volume(double cutoff) {

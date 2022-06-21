@@ -56,8 +56,8 @@ intensity_fit/%: build/executable/intensity_fitter
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-resolution_min = 25
-resolution_max = 25
+resolution_min = 10
+resolution_max = 10
 simulate/%: data/%.pdb
 	@for i in `seq $(resolution_min) $(resolution_max)`; do \
 		echo "Building map " $$i;\
