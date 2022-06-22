@@ -39,6 +39,8 @@ void PDBReader::read(std::string input_path) {
             } case Record::RecordType::FOOTER: {
                 f.add("FOOTER", line);
                 break;
+            } case Record::RecordType::NOTYPE: {
+                break;
             } default: {
                 throw except::io_error("Error in PDB_file::read: Malformed input file - unrecognized type \"" + type + "\".");
             }

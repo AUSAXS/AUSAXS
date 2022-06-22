@@ -51,13 +51,13 @@ qlow := 0
 qhigh := 1000
 center := center
 intensity_fit/%: build/executable/intensity_fitter
-	$< data/$*.pdb data/$*.RSR figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
+	$< data/$*.pdb data/$*.dat -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
 
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-resolution_min = 10
-resolution_max = 10
+resolution_min = 1
+resolution_max = 1
 simulate/%: data/%.pdb
 	@for i in `seq $(resolution_min) $(resolution_max)`; do \
 		echo "Building map " $$i;\

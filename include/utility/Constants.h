@@ -126,16 +126,22 @@ namespace constants {
      * The weights are taken from https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf. 
      */
     namespace mass {
-        constexpr double H = 1.008;  // Hydrogen mass
-        constexpr double He = 4.003; // Helium mass
-        constexpr double Li = 7.016; // Lithium mass
-        constexpr double C = 12.011; // Carbon mass
-        constexpr double N = 14.003; // Nitrogen mass
-        constexpr double O = 15.995; // Oxygen mass
-        constexpr double S = 31.972; // Sulphur mass
+        constexpr double H = 1.008;
+        constexpr double He = 4.003;
+        constexpr double Li = 7.016;
+        constexpr double Be = 9.012;
+        constexpr double B = 10.013;
+        constexpr double C = 12.011;
+        constexpr double N = 14.003;
+        constexpr double O = 15.995;
+        constexpr double F = 18.998;
+        constexpr double P = 30.974;
+        constexpr double S = 31.972; // most abundant
+        constexpr double Cl = 34.969; // most abundant
+        constexpr double K = 38.964; // most abundant
 
         // get the weight of an atom
-        const std::map<std::string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+        const std::map<std::string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"Be", Be}, {"B", B}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"P", P}, {"S", S}, {"Cl", Cl}, {"K", K}};
 
         namespace density {
             constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3; // u/Å^3
@@ -148,17 +154,18 @@ namespace constants {
      * This namespace contains the net charge of the most common atomic elements encountered in SAXS. 
      */
     namespace charge {
-        constexpr int e = 1;  // Electron charge
-        constexpr int H = 1;  // Hydrogen charge
-        constexpr int He = 2; // Helium charge
-        constexpr int Li = 3; // Lithium charge 
-        constexpr int C = 6;  // Carbon charge
-        constexpr int N = 7;  // Nitrogen charge
-        constexpr int O = 8;  // Oxygen charge
-        constexpr int S = 16; // Sulphur charge
+        constexpr unsigned int e = 1;
+        constexpr unsigned int H = 1;
+        constexpr unsigned int He = 2;
+        constexpr unsigned int Li = 3;
+        constexpr unsigned int C = 6;
+        constexpr unsigned int N = 7;
+        constexpr unsigned int O = 8;
+        constexpr unsigned int S = 16;
+        constexpr unsigned int Cl = 17;
 
         // get the charge Z of an atom
-        const std::map<std::string, int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+        const std::map<std::string, unsigned int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3

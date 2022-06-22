@@ -10,6 +10,7 @@
 #include <data/Atom.h>
 #include <math/Vector3.h>
 #include <utility/Constants.h>
+#include <utility/Utility.h>
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 
@@ -46,7 +47,7 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         set_charge(charge);
         try {
             effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
-        } catch (const std::exception& e) {
+        } catch (const except::base& e) {
             throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
         uid = uid_counter++;
@@ -108,11 +109,16 @@ void Atom::parse_pdb(string s) {
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         this->charge = charge;
-    } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
-        throw except::parse_error("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
+    } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
+        utility::print_warning("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
+        throw e;
     }
 
-    effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+    try {
+        effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+    } catch (const std::exception& e) {
+        throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\" or residue \"" + this->resName + "\".");
+    }
 
     // DEBUG OUTPUT
     // cout << s << endl;
