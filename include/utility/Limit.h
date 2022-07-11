@@ -36,6 +36,14 @@ class Limit {
         double center() const noexcept {return min + span()/2;}
 
         /**
+         * @brief Merge two limits, returning their combined span.
+         */
+        void merge(const Limit& other) noexcept {
+            min = std::min(min, other.min);
+            max = std::max(max, other.max);
+        }
+
+        /**
          * @brief Equality operator. Check if this Limit is equal to another.
          */
         bool operator==(const Limit& rhs) const noexcept {return min == rhs.min && max == rhs.max;}

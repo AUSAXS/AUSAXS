@@ -159,11 +159,11 @@ void Dataset::save(std::string path) const {
 
     // prepare header & writer function
     std::function<string(unsigned int)> writer;
-    string header = "broken header";
-    if (yerr.empty()) {
+    string header = "broken header\n";
+    if (!has_yerr()) {
         header = xlabel + " " + ylabel + "\n";
         writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + "\n";};
-    } else if (xerr.empty()) {
+    } else if (!has_xerr()) {
         header = xlabel + " " + ylabel + " " + yerrlabel + "\n";
         writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(yerr[i]) + "\n";};
     } else {writer = [&] (unsigned int i) {
@@ -371,9 +371,9 @@ void Dataset::push_back(const Point2D& point) noexcept {
     if (has_yerr()) {yerr.push_back(point.yerr);}
 }
 
-bool Dataset::has_xerr() const noexcept {return x.size() == xerr.size();}
+bool Dataset::has_xerr() const noexcept {return x.size() == xerr.size() && xerr.size() != 0 && xerr[0] != 0;}
 
-bool Dataset::has_yerr() const noexcept {return y.size() == yerr.size();}
+bool Dataset::has_yerr() const noexcept {return y.size() == yerr.size() && yerr.size() != 0 && yerr[0] != 0;}
 
 void Dataset::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
 

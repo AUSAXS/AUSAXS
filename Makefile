@@ -29,7 +29,8 @@ hydrate/%: build/executable/new_hydration
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
 hist/%: build/executable/hist
-	$< data/$*.pdb figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
+	@structure=$(shell find data/ -name "$*.pdb"); \
+	$< $${structure} figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
 
 order := ""
 rotate/%: build/executable/rotate_map
@@ -51,20 +52,26 @@ qlow := 0
 qhigh := 1000
 center := center
 intensity_fit/%: build/executable/intensity_fitter
-	$< data/$*.pdb data/$*.dat -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
+	@structure=$(shell find data/ -name "$*.pdb"); \
+	@measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
+
+consistency/%: build/executable/consistency
+	@map=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
+	$< $${map}
 
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-resolution_min = 1
-resolution_max = 1
+resolution_min = 10
+resolution_max = 10
 simulate/%: data/%.pdb
 	@for i in `seq $(resolution_min) $(resolution_max)`; do \
 		echo "Building map " $$i;\
 		phenix.fmodel data/$*.pdb high_resolution=$$i;\
-		phenix.mtz2map mtz_file=$*.pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$*;\
-		rm $*.pdb.mtz;\
-		mv $*_fmodel.ccp4 sim/$*_$$i.ccp4;\
+		phenix.mtz2map mtz_file=$(*F).pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$(*F);\
+		rm $(*F).pdb.mtz;\
+		mv $(*F)_fmodel.ccp4 sim/$(*F)_$$i.ccp4;\
 	done
 
 stuff/%: build/executable/stuff data/%.pdb

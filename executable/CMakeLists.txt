@@ -24,3 +24,6 @@ target_link_libraries(stuff saxs)
 
 add_executable(rotate_map rotate_map.cpp)
 target_link_libraries(rotate_map saxs)
+
+add_executable(consistency consistency.cpp)
+target_link_libraries(consistency saxs)

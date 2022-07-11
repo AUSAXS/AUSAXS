@@ -125,7 +125,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
 
 std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensityFitter& fitter) {
     // convert the calculated intensities to absolute scale
-    utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
+    // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
     // double c = setting::em::concentration;                                // concentration
     // double m = protein->get_absolute_mass()*constants::unit::mg;          // mass

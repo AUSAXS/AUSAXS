@@ -24,10 +24,10 @@ int main(int argc, char const *argv[]) {
     // string mapfile = "data/flipped_ns_igefceria.mrc";
     string mapfile = "sim/2epe_10.ccp4";
 
-    string pdbfile = "data/2epe.pdb";
+    string pdbfile = "data/lysozyme/2epe.pdb";
     // string pdbfile = "data/native.pdb";
 
-    string mfile = "data/2epe.RSR";
+    string mfile = "data/lysozyme/2epe.RSR";
     // string mfile = "data/A2M_native.RSR";
     // string mfile = "data/A2M_tryp.RSR";
     // string mfile = "data/shoc2.dat";
@@ -35,7 +35,8 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
 
     //* STRUCTURE FIT
-    if (true) {
+    // Fit the entire structure file to the EM density map.
+    if (false) {
         string path = "figures/em/structure_fit/" + utility::stem(mapfile) + "/" + utility::stem(pdbfile) + "/";
 
         Protein pdb(pdbfile);
@@ -52,6 +53,7 @@ int main(int argc, char const *argv[]) {
     }
 
     //* MEASUREMENT FIT
+    // Fit the measurements to the EM density map.
     if (true) {
         string path = "figures/em/measurement_fit/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
 
@@ -62,11 +64,12 @@ int main(int argc, char const *argv[]) {
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
 
-        auto scan = map.cutoff_scan(100, mfile);
-        plots::PlotDataset::quick_plot(scan, path + "scan.pdf");
+        // auto scan = map.cutoff_scan(100, mfile);
+        // plots::PlotDataset::quick_plot(scan, path + "scan.pdf");
     }
 
     //* GENERATE INTENSITY & PDB
+    // Perform an intensity fit, and generate a PDB file for the optimal parameters.
     if (false) {
         // unsigned int c;
         // for(const em::Image& image : map.images()) {
@@ -97,7 +100,7 @@ int main(int argc, char const *argv[]) {
         // map.get_histogram(map.level(2)).calc_debye_scattering_intensity().save("intensity2.txt");
         // map.get_histogram(map.level(1.5)).calc_debye_scattering_intensity().save("intensity15.txt");
         // map.get_histogram(map.level(1)).calc_debye_scattering_intensity().save("intensity1.txt");
-        // map.save("data/output/" + utility::stem(mapfile) + ".pdb", map.level(3));
+        map.save("data/output/" + utility::stem(mapfile) + ".pdb", map.level(3));
     }
 
     return 0;

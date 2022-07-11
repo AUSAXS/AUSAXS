@@ -61,6 +61,10 @@ Fit::Plots SimpleIntensityFitter::plot() {
     vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     vector<double> Im = splice(ym);
 
+    // if we have a I0, we need to rescale the data
+    // double factor = I0/ym[0];
+    // std::transform(Im.begin(), Im.end(), Im.begin(), [&factor] (double y) {return factor*y;});
+
     // calculate the scaled I model values
     vector<double> I_scaled(data.size()); // spliced data
     vector<double> ym_scaled(ym.size()); // original scaled data

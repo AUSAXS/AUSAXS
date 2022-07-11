@@ -100,7 +100,7 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
     }
 
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
-    std::cout << "Found " << new_protein->atom_size() << " voxels with a cutoff larger than " << cutoff << std::endl;
+    // std::cout << "Found " << new_protein->atom_size() << " voxels with a cutoff larger than " << cutoff << std::endl;
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
     std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
