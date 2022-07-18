@@ -216,6 +216,16 @@ class Dataset {
         void ylimits(const Limit& limit) noexcept;
 
         /**
+         * @brief Impose a limit on the x-axis. All data lying outside this range will be removed.
+         */
+        void xlimits(double min, double max) noexcept;
+
+        /**
+         * @brief Impose a limit on the x-axis. All data lying outside this range will be removed.
+         */
+        void xlimits(const Limit& limit) noexcept;
+
+        /**
          * @brief Get the spanned y-range. 
          */
         [[nodiscard]] Limit span() const noexcept;

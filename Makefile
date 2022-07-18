@@ -57,7 +57,7 @@ intensity_fit/%: build/executable/intensity_fitter
 	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
 
 consistency/%: build/executable/consistency
-	@map=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
+	@ map=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
 	$< $${map}
 
 #################################################################################

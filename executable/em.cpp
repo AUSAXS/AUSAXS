@@ -19,18 +19,19 @@ int main(int argc, char const *argv[]) {
     // string mapfile = "data/A2M/emd_12748.map";
     // string mapfile = "data/A2M/emd_12752.map"; // tryp
     // string mapfile = "data/A2M/emd_12753.map"; // tryp
-    // string mapfile = "data/SHOC2/emd_25044.map";
+    string mapfile = "data/SHOC2/emd_25044.map";
     // string mapfile = "data/SHOC2/emd_26667.map";
     // string mapfile = "data/flipped_ns_igefceria.mrc";
-    string mapfile = "sim/2epe_10.ccp4";
+    // string mapfile = "sim/2epe_10.ccp4";
 
-    string pdbfile = "data/lysozyme/2epe.pdb";
+    // string pdbfile = "data/lysozyme/2epe.pdb";
+    string pdbfile = "data/SHOC2/7sd0.pdb";
     // string pdbfile = "data/native.pdb";
 
-    string mfile = "data/lysozyme/2epe.RSR";
+    // string mfile = "data/lysozyme/2epe.RSR";
     // string mfile = "data/A2M_native.RSR";
     // string mfile = "data/A2M_tryp.RSR";
-    // string mfile = "data/shoc2.dat";
+    string mfile = "data/SHOC2/7sd0.dat";
 
     em::ImageStack map(mapfile); 
 

@@ -212,6 +212,25 @@ void Dataset::ylimits(const Limit& limits) noexcept {
     yerr = std::move(newyerr);
 }
 
+void Dataset::xlimits(double min, double max) noexcept {xlimits({min, max});}
+
+void Dataset::xlimits(const Limit& limits) noexcept {
+    std::vector<double> newx, newy, newxerr, newyerr;
+    for (unsigned int i = 0; i < size(); i++) {
+        if (limits.min <= x[i] && x[i] <= limits.max) {
+            newx.push_back(x[i]);
+            newy.push_back(y[i]);
+            if (has_xerr()) {newxerr.push_back(xerr[i]);}
+            if (has_yerr()) {newyerr.push_back(yerr[i]);}
+        }
+    }
+
+    x = std::move(newx);
+    y = std::move(newy);
+    xerr = std::move(newxerr);
+    yerr = std::move(newyerr);
+}
+
 [[nodiscard]] Limit Dataset::span() const noexcept {
     auto[min, max] = std::minmax_element(y.begin(), y.end());
     return Limit(*min, *max);
@@ -338,10 +357,15 @@ void Dataset::rebin() noexcept {
         double siginv = 0, sumw = 0, qsum = 0;
         unsigned int ss = 0;
         for (; ss < fold; ss++) {
+            std::cout << "checkpoint1" << std::endl;
             if (i == size()) {break;}
+            std::cout << "checkpoint1" << std::endl;
             siginv += (std::pow(yerr[i], -2));
+            std::cout << "checkpoint1" << std::endl;
             sumw += y[i]/(std::pow(yerr[i], 2));
+            std::cout << "checkpoint1" << std::endl;
             qsum += x[i];
+            std::cout << "checkpoint1" << std::endl;
             i++;
 
         }

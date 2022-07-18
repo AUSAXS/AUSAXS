@@ -32,6 +32,31 @@ TEST_CASE("dataset_ylimits", "[dataset]") {
     }
 }
 
+TEST_CASE("dataset_xlimits", "[dataset]") {
+    Dataset data;
+    data.x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    data.y = {-10, -6, -4, -1, 2, 1, 3, 6, 7, 9};
+
+    Limit limit(0.5, 5);
+    data.xlimits(limit);
+    REQUIRE(data.x.size() == data.y.size());
+    for (unsigned int i = 0; i < data.size(); i++) {
+        CHECK(limit.min <= data.x[i]);
+        CHECK(data.x[i] <= limit.max);
+    }
+}
+
+TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
+    SAXSDataset data("data/SHOC2/7sd0.dat");
+    SAXSDataset data_unbinned = data;
+    data.rebin();
+    data.save("temp/dataset/rebin.dat");
+
+    plots::PlotDataset plot(data_unbinned);
+    plot.plot(data);
+    plot.save("temp/dataset_rebin.pdf");
+}
+
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
     SAXSDataset data1("data/2epe.RSR");
     SAXSDataset data2 = data1;
@@ -58,12 +83,6 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
 
     hist.generate_axis();
     plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.pdf");
-}
-
-TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
-    Dataset data("data/test/SASDL32.dat");
-    data.rebin();
-    data.save("temp/dataset/rebin.dat");
 }
 
 TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
