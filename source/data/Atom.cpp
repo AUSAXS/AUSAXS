@@ -10,6 +10,7 @@
 #include <data/Atom.h>
 #include <math/Vector3.h>
 #include <utility/Constants.h>
+#include <utility/Settings.h>
 #include <utility/Utility.h>
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
@@ -45,10 +46,19 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         set_tempFactor(tempFactor);
         set_element(element);
         set_charge(charge);
-        try {
-            effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
-        } catch (const except::base& e) {
-            throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+
+        // check if we want to correct the hydrogen contribution to the charge
+        if (setting::protein::use_effective_charge) {
+            // use a try-catch block to throw more sensible errors
+            try {
+                effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+            } catch (const except::base& e) {
+                throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+            }
+        } 
+        // otherwise just use the atomic charge (this will never fail)
+        else {
+            effective_charge = constants::charge::atomic.at(this->element);
         }
         uid = uid_counter++;
 }

@@ -52,8 +52,8 @@ qlow := 0
 qhigh := 1000
 center := center
 intensity_fit/%: build/executable/intensity_fitter
-	@structure=$(shell find data/ -name "$*.pdb"); \
-	@measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
 
 consistency/%: build/executable/consistency

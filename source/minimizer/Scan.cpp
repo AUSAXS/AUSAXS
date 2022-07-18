@@ -1,4 +1,5 @@
 #include <minimizer/Scan.h>
+#include <minimizer/Golden.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 
@@ -83,6 +84,11 @@ void Scan::add_parameter(const Parameter& param) {
 Result Scan::minimize_override() {
     Dataset data = landscape(bins);
     auto min = data.find_minimum();
-    FittedParameter p(parameters[0], min.x, 0);
-    return Result(p, min.y, fevals);
+
+    // find local minimum
+    auto width = data.span().span()/data.size(); // find width of each step
+    parameters[0].bounds = Limit(min.x - width, min.x + width); // update bounds
+
+    mini::Golden golden(function, parameters[0]);
+    return golden.minimize();
 }

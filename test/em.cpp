@@ -315,25 +315,25 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
 TEST_CASE("staining_and_limits", "[em],[files]") {
     SECTION("maptest.ccp4") {
         em::ImageStack image("data/maptest.ccp4");
-        CHECK(image.positively_stained());
+        // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
     }
 
     SECTION("A2M_ma.ccp4") {
         em::ImageStack image("data/A2M_ma.ccp4");
-        CHECK(image.positively_stained());
+        // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
     }
 
     SECTION("native10.ccp4") {
         em::ImageStack image("data/native10.ccp4", 10);
-        CHECK(image.positively_stained());
+        // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/10));
     }
 
     SECTION("native25.ccp4") {
         em::ImageStack image("data/native25.ccp4", 25);
-        CHECK(image.positively_stained());
+        // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/25));
     }
 }

@@ -158,18 +158,49 @@ namespace constants {
         constexpr unsigned int H = 1;
         constexpr unsigned int He = 2;
         constexpr unsigned int Li = 3;
+        constexpr unsigned int Be = 4;
+        constexpr unsigned int B = 5;
         constexpr unsigned int C = 6;
         constexpr unsigned int N = 7;
         constexpr unsigned int O = 8;
+        constexpr unsigned int F = 9;
+        constexpr unsigned int Ne = 10;
+        constexpr unsigned int Na = 11;
+        constexpr unsigned int Mg = 12;
+        constexpr unsigned int Al = 13;
+        constexpr unsigned int Si = 14;
+        constexpr unsigned int P = 15;
         constexpr unsigned int S = 16;
         constexpr unsigned int Cl = 17;
+        constexpr unsigned int Ar = 18;
+        constexpr unsigned int K = 19;
+        constexpr unsigned int Ca = 20;
 
         // get the charge Z of an atom
-        const std::map<std::string, unsigned int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"C", C}, {"N", N}, {"O", O}, {"S", S}};
+        const std::map<std::string, unsigned int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"Be", Be}, {"B", B}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"Ne", Ne}, {"Na", Na}, {"Mg", Mg}, 
+            {"Al", Al}, {"Si", Si}, {"P", P}, {"S", S}, {"Cl", Cl}, {"Ar", Ar}, {"K", K}, {"Ca", Ca}};
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3
         }
+    }
+
+    /**
+     * @brief valence
+     */
+    namespace valence {
+        constexpr unsigned int H = 1;
+        constexpr unsigned int C = 4;
+        constexpr unsigned int N = 3;
+        constexpr unsigned int O = 2;
+        constexpr unsigned int F = 1;
+        constexpr unsigned int Ne = 0;
+        constexpr unsigned int S = 2;
+        constexpr unsigned int P = 1;
+        constexpr unsigned int Cl = 1;
+
+        // get the valence of an atom
+        const std::map<std::string, unsigned int> get = {{"H", H}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"Ne", Ne}, {"S", S}, {"P", P}, {"Cl", Cl}};
     }
 
     /**
