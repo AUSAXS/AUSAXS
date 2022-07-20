@@ -154,7 +154,55 @@ class MutableSlice : public Slice<T> {
 			return *this;
 		}
 
+	private: 
 		std::vector<T>& data;
+
+		class Iterator {
+			using iterator_category = std::random_access_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = T;
+			using pointer = T*;
+			using reference = T&;
+
+			public: 
+				Iterator(pointer ptr, unsigned int step) : m_ptr(ptr), step(step) {}
+
+				// De-reference operators.
+				reference operator*() {return *m_ptr;}
+				pointer operator->() {return m_ptr;}
+
+				// Increment/decrement operators.
+				Iterator& operator++() {m_ptr += step; return *this;}
+				Iterator& operator--() {m_ptr -= step; return *this;}
+				Iterator operator++(int) {Iterator tmp(*this); m_ptr += step; return tmp;}
+				Iterator operator--(int) {Iterator tmp(*this); m_ptr -= step; return tmp;}
+
+				// Arithmetic operators.
+				Iterator& operator+=(int n) {m_ptr += n*step; return *this;}
+				Iterator& operator-=(int n) {m_ptr -= n*step; return *this;}
+				Iterator operator+(int n) {Iterator tmp(m_ptr); tmp += n*step; return tmp;}
+				Iterator operator-(int n) {Iterator tmp(m_ptr); tmp -= n*step; return tmp;}
+				int operator-(const Iterator& other) {return m_ptr - other.m_ptr;}
+
+				// Comparison operators.
+				bool operator==(const Iterator& other) const {return m_ptr == other.m_ptr;}
+				bool operator!=(const Iterator& other) const {return m_ptr != other.m_ptr;}
+				bool operator<(const Iterator& other) const {return m_ptr < other.m_ptr;}
+				bool operator>(const Iterator& other) const {return m_ptr > other.m_ptr;}
+				bool operator<=(const Iterator& other) const {return m_ptr <= other.m_ptr;}
+				bool operator>=(const Iterator& other) const {return m_ptr >= other.m_ptr;}
+
+				// Swap two iterators.
+				void swap(Iterator& other) {std::swap(m_ptr, other.m_ptr);}
+
+			private: 
+				pointer m_ptr;
+				unsigned int step;
+		};
+	
+	public: 
+		Iterator begin() {return Iterator(this->data.data() + this->start, this->step);}
+		Iterator end() {return Iterator(this->data.data() + this->start + this->length*this->step, this->step);}
 };
 
 /**
@@ -171,7 +219,56 @@ class ConstSlice : public Slice<T> {
 
 		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
 
+	private: 
 		const std::vector<T>& data;
+
+		class Iterator {
+			using iterator_category = std::random_access_iterator_tag;
+			using difference_type = std::ptrdiff_t;
+			using value_type = T;
+			using pointer = T*;
+			using reference = T&;
+
+			public: 
+				Iterator(pointer ptr, unsigned int step) : m_ptr(ptr), step(step) {}
+
+				// De-reference operators.
+				reference operator*() {return *m_ptr;}
+				pointer operator->() {return m_ptr;}
+
+				// Increment/decrement operators.
+				Iterator& operator++() {m_ptr += step; return *this;}
+				Iterator& operator--() {m_ptr -= step; return *this;}
+				Iterator operator++(int) {Iterator tmp(*this); m_ptr += step; return tmp;}
+				Iterator operator--(int) {Iterator tmp(*this); m_ptr -= step; return tmp;}
+
+				// Arithmetic operators.
+				Iterator& operator+=(int n) {m_ptr += n*step; return *this;}
+				Iterator& operator-=(int n) {m_ptr -= n*step; return *this;}
+				Iterator operator+(int n) {Iterator tmp(m_ptr); tmp += n*step; return tmp;}
+				Iterator operator-(int n) {Iterator tmp(m_ptr); tmp -= n*step; return tmp;}
+				int operator-(const Iterator& other) {return m_ptr - other.m_ptr;}
+
+				// Comparison operators.
+				bool operator==(const Iterator& other) const {return m_ptr == other.m_ptr;}
+				bool operator!=(const Iterator& other) const {return m_ptr != other.m_ptr;}
+				bool operator<(const Iterator& other) const {return m_ptr < other.m_ptr;}
+				bool operator>(const Iterator& other) const {return m_ptr > other.m_ptr;}
+				bool operator<=(const Iterator& other) const {return m_ptr <= other.m_ptr;}
+				bool operator>=(const Iterator& other) const {return m_ptr >= other.m_ptr;}
+
+				// Swap two iterators.
+				void swap(Iterator& other) {std::swap(m_ptr, other.m_ptr);}
+
+			private: 
+				pointer m_ptr;
+				unsigned int step;
+		};
+
+	public:
+		Iterator begin() {return Iterator(this->data.data() + this->start, this->step);}
+		Iterator end() {return Iterator(this->data.data() + this->start + this->length*this->step, this->step);}
+
 };
 
 template<typename T>

@@ -58,7 +58,7 @@ class Matrix {
         /**
          * @brief Destructor.
          */
-        ~Matrix() = default;
+        virtual ~Matrix() = default;
 
         /**
          * @brief Get the identity matrix of a given dimension. 
@@ -164,6 +164,26 @@ class Matrix {
                 }
             }
             return C;
+        }
+
+        /**
+         * @brief Extend the number of rows by the specified amount. Data in the old rows is preserved. 
+         *        Complexity: O(N*M)
+         */
+        void extend(int n) {
+            N += n;
+            data.resize(N*M);
+        }
+
+        /**
+         * @brief Resize the matrix to a new shape. 
+         *        If the number of columns are changed, the content of the new matrix is undefined. 
+         *        Otherwise the new rows are filled with zeros, leaving the old rows intact. 
+         *        Complexity: O(N*M)
+         */
+        void resize(int n, int m) {
+            N = n; M = m;
+            data.resize(N*M);
         }
 
         // Read-only indexer

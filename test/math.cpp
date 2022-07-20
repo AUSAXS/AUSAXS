@@ -506,6 +506,48 @@ TEST_CASE("Slices", "[math]") {
         REQUIRE(A.col(0).norm() == sqrt(1+81+36));
         REQUIRE(A.row(0).norm() == sqrt(1+4+4+49));
     }
+
+    SECTION("iterators") {
+        Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+        auto r = A.row(0);
+        auto c = A.col(0);
+
+        // basic iterator stuff
+        REQUIRE(r.begin() == r.begin());
+        REQUIRE(r.end() == r.end());
+        REQUIRE(c.begin() == c.begin());
+        REQUIRE(c.end() == c.end());
+
+        REQUIRE(r.begin() != r.end());
+        REQUIRE(c.begin() != c.end());
+
+        // row iterator
+        auto it = r.begin();
+        CHECK(*it == 1);
+        ++it;
+        CHECK(*it == 2);
+        ++it;
+        CHECK(*it == 2);
+        ++it;
+        CHECK(*it == 7);
+
+        for (auto i : r) {
+            CHECK((i == 1 || i == 2 || i == 7));
+            std::cout << i << std::endl;
+        }
+
+        // column iterator
+        it = c.begin();
+        CHECK(*it == 1);
+        ++it;
+        CHECK(*it == 9);
+        ++it;
+        CHECK(*it == 6);
+
+        for (auto i : c) {
+            CHECK((i == 1 || i == 9 || i == 6));
+        }
+    }
 }
 
 TEST_CASE("Cramer", "[math]") {
