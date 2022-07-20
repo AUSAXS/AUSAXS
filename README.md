@@ -1,4 +1,6 @@
 # Todo
+ * [ ] Minimizer: Each layer of "minimization" adds another layer of wrappers around original function
+ * [ ] SimpleLeastSquares: Can be sped up by using a compressed Dataset class w/o x errors
  * [ ] Dataset & Histogram: Basically same class, can maybe be combined somehow?
  * [ ] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated

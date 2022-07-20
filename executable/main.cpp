@@ -293,10 +293,16 @@ class Ligand {
         }
 };
 
+// int main(int, char const**) {
+//     string test = "InChI=1S/C21H19ClN6O/c22-19-13-24-21-20(26-18(14-28(19)21)15-2-1-7-23-12-15)25-16-3-5-17(6-4-16)27-8-10-29-11-9-27/h1-7,12-14H,8-11H2,(H,25,26)";
+//     Ligand ligand(test);
+//     ligand.enumerate();
+//     ligand.print();
+//     return 0;
+// }
+
+#include <utility/Dataset.h>
+
 int main(int, char const**) {
-    string test = "InChI=1S/C21H19ClN6O/c22-19-13-24-21-20(26-18(14-28(19)21)15-2-1-7-23-12-15)25-16-3-5-17(6-4-16)27-8-10-29-11-9-27/h1-7,12-14H,8-11H2,(H,25,26)";
-    Ligand ligand(test);
-    ligand.enumerate();
-    ligand.print();
     return 0;
 }

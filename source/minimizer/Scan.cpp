@@ -26,7 +26,7 @@ Dataset Scan::landscape(unsigned int evals) const {
     if (!evaluations.empty()) {
         // if so, we can just reuse its result
         Dataset data;
-        std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back({eval.vals[0], eval.fval});});
+        std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back(eval.vals[0], eval.fval);});
         return data;
     }
 

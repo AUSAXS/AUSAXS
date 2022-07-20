@@ -70,11 +70,11 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
 }
 
 void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
-    PlotOptions options = data[0].plot_options;
+    PlotOptions options = data[0].get_plot_options();
 
     TMultiGraph graph;
     for (const Dataset& d : data) {
-        PlotOptions options = d.plot_options;
+        PlotOptions options = d.get_plot_options();
 
         std::string draw_options;
         if (options.draw_line) {draw_options += "L";}
@@ -122,19 +122,19 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
 }
 
 void plots::draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas) {
-    draw(data, data.plot_options, canvas);
+    draw(data, data.get_plot_options(), canvas);
 }
 
 void plots::draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     std::shared_ptr<TGraph> graph;
     if (data.has_yerr() && options.draw_errors) {
         if (data.has_xerr()) {
-            graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), data.xerr.data(), data.yerr.data());
+            graph = std::make_shared<TGraphErrors>(data.size(), data.x().as_vector().data(), data.y().as_vector().data(), data.xerr().as_vector().data(), data.yerr().as_vector().data());
         } else {
-            graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), nullptr, data.yerr.data());
+            graph = std::make_shared<TGraphErrors>(data.size(), data.x().as_vector().data(), data.y().as_vector().data(), nullptr, data.yerr().as_vector().data());
         }
     }
-    else {graph = std::make_shared<TGraph>(data.size(), data.x.data(), data.y.data());}
+    else {graph = std::make_shared<TGraph>(data.size(), data.x().as_vector().data(), data.y().as_vector().data());}
     draw(graph, options, canvas);
 }
 

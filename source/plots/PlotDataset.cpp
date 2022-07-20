@@ -25,14 +25,14 @@ plots::PlotDataset::PlotDataset(const Multiset& data) {
 plots::PlotDataset::~PlotDataset() = default;
 
 void plots::PlotDataset::initial_plot(const Dataset& data) {
-    plots::PlotOptions options = data.plot_options;
+    plots::PlotOptions options = data.get_plot_options();
     options.use_existing_axes = false;
 
     draw(data, options, canvas);
 }
 
 void plots::PlotDataset::plot(const Dataset& data) {
-    plots::PlotOptions options = data.plot_options;
+    plots::PlotOptions options = data.get_plot_options();
     options.use_existing_axes = true;
 
     draw(data, options, canvas);

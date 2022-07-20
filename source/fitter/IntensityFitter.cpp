@@ -23,7 +23,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
     vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
-    Dataset fit_data(Im, data.y, data.yerr);
+    Dataset fit_data(Im, data.y(), data.yerr());
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
@@ -55,9 +55,9 @@ Fit::Plots IntensityFitter::plot() {
     // prepare the TGraphs
     vector<double> xerr(data.size(), 0);
     Fit::Plots graphs;
-    graphs.intensity_interpolated = SAXSDataset(data.x, I_scaled);
+    graphs.intensity_interpolated = SAXSDataset(data.x(), I_scaled);
     graphs.intensity = SAXSDataset(h.q, ym_scaled);
-    graphs.data = SAXSDataset(data.x, data.y, xerr, data.yerr);
+    graphs.data = SAXSDataset(data.x(), data.y(), xerr, data.yerr());
     return graphs;
 }
 
@@ -75,12 +75,12 @@ Dataset IntensityFitter::plot_residuals() {
     // calculate the residuals
     vector<double> residuals(data.size());
     for (size_t i = 0; i < data.size(); ++i) {
-        residuals[i] = ((data.y[i] - (a*Im[i]+b))/data.yerr[i]);
+        residuals[i] = ((data.y(i) - (a*Im[i]+b))/data.yerr(i));
     }
 
     // prepare the TGraph
     vector<double> xerr(data.size(), 0);
-    return Dataset(data.x, residuals, xerr, data.yerr);
+    return Dataset(data.x(), residuals, xerr, data.yerr());
 }
 
 double IntensityFitter::chi2(const double* params) {
@@ -92,7 +92,7 @@ double IntensityFitter::chi2(const double* params) {
     vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
-    Dataset fit_data(Im, data.y, data.yerr);
+    Dataset fit_data(Im, data.y(), data.yerr());
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
@@ -101,7 +101,7 @@ double IntensityFitter::chi2(const double* params) {
     // calculate chi2
     double chi = 0;
     for (size_t i = 0; i < data.size(); i++) {
-        double v = (data.y[i] - (a*Im[i]+b))/data.yerr[i];
+        double v = (data.y(i) - (a*Im[i]+b))/data.yerr(i);
         chi += v*v;
     }
     return chi;
@@ -132,7 +132,7 @@ SAXSDataset IntensityFitter::get_model_dataset() {
     vector<double> Im = splice(ym);
     std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
 
-    return SAXSDataset(data.x, Im, "q", "I"); 
+    return SAXSDataset(data.x(), Im); 
 }
 
 SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
@@ -144,7 +144,7 @@ SAXSDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
 
     h.apply_water_scaling_factor(c);
     SAXSDataset model = h.calc_debye_scattering_intensity(q);
-    std::transform(model.y.begin(), model.y.end(), model.y.begin(), [&a, &b] (double I) {return I*a+b;});
+    // std::transform(model.y().begin(), model.y().end(), model.y().begin(), [&a, &b] (double I) {return I*a+b;}); //! BROKEN
     return model;
 }
 

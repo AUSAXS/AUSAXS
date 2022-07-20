@@ -84,7 +84,7 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(const vector<do
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    return SAXSDataset(q, Iq, "q", "I");
+    return SAXSDataset(q, Iq);
 }
 
 SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
@@ -99,7 +99,7 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    return SAXSDataset(q, Iq, "q", "I");
+    return SAXSDataset(q, Iq);
 }
 
 std::unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
