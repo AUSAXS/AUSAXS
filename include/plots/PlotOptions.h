@@ -110,4 +110,39 @@ namespace plots {
 
             void parse(std::string key, std::any val);
     };    
+
+    /**
+     * @brief A small wrapper class for PlotOptions, intended for inheritance. 
+     */
+    class PlotOptionWrapper {
+        public:         
+            /**
+             * @brief Set the plot options for this dataset. 
+             */
+            void set_plot_options(const plots::PlotOptions& options);
+
+            /**
+             * @brief Add plot options for this dataset.
+             */
+            void add_plot_options(const std::map<std::string, std::any>& options);
+
+            /**
+             * @brief Add plot options for this dataset, forcing the specified style. 
+             *        Accepted styles: "line", "marker", "errors".
+             */
+            void add_plot_options(std::string style, std::map<std::string, std::any> options = {});
+
+            /**
+             * @brief Add plot options for this dataset, forcing the specified color. 
+             */
+            void add_plot_options(int color, std::map<std::string, std::any> options = {});
+
+            /**
+             * @brief Set the plot color for this dataset. 
+             */
+            void set_plot_color(int color);
+        
+        protected: 
+            plots::PlotOptions options;
+    };
 }

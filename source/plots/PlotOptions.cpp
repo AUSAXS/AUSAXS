@@ -155,3 +155,14 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
 
     return *this;
 }
+
+
+void PlotOptionWrapper::set_plot_options(const plots::PlotOptions& options) {this->options = options;}
+
+void PlotOptionWrapper::add_plot_options(const std::map<std::string, std::any>& options) {this->options.set(options);}
+
+void PlotOptionWrapper::add_plot_options(std::string style, std::map<std::string, std::any> options) {this->options.set(style, options);}
+
+void PlotOptionWrapper::add_plot_options(int color, std::map<std::string, std::any> options) {this->options.set(color, options);}
+
+void PlotOptionWrapper::set_plot_color(int color) {this->options.color = color;}

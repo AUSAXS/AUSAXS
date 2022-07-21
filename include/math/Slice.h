@@ -27,23 +27,27 @@ class Slice {
 
         /**
          * @brief Get the dot product with another Slice. 
+		 * 		  Complexity: O(N)
          */
         template<typename Q>
         double dot(const Slice<Q>& s) {return dot(s.operator Vector<T>());}
 
         /**
          * @brief Get the dot product with a Vector.
+		 * 		  Complexity: O(N)
          */
         template<typename Q>
         double dot(const Vector<Q>& v) {return operator Vector<T>().dot(v);}
 
         /**
          * @brief Get the norm of this Slice. 
-         */
+		 * 		  Complexity: O(N)
+		 */
         double norm() {return operator Vector<T>().norm();}
 
         /**
          * @brief Cast this Slice into a Vector. 
+		 * 		  Complexity: O(N)
          */
         operator Vector<T>() const {
             Vector<T> v(length);
@@ -53,11 +57,22 @@ class Slice {
             return v;
         }
 
+		/**
+		 * @brief Cast this Slice into a std::vector.
+		 * 		  Complexity: O(N)
+		 */
+		operator std::vector<T>() const {
+			std::vector<T> v(length);
+			for (int i = 0; i < length; i++) {
+				v[i] = operator[](i);
+			}
+			return v;
+		}
+
         /**
          * @brief Mutable indexer in this Slice.
-         * 
-         * @param j The index to access.
-         */
+		 * 		  Complexity: O(1)
+		 */
         virtual const T& operator[](unsigned int j) const = 0;
 
         /**
@@ -110,21 +125,44 @@ class VectorSlice : public Slice<T> {
 };
 
 /**
- * @brief \class MutableSlice. 
- * 
- * This class represents a mutable slice. 
+ * @brief A representation of a mutable slice of a Matrix. 
  */
 template<typename T>
 class MutableSlice : public Slice<T> {
 	public:
+		/**
+		 * @brief Construct a new mutable Slice. 
+		 * 
+		 * @param data The data backing the original Matrix.
+		 * @param N The number of rows of the original Matrix.
+		 * @param M The number of columns of the original Matrix.
+		 * @param start The start location in the raw data array.
+		 * @param step The number of elements to skip between each index in the raw data array. //? Equal to M?
+		 * @param length The total number of elements this Slice can access. //? Equal to N?
+		 */
 		MutableSlice(std::vector<T>& data, int N, int M, int start, int step, int length) : Slice<T>(N, M, start, step, length), data(data) {}
-	
+
+		/**
+		 * @brief Destructor.
+		 */
 		virtual ~MutableSlice() = default;
 
+		/**
+		 * @brief Mutable indexer in this Slice.
+		 * 		  Complexity: O(1)
+		 */
 		T& operator[](unsigned int i) {return data[this->start + i*this->step];}
 
+		/**
+		 * @brief Const indexer in this Slice.
+		 * 		  Complexity: O(1)
+		 */
 		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
 
+		/**
+		 * @brief Assign a Vector to this Slice.
+		 * 		  Complexity: O(N)
+		 */
 		MutableSlice& operator=(const Vector<T>& v) {
 			for (int i = 0; i < this->length; i++) {
 				operator[](i) = v[i];
@@ -132,9 +170,17 @@ class MutableSlice : public Slice<T> {
 			return *this;
 		}
 
+		/**
+		 * @brief Subtract another Slice from this Slice.
+		 * 		  Complexity: O(N)
+		 */
 		template<typename Q>
 		MutableSlice& operator-=(const Slice<Q>& s) {return operator-=(s.operator Vector<Q>());}
 
+		/**
+		 * @brief Subtract a Vector from this Slice.
+		 * 		  Complexity: O(N)
+		 */
 		template<typename Q>
 		MutableSlice& operator-=(const Vector<Q>& v) {
 			for (int i = 0; i < this->length; i++) {
@@ -143,9 +189,17 @@ class MutableSlice : public Slice<T> {
 			return *this;
 		}
 
+		/**
+		 * @brief Add another Slice to this Slice.
+		 * 		  Complexity: O(N)
+		 */
 		template<typename Q>
 		MutableSlice& operator+=(const Slice<Q>& s) {return operator+=(s.operator Vector<Q>());}
 
+		/**
+		 * @brief Add a Vector to this Slice.
+		 * 		  Complexity: O(N)
+		 */
 		template<typename Q>
 		MutableSlice& operator+=(const Vector<Q>& v) {
 			for (int i = 0; i < this->length; i++) {
@@ -157,6 +211,9 @@ class MutableSlice : public Slice<T> {
 	private: 
 		std::vector<T>& data;
 
+		/**
+		 * @brief Random-access iterator implementation for mutable Slices.
+		 */
 		class Iterator {
 			using iterator_category = std::random_access_iterator_tag;
 			using difference_type = std::ptrdiff_t;
@@ -200,7 +257,7 @@ class MutableSlice : public Slice<T> {
 				unsigned int step;
 		};
 	
-	public: 
+	public: 		
 		Iterator begin() {return Iterator(this->data.data() + this->start, this->step);}
 		Iterator end() {return Iterator(this->data.data() + this->start + this->length*this->step, this->step);}
 };
@@ -213,24 +270,44 @@ class MutableSlice : public Slice<T> {
 template<typename T>
 class ConstSlice : public Slice<T> {
 	public:
+		/**
+		 * @brief Construct a new const Slice. 
+		 * 
+		 * @param data The data backing the original Matrix.
+		 * @param N The number of rows of the original Matrix.
+		 * @param M The number of columns of the original Matrix.
+		 * @param start The start location in the raw data array.
+		 * @param step The number of elements to skip between each index in the raw data array. //? Equal to M?
+		 * @param length The total number of elements this Slice can access. //? Equal to N?
+		 */
 		ConstSlice(const std::vector<T>& data, int N, int M, int start, int step, int length) : Slice<T>(N, M, start, step, length), data(data) {}
 
+		/**
+		 * @brief Destructor.
+		 */
 		virtual ~ConstSlice() = default;
 
+		/**
+		 * @brief Const indexer in this Slice.
+		 * 		  Complexity: O(1)
+		 */
 		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
 
 	private: 
 		const std::vector<T>& data;
 
-		class Iterator {
+		/**
+		 * @brief Random-access iterator implementation for const Slices.
+		 */
+		class ConstIterator {
 			using iterator_category = std::random_access_iterator_tag;
 			using difference_type = std::ptrdiff_t;
-			using value_type = T;
-			using pointer = T*;
-			using reference = T&;
+			using value_type = const T;
+			using pointer = const T*;
+			using reference = const T&;
 
 			public: 
-				Iterator(pointer ptr, unsigned int step) : m_ptr(ptr), step(step) {}
+				ConstIterator(pointer ptr, unsigned int step) : m_ptr(ptr), step(step) {}
 
 				// De-reference operators.
 				reference operator*() {return *m_ptr;}
@@ -239,14 +316,14 @@ class ConstSlice : public Slice<T> {
 				// Increment/decrement operators.
 				Iterator& operator++() {m_ptr += step; return *this;}
 				Iterator& operator--() {m_ptr -= step; return *this;}
-				Iterator operator++(int) {Iterator tmp(*this); m_ptr += step; return tmp;}
-				Iterator operator--(int) {Iterator tmp(*this); m_ptr -= step; return tmp;}
+				Iterator operator++(int) {ConstIterator tmp(*this); m_ptr += step; return tmp;}
+				Iterator operator--(int) {ConstIterator tmp(*this); m_ptr -= step; return tmp;}
 
 				// Arithmetic operators.
 				Iterator& operator+=(int n) {m_ptr += n*step; return *this;}
 				Iterator& operator-=(int n) {m_ptr -= n*step; return *this;}
-				Iterator operator+(int n) {Iterator tmp(m_ptr); tmp += n*step; return tmp;}
-				Iterator operator-(int n) {Iterator tmp(m_ptr); tmp -= n*step; return tmp;}
+				Iterator operator+(int n) {ConstIterator tmp(m_ptr); tmp += n*step; return tmp;}
+				Iterator operator-(int n) {ConstIterator tmp(m_ptr); tmp -= n*step; return tmp;}
 				int operator-(const Iterator& other) {return m_ptr - other.m_ptr;}
 
 				// Comparison operators.
@@ -266,9 +343,8 @@ class ConstSlice : public Slice<T> {
 		};
 
 	public:
-		Iterator begin() {return Iterator(this->data.data() + this->start, this->step);}
-		Iterator end() {return Iterator(this->data.data() + this->start + this->length*this->step, this->step);}
-
+		ConstIterator begin() {return Iterator(this->data.data() + this->start, this->step);}
+		ConstIterator end() {return Iterator(this->data.data() + this->start + this->length*this->step, this->step);}
 };
 
 template<typename T>
@@ -276,7 +352,7 @@ class ConstRow : public ConstSlice<T> {
 	public: 
 		ConstRow(const std::vector<T>& data, int N, int M, int row) : ConstSlice<T>(data, N, 1, row*M, 1, M) {}
 
-		ConstRow(const ConstSlice<T>& s) : ConstSlice<T>(std::move(s)) {}
+		ConstRow(const ConstSlice<T> s) : ConstSlice<T>(std::move(s)) {}
 };
 
 template<typename T>
@@ -284,7 +360,7 @@ class ConstColumn : public ConstSlice<T> {
 	public: 
 		ConstColumn(const std::vector<T>& data, int N, int M, int col) : ConstSlice<T>(data, 1, M, col, M, N) {}
 
-		ConstColumn(const ConstSlice<T>& s) : ConstSlice<T>(std::move(s)) {}
+		ConstColumn(const ConstSlice<T> s) : ConstSlice<T>(std::move(s)) {}
 };
 
 template<typename T>
@@ -292,7 +368,7 @@ class Row : public MutableSlice<T> {
 	public: 
 		Row(std::vector<T>& data, int N, int M, int row) : MutableSlice<T>(data, N, 1, row*M, 1, M) {}
 
-		Row(MutableSlice<T>& s) : MutableSlice<T>(std::move(s)) {}
+		Row(MutableSlice<T> s) : MutableSlice<T>(std::move(s)) {}
 
 		Row<T>& operator=(const Vector<T>& v) {MutableSlice<T> s(*this); MutableSlice<T>::operator=(v); return *this;}
 
@@ -316,7 +392,7 @@ class Column : public MutableSlice<T> {
 	public: 
 		Column(std::vector<T>& data, int N, int M, int col) : MutableSlice<T>(data, 1, M, col, M, N) {}
 
-		Column(MutableSlice<T>& s) : MutableSlice<T>(std::move(s)) {}
+		Column(MutableSlice<T> s) : MutableSlice<T>(std::move(s)) {}
 
 		Column<T>& operator=(const Vector<T>& v) {MutableSlice<T> s(*this); MutableSlice<T>::operator=(v); return *this;}
 

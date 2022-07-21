@@ -117,7 +117,7 @@ class Vector3 : public Vector<double> {
      * @brief Generate a complete 3D basis from a single basis vector. 
      *        Implementation based on the "frisvad" algorithm from https://backend.orbit.dtu.dk/ws/portalfiles/portal/126824972/onb_frisvad_jgt2012_v2.pdf.
      * 
-     * @param n The first basis vector. 
+     * @param v The first basis vector. 
      */
     static std::tuple<Vector3, Vector3, Vector3> generate_basis(const Vector3& v);
 

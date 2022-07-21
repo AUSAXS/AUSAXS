@@ -13,7 +13,7 @@
 #include <math/Vector3.h>
 #include <math/LUPDecomposition.h>
 
-#define safe_math true
+#define SAFE_MATH true
 
 template<typename Q>
 class Matrix {
@@ -59,6 +59,15 @@ class Matrix {
          * @brief Destructor.
          */
         virtual ~Matrix() = default;
+
+        /**
+         * @brief Add a new row at the end of the matrix.
+         */
+        void push_back(std::vector<double> r) {
+            compatibility_check_M(r.size());
+            extend(1);
+            row(N) = r;
+        }
 
         /**
          * @brief Get the identity matrix of a given dimension. 
@@ -136,9 +145,12 @@ class Matrix {
         // Vector multiplication, A*v
         template<typename R>
         friend Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
-            if (__builtin_expect(A.M != v.N, false)) {
-                throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
-            }
+            #if (SAFE_MATH)
+                if (__builtin_expect(A.M != v.N, false)) {
+                    throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
+                }
+            #endif
+
             Vector<Q> w(A.N);
             for (size_t row = 0; row < A.N; ++row) {
                 for (size_t col = 0; col < A.M; ++col) {
@@ -151,10 +163,13 @@ class Matrix {
         // Matrix multiplication, A*B
         template<typename R>
         friend Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
-            if (__builtin_expect(A.M != B.N, false)) {
-                throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + 
-                    ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
-            }
+            #if (SAFE_MATH)
+                if (__builtin_expect(A.M != B.N, false)) {
+                    throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + 
+                        ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
+                }
+            #endif
+
             Matrix<Q> C(A.N, B.M);
             for (size_t row = 0; row < C.N; row++) {
                 for (size_t col = 0; col < C.M; col++) {
@@ -177,7 +192,7 @@ class Matrix {
 
         /**
          * @brief Resize the matrix to a new shape. 
-         *        If the number of columns are changed, the content of the new matrix is undefined. 
+         *        If the number of columns is changed, the content of the new matrix is undefined. 
          *        Otherwise the new rows are filled with zeros, leaving the old rows intact. 
          *        Complexity: O(N*M)
          */
@@ -217,7 +232,10 @@ class Matrix {
          * @brief Get the determinant of this Matrix.
          */
         double det() const {
-            if (__builtin_expect(N != M, false)) {throw std::invalid_argument("Error in matrix determinant: Matrix is not square.");}
+            #if (SAFE_MATH)
+                if (__builtin_expect(N != M, false)) {throw std::invalid_argument("Error in matrix determinant: Matrix is not square.");}
+            #endif
+
             LUPDecomposition decomp(*this);
             return decomp.determinant();
         }
@@ -326,13 +344,40 @@ class Matrix {
         static constexpr double precision = 1e-9;
 
     private: 
-        // check if the matrix is compatible with ours
+        /**
+         * @brief Check if the matrix is compatible with ours.
+         *        This check can be disabled by setting the macro SAFE_MATH to 0.
+         */
         template<typename R>
         void compatibility_check(const Matrix<R>& A) const {
-            #if (safe_math)
+            #if (SAFE_MATH)
                 if (__builtin_expect(N != A.N || M != A.M, false)) {
                     throw std::invalid_argument("Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
                         std::to_string(A.N) + ", " + std::to_string(A.M) + "]).");
+                }
+            #endif
+        }
+
+        /**
+         * @brief Check if the number of columns is compatible with ours. 
+         *        This check can be disabled by setting the macro SAFE_MATH to 0.
+         */
+        void compatibility_check_N(unsigned int N) const {
+            #if (SAFE_MATH)
+                if (__builtin_expect(this->N != N)) {
+                    throw std::invalid_argument("Matrix dimensions do not match (got: N = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
+                }
+            #endif
+        }
+
+        /**
+         * @brief Check if the number of rows is compatible with ours. 
+         *        This check can be disabled by setting the macro SAFE_MATH to 0.
+         */
+        void compatibility_check_M(unsigned int M) const {
+            #if (SAFE_MATH)
+                if (__builtin_expect(this->M != M)) {
+                    throw std::invalid_argument("Matrix dimensions do not match (got: M = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
                 }
             #endif
         }

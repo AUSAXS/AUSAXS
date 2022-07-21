@@ -150,35 +150,6 @@ void Dataset::normalize(double y0) {
     scale_y(y0/y[0]);
 }
 
-void Dataset::save(std::string path) const {
-    utility::create_directories(path);
-
-    // check if file was succesfully opened
-    std::ofstream output(path);
-    if (!output.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::save: Could not open file \"" + path + "\"");}
-
-    // prepare header & writer function
-    std::function<string(unsigned int)> writer;
-    string header = "broken header\n";
-    if (!has_yerr()) {
-        header = xlabel + " " + ylabel + "\n";
-        writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + "\n";};
-    } else if (!has_xerr()) {
-        header = xlabel + " " + ylabel + " " + yerrlabel + "\n";
-        writer = [&] (unsigned int i) {return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(yerr[i]) + "\n";};
-    } else {writer = [&] (unsigned int i) {
-        header = xlabel + " " + ylabel + " " + xerrlabel + " " + yerrlabel + "\n";
-        return std::to_string(x[i]) + " " + std::to_string(y[i]) + " " + std::to_string(xerr[i]) + " " + std::to_string(yerr[i]) + "\n";};
-    }
-
-    // write to disk
-    output << header;
-    for (unsigned int i = 0; i < size(); i++) {
-        output << writer(i);
-    }
-    output.close();
-}
-
 Dataset Dataset::generate_random_data(unsigned int size, double min, double max) {
     std::random_device dev;
     std::mt19937 gen(dev());
@@ -398,11 +369,3 @@ void Dataset::push_back(const Point2D& point) noexcept {
 bool Dataset::has_xerr() const noexcept {return x.size() == xerr.size() && xerr.size() != 0 && xerr[0] != 0;}
 
 bool Dataset::has_yerr() const noexcept {return y.size() == yerr.size() && yerr.size() != 0 && yerr[0] != 0;}
-
-void Dataset::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
-
-void Dataset::add_plot_options(const std::map<std::string, std::any>& options) {plot_options.set(options);}
-
-void Dataset::add_plot_options(std::string style, std::map<std::string, std::any> options) {plot_options.set(style, options);}
-
-void Dataset::add_plot_options(int color, std::map<std::string, std::any> options) {plot_options.set(color, options);}
