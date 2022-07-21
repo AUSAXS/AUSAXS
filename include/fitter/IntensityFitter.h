@@ -66,17 +66,17 @@ class IntensityFitter : public SimpleIntensityFitter {
     /**
      * @brief Get the model dataset for the points specified by the input data file. 
      */
-    SAXSDataset get_model_dataset();
+    SimpleDataset get_model_dataset();
 
     /**
      * @brief Get the model dataset for the points specified by @a q. 
      */
-    SAXSDataset get_model_dataset(const std::vector<double>& q);
+    SimpleDataset get_model_dataset(const std::vector<double>& q);
 
     /**
      * @brief Get the dataset being fitted. 
      */
-    SAXSDataset get_dataset() const;
+    SimpleDataset get_dataset() const;
 
   private: 
     /**

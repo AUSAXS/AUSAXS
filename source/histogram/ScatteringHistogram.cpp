@@ -60,9 +60,9 @@ vector<std::shared_ptr<TH1D>> ScatteringHistogram::plot_distance() const {
 }
 
 std::unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
-    SAXSDataset data = calc_debye_scattering_intensity();
-    vector<double> I = data.get("I");
-    vector<double> q = data.get("q");
+    SimpleDataset data = calc_debye_scattering_intensity();
+    auto q = data.x();
+    auto I = data.y();
     std::unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_debye", "hist", q.size(), q[0], q[q.size()-1]);
 
     for (unsigned int i = 0; i < I.size(); i++) {
@@ -73,7 +73,7 @@ std::unique_ptr<TH1D> ScatteringHistogram::plot_debye_scattering() const {
     return h;
 }
 
-SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(const vector<double>& q) const {
+SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity(const vector<double>& q) const {
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); i++) { // iterate through all q values
@@ -84,10 +84,10 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity(const vector<do
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    return SAXSDataset(q, Iq, "q", "I");
+    return SimpleDataset(q, Iq, "q", "I");
 }
 
-SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
+SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
 
@@ -99,7 +99,7 @@ SAXSDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
         }
         Iq[i] *= exp(-q[i]*q[i]); // form factor
     }
-    return SAXSDataset(q, Iq, "q", "I");
+    return SimpleDataset(q, Iq, "q", "I");
 }
 
 std::unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
@@ -124,7 +124,7 @@ double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     return num/denom;
 }
 
-SAXSDataset ScatteringHistogram::calc_guinier_approx() const {
+SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
@@ -134,7 +134,7 @@ SAXSDataset ScatteringHistogram::calc_guinier_approx() const {
         Iq[i] = -pow(q[i], 2)*Rg2/3*log_conv;
     }
 
-    return SAXSDataset(q, Iq, "q", "logI");
+    return SimpleDataset(q, Iq, "q", "logI");
 }
 
 ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) {

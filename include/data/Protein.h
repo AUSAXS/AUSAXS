@@ -92,7 +92,7 @@ class Protein {
     /**
      * @brief Simulate a SAXS dataset based on this protein.
      */
-    SAXSDataset simulate_dataset();
+    SimpleDataset simulate_dataset();
 
     /** 
      * @brief Writes this body to disk.

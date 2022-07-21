@@ -77,7 +77,7 @@ namespace hist {
 			 * 
 			 * @return I(q)
 			 */
-			SAXSDataset calc_debye_scattering_intensity() const;
+			SimpleDataset calc_debye_scattering_intensity() const;
 
 			/**
 			 * @brief Calculate the intensity based on the Debye scattering equation for a specific set of scattering vectors.
@@ -86,7 +86,7 @@ namespace hist {
 			 * 
 			 * @return I(q)
 			 */
-			SAXSDataset calc_debye_scattering_intensity(const std::vector<double>& q) const;
+			SimpleDataset calc_debye_scattering_intensity(const std::vector<double>& q) const;
 
 			/**
 			 * @brief Assign another ScatteringHistogram to this object.
@@ -110,7 +110,7 @@ namespace hist {
 			 * 
 			 * @return log10 I(q)
 			 */
-			SAXSDataset calc_guinier_approx() const;
+			SimpleDataset calc_guinier_approx() const;
 
 			void setup();
 	};

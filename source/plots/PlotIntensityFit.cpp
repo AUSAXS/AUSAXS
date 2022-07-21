@@ -39,9 +39,9 @@ void plots::PlotIntensityFit::save(std::string path) const {
 }
 
 void plots::PlotIntensityFit::plot(const Fit::Plots& graphs) const {
-    auto limits = graphs.data.span_positive();
-    limits.merge(graphs.intensity.span_positive());
-    limits.merge(graphs.intensity_interpolated.span_positive());
+    auto limits = graphs.data.span_y_positive();
+    limits.merge(graphs.intensity.span_y_positive());
+    limits.merge(graphs.intensity_interpolated.span_y_positive());
     PlotOptions options0, options1, options2;
 
     options2.set("errors", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"ylimits", limits}});

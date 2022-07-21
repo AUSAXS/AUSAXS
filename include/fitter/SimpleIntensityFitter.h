@@ -49,14 +49,14 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * Prepare a fit to the dataset.
      */
-    SimpleIntensityFitter(const SAXSDataset& data) : data(data) {}
+    SimpleIntensityFitter(const SimpleDataset& data) : data(data) {}
 
     /**
      * @brief Constructor. 
      * 
      * Prepare a fit of the histogram to the dataset. 
      */
-    SimpleIntensityFitter(const SAXSDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
+    SimpleIntensityFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
 
     /**
      * @brief Constructor.
@@ -137,7 +137,7 @@ class SimpleIntensityFitter : public Fitter {
 
   protected: 
     std::shared_ptr<Fit> fitted; // The previous fit result
-    SAXSDataset data;            // Observed data set
+    SimpleDataset data;          // Observed data set
     double I0 = -1;              // Normalization intensity
     hist::ScatteringHistogram h; // The scattering histogram to fit
 
@@ -165,7 +165,7 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @param file The file to be read. 
      */
-    SAXSDataset read(std::string file) const;
+    SimpleDataset read(std::string file) const;
 
     /**
      * @brief Initialize this class based on a model histogram. 

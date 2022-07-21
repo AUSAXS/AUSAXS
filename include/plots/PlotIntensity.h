@@ -32,7 +32,7 @@ namespace plots {
 			 * 
 			 * @param d The dataset to be plotted.
 			 */
-			PlotIntensity(const SAXSDataset& d);
+			PlotIntensity(const SimpleDataset& d);
 
 			/**
 			 * @brief Destructor.
@@ -42,7 +42,7 @@ namespace plots {
 			/**
 			 * @brief Plot an additional data set as points. 
 			 */
-			void plot_intensity(const Dataset& data);
+			void plot_intensity(const SimpleDataset& data);
 
 			/**
 			 * @brief Plot the result of a fit. 
@@ -63,7 +63,7 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const SAXSDataset& d, std::string path);
+			static void quick_plot(const SimpleDataset& d, std::string path);
 
 		private:
 			const hist::ScatteringHistogram d;
@@ -74,7 +74,7 @@ namespace plots {
 
 			void initial_intensity_plot(int color);
 
-			void initial_intensity_plot(const Dataset& data);
+			void initial_intensity_plot(const SimpleDataset& data);
 
 			void prepare_canvas();
 	};

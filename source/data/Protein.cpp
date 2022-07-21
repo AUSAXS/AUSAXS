@@ -54,8 +54,8 @@ void Protein::translate(const Vector3& v) {
     }
 }
 
-SAXSDataset Protein::simulate_dataset() {
-    SAXSDataset data = get_histogram().calc_debye_scattering_intensity();
+SimpleDataset Protein::simulate_dataset() {
+    SimpleDataset data = get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.simulate_errors();
     data.simulate_noise();

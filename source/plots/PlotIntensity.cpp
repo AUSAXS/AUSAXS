@@ -25,7 +25,7 @@ plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, int colo
     initial_intensity_plot(color);
 }
 
-plots::PlotIntensity::PlotIntensity(const SAXSDataset& d) : Plot() {
+plots::PlotIntensity::PlotIntensity(const SimpleDataset& d) : Plot() {
     prepare_canvas();
     initial_intensity_plot(d);
 }
@@ -41,17 +41,17 @@ void plots::PlotIntensity::initial_intensity_plot(int color) {
     initial_intensity_plot(h);
 }
 
-void plots::PlotIntensity::initial_intensity_plot(const Dataset& data) {
-    limits = data.span_positive();
+void plots::PlotIntensity::initial_intensity_plot(const SimpleDataset& data) {
+    limits = data.span_y_positive();
 
-    plots::PlotOptions options = data.plot_options;
+    plots::PlotOptions options = data.get_plot_options();
     options.xlabel = "q";
     options.ylabel = "Intensity";
     options.ylimits = limits;
     draw(data, options, canvas);
 }
 
-void plots::PlotIntensity::quick_plot(const SAXSDataset& d, std::string path) {
+void plots::PlotIntensity::quick_plot(const SimpleDataset& d, std::string path) {
     PlotIntensity plot(d);
     plot.save(path);
 }
@@ -61,9 +61,9 @@ void plots::PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, std::s
     plot.save(path);
 }
 
-void plots::PlotIntensity::plot_intensity(const Dataset& data) {
-    std::shared_ptr<TGraph> graph = data.plot();
-    PlotOptions options(data.plot_options);
+void plots::PlotIntensity::plot_intensity(const SimpleDataset& data) {
+    std::shared_ptr<TGraph> graph = plots::detail::graph(data);
+    PlotOptions options(data.get_plot_options());
     options.use_existing_axes = true;
 
     linpad->cd();
@@ -73,7 +73,7 @@ void plots::PlotIntensity::plot_intensity(const Dataset& data) {
 }
 
 void plots::PlotIntensity::plot_intensity(const std::shared_ptr<Fit> fit, const PlotOptions& plot_options) {
-    std::shared_ptr<TGraph> graph = fit->figures.intensity.plot();
+    std::shared_ptr<TGraph> graph = plots::detail::graph(fit->figures.intensity);
     PlotOptions options(plot_options);
     options.use_existing_axes = true;
 

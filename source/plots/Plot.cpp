@@ -69,18 +69,46 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     graph->DrawClone(draw_options.c_str());
 }
 
-void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
-    PlotOptions options = data[0].plot_options;
+std::shared_ptr<TGraph> plots::detail::graph(const Dataset& data, const plots::PlotOptions& options) {
+    std::shared_ptr<TGraph> graph;
+    if (options.draw_errors) {
+        graph = std::make_shared<TGraphErrors>(data.size(), data.x().to_vector().data(), data.y().to_vector().data(), data.xerr().to_vector().data(), data.yerr().to_vector().data());
+    } else {
+        graph = std::make_shared<TGraph>(data.size(), data.x().to_vector().data(), data.y().to_vector().data());
+    } 
+    return graph;    
+}
 
-    TMultiGraph graph;
+std::shared_ptr<TGraph> plots::detail::graph(const Dataset& data) {
+    return graph(data, data.get_plot_options());
+}
+
+std::shared_ptr<TGraph> plots::detail::graph(const SimpleDataset& data, const plots::PlotOptions& options) {
+    std::shared_ptr<TGraph> graph;
+    if (options.draw_errors) {
+        graph = std::make_shared<TGraphErrors>(data.size(), data.x().to_vector().data(), data.y().to_vector().data(), nullptr, data.yerr().to_vector().data());
+    } else {
+        graph = std::make_shared<TGraph>(data.size(), data.x().to_vector().data(), data.y().to_vector().data());
+    }
+    return graph;
+}
+
+std::shared_ptr<TGraph> plots::detail::graph(const SimpleDataset& data) {
+    return graph(data, data.get_plot_options());
+}
+
+void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
+    PlotOptions options = data[0].get_plot_options();
+
+    TMultiGraph graphs;
     for (const Dataset& d : data) {
-        PlotOptions options = d.plot_options;
+        PlotOptions options = d.get_plot_options();
 
         std::string draw_options;
         if (options.draw_line) {draw_options += "L";}
         if (options.draw_markers || options.draw_errors) {draw_options += "P";}
         if (options.draw_bars) {throw except::invalid_argument("Error in Plot::Draw: Invalid option for Dataset: \"bars\"");}
-        TGraph* g = new TGraph(*d.plot()); // TMultiGraph owns its TGraph pointers
+        TGraph* g = new TGraph(*detail::graph(d, options)); // TMultiGraph owns its TGraph pointers
 
         g->SetLineColorAlpha(options.color, options.alpha);
         g->SetMarkerColorAlpha(options.color, options.alpha);
@@ -88,54 +116,55 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
         g->SetLineWidth(options.line_width);
         g->SetMarkerSize(options.marker_size);
 
-        graph.Add(g, draw_options.c_str());
+        graphs.Add(g, draw_options.c_str());
     }    
 
     std::string labels = options.title + ";" + options.xlabel + ";" + options.ylabel;
 
     // set title & labels
-    graph.SetTitle(labels.c_str());
-    graph.GetXaxis()->CenterTitle();
-    graph.GetYaxis()->CenterTitle();
+    graphs.SetTitle(labels.c_str());
+    graphs.GetXaxis()->CenterTitle();
+    graphs.GetYaxis()->CenterTitle();
 
     // handle xlimits
     if (!options.xlimits.empty()) {
         Limit limits = options.xlimits;
         // replace infs
-        if (std::isinf(limits.min)) {limits.min = graph.GetXaxis()->GetXmin();}
-        if (std::isinf(limits.max)) {limits.max = graph.GetXaxis()->GetXmax();}
+        if (std::isinf(limits.min)) {limits.min = graphs.GetXaxis()->GetXmin();}
+        if (std::isinf(limits.max)) {limits.max = graphs.GetXaxis()->GetXmax();}
 
         // set new range
-        graph.GetXaxis()->SetRangeUser(options.xlimits.min, options.xlimits.max);
+        graphs.GetXaxis()->SetRangeUser(options.xlimits.min, options.xlimits.max);
     }
 
     // handle ylimits
     if (!options.ylimits.empty()) {
-        if (!std::isinf(options.ylimits.min)) {graph.SetMinimum(options.ylimits.min);} 
-        if (!std::isinf(options.ylimits.max)) {graph.SetMaximum(options.ylimits.max);}
+        if (!std::isinf(options.ylimits.min)) {graphs.SetMinimum(options.ylimits.min);} 
+        if (!std::isinf(options.ylimits.max)) {graphs.SetMaximum(options.ylimits.max);}
     }
 
     // handle log
     detail::handle_log(options, canvas);
 
-    graph.DrawClone("A");
+    graphs.DrawClone("A");
 }
 
 void plots::draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas) {
-    draw(data, data.plot_options, canvas);
+    draw(data, data.get_plot_options(), canvas);
+}
+
+void plots::draw(const SimpleDataset& data, const std::shared_ptr<TCanvas> canvas) {
+    draw(data, data.get_plot_options(), canvas);
+}
+
+void plots::draw(const SimpleDataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
+    auto g = detail::graph(data, options);
+    draw(g, options, canvas);
 }
 
 void plots::draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
-    std::shared_ptr<TGraph> graph;
-    if (data.has_yerr() && options.draw_errors) {
-        if (data.has_xerr()) {
-            graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), data.xerr.data(), data.yerr.data());
-        } else {
-            graph = std::make_shared<TGraphErrors>(data.size(), data.x.data(), data.y.data(), nullptr, data.yerr.data());
-        }
-    }
-    else {graph = std::make_shared<TGraph>(data.size(), data.x.data(), data.y.data());}
-    draw(graph, options, canvas);
+    auto g = detail::graph(data, options);
+    draw(g, options, canvas);
 }
 
 void plots::draw(const hist::Histogram& hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {

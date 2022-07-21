@@ -364,7 +364,7 @@ class Matrix {
          */
         void compatibility_check_N(unsigned int N) const {
             #if (SAFE_MATH)
-                if (__builtin_expect(this->N != N)) {
+                if (__builtin_expect(this->N != N, false)) {
                     throw std::invalid_argument("Matrix dimensions do not match (got: N = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
                 }
             #endif
@@ -376,7 +376,7 @@ class Matrix {
          */
         void compatibility_check_M(unsigned int M) const {
             #if (SAFE_MATH)
-                if (__builtin_expect(this->M != M)) {
+                if (__builtin_expect(this->M != M, false)) {
                     throw std::invalid_argument("Matrix dimensions do not match (got: M = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
                 }
             #endif

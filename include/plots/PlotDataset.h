@@ -12,15 +12,12 @@ namespace plots {
 		public:
 			/**
 			 * @brief Constructor.
-			 * 
-			 * @param d The Dataset to be plotted. 
 			 */
-			PlotDataset(const Dataset& d);
+			template<typename T>
+			PlotDataset(const T& d);
 
 			/**
 			 * @brief Constructor.
-			 * 
-			 * @param d The Multiset to be plotted. 
 			 */
 			PlotDataset(const Multiset& d);
 
@@ -32,7 +29,8 @@ namespace plots {
 			/**
 			 * @brief Plot an additional Dataset. 
 			 */
-			void plot(const Dataset& data);
+			template<typename T>
+			void plot(const T& data);
 
             /**
              * @brief Save this image at the given location in the specified format. 
@@ -45,12 +43,14 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(const Dataset& data, std::string path);
+			template<typename T>
+			static void quick_plot(const T& data, std::string path);
 
 		private:
 			std::shared_ptr<TCanvas> canvas;
 
-			void initial_plot(const Dataset& data);
+			template<typename T>
+			void initial_plot(const T& data);
 
 			void prepare_canvas();
 		};

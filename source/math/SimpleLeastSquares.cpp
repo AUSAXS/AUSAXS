@@ -12,19 +12,19 @@
 
 #include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
 
-SimpleLeastSquares::SimpleLeastSquares(const Dataset& data) : data(data) {}
+SimpleLeastSquares::SimpleLeastSquares(const SimpleDataset& data) : data(data) {}
 
-SimpleLeastSquares::SimpleLeastSquares(Dataset&& data) : data(std::move(data)) {}
+SimpleLeastSquares::SimpleLeastSquares(SimpleDataset&& data) : data(std::move(data)) {}
 
 std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
     for (size_t i = 0; i < data.size(); i++) {
-        double sig2 = pow(data.yerr[i], 2);
+        double sig2 = pow(data.yerr(i), 2);
         S += 1./sig2;
-        Sx += data.x[i]/sig2;
-        Sy += data.y[i]/sig2;
-        Sxx += pow(data.x[i], 2)/sig2;
-        Sxy += data.x[i]*data.y[i]/sig2;
+        Sx += data.x(i)/sig2;
+        Sy += data.y(i)/sig2;
+        Sxx += pow(data.x(i), 2)/sig2;
+        Sxy += data.x(i)*data.y(i)/sig2;
     }
 
     delta = S*Sxx - pow(Sx, 2);
@@ -58,7 +58,7 @@ double SimpleLeastSquares::chi2() const {
         // std::cout << "\ty = " << data.y[i] << std::endl;
         // std::cout << "\tx = " << data.x[i] << std::endl;
         // std::cout << "\tax+b = " << a*data.x[i]+b << std::endl;
-        chi += pow((data.y[i] - (a*data.x[i] + b))/data.yerr[i], 2);
+        chi += pow((data.y(i) - (a*data.x(i) + b))/data.yerr(i), 2);
     }
 
     return chi;

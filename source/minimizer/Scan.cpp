@@ -26,7 +26,7 @@ Dataset Scan::landscape(unsigned int evals) const {
     if (!evaluations.empty()) {
         // if so, we can just reuse its result
         Dataset data;
-        std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back({eval.vals[0], eval.fval});});
+        std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back(eval.vals[0], eval.fval);});
         return data;
     }
 
@@ -86,7 +86,7 @@ Result Scan::minimize_override() {
     auto min = data.find_minimum();
 
     // find local minimum
-    auto width = data.span().span()/data.size(); // find width of each step
+    auto width = data.span_x().span()/data.size(); // find width of each step
     parameters[0].bounds = Limit(min.x - width, min.x + width); // update bounds
 
     mini::Golden golden(function, parameters[0]);

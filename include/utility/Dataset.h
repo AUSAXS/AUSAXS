@@ -1,108 +1,184 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <any>
-
-#include <TGraph.h>
-
-#include <utility/Axis.h>
+#include <math/Matrix.h>
 #include <plots/PlotOptions.h>
+#include <utility/Exceptions.h>
 #include <utility/PointSet.h>
 
-/**
- * @brief A representation of a set of 2D data. 
- */
-class Dataset {
+class IDataset : public Matrix<double>, public plots::PlotOptionWrapper {
     public: 
-        /**
-         * @brief Default constructor.
-         */
-        Dataset() noexcept {}
+        using Matrix::Matrix;
+        virtual ~IDataset() = default;
+
+        [[nodiscard]] const ConstColumn<double> x() const {return ConstColumn<double>(data, N, M, 0);}
+        [[nodiscard]] Column<double> x() {return Column<double>(data, N, M, 0);}
+        [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
+        [[nodiscard]] double& x(unsigned int i) {return index(i, 0);}
+
+        [[nodiscard]] const ConstColumn<double> y() const {return ConstColumn<double>(data, N, M, 1);}
+        [[nodiscard]] Column<double> y() {return Column<double>(data, N, M, 1);}
+        [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}
+        [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
+
+        [[nodiscard]] const ConstColumn<double> yerr() const {return ConstColumn<double>(data, N, M, 2);}
+        [[nodiscard]] Column<double> yerr() {return Column<double>(data, N, M, 2);}
+        [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}
+        [[nodiscard]] double& yerr(unsigned int i) {return index(i, 2);}
 
         /**
-         * @brief Constructor.
-         * 
-         * Create a new dataset based on an input file. Format is assumed to be x | y | yerr
-         * 
-         * @param file 
+         * @brief Get a column based on its name. This is primarily meant as a sanity check when expecting e.g. logarithmic data. 
          */
-        Dataset(const std::string file);
+        [[nodiscard]] Column<double> get(std::string column) {
+            if (column == options.xlabel) {return x();}
+            else if (column == options.ylabel) {return y();}
+            else {throw except::invalid_argument("Error in IDataset::get: Column name \"" + column + "\" not recognized.");}
+        }
 
         /**
-         * @brief Constructor. 
-         * 
-         * Create a new empty dataset with the given labels.
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         *        This assumes that the x-values are sorted. 
+         *        Complexity: O(n)
          */
-        Dataset(std::string xlabel, std::string ylabel) noexcept;
+        void limit_x(const Limit& limits);
 
         /**
-         * @brief Constructor. 
-         * 
-         * Create a new dataset based on a list of x and y coordinates. 
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         *        This assumes that the x-values are sorted. 
+         *        Complexity: O(n)
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y) noexcept;
+        void limit_x(double min, double max);
 
         /**
-         * @brief Constructor. 
-         * 
-         * Create a new dataset based on a list of x and y coordinates, along with an error on the latter. 
+         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
+         *        This assumes that the y-values are unsorted. 
+         *        Complexity: O(n)
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) noexcept;
+        void limit_y(const Limit& limits);
 
         /**
-         * @brief Constructor. 
-         * 
-         * Create a new dataset based on a list of x and y coordinates, along with errors for both.
+         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
+         *        This assumes that the y-values are unsorted. 
+         *        Complexity: O(n)
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr, const std::vector<double>& xerr) noexcept;
+        void limit_y(double min, double max);
 
         /**
-         * @brief Constructor. 
-         * 
-         * Create a new labelled dataset based on a list of x and y coordinates. 
+         * @brief Get the number of points in the dataset.
          */
-        Dataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) noexcept;
-
-        /**
-         * @brief Destructor. 
-         */
-        ~Dataset() = default;
+        [[nodiscard]] size_t size() const noexcept;
 
         /**
          * @brief Reduce the number of data points to the specified amount. 
-         * 
-         * @return The modified dataset. 
          */
         void reduce(unsigned int target, bool log = false);
 
         /**
-         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-         * 
-         * @param limits The new limits. 
-         * @return The modified dataset. 
+         * @brief Assign a Matrix to this dataset.
          */
-        void limit(const Limit& limits);
-
-        /**
-         * @brief Get the number of data points. 
-         */
-        std::size_t size() const;
-
-        /**
-         * @brief Get a set of data based on its label. 
-         * This also serves as a consistency check. 
-         * 
-         * @param label The name of the data. 
-         */
-        std::vector<double>& get(const std::string label);
+        void operator=(const Matrix<double>&& other);
 
         /**
          * @brief Check if the data is logarithmic. 
          *        This may be wrong if the x-data is very noisy.
          */
         bool is_logarithmic() const noexcept;
+
+        /**
+         * @brief Write this dataset to the specified file. 
+         */
+        void save(std::string path) const;
+
+        /**
+         * @brief Get the spanned x-range. 
+         */
+        [[nodiscard]] Limit span_x() const noexcept;
+
+        /**
+         * @brief Get the spanned y-range. 
+         */
+        [[nodiscard]] Limit span_y() const noexcept;
+
+        /**
+         * @brief Get the positive spanned y-range.
+         *        This can be useful for setting log ranges. 
+         */
+        [[nodiscard]] Limit span_y_positive() const noexcept;
+};
+
+/**
+ * @brief A simple dataset is a collection of points of the form x | y | yerr. 
+ */
+class SimpleDataset : public IDataset {
+    protected: 
+        /**
+         * @brief Construct a dataset with N rows and M columns. 
+         *        This is protected because it should only be used by derived classes for supporting more columns.
+         */
+        SimpleDataset(unsigned int N, unsigned int M) : IDataset(N, M) {}
+
+    public: 
+        /**
+         * @brief Construct a new empty dataset with the given number of rows. 
+         */
+        SimpleDataset(unsigned int rows) noexcept : IDataset(rows, 3) {}
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. 
+         */
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
+            if (x.size() != y.size() || x.size() != yerr.size()) {
+                throw except::size_error("Error in SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
+            }
+            for (unsigned int i = 0; i < x.size(); i++) {
+                row(i) = {x[i], y[i], yerr[i]};
+            }
+        }
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         */
+        SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {}
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         */
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {
+            options.xlabel = xlabel;
+            options.ylabel = ylabel;
+        }
+
+        /**
+         * @brief Construct a new empty dataset.
+         */
+        SimpleDataset() noexcept : SimpleDataset(0) {}
+
+        /**
+         * @brief Destructor.
+         */
+        ~SimpleDataset() override = default;
+
+        using IDataset::push_back;
+
+        /**
+         * @brief Add a new point at the end of the dataset.
+         */
+        void push_back(double x, double y, double yerr) {
+            extend(1);
+            row(N) = {x, y, yerr};
+        }
+
+        /**
+         * @brief Name the columns. 
+         */
+        void name_columns(std::string xlabel, std::string ylabel) {
+            options.xlabel = xlabel;
+            options.ylabel = ylabel;
+        }
+
+        /**
+         * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
+         */
+        void normalize(double y0);
 
         /**
          * @brief Scale all errors by some common factor. 
@@ -115,55 +191,14 @@ class Dataset {
         void scale_y(double factor);
 
         /**
-         * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
-         */
-        void normalize(double y0);
-
-        /**
-         * @brief Plot this dataset.
-         */
-        std::unique_ptr<TGraph> plot() const;
-
-        /**
-         * @brief Overwrite the plot options for this dataset.
-         */
-        void set_plot_options(const plots::PlotOptions& options);
-
-        /**
-         * @brief Change the plot options for this dataset.
-         */
-        void add_plot_options(const std::map<std::string, std::any>& options);
-
-        /**
-         * @brief Change the plot options for this dataset.
-         * 
-         * @param style The plotting style. Should be one of the accepted variations of "markers", "errors", or "line". 
-         * @param options The other plot options.
-         */
-        void add_plot_options(std::string style, std::map<std::string, std::any> options = {});
-
-        /**
-         * @brief Change the plot options for this dataset.
-         * 
-         * @param color The color.
-         * @param options The other plot options.
-         */
-        void add_plot_options(int color, std::map<std::string, std::any> options = {});
-
-        /**
-         * @brief Write this dataset to the specified file. 
-         */
-        void save(std::string path) const;
-
-        /**
          * @brief Simulate Gaussian noise on the y-values based on the errors. 
          */
         void simulate_noise();
 
         /**
-         * @brief Create a copy of this Dataset.
+         * @brief Generate errors for the y-values mimicking what one would find experimentally. 
          */
-        Dataset copy() const;
+        void simulate_errors();
 
         /**
          * @brief Get the point at a given index.
@@ -181,16 +216,6 @@ class Dataset {
         void push_back(const Point2D& point) noexcept;
 
         /**
-         * @brief Check if this dataset has errors on the x-values.
-         */
-        [[nodiscard]] bool has_xerr() const noexcept;
-
-        /**
-         * @brief Check if this dataset has errors on the y-values.
-         */
-        [[nodiscard]] bool has_yerr() const noexcept;
-
-        /**
          * @brief Rebin the data to a logarithmic scale. 
          *        This follows the typical rebinning algorithm used experimentally.
          */
@@ -203,73 +228,64 @@ class Dataset {
          * @param min Minimum generated value.
          * @param max Maxium generated value. 
          */
-        static Dataset generate_random_data(unsigned int size, double min = 0, double max = 1);
-
-        /**
-         * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
-         */
-        void ylimits(double min, double max) noexcept;
-
-        /**
-         * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
-         */
-        void ylimits(const Limit& limit) noexcept;
-
-        /**
-         * @brief Impose a limit on the x-axis. All data lying outside this range will be removed.
-         */
-        void xlimits(double min, double max) noexcept;
-
-        /**
-         * @brief Impose a limit on the x-axis. All data lying outside this range will be removed.
-         */
-        void xlimits(const Limit& limit) noexcept;
-
-        /**
-         * @brief Get the spanned y-range. 
-         */
-        [[nodiscard]] Limit span() const noexcept;
-
-        /**
-         * @brief Get the positive spanned y-range.
-         *        This can be useful for setting log ranges. 
-         */
-        [[nodiscard]] Limit span_positive() const noexcept;
-
-        std::string xlabel = "x", xerrlabel = "xerr";
-        std::string ylabel = "y", yerrlabel = "yerr";
-        std::vector<double> x, xerr;
-        std::vector<double> y, yerr;
-        plots::PlotOptions plot_options; 
-
-    private:
-        /**
-         * @brief Validate the sizes of the stored vectors. 
-         */
-        void validate_sizes() const;
-
-        /**
-         * @brief Read a dataset from a file.
-         * 
-         * @param file Path to the input file. 
-         */
-        void read(const std::string file);
+        static SimpleDataset generate_random_data(unsigned int size, double min = 0, double max = 1);
 };
 
-class SAXSDataset : public Dataset {
-    using Dataset::Dataset; // inherit constructors
 
-    public:
+/**
+ * @brief A dataset is a collection of points of the form x | y | xerr | yerr. 
+ */
+class Dataset : public SimpleDataset {
+    public: 
+        using SimpleDataset::SimpleDataset;
+
         /**
-         * @brief Generate errors for the y-values mimicking what one would find experimentally. 
+         * @brief Default constructor.
          */
-        void simulate_errors();
+        Dataset() noexcept : SimpleDataset() {}
 
         /**
-         * @brief Set the resolution of this dataset. 
+         * @brief Construct a new empty dataset with the given number of rows.
          */
-        void set_resolution(unsigned int resolution);
+        Dataset(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}
 
-    private:
-        unsigned int resolution = 0;
+        /**
+         * @brief Construct a new dataset with x, y, xerr, and yerr values.
+         */
+        Dataset(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset(x.size()) {
+            for (unsigned int i = 0; i < x.size(); i++) {
+                row(i) = {x[i], y[i], xerr[i], yerr[i]};
+            }
+        }
+
+        Dataset(SimpleDataset data) : Dataset(data.size()) {
+            for (unsigned int i = 0; i < data.size(); i++) {
+                row(i) = {data.x(i), data.y(i), data.yerr(i), 0};
+            }
+        }
+
+        /**
+         * @brief Destructor.
+         */
+        ~Dataset() override = default;
+
+        /**
+         * @brief Add a new point at the end of the dataset.
+         */
+        void push_back(double x, double y, double xerr, double yerr) {
+            extend(1);
+            row(N) = {x, y, yerr, xerr};
+        }
+
+        /**
+         * @brief Add a new point at the end of the dataset.
+         */
+        void push_back(double x, double y) {
+            push_back(x, y, 0, 0);
+        }
+
+        [[nodiscard]] const ConstColumn<double> xerr() const {return ConstColumn<double>(data, N, M, 3);}
+        [[nodiscard]] Column<double> xerr() {return Column<double>(data, N, M, 3);}
+        [[nodiscard]] const double& xerr(unsigned int i) const {return index(i, 3);}
+        [[nodiscard]] double& xerr(unsigned int i) {return index(i, 3);}
 };

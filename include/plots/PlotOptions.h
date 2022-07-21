@@ -142,6 +142,11 @@ namespace plots {
              */
             void set_plot_color(int color);
         
+            /**
+             * @brief Get the current plot options.
+             */
+            plots::PlotOptions get_plot_options() const;
+
         protected: 
             plots::PlotOptions options;
     };

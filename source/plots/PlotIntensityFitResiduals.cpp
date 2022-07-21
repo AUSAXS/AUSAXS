@@ -39,7 +39,7 @@ void plots::PlotIntensityFitResiduals::save(std::string path) const {
 }
 
 void plots::PlotIntensityFitResiduals::plot(const Dataset graph) const {
-    std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph.x.back(), 0); // solid black line at x=0
+    std::unique_ptr<TLine> line = std::make_unique<TLine>(0, 0, graph.x().back(), 0); // solid black line at x=0
     PlotOptions options("markers", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Residuals"}, {"xlabel", "q"}, {"ylabel", "Residual"}});
 
     draw(graph, options, canvas);

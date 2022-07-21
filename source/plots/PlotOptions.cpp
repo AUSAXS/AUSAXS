@@ -166,3 +166,5 @@ void PlotOptionWrapper::add_plot_options(std::string style, std::map<std::string
 void PlotOptionWrapper::add_plot_options(int color, std::map<std::string, std::any> options) {this->options.set(color, options);}
 
 void PlotOptionWrapper::set_plot_color(int color) {this->options.color = color;}
+
+plots::PlotOptions PlotOptionWrapper::get_plot_options() const {return options;}

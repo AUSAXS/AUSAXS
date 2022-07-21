@@ -54,7 +54,7 @@ void Multiset::push_back(const Dataset&& new_data) {
 void Multiset::ylimits(double min, double max) noexcept {ylimits({min, max});}
 
 void Multiset::ylimits(const Limit& limit) noexcept {
-    std::for_each(begin(), end(), [&limit] (Dataset& data) {data.ylimits(limit);});
+    std::for_each(begin(), end(), [&limit] (Dataset& data) {data.limit_y(limit);});
 }
 
 void Multiset::save(std::string path) const {

@@ -45,6 +45,11 @@ class Slice {
 		 */
         double norm() {return operator Vector<T>().norm();}
 
+		/**
+		 * @brief Get the length of this Slice.
+		 */
+		size_t size() const noexcept {return length;}
+
         /**
          * @brief Cast this Slice into a Vector. 
 		 * 		  Complexity: O(N)
@@ -69,11 +74,24 @@ class Slice {
 			return v;
 		}
 
+		/**
+		 * @brief Cast this Slice into a std::vector.
+		 * 		  Complexity: O(N)
+		 */
+		std::vector<T> to_vector() const {
+			return operator std::vector<T>();
+		}
+
         /**
          * @brief Mutable indexer in this Slice.
 		 * 		  Complexity: O(1)
 		 */
         virtual const T& operator[](unsigned int j) const = 0;
+
+		/**
+		 * @brief Get the final element in this Slice.
+		 */
+		const T& back() const {return operator[](length-1);}
 
         /**
          * @brief Get a string representation of this Slice. 
@@ -146,6 +164,11 @@ class MutableSlice : public Slice<T> {
 		 * @brief Destructor.
 		 */
 		virtual ~MutableSlice() = default;
+
+		/**
+		 * @brief Get the final element in this Slice.
+		 */
+		T& back() {return this->operator[](this->length-1);}
 
 		/**
 		 * @brief Mutable indexer in this Slice.
@@ -314,28 +337,28 @@ class ConstSlice : public Slice<T> {
 				pointer operator->() {return m_ptr;}
 
 				// Increment/decrement operators.
-				Iterator& operator++() {m_ptr += step; return *this;}
-				Iterator& operator--() {m_ptr -= step; return *this;}
-				Iterator operator++(int) {ConstIterator tmp(*this); m_ptr += step; return tmp;}
-				Iterator operator--(int) {ConstIterator tmp(*this); m_ptr -= step; return tmp;}
+				ConstIterator& operator++() {m_ptr += step; return *this;}
+				ConstIterator& operator--() {m_ptr -= step; return *this;}
+				ConstIterator operator++(int) {ConstIterator tmp(*this); m_ptr += step; return tmp;}
+				ConstIterator operator--(int) {ConstIterator tmp(*this); m_ptr -= step; return tmp;}
 
 				// Arithmetic operators.
-				Iterator& operator+=(int n) {m_ptr += n*step; return *this;}
-				Iterator& operator-=(int n) {m_ptr -= n*step; return *this;}
-				Iterator operator+(int n) {ConstIterator tmp(m_ptr); tmp += n*step; return tmp;}
-				Iterator operator-(int n) {ConstIterator tmp(m_ptr); tmp -= n*step; return tmp;}
-				int operator-(const Iterator& other) {return m_ptr - other.m_ptr;}
+				ConstIterator& operator+=(int n) {m_ptr += n*step; return *this;}
+				ConstIterator& operator-=(int n) {m_ptr -= n*step; return *this;}
+				ConstIterator operator+(int n) {ConstIterator tmp(m_ptr); tmp += n*step; return tmp;}
+				ConstIterator operator-(int n) {ConstIterator tmp(m_ptr); tmp -= n*step; return tmp;}
+				int operator-(const ConstIterator& other) {return m_ptr - other.m_ptr;}
 
 				// Comparison operators.
-				bool operator==(const Iterator& other) const {return m_ptr == other.m_ptr;}
-				bool operator!=(const Iterator& other) const {return m_ptr != other.m_ptr;}
-				bool operator<(const Iterator& other) const {return m_ptr < other.m_ptr;}
-				bool operator>(const Iterator& other) const {return m_ptr > other.m_ptr;}
-				bool operator<=(const Iterator& other) const {return m_ptr <= other.m_ptr;}
-				bool operator>=(const Iterator& other) const {return m_ptr >= other.m_ptr;}
+				bool operator==(const ConstIterator& other) const {return m_ptr == other.m_ptr;}
+				bool operator!=(const ConstIterator& other) const {return m_ptr != other.m_ptr;}
+				bool operator<(const ConstIterator& other) const {return m_ptr < other.m_ptr;}
+				bool operator>(const ConstIterator& other) const {return m_ptr > other.m_ptr;}
+				bool operator<=(const ConstIterator& other) const {return m_ptr <= other.m_ptr;}
+				bool operator>=(const ConstIterator& other) const {return m_ptr >= other.m_ptr;}
 
 				// Swap two iterators.
-				void swap(Iterator& other) {std::swap(m_ptr, other.m_ptr);}
+				void swap(ConstIterator& other) {std::swap(m_ptr, other.m_ptr);}
 
 			private: 
 				pointer m_ptr;
