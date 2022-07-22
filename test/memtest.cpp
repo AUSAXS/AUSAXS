@@ -40,6 +40,18 @@ TEST_CASE("body_assign", "[memtest]") {
     b2 = b1;
 }
 
+#include <plots/PlotDataset.h>
+TEST_CASE("memtest_rebin", "[memtest],[files]") {
+    SimpleDataset data("data/SHOC2/7sd0.dat");
+    SimpleDataset data_unbinned = data;
+    // data.rebin();
+    // data.save("temp/dataset/rebin.dat");
+
+    // plots::PlotDataset plot(data_unbinned);
+    // plot.plot(data);
+    // plot.save("temp/dataset_rebin.pdf");
+}
+
 TEST_CASE("vector_assign", "[memtest]") {
     vector<int> v = {1, 2, 3, 4};
     int& v1 = v[0];

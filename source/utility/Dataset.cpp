@@ -11,6 +11,12 @@
 
 using std::vector, std::string;
 
+Column<double> IDataset::get(std::string column) {
+    if (column == options.xlabel) {return x();}
+    else if (column == options.ylabel) {return y();}
+    else {throw except::invalid_argument("Error in IDataset::get: Column name \"" + column + "\" not recognized.");}
+}
+
 void IDataset::reduce(unsigned int target, bool log) {
     if (size() < target) {throw except::invalid_operation("Error in Dataset::reduce: Target cannot be larger than the size of the data set.");}
     Matrix<double> reduced(0, M);
@@ -143,15 +149,21 @@ void IDataset::load(std::string path) {
 
     string line; // placeholder for the current line
     while(getline(input, line)) {
+        std::cout << "\n" << line << std::endl;
         if (line[0] == ' ') {line = line.substr(1);} // fix leading space
         vector<string> tokens;
         boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
 
+        // remove empty tokens
+        for (unsigned int i = 0; i < tokens.size(); i++) {
+            if (tokens[i].empty()) {tokens.erase(tokens.begin()+i);}
+        }
+
         // determine if we are in some sort of header
         if (tokens.size() < 2 || tokens.size() > 4) {continue;} // too many separators
         bool skip = false;
-        for (unsigned int i = 0; i < tokens.size(); i++) { // check if they are numbers
-            if (!tokens[i].empty() && tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
+        for (unsigned int i = 0; i < tokens.size(); i++) { // check if all tokens are numbers
+            if (tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
         }
         if (skip) {continue;}
 
@@ -166,6 +178,12 @@ void IDataset::load(std::string path) {
         if (_q > setting::fit::q_high) {continue;}
 
         // add the values to our vectors
+        std::cout << "data size: " << data.size() << std::endl;
+        std::cout << "token size: " << tokens.size() << ", M = " << M << std::endl;
+        std::cout << "Tokens: " << std::endl;
+        for (unsigned int i = 0; i < tokens.size(); i++) {
+            std::cout << "\"" << tokens[i] << "\"" << std::endl;
+        }
         if (tokens.size() == 2 && M == 2) {
             push_back({_q, _I});
         } else if (tokens.size() == 3 && M == 3) {
@@ -175,6 +193,7 @@ void IDataset::load(std::string path) {
         } else {
             throw except::invalid_operation("Error in IDataset::load: Dataset has wrong number of columns.");
         }
+        std::cout << "end of iteration" << std::endl;
     }
     input.close();
 }
@@ -219,6 +238,16 @@ SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min,
         yerr[i] = y[i]*0.1;
     }
     return SimpleDataset(x, y, yerr);
+}
+
+void SimpleDataset::push_back(double x, double y, double yerr) {
+    extend(1);
+    row(N-1) = {x, y, yerr};
+}
+
+void SimpleDataset::name_columns(std::string xlabel, std::string ylabel) {
+    options.xlabel = xlabel;
+    options.ylabel = ylabel;
 }
 
 void SimpleDataset::normalize(double y0) {
@@ -320,4 +349,17 @@ void Dataset::scale_errors(double factor) {
     auto yerr = this->yerr();
     std::transform(xerr.begin(), xerr.end(), xerr.begin(), [&factor] (double val) {return factor*val;});
     std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
+}
+
+void Dataset::push_back(double x, double y, double xerr, double yerr) {
+    extend(1);
+    row(N-1) = {x, y, yerr, xerr};
+}
+
+void Dataset::push_back(double x, double y) {
+    push_back(x, y, 0, 0);
+}
+
+void Dataset::push_back(const Point2D& point) noexcept {
+    push_back(point.x, point.y, point.xerr, point.yerr);
 }

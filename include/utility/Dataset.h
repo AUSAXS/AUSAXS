@@ -28,11 +28,7 @@ class IDataset : public Matrix<double>, public plots::PlotOptionWrapper {
         /**
          * @brief Get a column based on its name. This is primarily meant as a sanity check when expecting e.g. logarithmic data. 
          */
-        [[nodiscard]] Column<double> get(std::string column) {
-            if (column == options.xlabel) {return x();}
-            else if (column == options.ylabel) {return y();}
-            else {throw except::invalid_argument("Error in IDataset::get: Column name \"" + column + "\" not recognized.");}
-        }
+        [[nodiscard]] Column<double> get(std::string column);
 
         /**
          * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
@@ -160,7 +156,7 @@ class SimpleDataset : public IDataset {
         /**
          * @brief Construct a new dataset from an input file.
          */
-        SimpleDataset(std::string path) {
+        SimpleDataset(std::string path) : SimpleDataset() {
             load(path);
         }
 
@@ -174,18 +170,12 @@ class SimpleDataset : public IDataset {
         /**
          * @brief Add a new point at the end of the dataset.
          */
-        void push_back(double x, double y, double yerr) {
-            extend(1);
-            row(N) = {x, y, yerr};
-        }
+        void push_back(double x, double y, double yerr);
 
         /**
          * @brief Name the columns. 
          */
-        void name_columns(std::string xlabel, std::string ylabel) {
-            options.xlabel = xlabel;
-            options.ylabel = ylabel;
-        }
+        void name_columns(std::string xlabel, std::string ylabel);
 
         /**
          * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
@@ -284,24 +274,17 @@ class Dataset : public SimpleDataset {
         /**
          * @brief Add a new point at the end of the dataset.
          */
-        void push_back(double x, double y, double xerr, double yerr) {
-            extend(1);
-            row(N) = {x, y, yerr, xerr};
-        }
+        void push_back(double x, double y, double xerr, double yerr);
 
         /**
          * @brief Add a new point at the end of the dataset.
          */
-        void push_back(double x, double y) {
-            push_back(x, y, 0, 0);
-        }
+        void push_back(double x, double y);
 
         /**
          * @brief Add a new point at the end of the dataset.
          */
-        void push_back(const Point2D& point) noexcept {
-            push_back(point.x, point.y, point.xerr, point.yerr);
-        }
+        void push_back(const Point2D& point) noexcept;
 
         /**
          * @brief Scale all errors by some common factor. 

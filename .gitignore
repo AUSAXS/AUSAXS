@@ -8,6 +8,7 @@ data/*
 perf.*
 CMakeFiles
 lib
+valgrind.txt
 
 *.cmake
 *.pdf

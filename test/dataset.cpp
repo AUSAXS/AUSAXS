@@ -20,7 +20,7 @@ TEST_CASE("debug", "[dataset],[disable]") {
 
 TEST_CASE("dataset_ylimits", "[dataset]") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    std::vector<double> y = {-10, -6, -4, -1, 2, 1, 3, 6, 7, 9};
+    std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
     SimpleDataset data(x, y);
 
     Limit limit(0.5, 5);
@@ -33,7 +33,7 @@ TEST_CASE("dataset_ylimits", "[dataset]") {
 
 TEST_CASE("dataset_xlimits", "[dataset]") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    std::vector<double> y = {-10, -6, -4, -1, 2, 1, 3, 6, 7, 9};
+    std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
     Dataset data(x, y);
 
     Limit limit(0.5, 5);
@@ -44,15 +44,42 @@ TEST_CASE("dataset_xlimits", "[dataset]") {
     }
 }
 
+TEST_CASE("dataset_pushback", "[dataset]") {
+    SimpleDataset data;
+
+    data.push_back(10, 8, 6);
+    CHECK(data.size() == 1);
+    std::cout << data.x(0) << std::endl;
+    std::cout << data.y(0) << std::endl;
+    std::cout << data.yerr(0) << std::endl;
+
+
+    CHECK(data.x().back() == 10);
+    CHECK(data.y().back() == 8);
+    CHECK(data.yerr().back() == 6);
+
+    data.push_back(std::vector<double>{11, 11, 11});
+    CHECK(data.size() == 2);
+    CHECK(data.x().back() == 11);
+    CHECK(data.y().back() == 11);
+    CHECK(data.yerr().back() == 11);
+
+    data.push_back(std::vector<double>{12, 12, 12});
+    CHECK(data.size() == 3);
+    CHECK(data.x().back() == 12);
+    CHECK(data.y().back() == 12);
+    CHECK(data.yerr().back() == 12);
+}
+
 TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
     SimpleDataset data("data/SHOC2/7sd0.dat");
     SimpleDataset data_unbinned = data;
-    data.rebin();
-    data.save("temp/dataset/rebin.dat");
+    // data.rebin();
+    // data.save("temp/dataset/rebin.dat");
 
-    plots::PlotDataset plot(data_unbinned);
-    plot.plot(data);
-    plot.save("temp/dataset_rebin.pdf");
+    // plots::PlotDataset plot(data_unbinned);
+    // plot.plot(data);
+    // plot.save("temp/dataset_rebin.pdf");
 }
 
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {

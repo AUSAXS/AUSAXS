@@ -1,4 +1,5 @@
 # Todo
+ * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date
  * [ ] Dataset & Histogram: Basically same class, can maybe be combined somehow?
  * [ ] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
