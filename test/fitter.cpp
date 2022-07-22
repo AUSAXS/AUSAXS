@@ -21,9 +21,9 @@ TEST_CASE("consistency_check", "[fitter]") {
 
     // prepare measured data
     Protein protein("data/native.pdb");
-    SAXSDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
-    data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.limit_x(Limit(setting::fit::q_low, setting::fit::q_high));
     data.simulate_errors();
 
     // prepare fit data

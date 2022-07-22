@@ -1,11 +1,13 @@
-#include <utility/Dataset.h>
 #include <math/SimpleLeastSquares.h>
+#include <utility/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
+#include <utility/Settings.h>
 
 #include <vector>
 #include <string>
 #include <fstream>
+#include <random>
 
 using std::vector, std::string;
 
@@ -132,6 +134,51 @@ void IDataset::save(std::string path) const {
     output.close();
 }
 
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
+void IDataset::load(std::string path) {
+    // check if file was succesfully opened
+    std::ifstream input(path);
+    if (!input.is_open()) {throw std::ios_base::failure("Error in IDataset::load: Could not open file \"" + path + "\"");}
+
+    string line; // placeholder for the current line
+    while(getline(input, line)) {
+        if (line[0] == ' ') {line = line.substr(1);} // fix leading space
+        vector<string> tokens;
+        boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
+
+        // determine if we are in some sort of header
+        if (tokens.size() < 2 || tokens.size() > 4) {continue;} // too many separators
+        bool skip = false;
+        for (unsigned int i = 0; i < tokens.size(); i++) { // check if they are numbers
+            if (!tokens[i].empty() && tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
+        }
+        if (skip) {continue;}
+
+        // now we are most likely beyond any headers
+        double _q, _I, _sigma;
+        _q = std::stod(tokens[0]); // we know for sure that the strings are convertible to numbers (boost check)
+        _I = std::stod(tokens[1]);
+        if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
+
+        // check user-defined limits
+        if (_q < setting::fit::q_low) {continue;}
+        if (_q > setting::fit::q_high) {continue;}
+
+        // add the values to our vectors
+        if (tokens.size() == 2 && M == 2) {
+            push_back({_q, _I});
+        } else if (tokens.size() == 3 && M == 3) {
+            push_back({_q, _I, std::stod(tokens[2])});
+        } else if (tokens.size() == 4 && M == 4) {
+            push_back({_q, _I, std::stod(tokens[2]), std::stod(tokens[3])});
+        } else {
+            throw except::invalid_operation("Error in IDataset::load: Dataset has wrong number of columns.");
+        }
+    }
+    input.close();
+}
+
 Limit IDataset::span_x() const noexcept {
     auto x = this->x();
     auto[min, max] = std::minmax_element(x.begin(), x.end());
@@ -158,4 +205,119 @@ Limit IDataset::span_y_positive() const noexcept {
         limits.max = std::max(val, limits.max);
     }
     return limits;
+}
+
+SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min, double max) {
+    std::random_device dev;
+    std::mt19937 gen(dev());
+    auto uniform = std::uniform_real_distribution<double>(min, max);
+
+    vector<double> x(size), y(size), yerr(size);
+    for (unsigned int i = 0; i < size; i++) {
+        x[i] = i;
+        y[i] = uniform(gen);
+        yerr[i] = y[i]*0.1;
+    }
+    return SimpleDataset(x, y, yerr);
+}
+
+void SimpleDataset::normalize(double y0) {
+    scale_y(y0/y(0));
+}
+
+void SimpleDataset::scale_errors(double factor) {
+    auto yerr = this->yerr();
+    std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
+}
+
+void SimpleDataset::scale_y(double factor) {
+    auto y = this->y();
+    auto yerr = this->yerr();
+    std::transform(y.begin(), y.end(), y.begin(), [&factor] (double val) {return val*factor;});
+    std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
+}
+
+void SimpleDataset::simulate_noise() {
+    std::random_device dev;
+    std::mt19937 gen(dev());
+    auto fun = [&] (double y, double yerr) {
+        auto gauss = std::normal_distribution<double>(y, yerr);
+        return gauss(gen);
+    };
+
+    auto y = this->y();
+    auto yerr = this->yerr();
+    std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), fun);
+}
+
+void SimpleDataset::simulate_errors() {
+    double y0 = y(0);
+    auto x = this->x();
+    auto y = this->y();
+    auto yerr = this->yerr();
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
+    // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y0/std::pow(x, 1.2)*1e-5 + 1e-4*y0;});    
+}
+
+Point2D SimpleDataset::get_point(unsigned int index) const noexcept {
+    return Point2D(x(index), y(index), yerr(index));
+}
+
+Point2D SimpleDataset::find_minimum() const noexcept {
+    auto y = this->y();
+    auto it = std::min_element(y.begin(), y.end());
+    unsigned int index = it - y.begin();
+    return get_point(index);
+}
+
+void SimpleDataset::push_back(const Point2D& point) noexcept {
+    push_back(point.x, point.y, point.yerr);
+}
+
+void SimpleDataset::rebin() noexcept {
+    SimpleDataset data; // rebinned dataset
+
+    for (unsigned int i = 0; i < size(); i++) {
+        // determine how many data points to fold into one
+        unsigned int fold;
+        if (0.1 < x(i)) {fold = 8;}
+        else if (0.06 < x(i)) {fold = 4;}
+        else if (0.03 < x(i)) {fold = 2;}
+        else {fold = 1;}
+
+        std::cout << "now folding " << i << " to " << i + fold << std::endl;
+
+        // loop over each data point to be folded
+        double siginv = 0, sumw = 0, qsum = 0;
+        unsigned int ss = 0;
+        for (; ss < fold; ss++) {
+            std::cout << "checkpoint1" << std::endl;
+            if (i == size()) {break;}
+            std::cout << "checkpoint1" << std::endl;
+            siginv += (std::pow(yerr(i), -2));
+            std::cout << "checkpoint1" << std::endl;
+            sumw += y(i)/(std::pow(yerr(i), 2));
+            std::cout << "checkpoint1" << std::endl;
+            qsum += x(i);
+            std::cout << "checkpoint1" << std::endl;
+            i++;
+        }
+
+        // average their values into a single new one
+        double q = qsum/ss;
+        double I = sumw/siginv;
+        double Ierr = std::pow(siginv, -0.5);
+        data.push_back(Point2D(q, I, Ierr));
+    }
+    data.save("temp/dataset/test.dat");
+    *this = data;
+}
+
+void Dataset::scale_errors(double factor) {
+    auto xerr = this->xerr();
+    auto yerr = this->yerr();
+    std::transform(xerr.begin(), xerr.end(), xerr.begin(), [&factor] (double val) {return factor*val;});
+    std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
 }

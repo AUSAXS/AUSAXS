@@ -51,7 +51,7 @@ TEST_CASE("check_chi2", "[em],[files]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     Protein protein("data/2epe.pdb");
-    SAXSDataset data = protein.simulate_dataset();
+    SimpleDataset data = protein.simulate_dataset();
 
     SimpleIntensityFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
@@ -87,9 +87,9 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 
     auto data = image.cutoff_scan_fit({1000, 1, 2}, hist);
 
-    Dataset& scan = data.contour;
-    Dataset& fit = data.fit.evaluated_points;
-    fit.plot_options.set("markers", {{"color", kOrange+2}});
+    SimpleDataset& scan = data.contour;
+    SimpleDataset& fit = data.fit.evaluated_points;
+    fit.add_plot_options("markers", {{"color", kOrange+2}});
 
     plots::PlotDataset plot(scan);
     plot.plot(fit);
@@ -123,9 +123,9 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
 
     // prepare measured data
     Protein protein("data/native.pdb");
-    SAXSDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
-    data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.limit_x(Limit(setting::fit::q_low, setting::fit::q_high));
     data.simulate_errors();
 
     // prepare fit data
@@ -141,14 +141,14 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         Dataset& base = contours[0];
         REQUIRE(base.size() == data.size());
         for (unsigned int i = 0; i < base.size(); i++) {
-            if (base.x[i] != data.x[i]) {
+            if (base.x(i) != data.x(i)) {
                 utility::print_warning("Error: x values are not equal.");
-                REQUIRE(base.x[i] == data.x[i]);
+                REQUIRE(base.x(i) == data.x(i));
             }
 
-            if (base.y[i] != data.y[i]) {
+            if (base.y(i) != data.y(i)) {
                 utility::print_warning("Error: y values are not equal.");
-                REQUIRE(base.y[i] == data.y[i]);
+                REQUIRE(base.y(i) == data.y(i));
             }
         }
     };
@@ -167,18 +167,18 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         setting::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
             auto data = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
-            Dataset& fit = data.fit.evaluated_points;
-            optvals.push_back({fit.x[fit.size()-1], fit.y[fit.size()-1]});
+            SimpleDataset& fit = data.fit.evaluated_points;
+            optvals.push_back({fit.x(fit.size()-1), fit.y(fit.size()-1)});
 
             // chi2 contour plot
             Dataset& scan = data.contour;
-            fit.plot_options.set("markers", {{"color", kOrange+2}});
+            fit.add_plot_options("markers", {{"color", kOrange+2}});
 
             plots::PlotDataset plot_c(scan);
             plot_c.plot(fit);
             plot_c.save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
 
-            scan.plot_options.set("line", {{"color", kBlack}, {"alpha", 1.}});
+            scan.add_plot_options("line", {{"color", kBlack}, {"alpha", 1.}});
             contours.push_back(scan);
             evaluations.push_back(fit);
         }
@@ -186,7 +186,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         Dataset fit_mins;
         fit_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}}));
         for (const auto& val : optvals) {
-            fit_mins.push_back({val.first, val.second});
+            fit_mins.push_back(val.first, val.second);
             std::cout << "(x, y): " << "(" << val.first << ", " << val.second << ")" << std::endl;
         }
 
@@ -208,8 +208,8 @@ TEST_CASE("repeat_chi2_contour", "[em],[files]") {
         Dataset diff;
         diff.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}));
         for (unsigned int i = 0; i < scan_mins.size(); i++) {
-            double delta_x = fit_mins.x[i] - scan_mins.x[i];
-            double delta_y = fit_mins.y[i] - scan_mins.y[i];
+            double delta_x = fit_mins.x(i) - scan_mins.x(i);
+            double delta_y = fit_mins.y(i) - scan_mins.y(i);
             diff.push_back({delta_x, delta_y});
         }
         plots::PlotDataset::quick_plot(diff, "figures/test/em/diff.pdf");        
@@ -284,8 +284,8 @@ TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
     Protein protein("data/maptest.pdb");
 
     auto h = protein.get_histogram();
-    SAXSDataset data = h.calc_debye_scattering_intensity();
-    data.set_resolution(25); // set the resolution
+    SimpleDataset data = h.calc_debye_scattering_intensity();
+    // data.set_resolution(25); // set the resolution //! ???
     data.reduce(100, true);  // reduce to 100 datapoints
     data.simulate_errors();  // simulate y errors
     // data.scale_errors(1000); // scale all errors so we can actually see them

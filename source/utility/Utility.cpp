@@ -58,6 +58,31 @@ std::string utility::extract_number<std::string>(std::string s) {
     return s.substr(start, end-start);
 }
 
+std::vector<std::string> split(std::string str, char delimiter) {
+    std::string token;
+    std::stringstream ss(str);
+    std::vector<std::string> tokens;
+    while(std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+std::vector<std::string> split(std::string str, std::string delimiters) {
+    std::vector<std::string> tokens;
+    for (unsigned int i = 0; i < str.size(); i++) {
+        for (unsigned int j = 0; j < delimiters.size(); j++) {
+            if (str[i] == delimiters[j]) {
+                tokens.push_back(str.substr(0, i));
+                str = str.substr(i+1);
+                i = 0;
+                break;
+            }
+        }
+    }
+    return tokens;
+}
+
 std::string utility::uid() {
     static unsigned int i = 0;
     return std::to_string(i++);

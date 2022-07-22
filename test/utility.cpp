@@ -7,10 +7,10 @@
 using std::vector, std::string;
 
 TEST_CASE("plots", "[utility],[manual]") {
-    Dataset data;
-    data.x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
-    data.y = {-5, -3, 4, 8, 12, 7, 3, 1, -3, -5, -9};
-    data.yerr = vector<double>(data.size(), 0.5);
+    std::vector<double> x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
+    std::vector<double> y = {-5, -3, 4, 8, 12, 7, 3, 1, -3, -5, -9};
+    std::vector<double> yerr = vector<double>(y.size(), 0.5);
+    SimpleDataset data(x, y, yerr);
 
     SECTION("markers") {
         plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/default.png");
@@ -28,7 +28,7 @@ TEST_CASE("plots", "[utility],[manual]") {
     }
 
     SECTION("log") {
-        data.ylimits(1, inf);
+        data.limit_y(1, inf);
         data.add_plot_options({{"logy", true}});
         plots::PlotDataset::quick_plot(data, "figures/test/utility/plots/log.png");
     }

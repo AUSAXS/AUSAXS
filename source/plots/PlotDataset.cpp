@@ -52,6 +52,10 @@ void plots::PlotDataset::quick_plot(const T& data, std::string path) {
     plot.save(path);
 }
 
+void plots::PlotDataset::prepare_canvas() {
+    canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
+}
+
 template void plots::PlotDataset::quick_plot(const Dataset& data, std::string path);
 template void plots::PlotDataset::quick_plot(const SimpleDataset& data, std::string path);
 template plots::PlotDataset::PlotDataset(const Dataset& data);

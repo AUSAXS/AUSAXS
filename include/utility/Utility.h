@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <sstream>
 
 namespace utility {
@@ -48,6 +49,16 @@ namespace utility {
      * @brief Get the stem of a path.
      */
     std::string stem(std::string path);
+
+    /**
+     * @brief Split a string at a given delimiter.
+     */
+    std::vector<std::string> split(std::string s, char delimiter);
+
+    /**
+     * @brief Split a string at the given delimiters.
+     */
+    std::vector<std::string> split(std::string s, std::string delimiters);
 
     /**
      * @brief Check if three values are equal.

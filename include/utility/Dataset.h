@@ -103,6 +103,11 @@ class IDataset : public Matrix<double>, public plots::PlotOptionWrapper {
          *        This can be useful for setting log ranges. 
          */
         [[nodiscard]] Limit span_y_positive() const noexcept;
+
+        /**
+         * @brief Load a dataset from the specified file. 
+         */
+        void load(std::string path);
 };
 
 /**
@@ -121,6 +126,11 @@ class SimpleDataset : public IDataset {
          * @brief Construct a new empty dataset with the given number of rows. 
          */
         SimpleDataset(unsigned int rows) noexcept : IDataset(rows, 3) {}
+
+        /**
+         * @brief Construct a new empty dataset.
+         */
+        SimpleDataset() noexcept : SimpleDataset(0) {}
 
         /**
          * @brief Construct a new dataset based on the given vectors. 
@@ -148,9 +158,11 @@ class SimpleDataset : public IDataset {
         }
 
         /**
-         * @brief Construct a new empty dataset.
+         * @brief Construct a new dataset from an input file.
          */
-        SimpleDataset() noexcept : SimpleDataset(0) {}
+        SimpleDataset(std::string path) {
+            load(path);
+        }
 
         /**
          * @brief Destructor.
@@ -183,7 +195,7 @@ class SimpleDataset : public IDataset {
         /**
          * @brief Scale all errors by some common factor. 
          */
-        void scale_errors(double factor);
+        virtual void scale_errors(double factor);
 
         /**
          * @brief Scale the y-values (and their associated errors) by some common factor.
@@ -284,8 +296,23 @@ class Dataset : public SimpleDataset {
             push_back(x, y, 0, 0);
         }
 
+        /**
+         * @brief Add a new point at the end of the dataset.
+         */
+        void push_back(const Point2D& point) noexcept {
+            push_back(point.x, point.y, point.xerr, point.yerr);
+        }
+
+        /**
+         * @brief Scale all errors by some common factor. 
+         */
+        void scale_errors(double factor) override;
+
         [[nodiscard]] const ConstColumn<double> xerr() const {return ConstColumn<double>(data, N, M, 3);}
         [[nodiscard]] Column<double> xerr() {return Column<double>(data, N, M, 3);}
         [[nodiscard]] const double& xerr(unsigned int i) const {return index(i, 3);}
         [[nodiscard]] double& xerr(unsigned int i) {return index(i, 3);}
 };
+
+// Object conversion between Dataset and SimpleDataset is often used. This check ensures that the conversion is safe.
+static_assert(sizeof(Dataset) == sizeof(SimpleDataset), "Object conversion is broken.");
