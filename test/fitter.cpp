@@ -12,7 +12,7 @@
 #include <utility/Settings.h>
 #include <histogram/Histogram.h>
 
-TEST_CASE("consistency_check", "[fitter]") {
+TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
     unsigned int repeats = 100;
 
     setting::protein::use_effective_charge = false;
@@ -20,14 +20,14 @@ TEST_CASE("consistency_check", "[fitter]") {
     setting::fit::q_high = 0.4;
 
     // prepare measured data
-    Protein protein("data/native.pdb");
+    Protein protein("data/A2M/native.pdb");
     SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.limit_x(Limit(setting::fit::q_low, setting::fit::q_high));
     data.simulate_errors();
 
     // prepare fit data
-    em::ImageStack image("sim/native_25.ccp4");
+    em::ImageStack image("sim/native_23.ccp4");
     auto hist = protein.get_histogram();
 
     hist::Histogram optimal_vals;
@@ -38,5 +38,5 @@ TEST_CASE("consistency_check", "[fitter]") {
     optimal_vals.generate_axis(10);
 
     plots::PlotHistogram plot(optimal_vals);
-    plot.save("figures/temp/fitter/consistency_check.pdf");
+    plot.save("figures/test/fitter/consistency_check.pdf");
 }

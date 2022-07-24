@@ -161,7 +161,7 @@ TEST_CASE("real_data", "[io],[files]") {
 }
 
 TEST_CASE("file_copied_correctly", "[io],[files]") {
-    Body body("data/2epe.pdb");
+    Body body("data/lysozyme/2epe.pdb");
     CHECK(!body.get_file()->header.get().empty());
     CHECK(!body.get_file()->footer.get().empty());
 

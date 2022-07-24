@@ -35,6 +35,7 @@ ImageStack::ImageStack(string file, unsigned int resolution)
     if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
 
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
+    size_x = header->nx; size_y = header->ny; size_z = header->nz;
     read(input, get_byte_size());
     phm->set_charge_levels(); // set default charge levels
 }
@@ -214,8 +215,6 @@ size_t ImageStack::get_byte_size() const {
 }
 
 void ImageStack::read(std::ifstream& istream, size_t byte_size) {
-    size_x = header->nx; size_y = header->ny; size_z = header->nz;
-
     data = vector<Image>(size_z, Image(header));
     for (unsigned int i = 0; i < size_x; i++) {
         for (unsigned int j = 0; j < size_y; j++) {
@@ -279,7 +278,11 @@ double ImageStack::rms() const {
     static double rms = 0; // only initialized once
     if (rms == 0) {
         double sum = std::accumulate(data.begin(), data.end(), 0.0, [] (double sum, const Image& image) {return sum + image.squared_sum();});
-        rms = std::sqrt(sum/(header->nx*header->ny*header->nz));
+        rms = std::sqrt(sum/(size_x*size_y*size_z));
     }
     return rms;
+}
+
+std::shared_ptr<em::PartialHistogramManager> ImageStack::get_histogram_manager() const {
+    return phm;
 }

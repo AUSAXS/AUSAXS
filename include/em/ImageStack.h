@@ -230,13 +230,18 @@ namespace em {
              */
             double rms() const;
 
+            /**
+             * @brief Get the histogram manager.
+             */
+            std::shared_ptr<em::PartialHistogramManager> get_histogram_manager() const;
+
         private:
             std::string filename;
             std::shared_ptr<ccp4::Header> header;
             std::vector<Image> data;
             unsigned int resolution;
             unsigned int size_x, size_y, size_z;
-            std::unique_ptr<em::PartialHistogramManager> phm;
+            std::shared_ptr<em::PartialHistogramManager> phm;
 
             /**
              * @brief Update the cutoff sections that will be used.

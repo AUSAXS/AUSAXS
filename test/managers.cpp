@@ -84,6 +84,10 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
         hist::ScatteringHistogram h2 = manager.get_histogram(cutoff);
 
         if (h1.p.size() != h2.p.size()) {
+            unsigned int lim = std::min(h1.p.size(), h2.p.size());
+            for (unsigned int i = 0; i < lim; i++) {
+                std::cout << "h1: " << h1.p[i] << ", h2: " << h2.p[i] << std::endl;
+            }
             cout << "Unequal sizes. " << endl;
             return false;
         }
@@ -179,7 +183,7 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
 
         SECTION("real example") {
             em::ImageStack images("data/maptest.ccp4");
-            em::PartialHistogramManager manager(images);
+            auto manager = *images.get_histogram_manager();
 
             REQUIRE(compare(manager, 4));
             REQUIRE(compare(manager, 3));
@@ -191,13 +195,13 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
 
     SECTION("comparison with standard approach") {
         setting::em::sample_frequency = 2;
-        em::ImageStack images("data/A2M_ma.ccp4");
-        em::PartialHistogramManager manager(images);
+        em::ImageStack images("data/A2M/emd_12752.map");
+        auto manager = *images.get_histogram_manager();
 
-        REQUIRE(compare(manager, 4));
-        REQUIRE(compare(manager, 3));
-        REQUIRE(compare(manager, 2));
-        REQUIRE(compare(manager, 5));
-        REQUIRE(compare(manager, 6));
+        REQUIRE(compare(manager, 0.04));
+        REQUIRE(compare(manager, 0.03));
+        REQUIRE(compare(manager, 0.02));
+        REQUIRE(compare(manager, 0.05));
+        REQUIRE(compare(manager, 0.06));
     }
 }

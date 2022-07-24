@@ -71,13 +71,13 @@ TEST_CASE("Constraints", "[rigidbody]") {
 }
 
 TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
-    Protein protein_2epe("data/2epe.pdb");
+    Protein protein_2epe("data/lysozyme/2epe.pdb");
     Protein protein_LAR12("data/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
     protein_LAR12.generate_new_hydration();
 
     SECTION("intensity_fitter") {
-        IntensityFitter fitter("data/2epe.RSR", protein_2epe.get_histogram());
+        IntensityFitter fitter("data/lysozyme/2epe.RSR", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -90,7 +90,7 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     }
 
     SECTION("simple_intensity_fitter") {
-        SimpleIntensityFitter fitter("data/2epe.RSR", protein_2epe.get_histogram());
+        SimpleIntensityFitter fitter("data/lysozyme/2epe.RSR", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -104,8 +104,8 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 }
 
 TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
-    Protein protein("data/2epe.pdb");
-    SimpleIntensityFitter fitter("data/2epe.RSR", protein.get_histogram());
+    Protein protein("data/lysozyme/2epe.pdb");
+    SimpleIntensityFitter fitter("data/lysozyme/2epe.RSR", protein.get_histogram());
 
     protein.generate_new_hydration();
     double chi2 = fitter.fit()->fval;

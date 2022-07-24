@@ -75,7 +75,7 @@ TEST_CASE("plotoptions", "[utility]") {
     plots::PlotOptions options;
 
     SECTION("set") {
-        options.set({{"xlabel", "label for x"}, {"ylabel", string("label for y")}, {"drawline", true}, {"draw_errors", true}, {"color", kBlue}, {"alpha", 0.3}});
+        options.set({{"xlabel", "label for x"}, {"ylabel", string("label for y")}, {"line", true}, {"errors", true}, {"color", kBlue}, {"alpha", 0.3}});
         CHECK(options.xlabel == "label for x");
         CHECK(options.ylabel == "label for y");
         CHECK(options.draw_line == true);

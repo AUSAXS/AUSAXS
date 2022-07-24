@@ -205,12 +205,12 @@ class SimpleDataset : public IDataset {
         /**
          * @brief Get the point at a given index.
          */
-        Point2D get_point(unsigned int index) const noexcept;
+        Point2D get_point(unsigned int index) const;
 
         /**
          * @brief Get the point with the smallest y-value.
          */
-        Point2D find_minimum() const noexcept;
+        Point2D find_minimum() const;
 
         /**
          * @brief Add a new datapoint to the end of this dataset. 

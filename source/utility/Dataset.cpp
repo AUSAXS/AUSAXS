@@ -310,19 +310,25 @@ void SimpleDataset::simulate_errors() {
     std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y0/std::pow(x, 1.2)*1e-5 + 1e-4*y0;});    
 }
 
-Point2D SimpleDataset::get_point(unsigned int index) const noexcept {
+Point2D SimpleDataset::get_point(unsigned int index) const {
     return Point2D(x(index), y(index), yerr(index));
 }
 
-Point2D SimpleDataset::find_minimum() const noexcept {
+Point2D SimpleDataset::find_minimum() const {
     if (size() == 0) {
         utility::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
         return Point2D(0, 0, 0);
     }
-    auto y = this->y();
-    auto it = std::min_element(y.begin(), y.end());
-    unsigned int index = it - y.begin();
-    return get_point(index);
+    
+    unsigned int min_index = 0;
+    double min_value = y(0);
+    for (unsigned int i = 1; i < size(); i++) {
+        if (y(i) < min_value) {
+            min_index = i;
+            min_value = y(i);
+        }
+    }
+    return get_point(min_index);
 }
 
 void SimpleDataset::push_back(const Point2D& point) noexcept {
