@@ -11,7 +11,7 @@
 
 #include <math/Slice.h>
 
-#define safe_math true
+#define SAFE_MATH true
 
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 template<typename T>
@@ -280,7 +280,7 @@ class Vector {
         // check if the vector is compatible with ours
         template<typename Q>
         void compatibility_check(const Vector<Q>& v) const {
-            #if (safe_math)
+            #if (SAFE_MATH)
                 if (__builtin_expect(N != v.N, false)) {
                     throw std::invalid_argument("Vector dimensions do not match (got: " + std::to_string(v.N) + ", expected: " + std::to_string(N) + ").");
                 }

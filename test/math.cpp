@@ -508,46 +508,68 @@ TEST_CASE("Slices", "[math]") {
     }
 
     SECTION("iterators") {
-        Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
-        auto r = A.row(0);
-        auto c = A.col(0);
+        SECTION("basic") {
+            Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+            auto r = A.row(0);
+            auto c = A.col(0);
 
-        // basic iterator stuff
-        REQUIRE(r.begin() == r.begin());
-        REQUIRE(r.end() == r.end());
-        REQUIRE(c.begin() == c.begin());
-        REQUIRE(c.end() == c.end());
+            // basic iterator stuff
+            REQUIRE(r.begin() == r.begin());
+            REQUIRE(r.end() == r.end());
+            REQUIRE(c.begin() == c.begin());
+            REQUIRE(c.end() == c.end());
 
-        REQUIRE(r.begin() != r.end());
-        REQUIRE(c.begin() != c.end());
+            REQUIRE(r.begin() != r.end());
+            REQUIRE(c.begin() != c.end());
 
-        // row iterator
-        auto it = r.begin();
-        CHECK(*it == 1);
-        ++it;
-        CHECK(*it == 2);
-        ++it;
-        CHECK(*it == 2);
-        ++it;
-        CHECK(*it == 7);
+            // row iterator
+            auto it = r.begin();
+            CHECK(*it == 1);
+            ++it;
+            CHECK(*it == 2);
+            ++it;
+            CHECK(*it == 2);
+            ++it;
+            CHECK(*it == 7);
 
-        for (auto i : r) {
-            CHECK((i == 1 || i == 2 || i == 7));
-            std::cout << i << std::endl;
+            for (auto i : r) {
+                CHECK((i == 1 || i == 2 || i == 7));
+                std::cout << i << std::endl;
+            }
+
+            // column iterator
+            it = c.begin();
+            CHECK(*it == 1);
+            ++it;
+            CHECK(*it == 9);
+            ++it;
+            CHECK(*it == 6);
+
+            for (auto i : c) {
+                CHECK((i == 1 || i == 9 || i == 6));
+            }
         }
 
-        // column iterator
-        it = c.begin();
-        CHECK(*it == 1);
-        ++it;
-        CHECK(*it == 9);
-        ++it;
-        CHECK(*it == 6);
+        SECTION("advanced") {
+            Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
+            SECTION("single transform") {
+                auto r = A.row(0);
+                std::transform(r.begin(), r.end(), r.begin(), [](double x) { return x * 2; });
+                REQUIRE(r == Vector{2, 4, 4, 14});
+                REQUIRE(A.row(0) == Vector{2, 4, 4, 14});
+            }
 
-        for (auto i : c) {
-            CHECK((i == 1 || i == 9 || i == 6));
+            SECTION("double transform") {
+                auto r1 = A.row(0);
+                auto r2 = A.row(1);
+                std::transform(r1.begin(), r1.end(), r2.begin(), r1.begin(), std::plus<double>());
+                REQUIRE(r1 == Vector{10, 7, 4, 8});
+                REQUIRE(A.row(0) == Vector{10, 7, 4, 8});
+            }
         }
     }
+
+
 }
 
 TEST_CASE("Cramer", "[math]") {

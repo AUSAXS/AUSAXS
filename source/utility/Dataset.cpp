@@ -97,7 +97,7 @@ bool IDataset::is_logarithmic() const noexcept {
     // if the fit is decent, the data must have been logaritmic
     SimpleDataset exp_data;
     for (unsigned int i = 1; i < size(); i++) {
-        exp_data.push_back(x(i), std::exp(x(i)-x(i-1)), 1);
+        exp_data.push_back(x(i), std::exp(x(i)-x(i-1)));
     }
 
     SimpleLeastSquares fit(std::move(exp_data));
@@ -149,7 +149,6 @@ void IDataset::load(std::string path) {
 
     string line; // placeholder for the current line
     while(getline(input, line)) {
-        std::cout << "\n" << line << std::endl;
         if (line[0] == ' ') {line = line.substr(1);} // fix leading space
         vector<string> tokens;
         boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
@@ -163,7 +162,9 @@ void IDataset::load(std::string path) {
         if (tokens.size() < 2 || tokens.size() > 4) {continue;} // too many separators
         bool skip = false;
         for (unsigned int i = 0; i < tokens.size(); i++) { // check if all tokens are numbers
-            if (tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
+            if (tokens[i].find_first_not_of("0123456789-.Ee\n\r") != string::npos) {
+                skip = true;
+            }
         }
         if (skip) {continue;}
 
@@ -178,24 +179,39 @@ void IDataset::load(std::string path) {
         if (_q > setting::fit::q_high) {continue;}
 
         // add the values to our vectors
-        std::cout << "data size: " << data.size() << std::endl;
-        std::cout << "token size: " << tokens.size() << ", M = " << M << std::endl;
-        std::cout << "Tokens: " << std::endl;
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            std::cout << "\"" << tokens[i] << "\"" << std::endl;
+        // this is a fair bit more complicated than strictly necessary
+        if (tokens.size() == 4) {
+            if (M == 4) {
+                push_back({_q, _I, std::stod(tokens[2]), std::stod(tokens[3])});
+            } else if (M == 3) {
+                throw except::invalid_operation("Error in IDataset::load: File has four columns, but a SimpleDataset only supports three. Use a Dataset instance instead.");
+            } else {
+                throw except::unexpected("Error in IDataset::load: Unknown data layout.");
+            }
         }
-        if (tokens.size() == 2 && M == 2) {
-            push_back({_q, _I});
-        } else if (tokens.size() == 3 && M == 3) {
-            push_back({_q, _I, std::stod(tokens[2])});
-        } else if (tokens.size() == 4 && M == 4) {
-            push_back({_q, _I, std::stod(tokens[2]), std::stod(tokens[3])});
+        else if (tokens.size() == 3) {
+            if (M == 4) {
+                push_back({_q, _I, std::stod(tokens[2]), 0});
+            } else if (M == 3) {
+                push_back({_q, _I, std::stod(tokens[2])});
+            } else {
+                throw except::unexpected("Error in IDataset::load: Unknown data layout.");
+            }
+        }
+        else if (tokens.size() == 2) {
+            if (M == 4) {
+                push_back({_q, _I, 0, 0});
+            } else if (M == 3) {
+                push_back({_q, _I, 0});
+            } else {
+                throw except::unexpected("Error in IDataset::load: Unknown data layout.");
+            }
         } else {
-            throw except::invalid_operation("Error in IDataset::load: Dataset has wrong number of columns.");
+            throw except::unexpected("Error in IDataset::load: Unknown data layout.");
         }
-        std::cout << "end of iteration" << std::endl;
     }
     input.close();
+    if (size() == 0) {throw except::unexpected("Error in IDataset::load: No data was read from the file.");}
 }
 
 Limit IDataset::span_x() const noexcept {
@@ -280,6 +296,10 @@ void SimpleDataset::simulate_noise() {
 }
 
 void SimpleDataset::simulate_errors() {
+    if (size() == 0) {
+        utility::print_warning("Warning in SimpleDataset::simulate_errors: Dataset is empty.");
+        return;
+    }
     double y0 = y(0);
     auto x = this->x();
     auto y = this->y();
@@ -295,6 +315,10 @@ Point2D SimpleDataset::get_point(unsigned int index) const noexcept {
 }
 
 Point2D SimpleDataset::find_minimum() const noexcept {
+    if (size() == 0) {
+        utility::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
+        return Point2D(0, 0, 0);
+    }
     auto y = this->y();
     auto it = std::min_element(y.begin(), y.end());
     unsigned int index = it - y.begin();

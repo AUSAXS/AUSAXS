@@ -177,13 +177,23 @@ class MutableSlice : public Slice<T> {
 		 * @brief Mutable indexer in this Slice.
 		 * 		  Complexity: O(1)
 		 */
-		T& operator[](unsigned int i) {return data[this->start + i*this->step];}
+		T& operator[](unsigned int i) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+            #endif
+			return data[this->start + i*this->step];
+		}
 
 		/**
 		 * @brief Const indexer in this Slice.
 		 * 		  Complexity: O(1)
 		 */
-		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
+		const T& operator[](unsigned int i) const override {
+			#if (SAFE_MATH)
+                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+            #endif
+			return data[this->start + i*this->step];
+		}
 
 		/**
 		 * @brief Assign a Vector to this Slice.
@@ -324,7 +334,12 @@ class ConstSlice : public Slice<T> {
 		 * @brief Const indexer in this Slice.
 		 * 		  Complexity: O(1)
 		 */
-		const T& operator[](unsigned int i) const override {return data[this->start + i*this->step];}
+		const T& operator[](unsigned int i) const override {
+			#if (SAFE_MATH)
+                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+            #endif
+			return data[this->start + i*this->step];
+		}
 
 	private: 
 		const std::vector<T>& data;

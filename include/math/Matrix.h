@@ -66,7 +66,7 @@ class Matrix {
         void push_back(std::vector<double> r) {
             compatibility_check_M(r.size());
             extend(1);
-            row(N) = r;
+            row(N-1) = r;
         }
 
         /**
@@ -270,10 +270,22 @@ class Matrix {
         }
 
         // Read-only indexer
-        const Q& index(unsigned int i, unsigned int j) const {return data[M*i + j];}
+        const Q& index(unsigned int i, unsigned int j) const {
+            #if (SAFE_MATH)
+                if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+                if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Error in Matrix::index: Column index out of range.");}
+            #endif
+            return data[M*i + j];
+        }
 
         // Read-write indexer
-        Q& index(unsigned int i, unsigned int j) {return data[M*i + j];}
+        Q& index(unsigned int i, unsigned int j) {
+            #if (SAFE_MATH)
+                if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+                if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Error in Matrix::index: Column index out of range.");}
+            #endif
+            return data[M*i + j];
+        }
 
         // Read-only iterator
         const typename std::vector<Q>::const_iterator begin() const {return data.begin();}

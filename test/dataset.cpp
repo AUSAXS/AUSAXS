@@ -18,6 +18,27 @@ TEST_CASE("debug", "[dataset],[disable]") {
     plot_r.save("figures/test/dataset/debug.pdf");
 }
 
+TEST_CASE("dataset_slicing") {
+    std::vector<double> xd = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    std::vector<double> yd = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
+    SimpleDataset data(xd, yd);
+
+    auto x = data.x();
+    auto y = data.y();
+    auto yerr = data.yerr();
+
+    REQUIRE(x.size() == 9);
+    REQUIRE(y.size() == 9);
+    REQUIRE(yerr.size() == 9);
+    REQUIRE(x == Vector(xd));
+    REQUIRE(y == Vector(yd));
+    REQUIRE(yerr == Vector{0, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    std::transform(x.begin(), x.end(), yerr.begin(), [](double x) {return x;});
+    std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), std::multiplies<>());
+    REQUIRE(y == Vector{-6, -8, -3, 8, 5, 18, 42, 56, 81});
+}
+
 TEST_CASE("dataset_ylimits", "[dataset]") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
@@ -37,22 +58,18 @@ TEST_CASE("dataset_xlimits", "[dataset]") {
     Dataset data(x, y);
 
     Limit limit(0.5, 5);
-    data.limit_y(limit);
+    data.limit_x(limit);
     for (unsigned int i = 0; i < data.size(); i++) {
         CHECK(limit.min <= data.x(i));
         CHECK(data.x(i) <= limit.max);
     }
 }
 
-TEST_CASE("dataset_pushback", "[dataset]") {
+TEST_CASE("dataset_pushback", "[dataset],[broken]") {
     SimpleDataset data;
 
     data.push_back(10, 8, 6);
     CHECK(data.size() == 1);
-    std::cout << data.x(0) << std::endl;
-    std::cout << data.y(0) << std::endl;
-    std::cout << data.yerr(0) << std::endl;
-
 
     CHECK(data.x().back() == 10);
     CHECK(data.y().back() == 8);
@@ -83,8 +100,12 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
 }
 
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
-    SimpleDataset data1("data/2epe.RSR");
-    SimpleDataset data2 = data1;
+    Dataset data1("data/lysozyme/2epe.RSR");
+    std::cout << "data1 size: " << data1.size() << std::endl;
+
+    Dataset data2 = data1;
+    std::cout << "data2 size: " << data2.size() << std::endl;
+
     data2.simulate_errors();
 
     data1.add_plot_options("markers", {{"color", kBlack}, {"lw", 2}});
@@ -112,12 +133,12 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
 
 TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
     SECTION("lysozyme") {
-        Dataset data("data/2epe.RSR");
+        Dataset data("data/lysozyme/2epe.RSR");
         CHECK(data.is_logarithmic());
     }
 
     SECTION("A2M") {
-        Dataset data("data/A2M_ma.RSR");
+        Dataset data("data/A2M/A2M_ma.RSR");
         CHECK(data.is_logarithmic());
     }
 
@@ -130,7 +151,7 @@ TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
 }
 
 TEST_CASE("dataset_read", "[dataset],[files]") {
-    SimpleDataset data("data/2epe.RSR");
+    Dataset data("data/lysozyme/2epe.RSR");
     auto x = data.x();
     auto y = data.y();
     auto yerr = data.yerr();
@@ -228,7 +249,7 @@ TEST_CASE("dataset_basics", "[histogram]") {
 }
 
 TEST_CASE("dataset_reduce", "[histogram],[files],[manual]") {
-    Protein protein("data/2epe.pdb");
+    Protein protein("data/lysozyme/2epe.pdb");
     auto h = protein.get_histogram();
 
     plots::PlotIntensity plot(h);

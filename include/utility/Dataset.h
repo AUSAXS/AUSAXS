@@ -170,7 +170,7 @@ class SimpleDataset : public IDataset {
         /**
          * @brief Add a new point at the end of the dataset.
          */
-        void push_back(double x, double y, double yerr);
+        void push_back(double x, double y, double yerr = 0);
 
         /**
          * @brief Name the columns. 
@@ -239,17 +239,41 @@ class SimpleDataset : public IDataset {
  */
 class Dataset : public SimpleDataset {
     public: 
-        using SimpleDataset::SimpleDataset;
-
         /**
          * @brief Default constructor.
          */
-        Dataset() noexcept : SimpleDataset() {}
+        Dataset() noexcept : SimpleDataset(0, 4) {}
 
         /**
          * @brief Construct a new empty dataset with the given number of rows.
          */
         Dataset(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}
+
+        /**
+         * @brief Construct a new dataset with x and y values. The xerr and yerr columns will be initialized to 0.
+         */
+        Dataset(std::vector<double> x, std::vector<double> y) noexcept : Dataset(x.size()) {
+            for (unsigned int i = 0; i < x.size(); i++) {
+                row(i) = {x[i], y[i], 0, 0};
+            }
+        }
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         */
+        Dataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset(x, y, std::vector<double>(x.size(), 0)) {
+            options.xlabel = xlabel;
+            options.ylabel = ylabel;
+        }
+
+        /**
+         * @brief Construct a new dataset with x, y, and yerr values. The xerr column will be initialized to 0. 
+         */
+        Dataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset(x.size()) {
+            for (unsigned int i = 0; i < x.size(); i++) {
+                row(i) = {x[i], y[i], 0, yerr[i]};
+            }
+        }
 
         /**
          * @brief Construct a new dataset with x, y, xerr, and yerr values.
@@ -264,6 +288,13 @@ class Dataset : public SimpleDataset {
             for (unsigned int i = 0; i < data.size(); i++) {
                 row(i) = {data.x(i), data.y(i), data.yerr(i), 0};
             }
+        }
+
+        /**
+         * @brief Construct a new dataset from an input file.
+         */
+        Dataset(std::string path) : Dataset() {
+            load(path);
         }
 
         /**
