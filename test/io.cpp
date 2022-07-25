@@ -162,15 +162,15 @@ TEST_CASE("real_data", "[io],[files]") {
 
 TEST_CASE("file_copied_correctly", "[io],[files]") {
     Body body("data/lysozyme/2epe.pdb");
-    CHECK(!body.get_file()->header.get().empty());
-    CHECK(!body.get_file()->footer.get().empty());
+    CHECK(!body.get_file().header.get().empty());
+    CHECK(!body.get_file().footer.get().empty());
 
     Body body2 = body;
-    CHECK(!body2.get_file()->header.get().empty());
-    CHECK(!body2.get_file()->footer.get().empty());
+    CHECK(!body2.get_file().header.get().empty());
+    CHECK(!body2.get_file().footer.get().empty());
 
     Body body3;
     body3 = body;
-    CHECK(!body3.get_file()->header.get().empty());
-    CHECK(!body3.get_file()->footer.get().empty());
+    CHECK(!body3.get_file().header.get().empty());
+    CHECK(!body3.get_file().footer.get().empty());
 }

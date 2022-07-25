@@ -95,8 +95,8 @@ TEST_CASE("histogram", "[protein]") {
         Protein protein(atoms, {});
 
         // set the weights to 1 so we can analytically determine the result
-        for (const auto& body : protein.bodies) {
-            for (auto& atom : body.protein_atoms) {
+        for (auto& body : protein.bodies) {
+            for (auto& atom : body.get_protein_atoms()) {
                 atom.set_effective_charge(1);
             }
         }
@@ -172,8 +172,8 @@ TEST_CASE("histogram", "[protein]") {
             atom.set_effective_charge(1);
         }
         // atoms
-        for (const auto& body : protein.bodies) {
-            for (auto& atom : body.protein_atoms) {
+        for (auto& body : protein.bodies) {
+            for (auto& atom : body.get_protein_atoms()) {
                 atom.set_effective_charge(1);
             }
         }
@@ -221,7 +221,7 @@ TEST_CASE("histogram", "[protein]") {
             atoms[i] = Hetatom::create_new_water(Vector3(i, i, i));
         }
 
-        body.hydration_atoms = atoms;
+        body.get_hydration_atoms() = atoms;
         protein.hydration_atoms = atoms;
 
         // we now have a protein consisting of three bodies with the exact same contents as a single body.
@@ -252,8 +252,8 @@ TEST_CASE("histogram", "[protein]") {
         vector<vector<Atom>> patoms; // vector containing the pieces we split it into
         vector<Atom> p_current(100); // vector containing the current piece
         size_t index = 0; // current index in p_current
-        for (size_t i = 0; i < body.protein_atoms.size(); i++) {
-            p_current[index] = body.protein_atoms[i];
+        for (size_t i = 0; i < body.get_protein_atoms().size(); i++) {
+            p_current[index] = body.protein_atom(i);
             index++;
             if (index == 100) { // if index is 100, reset to 0
                 patoms.push_back(p_current);
@@ -290,7 +290,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // generate a hydration layer for the body, and copy it over to the protein
         body.generate_new_hydration();
-        protein.hydration_atoms = body.hydration_atoms;
+        protein.hydration_atoms = body.get_hydration_atoms();
 
         // generate the distance histograms
         shared_ptr<hist::ScatteringHistogram> d_b = body.get_histogram();

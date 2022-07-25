@@ -65,12 +65,26 @@ class Body {
     /**
      * @brief Get a reference to the constituent atoms.
      */
-    const std::vector<Atom>& get_protein_atoms() {return protein_atoms;}
+    std::vector<Atom>& get_protein_atoms();
 
     /**
-     * @brief Get a referece to the hydration atoms.
+     * @brief Get a reference to the constituent atoms.
      */
-    const std::vector<Hetatom>& get_hydration_atoms() {return hydration_atoms;}
+    const std::vector<Atom>& get_protein_atoms() const;
+
+    /**
+     * @brief Get a reference to the hydration atoms.
+     */
+    std::vector<Hetatom>& get_hydration_atoms();
+
+    /**
+     * @brief Get a reference to the hydration atoms.
+     */
+    const std::vector<Hetatom>& get_hydration_atoms() const;
+ 
+    Atom& protein_atom(unsigned int index);
+
+    const Atom& protein_atom(unsigned int index) const;
 
     /** 
      * @brief Calculate the center-mass coordinates for the body.
@@ -194,7 +208,7 @@ class Body {
     /**
      * @brief Get the File backing this object. 
      */
-    std::shared_ptr<File> get_file() const {return file;}
+    File& get_file();
 
     /**
      * @brief Signal that this object has changed its external state.
@@ -210,8 +224,8 @@ class Body {
 
     // std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
   private:
-    std::shared_ptr<File> file = nullptr;                     // The file backing this body
-    std::shared_ptr<Grid> grid = nullptr;                     // The grid representation of this body
+    File file;                                                      // The file backing this body
+    std::shared_ptr<Grid> grid = nullptr;                           // The grid representation of this body
     std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
@@ -219,8 +233,6 @@ class Body {
 
   public: 
     size_t uid;                           // An unique identifier for this body
-    std::vector<Atom>& protein_atoms;          // Atoms of the body itself
-    std::vector<Hetatom>& hydration_atoms;     // Hydration layer
     bool updated_charge = false;          // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
     bool centered = false;                // True if this object is centered, false otherwise
     inline static size_t uid_counter = 0; // The unique counter. 

@@ -4,7 +4,9 @@
 
 namespace mini {
 	/**
-	 * @brief A scanning minimizer. This algorithm performs scans of ever-increasing resolution until a minimum is found. This should only be used for nice and easy optimization problems. 
+	 * @brief A scanning minimizer. 
+	 * 		  This algorithm performs a simple scan of the chi2 landscape, and then uses a local minimizer to find the minimum. 
+	 * 		  This should only be used for relatively simple optimization problems. 
 	 */
 	class Scan : public Minimizer {
 		public:

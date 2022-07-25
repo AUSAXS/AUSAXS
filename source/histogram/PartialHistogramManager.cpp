@@ -7,9 +7,9 @@
 
 using namespace hist;
 
-CompactCoordinates::CompactCoordinates(const Body& body) : size(body.protein_atoms.size()), data(size) {
+CompactCoordinates::CompactCoordinates(const Body& body) : size(body.get_protein_atoms().size()), data(size) {
     for (unsigned int i = 0; i < size; i++) {
-        const Atom& a = body.protein_atoms[i]; 
+        const Atom& a = body.protein_atom(i); 
         data[i] = CompactCoordinates::Data(a.coords, a.effective_charge*a.occupancy);
     }
 }

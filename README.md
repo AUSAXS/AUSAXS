@@ -5,7 +5,6 @@
  * [ ] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
  * [ ] EMFitter: Handle absolute scale properly.
- * [ ] ScanFit: Modify to find local minimum after scan is complete. TEST THIS
  * [ ] Use nothrow
  * [ ] gentag alt for de andre filer
  * [ ] flow diagram med hvad vi rent faktisk laver
@@ -19,7 +18,6 @@
  * [ ] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Atom: Const uid 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands
- * [x] Try to derive an analytical solution of the chi2 problem. Differentiate chi2 with respect to each variable, and set each expression equal to zero. As long as it's not an iterative equation, it should be good. 
 
 # Stuff to consider
 ## Compiler flags:

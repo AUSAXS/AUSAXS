@@ -87,9 +87,22 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
     };
 
+    auto ScanTest1DRough = [] (const TestFunction& test) {
+        mini::Scan mini(test.function, {"a", test.bounds[0]});
+        mini.set_evals(10);
+        auto res = mini.minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+    };
+
+    // test with a fine grid
     SECTION("problem04") {ScanTest1D(problem04);}
     SECTION("problem13") {ScanTest1D(problem13);}
     SECTION("problem18") {ScanTest1D(problem18);}
+
+    // test with a rough grid & let the local minimizer find the actual minima
+    SECTION("problem04 rough") {ScanTest1DRough(problem04);}
+    SECTION("problem13 rough") {ScanTest1DRough(problem13);}
+    SECTION("problem18 rough") {ScanTest1DRough(problem18);}
 }
 
 TEST_CASE("root_minimizer", "[minimizer]") {

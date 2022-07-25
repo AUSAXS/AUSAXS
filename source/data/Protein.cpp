@@ -34,8 +34,8 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
 Protein::Protein(string input) {
     Body b1(input);
     bodies = {b1};
-    hydration_atoms = std::move(bodies[0].hydration_atoms);
-    bodies[0].hydration_atoms.clear();
+    hydration_atoms = std::move(bodies[0].get_hydration_atoms());
+    bodies[0].get_hydration_atoms().clear();
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
 }
@@ -65,7 +65,7 @@ SimpleDataset Protein::simulate_dataset() {
 void Protein::save(string path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {
-        bodies[0].hydration_atoms = hydration_atoms;
+        bodies[0].get_hydration_atoms() = hydration_atoms;
         bodies[0].save(path);
         return;
     }
@@ -123,11 +123,11 @@ shared_ptr<Grid> Protein::create_grid() {
 }
 
 vector<Atom> Protein::get_protein_atoms() const {
-    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.protein_atoms.size();});
+    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.get_protein_atoms().size();});
     vector<Atom> atoms(N);
     int n = 0; // current index
     for (const auto& body : bodies) {
-        for (const auto& a : body.protein_atoms) {
+        for (const auto& a : body.get_protein_atoms()) {
             atoms[n] = a;
             n++;
         }
@@ -143,14 +143,14 @@ Vector3 Protein::get_cm() const {
     // iterate through all constituent bodies
     for (const auto& body : bodies) {
         // iterate through their protein atoms
-        for (const auto& a : body.protein_atoms) {
+        for (const auto& a : body.get_protein_atoms()) {
             double m = a.get_mass();
             M += m;
             cm += a.coords*m;
         }
 
         // iterate through their hydration atoms
-        for (const auto& a : body.hydration_atoms) {
+        for (const auto& a : body.get_hydration_atoms()) {
             double m = a.get_mass();
             M += m;
             cm += a.coords*m;
@@ -218,7 +218,7 @@ size_t Protein::body_size() const {
 }
 
 size_t Protein::atom_size() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.protein_atoms.size();});
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.get_protein_atoms().size();});
 }
 
 vector<double> Protein::calc_debye_scattering_intensity() {

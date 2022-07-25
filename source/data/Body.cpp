@@ -1,7 +1,6 @@
 // includes
 #include <vector>
 #include <map>
-#include <boost/format.hpp>
 #include <utility>
 #include <algorithm>
 
@@ -13,22 +12,21 @@
 #include <utility/Settings.h>
 #include <math/Matrix.h>
 
-using boost::format;
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 
-Body::Body() : file(std::make_shared<File>()), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body() {}
 
-Body::Body(string path) : file(std::make_shared<File>(path)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(string path) : file(path), uid(uid_counter++) {}
 
-Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(std::make_unique<File>(protein_atoms, hydration_atoms)), uid(uid_counter++), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(protein_atoms, hydration_atoms), uid(uid_counter++) {}
 
-Body::Body(const Body& body) : file(std::make_shared<File>(*body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(const Body& body) : file(body.file), uid(body.uid) {}
 
-Body::Body(Body&& body) : file(std::move(body.file)), uid(body.uid), protein_atoms(file->protein_atoms), hydration_atoms(file->hydration_atoms) {}
+Body::Body(Body&& body) : file(std::move(body.file)), uid(body.uid) {}
 
 Body::~Body() = default;
 
-void Body::save(string path) {file->write(path);}
+void Body::save(string path) {file.write(path);}
 
 void Body::calc_histogram() {
     if (!updated_charge) {
@@ -44,18 +42,18 @@ void Body::calc_histogram() {
     vector<double> p_tot(axes.bins, 0);
 
     // extremely wasteful to calculate this from scratch every time
-    std::vector<float> data_p(protein_atoms.size()*4);
-    for (size_t i = 0; i < protein_atoms.size(); i++) {
-        const Atom& a = protein_atoms[i]; 
+    std::vector<float> data_p(file.protein_atoms.size()*4);
+    for (size_t i = 0; i < file.protein_atoms.size(); i++) {
+        const Atom& a = file.protein_atoms[i]; 
         data_p[4*i] = a.coords.x();
         data_p[4*i+1] = a.coords.y();
         data_p[4*i+2] = a.coords.z();
         data_p[4*i+3] = a.effective_charge*a.occupancy;
     }
 
-    std::vector<float> data_h(hydration_atoms.size()*4);
-    for (size_t i = 0; i < hydration_atoms.size(); i++) {
-        const Hetatom& a = hydration_atoms[i]; 
+    std::vector<float> data_h(file.hydration_atoms.size()*4);
+    for (size_t i = 0; i < file.hydration_atoms.size(); i++) {
+        const Hetatom& a = file.hydration_atoms[i]; 
         data_h[4*i] = a.coords.x();
         data_h[4*i+1] = a.coords.y();
         data_h[4*i+2] = a.coords.z();
@@ -63,8 +61,8 @@ void Body::calc_histogram() {
     }
 
     // calculate p-p distances
-    for (size_t i = 0; i < protein_atoms.size(); i++) {
-        for (size_t j = i+1; j < protein_atoms.size(); j++) {
+    for (size_t i = 0; i < file.protein_atoms.size(); i++) {
+        for (size_t j = i+1; j < file.protein_atoms.size(); j++) {
             float weight = data_p[4*i+3]*data_p[4*j+3]; // Z1*Z2*w1*w2
             float dx = data_p[4*i] - data_p[4*j];
             float dy = data_p[4*i+1] - data_p[4*j+1];
@@ -75,11 +73,11 @@ void Body::calc_histogram() {
     }
 
     // add self-correlation
-    for (size_t i = 0; i < protein_atoms.size(); i++) {p_pp[0] += data_p[4*i+3]*data_p[4*i+3];}
+    for (size_t i = 0; i < file.protein_atoms.size(); i++) {p_pp[0] += data_p[4*i+3]*data_p[4*i+3];}
 
-    for (size_t i = 0; i < hydration_atoms.size(); i++) {
+    for (size_t i = 0; i < file.hydration_atoms.size(); i++) {
         // calculate h-h distances
-        for (size_t j = i+1; j < hydration_atoms.size(); j++) {
+        for (size_t j = i+1; j < file.hydration_atoms.size(); j++) {
             float weight = data_h[4*i+3]*data_h[4*j+3]; // Z1*Z2*w1*w2
             float dx = data_h[4*i] - data_h[4*j];
             float dy = data_h[4*i+1] - data_h[4*j+1];
@@ -89,7 +87,7 @@ void Body::calc_histogram() {
         }
 
         // calculate h-p distances
-        for (size_t j = 0; j < protein_atoms.size(); j++) {
+        for (size_t j = 0; j < file.protein_atoms.size(); j++) {
             float weight = data_h[4*i+3]*data_p[4*j+3]; // Z1*Z2*w1*w2
             float dx = data_h[4*i] - data_p[4*j];
             float dy = data_h[4*i+1] - data_p[4*j+1];
@@ -100,7 +98,7 @@ void Body::calc_histogram() {
     }
 
     // add self-correlation
-    for (size_t i = 0; i < hydration_atoms.size(); i++) {p_hh[0] += data_h[4*i+3]*data_h[4*i+3];}
+    for (size_t i = 0; i < file.hydration_atoms.size(); i++) {p_hh[0] += data_h[4*i+3]*data_h[4*i+3];}
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10
@@ -125,14 +123,14 @@ void Body::calc_histogram() {
 
 void Body::generate_new_hydration() {
     // delete the old hydration layer
-    hydration_atoms = vector<Hetatom>();
+    file.hydration_atoms = vector<Hetatom>();
 
     // move protein to center of mass
     center();
 
     // create the grid and hydrate it
     create_grid();
-    hydration_atoms = grid->hydrate();
+    file.hydration_atoms = grid->hydrate();
 }
 
 shared_ptr<Grid> Body::get_grid() {
@@ -152,8 +150,8 @@ void Body::generate_volume_file(string path) {
             }
         }
     }
-    protein_atoms = filled;
-    hydration_atoms = vector<Hetatom>();
+    file.protein_atoms = filled;
+    file.hydration_atoms = vector<Hetatom>();
     save(path);
     exit(0);
 }
@@ -175,15 +173,15 @@ Vector3 Body::get_cm() const {
             cm += a.coords*m;
         }
     };
-    weighted_sum(protein_atoms);
-    weighted_sum(hydration_atoms);
+    weighted_sum(file.protein_atoms);
+    weighted_sum(file.hydration_atoms);
     return cm/M;
 }
 
 double Body::get_volume_acids() const {
     double v = 0;
     int cur_seq = 0; // sequence number of current acid
-    for (auto const& a : protein_atoms) {
+    for (auto const& a : file.protein_atoms) {
         int a_seq = a.resSeq; // sequence number of current atom
         if (cur_seq != a_seq) { // check if we are still dealing with the same acid
             cur_seq = a_seq; // if not, update our current sequence number
@@ -199,7 +197,7 @@ double Body::get_volume_grid() {
 }
 
 shared_ptr<Grid> Body::create_grid() {
-    grid = std::make_shared<Grid>(protein_atoms);
+    grid = std::make_shared<Grid>(file.protein_atoms);
     return grid;
 }
 
@@ -211,16 +209,16 @@ shared_ptr<hist::ScatteringHistogram> Body::get_histogram() {
 void Body::translate(const Vector3& v) {
     changed_external_state();
 
-    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
-    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
+    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
 }
 
 void Body::rotate(const Matrix<double>& R) {
-    for (auto& atom : protein_atoms) {
+    for (auto& atom : file.protein_atoms) {
         atom.coords.rotate(R);
     }
 
-    for (auto& atom : hydration_atoms) {
+    for (auto& atom : file.hydration_atoms) {
         atom.coords.rotate(R);
     }
 }
@@ -239,7 +237,7 @@ void Body::rotate(const Vector3& axis, double angle) {
 
 void Body::update_effective_charge(double charge) {
     changed_external_state();
-    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;
 }
 
@@ -250,15 +248,15 @@ void Body::update_effective_charge() {
     double displaced_charge = constants::charge::density::water*displaced_vol;
     // cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
 
-    double charge_per_atom = -displaced_charge/protein_atoms.size();
-    cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << protein_atoms.size() << ")." << endl;
+    double charge_per_atom = -displaced_charge/file.protein_atoms.size();
+    cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << file.protein_atoms.size() << ")." << endl;
 
-    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&charge_per_atom] (Atom& a) {a.add_effective_charge(charge_per_atom);});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge_per_atom] (Atom& a) {a.add_effective_charge(charge_per_atom);});
     updated_charge = true;
 }
 
 double Body::get_total_charge() const {
-    return std::accumulate(protein_atoms.begin(), protein_atoms.end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
+    return std::accumulate(file.protein_atoms.begin(), file.protein_atoms.end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
 }
 
 double Body::get_molar_mass() const {
@@ -267,13 +265,13 @@ double Body::get_molar_mass() const {
 
 double Body::get_absolute_mass() const {
     double M = 0;
-    std::for_each(protein_atoms.begin(), protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
-    std::for_each(hydration_atoms.begin(), hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
+    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});
     return M;
 }
 
 Body& Body::operator=(const Body& rhs) {
-    *file = *rhs.file; // we do NOT want a copy of the file!
+    file = rhs.file; 
     uid = rhs.uid;
     if (rhs.grid != nullptr) {grid = rhs.grid;}
     changed_internal_state();
@@ -289,3 +287,17 @@ void Body::changed_external_state() const {signal->external_change();}
 void Body::changed_internal_state() const {signal->internal_change();}
 
 void Body::register_probe(std::shared_ptr<StateManager::BoundSignaller> signal) {this->signal = signal;}
+
+std::vector<Atom>& Body::get_protein_atoms() {return file.protein_atoms;}
+
+std::vector<Hetatom>& Body::get_hydration_atoms() {return file.hydration_atoms;}
+
+const std::vector<Atom>& Body::get_protein_atoms() const {return file.protein_atoms;}
+
+const std::vector<Hetatom>& Body::get_hydration_atoms() const {return file.hydration_atoms;}
+
+Atom& Body::protein_atom(unsigned int index) {return file.protein_atoms[index];}
+
+const Atom& Body::protein_atom(unsigned int index) const {return file.protein_atoms[index];}
+
+File& Body::get_file() {return file;}

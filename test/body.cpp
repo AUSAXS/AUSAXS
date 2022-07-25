@@ -26,7 +26,7 @@ TEST_CASE("body_histogram", "[body]") {
         Body body(a, {});
 
         // set the weights to 1 so we can analytically determine the result
-        for (auto& atom : body.protein_atoms) {
+        for (auto& atom : body.get_protein_atoms()) {
             atom.set_effective_charge(1);
         }
         body.updated_charge = true;
@@ -60,7 +60,7 @@ TEST_CASE("body_histogram", "[body]") {
         Body body(a, w);
 
         // set the weights to 1 so we can analytically determine the result
-        for (auto& atom : body.hydration_atoms) {
+        for (auto& atom : body.get_hydration_atoms()) {
             atom.set_effective_charge(1);
         }
         body.updated_charge = true;
@@ -94,11 +94,11 @@ TEST_CASE("body_histogram", "[body]") {
 
         // set the weights to 1 so we can analytically determine the result
         // waters
-        for (auto& atom : body.hydration_atoms) {
+        for (auto& atom : body.get_hydration_atoms()) {
             atom.set_effective_charge(1);
         }
         // atoms
-        for (auto& atom : body.protein_atoms) {
+        for (auto& atom : body.get_protein_atoms()) {
             atom.set_effective_charge(1);
         }
         body.updated_charge = true;
@@ -131,10 +131,10 @@ TEST_CASE("translate", "[body]") {
     Body body(a, {});
 
     body.translate(Vector3{1, 1, 1});
-    REQUIRE(body.protein_atoms[0].coords == Vector3{0, 0, 0});
-    REQUIRE(body.protein_atoms[1].coords == Vector3{0, 2, 0});
-    REQUIRE(body.protein_atoms[2].coords == Vector3{2, 0, 0});
-    REQUIRE(body.protein_atoms[3].coords == Vector3{2, 2, 0});
+    REQUIRE(body.protein_atom(0).coords == Vector3{0, 0, 0});
+    REQUIRE(body.protein_atom(1).coords == Vector3{0, 2, 0});
+    REQUIRE(body.protein_atom(2).coords == Vector3{2, 0, 0});
+    REQUIRE(body.protein_atom(3).coords == Vector3{2, 2, 0});
 }
 
 TEST_CASE("rotate", "[body]") {
@@ -146,15 +146,15 @@ TEST_CASE("rotate", "[body]") {
 
         Vector3 axis = {0, 1, 0};
         body.rotate(axis, M_PI_2);
-        REQUIRE(Vector3({0, 0, -1}) == body.protein_atoms[0].coords); 
-        REQUIRE(Vector3({0, 1, 0}) == body.protein_atoms[1].coords); 
-        REQUIRE(Vector3({1, 0, 0}) == body.protein_atoms[2].coords); 
+        REQUIRE(Vector3({0, 0, -1}) == body.protein_atom(0).coords); 
+        REQUIRE(Vector3({0, 1, 0}) == body.protein_atom(1).coords); 
+        REQUIRE(Vector3({1, 0, 0}) == body.protein_atom(2).coords); 
 
         axis = {1, 1, 1};
         body.rotate(axis, M_PI/4);
-        REQUIRE(Vector3({-0.5058793634, 0.3106172175, -0.8047378541}) == body.protein_atoms[0].coords); 
-        REQUIRE(Vector3({-0.3106172175, 0.8047378541, 0.5058793634}) == body.protein_atoms[1].coords); 
-        REQUIRE(Vector3({0.8047378541, 0.5058793634, -0.3106172175}) == body.protein_atoms[2].coords); 
+        REQUIRE(Vector3({-0.5058793634, 0.3106172175, -0.8047378541}) == body.protein_atom(0).coords); 
+        REQUIRE(Vector3({-0.3106172175, 0.8047378541, 0.5058793634}) == body.protein_atom(1).coords); 
+        REQUIRE(Vector3({0.8047378541, 0.5058793634, -0.3106172175}) == body.protein_atom(2).coords); 
     }
 
     SECTION("complex rotations") {
@@ -166,10 +166,10 @@ TEST_CASE("rotate", "[body]") {
 
         Vector3 axis = {0.5, 2, 1};
         body.rotate(axis, 1.8);
-        REQUIRE(Vector3({0.5843819499, 1.6706126346, 1.3665837559}) == body.protein_atoms[0].coords); 
-        REQUIRE(Vector3({1.8656722055, 4.7666664324, -2.9661689675}) == body.protein_atoms[1].coords); 
-        REQUIRE(Vector3({2.6638285975, 5.6804357476, -3.692785794}) == body.protein_atoms[2].coords); 
-        REQUIRE(Vector3({0.0886646879, 7.4409765368, 2.5737145825}) == body.protein_atoms[3].coords); 
+        REQUIRE(Vector3({0.5843819499, 1.6706126346, 1.3665837559}) == body.protein_atom(0).coords); 
+        REQUIRE(Vector3({1.8656722055, 4.7666664324, -2.9661689675}) == body.protein_atom(1).coords); 
+        REQUIRE(Vector3({2.6638285975, 5.6804357476, -3.692785794}) == body.protein_atom(2).coords); 
+        REQUIRE(Vector3({0.0886646879, 7.4409765368, 2.5737145825}) == body.protein_atom(3).coords); 
     }
 }
 
@@ -248,15 +248,15 @@ TEST_CASE("split_body", "[body],[files]") {
     REQUIRE(protein.bodies.size() == 3);
     Body &b1 = protein.bodies[0], &b2 = protein.bodies[1], &b3 = protein.bodies[2];
 
-    REQUIRE(b1.protein_atoms.size() == 136);
-    REQUIRE(b2.protein_atoms.size() == 812-136);
-    REQUIRE(b3.protein_atoms.size() == 1606-812);
+    REQUIRE(b1.get_protein_atoms().size() == 136);
+    REQUIRE(b2.get_protein_atoms().size() == 812-136);
+    REQUIRE(b3.get_protein_atoms().size() == 1606-812);
 
     // check start and end resseq
-    CHECK(b1.protein_atoms.back().resSeq == 8);
-    CHECK(b2.protein_atoms[0].resSeq == 9);
-    CHECK(b2.protein_atoms.back().resSeq == 98);
-    CHECK(b3.protein_atoms[0].resSeq == 99);
+    CHECK(b1.get_protein_atoms().back().resSeq == 8);
+    CHECK(b2.protein_atom(0).resSeq == 9);
+    CHECK(b2.get_protein_atoms().back().resSeq == 98);
+    CHECK(b3.protein_atom(0).resSeq == 99);
 }
 
 TEST_CASE("generate_sequential_constraints", "[body],[files]") {
@@ -290,23 +290,23 @@ TEST_CASE("body_copy", "[body]") {
 
     // copy constructor
     Body b(b1);
-    REQUIRE(b.protein_atoms.size() == 2);
-    REQUIRE(b.protein_atoms[0] == a1[0]);
-    REQUIRE(b.protein_atoms[1] == a1[1]);
+    REQUIRE(b.get_protein_atoms().size() == 2);
+    REQUIRE(b.protein_atom(0) == a1[0]);
+    REQUIRE(b.protein_atom(1) == a1[1]);
 
     // check that they are backed by separate files
-    b.protein_atoms[0] = a2[0];
-    REQUIRE(b1.protein_atoms[0] == a1[0]);
+    b.protein_atom(0) = a2[0];
+    REQUIRE(b1.protein_atom(0) == a1[0]);
 
 
     // assignment
     b = b3;
-    REQUIRE(b.protein_atoms.size() == 2);
-    REQUIRE(b.protein_atoms[0] == a3[0]);
-    REQUIRE(b.protein_atoms[1] == a3[1]);
+    REQUIRE(b.get_protein_atoms().size() == 2);
+    REQUIRE(b.protein_atom(0) == a3[0]);
+    REQUIRE(b.protein_atom(1) == a3[1]);
 
-    b.protein_atoms[0] = a1[0];
-    REQUIRE(b3.protein_atoms[0] == a3[0]);
+    b.protein_atom(0) = a1[0];
+    REQUIRE(b3.protein_atom(0) == a3[0]);
 
 
     // assignment with temporary bodies
@@ -315,7 +315,7 @@ TEST_CASE("body_copy", "[body]") {
         Body b5(a1);
         b = b5;
     }
-    REQUIRE(b.protein_atoms.size() == 2);
-    REQUIRE(b.protein_atoms[0] == a1[0]);
-    REQUIRE(b.protein_atoms[1] == a1[1]);
+    REQUIRE(b.get_protein_atoms().size() == 2);
+    REQUIRE(b.protein_atom(0) == a1[0]);
+    REQUIRE(b.protein_atom(1) == a1[1]);
 }

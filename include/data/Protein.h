@@ -15,7 +15,7 @@ class Protein {
     /**
      * @brief Default constructor. 
      */
-    Protein() {}
+    Protein() noexcept {}
 
     /**
      * @brief Copy constructor.
