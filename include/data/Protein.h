@@ -9,6 +9,7 @@
 #include <data/Hetatom.h>
 #include <data/StateManager.h>
 #include <histogram/PartialHistogramManager.h>
+#include <utility/SimpleDataset.h>
 
 class Protein {
   public: 

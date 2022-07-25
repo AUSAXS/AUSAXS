@@ -52,8 +52,8 @@ TEST_CASE("1d_landscape", "[minimizer],[manual]") {
     mini::Golden mini(problem04.function, {"x1", problem04.bounds[0]});
     auto res = mini.minimize();
 
-    Dataset evaluations = mini.get_evaluated_points();
-    Dataset landscape = mini.landscape();
+    Dataset2D evaluations = mini.get_evaluated_points();
+    Dataset2D landscape = mini.landscape();
     landscape.add_plot_options("lines", {{"color", kBlack}});
     evaluations.add_plot_options("markers", {{"color", kOrange+2}});
 

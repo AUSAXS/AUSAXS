@@ -115,6 +115,11 @@ namespace mini {
         operator Point1D() const noexcept {return Point1D(value, mean_error());}
 
         /**
+         * @brief Convenience method for implicit conversion to double. 
+         */
+        operator double() const noexcept {return value;}
+
+        /**
          * @brief Get a string representation of this parameter.
          */
         std::string to_string() const noexcept;

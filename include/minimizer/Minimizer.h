@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utility/Axis.h>
-#include <utility/Dataset.h>
+#include <utility/Dataset2D.h>
 #include <minimizer/Utility.h>
 
 #include <string>
@@ -63,12 +63,12 @@ namespace mini {
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            virtual Dataset landscape(unsigned int bins = 100) const = 0;
+            virtual Dataset2D landscape(unsigned int bins = 100) const = 0;
 
             /**
              * @brief Get the evaluated points. 
              */
-            virtual Dataset get_evaluated_points() const = 0;
+            virtual Dataset2D get_evaluated_points() const = 0;
 
             /**
              * @brief Check if this minimizer has been initialized.

@@ -52,7 +52,7 @@ class SimpleLeastSquares : public Fitter {
     /**
      * @brief Get a dataset containing the residuals of the last fit() call. 
      */
-    Dataset plot_residuals() override;
+    SimpleDataset plot_residuals() override;
 
     /**
      * @brief Get the result of the last fit() call.

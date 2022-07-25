@@ -27,10 +27,10 @@ namespace em {
 
             struct Landscape {
                 Landscape() {}
-                Landscape(const EMFit& fit, const Dataset& contour) : fit(fit), contour(contour) {}
+                Landscape(const EMFit& fit, const Dataset2D& contour) : fit(fit), contour(contour) {}
 
                 EMFit fit;
-                Dataset contour;
+                Dataset2D contour;
             };
 
             /**

@@ -69,7 +69,7 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     graph->DrawClone(draw_options.c_str());
 }
 
-std::shared_ptr<TGraph> plots::detail::graph(const Dataset& data, const plots::PlotOptions& options) {
+std::shared_ptr<TGraph> plots::detail::graph(const Dataset2D& data, const plots::PlotOptions& options) {
     std::shared_ptr<TGraph> graph;
     if (options.draw_errors) {
         graph = std::make_shared<TGraphErrors>(data.size(), data.x().to_vector().data(), data.y().to_vector().data(), data.xerr().to_vector().data(), data.yerr().to_vector().data());
@@ -79,7 +79,7 @@ std::shared_ptr<TGraph> plots::detail::graph(const Dataset& data, const plots::P
     return graph;    
 }
 
-std::shared_ptr<TGraph> plots::detail::graph(const Dataset& data) {
+std::shared_ptr<TGraph> plots::detail::graph(const Dataset2D& data) {
     return graph(data, data.get_plot_options());
 }
 
@@ -101,7 +101,7 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
     PlotOptions options = data[0].get_plot_options();
 
     TMultiGraph graphs;
-    for (const Dataset& d : data) {
+    for (const SimpleDataset& d : data) {
         PlotOptions options = d.get_plot_options();
 
         std::string draw_options;
@@ -149,7 +149,7 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
     graphs.DrawClone("A");
 }
 
-void plots::draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas) {
+void plots::draw(const Dataset2D& data, const std::shared_ptr<TCanvas> canvas) {
     draw(data, data.get_plot_options(), canvas);
 }
 
@@ -162,7 +162,7 @@ void plots::draw(const SimpleDataset& data, const PlotOptions& options, const st
     draw(g, options, canvas);
 }
 
-void plots::draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
+void plots::draw(const Dataset2D& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas) {
     auto g = detail::graph(data, options);
     draw(g, options, canvas);
 }

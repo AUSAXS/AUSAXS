@@ -69,9 +69,9 @@ Fit::Plots SimpleLeastSquares::plot() {
     return Fit::Plots();
 }
 
-Dataset SimpleLeastSquares::plot_residuals() {
+SimpleDataset SimpleLeastSquares::plot_residuals() {
     throw except::unexpected("Error in SimpleLeastSquares::plot_residuals: Not implemented yet. ");
-    return Dataset();
+    return SimpleDataset();
 }
 
 unsigned int SimpleLeastSquares::dof() const {return data.size() - 2;}

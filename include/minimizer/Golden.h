@@ -24,12 +24,12 @@ namespace mini {
             /**
              * @brief Generate a landscape of the function.
              */
-            Dataset landscape(unsigned int evals = 100) const override;
+            Dataset2D landscape(unsigned int evals = 100) const override;
 
             /**
              * @brief Get the evaluated points and their function values.
              */
-            Dataset get_evaluated_points() const override;
+            Dataset2D get_evaluated_points() const override;
 
         private:
             inline static const double phi = (1 + std::sqrt(5))/2;

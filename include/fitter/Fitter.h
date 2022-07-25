@@ -30,7 +30,7 @@ class Fitter {
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    virtual Dataset plot_residuals() = 0;
+    virtual SimpleDataset plot_residuals() = 0;
 
     virtual std::shared_ptr<Fit> get_fit() const = 0;
 

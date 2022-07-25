@@ -55,7 +55,7 @@ TEST_CASE("compare_debye", "[protein]") {
     Protein protein(atoms, {});
 
     vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().get("I");
+    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
 
     for (int i = 0; i < 8; i++) {
         if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
@@ -72,7 +72,7 @@ TEST_CASE("compare_debye_real", "[protein],[files],[slow]") {
     std::cout << "hydration atoms: " << protein.hydration_atoms.size() << std::endl; 
 
     vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().get("I");
+    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
 
     for (int i = 0; i < 8; i++) {
         if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {

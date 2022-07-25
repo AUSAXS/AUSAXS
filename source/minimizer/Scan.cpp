@@ -21,11 +21,11 @@ void Scan::set_evals(unsigned int evals) noexcept {
     bins = evals;
 }
 
-Dataset Scan::landscape(unsigned int evals) const {
+Dataset2D Scan::landscape(unsigned int evals) const {
     // check if the minimizer has already been called
     if (!evaluations.empty()) {
         // if so, we can just reuse its result
-        Dataset data;
+        Dataset2D data;
         std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back(eval.vals[0], eval.fval);});
         return data;
     }
@@ -62,7 +62,7 @@ void Scan::looper(std::vector<double>&, unsigned int) const {
     // }
 }
 
-Dataset Scan::get_evaluated_points() const {
+Dataset2D Scan::get_evaluated_points() const {
     if (evaluations.empty()) {throw except::bad_order("Error in Scan::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
 
     unsigned int N = evaluations.size();
@@ -71,7 +71,7 @@ Dataset Scan::get_evaluated_points() const {
         x[i] = evaluations[i].vals[0];
         y[i] = evaluations[i].fval;
     }
-    return Dataset(x, y, "x", "f(x)");
+    return Dataset2D(x, y, "x", "f(x)");
 }
 
 void Scan::add_parameter(const Parameter& param) {
@@ -82,7 +82,7 @@ void Scan::add_parameter(const Parameter& param) {
 }
 
 Result Scan::minimize_override() {
-    Dataset data = landscape(bins);
+    Dataset2D data = landscape(bins);
     auto min = data.find_minimum();
 
     // find local minimum

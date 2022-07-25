@@ -55,7 +55,7 @@ TEST_CASE("dataset_ylimits", "[dataset]") {
 TEST_CASE("dataset_xlimits", "[dataset]") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
-    Dataset data(x, y);
+    SimpleDataset data(x, y);
 
     Limit limit(0.5, 5);
     data.limit_x(limit);
@@ -100,10 +100,10 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
 }
 
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
-    Dataset data1("data/lysozyme/2epe.RSR");
+    Dataset2D data1("data/lysozyme/2epe.RSR");
     std::cout << "data1 size: " << data1.size() << std::endl;
 
-    Dataset data2 = data1;
+    Dataset2D data2 = data1;
     std::cout << "data2 size: " << data2.size() << std::endl;
 
     data2.simulate_errors();
@@ -133,25 +133,25 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
 
 TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
     SECTION("lysozyme") {
-        Dataset data("data/lysozyme/2epe.RSR");
+        Dataset2D data("data/lysozyme/2epe.RSR");
         CHECK(data.is_logarithmic());
     }
 
     SECTION("A2M") {
-        Dataset data("data/A2M/A2M_ma.RSR");
+        Dataset2D data("data/A2M/A2M_ma.RSR");
         CHECK(data.is_logarithmic());
     }
 
     SECTION("linear") {
         vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         vector<double> y = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-        Dataset data(x, y);
+        Dataset2D data(x, y);
         CHECK(!data.is_logarithmic());
     }
 }
 
 TEST_CASE("dataset_read", "[dataset],[files]") {
-    Dataset data("data/lysozyme/2epe.RSR");
+    Dataset2D data("data/lysozyme/2epe.RSR");
     auto x = data.x();
     auto y = data.y();
     auto yerr = data.yerr();
@@ -225,11 +225,11 @@ TEST_CASE("dataset_normalize", "[dataset]") {
 TEST_CASE("dataset_basics", "[histogram]") {
     vector<double> x = {1, 2, 3, 4, 5};
     vector<double> y = {10, 20, 30, 40, 50};
-    Dataset data(x, y, "i", "j");
+    Dataset2D data(x, y, "i", "j");
 
     SECTION("get") {
-        vector<double> i = data.get("i");
-        vector<double> j = data.get("j");
+        vector<double> i = data.col("i");
+        vector<double> j = data.col("j");
         CHECK(i == x);
         CHECK(j == y);
     }
@@ -241,8 +241,8 @@ TEST_CASE("dataset_basics", "[histogram]") {
 
     SECTION("limit") {
         data.limit_x(Limit(2, 3));
-        vector<double> i = data.get("i");
-        vector<double> j = data.get("j");
+        vector<double> i = data.col("i");
+        vector<double> j = data.col("j");
         CHECK(i == vector<double>{2, 3});
         CHECK(j == vector<double>{20, 30});
     }

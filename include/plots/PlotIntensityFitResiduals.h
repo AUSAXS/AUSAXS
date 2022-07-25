@@ -59,7 +59,7 @@ namespace plots {
 		private:
 			std::shared_ptr<TCanvas> canvas;
 
-			void plot(const Dataset graph) const;
+			void plot(const SimpleDataset graph) const;
 
 			void prepare_canvas();
 	};

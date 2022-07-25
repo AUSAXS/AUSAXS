@@ -106,8 +106,8 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
     Multiset evaluations;
 
     // comparison function. check if two datasets are exactly equal
-    auto compare_contours = [&contours] (const Dataset& data) {
-        Dataset& base = contours[0];
+    auto compare_contours = [&contours] (const Dataset2D& data) {
+        Dataset2D& base = contours[0];
         REQUIRE(base.size() == data.size());
         for (unsigned int i = 0; i < base.size(); i++) {
             if (base.x(i) != data.x(i)) {
@@ -140,7 +140,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
             optvals.push_back({fit.x(fit.size()-1), fit.y(fit.size()-1)});
 
             // chi2 contour plot
-            Dataset& scan = data.contour;
+            Dataset2D& scan = data.contour;
             fit.add_plot_options("markers", {{"color", kOrange+2}});
 
             plots::PlotDataset plot_c(scan);
@@ -152,16 +152,16 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
             evaluations.push_back(fit);
         }
 
-        Dataset fit_mins;
+        Dataset2D fit_mins;
         fit_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}}));
         for (const auto& val : optvals) {
             fit_mins.push_back(val.first, val.second);
             std::cout << "(x, y): " << "(" << val.first << ", " << val.second << ")" << std::endl;
         }
 
-        Dataset scan_mins;
+        Dataset2D scan_mins;
         scan_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kBlue+2}, {"ms", 8}, {"s", 0.8}}));
-        for (const Dataset& contour : contours) {
+        for (const Dataset2D& contour : contours) {
             scan_mins.push_back(contour.find_minimum());
         }
 
@@ -174,7 +174,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
         // Difference plot
         REQUIRE(scan_mins.size() == fit_mins.size());
 
-        Dataset diff;
+        Dataset2D diff;
         diff.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}));
         for (unsigned int i = 0; i < scan_mins.size(); i++) {
             double delta_x = fit_mins.x(i) - scan_mins.x(i);
@@ -238,7 +238,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     }
 
     SECTION("make voxelcount plot") {
-        Dataset data;
+        Dataset2D data;
         Axis range(1000, 0, 6);
         for (const double& val : range.as_vector()) {
             data.push_back({val, double(image.count_voxels(val))});

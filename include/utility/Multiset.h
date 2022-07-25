@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include <utility/Dataset.h>
+#include <utility/Dataset2D.h>
 
 class Multiset {
     public:
@@ -13,20 +13,20 @@ class Multiset {
 
         explicit Multiset(unsigned int size) : data(size) {}
 
-        explicit Multiset(const std::vector<Dataset>& data);
+        explicit Multiset(const std::vector<Dataset2D>& data);
 
-        explicit Multiset(const Dataset& data);
+        explicit Multiset(const Dataset2D& data);
 
-        Multiset(const Dataset& data1, const Dataset& data2);
+        Multiset(const Dataset2D& data1, const Dataset2D& data2);
 
-        const Dataset& operator[](unsigned int i) const;
-        Dataset& operator[](unsigned int i);
+        const Dataset2D& operator[](unsigned int i) const;
+        Dataset2D& operator[](unsigned int i);
 
-        const Dataset& get_data(std::string name) const;
-        Dataset& get_data(std::string name);
+        const Dataset2D& get_data(std::string name) const;
+        Dataset2D& get_data(std::string name);
 
-        const Dataset& get_data(unsigned int i) const;
-        Dataset& get_data(unsigned int i);
+        const Dataset2D& get_data(unsigned int i) const;
+        Dataset2D& get_data(unsigned int i);
 
         /**
          * @brief Get the number of Datasets contained in this Multiset. 
@@ -41,12 +41,12 @@ class Multiset {
         /**
          * @brief Add a Dataset to the end of this Multiset.
          */
-        void push_back(const Dataset& data);
+        void push_back(const Dataset2D& data);
 
         /**
          * @brief Add a Dataset to the end of this Multiset.
          */
-        void push_back(const Dataset&& data);
+        void push_back(const Dataset2D&& data);
 
         /**
          * @brief Impose a limit on the y-axis. All data lying outside this range will be removed.
@@ -67,24 +67,24 @@ class Multiset {
         /**
          * @brief Read-only iterator.
          */
-		const std::vector<Dataset>::const_iterator begin() const;
+		const std::vector<Dataset2D>::const_iterator begin() const;
 
         /**
          * @brief Read-only iterator.
          */
-        const std::vector<Dataset>::const_iterator end() const;
+        const std::vector<Dataset2D>::const_iterator end() const;
 
         /**
          * @brief Read-write iterator.
          */
-        std::vector<Dataset>::iterator begin();
+        std::vector<Dataset2D>::iterator begin();
 
         /**
          * @brief Read-write iterator.
          */
-        std::vector<Dataset>::iterator end();
+        std::vector<Dataset2D>::iterator end();
 
-        std::vector<Dataset> data;
+        std::vector<Dataset2D> data;
         std::map<std::string, unsigned int> names;
 
     private:

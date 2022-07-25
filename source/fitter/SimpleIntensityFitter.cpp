@@ -34,7 +34,7 @@ void SimpleIntensityFitter::model_setup(const hist::ScatteringHistogram& model, 
 }
 
 shared_ptr<Fit> SimpleIntensityFitter::fit() {
-    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
+    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -58,7 +58,7 @@ Fit::Plots SimpleIntensityFitter::plot() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
+    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     vector<double> Im = splice(ym);
 
     // if we have a I0, we need to rescale the data
@@ -76,17 +76,17 @@ Fit::Plots SimpleIntensityFitter::plot() {
     Fit::Plots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.intensity = SimpleDataset(h.q, ym_scaled);
-    graphs.data = Dataset(data.x(), data.y(), xerr, data.yerr());
+    graphs.data = Dataset2D(data.x(), data.y(), xerr, data.yerr());
     return graphs;
 }
 
-Dataset SimpleIntensityFitter::plot_residuals() {
+SimpleDataset SimpleIntensityFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    vector<double> ym = h.calc_debye_scattering_intensity().get("I");
+    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -97,7 +97,7 @@ Dataset SimpleIntensityFitter::plot_residuals() {
 
     // prepare the dataset
     vector<double> xerr(data.size(), 0);
-    return Dataset(data.x(), residuals, xerr, data.yerr());
+    return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
 void SimpleIntensityFitter::set_scattering_hist(hist::ScatteringHistogram&& h) {

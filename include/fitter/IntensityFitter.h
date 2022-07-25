@@ -56,7 +56,7 @@ class IntensityFitter : public SimpleIntensityFitter {
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    Dataset plot_residuals() override;
+    SimpleDataset plot_residuals() override;
 
     /**
      * @brief Get the intercept of the model. This might be useful for calculating the concentration.

@@ -103,7 +103,7 @@ class SimpleIntensityFitter : public Fitter {
      * 
      * @return A TGraphErrors with the residuals and their uncertainties. 
      */
-    virtual Dataset plot_residuals() override;
+    virtual SimpleDataset plot_residuals() override;
 
     /**
      * @brief Change the scattering histogram used for the fit. 

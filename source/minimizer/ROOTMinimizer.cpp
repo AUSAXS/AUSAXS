@@ -43,7 +43,7 @@ void ROOTMinimizer::create_minimizer(std::string package, std::string algorithm)
     }
 }
 
-Dataset ROOTMinimizer::get_evaluated_points() const {
+Dataset2D ROOTMinimizer::get_evaluated_points() const {
     throw except::unexpected("Error in ROOTMinimizer::get_evaluated_points: Not implemented yet.");
 }
 
@@ -76,7 +76,7 @@ Result ROOTMinimizer::minimize_override() {
     return res;
 }
 
-Dataset ROOTMinimizer::landscape(unsigned int) const {
+Dataset2D ROOTMinimizer::landscape(unsigned int) const {
     throw except::unexpected("Error in ROOTMinimizer::landscape: Not implemented yet.");
 }
 

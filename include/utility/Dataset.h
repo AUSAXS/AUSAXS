@@ -1,62 +1,77 @@
 #pragma once
 
 #include <math/Matrix.h>
-#include <plots/PlotOptions.h>
 #include <utility/Exceptions.h>
 #include <utility/PointSet.h>
 
-class IDataset : public Matrix<double>, public plots::PlotOptionWrapper {
+/**
+ * @brief A representation of a dataset. The set consists of fixed number of named columns, with a variable number of rows. 
+ */
+class Dataset : public Matrix<double> {
     public: 
-        using Matrix::Matrix;
-        virtual ~IDataset() = default;
-
-        [[nodiscard]] const ConstColumn<double> x() const {return ConstColumn<double>(data, N, M, 0);}
-        [[nodiscard]] Column<double> x() {return Column<double>(data, N, M, 0);}
-        [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
-        [[nodiscard]] double& x(unsigned int i) {return index(i, 0);}
-
-        [[nodiscard]] const ConstColumn<double> y() const {return ConstColumn<double>(data, N, M, 1);}
-        [[nodiscard]] Column<double> y() {return Column<double>(data, N, M, 1);}
-        [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}
-        [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
-
-        [[nodiscard]] const ConstColumn<double> yerr() const {return ConstColumn<double>(data, N, M, 2);}
-        [[nodiscard]] Column<double> yerr() {return Column<double>(data, N, M, 2);}
-        [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}
-        [[nodiscard]] double& yerr(unsigned int i) {return index(i, 2);}
+        /**
+         * @brief Default constructor. 
+         */
+        Dataset() {}
 
         /**
-         * @brief Get a column based on its name. This is primarily meant as a sanity check when expecting e.g. logarithmic data. 
+         * @brief Create a new dataset with the given columns.
          */
-        [[nodiscard]] Column<double> get(std::string column);
+        Dataset(std::vector<std::string> col_names) : Matrix(0, col_names.size()), names(col_names) {}
 
         /**
-         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-         *        This assumes that the x-values are sorted. 
-         *        Complexity: O(n)
+         * @brief Create a new dataset with the given columns.
          */
-        void limit_x(const Limit& limits);
+        Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
+            for (unsigned int i = 0; i < cols.size(); i++) {
+                names.push_back(std::to_string(i));
+            }
+        }
 
         /**
-         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-         *        This assumes that the x-values are sorted. 
-         *        Complexity: O(n)
+         * @brief Create a new dataset with the given columns.
          */
-        void limit_x(double min, double max);
+        Dataset(std::vector<std::vector<double>> cols, std::vector<std::string> col_names) : Matrix(cols), names(col_names) {}
 
         /**
-         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-         *        This assumes that the y-values are unsorted. 
-         *        Complexity: O(n)
+         * @brief Create a new dataset with the specified dimensions. 
          */
-        void limit_y(const Limit& limits);
+        Dataset(unsigned int rows, unsigned int cols) : Matrix(rows , cols) {}
 
         /**
-         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-         *        This assumes that the y-values are unsorted. 
-         *        Complexity: O(n)
+         * @brief Destructor.
          */
-        void limit_y(double min, double max);
+        virtual ~Dataset() = default;
+
+        /**
+         * @brief Get a column based on its name. 
+         */
+        [[nodiscard]] Column<double> col(std::string column);
+
+        /**
+         * @brief Get a column based on its name. 
+         */
+        [[nodiscard]] const ConstColumn<double> col(std::string column) const;
+
+        /**
+         * @brief Get a column based on its index.
+         */
+        [[nodiscard]] Column<double> col(unsigned int index);
+
+        /**
+         * @brief Get a column based on its index.
+         */
+        [[nodiscard]] const ConstColumn<double> col(unsigned int index) const;
+
+        /**
+         * @brief Get a row based on its index.
+         */
+        [[nodiscard]] Row<double> row(unsigned int index);
+
+        /**
+         * @brief Get a row based on its index.
+         */
+        [[nodiscard]] const ConstRow<double> row(unsigned int index) const;
 
         /**
          * @brief Get the number of points in the dataset.
@@ -64,20 +79,9 @@ class IDataset : public Matrix<double>, public plots::PlotOptionWrapper {
         [[nodiscard]] size_t size() const noexcept;
 
         /**
-         * @brief Reduce the number of data points to the specified amount. 
-         */
-        void reduce(unsigned int target, bool log = false);
-
-        /**
          * @brief Assign a Matrix to this dataset.
          */
         void operator=(const Matrix<double>&& other);
-
-        /**
-         * @brief Check if the data is logarithmic. 
-         *        This may be wrong if the x-data is very noisy.
-         */
-        bool is_logarithmic() const noexcept;
 
         /**
          * @brief Write this dataset to the specified file. 
@@ -85,248 +89,30 @@ class IDataset : public Matrix<double>, public plots::PlotOptionWrapper {
         void save(std::string path) const;
 
         /**
-         * @brief Get the spanned x-range. 
-         */
-        [[nodiscard]] Limit span_x() const noexcept;
-
-        /**
-         * @brief Get the spanned y-range. 
-         */
-        [[nodiscard]] Limit span_y() const noexcept;
-
-        /**
-         * @brief Get the positive spanned y-range.
-         *        This can be useful for setting log ranges. 
-         */
-        [[nodiscard]] Limit span_y_positive() const noexcept;
-
-        /**
          * @brief Load a dataset from the specified file. 
          */
         void load(std::string path);
+
+        /**
+         * @brief Set the column names. 
+         */
+        void set_col_names(std::vector<std::string> names);
+
+        /**
+         * @brief Set a column name. 
+         */
+        void set_col_names(unsigned int i, std::string name);
+
+        /**
+         * @brief Get the column names. 
+         */
+        [[nodiscard]] std::vector<std::string> get_col_names();
+
+        /**
+         * @brief Get a column name. 
+         */
+        [[nodiscard]] std::string get_col_names(unsigned int i);
+
+    private: 
+        std::vector<std::string> names; // The column names
 };
-
-/**
- * @brief A simple dataset is a collection of points of the form x | y | yerr. 
- */
-class SimpleDataset : public IDataset {
-    protected: 
-        /**
-         * @brief Construct a dataset with N rows and M columns. 
-         *        This is protected because it should only be used by derived classes for supporting more columns.
-         */
-        SimpleDataset(unsigned int N, unsigned int M) : IDataset(N, M) {}
-
-    public: 
-        /**
-         * @brief Construct a new empty dataset with the given number of rows. 
-         */
-        SimpleDataset(unsigned int rows) noexcept : IDataset(rows, 3) {}
-
-        /**
-         * @brief Construct a new empty dataset.
-         */
-        SimpleDataset() noexcept : SimpleDataset(0) {}
-
-        /**
-         * @brief Construct a new dataset based on the given vectors. 
-         */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
-            if (x.size() != y.size() || x.size() != yerr.size()) {
-                throw except::size_error("Error in SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
-            }
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], yerr[i]};
-            }
-        }
-
-        /**
-         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
-         */
-        SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {}
-
-        /**
-         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
-         */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {
-            options.xlabel = xlabel;
-            options.ylabel = ylabel;
-        }
-
-        /**
-         * @brief Construct a new dataset from an input file.
-         */
-        SimpleDataset(std::string path) : SimpleDataset() {
-            load(path);
-        }
-
-        /**
-         * @brief Destructor.
-         */
-        ~SimpleDataset() override = default;
-
-        using IDataset::push_back;
-
-        /**
-         * @brief Add a new point at the end of the dataset.
-         */
-        void push_back(double x, double y, double yerr = 0);
-
-        /**
-         * @brief Name the columns. 
-         */
-        void name_columns(std::string xlabel, std::string ylabel);
-
-        /**
-         * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
-         */
-        void normalize(double y0);
-
-        /**
-         * @brief Scale all errors by some common factor. 
-         */
-        virtual void scale_errors(double factor);
-
-        /**
-         * @brief Scale the y-values (and their associated errors) by some common factor.
-         */
-        void scale_y(double factor);
-
-        /**
-         * @brief Simulate Gaussian noise on the y-values based on the errors. 
-         */
-        void simulate_noise();
-
-        /**
-         * @brief Generate errors for the y-values mimicking what one would find experimentally. 
-         */
-        void simulate_errors();
-
-        /**
-         * @brief Get the point at a given index.
-         */
-        Point2D get_point(unsigned int index) const;
-
-        /**
-         * @brief Get the point with the smallest y-value.
-         */
-        Point2D find_minimum() const;
-
-        /**
-         * @brief Add a new datapoint to the end of this dataset. 
-         */
-        void push_back(const Point2D& point) noexcept;
-
-        /**
-         * @brief Rebin the data to a logarithmic scale. 
-         *        This follows the typical rebinning algorithm used experimentally.
-         */
-        void rebin() noexcept;
-
-        /**
-         * @brief Generate a randomized dataset.
-         * 
-         * @param size Size of the dataset.
-         * @param min Minimum generated value.
-         * @param max Maxium generated value. 
-         */
-        static SimpleDataset generate_random_data(unsigned int size, double min = 0, double max = 1);
-};
-
-
-/**
- * @brief A dataset is a collection of points of the form x | y | xerr | yerr. 
- */
-class Dataset : public SimpleDataset {
-    public: 
-        /**
-         * @brief Default constructor.
-         */
-        Dataset() noexcept : SimpleDataset(0, 4) {}
-
-        /**
-         * @brief Construct a new empty dataset with the given number of rows.
-         */
-        Dataset(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}
-
-        /**
-         * @brief Construct a new dataset with x and y values. The xerr and yerr columns will be initialized to 0.
-         */
-        Dataset(std::vector<double> x, std::vector<double> y) noexcept : Dataset(x.size()) {
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], 0, 0};
-            }
-        }
-
-        /**
-         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
-         */
-        Dataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset(x, y, std::vector<double>(x.size(), 0)) {
-            options.xlabel = xlabel;
-            options.ylabel = ylabel;
-        }
-
-        /**
-         * @brief Construct a new dataset with x, y, and yerr values. The xerr column will be initialized to 0. 
-         */
-        Dataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset(x.size()) {
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], 0, yerr[i]};
-            }
-        }
-
-        /**
-         * @brief Construct a new dataset with x, y, xerr, and yerr values.
-         */
-        Dataset(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset(x.size()) {
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], xerr[i], yerr[i]};
-            }
-        }
-
-        Dataset(SimpleDataset data) : Dataset(data.size()) {
-            for (unsigned int i = 0; i < data.size(); i++) {
-                row(i) = {data.x(i), data.y(i), data.yerr(i), 0};
-            }
-        }
-
-        /**
-         * @brief Construct a new dataset from an input file.
-         */
-        Dataset(std::string path) : Dataset() {
-            load(path);
-        }
-
-        /**
-         * @brief Destructor.
-         */
-        ~Dataset() override = default;
-
-        /**
-         * @brief Add a new point at the end of the dataset.
-         */
-        void push_back(double x, double y, double xerr, double yerr);
-
-        /**
-         * @brief Add a new point at the end of the dataset.
-         */
-        void push_back(double x, double y);
-
-        /**
-         * @brief Add a new point at the end of the dataset.
-         */
-        void push_back(const Point2D& point) noexcept;
-
-        /**
-         * @brief Scale all errors by some common factor. 
-         */
-        void scale_errors(double factor) override;
-
-        [[nodiscard]] const ConstColumn<double> xerr() const {return ConstColumn<double>(data, N, M, 3);}
-        [[nodiscard]] Column<double> xerr() {return Column<double>(data, N, M, 3);}
-        [[nodiscard]] const double& xerr(unsigned int i) const {return index(i, 3);}
-        [[nodiscard]] double& xerr(unsigned int i) {return index(i, 3);}
-};
-
-// Object conversion between Dataset and SimpleDataset is often used. This check ensures that the conversion is safe.
-static_assert(sizeof(Dataset) == sizeof(SimpleDataset), "Object conversion is broken.");

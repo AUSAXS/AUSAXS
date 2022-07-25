@@ -103,7 +103,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
 }
 
 std::unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
-    vector<double> Iq = calc_guinier_approx().get("logI");
+    vector<double> Iq = calc_guinier_approx().col("logI");
 
     const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
     std::unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);

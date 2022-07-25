@@ -1,0 +1,207 @@
+#pragma once
+
+#include <plots/PlotOptions.h>
+#include <utility/PointSet.h>
+#include <utility/Dataset.h>
+
+/**
+ * @brief A simple dataset is a collection of points of the form x | y | yerr. 
+ */
+class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
+    protected: 
+        /**
+         * @brief Construct a dataset with N rows and M columns. 
+         *        This is protected because it should only be used by derived classes for supporting more columns.
+         */
+        SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
+
+    public: 
+        /**
+         * @brief Construct a new empty dataset with the given number of rows. 
+         */
+        SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
+
+        /**
+         * @brief Construct a new empty dataset.
+         */
+        SimpleDataset() noexcept : SimpleDataset(0) {}
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. 
+         */
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
+            if (x.size() != y.size() || x.size() != yerr.size()) {
+                throw except::size_error("Error in SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
+            }
+            for (unsigned int i = 0; i < x.size(); i++) {
+                row(i) = {x[i], y[i], yerr[i]};
+            }
+        }
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         */
+        SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {}
+
+        /**
+         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         */
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {
+            options.xlabel = xlabel;
+            options.ylabel = ylabel;
+        }
+
+        /**
+         * @brief Construct a new dataset from an input file.
+         */
+        SimpleDataset(std::string path) : SimpleDataset() {
+            load(path);
+        }
+
+        /**
+         * @brief Destructor.
+         */
+        ~SimpleDataset() override = default;
+
+        [[nodiscard]] const ConstColumn<double> x() const {return col(0);}
+        [[nodiscard]] Column<double> x() {return col(0);}
+        [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
+        [[nodiscard]] double& x(unsigned int i) {return index(i, 0);}
+
+        [[nodiscard]] const ConstColumn<double> y() const {return col(1);}
+        [[nodiscard]] Column<double> y() {return col(1);}
+        [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}
+        [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
+
+        [[nodiscard]] const ConstColumn<double> yerr() const {return col(2);}
+        [[nodiscard]] Column<double> yerr() {return col(2);}
+        [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}
+        [[nodiscard]] double& yerr(unsigned int i) {return index(i, 2);}
+
+        /**
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         *        This assumes that the x-values are sorted. 
+         *        Complexity: O(n)
+         */
+        void limit_x(const Limit& limits);
+
+        /**
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         *        This assumes that the x-values are sorted. 
+         *        Complexity: O(n)
+         */
+        void limit_x(double min, double max);
+
+        /**
+         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
+         *        This assumes that the y-values are unsorted. 
+         *        Complexity: O(n)
+         */
+        void limit_y(const Limit& limits);
+
+        /**
+         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
+         *        This assumes that the y-values are unsorted. 
+         *        Complexity: O(n)
+         */
+        void limit_y(double min, double max);
+
+        /**
+         * @brief Reduce the number of data points to the specified amount. 
+         */
+        void reduce(unsigned int target, bool log = false);
+
+        /**
+         * @brief Assign a Matrix to this dataset.
+         */
+        void operator=(const Matrix<double>&& other);
+
+        /**
+         * @brief Check if the data is logarithmic. 
+         *        This may be wrong if the x-data is very noisy.
+         */
+        bool is_logarithmic() const noexcept;
+
+        /**
+         * @brief Get the spanned x-range. 
+         */
+        [[nodiscard]] Limit span_x() const noexcept;
+
+        /**
+         * @brief Get the spanned y-range. 
+         */
+        [[nodiscard]] Limit span_y() const noexcept;
+
+        /**
+         * @brief Get the positive spanned y-range.
+         *        This can be useful for setting log ranges. 
+         */
+        [[nodiscard]] Limit span_y_positive() const noexcept;
+
+        using Dataset::push_back;
+
+        /**
+         * @brief Add a new point at the end of the dataset.
+         */
+        void push_back(double x, double y, double yerr = 0);
+
+        /**
+         * @brief Name the columns. 
+         */
+        void name_columns(std::string xlabel, std::string ylabel);
+
+        /**
+         * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
+         */
+        void normalize(double y0);
+
+        /**
+         * @brief Scale all errors by some common factor. 
+         */
+        virtual void scale_errors(double factor);
+
+        /**
+         * @brief Scale the y-values (and their associated errors) by some common factor.
+         */
+        void scale_y(double factor);
+
+        /**
+         * @brief Simulate Gaussian noise on the y-values based on the errors. 
+         */
+        void simulate_noise();
+
+        /**
+         * @brief Generate errors for the y-values mimicking what one would find experimentally. 
+         */
+        void simulate_errors();
+
+        /**
+         * @brief Get the point at a given index.
+         */
+        Point2D get_point(unsigned int index) const;
+
+        /**
+         * @brief Get the point with the smallest y-value.
+         */
+        Point2D find_minimum() const;
+
+        /**
+         * @brief Add a new datapoint to the end of this dataset. 
+         */
+        void push_back(const Point2D& point) noexcept;
+
+        /**
+         * @brief Rebin the data to a logarithmic scale. 
+         *        This follows the typical rebinning algorithm used experimentally.
+         */
+        void rebin() noexcept;
+
+        /**
+         * @brief Generate a randomized dataset.
+         * 
+         * @param size Size of the dataset.
+         * @param min Minimum generated value.
+         * @param max Maxium generated value. 
+         */
+        static SimpleDataset generate_random_data(unsigned int size, double min = 0, double max = 1);
+};

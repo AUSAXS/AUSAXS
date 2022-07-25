@@ -64,7 +64,7 @@ Limit Golden::search(const Limit bounds) const {
     }
 }
 
-Dataset Golden::landscape(unsigned int evals) const {
+Dataset2D Golden::landscape(unsigned int evals) const {
     if (parameters.empty()) {throw except::bad_order("Error in Golden::landscape: No parameters were supplied.");}
     std::vector<double> x, y;
 
@@ -79,10 +79,10 @@ Dataset Golden::landscape(unsigned int evals) const {
         y.push_back(fval);
     }
 
-    return Dataset(x, y);
+    return Dataset2D(x, y);
 }
 
-Dataset Golden::get_evaluated_points() const {
+Dataset2D Golden::get_evaluated_points() const {
     if (evaluations.empty()) {throw except::bad_order("Error in Golden::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
 
     unsigned int N = evaluations.size();
@@ -91,7 +91,7 @@ Dataset Golden::get_evaluated_points() const {
         x[i] = evaluations[i].vals[0];
         y[i] = evaluations[i].fval;
     }
-    return Dataset(x, y, "x", "f(x)");
+    return Dataset2D(x, y, "x", "f(x)");
 }
 
 Result Golden::minimize_override() {

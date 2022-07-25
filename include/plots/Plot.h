@@ -84,10 +84,10 @@ namespace plots {
 	void draw(const SimpleDataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const Dataset& data, const std::shared_ptr<TCanvas> canvas);
+	void draw(const Dataset2D& data, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
-	void draw(const Dataset& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
+	void draw(const Dataset2D& data, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
 	[[maybe_unused]]
 	void draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
@@ -101,8 +101,8 @@ namespace plots {
 	namespace detail {
 		void handle_log(const PlotOptions& options, const std::shared_ptr<TCanvas> canvas);
 
-		std::shared_ptr<TGraph> graph(const Dataset& data);
-		std::shared_ptr<TGraph> graph(const Dataset& data, const plots::PlotOptions& options);
+		std::shared_ptr<TGraph> graph(const Dataset2D& data);
+		std::shared_ptr<TGraph> graph(const Dataset2D& data, const plots::PlotOptions& options);
 
 		std::shared_ptr<TGraph> graph(const SimpleDataset& data);
 		std::shared_ptr<TGraph> graph(const SimpleDataset& data, const plots::PlotOptions& options);

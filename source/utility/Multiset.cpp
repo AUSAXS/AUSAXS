@@ -3,35 +3,35 @@
 
 #include <filesystem>
 
-Multiset::Multiset(const std::vector<Dataset>& data) : data(data) {}
+Multiset::Multiset(const std::vector<Dataset2D>& data) : data(data) {}
 
-Multiset::Multiset(const Dataset& data) : data({data}) {}
+Multiset::Multiset(const Dataset2D& data) : data({data}) {}
 
-Multiset::Multiset(const Dataset& data1, const Dataset& data2) : data({data1, data2}) {}
+Multiset::Multiset(const Dataset2D& data1, const Dataset2D& data2) : data({data1, data2}) {}
 
-const Dataset& Multiset::operator[](unsigned int i) const {
+const Dataset2D& Multiset::operator[](unsigned int i) const {
     return data[i];
 }
 
-Dataset& Multiset::operator[](unsigned int i) {
+Dataset2D& Multiset::operator[](unsigned int i) {
     return data[i];
 }
 
-const Dataset& Multiset::get_data(std::string name) const {
+const Dataset2D& Multiset::get_data(std::string name) const {
     if (names.count(name) == 0) {throw except::unknown_argument("Error in Multiset::get_data: No dataset named \"" + name + "\".");}
     return data[names.at(name)];
 }
 
-Dataset& Multiset::get_data(std::string name) {
+Dataset2D& Multiset::get_data(std::string name) {
     if (names.count(name) == 0) {throw except::unknown_argument("Error in Multiset::get_data: No dataset named \"" + name + "\".");}
     return data[names.at(name)];
 }
 
-const Dataset& Multiset::get_data(unsigned int i) const {
+const Dataset2D& Multiset::get_data(unsigned int i) const {
     return data[i];
 }
 
-Dataset& Multiset::get_data(unsigned int i) {
+Dataset2D& Multiset::get_data(unsigned int i) {
     return data[i];
 }
 
@@ -43,18 +43,18 @@ bool Multiset::empty() const {
     return data.empty();
 }
 
-void Multiset::push_back(const Dataset& new_data) {
+void Multiset::push_back(const Dataset2D& new_data) {
     data.push_back(new_data);
 }
 
-void Multiset::push_back(const Dataset&& new_data) {
+void Multiset::push_back(const Dataset2D&& new_data) {
     data.push_back(std::move(new_data));
 }
 
 void Multiset::ylimits(double min, double max) noexcept {ylimits({min, max});}
 
 void Multiset::ylimits(const Limit& limit) noexcept {
-    std::for_each(begin(), end(), [&limit] (Dataset& data) {data.limit_y(limit);});
+    std::for_each(begin(), end(), [&limit] (Dataset2D& data) {data.limit_y(limit);});
 }
 
 void Multiset::save(std::string path) const {
@@ -67,14 +67,14 @@ void Multiset::save(std::string path) const {
 void Multiset::read(std::string path) {
     for (const auto& file : std::filesystem::recursive_directory_iterator(path)) { // loop over all files in the directory
         if (file.path().extension() == ".txt") {
-            Dataset set(file.path().string());
+            Dataset2D set(file.path().string());
             data.push_back(set);
         }
     }
 }
 
-const std::vector<Dataset>::const_iterator Multiset::begin() const {return data.begin();}
-const std::vector<Dataset>::const_iterator Multiset::end() const {return data.end();}
+const std::vector<Dataset2D>::const_iterator Multiset::begin() const {return data.begin();}
+const std::vector<Dataset2D>::const_iterator Multiset::end() const {return data.end();}
 
-std::vector<Dataset>::iterator Multiset::begin() {return data.begin();}
-std::vector<Dataset>::iterator Multiset::end() {return data.end();}
+std::vector<Dataset2D>::iterator Multiset::begin() {return data.begin();}
+std::vector<Dataset2D>::iterator Multiset::end() {return data.end();}
