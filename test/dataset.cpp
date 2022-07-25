@@ -176,6 +176,7 @@ TEST_CASE("dataset_normalize", "[dataset]") {
     SimpleDataset data(x, y);
 
     SECTION("scale") {
+        auto y = data.y();
         data.scale_y(2);
         CHECK(data.y(0) == 20);
         CHECK(data.y(1) == 40);
@@ -199,6 +200,7 @@ TEST_CASE("dataset_normalize", "[dataset]") {
     }
 
     SECTION("normalize") {
+        auto y = data.y();
         data.normalize(1);
         CHECK(data.y(0) == 1);
         CHECK(data.y(1) == 2);

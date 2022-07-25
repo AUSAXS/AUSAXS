@@ -108,10 +108,10 @@ void Dataset::load(std::string path) {
     std::ifstream input(path);
     if (!input.is_open()) {throw std::ios_base::failure("Error in IDataset::load: Could not open file \"" + path + "\"");}
 
-    string line; // placeholder for the current line
+    std::string line; // placeholder for the current line
     while(getline(input, line)) {
         if (line[0] == ' ') {line = line.substr(1);} // fix leading space
-        vector<string> tokens;
+        std::vector<std::string> tokens;
         boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
 
         // remove empty tokens

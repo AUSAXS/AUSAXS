@@ -301,10 +301,7 @@ class Ligand {
 //     return 0;
 // }
 
-#include <math/Matrix.h>
-
 int main(int, char const**) {
     Matrix<double> m(3, 3);
-    
     return 0;
 }

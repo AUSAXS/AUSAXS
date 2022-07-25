@@ -112,7 +112,7 @@ namespace mini {
          */
         FittedParameter(const Parameter& param, double value, double error) noexcept;
 
-        operator Point1D() const noexcept {return Point1D(value, mean_error());}
+        operator ErrorPoint1D() const noexcept {return ErrorPoint1D(value, mean_error());}
 
         /**
          * @brief Convenience method for implicit conversion to double. 

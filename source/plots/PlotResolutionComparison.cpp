@@ -21,7 +21,7 @@ plots::PlotResolutionComparison::PlotResolutionComparison(Multiset data, int col
     // change colors & plot raw figure before we scale the y-values
     data[0].add_plot_options({{"logx", true}, {"logy", true}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"ylimit", Limit(1e-4, inf)}});
     for (unsigned int i = 0; i < data.size(); i++) {
-        data[i].add_plot_options(cols.At(i*color_step));
+        data[i].set_plot_color(cols.At(i*color_step));
     }
     raw = std::make_unique<PlotDataset>(data);
 

@@ -134,24 +134,24 @@ void PlotOptions::SmartOption<double>::parse(const std::any val) {
     }
 }
 
-PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
-    color = opt.color;
-    alpha = opt.alpha; 
-    marker_style = opt.marker_style; 
-    line_width = opt.line_width; 
-    marker_size = opt.marker_size; 
-    draw_line = opt.draw_line;
-    draw_errors = opt.draw_errors;
-    draw_markers = opt.draw_markers;
-    use_existing_axes = opt.use_existing_axes;
-    logx = opt.logx; 
-    logy = opt.logy;
-    title = opt.title; 
-    xlabel = opt.xlabel; 
-    ylabel = opt.ylabel; 
-    draw_bars = opt.draw_bars;
-    ylimits = opt.ylimits;
-    xlimits = opt.xlimits;
+PlotOptions& PlotOptions::operator=(const PlotOptions& rhs) {
+    color = rhs.color;
+    alpha = rhs.alpha; 
+    marker_style = rhs.marker_style; 
+    line_width = rhs.line_width; 
+    marker_size = rhs.marker_size; 
+    draw_line = rhs.draw_line;
+    draw_errors = rhs.draw_errors;
+    draw_markers = rhs.draw_markers;
+    use_existing_axes = rhs.use_existing_axes;
+    logx = rhs.logx; 
+    logy = rhs.logy;
+    title = rhs.title; 
+    xlabel = rhs.xlabel; 
+    ylabel = rhs.ylabel; 
+    draw_bars = rhs.draw_bars;
+    ylimits = rhs.ylimits;
+    xlimits = rhs.xlimits;
 
     return *this;
 }
