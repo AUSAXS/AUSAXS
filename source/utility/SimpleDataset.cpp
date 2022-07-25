@@ -12,7 +12,7 @@
 using std::vector, std::string;
 
 void SimpleDataset::reduce(unsigned int target, bool log) {
-    if (size() < target) {throw except::invalid_operation("Error in Dataset::reduce: Target cannot be larger than the size of the data set.");}
+    if (size() < target) {throw except::invalid_operation("Error in Dataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
     Matrix<double> reduced(0, M);
 
     if (log) {
@@ -146,11 +146,6 @@ void SimpleDataset::push_back(double x, double y, double yerr) {
     row(N-1) = {x, y, yerr};
 }
 
-void SimpleDataset::name_columns(std::string xlabel, std::string ylabel) {
-    options.xlabel = xlabel;
-    options.ylabel = ylabel;
-}
-
 void SimpleDataset::normalize(double y0) {
     scale_y(y0/y(0));
 }
@@ -257,4 +252,12 @@ void SimpleDataset::rebin() noexcept {
     }
     data.save("temp/dataset/test.dat");
     *this = data;
+}
+
+void SimpleDataset::load(std::string path) {
+    Dataset::load(path);
+    if (M != 3) {
+        throw except::io_error("Error in SimpleDataset::load: Dataset has wrong number of columns.");
+    }
+    limit_x(setting::fit::q_low, setting::fit::q_high);
 }

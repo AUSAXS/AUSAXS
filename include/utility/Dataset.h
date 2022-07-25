@@ -22,21 +22,17 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
-            for (unsigned int i = 0; i < cols.size(); i++) {
-                names.push_back(std::to_string(i));
-            }
-        }
+        Dataset(std::vector<std::vector<double>> cols, std::vector<std::string> col_names) : Matrix(cols), names(col_names) {}
 
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(std::vector<std::vector<double>> cols, std::vector<std::string> col_names) : Matrix(cols), names(col_names) {}
+        Dataset(std::vector<std::vector<double>> cols);
 
         /**
          * @brief Create a new dataset with the specified dimensions. 
          */
-        Dataset(unsigned int rows, unsigned int cols) : Matrix(rows , cols) {}
+        Dataset(unsigned int rows, unsigned int cols);
 
         /**
          * @brief Destructor.
@@ -91,7 +87,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Load a dataset from the specified file. 
          */
-        void load(std::string path);
+        virtual void load(std::string path);
 
         /**
          * @brief Set the column names. 

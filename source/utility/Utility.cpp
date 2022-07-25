@@ -58,7 +58,7 @@ std::string utility::extract_number<std::string>(std::string s) {
     return s.substr(start, end-start);
 }
 
-std::vector<std::string> split(std::string str, char delimiter) {
+std::vector<std::string> utility::split(std::string str, char delimiter) {
     std::string token;
     std::stringstream ss(str);
     std::vector<std::string> tokens;
@@ -68,19 +68,56 @@ std::vector<std::string> split(std::string str, char delimiter) {
     return tokens;
 }
 
-std::vector<std::string> split(std::string str, std::string delimiters) {
+std::vector<std::string> utility::split(std::string str, std::string delimiters) {
     std::vector<std::string> tokens;
-    for (unsigned int i = 0; i < str.size(); i++) {
-        for (unsigned int j = 0; j < delimiters.size(); j++) {
-            if (str[i] == delimiters[j]) {
-                tokens.push_back(str.substr(0, i));
-                str = str.substr(i+1);
-                i = 0;
+
+    auto is_delimiter = [&delimiters] (char c) {
+        return delimiters.find(c) != std::string::npos;
+    };
+
+    // skip leading delimiters
+    unsigned int start = 0;
+    for (; start < str.size(); start++) {
+        if (!is_delimiter(str[start])) {
+            break;
+        }
+    }
+
+    // iterate through the rest of the string
+    for (unsigned int i = start; i < str.size(); i++) {
+        if (!is_delimiter(str[i])) {
+            continue;
+        }
+
+        // add token to vector
+        tokens.push_back(str.substr(start, i-start));
+        start = ++i;
+
+        // skip consecutive delimiters
+        for (; start < str.size(); start++) {
+            if (!is_delimiter(str[start])) {
                 break;
             }
         }
+        i = start;
+    }
+
+    // add last token to vector
+    if (start < str.size()) {
+        tokens.push_back(str.substr(start));
     }
     return tokens;
+}
+
+std::string utility::join(std::vector<std::string> v, std::string separator) {
+    std::string s;
+    for (unsigned int i = 0; i < v.size(); i++) {
+        s += v[i];
+        if (i != v.size()-1) {
+            s += separator;
+        }
+    }
+    return s;
 }
 
 std::string utility::uid() {

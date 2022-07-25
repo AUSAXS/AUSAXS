@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <utility/Dataset.h>
+#include <em/ImageStack.h>
 #include <plots/all.h>
 
 #include <iostream>
@@ -150,23 +151,70 @@ TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
     }
 }
 
+TEST_CASE("dataset_io", "[dataset],[files]") {
+    SECTION("lysozyme") {
+        Dataset2D data("data/lysozyme/2epe.RSR");
+        data.save("temp/dataset/2epe.RSR");
+        Dataset2D data2("temp/dataset/2epe.RSR");
+        REQUIRE(data.size() == data2.size());
+        REQUIRE(data.x().size() == data2.x().size());
+        REQUIRE(data.y().size() == data2.y().size());
+        REQUIRE(data.yerr().size() == data2.yerr().size());
+
+        for (unsigned int i = 0; i < data.size(); i++) {
+            CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(data2.y(i), 1e-6));
+            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinAbs(data2.yerr(i), 1e-6));
+        }
+    }
+
+    SECTION("troublesome dataset") {
+        setting::protein::use_effective_charge = false;
+        setting::em::sample_frequency = 5;
+
+        // generate a measurement from a map
+        em::ImageStack map("data/A2M/emd_12747.map"); 
+        auto protein = map.get_protein(map.level(3));
+        auto m = protein->get_histogram().calc_debye_scattering_intensity();
+        m.reduce(100);
+        m.simulate_errors();
+        m.simulate_noise();
+        m.save("temp/dataset/troublesome_dataset.dat");
+
+        // load the dataset
+        SimpleDataset data("temp/dataset/troublesome_dataset.dat");
+        REQUIRE(data.size() == m.size());
+        REQUIRE(data.x().size() == m.x().size());
+        REQUIRE(data.y().size() == m.y().size());
+        REQUIRE(data.yerr().size() == m.yerr().size());
+
+        for (unsigned int i = 0; i < data.size(); i++) {
+            CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(m.x(i), 1e-6));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(m.y(i), 1e-6));
+            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinAbs(m.yerr(i), 1e-6));
+        }
+    }
+}
+
 TEST_CASE("dataset_read", "[dataset],[files]") {
-    Dataset2D data("data/lysozyme/2epe.RSR");
-    auto x = data.x();
-    auto y = data.y();
-    auto yerr = data.yerr();
+    SECTION("actual data") {
+        Dataset2D data("data/lysozyme/2epe.RSR");
+        auto x = data.x();
+        auto y = data.y();
+        auto yerr = data.yerr();
 
-    vector<double> validate_x = {9.81300045E-03, 1.06309997E-02, 1.14489999E-02, 1.22659998E-02, 1.30840000E-02, 1.39020002E-02, 1.47200003E-02, 1.55379996E-02, 1.63550004E-02, 1.71729997E-02};
-    vector<double> validate_y = {6.67934353E-03, 7.27293547E-03, 8.74083303E-03, 9.22449585E-03, 9.13867634E-03, 9.21153929E-03, 9.37998667E-03, 8.67372658E-03, 9.23649967E-03, 9.22480784E-03};
-    vector<double> validate_yerr = {1.33646582E-03, 1.01892441E-03, 8.62116576E-04, 7.71059655E-04, 6.87870081E-04, 6.30189374E-04, 4.98525158E-04, 4.69041377E-04, 4.46073769E-04, 4.26004088E-04};
+        vector<double> validate_x = {9.81300045E-03, 1.06309997E-02, 1.14489999E-02, 1.22659998E-02, 1.30840000E-02, 1.39020002E-02, 1.47200003E-02, 1.55379996E-02, 1.63550004E-02, 1.71729997E-02};
+        vector<double> validate_y = {6.67934353E-03, 7.27293547E-03, 8.74083303E-03, 9.22449585E-03, 9.13867634E-03, 9.21153929E-03, 9.37998667E-03, 8.67372658E-03, 9.23649967E-03, 9.22480784E-03};
+        vector<double> validate_yerr = {1.33646582E-03, 1.01892441E-03, 8.62116576E-04, 7.71059655E-04, 6.87870081E-04, 6.30189374E-04, 4.98525158E-04, 4.69041377E-04, 4.46073769E-04, 4.26004088E-04};
 
-    REQUIRE(x.size() == 104);
-    REQUIRE(y.size() == 104);
-    REQUIRE(yerr.size() == 104);
-    for (unsigned int i = 0; i < validate_x.size(); i++) {
-        CHECK_THAT(x[i], Catch::Matchers::WithinRel(validate_x[i]));
-        CHECK_THAT(y[i], Catch::Matchers::WithinRel(validate_y[i]));
-        CHECK_THAT(yerr[i], Catch::Matchers::WithinRel(validate_yerr[i]));
+        REQUIRE(x.size() == 104);
+        REQUIRE(y.size() == 104);
+        REQUIRE(yerr.size() == 104);
+        for (unsigned int i = 0; i < validate_x.size(); i++) {
+            CHECK_THAT(x[i], Catch::Matchers::WithinRel(validate_x[i]));
+            CHECK_THAT(y[i], Catch::Matchers::WithinRel(validate_y[i]));
+            CHECK_THAT(yerr[i], Catch::Matchers::WithinRel(validate_yerr[i]));
+        }
     }
 }
 

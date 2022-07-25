@@ -43,11 +43,11 @@ class Matrix {
         /**
          * @brief Construct a Matrix based on a series of vectors. The vectors must be of the same size. 
          */
-        Matrix(std::vector<std::vector<Q>> v) : N(v.size()), M(v[0].size()), data(N*M) {
-            for (unsigned int row = 0; row < N; row++) {
-                if (__builtin_expect(v[row].size() != M, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
-                for (unsigned int col = 0; col < M; col++) {
-                    index(row, col) = v[row][col];
+        Matrix(std::vector<std::vector<Q>> v) : N(v[0].size()), M(v.size()), data(N*M) {
+            for (unsigned int col = 0; col < M; col++) {
+                if (__builtin_expect(v[col].size() != N, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
+                for (unsigned int row = 0; row < N; row++) {
+                    index(row, col) = v[col][row];
                 }
             }
         }

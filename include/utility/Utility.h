@@ -52,13 +52,20 @@ namespace utility {
 
     /**
      * @brief Split a string at a given delimiter.
+     *        Consecutive delimiters are treated as a single delimiter. 
      */
     std::vector<std::string> split(std::string s, char delimiter);
 
     /**
      * @brief Split a string at the given delimiters.
+     *        Consecutive delimiters are treated as a single delimiter. 
      */
     std::vector<std::string> split(std::string s, std::string delimiters);
+
+    /**
+     * @brief Join a vector of strings into a single string.
+     */
+    std::string join(std::vector<std::string> v, std::string separator);
 
     /**
      * @brief Check if three values are equal.

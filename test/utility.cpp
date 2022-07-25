@@ -71,6 +71,97 @@ TEST_CASE("fitreporter", "[utility],[manual]") {
     }
 }
 
+TEST_CASE("split", "[utility]") {
+    SECTION("single delimiter") {
+        SECTION("empty") {
+            vector<string> result = utility::split("", ',');
+            REQUIRE(result.size() == 0);
+        }
+
+        SECTION("single") {
+            vector<string> result = utility::split("a", ',');
+            REQUIRE(result.size() == 1);
+            REQUIRE(result[0] == "a");
+        }
+
+        SECTION("multiple") {
+            vector<string> result = utility::split("a,b,c", ',');
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "a");
+            REQUIRE(result[1] == "b");
+            REQUIRE(result[2] == "c");
+        }
+    }
+
+    SECTION("multiple delimiters") {
+        SECTION("empty") {
+            vector<string> result = utility::split("", ",");
+            REQUIRE(result.size() == 0);
+        }
+
+        SECTION("single") {
+            vector<string> result = utility::split("a", ",");
+            REQUIRE(result.size() == 1);
+            REQUIRE(result[0] == "a");
+        }
+
+        SECTION("multiple") {
+            vector<string> result = utility::split("a,b,c", ",");
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "a");
+            REQUIRE(result[1] == "b");
+            REQUIRE(result[2] == "c");
+        }
+
+        SECTION("multiple with spaces") {
+            vector<string> result = utility::split("a, b, c", ", ");
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "a");
+            REQUIRE(result[1] == "b");
+            REQUIRE(result[2] == "c");
+        }
+
+        SECTION("multiple with lots of stuff") {
+            vector<string> result = utility::split("  ,aaba  ,, ,,bda,  ced,,,  ,", ", ");
+            REQUIRE(result.size() == 3);
+            REQUIRE(result[0] == "aaba");
+            REQUIRE(result[1] == "bda");
+            REQUIRE(result[2] == "ced");
+        }
+
+        SECTION("actual example") {
+            vector<string> result = utility::split("0.009813      	0.00667934    	0.00133647    	1\n\r", ", \t\n\r");
+            REQUIRE(result.size() == 4);
+            REQUIRE(result[0] == "0.009813");
+            REQUIRE(result[1] == "0.00667934");
+            REQUIRE(result[2] == "0.00133647");
+            REQUIRE(result[3] == "1");
+        }
+    }
+}
+
+TEST_CASE("join", "[utility]") {
+    SECTION("empty") {
+        string result = utility::join({}, ",");
+        REQUIRE(result == "");
+    }
+
+    SECTION("single") {
+        string result = utility::join({"a"}, ",");
+        REQUIRE(result == "a");
+    }
+
+    SECTION("multiple") {
+        string result = utility::join({"a", "b", "c"}, ",");
+        REQUIRE(result == "a,b,c");
+    }
+
+    SECTION("multiple with spaces") {
+        string result = utility::join({"a", " b", " c"}, ",");
+        REQUIRE(result == "a, b, c");
+    }
+}
+
 TEST_CASE("plotoptions", "[utility]") {
     plots::PlotOptions options;
 

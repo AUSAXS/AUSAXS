@@ -22,8 +22,8 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
     string path = "figures/consistency/" + utility::stem(mapfile) + "/";
 
-    unsigned int evals = 1;
-    SimpleDataset chi2, cutoff;
+    unsigned int evals = 5;
+    Dataset data({"dof", "chi2", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
         // generate a pdb file from the map at some cutoff
         auto protein = map.get_protein(map.level(3));
@@ -31,19 +31,24 @@ int main(int argc, char const *argv[]) {
         // generate a measurement from the protein
         string mfile = path + "test.RSR";
         auto m = protein->get_histogram().calc_debye_scattering_intensity();
+        std::cout << "pre-reduce size: " << m.size() << std::endl;
         m.reduce(100);
+        std::cout << "post-reduce size: " << m.size() << std::endl;
+
         m.simulate_errors();
         m.simulate_noise();
         m.save(mfile);
 
+        std::cout << "size again: " << m.size() << std::endl;
+
         // fit the measurement to the map
         auto res = map.fit(mfile);
-        chi2.push_back(i, res->fval);
-        cutoff.push_back(i, res->get_parameter("cutoff"));
+
+        data.push_back({double(res->dof), res->fval, res->get_parameter("cutoff")});
         FitReporter::report(res);
+        FitReporter::save(path + "fits/" + std::to_string(i) + ".txt", res);
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
     }
-    chi2.save(path + "chi2.RSR");
-    cutoff.save(path + "cutoff.RSR");
+    data.save(path + "out.txt");
 }

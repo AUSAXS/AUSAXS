@@ -10,6 +10,18 @@
 
 using std::vector, std::string;
 
+Dataset::Dataset(unsigned int rows, unsigned int cols) : Matrix(rows, cols) {
+    for (unsigned int i = 0; i < cols; i++) {
+        names.push_back("col" + std::to_string(i));
+    }
+}
+
+Dataset::Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
+    for (unsigned int i = 0; i < cols.size(); i++) {
+        names.push_back("col " + std::to_string(i));
+    }
+}
+
 void Dataset::operator=(const Matrix<double>&& other) {
     if (other.M != M) {throw except::invalid_operation("Error in Dataset::operator=: Matrix has wrong number of columns.");}
     this->data = std::move(other.data);
@@ -26,7 +38,7 @@ Column<double> Dataset::col(std::string column) {
             return col(i);
         }
     }
-    throw except::invalid_operation("Error in Dataset::col: Column not found.");
+    throw except::invalid_operation("Error in Dataset::col: Column \"" + column + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
 }
 
 const ConstColumn<double> Dataset::col(std::string column) const {
@@ -35,7 +47,7 @@ const ConstColumn<double> Dataset::col(std::string column) const {
             return col(i);
         }
     }
-    throw except::invalid_operation("Error in Dataset::col: Column not found.");
+    throw except::invalid_operation("Error in Dataset::col: Column \"" + column + "\" not found. Available columns: " + utility::join(names, "\n"));
 }
 
 Column<double> Dataset::col(unsigned int index) {
@@ -55,6 +67,7 @@ const ConstRow<double> Dataset::row(unsigned int index) const {
 }
 
 void Dataset::set_col_names(std::vector<std::string> names) {
+    if (names.size() != M) {throw except::invalid_operation("Error in Dataset::set_col_names: Number of names does not match number of columns. (" + std::to_string(names.size()) + " != " + std::to_string(M) + ")");}
     this->names = names;
 }
 
@@ -77,100 +90,75 @@ void Dataset::save(std::string path) const {
     std::ofstream output(path);
     if (!output.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::save: Could not open file \"" + path + "\"");}
 
-    // prepare header & writer function
-    std::function<string(unsigned int)> writer;
-    string header = "broken header\n";
-    if (M == 2) {
-        header = "x y\n";
-        writer = [this] (unsigned int i) {return std::to_string(index(i, 0)) + " " + std::to_string(index(i, 1)) + "\n";};
-    } else if (M == 3) {
-        header = "x y yerr\n";
-        writer = [this] (unsigned int i) {return std::to_string(index(i, 0)) + " " + std::to_string(index(i, 1)) + " " + std::to_string(index(i, 2)) + "\n";};
-    } else if (M == 4) {
-        header = "x y yerr xerr\n";
-        writer = [this] (unsigned int i) {return std::to_string(index(i, 0)) + " " + std::to_string(index(i, 1)) + " " + std::to_string(index(i, 2)) + " " + std::to_string(index(i, 3)) + "\n";};
-    } else {
-        throw except::invalid_operation("Error in IDataset::save: Dataset has wrong number of columns.");
+    // write header
+    for (unsigned int j = 0; j < M; j++) {
+        output << std::left << std::setw(14) << names[j] << "\t";
     }
+    output << std::endl;
 
-    // write to disk
-    output << header;
-    for (unsigned int i = 0; i < size(); i++) {
-        output << writer(i);
+    // write data
+    for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int j = 0; j < M-1; j++) {
+            output << std::left << std::setw(14) << index(i, j) << "\t";
+        }
+        output << index(i, M-1) << "\n";
     }
     output.close();
 }
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include <math/Statistics.h>
 void Dataset::load(std::string path) {
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("Error in IDataset::load: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("Error in Dataset::load: Could not open file \"" + path + "\"");}
 
-    string line; // placeholder for the current line
+    std::string line;
+    std::vector<std::vector<double>> row_data;
+    std::vector<unsigned int> col_number;
     while(getline(input, line)) {
-        if (line[0] == ' ') {line = line.substr(1);} // fix leading space
-        vector<string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
+        // skip empty lines
+        if (line.empty()) {continue;}
+
+        // remove leading whitespace
+        vector<string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
 
         // remove empty tokens
         for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].empty()) {tokens.erase(tokens.begin()+i);}
+            if (tokens[i].empty()) {
+                tokens.erase(tokens.begin() + i);
+                i--;
+            }
         }
 
-        // determine if we are in some sort of header
-        if (tokens.size() < 2 || tokens.size() > 4) {continue;} // too many separators
+        // check if all tokens are numbers
         bool skip = false;
-        for (unsigned int i = 0; i < tokens.size(); i++) { // check if all tokens are numbers
+        for (unsigned int i = 0; i < tokens.size(); i++) {
             if (tokens[i].find_first_not_of("0123456789-.Ee\n\r") != string::npos) {
                 skip = true;
             }
         }
         if (skip) {continue;}
 
-        // now we are most likely beyond any headers
-        double _q, _I, _sigma;
-        _q = std::stod(tokens[0]); // we know for sure that the strings are convertible to numbers (boost check)
-        _I = std::stod(tokens[1]);
-        if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
-
-        // check user-defined limits
-        if (_q < setting::fit::q_low) {continue;}
-        if (_q > setting::fit::q_high) {continue;}
-
-        // add the values to our vectors
-        // this is a fair bit more complicated than strictly necessary
-        if (tokens.size() == 4) {
-            if (M == 4) {
-                push_back({_q, _I, std::stod(tokens[2]), std::stod(tokens[3])});
-            } else if (M == 3) {
-                throw except::invalid_operation("Error in IDataset::load: File has four columns, but a SimpleDataset only supports three. Use a Dataset instance instead.");
-            } else {
-                throw except::unexpected("Error in IDataset::load: Unknown data layout.");
-            }
+        // add values to dataset
+        std::vector<double> vals(tokens.size());
+        for (unsigned int i = 0; i < tokens.size(); i++) {
+            vals[i] = std::stod(tokens[i]);
         }
-        else if (tokens.size() == 3) {
-            if (M == 4) {
-                push_back({_q, _I, std::stod(tokens[2]), 0});
-            } else if (M == 3) {
-                push_back({_q, _I, std::stod(tokens[2])});
-            } else {
-                throw except::unexpected("Error in IDataset::load: Unknown data layout.");
-            }
-        }
-        else if (tokens.size() == 2) {
-            if (M == 4) {
-                push_back({_q, _I, 0, 0});
-            } else if (M == 3) {
-                push_back({_q, _I, 0});
-            } else {
-                throw except::unexpected("Error in IDataset::load: Unknown data layout.");
-            }
-        } else {
-            throw except::unexpected("Error in IDataset::load: Unknown data layout.");
+        row_data.push_back(vals);
+        col_number.push_back(vals.size());
+    }
+
+    // determine the most common number of columns, since that will likely be the data
+    unsigned int mode = stats::mode(col_number);
+    if (M == 0) {M = mode;}
+    else if (M != mode) {throw except::io_error("Error in Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
+
+    // copy all rows with the correct number of columns
+    for (unsigned int i = 0; i < row_data.size(); i++) {
+        if (row_data[i].size() == mode) {
+            push_back(row_data[i]);
         }
     }
-    input.close();
-    if (size() == 0) {throw except::unexpected("Error in IDataset::load: No data was read from the file.");}
+
+    if (size() == 0) {throw except::unexpected("Error in Dataset::load: No data was read from the file.");}
 }

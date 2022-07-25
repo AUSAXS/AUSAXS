@@ -41,12 +41,13 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
         /**
          * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {}
+        SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size())) {}
 
         /**
          * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : SimpleDataset(x, y, std::vector<double>(x.size(), 0)) {
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset({x, y, std::vector<double>(x.size())}) {
+            set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
             options.xlabel = xlabel;
             options.ylabel = ylabel;
         }
@@ -77,6 +78,11 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
         [[nodiscard]] Column<double> yerr() {return col(2);}
         [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}
         [[nodiscard]] double& yerr(unsigned int i) {return index(i, 2);}
+
+        /**
+         * @brief Load a dataset from the specified file. 
+         */
+        virtual void load(std::string path) override;
 
         /**
          * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
@@ -144,11 +150,6 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @brief Add a new point at the end of the dataset.
          */
         void push_back(double x, double y, double yerr = 0);
-
-        /**
-         * @brief Name the columns. 
-         */
-        void name_columns(std::string xlabel, std::string ylabel);
 
         /**
          * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 

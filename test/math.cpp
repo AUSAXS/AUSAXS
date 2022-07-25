@@ -41,26 +41,6 @@ Matrix<double> GenRandMatrix(int n, int m) {
     return M;
 }
 
-TEST_CASE("basic_stats", "[math]") {
-    SECTION("mean") {
-        CHECK(stats::mean({10, 3, 5, 6}) == 6);
-        CHECK(stats::mean({12, 14, 15, 15, 14, 17}) == 14.5);
-        CHECK(stats::mean({54, 66, 78, 80, 82, 84, 84, 90, 93}) == 79);
-    }
-
-    SECTION("std") {
-        CHECK_THAT(stats::std({9, 10, 11, 7, 13}), Catch::Matchers::WithinRel(std::sqrt(5)));
-        CHECK(stats::std({10, 10, 10, 10, 10}) == 0);
-        CHECK(stats::std({1, 1, 10, 19, 19}) == 9);
-    }
-
-    SECTION("var") {
-        CHECK(stats::var({9, 10, 11, 7, 13}) == 5);
-        CHECK(stats::var({10, 10, 10, 10, 10}) == 0);
-        CHECK(stats::var({1, 1, 10, 19, 19}) == 81);
-    }
-}
-
 TEST_CASE("Vector3", "[math]") {
     Vector3 x = {1, 2, 3};
     Vector3 y = {4, 5, 6};

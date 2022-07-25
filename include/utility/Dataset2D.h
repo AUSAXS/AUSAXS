@@ -30,7 +30,8 @@ class Dataset2D : public SimpleDataset {
         /**
          * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
          */
-        Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset2D(x, y, std::vector<double>(x.size(), 0)) {
+        Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset2D(x, y) {
+            set_col_names({xlabel, ylabel, std::string(ylabel)+"err", std::string(xlabel)+"err"});
             options.xlabel = xlabel;
             options.ylabel = ylabel;
         }
@@ -95,6 +96,9 @@ class Dataset2D : public SimpleDataset {
         [[nodiscard]] Column<double> xerr() {return Column<double>(data, N, M, 3);}
         [[nodiscard]] const double& xerr(unsigned int i) const {return index(i, 3);}
         [[nodiscard]] double& xerr(unsigned int i) {return index(i, 3);}
+
+    private: 
+        void load(std::string path) override;
 };
 
 // Object conversion between Dataset2D and SimpleDataset is often used. This check ensures that the conversion is safe.

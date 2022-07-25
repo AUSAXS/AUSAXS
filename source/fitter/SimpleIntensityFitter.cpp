@@ -126,7 +126,8 @@ double SimpleIntensityFitter::chi2(const double*) {
 }
 
 void SimpleIntensityFitter::setup(string file) {
-    data = read(file); // read observed values from input file
+    data = SimpleDataset(file); // read observed values from input file
+    std::cout << "Read " << data.size() << " data points from " << file << std::endl;
 }
 
 vector<double> SimpleIntensityFitter::splice(const vector<double>& ym) const {

@@ -29,3 +29,11 @@ void Dataset2D::push_back(double x, double y) {
 void Dataset2D::push_back(const Point2D& point) noexcept {
     push_back(point.x, point.y, point.xerr, point.yerr);
 }
+
+void Dataset2D::load(std::string path) {
+    Dataset::load(path);
+    if (M != 4) {
+        throw except::io_error("Error in Dataset2D::load: Dataset has wrong number of columns.");
+    }
+    limit_x(setting::fit::q_low, setting::fit::q_high);
+}
