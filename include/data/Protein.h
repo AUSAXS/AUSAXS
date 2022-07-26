@@ -10,6 +10,7 @@
 #include <data/StateManager.h>
 #include <histogram/PartialHistogramManager.h>
 #include <utility/SimpleDataset.h>
+#include <fitter/Fit.h>
 
 class Protein {
   public: 
@@ -239,6 +240,13 @@ class Protein {
      * @brief Bind the signaller objects in each body to the histogram manager. 
      */
     void bind_body_signallers();
+
+    /**
+     * @brief Fit a measurement to this protein.
+     * 
+     * @param measurement Path to the measurement file to be fitted.
+     */
+    std::shared_ptr<Fit> fit(std::string measurement);
 
     std::shared_ptr<hist::PartialHistogramManager> get_histogram_manager() const;
 

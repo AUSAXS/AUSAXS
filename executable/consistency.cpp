@@ -13,7 +13,7 @@ int main(int argc, char const *argv[]) {
 
     // check that we have at least one argument
     if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <mapfile> [<pdbfile> <mfile>]" << std::endl;
+        std::cerr << "Usage: " << argv[0] << " <mapfile>" << std::endl;
         return 1;
     }
 
@@ -22,24 +22,20 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
     string path = "figures/consistency/" + utility::stem(mapfile) + "/";
 
-    unsigned int evals = 5;
+    unsigned int evals = 100;
     Dataset data({"dof", "chi2", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
+        std::cout << "Starting iteration " << i << " of " << evals << std::endl;
         // generate a pdb file from the map at some cutoff
         auto protein = map.get_protein(map.level(3));
 
         // generate a measurement from the protein
         string mfile = path + "test.RSR";
         auto m = protein->get_histogram().calc_debye_scattering_intensity();
-        std::cout << "pre-reduce size: " << m.size() << std::endl;
         m.reduce(100);
-        std::cout << "post-reduce size: " << m.size() << std::endl;
-
         m.simulate_errors();
         m.simulate_noise();
         m.save(mfile);
-
-        std::cout << "size again: " << m.size() << std::endl;
 
         // fit the measurement to the map
         auto res = map.fit(mfile);

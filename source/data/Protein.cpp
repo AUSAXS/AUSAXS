@@ -4,6 +4,7 @@
 #include <data/Body.h>
 #include <io/File.h>
 #include <histogram/Histogram.h>
+#include <fitter/IntensityFitter.h>
 
 using namespace hist;
 
@@ -49,9 +50,11 @@ Protein::Protein(const vector<string>& input) {
 }
 
 void Protein::translate(const Vector3& v) {
+    std::cout << "translate" << std::endl;
     for (auto& body : bodies) {
         body.translate(v);
     }
+    std::cout << "translate end" << std::endl;
 }
 
 SimpleDataset Protein::simulate_dataset() {
@@ -287,6 +290,12 @@ void Protein::bind_body_signallers() {
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(phm->get_probe(i));
     }
+}
+
+std::shared_ptr<Fit> Protein::fit(std::string measurement) {
+    hist::ScatteringHistogram h = get_histogram();
+    IntensityFitter fitter(measurement, h);
+    return fitter.fit();
 }
 
 std::shared_ptr<PartialHistogramManager> Protein::get_histogram_manager() const {return phm;}

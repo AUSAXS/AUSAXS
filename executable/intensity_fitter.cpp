@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
     vector<double> q;
     for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}
 
-    SAXSDataset data = fitter.get_model_dataset(q);
+    SimpleDataset data = fitter.get_model_dataset(q);
     plots::PlotDataset plot_d(data);
     plot_d.save(output + "fitted_model." + setting::figures::format);
 

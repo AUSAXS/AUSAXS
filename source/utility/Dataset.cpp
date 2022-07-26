@@ -99,7 +99,7 @@ void Dataset::save(std::string path) const {
     // write data
     for (unsigned int i = 0; i < N; i++) {
         for (unsigned int j = 0; j < M-1; j++) {
-            output << std::left << std::setw(14) << index(i, j) << "\t";
+            output << std::left << std::scientific << std::setw(14) << index(i, j) << "\t";
         }
         output << index(i, M-1) << "\n";
     }
@@ -133,7 +133,7 @@ void Dataset::load(std::string path) {
         // check if all tokens are numbers
         bool skip = false;
         for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].find_first_not_of("0123456789-.Ee\n\r") != string::npos) {
+            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != string::npos) {
                 skip = true;
             }
         }

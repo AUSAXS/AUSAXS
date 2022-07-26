@@ -13,51 +13,38 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @brief Construct a dataset with N rows and M columns. 
          *        This is protected because it should only be used by derived classes for supporting more columns.
          */
-        SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
+        SimpleDataset(unsigned int N, unsigned int M);
 
     public: 
         /**
          * @brief Construct a new empty dataset with the given number of rows. 
          */
-        SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
+        SimpleDataset(unsigned int rows) noexcept;
 
         /**
          * @brief Construct a new empty dataset.
          */
-        SimpleDataset() noexcept : SimpleDataset(0) {}
+        SimpleDataset() noexcept;
 
         /**
          * @brief Construct a new dataset based on the given vectors. 
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
-            if (x.size() != y.size() || x.size() != yerr.size()) {
-                throw except::size_error("Error in SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
-            }
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], yerr[i]};
-            }
-        }
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr);
 
         /**
          * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size())) {}
+        SimpleDataset(std::vector<double> x, std::vector<double> y);
 
         /**
          * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset({x, y, std::vector<double>(x.size())}) {
-            set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
-            options.xlabel = xlabel;
-            options.ylabel = ylabel;
-        }
+        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel);
 
         /**
          * @brief Construct a new dataset from an input file.
          */
-        SimpleDataset(std::string path) : SimpleDataset() {
-            load(path);
-        }
+        SimpleDataset(std::string path);
 
         /**
          * @brief Destructor.

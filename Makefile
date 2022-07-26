@@ -51,14 +51,28 @@ rigidbody/%: build/executable/rigidbody_opt
 qlow := 0
 qhigh := 1000
 center := center
+options :=
 intensity_fit/%: build/executable/intensity_fitter
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps}
+	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps} ${options}
 
 consistency/%: build/executable/consistency
 	@ map=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
 	$< $${map}
+
+map := ""
+# usage: make fit_consistency/2epe map=10
+fit_consistency/%: build/executable/fit_consistency
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	emmap=$(shell find sim/ -name "$*_${map}.ccp4"); \
+	echo "./fit_consistency $${structure} $${measurement} $${emmap}\n"; \
+	$< $${emmap} $${structure} $${measurement}
+
+rebin/%: build/executable/rebin
+	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${measurement}
 
 #################################################################################
 ###			     SIMULATIONS					 ###

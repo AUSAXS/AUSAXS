@@ -92,12 +92,18 @@ TEST_CASE("dataset_pushback", "[dataset],[broken]") {
 TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
     SimpleDataset data("data/SHOC2/7sd0.dat");
     SimpleDataset data_unbinned = data;
-    // data.rebin();
-    // data.save("temp/dataset/rebin.dat");
+    data.rebin();
+    data.save("temp/dataset/rebin/rebinned.dat");
 
-    // plots::PlotDataset plot(data_unbinned);
-    // plot.plot(data);
-    // plot.save("temp/dataset_rebin.pdf");
+    data.add_plot_options("errors", {{"color", kOrange+2}, {"logx", true}, {"logy", true}});
+    data_unbinned.add_plot_options("errors", {{"color", kBlack}, {"logx", true}, {"logy", true}});
+
+    plots::PlotDataset plot(data_unbinned);
+    plot.plot(data);
+    plot.save("temp/dataset/rebin/both.pdf");
+
+    plots::PlotDataset::quick_plot(data_unbinned, "temp/dataset/rebin/original.pdf");
+    plots::PlotDataset::quick_plot(data, "temp/dataset/rebin/rebinned.pdf");
 }
 
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
@@ -162,9 +168,9 @@ TEST_CASE("dataset_io", "[dataset],[files]") {
         REQUIRE(data.yerr().size() == data2.yerr().size());
 
         for (unsigned int i = 0; i < data.size(); i++) {
-            CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
-            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(data2.y(i), 1e-6));
-            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinAbs(data2.yerr(i), 1e-6));
+            CHECK_THAT(data.x(i), Catch::Matchers::WithinRel(data2.x(i), 1e-3));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinRel(data2.y(i), 1e-3));
+            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(data2.yerr(i), 1e-3));
         }
     }
 
@@ -189,9 +195,9 @@ TEST_CASE("dataset_io", "[dataset],[files]") {
         REQUIRE(data.yerr().size() == m.yerr().size());
 
         for (unsigned int i = 0; i < data.size(); i++) {
-            CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(m.x(i), 1e-6));
-            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(m.y(i), 1e-6));
-            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinAbs(m.yerr(i), 1e-6));
+            CHECK_THAT(data.x(i), Catch::Matchers::WithinRel(m.x(i), 1e-3));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinRel(m.y(i), 1e-3));
+            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(m.yerr(i), 1e-3));
         }
     }
 }

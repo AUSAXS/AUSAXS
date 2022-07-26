@@ -124,15 +124,19 @@ void Atom::parse_pdb(string s) {
         throw e;
     }
 
-    try {
-        effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
-    } catch (const std::exception& e) {
-        throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\" or residue \"" + this->resName + "\".");
+    if (setting::protein::use_effective_charge) {
+        try {
+            effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+        } catch (const std::exception& e) {
+            throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\" or residue \"" + this->resName + "\".");
+        }
+    } else {
+        try {
+            effective_charge = constants::charge::atomic.at(this->element);
+        } catch (const std::exception& e) {
+            throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\".");
+        }
     }
-
-    // DEBUG OUTPUT
-    // cout << s << endl;
-    // cout << this->as_pdb() << endl;
 }
 
 string Atom::as_pdb() const {
@@ -213,8 +217,12 @@ double Atom::get_mass() const {
     if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {
         throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
     }
-    // mass of this nucleus + mass of attached H atoms
-    return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
+    if (setting::protein::use_effective_charge) {
+        // mass of this nucleus + mass of attached H atoms
+        return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
+    } else {
+        return constants::mass::atomic.at(element);
+    }
 };
 
 unsigned int Atom::Z() const {

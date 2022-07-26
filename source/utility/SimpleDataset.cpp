@@ -11,6 +11,34 @@
 
 using std::vector, std::string;
 
+SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
+
+SimpleDataset::SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
+
+SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
+
+SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
+    if (x.size() != y.size() || x.size() != yerr.size()) {
+        throw except::size_error("Error in SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
+    }
+    for (unsigned int i = 0; i < x.size(); i++) {
+        row(i) = {x[i], y[i], yerr[i]};
+    }
+}
+
+SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size())) {}
+
+SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset({x, y, std::vector<double>(x.size())}) {
+    set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
+    options.xlabel = xlabel;
+    options.ylabel = ylabel;
+}
+
+// load is responsible for preparing the class
+SimpleDataset::SimpleDataset(std::string path) {
+    load(path);
+}
+
 void SimpleDataset::reduce(unsigned int target, bool log) {
     if (size() < target) {throw except::invalid_operation("Error in Dataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
     Matrix<double> reduced(0, M);
@@ -226,21 +254,13 @@ void SimpleDataset::rebin() noexcept {
         else if (0.03 < x(i)) {fold = 2;}
         else {fold = 1;}
 
-        std::cout << "now folding " << i << " to " << i + fold << std::endl;
-
         // loop over each data point to be folded
         double siginv = 0, sumw = 0, qsum = 0;
         unsigned int ss = 0;
-        for (; ss < fold; ss++) {
-            std::cout << "checkpoint1" << std::endl;
-            if (i == size()) {break;}
-            std::cout << "checkpoint1" << std::endl;
+        for (; (ss < fold) && (i < size()); ss++) {
             siginv += (std::pow(yerr(i), -2));
-            std::cout << "checkpoint1" << std::endl;
             sumw += y(i)/(std::pow(yerr(i), 2));
-            std::cout << "checkpoint1" << std::endl;
             qsum += x(i);
-            std::cout << "checkpoint1" << std::endl;
             i++;
         }
 
@@ -248,16 +268,18 @@ void SimpleDataset::rebin() noexcept {
         double q = qsum/ss;
         double I = sumw/siginv;
         double Ierr = std::pow(siginv, -0.5);
-        data.push_back(Point2D(q, I, Ierr));
+        data.push_back(q, I, Ierr);
     }
-    data.save("temp/dataset/test.dat");
     *this = data;
 }
 
 void SimpleDataset::load(std::string path) {
     Dataset::load(path);
-    if (M != 3) {
-        throw except::io_error("Error in SimpleDataset::load: Dataset has wrong number of columns.");
+    if (M < 3) {
+        throw except::io_error("Error in SimpleDataset::load: Dataset has too few columns.");
+    }
+    else if (M > 3) {
+        utility::print_warning("Warning in SimpleDataset::load: Dataset has " + std::to_string(M) + " columns, while this class only supports operations on 3. Ensure that the file is of the format [x | y | yerr | rest].");
     }
     limit_x(setting::fit::q_low, setting::fit::q_high);
 }
