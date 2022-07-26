@@ -1,4 +1,5 @@
 # Todo
+ * [ ] IntensityFitter: Locally stored fit does not contain plots. Currently fixed by returning another fit. 
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled
  * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_na.ccp4. Probably something to do with assumed negative staining?
  * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
@@ -18,6 +19,7 @@
  * [ ] Memory test all other executables.
  * [x] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands
+ * [ ] Matrix & Slice: Remove debug segfaults for out-of-bounds indices
 
 # Stuff to consider
 ## Compiler flags:

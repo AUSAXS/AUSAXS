@@ -123,25 +123,44 @@ namespace constants {
      * @brief \namespace mass 
      * 
      * This namespace contains the masses of the most common atomic elements encountered in SAXS. 
-     * The weights are taken from https://www.chem.ualberta.ca/~massspec/atomic_mass_abund.pdf. 
      */
     namespace mass {
-        constexpr double H = 1.008;
-        constexpr double He = 4.003;
-        constexpr double Li = 7.016;
-        constexpr double Be = 9.012;
-        constexpr double B = 10.013;
-        constexpr double C = 12.011;
-        constexpr double N = 14.003;
-        constexpr double O = 15.995;
-        constexpr double F = 18.998;
-        constexpr double P = 30.974;
-        constexpr double S = 31.972; // most abundant
-        constexpr double Cl = 34.969; // most abundant
-        constexpr double K = 38.964; // most abundant
-
+        constexpr double H = 1.0079;
+        constexpr double He = 4.0026;
+        constexpr double Li = 6.941;
+        constexpr double Be = 9.0122;
+        constexpr double B = 10.811;
+        constexpr double C = 12.0107;
+        constexpr double N = 14.0067;
+        constexpr double O = 15.9994;
+        constexpr double F = 18.9984;
+        constexpr double Ne = 20.1797;
+        constexpr double Na = 22.9897;
+        constexpr double Mg = 24.305;
+        constexpr double Al = 26.9815;
+        constexpr double Si = 28.0855;
+        constexpr double P = 30.9738;
+        constexpr double S = 32.065;
+        constexpr double Cl = 35.453;
+        constexpr double Ar = 39.948;
+        constexpr double K = 39.0983;
+        constexpr double Ca = 40.078;
+        constexpr double Sc = 44.9559;
+        constexpr double Ti = 47.867;
+        constexpr double V = 50.9415;
+        constexpr double Cr = 51.9961;
+        constexpr double Mn = 54.938;
+        constexpr double Fe = 55.845;
+        constexpr double Co = 58.9332;
+        constexpr double Ni = 58.6934;
+        constexpr double Cu = 63.546;
+        constexpr double Zn = 65.39;
+        constexpr double W = 183.84;
+        
         // get the weight of an atom
-        const std::map<std::string, double> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"Be", Be}, {"B", B}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"P", P}, {"S", S}, {"Cl", Cl}, {"K", K}};
+        const std::map<std::string, double> atomic = {{"H", H}, {"HE", He}, {"LI", Li}, {"BE", Be}, {"B", B}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, 
+            {"NE", Ne}, {"NA", Na}, {"MG", Mg}, {"AL", Al}, {"SI", Si}, {"P", P}, {"S", S}, {"CL", Cl}, {"AR", Ar}, {"K", K}, {"CA", Ca}, 
+            {"SC", Sc}, {"TI", Ti}, {"V", V}, {"CR", Cr}, {"MN", Mn}, {"FE", Fe}, {"CO", Co}, {"NI", Ni}, {"CU", Cu}, {"ZN", Zn}, {"W", W}};
 
         namespace density {
             constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3; // u/Å^3
@@ -175,10 +194,22 @@ namespace constants {
         constexpr unsigned int Ar = 18;
         constexpr unsigned int K = 19;
         constexpr unsigned int Ca = 20;
+        constexpr unsigned int Sc = 21;
+        constexpr unsigned int Ti = 22;
+        constexpr unsigned int V = 23;
+        constexpr unsigned int Cr = 24;
+        constexpr unsigned int Mn = 25;
+        constexpr unsigned int Fe = 26;
+        constexpr unsigned int Co = 27;
+        constexpr unsigned int Ni = 28;
+        constexpr unsigned int Cu = 29;
+        constexpr unsigned int Zn = 30;
+        constexpr unsigned int W = 74;
 
         // get the charge Z of an atom
-        const std::map<std::string, unsigned int> atomic = {{"H", H}, {"He", He}, {"Li", Li}, {"Be", Be}, {"B", B}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"Ne", Ne}, {"Na", Na}, {"Mg", Mg}, 
-            {"Al", Al}, {"Si", Si}, {"P", P}, {"S", S}, {"Cl", Cl}, {"Ar", Ar}, {"K", K}, {"Ca", Ca}};
+        const std::map<std::string, unsigned int> atomic = {{"e", e}, {"H", H}, {"HE", He}, {"LI", Li}, {"BE", Be}, {"B", B}, {"C", C}, {"N", N}, 
+            {"O", O}, {"F", F}, {"NE", Ne}, {"NA", Na}, {"MG", Mg}, {"AL", Al}, {"SI", Si}, {"P", P}, {"S", S}, {"CL", Cl}, {"AR", Ar}, {"K", K}, {"CA", Ca}, 
+            {"SC", Sc}, {"TI", Ti}, {"V", V}, {"CR", Cr}, {"MN", Mn}, {"FE", Fe}, {"CO", Co}, {"NI", Ni}, {"CU", Cu}, {"ZN", Zn}, {"W", W}};
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3
@@ -200,7 +231,7 @@ namespace constants {
         constexpr unsigned int Cl = 1;
 
         // get the valence of an atom
-        const std::map<std::string, unsigned int> get = {{"H", H}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"Ne", Ne}, {"S", S}, {"P", P}, {"Cl", Cl}};
+        const std::map<std::string, unsigned int> get = {{"H", H}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, {"NE", Ne}, {"S", S}, {"P", P}, {"CL", Cl}};
     }
 
     /**

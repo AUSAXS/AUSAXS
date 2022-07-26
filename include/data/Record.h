@@ -36,9 +36,9 @@ class Record {
         {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
         {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET"   , HEADER}, {"HETNAM", HEADER},
         {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE"  , HEADER}, {"SEQADV", HEADER},
-        {"LINK"  , HEADER},
+        {"LINK"  , HEADER}, {"MODEL" , HEADER},
         {"ANISOU", NOTYPE},
-        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END"   , FOOTER}};
+        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END"   , FOOTER}, {"ENDMDL", FOOTER}};
 };
 
 // Fixed-length printing of numbers. std::setprecision does *not* count leading zeros, which breaks our strict formatting.

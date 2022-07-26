@@ -28,6 +28,10 @@ hydrate/%: build/executable/new_hydration
 	$< data/$*.pdb output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
+view/%: 
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	$(pymol) $${structure}
+
 hist/%: build/executable/hist
 	@structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure} figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
@@ -79,10 +83,11 @@ rebin/%: build/executable/rebin
 #################################################################################
 resolution_min = 10
 resolution_max = 10
-simulate/%: data/%.pdb
-	@for i in `seq $(resolution_min) $(resolution_max)`; do \
+simulate/%: 
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	for i in `seq $(resolution_min) $(resolution_max)`; do \
 		echo "Building map " $$i;\
-		phenix.fmodel data/$*.pdb high_resolution=$$i;\
+		phenix.fmodel $${structure} high_resolution=$$i;\
 		phenix.mtz2map mtz_file=$(*F).pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$(*F);\
 		rm $(*F).pdb.mtz;\
 		mv $(*F)_fmodel.ccp4 sim/$(*F)_$$i.ccp4;\

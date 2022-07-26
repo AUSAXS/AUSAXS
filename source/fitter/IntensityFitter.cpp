@@ -32,7 +32,15 @@ shared_ptr<Fit> IntensityFitter::fit() {
     // update fitter object
     fitted = std::make_shared<Fit>(res, res.fval, data.size()-2);
     fitted->add_fit(ab_fit);
-    return fitted;
+    auto fitted2 = std::make_shared<Fit>(*this, res, res.fval);
+
+    // std::cout << "INTENSITYFITTER CHECK" << std::endl;
+    // std::cout << "data: " << fitted->figures.data.size() << std::endl;
+    // std::cout << "intensity: " << fitted->figures.intensity.size() << std::endl;
+    // std::cout << "intensity interpolated: " << fitted->figures.intensity_interpolated.size() << std::endl;
+    // std::cout << "dof: " << fitted2->dof << ", " << fitted->dof << std::endl;
+
+    return fitted2;
 }
 
 Fit::Plots IntensityFitter::plot() {

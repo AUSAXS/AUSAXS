@@ -5,6 +5,7 @@ class Vector;
 
 #include <vector>
 #include <utility/Exceptions.h>
+#include <signal.h>
 
 #define SAFE_MATH true
 
@@ -94,7 +95,14 @@ class Slice {
 		/**
 		 * @brief Get the final element in this Slice.
 		 */
-		const T& back() const {return operator[](length-1);}
+		const T& back() const {
+			#if SAFE_MATH
+				if (size() == 0) {
+					throw except::out_of_bounds("Error in Slice::back(): Slice is empty.");
+				}
+			#endif
+			return operator[](length-1);
+		}
 
         /**
          * @brief Get a string representation of this Slice. 
@@ -179,7 +187,8 @@ class MutableSlice : public Slice<T> {
 		 */
 		T& operator[](unsigned int i) {
 			#if (SAFE_MATH)
-                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+                if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
+                // if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in MutableSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
@@ -190,7 +199,8 @@ class MutableSlice : public Slice<T> {
 		 */
 		const T& operator[](unsigned int i) const override {
 			#if (SAFE_MATH)
-                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+                if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
+                // if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in MutableSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
@@ -336,7 +346,8 @@ class ConstSlice : public Slice<T> {
 		 */
 		const T& operator[](unsigned int i) const override {
 			#if (SAFE_MATH)
-                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
+                if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
+                // if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in ConstSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
