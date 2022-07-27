@@ -35,12 +35,12 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
 
     // expand the box by 10%
     for (auto& v : min) {
-        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));}     // if v is smaller than 0, multiply by 1+s
-        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}           //                    else multiply by 1-s
+        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));} // if v is smaller than 0, multiply by 1+s
+        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}       //                    else multiply by 1-s
     }
     for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)) + 1);} // if v is larger than 0, multiply by 1+s
-        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)) + 1);}       //                   else multiply by 1-s
+        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)));} // if v is larger than 0, multiply by 1+s
+        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)));}       //                   else multiply by 1-s
     }
 
     // setup the rest of the class members
@@ -151,21 +151,8 @@ vector<GridMember<Hetatom>> Grid::find_free_locs() {
     return placed_water;
 }
 
-vector<vector<int>> Grid::bounding_box() const {
-    std::cout << "grid bounding box" << std::endl;
-    if (__builtin_expect(a_members.size() == 0, false)) {
-        throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
-    }
-
-    // initialize the bounds as large as possible
-    vector<vector<int>> box = {{int(axes.x.bins), 0}, {int(axes.y.bins), 0}, {int(axes.z.bins), 0}};
-    for (const auto& atom : a_members) {
-        for (int i = 0; i < 3; i++) {
-            if (box[i][0] > atom.loc[i]) box[i][0] = atom.loc[i]; // min
-            if (box[i][1] < atom.loc[i]) box[i][1] = atom.loc[i]+1; // max. +1 since this will often be used as loop limits
-        }
-    }
-    return box;
+std::pair<Vector3, Vector3> Grid::bounding_box() const {
+    return Grid::bounding_box(get_atoms());
 }
 
 std::pair<Vector3, Vector3> Grid::bounding_box(const vector<Atom>& atoms) {

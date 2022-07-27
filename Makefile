@@ -75,8 +75,12 @@ fit_consistency/%: build/executable/fit_consistency
 	$< $${emmap} $${structure} $${measurement}
 
 rebin/%: build/executable/rebin
-	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${measurement}
+
+unit_cell/%: build/executable/unit_cell
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	$< $${structure}
 
 #################################################################################
 ###			     SIMULATIONS					 ###

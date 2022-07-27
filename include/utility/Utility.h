@@ -63,9 +63,14 @@ namespace utility {
     std::vector<std::string> split(std::string s, std::string delimiters);
 
     /**
-     * @brief Join a vector of strings into a single string.
+     * @brief Join a vector of strings into a single string. The separator will be inserted after each element except the last. 
      */
     std::string join(std::vector<std::string> v, std::string separator);
+
+    /**
+     * @brief Remove all occurrences of the characters in 'remove' from the string. 
+     */
+    std::string remove_all(std::string s, std::string remove);
 
     /**
      * @brief Check if three values are equal.

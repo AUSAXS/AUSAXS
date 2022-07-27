@@ -34,10 +34,10 @@ void PDBReader::read(std::string input_path) {
                 f.add(term);
                 break;
             } case Record::RecordType::HEADER: {
-                f.add("HEADER", line);
+                f.add(Record::RecordType::HEADER, line);
                 break;
             } case Record::RecordType::FOOTER: {
-                f.add("FOOTER", line);
+                f.add(Record::RecordType::FOOTER, line);
                 break;
             } case Record::RecordType::NOTYPE: {
                 break;

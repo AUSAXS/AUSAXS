@@ -115,10 +115,11 @@ class File {
 
     /**
      * @brief Add a header or footer record to this file. 
+     * 
      * @param type HEADER or FOOTER.
      * @param s The text string to be added. 
      */
-    void add(std::string type, std::string s);
+    void add(Record::RecordType type, std::string s);
 
     /**
      * @brief Internally updates the consistency of the currently stored data. This ensures this object is in a valid

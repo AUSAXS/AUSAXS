@@ -19,10 +19,10 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
 
     // loop over the location of all member atoms
     int r_eff = grid->ra;
-    vector<vector<int>> bounds = grid->bounding_box();
-    for (int i = bounds[0][0]; i < bounds[0][1]; i++) {
-        for (int j = bounds[1][0]; j < bounds[1][1]; j++) {
-            for (int k = bounds[2][0]; k < bounds[2][1]; k++) {
+    auto[min, max] = grid->bounding_box();
+    for (int i = min[0]; i < max[0]; i++) {
+        for (int j = min[1]; j < max[1]; j++) {
+            for (int k = min[2]; k < max[2]; k++) {
                 if (gref[i][j][k] == 0) {continue;}
 
                 // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]

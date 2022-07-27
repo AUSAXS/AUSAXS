@@ -68,18 +68,52 @@ bool compareFiles(const std::string& p1, const std::string& p2) {
     return false;
 }
 
-TEST_CASE("pdb input", "[io]") {
-    std::ofstream pdb_file("temp.pdb");
+TEST_CASE("body_file", "[io]") {
+    std::ofstream pdb_file("temp/io/temp.pdb");
+    pdb_file << "REMARK ONE" << endl;
+    pdb_file << "REMARK TWO" << endl;
+    pdb_file << "CRYST1 THREE" << endl;
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
     pdb_file << "TER       2      ARG A 129                                                     " << endl;
     pdb_file << "HETATM    3  O   HOH A 130      31.117   3.049  35.879  0.94 34.19           O " << endl;
     pdb_file << "HETATM    4  O   HOH A 131      31.117   3.049  35.879  0.94 34.19           O " << endl;
+    pdb_file << "MASTER FOUR" << endl;
+    pdb_file.close();
+
+    Body body("temp/io/temp.pdb");
+    auto& file = body.get_file();
+    REQUIRE(file.header.size() == 3);
+    REQUIRE(file.footer.size() == 1);
+
+    file.header.remove("CRYST1");
+    REQUIRE(file.header.size() == 2);
+    REQUIRE(file.header.get() == "REMARK ONE\nREMARK TWO\n");
+
+    auto& file2 = body.get_file();
+    REQUIRE(file2.header.size() == 2);
+
+    body.save("temp/io/temp2.pdb");
+    Body body2("temp/io/temp2.pdb");
+    auto file3 = body2.get_file();
+    REQUIRE(file3.header.size() == 2);
+
+    remove("temp/io/temp.pdb");
+    remove("temp/io/temp2.pdb");
+}
+
+TEST_CASE("pdb_input", "[io]") {
+    std::ofstream pdb_file("temp/io/temp.pdb");
+    pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
+    pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;
+    pdb_file << "TER       3      ARG A 129                                                     " << endl;
+    pdb_file << "HETATM    4  O   HOH A 130      31.117   3.049  35.879  0.94 34.19           O " << endl;
+    pdb_file << "HETATM    5  O   HOH A 131      31.117   3.049  35.879  0.94 34.19           O " << endl;
     pdb_file.close();
 
     // check PDB io
-    Protein* protein = new Protein("temp.pdb");
-    protein->save("temp2.pdb");
-    protein = new Protein("temp2.pdb");
+    Protein* protein = new Protein("temp/io/temp.pdb");
+    protein->save("temp/io/temp2.pdb");
+    protein = new Protein("temp/io/temp2.pdb");
     vector<Atom> atoms = protein->get_protein_atoms();
     Atom a = atoms[0];
 
@@ -98,8 +132,8 @@ TEST_CASE("pdb input", "[io]") {
     CHECK(a.element == "C");
     CHECK(a.resName == "ARG");
 
-    remove("temp.pdb");
-    remove("temp2.pdb");
+    remove("temp/io/temp.pdb");
+    remove("temp/io/temp2.pdb");
 }
 
 TEST_CASE("xml input", "[broken],[io]") {

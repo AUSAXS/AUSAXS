@@ -48,13 +48,13 @@ void File::add(const Terminate) {
     // terminates.push_back(r);
 }
 
-void File::add(const string type, const string s) {
-    if (type == "HEADER") {
+void File::add(Record::RecordType type, const string s) {
+    if (type == Record::RecordType::HEADER) {
         header.add(s);
-    } else if (type == "FOOTER") {
+    } else if (type == Record::RecordType::FOOTER) {
         footer.add(s);
     } else {
-        throw except::invalid_argument("Error in File::add: string " + type + " is not \"HEADER\" or \"FOOTER\"!");
+        throw except::invalid_argument("Error in File::add: Type is not \"HEADER\" or \"FOOTER\"!");
     }
 }
 

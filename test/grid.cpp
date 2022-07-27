@@ -39,13 +39,13 @@ TEST_CASE("bounding_box", "[grid]") {
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);
 
-        vector<vector<int>> box = grid.bounding_box();
-        REQUIRE(box[0][0] == 10);
-        REQUIRE(box[0][1] == 11);
-        REQUIRE(box[1][0] == 10);
-        REQUIRE(box[1][1] == 11);
-        REQUIRE(box[2][0] == 10);
-        REQUIRE(box[2][1] == 11);
+        auto[min, max] = grid.bounding_box();
+        REQUIRE(min[0] == 10);
+        REQUIRE(max[0] == 11);
+        REQUIRE(min[1] == 10);
+        REQUIRE(max[1] == 11);
+        REQUIRE(min[2] == 10);
+        REQUIRE(max[2] == 11);
     }
 
     SECTION("complex") {
@@ -53,13 +53,13 @@ TEST_CASE("bounding_box", "[grid]") {
         grid.add(a);
         grid.expand_volume();
 
-        vector<vector<int>> box = grid.bounding_box();
-        REQUIRE(box[0][0] == 10);
-        REQUIRE(box[0][1] == 16);
-        REQUIRE(box[1][0] == 5);
-        REQUIRE(box[1][1] == 11);
-        REQUIRE(box[2][0] == 3);
-        REQUIRE(box[2][1] == 11);
+        auto[min, max] = grid.bounding_box();
+        REQUIRE(min[0] == 10);
+        REQUIRE(max[0] == 16);
+        REQUIRE(min[1] == 5);
+        REQUIRE(max[1] == 11);
+        REQUIRE(min[2] == 3);
+        REQUIRE(max[2] == 11);
     }
 }
 
@@ -218,13 +218,13 @@ TEST_CASE("width", "[grid]") {
         grid.add(a);
         grid.expand_volume();
 
-        vector<vector<int>> box = grid.bounding_box();
-        REQUIRE(box[0][0] == 100);
-        REQUIRE(box[0][1] == 151);
-        REQUIRE(box[1][0] == 50);
-        REQUIRE(box[1][1] == 101);
-        REQUIRE(box[2][0] == 30);
-        REQUIRE(box[2][1] == 101);
+        auto[min, max] = grid.bounding_box();
+        REQUIRE(min[0] == 100);
+        REQUIRE(max[0] == 151);
+        REQUIRE(min[1] == 50);
+        REQUIRE(max[1] == 101);
+        REQUIRE(min[2] == 30);
+        REQUIRE(max[2] == 101);
     }
 }
 

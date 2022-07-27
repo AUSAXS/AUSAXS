@@ -66,8 +66,15 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
 Atom::Atom() : uid(uid_counter++) {}
 
 void Atom::parse_pdb(string s) {
+    s = utility::remove_all(s, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - s.size();
-    s += string(pad_size, ' ');
+    if (pad_size < 0) {
+        utility::print_warning("Warning in Atom::parse_pdb: Line is longer than 80 characters. Truncating.");
+        std::cout << "\"" << s << "\"" << std::endl;
+        s = s.substr(0, 80);
+    } else {
+        s += string(pad_size, ' ');
+    }
 
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
 
@@ -88,16 +95,16 @@ void Atom::parse_pdb(string s) {
     }
 
     // remove any spaces from the numbers
-    boost::erase_all(serial, " ");
-    boost::erase_all(name, " ");
-    boost::erase_all(resName, " ");
-    boost::erase_all(resSeq, " ");
-    boost::erase_all(x, " ");
-    boost::erase_all(y, " ");
-    boost::erase_all(z, " ");
-    boost::erase_all(occupancy, " ");
-    boost::erase_all(tempFactor, " ");
-    boost::erase_all(element, " ");
+    serial = utility::remove_all(serial, " ");
+    name = utility::remove_all(name, " ");
+    resName = utility::remove_all(resName, " ");
+    resSeq = utility::remove_all(resSeq, " ");
+    x = utility::remove_all(x, " ");
+    y = utility::remove_all(y, " ");
+    z = utility::remove_all(z, " ");
+    occupancy = utility::remove_all(occupancy, " ");
+    tempFactor = utility::remove_all(tempFactor, " ");
+    element = utility::remove_all(element, " ");
 
     // sometimes people use the first character of x for some other purpose.
     // if it is a digit, the following won't work. On the other hand they're kinda asking for it then. Follow the standard, people. 
@@ -156,9 +163,9 @@ string Atom::as_pdb() const {
         << right << setw(4) << resSeq                                        // 23 - 26
         << right << setw(1) << iCode                                         // 27
         << "   "                                                             // 28 - 30
-        << right << setw(8) << setf(coords.x(), 8)                             // 31 - 38
-        << right << setw(8) << setf(coords.y(), 8)                             // 39 - 46
-        << right << setw(8) << setf(coords.z(), 8)                             // 47 - 54
+        << right << setw(8) << setf(coords.x(), 8)                           // 31 - 38
+        << right << setw(8) << setf(coords.y(), 8)                           // 39 - 46
+        << right << setw(8) << setf(coords.z(), 8)                           // 47 - 54
         << right << setw(6) << setf(occupancy, 6)                            // 55 - 60
         << right << setw(6) << setf(tempFactor, 6)                           // 61 - 66
         << "          "                                                      // 67 - 76

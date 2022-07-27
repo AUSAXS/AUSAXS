@@ -120,6 +120,16 @@ std::string utility::join(std::vector<std::string> v, std::string separator) {
     return s;
 }
 
+std::string utility::remove_all(std::string s, std::string remove) {
+    std::string new_s;
+    for (auto c : s) {
+        if (remove.find(c) == std::string::npos) {
+            new_s += c;
+        }
+    }
+    return new_s;
+}
+
 std::string utility::uid() {
     static unsigned int i = 0;
     return std::to_string(i++);

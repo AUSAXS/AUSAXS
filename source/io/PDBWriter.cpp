@@ -20,8 +20,7 @@ void PDBWriter::write(string output_path) {
 
 string PDBWriter::as_pdb() const {
     File& f = *file;
-    string s;
-    s += f.header.get();
+    string s = f.header.get();
 
     unsigned int i_ter = f.terminate.serial;
     bool printed_ter = false;

@@ -393,10 +393,10 @@ TEST_CASE("compare grid placement", "[protein]") {
     vector<vector<vector<char>>>& grid_protein = gp->grid;
     vector<vector<vector<char>>>& grid_body = gb->grid;
 
-    vector<vector<int>> bounds = gp->bounding_box();
-    for (int i = bounds[0][0]-10; i < bounds[0][1]+10; i++) {
-        for (int j = bounds[1][0]-10; j < bounds[1][1]+10; j++) {
-            for (int k = bounds[2][0]-10; k < bounds[2][1]+10; k++) {
+    auto[min, max] = gp->bounding_box();
+    for (int i = min[0]-10; i < max[0]+10; i++) {
+        for (int j = min[1]-10; j < max[1]+10; j++) {
+            for (int k = min[2]-10; k < max[2]+10; k++) {
                 if (grid_protein[i][j][k] != grid_body[i][j][k]) {
                     cout << "Test failed. Expected " << grid_body[i][j][k] << ", received " << grid_protein[i][j][k] << endl;
                     REQUIRE(false);

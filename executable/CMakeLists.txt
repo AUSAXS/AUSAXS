@@ -33,3 +33,6 @@ target_link_libraries(fit_consistency saxs)
 
 add_executable(rebin rebin.cpp)
 target_link_libraries(rebin saxs)
+
+add_executable(unit_cell unit_cell.cpp)
+target_link_libraries(unit_cell saxs)

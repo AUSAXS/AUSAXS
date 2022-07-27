@@ -5,6 +5,9 @@
 
 using std::string;
 
+/**
+ * @brief Rebin a dataset. This dramatically reduces the number of data points.
+ */
 int main(int argc, char const *argv[]) {
     // check that we have at least one argument
     if (argc != 2) {

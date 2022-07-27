@@ -37,21 +37,19 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::PlacementStrategyChoice::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::PlacementStrategyChoice::JanStrategy;}
 
+    std::cout << "debug" << std::endl;
     Protein protein(input_structure);
+    std::cout << "debug" << std::endl;
     protein.generate_new_hydration();
     hist::ScatteringHistogram h = protein.get_histogram();
-
     IntensityFitter fitter(input_measurement, h);
+    std::cout << "debug" << std::endl;
     std::shared_ptr<Fit> result = fitter.fit();
+    std::cout << "debug" << std::endl;
 
     // Fit plot
-    plots::PlotIntensityFit plot_f(fitter);
-    plot_f.save(output + "intensity_fit." + setting::figures::format);
-
-    // Residual plot
-    plots::PlotIntensityFitResiduals plot_r(fitter);
-    plot_r.save(output + "residuals." + setting::figures::format);
-
+    plots::PlotIntensityFit::quick_plot(result, output + "intensity_fit." + setting::figures::format);
+    plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::figures::format);
     FitReporter::report(result);
 
     vector<double> q;

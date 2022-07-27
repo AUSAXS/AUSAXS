@@ -198,32 +198,37 @@ class Grid {
 
     /**
      * @brief Generate a new hydration layer for the grid.
+     * 
      * @return Pointers to the new water molecules. 
      */
     vector<Hetatom> hydrate();
 
     /**
      * @brief Identify possible hydration binding locations for the structure. 
+     * 
      * @return A list of possible (binx, biny, binz) locations.
      */
     vector<grid::GridMember<Hetatom>> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.
-     * @return vector<vector<int>> An index pair (min, max) for each dimension (shape: [3][2]). 
+     * 
+     * @return Two vectors containing the minimum and maximum coordinates of the box. 
      */
-    vector<vector<int>> bounding_box() const;
+    std::pair<Vector3, Vector3> bounding_box() const;
 
     static std::pair<Vector3, Vector3> bounding_box(const vector<Atom>& atoms);
 
     /**
      * @brief Set the radius of all atoms (not water molecules!).
+     * 
      * @param radius The new radius in Ångström.
      */
     void set_radius_atoms(double radius);
 
     /**
      * @brief Set the radius for all water molecules.
+     * 
      * @param radius The new radius in Ångström.
      */
     void set_radius_water(double radius);

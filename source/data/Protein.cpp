@@ -50,11 +50,12 @@ Protein::Protein(const vector<string>& input) {
 }
 
 void Protein::translate(const Vector3& v) {
-    std::cout << "translate" << std::endl;
     for (auto& body : bodies) {
         body.translate(v);
     }
-    std::cout << "translate end" << std::endl;
+    for (auto& hetatom : hydration_atoms) {
+        hetatom.translate(v);
+    }
 }
 
 SimpleDataset Protein::simulate_dataset() {
@@ -299,3 +300,38 @@ std::shared_ptr<Fit> Protein::fit(std::string measurement) {
 }
 
 std::shared_ptr<PartialHistogramManager> Protein::get_histogram_manager() const {return phm;}
+
+#include <iomanip>
+void Protein::generate_unit_cell() {
+    if (grid == nullptr) {create_grid();}
+        auto[min, max] = grid->bounding_box();
+
+    // expand box by 10%
+    for (auto& v : min) {
+        if (v < 0) {v *= (1 + setting::grid::scaling);} // if v is smaller than 0, multiply by 1+s
+        else {      v *= (1 - setting::grid::scaling);} //                    else multiply by 1-s
+    }
+    for (auto& v : max) {
+        if (v > 0) {v *= (1 + setting::grid::scaling);} // if v is larger than 0, multiply by 1+s
+        else {      v *= (1 - setting::grid::scaling);} //                   else multiply by 1-s
+    }
+    auto cell_w = max - min;
+    auto center = get_cm();
+    translate(-min);
+
+    // create unit cell
+    auto& file = bodies[0].get_file();
+    file.header.remove("CRYST1");
+    std::stringstream ss;
+    ss  << "CRYST1"                                // 1 - 6
+        << std::right << std::setw(8) << cell_w[0] // 7 - 15
+        << std::right << std::setw(8) << cell_w[1] // 16 - 24
+        << std::right << std::setw(8) << cell_w[2] // 25 - 33
+        << std::right << std::setw(6) << "90"      // 34 - 40
+        << std::right << std::setw(6) << "90"      // 41 - 47
+        << std::right << std::setw(6) << "90"      // 48 - 54
+        << " "
+        << std::right << std::setw(10) << "1"      // 56 - 66
+        << std::right << std::setw(4) << "P 1";    // 67 - 70
+    file.add(Record::RecordType::HEADER, ss.str());
+}

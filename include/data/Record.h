@@ -36,7 +36,8 @@ class Record {
         {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
         {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET"   , HEADER}, {"HETNAM", HEADER},
         {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE"  , HEADER}, {"SEQADV", HEADER},
-        {"LINK"  , HEADER}, {"MODEL" , HEADER},
+        {"LINK"  , HEADER}, {"MODEL" , HEADER}, {"LINKR" , HEADER}, {"SPRSDE", HEADER}, {"MODRES", HEADER},
+        {"MTRIX1", HEADER}, {"MTRIX2", HEADER}, {"MTRIX3", HEADER},
         {"ANISOU", NOTYPE},
         {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END"   , FOOTER}, {"ENDMDL", FOOTER}};
 };

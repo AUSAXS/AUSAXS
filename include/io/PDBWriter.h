@@ -17,7 +17,7 @@ class PDBWriter : public Writer {
      * @brief Constructor. 
      * @param file Path to where the backing File object will be saved. 
      */
-    PDBWriter(File* const file) : file(file) {}
+    PDBWriter(File* file) : file(file) {}
 
     /**
      * @brief Write the backing File to disk. 
@@ -26,7 +26,7 @@ class PDBWriter : public Writer {
     void write(std::string output_path) override;
 
   private: 
-    File* const file; // The File backing this Reader. 
+    File* file; // The File backing this Reader. 
 
     /**
      * @brief Create a string representation of this File.

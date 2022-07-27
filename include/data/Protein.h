@@ -242,6 +242,11 @@ class Protein {
     void bind_body_signallers();
 
     /**
+     * @brief Generate a new CRYST1 record for this protein. 
+     */
+    void generate_unit_cell();
+
+    /**
      * @brief Fit a measurement to this protein.
      * 
      * @param measurement Path to the measurement file to be fitted.
