@@ -70,7 +70,7 @@ map := ""
 fit_consistency/%: build/executable/fit_consistency
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	emmap=$(shell find sim/ -name "$*_${map}.ccp4"); \
+	emmap=$(shell find sim/ -name "$*_${map}.ccp4" -or -name "$*_${map}.mrc"); \
 	echo "./fit_consistency $${structure} $${measurement} $${emmap}\n"; \
 	$< $${emmap} $${structure} $${measurement}
 
@@ -85,17 +85,19 @@ unit_cell/%: build/executable/unit_cell
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-resolution_min = 10
-resolution_max = 10
+res := 20
+simprog := ~/tools/EMAN/bin/pdb2mrc
 simulate/%: 
 	@ structure=$(shell find data/ -name "$*.pdb"); \
-	for i in `seq $(resolution_min) $(resolution_max)`; do \
-		echo "Building map " $$i;\
-		phenix.fmodel $${structure} high_resolution=$$i;\
-		phenix.mtz2map mtz_file=$(*F).pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$(*F);\
-		rm $(*F).pdb.mtz;\
-		mv $(*F)_fmodel.ccp4 sim/$(*F)_$$i.ccp4;\
-	done
+	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center
+
+simfit/%: build/executable/fit_consistency
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center; \
+	echo "./fit_consistency $${structure} $${measurement} sim/$*_$(res).mrc\n"; \
+	$< sim/$*_$(res).mrc $${structure} $${measurement}
+			
 
 stuff/%: build/executable/stuff data/%.pdb
 #	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4

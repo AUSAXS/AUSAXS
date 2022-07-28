@@ -1,17 +1,17 @@
-SASDE35: 0.82 y (broken)
-SASDEZ4: 0.92 y (broken)
-SASDE75: 0.94 y (broken)
+SASDE35: 0.82 y (broken, manually aligned, good)
+SASDEZ4: 0.92 y (broken, manually aligned, changed symmetry group, good)
+SASDE75: 0.94 y (broken, unit cell too small)
 SASDJP5: 0.98 n
-SASDE65: 1.10 y (broken)
+SASDE65: 1.10 y (broken, unit cell too small)
 SASDJQ5: 1.16 n
 SASDGX9: 1.17 n
 SASDHK4: 1.17 n
-SASDEY4: 1.21 y (broken)
+SASDEY4: 1.21 y (broken, manually aligned, changed symmetry group, good)
 SASDME4: 1.24 n
-SASDJA4: 1.25 y (broken)
-SASDHP7: 1.34 y (broken)
-SASDE45: 1.50 y (broken)
-SASDL82: 1.70 y (broken)
+SASDJA4: 1.25 y (broken, manually aligned, changed symmetry group, good)
+SASDHP7: 1.34 y (broken, manually aligned, changed symmetry group, good)
+SASDE45: 1.50 y (broken, manually aligned, changed symmetry group, good)
+SASDL82: 1.70 y (broken, manually aligned, changed symmetry group, good)
 SASDKH2: 1.92 y (good)
 SASDJG5: 6.41 n
 A2M_ma: 7.03  n
@@ -19,11 +19,11 @@ native: 7.71  y (good)
 SASDJF5: 8.34 n
 SASDLT3: 8.7  n
 7sd0: 9.1     n
-SASDJQ4: 9.73 y (semi-broken)
+SASDJQ4: 9.73 y (broken, manually aligned, good)
 SASDJY3: 10.2 n
 SASDF86: 16.7 n
-SASDEL8: 30.5 y (broken)
-SASDNQ3: 33   y (bad)
+SASDEL8: 30.5 y (broken, manually aligned, cell a bit too small, changed symmetry group, good)
+SASDNQ3: 33   y (broken, changed symmetry group, good)
 SASDPM2: 89
 SASDCQ8: 181
 SASDGD2: 211  y

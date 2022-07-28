@@ -9,9 +9,11 @@ perf.*
 CMakeFiles
 lib
 valgrind.txt
+*log
 
 *.cmake
 *.pdf
 *.xml
 *.pdb
 *.ccp4
+*.mrc
