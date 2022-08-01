@@ -314,7 +314,7 @@ GridMember<Hetatom> Grid::add(const Hetatom& water, const bool expand) {
     // sanity check
     const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string() + "\nBounds: " + axes.to_string());
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string() + "\n: " + axes.to_string());
     }
 
     GridMember gm(water, loc);

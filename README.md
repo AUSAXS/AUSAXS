@@ -28,6 +28,7 @@
 ## Grid:
  * Consider how to improve culling method
  * Consider removing all bounds checks (or maybe use a compile-flag to enable them)
+ * The grid map stores chars = 1 byte or 8 bits, but we only use 5 different values (0, 'h', 'H', 'a', 'A'). If we can reduce this to 4 values, it can be stores in just 2 bits, in which case the remaining 6 bits can be used by other threads. That's literally free multithreading. Possible race condition. 
 
 ## ScatteringHistogram:
  * Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
