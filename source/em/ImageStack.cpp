@@ -141,7 +141,7 @@ std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensit
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->fval;
-        // std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
+        std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         return val;
     }; 
     return chi2;
@@ -228,6 +228,8 @@ void ImageStack::read(std::ifstream& istream, size_t byte_size) {
     for (unsigned int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
+
+    std::cout << "ImageStack size: (" << size_x << ", " << size_y << ", " << size_z << ")" << std::endl;
 }
 
 float& ImageStack::index(unsigned int x, unsigned int y, unsigned int layer) {

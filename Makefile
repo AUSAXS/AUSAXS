@@ -44,7 +44,10 @@ main/%: build/executable/main
 	$< $*
 
 em/%: build/executable/em
-	$< $*
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	emmap=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
+	$< $${emmap} $${structure} $${measurement}
 
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
@@ -65,12 +68,12 @@ consistency/%: build/executable/consistency
 	@ map=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
 	$< $${map}
 
-map := ""
+res := 20
 # usage: make fit_consistency/2epe map=10
 fit_consistency/%: build/executable/fit_consistency
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	emmap=$(shell find sim/ -name "$*_${map}.ccp4" -or -name "$*_${map}.mrc"); \
+	emmap=$(shell find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
 	echo "./fit_consistency $${structure} $${measurement} $${emmap}\n"; \
 	$< $${emmap} $${structure} $${measurement}
 
@@ -85,7 +88,6 @@ unit_cell/%: build/executable/unit_cell
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-res := 20
 simprog := ~/tools/EMAN/bin/pdb2mrc
 simulate/%: 
 	@ structure=$(shell find data/ -name "$*.pdb"); \
@@ -97,7 +99,13 @@ simfit/%: build/executable/fit_consistency
 	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center; \
 	echo "./fit_consistency $${structure} $${measurement} sim/$*_$(res).mrc\n"; \
 	$< sim/$*_$(res).mrc $${structure} $${measurement}
-			
+
+old_simulate/%: 
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	phenix.fmodel $${structure} high_resolution=$(res);\
+	phenix.mtz2map mtz_file=$(*F).pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$(*F) pdb_file=$${structure};\
+	rm $(*F).pdb.mtz;\
+	mv $(*F)_fmodel.ccp4 sim/$(*F)_$(res).ccp4;\
 
 stuff/%: build/executable/stuff data/%.pdb
 #	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4

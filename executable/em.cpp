@@ -33,6 +33,14 @@ int main(int argc, char const *argv[]) {
     // string mfile = "data/A2M_tryp.RSR";
     string mfile = "data/SHOC2/7sd0.dat";
 
+    // override the default settings if we have arguments
+    if (argc == 4) {
+        mapfile = argv[1];
+        pdbfile = argv[2];
+        mfile = argv[3];
+    }
+    std::cout << "Performing EM fit with map " << mapfile << " and protein " << pdbfile << " and measurement " << mfile << std::endl;
+
     em::ImageStack map(mapfile); 
 
     //* STRUCTURE FIT

@@ -61,10 +61,12 @@ namespace setting {
 
     namespace em {
         enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
-        extern CullingStrategyChoice csc; // The choice of culling algorithm. 
+        extern CullingStrategyChoice csc;     // The choice of culling algorithm. 
 
-        extern unsigned int sample_frequency;     // How often a bin is sampled in any direction. 
-        extern double concentration;              // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
+        extern unsigned int sample_frequency; // How often a bin is sampled in any direction. 
+        extern double concentration;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
+
+        extern unsigned int charge_levels;    // The number of partial histograms to utilize.
 
         namespace simulation {
             extern bool noise; // Whether to generate noise for the simulations. 

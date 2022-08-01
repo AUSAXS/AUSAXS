@@ -39,12 +39,7 @@ set(LIBRARIES)
 # ROOT
 find_package(ROOT REQUIRED)
 link_directories(${ROOT_LIBRARY_DIR})
-
-# Boost
-find_package(Boost COMPONENTS program_options REQUIRED)
-
 include_directories(${ROOT_INCLUDE_DIR})
-include_directories(${Boost_INCLUDE_DIRS})
 
 list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})

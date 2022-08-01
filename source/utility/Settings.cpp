@@ -38,9 +38,9 @@ namespace setting {
     }
 
     namespace fit {
-        double q_low = 0; // lower limit on the q value
-        double q_high = 1000; // upper limit on the q value
-        unsigned int N = 100; // Number of points sampled when discretizing a model scattering curve
+        double q_low = 0;
+        double q_high = 1000;
+        unsigned int N = 100; 
     }
 
     namespace rigidbody {
@@ -53,6 +53,7 @@ namespace setting {
         CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; 
         unsigned int sample_frequency = 1; 
         double concentration = 2;
+        unsigned int charge_levels = 100;
 
         namespace simulation {
             bool noise = true; // Whether to generate noise for the simulations. 
