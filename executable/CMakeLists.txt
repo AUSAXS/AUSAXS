@@ -16,8 +16,8 @@ target_link_libraries(optimize_radius saxs)
 add_executable(intensity_fitter intensity_fitter.cpp)
 target_link_libraries(intensity_fitter saxs)
 
-add_executable(rigidbody_opt rigidbody.cpp)
-target_link_libraries(rigidbody_opt saxs)
+add_executable(rigidbody rigidbody.cpp)
+target_link_libraries(rigidbody saxs)
 
 add_executable(stuff stuff.cpp)
 target_link_libraries(stuff saxs)

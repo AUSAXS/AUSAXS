@@ -4,7 +4,7 @@
 vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
-    const vector<int> bins = grid->get_bins();
+    auto bins = grid->get_bins();
     const int ra = grid->ra; const int rh = grid->rh;
 
     // short lambda to actually place the generated water molecules
@@ -26,9 +26,9 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
         const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-        int xm = std::max(x-r_eff, 0), xp = std::min(x+r_eff, bins[0]-1); // xminus and xplus
-        int ym = std::max(y-r_eff, 0), yp = std::min(y+r_eff, bins[1]-1); // yminus and yplus
-        int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, bins[2]-1); // zminus and zplus
+        int xm = std::max(x-r_eff, 0), xp = std::min(x+r_eff, int(bins[0])-1); // xminus and xplus
+        int ym = std::max(y-r_eff, 0), yp = std::min(y+r_eff, int(bins[1])-1); // yminus and yplus
+        int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, int(bins[2])-1); // zminus and zplus
 
         // check collisions for x ± r_eff
         if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {
@@ -74,7 +74,7 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
 bool grid::AxesPlacement::collision_check(const vector<int> loc) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
-    const vector<int> bins = grid->get_bins();
+    auto bins = grid->get_bins();
     const int ra = grid->ra, rh = grid->rh;
     const int x = loc[0], y = loc[1], z = loc[2];
 
@@ -82,9 +82,9 @@ bool grid::AxesPlacement::collision_check(const vector<int> loc) const {
     int r = gref[x][y][z] == 'A' ? ra : rh;
 
     // we use the range (x-r) to (x+r+1) since the first is inclusive and the second is exclusive. 
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(bins[0])-1); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(bins[1])-1); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(bins[2])-1); // zminus and zplus
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {

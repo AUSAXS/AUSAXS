@@ -52,8 +52,10 @@ em/%: build/executable/em
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
 
-rigidbody/%: build/executable/rigidbody_opt
-	$< data/$*.pdb data/$*.RSR figures/
+rigidbody/%: build/executable/rigidbody
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${structure} $${measurement} figures/
 
 qlow := 0
 qhigh := 1000

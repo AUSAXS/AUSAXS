@@ -5,12 +5,14 @@
 #include <data/Atom.h>
 #include <data/Hetatom.h>
 #include <utility/Exceptions.h>
+#include <utility/Utility.h>
 
 #include <fstream>
 #include <algorithm>
 
 void PDBWriter::write(string output_path) {
     file->refresh();
+    utility::create_directories(output_path);
     std::ofstream output(output_path);
     if (!output.is_open()) {throw std::ios_base::failure("Error in PDB_file::write: Could not open file \"" + output_path + "\"");}
     output << as_pdb() << std::flush;

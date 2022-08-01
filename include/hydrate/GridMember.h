@@ -30,10 +30,10 @@ namespace grid {
          * @param atom The atom itself. 
          * @param loc The grid location of the atom. 
          */
-        GridMember(T atom, std::vector<int> loc) : atom(atom), loc(loc) {}
+        GridMember(T atom, std::vector<unsigned int> loc) : atom(atom), loc(loc) {}
 
         T atom; // the atom itself
-        std::vector<int> loc; // the bin location of the Atom key
+        std::vector<unsigned int> loc; // the bin location of the Atom key
         bool expanded_volume = false; // whether the volume of this location has been expanded
 
         /**

@@ -66,8 +66,8 @@ class Constraint {
         return atom1 == constraint.atom1 && atom2 == constraint.atom2;
     }
 
-    size_t uid;              // Unique identifier for this constraint. 
-    double r_base;           // The normal distance between the two atoms. 
+    unsigned int uid;  // Unique identifier for this constraint. 
+    double r_base;     // The normal distance between the two atoms. 
     const Atom* atom1; // The first atom. 
     const Atom* atom2; // The second atom. 
     const Body* body1; // The first body.

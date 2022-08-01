@@ -76,7 +76,7 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
 
 vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     // dereference the values we'll need for better performance
-    const vector<int> bins = grid->get_bins();
+    auto bins = grid->get_bins();
     vector<vector<vector<char>>>& gref = grid->grid;
 
     // we define a helper lambda
@@ -118,10 +118,10 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
-bool grid::RadialPlacement::collision_check(const vector<int> loc, const vector<int> skip_bin) const {
+bool grid::RadialPlacement::collision_check(const vector<int>& loc, const vector<int>& skip_bin) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
-    const vector<int> bins = grid->get_bins();
+    auto bins = grid->get_bins();
 
     int score = 0;
     // check if a location is out-of-bounds

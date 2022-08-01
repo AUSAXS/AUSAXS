@@ -95,12 +95,32 @@ Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, set
 }
 
 void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
+    // check if the grid should be cubic
+    if (setting::grid::cubic) {
+        double x_side = axes.x.max - axes.x.min;
+        double y_side = axes.y.max - axes.y.min;
+        double z_side = axes.z.max - axes.z.min;
+        
+        if (x_side > y_side && x_side > z_side) {
+            axes.y = axes.x;
+            axes.z = axes.x;
+        } else if (y_side > x_side && y_side > z_side) {
+            axes.x = axes.y;
+            axes.z = axes.y;
+        } else if (z_side > x_side && z_side > y_side) {
+            axes.x = axes.z;
+            axes.y = axes.z;
+        }
+    }
+
+    // check if the grid is abnormally large
     long long int total_bins = (long long) axes.x.bins*axes.y.bins*axes.z.bins;
     if (total_bins > 32e9) {
         throw except::invalid_argument("Error in Grid: Too many bins.");
     } else if (total_bins > 4e9) {
         utility::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
     }
+
     this->width = width;
     this->grid = vector(axes.x.bins, vector(axes.y.bins, vector<char>(axes.z.bins, 0)));
     this->set_radius_atoms(ra);
@@ -231,7 +251,7 @@ void Grid::expand_volume(GridMember<Hetatom>& water) {
     expand_volume(water.loc, true); // do the expansion
 }
 
-void Grid::expand_volume(const vector<int>& loc, const bool is_water) {
+void Grid::expand_volume(const vector<unsigned int>& loc, const bool is_water) {
     char marker = is_water ? 'h' : 'a';
     const int x = loc[0], y = loc[1], z = loc[2];
 
@@ -268,13 +288,13 @@ void Grid::remove(const Body* const body) {
 }
 
 GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
-    vector<int> loc = to_bins(atom.coords);
-    const int &x = loc[0], &y = loc[1], &z = loc[2];
+    auto loc = to_bins(atom.coords);
+    unsigned int x = loc[0], y = loc[1], z = loc[2];
 
     // sanity check
-    const bool out_of_bounds = x >= int(axes.x.bins) || y >= int(axes.y.bins) || z >= int(axes.z.bins) || x+y+z < 0;
+    const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string() + "\nBounds: " + axes.to_string());
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string() + "\n: " + axes.to_string());
     }
 
     if (grid[x][y][z] == 0) {volume++;} // can probably be removed
@@ -288,11 +308,11 @@ GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
 }
 
 GridMember<Hetatom> Grid::add(const Hetatom& water, const bool expand) {
-    vector<int> loc = to_bins(water.coords);
-    const int &x = loc[0], &y = loc[1], &z = loc[2];
+    auto loc = to_bins(water.coords);
+    unsigned int x = loc[0], y = loc[1], z = loc[2]; 
 
     // sanity check
-    const bool out_of_bounds = x >= int(axes.x.bins) || y >= int(axes.y.bins) || z >= int(axes.z.bins) || x+y+z < 0;
+    const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
         throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string() + "\nBounds: " + axes.to_string());
     }
@@ -428,7 +448,7 @@ void Grid::deflate_volume(GridMember<Hetatom>& water) {
     deflate_volume(water.loc, true); // do the expansion
 }
 
-void Grid::deflate_volume(const vector<int>& loc, const bool is_water) {
+void Grid::deflate_volume(const vector<unsigned int>& loc, const bool is_water) {
     const int x = loc[0], y = loc[1], z = loc[2];
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
@@ -469,14 +489,14 @@ void Grid::clear_waters() {
     assert(w_members.size() == 0);
 }
 
-vector<int> Grid::get_bins() const {
-    return {int(axes.x.bins), int(axes.y.bins), int(axes.z.bins)};
+vector<unsigned int> Grid::get_bins() const {
+    return {axes.x.bins, axes.y.bins, axes.z.bins};
 }
 
-vector<int> Grid::to_bins(const Vector3& v) const {
-    int binx = std::round((v.x() - axes.x.min)/width);
-    int biny = std::round((v.y() - axes.y.min)/width);
-    int binz = std::round((v.z() - axes.z.min)/width);
+vector<unsigned int> Grid::to_bins(const Vector3& v) const {
+    unsigned int binx = std::round((v.x() - axes.x.min)/width);
+    unsigned int biny = std::round((v.y() - axes.y.min)/width);
+    unsigned int binz = std::round((v.z() - axes.z.min)/width);
     return {binx, biny, binz};
 }
 

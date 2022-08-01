@@ -15,8 +15,10 @@
 using std::cout, std::endl;
 
 int main(int argc, char const *argv[]) { 
-    CLI::App app{"Rigid-body optimization."};
+    setting::grid::scaling = 1;
+    setting::grid::cubic = true;
 
+    CLI::App app{"Rigid-body optimization."};
     string input_structure, input_measurement, output, placement_strategy;
     app.add_option("input_s", input_structure, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", input_measurement, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
@@ -39,7 +41,7 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::PlacementStrategyChoice::JanStrategy;}
 
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
     RigidBody body(protein);
 
     body.optimize(input_measurement);

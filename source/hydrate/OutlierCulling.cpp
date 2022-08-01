@@ -12,7 +12,7 @@ vector<Hetatom> grid::OutlierCulling::cull(vector<grid::GridMember<Hetatom>>& pl
 
     vector<std::pair<GridMember<Hetatom>, int>> v(placed_water.size());
     const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
-    const vector<int> bins = grid->get_bins();
+    auto bins = grid->get_bins();
     const vector<vector<vector<char>>>& gref = grid->grid;
     size_t index = 0;
     for (const auto& water : placed_water) {
@@ -20,9 +20,9 @@ vector<Hetatom> grid::OutlierCulling::cull(vector<grid::GridMember<Hetatom>>& pl
         int score = 0;
 
         // create a box of size [x-2r, x+2r][y-2r, y+2r][z-2r, z+2r] within the bounds
-        int xm = std::max(x-r, 0), xp = std::min(x+r+1, bins[0]-1); // xminus and xplus
-        int ym = std::max(y-r, 0), yp = std::min(y+r+1, bins[1]-1); // yminus and yplus
-        int zm = std::max(z-r, 0), zp = std::min(z+r+1, bins[2]-1); // zminus and zplus
+        int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(bins[0])-1); // xminus and xplus
+        int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(bins[1])-1); // yminus and yplus
+        int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(bins[2])-1); // zminus and zplus
 
         for (int i = xm; i < xp; i++) {
             for (int j = ym; j < yp; j++) {

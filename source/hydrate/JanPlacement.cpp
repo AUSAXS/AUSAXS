@@ -4,7 +4,7 @@
 vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
-    const vector<int> bins = grid->get_bins();
+    auto bins = grid->get_bins();
 
     // place a water molecule (note: not added to the grid before the end of this method)
     vector<Hetatom> placed_water(grid->a_members.size());
@@ -26,9 +26,9 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
                 if (gref[i][j][k] == 0) {continue;}
 
                 // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-                int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, bins[0]-1); // xminus and xplus
-                int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, bins[1]-1); // yminus and yplus
-                int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, bins[2]-1); // zminus and zplus
+                int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, int(bins[0])-1); // xminus and xplus
+                int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, int(bins[1])-1); // yminus and yplus
+                int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, int(bins[2])-1); // zminus and zplus
 
                 // check collisions for x ± r_eff
                 if (gref[im][j][k] == 0) {add_loc({im, j, k});}

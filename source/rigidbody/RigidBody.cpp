@@ -41,7 +41,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 }
 
 void RigidBody::optimize(string measurement_path) {
-    generate_new_hydration();
+    protein.generate_new_hydration();
     SimpleIntensityFitter fitter(measurement_path, protein.get_histogram());
     double _chi2 = fitter.fit()->fval;
     std::cout << "Initial chi2: " << _chi2 << std::endl;
@@ -89,6 +89,7 @@ void RigidBody::optimize(string measurement_path) {
             // accept the changes
             _chi2 = __chi2;
             params.update(body.uid, param);
+            protein.save("temp/rigidbody/protein_" + std::to_string(i) + ".pdb");
             std::cout << "\tkeeping changes. new best chi2: " << _chi2 << std::endl << std::endl;
         }
     }

@@ -20,6 +20,7 @@ namespace setting {
         double ra_effective = 2.4;
         double width = 1; 
         double scaling = 0.25;
+        bool cubic = false;
         Limit3D axes(-250, 250, -250, 250, -250, 250);
 
         namespace placement {

@@ -233,7 +233,7 @@ class Grid {
      */
     void set_radius_water(double radius);
 
-    vector<int> get_bins() const;
+    vector<unsigned int> get_bins() const;
 
     /**
      * @brief Get all water molecules from this grid. 
@@ -270,7 +270,7 @@ class Grid {
      * @param v the xyz location.
      * @return The bin location. 
      */
-    vector<int> to_bins(const Vector3& v) const;
+    vector<unsigned int> to_bins(const Vector3& v) const;
 
     /**
      * @brief Get a copy of this Grid. 
@@ -310,14 +310,14 @@ class Grid {
      * @param loc The bin location of the atom. 
      * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
      */
-    void expand_volume(const vector<int>& val, const bool is_water);
+    void expand_volume(const vector<unsigned int>& val, const bool is_water);
 
     /** 
      * @brief Deflate a single member atom into an actual sphere.
      * @param loc The bin location of the atom. 
      * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
      */
-    void deflate_volume(const vector<int>& loc, const bool is_water);
+    void deflate_volume(const vector<unsigned int>& loc, const bool is_water);
 
     void setup(double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 };
