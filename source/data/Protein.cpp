@@ -7,6 +7,7 @@
 #include <fitter/IntensityFitter.h>
 
 using namespace hist;
+using std::vector;
 
 Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);
@@ -49,7 +50,7 @@ Protein::Protein(const vector<string>& input) {
     bind_body_signallers();
 }
 
-void Protein::translate(const Vector3& v) {
+void Protein::translate(const Vector3<double>& v) {
     for (auto& body : bodies) {
         body.translate(v);
     }
@@ -121,7 +122,7 @@ double Protein::get_volume_grid() {
     return grid->get_volume();
 }
 
-shared_ptr<Grid> Protein::create_grid() {
+std::shared_ptr<Grid> Protein::create_grid() {
     grid = std::make_shared<Grid>(bodies); 
     return grid;
 }
@@ -140,8 +141,8 @@ vector<Atom> Protein::get_protein_atoms() const {
     return atoms;
 }
 
-Vector3 Protein::get_cm() const {
-    Vector3 cm;
+Vector3<double> Protein::get_cm() const {
+    Vector3<double> cm;
     double M = 0; // total mass
 
     // iterate through all constituent bodies
@@ -201,7 +202,7 @@ Histogram Protein::get_total_histogram() {
     return phm->calculate();
 }
 
-shared_ptr<Grid> Protein::get_grid() {
+std::shared_ptr<Grid> Protein::get_grid() {
     return grid == nullptr ? create_grid() : grid;
 }
 
@@ -304,7 +305,8 @@ std::shared_ptr<PartialHistogramManager> Protein::get_histogram_manager() const 
 #include <iomanip>
 void Protein::generate_unit_cell() {
     if (grid == nullptr) {create_grid();}
-        auto[min, max] = grid->bounding_box();
+        // auto[min, max] = grid->bounding_box();
+        Vector3<double> min, max;
 
     // expand box by 10%
     for (auto& v : min) {

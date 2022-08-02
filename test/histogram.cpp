@@ -8,12 +8,14 @@
 #include <data/Hetatom.h>
 #include <plots/PlotIntensity.h>
 
+using std::vector;
+
 TEST_CASE("check_scaling_factor", "[histogram]") {
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-    vector<Atom> b1 =   {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1),  Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b2 =   {Atom(Vector3(1, -1, -1), 1, "C", "C", 1),   Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b3 =   {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1),   Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
-    vector<Hetatom> w = {Hetatom(Vector3(1, -1, 1), 1, "C", "C", 1), Hetatom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> b1 =   {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b2 =   {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 =   {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),   Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+    vector<Hetatom> w = {Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
     vector<vector<Atom>> a = {b1, b2, b3};
     Protein protein(a, w);
 

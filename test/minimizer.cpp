@@ -6,6 +6,8 @@
 #include <minimizer/Golden.h>
 #include <plots/all.h>
 
+using std::vector;
+
 struct TestFunction {
     TestFunction(std::function<double(const double*)> function, std::vector<Limit> bounds, std::vector<double> min) : function(function), bounds(bounds), min(min) {}
     TestFunction(std::function<double(const double*)> function, Limit bounds, double min) : TestFunction(function, vector{bounds}, vector{min}) {}

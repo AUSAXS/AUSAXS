@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 
 #include <data/Atom.h>
 #include <hydrate/PlacementStrategy.h>
@@ -12,8 +13,6 @@
 
 // forwards declaration
 class Body;
-
-using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 
 class Grid {
   public:
@@ -54,7 +53,7 @@ class Grid {
      * 
      * @param atoms The atoms to be stored in the Grid. 
      */
-    Grid(const vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+    Grid(const std::vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
 
     /**
      * @brief Space-saving constructor. 
@@ -67,7 +66,7 @@ class Grid {
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
+    Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
 
     /**
      * @brief Space-saving constructor. 
@@ -76,7 +75,7 @@ class Grid {
      * 
      * @param bodies The bodies to be stored in the Grid. 
      */
-    Grid(const vector<Body>& bodies) : Grid(bodies, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+    Grid(const std::vector<Body>& bodies) : Grid(bodies, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
 
     /**
      * @brief Space-saving constructor. 
@@ -89,7 +88,7 @@ class Grid {
      * @param ra the radius of each atom.
      * @param rh the radius of each water molecule.
      */
-    Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
+    Grid(const std::vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
 
     /**
      * @brief Copy constructor. 
@@ -101,9 +100,9 @@ class Grid {
      * @param atoms the set of atoms to add to this grid.
      */
     template<typename T>
-    vector<grid::GridMember<T>> add(const vector<T>& atoms) {
+    std::vector<grid::GridMember<T>> add(const std::vector<T>& atoms) {
         static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
-        vector<grid::GridMember<T>> v(atoms.size());
+        std::vector<grid::GridMember<T>> v(atoms.size());
         size_t index = 0;
         for (auto const& a : atoms) {
             v[index++] = add(a);
@@ -116,19 +115,19 @@ class Grid {
      * 
      * @param body The body to be added. 
      */
-    vector<grid::GridMember<Atom>> add(const Body* const body);
+    std::vector<grid::GridMember<Atom>> add(const Body* const body);
 
     /** 
      * @brief Add a single atom to the grid. 
      *        This is a constant-time operation. 
      */
-    grid::GridMember<Atom> add(const Atom& atom, const bool expand = false);
+    grid::GridMember<Atom> add(const Atom& atom, bool expand = false);
 
     /** 
      * @brief Add a single hetatom to the grid. 
      *        This is a constant-time operation. 
      */
-    grid::GridMember<Hetatom> add(const Hetatom& atom, const bool expand = false);
+    grid::GridMember<Hetatom> add(const Hetatom& atom, bool expand = false);
 
     /**
      * @brief Remove the contents of a body from this grid. 
@@ -153,13 +152,13 @@ class Grid {
      * @brief Remove multiple water molecule from the grid.
      *        This is linear in the number of stored elements. 
      */
-    void remove(const vector<Hetatom>& atom);
+    void remove(const std::vector<Hetatom>& atom);
 
     /**
      * @brief Remove multiple protein atoms from the grid.
      *        This is linear in the number of stored elements. 
      */
-    void remove(const vector<Atom>& atom);
+    void remove(const std::vector<Atom>& atom);
 
     /**
      * @brief Remove all waters from the grid.
@@ -201,23 +200,23 @@ class Grid {
      * 
      * @return Pointers to the new water molecules. 
      */
-    vector<Hetatom> hydrate();
+    std::vector<Hetatom> hydrate();
 
     /**
      * @brief Identify possible hydration binding locations for the structure. 
      * 
      * @return A list of possible (binx, biny, binz) locations.
      */
-    vector<grid::GridMember<Hetatom>> find_free_locs();
+    std::vector<grid::GridMember<Hetatom>> find_free_locs();
 
     /**
      * @brief Create the smallest possible box containing the center points of all member atoms.
      * 
      * @return Two vectors containing the minimum and maximum coordinates of the box. 
      */
-    std::pair<Vector3, Vector3> bounding_box() const;
+    std::pair<std::vector<unsigned int>, std::vector<unsigned int>> bounding_box_index() const;
 
-    static std::pair<Vector3, Vector3> bounding_box(const vector<Atom>& atoms);
+    static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<Atom>& atoms);
 
     /**
      * @brief Set the radius of all atoms (not water molecules!).
@@ -233,17 +232,17 @@ class Grid {
      */
     void set_radius_water(double radius);
 
-    vector<unsigned int> get_bins() const;
+    std::vector<unsigned int> get_bins() const;
 
     /**
      * @brief Get all water molecules from this grid. 
      */
-    vector<Hetatom> get_waters() const;
+    std::vector<Hetatom> get_waters() const;
 
     /**
      * @brief Get all atoms from this grid. 
      */
-    vector<Atom> get_atoms() const;
+    std::vector<Atom> get_atoms() const;
 
     /**
      * @brief Get the total volume spanned by the atoms in this grid in Å^3.
@@ -263,14 +262,14 @@ class Grid {
      * @param v the bin location.
      * @return The xyz location.
      */
-    Vector3 to_xyz(const vector<int>& v) const;
+    Vector3<double> to_xyz(const std::vector<unsigned int>& v) const;
 
     /**
      * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
      * @param v the xyz location.
      * @return The bin location. 
      */
-    vector<unsigned int> to_bins(const Vector3& v) const;
+    std::vector<unsigned int> to_bins(const Vector3<double>& v) const;
 
     /**
      * @brief Get a copy of this Grid. 
@@ -292,32 +291,32 @@ class Grid {
      */
     bool operator==(const Grid& rhs) const;
 
-    vector<vector<vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
+    std::vector<std::vector<std::vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
     std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
     std::list<grid::GridMember<Hetatom>> w_members; // A list of all member water molecules and where they are located. 
-    int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-    int ra = 0; // Radius of each atom represented as a number of bins
-    int rh = 0; // Radius of each water molecule represented as a number of bins
+    unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
+    unsigned int ra = 0; // Radius of each atom represented as a number of bins
+    unsigned int rh = 0; // Radius of each water molecule represented as a number of bins
 
   private:
     Axis3D axes;
     double width; // distance between each grid point
-    unique_ptr<grid::PlacementStrategy> water_placer; // the strategy for placing water molecules
-    unique_ptr<grid::CullingStrategy> water_culler; // the strategy for culling the placed water molecules
+    std::unique_ptr<grid::PlacementStrategy> water_placer; // the strategy for placing water molecules
+    std::unique_ptr<grid::CullingStrategy> water_culler; // the strategy for culling the placed water molecules
 
     /** 
      * @brief Expand a single member atom into an actual sphere.
      * @param loc The bin location of the atom. 
      * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
      */
-    void expand_volume(const vector<unsigned int>& val, const bool is_water);
+    void expand_volume(const std::vector<unsigned int>& val, bool is_water);
 
     /** 
      * @brief Deflate a single member atom into an actual sphere.
      * @param loc The bin location of the atom. 
      * @param is_water If the atom is a water molecule. Used to determine which marker to use in the grid. 
      */
-    void deflate_volume(const vector<unsigned int>& loc, const bool is_water);
+    void deflate_volume(const std::vector<unsigned int>& loc, bool is_water);
 
     void setup(double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
 };

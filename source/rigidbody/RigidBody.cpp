@@ -7,6 +7,7 @@
 #include <fitter/SimpleIntensityFitter.h>
 #include <utility/Exceptions.h>
 #include <math/Matrix.h>
+#include <math/MatrixUtils.h>
 
 RigidBody::RigidBody(Protein& protein) : protein(protein) {
     // Set body transformation strategy
@@ -62,7 +63,7 @@ void RigidBody::optimize(string measurement_path) {
         grid->remove(&body);
 
         // update the body to reflect the new params
-        Matrix R = Matrix<double>::rotation_matrix(param.alpha, param.beta, param.gamma);
+        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
         body.translate(param.dx);
         body.rotate(R);
 

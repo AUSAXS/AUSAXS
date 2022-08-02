@@ -11,6 +11,7 @@
 #include <data/Body.h>
 #include <utility/Settings.h>
 #include <math/Matrix.h>
+#include <math/MatrixUtils.h>
 
 using std::vector, std::string, std::cout, std::endl, std::unique_ptr;
 
@@ -133,7 +134,7 @@ void Body::generate_new_hydration() {
     file.hydration_atoms = grid->hydrate();
 }
 
-shared_ptr<Grid> Body::get_grid() {
+std::shared_ptr<Grid> Body::get_grid() {
     return grid == nullptr ? create_grid() : grid;
 }
 
@@ -144,7 +145,7 @@ void Body::generate_volume_file(string path) {
         for (size_t j = 0; j < g[0].size(); j++) {
             for (size_t k = 0; k < g[0][0].size(); k++) {
                 if (g[i][j][k] != 0) {
-                    Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3(i, j, k), 1, 0, "C", "");
+                    Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", "");
                     filled.push_back(a);
                 }
             }
@@ -163,8 +164,8 @@ void Body::center() {
     }
 }
 
-Vector3 Body::get_cm() const {
-    Vector3 cm;
+Vector3<double> Body::get_cm() const {
+    Vector3<double> cm;
     double M = 0; // total mass
     auto weighted_sum = [&cm, &M] (auto& atoms) {
         for (auto const& a : atoms) {
@@ -196,17 +197,17 @@ double Body::get_volume_grid() {
     return grid->get_volume();
 }
 
-shared_ptr<Grid> Body::create_grid() {
+std::shared_ptr<Grid> Body::create_grid() {
     grid = std::make_shared<Grid>(file.protein_atoms);
     return grid;
 }
 
-shared_ptr<hist::ScatteringHistogram> Body::get_histogram() {
+std::shared_ptr<hist::ScatteringHistogram> Body::get_histogram() {
     if (histogram == nullptr) {calc_histogram();}
     return histogram;
 }
 
-void Body::translate(const Vector3& v) {
+void Body::translate(const Vector3<double>& v) {
     changed_external_state();
 
     std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
@@ -225,13 +226,13 @@ void Body::rotate(const Matrix<double>& R) {
 
 void Body::rotate(double alpha, double beta, double gamma) {
     changed_external_state();
-    Matrix R = Matrix<double>::rotation_matrix(alpha, beta, gamma);
+    Matrix R = matrix::rotation_matrix(alpha, beta, gamma);
     rotate(R);
 }
 
-void Body::rotate(const Vector3& axis, double angle) {
+void Body::rotate(const Vector3<double>& axis, double angle) {
     changed_external_state();
-    Matrix R = Matrix<double>::rotation_matrix(axis, angle);
+    Matrix R = matrix::rotation_matrix(axis, angle);
     rotate(R);
 }
 

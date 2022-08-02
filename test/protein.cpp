@@ -13,7 +13,7 @@
 #include <fitter/SimpleIntensityFitter.h>
 #include <plots/all.h>
 
-using std::cout, std::endl;
+using std::cout, std::endl, std::vector, std::shared_ptr;
 
 TEST_CASE("simulate_dataset", "[protein],[files]") {
     setting::fit::q_high = 0.4;
@@ -48,10 +48,10 @@ TEST_CASE("simulate_dataset", "[protein],[files]") {
 }
 
 TEST_CASE("compare_debye", "[protein]") {
-    vector<Atom> atoms = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
-                       Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
-                       Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                       Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                       Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
+                       Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                       Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
     Protein protein(atoms, {});
 
     vector<double> I_dumb = protein.calc_debye_scattering_intensity();
@@ -87,10 +87,10 @@ TEST_CASE("histogram", "[protein]") {
     SECTION("atoms only") {
         setting::protein::use_effective_charge = false;
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-        vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Atom> b4 = {Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         vector<vector<Atom>> atoms = {b1, b2, b3, b4};
         Protein protein(atoms, {});
 
@@ -125,10 +125,10 @@ TEST_CASE("histogram", "[protein]") {
         setting::protein::use_effective_charge = false;
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
         vector<Atom> a = {};
-        vector<Hetatom> w = {Hetatom(Vector3(-1, -1, -1), 1, "C", "C", 1), Hetatom(Vector3(-1, 1, -1), 1, "C", "C", 1), 
-                            Hetatom(Vector3(1, -1, -1), 1, "C", "C", 1),  Hetatom(Vector3(1, 1, -1), 1, "C", "C", 1), 
-                            Hetatom(Vector3(-1, -1, 1), 1, "C", "C", 1),  Hetatom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                            Hetatom(Vector3(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+        vector<Hetatom> w = {Hetatom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Hetatom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
+                            Hetatom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Hetatom(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
+                            Hetatom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Hetatom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                            Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         Protein protein(a, w);
 
         // set the weights to 1 so we can analytically determine the result
@@ -159,10 +159,10 @@ TEST_CASE("histogram", "[protein]") {
     SECTION("both atoms & water") {
         setting::protein::use_effective_charge = false;
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-        vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Hetatom> w = {Hetatom(Vector3(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+        vector<Hetatom> w = {Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         vector<vector<Atom>> a = {b1, b2, b3};
         Protein protein(a, w);
 
@@ -201,24 +201,24 @@ TEST_CASE("histogram", "[protein]") {
     SECTION("compare with body, simple") {
         setting::protein::use_effective_charge = true;
         // make the protein
-        vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Atom> b4 = {Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         vector<vector<Atom>> ap = {b1, b2, b3, b4};
         Protein protein(ap, {});
 
         // make the body
-        vector<Atom> ab = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
-                            Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
-                            Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                            Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> ab = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                            Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
+                            Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                            Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         Body body(ab, {});
 
         // create some water molecules
         vector<Hetatom> atoms(10);
         for (size_t i = 0; i < atoms.size(); i++) {
-            atoms[i] = Hetatom::create_new_water(Vector3(i, i, i));
+            atoms[i] = Hetatom::create_new_water(Vector3<double>(i, i, i));
         }
 
         body.get_hydration_atoms() = atoms;
@@ -311,10 +311,10 @@ TEST_CASE("histogram", "[protein]") {
 
     SECTION("equivalent to old approach") {
         setting::protein::use_effective_charge = false;
-        vector<Atom> atoms = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1),
-                              Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1),
-                              Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                              Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                              Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
+                              Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                              Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
 
         // new auto-scaling approach
         Protein protein1(atoms);
@@ -348,23 +348,23 @@ TEST_CASE("histogram", "[protein]") {
 
 TEST_CASE("get_cm", "[protein]") {
     // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
+    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0")};
+    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
     vector<vector<Atom>> ap = {b1, b2, b3, b4};
     Protein protein(ap, {});
 
-    Vector3 cm = protein.get_cm();
-    REQUIRE(cm == Vector3{0, 0, 0});
+    Vector3<double> cm = protein.get_cm();
+    REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
 
 TEST_CASE("get_volume", "[protein]") {
     // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3(1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3(-1, 1, 1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3(1, 1, 1), 1, 0, "C", "0")};
+    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0")};
+    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
     vector<vector<Atom>> ap = {b1, b2, b3, b4};
     Protein protein(ap, {});
 
@@ -377,10 +377,10 @@ TEST_CASE("get_volume", "[protein]") {
 TEST_CASE("compare grid placement", "[protein]") {
     setting::grid::scaling = 15; // by default only a unit-box will be created. We want to check a larger area, so we scale it by 15
 
-    vector<Atom> a = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1), 
-                      Atom(Vector3(1, -1, -1), 1, "C", "C", 1),  Atom(Vector3(1, 1, -1), 1, "C", "C", 1), 
-                      Atom(Vector3(-1, -1, 1), 1, "C", "C", 1),  Atom(Vector3(-1, 1, 1), 1, "C", "C", 1),
-                      Atom(Vector3(1, -1, 1), 1, "C", "C", 1),   Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
+                      Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
+                      Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                      Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
     vector<Hetatom> w = {};
     
     Protein protein(a, w);
@@ -393,10 +393,10 @@ TEST_CASE("compare grid placement", "[protein]") {
     vector<vector<vector<char>>>& grid_protein = gp->grid;
     vector<vector<vector<char>>>& grid_body = gb->grid;
 
-    auto[min, max] = gp->bounding_box();
-    for (int i = min[0]-10; i < max[0]+10; i++) {
-        for (int j = min[1]-10; j < max[1]+10; j++) {
-            for (int k = min[2]-10; k < max[2]+10; k++) {
+    auto[min, max] = gp->bounding_box_index();
+    for (unsigned int i = min[0]-10; i < max[0]+10; i++) {
+        for (unsigned int j = min[1]-10; j < max[1]+10; j++) {
+            for (unsigned int k = min[2]-10; k < max[2]+10; k++) {
                 if (grid_protein[i][j][k] != grid_body[i][j][k]) {
                     cout << "Test failed. Expected " << grid_body[i][j][k] << ", received " << grid_protein[i][j][k] << endl;
                     REQUIRE(false);

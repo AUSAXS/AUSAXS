@@ -11,7 +11,7 @@ void Parameters::update(unsigned int uid, const Parameter& param) {
     params[id_to_index[uid]] = param;
 }
 
-void Parameters::update(unsigned int uid, Vector3 dx, double drx, double dry, double drz) {
+void Parameters::update(unsigned int uid, Vector3<double> dx, double drx, double dry, double drz) {
     update(uid, Parameter(dx, drx, dry, drz));
 }
 

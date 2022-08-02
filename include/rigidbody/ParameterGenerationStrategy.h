@@ -52,5 +52,5 @@ class ParameterGenerationStrategy {
         /**
          * @brief Get a new translation offset based on the current iteration. 
          */
-        virtual Vector3 get_translation() = 0;
+        virtual Vector3<double> get_translation() = 0;
 };

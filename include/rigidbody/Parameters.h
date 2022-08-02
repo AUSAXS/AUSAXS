@@ -27,7 +27,7 @@ struct Parameter {
      * @param beta The second Euler angle.
      * @param gamma The third Euler angle.
      */
-    Parameter(const Vector3& dx,const double alpha, const double beta, const double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
+    Parameter(const Vector3<double>& dx,const double alpha, const double beta, const double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
 
     /**
      * @brief Get a string representation of this Parameter.
@@ -41,7 +41,7 @@ struct Parameter {
      */
     friend std::ostream& operator<<(std::ostream& os, const Parameter& p) {os << p.to_string(); return os;}
 
-    Vector3 dx;
+    Vector3<double> dx;
     double alpha, beta, gamma;
 };
 
@@ -69,7 +69,7 @@ struct Parameters {
      * @param dry The new offset rotation about the y-axis. 
      * @param drz The new offset rotation about the z-axis. 
      */
-    void update(unsigned int uid, Vector3 dx, double drx, double dry, double drz);
+    void update(unsigned int uid, Vector3<double> dx, double drx, double dry, double drz);
 
     /**
      * @brief Update the parameter set for a single body. 

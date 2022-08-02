@@ -11,6 +11,8 @@
 #include <utility/Utility.h>
 #include <utility/Settings.h>
 
+using std::vector;
+
 TEST_CASE("extract_image", "[em],[files],[manual]") {
     em::ImageStack image("data/A2M/A2M_ma.ccp4"); 
 

@@ -1,9 +1,9 @@
 #pragma once
 
-// forward declaration
 class Grid;
 
-// includes
+#include <vector>
+
 #include <data/Hetatom.h>
 #include <hydrate/GridMember.h>
 

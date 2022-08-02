@@ -3,6 +3,8 @@
 // forwards declaration
 class Protein;
 
+#include <vector>
+
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/StateManager.h>
@@ -18,7 +20,7 @@ namespace hist {
 	struct CompactCoordinates {
 		struct Data {
 			Data() {}
-			Data(const Vector3& v, float w) : x(v.x()), y(v.y()), z(v.z()), w(w) {}
+			Data(const Vector3<double>& v, float w) : x(v.x()), y(v.y()), z(v.z()), w(w) {}
 			float x, y, z, w;
 		};
 
@@ -32,10 +34,10 @@ namespace hist {
 		/**
 		 * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
 		 */
-		CompactCoordinates(const vector<Hetatom>& atoms);
+		CompactCoordinates(const std::vector<Hetatom>& atoms);
 
 		size_t size;
-		vector<Data> data;
+		std::vector<Data> data;
 	};
 
 	/**
@@ -57,7 +59,7 @@ namespace hist {
 			 * @param p The current histogram. 
 			 * @param p_base The constant, unchanging part of the histogram. 
 			 */
-			MasterHistogram(const vector<double>& p_base, const Axis& axis);
+			MasterHistogram(const std::vector<double>& p_base, const Axis& axis);
 
 			/**
 			 * @brief Add a PartialHistogram to the MasterHistogram. 
@@ -132,14 +134,14 @@ namespace hist {
 		private:
 			const size_t size;                            // number of managed bodies
 			StateManager statemanager;                    // a helper which keeps track of state changes in each body
-			vector<CompactCoordinates> coords_p;          // a compact representation of the relevant data from the managed bodies
+			std::vector<CompactCoordinates> coords_p;          // a compact representation of the relevant data from the managed bodies
 			CompactCoordinates coords_h;                  // a compact representation of the hydration data
 			Protein* protein;                             // pointer to the parent Protein
 
 			// histogram data
 			MasterHistogram master;                       // the current total histogram
-			vector<vector<PartialHistogram>> partials_pp; // the partial histograms
-			vector<HydrationHistogram> partials_hp;       // the partial hydration-atom histograms
+			std::vector<std::vector<PartialHistogram>> partials_pp; // the partial histograms
+			std::vector<HydrationHistogram> partials_hp;       // the partial hydration-atom histograms
 			HydrationHistogram partials_hh;               // the partial histogram for the hydration layer
 
 			/**

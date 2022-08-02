@@ -60,8 +60,8 @@ TEST_CASE("lookup_tables", "[table]") {
     }
 
     SECTION("object table") {
-        vector<Atom> atoms1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1), Atom(Vector3(1, -1, -1), 1, "C", "C", 1)};
-        vector<Atom> atoms2 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
+        vector<Atom> atoms1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1)};
+        vector<Atom> atoms2 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
 
         table::LookupTable<Atom, Atom> table(atoms1, atoms2);
 

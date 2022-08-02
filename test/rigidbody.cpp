@@ -9,14 +9,14 @@
 #include <data/Protein.h>
 
 TEST_CASE("Constraints", "[rigidbody]") {
-    Atom a1(Vector3(-1, -1, -1), 1, "C", "C", 1);
-    Atom a2(Vector3(-1,  1, -1), 1, "C", "C", 1);
-    Atom a3(Vector3(-1, -1,  1), 1, "C", "C", 1);
-    Atom a4(Vector3(-1,  1,  1), 1, "C", "C", 1);
-    Atom a5(Vector3( 1, -1, -1), 1, "C", "C", 1);
-    Atom a6(Vector3( 1,  1, -1), 1, "C", "C", 1);
-    Atom a7(Vector3( 1, -1,  1), 1, "C", "C", 1);
-    Atom a8(Vector3( 1,  1,  1), 1, "He", "He", 1);
+    Atom a1(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
+    Atom a2(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
+    Atom a3(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
+    Atom a4(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
+    Atom a5(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
+    Atom a6(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
+    Atom a7(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
+    Atom a8(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
 
     Body b1(std::vector<Atom>{a1, a2});
     Body b2(std::vector<Atom>{a3, a4});
@@ -128,10 +128,10 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
 }
 
 TEST_CASE("body_selectors", "[rigidbody]") {
-    vector<Atom> b1 = {Atom(Vector3(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b2 = {Atom(Vector3(1, -1, -1), 1, "C", "C", 1), Atom(Vector3(1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b3 = {Atom(Vector3(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3(-1, 1, 1), 1, "C", "C", 1)};
-    vector<Atom> b4 = {Atom(Vector3(1, -1, 1), 1, "C", "C", 1), Atom(Vector3(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
     vector<vector<Atom>> atoms = {b1, b2, b3, b4};
     Protein protein(atoms, {});
 

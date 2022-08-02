@@ -32,7 +32,7 @@ class SimpleParameterGeneration : public ParameterGenerationStrategy {
             return std::tuple(dr1, dr2, dr3);
         }
 
-        Vector3 get_translation() override {       
+        Vector3<double> get_translation() override {       
             double scaling = scale();
 
             double dx = translation_dist(generator)*scaling;

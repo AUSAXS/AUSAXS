@@ -21,7 +21,7 @@ Atom::Atom(const Atom&& a) noexcept : coords(a.coords), name(a.name), altLoc(a.a
 Atom::Atom(const Atom& a) :coords(a.coords), name(a.name), altLoc(a.altLoc), resName(a.resName), chainID(a.chainID), iCode(a.iCode), element(a.element), 
     charge(a.charge), occupancy(a.occupancy), tempFactor(a.tempFactor), serial(a.serial), resSeq(a.resSeq), effective_charge(a.effective_charge), uid(a.uid) {}
 
-Atom::Atom(const Vector3 v, const double occupancy, const string element, const string name, int serial) {
+Atom::Atom(const Vector3<double> v, const double occupancy, const string element, const string name, int serial) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(v);
     set_occupancy(occupancy);
@@ -33,7 +33,7 @@ Atom::Atom(const Vector3 v, const double occupancy, const string element, const 
 }
 
 Atom::Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
-    const string iCode, const Vector3 coords, const double occupancy, const double tempFactor, const string element, const string charge) {
+    const string iCode, const Vector3<double> coords, const double occupancy, const double tempFactor, const string element, const string charge) {
         set_serial(serial);
         set_name(name);
         set_altLoc(altLoc);
@@ -178,10 +178,10 @@ string Atom::as_pdb() const {
 Record::RecordType Atom::get_type() const {return ATOM;}
 
 double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
-void Atom::translate(const Vector3 v) {coords += v;}
+void Atom::translate(Vector3<double> v) {coords += v;}
 bool Atom::is_water() const {return false;}
 
-void Atom::set_coordinates(const Vector3 v) {coords = v;}
+void Atom::set_coordinates(Vector3<double> v) {coords = v;}
 void Atom::set_x(double x) {coords.x() = x;}
 void Atom::set_y(double y) {coords.y() = y;}
 void Atom::set_z(double z) {coords.z() = z;}
@@ -204,8 +204,8 @@ void Atom::set_element(string element) {
     this->element = element;
 }
 
-Vector3& Atom::get_coordinates() {return coords;}
-const Vector3& Atom::get_coordinates() const {return coords;}
+Vector3<double>& Atom::get_coordinates() {return coords;}
+const Vector3<double>& Atom::get_coordinates() const {return coords;}
 int Atom::get_serial() const {return serial;}
 int Atom::get_resSeq() const {return resSeq;}
 double Atom::get_occupancy() const {return occupancy;}

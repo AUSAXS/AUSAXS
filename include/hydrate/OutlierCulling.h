@@ -14,6 +14,6 @@ namespace grid {
         ~OutlierCulling() override {}
 
         // runs in O(n ln n) where n is the number of water molecules
-        vector<Hetatom> cull(vector<GridMember<Hetatom>>& placed_water) const override;
+        std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override;
     };
 }

@@ -19,6 +19,8 @@
 using namespace setting::em;
 using namespace em;
 
+using std::vector;
+
 ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution) 
     : resolution(resolution), size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
     

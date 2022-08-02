@@ -32,6 +32,6 @@ class RandomSelect : public BodySelectStrategy {
         }
 
     private:
-          std::mt19937 generator;                          // The random number generator. 
-          std::uniform_int_distribution<int> distribution; // The random number distribution. 
+        std::mt19937 generator;                          // The random number generator. 
+        std::uniform_int_distribution<int> distribution; // The random number distribution. 
 };

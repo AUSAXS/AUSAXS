@@ -3,6 +3,8 @@
 
 #include <utility>
 
+using std::vector;
+
 vector<Hetatom> grid::OutlierCulling::cull(vector<grid::GridMember<Hetatom>>& placed_water) const {
     if (target_count == 0) {
         vector<Hetatom> final_water(placed_water.size());

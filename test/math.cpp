@@ -8,6 +8,7 @@
 #include <random>
 
 #include <math/Matrix.h>
+#include <math/MatrixUtils.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
 #include <math/Cramer2DSolver.h>
@@ -42,9 +43,9 @@ Matrix<double> GenRandMatrix(int n, int m) {
 }
 
 TEST_CASE("Vector3", "[math]") {
-    Vector3 x = {1, 2, 3};
-    Vector3 y = {4, 5, 6};
-    Vector3 z = {7, 8, 9};
+    Vector3<double> x = {1, 2, 3};
+    Vector3<double> y = {4, 5, 6};
+    Vector3<double> z = {7, 8, 9};
 
     SECTION("basic operations") {
         // access
@@ -132,7 +133,7 @@ TEST_CASE("Vector3", "[math]") {
         y = {0, 1, 0};
         z = {0, 0, 1};
 
-        Vector3 axis = {0, 1, 0};
+        Vector3<double> axis = {0, 1, 0};
         x.rotate(axis, M_PI_2);
         y.rotate(axis, M_PI_2);
         z.rotate(axis, M_PI_2);
@@ -166,8 +167,8 @@ TEST_CASE("Vector3", "[math]") {
         REQUIRE(x.normalize_copy() == Vector3{1, 0, 0});
 
         x = {1, 1, 0};
-        REQUIRE(x.normalize() == Vector3{1, 1, 0}*sqrt(2)/2);
-        REQUIRE(x.normalize_copy() == Vector3{1, 1, 0}*sqrt(2)/2);
+        REQUIRE(x.normalize() == Vector3<double>{1, 1, 0}*sqrt(2)/2);
+        REQUIRE(x.normalize_copy() == Vector3<double>{1, 1, 0}*sqrt(2)/2);
     }
 
     SECTION("generate_basis") {
@@ -382,13 +383,13 @@ TEST_CASE("Matrix", "[math]") {
 
     SECTION("rotations") {
         // check basic rotations
-        Matrix R = Matrix<double>::rotation_matrix(M_PI/2, 0, 0);
+        Matrix R = matrix::rotation_matrix(M_PI/2, 0, 0);
         REQUIRE(R == Matrix{{1, 0, 0}, {0, 0, -1}, {0, 1, 0}});
 
-        R = Matrix<double>::rotation_matrix(0, M_PI/2, 0);
+        R = matrix::rotation_matrix(0, M_PI/2, 0);
         REQUIRE(R == Matrix{{0, 0, 1}, {0, 1, 0}, {-1, 0, 0}});
 
-        R = Matrix<double>::rotation_matrix(0, 0, M_PI/2);
+        R = matrix::rotation_matrix(0, 0, M_PI/2);
         REQUIRE(R == Matrix{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}});
     }
 }
@@ -674,7 +675,7 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
 TEST_CASE("orthonormal_rotations", "[math]") {
     for (int i = 0; i < 10; i++) {
         Vector3 angles = GenRandVector(3);
-        Matrix R = Matrix<double>::rotation_matrix(angles.x(), angles.y(), angles.z());
+        Matrix R = matrix::rotation_matrix(angles.x(), angles.y(), angles.z());
         Matrix Ri = R.T();
         REQUIRE(R*Ri == Matrix<double>::identity(3));
     }
@@ -682,7 +683,7 @@ TEST_CASE("orthonormal_rotations", "[math]") {
     for (int i = 0; i < 10; i++) {
         Vector3 axis = GenRandVector(3);
         double angle = GenRandScalar();
-        Matrix R = Matrix<double>::rotation_matrix(axis, angle);
+        Matrix R = matrix::rotation_matrix(axis, angle);
         Matrix Ri = R.T();
         REQUIRE(R*Ri == Matrix<double>::identity(3));
     }

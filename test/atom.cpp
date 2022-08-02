@@ -6,7 +6,7 @@
 TEST_CASE("Atom", "[atom]") {
     // "element", "resName", and "name" are used for some internal logic, and must have reasonable values. "" can also be used. 
 //*** ATOMS ***//
-    Atom a1 = Atom(15, "", "altLoc", "", "chainID", 3, "iCode", Vector3({0, 1, 2}), 2.5, 3.5, "He", "2-");
+    Atom a1 = Atom(15, "", "altLoc", "", "chainID", 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, "He", "2-");
     Atom a2 = Atom({3, 0, 5}, 2, "He", "", 3);
 
     CHECK(a1.serial == 15);
@@ -36,7 +36,7 @@ TEST_CASE("Atom", "[atom]") {
     CHECK(a2.charge == "");
 
 //*** HETATOMS ***//
-    Hetatom w1 = Hetatom::create_new_water(Vector3({1, 2, 3}));
+    Hetatom w1 = Hetatom::create_new_water(Vector3<double>({1, 2, 3}));
     CHECK(w1.serial == -1);
     CHECK(w1.name == "O");
     CHECK(w1.altLoc == "");

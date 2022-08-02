@@ -44,7 +44,7 @@ class TransformationStrategy {
      * @brief Get all bodies connected by constraints to the first body of the pivot. 
      *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
      */
-    vector<Body*> get_connected(const Constraint& pivot) const;
+    std::vector<Body*> get_connected(const Constraint& pivot) const;
 
   protected: 
     const RigidBody* protein;

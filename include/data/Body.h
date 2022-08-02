@@ -90,7 +90,7 @@ class Body {
      * @brief Calculate the center-mass coordinates for the body.
      * @return The center-mass (x, y, z) coordinates. 
      */
-    Vector3 get_cm() const;
+    Vector3<double> get_cm() const;
 
     /**
      * @brief Calculate the volume of this body based on its constituent amino acids
@@ -146,7 +146,7 @@ class Body {
      * @brief Move the entire body by a vector.
      * @param v the translation vector
      */
-    void translate(const Vector3& v);
+    void translate(const Vector3<double>& v);
 
     /**
      * @brief Rotate all atoms by a given rotation matrix.
@@ -161,7 +161,7 @@ class Body {
      * @param axis the rotation axis. 
      * @param rad the amount to rotate in radians. 
      */
-    void rotate(const Vector3& axis, double rad);
+    void rotate(const Vector3<double>& axis, double rad);
 
     /**
      * ! Not implemented
@@ -229,7 +229,7 @@ class Body {
     std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-    shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
+    std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
 
   public: 
     size_t uid;                           // An unique identifier for this body

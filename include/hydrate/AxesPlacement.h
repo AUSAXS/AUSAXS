@@ -14,7 +14,7 @@ namespace grid {
         using PlacementStrategy::PlacementStrategy; // inherit constructor
         ~AxesPlacement() override {}
 
-        vector<GridMember<Hetatom>> place() const override;
+        std::vector<GridMember<Hetatom>> place() const override;
 
     private:
 
@@ -23,6 +23,6 @@ namespace grid {
          * @param loc the location to be checked. 
          * @return True if this is an acceptable location, false otherwise.
          */
-        bool collision_check(const vector<int> loc) const;
+        bool collision_check(const std::vector<unsigned int>& loc) const;
     };
 }

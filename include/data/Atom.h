@@ -22,7 +22,7 @@ class Atom : public Record {
      * @param name the molecule (e.g. HOH).
      * @param serial the serial number of this atom.
      */
-    Atom(const Vector3 v, const double occupancy, std::string element, std::string name, int serial);
+    Atom(const Vector3<double> v, const double occupancy, std::string element, std::string name, int serial);
 
     /**
      * @brief Construct a new Atom object.
@@ -30,7 +30,7 @@ class Atom : public Record {
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
     Atom(int serial, std::string name, std::string altLoc, std::string resName, std::string chainID, int resSeq, 
-        std::string iCode, const Vector3 coords, double occupancy, double tempFactor, std::string element, std::string charge);
+        std::string iCode, const Vector3<double> coords, double occupancy, double tempFactor, std::string element, std::string charge);
 
     /**
      * @brief Construct a new empty Atom object.
@@ -69,7 +69,7 @@ class Atom : public Record {
      * 
      * @param v the translation vector.
      */
-    void translate(const Vector3 v);
+    void translate(Vector3<double> v);
 
     /**
      * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
@@ -79,7 +79,7 @@ class Atom : public Record {
     virtual bool is_water() const;
 
 //*** setters ***//
-    void set_coordinates(const Vector3 v);
+    void set_coordinates(Vector3<double> v);
     void set_x(double x);
     void set_y(double y);
     void set_z(double z);
@@ -115,8 +115,8 @@ class Atom : public Record {
     void set_element(std::string element);
 
 //*** getters ***//
-    Vector3& get_coordinates();
-    const Vector3& get_coordinates() const;
+    Vector3<double>& get_coordinates();
+    const Vector3<double>& get_coordinates() const;
     int get_serial() const;
     int get_resSeq() const;
     double get_occupancy() const;
@@ -192,7 +192,7 @@ class Atom : public Record {
     Atom& operator=(const Atom& rhs);
 
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
-    Vector3 coords = {0, 0, 0};
+    Vector3<double> coords = {0, 0, 0};
     std::string name = "", altLoc = "", resName = "", chainID = "", iCode = "", element = "", charge = "";
     double occupancy = -1, tempFactor = -1;
     int serial = -1, resSeq = -1; 

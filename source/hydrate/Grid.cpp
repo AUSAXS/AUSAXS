@@ -33,14 +33,16 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
     vector<int> imin, imax;
     auto[min, max] = bounding_box(atoms);
 
-    // expand the box by 10%
+    // expand the box by the scaling factor
     for (auto& v : min) {
         if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));} // if v is smaller than 0, multiply by 1+s
         else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}       //                    else multiply by 1-s
     }
+
+    // add 1 in case the scaling factor is too small to actually make the box bigger, to ensure all atoms still fit
     for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)));} // if v is larger than 0, multiply by 1+s
-        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)));}       //                   else multiply by 1-s
+        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling) + 1));} // if v is larger than 0, multiply by 1+s
+        else {imax.push_back(std::round(v*(1 - setting::grid::scaling) + 1));}       //                   else multiply by 1-s
     }
 
     // setup the rest of the class members
@@ -171,11 +173,25 @@ vector<GridMember<Hetatom>> Grid::find_free_locs() {
     return placed_water;
 }
 
-std::pair<Vector3, Vector3> Grid::bounding_box() const {
-    return Grid::bounding_box(get_atoms());
+std::pair<std::vector<unsigned int>, std::vector<unsigned int>> Grid::bounding_box_index() const {
+    std::cout << "grid bounding box" << std::endl;
+    if (__builtin_expect(a_members.size() == 0, false)) {
+        throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
+    }
+
+    // initialize the bounds as large as possible
+    vector<vector<unsigned int>> box = {{axes.x.bins, 0U}, {axes.y.bins, 0U}, {axes.z.bins, 0U}};
+    for (const auto& atom : a_members) {
+        for (int i = 0; i < 3; i++) {
+            if (box[i][0] > atom.loc[i]) box[i][0] = atom.loc[i]; // min
+            if (box[i][1] < atom.loc[i]) box[i][1] = atom.loc[i]+1; // max. +1 since this will often be used as loop limits
+        }
+    }
+    utility::print_warning("Warning in Grid::bounding_box: Not implemented yet.");
+    return std::make_pair(box[0], box[1]);
 }
 
-std::pair<Vector3, Vector3> Grid::bounding_box(const vector<Atom>& atoms) {
+std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const vector<Atom>& atoms) {
     // initialize the bounds as large as possible
     Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
     Vector3 max = {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
@@ -449,13 +465,13 @@ void Grid::deflate_volume(GridMember<Hetatom>& water) {
 }
 
 void Grid::deflate_volume(const vector<unsigned int>& loc, const bool is_water) {
-    const int x = loc[0], y = loc[1], z = loc[2];
+    unsigned int x = loc[0], y = loc[1], z = loc[2];
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(axes.x.bins)); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(axes.y.bins)); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(axes.z.bins)); // zminus and zplus
+    unsigned int r = is_water ? rh : ra; // determine which radius to use for the expansion
+    int xm = std::max(x-r, (unsigned int) 0), xp = std::min(x+r+1, axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, (unsigned int) 0), yp = std::min(y+r+1, axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, (unsigned int) 0), zp = std::min(z+r+1, axes.z.bins); // zminus and zplus
 
     // loop over each bin in the box
     int removed_volume = -1; // -1 because we overwrite the center
@@ -493,14 +509,14 @@ vector<unsigned int> Grid::get_bins() const {
     return {axes.x.bins, axes.y.bins, axes.z.bins};
 }
 
-vector<unsigned int> Grid::to_bins(const Vector3& v) const {
+vector<unsigned int> Grid::to_bins(const Vector3<double>& v) const {
     unsigned int binx = std::round((v.x() - axes.x.min)/width);
     unsigned int biny = std::round((v.y() - axes.y.min)/width);
     unsigned int binz = std::round((v.z() - axes.z.min)/width);
     return {binx, biny, binz};
 }
 
-Vector3 Grid::to_xyz(const vector<int>& v) const {
+Vector3<double> Grid::to_xyz(const vector<unsigned int>& v) const {
     double x = axes.x.min + width*v[0];
     double y = axes.y.min + width*v[1];
     double z = axes.z.min + width*v[2];

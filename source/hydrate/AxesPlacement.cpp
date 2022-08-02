@@ -1,16 +1,18 @@
 #include <hydrate/AxesPlacement.h>
 #include <hydrate/Grid.h>
 
+using std::vector;
+
 vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
     auto bins = grid->get_bins();
-    const int ra = grid->ra; const int rh = grid->rh;
+    unsigned int ra = grid->ra, rh = grid->rh;
 
     // short lambda to actually place the generated water molecules
     vector<GridMember<Hetatom>> placed_water(grid->a_members.size());
     size_t index = 0;
-    auto add_loc = [&] (const Vector3 exact_loc) {
+    auto add_loc = [&] (Vector3<double> exact_loc) {
         Hetatom a = Hetatom::create_new_water(exact_loc);
         GridMember<Hetatom> gm = grid->add(a, true);
         if (__builtin_expect(placed_water.size() <= index, false)) {
@@ -20,15 +22,15 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    int r_eff = ra+rh;                           // the effective bin radius
+    unsigned int r_eff = ra+rh;                  // the effective bin radius
     double r_eff_real = r_eff*grid->get_width(); // the effective real radius
     for (const auto& atom : grid->a_members) {
-        const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        unsigned int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-        int xm = std::max(x-r_eff, 0), xp = std::min(x+r_eff, int(bins[0])-1); // xminus and xplus
-        int ym = std::max(y-r_eff, 0), yp = std::min(y+r_eff, int(bins[1])-1); // yminus and yplus
-        int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, int(bins[2])-1); // zminus and zplus
+        unsigned int xm = std::max(x-r_eff, 0U), xp = std::min(x+r_eff, bins[0]-1); // xminus and xplus
+        unsigned int ym = std::max(y-r_eff, 0U), yp = std::min(y+r_eff, bins[1]-1); // yminus and yplus
+        unsigned int zm = std::max(z-r_eff, 0U), zp = std::min(z+r_eff, bins[2]-1); // zminus and zplus
 
         // check collisions for x ± r_eff
         if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {
@@ -71,7 +73,7 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     return placed_water;
 }
 
-bool grid::AxesPlacement::collision_check(const vector<int> loc) const {
+bool grid::AxesPlacement::collision_check(const vector<unsigned int>& loc) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
     auto bins = grid->get_bins();

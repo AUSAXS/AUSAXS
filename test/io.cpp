@@ -10,7 +10,7 @@
 #include <data/Protein.h>
 #include <utility/Utility.h>
 
-using std::cout, std::endl;
+using std::cout, std::endl, std::vector;
 
 bool compareFiles(const std::string& p1, const std::string& p2) {
     std::ifstream f1(p1, std::ifstream::binary);

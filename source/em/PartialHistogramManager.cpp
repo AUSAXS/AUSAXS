@@ -28,9 +28,9 @@ std::vector<Atom> em::PartialHistogramManager::generate_atoms(double cutoff) con
 }
 
 std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cutoff) const {
-    vector<Atom> atoms = generate_atoms(cutoff);
-    vector<Body> bodies(charge_levels.size());
-    vector<Atom> current_atoms(atoms.size());
+    std::vector<Atom> atoms = generate_atoms(cutoff);
+    std::vector<Body> bodies(charge_levels.size());
+    std::vector<Atom> current_atoms(atoms.size());
 
     if (atoms.empty()) {
         utility::print_warning("Warning in PartialHistogramManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");

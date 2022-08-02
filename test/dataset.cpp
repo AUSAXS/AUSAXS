@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+using std::vector;
+
 TEST_CASE("debug", "[dataset],[disable]") {
     Multiset data("temp/multiset");
     std::cout << data[0].size() << std::endl;

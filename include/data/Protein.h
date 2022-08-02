@@ -131,7 +131,7 @@ class Protein {
     /** 
      * @brief Calculate the center-mass coordinates.
      */
-    Vector3 get_cm() const;
+    Vector3<double> get_cm() const;
 
     /**
      * @brief Calculate the molar mass of this protein in Daltons.
@@ -268,7 +268,7 @@ class Protein {
      * @brief Move the entire protein by a vector.
      * @param v the translation vector.
      */
-    void translate(const Vector3& v);
+    void translate(const Vector3<double>& v);
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 

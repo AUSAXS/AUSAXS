@@ -12,6 +12,7 @@
 #include <math/Vector3.h>
  
 using namespace ROOT;
+using std::vector;
 
 TEST_CASE("grid_generation", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
@@ -39,13 +40,13 @@ TEST_CASE("bounding_box", "[grid]") {
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);
 
-        auto[min, max] = grid.bounding_box();
-        REQUIRE(min[0] == 10);
-        REQUIRE(max[0] == 11);
-        REQUIRE(min[1] == 10);
-        REQUIRE(max[1] == 11);
-        REQUIRE(min[2] == 10);
-        REQUIRE(max[2] == 11);
+        auto[min, max] = grid.bounding_box_index();
+        CHECK(min[0] == 10);
+        CHECK(max[0] == 11);
+        CHECK(min[1] == 10);
+        CHECK(max[1] == 11);
+        CHECK(min[2] == 10);
+        CHECK(max[2] == 11);
     }
 
     SECTION("complex") {
@@ -53,13 +54,13 @@ TEST_CASE("bounding_box", "[grid]") {
         grid.add(a);
         grid.expand_volume();
 
-        auto[min, max] = grid.bounding_box();
-        REQUIRE(min[0] == 10);
-        REQUIRE(max[0] == 16);
-        REQUIRE(min[1] == 5);
-        REQUIRE(max[1] == 11);
-        REQUIRE(min[2] == 3);
-        REQUIRE(max[2] == 11);
+        auto[min, max] = grid.bounding_box_index();
+        CHECK(min[0] == 10);
+        CHECK(max[0] == 16);
+        CHECK(min[1] == 5);
+        CHECK(max[1] == 11);
+        CHECK(min[2] == 3);
+        CHECK(max[2] == 11);
     }
 }
 
@@ -208,7 +209,9 @@ TEST_CASE("hydrate", "[grid],[files]") {
         for (unsigned int i = 0; i < g1.size(); i++) {
             for (unsigned int j = 0; j < g1[i].size(); j++) {
                 for (unsigned int k = 0; k < g1[i][j].size(); k++) {
-                    CHECK(g1[i][j][k] == g2[i][j][k]);
+                    if (g1[i][j][k] != g2[i][j][k]) {
+                        REQUIRE(g1[i][j][k] != g2[i][j][k]);
+                    }
                 }
             }
         }
@@ -263,7 +266,7 @@ TEST_CASE("width", "[grid]") {
         grid.add(a);
         grid.expand_volume();
 
-        auto[min, max] = grid.bounding_box();
+        auto[min, max] = grid.bounding_box_index();
         REQUIRE(min[0] == 100);
         REQUIRE(max[0] == 151);
         REQUIRE(min[1] == 50);
@@ -286,9 +289,9 @@ TEST_CASE("add_remove", "[grid]") {
     vector<Atom> a = {a1, a2, a3};
 
     // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector3({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector3({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector3({-3, 0, 0}));
+    Hetatom w1 = Hetatom::create_new_water(Vector3<double>({0, 0, -3}));
+    Hetatom w2 = Hetatom::create_new_water(Vector3<double>({0, -3, 0}));
+    Hetatom w3 = Hetatom::create_new_water(Vector3<double>({-3, 0, 0}));
     vector<Hetatom> w = {w1, w2, w3};
 
     SECTION("add") {
@@ -380,9 +383,9 @@ TEST_CASE("correct_volume", "[grid]") {
     vector<Atom> a = {a1, a2, a3};
 
     // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector3({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector3({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector3({-3, 0, 0}));
+    Hetatom w1 = Hetatom::create_new_water(Vector3<double>({0, 0, -3}));
+    Hetatom w2 = Hetatom::create_new_water(Vector3<double>({0, -3, 0}));
+    Hetatom w3 = Hetatom::create_new_water(Vector3<double>({-3, 0, 0}));
     vector<Hetatom> w = {w1, w2, w3};
 
     // single non-overlapping
@@ -421,7 +424,7 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
     REQUIRE(locs.size() == 6);
 
     // since this needs to work with different placement strategies, we have to perform a more general check on the positions
-    vector<Vector3> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
+    vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
     if (locs.size() >= 6) { // avoid crashing if the above fails
         for (const auto& l : locs) {
             bool found = false;

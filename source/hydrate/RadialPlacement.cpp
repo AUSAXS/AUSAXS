@@ -2,6 +2,8 @@
 #include <hydrate/Grid.h>
 #include <utility/Settings.h>
 
+using std::vector;
+
 void grid::RadialPlacement::prepare_rotations(const int divisions) {
     const int rh = grid->rh, ra = grid->ra;
 
@@ -11,7 +13,7 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
     vector<vector<int>> bins_5rh;
     vector<vector<int>> bins_7rh;
     vector<vector<int>> bins_rarh;
-    vector<Vector3> locs_rarh;
+    vector<Vector3<double>> locs_rarh;
     double ang = 2*M_PI/divisions;
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
@@ -56,7 +58,7 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
 
     double rarh = ra+rh;
     for (const auto& rot : rots) {
-        const double xr = rot[0], yr = rot[1], zr = rot[2];
+        double xr = rot[0], yr = rot[1], zr = rot[2];
         bins_1rh.push_back({(int) std::trunc(rh*xr), (int) std::trunc(rh*yr), (int) std::trunc(rh*zr)});
         bins_3rh.push_back({(int) std::trunc(3*rh*xr), (int) std::trunc(3*rh*yr), (int) std::trunc(3*rh*zr)});
         bins_5rh.push_back({(int) std::trunc(5*rh*xr), (int) std::trunc(5*rh*yr), (int) std::trunc(5*rh*zr)});
@@ -82,7 +84,7 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     // we define a helper lambda
     vector<GridMember<Hetatom>> placed_water(grid->a_members.size());
     size_t index = 0;
-    auto add_loc = [&] (const Vector3 exact_loc) {
+    auto add_loc = [&] (Vector3<double> exact_loc) {
         Hetatom a = Hetatom::create_new_water(exact_loc);
         GridMember<Hetatom> gm = grid->add(a, true);
         if (__builtin_expect(placed_water.size() <= index, false)) {
@@ -92,7 +94,7 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     };
 
     for (const auto& atom : grid->a_members) {
-        const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        unsigned int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
 
         for (size_t i = 0; i < rot_bins_rarh.size(); i++) {
             int xr = x + rot_bins_rarh[i][0], yr = y + rot_bins_rarh[i][1], zr = z + rot_bins_rarh[i][2]; // new coordinates
@@ -106,9 +108,9 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
             if (zr >= bins[2]) zr = bins[2]-1;
 
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
-            const vector<int> skip_bin = {xr-rot_bins_1rh[i][0], yr-rot_bins_1rh[i][1], zr-rot_bins_1rh[i][2]};
-            if (gref[xr][yr][zr] == 0 && collision_check({xr, yr, zr}, skip_bin)) {
-                Vector3 exact_loc = atom.atom.coords + rot_locs_rarh[i];
+            vector<unsigned int> skip_bin = {(unsigned int) xr-rot_bins_1rh[i][0], (unsigned int) yr-rot_bins_1rh[i][1], (unsigned int) zr-rot_bins_1rh[i][2]};
+            if (gref[xr][yr][zr] == 0 && collision_check({(unsigned int) xr, (unsigned int) yr, (unsigned int) zr}, skip_bin)) {
+                Vector3<double> exact_loc = atom.atom.coords + rot_locs_rarh[i];
                 add_loc(exact_loc);
             };
         }
@@ -118,7 +120,7 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
-bool grid::RadialPlacement::collision_check(const vector<int>& loc, const vector<int>& skip_bin) const {
+bool grid::RadialPlacement::collision_check(const vector<unsigned int>& loc, const vector<unsigned int>& skip_bin) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -148,7 +150,7 @@ bool grid::RadialPlacement::collision_check(const vector<int>& loc, const vector
         if (zr >= bins[2]) zr = bins[2]-1;
 
         if (gref[xr][yr][zr] != 0) {
-            if (vector({xr, yr, zr}) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
+            if (vector({(unsigned int) xr, (unsigned int) yr, (unsigned int) zr}) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
             return false;
         }
 

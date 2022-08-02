@@ -30,7 +30,7 @@ class Hetatom : public Atom {
      * @brief Create a new water atom.
      * @param coords the coordinates for the new atom.
      */
-    static Hetatom create_new_water(Vector3 coords) {
+    static Hetatom create_new_water(Vector3<double> coords) {
         return Hetatom(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
     }
 

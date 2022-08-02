@@ -7,6 +7,8 @@
 
 using namespace hist;
 
+using std::vector;
+
 CompactCoordinates::CompactCoordinates(const Body& body) : size(body.get_protein_atoms().size()), data(size) {
     for (unsigned int i = 0; i < size; i++) {
         const Atom& a = body.protein_atom(i); 

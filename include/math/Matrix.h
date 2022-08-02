@@ -10,12 +10,11 @@
 
 #include <math/Slice.h>
 #include <math/Vector.h>
-#include <math/Vector3.h>
 #include <math/LUPDecomposition.h>
 
 #define SAFE_MATH true
+#include <signal.h>
 
-        #include <signal.h>
 template<typename Q>
 class Matrix {
     public: 
@@ -328,44 +327,6 @@ class Matrix {
                 }
                 std::cout << std::endl;
             }
-        }
-
-        /**
-         * @brief Generate a 3x3 extrinsic rotation matrix.
-         */
-        static Matrix<double> rotation_matrix(double alpha, double beta, double gamma) {
-            double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
-            double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);
-            double sinasinb = sina*sinb, cosasinb = cosa*sinb;
-
-            return Matrix{{cosb*cosg, sinasinb*cosg - cosa*sing, cosasinb*cosg + sina*sing}, 
-                            {cosb*sing, sinasinb*sing + cosa*cosg, cosasinb*sing - sina*cosg},
-                            {-sinb,     sina*cosb,                 cosa*cosb}};
-        }
-
-        /**
-         * @brief Generate a 3x3 rotation matrix from a rotation axis and an angle around this axis. 
-         *        This uses the Euler-Rodrigues formulation.
-         * @param axis The rotation axis.
-         * @param angle The rotation angle.
-         */
-        static Matrix<double> rotation_matrix(const Vector3& axis, double angle) {
-            Vector3 ax = axis.normalize_copy();
-            double a = cos(angle/2);
-            double b = sin(angle/2);
-            double c = b;
-            double d = b;
-            b *= ax.x();
-            c *= ax.y();
-            d *= ax.z();
-
-            double aa = a*a, bb = b*b, cc = c*c, dd = d*d;
-            double bc = b*c, ad = a*d, ac = a*c, ab = a*b, bd = b*d, cd = c*d;
-
-            Matrix R{{aa+bb-cc-dd, 2*(bc-ad),   2*(bd+ac)}, 
-                    {2*(bc+ad),   aa+cc-bb-dd, 2*(cd-ab)},
-                    {2*(bd-ac),   2*(cd+ab),   aa+dd-bb-cc}};
-            return R;
         }
 
         size_t N, M;
