@@ -1,13 +1,13 @@
 # Todo
+ * [ ] Vector3: Template this class so it can also be used with unsigned ints. Use it instead of raw vectors in Grid methods. 
  * [ ] IntensityFitter: Locally stored fit does not contain plots. Currently fixed by returning another fit. 
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled
  * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_na.ccp4. Probably something to do with assumed negative staining?
  * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
- * [x] Dataset & Histogram: Basically same class, can maybe be combined somehow?
- * [ ] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
+ * [x] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
  * [ ] EMFitter: Handle absolute scale properly.
- * [ ] Use nothrow
+ * [x] Use nothrow
  * [ ] gentag alt for de andre filer
  * [ ] flow diagram med hvad vi rent faktisk laver
  * [ ] General: Consistency check of DrhoM
@@ -17,7 +17,6 @@
  * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] Memory test all other executables.
- * [x] General: Determine where hydration_atoms should be stored. The Protein class seems like the best choice. 
  * [ ] Constants: Rethink how to determine charge densities for arbitrary ligands
  * [ ] Matrix & Slice: Remove debug segfaults for out-of-bounds indices
 

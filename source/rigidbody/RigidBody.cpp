@@ -49,7 +49,7 @@ void RigidBody::optimize(string measurement_path) {
 
     Parameters params(protein);
     std::shared_ptr<Grid> grid = protein.get_grid();
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 10; i++) {
         // select a body to be modified this iteration
         int body_index = body_selector->next();
         Body& body = protein.bodies.at(body_index);
@@ -82,9 +82,14 @@ void RigidBody::optimize(string measurement_path) {
             protein.set_grid(old_grid);
             protein.generate_new_hydration();
             fitter.set_scattering_hist(protein.get_histogram());
-            double ___chi2 = fitter.fit()->fval;
 
+            double ___chi2 = fitter.fit()->fval;
             std::cout << "\trerolled changes. chi2 is now: " << ___chi2 << std::endl << std::endl;
+
+            protein.generate_new_hydration();
+            fitter.set_scattering_hist(protein.get_histogram());
+            ___chi2 = fitter.fit()->fval;
+            std::cout << "\tsanity check. chi2 is now: " << ___chi2 << std::endl << std::endl;
 
         } else {
             // accept the changes

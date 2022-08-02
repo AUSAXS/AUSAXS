@@ -159,31 +159,76 @@ TEST_CASE("volume", "[grid]") {
     REQUIRE(grid.volume == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
 }
 
-TEST_CASE("hydrate", "[grid]") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
-    int width = 1;
-    int radius = 3;
-    Grid grid(axes, width, radius);
+TEST_CASE("hydrate", "[grid],[files]") {
 
-    // add a single atom to the grid, and hydrate it
-    setting::grid::percent_water = 0;
-    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
-    grid.add(a);
-    REQUIRE(grid.get_atoms().size() == 1); // check get_protein_atoms
+    // check that all the expected hydration sites are found
+    SECTION("correct placement") {
+        Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+        int width = 1;
+        int radius = 3;
+        Grid grid(axes, width, radius);
 
-    vector<Hetatom> water = grid.hydrate();
+        // add a single atom to the grid, and hydrate it
+        setting::grid::percent_water = 0;
+        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        grid.add(a);
+        REQUIRE(grid.get_atoms().size() == 1); // check get_protein_atoms
 
-    REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
-    if (water.size() == 6) { // avoid crashing if the above fails
-        REQUIRE(water[0].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-        REQUIRE(water[1].coords == Vector3{6, 0, 0}); // (2r, 0, 0)
-        REQUIRE(water[2].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-        REQUIRE(water[3].coords == Vector3{0, 6, 0}); // (0, 2r, 0)
-        REQUIRE(water[4].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-        REQUIRE(water[5].coords == Vector3{0, 0, 6}); // (0, 0, 2r)
+        vector<Hetatom> water = grid.hydrate();
+
+        REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
+        CHECK(water[0].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
+        CHECK(water[1].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
+        CHECK(water[2].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
+        CHECK(water[3].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
+        CHECK(water[4].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
+        CHECK(water[5].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
+
+        REQUIRE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
     }
 
-    REQUIRE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
+    // check that a hydration operation is reversible
+    SECTION("reversible") {
+        // get the grid before hydrating it
+        Protein protein("data/LAR1-2/LAR1-2.pdb");
+        protein.clear_hydration();
+        auto g1 = protein.get_grid()->grid;
+
+        // hydrate it and clear the hydration
+        protein.generate_new_hydration();
+        protein.clear_hydration();
+        auto g2 = protein.get_grid()->grid;
+
+        // check sizes
+        REQUIRE((g1.size() == g2.size() && !g1.empty()));
+        REQUIRE((g1[0].size() == g2[0].size() && !g1[0].empty()));
+        REQUIRE(g1[0][0].size() == g2[0][0].size());
+
+        // check that the grids are the same
+        for (unsigned int i = 0; i < g1.size(); i++) {
+            for (unsigned int j = 0; j < g1[i].size(); j++) {
+                for (unsigned int k = 0; k < g1[i][j].size(); k++) {
+                    CHECK(g1[i][j][k] == g2[i][j][k]);
+                }
+            }
+        }
+    }
+
+    // check that a hydration operation produces consistent results
+    SECTION("consistency") {
+        Protein protein("data/LAR1-2/LAR1-2.pdb");
+        protein.generate_new_hydration();
+        auto h1 = protein.get_hydration_atoms();
+        auto a1 = protein.get_protein_atoms();
+        protein.generate_new_hydration();
+        auto h2 = protein.get_hydration_atoms();
+        auto a2 = protein.get_protein_atoms();
+
+        // check that the hydration generation is deterministic
+        for (unsigned int i = 0; i < h1.size(); i++) {
+            REQUIRE(a1[i].coords == a2[i].coords);
+        }
+    }
 }
 
 TEST_CASE("width", "[grid]") {
@@ -288,9 +333,9 @@ TEST_CASE("add_remove", "[grid]") {
 
         // check old centers
         vector<vector<vector<char>>> &g = grid.grid;
-        vector<int> loc_a2 = grid.to_bins(a2.coords);
-        vector<int> loc_w1 = grid.to_bins(w1.coords);
-        vector<int> loc_w3 = grid.to_bins(w3.coords);
+        auto loc_a2 = grid.to_bins(a2.coords);
+        auto loc_w1 = grid.to_bins(w1.coords);
+        auto loc_w3 = grid.to_bins(w3.coords);
         REQUIRE(g[loc_a2[0]][loc_a2[1]][loc_a2[2]] == 0);
         REQUIRE(g[loc_w1[0]][loc_w1[1]][loc_w1[2]] == 0);
         REQUIRE(g[loc_w3[0]][loc_w3[1]][loc_w3[2]] == 0);
@@ -409,10 +454,10 @@ TEST_CASE("volume_deflation", "[grid]") {
     vector<vector<vector<char>>> &g = grid.grid;
     REQUIRE(grid.volume == 2);
 
-    vector<int> bins = grid.get_bins();
-    for (int i = 0; i < bins[0]; i++) {
-        for (int j = 0; j < bins[1]; j++) {
-            for (int k = 0; k < bins[2]; k++) {
+    auto bins = grid.get_bins();
+    for (unsigned int i = 0; i < bins[0]; i++) {
+        for (unsigned int j = 0; j < bins[1]; j++) {
+            for (unsigned int k = 0; k < bins[2]; k++) {
                 if (__builtin_expect(i == 10 && j == 13 && k == 10, false)) {continue;} // center of the first atom
                 if (__builtin_expect(i == 13 && j == 10 && k == 10, false)) {continue;} // center of the second atom
                 if (g[i][j][k] != 0) {
