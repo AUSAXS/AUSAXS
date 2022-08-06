@@ -21,6 +21,11 @@ namespace matrix {
      * @param angle The rotation angle.
      */
     Matrix<double> rotation_matrix(const Vector3<double>& axis, double angle);
+
+    /**
+     * @brief Get the identity matrix of a given dimension. 
+     */
+    Matrix<double> identity(unsigned int dim);
 }
 
 namespace vector3 {

@@ -13,7 +13,8 @@ Matrix<double> matrix::rotation_matrix(double alpha, double beta, double gamma) 
 }
 
 Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, double angle) {
-    auto ax = axis.normalize_copy();
+    auto ax = axis; 
+    ax.normalize();
     double a = cos(angle/2);
     double b = sin(angle/2);
     double c = b;
@@ -31,8 +32,17 @@ Matrix<double> matrix::rotation_matrix(const Vector3<double>& axis, double angle
     return R;
 }
 
+Matrix<double> matrix::identity(unsigned int dim) {
+    Matrix<double> A(dim, dim);
+    for (unsigned int i = 0; i < dim; i++) {
+        A.index(i, i) = 1;
+    }
+    return A;
+} 
+
 std::tuple<Vector3<double>, Vector3<double>, Vector3<double>> vector3::generate_basis(const Vector3<double>& v) {
-    Vector3 n = v.normalize_copy();
+    Vector3 n = v;
+    n.normalize();
 
     // Handle the singularity
     if (n.z() < -0.9999999) { 

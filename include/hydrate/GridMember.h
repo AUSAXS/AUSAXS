@@ -30,11 +30,16 @@ namespace grid {
          * @param atom The atom itself. 
          * @param loc The grid location of the atom. 
          */
-        GridMember(T atom, std::vector<unsigned int> loc) : atom(atom), loc(loc) {}
+        GridMember(T atom, Vector3<int> loc) : atom(atom), loc(std::move(loc)) {}
 
-        T atom; // the atom itself
-        std::vector<unsigned int> loc; // the bin location of the Atom key
-        bool expanded_volume = false; // whether the volume of this location has been expanded
+        // The atom itself
+        T atom;
+
+        // The bin location of the Atom key. Although this should never be negative, we don't use unsigned ints because it's a mess with implicit conversion errors.
+        Vector3<int> loc; 
+
+        // Whether the volume of this location has been expanded or not.
+        bool expanded_volume = false; 
 
         /**
          * @brief Equality operator. 

@@ -158,10 +158,11 @@ namespace constants {
         constexpr double W = 183.84;
         
         // get the weight of an atom
-        const std::map<std::string, double> atomic = {{"H", H}, {"HE", He}, {"LI", Li}, {"BE", Be}, {"B", B}, {"C", C}, {"N", N}, {"O", O}, {"F", F}, 
-            {"NE", Ne}, {"NA", Na}, {"MG", Mg}, {"AL", Al}, {"SI", Si}, {"P", P}, {"S", S}, {"CL", Cl}, {"AR", Ar}, {"K", K}, {"CA", Ca}, 
-            {"SC", Sc}, {"TI", Ti}, {"V", V}, {"CR", Cr}, {"MN", Mn}, {"FE", Fe}, {"CO", Co}, {"NI", Ni}, {"CU", Cu}, {"ZN", Zn}, {"W", W}};
-
+        const std::map<std::string, double> atomic = {{"H", H}, {"He", He}, {"HE", He}, {"Li", Li}, {"LI", Li}, {"Be", Be}, {"BE", Be}, {"B", B}, {"C", C}, 
+            {"N", N}, {"O", O}, {"F", F}, {"Ne", Ne}, {"NE", Ne}, {"Na", Na}, {"NA", Na}, {"Mg", Mg}, {"MG", Mg}, {"Al", Al}, {"AL", Al}, {"Si", Si}, 
+            {"SI", Si}, {"P", P}, {"S", S}, {"Cl", Cl}, {"CL", Cl}, {"Ar", Ar}, {"AR", Ar}, {"K", K}, {"Ca", Ca}, {"CA", Ca}, {"Sc", Sc}, {"Ti", Ti}, 
+            {"V", V}, {"Cr", Cr}, {"Mn", Mn}, {"Fe", Fe}, {"Co", Co}, {"Ni", Ni}, {"Cu", Cu}, {"Zn", Zn}, {"W", W}
+        };
         namespace density {
             constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3; // u/Å^3
         }
@@ -207,9 +208,11 @@ namespace constants {
         constexpr unsigned int W = 74;
 
         // get the charge Z of an atom
-        const std::map<std::string, unsigned int> atomic = {{"e", e}, {"H", H}, {"HE", He}, {"LI", Li}, {"BE", Be}, {"B", B}, {"C", C}, {"N", N}, 
-            {"O", O}, {"F", F}, {"NE", Ne}, {"NA", Na}, {"MG", Mg}, {"AL", Al}, {"SI", Si}, {"P", P}, {"S", S}, {"CL", Cl}, {"AR", Ar}, {"K", K}, {"CA", Ca}, 
-            {"SC", Sc}, {"TI", Ti}, {"V", V}, {"CR", Cr}, {"MN", Mn}, {"FE", Fe}, {"CO", Co}, {"NI", Ni}, {"CU", Cu}, {"ZN", Zn}, {"W", W}};
+        const std::map<std::string, unsigned int> atomic = {{"e", e}, {"H", H}, {"He", He}, {"HE", He}, {"Be", Be}, {"BE", Be}, {"B", B}, {"C", C}, 
+            {"N", N}, {"O", O}, {"F", F}, {"Ne", Ne}, {"NE", Ne}, {"Na", Na}, {"NA", Na}, {"Mg", Mg}, {"MG", Mg}, {"Al", Al}, {"AL", Al}, {"Si", Si}, 
+            {"SI", Si}, {"P", P}, {"S", S}, {"Cl", Cl}, {"CL", Cl}, {"Ar", Ar}, {"AR", Ar}, {"K", K}, {"Ca", Ca}, {"CA", Ca}, {"Sc", Sc}, {"Ti", Ti}, 
+            {"V", V}, {"Cr", Cr}, {"Mn", Mn}, {"Fe", Fe}, {"Co", Co}, {"Ni", Ni}, {"Cu", Cu}, {"Zn", Zn}, {"W", W}
+        };
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3

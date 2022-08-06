@@ -8,17 +8,17 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
     const int rh = grid->rh, ra = grid->ra;
 
     // vector<vector<int>> bins;
-    vector<vector<int>> bins_1rh;
-    vector<vector<int>> bins_3rh;
-    vector<vector<int>> bins_5rh;
-    vector<vector<int>> bins_7rh;
-    vector<vector<int>> bins_rarh;
-    vector<Vector3<double>> locs_rarh;
+    std::vector<Vector3<int>> bins_1rh;
+    std::vector<Vector3<int>> bins_3rh;
+    std::vector<Vector3<int>> bins_5rh;
+    std::vector<Vector3<int>> bins_7rh;
+    std::vector<Vector3<int>> bins_rarh;
+    std::vector<Vector3<double>> locs_rarh;
     double ang = 2*M_PI/divisions;
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
     // we do this to ensure the sphere is symmetric. If we simply generate it all at once, floating-point errors moves some of the bins around
-    vector<vector<double>> sphere;
+    vector<Vector3<double>> sphere;
     for (double theta = 0; theta <= M_PI*0.5; theta+=ang) {
         for (double phi = 0; phi <= M_PI*0.5; phi+=ang) {
             double x = cos(phi)*sin(theta);
@@ -36,7 +36,7 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
     }
 
     // remove duplicates
-    vector<vector<double>> rots;
+    vector<Vector3<double>> rots;
     for (auto& p : sphere) {
         bool present = false;
         for (int i = 0; i < 3; i++) { // fix the easy floating point errors
@@ -58,22 +58,22 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
 
     double rarh = ra+rh;
     for (const auto& rot : rots) {
-        double xr = rot[0], yr = rot[1], zr = rot[2];
-        bins_1rh.push_back({(int) std::trunc(rh*xr), (int) std::trunc(rh*yr), (int) std::trunc(rh*zr)});
-        bins_3rh.push_back({(int) std::trunc(3*rh*xr), (int) std::trunc(3*rh*yr), (int) std::trunc(3*rh*zr)});
-        bins_5rh.push_back({(int) std::trunc(5*rh*xr), (int) std::trunc(5*rh*yr), (int) std::trunc(5*rh*zr)});
-        bins_7rh.push_back({(int) std::trunc(7*rh*xr), (int) std::trunc(7*rh*yr), (int) std::trunc(7*rh*zr)});
-        bins_rarh.push_back({(int) std::trunc((rarh)*xr), (int) std::trunc((rarh)*yr), (int) std::trunc((rarh)*zr)});
-        locs_rarh.push_back({(rarh)*xr, (rarh)*yr, (rarh)*zr});
+        double xr = rot.x(), yr = rot.y(), zr = rot.z();
+        bins_1rh.push_back(Vector3<int>(std::trunc(rh*xr), std::trunc(rh*yr), std::trunc(rh*zr)));
+        bins_3rh.push_back(Vector3<int>(std::trunc(3*rh*xr), std::trunc(3*rh*yr), std::trunc(3*rh*zr)));
+        bins_5rh.push_back(Vector3<int>(std::trunc(5*rh*xr), std::trunc(5*rh*yr), std::trunc(5*rh*zr)));
+        bins_7rh.push_back(Vector3<int>(std::trunc(7*rh*xr), std::trunc(7*rh*yr), std::trunc(7*rh*zr)));
+        bins_rarh.push_back(Vector3<int>(std::trunc((rarh)*xr), std::trunc((rarh)*yr), std::trunc((rarh)*zr)));
+        locs_rarh.push_back(Vector3<double>((rarh)*xr, (rarh)*yr, (rarh)*zr));
     }
 
     // set the member vectors
-    rot_bins_1rh = bins_1rh;
-    rot_bins_3rh = bins_3rh;
-    rot_bins_5rh = bins_5rh;
-    rot_bins_7rh = bins_7rh;
-    rot_bins_rarh = bins_rarh;
-    rot_locs_rarh = locs_rarh;
+    rot_bins_1rh = std::move(bins_1rh);
+    rot_bins_3rh = std::move(bins_3rh);
+    rot_bins_5rh = std::move(bins_5rh);
+    rot_bins_7rh = std::move(bins_7rh);
+    rot_bins_rarh = std::move(bins_rarh);
+    rot_locs_rarh = std::move(locs_rarh);
 }
 
 vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
@@ -83,7 +83,7 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
 
     // we define a helper lambda
     vector<GridMember<Hetatom>> placed_water(grid->a_members.size());
-    size_t index = 0;
+    unsigned int index = 0;
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Hetatom a = Hetatom::create_new_water(exact_loc);
         GridMember<Hetatom> gm = grid->add(a, true);
@@ -94,22 +94,22 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     };
 
     for (const auto& atom : grid->a_members) {
-        unsigned int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
 
         for (size_t i = 0; i < rot_bins_rarh.size(); i++) {
-            int xr = x + rot_bins_rarh[i][0], yr = y + rot_bins_rarh[i][1], zr = z + rot_bins_rarh[i][2]; // new coordinates
+            int xr = x + rot_bins_rarh[i].x(), yr = y + rot_bins_rarh[i].y(), zr = z + rot_bins_rarh[i].z(); // new coordinates
             
             // check bounds
             if (xr < 0) xr = 0;
-            if (xr >= bins[0]) xr = bins[0]-1;
+            if (xr >= (int) bins.x()) xr = bins.x()-1;
             if (yr < 0) yr = 0;
-            if (yr >= bins[1]) yr = bins[1]-1;
+            if (yr >= (int) bins.y()) yr = bins.y()-1;
             if (zr < 0) zr = 0;
-            if (zr >= bins[2]) zr = bins[2]-1;
+            if (zr >= (int) bins.z()) zr = bins.z()-1;
 
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
-            vector<unsigned int> skip_bin = {(unsigned int) xr-rot_bins_1rh[i][0], (unsigned int) yr-rot_bins_1rh[i][1], (unsigned int) zr-rot_bins_1rh[i][2]};
-            if (gref[xr][yr][zr] == 0 && collision_check({(unsigned int) xr, (unsigned int) yr, (unsigned int) zr}, skip_bin)) {
+            Vector3<unsigned int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
+            if (gref[xr][yr][zr] == 0 && collision_check(Vector3<unsigned int>(xr, yr, zr), skip_bin)) {
                 Vector3<double> exact_loc = atom.atom.coords + rot_locs_rarh[i];
                 add_loc(exact_loc);
             };
@@ -120,44 +120,41 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
-bool grid::RadialPlacement::collision_check(const vector<unsigned int>& loc, const vector<unsigned int>& skip_bin) const {
+bool grid::RadialPlacement::collision_check(const Vector3<unsigned int>& loc, const Vector3<unsigned int>& skip_bin) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
     auto bins = grid->get_bins();
 
     int score = 0;
     // check if a location is out-of-bounds
-    auto is_out_of_bounds = [&bins, &score] (vector<int> v) {
-        if (v[0] < 0) {return true;}
-        if (v[0] >= bins[0]) {return true;}
-        if (v[1] < 0) {return true;}
-        if (v[1] >= bins[1]) {return true;}
-        if (v[2] < 0) {return true;}
-        if (v[2] >= bins[2]) {return true;}
+    auto is_out_of_bounds = [&bins, &score] (Vector3<int> v) {
+        if (v.x() < 0 || (int) bins.x() <= v.x() ) {return true;}
+        if (v.y() < 0 || (int) bins.y() <= v.y() ) {return true;}
+        if (v.z() < 0 || (int) bins.z() <= v.z() ) {return true;}
         return false;
     };
 
-    for (size_t i = 0; i < rot_bins_1rh.size(); i++) {
+    for (unsigned int i = 0; i < rot_bins_1rh.size(); i++) {
         // check for collisions at 1rh
-        int xr = loc[0] + rot_bins_1rh[i][0], yr = loc[1] + rot_bins_1rh[i][1], zr = loc[2] + rot_bins_1rh[i][2]; // new coordinates
+        int xr = loc.x() + rot_bins_1rh[i].x(), yr = loc.y() + rot_bins_1rh[i].y(), zr = loc.z() + rot_bins_1rh[i].z(); // new coordinates
 
         // check for bounds
         if (xr < 0) xr = 0;
-        if (xr >= bins[0]) xr = bins[0]-1;
+        if (xr >= (int) bins.x()) xr = bins.x()-1;
         if (yr < 0) yr = 0;
-        if (yr >= bins[1]) yr = bins[1]-1;
+        if (yr >= (int) bins.y()) yr = bins.y()-1;
         if (zr < 0) zr = 0;
-        if (zr >= bins[2]) zr = bins[2]-1;
+        if (zr >= (int) bins.z()) zr = bins.z()-1;
 
         if (gref[xr][yr][zr] != 0) {
-            if (vector({(unsigned int) xr, (unsigned int) yr, (unsigned int) zr}) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
+            if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
             return false;
         }
 
         // check if we're in a cavity
-        for (size_t j = 0; j < rot_bins_3rh.size(); j++) {
+        for (unsigned int j = 0; j < rot_bins_3rh.size(); j++) {
             // check at 3r
-            int xr = loc[0] + rot_bins_3rh[j][0], yr = loc[1] + rot_bins_3rh[j][1], zr = loc[2] + rot_bins_3rh[j][2];
+            int xr = loc.x() + rot_bins_3rh[j].x(), yr = loc.y() + rot_bins_3rh[j].y(), zr = loc.z() + rot_bins_3rh[j].z();
             if (is_out_of_bounds({xr, yr, zr})) { // if the line goes out of bounds, we know for sure it won't intersect anything
                 score += 3;                       // so we add three points and move on to the next
                 continue;
@@ -170,7 +167,7 @@ bool grid::RadialPlacement::collision_check(const vector<unsigned int>& loc, con
             } 
 
             // check at 5r
-            xr = loc[0] + rot_bins_5rh[j][0]; yr = loc[1] + rot_bins_5rh[j][1]; zr = loc[2] + rot_bins_5rh[j][2];
+            xr = loc.x() + rot_bins_5rh[j].x(); yr = loc.y() + rot_bins_5rh[j].y(); zr = loc.z() + rot_bins_5rh[j].z();
             if (is_out_of_bounds({xr, yr, zr})) {
                 score += 2;
                 continue;
@@ -183,7 +180,7 @@ bool grid::RadialPlacement::collision_check(const vector<unsigned int>& loc, con
             } 
 
             // check at 7r
-            xr = loc[0] + rot_bins_7rh[j][0]; yr = loc[1] + rot_bins_7rh[j][1]; zr = loc[2] + rot_bins_7rh[j][2];
+            xr = loc.x() + rot_bins_7rh[j].x(); yr = loc.y() + rot_bins_7rh[j].y(); zr = loc.z() + rot_bins_7rh[j].z();
             if (is_out_of_bounds({xr, yr, zr})) {
                 score += 1;
                 continue;

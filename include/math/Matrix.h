@@ -8,199 +8,79 @@
 #include <stdexcept>
 #include <iomanip>
 
-#include <math/Slice.h>
+#include <math/ConstSlice.h>
+#include <math/MutableSlice.h>
 #include <math/Vector.h>
 #include <math/LUPDecomposition.h>
 
 #define SAFE_MATH true
-#include <signal.h>
 
-template<typename Q>
+#include <signal.h>
+template<typename Q> // using Q to avoid conflict with transpose method T()
 class Matrix {
     public: 
         /**
          * @brief Move constructor. 
          */
-        Matrix(Matrix<Q>&& A) noexcept : N(A.N), M(A.M), data(std::move(A.data)) {}
+        Matrix(Matrix<Q>&& A) noexcept;
 
         /**
          * @brief Copy constructor.
          */
-        Matrix(const Matrix<Q>& A) : N(A.N), M(A.M), data(A.data) {}
+        Matrix(const Matrix<Q>& A);
 
         /**
          * @brief Construct a Matrix based on a nested initializer list. The lists must be of the same size. 
          */
-        Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size()), M(l.begin()->size()) {
-            for (const auto& row : l) {
-                if (__builtin_expect(row.size() != M, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
-                for (const auto& e : row) {
-                    data.push_back(e);
-                }
-            }
-        }
+        Matrix(std::initializer_list<std::initializer_list<Q>> l);
 
         /**
          * @brief Construct a Matrix based on a series of vectors. The vectors must be of the same size. 
          */
-        Matrix(std::vector<std::vector<Q>> v) : N(v[0].size()), M(v.size()), data(N*M) {
-            for (unsigned int col = 0; col < M; col++) {
-                if (__builtin_expect(v[col].size() != N, false)) {throw std::invalid_argument("Malformed matrix: columns must be of equal size!");}
-                for (unsigned int row = 0; row < N; row++) {
-                    index(row, col) = v[col][row];
-                }
-            }
-        }
+        Matrix(std::vector<std::vector<Q>> v);
 
         /**
          * @brief Construct a Matrix based on a vector.
          */
-        Matrix(const Vector<Q>& v) : N(v.N), M(1), data(v.data) {}
+        Matrix(const Vector<Q>& v);
 
         /**
          * @brief Construct an empty Matrix of a given size. 
          */
-        Matrix(int n, int m) : N(n), M(m), data(N*M) {} 
+        Matrix(int n, int m);
 
         /**
          * @brief Default constructor.
          */
-        Matrix() : N(0), M(0), data(0) {}
+        Matrix();
 
         /**
          * @brief Destructor.
          */
-        virtual ~Matrix() = default;
+        virtual ~Matrix();
 
         /**
          * @brief Add a new row at the end of the matrix.
          */
-        void push_back(std::vector<double> r) {
-            compatibility_check_M(r.size());
-            extend(1);
-            row(N-1) = r;
-        }
+        void push_back(std::vector<double> r);
 
         /**
          * @brief Get the identity matrix of a given dimension. 
          */
-        static Matrix<Q> identity(unsigned int dim) {
-            Matrix<Q> A(dim, dim);
-            for (unsigned int i = 0; i < dim; i++) {
-                A[i][i] = 1;
-            }
-            return A;
-        } 
+        static Matrix<Q> identity(unsigned int dim);
 
-        // Assignment operator, B = A
-        Matrix<Q>& operator=(const Matrix<Q>& A) {
-            N = A.N; M = A.M;
-            data = A.data;
-            return *this;
-        }
-
-        // Plus operator, B + A
-        template<typename R>
-        Matrix<Q> operator+(const Matrix<R>& A) const {
-            compatibility_check(A);
-            Matrix<Q> B(N, M);
-            std::transform(begin(), end(), A.begin(), B.begin(), std::plus<Q>());
-            return B;
-        }
-
-        // Minus operator, B - A
-        template<typename R>
-        Matrix<Q> operator-(const Matrix<R>& A) const {
-            compatibility_check(A);
-            Matrix<Q> B(N, M);
-            std::transform(begin(), end(), A.begin(), B.begin(), std::minus<Q>());
-            return B;
-        }
-
-        // Negation operator, -A
-        Matrix<Q> operator-() const {
-            Matrix<Q> A(N, M);
-            std::transform(begin(), end(), A.begin(), std::negate<Q>());
-            return A;
-        }
-
-        // Scalar multiplication, B*a
-        Matrix<Q> operator*(double a) const {
-            Matrix<Q> A(N, M);
-            std::transform(begin(), end(), A.begin(), [&a] (Q e) {return e*a;});
-            return A;
-        }
-
-        // Scalar division, B/a
-        Matrix<Q> operator/(double a) const {
-            Matrix<Q> A(N, M);
-            std::transform(begin(), end(), A.begin(), [&a] (Q e) {return e/a;});
-            return A;
-        }
-
-        // Plus-assignment, B += A
-        template<typename R>
-        Matrix<Q>& operator+=(const Matrix<R>& A) {
-            compatibility_check(A);
-            std::transform(begin(), end(), A.begin(), begin(), std::plus<Q>());
-            return *this;
-        }
-
-        // Minus-assignment, B -= A
-        template<typename R>
-        Matrix<Q>& operator-=(const Matrix<R>& A) {
-            compatibility_check(A);
-            std::transform(begin(), end(), A.begin(), begin(), std::minus<Q>());
-            return *this;
-        }
-
-        // Vector multiplication, A*v
-        template<typename R>
-        friend Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
-            #if (SAFE_MATH)
-                if (__builtin_expect(A.M != v.N, false)) {
-                    throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
-                }
-            #endif
-
-            Vector<Q> w(A.N);
-            for (size_t row = 0; row < A.N; ++row) {
-                for (size_t col = 0; col < A.M; ++col) {
-                    w[row] += v[col]*A[row][col];
-                }
-            }
-            return w;
-        }
-
-        // Matrix multiplication, A*B
-        template<typename R>
-        friend Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
-            #if (SAFE_MATH)
-                if (__builtin_expect(A.M != B.N, false)) {
-                    throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + 
-                        ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
-                }
-            #endif
-
-            Matrix<Q> C(A.N, B.M);
-            for (size_t row = 0; row < C.N; row++) {
-                for (size_t col = 0; col < C.M; col++) {
-                    for (size_t inner = 0; inner < A.M; inner++) {
-                        C[row][col] += A[row][inner]*B[inner][col];
-                    }
-                }
-            }
-            return C;
-        }
+        Matrix<Q>& operator=(const Matrix<Q>& A);
+        Matrix<Q> operator-() const;
+        Matrix<Q>& operator*=(double a);
+        Matrix<Q>& operator/=(double a);
+        template<typename R> Matrix<Q>& operator+=(const Matrix<R>& A);
+        template<typename R> Matrix<Q>& operator-=(const Matrix<R>& A);
 
         /**
          * @brief Extend the number of rows by the specified amount. Data in the old rows is preserved. 
          *        Complexity: O(N*M)
          */
-        void extend(int n) {
-            N += n;
-            data.resize(N*M);
-        }
+        void extend(int n);
 
         /**
          * @brief Resize the matrix to a new shape. 
@@ -208,126 +88,76 @@ class Matrix {
          *        Otherwise the new rows are filled with zeros, leaving the old rows intact. 
          *        Complexity: O(N*M)
          */
-        void resize(int n, int m) {
-            N = n; M = m;
-            data.resize(N*M);
-        }
+        void resize(int n, int m);
 
         // Read-only indexer
-        const ConstRow<Q> operator[](unsigned int i) const {return row(i);}
+        const ConstRow<Q> operator[](unsigned int i) const;
+
         // Read-write indexer
-        Row<Q> operator[](unsigned int i) {return row(i);}
+        Row<Q> operator[](unsigned int i);
 
         // Read-only column indexer
-        const ConstColumn<Q> col(unsigned int j) const {return ConstColumn<Q>(data, N, M, j);}
+        const ConstColumn<Q> col(unsigned int j) const;
+
         // Read-write column indexer
-        Column<Q> col(unsigned int j) {return Column<Q>(data, N, M, j);}
+        Column<Q> col(unsigned int j);
 
         // Read-only row indexer
-        const ConstRow<Q> row(unsigned int i) const {return ConstRow<Q>(data, N, M, i);}
+        const ConstRow<Q> row(unsigned int i) const;
+
         // Read-write row indexer
-        Row<Q> row(unsigned int i) {return Row<Q>(data, N, M, i);}
+        Row<Q> row(unsigned int i);
 
-        // Approximate equality, B ~ A
+        // Approximate equality operator
         template<typename R>
-        bool operator==(const Matrix<R>& A) const {
-            compatibility_check(A);
-            Matrix<Q> diff = operator-(A); // difference matrix
-            return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, Q x) {return sum + abs(x);}) < precision;
-        }
+        bool operator==(const Matrix<R>& A) const;
 
-        // Approximate inequality operator, w != v
+        // Approximate inequality operator
         template<typename R>
-        bool operator!=(const Matrix<R>& A) const {return !operator==(A);}
+        bool operator!=(const Matrix<R>& A) const;
 
         /**
          * @brief Get the determinant of this Matrix.
          */
-        double det() const {
-            #if (SAFE_MATH)
-                if (__builtin_expect(N != M, false)) {throw std::invalid_argument("Error in matrix determinant: Matrix is not square.");}
-            #endif
-
-            LUPDecomposition decomp(*this);
-            return decomp.determinant();
-        }
+        double det() const;
 
         /**
          * @brief Copy this Matrix. 
          */
-        Matrix<Q> copy() const {
-            Matrix A(N, M);
-            A.data.assign(data.begin(), data.end());
-            return A;
-        }
+        Matrix<Q> copy() const;
 
         /**
          * @brief Get the transpose of this Matrix.
          */
-        Matrix<Q> T() const {
-            Matrix A(M, N);
-            for (size_t row = 0; row < A.N; ++row) {
-                for (size_t col = 0; col < A.M; ++col) {
-                    A[row][col] = index(col, row);
-                }
-            }
-            return A;
-        }
+        Matrix<Q> T() const;
 
         /**
          * @brief Get the transpose of this Matrix.
          */
-        Matrix<Q> transpose() const {
-            return T();
-        }
+        Matrix<Q> transpose() const;
 
         // Read-only indexer
-        const Q& index(unsigned int i, unsigned int j) const {
-            #if (SAFE_MATH)
-                if (__builtin_expect(i >= N, false)) {raise(SIGSEGV);}
-                if (__builtin_expect(j >= M, false)) {raise(SIGSEGV);}
-                // if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
-                // if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Error in Matrix::index: Column index out of range.");}
-            #endif
-            return data[M*i + j];
-        }
+        const Q& index(unsigned int i, unsigned int j) const;
 
         // Read-write indexer
-        Q& index(unsigned int i, unsigned int j) {
-            #if (SAFE_MATH)
-                if (__builtin_expect(i >= N, false)) {raise(SIGSEGV);}
-                if (__builtin_expect(j >= M, false)) {raise(SIGSEGV);}
-                // if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
-                // if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Error in Matrix::index: Column index out of range.");}
-            #endif
-            return data[M*i + j];
-        }
+        Q& index(unsigned int i, unsigned int j);
 
         // Read-only iterator
-        const typename std::vector<Q>::const_iterator begin() const {return data.begin();}
+        const typename std::vector<Q>::const_iterator begin() const;
 
         // Read-only iterator
-        const typename std::vector<Q>::const_iterator end() const {return data.end();}
+        const typename std::vector<Q>::const_iterator end() const;
 
         // Read-write iterator
-        typename std::vector<Q>::iterator begin() {return data.begin();}
+        typename std::vector<Q>::iterator begin();
 
         // Read-write iterator
-        typename std::vector<Q>::iterator end() {return data.end();}
+        typename std::vector<Q>::iterator end();
 
         /**
          * @brief Format and print this Matrix to the terminal.
          */
-        void print(std::string message = "") const {
-            if (!message.empty()) {std::cout << message << std::endl;}
-            for (size_t i = 0; i < N; i++) {
-                std::cout << "\t" << std::setprecision(3);
-                for (size_t j = 0; j < M; j++) {
-                    std::cout << std::setw(8) << index(i, j);
-                }
-                std::cout << std::endl;
-            }
-        }
+        void print(std::string message = "") const;
 
         size_t N, M;
         std::vector<Q> data;
@@ -339,36 +169,70 @@ class Matrix {
          *        This check can be disabled by setting the macro SAFE_MATH to 0.
          */
         template<typename R>
-        void compatibility_check(const Matrix<R>& A) const {
-            #if (SAFE_MATH)
-                if (__builtin_expect(N != A.N || M != A.M, false)) {
-                    throw std::invalid_argument("Matrix dimensions do not match (got: [" + std::to_string(N) + ", " + std::to_string(M) + "] and [" + 
-                        std::to_string(A.N) + ", " + std::to_string(A.M) + "]).");
-                }
-            #endif
-        }
+        void compatibility_check(const Matrix<R>& A) const;
 
         /**
          * @brief Check if the number of columns is compatible with ours. 
          *        This check can be disabled by setting the macro SAFE_MATH to 0.
          */
-        void compatibility_check_N(unsigned int N) const {
-            #if (SAFE_MATH)
-                if (__builtin_expect(this->N != N, false)) {
-                    throw std::invalid_argument("Matrix dimensions do not match (got: N = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
-                }
-            #endif
-        }
+        void compatibility_check_N(unsigned int N) const;
 
         /**
          * @brief Check if the number of rows is compatible with ours. 
          *        This check can be disabled by setting the macro SAFE_MATH to 0.
          */
-        void compatibility_check_M(unsigned int M) const {
-            #if (SAFE_MATH)
-                if (__builtin_expect(this->M != M, false)) {
-                    throw std::invalid_argument("Matrix dimensions do not match (got: M = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
-                }
-            #endif
-        }
+        void compatibility_check_M(unsigned int M) const;
 };
+
+template<typename Q, typename R>
+Matrix<Q> operator+(Matrix<Q> left, const Matrix<R>& right) {return left += right;}
+
+template<typename Q, typename R>
+Matrix<Q> operator-(Matrix<Q> left, const Matrix<R>& right) {return left -= right;} 
+
+template<typename Q>
+Matrix<Q> operator*(Matrix<Q> left, double right) {return left *= right;}
+
+template<typename Q>
+Matrix<Q> operator*(double left, Matrix<Q> right) {return right *= left;}
+
+template<typename Q>
+Matrix<Q> operator/(Matrix<Q> left, double right) {return left /= right;}
+
+template<typename Q, typename R>
+Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
+    #if (SAFE_MATH)
+        if (__builtin_expect(A.M != v.N, false)) {
+            throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
+        }
+    #endif
+
+    Vector<Q> w(A.N);
+    for (size_t row = 0; row < A.N; ++row) {
+        for (size_t col = 0; col < A.M; ++col) {
+            w[row] += v[col]*A[row][col];
+        }
+    }
+    return w;
+}
+
+template<typename Q, typename R>
+Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
+    #if (SAFE_MATH)
+        if (__builtin_expect(A.M != B.N, false)) {
+            throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
+        }
+    #endif
+
+    Matrix<Q> C(A.N, B.M);
+    for (size_t row = 0; row < C.N; row++) {
+        for (size_t col = 0; col < C.M; col++) {
+            for (size_t inner = 0; inner < A.M; inner++) {
+                C[row][col] += A[row][inner]*B[inner][col];
+            }
+        }
+    }
+    return C;
+}
+
+#include <math/Matrix.tpp>

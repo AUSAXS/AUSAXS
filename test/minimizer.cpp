@@ -107,7 +107,7 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
     SECTION("problem18 rough") {ScanTest1DRough(problem18);}
 }
 
-TEST_CASE("root_minimizer", "[minimizer]") {
+TEST_CASE("root_minimizer", "[minimizer],[broken]") {
     auto ROOTTest1D = [] (const TestFunction& test) {
         mini::ROOTMinimizer mini("Minuit2", "migrad", test.function, {"a", test.bounds[0]});
         auto res = mini.minimize();

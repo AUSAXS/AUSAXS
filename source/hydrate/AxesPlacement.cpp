@@ -22,47 +22,47 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    unsigned int r_eff = ra+rh;                  // the effective bin radius
+    int r_eff = ra+rh;                  // the effective bin radius
     double r_eff_real = r_eff*grid->get_width(); // the effective real radius
     for (const auto& atom : grid->a_members) {
-        unsigned int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-        unsigned int xm = std::max(x-r_eff, 0U), xp = std::min(x+r_eff, bins[0]-1); // xminus and xplus
-        unsigned int ym = std::max(y-r_eff, 0U), yp = std::min(y+r_eff, bins[1]-1); // yminus and yplus
-        unsigned int zm = std::max(z-r_eff, 0U), zp = std::min(z+r_eff, bins[2]-1); // zminus and zplus
+        unsigned int xm = std::max(x-r_eff, 0), xp = std::min(x+r_eff, (int) bins[0]-1); // xminus and xplus
+        unsigned int ym = std::max(y-r_eff, 0), yp = std::min(y+r_eff, (int) bins[1]-1); // yminus and yplus
+        unsigned int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, (int) bins[2]-1); // zminus and zplus
 
         // check collisions for x ± r_eff
-        if ((gref[xm][y][z] == 0) && collision_check({xm, y, z})) {
+        if ((gref[xm][y][z] == 0) && collision_check(Vector3<unsigned int>(xm, y, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.x() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref[xp][y][z] == 0) && collision_check({xp, y, z})) {
+        if ((gref[xp][y][z] == 0) && collision_check(Vector3<unsigned int>(xp, y, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.x() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for y ± r_eff
-        if ((gref[x][ym][z] == 0) && collision_check({x, ym, z})) {
+        if ((gref[x][ym][z] == 0) && collision_check(Vector3<unsigned int>(x, ym, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.y() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref[x][yp][z] == 0) && collision_check({x, yp, z})) {
+        if ((gref[x][yp][z] == 0) && collision_check(Vector3<unsigned int>(x, yp, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.y() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for z ± r_eff
-        if ((gref[x][y][zm] == 0) && collision_check({x, y, zm})) {
+        if ((gref[x][y][zm] == 0) && collision_check(Vector3<unsigned int>(x, y, zm))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.z() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref[x][y][zp] == 0) && collision_check({x, y, zp})) {
+        if ((gref[x][y][zp] == 0) && collision_check(Vector3<unsigned int>(x, y, zp))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.z() += r_eff_real;
             add_loc(exact_loc);
@@ -73,20 +73,20 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     return placed_water;
 }
 
-bool grid::AxesPlacement::collision_check(const vector<unsigned int>& loc) const {
+bool grid::AxesPlacement::collision_check(const Vector3<unsigned int>& loc) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
     auto bins = grid->get_bins();
-    const int ra = grid->ra, rh = grid->rh;
-    const int x = loc[0], y = loc[1], z = loc[2];
+    int ra = grid->ra, rh = grid->rh;
+    int x = loc.x(), y = loc.y(), z = loc.z();
 
     // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]
     int r = gref[x][y][z] == 'A' ? ra : rh;
 
     // we use the range (x-r) to (x+r+1) since the first is inclusive and the second is exclusive. 
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(bins[0])-1); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(bins[1])-1); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(bins[2])-1); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) bins[0])-1; // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) bins[1])-1; // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) bins[2])-1; // zminus and zplus
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {

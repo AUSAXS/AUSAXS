@@ -178,12 +178,12 @@ TEST_CASE("hydrate", "[grid],[files]") {
         vector<Hetatom> water = grid.hydrate();
 
         REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
-        CHECK(water[0].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-        CHECK(water[1].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
-        CHECK(water[2].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-        CHECK(water[3].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
-        CHECK(water[4].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-        CHECK(water[5].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
+        CHECK(water[0].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
+        CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
+        CHECK(water[2].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
+        CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
+        CHECK(water[4].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
+        CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
 
         REQUIRE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
     }
@@ -458,9 +458,9 @@ TEST_CASE("volume_deflation", "[grid]") {
     REQUIRE(grid.volume == 2);
 
     auto bins = grid.get_bins();
-    for (unsigned int i = 0; i < bins[0]; i++) {
-        for (unsigned int j = 0; j < bins[1]; j++) {
-            for (unsigned int k = 0; k < bins[2]; k++) {
+    for (int i = 0; i < bins.x(); i++) {
+        for (int j = 0; j < bins.y(); j++) {
+            for (int k = 0; k < bins.z(); k++) {
                 if (__builtin_expect(i == 10 && j == 13 && k == 10, false)) {continue;} // center of the first atom
                 if (__builtin_expect(i == 13 && j == 10 && k == 10, false)) {continue;} // center of the second atom
                 if (g[i][j][k] != 0) {

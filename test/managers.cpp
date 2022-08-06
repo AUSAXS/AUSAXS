@@ -154,32 +154,33 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
             REQUIRE(compare(manager, 1));
         }
 
-        SECTION("negative") {
-            std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
-            header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
+        //! FUNCTIONALITY REMOVED !//
+        // SECTION("negative") {
+        //     std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+        //     header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
 
-            Matrix data = Matrix<float>{{-1, -2, -3, -4, -5, -6}, {-0.5, -1.5, -2.5, -3.5, -4.5, -5.5}};
-            em::Image image(data, header, 0);
-            em::ImageStack images({image});
+        //     Matrix data = Matrix<float>{{-1, -2, -3, -4, -5, -6}, {-0.5, -1.5, -2.5, -3.5, -4.5, -5.5}};
+        //     em::Image image(data, header, 0);
+        //     em::ImageStack images({image});
 
-            em::PartialHistogramManager manager(images);
-            manager.set_charge_levels({-2, -4, -6, -8});
+        //     em::PartialHistogramManager manager(images);
+        //     manager.set_charge_levels({-2, -4, -6, -8});
 
-            // try an arbitrary cutoff level
-            REQUIRE(compare(manager, -3));
+        //     // try an arbitrary cutoff level
+        //     REQUIRE(compare(manager, -3));
 
-            // try a lower cutoff level
-            REQUIRE(compare(manager, -1));
+        //     // try a lower cutoff level
+        //     REQUIRE(compare(manager, -1));
 
-            // try a higher cutoff level
-            REQUIRE(compare(manager, -4));
+        //     // try a higher cutoff level
+        //     REQUIRE(compare(manager, -4));
 
-            // some more tests
-            REQUIRE(compare(manager, -5));
-            REQUIRE(compare(manager, -2));
-            REQUIRE(compare(manager, -3.6));
-            REQUIRE(compare(manager, -1));
-        }
+        //     // some more tests
+        //     REQUIRE(compare(manager, -5));
+        //     REQUIRE(compare(manager, -2));
+        //     REQUIRE(compare(manager, -3.6));
+        //     REQUIRE(compare(manager, -1));
+        // }
 
         SECTION("real example") {
             em::ImageStack images("data/maptest.ccp4");

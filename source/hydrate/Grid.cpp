@@ -61,7 +61,7 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
     for (const Body& body : bodies) {
         auto[cmin, cmax] = bounding_box(body.get_protein_atoms());
 
-        for (int i = 0; i < 3; i++) {
+        for (unsigned int i = 0; i < 3; i++) {
             if (cmin[i] < min[i]) {min[i] = cmin[i];}
             if (cmax[i] > max[i]) {max[i] = cmax[i];}
         }
@@ -157,8 +157,7 @@ void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc
 vector<Hetatom> Grid::hydrate() {
     vector<GridMember<Hetatom>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
     water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
-    auto temp = water_culler->cull(placed_water);
-    return temp;
+    return water_culler->cull(placed_water);
 }
 
 vector<GridMember<Hetatom>> Grid::find_free_locs() {
@@ -169,26 +168,24 @@ vector<GridMember<Hetatom>> Grid::find_free_locs() {
     expand_volume();
 
     // place the water molecules with the chosen strategy
-    vector<GridMember<Hetatom>> placed_water = water_placer->place();
-    return placed_water;
+    return water_placer->place();
 }
 
-std::pair<std::vector<unsigned int>, std::vector<unsigned int>> Grid::bounding_box_index() const {
-    std::cout << "grid bounding box" << std::endl;
+std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     if (__builtin_expect(a_members.size() == 0, false)) {
         throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
     }
 
     // initialize the bounds as large as possible
-    vector<vector<unsigned int>> box = {{axes.x.bins, 0U}, {axes.y.bins, 0U}, {axes.z.bins, 0U}};
+    Vector3<int> min(axes.x.bins, axes.y.bins, axes.z.bins);
+    Vector3<int> max(0, 0, 0);
     for (const auto& atom : a_members) {
-        for (int i = 0; i < 3; i++) {
-            if (box[i][0] > atom.loc[i]) box[i][0] = atom.loc[i]; // min
-            if (box[i][1] < atom.loc[i]) box[i][1] = atom.loc[i]+1; // max. +1 since this will often be used as loop limits
+        for (unsigned int i = 0; i < 3; i++) {
+            if (min[i] > atom.loc[i]) min[i] = atom.loc[i]; // min
+            if (max[i] < atom.loc[i]) max[i] = atom.loc[i]+1; // max. +1 since this will often be used as loop limits
         }
     }
-    utility::print_warning("Warning in Grid::bounding_box: Not implemented yet.");
-    return std::make_pair(box[0], box[1]);
+    return std::make_pair(min, max);
 }
 
 std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const vector<Atom>& atoms) {
@@ -205,7 +202,7 @@ std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const vector<Atom
 }
 
 void Grid::set_radius_atoms(double radius) {
-    int new_r = int(radius/width); // convert the radius to a "bin-radius"
+    unsigned int new_r = int(radius/width); // convert the radius to a "bin-radius"
     if (this->ra != 0 && this->ra != new_r) {
         utility::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
     }
@@ -213,7 +210,7 @@ void Grid::set_radius_atoms(double radius) {
 }
 
 void Grid::set_radius_water(double radius) {
-    int new_r = int(radius/width); // convert the radius to a "bin-radius"
+    unsigned int new_r = int(radius/width); // convert the radius to a "bin-radius"
     if (this->rh != 0 && this->rh != new_r) {
         utility::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
     }
@@ -267,18 +264,20 @@ void Grid::expand_volume(GridMember<Hetatom>& water) {
     expand_volume(water.loc, true); // do the expansion
 }
 
-void Grid::expand_volume(const vector<unsigned int>& loc, const bool is_water) {
+void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
     char marker = is_water ? 'h' : 'a';
-    const int x = loc[0], y = loc[1], z = loc[2];
+    int x = loc.x(), y = loc.y(), z = loc.z();
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, int(axes.x.bins)); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, int(axes.y.bins)); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, int(axes.z.bins)); // zminus and zplus
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
 
     // loop over each bin in the box
     int added_volume = 0;
+
+    // i, j, k *must* be ints
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
@@ -303,14 +302,14 @@ void Grid::remove(const Body* const body) {
     remove(body->get_protein_atoms());
 }
 
-GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
+GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
     auto loc = to_bins(atom.coords);
-    unsigned int x = loc[0], y = loc[1], z = loc[2];
+    unsigned int x = loc.x(), y = loc.y(), z = loc.z();
 
     // sanity check
-    const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+    bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + atom.coords.to_string() + "\n: " + axes.to_string());
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
     if (grid[x][y][z] == 0) {volume++;} // can probably be removed
@@ -323,14 +322,14 @@ GridMember<Atom> Grid::add(const Atom& atom, const bool expand) {
     return gm;
 }
 
-GridMember<Hetatom> Grid::add(const Hetatom& water, const bool expand) {
+GridMember<Hetatom> Grid::add(const Hetatom& water, bool expand) {
     auto loc = to_bins(water.coords);
-    unsigned int x = loc[0], y = loc[1], z = loc[2]; 
+    unsigned int x = loc.x(), y = loc.y(), z = loc.z(); 
 
     // sanity check
-    const bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+    bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nLocation: " + water.coords.to_string() + "\n: " + axes.to_string());
+        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
     }
 
     GridMember gm(water, loc);
@@ -348,7 +347,7 @@ void Grid::remove(const Atom& atom) {
     }
 
     GridMember<Atom>& member = *pos;
-    const int x = member.loc[0], y = member.loc[1], z = member.loc[2];
+    const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
     deflate_volume(member);
     a_members.erase(pos);
@@ -363,7 +362,7 @@ void Grid::remove(const Hetatom& water) {
     }
 
     GridMember<Hetatom>& member = *pos;
-    const int x = member.loc[0], y = member.loc[1], z = member.loc[2];
+    const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
     deflate_volume(member);
     w_members.erase(pos);
@@ -398,7 +397,7 @@ void Grid::remove(const vector<Atom>& atoms) {
 
     // clean up the grid
     for (auto& atom : removed_atoms) {
-        const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        const int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
         deflate_volume(atom);
         grid[x][y][z] = 0;
         volume--;
@@ -433,7 +432,7 @@ void Grid::remove(const vector<Hetatom>& waters) {
 
     // clean up the grid
     for (auto& atom : removed_waters) {
-        const int x = atom.loc[0], y = atom.loc[1], z = atom.loc[2];
+        const int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
         deflate_volume(atom);
         grid[x][y][z] = 0;
     }
@@ -464,22 +463,24 @@ void Grid::deflate_volume(GridMember<Hetatom>& water) {
     deflate_volume(water.loc, true); // do the expansion
 }
 
-void Grid::deflate_volume(const vector<unsigned int>& loc, const bool is_water) {
-    unsigned int x = loc[0], y = loc[1], z = loc[2];
+void Grid::deflate_volume(const Vector3<int>& loc, const bool is_water) {
+    int x = loc.x(), y = loc.y(), z = loc.z();
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    unsigned int r = is_water ? rh : ra; // determine which radius to use for the expansion
-    int xm = std::max(x-r, (unsigned int) 0), xp = std::min(x+r+1, axes.x.bins); // xminus and xplus
-    int ym = std::max(y-r, (unsigned int) 0), yp = std::min(y+r+1, axes.y.bins); // yminus and yplus
-    int zm = std::max(z-r, (unsigned int) 0), zp = std::min(z+r+1, axes.z.bins); // zminus and zplus
+    int r = is_water ? rh : ra; // determine which radius to use for the expansion
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
 
     // loop over each bin in the box
     int removed_volume = -1; // -1 because we overwrite the center
+
+    // i, j, k *must* be ints
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
-                if (std::sqrt(std::pow(loc[0] - i, 2) + std::pow(loc[1] - j, 2) + std::pow(loc[2] - k, 2)) <= r) {
+                if (std::sqrt(std::pow(loc.x() - i, 2) + std::pow(loc.y() - j, 2) + std::pow(loc.z() - k, 2)) <= r) {
                     if (grid[i][j][k] == 0) {continue;} // skip if bin is already empty
                     removed_volume++;
                     grid[i][j][k] = 0;
@@ -505,22 +506,15 @@ void Grid::clear_waters() {
     assert(w_members.size() == 0);
 }
 
-vector<unsigned int> Grid::get_bins() const {
-    return {axes.x.bins, axes.y.bins, axes.z.bins};
+Vector3<int> Grid::get_bins() const {
+    return Vector3<int>(axes.x.bins, axes.y.bins, axes.z.bins);
 }
 
-vector<unsigned int> Grid::to_bins(const Vector3<double>& v) const {
-    unsigned int binx = std::round((v.x() - axes.x.min)/width);
-    unsigned int biny = std::round((v.y() - axes.y.min)/width);
-    unsigned int binz = std::round((v.z() - axes.z.min)/width);
-    return {binx, biny, binz};
-}
-
-Vector3<double> Grid::to_xyz(const vector<unsigned int>& v) const {
-    double x = axes.x.min + width*v[0];
-    double y = axes.y.min + width*v[1];
-    double z = axes.z.min + width*v[2];
-    return {x, y, z};
+Vector3<int> Grid::to_bins(const Vector3<double>& v) const {
+    int binx = std::round((v.x() - axes.x.min)/width);
+    int biny = std::round((v.y() - axes.y.min)/width);
+    int binz = std::round((v.z() - axes.z.min)/width);
+    return Vector3<int>(binx, biny, binz);
 }
 
 double Grid::get_volume() {

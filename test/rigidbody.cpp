@@ -72,7 +72,7 @@ TEST_CASE("Constraints", "[rigidbody]") {
 
 TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     Protein protein_2epe("data/lysozyme/2epe.pdb");
-    Protein protein_LAR12("data/LAR1-2.pdb");
+    Protein protein_LAR12("data/LAR1-2/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
     protein_LAR12.generate_new_hydration();
 
@@ -123,7 +123,7 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     RigidBody rbody(protein);
     rbody.generate_new_hydration();
 
-    IntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
+    IntensityFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
     double _chi2 = fitter.fit()->fval;
 }
 
