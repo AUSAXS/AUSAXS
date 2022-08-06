@@ -237,6 +237,17 @@ class Axis3D {
 		[[nodiscard]] 
 		bool empty() const noexcept {return x.empty() || y.empty() || z.empty();}
 
+		/**
+		 * @brief Recalculate the number of bins for each Axis.
+		 * 
+		 * @param width The bin width. 
+		 */
+		void rebin(double width) noexcept {
+			x.bins = (x.max - x.min)/width;
+			y.bins = (y.max - y.min)/width;
+			z.bins = (z.max - z.min)/width;
+		}
+
 		Axis x; // The x-axis. 
 		Axis y; // The y-axis. 
 		Axis z; // The z-axis. 

@@ -247,20 +247,23 @@ TEST_CASE("width", "[grid]") {
 
         // check that it was placed correctly
         REQUIRE(g[100][100][100] == 'A');
+        REQUIRE(grid.a_members.back().loc == Vector3(100, 100, 100));
+        REQUIRE(grid.a_members.back().atom.coords == Vector3(0, 0, 0));
 
         // check water generation
         setting::grid::percent_water = 0;
         vector<Hetatom> water = grid.hydrate();
         REQUIRE(water.size() == 6);
         if (water.size() == 6) { // avoid crashing if the above fails
-            REQUIRE(water[0].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-            REQUIRE(water[1].coords == Vector3{6, 0, 0}); // (2r, 0, 0)
-            REQUIRE(water[2].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-            REQUIRE(water[3].coords == Vector3{0, 6, 0}); // (0, 2r, 0)
-            REQUIRE(water[4].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-            REQUIRE(water[5].coords == Vector3{0, 0, 6}); // (0, 0, 2r)
+            CHECK(water[0].coords == Vector3{0, 0,  6}); // (0, 0,  2r)
+            CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
+            CHECK(water[2].coords == Vector3{ 6, 0, 0}); // ( 2r, 0, 0)
+            CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
+            CHECK(water[4].coords == Vector3{0,  6, 0}); // (0,  2r, 0)
+            CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
         }
     }
+
     SECTION("Test bounds") {
         vector<Atom> a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
         grid.add(a);

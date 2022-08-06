@@ -242,7 +242,7 @@ TEST_CASE("grid_add_remove_bodies", "[body]") {
 
 TEST_CASE("split_body", "[body],[files]") {
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
 
     // check sizes
     REQUIRE(protein.bodies.size() == 3);
@@ -261,7 +261,7 @@ TEST_CASE("split_body", "[body],[files]") {
 
 TEST_CASE("generate_sequential_constraints", "[body],[files]") {
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
     vector<Constraint> constraints = BodySplitter::sequential_constraints(protein);
 
     REQUIRE(constraints.size() == 2);

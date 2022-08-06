@@ -15,7 +15,7 @@ namespace grid {
         }
         ~RadialPlacement() override {}
 
-        void prepare_rotations(const int divisions = 8);
+        void prepare_rotations(int divisions = 8);
 
         // the vectors representing the bin offsets of rotations
         std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
@@ -34,6 +34,6 @@ namespace grid {
          * @param skip_bin location to be excluded from the check. 
          * @return True if this is an acceptable location, false otherwise.
          */
-        bool collision_check(const Vector3<unsigned int>& loc, const Vector3<unsigned int>& skip_bin) const;
+        bool collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const;
     };
 }

@@ -113,6 +113,9 @@ void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc
             axes.x = axes.z;
             axes.y = axes.z;
         }
+
+        // update the number of bins to reflect the changed axes
+        axes.rebin(width);
     }
 
     // check if the grid is abnormally large

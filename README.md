@@ -1,4 +1,5 @@
 # Todo
+ * [ ] Grid tests: Do all of them with all three placement strategies
  * [ ] Vector3: Template this class so it can also be used with unsigned ints. Use it instead of raw vectors in Grid methods. 
  * [ ] IntensityFitter: Locally stored fit does not contain plots. Currently fixed by returning another fit. 
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled

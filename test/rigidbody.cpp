@@ -119,7 +119,7 @@ TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
 
 TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     vector<int> splits = {9, 99};
-    Protein protein(BodySplitter::split("data/LAR1-2.pdb", splits));
+    Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
     RigidBody rbody(protein);
     rbody.generate_new_hydration();
 

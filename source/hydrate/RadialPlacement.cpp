@@ -4,8 +4,9 @@
 
 using std::vector;
 
-void grid::RadialPlacement::prepare_rotations(const int divisions) {
-    const int rh = grid->rh, ra = grid->ra;
+void grid::RadialPlacement::prepare_rotations(int divisions) {
+    int rh = grid->rh, ra = grid->ra;
+    double width = grid->get_width();
 
     // vector<vector<int>> bins;
     std::vector<Vector3<int>> bins_1rh;
@@ -43,12 +44,9 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
             if (abs(p[i]) < 1e-5) {p[i] = 0;}
         }
         for (const auto& r : rots) { // go through all rotations and try to find a duplicate entry
-            double sum = 0;
-            for (int i = 0; i < 3; i++) { // sum the difference for the vector
-                sum += abs(p[i]-r[i]);
-            }
-            if (sum < 1e-5) { // if the total difference is small
-                present = true; // the element is already present
+            if (r.distance(p) < 1e-5) {
+                present = true;
+                break;
             }
         }
         if (!present) { // if the element was not already present
@@ -64,7 +62,7 @@ void grid::RadialPlacement::prepare_rotations(const int divisions) {
         bins_5rh.push_back(Vector3<int>(std::trunc(5*rh*xr), std::trunc(5*rh*yr), std::trunc(5*rh*zr)));
         bins_7rh.push_back(Vector3<int>(std::trunc(7*rh*xr), std::trunc(7*rh*yr), std::trunc(7*rh*zr)));
         bins_rarh.push_back(Vector3<int>(std::trunc((rarh)*xr), std::trunc((rarh)*yr), std::trunc((rarh)*zr)));
-        locs_rarh.push_back(Vector3<double>((rarh)*xr, (rarh)*yr, (rarh)*zr));
+        locs_rarh.push_back(Vector3<double>((rarh*width)*xr, (rarh*width)*yr, (rarh*width)*zr));
     }
 
     // set the member vectors
@@ -108,8 +106,8 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
             if (zr >= (int) bins.z()) zr = bins.z()-1;
 
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
-            Vector3<unsigned int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
-            if (gref[xr][yr][zr] == 0 && collision_check(Vector3<unsigned int>(xr, yr, zr), skip_bin)) {
+            Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
+            if (gref[xr][yr][zr] == 0 && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
                 Vector3<double> exact_loc = atom.atom.coords + rot_locs_rarh[i];
                 add_loc(exact_loc);
             };
@@ -120,7 +118,7 @@ vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
-bool grid::RadialPlacement::collision_check(const Vector3<unsigned int>& loc, const Vector3<unsigned int>& skip_bin) const {
+bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
     // dereference the values we'll need for better performance
     vector<vector<vector<char>>>& gref = grid->grid;
     auto bins = grid->get_bins();

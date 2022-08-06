@@ -104,7 +104,7 @@ class Grid {
 			static_assert(std::is_base_of<Atom, T>::value, "Argument type must be derivable from Atom!");
 			std::vector<grid::GridMember<T>> v(atoms.size());
 			size_t index = 0;
-			for (auto const& a : atoms) {
+			for (const auto& a : atoms) {
 				v[index++] = add(a);
 			}
 			return v;
