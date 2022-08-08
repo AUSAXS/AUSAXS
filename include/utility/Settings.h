@@ -13,11 +13,11 @@ namespace setting {
     }
 
     namespace grid {
-        enum class PlacementStrategyChoice {AxesStrategy, RadialStrategy, JanStrategy};
-        enum class CullingStrategyChoice {CounterStrategy, OutlierStrategy};
+        enum class PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
+        enum class CullingStrategy {CounterStrategy, OutlierStrategy};
 
-        extern PlacementStrategyChoice psc; // The choice of placement algorithm.
-        extern CullingStrategyChoice csc;   // The choice of culling algorithm. 
+        extern PlacementStrategy placement_strategy; // The choice of placement algorithm.
+        extern CullingStrategy culling_strategy;   // The choice of culling algorithm. 
 
         extern double percent_water; // The number of generated water molecules as a percent of the number of atoms. 
         extern double ra;            // Radius of protein atoms. 

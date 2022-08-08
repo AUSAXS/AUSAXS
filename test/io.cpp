@@ -12,7 +12,7 @@
 
 using std::cout, std::endl, std::vector;
 
-bool compareFiles(const std::string& p1, const std::string& p2) {
+bool compare_files(const std::string& p1, const std::string& p2) {
     std::ifstream f1(p1, std::ifstream::binary);
     std::ifstream f2(p2, std::ifstream::binary); 
     if (f1.fail() || f2.fail()) {
@@ -136,7 +136,7 @@ TEST_CASE("pdb_input", "[io]") {
     remove("temp/io/temp2.pdb");
 }
 
-TEST_CASE("xml input", "[broken],[io]") {
+TEST_CASE("xml input", "[io],[broken]") {
     std::ofstream xml_file("temp.xml");
     xml_file << "<PDBx:atom_site id=\"1\"> \
         \n    <PDBx:Cartn_x>2.1</PDBx:Cartn_x> \
@@ -174,23 +174,30 @@ TEST_CASE("xml input", "[broken],[io]") {
  *        This is probably one of the strongest tests we can make for i/o
  */
 TEST_CASE("real_data", "[io],[files]") {
+    setting::protein::use_effective_charge = false;
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
-        if (file.path() == "data/6yg9.pdb") { // skip this file since it contains OQ5 ligands which we can't deal with yet
-            cout << "Skipped 6yg9.pdb" << endl;
-            continue;
-        }
-        if (file.path() == "data/urateox.pdb") { // skip this file since it skips some serials (shouldn't this be illegal?????)
-            cout << "Skipped urateox.pdb" << endl;
+        if (file.path().extension() != ".pdb") {
             continue;
         }
 
-        if (file.path().extension() == ".pdb") { // check if the extension is .pdb
-            cout << "Testing " << file.path().stem() << endl;
-            Protein protein(file.path().string());
-            protein.save("temp.pdb");
-            REQUIRE(compareFiles(file.path().string(), "temp.pdb"));
-            remove("temp.pdb");
+        if (file.path().string().find("urateox") != std::string::npos) { // skip this file since it skips some serials (shouldn't this be illegal?????)
+            cout << "Skipped urateox.pdb" << endl;
+            continue;
         }
+        else if (file.path().string().find("SASDNQ3") != std::string::npos) { // contains invalid empty terminate statement @ line 11220
+            cout << "Skipped SASDNQ3" << endl;
+            continue;
+        }
+
+        cout << "Testing " << file.path().stem() << endl;
+        string filename = "temp/io/" + utility::stem(file.path().string()) + ".pdb";
+        Protein protein(file.path().string());
+        protein.save(filename);
+        bool success = compare_files(file.path().string(), filename);
+        if (success) {
+            remove(filename.c_str());
+        }
+        CHECK(success);
     }
 }
 

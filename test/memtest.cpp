@@ -27,7 +27,7 @@ TEST_CASE("atom_assign", "[memtest]") {
 
 TEST_CASE("body_splitter", "[memtest]") {
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2.pdb", splits);
+    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
     RigidBody body(protein);
 }
 
@@ -64,7 +64,7 @@ TEST_CASE("vector_assign", "[memtest]") {
 
 TEST_CASE("grid_add", "[memtest]") {
     vector<int> splits = {9, 99};
-    Protein protein(BodySplitter::split("data/LAR1-2.pdb", splits));
+    Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
     RigidBody rbody(protein);
     rbody.protein.generate_new_hydration();
     rbody.protein.clear_grid();
@@ -73,7 +73,7 @@ TEST_CASE("grid_add", "[memtest]") {
 
 #include "rigidbody/RandomSelect.h"
 #include "rigidbody/SimpleParameterGeneration.h"
-TEST_CASE("compact_coordinates", "[memtest]") {
+TEST_CASE("compact_coordinates", "[memtest],[slow]") {
     vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                        Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
@@ -82,14 +82,14 @@ TEST_CASE("compact_coordinates", "[memtest]") {
     Body b1(a1);
     Body b2(a2);
 
-    Protein protein = BodySplitter::split("data/LAR1-2.pdb", {9, 99});
+    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
     RigidBody rigidbody(protein);
 
     Parameters params(protein);
     // std::shared_ptr<Grid> grid = protein.get_grid();
 
     rigidbody.generate_new_hydration();
-    SimpleIntensityFitter fitter("data/LAR1-2.RSR", protein.get_histogram());
+    SimpleIntensityFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
     double _chi2 = fitter.fit()->fval;
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 

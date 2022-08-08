@@ -24,11 +24,11 @@ using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace setting::grid;
 using namespace grid;
 
-Grid::Grid(const Axis3D& axes, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) : axes(axes) {
-    setup(width, ra, rh, psc, csc);
+Grid::Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) : axes(axes) {
+    setup(width, ra, rh, ps, cs);
 }
 
-Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
+Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
     // find the bounding box
     vector<int> imin, imax;
     auto[min, max] = bounding_box(atoms);
@@ -47,13 +47,13 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, Placem
 
     // setup the rest of the class members
     axes = Axis3D(imin, imax, setting::grid::width);
-    setup(width, ra, rh, psc, csc);
+    setup(width, ra, rh, ps, cs);
 
     // finally add the atoms to the grid
     add(atoms);
 }
 
-Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc) {
+Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
     vector<int> imin, imax;
 
     // find the total bounding box containing all bodies
@@ -79,7 +79,7 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
 
     // setup the rest of the class members
     axes = Axis3D(imin, imax, setting::grid::width);
-    setup(width, ra, rh, psc, csc);
+    setup(width, ra, rh, ps, cs);
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
@@ -87,7 +87,7 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
     }
 }
 
-Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, setting::grid::psc, setting::grid::csc) {
+Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {
     this->grid = grid.grid;
     this->volume = grid.volume;
     this->ra = grid.ra;
@@ -96,7 +96,7 @@ Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, set
     this->w_members = grid.w_members;
 }
 
-void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc, CullingStrategyChoice csc) {
+void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
     // check if the grid should be cubic
     if (setting::grid::cubic) {
         double x_side = axes.x.max - axes.x.min;
@@ -131,25 +131,25 @@ void Grid::setup(double width, double ra, double rh, PlacementStrategyChoice psc
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
 
-    switch (psc) {
-        case PlacementStrategyChoice::AxesStrategy: 
+    switch (ps) {
+        case setting::grid::PlacementStrategy::AxesStrategy: 
             water_placer = std::make_unique<AxesPlacement>(this);
             break;
-        case PlacementStrategyChoice::RadialStrategy:
+        case setting::grid::PlacementStrategy::RadialStrategy:
             water_placer = std::make_unique<RadialPlacement>(this);
             break;
-        case PlacementStrategyChoice::JanStrategy: 
+        case setting::grid::PlacementStrategy::JanStrategy: 
             water_placer = std::make_unique<JanPlacement>(this);
             break;
         default: 
             throw except::unknown_argument("Error in Grid::Grid: Unkown PlacementStrategy");
     }
 
-    switch (csc) {
-        case CullingStrategyChoice::CounterStrategy: 
+    switch (cs) {
+        case setting::grid::CullingStrategy::CounterStrategy: 
             water_culler = std::make_unique<CounterCulling>(this);
             break;
-        case CullingStrategyChoice::OutlierStrategy: 
+        case setting::grid::CullingStrategy::OutlierStrategy: 
             water_culler = std::make_unique<OutlierCulling>(this);
             break;
         default: 

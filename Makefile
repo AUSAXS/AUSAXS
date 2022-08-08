@@ -124,7 +124,7 @@ memtest/%: $(shell find source/ -print) test/%.cpp
 
 test/%: $(shell find source/ -print) test/%.cpp
 	@ make -C build test -j${cmake_threads}
-	build/test [$(*F)] ~[slow] ${tags}
+	build/test [$(*F)] ~[slow] ~[broken] ${tags}
 
 tests: $(shell find source/ -print) $(shell find test/ -print)
 	@ make -C build test -j${cmake_threads}

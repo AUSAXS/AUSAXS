@@ -23,7 +23,7 @@ class Grid {
 		 * @param width the distance between each point.
 		 * @param bins the number of bins in all dimensions. 
 		 */
-		Grid(const Axis3D& axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+		Grid(const Axis3D& axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
 
 		/**
 		 * @brief Constructor.
@@ -33,7 +33,7 @@ class Grid {
 		 * @param bins the number of bins in all dimensions. 
 		 * @param radius the radius of each atom.
 		 */
-		Grid(const Axis3D& axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::psc, setting::grid::csc) {}
+		Grid(const Axis3D& axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
 
 		/**
 		 * @brief Constructor.
@@ -44,7 +44,7 @@ class Grid {
 		 * @param ra the radius of each atom.
 		 * @param rh the radius of each water molecule.
 		 */
-		Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
+		Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
 
 		/**
 		 * @brief Space-saving constructor. 
@@ -53,7 +53,7 @@ class Grid {
 		 * 
 		 * @param atoms The atoms to be stored in the Grid. 
 		 */
-		Grid(const std::vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+		Grid(const std::vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
 
 		/**
 		 * @brief Space-saving constructor. 
@@ -66,7 +66,7 @@ class Grid {
 		 * @param ra the radius of each atom.
 		 * @param rh the radius of each water molecule.
 		 */
-		Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
+		Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
 
 		/**
 		 * @brief Space-saving constructor. 
@@ -75,7 +75,7 @@ class Grid {
 		 * 
 		 * @param bodies The bodies to be stored in the Grid. 
 		 */
-		Grid(const std::vector<Body>& bodies) : Grid(bodies, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::psc, setting::grid::csc) {}
+		Grid(const std::vector<Body>& bodies) : Grid(bodies, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
 
 		/**
 		 * @brief Space-saving constructor. 
@@ -88,7 +88,7 @@ class Grid {
 		 * @param ra the radius of each atom.
 		 * @param rh the radius of each water molecule.
 		 */
-		Grid(const std::vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc = setting::grid::psc, setting::grid::CullingStrategyChoice csc = setting::grid::csc);
+		Grid(const std::vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
 
 		/**
 		 * @brief Copy constructor. 
@@ -324,5 +324,5 @@ class Grid {
 		 */
 		void deflate_volume(const Vector3<int>& loc, bool is_water);
 
-		void setup(double width, double ra, double rh, setting::grid::PlacementStrategyChoice psc, setting::grid::CullingStrategyChoice csc);
+		void setup(double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs);
 };

@@ -235,12 +235,13 @@ TEST_CASE("hydrate", "[grid],[files]") {
 }
 
 TEST_CASE("width", "[grid]") {
-    double width = 0.1;
-    int radius = 3;
-    Axis3D axes(-10, 10, -10, 10, -10, 10, width);
-    Grid grid(axes, width, radius);
+    auto test_width_basics = [] (setting::grid::PlacementStrategy strategy) {
+        setting::grid::placement_strategy = strategy;
+        double width = 0.1;
+        int radius = 3;
+        Axis3D axes(-10, 10, -10, 10, -10, 10, width);
+        Grid grid(axes, width, radius);
 
-    SECTION("Test that the basics still work") {
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);
         vector<vector<vector<char>>>& g = grid.grid;
@@ -253,18 +254,26 @@ TEST_CASE("width", "[grid]") {
         // check water generation
         setting::grid::percent_water = 0;
         vector<Hetatom> water = grid.hydrate();
-        REQUIRE(water.size() == 6);
-        if (water.size() == 6) { // avoid crashing if the above fails
-            CHECK(water[0].coords == Vector3{0, 0,  6}); // (0, 0,  2r)
-            CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-            CHECK(water[2].coords == Vector3{ 6, 0, 0}); // ( 2r, 0, 0)
-            CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-            CHECK(water[4].coords == Vector3{0,  6, 0}); // (0,  2r, 0)
-            CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
-        }
-    }
 
-    SECTION("Test bounds") {
+        // since this needs to work with different placement strategies, we have to perform a more general check on the positions
+        vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
+        REQUIRE(water.size() == 6);
+        for (const auto& l : water) {
+            bool found = false;
+            for (const auto& p : v) {
+                if (l.coords == p) {found = true;}
+            }
+            CHECK(found);
+        }
+    };
+
+    auto test_width_bounds = [] (setting::grid::PlacementStrategy strategy) {
+        setting::grid::placement_strategy = strategy;
+        double width = 0.1;
+        int radius = 3;
+        Axis3D axes(-10, 10, -10, 10, -10, 10, width);
+        Grid grid(axes, width, radius);
+
         vector<Atom> a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
         grid.add(a);
         grid.expand_volume();
@@ -276,6 +285,31 @@ TEST_CASE("width", "[grid]") {
         REQUIRE(max[1] == 101);
         REQUIRE(min[2] == 30);
         REQUIRE(max[2] == 101);
+    };
+
+    SECTION("RadialStrategy") {
+        SECTION("basics") {
+            test_width_basics(setting::grid::PlacementStrategy::RadialStrategy);
+        }
+        SECTION("bounds") {
+            test_width_bounds(setting::grid::PlacementStrategy::RadialStrategy);
+        }
+    }
+    SECTION("AxesStrategy") {
+        SECTION("basics") {
+            test_width_basics(setting::grid::PlacementStrategy::AxesStrategy);
+        }
+        SECTION("bounds") {
+            test_width_bounds(setting::grid::PlacementStrategy::AxesStrategy);
+        }
+    }
+    SECTION("JanStrategy") {
+        SECTION("basics") {
+            test_width_basics(setting::grid::PlacementStrategy::JanStrategy);
+        }
+        SECTION("bounds") {
+            test_width_bounds(setting::grid::PlacementStrategy::JanStrategy);
+        }
     }
 }
 
@@ -412,23 +446,22 @@ TEST_CASE("correct_volume", "[grid]") {
     REQUIRE(grid.volume == 0);
 }
 
-// Test that the correct locations are found by find_free_locs. 
-void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
-    int width = 1;
-    int radius = 3;
-    Grid grid(axes, width, radius, radius, ch, setting::grid::csc);
+TEST_CASE("find_free_locs", "[grid]") {
+    auto test_func = [] (setting::grid::PlacementStrategy ch) {
+        Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+        int width = 1;
+        int radius = 3;
+        Grid grid(axes, width, radius, radius, ch, setting::grid::culling_strategy);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
-    grid.add(a);
-    grid.expand_volume();
+        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        grid.add(a);
+        grid.expand_volume();
 
-    vector<grid::GridMember<Hetatom>> locs = grid.find_free_locs();
-    REQUIRE(locs.size() == 6);
+        vector<grid::GridMember<Hetatom>> locs = grid.find_free_locs();
+        REQUIRE(locs.size() == 6);
 
-    // since this needs to work with different placement strategies, we have to perform a more general check on the positions
-    vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
-    if (locs.size() >= 6) { // avoid crashing if the above fails
+        // since this needs to work with different placement strategies, we have to perform a more general check on the positions
+        vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
         for (const auto& l : locs) {
             bool found = false;
             for (const auto& p : v) {
@@ -436,12 +469,17 @@ void test_find_free_locs(setting::grid::PlacementStrategyChoice ch) {
             }
             REQUIRE(found);
         }
-    }
-}
+    };
 
-TEST_CASE("find_free_locs", "[grid]") {
-    test_find_free_locs(setting::grid::PlacementStrategyChoice::AxesStrategy);
-    test_find_free_locs(setting::grid::PlacementStrategyChoice::RadialStrategy);
+    SECTION("RadialStrategy") {
+        test_func(setting::grid::PlacementStrategy::RadialStrategy);
+    }
+    SECTION("JanStrategy") {
+        test_func(setting::grid::PlacementStrategy::JanStrategy);
+    }
+    SECTION("AxesStrategy") {
+        test_func(setting::grid::PlacementStrategy::AxesStrategy);
+    }
 }
 
 // Test that expansion and deflation completely cancels each other. 

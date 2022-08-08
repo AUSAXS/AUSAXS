@@ -23,8 +23,8 @@ int main(int, char const *argv[]) {
     std::cout << "Average radius is " << cbrt(acid_volume/protein.protein_atoms.size()) << std::endl;
     std::cout << "acid_vol: " << acid_volume << ", N: " << protein.protein_atoms.size() << std::endl;
     exit(0);
-    vector<double> ra(20);
-    vector<double> diff(ra.size());
+    std::vector<double> ra(20);
+    std::vector<double> diff(ra.size());
     double mindiff = DBL_MAX;
     for (size_t i = 0; i < ra.size(); i++) {
         ra[i] = 1+i*0.1;
@@ -35,8 +35,8 @@ int main(int, char const *argv[]) {
         if (diff[i] < mindiff) {mindiff = diff[i];}
     }
 
-    unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
-    unique_ptr<TGraph> g = std::make_unique<TGraph>(ra.size(), &ra[0], &diff[0]);
+    std::unique_ptr<TCanvas> c1 = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
+    std::unique_ptr<TGraph> g = std::make_unique<TGraph>(ra.size(), &ra[0], &diff[0]);
     g->Draw("AL");
 
     // setup the canvas and save the plot

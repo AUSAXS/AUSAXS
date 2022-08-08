@@ -33,9 +33,9 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
 
     // parse strategy
-    if (placement_strategy == "Radial") {setting::grid::psc = setting::grid::PlacementStrategyChoice::RadialStrategy;}
-    else if (placement_strategy == "Axes") {setting::grid::psc = setting::grid::PlacementStrategyChoice::AxesStrategy;}
-    else if (placement_strategy == "Jan") {setting::grid::psc = setting::grid::PlacementStrategyChoice::JanStrategy;}
+    if (placement_strategy == "Radial") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::RadialStrategy;}
+    else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
+    else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
     std::cout << "debug" << std::endl;
     Protein protein(input_structure);
@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::figures::format);
     FitReporter::report(result);
 
-    vector<double> q;
+    std::vector<double> q;
     for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}
 
     SimpleDataset data = fitter.get_model_dataset(q);

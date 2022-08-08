@@ -1,20 +1,16 @@
 # Todo
- * [ ] Grid tests: Do all of them with all three placement strategies
- * [ ] Vector3: Template this class so it can also be used with unsigned ints. Use it instead of raw vectors in Grid methods. 
+ * [x] Grid tests: Do all of them with all three placement strategies
+ * [x] Vector3: Template this class so it can also be used with unsigned ints. Use it instead of raw vectors in Grid methods. 
  * [ ] IntensityFitter: Locally stored fit does not contain plots. Currently fixed by returning another fit. 
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled
- * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_na.ccp4. Probably something to do with assumed negative staining?
+ * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
  * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
- * [x] EMFitter: We have a lot of measurements that fit their pdb structures really well. Try to generate maps from the pdb structures and see if they also fit their maps well. 
  * [ ] EMFitter: Fit 12752, 12753 trypsin-activated
  * [ ] EMFitter: Handle absolute scale properly.
- * [x] Use nothrow
  * [ ] gentag alt for de andre filer
  * [ ] flow diagram med hvad vi rent faktisk laver
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
- * [ ] Atom: Add define statement controlling safety checks on set_element, get_mass and get_Z
- * [ ] Atom: Rename "effective charge" to "relative charge". Apply this change globally. 
  * [ ] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] Memory test all other executables.

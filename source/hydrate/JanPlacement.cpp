@@ -20,7 +20,7 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    int r_eff = grid->ra;
+    int r_eff = grid->ra + grid->rh;
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
         for (int j = min.y(); j < max.y(); j++) {
@@ -32,7 +32,7 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
                 int jm = std::max(j-r_eff, 0), jp = std::min(j+r_eff, (int) bins.y()-1); // yminus and yplus
                 int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, (int) bins.z()-1); // zminus and zplus
 
-                // check collisions for x ± r_eff
+                // check collisions for x ± r_eff                
                 if (gref[im][j][k] == 0) {add_loc(Vector3<int>(im, j, k));}
                 if (gref[ip][j][k] == 0) {add_loc(Vector3<int>(ip, j, k));}
 

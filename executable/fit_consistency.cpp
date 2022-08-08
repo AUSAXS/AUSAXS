@@ -9,7 +9,7 @@ using std::string;
 
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
-    setting::grid::psc = setting::grid::PlacementStrategyChoice::RadialStrategy;
+    setting::grid::placement_strategy = setting::grid::PlacementStrategy::RadialStrategy;
     setting::em::sample_frequency = 2;
 
     // check that we have at least one argument

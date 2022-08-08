@@ -6,7 +6,12 @@
 
 namespace grid {
     /**
-     * @brief Description
+     * @brief This strategy iterates through all atoms, and attempts to place a water molecule at a distance r along a number of radial lines originating from each atom. 
+     * For each possible location, a suitability score is calculated, which favors the surface of the molecule, and penalizes cavities (including internal spaces). 
+     * 
+     * Although more calculations are involved for each location than the AxesPlacement strategy, the complexity is the same.
+     * 
+     * The radius r is defined as the sum of @a ra and @a rh.
      */
     class RadialPlacement : public PlacementStrategy {
     public:

@@ -11,8 +11,8 @@ namespace setting {
     }
 
     namespace grid {
-        PlacementStrategyChoice psc = PlacementStrategyChoice::RadialStrategy; 
-        CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy;
+        PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy; 
+        CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;
 
         double percent_water = 0.1;
         double ra = 2.4;

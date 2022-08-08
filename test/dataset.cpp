@@ -9,18 +9,6 @@
 
 using std::vector;
 
-TEST_CASE("debug", "[dataset],[disable]") {
-    Multiset data("temp/multiset");
-    std::cout << data[0].size() << std::endl;
-    std::cout << data[1].size() << std::endl;
-    std::cout << data[2].size() << std::endl;
-    std::cout << data[3].size() << std::endl;
-    std::cout << data[4].size() << std::endl;
-
-    plots::PlotResolutionComparison plot_r(data);
-    plot_r.save("figures/test/dataset/debug.pdf");
-}
-
 TEST_CASE("dataset_slicing") {
     std::vector<double> xd = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> yd = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
@@ -140,7 +128,7 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
     plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.pdf");
 }
 
-TEST_CASE("dataset_is_logarithmic", "[dataset],[files]") {
+TEST_CASE("dataset_is_logarithmic", "[dataset],[files],[broken]") {
     SECTION("lysozyme") {
         Dataset2D data("data/lysozyme/2epe.RSR");
         CHECK(data.is_logarithmic());

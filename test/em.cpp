@@ -187,12 +187,12 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
     }
 }
 
-TEST_CASE("plot_images", "[em],[files],[manual]") {
+TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
-    string file = "data/lysozyme/emd_23957.map";
+    string file = "data/A2M/A2M_ma.ccp4";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
@@ -205,9 +205,9 @@ TEST_CASE("get_histogram", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
 
-    string file = "data/A2M/A2M_ma.map";
+    string file = "data/A2M/A2M_ma.ccp4";
     em::ImageStack image(file);
-    auto hist = image.get_histogram(0.05);
+    auto hist = image.get_histogram(2);
     plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
 }
 
@@ -215,40 +215,43 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
-    em::ImageStack image("sim/native_23.ccp4");
+    em::ImageStack image("data/A2M/A2M_ma.ccp4");
 
-    SECTION("check voxel count") {
-        CHECK(image.image(25).count_voxels(2) == 72);
-        CHECK(image.image(30).count_voxels(10) == 38);
-        CHECK(image.image(35).count_voxels(10) == 74);
+    CHECK(image.image(95).count_voxels(15) == 32);
+    CHECK(image.image(100).count_voxels(10) == 208);
+    CHECK(image.image(105).count_voxels(10) == 84);
 
-        // The following generates the actual plots where the number of voxels can be counted.
-        // plots::PlotImage p25(image.image(25));
-        // p25.plot_atoms(2);
-        // p25.save("figures/test/em/voxels/25.png");
-        // std::cout << "25.png: " << image.image(25).count_voxels(2) << std::endl;
+    // The following generates the actual plots where the number of voxels can be manually counted.
+    // plots::PlotImage p95(image.image(95));
+    // p95.plot_atoms(15);
+    // p95.save("figures/test/em/voxels/95.png");
+    // std::cout << "95.png: " << image.image(95).count_voxels(15) << std::endl;
 
-        // plots::PlotImage p30(image.image(30));
-        // p30.plot_atoms(10);
-        // p30.save("figures/test/em/voxels/30.png");
-        // std::cout << "30.png: " << image.image(30).count_voxels(10) << std::endl;
+    // plots::PlotImage p100(image.image(100));
+    // p100.plot_atoms(10);
+    // p100.save("figures/test/em/voxels/100.png");
+    // std::cout << "100.png: " << image.image(100).count_voxels(10) << std::endl;
 
-        // plots::PlotImage p35(image.image(35));
-        // p35.plot_atoms(10);
-        // p35.save("figures/test/em/voxels/35.png");
-        // std::cout << "35.png: " << image.image(35).count_voxels(10) << std::endl;
+    // plots::PlotImage p105(image.image(105));
+    // p105.plot_atoms(10);
+    // p105.save("figures/test/em/voxels/105.png");
+    // std::cout << "105.png: " << image.image(105).count_voxels(10) << std::endl;
+}
+
+TEST_CASE("voxelcount", "[em],[slow],[manual]") {
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 1;
+    setting::fit::q_high = 0.4;
+    em::ImageStack image("data/A2M/A2M_ma.ccp4");
+
+    Dataset2D data;
+    Axis range(1000, 0, 15);
+    for (const double& val : range.as_vector()) {
+        data.push_back({val, double(image.count_voxels(val))});
     }
 
-    SECTION("make voxelcount plot") {
-        Dataset2D data;
-        Axis range(1000, 0, 6);
-        for (const double& val : range.as_vector()) {
-            data.push_back({val, double(image.count_voxels(val))});
-        }
-
-        data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}});
-        plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
-    }
+    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}});
+    plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
 }
 
 TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
@@ -303,7 +306,7 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
     }
 
     SECTION("native23.ccp4") {
-        em::ImageStack image("sim/native_23.ccp4", 25);
+        em::ImageStack image("sim/native_23.ccp4", 23);
         // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/23));
     }
@@ -413,16 +416,12 @@ TEST_CASE("minimum_area", "[em]") {
     SECTION("correct_bounds_imagestack") {
         Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
         Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
-        std::cout << "checkpoint 0" << std::endl;
         em::ImageStack images({data, data2});
-        std::cout << "checkpoint 1" << std::endl;
         
         ObjectBounds3D bounds = images.minimum_volume(1);
-        std::cout << "checkpoint 2" << std::endl;
         CHECK(bounds.total_volume() == 2*6*6);
         CHECK(bounds.bounded_volume() == ((4 + 3 + 3 + 4 + 3 + 5) + (5 + 4 + 4 + 5 + 4 + 6)));
 
-        std::cout << "checkpoint 3" << std::endl;
         bounds = images.minimum_volume(2);
         CHECK(bounds.bounded_volume() == ((2 + 3 + 2 + 3 + 2 + 3) + (3 + 4 + 1 + 4 + 1 + 4)));
     }

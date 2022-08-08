@@ -22,13 +22,13 @@ int main(int argc, char const *argv[]) {
 
     // plot pdb file
     Protein protein(pdb_file);
-    SAXSDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.limit(Limit(setting::fit::q_low, setting::fit::q_high));
     data.simulate_errors();
 
-    vector<Fit> fits;
-    vector<string> paths;
+    std::vector<Fit> fits;
+    std::vector<string> paths;
     Dataset fitted_vals("resolution", "cutoff");
     Dataset voxel_sizes("resolution", "voxel size [Angstrom]");
     for (int i = 2; i < argc; i++) {
@@ -42,7 +42,7 @@ int main(int argc, char const *argv[]) {
         //#######################################//
         //#    Repeat fits & combine results    #//
         //#######################################//
-        vector<Fit> cur_fits;
+        std::vector<Fit> cur_fits;
         for (unsigned int i = 0; i < loops; i++) {
             cur_fits.push_back(*image.fit(hist));
         }
@@ -107,7 +107,7 @@ int main(int argc, char const *argv[]) {
     plots::PlotDataset::quick_plot(fitted_vals, "figures/stuff/cutoff.pdf");
 
     // generate chi2 v. resolution plot
-    vector<double> chi2(fits.size());
+    std::vector<double> chi2(fits.size());
     std::transform(fits.begin(), fits.end(), chi2.begin(), [] (const Fit& fit) {return fit.fval;});
     fitted_vals.y = chi2;
     fitted_vals.add_plot_options({{"ylabel", "chi2"}});
