@@ -36,3 +36,6 @@ target_link_libraries(rebin saxs)
 
 add_executable(unit_cell unit_cell.cpp)
 target_link_libraries(unit_cell saxs)
+
+add_executable(em_fitter em_fitter.cpp)
+target_link_libraries(em_fitter saxs)

@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
     string mapfile = argv[1];
     string pdbfile = argv[2];
     string mfile = argv[3];
-    string path = "figures/consistency/" + utility::stem(mapfile) + "/" + utility::stem(pdbfile) + "/";
+    string path = "figures/fit_consistency/" + utility::stem(mapfile) + "/" + utility::stem(pdbfile) + "/";
     em::ImageStack map(mapfile); 
     Protein protein(pdbfile);
 

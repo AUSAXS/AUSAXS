@@ -17,3 +17,4 @@ valgrind.txt
 *.pdb
 *.ccp4
 *.mrc
+*.cif

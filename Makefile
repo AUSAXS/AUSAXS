@@ -43,15 +43,31 @@ rotate/%: build/executable/rotate_map
 main/%: build/executable/main
 	$< $*
 
+# Fit an EM map to a SAXS measurement file.  
+# The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement.
+em_fitter/%: build/executable/em_fitter
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	emmaps=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4"); \
+	for emmap in $${emmaps}; do\
+		echo "Fitting " $${emmap} " ...";\
+		sleep 1;\
+		$< $${emmap} $${measurement};\
+	done
+
+# Fit both an EM map and a PDB file to a SAXS measurement. 
+# The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement. 
 em/%: build/executable/em
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	emmap=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
+	emmap=$(shell find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
 	$< $${emmap} $${structure} $${measurement}
 
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb figures/
 
+# Perform a rigid-body optimization of the input structure. 
+# The wildcard should be the name of both a measurement file and an associated PDB structure file. 
 rigidbody/%: build/executable/rigidbody
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
@@ -66,12 +82,17 @@ intensity_fit/%: build/executable/intensity_fitter
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps} ${options}
 
+# Check the consistency of the program. 
+# The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
 consistency/%: build/executable/consistency
-	@ map=$(shell find data/ -name "$*.map" -or -name "$*.ccp4"); \
+	@ map=$(shell find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
 	$< $${map}
 
 res := 20
 # usage: make fit_consistency/2epe map=10
+# Check the consistency of the program. 
+# The wildcard should be the name of both a measurement file and an associated PDB structure file. 
+# A simulated EM map must be available. The resolution can be specified with the "res" argument. 
 fit_consistency/%: build/executable/fit_consistency
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
@@ -79,10 +100,14 @@ fit_consistency/%: build/executable/fit_consistency
 	echo "./fit_consistency $${structure} $${measurement} $${emmap}\n"; \
 	$< $${emmap} $${structure} $${measurement}
 
+# Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
+# The wildcard should be the name of a SAXS measurement file. 
 rebin/%: build/executable/rebin
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${measurement}
 
+# Calculate a unit cell and write it to the file as a CRYST1 record. 
+# The wildcard should be the name of a PDB structure file. 
 unit_cell/%: build/executable/unit_cell
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure}

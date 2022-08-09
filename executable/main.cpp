@@ -1,310 +1,205 @@
 #include <vector>
 #include <string>
-#include <stdexcept>
-#include <map>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <functional>
 
 #include <utility/Constants.h>
+#include <utility/Utility.h>
 #include <utility/Exceptions.h>
 
-using std::string, std::cout, std::endl, std::vector;
+#include <curl/curl.h>
 
-class Ligand {
-    class Atom {
-        public: 
-            /**
-             * @brief Default constructor.
-             */
-            Atom() noexcept {}
+template<typename K, typename V>
+struct Storage {
+    Storage() {}
 
-            Atom(string symbol) {
-                this->symbol = symbol;
-                valence = constants::valence::get.at(symbol);
-            }
+    Storage(std::map<K, V> map) : data(map) {}
 
-            void add_connection(Ligand::Atom* atom) {
-                if (valence <= 0 || atom->valence <= 0) {
-                    throw std::runtime_error("Cannot add connections to an atom with no valence.");
-                }
-                connections.push_back(atom);
-                atom->connections.push_back(this);
-                atom->valence--;
-                valence--;
-            }
-        
-            string symbol, name;
-            unsigned int valence;
-            vector<Ligand::Atom*> connections;
-    };
-
-    public: 
-        /**
-         * @brief Default constructor.
-         */
-        Ligand() noexcept {}
-
-        Ligand(string inchi) : inchi(inchi) {
-            parse(inchi);
+    V get(K key) {
+        if (data.find(key) == data.end()) {
+            throw except::map_error("Key " + key + " not found in map");
         }
+        return data.at(key);
+    }
 
-        /**
-         * @brief Parse the InChI string and create a ligand from it.
-         */
-        void parse(string id) {
-            if (id.size() < 9 || id.substr(0, 9) != "InChI=1S/") {
-                cout << "Fatal error, wrong prefix" << endl;
-                exit(1);
-            }
+    void insert(K key, V val) {
+        data.emplace(key, val);
+    }
 
-            unsigned int index = 9;
-            std::map<unsigned int, Ligand::Atom> atom_ids = parse_initial(id, index);
-            structure = parse_connections(id, index, atom_ids);
-        }
-
-        Ligand::Atom* find_calpha() const {
-            for (unsigned int i = 0; i < structure.size(); i++) {
-                Ligand::Atom atom1 = structure[i];
-
-                // first search for the carboxylic acid group. we check all oxygens to see if they match the structure
-                std::cout << atom1.symbol << std::endl;
-                if (atom1.symbol == "O") {
-                    std::cout << "Found oxygen" << std::endl;
-
-                    // check if the oxygen is connected to a carbon
-                    for (unsigned int j = 0; j < atom1.connections.size(); j++) {
-                        Ligand::Atom* atom2 = atom1.connections[j];
-                        if (atom2->symbol == "C") {
-                            std::cout << "Found attached carbon" << std::endl;
-
-                            // check if the carbon is connected to another oxygen
-                            unsigned int oxygens = 0;
-                            Ligand::Atom* carbon;
-                            for (unsigned int k = 0; k < atom2->connections.size(); k++) {
-                                std::cout << "k = " << k << std::endl;
-                                Ligand::Atom* atom3 = atom2->connections[k];
-
-                                // count the number of oxygens
-                                if (atom3->symbol == "O") {
-                                    std::cout << "Found attached oxygen" << std::endl;
-                                    oxygens++;
-                                } 
-
-                                // save the connected carbon
-                                else if (atom3->symbol == "C") {
-                                    std::cout << "Found calpha" << std::endl;
-                                    carbon = atom3;
-                                }
-                            }
-
-                            // if there are two oxygens, we have found the carboxylic acid group and can easily find the calpha
-                            if (oxygens == 2) {
-                                carbon->name = "CA";
-                                atom2->name = "C";
-                                atom1.name = "OXT";
-                                return carbon;
-                            }
-                        }
-                    }
-                }
-            }
-            return nullptr;
-        }
-
-        void enumerate() {
-            Ligand::Atom* calpha = find_calpha();
-            if (calpha == nullptr) {throw std::runtime_error("Cannot enumerate a ligand without a calpha.");}
-
-            // explore a single atom and recursively explore its connections
-            std::function<void(Ligand::Atom*, unsigned int)> explore = [&explore] (Ligand::Atom* atom, unsigned int level) {
-                static std::map<unsigned int, char> level_key = {{0, 'A'}, {1, 'B'}, {2, 'G'}, {3, 'D'}, {4, 'E'}, {5, 'Z'}};
-
-                atom->name = atom->symbol + std::to_string(level_key.at(level));
-                for (unsigned int i = 0; i < atom->connections.size(); i++) {
-                    if (atom->connections[i]->name.empty()) { // prevents backtracking and loops
-                        explore(atom->connections[i], level + 1);
-                    }
-                }
-            };
-
-            // enumerate the atoms
-            for (unsigned int i = 0; i < calpha->connections.size(); i++) {
-                Ligand::Atom* atom = calpha->connections[i];
-                if (atom->name == "C") {continue;}
-                else if (atom->symbol == "N") {continue;}
-                else {
-                    explore(atom, 1);
-                }
-            }
-        }
-
-        void print() const noexcept {
-            for (unsigned int i = 0; i < structure.size(); i++) {
-                Ligand::Atom atom = structure[i];
-                cout << atom.name << endl;
-            }
-        }
-
-    private:
-        string inchi;
-        std::vector<Ligand::Atom> structure;
-
-        /**
-         * @brief Parse the chemical formula section of the InChI string.
-         */
-        std::map<unsigned int, Ligand::Atom> parse_initial(std::string id, unsigned int& index) {
-            std::map<unsigned int, Ligand::Atom> atoms;
-            unsigned int counter = 1;
-
-            // iterate through the entire first section of the id
-            while(index < id.size()) {
-                //### determine the symbol ###//
-
-                // check if we are at the end of the first section
-                string symbol = string(1, id[index++]); // get the first character of the symbol
-                if (symbol == "/") {
-                    cout << "Found end of first section." << endl;
-                    break;
-                }
-
-                // symbols can be either 1 or 2 characters long; the second character will always be lowercase
-                if (std::islower(id[index])) {
-                    symbol += id[index++];
-                }
-                cout << "symbol is " << symbol << endl;
-
-                //### determine the number following the symbol ###//
-                string number;
-                // the number is optional; if it is not present, it is implicitly 1
-                if (std::isdigit(id[index])) {
-                    // while not at the end of the string
-                    while(index < id.size()) {
-                        // get the next character
-                        char c = id[index];
-                        // if it not a digit, we are at the end of the number
-                        if (!std::isdigit(c)) {
-                            break;
-                        }
-                        // add the character to the number
-                        number += c;
-                        index++;
-                    }
-                } else {
-                    number = "1";
-                }
-                cout << "number is " << number << endl;
-                // check we found a number
-                if (number.empty()) {
-                    cout << "Fatal error - invalid string format." << endl;
-                    exit(2);
-                }
-                // check we're not dealing with the H (should be ignored here)
-                if (symbol == "H") {
-                    cout << "Found H, skipping" << endl;
-                    continue;
-                } 
-
-                // everything is ok so we add to the map
-                for (unsigned int i = 0; i < std::stoi(number); i++) {
-                    atoms[counter++] = Ligand::Atom(symbol);
-                }
-            }
-
-            return atoms;
-        }
-
-        /**
-         * @brief Parse the connections section of the InChI string.
-         */
-        std::vector<Ligand::Atom> parse_connections(string id, unsigned int& index, std::map<unsigned int, Ligand::Atom>& atom_ids) {
-            std::vector<Ligand::Atom> structure;
-
-            if (id[index] != 'c') {
-                std::cout << id[index] << std::endl;
-                throw except::invalid_argument("Invalid InChI string format.");
-            }
-            index ++;
-
-            while(index < id.size()) {
-                // check if we are at the end of the second section
-                if (id[index] == '/') {
-                    cout << "Found end of second section." << endl;
-                    break;
-                }
-
-                unsigned int current = 0, previous = 0;
-                // parse the connection character between two atoms
-                static auto parse_sep = [&previous, &current] (char sep) {
-                    static std::vector<unsigned int> branchers;
-                    switch (sep) {
-                        case '-':
-                            return true;
-                        case '(':
-                            branchers.push_back(current);
-                            return true;
-                        case ')':
-                            if (branchers.size() == 0) {
-                                throw except::invalid_argument("Invalid InChI string format.");
-                            }
-                            current = branchers.back();
-                            branchers.pop_back();
-                            return true;
-                        case '/':
-                            return false;
-                        default: 
-                            std::cout << "Invalid character: " << sep << std::endl;
-                            throw except::invalid_argument("Invalid InChI string format.");
-                    }
-                };
-
-                while(index < id.size()) {
-                    string number;
-                    while(index < id.size()) {
-                        char c = id[index];
-                        if (!std::isdigit(c)) {
-                            break;
-                        }
-                        number += c;
-                        index++;
-                    }
-                    previous = current;
-                    current = std::stoi(number); 
-
-                    // in the very first iteration no connection is made
-                    if (previous == 0) {
-                        parse_sep(id[index++]);
-                        continue;
-                    } 
-                    // afterwards we always make at least one connection
-                    else {
-                        atom_ids[previous].add_connection(&atom_ids[current]);
-                        if (!parse_sep(id[index++])) {
-                            index--; // go back one character to avoid skipping the '/'
-                            break;
-                        }
-                    }
-                }
-            }
-
-            for (auto& atom : atom_ids) {structure.push_back(atom.second);}
-            return structure;
-        }
+    std::map<K, V> data;
 };
 
-// int main(int, char const**) {
-//     string test = "InChI=1S/C21H19ClN6O/c22-19-13-24-21-20(26-18(14-28(19)21)15-2-1-7-23-12-15)25-16-3-5-17(6-4-16)27-8-10-29-11-9-27/h1-7,12-14H,8-11H2,(H,25,26)";
-//     Ligand ligand(test);
-//     ligand.enumerate();
-//     ligand.print();
-//     return 0;
-// }
+struct Atom {
+    Atom(std::string name, std::string symbol) : name(name), symbol(symbol) {
+        valency = constants::valence::get.at(symbol);
+    }
 
-#include <math/Matrix.h>
+    void add_bond(std::string symbol, unsigned int order) {
+        if (symbol == "H") {
+            hydrogen_bonds++;
+        }
 
-int main(int, char const**) {
-    Matrix<double> m(3, 3);
+        if (valency < order) {
+            throw std::runtime_error("Atom " + name + " has no room for a bond of order " + std::to_string(order));
+        }
+
+        valency -= order;
+    }
+
+    std::string to_string() const {
+        return "Atom " + name + " with valency " + std::to_string(valency) + " and " + std::to_string(hydrogen_bonds) + " hydrogen bonds";
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Atom& a) {os << a.to_string(); return os;}
+
+    std::string name, symbol;
+    unsigned int valency;
+    unsigned int hydrogen_bonds = 0;
+};
+
+struct Bond {
+    Bond(std::string name1, std::string name2, unsigned int order) : name1(name1), name2(name2), order(order) {}
+
+    std::string to_string() const {
+        return "Bond " + name1 + (order == 1 ? " - " : " = ") + name2;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Bond& b) {os << b.to_string(); return os;}
+
+    static unsigned int parse_order(std::string order) {
+        if (order == "SING") {return 1;}
+        else if (order == "DOUB") {return 2;}
+        else {throw std::runtime_error("Invalid bond order: " + order);}
+    }
+
+    std::string name1, name2;
+    unsigned int order;
+};
+
+class Ligand {
+    public: 
+        Ligand(std::string name) : name(name) {}
+
+        Ligand(std::string name, std::vector<Atom> atoms, std::vector<Bond> bonds) : name(name), atoms(atoms) {
+            apply_bond(bonds);
+        }
+
+        void add_atom(std::string name, std::string symbol) {
+            name_map.insert({name, atoms.size()});
+            atoms.push_back(Atom(name, symbol));
+        }
+
+        void apply_bond(const std::vector<Bond>& bonds) {
+            for (const Bond& b : bonds) {
+                apply_bond(b);
+            }
+        }
+
+        void apply_bond(const Bond& bond) {
+            Atom& a1 = atoms.at(name_map.at(bond.name1));
+            Atom& a2 = atoms.at(name_map.at(bond.name2));
+            a1.add_bond(a2.symbol, bond.order);
+            a2.add_bond(a1.symbol, bond.order);
+        }
+
+        std::string to_string() const {
+            std::stringstream ss;        
+            for (const Atom& a : atoms) {
+                ss << a << std::endl;
+            }
+            return ss.str();
+        }
+
+        Storage<std::string, unsigned int> to_map() const {
+            Storage<std::string, unsigned int> map;
+            for (const Atom& a : atoms) {
+                map.insert(a.name, a.hydrogen_bonds);
+            }
+            return map;
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Ligand& l) {os << l.to_string(); return os;}
+
+    private: 
+        std::string name;
+        std::map<std::string, unsigned int> name_map;
+        std::vector<Atom> atoms;        
+};
+
+Ligand parse(std::string filename) {
+    std::ifstream file(filename);
+
+    std::string line;
+    Ligand ligand(utility::stem(filename));
+    bool found_atom_section = false, found_bond_section = false;
+    while (std::getline(file, line)) {
+        if (line.find("atom.pdbx_ordinal") != std::string::npos) {
+            std::cout << "Found start of atom section" << std::endl;
+            found_atom_section = true;
+            break;
+        }
+    }
+
+    while (std::getline(file, line)) {
+        // check for end of section
+        if (line.find("#") != std::string::npos) {
+            std::cout << "Found end of atom section" << std::endl;
+            break;
+        }
+
+        std::vector<std::string> tokens = utility::split(line, " \n\r");
+        std::string atom_id = tokens[1];
+        std::string type_symbol = tokens[3];
+        ligand.add_atom(atom_id, type_symbol);
+    }
+
+    while (std::getline(file, line)) {
+        if (line.find("bond.pdbx_ordinal") != std::string::npos) {
+            std::cout << "Found start of bond section" << std::endl;
+            found_bond_section = true;
+            break;
+        }
+    }
+
+    while (std::getline(file, line)) {
+        // check for end of section
+        if (line.find("#") != std::string::npos) {
+            std::cout << "Found end of bond section" << std::endl;
+            break;
+        }
+
+        std::vector<std::string> tokens = utility::split(line, " \n\r");
+        std::string atom1 = tokens[1];
+        std::string atom2 = tokens[2];
+        unsigned int order = Bond::parse_order(tokens[3]);
+        ligand.apply_bond(Bond(atom1, atom2, order));
+    }
     
+    return ligand;
+}
+
+#include <utility/Curl.h>
+int main(int, char const**) {
+    std::string file = "ASH";
+
+
+
+    Ligand GLY = parse("GLY.cif");
+    Ligand ASH = parse("ASH.cif");
+
+    Storage glycine = std::map<std::string, unsigned int>{{"N", 1}, {"CA", 2}, {"C", 0}, {"O", 0}, {"OXT", 1}};
+    Storage hydrogen_bonds = Storage<std::string, Storage<std::string, unsigned int>>{};
+
+    hydrogen_bonds.insert("GLY", GLY.to_map());
+    hydrogen_bonds.insert("ASH", ASH.to_map());    
+
+    Storage<std::string, unsigned int> valence = std::map<std::string, unsigned int>{
+        {"H", 1}, {"C", 4}, {"N", 3}, {"O", 2}, {"S", 2}, {"P", 3}, {"F", 1}, {"Cl", 1}, {"Br", 1}, {"I", 1}
+    };
+
+    std::cout << valence.get("H") << std::endl;
+    std::cout << GLY << std::endl;
+
     return 0;
 }

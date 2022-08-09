@@ -51,6 +51,11 @@ namespace utility {
     std::string stem(std::string path);
 
     /**
+     * @brief Convert a string to lowercase.
+     */
+    std::string to_lowercase(std::string s);
+
+    /**
      * @brief Split a string at a given delimiter.
      *        Consecutive delimiters are treated as a single delimiter. 
      */

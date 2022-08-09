@@ -45,6 +45,9 @@ list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})
 link_libraries(CLI11::CLI11)
 
+find_package(CURL REQUIRED)
+link_libraries(CURL::libcurl)
+
 
 ############################################
 ##                Doxygen                 ##

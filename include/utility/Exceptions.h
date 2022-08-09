@@ -49,4 +49,7 @@ namespace except {
 
     // Unexpected error. Used whenever we really did not expect something to go wrong, but it did. 
     struct unexpected : public base {using base::base;};
+
+    // Map error. Used when something is wrong with a map. Used for the constants. 
+    struct map_error : public base {using base::base;};
 }

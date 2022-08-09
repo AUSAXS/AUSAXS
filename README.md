@@ -1,6 +1,6 @@
 # Todo
- * [x] Grid tests: Do all of them with all three placement strategies
- * [x] Vector3: Template this class so it can also be used with unsigned ints. Use it instead of raw vectors in Grid methods. 
+ * [ ] DebyeLookupTable: Sometimes fails because it arbitrarily switches to non-default table lookups, but apparently only for A2M_ma. Create more tests and see if it can be reproduced. (Failed at Step 6: Evaluated cutoff value 0.220487 with chi2 468285
+)
  * [ ] IntensityFitter: Locally stored fit does not contain plots. Currently fixed by returning another fit. 
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled
  * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
@@ -37,7 +37,6 @@
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
  * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> -Dminuit2=ON -DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
- * Boost (Very minor dependency, consider removing it entirely.)
  * Elements
  * CLI11
  * catch2 for tests

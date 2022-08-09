@@ -22,7 +22,7 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
     string path = "figures/consistency/" + utility::stem(mapfile) + "/";
 
-    unsigned int evals = 100;
+    unsigned int evals = 1000;
     Dataset data({"dof", "chi2", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
         std::cout << "Starting iteration " << i << " of " << evals << std::endl;
@@ -45,6 +45,9 @@ int main(int argc, char const *argv[]) {
         FitReporter::save(path + "fits/" + std::to_string(i) + ".txt", res);
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
+
+        // delete the temporary files
+        remove(mfile.c_str());
     }
     data.save(path + "out.txt");
 }

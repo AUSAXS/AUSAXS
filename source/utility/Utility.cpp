@@ -130,6 +130,14 @@ std::string utility::remove_all(std::string s, std::string remove) {
     return new_s;
 }
 
+std::string utility::to_lowercase(std::string s) {
+    std::string new_s;
+    for (auto c : s) {
+        new_s += std::tolower(c);
+    }
+    return new_s;
+}
+
 std::string utility::uid() {
     static unsigned int i = 0;
     return std::to_string(i++);
