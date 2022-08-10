@@ -180,7 +180,7 @@ TEST_CASE("body_get_mass", "[body]") {
                         Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
 
-    REQUIRE_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::C));
+    REQUIRE_THAT(body.get_absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C")));
 }
 
 TEST_CASE("body_get_cm", "[body]") {
@@ -199,7 +199,7 @@ TEST_CASE("body_get_volume", "[body]") {
                         Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
                         Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
     Body body(a, {});
-    REQUIRE(body.get_volume_acids() == constants::volume::lysine);
+    REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
 }
 
 TEST_CASE("update_charge", "[broken],[body]") {

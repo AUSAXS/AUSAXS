@@ -11,61 +11,6 @@ constexpr double simple_pow(double val, unsigned int power) {
     return sum;
 }
 
-template<typename K, typename V>
-struct Storage {
-    /**
-     * @brief Create a new empty storage. 
-     */
-    Storage() {}
-
-    /**
-     * @brief Create a new storage from a map.
-     */
-    Storage(std::map<K, V> map) : data(map) {}
-
-    /**
-     * @brief Get a value from the storage. 
-     */
-    V get(K key) {
-        if (data.find(key) == data.end()) {
-            throw except::map_error("Key " + key + " not found in map");
-        }
-        return data.at(key);
-    }
-
-    /**
-     * @brief Insert a key-value pair into the storage.
-     */
-    void insert(K key, V val) {
-        data.emplace(key, val);
-    }
-
-    /**
-     * @brief Get a value from the storage. 
-     *        The key is converted to lowercase. 
-     */
-    template<>
-    V get<std::string>(std::string key) {
-        std::string k2 = utility::to_lowercase(key);
-        if (data.find(k2) == data.end()) {
-            throw except::map_error("Key " + k2 + " not found in map");
-        }
-        return data.at(k2);        
-    }
-
-    /**
-     * @brief Insert a key-value pair into the storage. 
-     *        The key is converted to lowercase. 
-     */
-    template<>
-    void insert<std::string> (std::string key, V val) {
-        std::string k2 = utility::to_lowercase(key);
-        data.emplace(k2, val);
-    }
-
-    std::map<K, V> data;
-};
-
 /**
  * @brief \namespace constants
  * 
@@ -128,18 +73,13 @@ namespace constants {
         {"threonine", 'T'}, {"asparagine", 'N'}, {"glutamine", 'Q'}, {"lysine", 'K'}, {"arginine", 'R'}, {"histidine", 'H'}, {"methionine", 'M'}, 
         {"cysteine", 'C'}, {"proline", 'P'}
     };
-    const Storage name_1symbol_map = std::map<std::string, char>{{
-        {"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, {"phenylalanine", 'F'}, {"tyrosine", 'Y'}, 
-        {"tryptophan", 'W'}, {"aspartic_acid", 'D'}, {"glutamic_acid", 'E'}, {"serine", 'S'}, {"threonine", 'T'}, {"asparagine", 'N'}, 
-        {"glutamine", 'Q'}, {"lysine", 'K'}, {"arginine", 'R'}, {"histidine", 'H'}, {"methionine", 'M'}, {"cysteine", 'C'}, {"proline", 'P'}
-    }};
 
     // The 3-symbol names of all amino acids. 
-    const Storage name_3symbol_map = std::map<std::string, std::string>{{
-        {"glycine", "GLY"}, {"alanine", "ALA"}, {"valine", "VAL"}, {"leucine", "LEU"}, {"isoleucine", "ILE"}, {"phenylalanine", "PHE"}, {"tyrosine", "TYR"}, 
-        {"tryptophan", "TRP"}, {"aspartic_acid", "ASP"}, {"glutamic_acid", "GLU"}, {"serine", "SER"}, {"threonine", "THR"}, {"asparagine", "ASN"}, 
-        {"glutamine", "GLN"}, {"lysine", "LYS"}, {"arginine", "ARG"}, {"histidine", "HIS"}, {"methionine", "MET"}, {"cysteine", "CYS"}, {"proline", "PRO"}
-    }};
+    const std::map<std::string, std::string> name_3symbol_map = {{"glycine", "GLY"}, {"alanine", "ALA"}, {"valine", "VAL"}, {"leucine", "LEU"}, 
+        {"isoleucine", "ILE"}, {"phenylalanine", "PHE"}, {"tyrosine", "TYR"}, {"tryptophan", "TRP"}, {"aspartic_acid", "ASP"}, {"glutamic_acid", "GLU"}, 
+        {"serine", "SER"}, {"threonine", "THR"}, {"asparagine", "ASN"}, {"glutamine", "GLN"}, {"lysine", "LYS"}, {"arginine", "ARG"}, {"histidine", "HIS"}, 
+        {"methionine", "MET"}, {"cysteine", "CYS"}, {"proline", "PRO"}
+    };
 
 
     /**
@@ -172,11 +112,11 @@ namespace constants {
         constexpr double proline = 129.3;
 
         // get the volume of a 3symbol amino acid
-        const Storage get = std::map<std::string, double>{{
-            {"GLY", glycine}, {"ALA", alanine}, {"VAL", valine}, {"LEU", leucine}, {"ILE", isoleucine}, {"PHE", phenylalanine}, {"TYR", tyrosine}, 
-            {"TRP", tryptophan}, {"ASP", aspartic_acid}, {"GLU", glutamic_acid}, {"SER", serine}, {"THR", threonine}, {"ASN", asparagine}, 
-            {"GLN", glutamine}, {"LYS", lysine}, {"ARG", arginine}, {"HIS", histidine}, {"MET", methionine}, {"CYS", cysteine}, {"PRO", proline}
-        }};
+        const std::map<std::string, double> get = {{"GLY", glycine}, {"ALA", alanine}, {"VAL", valine}, {"LEU", leucine}, {"ILE", isoleucine}, 
+            {"PHE", phenylalanine}, {"TYR", tyrosine}, {"TRP", tryptophan}, {"ASP", aspartic_acid}, {"GLU", glutamic_acid}, {"SER", serine}, 
+            {"THR", threonine}, {"ASN", asparagine}, {"GLN", glutamine}, {"LYS", lysine}, {"ARG", arginine}, {"HIS", histidine}, 
+            {"MET", methionine}, {"CYS", cysteine}, {"PRO", proline},
+        };
     }
 
     /**

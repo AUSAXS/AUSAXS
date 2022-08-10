@@ -368,7 +368,7 @@ TEST_CASE("get_volume", "[protein]") {
     vector<vector<Atom>> ap = {b1, b2, b3, b4};
     Protein protein(ap, {});
 
-    REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::lysine));
+    REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 }
 
 /**

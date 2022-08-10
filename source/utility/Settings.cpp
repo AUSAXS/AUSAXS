@@ -6,6 +6,10 @@
 
 // Default settings
 namespace setting {
+    namespace general {
+        constexpr char* residue_folder = "temp/residues/"; // this is char* since we need it at initialization
+    }
+
     namespace figures {
         std::string format = "pdf";
     }

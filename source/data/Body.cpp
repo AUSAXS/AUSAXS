@@ -186,7 +186,7 @@ double Body::get_volume_acids() const {
         int a_seq = a.resSeq; // sequence number of current atom
         if (cur_seq != a_seq) { // check if we are still dealing with the same acid
             cur_seq = a_seq; // if not, update our current sequence number
-            v += constants::volume::get.at(a.resName); // and add its volume to the running total
+            v += constants::volume::amino_acids.get(a.resName); // and add its volume to the running total
         }
     }
     return v;

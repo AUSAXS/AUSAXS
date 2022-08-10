@@ -4,19 +4,26 @@
 
 #include <curl/curl.h>
 
-static void download(std::string url, std::string path) {
-    CURL *curl;
-    CURLcode res;
-    FILE *fp;
-    curl = curl_easy_init();
-    if (curl) {
-        fp = fopen(path.c_str(), "wb");
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-        curl_global_cleanup();
-        fclose(fp);
+namespace curl {
+    /**
+     * @brief Download the given URL as a file. 
+     * 
+     * Based on the example from https://curl.se/libcurl/c/url2file.html
+     */ 
+    static void download(std::string url, std::string path) {
+        CURL *curl;
+        CURLcode res;
+        FILE *fp;
+        curl = curl_easy_init();
+        if (curl) {
+            fp = fopen(path.c_str(), "wb");
+            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+            res = curl_easy_perform(curl);
+            curl_easy_cleanup(curl);
+            curl_global_cleanup();
+            fclose(fp);
+        }
     }
 }
 

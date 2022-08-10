@@ -28,7 +28,7 @@ Atom::Atom(const Vector3<double> v, const double occupancy, const string element
     set_element(element);
     set_name(name);
     set_serial(serial);
-    set_effective_charge(constants::charge::atomic.at(this->element));
+    set_effective_charge(constants::charge::atomic.get(this->element));
     uid = uid_counter++;
 }
 
@@ -51,14 +51,14 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         if (setting::protein::use_effective_charge) {
             // use a try-catch block to throw more sensible errors
             try {
-                effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+                effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).at(this->name);
             } catch (const except::base& e) {
                 throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
             }
         } 
         // otherwise just use the atomic charge (this will never fail)
         else {
-            effective_charge = constants::charge::atomic.at(this->element);
+            effective_charge = constants::charge::atomic.get(this->element);
         }
         uid = uid_counter++;
 }
@@ -133,13 +133,13 @@ void Atom::parse_pdb(string s) {
 
     if (setting::protein::use_effective_charge) {
         try {
-            effective_charge = constants::charge::atomic.at(this->element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name);
+            effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).at(this->name);
         } catch (const std::exception& e) {
             throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\" or residue \"" + this->resName + "\".");
         }
     } else {
         try {
-            effective_charge = constants::charge::atomic.at(this->element);
+            effective_charge = constants::charge::atomic.get(this->element);
         } catch (const std::exception& e) {
             throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\".");
         }
@@ -198,7 +198,7 @@ void Atom::set_resName(string resName) {this->resName = resName;}
 void Atom::set_name(string name) {this->name = name;}
 
 void Atom::set_element(string element) {
-    if (__builtin_expect(constants::mass::atomic.count(element) == 0, false)) { // check that the weight is defined
+    if (__builtin_expect(!constants::mass::atomic.contains(element), false)) { // check that the weight is defined
         throw except::invalid_argument("Error in Atom::set_element: The weight of element " + element + " is not defined.");
     }
     this->element = element;
@@ -226,9 +226,9 @@ double Atom::get_mass() const {
     }
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
-        return constants::mass::atomic.at(element) + constants::hydrogen_atoms::get.at(this->resName).at(this->name)*constants::mass::atomic.at("H");
+        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).at(this->name)*constants::mass::atomic.get("H");
     } else {
-        return constants::mass::atomic.at(element);
+        return constants::mass::atomic.get(element);
     }
 };
 
@@ -236,7 +236,7 @@ unsigned int Atom::Z() const {
     if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
         throw except::invalid_argument("Error in Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
     }
-    return constants::charge::atomic.at(element);
+    return constants::charge::atomic.get(element);
 }
 
 void Atom::print() const {

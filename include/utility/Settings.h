@@ -8,6 +8,10 @@
 
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
+    namespace general {
+        extern char* const residue_folder; // Download location for all ligand files.
+    }
+
     namespace figures {
         extern std::string format; // The output format.
     }

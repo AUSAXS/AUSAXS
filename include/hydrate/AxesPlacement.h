@@ -6,8 +6,10 @@
 namespace grid {
     /**
      * @brief This strategy iterates through all atoms and attempts to place a water molecule at x±r, y±r, and z±r. 
-     *        If the location is valid, the molecule will be placed. This will typically generate a lot of molecules, 
-     *        and so a culling method may be useful afterwards. 
+     * If the location is valid, the molecule will be placed. This will typically generate a lot of molecules, 
+     * and so a culling method may be useful afterwards. 
+     * 
+     * The radius r is defined as the sum of @a ra and @a rh.
      */
     class AxesPlacement : public PlacementStrategy {
     public:

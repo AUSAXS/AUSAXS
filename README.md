@@ -34,6 +34,9 @@
 ## Protein: 
  * When calculating the volume of the acids, the calculation is simply delegated to each individual body. However, if an amino acid happens to be cut in two halves in two different bodies, its volume is counted twice. 
 
+## Parsing of arbitrary ligands
+ * 
+
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
  * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> -Dminuit2=ON -DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
