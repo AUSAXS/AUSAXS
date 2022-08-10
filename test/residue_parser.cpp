@@ -308,11 +308,11 @@ TEST_CASE("residue_parser_single", "[residue_parser]") {
 }
 
 TEST_CASE("residue_parser_all", "[residue_parser]") {
-    // for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
-    //     for (const auto& [atom, num_hydrogens] : atom_map) {
-    //         SECTION(acid + " " + atom) {
-    //             REQUIRE(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).at(atom));
-    //         }
-    //     }
-    // }
+    for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
+        for (const auto& [atom, num_hydrogens] : atom_map) {
+            SECTION(acid + " " + atom) {
+                REQUIRE(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).at(atom));
+            }
+        }
+    }
 }

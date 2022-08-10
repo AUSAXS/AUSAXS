@@ -37,7 +37,7 @@ namespace utility {
     /**
      * @brief Create all parent directories of the path.
      */
-    void create_directories(std::string& path);
+    void create_directory(std::string& path);
 
     /**
      * @brief Append a string to the stem of a path. 
@@ -86,6 +86,11 @@ namespace utility {
      * @brief Print a warning message. The text will be red in the terminal. 
      */
     void print_warning(std::string text);
+
+    /**
+     * @brief Print a success message. The text will be green in the terminal. 
+     */
+    void print_success(std::string text);
 
     /**
      * @brief Get a unique identifier.

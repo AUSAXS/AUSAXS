@@ -36,7 +36,7 @@ plots::PlotResolutionComparison::PlotResolutionComparison(Multiset data, int col
 plots::PlotResolutionComparison::~PlotResolutionComparison() = default;
 
 void plots::PlotResolutionComparison::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
     staggered->save(path.c_str());
     raw->save(utility::stem_append(path, "_raw"));
 }

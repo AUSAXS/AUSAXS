@@ -118,7 +118,7 @@ void plots::PlotIntensity::plot_guinier_approx() {
 }
 
 void plots::PlotIntensity::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
     canvas->SaveAs(path.c_str());
 }
 

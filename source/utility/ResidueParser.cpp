@@ -5,6 +5,7 @@
 
 #include <regex>
 #include <filesystem>
+#include <fstream>
 
 //### ATOM ###//
 parser::ligand::detail::Atom::Atom(std::string name, std::string symbol) : name(name), symbol(symbol) {
@@ -146,20 +147,49 @@ void parser::ligand::ResidueStorage::insert(std::string name, std::map<std::stri
 
 std::map<std::string, unsigned int>& parser::ligand::ResidueStorage::get(std::string name) {
     if (data.find(name) == data.end()) {
+        std::cout << "Residue \"" << name << "\" not found. Current contents:" << std::endl;
+        for (const auto& pair : data) {
+            std::cout << "\"" << pair.first << "\"" << std::endl;
+        }
         download_residue(name);
-
     }
     return data.at(name);
 }
 
 void parser::ligand::ResidueStorage::initialize() {
     std::string path = setting::general::residue_folder;
-    // utility::create_directories(path);
+    utility::create_directory(path);
+    std::ifstream file(path + "master.dat");
+    if (!file.is_open()) {
+        return;
+    }
 
-    for (const auto& file : std::filesystem::directory_iterator(path)) {
-        if (file.path().extension() == ".cif") {
-            std::string name = file.path().string();
-            insert(name, parser::ligand::detail::Residue::parse(path + name + ".cif").to_map());
+    std::string line;
+    while (std::getline(file, line)) {
+        // skip until we reach the start of a residue
+        if (line.find("#") == std::string::npos) {
+            continue;
+        } else {
+            // the line following the # is the name of the residue
+            std::getline(file, line);
+            std::string residue = line;
+            std::cout << "Read residue " << residue << " from master file." << std::endl;
+
+            // prepare map
+            std::map<std::string, unsigned int> map;
+            while (std::getline(file, line)) {
+                // stop if we reach the start of a new residue
+                if (line.find("#") != std::string::npos) {
+                    break;
+                }
+
+                // lines are of the form "atom hydrogens"
+                std::vector<std::string> tokens = utility::split(line, " \n\r");
+                std::string atom = tokens[0];
+                unsigned int hydrogens = std::stoi(tokens[1]);
+                map.emplace(atom, hydrogens);
+            }
+            insert(residue, std::move(map));
         }
     }
 }
@@ -169,11 +199,27 @@ void parser::ligand::ResidueStorage::download_residue(std::string name) {
     std::regex regex("[A-Z]{3}");
 
     if (std::regex_match(name, regex)) {
-        curl::download("https://files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif");
-        insert(name, parser::ligand::detail::Residue::parse(path + name + ".cif").to_map());
+        curl::download("https://files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
+        insert(name, parser::ligand::detail::Residue::parse(path + name + ".cif").to_map());          // parse the cif file & add to storage
+        write_residue(name);                                                                          // write the residue to the master file
     } else {
         throw except::map_error("Error in ResidueStorage::download_ligand: Invalid ligand name: \"" + name + "\"");
     }
+}
+
+void parser::ligand::ResidueStorage::write_residue(std::string name) {
+    std::string path = setting::general::residue_folder;
+    utility::create_directory(path);
+    std::ofstream file(path + "master.dat", std::ios::app); // open in append mode
+    if (!file.is_open()) {throw except::io_error("Error in ResidueStorage::write_residue: Could not open file: " + path + "master" + ".dat");}
+
+    // write the map to the master file
+    auto map = get(name);
+    file << "#" << "\n" << name << "\n";
+    for (const auto& pair : map) {
+        file << pair.first << " " << pair.second << "\n";
+    }
+    file << std::endl;
 }
 
 //### STREAM OPERATORS ###//

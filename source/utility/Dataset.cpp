@@ -84,7 +84,7 @@ std::string Dataset::get_col_names(unsigned int i) {
 }
 
 void Dataset::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
 
     // check if file was succesfully opened
     std::ofstream output(path);

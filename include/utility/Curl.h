@@ -12,7 +12,7 @@ namespace curl {
      */ 
     static void download(std::string url, std::string path) {
         CURL *curl;
-        CURLcode res;
+        CURLcode res = CURLE_FAILED_INIT;
         FILE *fp;
         curl = curl_easy_init();
         if (curl) {
@@ -23,6 +23,13 @@ namespace curl {
             curl_easy_cleanup(curl);
             curl_global_cleanup();
             fclose(fp);
+        }
+
+        if (res == CURLE_OK) {
+            utility::print_success("Successfully downloaded " + url + " to " + path);
+        } else {
+            utility::print_warning("Failed to download " + url);
+            exit(1);
         }
     }
 }

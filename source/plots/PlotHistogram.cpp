@@ -12,7 +12,7 @@ plots::PlotHistogram::PlotHistogram(const hist::Histogram& h) {
 plots::PlotHistogram::~PlotHistogram() = default;
 
 void plots::PlotHistogram::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
     canvas->SaveAs(path.c_str());
 }
 

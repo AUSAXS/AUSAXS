@@ -42,7 +42,7 @@ void plots::PlotDataset::plot(const T& data) {
 }
 
 void plots::PlotDataset::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
     canvas->SaveAs(path.c_str());
 }
 

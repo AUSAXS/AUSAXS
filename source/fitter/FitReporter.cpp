@@ -23,7 +23,7 @@ void FitReporter::report(const std::vector<Fit>& fits, std::vector<std::string> 
 }
 
 void FitReporter::save(std::string path, const Fit& fit) {
-    utility::create_directories(path);
+    utility::create_directory(path);
 
     std::ofstream out(path);
     if (!out.is_open()) {throw except::io_error("Error in FitReporter::save: Could not open file path \"" + path + "\".");}
@@ -37,7 +37,7 @@ void FitReporter::save(std::string path, const std::shared_ptr<Fit> fit) {
 
 void FitReporter::save(std::string path, const std::vector<Fit>& fits, std::vector<std::string> titles) {
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("Error in FitReporter::report: Size of fits and titles must be equal.");}
-    utility::create_directories(path);
+    utility::create_directory(path);
 
     std::ofstream out(path);
     if (!out.is_open()) {throw except::io_error("Error in FitReporter::save: Could not open file path \"" + path + "\".");}

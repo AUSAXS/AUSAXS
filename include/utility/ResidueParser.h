@@ -92,6 +92,11 @@ namespace parser {
                  */
                 void download_residue(std::string name);
 
+                /**
+                 * @brief Write a residue to the auto-loaded file. 
+                 */
+                void write_residue(std::string name);
+
                 std::map<std::string, std::map<std::string, unsigned int>> data;
         };
     }

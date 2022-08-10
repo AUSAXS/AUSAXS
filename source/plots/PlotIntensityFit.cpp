@@ -34,7 +34,7 @@ void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<Fit> fit, std::st
 }
 
 void plots::PlotIntensityFit::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
     canvas->SaveAs(path.c_str());
 }
 

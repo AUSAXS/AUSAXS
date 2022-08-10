@@ -48,7 +48,7 @@ plots::PlotImage::PlotImage(const em::Image& image) : image(image) {
 plots::PlotImage::~PlotImage() = default;
 
 void plots::PlotImage::save(std::string path) const {
-    utility::create_directories(path);
+    utility::create_directory(path);
     canvas->SaveAs(path.c_str());
 }
 
