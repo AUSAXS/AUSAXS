@@ -18,7 +18,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}};
     }
     namespace alanine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -27,7 +27,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}};
     }
     namespace valine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -38,7 +38,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG1", CG1}, {"CG2", CG2}};
     }
     namespace leucine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -50,7 +50,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG", CG}, {"CD1", CD1}, {"CD2", CD2}};
     }
     namespace isoleucine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -62,7 +62,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG2", CG2}, {"CG1", CG1}, {"CD1", CD1}};
     }
     namespace phenylalanine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -78,7 +78,7 @@ namespace hydrogen_atoms {
             {"CD2", CD2}, {"CE1", CD1}, {"CE2", CD2}, {"CZ", CZ}};
     }
     namespace tyrosine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -95,7 +95,7 @@ namespace hydrogen_atoms {
             {"CD2", CD2}, {"CE1", CE1}, {"CE2", CE2}, {"CZ", CZ}, {"OH", OH}};
     }
     namespace tryptophan {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -114,7 +114,7 @@ namespace hydrogen_atoms {
             {"CD2", CD2}, {"NE1", NE1}, {"CE2", CE2}, {"CE3", CE3}, {"CZ2", CZ2}, {"CZ3", CZ3}, {"CH2", CH2}};
     }
     namespace aspartic_acid {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -127,7 +127,7 @@ namespace hydrogen_atoms {
             {"OD2", OD2}};
     }
     namespace glutamic_acid {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -141,7 +141,7 @@ namespace hydrogen_atoms {
             {"OE1", OE1}, {"OE2", OE2}};
     }
     namespace serine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -151,7 +151,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"OG", OG}};
     }
     namespace threonine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -162,7 +162,7 @@ namespace hydrogen_atoms {
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"OG1", OG1}, {"CG2", CG2}};
     }
     namespace asparagine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -175,7 +175,7 @@ namespace hydrogen_atoms {
             {"ND2", ND2}};
     }
     namespace glutamine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -189,7 +189,7 @@ namespace hydrogen_atoms {
             {"OE1", OE1}, {"NE2", NE2}};
     }
     namespace lysine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -198,12 +198,12 @@ namespace hydrogen_atoms {
         constexpr int CG = 2;
         constexpr int CD = 2;
         constexpr int CE = 2;
-        constexpr int NZ = 2;
+        constexpr int NZ = 3;
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG", CG}, {"CD", CD}, 
             {"CE", CE}, {"NZ", NZ}};
     }
     namespace arginine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -213,13 +213,13 @@ namespace hydrogen_atoms {
         constexpr int CD = 2;
         constexpr int NE = 1;
         constexpr int CZ = 0;
-        constexpr int NH1 = 1;
+        constexpr int NH1 = 2;
         constexpr int NH2 = 2;
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG", CG}, {"CD", CD}, 
             {"NE", NE}, {"CZ", CZ}, {"NH1", NH1}, {"NH2", NH2}};
     }
     namespace histidine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -229,12 +229,12 @@ namespace hydrogen_atoms {
         constexpr int ND1 = 1;
         constexpr int CD2 = 1;
         constexpr int CE1 = 1;
-        constexpr int NE2 = 0;
+        constexpr int NE2 = 1;
         const std::map<std::string, unsigned int> get = {{"N", N}, {"CA", CA}, {"C", C}, {"O", O}, {"OXT", OXT}, {"CB", CB}, {"CG", CG}, {"ND1", ND1}, 
             {"CD2", CD2}, {"CE1", CE1}, {"NE2", NE2}};
     }
     namespace methionine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -247,7 +247,7 @@ namespace hydrogen_atoms {
             {"CE", CE}};
     }
     namespace cysteine {
-        constexpr int N = 1;
+        constexpr int N = 2;
         constexpr int CA = 1;
         constexpr int C = 0;
         constexpr int O = 0;
@@ -303,7 +303,17 @@ TEST_CASE("residue_parser_single", "[residue_parser]") {
     auto GLY2 = hydrogen_atoms::glycine::get;
 
     for (const auto& [atom, num] : GLY2) {
-        REQUIRE(num == GLY.at(atom));
+        REQUIRE(num == GLY.get(atom));
+    }
+}
+
+TEST_CASE("res_debug", "[residue_parser]") {
+    auto res = parser::residue::detail::Residue::parse("temp/residues/LYS.cif");
+    auto LYS = res.to_map();
+    auto LYS2 = hydrogen_atoms::lysine::get;
+
+    for (const auto& [atom, num] : LYS2) {
+        REQUIRE(num == LYS.get(atom));
     }
 }
 
@@ -311,7 +321,7 @@ TEST_CASE("residue_parser_all", "[residue_parser]") {
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {
-                REQUIRE(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).at(atom));
+                CHECK(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).get(atom));
             }
         }
     }

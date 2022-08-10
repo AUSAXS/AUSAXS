@@ -6,11 +6,12 @@
 
 #include <utility/Utility.h>
 #include <utility/Exceptions.h>
+#include <utility/SimpleMap.h>
 
 #include <curl/curl.h>
 
 namespace parser {
-    namespace ligand {
+    namespace residue {
         namespace detail {
             struct Atom {
                 Atom(std::string name, std::string symbol);
@@ -49,7 +50,7 @@ namespace parser {
 
                     std::string to_string() const;
 
-                    std::map<std::string, unsigned int> to_map() const;
+                    saxs::detail::SimpleMap<unsigned int> to_map() const;
 
                     static Residue parse(std::string filename);
 
@@ -59,9 +60,9 @@ namespace parser {
                     std::vector<Atom> atoms;        
             };
 
-            std::ostream& operator<<(std::ostream& os, const parser::ligand::detail::Atom& a);
-            std::ostream& operator<<(std::ostream& os, const parser::ligand::detail::Bond& b);
-            std::ostream& operator<<(std::ostream& os, const parser::ligand::detail::Residue& l);
+            std::ostream& operator<<(std::ostream& os, const parser::residue::detail::Atom& a);
+            std::ostream& operator<<(std::ostream& os, const parser::residue::detail::Bond& b);
+            std::ostream& operator<<(std::ostream& os, const parser::residue::detail::Residue& l);
         }
 
         class ResidueStorage {
@@ -74,13 +75,13 @@ namespace parser {
                 /**
                  * @brief Get a residue from the storage. If the residue is not found, it will be downloaded. 
                  */
-                std::map<std::string, unsigned int>& get(std::string name);
+                saxs::detail::SimpleMap<unsigned int>& get(std::string name);
 
             private: 
                 /**
                  * @brief Insert a residue into the storage. 
                  */
-                void insert(std::string name, std::map<std::string, unsigned int> ligand);
+                void insert(std::string name, saxs::detail::SimpleMap<unsigned int> residue);
 
                 /**
                  * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
@@ -97,7 +98,7 @@ namespace parser {
                  */
                 void write_residue(std::string name);
 
-                std::map<std::string, std::map<std::string, unsigned int>> data;
+                std::map<std::string, saxs::detail::SimpleMap<unsigned int>> data;
         };
     }
 }

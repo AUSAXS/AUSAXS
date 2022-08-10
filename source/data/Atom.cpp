@@ -51,7 +51,7 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         if (setting::protein::use_effective_charge) {
             // use a try-catch block to throw more sensible errors
             try {
-                effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).at(this->name);
+                effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name);
             } catch (const except::base& e) {
                 throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
             }
@@ -133,7 +133,7 @@ void Atom::parse_pdb(string s) {
 
     if (setting::protein::use_effective_charge) {
         try {
-            effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).at(this->name);
+            effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name);
         } catch (const std::exception& e) {
             throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\" or residue \"" + this->resName + "\".");
         }
@@ -226,7 +226,7 @@ double Atom::get_mass() const {
     }
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
-        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).at(this->name)*constants::mass::atomic.get("H");
+        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name)*constants::mass::atomic.get("H");
     } else {
         return constants::mass::atomic.get(element);
     }

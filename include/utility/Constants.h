@@ -71,10 +71,10 @@ namespace constants {
     }
 
     // The 1-symbol names of all amino acids. 
-    extern const detail::SimpleMap<char> name_1symbol_map;
+    extern const saxs::detail::SimpleMap<char> name_1symbol_map;
 
     // The 3-symbol names of all amino acids. 
-    extern const detail::SimpleMap<std::string> name_3symbol_map;
+    extern const saxs::detail::SimpleMap<std::string> name_3symbol_map;
 
     /**
      * @brief Volume
@@ -85,7 +85,7 @@ namespace constants {
      */
     namespace volume {
         // get the volume of a 3symbol amino acid
-        extern const detail::SimpleMap<double> amino_acids;
+        extern const saxs::detail::SimpleMap<double> amino_acids;
     }
 
     /**
@@ -95,7 +95,7 @@ namespace constants {
      */
     namespace mass {
         // get the weight of an atom
-        extern const detail::SimpleMap<double> atomic;
+        extern const saxs::detail::SimpleMap<double> atomic;
 
         namespace density {
             constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3; // u/Å^3
@@ -109,7 +109,7 @@ namespace constants {
      */
     namespace charge {
         // get the charge Z of an atom
-        extern const detail::SimpleMap<unsigned int> atomic;
+        extern const saxs::detail::SimpleMap<unsigned int> atomic;
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3
@@ -121,7 +121,7 @@ namespace constants {
      */
     namespace valence {
         // get the valence of an atom
-        extern const detail::SimpleMap<unsigned int> atomic;
+        extern const saxs::detail::SimpleMap<unsigned int> atomic;
     }
 
     /**
@@ -129,6 +129,6 @@ namespace constants {
      */
     namespace hydrogen_atoms {
         // get the number of hydrogen atoms attached to an atom of a specific acid. Example: get.at("GLY").at("CA") = 2
-        extern parser::ligand::ResidueStorage residues;
+        extern parser::residue::ResidueStorage residues;
     }
 }
