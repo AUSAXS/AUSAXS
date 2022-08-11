@@ -83,7 +83,7 @@ std::string Dataset::get_col_names(unsigned int i) {
     return names[i];
 }
 
-void Dataset::save(std::string path) const {
+void Dataset::save(std::string path, std::string header) const {
     utility::create_directory(path);
 
     // check if file was succesfully opened
@@ -91,6 +91,7 @@ void Dataset::save(std::string path) const {
     if (!output.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::save: Could not open file \"" + path + "\"");}
 
     // write header
+    output << header << std::endl;
     for (unsigned int j = 0; j < M; j++) {
         output << std::left << std::setw(14) << names[j] << "\t";
     }
@@ -160,5 +161,22 @@ void Dataset::load(std::string path) {
         }
     }
 
-    if (size() == 0) {throw except::unexpected("Error in Dataset::load: No data was read from the file.");}
+    // verify that at least one row was read correctly
+    if (size() == 0) {
+        throw except::unexpected("Error in Dataset::load: No data was read from the file.");
+    }
+
+    // check if the file is abnormally large
+    if (size() > 300) {
+        // reread first line
+        input.clear();
+        input.seekg(0, input.beg);
+        getline(input, line);
+
+        // check if file has already been rebinned
+        if (line.find("REBINNED") == std::string::npos) {
+            // if not, suggest it to the user
+            utility::print_warning("Warning in Dataset::load: File \"" + path + "\" contains more than 300 rows. Consider rebinning it first. (size = " + std::to_string(size()) + ")");
+        }
+    }    
 }

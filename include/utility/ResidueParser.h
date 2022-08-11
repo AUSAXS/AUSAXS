@@ -14,13 +14,15 @@ namespace parser {
     namespace residue {
         namespace detail {
             struct Atom {
-                Atom(std::string name, std::string symbol);
+                Atom(std::string name, std::string altname, std::string symbol);
+
+                Atom(std::string name, int charge);
 
                 void add_bond(std::string symbol, unsigned int order);
 
                 std::string to_string() const;
 
-                std::string name, symbol;
+                std::string name, altname, symbol;
                 unsigned int valency;
                 unsigned int hydrogen_bonds = 0;
             };
@@ -42,7 +44,9 @@ namespace parser {
 
                     Residue(std::string name, std::vector<Atom> atoms, std::vector<Bond> bonds);
 
-                    void add_atom(std::string name, std::string symbol);
+                    void add_atom(std::string name, std::string altname, std::string symbol);
+
+                    void add_atom(std::string name, int charge);
 
                     void apply_bond(const std::vector<Bond>& bonds);
 

@@ -81,8 +81,11 @@ class Dataset : public Matrix<double> {
 
         /**
          * @brief Write this dataset to the specified file. 
+         * 
+         * @param path The path to the save location.
+         * @param header The header for the file. 
          */
-        void save(std::string path) const;
+        void save(std::string path, std::string header = "") const;
 
         /**
          * @brief Load a dataset from the specified file. 

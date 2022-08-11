@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 
 using std::string;
 
@@ -15,11 +16,24 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    // load the input measurement
+    // check if file is already rebinned
     string mfile = argv[1];
+    std::ifstream input(mfile);
+    if (!input.is_open()) {
+        std::cerr << "Error: Could not open file \"" << mfile << "\"" << std::endl;
+        return 1;
+    }
+    string line;
+    std::getline(input, line);
+    if (line.find("REBINNED") != string::npos) {
+        std::cerr << "Error: File \"" << mfile << "\" has already been rebinned" << std::endl;
+        return 1;
+    }
+
+    // load the input measurement
     SimpleDataset data(mfile);
     data.rebin();
-    data.save(mfile + ".rebin.txt");
+    data.save(mfile + ".rebin.txt", "REBINNED");
 
     std::filesystem::rename(mfile, mfile + ".original.txt");
     std::filesystem::rename(mfile + ".rebin.txt", mfile);

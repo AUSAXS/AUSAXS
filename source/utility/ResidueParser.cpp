@@ -8,8 +8,12 @@
 #include <fstream>
 
 //### ATOM ###//
-parser::residue::detail::Atom::Atom(std::string name, std::string symbol) : name(name), symbol(symbol) {
+parser::residue::detail::Atom::Atom(std::string name, std::string altname, std::string symbol) : name(name), altname(altname), symbol(symbol) {
     valency = constants::valence::atomic.get(symbol);
+}
+                
+parser::residue::detail::Atom::Atom(std::string name, int charge) : name(name) {
+    valency = charge;
 }
 
 void parser::residue::detail::Atom::add_bond(std::string symbol, unsigned int order) {
@@ -46,9 +50,14 @@ parser::residue::detail::Residue::Residue(std::string name, std::vector<Atom> at
     apply_bond(bonds);
 }
 
-void parser::residue::detail::Residue::add_atom(std::string name, std::string symbol) {
+void parser::residue::detail::Residue::add_atom(std::string name, std::string altname, std::string symbol) {
     name_map.insert({name, atoms.size()});
-    atoms.push_back(Atom(name, symbol));
+    atoms.push_back(Atom(name, altname, symbol));
+}
+
+void parser::residue::detail::Residue::add_atom(std::string name, int charge) {
+    name_map.insert({name, atoms.size()});
+    atoms.push_back(Atom(name, charge));
 }
 
 void parser::residue::detail::Residue::apply_bond(const std::vector<Bond>& bonds) {
@@ -75,6 +84,9 @@ std::string parser::residue::detail::Residue::to_string() const {
 saxs::detail::SimpleMap<unsigned int> parser::residue::detail::Residue::to_map() const {
     saxs::detail::SimpleMap<unsigned int> map;
     for (const Atom& a : atoms) {
+        if (a.altname != a.name) {
+            map.insert(a.altname, a.hydrogen_bonds);
+        }
         map.insert(a.name, a.hydrogen_bonds);
     }
     return map;
@@ -86,39 +98,73 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     std::string line;
     Residue residue(utility::stem(filename));
     bool found_atom_section = false, found_bond_section = false;
+
+    // check if we are dealing with a single ion
+    while (std::getline(file, line)) {
+        if (line.find("formula") != std::string::npos) {
+            std::vector<std::string> tokens = utility::split(line, " \n\r");
+            std::string formula = tokens[1];
+
+            // the formula is of the form "Xn Ym" for residues, but X for ions. 
+            // if it is an ion, X should be present in the mass map so we use this as a check
+            if (!constants::mass::atomic.contains(formula)) {
+                break;
+            }
+
+            // parse ion
+            while(std::getline(file, line)) {
+                // find the formal charge
+                if (line.find("pdbx_formal_charge") != std::string::npos) {
+                    tokens = utility::split(line, " \n\r");
+                    int charge = std::stoi(tokens[1]);
+                    residue.add_atom(formula, charge);
+
+                    std::cout << "Parsed a single ion " << formula << " with charge " << charge << std::endl;
+                    return residue;
+                }
+            }
+        }
+    }
+
+    // find the beginning of the atom section
     while (std::getline(file, line)) {
         if (line.find("atom.pdbx_ordinal") != std::string::npos) {
-            // std::cout << "Found start of atom section" << std::endl;
+            std::cout << "Found start of atom section" << std::endl;
             found_atom_section = true;
             break;
         }
     }
 
+    // parse the atoms in the atom section
     while (std::getline(file, line)) {
         // check for end of section
         if (line.find("#") != std::string::npos) {
-            // std::cout << "Found end of atom section" << std::endl;
+            std::cout << "Found end of atom section" << std::endl;
             break;
         }
 
         std::vector<std::string> tokens = utility::split(line, " \n\r");
         std::string atom_id = tokens[1];
+        std::string atom_id_alt = tokens[2];
         std::string type_symbol = tokens[3];
-        residue.add_atom(atom_id, type_symbol);
+
+        residue.add_atom(atom_id, atom_id_alt, type_symbol);
     }
 
+    // find the beginning of the bond section
     while (std::getline(file, line)) {
         if (line.find("bond.pdbx_ordinal") != std::string::npos) {
-            // std::cout << "Found start of bond section" << std::endl;
+            std::cout << "Found start of bond section" << std::endl;
             found_bond_section = true;
             break;
         }
     }
 
+    // parse the bonds in the bond section
     while (std::getline(file, line)) {
         // check for end of section
         if (line.find("#") != std::string::npos) {
-            // std::cout << "Found end of bond section" << std::endl;
+            std::cout << "Found end of bond section" << std::endl;
             break;
         }
 
@@ -197,7 +243,7 @@ void parser::residue::ResidueStorage::initialize() {
 
 void parser::residue::ResidueStorage::download_residue(std::string name) {
     std::string path = setting::general::residue_folder;
-    std::regex regex("[A-Z]{3}");
+    std::regex regex("[A-Z]{2,3}");
 
     if (std::regex_match(name, regex)) {
         // check if the file already exists. if not, download it.

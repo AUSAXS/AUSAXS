@@ -132,17 +132,9 @@ void Atom::parse_pdb(string s) {
     }
 
     if (setting::protein::use_effective_charge) {
-        try {
-            effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name);
-        } catch (const std::exception& e) {
-            throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\" or residue \"" + this->resName + "\".");
-        }
+        effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name);
     } else {
-        try {
-            effective_charge = constants::charge::atomic.get(this->element);
-        } catch (const std::exception& e) {
-            throw except::parse_error("Error in Atom::parse_pdb: Unknown element \"" + this->element + "\".");
-        }
+        effective_charge = constants::charge::atomic.get(this->element);
     }
 }
 

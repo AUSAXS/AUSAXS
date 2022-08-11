@@ -37,15 +37,11 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
-    std::cout << "debug" << std::endl;
     Protein protein(input_structure);
-    std::cout << "debug" << std::endl;
     protein.generate_new_hydration();
     hist::ScatteringHistogram h = protein.get_histogram();
     IntensityFitter fitter(input_measurement, h);
-    std::cout << "debug" << std::endl;
     std::shared_ptr<Fit> result = fitter.fit();
-    std::cout << "debug" << std::endl;
 
     // Fit plot
     plots::PlotIntensityFit::quick_plot(result, output + "intensity_fit." + setting::figures::format);
@@ -66,5 +62,6 @@ int main(int argc, char const *argv[]) {
     double m = protein.get_absolute_mass()*constants::unit::mg;
 
     cout << "concentration is: " << I0*m/(DrhoV2*re2) << endl;
+
     return 0;
 }

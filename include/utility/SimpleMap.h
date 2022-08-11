@@ -34,7 +34,7 @@ namespace saxs {
             const V& get(const std::string& key) const {
                 std::string k2 = utility::to_lowercase(key);
                 if (data.find(k2) == data.end()) {
-                    throw except::map_error("Key " + k2 + " not found in map");
+                    throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
                 }
                 return data.at(k2);
             }

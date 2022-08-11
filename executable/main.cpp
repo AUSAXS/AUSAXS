@@ -32,7 +32,7 @@ struct Storage {
 
 struct Atom {
     Atom(std::string name, std::string symbol) : name(name), symbol(symbol) {
-        valency = constants::valence::get.at(symbol);
+        valency = constants::valence::atomic.get(symbol);
     }
 
     void add_bond(std::string symbol, unsigned int order) {
