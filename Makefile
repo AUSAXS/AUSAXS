@@ -77,10 +77,17 @@ qlow := 0
 qhigh := 1000
 center := center
 options :=
+# Perform a fit of a structure file to a measurement. 
+# All structure files in the same location as the measurement will be fitted. 
 intensity_fit/%: build/executable/intensity_fitter
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	$< $${structure} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps} ${options}
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	for pdb in $${structure}; do\
+		echo "Fitting " $${pdb} " ...";\
+		sleep 1;\
+		$< $${pdb} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps} ${options};\
+	done
 
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 

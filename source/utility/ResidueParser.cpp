@@ -13,7 +13,12 @@ parser::residue::detail::Atom::Atom(std::string name, std::string altname, std::
 }
                 
 parser::residue::detail::Atom::Atom(std::string name, int charge) : name(name) {
-    valency = charge;
+    // the goal of this whole class is to determine the total charge surrounding an atom
+    // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
+    // thus the number of hydrogen bonds is later used as the effective charge of the atom
+    // and so, when dealing with an ion, we just set the hydrogen_bonds equal to the charge
+    // this is a hack solution, but it works as it should
+    hydrogen_bonds = charge;
 }
 
 void parser::residue::detail::Atom::add_bond(std::string symbol, unsigned int order) {
@@ -84,7 +89,7 @@ std::string parser::residue::detail::Residue::to_string() const {
 saxs::detail::SimpleMap<unsigned int> parser::residue::detail::Residue::to_map() const {
     saxs::detail::SimpleMap<unsigned int> map;
     for (const Atom& a : atoms) {
-        if (a.altname != a.name) {
+        if (a.altname != a.name && !a.altname.empty()) {
             map.insert(a.altname, a.hydrogen_bonds);
         }
         map.insert(a.name, a.hydrogen_bonds);
@@ -144,9 +149,10 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
         }
 
         std::vector<std::string> tokens = utility::split(line, " \n\r");
-        std::string atom_id = tokens[1];
-        std::string atom_id_alt = tokens[2];
+        std::string atom_id = utility::remove_quotation_marks(tokens[1]);
+        std::string atom_id_alt = utility::remove_quotation_marks(tokens[2]);
         std::string type_symbol = tokens[3];
+        if (atom_id_alt == "H") {atom_id_alt = "HN";} // HN is sometimes used as an alias
 
         residue.add_atom(atom_id, atom_id_alt, type_symbol);
     }
@@ -169,8 +175,8 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
         }
 
         std::vector<std::string> tokens = utility::split(line, " \n\r");
-        std::string atom1 = tokens[1];
-        std::string atom2 = tokens[2];
+        std::string atom1 = utility::remove_quotation_marks(tokens[1]);
+        std::string atom2 = utility::remove_quotation_marks(tokens[2]);
         unsigned int order = Bond::parse_order(tokens[3]);
         residue.apply_bond(Bond(atom1, atom2, order));
     }
@@ -243,7 +249,7 @@ void parser::residue::ResidueStorage::initialize() {
 
 void parser::residue::ResidueStorage::download_residue(std::string name) {
     std::string path = setting::general::residue_folder;
-    std::regex regex("[A-Z]{2,3}");
+    std::regex regex("[A-Z0-9]{2,3}");
 
     if (std::regex_match(name, regex)) {
         // check if the file already exists. if not, download it.

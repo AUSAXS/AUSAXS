@@ -10,6 +10,13 @@ bool utility::approx(double v1, double v2, double abs, double eps) {
     return true;
 }
 
+std::string utility::remove_quotation_marks(std::string s) {
+    if (s.size() > 1 && s[0] == '"' && s[s.size()-1] == '"') {
+        return s.substr(1, s.size()-2);
+    }
+    return s;
+}
+
 std::string utility::remove_spaces(std::string s) {
     std::string::iterator end_pos = std::remove(s.begin(), s.end(), ' ');
     s.erase(end_pos, s.end());

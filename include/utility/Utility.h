@@ -17,9 +17,13 @@ namespace utility {
 
     /**
      * @brief Remove spaces from both ends of a string. 
-     *        Note that the input string is modified. 
      */
     std::string remove_spaces(std::string s);
+
+    /**
+     * @brief Remove quotation marks from both ends of a string. 
+     */
+    std::string remove_quotation_marks(std::string s);
 
     template<typename T>
     T extract_number(std::string s) {

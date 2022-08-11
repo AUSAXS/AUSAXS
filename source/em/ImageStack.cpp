@@ -83,8 +83,8 @@ std::shared_ptr<Protein> ImageStack::get_protein(double cutoff) const {
 
 void ImageStack::update_charge_levels(Limit limit) const noexcept {
     vector<double> levels;
-    for (unsigned int i = 0; i < 20; i++) {
-        levels.push_back(limit.min + i*limit.span()/20);
+    for (unsigned int i = 0; i < setting::em::charge_levels; i++) {
+        levels.push_back(limit.min + i*limit.span()/setting::em::charge_levels);
     }
     phm->set_charge_levels(levels);
 }
