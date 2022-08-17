@@ -1,12 +1,9 @@
 #include <hydrate/CounterCulling.h>
 #include <hydrate/Grid.h>
 
-#include <random>
-
 using std::vector;
 
 vector<Hetatom> grid::CounterCulling::cull(vector<grid::GridMember<Hetatom>>& placed_water) const {
-    std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
     if (target_count == 0) {
         vector<Hetatom> final_water(placed_water.size());
         std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Hetatom>& gm) {return gm.atom;});

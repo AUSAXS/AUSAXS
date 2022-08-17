@@ -1,5 +1,6 @@
 # generate lists of files for easy use as dependencies
 pymol := pymol
+simprog := pdb2mrc
 
 cmake_threads := 6
 
@@ -122,7 +123,6 @@ unit_cell/%: build/executable/unit_cell
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
-simprog := ~/tools/EMAN/bin/pdb2mrc
 simulate/%: 
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center

@@ -18,7 +18,7 @@ namespace setting {
 
     namespace grid {
         enum class PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
-        enum class CullingStrategy {CounterStrategy, OutlierStrategy};
+        enum class CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
 
         extern PlacementStrategy placement_strategy; // The choice of placement algorithm.
         extern CullingStrategy culling_strategy;   // The choice of culling algorithm. 

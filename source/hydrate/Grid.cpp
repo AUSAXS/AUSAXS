@@ -16,6 +16,7 @@
 #include <hydrate/JanPlacement.h>
 #include <hydrate/CounterCulling.h>
 #include <hydrate/OutlierCulling.h>
+#include <hydrate/RandomCulling.h>
 #include <utility/Settings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
@@ -151,6 +152,9 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
             break;
         case setting::grid::CullingStrategy::OutlierStrategy: 
             water_culler = std::make_unique<OutlierCulling>(this);
+            break;
+        case setting::grid::CullingStrategy::RandomStrategy:
+            water_culler = std::make_unique<RandomCulling>(this);
             break;
         default: 
             throw except::unknown_argument("Error in Grid::Grid: Unkown CullingStrategy");
