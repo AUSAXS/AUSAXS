@@ -25,7 +25,7 @@ int main(int argc, char const *argv[]) {
     unsigned int evals = 1000;
     Dataset data({"dof", "chi2", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
-        std::cout << "Starting iteration " << i << " of " << evals << std::endl;
+        std::cout << "Starting iteration " << i+1 << " of " << evals << std::endl;
         // generate a pdb file from the map at some cutoff
         auto protein = map.get_protein(map.level(3));
 
@@ -49,5 +49,5 @@ int main(int argc, char const *argv[]) {
         // delete the temporary files
         remove(mfile.c_str());
     }
-    data.save(path + "out.txt");
+    data.save(path + "out.txt", "true_cutoff: " + std::to_string(map.level(3)));
 }

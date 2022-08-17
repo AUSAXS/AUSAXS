@@ -63,8 +63,10 @@ void plots::PlotImage::plot_atoms(double cutoff) const {
         y.push_back(atom.coords.y());
     }
     std::unique_ptr<TGraph> graph = std::make_unique<TGraph>(x.size(), x.data(), y.data());
-    graph->SetMarkerStyle(kFullDotSmall);
-    graph->SetMarkerSize(1.2);
+    graph->SetMarkerStyle(8);
+    // graph->SetMarkerSize(1.2);
+    graph->SetMarkerSize(0.75);
+    graph->SetMarkerColor(kGreen);
     graph->DrawClone("p");
 }
 

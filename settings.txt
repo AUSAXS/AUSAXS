@@ -1,6 +1,0 @@
-### GRID ###
-placement radial
-remove counter
-width 1
-ra 2.4
-rh 1.5

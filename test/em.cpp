@@ -14,7 +14,7 @@
 using std::vector;
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
-    em::ImageStack image("data/A2M/A2M_ma.ccp4"); 
+    em::ImageStack image("data/A2M_maA2M_ma.ccp4"); 
 
     plots::PlotImage plot(image.image(5));
     // plot.plot_atoms(0.1);
@@ -26,7 +26,7 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
-    Protein protein("data/A2M/native.pdb");
+    Protein protein("data/A2M_native/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
     // set optimal cutoff
@@ -53,7 +53,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
-    Protein protein("data/A2M/native.pdb");
+    Protein protein("data/A2M_native/native.pdb");
     hist::ScatteringHistogram hist(protein.get_histogram());
 
     auto data = image.cutoff_scan_fit({1000, 1, 2}, hist);
@@ -93,7 +93,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
     setting::fit::q_high = 0.4;
 
     // prepare measured data
-    Protein protein("data/A2M/native.pdb");
+    Protein protein("data/A2M_native/native.pdb");
     SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.limit_x(Limit(setting::fit::q_low, setting::fit::q_high));
@@ -192,7 +192,7 @@ TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
-    string file = "data/A2M/A2M_ma.ccp4";
+    string file = "data/A2M_ma/A2M_ma.ccp4";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
@@ -205,7 +205,7 @@ TEST_CASE("get_histogram", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
 
-    string file = "data/A2M/A2M_ma.ccp4";
+    string file = "data/A2M_ma/A2M_ma.ccp4";
     em::ImageStack image(file);
     auto hist = image.get_histogram(2);
     plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
@@ -215,7 +215,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
-    em::ImageStack image("data/A2M/A2M_ma.ccp4");
+    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
 
     CHECK(image.image(95).count_voxels(15) == 32);
     CHECK(image.image(100).count_voxels(10) == 208);
@@ -230,6 +230,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     // plots::PlotImage p100(image.image(100));
     // p100.plot_atoms(10);
     // p100.save("figures/test/em/voxels/100.png");
+    // plots::PlotImage::quick_plot(image.image(100), "figures/test/em/voxels/100_clean.png");
     // std::cout << "100.png: " << image.image(100).count_voxels(10) << std::endl;
 
     // plots::PlotImage p105(image.image(105));
@@ -242,7 +243,7 @@ TEST_CASE("voxelcount", "[em],[slow],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
-    em::ImageStack image("data/A2M/A2M_ma.ccp4");
+    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
 
     Dataset2D data;
     Axis range(1000, 0, 15);
@@ -294,7 +295,7 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
     }
 
     SECTION("A2M_ma.ccp4") {
-        em::ImageStack image("data/A2M/A2M_ma.ccp4");
+        em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
         // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
     }
