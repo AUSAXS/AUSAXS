@@ -16,7 +16,6 @@
 
 #include <filesystem>
 
-using namespace setting::em;
 using namespace em;
 
 using std::vector;

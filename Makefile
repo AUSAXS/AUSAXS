@@ -136,8 +136,8 @@ simfit/%: build/executable/fit_consistency
 
 old_simulate/%: 
 	@ structure=$(shell find data/ -name "$*.pdb"); \
-	phenix.fmodel $${structure} high_resolution=$(res);\
-	phenix.mtz2map mtz_file=$(*F).pdb.mtz labels=FMODEL,PHIFMODEL output.prefix=$(*F) pdb_file=$${structure};\
+	phenix.fmodel $${structure} high_resolution=$(res) generate_fake_p1_symmetry=True;\
+	phenix.mtz2map mtz_file=$(*F).pdb.mtz pdb_file=$${structure} labels=FMODEL,PHIFMODEL output.prefix=$(*F);\
 	rm $(*F).pdb.mtz;\
 	mv $(*F)_fmodel.ccp4 sim/$(*F)_$(res).ccp4;\
 

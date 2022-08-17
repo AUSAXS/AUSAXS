@@ -1,78 +1,161 @@
 #include <utility/Settings.h>
-#include <math/Vector3.h>
+#include <utility/Utility.h>
 
-#include <vector>
 #include <fstream>
 
-// Default settings
-namespace setting {
-    namespace general {
-        constexpr char* residue_folder = "temp/residues/"; // this is char* since we need it at initialization
-    }
-
-    namespace figures {
-        std::string format = "pdf";
-    }
-
-    namespace grid {
-        PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy; 
-        CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;
-
-        double percent_water = 0.1;
-        double ra = 2.4;
-        double rh = 1.5;
-        double ra_effective = 2.4;
-        double width = 1; 
-        double scaling = 0.25;
-        bool cubic = false;
-        Limit3D axes(-250, 250, -250, 250, -250, 250);
-
-        namespace placement {
-            double min_score = 0.1; 
-        }
-    }
-
-    namespace protein {
-        bool center = true; 
-        bool use_effective_charge = true;
-    }
-
-    namespace axes {
-        double scattering_intensity_plot_binned_width = 0.1;
-        Axis scattering_intensity_plot_axis = {1000, 0.001, 1.001};
-    }
-
-    namespace fit {
-        double q_low = 0;
-        double q_high = 1000;
-        unsigned int N = 100; 
-    }
-
-    namespace rigidbody {
-        TransformationStrategyChoice tsc = RigidTransform;
-        ParameterGenerationStrategyChoice pgsc = Simple;
-        BodySelectStrategyChoice bssc = RandomSelect;
-    }
-
-    namespace em {
-        CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; 
-        unsigned int sample_frequency = 1; 
-        double concentration = 2;
-        unsigned int charge_levels = 100;
-
-        namespace simulation {
-            bool noise = true; // Whether to generate noise for the simulations. 
-        }
+bool is_comment_char(char c) {
+    switch (c) {
+        case '/': [[fallthrough]];
+        case '#': [[fallthrough]];
+        case '%': return true;
+        default: return false;
     }
 }
 
-void setting::reader::read(const std::string path) {
-    std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("Error in settings::reader::read: Could not open file \"" + path + "\"");}
-
-    std::string line; // placeholder for the current line
-    while(getline(input, line)) {
-        if (line[0] == '#') {continue;} // # signifies comments
-        
+void set(std::string opt, std::vector<std::string> val) {
+    for (const auto& e : setting::detail::options) {
+        for (const auto& alias : e->aliases) {
+            if (alias == opt) {
+                e->set(val);
+                return;
+            }
+        }
     }
+
+    throw except::unexpected("Error in \"Settings::set\": Option \"" + opt + "\" not found.");
+}
+
+void setting::read(std::string path) {
+    std::ifstream input(path);
+    if (!input.is_open()) {throw std::ios_base::failure("Error in \"Settings::read\": Could not open setup file.");}
+
+    auto split_tokens = [] (std::string line) {
+        unsigned int start = 0;
+
+        // find end of first word
+        while (line[start] != ' ' && start < line.size()) {
+            start++;
+            continue;
+        }
+        if (start == line.size()) {return std::pair<std::string, std::vector<std::string>>("empty", {});} // line consists only of spaces
+        std::string first = line.substr(0, start);
+
+        int end = start;
+        std::vector<std::string> vals;
+        while (end != line.size()) {
+            // find start of word, skipping any amount of spacing
+            while (line[start] == ' ' && start < line.size()) {
+                start++;
+                continue;
+            }
+            if (is_comment_char(line[start])) {break;} // stop if we find a comment character
+            end = start;
+
+            // find end of word
+            while (line[end] != ' ' && end < line.size()) {
+                end++;
+                continue;
+            }
+            vals.push_back(line.substr(start, end-start));
+            start = end;
+        }
+        if (vals.empty()) {throw except::parse_error("Error in \nSettings::read\n: Could not find matching value for option \"" + first + "\"");}
+        return std::pair(first, vals);
+    };
+
+    std::string line; 
+    while (getline(input, line)) {
+        if (is_comment_char(line[0])) {continue;} // skip comments
+        if (line.empty()) {continue;}             // skip empty lines
+        auto[first, second] = split_tokens(line);
+        if (first == "empty") {continue;}         // skip empty lines
+        set(first, second);
+    }
+}
+
+void setting::write(std::string path) {
+    utility::create_directory(path);
+    std::ofstream output(path);
+    if (!output.is_open()) {throw std::ios_base::failure("Error in \"Settings::read\": Could not open setup file.");}
+
+    // write settings
+    output << "### Auto-generated settings file ###\n";
+    for (const auto& e : detail::options) {
+        output << e->aliases[0] << " " << e->get() << "\n";
+    }
+    output.close();
+}
+
+template<>
+std::string setting::detail::SmartOption<std::vector<std::string>>::get() const {
+    std::string str;
+    std::for_each(setting.begin(), setting.end(), [&str] (std::string s) {str += s + " ";});
+    return str;
+}
+
+template<>
+std::string setting::detail::SmartOption<std::vector<double>>::get() const {
+    std::string str;
+    std::for_each(setting.begin(), setting.end(), [&str] (double s) {str += std::to_string(s) + " ";});
+    return str;
+}
+
+template<>
+std::string setting::detail::SmartOption<std::string>::get() const {return setting;}
+
+template<>
+std::string setting::detail::SmartOption<double>::get() const {return std::to_string(setting);}
+
+template<>
+std::string setting::detail::SmartOption<int>::get() const {return std::to_string(setting);}
+
+template<>
+std::string setting::detail::SmartOption<unsigned int>::get() const {return std::to_string(setting);}
+
+template<>
+std::string setting::detail::SmartOption<bool>::get() const {return std::to_string(setting);}
+
+template<>
+void setting::detail::SmartOption<std::string>::set(std::vector<std::string> str) const {
+    if (str.size() != 1) {throw except::parse_error("Error in \"Settings::SmartOption::parse\": Option received too many values.");}
+    setting = str[0];
+}
+
+template<>
+void setting::detail::SmartOption<bool>::set(std::vector<std::string> str) const {
+    if (str.size() != 1) {throw except::parse_error("Error in \"Settings::SmartOption::parse\": Option received too many values.");}
+
+    if (str[0] == "true" || str[0] == "TRUE" || str[0] == "1") {setting = true; return;}
+    else if (str[0] == "false" || str[0] == "FALSE" || str[0] == "0") {setting = false; return;}
+    throw except::parse_error("Error in Settings::parse_bool: Expected boolean std::string, but got \"" + str[0] + "\".");
+}
+
+template<>
+void setting::detail::SmartOption<double>::set(std::vector<std::string> str) const {
+    if (str.size() != 1) {throw except::parse_error("Error in \"Settings::SmartOption::parse\": Option received too many values.");}
+    setting = std::stod(str[0]);
+}
+
+template<>
+void setting::detail::SmartOption<int>::set(std::vector<std::string> str) const {
+    if (str.size() != 1) {throw except::parse_error("Error in \"Settings::SmartOption::parse\": Option received too many values.");}
+    setting = std::stoi(str[0]); 
+}
+
+template<>
+void setting::detail::SmartOption<unsigned int>::set(std::vector<std::string> str) const {
+    if (str.size() != 1) {throw except::parse_error("Error in \"Settings::SmartOption::parse\": Option received too many values.");}
+    setting = std::stoi(str[0]);
+}
+
+template<>
+void setting::detail::SmartOption<std::vector<std::string>>::set(std::vector<std::string> str) const {
+    setting = str;
+}
+
+template<>
+void setting::detail::SmartOption<std::vector<double>>::set(std::vector<std::string> str) const {
+    std::vector<double> new_val;
+    std::for_each(str.begin(), str.end(), [&new_val] (std::string val) {new_val.push_back(std::stod(val));});
+    setting = new_val;
 }

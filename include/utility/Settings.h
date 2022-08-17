@@ -2,84 +2,190 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <math/Vector3.h>
 #include <utility/Axis.h>
+#include <utility/Type.h>
+#include <utility/Exceptions.h>
 
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
-    namespace general {
-        extern char* const residue_folder; // Download location for all ligand files.
-    }
+    struct general {
+        static constexpr char residue_folder[] = "temp/residues/"; // Download location for all ligand files.
+    };
 
-    namespace figures {
-        extern std::string format; // The output format.
-    }
+    struct figures {
+        inline static std::string format = "pdf"; // The output format.
+    };
 
-    namespace grid {
-        enum class PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
-        enum class CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
+    struct grid {
+        enum PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
+        enum CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
 
-        extern PlacementStrategy placement_strategy; // The choice of placement algorithm.
-        extern CullingStrategy culling_strategy;   // The choice of culling algorithm. 
+        inline static PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy; // The choice of placement algorithm.
+        inline static CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;      // The choice of culling algorithm. 
 
-        extern double percent_water; // The number of generated water molecules as a percent of the number of atoms. 
-        extern double ra;            // Radius of protein atoms. 
-        extern double rh;            // Radius of water molecules.
-        extern double ra_effective;  // Effective radius of protein atoms. This is based on the volume the average atom effectively occupies. 
-        extern double width;         // Width of each bin of the grid used to represent this protein.
-        extern double scaling;       // The percent increase in grid size in all dimensions when the grid size is automatically deduced based on an input vector of atoms. 
-        extern bool cubic;           // Whether to generate a cubic grid. This is primarily intended for rigid body optimization, to ensure there's enough space for all possible conformations. 
+        inline static double percent_water = 0.1; // The number of generated water molecules as a percent of the number of atoms. 
+        inline static double ra = 2.4;            // Radius of protein atoms. 
+        inline static double rh = 1.5;            // Radius of water molecules.
+        inline static double ra_effective = 2.4;  // Effective radius of protein atoms. This is based on the volume the average atom effectively occupies. 
+        inline static double width = 1;           // Width of each bin of the grid used to represent this protein.
+        inline static double scaling = 0.25;      // The percent increase in grid size in all dimensions when the grid size is automatically deduced based on an input vector of atoms. 
+        inline static bool cubic = false;         // Whether to generate a cubic grid. This is primarily intended for rigid body optimization, to ensure there's enough space for all possible conformations. 
 
-        extern Limit3D axes;         // Default axes for the grid 
+        inline static Limit3D axes = Limit3D(-250, 250, -250, 250, -250, 250); // Default axes for the grid 
 
-        namespace placement {
-            extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule
-        }
-    }
+        struct placement {
+            inline static double min_score = 0.1; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule
+        };
+    };
 
-    namespace protein {
-        extern bool center;               // Decides if the structure will be centered at origo. 
-        extern bool use_effective_charge; // Decides whether the charge of the displaced water will be included. 
-    }
+    struct protein {
+        inline static bool center = true;               // Decides if the structure will be centered at origo. 
+        inline static bool use_effective_charge = true; // Decides whether the charge of the displaced water will be included. 
+    };
 
-    namespace axes {
-        extern double scattering_intensity_plot_binned_width; // The width of each bin for the scattering plots.
-        extern Axis scattering_intensity_plot_axis;           // Axes used for the Debye scattering intensity plots.
-    }
+    struct axes {
+        inline static double scattering_intensity_plot_binned_width = 0.1;        // The width of each bin for the scattering plots.
+        inline static Axis scattering_intensity_plot_axis = {1000, 0.001, 1.001}; // Axes used for the Debye scattering intensity plots.
+    };
 
-    namespace fit {
-        extern double q_low;   // Lower limit on the used q-values
-        extern double q_high;  // Upper limit on the used q-values
-        extern unsigned int N; // Number of points sampled when discretizing a model scattering curve
-    }
+    struct fit {
+        inline static double q_low = 0;     // Lower limit on the used q-values
+        inline static double q_high = 1000; // Upper limit on the used q-values
+        inline static unsigned int N = 100; // Number of points sampled when discretizing a model scattering curve
+    };
 
-    namespace rigidbody {
+    struct rigidbody {
         enum TransformationStrategyChoice {RigidTransform};
         enum ParameterGenerationStrategyChoice {Simple};
         enum BodySelectStrategyChoice {RandomSelect, SequentialSelect};
 
-        extern TransformationStrategyChoice tsc;
-        extern ParameterGenerationStrategyChoice pgsc;
-        extern BodySelectStrategyChoice bssc;
-    }
-
-    namespace em {
-        enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
-        extern CullingStrategyChoice csc;     // The choice of culling algorithm. 
-
-        extern unsigned int sample_frequency; // How often a bin is sampled in any direction. 
-        extern double concentration;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
-
-        extern unsigned int charge_levels;    // The number of partial histograms to utilize.
-
-        namespace simulation {
-            extern bool noise; // Whether to generate noise for the simulations. 
-        }
-    }
-
-    // Simple reader for reading settings from a text file
-    class reader {
-        static void read(const std::string path);
+        inline static TransformationStrategyChoice tsc = TransformationStrategyChoice::RigidTransform;
+        inline static ParameterGenerationStrategyChoice pgsc = ParameterGenerationStrategyChoice::Simple;
+        inline static BodySelectStrategyChoice bssc = BodySelectStrategyChoice::RandomSelect;
     };
+
+    struct em {
+        enum CullingStrategyChoice {NoStrategy, CounterStrategy};
+        CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; // The choice of culling algorithm. 
+
+        inline static unsigned int sample_frequency = 1; // How often a bin is sampled in any direction. 
+        inline static double concentration = 2;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
+        inline static unsigned int charge_levels = 100;  // The number of partial histograms to utilize.
+
+        struct simulation {
+            inline static bool noise = true; // Whether to generate noise for the simulations. 
+        };
+    };
+
+    struct plot {
+        struct image {
+            inline static std::vector<double> contour = {}; // The contour levels for the image plots.
+        };
+    };
+
+    void read(const std::string path);
+    void write(const std::string path);
+
+    namespace detail {
+        // Super class for SmartOptions to allow polymorphic vectors
+        struct ISmartOption {
+            ISmartOption(std::vector<std::string> aliases) : aliases(aliases) {}
+            std::vector<std::string> aliases; // A list of strings which will be recognized as this option. The first string will be used for output.
+
+            /**
+             * @brief Assign a new value to the setting represented by this SmartOption.
+             */
+            virtual void set(std::vector<std::string>) const = 0;
+
+            /**
+             * @brief Get a string representation of the setting represented by this SmartOption.
+             */
+            virtual std::string get() const = 0;
+        };
+
+        // Option specifier. This class maps an option enum to its recognized aliases and value storage. 
+        template<typename T>
+        struct SmartOption : public ISmartOption {
+            SmartOption(std::vector<std::string> aliases, T& setting) : ISmartOption(aliases), setting(setting) {}
+            T& setting; // A pointer to the actual setting value. This is so we can access it later. 
+
+            /**
+             * @brief Assign a new value to the setting represented by this SmartOption. 
+             *        The string will be cast into a proper type. This method must be specialized for all possible setting types.
+             */
+            void set(std::vector<std::string>) const override {throw except::unexpected("Error in \"Settings::SmartOption::set\": Not implemented for type \"" + type(setting) + "\".");}
+
+            /**
+             * @brief Get a string representation of the setting represented by this SmartOption.
+             *        This method must be specialized for all possible setting types.
+             */
+            std::string get() const override {throw except::unexpected("Error in \"Settings::SmartOption::set\": Not implemented for type \"" + type(setting) + "\".");}
+        };
+
+        /**
+         * @brief Helper function for creating shared pointers to SmartOptions. This is to automatically deduce template types,
+         *        which is not possible with the default shared_ptr constructor.
+         */
+        template<typename T>
+        std::shared_ptr<SmartOption<T>> make_shared(std::vector<std::string> aliases, T& setting) {
+            return std::make_shared<SmartOption<T>>(aliases, setting);
+        }
+
+        inline static const std::vector<std::shared_ptr<ISmartOption>> options = {
+            // figures
+            make_shared({"format"}, setting::figures::format),
+
+            // grid
+            make_shared({"percent-water"}, setting::grid::percent_water),
+            make_shared({"ra"}, setting::grid::ra),
+            make_shared({"rh"}, setting::grid::rh),
+            make_shared({"ra-effective"}, setting::grid::ra_effective),
+            make_shared({"width"}, setting::grid::width),
+            make_shared({"scaling"}, setting::grid::scaling),
+            make_shared({"cubic"}, setting::grid::cubic),
+
+            // protein
+            make_shared({"center"}, setting::protein::center),
+            make_shared({"use-effective-charge"}, setting::protein::use_effective_charge),
+
+            // axes
+            make_shared({"scattering-intensity-plot-binned-width"}, setting::axes::scattering_intensity_plot_binned_width),
+
+            // fit
+            make_shared({"q-low"}, setting::fit::q_low),
+            make_shared({"q-high"}, setting::fit::q_high),
+            make_shared({"N"}, setting::fit::N),
+
+            // rigidbody
+
+            // em
+            make_shared({"sample-frequency"}, setting::em::sample_frequency),
+            make_shared({"concentration"}, setting::em::concentration),
+            make_shared({"charge-levels"}, setting::em::charge_levels),
+            make_shared({"noise"}, setting::em::simulation::noise),
+            make_shared({"contour"}, setting::plot::image::contour),
+
+            // plot
+
+        };
+
+        // declare template specializations
+        template<> std::string SmartOption<std::vector<std::string>>::get() const;
+        template<> std::string SmartOption<std::vector<double>>::get() const;
+        template<> std::string SmartOption<std::string>::get() const;
+        template<> std::string SmartOption<double>::get() const;
+        template<> std::string SmartOption<int>::get() const;
+        template<> std::string SmartOption<unsigned int>::get() const;
+        template<> std::string SmartOption<bool>::get() const;
+        template<> void SmartOption<std::string>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<bool>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<double>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<int>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<unsigned int>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<std::vector<std::string>>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<std::vector<double>>::set(std::vector<std::string> str) const;
+    }
 }

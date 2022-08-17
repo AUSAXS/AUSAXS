@@ -22,7 +22,6 @@
 #include <utility/Utility.h>
 
 using std::vector, std::string, std::shared_ptr, std::unique_ptr;
-using namespace setting::grid;
 using namespace grid;
 
 Grid::Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) : axes(axes) {
