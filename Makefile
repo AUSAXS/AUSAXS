@@ -12,7 +12,7 @@ include := $(addprefix include/, $(shell find include/ -printf "%P "))
 #################################################################################
 .SECONDARY:
 
-docs: build/Makefile
+docs: 
 	@ make -C build doc
 	firefox build/docs/html/index.html 
 
@@ -49,7 +49,7 @@ main/%: build/executable/main
 em_fitter/%: build/executable/em_fitter
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
-	emmaps=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4"); \
+	emmaps=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 	for emmap in $${emmaps}; do\
 		echo "Fitting " $${emmap} " ...";\
 		sleep 1;\

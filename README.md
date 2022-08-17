@@ -1,4 +1,6 @@
 # Todo
+ * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
+ * [ ] EM: Compare maps from different simulation methods
  * [ ] ResidueParser: Consider creating 1 parsed file per residue and then dynamically loading only those that are needed for the current file. 
  * [ ] DebyeLookupTable: Sometimes fails because it arbitrarily switches to non-default table lookups, but apparently only for A2M_ma. Create more tests and see if it can be reproduced. (Failed at Step 6: Evaluated cutoff value 0.220487 with chi2 468285
 )
