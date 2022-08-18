@@ -192,6 +192,8 @@ TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
     setting::em::sample_frequency = 1;
     setting::fit::q_high = 0.4;
 
+    setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
+
     string file = "data/A2M_ma/A2M_ma.ccp4";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
@@ -253,6 +255,11 @@ TEST_CASE("voxelcount", "[em],[slow],[manual]") {
 
     data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}});
     plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
+}
+
+TEST_CASE("save_as_pdb", "[em],[manual]") {
+    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
+    image.get_protein(image.level(3))->save("figures/test/em/save_as_pdb.pdb");
 }
 
 TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {

@@ -27,7 +27,7 @@ void Dataset2D::push_back(double x, double y) {
 }
 
 void Dataset2D::push_back(const Point2D& point) noexcept {
-    push_back(point.x, point.y, point.xerr, point.yerr);
+    push_back(point.x, point.y, point.yerr, point.xerr);
 }
 
 void Dataset2D::load(std::string path) {

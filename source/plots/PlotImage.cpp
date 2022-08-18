@@ -88,6 +88,9 @@ std::unique_ptr<TH2D> plots::PlotImage::plot_hist() const {
     hist->GetZaxis()->SetTitleOffset(1.3);
     hist->GetZaxis()->SetNdivisions(505);
 
+    if (!setting::plot::image::contour.empty()) {
+        hist->SetContour(setting::plot::image::contour.size(), setting::plot::image::contour.data());
+    }
     hist->DrawClone("cont4z");
     return hist;
 }
