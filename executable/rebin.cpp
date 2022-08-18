@@ -1,4 +1,5 @@
 #include <utility/SimpleDataset.h>
+#include <utility/Utility.h>
 
 #include <filesystem>
 #include <iostream>
@@ -33,8 +34,12 @@ int main(int argc, char const *argv[]) {
     // load the input measurement
     SimpleDataset data(mfile);
     data.rebin();
-    data.save(mfile + ".rebin.txt", "REBINNED");
 
-    std::filesystem::rename(mfile, mfile + ".original.txt");
-    std::filesystem::rename(mfile + ".rebin.txt", mfile);
+    auto path = std::filesystem::path(mfile).parent_path().string() + "/";
+    data.save(path + "temp.dat", "REBINNED (prevents multiple rebinnings)");
+
+
+    std::cout << path + utility::stem(mfile) + "_original.dat" << std::endl;
+    std::filesystem::rename(mfile, path + utility::stem(mfile) + "_original.dat");
+    std::filesystem::rename(path + "temp.dat", mfile);
 }

@@ -72,11 +72,10 @@ Fit::Plots SimpleIntensityFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    vector<double> xerr(data.size(), 0);
     Fit::Plots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.intensity = SimpleDataset(h.q, ym_scaled);
-    graphs.data = Dataset2D(data.x(), data.y(), xerr, data.yerr());
+    graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
     return graphs;
 }
 

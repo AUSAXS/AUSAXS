@@ -91,7 +91,6 @@ void Dataset::save(std::string path, std::string header) const {
     if (!output.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::save: Could not open file \"" + path + "\"");}
 
     // write header
-    std::cout << header << std::endl;
     if (!header.empty()) {
         output << header << std::endl;
     }
