@@ -97,7 +97,7 @@ consistency/%: build/executable/consistency
 	$< $${map}
 
 res := 20
-# usage: make fit_consistency/2epe map=10
+# usage: make fit_consistency/2epe res=10
 # Check the consistency of the program. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
 # A simulated EM map must be available. The resolution can be specified with the "res" argument. 
@@ -105,8 +105,17 @@ fit_consistency/%: build/executable/fit_consistency
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	emmap=$(shell find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
-	echo "./fit_consistency $${structure} $${measurement} $${emmap}\n"; \
 	$< $${emmap} $${structure} $${measurement}
+
+# usage: make fit_consistency2/2epe res=10
+# Check the consitency of the program.
+# The wildcard should be the name of a PDB structure file. 
+# A simulated EM map must be present available with the given resolution. 
+# A measurement will be simulated from the PDB structure, and fitted to the EM map. 
+fit_consistency2/%: build/executable/fit_consistency2
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	emmap=$(shell find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
+	$< $${emmap} $${structure}
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

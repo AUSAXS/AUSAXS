@@ -31,6 +31,9 @@ target_link_libraries(consistency saxs)
 add_executable(fit_consistency fit_consistency.cpp)
 target_link_libraries(fit_consistency saxs)
 
+add_executable(fit_consistency2 fit_consistency2.cpp)
+target_link_libraries(fit_consistency2 saxs)
+
 add_executable(rebin rebin.cpp)
 target_link_libraries(rebin saxs)
 

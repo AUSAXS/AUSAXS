@@ -1,0 +1,12 @@
+aarhus uni / nano / kemi i header
+brug pdb struktur som udgangspunkt; simuler EM & SAXS dataset & fit
+tekst i punktform
+billeder fra pymol af alle strukturerne? 
+Practical examples som titel
+kolonne med faktiske navne i praktiske eksempler tabellen
+fjern rebinned tabel og skriv (rebinned) ved A2M'erne
+omdøb "generate atomic structure" til "generate dummy structure"
+nævn
+	sample frequency
+	simulationsprogram
+	dummy atoms vægtet med densitet
