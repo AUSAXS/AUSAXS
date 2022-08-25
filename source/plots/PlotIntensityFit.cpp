@@ -44,7 +44,14 @@ void plots::PlotIntensityFit::plot(const Fit::Plots& graphs) const {
     limits.merge(graphs.intensity_interpolated.span_y_positive());
     PlotOptions options0, options1, options2;
 
-    options2.set("errors", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"ylimits", limits}});
+    std::cout << graphs.data.span_y_positive();
+    std::cout << graphs.intensity.span_y_positive();
+    std::cout << graphs.intensity_interpolated.span_y_positive();
+    std::cout << "Final limits: " << limits << std::endl;
+
+    auto span = graphs.data.span_x();
+    span.expand(0.05);
+    options2.set("errors", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"ylimits", limits}, {"xlimits", span}});
     options0.set("markers", {{"color", kBlack}, {"share_axis", true}});
     options1.set("line", {{"color", kBlack}, {"share_axis", true}});
 
@@ -57,6 +64,6 @@ void plots::PlotIntensityFit::prepare_canvas() {
     canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
     canvas->SetLogy();
     canvas->SetLogx();
-    canvas->SetRightMargin(0.15);
-    canvas->SetLeftMargin(0.15);
+    // canvas->SetRightMargin(0.15);
+    canvas->SetLeftMargin(0.12);
 }

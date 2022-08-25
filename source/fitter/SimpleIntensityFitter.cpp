@@ -167,8 +167,8 @@ SimpleDataset SimpleIntensityFitter::read(string file) const {
         if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
 
         // check user-defined limits
-        if (_q < setting::fit::q_low) {continue;}
-        if (_q > setting::fit::q_high) {continue;}
+        if (_q < setting::axes::qmin) {continue;}
+        if (_q > setting::axes::qmax) {continue;}
 
         // add the values to our vectors
         temp.push_back(_q, _I, _sigma);

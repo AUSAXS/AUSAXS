@@ -35,5 +35,7 @@ void Dataset2D::load(std::string path) {
     if (M != 4) {
         throw except::io_error("Error in Dataset2D::load: Dataset has wrong number of columns.");
     }
-    limit_x(setting::fit::q_low, setting::fit::q_high);
+    unsigned int N = size();
+    limit_x(setting::axes::qmin, setting::axes::qmax);
+    std::cout << "Removed " << N - size() << " data points outside of the q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
 }

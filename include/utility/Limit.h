@@ -44,6 +44,15 @@ class Limit {
         }
 
         /**
+         * @brief Expand the limit by the specified percentage. 
+         *        Both ends of the limit will be grow by the specified percentage. 
+         */
+        void expand(double percent) noexcept {
+            min = min < 0 ? min * (1 + percent) : min*(1-percent);
+            max = max < 0 ? max * (1 - percent) : max*(1+percent);
+        } 
+
+        /**
          * @brief Equality operator. Check if this Limit is equal to another.
          */
         bool operator==(const Limit& rhs) const noexcept {return min == rhs.min && max == rhs.max;}

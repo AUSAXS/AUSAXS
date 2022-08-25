@@ -152,6 +152,8 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     draw_bars = opt.draw_bars;
     ylimits = opt.ylimits;
     xlimits = opt.xlimits;
+    xlabel_offset = opt.xlabel_offset;
+    ylabel_offset = opt.ylabel_offset;
 
     return *this;
 }

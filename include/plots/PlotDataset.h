@@ -29,7 +29,7 @@ namespace plots {
 			/**
 			 * @brief Plot an additional Dataset. 
 			 */
-			template<typename T>
+			template<typename T> 
 			void plot(const T& data);
 
             /**

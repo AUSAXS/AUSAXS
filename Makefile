@@ -96,7 +96,7 @@ consistency/%: build/executable/consistency
 	@ map=$(shell find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
 	$< $${map}
 
-res := 20
+res := 10
 # usage: make fit_consistency/2epe res=10
 # Check the consistency of the program. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
@@ -114,7 +114,8 @@ fit_consistency/%: build/executable/fit_consistency
 # A measurement will be simulated from the PDB structure, and fitted to the EM map. 
 fit_consistency2/%: build/executable/fit_consistency2
 	@ structure=$(shell find data/ -name "$*.pdb"); \
-	emmap=$(shell find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
+	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
+	echo "$< $${emmap} $${structure}"; \
 	$< $${emmap} $${structure}
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
@@ -128,6 +129,10 @@ rebin/%: build/executable/rebin
 unit_cell/%: build/executable/unit_cell
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure}
+
+plot_data/%: build/executable/plot_data
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	$< $${measurement}
 
 #################################################################################
 ###			     SIMULATIONS					 ###

@@ -26,8 +26,8 @@ int main(int argc, char const *argv[]) {
     app.add_option("--placement_strategy", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.");
     app.add_option("--radius_a", setting::grid::ra, "Radius of the protein atoms.");
     app.add_option("--radius_h", setting::grid::rh, "Radius of the hydration atoms.");
-    app.add_option("--qlow", setting::fit::q_low, "Lower limit on used q values from measurement file.");
-    app.add_option("--qhigh", setting::fit::q_high, "Upper limit on used q values from measurement file.");
+    app.add_option("--qlow", setting::axes::qmin, "Lower limit on used q values from measurement file.");
+    app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
     app.add_flag("--center,!--no-center", setting::protein::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
     CLI11_PARSE(app, argc, argv);

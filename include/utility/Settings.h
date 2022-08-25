@@ -12,7 +12,7 @@
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
     struct general {
-        static constexpr char residue_folder[] = "temp/residues/"; // Download location for all ligand files.
+        static constexpr char residue_folder[] = "temp/residues/"; // Download location for all ligand files. Must be constexpr. 
     };
 
     struct figures {
@@ -47,14 +47,15 @@ namespace setting {
     };
 
     struct axes {
-        inline static double scattering_intensity_plot_binned_width = 0.1;        // The width of each bin for the scattering plots.
-        inline static Axis scattering_intensity_plot_axis = {1000, 0.001, 1.001}; // Axes used for the Debye scattering intensity plots.
+        inline static double scattering_intensity_plot_binned_width = 0.1; // The width of each bin for the scattering plots.
+        inline static unsigned int bins = 1000;                            // The number of bins for the scattering plots.
+        inline static double qmin = 0.001;                                 // Lower limit on the used q-values
+        inline static double qmax = 1.001;                                 // Upper limit on the used q-values
     };
 
     struct fit {
-        inline static double q_low = 0;     // Lower limit on the used q-values
-        inline static double q_high = 1000; // Upper limit on the used q-values
         inline static unsigned int N = 100; // Number of points sampled when discretizing a model scattering curve
+        inline static bool verbose = false; // Whether to print the fit progress to the console
     };
 
     struct rigidbody {
@@ -149,14 +150,14 @@ namespace setting {
 
             // protein
             make_shared({"center"}, setting::protein::center),
-            make_shared({"use-effective-charge"}, setting::protein::use_effective_charge),
+            make_shared({"effectivecharge", "effective-charge", "use-effective-charge"}, setting::protein::use_effective_charge),
 
             // axes
             make_shared({"scattering-intensity-plot-binned-width"}, setting::axes::scattering_intensity_plot_binned_width),
+            make_shared({"qlow", "qmin"}, setting::axes::qmin),
+            make_shared({"qhigh", "qmax"}, setting::axes::qmax),
 
             // fit
-            make_shared({"q-low"}, setting::fit::q_low),
-            make_shared({"q-high"}, setting::fit::q_high),
             make_shared({"N"}, setting::fit::N),
 
             // rigidbody

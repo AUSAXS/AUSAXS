@@ -26,7 +26,7 @@ void ScatteringHistogram::setup() {
     }    
 
     // prepare the q values for the intensity calculations
-    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     q = vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
@@ -89,7 +89,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity(const vector<
 
 SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
-    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
 
     // calculate the scattering intensity based on the Debye equation
     vector<double> Iq(debye_axis.bins, 0);
@@ -105,7 +105,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
 std::unique_ptr<TH1D> ScatteringHistogram::plot_guinier_approx() const {
     vector<double> Iq = calc_guinier_approx().col("logI");
 
-    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     std::unique_ptr<TH1D> h = std::make_unique<TH1D>("hI_guinier", "hist", debye_axis.bins, debye_axis.min, debye_axis.max);
 
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
@@ -127,7 +127,7 @@ double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
 SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
-    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     vector<double> Iq(debye_axis.bins, 0);
     double log_conv = log10(exp(1)); // we have to convert natural log to log10
     for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values

@@ -15,6 +15,8 @@ class Multiset {
 
         explicit Multiset(const std::vector<Dataset2D>& data);
 
+        explicit Multiset(const std::vector<SimpleDataset>& data);
+
         explicit Multiset(const Dataset2D& data);
 
         Multiset(const Dataset2D& data1, const Dataset2D& data2);

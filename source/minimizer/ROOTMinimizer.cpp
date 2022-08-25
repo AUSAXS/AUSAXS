@@ -1,5 +1,6 @@
 #include <minimizer/ROOTMinimizer.h>
 #include <utility/Exceptions.h>
+#include <utility/Settings.h>
 
 using namespace mini;
 
@@ -51,6 +52,9 @@ Result ROOTMinimizer::minimize_override() {
     if (!is_parameter_set()) {throw except::bad_order("Error in ROOTMinimizer::minimize: No parameters were supplied.");}
     if (!is_function_set()) {throw except::bad_order("Error in ROOTMinimizer::minimize: No function was set.");}
     prepare_minimizer();
+    if (!setting::fit::verbose) {
+        mini->SetPrintLevel(-1);
+    }
     mini->Minimize();
     mini->PrintResults();
 

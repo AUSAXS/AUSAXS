@@ -42,3 +42,6 @@ target_link_libraries(unit_cell saxs)
 
 add_executable(em_fitter em_fitter.cpp)
 target_link_libraries(em_fitter saxs)
+
+add_executable(plot_data plot_data.cpp)
+target_link_libraries(plot_data saxs)

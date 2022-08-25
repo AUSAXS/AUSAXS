@@ -134,7 +134,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     // find the beginning of the atom section
     while (std::getline(file, line)) {
         if (line.find("atom.pdbx_ordinal") != std::string::npos) {
-            std::cout << "Found start of atom section" << std::endl;
+            // std::cout << "Found start of atom section" << std::endl;
             found_atom_section = true;
             break;
         }
@@ -144,7 +144,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     while (std::getline(file, line)) {
         // check for end of section
         if (line.find("#") != std::string::npos) {
-            std::cout << "Found end of atom section" << std::endl;
+            // std::cout << "Found end of atom section" << std::endl;
             break;
         }
 
@@ -160,7 +160,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     // find the beginning of the bond section
     while (std::getline(file, line)) {
         if (line.find("bond.pdbx_ordinal") != std::string::npos) {
-            std::cout << "Found start of bond section" << std::endl;
+            // std::cout << "Found start of bond section" << std::endl;
             found_bond_section = true;
             break;
         }
@@ -170,7 +170,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     while (std::getline(file, line)) {
         // check for end of section
         if (line.find("#") != std::string::npos) {
-            std::cout << "Found end of bond section" << std::endl;
+            // std::cout << "Found end of bond section" << std::endl;
             break;
         }
 
@@ -225,7 +225,7 @@ void parser::residue::ResidueStorage::initialize() {
             // the line following the # is the name of the residue
             std::getline(file, line);
             std::string residue = line;
-            std::cout << "Read residue " << residue << " from master file." << std::endl;
+            // std::cout << "Read residue " << residue << " from master file." << std::endl;
 
             // prepare map
             std::map<std::string, unsigned int> map;

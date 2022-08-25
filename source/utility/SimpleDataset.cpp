@@ -139,6 +139,10 @@ Limit SimpleDataset::span_y() const noexcept {
     return Limit(*min, *max);
 }
 
+Limit SimpleDataset::get_xlimits() const noexcept {return span_x();}
+
+Limit SimpleDataset::get_ylimits() const noexcept {return span_y();}
+
 Limit SimpleDataset::span_y_positive() const noexcept {
     auto y = this->y();
     if (size() == 0) {
@@ -146,7 +150,8 @@ Limit SimpleDataset::span_y_positive() const noexcept {
     }
 
     Limit limits(y[0], y[0]);
-    for (double val : y) {
+    for (unsigned int i = 0; i < size(); i++) {
+        double val = y[i];
         if (0 < val) {
             limits.min = std::min(val, limits.min);
         }
@@ -281,5 +286,7 @@ void SimpleDataset::load(std::string path) {
     else if (M > 3) {
         utility::print_warning("Warning in SimpleDataset::load: Dataset has " + std::to_string(M) + " columns, while this class only supports operations on 3. Ensure that the file is of the format [x | y | yerr | rest].");
     }
-    limit_x(setting::fit::q_low, setting::fit::q_high);
+    unsigned int N = size();
+    limit_x(setting::axes::qmin, setting::axes::qmax);
+    std::cout << "Removed " << N - size() << " data points outside of the q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
 }

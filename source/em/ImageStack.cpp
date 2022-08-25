@@ -142,7 +142,9 @@ std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensit
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->fval;
-        std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
+        if (setting::fit::verbose) {
+            std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
+        }
         return val;
     }; 
     return chi2;
@@ -246,7 +248,7 @@ std::shared_ptr<ccp4::Header> ImageStack::get_header() const {
 }
 
 Limit ImageStack::get_limits() const {
-    return resolution == 0 ? Limit(setting::fit::q_low, setting::fit::q_high) : Limit(setting::fit::q_low, 2*M_PI/resolution);
+    return resolution == 0 ? Limit(setting::axes::qmin, setting::axes::qmax) : Limit(setting::axes::qmin, 2*M_PI/resolution);
 }
 
 double ImageStack::mean() const {

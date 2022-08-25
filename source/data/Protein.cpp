@@ -232,7 +232,7 @@ vector<double> Protein::calc_debye_scattering_intensity() {
     }
 
     vector<Atom> atoms = get_protein_atoms();
-    const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+    const Axis& debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     vector<double> Q = vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {

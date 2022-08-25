@@ -87,7 +87,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const vect
 
 bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>& d) {
     // check q
-    Axis& axis = setting::axes::scattering_intensity_plot_axis;
+    Axis axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     double width = setting::axes::scattering_intensity_plot_binned_width;
 
     if (q.size() != axis.bins) {return false;}

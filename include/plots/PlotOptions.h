@@ -56,26 +56,27 @@ namespace plots {
             bool logy = false;              // Log scale for the y-axis. Only valid if use_existing_axes is false. 
             Limit ylimits;                  // Limits on the y-axis
             Limit xlimits;                  // Limits on the x-axis
+
+            // cosmetic
             std::string title = "";         // Title
             std::string xlabel = "";        // Label for the x-axis
             std::string ylabel = "";        // Label for the y-axis
+            double xlabel_offset = 0;       // Offset for the x-axis label
+            double ylabel_offset = 0;       // Offset for the y-axis label
 
         private: 
-            enum class option {COLOR, ALPHA, MARKER_STYLE, LINE_WIDTH, MARKER_SIZE, DRAW_LINE, DRAW_ERROR, DRAW_MARKER, DRAW_BARS, USE_EXISTING_AXES, TITLE, XLABEL, YLABEL, LOGX, LOGY, YLIM, XLIM};
-
             struct ISmartOption {
-                ISmartOption(option opt, std::vector<std::string> aliases) : opt(opt), aliases(aliases) {}
+                ISmartOption(std::vector<std::string> aliases) : aliases(aliases) {}
                 virtual ~ISmartOption() = default;
 
                 virtual void parse(const std::any val) = 0;
 
-                option opt;
                 std::vector<std::string> aliases;
             };
 
             template<typename T>
             struct SmartOption : ISmartOption {
-                SmartOption(option opt, std::vector<std::string> aliases, T& value) : ISmartOption(opt, aliases), value(value) {}
+                SmartOption(std::vector<std::string> aliases, T& value) : ISmartOption(aliases), value(value) {}
                 ~SmartOption() override = default;
 
                 void parse(const std::any val) override;
@@ -84,28 +85,30 @@ namespace plots {
             };
 
             template<typename T>
-            std::shared_ptr<SmartOption<T>> make_shared(option opt, std::vector<std::string> aliases, T& val) {
-                return std::make_shared<SmartOption<T>>(opt, aliases, val);
+            std::shared_ptr<SmartOption<T>> make_shared(std::vector<std::string> aliases, T& val) {
+                return std::make_shared<SmartOption<T>>(aliases, val);
             }
 
             const std::vector<std::shared_ptr<ISmartOption>> options = {
-                make_shared(option::COLOR, {"color", "colour", "c"}, color),
-                make_shared(option::ALPHA, {"alpha"}, alpha),
-                make_shared(option::MARKER_STYLE, {"markerstyle", "marker_style", "ms"}, marker_style),
-                make_shared(option::LINE_WIDTH, {"linewidth", "line_width", "lw"}, line_width),
-                make_shared(option::MARKER_SIZE, {"markersize", "marker_size", "s"}, marker_size),
-                make_shared(option::DRAW_LINE, {"line", "lines"}, draw_line),
-                make_shared(option::DRAW_ERROR, {"error", "errors"}, draw_errors),
-                make_shared(option::DRAW_MARKER, {"marker", "markers", "point", "points"}, draw_markers),
-                make_shared(option::DRAW_BARS, {"bars", "bars"}, draw_bars),
-                make_shared(option::USE_EXISTING_AXES, {"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}, use_existing_axes),
-                make_shared(option::TITLE, {"title"}, title),
-                make_shared(option::XLABEL, {"xlabel"}, xlabel),
-                make_shared(option::YLABEL, {"ylabel"}, ylabel),
-                make_shared(option::LOGX, {"logx", "log_x"}, logx),
-                make_shared(option::LOGY, {"logy", "log_y"}, logy),
-                make_shared(option::XLIM, {"xlim", "x_lim", "xlimits", "xlimit"}, xlimits),
-                make_shared(option::YLIM, {"ylim", "y_lim", "ylimits", "ylimit"}, ylimits)
+                make_shared({"color", "colour", "c"}, color),
+                make_shared({"alpha"}, alpha),
+                make_shared({"markerstyle", "marker_style", "ms"}, marker_style),
+                make_shared({"linewidth", "line_width", "lw"}, line_width),
+                make_shared({"markersize", "marker_size", "s"}, marker_size),
+                make_shared({"line", "lines"}, draw_line),
+                make_shared({"error", "errors"}, draw_errors),
+                make_shared({"marker", "markers", "point", "points"}, draw_markers),
+                make_shared({"bars", "bars"}, draw_bars),
+                make_shared({"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}, use_existing_axes),
+                make_shared({"title"}, title),
+                make_shared({"xlabel"}, xlabel),
+                make_shared({"ylabel"}, ylabel),
+                make_shared({"logx", "log_x"}, logx),
+                make_shared({"logy", "log_y"}, logy),
+                make_shared({"xlim", "x_lim", "xlimits", "xlimit"}, xlimits),
+                make_shared({"ylim", "y_lim", "ylimits", "ylimit"}, ylimits),
+                make_shared({"xlabeloffset", "x_label_offset", "xlabel_offset", "x_offset"}, xlabel_offset),
+                make_shared({"ylabeloffset", "y_label_offset", "ylabel_offset", "y_offset"}, ylabel_offset),
             };
 
             void parse(std::string key, std::any val);

@@ -67,7 +67,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param model The model histogram. 
      * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
+    SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
 
     /**
      * @brief Constructor.
@@ -77,7 +77,7 @@ class SimpleIntensityFitter : public Fitter {
      * @param model The model histogram. 
      * @param limits The limits on the generated data points. 
      */
-    SimpleIntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::fit::q_low, setting::fit::q_high));
+    SimpleIntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
 
     /**
      * @brief Destructor.

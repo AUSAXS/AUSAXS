@@ -32,11 +32,12 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     if (!options.xlabel.empty()) {
         graph->GetXaxis()->SetTitle(options.xlabel.c_str());
         graph->GetXaxis()->CenterTitle();
+        graph->GetXaxis()->SetTitleOffset(options.xlabel_offset);
     }
     if (!options.ylabel.empty()) {
         graph->GetYaxis()->SetTitle(options.ylabel.c_str());
         graph->GetYaxis()->CenterTitle();
-        graph->GetYaxis()->SetTitleOffset(1.2);
+        graph->GetYaxis()->SetTitleOffset(options.ylabel_offset);
     }
 
     // handle xlimits
@@ -187,11 +188,12 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
     if (!options.xlabel.empty()) {
         hist->GetXaxis()->SetTitle(options.xlabel.c_str());
         hist->GetXaxis()->CenterTitle();
+        hist->GetXaxis()->SetTitleOffset(options.xlabel_offset);
     }
     if (!options.ylabel.empty()) {
         hist->GetYaxis()->SetTitle(options.ylabel.c_str());
         hist->GetYaxis()->CenterTitle();
-        hist->GetYaxis()->SetTitleOffset(1.2);
+        hist->GetYaxis()->SetTitleOffset(options.ylabel_offset);
     }
 
     // handle xlimits

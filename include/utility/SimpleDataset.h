@@ -126,6 +126,16 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
         [[nodiscard]] Limit span_y() const noexcept;
 
         /**
+         * @brief Get the spanned x-range.
+         */
+        [[nodiscard]] Limit get_xlimits() const noexcept;
+
+        /**
+         * @brief Get the spanned y-range.
+         */
+        [[nodiscard]] Limit get_ylimits() const noexcept;
+
+        /**
          * @brief Get the positive spanned y-range.
          *        This can be useful for setting log ranges. 
          */
