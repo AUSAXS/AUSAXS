@@ -21,6 +21,11 @@
  * [x] Matrix & Slice: Remove debug segfaults for out-of-bounds indices
 
 # Stuff to consider
+## EM
+ * Consider the effects of discretization. 
+ * e2pdb2mrc.py: 
+ 	eval "$(/home/au561871/tools/eman2/bin/conda shell.bash hook)"
+	python3 ~/tools/eman2/bin/e2pdb2mrc.py
 ## Compiler flags:
  * fno-finite-math-only: Can probably be removed, not sure of performance benefits. Note that its removal would specifically break limit handling of plots where std::isinf checks are used. 
 
