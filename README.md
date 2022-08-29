@@ -1,4 +1,5 @@
 # Todo
+ * [ ] Grid: Binning range seems to be exclusive the top-most atom
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
  * [ ] ResidueParser: Consider creating 1 parsed file per residue and then dynamically loading only those that are needed for the current file. 

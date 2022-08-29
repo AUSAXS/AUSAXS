@@ -1,0 +1,2 @@
+2022/08/29 11:04:26	2022/08/29 11:04:26	 18201/    -1	d49517	/home/au561871/tools/eman2/bin/e2pdb2mrc.py data/SASDHK4/SASDHK4.pdb sim/SASDHK4_10.mrc res=10 het center
+2022/08/29 11:18:41	2022/08/29 11:18:41	 20051/    -1	d49517	/home/au561871/tools/eman2/bin/e2pdb2mrc.py data/SASDHK4/SASDHK4.pdb sim/SASDHK4_10.mrc res=10 het

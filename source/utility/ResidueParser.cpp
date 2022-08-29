@@ -90,6 +90,12 @@ std::string parser::residue::detail::Residue::to_string() const {
 saxs::detail::SimpleResidueMap parser::residue::detail::Residue::to_map() const {
     saxs::detail::SimpleResidueMap map;
     for (const Atom& a : atoms) {
+        // skip all H's, they are automatically handled by the SimpleResidueMap
+        if (a.name.find("H") != std::string::npos) {
+            continue;
+        }
+
+        // check if the alternate name should also be inserted
         if (a.altname != a.name && !a.altname.empty()) {
             map.insert(a.altname, a.hydrogen_bonds);
         }
@@ -155,13 +161,14 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
         std::string type_symbol = tokens[3];
 
         // HN is sometimes used as an alias for "H"
-        if (type_symbol.find("H") != std::string::npos) {
-            continue; // skip all H's
-        }
         // if (atom_id_alt == "H") {atom_id_alt = "HN";}
 
         // Sometimes the "1" in e.g. CD1 is omitted
-        if (atom_id == atom_id_alt && atom_id[atom_id.size() - 1] == '1') {atom_id_alt = atom_id.substr(0, atom_id.size()-2);}
+        if (atom_id == atom_id_alt) {
+            if (atom_id[atom_id.size() - 1] == '1') {
+                atom_id_alt = atom_id.substr(0, atom_id.size()-1);
+            }
+        }
 
         residue.add_atom(atom_id, atom_id_alt, type_symbol);
     }
@@ -212,7 +219,6 @@ saxs::detail::SimpleResidueMap& parser::residue::ResidueStorage::get(std::string
         std::cout << "Unknown residue: \"" << name << "\". Attempting to download specification." << std::endl;
         download_residue(name);
     }
-    std::cout << "Found residue: \"" << name << "\"" << std::endl;
     return data.at(name);
 }
 

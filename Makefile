@@ -33,6 +33,12 @@ view/%:
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$(pymol) $${structure}
 
+res := 10
+simview/%:
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	emmap=$(shell find sim/ -name "$*_$(res).mrc" -or -name "$*_$(res).ccp4"); \
+	$(pymol) $${structure} $${emmap} -d "isomesh normal, $*_$(res), 1"
+
 hist/%: build/executable/hist
 	@structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure} figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
@@ -96,7 +102,6 @@ consistency/%: build/executable/consistency
 	@ map=$(shell find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
 	$< $${map}
 
-res := 10
 # usage: make fit_consistency/2epe res=10
 # Check the consistency of the program. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
@@ -137,9 +142,15 @@ plot_data/%: build/executable/plot_data
 #################################################################################
 ###			     SIMULATIONS					 ###
 #################################################################################
+
+# eval "$(~/tools/eman2/bin/conda shell.bash hook)"
 simulate/%: 
 	@ structure=$(shell find data/ -name "$*.pdb"); \
-	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center
+	python3 ~/tools/eman2/bin/e2pdb2mrc.py $${structure} sim/$*_$(res).mrc res=$(res) het
+
+#simulate/%: 
+#	@ structure=$(shell find data/ -name "$*.pdb"); \
+#	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center
 
 simfit/%: build/executable/fit_consistency
 	@ structure=$(shell find data/ -name "$*.pdb"); \

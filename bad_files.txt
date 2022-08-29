@@ -1,3 +1,0 @@
-DLT3: Loose tendrils, SAXS will not fit atomic model
-DEL8: They can't even fit it themselves, probably just a bad model
-DNQ3: Also a bad fit. Structure is a pentamer, SAXS data probably not representative. 
