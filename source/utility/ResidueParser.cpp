@@ -44,6 +44,7 @@ std::string parser::residue::detail::Bond::to_string() const {
 unsigned int parser::residue::detail::Bond::parse_order(std::string order) {
     if (order == "SING") {return 1;}
     else if (order == "DOUB") {return 2;}
+    else if (order == "TRIP") {return 3;}
     else {throw std::runtime_error("Invalid bond order: " + order);}
 }
 
@@ -86,8 +87,8 @@ std::string parser::residue::detail::Residue::to_string() const {
     return ss.str();
 }
 
-saxs::detail::SimpleMap<unsigned int> parser::residue::detail::Residue::to_map() const {
-    saxs::detail::SimpleMap<unsigned int> map;
+saxs::detail::SimpleResidueMap parser::residue::detail::Residue::to_map() const {
+    saxs::detail::SimpleResidueMap map;
     for (const Atom& a : atoms) {
         if (a.altname != a.name && !a.altname.empty()) {
             map.insert(a.altname, a.hydrogen_bonds);
@@ -152,7 +153,15 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
         std::string atom_id = utility::remove_quotation_marks(tokens[1]);
         std::string atom_id_alt = utility::remove_quotation_marks(tokens[2]);
         std::string type_symbol = tokens[3];
-        if (atom_id_alt == "H") {atom_id_alt = "HN";} // HN is sometimes used as an alias
+
+        // HN is sometimes used as an alias for "H"
+        if (type_symbol.find("H") != std::string::npos) {
+            continue; // skip all H's
+        }
+        // if (atom_id_alt == "H") {atom_id_alt = "HN";}
+
+        // Sometimes the "1" in e.g. CD1 is omitted
+        if (atom_id == atom_id_alt && atom_id[atom_id.size() - 1] == '1') {atom_id_alt = atom_id.substr(0, atom_id.size()-2);}
 
         residue.add_atom(atom_id, atom_id_alt, type_symbol);
     }
@@ -194,15 +203,16 @@ parser::residue::ResidueStorage::ResidueStorage() {
     initialize();
 }
 
-void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::SimpleMap<unsigned int> residue) {
+void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::SimpleResidueMap residue) {
     data.emplace(name, residue);
 }
 
-saxs::detail::SimpleMap<unsigned int>& parser::residue::ResidueStorage::get(std::string name) {
+saxs::detail::SimpleResidueMap& parser::residue::ResidueStorage::get(std::string name) {
     if (data.find(name) == data.end()) {
         std::cout << "Unknown residue: \"" << name << "\". Attempting to download specification." << std::endl;
         download_residue(name);
     }
+    std::cout << "Found residue: \"" << name << "\"" << std::endl;
     return data.at(name);
 }
 

@@ -31,7 +31,7 @@ namespace saxs {
             /**
              * @brief Get a value from the storage. 
              */
-            const V& get(const std::string& key) const {
+            virtual const V& get(const std::string& key) const {
                 std::string k2 = utility::to_lowercase(key);
                 if (data.find(k2) == data.end()) {
                     throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
@@ -78,6 +78,40 @@ namespace saxs {
             }
 
             std::map<std::string, V> data;
+        };
+
+        /**
+         * @brief A simple extension of a SimpleMap, specializing it for residue storage. 
+         *        The only difference is that all keys containing "h" are automatically mapped to 0. 
+         */
+        struct SimpleResidueMap : SimpleMap<unsigned int> {
+            /**
+             * @brief Create a new empty SimpleResidueMap.
+             */
+            SimpleResidueMap() : SimpleMap() {
+                insert("h", 0);
+            }
+
+            /**
+             * @brief Create a new SimpleResidueMap from a std::map.
+             */
+            SimpleResidueMap(std::map<std::string, unsigned int> map) : SimpleMap(map) {
+                insert("h", 0);
+            }
+
+            /**
+             * @brief Get a value from the storage. 
+             */
+            const unsigned int& get(const std::string& key) const override {
+                std::string k2 = utility::to_lowercase(key);
+                if (k2.find("h") != std::string::npos) {
+                    return data.at("h");
+                }
+                if (data.find(k2) == data.end()) {
+                    throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
+                }
+                return data.at(k2);
+            }
         };
     }
 }

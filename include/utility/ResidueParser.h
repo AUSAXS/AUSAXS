@@ -54,7 +54,7 @@ namespace parser {
 
                     std::string to_string() const;
 
-                    saxs::detail::SimpleMap<unsigned int> to_map() const;
+                    saxs::detail::SimpleResidueMap to_map() const;
 
                     static Residue parse(std::string filename);
 
@@ -79,13 +79,13 @@ namespace parser {
                 /**
                  * @brief Get a residue from the storage. If the residue is not found, it will be downloaded. 
                  */
-                saxs::detail::SimpleMap<unsigned int>& get(std::string name);
+                saxs::detail::SimpleResidueMap& get(std::string name);
 
             private: 
                 /**
                  * @brief Insert a residue into the storage. 
                  */
-                void insert(std::string name, saxs::detail::SimpleMap<unsigned int> residue);
+                void insert(std::string name, saxs::detail::SimpleResidueMap residue);
 
                 /**
                  * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
@@ -102,7 +102,7 @@ namespace parser {
                  */
                 void write_residue(std::string name);
 
-                std::map<std::string, saxs::detail::SimpleMap<unsigned int>> data;
+                std::map<std::string, saxs::detail::SimpleResidueMap> data;
         };
     }
 }
