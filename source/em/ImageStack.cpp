@@ -13,6 +13,7 @@
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <minimizer/Golden.h>
+#include <minimizer/ROOTMinimizer.h>
 
 #include <filesystem>
 
@@ -118,6 +119,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
     auto func = prepare_function(fitter);
 
     mini::Golden minimizer(func, param);
+    // mini::ROOTMinimizer minimizer("Minuit2", "Migrad", func, param);
     auto res = minimizer.minimize();
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, res, res.fval);
@@ -128,18 +130,23 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(SimpleIntensityFitter&
 std::function<double(const double*)> ImageStack::prepare_function(SimpleIntensityFitter& fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
-    // auto protein = phm->get_protein(1);
-    // double c = setting::em::concentration;                                // concentration
-    // double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
-    // double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
-    // double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
-    // double I0 = DrhoV2*re2*c/m;
-    // fitter.normalize_intensity(I0);
+    auto protein = phm->get_protein(1);
+    double c = setting::em::concentration;                                // concentration
+    double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
+    double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
+    double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
+    double I0 = DrhoV2*re2*c/m;
+    fitter.normalize_intensity(I0);
 
     // fit function
     static unsigned int counter;
     counter = 0; // must be in separate line since we want to reset it every time this function is called
     std::function<double(const double*)> chi2 = [&] (const double* params) {
+        // auto p = phm->get_protein(params[0]);
+        // p->generate_new_hydration();
+        // auto h = p->get_histogram();
+        // fitter.set_scattering_hist(h);
+
         fitter.set_scattering_hist(get_histogram(params[0]));
         double val = fitter.fit()->fval;
         if (setting::fit::verbose) {

@@ -10,6 +10,7 @@
 #include <hydrate/Grid.h>
 #include <histogram/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
+#include <fitter/IntensityFitter.h>
 #include <utility/Multiset.h>
 #include <minimizer/Minimizer.h>
 

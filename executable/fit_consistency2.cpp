@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
     Protein protein(pdbfile);
 
-    unsigned int evals = 100;
+    unsigned int evals = 1000;
     Dataset data({"dof", "chi2_struct", "chi2_map", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
         std::cout << "Starting iteration " << i+1 << " of " << evals << std::endl;

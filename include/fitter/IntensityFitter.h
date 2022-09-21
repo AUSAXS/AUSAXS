@@ -16,6 +16,15 @@ class IntensityFitter : public SimpleIntensityFitter {
   public: 
     /**
      * @brief Constructor.
+     * 
+     * Prepare a fit of the measured values in @a input to a model to be defined later. 
+     * 
+     * @param input The path to the file containing the measured values. 
+     */
+    IntensityFitter(std::string input) : SimpleIntensityFitter(input) {}
+
+    /**
+     * @brief Constructor.
      *        Prepare a fit of the histogram to the measured values. 
      * 
      * @param input The path to the file containing the measured values. 
@@ -31,6 +40,16 @@ class IntensityFitter : public SimpleIntensityFitter {
      * @param h The histogram.
      */
     IntensityFitter(std::string input, hist::ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
+
+    /**
+     * @brief Constructor.
+     * 
+     * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+     * 
+     * @param model The model histogram. 
+     * @param limits The limits on the generated data points. 
+     */
+    IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
 
     /**
      * @brief Destructor.

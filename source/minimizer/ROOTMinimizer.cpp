@@ -45,7 +45,15 @@ void ROOTMinimizer::create_minimizer(std::string package, std::string algorithm)
 }
 
 Dataset2D ROOTMinimizer::get_evaluated_points() const {
-    throw except::unexpected("Error in ROOTMinimizer::get_evaluated_points: Not implemented yet.");
+    if (evaluations.empty()) {throw except::bad_order("Error in ROOTMinimizer::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
+
+    unsigned int N = evaluations.size();
+    std::vector<double> x(N), y(N);
+    for (unsigned int i = 0; i < N; i++) {
+        x[i] = evaluations[i].vals[0];
+        y[i] = evaluations[i].fval;
+    }
+    return Dataset2D(x, y, "x", "f(x)");
 }
 
 Result ROOTMinimizer::minimize_override() {

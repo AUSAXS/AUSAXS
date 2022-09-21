@@ -12,6 +12,8 @@
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
+IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) : SimpleIntensityFitter(model, limits) {}
+
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
     mini::ROOTMinimizer mini("Minuit2", "migrad", f, {"c", 5, {0, 100}});

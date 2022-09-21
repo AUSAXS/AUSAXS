@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 from scipy.stats import chi2, norm
 from scipy.optimize import curve_fit
 
-titles = ["DE35", "DE45", "DE65", "DEY4", "DEZ4", "DGX9", "DHK4", "DJA4", "DJF5", "DJY3", "DL82", "DLT3"]
-files = ["../figures/fit_consistency2/SAS" + name + "_10/SAS" + name + "/out.txt" for name in titles]
+titles = ["DE35", "DE45", "DE65", "DEY4", "DEZ4", "DGX9", "DHK4", "DJA4", "DJF5", "DJY3", "DL82", "DLT3", "DF86", "DE75", "DHP7", "DJG5"]
+files = ["figures/fit_consistency2/SAS" + name + "_10/SAS" + name + "/out.txt" for name in titles]
 
+Nbins = 10
 for file, name in zip(files, titles):
     data = np.loadtxt(file, skiprows=2)
     ddof = data[:, 0]
@@ -17,7 +18,7 @@ for file, name in zip(files, titles):
     fig, ax = plt.subplots(1, 2, figsize=(16, 6))
     plt.suptitle(name, fontsize=16, fontweight="bold")
     plt.sca(ax[0])
-    n, bins, _ = plt.hist(dchi2_struct, bins=10, density=True)
+    n, bins, _ = plt.hist(dchi2_struct, bins=Nbins, density=True)
     plt.xlabel("$\chi^2$")
     plt.ylabel("Density")
     plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
@@ -38,7 +39,7 @@ for file, name in zip(files, titles):
     ### plot chi2_map ###
     plt.sca(ax[1])
     dchi2_map = dchi2_map/ddof[0]
-    n, bins, _ = plt.hist(dchi2_map, bins=10, density=True)
+    n, bins, _ = plt.hist(dchi2_map, bins=Nbins, density=True)
     plt.xlabel("$\chi^2$")
     plt.ylabel("Density")
     plt.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
@@ -51,5 +52,5 @@ for file, name in zip(files, titles):
     plt.legend()
     print(f"{name}: structure: {popt[0]/ddof[0]:.3f} +/- {np.sqrt(pcov[0][0])/ddof[0]:.3f}, map: {mean:.3f} +/- {np.std(dchi2_map):.3f}")
 
-    plt.savefig("../figures/fit_consistency2/SAS" + name + "_10/SAS" + name + "/fig.png")
-plt.show()
+    plt.savefig("figures/fit_consistency2/SAS" + name + "_10/SAS" + name + "/fig.png")
+#plt.show()
