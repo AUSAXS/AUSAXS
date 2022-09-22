@@ -45,3 +45,6 @@ target_link_libraries(em_fitter saxs)
 
 add_executable(plot_data plot_data.cpp)
 target_link_libraries(plot_data saxs)
+
+add_executable(inspect_map inspect_map.cpp)
+target_link_libraries(inspect_map saxs)
