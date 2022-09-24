@@ -16,7 +16,7 @@ IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const L
 
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    mini::ROOTMinimizer mini("Minuit2", "migrad", f, {"c", 5, {0, 100}});
+    mini::ROOTMinimizer mini("Minuit2", "migrad", f, guess);
     auto res = mini.minimize();
 
     // apply c
@@ -35,12 +35,6 @@ shared_ptr<Fit> IntensityFitter::fit() {
     fitted = std::make_shared<Fit>(res, res.fval, data.size()-2);
     fitted->add_fit(ab_fit);
     auto fitted2 = std::make_shared<Fit>(*this, res, res.fval);
-
-    // std::cout << "INTENSITYFITTER CHECK" << std::endl;
-    // std::cout << "data: " << fitted->figures.data.size() << std::endl;
-    // std::cout << "intensity: " << fitted->figures.intensity.size() << std::endl;
-    // std::cout << "intensity interpolated: " << fitted->figures.intensity_interpolated.size() << std::endl;
-    // std::cout << "dof: " << fitted2->dof << ", " << fitted->dof << std::endl;
 
     return fitted2;
 }
@@ -160,4 +154,8 @@ SimpleDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
 
 SimpleDataset IntensityFitter::get_dataset() const {
     return data;
+}
+
+void IntensityFitter::set_guess(mini::Parameter guess) {
+    this->guess = guess;
 }

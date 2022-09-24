@@ -26,7 +26,8 @@ ra := 2.4
 rh := 1.5
 ps := Radial
 hydrate/%: build/executable/new_hydration
-	$< data/$*.pdb output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	$< $${structure} output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
 view/%: 

@@ -275,7 +275,7 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::shared_ptr<EMFit> fit_helper(SimpleIntensityFitter& fitter, mini::Parameter param = {});
+            std::shared_ptr<EMFit> fit_helper(IntensityFitter& fitter, mini::Parameter param = {});
 
             /**
              * @brief A helper function for the cutoff scanning method.
@@ -283,13 +283,13 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            Dataset cutoff_scan_helper(const Axis& points, SimpleIntensityFitter& fitter);
+            Dataset cutoff_scan_helper(const Axis& points, IntensityFitter& fitter);
 
             /**
              * @brief Prepare the fitting function. 
              *        Note that the lifetime of the returned function is the same as that of the fitter.
              */
-            std::function<double(const double*)> prepare_function(SimpleIntensityFitter& fitter);
+            std::function<double(const double*)> prepare_function(IntensityFitter& fitter);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 

@@ -53,3 +53,8 @@ void plots::PlotDistance::save(string path) const {
     canvas->SetLeftMargin(0.15);
     canvas->SaveAs(path.c_str());
 }
+
+void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& h, std::string path) {
+    plots::PlotDistance p(h);
+    p.save(path);
+}
