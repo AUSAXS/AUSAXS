@@ -17,13 +17,13 @@ TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
 
     // prepare measured data
     Protein protein("data/A2M/native.pdb");
     SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
-    data.limit_x(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.limit_x(Limit(setting::axes::qmin, setting::axes::qmax));
     data.simulate_errors();
 
     // prepare fit data

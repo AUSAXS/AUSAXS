@@ -5,7 +5,7 @@ using std::vector;
 
 vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
-    vector<vector<vector<char>>>& gref = grid->grid;
+    GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     unsigned int ra = grid->ra, rh = grid->rh;
 
@@ -33,36 +33,36 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
         unsigned int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, (int) bins[2]-1); // zminus and zplus
 
         // check collisions for x ± r_eff
-        if ((gref[xm][y][z] == 0) && collision_check(Vector3<unsigned int>(xm, y, z))) {
+        if ((gref.index(xm, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xm, y, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.x() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref[xp][y][z] == 0) && collision_check(Vector3<unsigned int>(xp, y, z))) {
+        if ((gref.index(xp, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xp, y, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.x() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for y ± r_eff
-        if ((gref[x][ym][z] == 0) && collision_check(Vector3<unsigned int>(x, ym, z))) {
+        if ((gref.index(x, ym, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, ym, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.y() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref[x][yp][z] == 0) && collision_check(Vector3<unsigned int>(x, yp, z))) {
+        if ((gref.index(x, yp, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, yp, z))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.y() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for z ± r_eff
-        if ((gref[x][y][zm] == 0) && collision_check(Vector3<unsigned int>(x, y, zm))) {
+        if ((gref.index(x, y, zm) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zm))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.z() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref[x][y][zp] == 0) && collision_check(Vector3<unsigned int>(x, y, zp))) {
+        if ((gref.index(x, y, zp) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zp))) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.z() += r_eff_real;
             add_loc(exact_loc);
@@ -75,13 +75,13 @@ vector<grid::GridMember<Hetatom>> grid::AxesPlacement::place() const {
 
 bool grid::AxesPlacement::collision_check(const Vector3<unsigned int>& loc) const {
     // dereference the values we'll need for better performance
-    vector<vector<vector<char>>>& gref = grid->grid;
+    GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     int ra = grid->ra, rh = grid->rh;
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]
-    int r = gref[x][y][z] == 'A' ? ra : rh;
+    int r = gref.index(x, y, z) == GridObj::A_CENTER ? ra : rh;
 
     // we use the range (x-r) to (x+r+1) since the first is inclusive and the second is exclusive. 
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) bins[0])-1; // xminus and xplus
@@ -90,7 +90,7 @@ bool grid::AxesPlacement::collision_check(const Vector3<unsigned int>& loc) cons
     for (int i = xm; i < xp; i++) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
-                if (gref[i][j][k] != 0 && sqrt(pow(x-i, 2) + pow(y-j, 2) + pow(z-k, 2)) < r) {return false;}
+                if (gref.index(i, j, k) != GridObj::EMPTY && sqrt(pow(x-i, 2) + pow(y-j, 2) + pow(z-k, 2)) < r) {return false;}
             }
         }
     }

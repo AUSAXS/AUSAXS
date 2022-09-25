@@ -337,3 +337,28 @@ void Protein::generate_unit_cell() {
         << std::right << std::setw(4) << "P 1";    // 67 - 70
     file.add(Record::RecordType::HEADER, ss.str());
 }
+
+void Protein::remove_disconnected_atoms(unsigned int min) {
+    if (grid == nullptr) {create_grid();}
+    auto to_remove = grid->remove_disconnected_atoms(min);
+
+    // sanity check
+    if (to_remove.size() != get_protein_atoms().size()) {
+        throw except::unexpected("Error in Protein::remove_disconnected_atoms: The number of atoms to remove does not match the number of protein atoms.");
+    }
+
+    // remove the atoms from the protein bodies
+    unsigned int index = 0;
+    for (auto& body : bodies) {
+        unsigned int removed = 0;
+        std::vector<Atom> new_atoms(body.get_protein_atoms().size());
+        std::vector<Atom>& atoms = body.get_protein_atoms();
+        for (unsigned int i = 0; i < atoms.size(); i++) {
+            if (to_remove[index + i]) {
+                removed++;
+            } else {
+                new_atoms[i-removed] = std::move(atoms[i]);
+            }
+        }
+    }
+}

@@ -89,7 +89,7 @@ TEST_CASE("debye_lookup_table", "[table]") {
         }
 
         // prepare the q values for the intensity calculations
-        const Axis& debye_axis = setting::axes::scattering_intensity_plot_axis;
+        Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
         vector<double> q(debye_axis.bins);
         double debye_width = debye_axis.width();
         for (unsigned int i = 0; i < debye_axis.bins; i++) {

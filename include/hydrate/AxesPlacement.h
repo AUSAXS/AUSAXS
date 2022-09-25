@@ -12,14 +12,13 @@ namespace grid {
      * The radius r is defined as the sum of @a ra and @a rh.
      */
     class AxesPlacement : public PlacementStrategy {
-    public:
-        using PlacementStrategy::PlacementStrategy; // inherit constructor
-        ~AxesPlacement() override {}
+        public:
+            using PlacementStrategy::PlacementStrategy; // inherit constructor
+            ~AxesPlacement() override {}
 
-        std::vector<GridMember<Hetatom>> place() const override;
+            std::vector<GridMember<Hetatom>> place() const override;
 
     private:
-
         /**
          * @brief Check if a water molecule can be placed at the given location. 
          * @param loc the location to be checked. 

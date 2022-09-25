@@ -15,7 +15,7 @@ vector<Hetatom> grid::OutlierCulling::cull(vector<grid::GridMember<Hetatom>>& pl
     vector<std::pair<GridMember<Hetatom>, int>> v(placed_water.size());
     const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
-    const vector<vector<vector<char>>>& gref = grid->grid;
+    const GridObj& gref = grid->grid;
     size_t index = 0;
     for (const auto& water : placed_water) {
         const int x = water.loc[0], y = water.loc[1], z = water.loc[2];
@@ -29,8 +29,8 @@ vector<Hetatom> grid::OutlierCulling::cull(vector<grid::GridMember<Hetatom>>& pl
         for (int i = xm; i < xp; i++) {
             for (int j = ym; j < yp; j++) {
                 for (int k = zm; k < zp; k++) {
-                    if (gref[i][j][k] == 'A') {score++;}
-                    else if (gref[i][j][k] == 'H') {score-=5;}
+                    if (gref.index(i, j, k) == GridObj::A_CENTER) {score++;}
+                    else if (gref.index(i, j, k) == GridObj::H_CENTER) {score-=5;}
                 }
             }
         }

@@ -8,11 +8,11 @@ namespace grid {
      * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
      */
     class CounterCulling : public CullingStrategy {
-    public:
-        using CullingStrategy::CullingStrategy;
-        ~CounterCulling() override {}
+        public:
+            using CullingStrategy::CullingStrategy;
+            ~CounterCulling() override {}
 
-        // runs in O(n) where n is the number of water molecules
-        std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override;
+            // runs in O(n) where n is the number of water molecules
+            std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override;
     };       
 }

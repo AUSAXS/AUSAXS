@@ -247,6 +247,12 @@ class Protein {
     void generate_unit_cell();
 
     /**
+     * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
+     *        This is useful for removing "floating" atoms from e.g. EM map data.
+     */
+    void remove_disconnected_atoms(unsigned int min = 10);
+
+    /**
      * @brief Fit a measurement to this protein.
      * 
      * @param measurement Path to the measurement file to be fitted.

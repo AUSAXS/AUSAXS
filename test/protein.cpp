@@ -16,7 +16,7 @@
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
 TEST_CASE("simulate_dataset", "[protein],[files]") {
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     Protein protein("data/lysozyme/2epe.pdb");
@@ -390,18 +390,24 @@ TEST_CASE("compare grid placement", "[protein]") {
     shared_ptr<Grid> gp = protein.get_grid();
     shared_ptr<Grid> gb = body.get_grid();
 
-    vector<vector<vector<char>>>& grid_protein = gp->grid;
-    vector<vector<vector<char>>>& grid_body = gb->grid;
+    GridObj& grid_protein = gp->grid;
+    GridObj& grid_body = gb->grid;
 
     auto[min, max] = gp->bounding_box_index();
     for (int i = min.x()-10; i < max.x()+10; i++) {
         for (int j = min.y()-10; j < max.y()+10; j++) {
             for (int k = min.z()-10; k < max.z()+10; k++) {
-                if (grid_protein[i][j][k] != grid_body[i][j][k]) {
-                    cout << "Test failed. Expected " << grid_body[i][j][k] << ", received " << grid_protein[i][j][k] << endl;
+                if (grid_protein.index(i, j, k) != grid_body.index(i, j, k)) {
+                    cout << "Test failed. Expected " << grid_body.index(i, j, k) << ", received " << grid_protein.index(i, j, k) << endl;
                     REQUIRE(false);
                 }
             }
         }
     }
+}
+
+TEST_CASE("remove_clusters", "[protein],[manual]") {
+    Protein protein("test/files/remove_clusters.pdb");
+    protein.remove_disconnected_atoms();
+    protein.save("temp/protein/remove_clusters_out.pdb");
 }

@@ -139,12 +139,12 @@ std::shared_ptr<Grid> Body::get_grid() {
 }
 
 void Body::generate_volume_file(string path) {
-    vector<vector<vector<char>>>& g = grid->grid;
+    GridObj& g = grid->grid;
     vector<Atom> filled;
-    for (size_t i = 0; i < g.size(); i++) {
-        for (size_t j = 0; j < g[0].size(); j++) {
-            for (size_t k = 0; k < g[0][0].size(); k++) {
-                if (g[i][j][k] != 0) {
+    for (size_t i = 0; i < g.xdim; i++) {
+        for (size_t j = 0; j < g.ydim; j++) {
+            for (size_t k = 0; k < g.zdim; k++) {
+                if (g.index(i, j, k) != GridObj::EMPTY) {
                     Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", "");
                     filled.push_back(a);
                 }

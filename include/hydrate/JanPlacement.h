@@ -12,10 +12,10 @@ namespace grid {
      * The radius r is defined as the sum of @a ra and @a rh.
      */
     class JanPlacement : public PlacementStrategy {
-    public:
-        using PlacementStrategy::PlacementStrategy; // inherit constructor
-        ~JanPlacement() override {}
+        public:
+            using PlacementStrategy::PlacementStrategy; // inherit constructor
+            ~JanPlacement() override {}
 
-        std::vector<GridMember<Hetatom>> place() const override;
-    };
+            std::vector<GridMember<Hetatom>> place() const override;
+        };
 }

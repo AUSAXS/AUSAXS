@@ -9,11 +9,11 @@ namespace grid {
      *        Then start removing the most negative water molecules until the desired count is reached. 
      */
     class OutlierCulling : public CullingStrategy {
-    public:
-        using CullingStrategy::CullingStrategy;
-        ~OutlierCulling() override {}
+        public:
+            using CullingStrategy::CullingStrategy;
+            ~OutlierCulling() override {}
 
-        // runs in O(n ln n) where n is the number of water molecules
-        std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override;
-    };
+            // runs in O(n ln n) where n is the number of water molecules
+            std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override;
+        };
 }

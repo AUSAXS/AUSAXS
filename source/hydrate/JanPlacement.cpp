@@ -5,7 +5,7 @@ using std::vector;
 
 vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance
-    vector<vector<vector<char>>>& gref = grid->grid;
+    GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
     // place a water molecule (note: not added to the grid before the end of this method)
@@ -25,7 +25,7 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
     for (int i = min.x(); i < max.x(); i++) {
         for (int j = min.y(); j < max.y(); j++) {
             for (int k = min.z(); k < max.z(); k++) {
-                if (gref[i][j][k] == 0) {continue;}
+                if (gref.index(i, j, k) == GridObj::EMPTY) {continue;}
 
                 // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
                 int im = std::max(i-r_eff, 0), ip = std::min(i+r_eff, (int) bins.x()-1); // xminus and xplus
@@ -33,16 +33,16 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
                 int km = std::max(k-r_eff, 0), kp = std::min(k+r_eff, (int) bins.z()-1); // zminus and zplus
 
                 // check collisions for x ± r_eff                
-                if (gref[im][j][k] == 0) {add_loc(Vector3<int>(im, j, k));}
-                if (gref[ip][j][k] == 0) {add_loc(Vector3<int>(ip, j, k));}
+                if (gref.index(im, j, k) == GridObj::EMPTY) {add_loc(Vector3<int>(im, j, k));}
+                if (gref.index(ip, j, k) == GridObj::EMPTY) {add_loc(Vector3<int>(ip, j, k));}
 
                 // check collisions for y ± r_eff
-                if (gref[i][jp][k] == 0) {add_loc(Vector3<int>(i, jp, k));}
-                if (gref[i][jm][k] == 0) {add_loc(Vector3<int>(i, jm, k));}
+                if (gref.index(i, jp, k) == GridObj::EMPTY) {add_loc(Vector3<int>(i, jp, k));}
+                if (gref.index(i, jm, k) == GridObj::EMPTY) {add_loc(Vector3<int>(i, jm, k));}
 
                 // check collisions for z ± r_eff
-                if (gref[i][j][km] == 0) {add_loc(Vector3<int>(i, j, km));}
-                if (gref[i][j][kp] == 0) {add_loc(Vector3<int>(i, j, kp));}
+                if (gref.index(i, j, km) == GridObj::EMPTY) {add_loc(Vector3<int>(i, j, km));}
+                if (gref.index(i, j, kp) == GridObj::EMPTY) {add_loc(Vector3<int>(i, j, kp));}
             }
         }
     }

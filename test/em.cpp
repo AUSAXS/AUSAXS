@@ -22,7 +22,7 @@ TEST_CASE("extract_image", "[em],[files],[manual]") {
 }
 
 TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
@@ -49,7 +49,7 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
 }
 
 TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
@@ -68,7 +68,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 }
 
 TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     em::ImageStack image("sim/native_10.ccp4");
 
@@ -90,13 +90,13 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
 
     // prepare measured data
     Protein protein("data/A2M_native/native.pdb");
     SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
-    data.limit_x(Limit(setting::fit::q_low, setting::fit::q_high));
+    data.limit_x(Limit(setting::axes::qmin, setting::axes::qmax));
     data.simulate_errors();
 
     // prepare fit data
@@ -190,7 +190,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
 TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
 
     setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
 
@@ -216,7 +216,7 @@ TEST_CASE("get_histogram", "[em],[files],[manual]") {
 TEST_CASE("voxelplot", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
 
     CHECK(image.image(95).count_voxels(15) == 32);
@@ -244,7 +244,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
 TEST_CASE("voxelcount", "[em],[slow],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
 
     Dataset2D data;
@@ -278,7 +278,7 @@ TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
 }
 
 TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
-    setting::fit::q_high = 0.4;
+    setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
 
@@ -298,25 +298,25 @@ TEST_CASE("staining_and_limits", "[em],[files]") {
     SECTION("maptest.ccp4") {
         em::ImageStack image("data/maptest.ccp4");
         // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
+        CHECK(image.get_limits() == Limit(setting::axes::qmin, setting::axes::qmax));
     }
 
     SECTION("A2M_ma.ccp4") {
         em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
         // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::fit::q_low, setting::fit::q_high));
+        CHECK(image.get_limits() == Limit(setting::axes::qmin, setting::axes::qmax));
     }
 
     SECTION("native10.ccp4") {
         em::ImageStack image("sim/native_10.ccp4", 10);
         // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/10));
+        CHECK(image.get_limits() == Limit(setting::axes::qmin, 2*M_PI/10));
     }
 
     SECTION("native23.ccp4") {
         em::ImageStack image("sim/native_23.ccp4", 23);
         // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::fit::q_low, 2*M_PI/23));
+        CHECK(image.get_limits() == Limit(setting::axes::qmin, 2*M_PI/23));
     }
 }
 

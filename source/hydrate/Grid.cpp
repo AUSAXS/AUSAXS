@@ -17,6 +17,7 @@
 #include <hydrate/CounterCulling.h>
 #include <hydrate/OutlierCulling.h>
 #include <hydrate/RandomCulling.h>
+#include <hydrate/CounterClusterCulling.h>
 #include <utility/Settings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
@@ -127,7 +128,7 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
     }
 
     this->width = width;
-    this->grid = vector(axes.x.bins, vector(axes.y.bins, vector<char>(axes.z.bins, 0)));
+    this->grid = GridObj(axes.x.bins, axes.y.bins, axes.z.bins);
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
 
@@ -271,7 +272,7 @@ void Grid::expand_volume(GridMember<Hetatom>& water) {
 }
 
 void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
-    char marker = is_water ? 'h' : 'a';
+    char marker = is_water ? GridObj::H_AREA : GridObj::A_AREA;
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
@@ -289,15 +290,22 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
-                    if (grid[i][j][k] != 0) {continue;} // skip if the bin is already occupied
+                    if (grid.index(i, j, k) != 0) {continue;} // skip if the bin is already occupied
                     added_volume++;
-                    grid[i][j][k] = marker;
+                    grid.index(i, j, k) = marker;
                 }
             }
         }
     }
 
     if (!is_water) {volume += added_volume;};
+}
+
+std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
+    CounterClusterCulling culler(this);
+    auto to_remove = culler.cull(min);
+    remove(to_remove);
+    return to_remove;
 }
 
 vector<GridMember<Atom>> Grid::add(const Body* const body) {
@@ -318,12 +326,12 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
         throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
-    if (grid[x][y][z] == 0) {volume++;} // can probably be removed
+    if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;} // can probably be removed
 
     GridMember gm(atom, loc);
     if (expand) {expand_volume(gm);}
     a_members.push_back(gm);
-    grid[x][y][z] = 'A';
+    grid.index(x, y, z) = GridObj::A_CENTER;
 
     return gm;
 }
@@ -341,9 +349,26 @@ GridMember<Hetatom> Grid::add(const Hetatom& water, bool expand) {
     GridMember gm(water, loc);
     if (expand) {expand_volume(gm);}
     w_members.push_back(gm);
-    grid[x][y][z] = 'H';
+    grid.index(x, y, z) = GridObj::H_CENTER;
 
     return gm;
+}
+
+void Grid::remove(std::vector<bool>& to_remove) {
+    // since a_members is a list, we have to iterate through it to access the elements
+    unsigned int i = 0; // keep track of current index in the list
+    for (auto it = a_members.begin(); it != a_members.end(); ) {
+        // check if the atom should be removed        
+        if (to_remove[i]) {
+            deflate_volume(*it);
+            it = a_members.erase(it);
+            grid.index(it->loc) = GridObj::EMPTY;
+            volume--;
+        }
+        // increment both iterator & index
+        it++;
+        i++;
+    }
 }
 
 void Grid::remove(const Atom& atom) {
@@ -357,7 +382,7 @@ void Grid::remove(const Atom& atom) {
 
     deflate_volume(member);
     a_members.erase(pos);
-    grid[x][y][z] = 0;
+    grid.index(x, y, z) = GridObj::EMPTY;
     volume--;
 }
 
@@ -372,7 +397,7 @@ void Grid::remove(const Hetatom& water) {
 
     deflate_volume(member);
     w_members.erase(pos);
-    grid[x][y][z] = 0;
+    grid.index(x, y, z) = GridObj::EMPTY;
 }
 
 void Grid::remove(const vector<Atom>& atoms) {
@@ -405,7 +430,7 @@ void Grid::remove(const vector<Atom>& atoms) {
     for (auto& atom : removed_atoms) {
         const int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
         deflate_volume(atom);
-        grid[x][y][z] = 0;
+        grid.index(x, y, z) = GridObj::EMPTY;
         volume--;
     }
 }
@@ -440,7 +465,7 @@ void Grid::remove(const vector<Hetatom>& waters) {
     for (auto& atom : removed_waters) {
         const int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
         deflate_volume(atom);
-        grid[x][y][z] = 0;
+        grid.index(x, y, z) = GridObj::EMPTY;
     }
 }
 
@@ -487,18 +512,18 @@ void Grid::deflate_volume(const Vector3<int>& loc, const bool is_water) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc.x() - i, 2) + std::pow(loc.y() - j, 2) + std::pow(loc.z() - k, 2)) <= r) {
-                    if (grid[i][j][k] == 0) {continue;} // skip if bin is already empty
+                    if (grid.index(i, j, k) == GridObj::EMPTY) {continue;} // skip if bin is empty
                     removed_volume++;
-                    grid[i][j][k] = 0;
+                    grid.index(i, j, k) = GridObj::EMPTY;
                 }
             }
         }
     }
 
     if (is_water) {
-        grid[x][y][z] = 'H'; // replace the center
+        grid.index(x, y, z) = GridObj::H_CENTER; // replace the center
     } else {
-        grid[x][y][z] = 'A';
+        grid.index(x, y, z) = GridObj::A_CENTER;
         volume -= removed_volume; // only the actual atoms contributes to the volume
     }
 }

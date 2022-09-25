@@ -10,6 +10,7 @@
 #include <utility/Settings.h>
 #include <utility/Exceptions.h>
 #include <utility/Axis.h>
+#include <hydrate/GridObj.h>
 
 // forwards declaration
 class Body;
@@ -137,31 +138,37 @@ class Grid {
 		void remove(const Body* const body);
 
 		/**
+		 * @brief Remove atoms as specified by the @a to_remove vector. 
+		 */
+		void remove(std::vector<bool>& to_remove);
+
+		/**
 		 * @brief Remove a single atom from the grid.
-		 *        This is linear in the number of stored elements. 
+		 *        Complexity: O(n). 
 		 */
 		void remove(const Atom& atom);
 
 		/**
 		 * @brief Remove a single water molecule from the grid.
-		 *        This is linear in the number of stored elements. 
+		 *        Complexity: O(n). 
 		 */
 		void remove(const Hetatom& atom);
 
 		/**
 		 * @brief Remove multiple water molecule from the grid.
-		 *        This is linear in the number of stored elements. 
+		 *        Complexity: O(n). 
 		 */
 		void remove(const std::vector<Hetatom>& atom);
 
 		/**
 		 * @brief Remove multiple protein atoms from the grid.
-		 *        This is linear in the number of stored elements. 
+		 *        Complexity: O(n). 
 		 */
 		void remove(const std::vector<Atom>& atom);
 
 		/**
 		 * @brief Remove all waters from the grid.
+		 *        Complexity: O(n). 
 		 */
 		void clear_waters();
 
@@ -194,6 +201,14 @@ class Grid {
 		 * @brief Deflate a single member atom into an actual sphere.
 		 */
 		void deflate_volume(grid::GridMember<Hetatom>& atom);
+
+		/**
+		 * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
+		 *        This is useful for removing "floating" atoms from e.g. EM map data.
+		 * 
+		 * @return A vector of booleans indicating whether each atom was removed.
+		 */
+	    std::vector<bool> remove_disconnected_atoms(unsigned int min);
 
 		/**
 		 * @brief Generate a new hydration layer for the grid.
@@ -297,7 +312,7 @@ class Grid {
 		 */
 		bool operator==(const Grid& rhs) const;
 
-		std::vector<std::vector<std::vector<char>>> grid; // The actual grid. Datatype is char since we need at least four different values.
+		GridObj grid; // The actual grid.
 		std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
 		std::list<grid::GridMember<Hetatom>> w_members; // A list of all member water molecules and where they are located. 
 		unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3

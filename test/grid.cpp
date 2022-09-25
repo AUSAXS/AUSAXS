@@ -21,14 +21,14 @@ TEST_CASE("grid_generation", "[grid]") {
 
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
-    vector<vector<vector<char>>> &g = grid.grid;
+    GridObj& g = grid.grid;
 
     // check that it was placed correctly in the grid
-    REQUIRE(g[10][10][10] == 'A');
-    REQUIRE(g[10][10][11] == 0);
-    REQUIRE(g[10][11][11] == 0);
-    REQUIRE(g[11][10][10] == 0);
-    REQUIRE(g[9][8][14] == 0);
+    REQUIRE(g.index(10, 10, 10) == GridObj::A_CENTER);
+    REQUIRE(g.index(10, 10, 11) == GridObj::EMPTY);
+    REQUIRE(g.index(10, 11, 11) == GridObj::EMPTY);
+    REQUIRE(g.index(11, 10, 10) == GridObj::EMPTY);
+    REQUIRE(g.index(9, 8, 14) == GridObj::EMPTY);
 }
 
 TEST_CASE("bounding_box", "[grid]") {
@@ -72,71 +72,71 @@ TEST_CASE("volume_expansion", "[grid]") {
 
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     grid.add(a);
-    vector<vector<vector<char>>> &g = grid.grid;
+    GridObj &g = grid.grid;
     grid.expand_volume();
 
-    REQUIRE(g[10][10][10] == 'A'); // check that the center is still marked as capital 'A'
+    REQUIRE(g.index(10, 10, 10) == GridObj::A_CENTER); // check that the center is still marked as capital 'A'
 
     // check that the x=13 plane looks like this: 
     // x x x
     // x o x
     // x x x
-    CHECK(g[14][10][10] == 0); // check that it does not extend to the x=14 plane
-    CHECK(g[13][10][10] == 'a');
+    CHECK(g.index(14, 10, 10) == GridObj::EMPTY); // check that it does not extend to the x=14 plane
+    CHECK(g.index(13, 10, 10) == GridObj::A_AREA);
 
-    CHECK(g[13][9][9] == 0);
-    CHECK(g[13][9][10] == 0);
-    CHECK(g[13][9][11] == 0);
+    CHECK(g.index(13, 9, 9) == GridObj::EMPTY);
+    CHECK(g.index(13, 9, 10) == GridObj::EMPTY);
+    CHECK(g.index(13, 9, 11) == GridObj::EMPTY);
 
-    CHECK(g[13][10][9] == 0);
-    CHECK(g[13][11][11] == 0);
+    CHECK(g.index(13, 10, 9) == GridObj::EMPTY);
+    CHECK(g.index(13, 11, 11) == GridObj::EMPTY);
 
-    CHECK(g[13][11][9] == 0);
-    CHECK(g[13][11][10] == 0);
-    CHECK(g[13][11][11] == 0);
+    CHECK(g.index(13, 11, 9) == GridObj::EMPTY);
+    CHECK(g.index(13, 11, 10) == GridObj::EMPTY);
+    CHECK(g.index(13, 11, 11) == GridObj::EMPTY);
 
     // repeat with the x=7 plane
-    CHECK(g[6][10][10] == 0); // check that it does not extend to the x=6 plane
-    CHECK(g[7][10][10] == 'a');
+    CHECK(g.index(6, 10, 10) == GridObj::EMPTY); // check that it does not extend to the x=6 plane
+    CHECK(g.index(7, 10, 10) == GridObj::A_AREA);
 
-    CHECK(g[7][9][9] == 0);
-    CHECK(g[7][9][10] == 0);
-    CHECK(g[7][9][11] == 0);
+    CHECK(g.index(7, 9, 9) == GridObj::EMPTY);
+    CHECK(g.index(7, 9, 10) == GridObj::EMPTY);
+    CHECK(g.index(7, 9, 11) == GridObj::EMPTY);
 
-    CHECK(g[7][10][9] == 0);
-    CHECK(g[7][11][11] == 0);
+    CHECK(g.index(7, 10, 9) == GridObj::EMPTY);
+    CHECK(g.index(7, 11, 11) == GridObj::EMPTY);
 
-    CHECK(g[7][11][9] == 0);
-    CHECK(g[7][11][10] == 0);
-    CHECK(g[7][11][11] == 0);
+    CHECK(g.index(7, 11, 9) == GridObj::EMPTY);
+    CHECK(g.index(7, 11, 10) == GridObj::EMPTY);
+    CHECK(g.index(7, 11, 11) == GridObj::EMPTY);
 
     // check some other points as well
     // x=10, z=10 line, from z=6 it looks like x o o o o o o o x
-    CHECK(g[10][6][10] == 0);
-    CHECK(g[10][7][10] == 'a');
-    CHECK(g[10][8][10] == 'a');
-    CHECK(g[10][9][10] == 'a');
-    CHECK(g[10][10][10] == 'A');
-    CHECK(g[10][11][10] == 'a');
-    CHECK(g[10][12][10] == 'a');
-    CHECK(g[10][13][10] == 'a');
-    CHECK(g[10][14][10] == 0);
+    CHECK(g.index(10, 6, 10) == GridObj::EMPTY);
+    CHECK(g.index(10, 7, 10) == GridObj::A_AREA);
+    CHECK(g.index(10, 8, 10) == GridObj::A_AREA);
+    CHECK(g.index(10, 9, 10) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 10) == GridObj::A_CENTER);
+    CHECK(g.index(10, 11, 10) == GridObj::A_AREA);
+    CHECK(g.index(10, 12, 10) == GridObj::A_AREA);
+    CHECK(g.index(10, 13, 10) == GridObj::A_AREA);
+    CHECK(g.index(10, 14, 10) == GridObj::EMPTY);
 
     // x=10, y=10 line, from y=6 it looks like x o o o o o o o x
-    CHECK(g[10][10][6] == 0);
-    CHECK(g[10][10][7] == 'a');
-    CHECK(g[10][10][8] == 'a');
-    CHECK(g[10][10][9] == 'a');
-    CHECK(g[10][10][10] == 'A');
-    CHECK(g[10][10][11] == 'a');
-    CHECK(g[10][10][12] == 'a');
-    CHECK(g[10][10][13] == 'a');
-    CHECK(g[10][10][14] == 0);
+    CHECK(g.index(10, 10, 6) == GridObj::EMPTY);
+    CHECK(g.index(10, 10, 7) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 8) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 9) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 10) == GridObj::A_CENTER);
+    CHECK(g.index(10, 10, 11) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 12) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 13) == GridObj::A_AREA);
+    CHECK(g.index(10, 10, 14) == GridObj::EMPTY);
 
     // some random points
-    CHECK(g[9][9][9] == 'a');
-    CHECK(g[8][8][8] == 0);
-    CHECK(g[13][13][13] == 0);
+    CHECK(g.index(9, 9, 9) == GridObj::A_AREA);
+    CHECK(g.index(8, 8, 8) == GridObj::EMPTY);
+    CHECK(g.index(13, 13, 13) == GridObj::EMPTY);
 }
 
 TEST_CASE("volume", "[grid]") {
@@ -201,16 +201,16 @@ TEST_CASE("hydrate", "[grid],[files]") {
         auto g2 = protein.get_grid()->grid;
 
         // check sizes
-        REQUIRE((g1.size() == g2.size() && !g1.empty()));
-        REQUIRE((g1[0].size() == g2[0].size() && !g1[0].empty()));
-        REQUIRE(g1[0][0].size() == g2[0][0].size());
+        REQUIRE(g1.xdim == g2.xdim);
+        REQUIRE(g1.ydim == g2.ydim);
+        REQUIRE(g1.zdim == g2.zdim);
 
         // check that the grids are the same
-        for (unsigned int i = 0; i < g1.size(); i++) {
-            for (unsigned int j = 0; j < g1[i].size(); j++) {
-                for (unsigned int k = 0; k < g1[i][j].size(); k++) {
-                    if (g1[i][j][k] != g2[i][j][k]) {
-                        REQUIRE(g1[i][j][k] != g2[i][j][k]);
+        for (unsigned int i = 0; i < g1.xdim; i++) {
+            for (unsigned int j = 0; j < g1.ydim; j++) {
+                for (unsigned int k = 0; k < g1.zdim; k++) {
+                    if (g1.index(i, j, k) != g2.index(i, j, k)) {
+                        REQUIRE(g1.index(i, j, k) != g2.index(i, j, k));
                     }
                 }
             }
@@ -244,10 +244,10 @@ TEST_CASE("width", "[grid]") {
 
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);
-        vector<vector<vector<char>>>& g = grid.grid;
+        GridObj& g = grid.grid;
 
         // check that it was placed correctly
-        REQUIRE(g[100][100][100] == 'A');
+        REQUIRE(g.index(100, 100, 100) == GridObj::A_CENTER);
         REQUIRE(grid.a_members.back().loc == Vector3(100, 100, 100));
         REQUIRE(grid.a_members.back().atom.coords == Vector3(0, 0, 0));
 
@@ -372,13 +372,13 @@ TEST_CASE("add_remove", "[grid]") {
         REQUIRE(wa[0] == w2);
 
         // check old centers
-        vector<vector<vector<char>>> &g = grid.grid;
+        GridObj &g = grid.grid;
         auto loc_a2 = grid.to_bins(a2.coords);
         auto loc_w1 = grid.to_bins(w1.coords);
         auto loc_w3 = grid.to_bins(w3.coords);
-        REQUIRE(g[loc_a2[0]][loc_a2[1]][loc_a2[2]] == 0);
-        REQUIRE(g[loc_w1[0]][loc_w1[1]][loc_w1[2]] == 0);
-        REQUIRE(g[loc_w3[0]][loc_w3[1]][loc_w3[2]] == 0);
+        REQUIRE(g.index(loc_a2) == GridObj::EMPTY);
+        REQUIRE(g.index(loc_w1) == GridObj::EMPTY);
+        REQUIRE(g.index(loc_w3) == GridObj::EMPTY);
     }
 
     SECTION("remove_vector") {
@@ -495,7 +495,7 @@ TEST_CASE("volume_deflation", "[grid]") {
 
     grid.expand_volume();
     grid.deflate_volume();
-    vector<vector<vector<char>>> &g = grid.grid;
+    GridObj &g = grid.grid;
     REQUIRE(grid.volume == 2);
 
     auto bins = grid.get_bins();
@@ -504,7 +504,7 @@ TEST_CASE("volume_deflation", "[grid]") {
             for (int k = 0; k < bins.z(); k++) {
                 if (__builtin_expect(i == 10 && j == 13 && k == 10, false)) {continue;} // center of the first atom
                 if (__builtin_expect(i == 13 && j == 10 && k == 10, false)) {continue;} // center of the second atom
-                if (g[i][j][k] != 0) {
+                if (g.index(i, j, k) != GridObj::EMPTY) {
                     REQUIRE(false);
                 }
             }
@@ -540,10 +540,10 @@ TEST_CASE("space_saving_constructor", "[grid]") {
     REQUIRE(axes.z.bins < 20);
 
     // check that this is reflected in the grid itself
-    vector<vector<vector<char>>>& g = grid.grid;
-    REQUIRE(g.size() < 20);
-    REQUIRE(g[0].size() < 20);
-    REQUIRE(g[0][0].size() < 20);
+    GridObj& g = grid.grid;
+    REQUIRE(g.xdim < 20);
+    REQUIRE(g.ydim < 20);
+    REQUIRE(g.zdim < 20);
 }
 
 TEST_CASE("copy", "[grid]") {
