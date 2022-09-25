@@ -302,6 +302,7 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
 }
 
 std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
+    expand_volume();
     CounterClusterCulling culler(this);
     auto to_remove = culler.cull(min);
     remove(to_remove);

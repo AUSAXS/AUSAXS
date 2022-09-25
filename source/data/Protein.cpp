@@ -344,7 +344,8 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
 
     // sanity check
     if (to_remove.size() != get_protein_atoms().size()) {
-        throw except::unexpected("Error in Protein::remove_disconnected_atoms: The number of atoms to remove does not match the number of protein atoms.");
+        throw except::unexpected("Error in Protein::remove_disconnected_atoms: "
+        "The number of atoms to remove (" + std::to_string(to_remove.size()) + ") does not match the number of protein atoms (" + std::to_string(get_protein_atoms().size()) + ").");
     }
 
     // remove the atoms from the protein bodies
@@ -360,5 +361,7 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
                 new_atoms[i-removed] = std::move(atoms[i]);
             }
         }
+        new_atoms.resize(atoms.size() - removed);
+        body.get_protein_atoms() = std::move(new_atoms);
     }
 }

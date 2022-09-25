@@ -145,8 +145,9 @@ std::function<double(const double*)> ImageStack::prepare_function(IntensityFitte
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         auto p = phm->get_protein(params[0]);
         p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
+        p->clear_grid(); // clear grid from previous iteration
+        p->remove_disconnected_atoms();
         p->generate_new_hydration();
-        p->clear_grid();
         auto h = p->get_histogram();
         fitter.set_scattering_hist(h);
         p->save("temp2/nh/" + std::to_string(counter) + "_a.pdb");

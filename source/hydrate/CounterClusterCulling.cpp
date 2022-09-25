@@ -8,10 +8,7 @@ grid::CounterClusterCulling::CounterClusterCulling(Grid* grid) : ClusterCullingS
 }
 
 void grid::CounterClusterCulling::prepare_rotations() {
-    unsigned int divisions = 6;
-
-    int rh = grid->rh, ra = grid->ra;
-    double width = grid->get_width();
+    unsigned int divisions = 8;
 
     std::vector<Vector3<int>> bins_2ra;
     std::vector<Vector3<int>> bins_3ra;
@@ -55,7 +52,7 @@ void grid::CounterClusterCulling::prepare_rotations() {
         }
     }
 
-    double rarh = ra+rh;
+    int ra = grid->ra;
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
         bins_2ra.push_back(Vector3<int>(std::trunc(2*ra*xr), std::trunc(2*ra*yr), std::trunc(2*ra*zr)));
@@ -156,17 +153,43 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
         return pos.x()*1e8 + pos.y()*1e4 + pos.z();
     };
 
-    // Iterate through all atoms, and use radial lines to detect other nearby atoms. Group them into clusters.
     std::unordered_map<unsigned int, unsigned int> groups; // maps location id to group id
-    std::vector<unsigned int> group_sizes; // number of members in each group
+    std::vector<std::vector<unsigned int>> group_members; // list of members in each group
+
+    // reassign all members of group old_id to group new_id
+    auto merge_groups = [&groups, &group_members] (unsigned int old_id, unsigned int new_id) {
+        for (unsigned int member : group_members[old_id]) {
+            groups[member] = new_id;
+            group_members[new_id].push_back(member);
+        }
+        group_members[old_id].clear();
+    };
+
+    // add a member to a group
+    auto add_to_group = [&groups, &group_members] (unsigned int id, unsigned int group_id) {
+        groups[id] = group_id;
+        group_members[group_id].push_back(id);
+    };
+
+    // create a new group with a single member
+    auto add_to_new_group = [&groups, &group_members] (unsigned int id) {
+        unsigned int group_id = group_members.size();
+        groups[id] = group_id;
+        group_members.push_back(std::vector<unsigned int>());
+        group_members[group_id].push_back(id);
+    };
+
+    // Iterate through all atoms, and use radial lines to detect other nearby atoms. Group them into clusters.
     for (grid::GridMember<Atom>& atom : grid->a_members) {
         // check if atom is already in a group
         unsigned int id1 = to_id(atom.loc);
-        if (groups.count(id1) != 0) {
-            continue;
+
+        // each atom starts in a group of its own, unless already added by someone else
+        if (groups.count(id1) == 0) {
+            add_to_new_group(id1);
         }
 
-        // check spherical shell within 2ra
+        // check spherical shell within 2ra for collisions
         for (const auto& bin : rot_bins_2ra) {
             Vector3<int> pos = atom.loc + bin;
             if (grid->grid.index(pos) == GridObj::EMPTY) {
@@ -175,40 +198,52 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
             Vector3<int> center = find_center(pos);
             unsigned int id2 = to_id(center);
 
-            // check if the other atom is already in a group
+            // if the other atom is not in a group, add it to this one
             if (groups.count(id2) == 0) {
-                // if not, create a new one for them
-                unsigned int group_no = group_sizes.size();
-                groups[id1] = group_no;
-                groups[id2] = group_no;
-                group_sizes.push_back(2);
+                add_to_group(id2, groups[id1]);
             } 
             
-            else {
-                // otherwise add this atom to the same group
-                groups[id1] = groups.at(id2);
-                group_sizes[groups.at(id2)]++;
+            // otherwise merge their group into ours
+            else if (groups[id2] != groups[id1]) {
+                merge_groups(groups[id2], groups[id1]);
             }
         }
     }
 
     // determine which groups to remove
-    std::vector<bool> groups_to_remove(group_sizes.size(), false);
-    for (unsigned int i = 0; i < group_sizes.size(); i++) {
-        if (group_sizes[i] < min_group_size) {
+    unsigned int sum = 0;
+    unsigned int remove_count = 0;
+    std::vector<bool> groups_to_remove(group_members.size(), false);
+    for (unsigned int i = 0; i < group_members.size(); i++) {
+        if (group_members[i].empty()) {continue;}
+        if (group_members[i].size() < min_group_size) {
             groups_to_remove[i] = true;
+            remove_count += group_members[i].size();
         }
+        sum += group_members[i].size();
+    }
+
+    // sanity check
+    if (sum != grid->a_members.size()) {
+        throw except::unexpected("Error in CounterClusterCulling::cull: Group sizes (" + std::to_string(sum) + ") do not add up to total number of atoms (" + std::to_string(grid->a_members.size()) + ").");
     }
 
     // mark atoms for removal
+    std::cout << remove_count << " atoms will be removed. " << std::endl;
     std::vector<bool> atoms_to_remove(grid->a_members.size(), false);
     unsigned int i = 0;
     for (auto& atom : grid->a_members) {
         unsigned int id = to_id(atom.loc);
         if (groups_to_remove[groups.at(id)]) {
             atoms_to_remove[i] = true;
+            remove_count--;
         }
         i++;
+    }
+
+    // sanity check
+    if (remove_count != 0) {
+        throw except::unexpected("Error in CounterClusterCulling::cull: Could not find all " + std::to_string(remove_count) + " atoms to be removed.");
     }
 
     return atoms_to_remove;

@@ -23,13 +23,13 @@ class GridObj {
 
         GridObj() {}
 
-        GridObj(unsigned int x, unsigned int y, unsigned int z) : xdim(x), ydim(y), zdim(z), grid(x, std::vector<std::vector<T>>(y, std::vector<T>(z, EMPTY))) {}
+        GridObj(unsigned int x, unsigned int y, unsigned int z);
 
-        T& index(unsigned int x, unsigned int y, unsigned int z) {return grid[x][y][z];}
-        const T& index(unsigned int x, unsigned int y, unsigned int z) const {return grid[x][y][z];}
+        T& index(unsigned int x, unsigned int y, unsigned int z);
+        const T& index(unsigned int x, unsigned int y, unsigned int z) const;
 
-        T& index(const Vector3<int>& v) {return index(v.x(), v.y(), v.z());}
-        const T& index(const Vector3<int>& v) const {return index(v.x(), v.y(), v.z());}
+        T& index(const Vector3<int>& v);
+        const T& index(const Vector3<int>& v) const;
 
         unsigned int xdim, ydim, zdim;
     private:

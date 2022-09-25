@@ -413,7 +413,7 @@ TEST_CASE("compare_grid_placement", "[protein]") {
 }
 
 TEST_CASE("remove_clusters", "[protein],[manual]") {
-    Protein protein("test/files/remove_clusters.pdb");
+    Protein protein("test/files/17_b.pdb");
     protein.remove_disconnected_atoms();
     protein.save("temp/protein/remove_clusters_out.pdb");
 }
