@@ -10,7 +10,7 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
-TEST_CASE("Slices", "[math]") {
+TEST_CASE("Slices", "[slices]") {
     SECTION("access") {
         Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
         
@@ -131,7 +131,6 @@ TEST_CASE("Slices", "[math]") {
 
             for (auto i : r) {
                 CHECK((i == 1 || i == 2 || i == 7));
-                std::cout << i << std::endl;
             }
 
             // column iterator

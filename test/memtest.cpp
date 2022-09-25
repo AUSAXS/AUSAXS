@@ -45,7 +45,7 @@ TEST_CASE("body_assign", "[memtest]") {
 
 #include <plots/PlotDataset.h>
 TEST_CASE("memtest_rebin", "[memtest],[files]") {
-    SimpleDataset data("data/SHOC2/7sd0.dat");
+    SimpleDataset data("data/SHOC2/SHOC2.dat");
     SimpleDataset data_unbinned = data;
     // data.rebin();
     // data.save("temp/dataset/rebin.dat");

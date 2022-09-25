@@ -14,7 +14,7 @@
 using std::vector;
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
-    em::ImageStack image("data/A2M_maA2M_ma.ccp4"); 
+    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4"); 
 
     plots::PlotImage plot(image.image(5));
     // plot.plot_atoms(0.1);
@@ -277,7 +277,7 @@ TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
     plot.save("figures/test/em/plot_pdb_as_points.pdf");
 }
 
-TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
+TEST_CASE("check_simulated_errors", "[em],[files],[manual],[broken]") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
@@ -294,7 +294,7 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual]") {
     plot.save("temp/em/check_errors.pdf");
 }
 
-TEST_CASE("staining_and_limits", "[em],[files]") {
+TEST_CASE("staining_and_limits", "[em],[files],[broken]") {
     SECTION("maptest.ccp4") {
         em::ImageStack image("data/maptest.ccp4");
         // CHECK(image.positively_stained());

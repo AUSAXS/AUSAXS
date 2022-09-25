@@ -128,12 +128,18 @@ bool SimpleDataset::is_logarithmic() const noexcept {
 }
 
 Limit SimpleDataset::span_x() const noexcept {
+    if (size() == 0) {
+        return Limit(0, 0);
+    }
     auto x = this->x();
     auto[min, max] = std::minmax_element(x.begin(), x.end());
     return Limit(*min, *max);
 }
 
 Limit SimpleDataset::span_y() const noexcept {
+    if (size() == 0) {
+        return Limit(0, 0);
+    }
     auto y = this->y();
     auto[min, max] = std::minmax_element(y.begin(), y.end());
     return Limit(*min, *max);

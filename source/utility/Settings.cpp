@@ -156,6 +156,9 @@ void setting::detail::SmartOption<std::vector<std::string>>::set(std::vector<std
 template<>
 void setting::detail::SmartOption<std::vector<double>>::set(std::vector<std::string> str) const {
     std::vector<double> new_val;
-    std::for_each(str.begin(), str.end(), [&new_val] (std::string val) {new_val.push_back(std::stod(val));});
+    for (auto& s : str) {
+        if (s.empty() || s == " ") {continue;}
+        new_val.push_back(std::stod(s));
+    }
     setting = new_val;
 }

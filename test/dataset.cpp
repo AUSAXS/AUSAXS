@@ -80,7 +80,7 @@ TEST_CASE("dataset_pushback", "[dataset],[broken]") {
 }
 
 TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
-    SimpleDataset data("data/SHOC2/7sd0.dat");
+    SimpleDataset data("data/SHOC2/SHOC2.dat");
     SimpleDataset data_unbinned = data;
     data.rebin();
     data.save("temp/dataset/rebin/rebinned.dat");
@@ -169,7 +169,7 @@ TEST_CASE("dataset_io", "[dataset],[files]") {
         setting::em::sample_frequency = 5;
 
         // generate a measurement from a map
-        em::ImageStack map("data/A2M/emd_12747.map"); 
+        em::ImageStack map("data/A2M_native/emd_12747.ccp4"); 
         auto protein = map.get_protein(map.level(3));
         auto m = protein->get_histogram().calc_debye_scattering_intensity();
         m.reduce(100);

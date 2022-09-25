@@ -196,7 +196,7 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
 
     SECTION("comparison with standard approach") {
         setting::em::sample_frequency = 2;
-        em::ImageStack images("data/A2M/emd_12752.map");
+        em::ImageStack images("data/A2M_tryp/emd_12752.map");
         auto manager = *images.get_histogram_manager();
 
         REQUIRE(compare(manager, 0.04));

@@ -1,9 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "data/Atom.h"
-#include "data/Hetatom.h"
+#include <data/Atom.h>
+#include <data/Hetatom.h>
+#include <utility/Settings.h>
 
 TEST_CASE("Atom", "[atom]") {
+    setting::protein::use_effective_charge = false;
     // "element", "resName", and "name" are used for some internal logic, and must have reasonable values. "" can also be used. 
 //*** ATOMS ***//
     Atom a1 = Atom(15, "", "altLoc", "", "chainID", 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, "He", "2-");
