@@ -203,12 +203,12 @@ class Grid {
 		void deflate_volume(grid::GridMember<Hetatom>& atom);
 
 		/**
-		 * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
+		 * @brief Count the number of atoms in each cluster, and get those with less than \a min atoms.
 		 *        This is useful for removing "floating" atoms from e.g. EM map data.
 		 * 
-		 * @return A vector of booleans indicating whether each atom was removed.
+		 * @return A vector of booleans indicating whether the atom at the corresponding index is part of a cluster with less than \a min atoms.
 		 */
-	    std::vector<bool> remove_disconnected_atoms(unsigned int min);
+	    std::vector<bool> get_disconnected_atoms(unsigned int min);
 
 		/**
 		 * @brief Generate a new hydration layer for the grid.

@@ -301,11 +301,10 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
     if (!is_water) {volume += added_volume;};
 }
 
-std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
+std::vector<bool> Grid::get_disconnected_atoms(unsigned int min) {
     expand_volume();
     CounterClusterCulling culler(this);
     auto to_remove = culler.cull(min);
-    remove(to_remove);
     return to_remove;
 }
 
@@ -356,20 +355,22 @@ GridMember<Hetatom> Grid::add(const Hetatom& water, bool expand) {
 }
 
 void Grid::remove(std::vector<bool>& to_remove) {
+    std::list<GridMember<Atom>> new_list;
+
     // since a_members is a list, we have to iterate through it to access the elements
-    unsigned int i = 0; // keep track of current index in the list
-    for (auto it = a_members.begin(); it != a_members.end(); ) {
+    unsigned int i = to_remove.size()-1; // keep track of current index in the list
+    for (auto it = a_members.end(); it != a_members.begin(); it--) {
         // check if the atom should be removed        
         if (to_remove[i]) {
             deflate_volume(*it);
-            it = a_members.erase(it);
+            new_list.emplace_back(*it);
             grid.index(it->loc) = GridObj::EMPTY;
             volume--;
         }
-        // increment both iterator & index
-        it++;
-        i++;
+        // decrement index
+        i--;
     }
+    a_members = std::move(new_list);
 }
 
 void Grid::remove(const Atom& atom) {

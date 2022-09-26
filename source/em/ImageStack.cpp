@@ -147,6 +147,7 @@ std::function<double(const double*)> ImageStack::prepare_function(IntensityFitte
         p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
         p->clear_grid(); // clear grid from previous iteration
         p->remove_disconnected_atoms();
+        p->clear_grid(); // clean up grid again (should be implemented into remove_disconnected_atoms)
         p->generate_new_hydration();
         auto h = p->get_histogram();
         fitter.set_scattering_hist(h);

@@ -340,7 +340,7 @@ void Protein::generate_unit_cell() {
 
 void Protein::remove_disconnected_atoms(unsigned int min) {
     if (grid == nullptr) {create_grid();}
-    auto to_remove = grid->remove_disconnected_atoms(min);
+    auto to_remove = grid->get_disconnected_atoms(min);
 
     // sanity check
     if (to_remove.size() != get_protein_atoms().size()) {

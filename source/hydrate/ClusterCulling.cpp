@@ -1,13 +1,13 @@
-#include <hydrate/CounterClusterCulling.h>
+#include <hydrate/ClusterCulling.h>
 #include <hydrate/Grid.h>
 
 using std::vector;
 
-grid::CounterClusterCulling::CounterClusterCulling(Grid* grid) : ClusterCullingStrategy(grid) {
+grid::ClusterCulling::ClusterCulling(Grid* grid) : grid(grid) {
     prepare_rotations();
 }
 
-void grid::CounterClusterCulling::prepare_rotations() {
+void grid::ClusterCulling::prepare_rotations() {
     unsigned int divisions = 8;
 
     std::vector<Vector3<int>> bins_2ra;
@@ -64,26 +64,30 @@ void grid::CounterClusterCulling::prepare_rotations() {
     rot_bins_3ra = std::move(bins_3ra);
 }
 
-vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) const {
+vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) const {
     // find the center of an expanded atom
     unsigned int ra = grid->ra;
     auto find_center = [this, ra] (const Vector3<int> pos) {
         // we split the search for each axis into two parts so we can break out of the loop early if we leave the atom
         // so instead of (pos_x - ra) to (pos_x + ra), we do (pos_x) to (pos_x - ra) and (pos_x) to (pos_x + ra) (repeat for y & z)
 
+        unsigned int binx = grid->grid.xdim;
+        unsigned int biny = grid->grid.ydim;
+        unsigned int binz = grid->grid.zdim;
+
         // [xmin, x]
-        for (unsigned int x = pos.x(); x >= pos.x()-ra; x--) {
+        for (unsigned int x = pos.x(); x >= std::max(pos.x()-ra, 0U); x--) {
             // [ymin, y]
-            for (unsigned int y = pos.y(); y >= pos.y()-ra; y--) {
+            for (unsigned int y = pos.y(); y >= std::max(pos.y()-ra, 0U); y--) {
                 // [zmin, z]
-                for (unsigned int z = pos.z(); z >= pos.z()-ra; z--) {
+                for (unsigned int z = pos.z(); z >= std::max(pos.z()-ra, 0U); z--) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
                 }
 
                 // [z, zmax]
-                for (unsigned int z = pos.z(); z <= pos.z()+ra; z++) {
+                for (unsigned int z = pos.z(); z <= std::min(pos.z()+ra, binz); z++) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
@@ -91,16 +95,16 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
             }
 
             // [y, ymax]
-            for (unsigned int y = pos.y(); y <= pos.y()+ra; y++) {
+            for (unsigned int y = pos.y(); y <= std::min(pos.y()+ra, biny); y++) {
                 // [zmin, z]
-                for (unsigned int z = pos.z(); z >= pos.z()-ra; z--) {
+                for (unsigned int z = pos.z(); z >= std::max(pos.z()-ra, 0U); z--) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
                 }
 
                 // [z, zmax]
-                for (unsigned int z = pos.z(); z <= pos.z()+ra; z++) {
+                for (unsigned int z = pos.z(); z <= std::min(pos.z()+ra, binz); z++) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
@@ -109,18 +113,18 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
         }
 
         // [x, xmax]
-        for (unsigned int x = pos.x(); x <= pos.x()+ra; x++) {
+        for (unsigned int x = pos.x(); x <= std::min(pos.x()+ra, binx); x++) {
             // [ymin, y]
-            for (unsigned int y = pos.y(); y >= pos.y()-ra; y--) {
+            for (unsigned int y = pos.y(); y >= std::max(pos.y()-ra, 0U); y--) {
                 // [zmin, z]
-                for (unsigned int z = pos.z(); z >= pos.z()-ra; z--) {
+                for (unsigned int z = pos.z(); z >= std::max(pos.z()-ra, 0U); z--) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
                 }
 
                 // [z, zmax]
-                for (unsigned int z = pos.z(); z <= pos.z()+ra; z++) {
+                for (unsigned int z = pos.z(); z <= std::min(pos.z()+ra, binz); z++) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
@@ -128,16 +132,16 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
             }
 
             // [y, ymax]
-            for (unsigned int y = pos.y(); y <= pos.y()+ra; y++) {
+            for (unsigned int y = pos.y(); y <= std::min(pos.y()+ra, biny); y++) {
                 // [zmin, z]
-                for (unsigned int z = pos.z(); z >= pos.z()-ra; z--) {
+                for (unsigned int z = pos.z(); z >= std::max(pos.z()-ra, 0U); z--) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
                 }
 
                 // [z, zmax]
-                for (unsigned int z = pos.z(); z <= pos.z()+ra; z++) {
+                for (unsigned int z = pos.z(); z <= std::min(pos.z()+ra, binz); z++) {
                     auto cell = grid->grid.index(x, y, z);
                     if (cell == GridObj::EMPTY) {break;}
                     else if (cell == GridObj::A_CENTER) {return Vector3<int>(x, y, z);}
@@ -177,16 +181,21 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
         groups[id] = group_id;
         group_members.push_back(std::vector<unsigned int>());
         group_members[group_id].push_back(id);
+        return group_id;
     };
 
     // Iterate through all atoms, and use radial lines to detect other nearby atoms. Group them into clusters.
+    unsigned int index = 0; // index of current atom
     for (grid::GridMember<Atom>& atom : grid->a_members) {
         // check if atom is already in a group
         unsigned int id1 = to_id(atom.loc);
 
         // each atom starts in a group of its own, unless already added by someone else
+        unsigned int g1 = 0;
         if (groups.count(id1) == 0) {
-            add_to_new_group(id1);
+            g1 = add_to_new_group(id1);
+        } else {
+            g1 = groups[id1];
         }
 
         // check spherical shell within 2ra for collisions
@@ -200,14 +209,16 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
 
             // if the other atom is not in a group, add it to this one
             if (groups.count(id2) == 0) {
-                add_to_group(id2, groups[id1]);
+                add_to_group(id2, g1);
             } 
             
             // otherwise merge their group into ours
-            else if (groups[id2] != groups[id1]) {
-                merge_groups(groups[id2], groups[id1]);
+            else if (groups[id2] != g1) {
+                merge_groups(groups[id2], g1);
             }
         }
+
+        index++;
     }
 
     // determine which groups to remove
@@ -230,24 +241,46 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
 
     // mark atoms for removal
     std::cout << remove_count << " atoms will be removed. " << std::endl;
-    std::vector<bool> atoms_to_remove(grid->a_members.size(), false);
+    std::vector<bool> atoms_to_remove(grid->a_members.size(), false); // atom indices to remove
     unsigned int i = 0;
     for (auto& atom : grid->a_members) {
         unsigned int id = to_id(atom.loc);
+
+        // remove if in too small a group
         if (groups_to_remove[groups.at(id)]) {
             atoms_to_remove[i] = true;
             remove_count--;
         }
-        i++;
-
-        // if (atom.loc.x() > 1000 || atom.loc.y() > 1000 || atom.loc.z() > 1000) {
-        //     std::cout << "Suspicious atom at " << atom.loc.to_string() << std::endl;
-        // }
     }
 
     // sanity check
     if (remove_count != 0) {
         throw except::unexpected("Error in CounterClusterCulling::cull: Could not find all " + std::to_string(remove_count) + " atoms to be removed.");
+    }
+
+    return atoms_to_remove;
+}
+
+std::vector<bool> grid::ClusterCulling::remove_tendrils(unsigned int min_neighbours) const {
+    std::vector<bool> atoms_to_remove(grid->a_members.size(), false); // atom indices to remove
+
+    // Iterate through all atoms, and use radial lines to detect other nearby atoms
+    unsigned int index = 0; // index of current atom
+    for (grid::GridMember<Atom>& atom : grid->a_members) {
+        unsigned int neighbours = 0; // number of neighbours
+
+        // check spherical shell within 2ra for collisions
+        for (const auto& bin : rot_bins_2ra) {
+            Vector3<int> pos = atom.loc + bin;
+            if (grid->grid.index(pos) != GridObj::EMPTY) {
+                neighbours++;
+            }
+        }
+
+        // remove if too few neighbours
+        if (neighbours < min_neighbours) {
+            atoms_to_remove[index] = true;
+        }
     }
 
     return atoms_to_remove;
