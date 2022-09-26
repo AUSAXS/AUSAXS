@@ -141,7 +141,7 @@ std::function<double(const double*)> ImageStack::prepare_function(IntensityFitte
     static unsigned int counter;
     counter = 0; // must be in separate line since we want to reset it every time this function is called
     setting::protein::center = false;
-    setting::grid::percent_water = 0.01;
+    setting::grid::percent_water = 0.05;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
         auto p = phm->get_protein(params[0]);
         p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");

@@ -239,6 +239,10 @@ vector<bool> grid::CounterClusterCulling::cull(unsigned int min_group_size) cons
             remove_count--;
         }
         i++;
+
+        // if (atom.loc.x() > 1000 || atom.loc.y() > 1000 || atom.loc.z() > 1000) {
+        //     std::cout << "Suspicious atom at " << atom.loc.to_string() << std::endl;
+        // }
     }
 
     // sanity check
