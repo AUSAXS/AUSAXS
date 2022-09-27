@@ -1,4 +1,5 @@
 # Todo
+ * [x] IO: Writing empty files seems to crash. 
  * [ ] Grid: Binning range seems to be exclusive the top-most atom
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods

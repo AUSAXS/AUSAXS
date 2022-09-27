@@ -72,6 +72,8 @@ File& File::operator=(const File& rhs) {
 }
 
 void File::refresh() {
+    if (protein_atoms.empty()) {return;}
+
     bool terminate_inserted = false;
     string chainID = "0"; int resSeq = 0; int serial = protein_atoms[0].serial;
 

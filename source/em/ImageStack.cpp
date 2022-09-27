@@ -146,7 +146,7 @@ std::function<double(const double*)> ImageStack::prepare_function(IntensityFitte
         auto p = phm->get_protein(params[0]);
         p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
         p->clear_grid(); // clear grid from previous iteration
-        p->remove_disconnected_atoms();
+        p->remove_disconnected_atoms(20);
         p->clear_grid(); // clean up grid again (should be implemented into remove_disconnected_atoms)
         p->generate_new_hydration();
         auto h = p->get_histogram();

@@ -304,18 +304,25 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
 std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     expand_volume();
     ClusterCulling culler(this);
-    // auto to_remove1 = culler.remove_tendrils(3);
-    // remove(to_remove1);
-    auto to_remove2 = culler.remove_clusters(min);
-    // remove(to_remove2);
+    auto to_remove = culler.remove_clusters(min);
+    remove(to_remove);
+    // auto to_remove_t = culler.remove_tendrils(10);
+    // remove(to_remove_t);
 
-    // combine the two vectors
-    // std::vector<bool> to_remove(to_remove1.size());
-    // for (unsigned int i = 0; i < to_remove1.size(); i++) {
-    //     to_remove[i] = to_remove1[i] || to_remove2[i];
+    // // combine the two vectors
+    // unsigned int index = 0;
+    // for (unsigned int i = 0; i < to_remove.size(); i++) {
+    //     if (!to_remove[i]) {
+    //         to_remove[i] = to_remove_t[index++];
+    //     }
     // }
 
-    return to_remove2;
+    // // sanity check
+    // if (index != to_remove_t.size()) {
+    //     throw except::unexpected("Error in Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
+    // }
+
+    return to_remove;
 }
 
 vector<GridMember<Atom>> Grid::add(const Body* const body) {

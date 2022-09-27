@@ -413,7 +413,10 @@ TEST_CASE("compare_grid_placement", "[protein]") {
 }
 
 TEST_CASE("remove_clusters", "[protein],[manual]") {
+    setting::protein::center = false;
     Protein protein("test/files/17_b.pdb");
-    protein.remove_disconnected_atoms(20);
+    protein.clear_hydration();
+    protein.remove_disconnected_atoms(30);
+    protein.generate_new_hydration();
     protein.save("temp/protein/remove_clusters_out.pdb");
 }

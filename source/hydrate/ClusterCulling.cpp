@@ -55,7 +55,7 @@ void grid::ClusterCulling::prepare_rotations() {
     int ra = grid->ra;
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_2ra.push_back(Vector3<int>(std::trunc(2*ra*xr), std::trunc(2*ra*yr), std::trunc(2*ra*zr)));
+        bins_2ra.push_back(Vector3<int>(std::trunc(1.5*ra*xr), std::trunc(1.5*ra*yr), std::trunc(1.5*ra*zr)));
         bins_3ra.push_back(Vector3<int>(std::trunc(3*ra*xr), std::trunc(3*ra*yr), std::trunc(3*ra*zr)));
     }
 
@@ -230,6 +230,8 @@ vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) 
         if (group_members[i].size() < min_group_size) {
             groups_to_remove[i] = true;
             remove_count += group_members[i].size();
+        } else {
+            std::cout << "\tGroup " << i << " has " << group_members[i].size() << " members." << std::endl;
         }
         sum += group_members[i].size();
     }
@@ -240,17 +242,16 @@ vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) 
     }
 
     // mark atoms for removal
-    std::cout << remove_count << " atoms will be removed. " << std::endl;
+    std::cout << remove_count << " atoms will be removed (small clusters). " << std::endl;
     std::vector<bool> atoms_to_remove(grid->a_members.size(), false); // atom indices to remove
     unsigned int i = 0;
     for (auto& atom : grid->a_members) {
         unsigned int id = to_id(atom.loc);
-
-        // remove if in too small a group
         if (groups_to_remove[groups.at(id)]) {
             atoms_to_remove[i] = true;
             remove_count--;
         }
+        i++;
     }
 
     // sanity check
@@ -266,6 +267,7 @@ std::vector<bool> grid::ClusterCulling::remove_tendrils(unsigned int min_neighbo
 
     // Iterate through all atoms, and use radial lines to detect other nearby atoms
     unsigned int index = 0; // index of current atom
+    unsigned int count = 0;
     for (grid::GridMember<Atom>& atom : grid->a_members) {
         unsigned int neighbours = 0; // number of neighbours
 
@@ -277,11 +279,22 @@ std::vector<bool> grid::ClusterCulling::remove_tendrils(unsigned int min_neighbo
             }
         }
 
+        // check spherical shell within 3ra for collisions
+        for (const auto& bin : rot_bins_3ra) {
+            Vector3<int> pos = atom.loc + bin;
+            if (grid->grid.index(pos) != GridObj::EMPTY) {
+                neighbours++;
+            }
+        }
+
         // remove if too few neighbours
         if (neighbours < min_neighbours) {
-            atoms_to_remove[index] = true;
+            atoms_to_remove[index++] = true;
+            count++;
         }
     }
+
+    std::cout << count << " atoms will be removed (tendrils)." << std::endl; 
 
     return atoms_to_remove;
 }
