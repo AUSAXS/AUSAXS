@@ -17,7 +17,7 @@
 #include <hydrate/CounterCulling.h>
 #include <hydrate/OutlierCulling.h>
 #include <hydrate/RandomCulling.h>
-#include <hydrate/CounterClusterCulling.h>
+#include <hydrate/ClusterCulling.h>
 #include <utility/Settings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
@@ -301,11 +301,21 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
     if (!is_water) {volume += added_volume;};
 }
 
-std::vector<bool> Grid::get_disconnected_atoms(unsigned int min) {
+std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     expand_volume();
-    CounterClusterCulling culler(this);
-    auto to_remove = culler.cull(min);
-    return to_remove;
+    ClusterCulling culler(this);
+    // auto to_remove1 = culler.remove_tendrils(3);
+    // remove(to_remove1);
+    auto to_remove2 = culler.remove_clusters(min);
+    // remove(to_remove2);
+
+    // combine the two vectors
+    // std::vector<bool> to_remove(to_remove1.size());
+    // for (unsigned int i = 0; i < to_remove1.size(); i++) {
+    //     to_remove[i] = to_remove1[i] || to_remove2[i];
+    // }
+
+    return to_remove2;
 }
 
 vector<GridMember<Atom>> Grid::add(const Body* const body) {
@@ -355,22 +365,45 @@ GridMember<Hetatom> Grid::add(const Hetatom& water, bool expand) {
 }
 
 void Grid::remove(std::vector<bool>& to_remove) {
-    std::list<GridMember<Atom>> new_list;
+    // create a map of uids to remove
+    std::unordered_map<unsigned int, bool> removed;
 
-    // since a_members is a list, we have to iterate through it to access the elements
-    unsigned int i = to_remove.size()-1; // keep track of current index in the list
-    for (auto it = a_members.end(); it != a_members.begin(); it--) {
-        // check if the atom should be removed        
-        if (to_remove[i]) {
-            deflate_volume(*it);
-            new_list.emplace_back(*it);
-            grid.index(it->loc) = GridObj::EMPTY;
-            volume--;
+    // fill it based on the to_remove vector
+    unsigned int index = 0;
+    unsigned int total_removed = 0;
+    for(auto& atom : a_members) {
+        if (to_remove[index++]) {
+            removed[atom.atom.uid] = true;
+            total_removed++;
         }
-        // decrement index
-        i--;
     }
-    a_members = std::move(new_list);
+
+    index = 0;
+    vector<GridMember<Atom>> removed_atoms(total_removed);
+    auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
+        if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
+            removed_atoms[index++] = std::move(gm);
+            return true;
+        }
+        return false;
+    };
+
+    // we save the sizes so we can make a sanity check after the removal    
+    size_t prev_size = a_members.size();
+    a_members.remove_if(predicate);
+    size_t cur_size = a_members.size();
+
+    // sanity check
+    if (__builtin_expect(prev_size - cur_size != total_removed, false)) {
+        throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
+    }
+
+    // clean up the grid
+    for (auto& atom : removed_atoms) {
+        deflate_volume(atom);
+        grid.index(atom.loc) = GridObj::EMPTY;
+        volume--;
+    }
 }
 
 void Grid::remove(const Atom& atom) {
@@ -430,9 +463,8 @@ void Grid::remove(const vector<Atom>& atoms) {
 
     // clean up the grid
     for (auto& atom : removed_atoms) {
-        const int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
         deflate_volume(atom);
-        grid.index(x, y, z) = GridObj::EMPTY;
+        grid.index(atom.loc) = GridObj::EMPTY;
         volume--;
     }
 }
@@ -465,9 +497,8 @@ void Grid::remove(const vector<Hetatom>& waters) {
 
     // clean up the grid
     for (auto& atom : removed_waters) {
-        const int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
         deflate_volume(atom);
-        grid.index(x, y, z) = GridObj::EMPTY;
+        grid.index(atom.loc) = GridObj::EMPTY;
     }
 }
 

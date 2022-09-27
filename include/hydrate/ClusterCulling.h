@@ -1,6 +1,5 @@
 #pragma once
 
-#include <hydrate/ClusterCullingStrategy.h>
 #include <hydrate/Grid.h>
 
 namespace grid {

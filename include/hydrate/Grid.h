@@ -208,7 +208,7 @@ class Grid {
 		 * 
 		 * @return A vector of booleans indicating whether the atom at the corresponding index is part of a cluster with less than \a min atoms.
 		 */
-	    std::vector<bool> get_disconnected_atoms(unsigned int min);
+	    std::vector<bool> remove_disconnected_atoms(unsigned int min);
 
 		/**
 		 * @brief Generate a new hydration layer for the grid.
