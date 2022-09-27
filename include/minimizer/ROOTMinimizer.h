@@ -9,6 +9,21 @@
 namespace mini {
     /**
      * @brief A wrapper class for the minimization algorithms provided by ROOT. 
+     * Valid package & algorithm combinations:
+     * Minuit2:     Migrad
+     *              Simplex
+     *              Combined
+     *              Scan
+     *              Fumili2
+     * Fumili:      -
+     * GSLMultiMin: ConjugateFR
+     *              ConjugatePR
+     *              BFGS
+     *              BFGS2
+     *              SteepestDescent
+     * GSLMultiFit: -
+     * GSLSimAn:    -
+     * Genetic:     -
      */
     class ROOTMinimizer : public Minimizer {
         public:

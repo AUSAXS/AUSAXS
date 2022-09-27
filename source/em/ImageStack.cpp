@@ -96,7 +96,8 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
-    IntensityFitter fitter(h, get_limits());
+
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
     return fit_helper(fitter, param);
 }
 
@@ -108,34 +109,34 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
-    IntensityFitter fitter(file);
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(IntensityFitter& fitter, mini::Parameter param) {
+std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
     auto func = prepare_function(fitter);
 
     mini::Golden minimizer(func, param);
-    // mini::ROOTMinimizer minimizer("Minuit2", "Migrad", func, param);
+    // mini::ROOTMinimizer minimizer("GSLSimAn", "", func, param);
     auto res = minimizer.minimize();
 
-    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(fitter, res, res.fval);
+    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = minimizer.get_evaluated_points();
     return emfit;
 }
 
-std::function<double(const double*)> ImageStack::prepare_function(IntensityFitter& fitter) {
+std::function<double(const double*)> ImageStack::prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
-    auto protein = phm->get_protein(1);
-    double c = setting::em::concentration;                                // concentration
-    double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
-    double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
-    double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
-    double I0 = DrhoV2*re2*c/m;
-    fitter.normalize_intensity(I0);
+    // auto protein = phm->get_protein(1);
+    // double c = setting::em::concentration;                                // concentration
+    // double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
+    // double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
+    // double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
+    // double I0 = DrhoV2*re2*c/m;
+    // fitter.normalize_intensity(I0);
 
     // fit function
     static unsigned int counter;
@@ -143,19 +144,28 @@ std::function<double(const double*)> ImageStack::prepare_function(IntensityFitte
     setting::protein::center = false;
     setting::grid::percent_water = 0.05;
     std::function<double(const double*)> chi2 = [&] (const double* params) {
+        static double last_c = 5;
         auto p = phm->get_protein(params[0]);
-        p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
-        p->clear_grid(); // clear grid from previous iteration
-        p->remove_disconnected_atoms(20);
-        p->clear_grid(); // clean up grid again (should be implemented into remove_disconnected_atoms)
-        p->generate_new_hydration();
-        auto h = p->get_histogram();
-        fitter.set_scattering_hist(h);
-        p->save("temp2/nh/" + std::to_string(counter) + "_a.pdb");
-        plots::PlotDistance::quick_plot(h, "temp.pdf");
+        // p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
+        // p->remove_disconnected_atoms(20);
 
-        // fitter.set_scattering_hist(get_histogram(params[0]));
-        double val = fitter.fit()->fval;
+        std::shared_ptr<Fit> fit;
+        if (setting::em::hydrate) {
+            p->clear_grid(); // clear grid from previous iteration
+            p->generate_new_hydration();
+            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 10}}); // use c from previous iteration as guess
+            fitter->set_scattering_hist(p->get_histogram());
+            fit = fitter->fit();
+            last_c = fit->get_parameter("c").value; // update c for next iteration
+            std::cout << "\tc = " << last_c << std::endl;
+        } else {
+            fitter->set_scattering_hist(p->get_histogram());
+            fit = fitter->fit();
+        }
+        // p->save("temp2/nh/" + std::to_string(counter) + "_a.pdb");
+        // plots::PlotDistance::quick_plot(h, "temp.pdf");
+
+        double val = fit->fval;
         if (setting::fit::verbose) {
             std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
         }
@@ -165,7 +175,7 @@ std::function<double(const double*)> ImageStack::prepare_function(IntensityFitte
 }
 
 Dataset ImageStack::cutoff_scan(const Axis& points, string file) {
-    IntensityFitter fitter(file);
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
@@ -175,7 +185,7 @@ Dataset ImageStack::cutoff_scan(unsigned int points, string file) {
 }
 
 Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
-    IntensityFitter fitter(h, get_limits());
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
     return cutoff_scan_helper(points, fitter);
 }
 
@@ -189,7 +199,18 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const his
     return cutoff_scan_fit(axis, h);
 }
 
-Dataset ImageStack::cutoff_scan_helper(const Axis& points, IntensityFitter& fitter) {
+ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, std::string file) {
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
+    return cutoff_scan_fit_helper(points, fitter);
+}
+
+ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
+    Axis axis(points, header->dmax/100, header->dmax);
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
+    return cutoff_scan_fit_helper(axis, fitter);
+}
+
+Dataset ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
     update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
@@ -199,7 +220,11 @@ Dataset ImageStack::cutoff_scan_helper(const Axis& points, IntensityFitter& fitt
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
-    IntensityFitter fitter(h, get_limits());
+    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
+    return cutoff_scan_fit_helper(points, fitter);
+}
+
+ImageStack::Landscape ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
     update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
@@ -216,7 +241,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist
     minimizer.add_parameter({"cutoff", limit.center(), limit});
     auto res = minimizer.minimize();
 
-    EMFit emfit(fitter, res, res.fval);
+    EMFit emfit(*fitter, res, res.fval);
     emfit.evaluated_points = minimizer.get_evaluated_points();
     landscape.fit = emfit;
 

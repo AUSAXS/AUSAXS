@@ -5,6 +5,8 @@
 #include <histogram/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 #include <minimizer/ROOTMinimizer.h>
+#include <minimizer/Golden.h>
+#include <plots/all.h>
 
 #include <Math/Minimizer.h>
 #include <Math/Factory.h>
@@ -16,8 +18,23 @@ IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const L
 
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    mini::ROOTMinimizer mini("Minuit2", "migrad", f, guess);
+    mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
     auto res = mini.minimize();
+
+    mini::Golden golden(f, guess);
+    auto landscape = golden.landscape();
+    plots::PlotDataset::quick_plot(landscape, "test.pdf");    
+
+    std::cout << "HH" << std::endl;
+    auto t1 = h;
+    auto t2 = t1;
+    t2.apply_water_scaling_factor(5);
+    for (auto v : t1.p_hh) {
+        std::cout << "\t" << v << std::endl;
+    }
+    // for (unsigned int i = 0; i < t1.size(); i++) {
+    //     std::cout << "\t" << t1.p[i] << " | " << t2.p[i] << std::endl;
+    // }
 
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);
@@ -107,6 +124,7 @@ double IntensityFitter::chi2(const double* params) {
         double v = (data.y(i) - (a*Im[i]+b))/data.yerr(i);
         chi += v*v;
     }
+
     return chi;
 }
 

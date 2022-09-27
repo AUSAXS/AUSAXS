@@ -1,5 +1,4 @@
 # Todo
- * [x] IO: Writing empty files seems to crash. 
  * [ ] Grid: Binning range seems to be exclusive the top-most atom
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
@@ -10,17 +9,13 @@
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled
  * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
  * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
- * [x] EMFitter: Fit 12752, 12753 trypsin-activated
  * [ ] EMFitter: Handle absolute scale properly.
  * [ ] gentag alt for de andre filer
  * [ ] flow diagram med hvad vi rent faktisk laver
  * [ ] General: Consistency check of DrhoM
  * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
- * [x] EM: Do a better job of simulating experimental data (uncertainties, Gaussian noise, better spacing). Do a check on the voxel sizes and skip every Nth pixel if it is too small. 
  * [ ] IO: Support multiple terminate statements
  * [ ] Memory test all other executables.
- * [x] Constants: Rethink how to determine charge densities for arbitrary ligands
- * [x] Matrix & Slice: Remove debug segfaults for out-of-bounds indices
 
 # Stuff to consider
 ## EM

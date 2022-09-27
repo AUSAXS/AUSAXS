@@ -76,6 +76,8 @@ namespace setting {
         inline static double concentration = 2;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
         inline static unsigned int charge_levels = 100;  // The number of partial histograms to utilize.
 
+        inline static bool hydrate = true; // Whether to hydrate the protein in the EM algorithm.
+
         struct simulation {
             inline static bool noise = true; // Whether to generate noise for the simulations. 
         };

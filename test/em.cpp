@@ -54,7 +54,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     setting::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
     Protein protein("data/A2M_native/native.pdb");
-    hist::ScatteringHistogram hist(protein.get_histogram());
+    hist::ScatteringHistogram hist = protein.get_histogram();
 
     auto data = image.cutoff_scan_fit({1000, 1, 2}, hist);
 
@@ -65,6 +65,21 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     plots::PlotDataset plot(scan);
     plot.plot(fit);
     plot.save("figures/test/em/chi2_landscape.pdf");
+}
+
+TEST_CASE("check_fit", "[em],[files],[manual]") {
+    setting::protein::use_effective_charge = false;
+    setting::fit::verbose = true;
+    em::ImageStack map("data/SASDEL9/EcTFE.mrc");
+
+    auto data = map.cutoff_scan_fit({1000, 0.05, 0.07}, "data/SASDEL9/SASDEL9.dat");
+    SimpleDataset& scan = data.contour;
+    SimpleDataset& fit = data.fit.evaluated_points;
+    fit.add_plot_options("markers", {{"color", kOrange+2}});
+
+    plots::PlotDataset plot(scan);
+    plot.plot(fit);
+    plot.save("figures/test/em/check_fit_landscape.pdf");
 }
 
 TEST_CASE("check_bound_savings", "[em],[files],[slow]") {

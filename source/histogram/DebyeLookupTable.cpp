@@ -96,6 +96,7 @@ bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>&
     if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) {return false;}
 
     // check d
+    if (d.empty()) {return false;} // check if empty
     if (d[d.size()-1] > default_size) {return false;} // check if too large for default table
     if (!utility::approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
     if (!utility::approx(d[3]-d[2], width)) {return false;} // check second width

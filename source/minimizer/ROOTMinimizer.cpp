@@ -17,7 +17,6 @@ ROOTMinimizer::ROOTMinimizer(std::string package, std::string algorithm, double(
 ROOTMinimizer::ROOTMinimizer(std::string package, std::string algorithm, std::function<double(const double*)> function, Parameter param) {
         create_minimizer(package, algorithm);
         set_function(function);
-        std::cout << param << std::endl;
         if (!param.empty()) {add_parameter(param);}
 }
 

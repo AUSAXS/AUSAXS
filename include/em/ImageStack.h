@@ -144,6 +144,26 @@ namespace em {
             Landscape cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
 
             /**
+             * @brief Perform a scan & fit of the cutoff values. 
+             * 
+             * @param points The number of points.
+             * @param file The file to be fitted.
+             * 
+             * @return A Landscape containing both the fit and scan.
+             */
+            Landscape cutoff_scan_fit(unsigned int points, std::string file);
+
+            /**
+             * @brief Perform a scan & fit of the cutoff values. 
+             * 
+             * @param points The cutoff values to be evaluated. 
+             * @param file The file to be fitted.
+             * 
+             * @return A Landscape containing both the fit and scan.
+             */
+            Landscape cutoff_scan_fit(const Axis& points, std::string file);
+
+            /**
              * @brief Get a specific Image stored in this object. 
              * 
              * @param layer The vertical location of the Image. 
@@ -275,7 +295,7 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::shared_ptr<EMFit> fit_helper(IntensityFitter& fitter, mini::Parameter param = {});
+            std::shared_ptr<EMFit> fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param = {});
 
             /**
              * @brief A helper function for the cutoff scanning method.
@@ -283,13 +303,21 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            Dataset cutoff_scan_helper(const Axis& points, IntensityFitter& fitter);
+            Dataset cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter);
+
+            /**
+             * @brief A helper function for the cutoff scan & fit method.
+             * 
+             * @param points The range to scan.
+             * @param fitter The fitting object.
+             */
+            ImageStack::Landscape cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter);
 
             /**
              * @brief Prepare the fitting function. 
              *        Note that the lifetime of the returned function is the same as that of the fitter.
              */
-            std::function<double(const double*)> prepare_function(IntensityFitter& fitter);
+            std::function<double(const double*)> prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 
