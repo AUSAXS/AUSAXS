@@ -21,21 +21,6 @@ shared_ptr<Fit> IntensityFitter::fit() {
     mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
     auto res = mini.minimize();
 
-    mini::Golden golden(f, guess);
-    auto landscape = golden.landscape();
-    plots::PlotDataset::quick_plot(landscape, "test.pdf");    
-
-    std::cout << "HH" << std::endl;
-    auto t1 = h;
-    auto t2 = t1;
-    t2.apply_water_scaling_factor(5);
-    for (auto v : t1.p_hh) {
-        std::cout << "\t" << v << std::endl;
-    }
-    // for (unsigned int i = 0; i < t1.size(); i++) {
-    //     std::cout << "\t" << t1.p[i] << " | " << t2.p[i] << std::endl;
-    // }
-
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);
     vector<double> ym = h.calc_debye_scattering_intensity().col("I");

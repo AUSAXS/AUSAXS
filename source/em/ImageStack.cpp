@@ -153,7 +153,7 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
         if (setting::em::hydrate) {
             p->clear_grid(); // clear grid from previous iteration
             p->generate_new_hydration();
-            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 10}}); // use c from previous iteration as guess
+            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); // use c from previous iteration as guess
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
             last_c = fit->get_parameter("c").value; // update c for next iteration

@@ -137,17 +137,21 @@ SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     return SimpleDataset(q, Iq, "q", "logI");
 }
 
-ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) {
-    return operator=(ScatteringHistogram(h));
-}
+ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) = default;
+ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) = default;
 
-ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) {
-    p = std::move(h.p);
-    p_pp = std::move(h.p_pp);
-    p_hh = std::move(h.p_hh);
-    p_hp = std::move(h.p_hp);
-    q = std::move(h.q);
-    d = std::move(h.d);
-    sinqd_table = std::move(h.sinqd_table);
-    return *this;
-}
+// ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) {
+//     return operator=(ScatteringHistogram(h));
+// }
+
+// ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) {
+//     p = std::move(h.p);
+//     p_pp = std::move(h.p_pp);
+//     p_hh = std::move(h.p_hh);
+//     p_hp = std::move(h.p_hp);
+//     q = std::move(h.q);
+//     d = std::move(h.d);
+//     sinqd_table = std::move(h.sinqd_table);
+//     axis = std::move(h.axis);
+//     return *this;
+// }
