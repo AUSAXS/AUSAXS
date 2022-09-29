@@ -6,6 +6,7 @@
 #include <utility/Exceptions.h>
 #include <minimizer/ROOTMinimizer.h>
 #include <minimizer/Golden.h>
+#include <minimizer/Scan.h>
 #include <plots/all.h>
 
 #include <Math/Minimizer.h>
@@ -18,8 +19,11 @@ IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const L
 
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
+    // mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
+    mini::Scan mini(f, guess);
     auto res = mini.minimize();
+
+    plots::PlotDataset::quick_plot(mini.get_evaluated_points(), "scan.pdf");
 
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);

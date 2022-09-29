@@ -256,13 +256,24 @@ namespace em {
              */
             std::shared_ptr<em::PartialHistogramManager> get_histogram_manager() const;
 
+            /**
+             * @brief Get the fitted water scaling factors.
+             */
+            const std::vector<mini::FittedParameter>& get_fitted_water_factors() const;
+
+            /**
+             * @brief Get the fitted water scaling factors as a dataset.
+             */
+            SimpleDataset get_fitted_water_factors_dataset() const;
+
         private:
             std::string filename;
-            std::shared_ptr<ccp4::Header> header;
-            std::vector<Image> data;
-            unsigned int resolution;
-            unsigned int size_x, size_y, size_z;
-            std::shared_ptr<em::PartialHistogramManager> phm;
+            std::shared_ptr<ccp4::Header> header;               // The header of the map file. 
+            std::vector<Image> data;                            // The actual image data. 
+            unsigned int resolution;                            // The resolution of the map //? Deprecated?
+            unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
+            std::shared_ptr<em::PartialHistogramManager> phm;   // The histogram manager. Manages both the backing protein & its scattering curve. 
+            std::vector<mini::FittedParameter> water_factors;   // If hydration is enabled, the fitted water scaling factors will be recorded here.
 
             /**
              * @brief Update the cutoff sections that will be used.

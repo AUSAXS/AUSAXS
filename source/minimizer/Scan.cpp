@@ -87,7 +87,8 @@ Result Scan::minimize_override() {
 
     // find local minimum
     auto width = data.span_x().span()/data.size(); // find width of each step
-    parameters[0].bounds = Limit(min.x - width, min.x + width); // update bounds
+    auto prev_bounds = parameters[0].bounds;
+    parameters[0].bounds = Limit(std::max(min.x - width, prev_bounds->min), std::min(min.x + width, prev_bounds->max)); // update bounds
 
     mini::Golden golden(function, parameters[0]);
     return golden.minimize();

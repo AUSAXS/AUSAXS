@@ -124,7 +124,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = minimizer.get_evaluated_points();
-    phm->get_protein()->save("temp2/final.pdb");
+    phm->get_protein()->save("output/em_fitter/" + utility::stem(filename) + ".pdb");
     return emfit;
 }
 
@@ -154,10 +154,11 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
         if (setting::em::hydrate) {
             p->clear_grid(); // clear grid from previous iteration
             p->generate_new_hydration();
-            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); // use c from previous iteration as guess
+            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 10}}); // use c from previous iteration as guess
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
-            last_c = fit->get_parameter("c").value; // update c for next iteration
+            water_factors.push_back(fit->get_parameter("c"));   // Record c value
+            last_c = fit->get_parameter("c").value;             // Update c for next iteration
             std::cout << "\tc = " << last_c << std::endl;
         } else {
             fitter->set_scattering_hist(p->get_histogram());
@@ -330,4 +331,17 @@ double ImageStack::rms() const {
 
 std::shared_ptr<em::PartialHistogramManager> ImageStack::get_histogram_manager() const {
     return phm;
+}
+
+const std::vector<mini::FittedParameter>& ImageStack::get_fitted_water_factors() const {
+    return water_factors;
+}
+
+SimpleDataset ImageStack::get_fitted_water_factors_dataset() const {
+    std::vector<double> x(water_factors.size()), y(water_factors.size());
+    for (unsigned int i = 0; i < water_factors.size(); i++) {
+        x[i] = i;
+        y[i] = water_factors[i].value;
+    }
+    return SimpleDataset(x, y, "Iteration", "Scaling factor");
 }

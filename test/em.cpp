@@ -88,10 +88,13 @@ TEST_CASE("check_fit", "[em],[files],[manual]") {
     setting::em::hydrate = true;
     em::ImageStack map(mapfile);
 
-    auto data = map.cutoff_scan_fit({1000, 0.01, 0.05}, mfile);
+    auto data = map.cutoff_scan_fit({1000, 0.019, 0.04}, mfile);
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
     fit.add_plot_options("markers", {{"color", kOrange+2}});
+
+    auto fitted_water_factors = map.get_fitted_water_factors_dataset();
+    plots::PlotDataset::quick_plot(fitted_water_factors, "figures/test/em/check_fit_landscape_wf.pdf");
 
     plots::PlotDataset plot(scan);
     plot.plot(fit);
