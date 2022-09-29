@@ -1,0 +1,16 @@
+DJG5: 		6.26
+
+DDD3: 		11.52
+
+SHOC2: 	9.28	
+		3.24
+
+SASDEM9: 	6.55
+
+SASDEL9: 	22.51 (bugged - fitter finds better solution but doesn't pick it? best: ~17)
+
+A2M_native: 	20.21
+		24.64
+
+A2M_tryp: 	43.21
+		56.96

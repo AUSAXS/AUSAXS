@@ -124,6 +124,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = minimizer.get_evaluated_points();
+    phm->get_protein()->save("temp2/final.pdb");
     return emfit;
 }
 
