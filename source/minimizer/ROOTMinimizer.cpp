@@ -63,7 +63,7 @@ Result ROOTMinimizer::minimize_override() {
         mini->SetPrintLevel(-1);
     }
     mini->Minimize();
-    mini->PrintResults();
+    if (setting::fit::verbose) {mini->PrintResults();}
 
     Result res;
     res.fval = mini->MinValue();

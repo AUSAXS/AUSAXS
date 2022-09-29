@@ -5,6 +5,8 @@
 #include <vector>
 #include <array>
 #include <initializer_list>
+#include <string>
+#include <ostream>
 
 /**
  * @brief \class Axis

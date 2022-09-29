@@ -20,7 +20,7 @@ void Fit::add_fit(Fitter& fitter) noexcept {
 }
 
 void Fit::add_fit(std::shared_ptr<Fit> fit) noexcept {
-    for (const auto e : fit->parameters) {
+    for (const auto& e : fit->parameters) {
         parameters.push_back(e);
     }
 }

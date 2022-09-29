@@ -89,7 +89,7 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {header->dmax/100, header->dmax};
+    Limit lim = {level(0.5), level(5)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -102,7 +102,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {header->dmax/100, header->dmax};
+    Limit lim = {level(0.5), level(5)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
@@ -181,7 +181,7 @@ Dataset ImageStack::cutoff_scan(const Axis& points, string file) {
 }
 
 Dataset ImageStack::cutoff_scan(unsigned int points, string file) {
-    Axis axis(points, header->dmax/100, header->dmax);
+    Axis axis(points, level(1), level(5));
     return cutoff_scan(axis, file);
 }
 
@@ -191,12 +191,12 @@ Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistog
 }
 
 Dataset ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, header->dmax/100, header->dmax);
+    Axis axis(points, level(1), level(5));
     return cutoff_scan(axis, h);
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, header->dmax/100, header->dmax);
+    Axis axis(points, level(1), level(5));
     return cutoff_scan_fit(axis, h);
 }
 
@@ -206,7 +206,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, std::strin
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, header->dmax/100, header->dmax);
+    Axis axis(points, level(1), level(5));
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }

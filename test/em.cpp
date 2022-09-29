@@ -10,6 +10,7 @@
 #include <utility/Multiset.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
+#include <filesystem>
 
 using std::vector;
 
@@ -67,12 +68,27 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     plot.save("figures/test/em/chi2_landscape.pdf");
 }
 
+/**
+ * @brief Generate a contour plot of the chi2 landscape for the EM fit. 
+ */
 TEST_CASE("check_fit", "[em],[files],[manual]") {
+    string mfile = "data/SASDDD3/SASDDD3.dat";
+    string mapfile = "data/SASDDD3/emd_0560.map";
+
+    // read custom settings
+    std::string path = std::filesystem::path(mfile).parent_path().string();
+    if (std::filesystem::exists(path + "/settings.txt")) {
+        std::cout << "Using discovered settings file at " << path << "/settings.txt" << std::endl;
+        setting::read(path + "/settings.txt");
+    }
+
+    setting::em::sample_frequency = 2;
     setting::protein::use_effective_charge = false;
     setting::fit::verbose = true;
-    em::ImageStack map("data/SASDEL9/EcTFE.mrc");
+    setting::em::hydrate = true;
+    em::ImageStack map(mapfile);
 
-    auto data = map.cutoff_scan_fit({1000, 0.05, 0.07}, "data/SASDEL9/SASDEL9.dat");
+    auto data = map.cutoff_scan_fit({1000, 0.01, 0.05}, mfile);
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
     fit.add_plot_options("markers", {{"color", kOrange+2}});
