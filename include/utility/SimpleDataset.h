@@ -222,4 +222,9 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @brief Get the weighted standard deviation of the y values.
          */
         [[nodiscard]] double weighted_mean_error() const;
+
+        /**
+         * @brief Removes consecutive duplicate values.
+         */
+        void remove_consecutive_duplicates();
 };

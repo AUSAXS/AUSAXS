@@ -1,17 +1,16 @@
 #include <em/Datatypes.h>
 #include <utility/Exceptions.h>
+#include <em/ImageStack.h>
 
 #include <fstream>
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
-    //* Read existing header
-    std::fstream file(argv[1], std::ios::in | std::ios::out | std::ios::binary);
-    if (!file.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + std::string(argv[1]) + "\"");}
+    std::string mfile = argv[1];
+    em::ImageStack map(mfile);
 
-    em::ccp4::Header header;
-    file.read(reinterpret_cast<char*>(&header), sizeof(header));
-    std::cout << header << std::endl;
+    std::cout << *map.get_header() << std::endl;
+    std::cout << "1σ level: " << map.level(1) << std::endl;
 
     return 0;
 }

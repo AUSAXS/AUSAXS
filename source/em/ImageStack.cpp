@@ -91,7 +91,7 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {level(1), level(5)};
+    Limit lim = {level(1), level(7)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -104,7 +104,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {level(1), level(5)};
+    Limit lim = {level(1), level(7)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
@@ -121,44 +121,52 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     // mini::Golden minimizer(func, param);
     // mini::ROOTMinimizer minimizer("GSLSimAn", "", func, param);
-    mini::Scan minimizer(prepare_function(fitter), param, 20);
-    auto res = minimizer.minimize();
+    mini::Scan minimizer(prepare_function(fitter), param, setting::em::evals);
+    mini::Result res = minimizer.minimize();
 
-    auto _data1 = minimizer.get_evaluated_points();
-    _data1.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-    plots::PlotDataset::quick_plot(_data1, "em1.pdf");
+    if (setting::plot::em::plot_cutoff_points) {
+        auto _data = minimizer.get_evaluated_points();
+        _data.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+        plots::PlotDataset::quick_plot(_data, setting::plot::path + "chi2_evaluated_points.pdf");
+    }
 
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum
     // we therefore want to sample the area near the minimum to get an average
     if (setting::em::hydrate) {
         param = res.get_parameter("cutoff");
-        mini::Scan averager(prepare_function(fitter), param, 50);
-        res = averager.minimize();
 
-        auto data = averager.get_evaluated_points();
-        double mu = data.mean();
-        double sigma = data.std();
+        // ensure that the bounds are not too small
+        param.bounds = Limit(std::min(param.bounds->min, *param.guess - 0.01), std::max(param.bounds->max, *param.guess + 0.01));
 
-        auto xspan = data.span_x();
-        SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
-        SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
-        SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
-        l.add_plot_options("lines", {{"color", kRed}});
-        lp.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
-        lm.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
+        // sample the area around the minimum
+        mini::Scan averager(prepare_function(fitter), param);
+        auto landscape = averager.landscape(50);
 
-        std::cout << "RESULTS:" << std::endl;
-        std::cout << "mu: " << mu << std::endl;
+        // calculate the mean & standard deviation of the sampled points
+        double mu = landscape.mean();
+        double sigma = landscape.std();
+
         std::cout << "sigma: " << sigma << std::endl;
-        std::cout << xspan << std::endl;
 
-        auto _data2 = averager.get_evaluated_points();
-        _data2.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-        plots::PlotDataset plot(_data2);
-        plot.plot(l);
-        plot.plot(lm);
-        plot.plot(lp);
-        plot.save("em2.pdf");
+        res.fval = mu;
+
+        if (setting::plot::em::plot_cutoff_points) {
+            auto xspan = landscape.span_x();
+            SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
+            SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
+            SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
+            l.add_plot_options("lines", {{"color", kRed}});
+            lp.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
+            lm.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
+
+            auto _data2 = averager.get_evaluated_points();
+            _data2.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+            plots::PlotDataset plot(_data2);
+            plot.plot(l);
+            plot.plot(lm);
+            plot.plot(lp);
+            plot.save(setting::plot::path + "chi2_near_minimum.pdf");
+        }
     }
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
@@ -193,7 +201,7 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
         if (setting::em::hydrate) {
             p->clear_grid(); // clear grid from previous iteration
             p->generate_new_hydration();
-            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 10}}); // use c from previous iteration as guess
+            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100*level(1)}}); // use c from previous iteration as guess
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
             water_factors.push_back(fit->get_parameter("c"));   // Record c value
@@ -220,7 +228,7 @@ Dataset ImageStack::cutoff_scan(const Axis& points, string file) {
 }
 
 Dataset ImageStack::cutoff_scan(unsigned int points, string file) {
-    Axis axis(points, level(1), level(5));
+    Axis axis(points, level(1), level(7));
     return cutoff_scan(axis, file);
 }
 
@@ -230,12 +238,12 @@ Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistog
 }
 
 Dataset ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, level(1), level(5));
+    Axis axis(points, level(1), level(7));
     return cutoff_scan(axis, h);
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, level(1), level(5));
+    Axis axis(points, level(1), level(7));
     return cutoff_scan_fit(axis, h);
 }
 
@@ -245,7 +253,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, std::strin
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, level(1), level(5));
+    Axis axis(points, level(1), level(7));
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }

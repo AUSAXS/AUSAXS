@@ -76,7 +76,8 @@ namespace setting {
         inline static double concentration = 2;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.
         inline static unsigned int charge_levels = 100;  // The number of partial histograms to utilize.
 
-        inline static bool hydrate = true; // Whether to hydrate the protein in the EM algorithm.
+        inline static bool hydrate = true;               // Whether to hydrate the protein in the EM algorithm.
+        inline static unsigned int evals = 100;          // Base number of evaluations used in the EM fitter. 
 
         struct simulation {
             inline static bool noise = true; // Whether to generate noise for the simulations. 
@@ -84,8 +85,17 @@ namespace setting {
     };
 
     struct plot {
+        inline static std::string path = "figures/"; // The path to the output folder. 
+
         struct image {
             inline static std::vector<double> contour = {}; // The contour levels for the image plots.
+        };
+
+        struct em {
+            // Whether to plot the evaluated chi2 points. 
+            // Produces 2 plots; one of the full landscape and another of the area near the minimum. 
+            // The number of points is roughly determined by setting::em::evals
+            inline static bool plot_cutoff_points = true; 
         };
     };
 

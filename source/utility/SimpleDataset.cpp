@@ -298,6 +298,25 @@ void SimpleDataset::load(std::string path) {
     std::cout << "Removed " << N - size() << " data points outside of the q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
 }
 
+void SimpleDataset::remove_consecutive_duplicates() {
+    if (size() == 0) {
+        utility::print_warning("Warning in SimpleDataset::remove_consecutive_duplicates: Dataset is empty.");
+        return;
+    }
+
+    Matrix new_data(N, M);
+    unsigned int index = 0;
+    double v = y(0);
+    for (unsigned int i = 1; i < size(); i++) {
+        if (y(i) != v) {
+            new_data.row(index++) = this->row(i);
+            v = y(i);
+        }
+    }
+    new_data.resize(index, M);
+    this->data = new_data.data;
+}
+
 double SimpleDataset::mean() const {
     return stats::mean(y());
 }
