@@ -1,4 +1,5 @@
 # Todo
+ * [ ] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash.
  * [ ] Grid: Binning range seems to be exclusive the top-most atom
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods

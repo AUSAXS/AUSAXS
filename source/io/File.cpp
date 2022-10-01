@@ -5,7 +5,7 @@ using std::string, std::vector;
 File::File(const File& file) : header(file.header), footer(file.footer), terminate(file.terminate), 
     protein_atoms(file.protein_atoms), hydration_atoms(file.hydration_atoms) {}
 
-File::File(const File&& file) noexcept : header(file.header), footer(file.footer), terminate(file.terminate), 
+File::File(File&& file) noexcept : header(file.header), footer(file.footer), terminate(file.terminate), 
     protein_atoms(std::move(file.protein_atoms)), hydration_atoms(std::move(file.hydration_atoms)) {}
 
 File::File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
@@ -70,6 +70,8 @@ File& File::operator=(const File& rhs) {
     terminate = rhs.terminate;
     return *this;
 }
+
+File& File::operator=(File&& rhs) = default;
 
 void File::refresh() {
     if (protein_atoms.empty()) {return;}

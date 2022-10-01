@@ -7,6 +7,26 @@
 using std::vector;
 
 TEST_CASE("basic_stats", "[stats]") {
+    SECTION("weighted_mean_error") {
+        CHECK_THAT(stats::weighted_mean_error(vector{1, 2, 3, 4}), Catch::Matchers::WithinAbs(0.838116, 1e-6));
+        CHECK_THAT(stats::weighted_mean_error(vector<double>{1, 0.5, 0.1, 2, 0.9, 3}), Catch::Matchers::WithinAbs(0.0968561, 1e-6));
+        CHECK_THAT(stats::weighted_mean_error(vector<double>{1, 0.2, 2, 0.5, 0.9, 4, 1, 0.1, 0.4}), Catch::Matchers::WithinAbs(0.0848808, 1e-6));
+    }
+
+    SECTION("weighted_mean") {
+        auto v = vector{10, 3, 5, 6};
+        CHECK_THAT(stats::weighted_mean(v, vector{1, 1, 1, 1}), Catch::Matchers::WithinAbs(stats::mean(v), 1e-3));
+        CHECK_THAT(stats::weighted_mean(v, vector{1, 2, 3, 4}), Catch::Matchers::WithinAbs(8.204903, 1e-3));
+
+        v = vector{12, 14, 15, 15, 14, 17};
+        CHECK_THAT(stats::weighted_mean(v, vector<double>{1, 1, 1, 1, 1, 1}), Catch::Matchers::WithinAbs(stats::mean(v), 1e-3));
+        CHECK_THAT(stats::weighted_mean(v, vector<double>{1, 0.5, 0.1, 2, 0.9, 3}), Catch::Matchers::WithinAbs(14.924834, 1e-3));
+
+        v = vector{54, 66, 78, 80, 82, 84, 84, 90, 93};
+        CHECK_THAT(stats::weighted_mean(v, vector<double>{1, 1, 1, 1, 1, 1, 1, 1, 1}), Catch::Matchers::WithinAbs(stats::mean(v), 1e-3));       
+        CHECK_THAT(stats::weighted_mean(v, vector<double>{1, 0.2, 2, 0.5, 0.9, 4, 1, 0.1, 0.4}), Catch::Matchers::WithinAbs(85.125966, 1e-3));       
+    }
+
     SECTION("mean") {
         CHECK(stats::mean({10, 3, 5, 6}) == 6);
         CHECK(stats::mean({12, 14, 15, 15, 14, 17}) == 14.5);

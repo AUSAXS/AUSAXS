@@ -6,6 +6,8 @@
 #include <optional>
 
 namespace mini {
+    struct FittedParameter;
+
     /**
      * @brief A representation of a parameter.
      */
@@ -52,6 +54,11 @@ namespace mini {
          */
         [[nodiscard]]
         bool empty() const noexcept;
+
+        /**
+         * @brief Set this equal to a fit parameter.
+         */
+        Parameter& operator=(const mini::FittedParameter& other) noexcept;
 
         /**
          * @brief Get a string representation of this parameter.

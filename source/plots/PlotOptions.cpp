@@ -105,6 +105,8 @@ void PlotOptions::SmartOption<int>::parse(const std::any val) {
         value = std::any_cast<int>(val);
     } else if (std::type_index{typeid(EColor)} == val.type()) {
         value = std::any_cast<EColor>(val);
+    } else if (std::type_index{typeid(ELineStyle)} == val.type()) {
+        value = std::any_cast<ELineStyle>(val);
     } else {
         throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
@@ -138,6 +140,7 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     color = opt.color;
     alpha = opt.alpha; 
     marker_style = opt.marker_style; 
+    line_style = opt.line_style;
     line_width = opt.line_width; 
     marker_size = opt.marker_size; 
     draw_line = opt.draw_line;

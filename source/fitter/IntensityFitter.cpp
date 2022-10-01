@@ -19,11 +19,14 @@ IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const L
 
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    // mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
-    mini::Scan mini(f, guess);
+    mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
     auto res = mini.minimize();
 
-    plots::PlotDataset::quick_plot(mini.get_evaluated_points(), "scan.pdf");
+    // mini::Scan mini(f, guess, 1000);
+    // auto res = mini.minimize();
+    // auto d = mini.get_evaluated_points();
+    // d.add_plot_options("points", {{"xlabel", "c"}, {"ylabel", "chi2"}});
+    // plots::PlotDataset::quick_plot(d, "scan.pdf");
 
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);

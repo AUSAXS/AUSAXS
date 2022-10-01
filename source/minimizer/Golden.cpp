@@ -16,7 +16,7 @@ Golden::Golden(std::function<double(const double*)> func, const Parameter& param
     add_parameter(param);
 }
 
-Limit Golden::search(const Limit bounds) const {
+Limit Golden::search(Limit bounds) const {
     // Code adapted from the python implementation from Wikipedia: https://en.wikipedia.org/wiki/Golden-section_search 
     double a = bounds.min, b = bounds.max;
     double temp = a + b;

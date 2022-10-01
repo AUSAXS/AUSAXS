@@ -54,6 +54,7 @@ void plots::PlotDataset::quick_plot(const T& data, std::string path) {
 
 void plots::PlotDataset::prepare_canvas() {
     canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
+    canvas->SetLeftMargin(0.14);
 }
 
 template void plots::PlotDataset::quick_plot(const Dataset2D& data, std::string path);

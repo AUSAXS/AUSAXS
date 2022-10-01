@@ -182,5 +182,5 @@ void Dataset::load(std::string path) {
             // if not, suggest it to the user
             utility::print_warning("Warning in Dataset::load: File \"" + path + "\" contains more than 300 rows. Consider rebinning it first. (size = " + std::to_string(size()) + ")");
         }
-    }    
+    }
 }

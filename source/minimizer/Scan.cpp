@@ -5,15 +5,15 @@
 
 using namespace mini;
 
-Scan::Scan(double(&func)(const double*)) : Minimizer(func) {}
+Scan::Scan(double(&func)(const double*), unsigned int evals) : Minimizer(func), bins(evals) {}
 
-Scan::Scan(std::function<double(const double*)> func) : Minimizer(func) {}
+Scan::Scan(std::function<double(const double*)> func, unsigned int evals) : Minimizer(func), bins(evals) {}
 
-Scan::Scan(double(&func)(const double*), const Parameter& param) : Minimizer(func) {
+Scan::Scan(double(&func)(const double*), const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
     add_parameter(param);
 }
 
-Scan::Scan(std::function<double(const double*)> func, const Parameter& param) : Minimizer(func) {
+Scan::Scan(std::function<double(const double*)> func, const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
     add_parameter(param);
 }
 
@@ -89,7 +89,9 @@ Result Scan::minimize_override() {
     auto width = data.span_x().span()/data.size(); // find width of each step
     auto prev_bounds = parameters[0].bounds;
     parameters[0].bounds = Limit(std::max(min.x - width, prev_bounds->min), std::min(min.x + width, prev_bounds->max)); // update bounds
+    parameters[0].guess = {}; // remove guess to avoid warning
 
+    // record_evaluations(false);
     mini::Golden golden(function, parameters[0]);
     return golden.minimize();
 }

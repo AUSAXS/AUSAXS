@@ -88,7 +88,7 @@ TEST_CASE("check_fit", "[em],[files],[manual]") {
     setting::em::hydrate = true;
     em::ImageStack map(mapfile);
 
-    auto data = map.cutoff_scan_fit({1000, 0.019, 0.04}, mfile);
+    auto data = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
     fit.add_plot_options("markers", {{"color", kOrange+2}});

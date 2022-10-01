@@ -48,6 +48,6 @@ namespace mini {
              * 
 			 * @param bounds The bounds to search within. 
              */
-            Limit search(const Limit bounds) const;
+            Limit search(Limit bounds) const;
 	};
 }

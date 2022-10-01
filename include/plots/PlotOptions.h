@@ -45,6 +45,7 @@ namespace plots {
             int color = 1;                  // Color. Default is kBlack = 1
             double alpha = 1;               // Opacity
             int marker_style = 7;           // Marker style
+            int line_style = 1;             // Line style
             unsigned int line_width = 1;    // Line width
             double marker_size = 1;         // Marker size
             bool draw_line = true;          // Draw a line through the points
@@ -92,6 +93,7 @@ namespace plots {
             const std::vector<std::shared_ptr<ISmartOption>> options = {
                 make_shared({"color", "colour", "c"}, color),
                 make_shared({"alpha"}, alpha),
+                make_shared({"linestyle", "line_style", "ls"}, line_style),
                 make_shared({"markerstyle", "marker_style", "ms"}, marker_style),
                 make_shared({"linewidth", "line_width", "lw"}, line_width),
                 make_shared({"markersize", "marker_size", "s"}, marker_size),

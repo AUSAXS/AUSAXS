@@ -33,7 +33,7 @@ class File {
     /**
      * @brief Move constructor.
      */
-    File(const File&& file) noexcept;
+    File(File&& file) noexcept;
 
     /**
      * @brief Constructor. 
@@ -130,6 +130,8 @@ class File {
     File copy() const;
 
     File& operator=(const File& rhs);
+
+    File& operator=(File&& rhs);
 
     Header header;
     Footer footer;

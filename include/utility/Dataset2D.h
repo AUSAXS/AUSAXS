@@ -41,7 +41,7 @@ class Dataset2D : public SimpleDataset {
          */
         Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
             for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], 0, yerr[i]};
+                row(i) = {x[i], y[i], yerr[i], 0};
             }
         }
 

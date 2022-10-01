@@ -12,7 +12,9 @@
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <minimizer/Golden.h>
+#include <minimizer/Scan.h>
 #include <minimizer/ROOTMinimizer.h>
+#include <math/Statistics.h>
 
 #include <filesystem>
 
@@ -89,7 +91,7 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {level(0.5), level(5)};
+    Limit lim = {level(1), level(5)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -102,7 +104,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {level(0.5), level(5)};
+    Limit lim = {level(1), level(5)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
@@ -116,11 +118,48 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
-    auto func = prepare_function(fitter);
 
-    mini::Golden minimizer(func, param);
+    // mini::Golden minimizer(func, param);
     // mini::ROOTMinimizer minimizer("GSLSimAn", "", func, param);
+    mini::Scan minimizer(prepare_function(fitter), param, 20);
     auto res = minimizer.minimize();
+
+    auto _data1 = minimizer.get_evaluated_points();
+    _data1.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+    plots::PlotDataset::quick_plot(_data1, "em1.pdf");
+
+    // if hydration is enabled, the chi2 will oscillate heavily around the minimum
+    // we therefore want to sample the area near the minimum to get an average
+    if (setting::em::hydrate) {
+        param = res.get_parameter("cutoff");
+        mini::Scan averager(prepare_function(fitter), param, 50);
+        res = averager.minimize();
+
+        auto data = averager.get_evaluated_points();
+        double mu = data.mean();
+        double sigma = data.std();
+
+        auto xspan = data.span_x();
+        SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
+        SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
+        SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
+        l.add_plot_options("lines", {{"color", kRed}});
+        lp.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
+        lm.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
+
+        std::cout << "RESULTS:" << std::endl;
+        std::cout << "mu: " << mu << std::endl;
+        std::cout << "sigma: " << sigma << std::endl;
+        std::cout << xspan << std::endl;
+
+        auto _data2 = averager.get_evaluated_points();
+        _data2.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+        plots::PlotDataset plot(_data2);
+        plot.plot(l);
+        plot.plot(lm);
+        plot.plot(lp);
+        plot.save("em2.pdf");
+    }
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = minimizer.get_evaluated_points();
@@ -159,7 +198,6 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
             fit = fitter->fit();
             water_factors.push_back(fit->get_parameter("c"));   // Record c value
             last_c = fit->get_parameter("c").value;             // Update c for next iteration
-            std::cout << "\tc = " << last_c << std::endl;
         } else {
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();

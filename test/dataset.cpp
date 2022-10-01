@@ -9,7 +9,7 @@
 
 using std::vector;
 
-TEST_CASE("dataset_slicing") {
+TEST_CASE("dataset_slicing", "[dataset]") {
     std::vector<double> xd = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> yd = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
     SimpleDataset data(xd, yd);
@@ -24,6 +24,16 @@ TEST_CASE("dataset_slicing") {
     REQUIRE(x == Vector(xd));
     REQUIRE(y == Vector(yd));
     REQUIRE(yerr == Vector{0, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    SECTION("indexing") {
+        REQUIRE(data.x()[0] == 1);
+        REQUIRE(data.x()[1] == 2);
+        REQUIRE(data.x()[2] == 3);
+
+        REQUIRE(data.y()[0] == -6);
+        REQUIRE(data.y()[1] == -4);
+        REQUIRE(data.y()[2] == -1);
+    }
 
     std::transform(x.begin(), x.end(), yerr.begin(), [](double x) {return x;});
     std::transform(y.begin(), y.end(), yerr.begin(), y.begin(), std::multiplies<>());
@@ -266,7 +276,7 @@ TEST_CASE("dataset_normalize", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_basics", "[histogram]") {
+TEST_CASE("dataset_basics", "[dataset]") {
     vector<double> x = {1, 2, 3, 4, 5};
     vector<double> y = {10, 20, 30, 40, 50};
     Dataset2D data(x, y, "i", "j");
@@ -292,7 +302,7 @@ TEST_CASE("dataset_basics", "[histogram]") {
     }
 }
 
-TEST_CASE("dataset_reduce", "[histogram],[files],[manual]") {
+TEST_CASE("dataset_reduce", "[dataset]") {
     Protein protein("data/lysozyme/2epe.pdb");
     auto h = protein.get_histogram();
 
@@ -301,4 +311,48 @@ TEST_CASE("dataset_reduce", "[histogram],[files],[manual]") {
     data.reduce(20);
     plot.plot_intensity(data);
     plot.save("reduce_test.pdf");
+}
+
+TEST_CASE("dataset_stats", "[dataset]") {
+    Dataset2D data1(
+        vector<double>{1, 1, 1, 1}, 
+        vector<double>{10, 3, 5, 6}, 
+        vector<double>{1, 2, 3, 4}
+    );
+
+    Dataset2D data2(
+        vector<double>{1, 1, 1, 1, 1, 1}, 
+        vector<double>{12, 14, 15, 15, 14, 17}, 
+        vector<double>{1, 0.5, 0.1, 2, 0.9, 3}
+    );
+
+    Dataset2D data3(
+        vector<double>{1, 1, 1, 1, 1, 1, 1, 1, 1}, 
+        vector<double>{54, 66, 78, 80, 82, 84, 84, 90, 93}, 
+        vector<double>{1, 0.2, 2, 0.5, 0.9, 4, 1, 0.1, 0.4}
+    );
+
+    SECTION("weighted_mean_error") {
+        CHECK_THAT(data1.weighted_mean_error(), Catch::Matchers::WithinAbs(0.838116, 1e-6));
+        CHECK_THAT(data2.weighted_mean_error(), Catch::Matchers::WithinAbs(0.0968561, 1e-6));
+        CHECK_THAT(data3.weighted_mean_error(), Catch::Matchers::WithinAbs(0.0848808, 1e-6));
+    }
+
+    SECTION("weighted_mean") {
+        CHECK_THAT(data1.weighted_mean(), Catch::Matchers::WithinAbs(8.204903, 1e-3));
+        CHECK_THAT(data2.weighted_mean(), Catch::Matchers::WithinAbs(14.924834, 1e-3));
+        CHECK_THAT(data3.weighted_mean(), Catch::Matchers::WithinAbs(85.125966, 1e-3));       
+    }
+
+    SECTION("mean") {
+        CHECK_THAT(data1.mean(), Catch::Matchers::WithinAbs(6, 1e-3));
+        CHECK_THAT(data2.mean(), Catch::Matchers::WithinAbs(14.5, 1e-3));
+        CHECK_THAT(data3.mean(), Catch::Matchers::WithinAbs(79, 1e-3));
+    }
+
+    SECTION("std") {
+        CHECK_THAT(data1.std(), Catch::Matchers::WithinAbs(2.943920, 1e-3));
+        CHECK_THAT(data2.std(), Catch::Matchers::WithinAbs(1.643167, 1e-3));
+        CHECK_THAT(data3.std(), Catch::Matchers::WithinAbs(12.103718, 1e-3));
+    }
 }

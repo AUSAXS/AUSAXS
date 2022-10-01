@@ -72,6 +72,11 @@ class Limit {
         Limit operator-(double rhs) const noexcept {return Limit(min-rhs, max-rhs);}
 
         /**
+         * @brief Add a constant from both ends of this limit. 
+         */
+        Limit operator+(double rhs) const noexcept {return Limit(min+rhs, max+rhs);}
+
+        /**
          * @brief Stream output operator. 
          * 
          * Allows this object to easily be output to a given stream. 

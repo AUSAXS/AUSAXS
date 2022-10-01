@@ -1,4 +1,5 @@
 #include <math/SimpleLeastSquares.h>
+#include <math/Statistics.h>
 #include <utility/SimpleDataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
@@ -295,4 +296,20 @@ void SimpleDataset::load(std::string path) {
     unsigned int N = size();
     limit_x(setting::axes::qmin, setting::axes::qmax);
     std::cout << "Removed " << N - size() << " data points outside of the q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
+}
+
+double SimpleDataset::mean() const {
+    return stats::mean(y());
+}
+
+double SimpleDataset::weighted_mean() const {
+    return stats::weighted_mean(y(), yerr());
+}
+
+double SimpleDataset::std() const {
+    return stats::std(y());
+}
+
+double SimpleDataset::weighted_mean_error() const {
+    return stats::weighted_mean_error(yerr());
 }

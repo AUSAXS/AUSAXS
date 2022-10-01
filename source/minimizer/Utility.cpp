@@ -46,6 +46,12 @@ std::string Parameter::to_string() const noexcept {
     if (has_bounds()) {s += " bounds [" + std::to_string(bounds.value().min) + std::to_string(bounds.value().max) + "]";}
     return s;
 }
+Parameter& Parameter::operator=(const mini::FittedParameter& other) noexcept {
+    name = other.name;
+    guess = other.value;
+    bounds = other.error + other.value;
+    return *this;
+}
 
 
 FittedParameter::FittedParameter(std::string name, double val, Limit error) noexcept : name(name), value(val), error(error) {}

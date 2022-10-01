@@ -202,4 +202,24 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @param max Maxium generated value. 
          */
         static SimpleDataset generate_random_data(unsigned int size, double min = 0, double max = 1);
+
+                /**
+         * @brief Get the mean of the y values.
+         */
+        [[nodiscard]] double mean() const;
+
+        /**
+         * @brief Get the weighted mean of the y values.
+         */
+        [[nodiscard]] double weighted_mean() const;
+
+        /**
+         * @brief Get the standard deviation of the y values.
+         */
+        [[nodiscard]] double std() const;
+
+        /**
+         * @brief Get the weighted standard deviation of the y values.
+         */
+        [[nodiscard]] double weighted_mean_error() const;
 };

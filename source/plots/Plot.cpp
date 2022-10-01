@@ -24,6 +24,7 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
     graph->SetLineColorAlpha(options.color, options.alpha);
     graph->SetMarkerColorAlpha(options.color, options.alpha);
     graph->SetMarkerStyle(options.marker_style);
+    graph->SetLineStyle(options.line_style);
     graph->SetLineWidth(options.line_width);
     graph->SetMarkerSize(options.marker_size);
 
@@ -113,6 +114,7 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
 
         g->SetLineColorAlpha(options.color, options.alpha);
         g->SetMarkerColorAlpha(options.color, options.alpha);
+        g->SetLineStyle(options.line_style);
         g->SetMarkerStyle(options.marker_style);
         g->SetLineWidth(options.line_width);
         g->SetMarkerSize(options.marker_size);
@@ -179,6 +181,7 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
     // handle colors and markers
     hist->SetLineColorAlpha(options.color, options.alpha);
     hist->SetMarkerColorAlpha(options.color, options.alpha);
+    hist->SetLineStyle(options.line_style);
     hist->SetMarkerStyle(options.marker_style);
     hist->SetLineWidth(options.line_width);
     hist->SetMarkerSize(options.marker_size);
