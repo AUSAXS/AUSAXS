@@ -14,6 +14,7 @@
 #include <minimizer/Golden.h>
 #include <minimizer/Scan.h>
 #include <minimizer/ROOTMinimizer.h>
+#include <minimizer/MinimumExplorer.h>
 #include <math/Statistics.h>
 
 #include <filesystem>
@@ -139,19 +140,20 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
         param.bounds = Limit(std::min(param.bounds->min, *param.guess - 0.01), std::max(param.bounds->max, *param.guess + 0.01));
 
         // sample the area around the minimum
-        mini::Scan averager(prepare_function(fitter), param);
-        auto landscape = averager.landscape(50);
+        mini::MinimumExplorer explorer(prepare_function(fitter), param, 50);
+        explorer.minimize();
+        auto area = explorer.get_evaluated_points();
 
         // calculate the mean & standard deviation of the sampled points
-        double mu = landscape.mean();
-        double sigma = landscape.std();
+        double mu = area.mean();
+        double sigma = area.std();
 
         std::cout << "sigma: " << sigma << std::endl;
 
         res.fval = mu;
 
         if (setting::plot::em::plot_cutoff_points) {
-            auto xspan = landscape.span_x();
+            auto xspan = area.span_x();
             SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
             SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
             SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
@@ -159,9 +161,8 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             lp.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
             lm.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
 
-            auto _data2 = averager.get_evaluated_points();
-            _data2.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-            plots::PlotDataset plot(_data2);
+            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+            plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);
             plot.plot(lp);
