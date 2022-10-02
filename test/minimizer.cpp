@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <minimizer/MinimumExplorer.h>
 #include <minimizer/ROOTMinimizer.h>
 #include <minimizer/Scan.h>
 #include <minimizer/Golden.h>
@@ -127,4 +128,37 @@ TEST_CASE("root_minimizer", "[minimizer],[broken]") {
     SECTION("Decanomial") {ROOTTest2D(Decanomial, Decanomial.get_center());}
     SECTION("Hosaki") {ROOTTest2D(Hosaki, Hosaki.get_center());}
     SECTION("RosenbrockModified") {ROOTTest2D(RosenbrockModified, RosenbrockModified.get_center());}
+}
+
+TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
+    auto ExplorerTest1D = [] (const TestFunction& test) {
+        mini::ROOTMinimizer mini1("Minuit2", "migrad", test.function, {"a", test.bounds[0]});
+        auto res = mini1.minimize();
+
+        mini::Parameter p = res.get_parameter("a");
+        mini::MinimumExplorer mini2(test.function, p, 100);
+        res = mini2.minimize();
+
+        Dataset2D data1 = mini1.get_evaluated_points();
+        data1.add_plot_options("markers", {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", kAzure}});
+        plots::PlotDataset plot(data1);
+
+        Dataset2D data2 = mini2.get_evaluated_points();
+        data2.add_plot_options("markers", {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", kOrange+2}});
+        plots::PlotDataset::quick_plot(data2, "figures/test/minimizer/explorer_test_single.pdf");
+        plot.plot(data2);
+
+        mini::Golden mini3(test.function, {"a", test.bounds[0]});
+        Dataset2D line = mini3.landscape(1000);
+        plot.plot(line);
+
+        plot.save("figures/test/minimizer/explorer_test.pdf");
+
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini1.tol));
+    };
+
+    // test with a fine grid
+    SECTION("problem04") {ExplorerTest1D(problem04);}
+    // SECTION("problem13") {ExplorerTest1D(problem13);}
+    // SECTION("problem18") {ExplorerTest1D(problem18);}
 }

@@ -64,7 +64,7 @@ Limit Golden::search(Limit bounds) const {
     }
 }
 
-Dataset2D Golden::landscape(unsigned int evals) const {
+Dataset2D Golden::landscape(unsigned int evals) {
     if (parameters.empty()) {throw except::bad_order("Error in Golden::landscape: No parameters were supplied.");}
     std::vector<double> x, y;
 

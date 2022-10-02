@@ -98,7 +98,7 @@ namespace mini {
             /**
              * @brief Generate a landscape of the function.
              */
-            Dataset2D landscape(unsigned int evals = 100) const override;
+            Dataset2D landscape(unsigned int evals = 100) override;
 
             /**
              * @brief Get the evaluated points and their function values.

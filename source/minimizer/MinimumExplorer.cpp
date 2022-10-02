@@ -4,15 +4,15 @@
 
 using namespace mini;
 
-MinimumExplorer::MinimumExplorer(double(&func)(const double*)) : Minimizer(func) {}
+MinimumExplorer::MinimumExplorer(double(&func)(const double*), unsigned int evals) : Minimizer(func), evals(evals) {}
 
-MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func) : Minimizer(func) {}
+MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func, unsigned int evals) : Minimizer(func), evals(evals) {}
 
-MinimumExplorer::MinimumExplorer(double(&func)(const double*), const Parameter& param) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(double(&func)(const double*), const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
     add_parameter(param);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func, const Parameter& param) : Minimizer(func) {
+MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func, const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
     add_parameter(param);
 }
 
@@ -27,16 +27,15 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     double x = xmin;
 
     // determine spacing required for change in function value
-    double spacing = 0;
+    double spacing = 1e-5;
     if (param.has_bounds()) {
-        spacing = (param.bounds->max - param.bounds->min)/evals;
-    } else {
-        spacing = 1e-5;
+        spacing = std::min(spacing, (param.bounds->max - param.bounds->min)/evals);
     }
 
     record_evaluations(false);  // disable recording while determining spacing
     unsigned int vchanges = 0;  // we want at least 2 changes for a decent estimate
     unsigned int counter = 0;   // counter to prevent infinite loop
+    double factor = 2;          // step scaling factor
     while (counter < 50) {
         x += spacing;
         double f = function(&x);
@@ -44,17 +43,19 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         // check if the function value changed
         if (1e-6 < std::abs(f - fmin)) {
             vchanges++;
-            spacing = spacing - *param.guess;
+            factor = 1.3;                   // scale slower since we're close to the final step size
+            if (2 < vchanges) {break;}      // stop after fval changed twice
         } else {
-            spacing *= 2;
+            spacing *= factor;
         }
 
-        if (vchanges > 2 || 50 < counter++) {break;}
+        if (50 < counter++) {break;}
     }
     if (counter == 50) {throw except::bad_order("Error in MinimumExplorer::landscape: Could not determine spacing for landscape.");}
+    spacing /= 2; // step size is twice the distance between fval changes after ending the earlier loop
 
     // get an estimate of the minimum value
-    record_evaluations(true);   // start recording again
+    record_evaluations(true); // start recording again
 
     // go three steps to the left
     x = xmid; // go back to the middle
@@ -92,7 +93,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         x = xmid + 3*spacing;   // start three steps to the right of the middle
         evals = (evals - 7)/2;  // number of remaining right-steps
         unsigned int above = 0; // number of consecutive points higher than the mean
-        while (above < 4 && counter < (evals-7)/2) {
+        while (above < 4 && counter++ < (evals-7)/2) {
             x += spacing;
             double f = function(&x);
             if (f < fmin) {
@@ -112,7 +113,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         // repeat for left-steps
         unsigned int above = 0;
         x = xmid - 3*spacing;   // start three steps to the left of the middle
-        while (above < 4 && counter < (evals-7)/2) {
+        while (above < 4 && counter++ < (evals-7)/2) {
             x -= spacing;
             double f = function(&x);
             if (f < fmin) {
@@ -144,6 +145,10 @@ Dataset2D MinimumExplorer::get_evaluated_points() const {
 }
 
 Result MinimumExplorer::minimize_override() {
+    auto l = landscape(evals);
+    auto min = l.find_minimum();
+    FittedParameter p(parameters[0], min.x, l.span_x() - min.x);
+    return Result(p, l.mean(), fevals);
 }
 
 void MinimumExplorer::add_parameter(const Parameter& param) {

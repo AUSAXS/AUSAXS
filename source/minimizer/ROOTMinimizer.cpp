@@ -87,7 +87,7 @@ Result ROOTMinimizer::minimize_override() {
     return res;
 }
 
-Dataset2D ROOTMinimizer::landscape(unsigned int) const {
+Dataset2D ROOTMinimizer::landscape(unsigned int) {
     throw except::unexpected("Error in ROOTMinimizer::landscape: Not implemented yet.");
 }
 

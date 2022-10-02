@@ -36,6 +36,7 @@ Evaluation::Evaluation(std::vector<double> vals, double fval) : vals(vals), fval
 
 Parameter::Parameter(std::string name, Limit bounds) noexcept: name(name), bounds(bounds) {}
 Parameter::Parameter(std::string name, double guess, Limit bounds) noexcept: name(name), guess(guess), bounds(bounds) {}
+Parameter::Parameter(const mini::FittedParameter& p) noexcept {*this = p;}
 bool Parameter::has_bounds() const noexcept {return bounds.has_value();}
 bool Parameter::has_guess() const noexcept {return guess.has_value();}
 bool Parameter::has_name() const noexcept {return !name.empty();}

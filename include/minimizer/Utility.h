@@ -32,6 +32,11 @@ namespace mini {
         Parameter(std::string name, Limit bounds) noexcept;
 
         /**
+         * @brief Create a Parameter from a FittedParameter.
+         */
+        Parameter(const mini::FittedParameter& p) noexcept;
+
+        /**
          * @brief Check if this parameter is bounded.
          */
         [[nodiscard]]

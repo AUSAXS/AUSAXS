@@ -21,7 +21,7 @@ void Scan::set_evals(unsigned int evals) noexcept {
     bins = evals;
 }
 
-Dataset2D Scan::landscape(unsigned int evals) const {
+Dataset2D Scan::landscape(unsigned int evals) {
     // check if the minimizer has already been called
     if (!evaluations.empty()) {
         // if so, we can just reuse its result

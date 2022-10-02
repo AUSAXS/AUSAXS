@@ -9,13 +9,13 @@ namespace mini {
 	 */
 	class MinimumExplorer : public Minimizer {
 		public:
-            MinimumExplorer(double(&func)(const double*));
+            MinimumExplorer(double(&func)(const double*), unsigned int evals);
 
-            MinimumExplorer(std::function<double(const double*)> func);
+            MinimumExplorer(std::function<double(const double*)> func, unsigned int evals);
 
-            MinimumExplorer(double(&func)(const double*), const Parameter& param);
+            MinimumExplorer(double(&func)(const double*), const Parameter& param, unsigned int evals);
 
-            MinimumExplorer(std::function<double(const double*)> func, const Parameter& param);
+            MinimumExplorer(std::function<double(const double*)> func, const Parameter& param, unsigned int evals);
 
 			/**
 			 * @brief Add a parameter.
@@ -25,7 +25,7 @@ namespace mini {
             /**
              * @brief Generate a landscape of the function.
              */
-            Dataset2D landscape(unsigned int evals = 100);
+            Dataset2D landscape(unsigned int evals) override;
 
             /**
              * @brief Get the evaluated points and their function values.
@@ -33,6 +33,8 @@ namespace mini {
             Dataset2D get_evaluated_points() const override;
 
         private:
+            unsigned int evals;
+
 			/**
 			 * @brief Perform the minimization.
 			 */

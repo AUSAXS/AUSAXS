@@ -63,7 +63,7 @@ namespace mini {
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            virtual Dataset2D landscape(unsigned int bins = 100) const = 0;
+            virtual Dataset2D landscape(unsigned int bins = 100) = 0;
 
             /**
              * @brief Get the evaluated points. 
