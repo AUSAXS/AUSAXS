@@ -13,7 +13,7 @@ int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     setting::em::hydrate = true;
-    setting::fit::verbose = true;
+    setting::fit::verbose = false;
 
     CLI::App app{"Fit an EM map to a SAXS measurement."};
 

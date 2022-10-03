@@ -291,6 +291,26 @@ TEST_CASE("voxelcount", "[em],[slow],[manual]") {
     plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
 }
 
+TEST_CASE("instability", "[em],[files],[manual]") {
+    setting::protein::use_effective_charge = false;
+    setting::em::sample_frequency = 2;
+    setting::axes::qmax = 0.4;
+    em::ImageStack image("data/A2M_native/emd_12747.ccp4");
+
+    SimpleDataset data;
+    Axis range(100, image.level(0.5), image.level(7));
+    unsigned int prev = image.count_voxels(range.min);
+    for (unsigned int i = 1; i < range.bins; i++) {
+        double cutoff = range.min + i * range.step();
+        unsigned int count = image.count_voxels(cutoff);
+        data.push_back(cutoff, prev - count);
+        prev = count;
+    }
+
+    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "change"}});
+    plots::PlotDataset::quick_plot(data, "figures/test/em/instability.pdf"); 
+}
+
 TEST_CASE("save_as_pdb", "[em],[manual]") {
     em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
     image.get_protein(image.level(3))->save("figures/test/em/save_as_pdb.pdb");

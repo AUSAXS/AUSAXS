@@ -1,4 +1,6 @@
 # Todo
+ * [ ] Hydrogens are still not handled correctly - if e.g. 2HB is listed, it is not automatically parsed as a hydrogen and subsequently crashes. 
+ * [ ] MinimumExplorer: Fails if started in an area with no voxels
  * [ ] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash.
  * [ ] Grid: Binning range seems to be exclusive the top-most atom
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
@@ -24,6 +26,9 @@
  * e2pdb2mrc.py: 
  	eval "$(/home/au561871/tools/eman2/bin/conda shell.bash hook)"
 	python3 ~/tools/eman2/bin/e2pdb2mrc.py
+	
+ * Fitter can be optimized. Current implementation spends too much time on the lower half of the chi2 curve, where there's no oscillations. 
+
 ## Compiler flags:
  * fno-finite-math-only: Can probably be removed, not sure of performance benefits. Note that its removal would specifically break limit handling of plots where std::isinf checks are used. 
 

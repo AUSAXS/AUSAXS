@@ -104,7 +104,7 @@ namespace saxs {
              */
             const unsigned int& get(const std::string& key) const override {
                 std::string k2 = utility::to_lowercase(key);
-                if (k2[0] == 'h') {
+                if (k2[0] == 'h' || (std::isdigit(k2[0]) && k2[1] == 'h')) {
                     return data.at("h");
                 }
                 if (data.find(k2) == data.end()) {

@@ -91,7 +91,7 @@ saxs::detail::SimpleResidueMap parser::residue::detail::Residue::to_map() const 
     saxs::detail::SimpleResidueMap map;
     for (const Atom& a : atoms) {
         // skip all H's, they are automatically handled by the SimpleResidueMap
-        if (a.name[0] == 'H') {
+        if (a.symbol == "H") {
             continue;
         }
 

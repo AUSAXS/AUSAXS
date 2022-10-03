@@ -92,7 +92,7 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {level(1), level(7)};
+    Limit lim = {level(0.5), level(7)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -105,7 +105,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {level(1), level(7)};
+    Limit lim = {level(0.5), level(7)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
