@@ -5,7 +5,7 @@
 #include <histogram/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <plots/PlotIntensity.h>
 
 using std::vector;
@@ -15,7 +15,7 @@ TEST_CASE("check_scaling_factor", "[histogram]") {
     vector<Atom> b1 =   {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> b2 =   {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> b3 =   {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),   Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-    vector<Hetatom> w = {Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+    vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
     vector<vector<Atom>> a = {b1, b2, b3};
     Protein protein(a, w);
 

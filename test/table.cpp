@@ -15,6 +15,7 @@ namespace std {
 }
 
 TEST_CASE("lookup_tables", "[table]") {
+    setting::axes::qmax = 1.001;
     SECTION("integer table") {
         vector<unsigned int> rows = {1, 2, 3};
         vector<unsigned int> cols = {1, 2, 3};
@@ -81,6 +82,7 @@ TEST_CASE("lookup_tables", "[table]") {
 }
 
 TEST_CASE("debye_lookup_table", "[table]") {
+    setting::axes::qmax = 1.001;
     SECTION("default_table") {
         double width = setting::axes::scattering_intensity_plot_binned_width;
         vector<double> d(200/width, 0);

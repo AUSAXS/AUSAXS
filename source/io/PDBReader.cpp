@@ -5,11 +5,14 @@
 #include <data/Atom.h>
 #include <data/Water.h>
 #include <utility/Exceptions.h>
+#include <utility/Settings.h>
 
 #include <fstream>
 
 void PDBReader::read(std::string input_path) {
-    utility::print_info("\nLoading PDB file from \"" + input_path + "\"");
+    if (setting::general::verbose) {
+        utility::print_info("\nLoading PDB file from \"" + input_path + "\"");
+    }
 
     // check if file was succesfully opened
     std::ifstream input(input_path);
@@ -55,8 +58,11 @@ void PDBReader::read(std::string input_path) {
 
     unsigned int n_pa = f.protein_atoms.size();
     unsigned int n_ha = f.hydration_atoms.size();
-    std::cout << "\tSuccessfully read " << n_pa + n_ha << " atomic records." << std::endl;
-    if (n_ha != 0) {
-        std::cout << "\t\t" << f.hydration_atoms.size() << " of these are hydration atoms." << std::endl;
+    
+    if (setting::general::verbose) {
+        std::cout << "\tSuccessfully read " << n_pa + n_ha << " atomic records." << std::endl;
+        if (n_ha != 0) {
+            std::cout << "\t\t" << f.hydration_atoms.size() << " of these are hydration atoms." << std::endl;
+        }
     }
 }

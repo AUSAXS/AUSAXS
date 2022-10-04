@@ -68,9 +68,7 @@ class Atom : public Record {
     void translate(Vector3<double> v);
 
     /**
-     * @brief Determine if this is a water molecule. Only used by the Hetatom subclass, but is defined here for convenience. 
-     * 
-     * @return true if this is a water molecule, otherwise false. 
+     * @brief Determine if this is a water molecule.
      */
     virtual bool is_water() const;
 
@@ -187,7 +185,7 @@ class Atom : public Record {
 
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     Vector3<double> coords = {0, 0, 0};
-    std::string name = "", altLoc = "", resName = "", chainID = "", iCode = "", element = "", charge = "";
+    std::string name, altLoc, resName, chainID, iCode, element, charge, recName;
     double occupancy = -1, tempFactor = -1;
     int serial = -1, resSeq = -1; 
 

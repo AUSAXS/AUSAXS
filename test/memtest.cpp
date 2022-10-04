@@ -165,7 +165,7 @@ TEST_CASE("debug2", "[memtest]") {
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
                        Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
 
-    vector<Hetatom> w = {};
+    vector<Water> w = {};
     std::shared_ptr<File> f1 = std::make_shared<File>(a1, w);
     std::shared_ptr<File> f2 = std::make_shared<File>(a2, w);
     // vector<Atom>& atoms = f1->protein_atoms;
@@ -194,7 +194,7 @@ TEST_CASE("file_assign", "[memtest]") {
                           Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
                           Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
 
-    vector<Hetatom> waters;
+    vector<Water> waters;
 
     std::shared_ptr<File> file2 = std::make_shared<File>();
     std::shared_ptr<File> file1 = std::make_shared<File>(atoms, waters);

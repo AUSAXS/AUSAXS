@@ -124,7 +124,7 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     rbody.generate_new_hydration();
 
     IntensityFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
-    double _chi2 = fitter.fit()->fval;
+    fitter.fit()->fval;
 }
 
 TEST_CASE("body_selectors", "[rigidbody]") {

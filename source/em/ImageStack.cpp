@@ -223,22 +223,22 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
     return chi2;
 }
 
-Dataset ImageStack::cutoff_scan(const Axis& points, string file) {
+ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, string file) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
-Dataset ImageStack::cutoff_scan(unsigned int points, string file) {
+ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, string file) {
     Axis axis(points, level(1), level(7));
     return cutoff_scan(axis, file);
 }
 
-Dataset ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
+ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
     return cutoff_scan_helper(points, fitter);
 }
 
-Dataset ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
+ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
     Axis axis(points, level(1), level(7));
     return cutoff_scan(axis, h);
 }
@@ -259,7 +259,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::stri
     return cutoff_scan_fit_helper(axis, fitter);
 }
 
-Dataset ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
+ImageStack::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
     update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);

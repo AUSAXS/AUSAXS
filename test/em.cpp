@@ -158,15 +158,15 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
         }
     };
 
-    // SECTION("check_equality_no_noise") {
-    //     setting::em::sample_frequency = 2;
-    //     setting::em::simulation::noise = false;
-    //     for (unsigned int i = 0; i < repeats; i++) {
-    //         Dataset contour = image.cutoff_scan({10, 0, 6}, hist);
-    //         contours.push_back(contour);
-    //         compare_contours(contour);
-    //     }
-    // }
+    SECTION("check_equality_no_noise") {
+        setting::em::sample_frequency = 2;
+        setting::em::simulation::noise = false;
+        for (unsigned int i = 0; i < repeats; i++) {
+            auto contour = image.cutoff_scan({10, 0, 6}, hist);
+            contours.push_back(contour.contour);
+            compare_contours(contour.contour);
+        }
+    }
 
     SECTION("with_noise") {
         setting::em::simulation::noise = true;

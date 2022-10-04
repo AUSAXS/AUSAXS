@@ -108,6 +108,7 @@ void Atom::parse_pdb(string s) {
 
     // set all of the properties
     try {
+        this->recName = recName;
         this->serial = std::stoi(serial);
         this->name = name;
         this->altLoc = altLoc;
@@ -204,7 +205,7 @@ string Atom::get_charge() const {return charge;}
 string Atom::get_resName() const {return resName;}
 string Atom::get_name() const {return name;}
 string Atom::get_element() const {return element;}
-string Atom::get_recName() const {return "ATOM  ";}
+string Atom::get_recName() const {return recName;}
 
 double Atom::get_mass() const {
     if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {

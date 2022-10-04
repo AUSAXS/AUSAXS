@@ -53,10 +53,10 @@ TEST_CASE("body_histogram", "[body]") {
     SECTION("waters_only") {
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
         vector<Atom> a = {};
-        vector<Hetatom> w = {Hetatom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Hetatom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
-                            Hetatom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Hetatom(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
-                            Hetatom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Hetatom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
-                            Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+        vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
+                            Water(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Water(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
+                            Water(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Water(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                            Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         Body body(a, w);
 
         // set the weights to 1 so we can analytically determine the result
@@ -89,7 +89,7 @@ TEST_CASE("body_histogram", "[body]") {
         vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Hetatom> w = {Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+        vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         Body body(a, w);
 
         // set the weights to 1 so we can analytically determine the result

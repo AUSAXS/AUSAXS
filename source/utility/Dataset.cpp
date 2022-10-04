@@ -113,7 +113,9 @@ void Dataset::save(std::string path, std::string header) const {
 }
 
 void Dataset::load(std::string path) {
-    utility::print_info("\nLoading dataset from \"" + path + "\"");
+    if (setting::general::verbose) {
+        utility::print_info("\nLoading dataset from \"" + path + "\"");
+    }
 
     // check if file was succesfully opened
     std::ifstream input(path);
@@ -185,5 +187,8 @@ void Dataset::load(std::string path) {
             std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
         }
     }
-    std::cout << "\tSuccessfully read " << size() << " data points from " << path << std::endl;
+
+    if (setting::general::verbose) {
+        std::cout << "\tSuccessfully read " << size() << " data points from " << path << std::endl;
+    }
 }

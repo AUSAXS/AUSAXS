@@ -147,7 +147,7 @@ TEST_CASE("volume", "[grid]") {
 
     // cout << grid.get_volume() << endl;
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
-    vector<Hetatom> w = {Hetatom({2, 2, 2}, 0, "C", "", 0), Hetatom({2, 2, 3}, 0, "C", "", 0)};
+    vector<Water> w = {Water({2, 2, 2}, 0, "C", "", 0), Water({2, 2, 3}, 0, "C", "", 0)};
     grid.add(a);
     grid.add(w);
     REQUIRE(grid.volume == 1); // atoms are added as point-particles, and only occupy one unit of space.
@@ -175,7 +175,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
         grid.add(a);
         REQUIRE(grid.get_atoms().size() == 1); // check get_protein_atoms
 
-        vector<Hetatom> water = grid.hydrate();
+        vector<Water> water = grid.hydrate();
 
         REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
         CHECK(water[0].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
@@ -253,7 +253,7 @@ TEST_CASE("width", "[grid]") {
 
         // check water generation
         setting::grid::percent_water = 0;
-        vector<Hetatom> water = grid.hydrate();
+        vector<Water> water = grid.hydrate();
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions
         vector<Vector3<int>> v = {{0, 0, 6}, {0, 0, -6}, {6, 0, 0}, {-6, 0, 0}, {0, 6, 0}, {0, -6, 0}};
@@ -326,10 +326,10 @@ TEST_CASE("add_remove", "[grid]") {
     vector<Atom> a = {a1, a2, a3};
 
     // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector3<double>({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector3<double>({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector3<double>({-3, 0, 0}));
-    vector<Hetatom> w = {w1, w2, w3};
+    Water w1 = Water::create_new_water(Vector3<double>({0, 0, -3}));
+    Water w2 = Water::create_new_water(Vector3<double>({0, -3, 0}));
+    Water w3 = Water::create_new_water(Vector3<double>({-3, 0, 0}));
+    vector<Water> w = {w1, w2, w3};
 
     SECTION("add") {
         // add atoms
@@ -343,7 +343,7 @@ TEST_CASE("add_remove", "[grid]") {
 
         // add waters
         grid.add(w);
-        vector<Hetatom> wa = grid.get_waters();
+        vector<Water> wa = grid.get_waters();
         REQUIRE(grid.a_members.size() == 3); // check actual data
         REQUIRE(grid.w_members.size() == 3); // check actual data
         REQUIRE(wa.size() >= 3);
@@ -360,7 +360,7 @@ TEST_CASE("add_remove", "[grid]") {
         grid.remove(w3);
         grid.remove(w1);
         vector<Atom> ga = grid.get_atoms();
-        vector<Hetatom> wa = grid.get_waters();
+        vector<Water> wa = grid.get_waters();
 
         // check sizes
         REQUIRE(ga.size() == 2);
@@ -386,12 +386,12 @@ TEST_CASE("add_remove", "[grid]") {
         grid.add(w);
 
         // remove a list of hetatoms
-        vector<Hetatom> remove_water = {w1, w3};
+        vector<Water> remove_water = {w1, w3};
         grid.remove(remove_water);
 
         // check the remaining one
         vector<Atom> ga = grid.get_atoms();
-        vector<Hetatom> wa = grid.get_waters();
+        vector<Water> wa = grid.get_waters();
         REQUIRE(wa.size() == 1);
         REQUIRE(ga.size() == 3);
         REQUIRE(wa[0] == w2);
@@ -420,10 +420,10 @@ TEST_CASE("correct_volume", "[grid]") {
     vector<Atom> a = {a1, a2, a3};
 
     // waters
-    Hetatom w1 = Hetatom::create_new_water(Vector3<double>({0, 0, -3}));
-    Hetatom w2 = Hetatom::create_new_water(Vector3<double>({0, -3, 0}));
-    Hetatom w3 = Hetatom::create_new_water(Vector3<double>({-3, 0, 0}));
-    vector<Hetatom> w = {w1, w2, w3};
+    Water w1 = Water::create_new_water(Vector3<double>({0, 0, -3}));
+    Water w2 = Water::create_new_water(Vector3<double>({0, -3, 0}));
+    Water w3 = Water::create_new_water(Vector3<double>({-3, 0, 0}));
+    vector<Water> w = {w1, w2, w3};
 
     // single non-overlapping
     REQUIRE(grid.volume == 0);
@@ -457,7 +457,7 @@ TEST_CASE("find_free_locs", "[grid]") {
         grid.add(a);
         grid.expand_volume();
 
-        vector<grid::GridMember<Hetatom>> locs = grid.find_free_locs();
+        vector<grid::GridMember<Water>> locs = grid.find_free_locs();
         REQUIRE(locs.size() == 6);
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions

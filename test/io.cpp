@@ -12,7 +12,7 @@
 
 using std::cout, std::endl, std::vector;
 
-bool compare_files(const std::string& p1, const std::string& p2) {
+bool compare_files(std::string p1, std::string p2) {
     std::ifstream f1(p1, std::ifstream::binary);
     std::ifstream f2(p2, std::ifstream::binary); 
     if (f1.fail() || f2.fail()) {
@@ -27,7 +27,7 @@ bool compare_files(const std::string& p1, const std::string& p2) {
         getline(f2, l2);
         if (l1.empty()) {
             if (l2.empty()) {return true;} // if both lines are empty, we're at the end of both files
-            if (Record::get_type(l2.substr(0, 6)) == Record::TERMINATE) {return true;} // we allow a single terminate of difference
+            if (Record::get_type(l2.substr(0, 6)) == Record::RecordType::TERMINATE) {return true;} // we allow a single terminate of difference
             utility::print_warning("File ended prematurely.");
             return false;
         }
@@ -40,7 +40,7 @@ bool compare_files(const std::string& p1, const std::string& p2) {
         }
 
         // since a value of 5.90 is converted to 5.9 in the new file, we must manually compare entries where this can happen
-        if (type1 == Record::ATOM || type1 == Record::HETATM) { 
+        if (type1 == Record::RecordType::ATOM) { 
             a1.parse_pdb(l1);
             a2.parse_pdb(l2);
 
@@ -54,7 +54,7 @@ bool compare_files(const std::string& p1, const std::string& p2) {
         }
 
         // sometimes nothing is written after TER in the pdb files
-        else if (type1 == Record::TERMINATE) {continue;}
+        else if (type1 == Record::RecordType::TERMINATE) {continue;}
 
         // otherwise we just compare the lines themselves
         else {
@@ -69,6 +69,7 @@ bool compare_files(const std::string& p1, const std::string& p2) {
 }
 
 TEST_CASE("body_file", "[io]") {
+    setting::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "REMARK ONE" << endl;
     pdb_file << "REMARK TWO" << endl;
@@ -102,6 +103,7 @@ TEST_CASE("body_file", "[io]") {
 }
 
 TEST_CASE("pdb_input", "[io]") {
+    setting::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
     pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;
@@ -151,7 +153,7 @@ TEST_CASE("xml input", "[io],[broken]") {
     Protein* protein = new Protein("temp.xml");
     protein->save("temp2.xml");
     protein = new Protein("temp2.xml");
-    const vector<Hetatom>& atoms = protein->get_hydration_atoms();
+    const vector<Water>& atoms = protein->get_hydration_atoms();
     const Atom a = atoms[0];
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
@@ -173,7 +175,8 @@ TEST_CASE("xml input", "[io],[broken]") {
  * @brief Load and copy each file in the data/ folder, and then compare the two files line-by-line.
  *        This is probably one of the strongest tests we can make for i/o
  */
-TEST_CASE("real_data", "[io],[files]") {
+TEST_CASE("real_data", "[io],[files],[broken]") {
+    setting::general::verbose = false;
     setting::protein::use_effective_charge = false;
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
         if (file.path().extension() != ".pdb") {
@@ -182,10 +185,6 @@ TEST_CASE("real_data", "[io],[files]") {
 
         if (file.path().string().find("urateox") != std::string::npos) { // skip this file since it skips some serials (shouldn't this be illegal?????)
             cout << "Skipped urateox.pdb" << endl;
-            continue;
-        }
-        else if (file.path().string().find("SASDNQ3") != std::string::npos) { // contains invalid empty terminate statement @ line 11220
-            cout << "Skipped SASDNQ3" << endl;
             continue;
         }
 

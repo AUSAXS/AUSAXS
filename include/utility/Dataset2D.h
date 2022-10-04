@@ -54,7 +54,7 @@ class Dataset2D : public SimpleDataset {
             }
         }
 
-        Dataset2D(SimpleDataset data) : Dataset2D(data.size()) {
+        Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
             for (unsigned int i = 0; i < data.size(); i++) {
                 row(i) = {data.x(i), data.y(i), data.yerr(i), 0};
             }

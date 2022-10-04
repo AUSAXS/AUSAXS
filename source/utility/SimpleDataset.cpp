@@ -295,7 +295,7 @@ void SimpleDataset::load(std::string path) {
     }
     unsigned int N = size();
     limit_x(setting::axes::qmin, setting::axes::qmax);
-    if (N != size()) {
+    if (N != size() && setting::general::verbose) {
         std::cout << "\tRemoved " << N - size() << " data points outside specified q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
     }
 }

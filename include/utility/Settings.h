@@ -12,7 +12,8 @@
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
     struct general {
-        static constexpr char residue_folder[] = "temp/residues/"; // Download location for all ligand files. Must be constexpr. 
+        static constexpr char residue_folder[] = "temp/residues/";  // Download location for all ligand files. Must be constexpr. 
+        inline static bool verbose = true;                          // Whether to print out extra information.
     };
 
     struct figures {

@@ -126,10 +126,10 @@ TEST_CASE("histogram", "[protein]") {
         setting::protein::use_effective_charge = false;
         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
         vector<Atom> a = {};
-        vector<Hetatom> w = {Hetatom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Hetatom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
-                            Hetatom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Hetatom(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
-                            Hetatom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Hetatom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
-                            Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+        vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
+                            Water(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Water(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
+                            Water(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Water(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                            Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         Protein protein(a, w);
 
         // set the weights to 1 so we can analytically determine the result
@@ -164,7 +164,7 @@ TEST_CASE("histogram", "[protein]") {
         vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Hetatom> w = {Hetatom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Hetatom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+        vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         vector<vector<Atom>> a = {b1, b2, b3};
         Protein protein(a, w);
 
@@ -219,9 +219,9 @@ TEST_CASE("histogram", "[protein]") {
         Body body(ab, {});
 
         // create some water molecules
-        vector<Hetatom> atoms(10);
+        vector<Water> atoms(10);
         for (size_t i = 0; i < atoms.size(); i++) {
-            atoms[i] = Hetatom::create_new_water(Vector3<double>(i, i, i));
+            atoms[i] = Water::create_new_water(Vector3<double>(i, i, i));
         }
 
         body.get_hydration_atoms() = atoms;
@@ -387,7 +387,7 @@ TEST_CASE("compare_grid_placement", "[protein]") {
                       Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
                       Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
                       Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-    vector<Hetatom> w = {};
+    vector<Water> w = {};
     
     Protein protein(a, w);
     Body body(a, w);

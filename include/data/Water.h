@@ -16,7 +16,7 @@ class Water : public Atom {
         string get_recName() const override {return "HETATM";}
 
         bool is_water() const override {return true;}
-        
+
         /**
          * @brief Create a new default water atom.
          */

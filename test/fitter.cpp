@@ -17,7 +17,7 @@ TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
 
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    setting::axes::qmax = 0.4;
+    // setting::axes::qmax = 0.4;
 
     // prepare measured data
     Protein protein("data/A2M/native.pdb");

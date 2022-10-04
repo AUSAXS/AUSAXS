@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <data/Atom.h>
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <utility/Settings.h>
 
 TEST_CASE("Atom", "[atom]") {
@@ -38,7 +38,7 @@ TEST_CASE("Atom", "[atom]") {
     CHECK(a2.charge == "");
 
 //*** HETATOMS ***//
-    Hetatom w1 = Hetatom::create_new_water(Vector3<double>({1, 2, 3}));
+    Water w1 = Water::create_new_water(Vector3<double>({1, 2, 3}));
     CHECK(w1.serial == -1);
     CHECK(w1.name == "O");
     CHECK(w1.altLoc == "");
@@ -64,8 +64,8 @@ TEST_CASE("operators", "[atom]") {
     REQUIRE(a2 < a1);
 
 //*** HETATOMS ***//
-    Hetatom w1 = Hetatom({3, 0, 5}, 2, "He", "", 3);
-    Hetatom w2 = w1;
+    Water w1 = Water({3, 0, 5}, 2, "He", "", 3);
+    Water w2 = w1;
     REQUIRE(w1 == w2);
 
     w2 = Atom({0, 4, 1}, 2, "He", "", 2);
