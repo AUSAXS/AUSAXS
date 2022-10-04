@@ -1,4 +1,5 @@
 #include <math/SimpleLeastSquares.h>
+#include <math/Statistics.h>
 #include <utility/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
@@ -111,8 +112,9 @@ void Dataset::save(std::string path, std::string header) const {
     output.close();
 }
 
-#include <math/Statistics.h>
 void Dataset::load(std::string path) {
+    utility::print_info("\nLoading dataset from \"" + path + "\"");
+
     // check if file was succesfully opened
     std::ifstream input(path);
     if (!input.is_open()) {throw std::ios_base::failure("Error in Dataset::load: Could not open file \"" + path + "\"");}
@@ -167,7 +169,7 @@ void Dataset::load(std::string path) {
 
     // verify that at least one row was read correctly
     if (size() == 0) {
-        throw except::unexpected("Error in Dataset::load: No data was read from the file.");
+        throw except::unexpected("Error in Dataset::load: No data could be read from the file.");
     }
 
     // check if the file is abnormally large
@@ -180,7 +182,8 @@ void Dataset::load(std::string path) {
         // check if file has already been rebinned
         if (line.find("REBINNED") == std::string::npos) {
             // if not, suggest it to the user
-            utility::print_warning("Warning in Dataset::load: File \"" + path + "\" contains more than 300 rows. Consider rebinning it first. (size = " + std::to_string(size()) + ")");
+            std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
         }
     }
+    std::cout << "\tSuccessfully read " << size() << " data points from " << path << std::endl;
 }

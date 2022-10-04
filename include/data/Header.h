@@ -18,9 +18,8 @@ public:
 
 	/**
 	 * @brief Get the RecordType of this object.
-	 * @return Record::HEADER
 	 */
-	RecordType get_type() const override {return HEADER;}
+	RecordType get_type() const override;
 
 	/**
 	 * @brief Parse a .pdb format header string. This is equivalent to the add method.

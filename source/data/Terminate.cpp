@@ -15,7 +15,7 @@ Terminate::Terminate(int serial, string resName, string chainID, int resSeq, str
     this->iCode = iCode;
 }
 
-Record::RecordType Terminate::get_type() const {return TERMINATE;}
+Record::RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 
 void Terminate::parse_pdb(const string s) {
     if (s.size() < 28) {return;} // sometimes the terminate record consists only of "TER   "
@@ -32,7 +32,7 @@ void Terminate::parse_pdb(const string s) {
         space2.data(), chainID.data(), resSeq.data(), iCode.data());
 
     // sanity check
-    if (Record::get_type(recName) != Record::TERMINATE) {
+    if (Record::get_type(recName) != RecordType::TERMINATE) {
         throw except::parse_error("Error in Atom::parse_pdb: input string is not \"TER   \" (" + recName + ").");
     }
 

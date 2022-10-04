@@ -18,9 +18,8 @@ public:
 
 	/**
 	 * @brief Get the RecordType of this object.
-	 * @return Record::Footer
 	 */
-	RecordType get_type() const override {return FOOTER;}
+	RecordType get_type() const override;
 
 	/**
 	 * @brief Parse a .pdb format Footer string. This is equivalent to the add method.

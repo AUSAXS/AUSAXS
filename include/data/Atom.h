@@ -9,10 +9,6 @@
 
 class Atom : public Record {
   public:
-    Atom(const Atom&& a) noexcept;
-
-    Atom(const Atom& a);
-
     /** 
      * @brief Construct a new Atom object.
      * 
@@ -188,8 +184,6 @@ class Atom : public Record {
      * @param rhs Atom to compare against. 
      */
     bool operator!=(const Atom& rhs) const {return !operator==(rhs);}
-
-    Atom& operator=(const Atom& rhs);
 
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     Vector3<double> coords = {0, 0, 0};

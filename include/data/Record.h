@@ -9,77 +9,44 @@
 #include <utility/Exceptions.h>
 
 class Record {
-  public: 
-    enum RecordType {HEADER, ATOM, WATER, TERMINATE, FOOTER, NOTYPE};
-    virtual ~Record() {}
-    
-    virtual void parse_pdb(const std::string s) = 0;
-    virtual RecordType get_type() const = 0;
-    virtual std::string as_pdb() const = 0;
+    public: 
+        enum class RecordType {HEADER, ATOM, WATER, TERMINATE, FOOTER, NOTYPE};
+        virtual ~Record() {}
+        
+        virtual void parse_pdb(std::string s) = 0;
+        virtual RecordType get_type() const = 0;
+        virtual std::string as_pdb() const = 0;
 
-    static RecordType get_type(std::string s) {
-        boost::erase_all(s, " ");  // remove any spaces so we only match the type itself. some programs are inconsistent with spacing after e.g. END or TER
-        boost::erase_all(s, "\r"); // some programs adds a carriage return after END, which we have to remove
-        if (type_map.count(s) == 1) {
-            return type_map.at(s);
+        static RecordType get_type(std::string s) {
+            boost::erase_all(s, " ");  // remove any spaces so we only match the type itself. some programs are inconsistent with spacing after e.g. END or TER
+            boost::erase_all(s, "\r"); // some programs adds a carriage return after END, which we have to remove
+            if (type_map.count(s) == 1) {
+                return type_map.at(s);
+            }
+            throw except::parse_error("Error in Record::get_type: Could not determine type \"" + s + "\"");
         }
-        throw except::parse_error("Error in Record::get_type: Could not determine type \"" + s + "\"");
-    }
 
-  private:
-    inline static const std::map<string, RecordType> type_map = {
-        {"ATOM"  , ATOM}, {"HETATM", ATOM},
-        {"TER"   , TERMINATE}, 
-        {"HEADER", HEADER}, {"TITLE" , HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, 
-        {"EXPDTA", HEADER}, {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL"  , HEADER}, {"REMARK", HEADER}, 
-        {"DBREF" , HEADER}, {"SEQRES", HEADER}, {"FORMUL", HEADER}, {"HELIX" , HEADER}, {"SHEET" , HEADER}, 
-        {"SSBOND", HEADER}, {"CRYST1", HEADER}, {"ORIGX1", HEADER}, {"ORIGX2", HEADER}, {"ORIGX3", HEADER}, 
-        {"SCALE1", HEADER}, {"SCALE2", HEADER}, {"SCALE3", HEADER}, {"HET"   , HEADER}, {"HETNAM", HEADER},
-        {"HETSYN", HEADER}, {"FORMUL", HEADER}, {"CISPEP", HEADER}, {"SITE"  , HEADER}, {"SEQADV", HEADER},
-        {"LINK"  , HEADER}, {"MODEL" , HEADER}, {"LINKR" , HEADER}, {"SPRSDE", HEADER}, {"MODRES", HEADER},
-        {"MTRIX1", HEADER}, {"MTRIX2", HEADER}, {"MTRIX3", HEADER},
-        {"ANISOU", NOTYPE},
-        {"CONECT", FOOTER}, {"MASTER", FOOTER}, {"END"   , FOOTER}, {"ENDMDL", FOOTER}};
+    private:
+        // Maps PDB types to a Record. Effectively determines how they are treated by the code.
+        //      ATOMs will be converted to an Atom object. 
+        //      TERMINATE will be parsed as a Terminate statement. 
+        //      All HEADERs will be combined into a single string. HEADERs must always be above the ATOM section.
+        //      FOOTERs are treated identically to HEADERs, but must always be after the ATOM section.
+        //      NOTYPEs are ignored. 
+        inline static const std::map<string, RecordType> type_map = {
+            {"ATOM"  , RecordType::ATOM}, {"HETATM", RecordType::ATOM},
+            {"TER"   , RecordType::TERMINATE}, 
+            {"HEADER", RecordType::HEADER}, {"TITLE" , RecordType::HEADER}, {"COMPND", RecordType::HEADER}, {"SOURCE", RecordType::HEADER}, 
+            {"KEYWDS", RecordType::HEADER}, {"EXPDTA", RecordType::HEADER}, {"AUTHOR", RecordType::HEADER}, {"REVDAT", RecordType::HEADER}, 
+            {"JRNL"  , RecordType::HEADER}, {"REMARK", RecordType::HEADER}, {"DBREF" , RecordType::HEADER}, {"SEQRES", RecordType::HEADER}, 
+            {"FORMUL", RecordType::HEADER}, {"HELIX" , RecordType::HEADER}, {"SHEET" , RecordType::HEADER}, {"SSBOND", RecordType::HEADER}, 
+            {"CRYST1", RecordType::HEADER}, {"ORIGX1", RecordType::HEADER}, {"ORIGX2", RecordType::HEADER}, {"ORIGX3", RecordType::HEADER}, 
+            {"SCALE1", RecordType::HEADER}, {"SCALE2", RecordType::HEADER}, {"SCALE3", RecordType::HEADER}, {"HET"   , RecordType::HEADER}, 
+            {"HETNAM", RecordType::HEADER}, {"HETSYN", RecordType::HEADER}, {"FORMUL", RecordType::HEADER}, {"CISPEP", RecordType::HEADER}, 
+            {"SITE"  , RecordType::HEADER}, {"SEQADV", RecordType::HEADER}, {"LINK"  , RecordType::HEADER}, {"MODEL" , RecordType::HEADER}, 
+            {"LINKR" , RecordType::HEADER}, {"SPRSDE", RecordType::HEADER}, {"MODRES", RecordType::HEADER}, {"MTRIX1", RecordType::HEADER}, 
+            {"MTRIX2", RecordType::HEADER}, {"MTRIX3", RecordType::HEADER}, 
+            {"CONECT", RecordType::FOOTER}, {"MASTER", RecordType::FOOTER}, {"END"   , RecordType::FOOTER}, {"ENDMDL", RecordType::FOOTER},
+            {"ANISOU", RecordType::NOTYPE}
+            };
 };
-
-// Fixed-length printing of numbers. std::setprecision does *not* count leading zeros, which breaks our strict formatting.
-struct __setp {
-    double number;
-    int prec;
-};
-
-inline std::ostream& operator<<(std::ostream& os, const __setp& obj) {
-    os.precision(obj.prec);
-    os << obj.number;
-    return os;
-}
-
-/**
- * @brief Print a fixed-width number in a given stream.
- * @param number number to be printed. 
- * @param p total width including signs and decimal separator
- */
-inline __setp setf(const double number, const int precision) {
-    // IF THIS EVER BREAKS AGAIN, CONVERT IT TO A SIMPLE LOOP OVER string(number) INSTEAD. COULD EVEN INCLUDE MINWIDTH AS WELL
-    __setp setter;
-    setter.number = number;
-    int p = 1; // the dot will always take up a slot
-
-    std::string num = std::to_string(number);
-    if (num[0] == '-') {
-        p++; // -1 since the sign takes up a slot
-    }
-
-    if (std::floor(std::abs(number)) != 0) { // if the number is not ±0.xxx
-        setter.prec = precision - p;
-        return setter;
-    }
-
-    p++; // another slot is taken by 0
-    size_t fsig = num.find_first_not_of("0", p); // find first significant decimal after the dot
-    if (fsig != std::string::npos) { // number is of the form 0.00312...
-        p = fsig;
-    }
-    setter.prec = precision - p;
-    return setter;
-}

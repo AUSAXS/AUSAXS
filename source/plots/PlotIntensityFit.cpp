@@ -44,11 +44,6 @@ void plots::PlotIntensityFit::plot(const Fit::Plots& graphs) const {
     limits.merge(graphs.intensity_interpolated.span_y_positive());
     PlotOptions options0, options1, options2;
 
-    std::cout << graphs.data.span_y_positive();
-    std::cout << graphs.intensity.span_y_positive();
-    std::cout << graphs.intensity_interpolated.span_y_positive();
-    std::cout << "Final limits: " << limits << std::endl;
-
     auto span = graphs.data.span_x();
     span.expand(0.05);
     options2.set("errors", {{"color", kOrange+1}, {"markerstyle", 7}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"ylimits", limits}, {"xlimits", span}});

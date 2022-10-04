@@ -9,6 +9,8 @@
 #include <fstream>
 
 void PDBReader::read(std::string input_path) {
+    utility::print_info("\nLoading PDB file from \"" + input_path + "\"");
+
     // check if file was succesfully opened
     std::ifstream input(input_path);
     if (!input.is_open()) {throw except::io_error("Error in PDB_file::read: Could not open file \"" + input_path + "\"");}
@@ -18,15 +20,18 @@ void PDBReader::read(std::string input_path) {
     while(getline(input, line)) {
         string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
-            case Record::RecordType::WATER: {
-                Water atom;
-                atom.parse_pdb(line);
-                f.add(atom);
-                break;
-            } case Record::RecordType::ATOM: {
+            case Record::RecordType::ATOM: {
+                // first just parse it as an atom; we can reuse it anyway even if it is a water molecule
                 Atom atom;
                 atom.parse_pdb(line);
-                f.add(atom);
+
+                // if this is a water molecule, add it to the hydration atoms
+                // otherwise add it to the protein atoms
+                if (atom.is_water()) {
+                    f.add(Water(std::move(atom)));
+                } else {
+                    f.add(atom);
+                }
                 break;
             } case Record::RecordType::TERMINATE: {
                 Terminate term;
@@ -47,4 +52,11 @@ void PDBReader::read(std::string input_path) {
         };
     }
     input.close();
+
+    unsigned int n_pa = f.protein_atoms.size();
+    unsigned int n_ha = f.hydration_atoms.size();
+    std::cout << "\tSuccessfully read " << n_pa + n_ha << " atomic records." << std::endl;
+    if (n_ha != 0) {
+        std::cout << "\t\t" << f.hydration_atoms.size() << " of these are hydration atoms." << std::endl;
+    }
 }

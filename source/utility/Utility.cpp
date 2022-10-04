@@ -5,9 +5,7 @@
 #include <utility/Settings.h>
 
 bool utility::approx(double v1, double v2, double abs, double eps) {
-    if (v1-abs > v2*(1+eps)) {return false;}
-    if (v1+abs < v2*(1-eps)) {return false;}
-    return true;
+    return std::abs(v1 - v2) <= std::max(abs, eps * std::max(std::abs(v1), std::abs(v2)));
 }
 
 std::string utility::remove_quotation_marks(std::string s) {
@@ -29,6 +27,10 @@ void utility::print_warning(std::string text) {
 
 void utility::print_success(std::string text) {
     std::cout << "\033[1;32m" << text << "\033[0m" << std::endl;
+}
+
+void utility::print_info(std::string text) {
+    std::cout << "\033[1;34m" << text << "\033[0m" << std::endl;
 }
 
 void utility::create_directory(std::string& path) {
@@ -151,3 +153,28 @@ std::string utility::uid() {
 }
 
 std::string utility::uid(std::string s) {return s + uid();}
+
+std::ostream& utility::detail::operator<<(std::ostream& os, const __dummy& obj) {
+    os << obj.s;
+    return os;
+}
+
+utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) {
+    std::string s = std::to_string(number);
+    std::string o;
+    for (unsigned int i = 0; i < width; i++) {
+        if (i < s.size()) {
+            o += s[i];
+        } else {
+            o += ' ';
+        }
+    }
+
+    // check how lossy the conversion was
+    double d = std::stod(o);
+    if (!approx(d, number, 1e-3)) {
+        print_warning("Fixed-width conversion of " + std::to_string(number) + " to " + o + " is lossy.");
+    }
+    
+    return {o};
+} 

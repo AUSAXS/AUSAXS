@@ -15,12 +15,6 @@
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 
-Atom::Atom(const Atom&& a) noexcept : coords(a.coords), name(a.name), altLoc(a.altLoc), resName(a.resName), chainID(a.chainID), iCode(a.iCode), element(a.element), 
-    charge(a.charge), occupancy(a.occupancy), tempFactor(a.tempFactor), serial(a.serial), resSeq(a.resSeq), effective_charge(a.effective_charge), uid(a.uid) {}
-
-Atom::Atom(const Atom& a) :coords(a.coords), name(a.name), altLoc(a.altLoc), resName(a.resName), chainID(a.chainID), iCode(a.iCode), element(a.element), 
-    charge(a.charge), occupancy(a.occupancy), tempFactor(a.tempFactor), serial(a.serial), resSeq(a.resSeq), effective_charge(a.effective_charge), uid(a.uid) {}
-
 Atom::Atom(const Vector3<double> v, const double occupancy, const string element, const string name, int serial) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(v);
@@ -90,7 +84,7 @@ void Atom::parse_pdb(string s) {
         occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
 
     // sanity check
-    if (__builtin_expect(!(Record::get_type(recName) == Record::ATOM || Record::get_type(recName) == Record::WATER), false)) {
+    if (__builtin_expect(!(Record::get_type(recName) == RecordType::ATOM), false)) {
         throw except::parse_error("Error in Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
     }
 
@@ -155,11 +149,11 @@ string Atom::as_pdb() const {
         << right << setw(4) << resSeq                                        // 23 - 26
         << right << setw(1) << iCode                                         // 27
         << "   "                                                             // 28 - 30
-        << right << setw(8) << setf(coords.x(), 8)                           // 31 - 38
-        << right << setw(8) << setf(coords.y(), 8)                           // 39 - 46
-        << right << setw(8) << setf(coords.z(), 8)                           // 47 - 54
-        << right << setw(6) << setf(occupancy, 6)                            // 55 - 60
-        << right << setw(6) << setf(tempFactor, 6)                           // 61 - 66
+        << right << setw(8) << utility::fixedwidth(coords.x(), 8)            // 31 - 38
+        << right << setw(8) << utility::fixedwidth(coords.y(), 8)            // 39 - 46
+        << right << setw(8) << utility::fixedwidth(coords.z(), 8)            // 47 - 54
+        << right << setw(6) << utility::fixedwidth(occupancy, 6)             // 55 - 60
+        << right << setw(6) << utility::fixedwidth(tempFactor, 6)            // 61 - 66
         << "          "                                                      // 67 - 76
         << right << setw(2) << element                                       // 77 - 78
         << left << setw(2) << charge                                         // 79 - 80
@@ -167,11 +161,11 @@ string Atom::as_pdb() const {
     return ss.str();
 }
 
-Record::RecordType Atom::get_type() const {return ATOM;}
+Record::RecordType Atom::get_type() const {return RecordType::ATOM;}
 
 double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
 void Atom::translate(Vector3<double> v) {coords += v;}
-bool Atom::is_water() const {return false;}
+bool Atom::is_water() const {return resName == "HOH";}
 
 void Atom::set_coordinates(Vector3<double> v) {coords = v;}
 void Atom::set_x(double x) {coords.x() = x;}
@@ -268,23 +262,3 @@ bool Atom::equals_content(const Atom& rhs) const {
     if (effective_charge != rhs.effective_charge) {return false;}
     return true;
 }
-
-Atom& Atom::operator=(const Atom& rhs) = default;
-
-// Atom& Atom::operator=(const Atom& rhs) {
-//     name = rhs.name; 
-//     altLoc = rhs.altLoc; 
-//     resName = rhs.resName; 
-//     chainID = rhs.chainID; 
-//     iCode = rhs.iCode; 
-//     element = rhs.element; 
-//     charge = rhs.charge;
-//     occupancy = rhs.occupancy; 
-//     tempFactor = rhs.tempFactor;
-//     serial = rhs.serial; 
-//     resSeq = rhs.resSeq;
-//     coords = rhs.coords;
-//     effective_charge = rhs.effective_charge;
-//     uid = rhs.uid;
-//     return *this;
-// }

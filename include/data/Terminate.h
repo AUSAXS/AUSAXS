@@ -35,8 +35,6 @@ class Terminate : public Record {
 
     /**
      * @brief Get the RecordType of this object.
-     * 
-     * @return Record::TERMINATE
      */
     RecordType get_type() const override;
 

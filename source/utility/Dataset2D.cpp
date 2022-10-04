@@ -37,5 +37,7 @@ void Dataset2D::load(std::string path) {
     }
     unsigned int N = size();
     limit_x(setting::axes::qmin, setting::axes::qmax);
-    std::cout << "Removed " << N - size() << " data points outside of the q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
+    if (N != size()) {
+        std::cout << "\tRemoved " << N - size() << " data points outside specified q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
+    }
 }

@@ -97,6 +97,12 @@ namespace utility {
     void print_success(std::string text);
 
     /**
+     * @brief Print a info message. The text will be blue in the terminal. 
+     *        Should only be used as a header for a info section. Use tabs to indent other text in the section. 
+     */
+    void print_info(std::string text);
+
+    /**
      * @brief Get a unique identifier.
      */
     std::string uid();
@@ -105,4 +111,16 @@ namespace utility {
      * @brief Append a unique identifier to a string.
      */
     std::string uid(std::string s);
+
+    namespace detail {
+        // Dummy object for fixed-length printing of numbers. 
+        // std::setprecision does *not* count leading zeros, which breaks our strict formatting.
+        struct __dummy {
+            std::string s;
+        };
+
+        std::ostream& operator<<(std::ostream& os, const __dummy& obj);
+    };
+
+    detail::__dummy fixedwidth(double number, unsigned int width);
 }
