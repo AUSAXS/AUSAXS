@@ -334,3 +334,19 @@ double SimpleDataset::std() const {
 double SimpleDataset::weighted_mean_error() const {
     return stats::weighted_mean_error(yerr());
 }
+
+#include <math/MovingAverager.h>
+void SimpleDataset::moving_average(unsigned int window_size) {
+    auto newy = MovingAverage::average_half(y(), window_size);
+
+    unsigned int offset = (window_size - 1)/2;
+    Matrix<double> newdata(N-window_size+1, M);
+    for (unsigned int i = 0; i < newdata.N; i++) {
+        auto row = this->row(i+offset);
+        row[1] = newy[i];
+        newdata.row(i) = this->row(i + offset);
+    }
+
+    this->data = newdata.data;
+    this->N = newdata.N;
+}

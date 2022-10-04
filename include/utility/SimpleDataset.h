@@ -227,4 +227,12 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @brief Removes consecutive duplicate values.
          */
         void remove_consecutive_duplicates();
+
+        /**
+         * @brief Get the weighted moving average of this dataset. 
+         *        The weight is defined as 1/(2)^i, where i is the index distance from the middle.
+         * 
+         * @param window_size The size of the averaging window.
+         */
+        void moving_average(unsigned int window_size);
 };

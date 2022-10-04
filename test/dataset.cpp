@@ -356,3 +356,91 @@ TEST_CASE("dataset_stats", "[dataset]") {
         CHECK_THAT(data3.std(), Catch::Matchers::WithinAbs(12.103718, 1e-3));
     }
 }
+
+#include <math/MovingAverager.h>
+TEST_CASE("dataset_moving_average", "[dataset]") {
+    SECTION("simple") {
+        SimpleDataset data(
+            vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
+            vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
+            vector<double>{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+        );
+        SECTION("unweighted") {
+            SECTION("3") {
+                auto res = MovingAverage::average(data.y(), 3);
+                REQUIRE(res.size() == 8);
+                CHECK(res[0] == 2);
+                CHECK(res[1] == 3);
+                CHECK(res[2] == 4);
+                CHECK(res[3] == 5);
+                CHECK(res[4] == 6);
+                CHECK(res[5] == 7);
+                CHECK(res[6] == 8);
+                CHECK(res[7] == 9);
+            }
+
+            SECTION("5") {
+                auto res = MovingAverage::average(data.y(), 5);
+                REQUIRE(res.size() == 6);
+                CHECK(res[0] == 3);
+                CHECK(res[1] == 4);
+                CHECK(res[2] == 5);
+                CHECK(res[3] == 6);
+                CHECK(res[4] == 7);
+                CHECK(res[5] == 8);
+            }
+        }
+
+        SECTION("half_moving_average") {
+            SECTION("3") {
+                data.moving_average(3);
+                REQUIRE(data.size() == 8);
+                CHECK(data.x(0) == 2);
+                CHECK(data.y(0) == (1./2 + 2 + 3./2)/3);
+
+                CHECK(data.x(1) == 3);
+                CHECK(data.y(1) == (2./2 + 3 + 4./2)/3);
+
+                CHECK(data.x(2) == 4);
+                CHECK(data.y(2) == (3./2 + 4 + 5./2)/3);
+
+                CHECK(data.x(3) == 5);
+                CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs((4./2 + 5 + 6./2)/3, 1e-6));
+
+                CHECK(data.x(4) == 6);
+                CHECK(data.y(4) == (5./2 + 6 + 7./2)/3);
+
+                CHECK(data.x(5) == 7);
+                CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs((6./2 + 7 + 8./2)/3, 1e-6));
+
+                CHECK(data.x(6) == 8);
+                CHECK(data.y(6) == (7./2 + 8 + 9./2)/3);
+
+                CHECK(data.x(7) == 9);
+                CHECK(data.y(7) == (8./2 + 9 + 10./2)/3);
+            }
+
+            SECTION("5") {
+                data.moving_average(5);
+                REQUIRE(data.size() == 6);
+                CHECK(data.x(0) == 3);
+                CHECK(data.y(0) == (1./4 + 2./2 + 3 + 4./2 + 5./4)/5);
+
+                CHECK(data.x(1) == 4);
+                CHECK(data.y(1) == (2./4 + 3./2 + 4 + 5./2 + 6./4)/5);
+
+                CHECK(data.x(2) == 5);
+                CHECK(data.y(2) == (3./4 + 4./2 + 5 + 6./2 + 7./4)/5);
+
+                CHECK(data.x(3) == 6);
+                CHECK(data.y(3) == (4./4 + 5./2 + 6 + 7./2 + 8./4)/5);
+
+                CHECK(data.x(4) == 7);
+                CHECK(data.y(4) == (5./4 + 6./2 + 7 + 8./2 + 9./4)/5);
+
+                CHECK(data.x(5) == 8);
+                CHECK(data.y(5) == (6./4 + 7./2 + 8 + 9./2 + 10./4)/5);
+            }
+        }
+    }
+}
