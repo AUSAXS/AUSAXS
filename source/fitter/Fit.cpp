@@ -9,11 +9,15 @@ Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(re
     dof = fitter.dof() - res.dim();
 
     add_fit(fitter);
-    figures = fitter.plot();
-    residuals = fitter.plot_residuals();
+    add_plots(fitter);
 }
 
 Fit::Fit(const mini::Result& res, double chi2, double dof) noexcept : Result(res), dof(dof) {}
+
+void Fit::add_plots(Fitter& fitter) {
+    figures = fitter.plot();
+    residuals = fitter.plot_residuals();
+}
 
 void Fit::add_fit(Fitter& fitter) noexcept {
     add_fit(fitter.get_fit());
@@ -22,6 +26,7 @@ void Fit::add_fit(Fitter& fitter) noexcept {
 void Fit::add_fit(std::shared_ptr<Fit> fit) noexcept {
     for (const auto& e : fit->parameters) {
         parameters.push_back(e);
+        dof--;
     }
 }
 

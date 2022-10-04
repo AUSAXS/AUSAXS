@@ -31,8 +31,6 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
     setting::protein::use_effective_charge = false;
-    setting::axes::scattering_intensity_plot_axis = {1000, 0.001, 1.001};
-    setting::axes::scattering_intensity_plot_binned_width = 0.1;
 
     Protein protein(input);
     protein.generate_new_hydration();

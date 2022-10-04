@@ -34,14 +34,19 @@ class Fit : public mini::Result {
         Fit(const mini::Result& res, double chi2, double dof) noexcept;
         
         /**
-         * @brief Add the parameters from another fit to this one. This is useful to add the parameters from an inner fit to an outer one. 
-         */
+         * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
+         */ 
         void add_fit(Fitter& fit) noexcept;
 
         /**
-         * @brief Add the parameters from another fit to this one. This is useful to add the parameters from an inner fit to an outer one. 
+         * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
          */
         void add_fit(std::shared_ptr<Fit> fit) noexcept;
+
+        /**
+         * @brief Add plots to this fit.
+         */
+        void add_plots(Fitter& fitter);
 
         /**
          * @brief Get a string representation of this object. 

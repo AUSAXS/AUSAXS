@@ -92,8 +92,6 @@ rigidbody/%: build/executable/rigidbody
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} figures/
 
-qlow := 0
-qhigh := 1000
 center := center
 options :=
 # Perform a fit of a structure file to a measurement. 
@@ -105,7 +103,7 @@ intensity_fit/%: build/executable/intensity_fitter
 	for pdb in $${structure}; do\
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
-		$< $${pdb} $${measurement} -o figures/ --qlow ${qlow} --qhigh ${qhigh} --${center} --radius_a ${ra} --radius_h ${rh} --grid_width ${gwidth} --bin_width ${bwidth} --placement_strategy ${ps} ${options};\
+		$< $${pdb} $${measurement} ${options};\
 	done
 
 # Check the consistency of the program. 
