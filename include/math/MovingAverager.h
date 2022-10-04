@@ -59,13 +59,14 @@ struct MovingAverage {
             unsigned int window_size = weights.size();
             std::vector<double> averages(data.size() - window_size + 1);
 
-            unsigned int offset = (window_size-1)/2;
-            for (unsigned int i = offset; i < data.size() - offset; i++) {
+            double w_sum = std::accumulate(weights.begin(), weights.end(), 0.0);
+            unsigned int steps = (window_size-1)/2;
+            for (unsigned int i = steps; i < data.size() - steps; i++) {
                 double sum = 0;
-                for (unsigned int j = i - offset; j < i + offset+1; j++) {
-                    sum += data[j] * weights[j - (i - offset)];
+                for (unsigned int j = i - steps; j < i + steps+1; j++) {
+                    sum += data[j] * weights[j - (i - steps)];
                 }
-                averages[i - offset] = sum/window_size;
+                averages[i - steps] = sum/w_sum;
             }
 
             return averages;

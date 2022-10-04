@@ -127,8 +127,18 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     if (setting::plot::em::plot_cutoff_points) {
         auto _data = minimizer.get_evaluated_points();
-        _data.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-        plots::PlotDataset::quick_plot(_data, setting::plot::path + "chi2_evaluated_points.pdf");
+        _data.limit_y(0, res.fval*5);
+
+        auto __data = _data; 
+        _data.sort_x();
+        _data.moving_average(7);
+        _data.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+        plots::PlotDataset plot(_data);
+
+        __data.add_plot_options("points");
+        plot.plot(__data);
+
+        plot.save(setting::plot::path + "chi2_evaluated_points.pdf");
     }
 
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum

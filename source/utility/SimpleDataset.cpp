@@ -350,3 +350,14 @@ void SimpleDataset::moving_average(unsigned int window_size) {
     this->data = newdata.data;
     this->N = newdata.N;
 }
+
+void SimpleDataset::sort_x() {
+    Matrix<double> newdata(N, M);
+    std::vector<unsigned int> indices(N);
+    std::iota(indices.begin(), indices.end(), 0);
+    std::sort(indices.begin(), indices.end(), [this] (unsigned int i, unsigned int j) {return x(i) < x(j);});
+    for (unsigned int i = 0; i < N; i++) {
+        newdata.row(i) = this->row(indices[i]);
+    }
+    this->data = newdata.data;
+}

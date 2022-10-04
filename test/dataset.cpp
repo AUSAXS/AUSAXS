@@ -396,51 +396,67 @@ TEST_CASE("dataset_moving_average", "[dataset]") {
                 data.moving_average(3);
                 REQUIRE(data.size() == 8);
                 CHECK(data.x(0) == 2);
-                CHECK(data.y(0) == (1./2 + 2 + 3./2)/3);
+                CHECK(data.y(0) == (1./2 + 2 + 3./2)/2);
 
                 CHECK(data.x(1) == 3);
-                CHECK(data.y(1) == (2./2 + 3 + 4./2)/3);
+                CHECK(data.y(1) == (2./2 + 3 + 4./2)/2);
 
                 CHECK(data.x(2) == 4);
-                CHECK(data.y(2) == (3./2 + 4 + 5./2)/3);
+                CHECK(data.y(2) == (3./2 + 4 + 5./2)/2);
 
                 CHECK(data.x(3) == 5);
-                CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs((4./2 + 5 + 6./2)/3, 1e-6));
+                CHECK(data.y(3) == (4./2 + 5 + 6./2)/2);
 
                 CHECK(data.x(4) == 6);
-                CHECK(data.y(4) == (5./2 + 6 + 7./2)/3);
+                CHECK(data.y(4) == (5./2 + 6 + 7./2)/2);
 
                 CHECK(data.x(5) == 7);
-                CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs((6./2 + 7 + 8./2)/3, 1e-6));
+                CHECK(data.y(5) == (6./2 + 7 + 8./2)/2);
 
                 CHECK(data.x(6) == 8);
-                CHECK(data.y(6) == (7./2 + 8 + 9./2)/3);
+                CHECK(data.y(6) == (7./2 + 8 + 9./2)/2);
 
                 CHECK(data.x(7) == 9);
-                CHECK(data.y(7) == (8./2 + 9 + 10./2)/3);
+                CHECK(data.y(7) == (8./2 + 9 + 10./2)/2);
             }
 
             SECTION("5") {
                 data.moving_average(5);
                 REQUIRE(data.size() == 6);
                 CHECK(data.x(0) == 3);
-                CHECK(data.y(0) == (1./4 + 2./2 + 3 + 4./2 + 5./4)/5);
+                CHECK(data.y(0) == (1./4 + 2./2 + 3 + 4./2 + 5./4)/2.5);
 
                 CHECK(data.x(1) == 4);
-                CHECK(data.y(1) == (2./4 + 3./2 + 4 + 5./2 + 6./4)/5);
+                CHECK(data.y(1) == (2./4 + 3./2 + 4 + 5./2 + 6./4)/2.5);
 
                 CHECK(data.x(2) == 5);
-                CHECK(data.y(2) == (3./4 + 4./2 + 5 + 6./2 + 7./4)/5);
+                CHECK(data.y(2) == (3./4 + 4./2 + 5 + 6./2 + 7./4)/2.5);
 
                 CHECK(data.x(3) == 6);
-                CHECK(data.y(3) == (4./4 + 5./2 + 6 + 7./2 + 8./4)/5);
+                CHECK(data.y(3) == (4./4 + 5./2 + 6 + 7./2 + 8./4)/2.5);
 
                 CHECK(data.x(4) == 7);
-                CHECK(data.y(4) == (5./4 + 6./2 + 7 + 8./2 + 9./4)/5);
+                CHECK(data.y(4) == (5./4 + 6./2 + 7 + 8./2 + 9./4)/2.5);
 
                 CHECK(data.x(5) == 8);
-                CHECK(data.y(5) == (6./4 + 7./2 + 8 + 9./2 + 10./4)/5);
+                CHECK(data.y(5) == (6./4 + 7./2 + 8 + 9./2 + 10./4)/2.5);
             }
         }
+    }
+
+    SECTION("plot") {
+        vector<double> x, y;
+        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+            x.push_back(xx);
+            y.push_back(sin(xx));
+        }
+        SimpleDataset data(x, y, vector<double>(x.size(), 1));
+        data.add_plot_options("points");
+        plots::PlotDataset plot(data);
+
+        data.moving_average(5);
+        data.add_plot_options("line", {{"color", kRed}});
+        plot.plot(data);
+        plot.save("figures/test/dataset/moving_average.pdf");
     }
 }

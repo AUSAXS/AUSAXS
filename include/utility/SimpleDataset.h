@@ -235,4 +235,9 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @param window_size The size of the averaging window.
          */
         void moving_average(unsigned int window_size);
+
+        /**
+         * @brief Sort this dataset by the x-values. 
+         */
+        void sort_x();
 };
