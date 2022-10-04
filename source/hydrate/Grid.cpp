@@ -10,7 +10,7 @@
 #include <hydrate/Grid.h>
 #include <data/Atom.h>
 #include <data/Body.h>
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <hydrate/AxesPlacement.h>
 #include <hydrate/RadialPlacement.h>
 #include <hydrate/JanPlacement.h>
@@ -161,13 +161,13 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
     }
 }
 
-vector<Hetatom> Grid::hydrate() {
-    vector<GridMember<Hetatom>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
+vector<Water> Grid::hydrate() {
+    vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
     water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 
-vector<GridMember<Hetatom>> Grid::find_free_locs() {
+vector<GridMember<Water>> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     if (w_members.size() != 0) {
             utility::print_warning("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
@@ -224,8 +224,8 @@ void Grid::set_radius_water(double radius) {
     this->rh = new_r;
 }
 
-vector<Hetatom> Grid::get_waters() const {
-    vector<Hetatom> atoms(w_members.size());
+vector<Water> Grid::get_waters() const {
+    vector<Water> atoms(w_members.size());
     int i = 0; // counter
     for (const auto& water : w_members) {
         atoms[i] = water.atom;
@@ -264,7 +264,7 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
     expand_volume(atom.loc, false); // do the expansion
 }
 
-void Grid::expand_volume(GridMember<Hetatom>& water) {
+void Grid::expand_volume(GridMember<Water>& water) {
     if (water.expanded_volume) {return;} // check if this location has already been expanded
 
     water.expanded_volume = true; // mark this location as expanded
@@ -353,7 +353,7 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
     return gm;
 }
 
-GridMember<Hetatom> Grid::add(const Hetatom& water, bool expand) {
+GridMember<Water> Grid::add(const Water& water, bool expand) {
     auto loc = to_bins(water.coords);
     unsigned int x = loc.x(), y = loc.y(), z = loc.z(); 
 
@@ -428,13 +428,13 @@ void Grid::remove(const Atom& atom) {
     volume--;
 }
 
-void Grid::remove(const Hetatom& water) {
+void Grid::remove(const Water& water) {
     auto pos = std::find(w_members.begin(), w_members.end(), water);
     if (__builtin_expect(pos == w_members.end(), false)) {
         throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
-    GridMember<Hetatom>& member = *pos;
+    GridMember<Water>& member = *pos;
     const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
     deflate_volume(member);
@@ -476,15 +476,15 @@ void Grid::remove(const vector<Atom>& atoms) {
     }
 }
 
-void Grid::remove(const vector<Hetatom>& waters) {
+void Grid::remove(const vector<Water>& waters) {
     // we make a vector of all possible uids
     vector<bool> removed(Atom::uid_counter);
     // and fill it with the uids that should be removed
-    std::for_each(waters.begin(), waters.end(), [&removed] (const Hetatom& water) {removed[water.uid] = true;});
+    std::for_each(waters.begin(), waters.end(), [&removed] (const Water& water) {removed[water.uid] = true;});
 
     size_t index = 0; // current index in removed_waters
-    vector<GridMember<Hetatom>> removed_waters(waters.size()); // the waters which will be removed
-    auto predicate = [&removed, &removed_waters, &index] (const GridMember<Hetatom>& gm) {
+    vector<GridMember<Water>> removed_waters(waters.size()); // the waters which will be removed
+    auto predicate = [&removed, &removed_waters, &index] (const GridMember<Water>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_waters[index++] = gm;
             return true;
@@ -527,7 +527,7 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
     deflate_volume(atom.loc, false); // do the expansion
 }
 
-void Grid::deflate_volume(GridMember<Hetatom>& water) {
+void Grid::deflate_volume(GridMember<Water>& water) {
     if (!water.expanded_volume) {return;} // check if this location has already been expanded
 
     water.expanded_volume = false; // mark this location as expanded
@@ -569,10 +569,10 @@ void Grid::deflate_volume(const Vector3<int>& loc, const bool is_water) {
 }
 
 void Grid::clear_waters() {
-    vector<Hetatom> waters;
+    vector<Water> waters;
     waters.reserve(w_members.size());
 
-    std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Hetatom>& water) {waters.push_back(water.atom);});
+    std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.atom);});
     remove(waters);
     assert(w_members.size() == 0);
 }

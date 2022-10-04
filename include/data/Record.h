@@ -10,7 +10,7 @@
 
 class Record {
   public: 
-    enum RecordType {HEADER, ATOM, HETATM, TERMINATE, FOOTER, NOTYPE};
+    enum RecordType {HEADER, ATOM, WATER, TERMINATE, FOOTER, NOTYPE};
     virtual ~Record() {}
     
     virtual void parse_pdb(const std::string s) = 0;
@@ -28,7 +28,7 @@ class Record {
 
   private:
     inline static const std::map<string, RecordType> type_map = {
-        {"ATOM"  , ATOM}, {"HETATM", HETATM},
+        {"ATOM"  , ATOM}, {"HETATM", ATOM},
         {"TER"   , TERMINATE}, 
         {"HEADER", HEADER}, {"TITLE" , HEADER}, {"COMPND", HEADER}, {"SOURCE", HEADER}, {"KEYWDS", HEADER}, 
         {"EXPDTA", HEADER}, {"AUTHOR", HEADER}, {"REVDAT", HEADER}, {"JRNL"  , HEADER}, {"REMARK", HEADER}, 

@@ -19,7 +19,7 @@ Body::Body() {}
 
 Body::Body(string path) : file(path), uid(uid_counter++) {}
 
-Body::Body(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : file(protein_atoms, hydration_atoms), uid(uid_counter++) {}
+Body::Body(const vector<Atom>& protein_atoms, const vector<Water>& hydration_atoms) : file(protein_atoms, hydration_atoms), uid(uid_counter++) {}
 
 Body::Body(const Body& body) : file(body.file), uid(body.uid) {}
 
@@ -54,7 +54,7 @@ void Body::calc_histogram() {
 
     std::vector<float> data_h(file.hydration_atoms.size()*4);
     for (size_t i = 0; i < file.hydration_atoms.size(); i++) {
-        const Hetatom& a = file.hydration_atoms[i]; 
+        const Water& a = file.hydration_atoms[i]; 
         data_h[4*i] = a.coords.x();
         data_h[4*i+1] = a.coords.y();
         data_h[4*i+2] = a.coords.z();
@@ -124,7 +124,7 @@ void Body::calc_histogram() {
 
 void Body::generate_new_hydration() {
     // delete the old hydration layer
-    file.hydration_atoms = vector<Hetatom>();
+    file.hydration_atoms = vector<Water>();
 
     // move protein to center of mass
     center();
@@ -152,7 +152,7 @@ void Body::generate_volume_file(string path) {
         }
     }
     file.protein_atoms = filled;
-    file.hydration_atoms = vector<Hetatom>();
+    file.hydration_atoms = vector<Water>();
     save(path);
     exit(0);
 }
@@ -211,7 +211,7 @@ void Body::translate(const Vector3<double>& v) {
     changed_external_state();
 
     std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
-    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&v] (Hetatom& atom) {atom.translate(v);});
+    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&v] (Water& atom) {atom.translate(v);});
 }
 
 void Body::rotate(const Matrix<double>& R) {
@@ -267,7 +267,7 @@ double Body::get_molar_mass() const {
 double Body::get_absolute_mass() const {
     double M = 0;
     std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
-    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const Hetatom& a) {M += a.get_mass();});
+    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const Water& a) {M += a.get_mass();});
     return M;
 }
 
@@ -291,11 +291,11 @@ void Body::register_probe(std::shared_ptr<StateManager::BoundSignaller> signal) 
 
 std::vector<Atom>& Body::get_protein_atoms() {return file.protein_atoms;}
 
-std::vector<Hetatom>& Body::get_hydration_atoms() {return file.hydration_atoms;}
+std::vector<Water>& Body::get_hydration_atoms() {return file.hydration_atoms;}
 
 const std::vector<Atom>& Body::get_protein_atoms() const {return file.protein_atoms;}
 
-const std::vector<Hetatom>& Body::get_hydration_atoms() const {return file.hydration_atoms;}
+const std::vector<Water>& Body::get_hydration_atoms() const {return file.hydration_atoms;}
 
 Atom& Body::protein_atom(unsigned int index) {return file.protein_atoms[index];}
 

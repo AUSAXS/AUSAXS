@@ -15,7 +15,7 @@ namespace grid {
             ~RandomCulling() override {}
 
             // runs in O(n) where n is the number of water molecules
-            std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override {
+            std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const override {
                 std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
                 return CounterCulling::cull(placed_water);
             }

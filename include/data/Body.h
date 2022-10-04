@@ -31,7 +31,7 @@ class Body {
     /**
      * @brief Create a new collection of atoms (body) based on two vectors
      */
-    explicit Body(const std::vector<Atom>& protein_atoms, const std::vector<Hetatom>& hydration_atoms = {});
+    explicit Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
 
     /**
      * @brief Copy constructor. 
@@ -75,12 +75,12 @@ class Body {
     /**
      * @brief Get a reference to the hydration atoms.
      */
-    std::vector<Hetatom>& get_hydration_atoms();
+    std::vector<Water>& get_hydration_atoms();
 
     /**
      * @brief Get a reference to the hydration atoms.
      */
-    const std::vector<Hetatom>& get_hydration_atoms() const;
+    const std::vector<Water>& get_hydration_atoms() const;
  
     Atom& protein_atom(unsigned int index);
 

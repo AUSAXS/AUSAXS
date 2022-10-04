@@ -6,7 +6,7 @@
 
 #include <data/Body.h>
 #include <data/Atom.h>
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <data/StateManager.h>
 #include <histogram/PartialHistogramManager.h>
 #include <utility/SimpleDataset.h>
@@ -39,7 +39,7 @@ class Protein {
      * @param bodies The constituent bodies of this protein. 
      * @param hydration_atoms The hydration layer. 
      */
-    explicit Protein(const std::vector<Body>& bodies, const std::vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms = {});
 
     /**
      * @brief Constructor.
@@ -50,7 +50,7 @@ class Protein {
      * @param protein_atoms The constituent atoms of this protein. 
      * @param hydration_atoms The hydration layer. 
      */
-    explicit Protein(const std::vector<Atom>& protein_atoms, const std::vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
 
     /**
      * @brief Constructor. 
@@ -60,7 +60,7 @@ class Protein {
      * @param protein_atoms The constituent atoms of each body. 
      * @param hydration_atoms The hydration layer. 
      */
-    explicit Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Hetatom>& hydration_atoms = {});
+    explicit Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
 
     /**
      * @brief Constructor. 
@@ -205,7 +205,7 @@ class Protein {
     /**
      * @brief Get a copy of the hydration atoms. Use the member variable for reference access. 
      */
-    std::vector<Hetatom> get_hydration_atoms() const;
+    std::vector<Water> get_hydration_atoms() const;
 
     /**
      * @brief Create a grid and fill it with the atoms of this protein. 
@@ -261,7 +261,7 @@ class Protein {
 
     std::shared_ptr<hist::PartialHistogramManager> get_histogram_manager() const;
 
-    std::vector<Hetatom> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
+    std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
     std::vector<Body> bodies; // The constituent bodies
     bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
     bool centered = false; // True if this object is centered, false otherwise. 

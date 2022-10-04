@@ -34,7 +34,7 @@ namespace hist {
 		/**
 		 * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
 		 */
-		CompactCoordinates(const std::vector<Hetatom>& atoms);
+		CompactCoordinates(const std::vector<Water>& atoms);
 
 		size_t size;
 		std::vector<Data> data;

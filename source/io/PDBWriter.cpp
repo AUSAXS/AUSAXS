@@ -3,7 +3,7 @@
 #include <io/File.h>
 #include <data/Terminate.h>
 #include <data/Atom.h>
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 
@@ -38,7 +38,7 @@ string PDBWriter::as_pdb() const {
     if (!printed_ter) {s += f.terminate.as_pdb();}
 
     // print hetatoms
-    std::for_each(f.hydration_atoms.begin(), f.hydration_atoms.end(), [&s] (const Hetatom& atom) {s += atom.as_pdb();});
+    std::for_each(f.hydration_atoms.begin(), f.hydration_atoms.end(), [&s] (const Water& atom) {s += atom.as_pdb();});
 
     s += f.footer.get();
     return s;

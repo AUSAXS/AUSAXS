@@ -4,7 +4,7 @@ class Grid;
 
 #include <vector>
 
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <hydrate/GridMember.h>
 
 namespace grid {
@@ -28,7 +28,7 @@ namespace grid {
              * @brief Cull the water molecules.
              * @return The remaining molecules after the culling.
              */
-            virtual std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const = 0;
+            virtual std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const = 0;
 
             /**
              * @brief Set the desired number of water molecules after the culling. 

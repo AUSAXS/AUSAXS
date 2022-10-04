@@ -3,7 +3,7 @@
 #include <io/File.h>
 #include <data/Terminate.h>
 #include <data/Atom.h>
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <utility/Exceptions.h>
 
 #include <fstream>
@@ -18,8 +18,8 @@ void PDBReader::read(std::string input_path) {
     while(getline(input, line)) {
         string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
-            case Record::RecordType::HETATM: {
-                Hetatom atom;
+            case Record::RecordType::WATER: {
+                Water atom;
                 atom.parse_pdb(line);
                 f.add(atom);
                 break;

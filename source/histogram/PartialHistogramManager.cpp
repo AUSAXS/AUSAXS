@@ -16,9 +16,9 @@ CompactCoordinates::CompactCoordinates(const Body& body) : size(body.get_protein
     }
 }
 
-CompactCoordinates::CompactCoordinates(const vector<Hetatom>& atoms) : size(atoms.size()), data(size) {
+CompactCoordinates::CompactCoordinates(const vector<Water>& atoms) : size(atoms.size()), data(size) {
     for (unsigned int i = 0; i < size; i++) {
-        const Hetatom& a = atoms[i]; 
+        const Water& a = atoms[i]; 
         data[i] = CompactCoordinates::Data(a.coords, a.effective_charge*a.occupancy);
     }
 }

@@ -9,20 +9,20 @@
 using namespace hist;
 using std::vector;
 
-Protein::Protein(const vector<Body>& bodies, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
+Protein::Protein(const vector<Body>& bodies, const vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
 }
 
-Protein::Protein(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
+Protein::Protein(const vector<Atom>& protein_atoms, const vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
 }
 
-Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Hetatom>& hydration_atoms) : hydration_atoms(hydration_atoms) {
+Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     for (size_t i = 0; i < protein_atoms.size(); i++) {
-        bodies.push_back(Body(protein_atoms[i], vector<Hetatom>(0)));
+        bodies.push_back(Body(protein_atoms[i], vector<Water>(0)));
     }
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
@@ -172,11 +172,11 @@ Vector3<double> Protein::get_cm() const {
     return cm/M;
 }
 
-vector<Hetatom> Protein::get_hydration_atoms() const {return hydration_atoms;}
+vector<Water> Protein::get_hydration_atoms() const {return hydration_atoms;}
 
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
-    hydration_atoms = vector<Hetatom>();
+    hydration_atoms = vector<Water>();
     phm->signal_modified_hydration_layer();
 
     // move protein to center of mass

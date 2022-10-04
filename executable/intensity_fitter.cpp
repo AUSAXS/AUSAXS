@@ -42,7 +42,7 @@ int main(int argc, char const *argv[]) {
     }
 
     Protein protein(pdb);
-    // protein.generate_new_hydration();
+    protein.generate_new_hydration();
     protein.save(output + "protein.pdb");
     hist::ScatteringHistogram h = protein.get_histogram();
     plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::figures::format);

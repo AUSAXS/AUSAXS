@@ -74,17 +74,17 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     rot_locs_rarh = std::move(locs_rarh);
 }
 
-vector<grid::GridMember<Hetatom>> grid::RadialPlacement::place() const {
+vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     // dereference the values we'll need for better performance
     auto bins = grid->get_bins();
     GridObj& gref = grid->grid;
 
     // we define a helper lambda
-    vector<GridMember<Hetatom>> placed_water(grid->a_members.size());
+    vector<GridMember<Water>> placed_water(grid->a_members.size());
     unsigned int index = 0;
     auto add_loc = [&] (Vector3<double> exact_loc) {
-        Hetatom a = Hetatom::create_new_water(exact_loc);
-        GridMember<Hetatom> gm = grid->add(a, true);
+        Water a = Water::create_new_water(exact_loc);
+        GridMember<Water> gm = grid->add(a, true);
         if (__builtin_expect(placed_water.size() <= index, false)) {
             placed_water.resize(2*index);
         }

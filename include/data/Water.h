@@ -4,25 +4,23 @@
 #include <data/Record.h>
 #include <math/Vector3.h>
 
-class Hetatom : public Atom {
+class Water : public Atom {
   public:
     using Atom::Atom; // inherit constructors from Atom
-    Hetatom(const Atom&& a) noexcept : Atom(std::move(a)) {}
-    Hetatom(const Hetatom&& a) : Atom(std::move(a)) {}
-    Hetatom(const Atom& a) : Atom(a) {}
-    Hetatom(const Hetatom& a) : Atom(a) {}
-    ~Hetatom() override = default;
+    Water(const Atom&& a) noexcept : Atom(std::move(a)) {}
+    Water(const Atom& a) : Atom(a) {}
+    ~Water() override = default;
 
-    RecordType get_type() const override {return HETATM;}
+    RecordType get_type() const override {return WATER;}
 
     string get_recName() const override {return "HETATM";}
 
-    bool is_water() const override {return resName == "HOH";}
+    bool is_water() const override {return true;}
     
     /**
      * @brief Create a new default water atom.
      */
-    static Hetatom create_new_water() {
+    static Water create_new_water() {
         return create_new_water({0, 0, 0});
     }
 
@@ -30,29 +28,13 @@ class Hetatom : public Atom {
      * @brief Create a new water atom.
      * @param coords the coordinates for the new atom.
      */
-    static Hetatom create_new_water(Vector3<double> coords) {
-        return Hetatom(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
+    static Water create_new_water(Vector3<double> coords) {
+        return Water(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
     }
 
-    Hetatom& operator=(const Hetatom& rhs) {
-        name = rhs.name; 
-        altLoc = rhs.altLoc; 
-        resName = rhs.resName; 
-        chainID = rhs.chainID; 
-        iCode = rhs.iCode; 
-        element = rhs.element; 
-        charge = rhs.charge;
-        occupancy = rhs.occupancy; 
-        tempFactor = rhs.tempFactor;
-        serial = rhs.serial; 
-        resSeq = rhs.resSeq;
-        coords = rhs.coords;
-        effective_charge = rhs.effective_charge;
-        uid = rhs.uid;
-        return *this;
-    }
+    Water& operator=(const Water& rhs) = default;
 
-    bool operator==(const Hetatom& rhs) const {
+    bool operator==(const Water& rhs) const {
         if (get_type() != get_type()) {return false;}
         if (name != rhs.name) {return false;}
         if (altLoc != rhs.altLoc) {return false;}

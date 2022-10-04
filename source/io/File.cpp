@@ -8,9 +8,9 @@ File::File(const File& file) : header(file.header), footer(file.footer), termina
 File::File(File&& file) noexcept : header(file.header), footer(file.footer), terminate(file.terminate), 
     protein_atoms(std::move(file.protein_atoms)), hydration_atoms(std::move(file.hydration_atoms)) {}
 
-File::File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
+File::File(const vector<Atom>& protein_atoms, const vector<Water>& hydration_atoms) : protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
-File::File(const vector<Atom>& protein_atoms, const vector<Hetatom>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate) 
+File::File(const vector<Atom>& protein_atoms, const vector<Water>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
 File::File(string filename) {
@@ -20,7 +20,7 @@ File::File(string filename) {
 
 File::~File() = default;
 
-void File::update(vector<Atom>& patoms, vector<Hetatom>& hatoms) {
+void File::update(vector<Atom>& patoms, vector<Water>& hatoms) {
     protein_atoms = patoms;
     hydration_atoms = hatoms;
 }
@@ -34,17 +34,17 @@ void File::write(string path) {
 
 const vector<Atom>& File::get_protein_atoms() const {return protein_atoms;}
 
-const vector<Hetatom> File::get_hydration_atoms() const {return hydration_atoms;}
+const vector<Water> File::get_hydration_atoms() const {return hydration_atoms;}
 
-void File::add(const Atom r) {
+void File::add(const Atom& r) {
     protein_atoms.push_back(r);
 }
 
-void File::add(const Hetatom r) {
+void File::add(const Water& r) {
     hydration_atoms.push_back(r);
 }
 
-void File::add(const Terminate) {
+void File::add(const Terminate&) {
     // terminates.push_back(r);
 }
 
@@ -90,7 +90,7 @@ void File::refresh() {
     };
 
     for (auto& a : protein_atoms) {
-        if (!terminate_inserted && a.get_type() == Record::RecordType::HETATM) {
+        if (!terminate_inserted && a.get_type() == Record::RecordType::WATER) {
             insert_ter();
             resSeq++; // TER records always denotes the end of a sequence
             serial++;

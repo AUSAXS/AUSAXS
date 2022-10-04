@@ -13,6 +13,6 @@ namespace grid {
             ~CounterCulling() override {}
 
             // runs in O(n) where n is the number of water molecules
-            std::vector<Hetatom> cull(std::vector<GridMember<Hetatom>>& placed_water) const override;
+            std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const override;
     };       
 }

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <data/Atom.h>
+#include <data/Water.h>
 #include <hydrate/PlacementStrategy.h>
 #include <hydrate/CullingStrategy.h>
 #include <hydrate/GridMember.h>
@@ -128,7 +129,7 @@ class Grid {
 		 * @brief Add a single hetatom to the grid. 
 		 *        This is a constant-time operation. 
 		 */
-		grid::GridMember<Hetatom> add(const Hetatom& atom, bool expand = false);
+		grid::GridMember<Water> add(const Water& atom, bool expand = false);
 
 		/**
 		 * @brief Remove the contents of a body from this grid. 
@@ -152,13 +153,13 @@ class Grid {
 		 * @brief Remove a single water molecule from the grid.
 		 *        Complexity: O(n). 
 		 */
-		void remove(const Hetatom& atom);
+		void remove(const Water& atom);
 
 		/**
 		 * @brief Remove multiple water molecule from the grid.
 		 *        Complexity: O(n). 
 		 */
-		void remove(const std::vector<Hetatom>& atom);
+		void remove(const std::vector<Water>& atom);
 
 		/**
 		 * @brief Remove multiple protein atoms from the grid.
@@ -185,7 +186,7 @@ class Grid {
 		/** 
 		 * @brief Expand a single member atom into an actual sphere.
 		 */
-		void expand_volume(grid::GridMember<Hetatom>& atom);
+		void expand_volume(grid::GridMember<Water>& atom);
 
 		/** 
 		 * @brief Deflate all member atoms and water molecules into actual spheres based on the radii ra and rh. 
@@ -200,7 +201,7 @@ class Grid {
 		/** 
 		 * @brief Deflate a single member atom into an actual sphere.
 		 */
-		void deflate_volume(grid::GridMember<Hetatom>& atom);
+		void deflate_volume(grid::GridMember<Water>& atom);
 
 		/**
 		 * @brief Count the number of atoms in each cluster, and get those with less than \a min atoms.
@@ -215,14 +216,14 @@ class Grid {
 		 * 
 		 * @return Pointers to the new water molecules. 
 		 */
-		std::vector<Hetatom> hydrate();
+		std::vector<Water> hydrate();
 
 		/**
 		 * @brief Identify possible hydration binding locations for the structure. 
 		 * 
 		 * @return A list of possible (binx, biny, binz) locations.
 		 */
-		std::vector<grid::GridMember<Hetatom>> find_free_locs();
+		std::vector<grid::GridMember<Water>> find_free_locs();
 
 		/**
 		 * @brief Create the smallest possible box containing the center points of all member atoms.
@@ -252,7 +253,7 @@ class Grid {
 		/**
 		 * @brief Get all water molecules from this grid. 
 		 */
-		std::vector<Hetatom> get_waters() const;
+		std::vector<Water> get_waters() const;
 
 		/**
 		 * @brief Get all atoms from this grid. 
@@ -314,7 +315,7 @@ class Grid {
 
 		GridObj grid; // The actual grid.
 		std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
-		std::list<grid::GridMember<Hetatom>> w_members; // A list of all member water molecules and where they are located. 
+		std::list<grid::GridMember<Water>> w_members; // A list of all member water molecules and where they are located. 
 		unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
 		unsigned int ra = 0; // Radius of each atom represented as a number of bins
 		unsigned int rh = 0; // Radius of each water molecule represented as a number of bins

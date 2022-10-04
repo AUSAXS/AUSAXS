@@ -2,7 +2,7 @@
 
 class Grid;
 
-#include <data/Hetatom.h>
+#include <data/Water.h>
 #include <hydrate/GridMember.h>
 
 namespace grid {
@@ -26,7 +26,7 @@ namespace grid {
              * @brief Place water molecules in the grid wherever possible.
              * @return A list of (binx, biny, binz) coordinates where the water molecules were placed.
              */
-            virtual std::vector<GridMember<Hetatom>> place() const = 0;
+            virtual std::vector<GridMember<Water>> place() const = 0;
 
         protected: 
             Grid* grid; // A reference to the grid used in Grid.

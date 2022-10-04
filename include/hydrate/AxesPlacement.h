@@ -16,7 +16,7 @@ namespace grid {
             using PlacementStrategy::PlacementStrategy; // inherit constructor
             ~AxesPlacement() override {}
 
-            std::vector<GridMember<Hetatom>> place() const override;
+            std::vector<GridMember<Water>> place() const override;
 
     private:
         /**

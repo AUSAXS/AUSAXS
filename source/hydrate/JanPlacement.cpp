@@ -3,16 +3,16 @@
 
 using std::vector;
 
-vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
+vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
     // place a water molecule (note: not added to the grid before the end of this method)
-    vector<Hetatom> placed_water(grid->a_members.size());
+    vector<Water> placed_water(grid->a_members.size());
     size_t index = 0;
     auto add_loc = [&] (const Vector3<int>& v) {
-        Hetatom a = Hetatom::create_new_water(grid->to_xyz(v));
+        Water a = Water::create_new_water(grid->to_xyz(v));
         if (__builtin_expect(placed_water.size() <= index, false)) {
             placed_water.resize(2*index);
         }
@@ -49,7 +49,7 @@ vector<grid::GridMember<Hetatom>> grid::JanPlacement::place() const {
 
     // finally we can add the atoms to the grid
     placed_water.resize(index);
-    vector<grid::GridMember<Hetatom>> v = grid->add(placed_water);
+    vector<grid::GridMember<Water>> v = grid->add(placed_water);
     grid->expand_volume();
 
     return v;

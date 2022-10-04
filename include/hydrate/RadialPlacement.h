@@ -30,7 +30,7 @@ namespace grid {
             std::vector<Vector3<int>> rot_bins_rarh; // rotation bins at rarh radius
             std::vector<Vector3<double>> rot_locs_rarh; // exact locations of the rarh bins
 
-            std::vector<GridMember<Hetatom>> place() const override;
+            std::vector<GridMember<Water>> place() const override;
 
         private:
             /**
