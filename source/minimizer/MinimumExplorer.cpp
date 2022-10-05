@@ -58,42 +58,81 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     record_evaluations(true); // start recording again
 
     // go three steps to the left
-    x = xmid; // go back to the middle
-    for (unsigned int i = 0; i < 3; i++) {
+    x = xmid;               // go back to the middle
+    double fprev = fmin;    // keep track of last value
+    counter = 0;            // reset counter
+    for (int i = 0; i < 4; i++) {
         x -= spacing;
         double f = function(&x);
+
+        // check if the function value actually changed
+        if (std::abs(fprev - f) < 1e-6) {
+            // if not, refine the spacing and try again
+            x += spacing;
+            spacing *= 1.3;
+            i--;
+            evaluations.pop_back();
+        }
+
+        // check if this is a new minimum
         if (f < fmin) {
             fmin = f;
             xmin = x;
+            continue;
+        } 
+
+        // check if this value is higher than the previous one
+        if (fprev < f) {
+            fprev = f;
+            counter++;
         }
     }
-    // if xmin == xmid, we are already at a parabolic minimum and shouldn't explore further to the left
-    bool left = xmin != xmid;
+    // if counter == 4 the function is monotonically increasing to the left, and we shouldn't explore it further
+    bool left = !(counter == 4);
 
     // go three steps to the right
-    x = xmid; // go back to the middle
-    for (unsigned int i = 0; i < 3; i++) {
+    x = xmid;       // go back to the middle
+    fprev = fmin;   // reset fprev
+    counter = 0;    // reset counter
+    for (int i = 0; i < 4; i++) {
         x += spacing;
         double f = function(&x);
+
+        // check if the function value actually changed
+        if (std::abs(fprev - f) < 1e-6) {
+            // if not, refine the spacing and try again
+            x -= spacing;
+            spacing *= 1.3;
+            i--;
+            evaluations.pop_back();
+        }
+
+        // check if this is a new minimum
         if (f < fmin) {
             fmin = f;
             xmin = x;
+            continue;
+        }
+
+        // check if this value is higher than the previous one
+        if (fprev < f) {
+            fprev = f;
+            counter++;
         }
     }
-    // if xmin == xmid, we are already at a parabolic minimum and shouldn't explore further to the left
-    bool right = xmin != xmid;
+    // if counter == 4 the function is monotonically increasing to the right, and we shouldn't explore it further
+    bool right = !(counter == 4);
 
-    // estimate the minimum value to compare future oscillations against
+    // we now change tactics: instead of requiring 3 monotonic increases in fval before stopping, we now just want it to be higher than the mean four times in a row
     auto points = get_evaluated_points();    
     double mu = points.mean();
 
     if (right) {
         // now go the remaining steps to the right, terminating if four consecutive evals are all above the mean
         counter = 0;
-        x = xmid + 3*spacing;   // start three steps to the right of the middle
-        evals = (evals - 7)/2;  // number of remaining right-steps
+        x = xmid + 4*spacing;   // start four steps to the right of the middle
         unsigned int above = 0; // number of consecutive points higher than the mean
-        while (above < 4 && counter++ < (evals-7)/2) {
+        while (above < 4 && counter++ < (evals-9)/2) {
             x += spacing;
             double f = function(&x);
             if (f < fmin) {
@@ -111,9 +150,10 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
 
     if (left) {
         // repeat for left-steps
+        counter = 0;
         unsigned int above = 0;
-        x = xmid - 3*spacing;   // start three steps to the left of the middle
-        while (above < 4 && counter++ < (evals-7)/2) {
+        x = xmid - 4*spacing;   // start four steps to the left of the middle
+        while (above < 4 && counter++ < (evals-9)/2) {
             x -= spacing;
             double f = function(&x);
             if (f < fmin) {

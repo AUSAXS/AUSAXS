@@ -117,101 +117,103 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter 
 }
 
 #include <math/CubicSpline.h>
+#include <minimizer/LimitedScan.h>
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
 
-    // mini::Golden minimizer(func, param);
-    // mini::ROOTMinimizer minimizer("GSLSimAn", "", func, param);
+    // mini::LimitedScan minimizer(prepare_function(fitter), param, setting::em::evals);
+    // minimizer.set_limit(fitter->dof()*100);
     mini::Scan minimizer(prepare_function(fitter), param, setting::em::evals);
-    Dataset2D landscape = minimizer.landscape(setting::em::evals);
-    auto min = landscape.find_minimum();
+    Dataset2D l = minimizer.landscape(setting::em::evals);
+    auto min = l.find_minimum();
+
+    l.limit_y(0, min.y*5);  // focus on the area near the minimum
+    auto _l = l;            // save original data before averaging
+    l.moving_average(7);    // impose a moving average filter
+    
+    // interpolate more points for a nicer curve
+    //? move to dataset function? difficult since we cannot interpolate yerrs
+    { 
+        CubicSpline spline(l.x().to_vector(), l.y().to_vector());
+        Dataset2D interpolated;
+        for (unsigned int i = 0; i < l.size()-1; i++) {
+            double x = l.x(i);
+            double y = l.y(i);
+            interpolated.push_back(x, y);
+
+            double x_next = l.x(i+1);
+            double y_next = l.y(i+1);
+
+            unsigned int steps = 5;
+            double step = (x_next - x)/steps;
+            for (unsigned int j = 0; j < steps; j++) {
+                double x_new = x + (j+1)*step;
+                double y_new = spline.spline(x_new);
+                interpolated.push_back(x_new, y_new);
+            }
+        }
+        l = interpolated;
+        min = l.find_minimum();
+        double spacing = l.x(1)-l.x(0); 
+        param.guess = min.x;
+        param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
+    }
 
     if (setting::plot::em::plot_cutoff_points) {
-        auto data = minimizer.get_evaluated_points();
-        data.limit_y(0, min.y*5);   // focus on the area near the minimum
-        data.sort_x();              // sort so we can make a line plot //? probably unnecessary now?
-        auto _data = data;          // save original data before averaging
-        data.moving_average(7);
-        
-        // interpolate more points for a nicer curve
-        //? move to dataset function?
-        { 
-            CubicSpline spline(data.x().to_vector(), data.y().to_vector());
-            Dataset2D interpolated;
-            for (unsigned int i = 0; i < data.size()-1; i++) {
-                double x = data.x(i);
-                double y = data.y(i);
-                interpolated.push_back(x, y);
-
-                double x_next = data.x(i+1);
-                double y_next = data.y(i+1);
-
-                unsigned int steps = 5;
-                double step = (x_next - x)/steps;
-                for (unsigned int j = 0; j < steps; j++) {
-                    double x_new = x + (j+1)*step;
-                    double y_new = spline.spline(x_new);
-                    interpolated.push_back(x_new, y_new);
-                }
-            }
-            data = interpolated;
-            min = data.find_minimum();
-            double spacing = data.x(1)-data.x(0); 
-            param.guess = min.x;
-            param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
-        }
-
-        data.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-        plots::PlotDataset plot(data);
-
-        _data.add_plot_options("points");
-        plot.plot(_data);
-
+        l.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+        plots::PlotDataset plot(l);
+        _l.add_plot_options("points");
+        plot.plot(_l);
         plot.save(setting::plot::path + "chi2_evaluated_points.pdf");
     }
 
-    mini::Golden minimizer2(prepare_function(fitter), param);
-    auto res = minimizer2.minimize();
-
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum
     // we therefore want to sample the area near the minimum to get an average
-    // if (setting::em::hydrate) {
-    //     param = res.get_parameter("cutoff");
+    mini::Result res;
+    if (setting::em::hydrate) {
+        // sample the area around the minimum
+        mini::MinimumExplorer explorer(prepare_function(fitter), param, 50);
+        res = explorer.minimize();
 
-    //     // ensure that the bounds are not too small
-    //     param.bounds = Limit(std::min(param.bounds->min, *param.guess - 0.01), std::max(param.bounds->max, *param.guess + 0.01));
+        if (setting::plot::em::plot_cutoff_points) {
+            auto area = explorer.get_evaluated_points();
 
-    //     // sample the area around the minimum
-    //     mini::MinimumExplorer explorer(prepare_function(fitter), param, 50);
-    //     explorer.minimize();
-    //     auto area = explorer.get_evaluated_points();
+            // calculate the mean & standard deviation of the sampled points
+            double mu = area.mean();
+            double sigma = area.std();
+            std::cout << "sigma: " << sigma << std::endl;
 
-    //     // calculate the mean & standard deviation of the sampled points
-    //     double mu = area.mean();
-    //     double sigma = area.std();
+            // plot horizontal lines at the mean and mean +/- sigma
+            auto xspan = area.span_x();
+            SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
+            SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
+            SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
+            l.add_plot_options("lines", {{"color", kRed}});
+            lp.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
+            lm.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
 
-    //     std::cout << "sigma: " << sigma << std::endl;
+            // plot the starting point in blue
+            SimpleDataset p_start;
+            p_start.push_back(min.x, min.y);
+            p_start.add_plot_options("point", {{"color", kBlue}, {"ms", 20}});
 
-    //     res.fval = mu;
-
-    //     if (setting::plot::em::plot_cutoff_points) {
-    //         auto xspan = area.span_x();
-    //         SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
-    //         SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
-    //         SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
-    //         l.add_plot_options("lines", {{"color", kRed}});
-    //         lp.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
-    //         lm.add_plot_options("lines", {{"color", kRed}, {"linestyle", kDashed}});
-
-    //         area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-    //         plots::PlotDataset plot(area);
-    //         plot.plot(l);
-    //         plot.plot(lm);
-    //         plot.plot(lp);
-    //         plot.save(setting::plot::path + "chi2_near_minimum.pdf");
-    //     }
-    // }
+            // do the actual plotting
+            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+            plots::PlotDataset plot(area);
+            plot.plot(l);
+            plot.plot(lm);
+            plot.plot(lp);
+            plot.plot(p_start);
+            plot.save(setting::plot::path + "chi2_near_minimum.pdf");
+        }
+    } 
+    
+    // otherwise do a quick fit to ensure we're at the very bottom of the valley
+    else {
+        mini::Golden golden(prepare_function(fitter), param);
+        res = golden.minimize();
+    }
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
     emfit->evaluated_points = minimizer.get_evaluated_points();

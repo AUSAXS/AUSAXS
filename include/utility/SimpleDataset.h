@@ -51,19 +51,16 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          */
         ~SimpleDataset() override = default;
 
-        [[nodiscard]] const ConstColumn<double> x() const {return col(0);}
-        [[nodiscard]] Column<double> x() {return col(0);}
-        [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
-        [[nodiscard]] double& x(unsigned int i) {return index(i, 0);}
-
-        [[nodiscard]] const ConstColumn<double> y() const {return col(1);}
-        [[nodiscard]] Column<double> y() {return col(1);}
-        [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}
-        [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
-
+        // Get the third column.
         [[nodiscard]] const ConstColumn<double> yerr() const {return col(2);}
+
+        // Get the third column.
         [[nodiscard]] Column<double> yerr() {return col(2);}
+
+        // Get the ith value in the third column.
         [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}
+
+        // Get the ith value in the third column.
         [[nodiscard]] double& yerr(unsigned int i) {return index(i, 2);}
 
         /**

@@ -112,6 +112,34 @@ class Dataset : public Matrix<double> {
          */
         [[nodiscard]] std::string get_col_names(unsigned int i);
 
+    //*#####################*//
+    //*### Alias methods ###*//
+    //*#####################*//
+
+        // Get the first column.
+        [[nodiscard]] const ConstColumn<double> x() const {return col(0);}
+
+        // Get the first column.
+        [[nodiscard]] Column<double> x() {return col(0);}
+
+        // Get the ith value in the first column.
+        [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
+
+        // Get the ith value in the first column.
+        [[nodiscard]] double& x(unsigned int i) {return index(i, 0);}
+
+        // Get the ith value in the second column.
+        [[nodiscard]] const ConstColumn<double> y() const {return col(1);}
+
+        // Get the ith value in the second column.
+        [[nodiscard]] Column<double> y() {return col(1);}
+
+        // Get the ith value in the second column.
+        [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}
+
+        // Get the ith value in the second column.
+        [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
+
     private: 
         std::vector<std::string> names; // The column names
 };
