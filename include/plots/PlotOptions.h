@@ -44,10 +44,10 @@ namespace plots {
             // remember to add new options to the equality operator overload
             int color = 1;                  // Color. Default is kBlack = 1
             double alpha = 1;               // Opacity
-            int marker_style = 7;           // Marker style
+            int marker_style = 8;           // Marker style
             int line_style = 1;             // Line style
             unsigned int line_width = 1;    // Line width
-            double marker_size = 1;         // Marker size
+            double marker_size = 0.5;       // Marker size
             bool draw_line = true;          // Draw a line through the points
             bool draw_errors = false;       // Draw error bars if possible
             bool draw_markers = false;      // Draw a marker for each point

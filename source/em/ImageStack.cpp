@@ -161,10 +161,16 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     }
 
     if (setting::plot::em::plot_cutoff_points) {
+        // plot the starting point in blue
+        SimpleDataset p_start;
+        p_start.push_back(min.x, min.y);
+        p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
+
         l.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
         plots::PlotDataset plot(l);
         _l.add_plot_options("points");
         plot.plot(_l);
+        plot.plot(p_start);
         plot.save(setting::plot::path + "chi2_evaluated_points.pdf");
     }
 
@@ -196,7 +202,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min.x, min.y);
-            p_start.add_plot_options("point", {{"color", kBlue}, {"ms", 20}});
+            p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
 
             // do the actual plotting
             area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
