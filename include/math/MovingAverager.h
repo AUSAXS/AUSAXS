@@ -39,7 +39,7 @@ struct MovingAverage {
             unsigned int steps = (window_size-1) / 2;
             unsigned int mid = steps;
             for (unsigned int i = 1; i < steps+1; i++) {
-                double val = 1/std::pow(2, i);
+                double val = 1/std::pow(1.5, i);
                 weights[mid-i] = val;
                 weights[mid+i] = val;
             }
