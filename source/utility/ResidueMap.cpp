@@ -1,26 +1,26 @@
-#pragma once
-
-#include <map>
 #include <string>
-#include <iostream>
 
 #include <utility/Exceptions.h>
-#include <utility/SimpleResidueMap.h>
+#include <utility/ResidueMap.h>
 
-saxs::detail::SimpleResidueMap::SimpleResidueMap() : SimpleMap() {}
+using namespace saxs::detail;
 
-saxs::detail::SimpleResidueMap::SimpleResidueMap(std::unordered_map<std::string, unsigned int> names, std::unordered_map<std::string, std::string> elements) : SimpleMap(names) {
-    calculate_average(elements);
+ResidueMap::ResidueMap() {}
+
+ResidueMap::ResidueMap(std::unordered_map<AtomKey, unsigned int> map) {
+    this->map = map;
+    this->calculate_average();
 }
 
-const unsigned int& saxs::detail::SimpleResidueMap::get(AtomKey key) const {
+double ResidueMap::get(AtomKey key) {
     // first check if the key is in the map
-    if (data.find(key.name) != data.end()) {return data.at(key.name);}
+    if (map.find(key) != map.end()) {return map.at(key);}
 
     // if not, check if the key is a hydrogen
     if (key.symbol == "H") {return 0;}
 
     // estimate the number of bonds as the average for that element
+    if (__builtin_expect(update_average, false)) {this->calculate_average();}
     if (average.find(key.symbol) != average.end()) {
         return average.at(key.symbol);
     } else {
@@ -28,16 +28,21 @@ const unsigned int& saxs::detail::SimpleResidueMap::get(AtomKey key) const {
     }
 }
 
-void saxs::detail::SimpleResidueMap::calculate_average(std::unordered_map<std::string, std::string> elements) {
+void ResidueMap::insert(AtomKey key, unsigned int value) {
+    map[key] = value;
+    update_average = true;
+}
+
+void ResidueMap::insert(std::string name, std::string symbol, unsigned int value) {
+    insert(AtomKey(name, symbol), value);
+}
+
+void ResidueMap::calculate_average() {
     std::unordered_map<std::string, unsigned int> counts;
     
-    for (auto& [key, value] : data) {
-        if (elements.find(key) == elements.end()) {
-            throw except::map_error("Error in SimpleResidueMap::calculate_average: Key " + key + " not found in element map");
-        }
-        std::string symbol = elements.at(key);
-        average[symbol] += value;
-        counts[symbol] += 1;
+    for (auto& [key, value] : map) {
+        average[key.symbol] += value;
+        counts[key.symbol] ++;
     }
 
     for (auto& [key, value] : average) {

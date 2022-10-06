@@ -15,7 +15,7 @@
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 
-Atom::Atom(const Vector3<double> v, const double occupancy, const string element, const string name, int serial) {
+Atom::Atom(Vector3<double> v, double occupancy, string element, string name, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(v);
     set_occupancy(occupancy);
@@ -23,11 +23,10 @@ Atom::Atom(const Vector3<double> v, const double occupancy, const string element
     set_name(name);
     set_serial(serial);
     set_effective_charge(constants::charge::atomic.get(this->element));
-    uid = uid_counter++;
 }
 
-Atom::Atom(const int serial, const string name, const string altLoc, const string resName, const string chainID, const int resSeq, 
-    const string iCode, const Vector3<double> coords, const double occupancy, const double tempFactor, const string element, const string charge) {
+Atom::Atom(int serial, string name, string altLoc, string resName, string chainID, int resSeq, string iCode, 
+    Vector3<double> coords, double occupancy, double tempFactor, string element, string charge) : uid(uid_counter++) {
         set_serial(serial);
         set_name(name);
         set_altLoc(altLoc);
@@ -45,7 +44,7 @@ Atom::Atom(const int serial, const string name, const string altLoc, const strin
         if (setting::protein::use_effective_charge) {
             // use a try-catch block to throw more sensible errors
             try {
-                effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name);
+                effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
             } catch (const except::base& e) {
                 throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
             }
@@ -127,7 +126,7 @@ void Atom::parse_pdb(string s) {
     }
 
     if (setting::protein::use_effective_charge) {
-        effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name);
+        effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
         effective_charge = constants::charge::atomic.get(this->element);
     }
@@ -213,7 +212,7 @@ double Atom::get_mass() const {
     }
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
-        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name)*constants::mass::atomic.get("H");
+        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::atomic.get("H");
     } else {
         return constants::mass::atomic.get(element);
     }

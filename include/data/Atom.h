@@ -18,15 +18,15 @@ class Atom : public Record {
      * @param name the molecule (e.g. HOH).
      * @param serial the serial number of this atom.
      */
-    Atom(const Vector3<double> v, const double occupancy, std::string element, std::string name, int serial);
+    Atom(Vector3<double> v, double occupancy, std::string element, std::string name, int serial);
 
     /**
      * @brief Construct a new Atom object.
      * 
      * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
      */
-    Atom(int serial, std::string name, std::string altLoc, std::string resName, std::string chainID, int resSeq, 
-        std::string iCode, const Vector3<double> coords, double occupancy, double tempFactor, std::string element, std::string charge);
+    Atom(int serial, std::string name, std::string altLoc, std::string resName, std::string chainID, int resSeq, std::string iCode, 
+        Vector3<double> coords, double occupancy, double tempFactor, std::string element, std::string charge);
 
     /**
      * @brief Construct a new empty Atom object.

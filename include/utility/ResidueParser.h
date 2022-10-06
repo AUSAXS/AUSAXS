@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-#include <utility/SimpleResidueMap.h>
+#include <utility/ResidueMap.h>
 
 namespace parser {
     namespace residue {
@@ -50,7 +50,7 @@ namespace parser {
 
                     std::string to_string() const;
 
-                    saxs::detail::SimpleResidueMap to_map() const;
+                    saxs::detail::ResidueMap to_map() const;
 
                     static Residue parse(std::string filename);
 
@@ -75,13 +75,13 @@ namespace parser {
                 /**
                  * @brief Get a residue from the storage. If the residue is not found, it will be downloaded. 
                  */
-                saxs::detail::SimpleResidueMap& get(std::string name);
+                saxs::detail::ResidueMap& get(std::string name);
 
             private: 
                 /**
                  * @brief Insert a residue into the storage. 
                  */
-                void insert(std::string name, saxs::detail::SimpleResidueMap residue);
+                void insert(std::string name, saxs::detail::ResidueMap residue);
 
                 /**
                  * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
@@ -98,7 +98,7 @@ namespace parser {
                  */
                 void write_residue(std::string name);
 
-                std::map<std::string, saxs::detail::SimpleResidueMap> data;
+                std::map<std::string, saxs::detail::ResidueMap> data;
         };
     }
 }

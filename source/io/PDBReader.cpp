@@ -11,7 +11,7 @@
 
 void PDBReader::read(std::string input_path) {
     if (setting::general::verbose) {
-        utility::print_info("\nLoading PDB file from \"" + input_path + "\"");
+        utility::print_info("Reading PDB file from \"" + input_path + "\"");
     }
 
     // check if file was succesfully opened

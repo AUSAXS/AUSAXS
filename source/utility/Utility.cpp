@@ -30,7 +30,7 @@ void utility::print_success(std::string text) {
 }
 
 void utility::print_info(std::string text) {
-    std::cout << "\033[1;34m" << text << "\033[0m" << std::endl;
+    std::cout << "\n\033[1;34m" << text << "\033[0m" << std::endl;
 }
 
 void utility::create_directory(std::string& path) {

@@ -88,8 +88,8 @@ std::string parser::residue::detail::Residue::to_string() const {
     return ss.str();
 }
 
-saxs::detail::SimpleResidueMap parser::residue::detail::Residue::to_map() const {
-    saxs::detail::SimpleResidueMap map;
+saxs::detail::ResidueMap parser::residue::detail::Residue::to_map() const {
+    saxs::detail::ResidueMap map;
     for (const Atom& a : atoms) {
         // skip all H's, they are automatically handled by the SimpleResidueMap
         if (a.symbol == "H") {
@@ -98,9 +98,9 @@ saxs::detail::SimpleResidueMap parser::residue::detail::Residue::to_map() const 
 
         // check if the alternate name should also be inserted
         if (a.altname != a.name && !a.altname.empty()) {
-            map.insert(a.altname, a.hydrogen_bonds);
+            map.insert(a.altname, a.symbol, a.hydrogen_bonds);
         }
-        map.insert(a.name, a.hydrogen_bonds);
+        map.insert(a.name, a.symbol, a.hydrogen_bonds);
     }
     return map;
 }
@@ -211,11 +211,11 @@ parser::residue::ResidueStorage::ResidueStorage() {
     initialize();
 }
 
-void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::SimpleResidueMap residue) {
+void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::ResidueMap residue) {
     data.emplace(name, residue);
 }
 
-saxs::detail::SimpleResidueMap& parser::residue::ResidueStorage::get(std::string name) {
+saxs::detail::ResidueMap& parser::residue::ResidueStorage::get(std::string name) {
     if (data.find(name) == data.end()) {
         utility::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
         download_residue(name);
@@ -245,7 +245,7 @@ void parser::residue::ResidueStorage::initialize() {
             // std::cout << "Read residue " << residue << " from master file." << std::endl;
 
             // prepare map
-            std::map<std::string, unsigned int> map;
+            std::unordered_map<saxs::detail::AtomKey, unsigned int> map;
             while (file.peek() != EOF) {
                 std::getline(file, line);
                 // stop if we reach the start of a new residue
@@ -253,11 +253,13 @@ void parser::residue::ResidueStorage::initialize() {
                     break;
                 }
 
-                // lines are of the form "atom hydrogens"
+                // lines are of the form "element atom hydrogens"
                 std::vector<std::string> tokens = utility::split(line, " \n\r");
-                std::string atom = tokens[0];
-                unsigned int hydrogens = std::stoi(tokens[1]);
-                map.emplace(atom, hydrogens);
+                if (tokens.size() != 3) {throw except::io_error("Error in ResidueStorage::initialize: Invalid line in master file: " + line + ". Corrupted file?");}
+                std::string element = tokens[0];
+                std::string atom = tokens[1];
+                unsigned int hydrogens = std::stoi(tokens[2]);
+                map.emplace(saxs::detail::AtomKey(atom, element), hydrogens);
             }
             insert(residue, std::move(map));
         }
@@ -294,9 +296,9 @@ void parser::residue::ResidueStorage::write_residue(std::string name) {
 
     // write the map to the master file
     auto map = get(name);
-    file << "#" << "\n" << name << "\n";
-    for (const auto& pair : map) {
-        file << pair.first << " " << pair.second << "\n";
+    file << "#" << "\n" << name << "\n"; // residue header
+    for (const auto& [key, val] : map) {
+        file << key.symbol << " " << key.name << " " << val << "\n";
     }
     file << std::endl;
 }
