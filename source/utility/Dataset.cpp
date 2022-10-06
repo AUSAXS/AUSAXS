@@ -12,15 +12,11 @@
 using std::vector, std::string;
 
 Dataset::Dataset(unsigned int rows, unsigned int cols) : Matrix(rows, cols) {
-    for (unsigned int i = 0; i < cols; i++) {
-        names.push_back("col" + std::to_string(i));
-    }
+    set_default_names();
 }
 
 Dataset::Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
-    for (unsigned int i = 0; i < cols.size(); i++) {
-        names.push_back("col " + std::to_string(i));
-    }
+    set_default_names();
 }
 
 void Dataset::operator=(const Matrix<double>&& other) {
@@ -97,6 +93,7 @@ void Dataset::save(std::string path, std::string header) const {
     }
 
     // write column titles
+    if (names.size() < M) {throw except::unexpected("Error in Dataset::save: Number of column names (" + std::to_string(names.size()) + ") does not match number of columns (" + std::to_string(M) + ").");}
     for (unsigned int j = 0; j < M; j++) {
         output << std::left << std::setw(14) << names[j] << "\t";
     }
@@ -159,8 +156,11 @@ void Dataset::load(std::string path) {
 
     // determine the most common number of columns, since that will likely be the data
     unsigned int mode = stats::mode(col_number);
-    if (M == 0) {M = mode;}
-    else if (M != mode) {throw except::io_error("Error in Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
+    if (M == 0) {
+        M = mode;
+        set_default_names();
+    }
+    else if (M < mode) {throw except::io_error("Error in Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
 
     // copy all rows with the correct number of columns
     for (unsigned int i = 0; i < row_data.size(); i++) {
@@ -190,5 +190,12 @@ void Dataset::load(std::string path) {
 
     if (setting::general::verbose) {
         std::cout << "\tSuccessfully read " << size() << " data points from " << path << std::endl;
+    }
+}
+
+void Dataset::set_default_names() {
+    names.resize(M);
+    for (unsigned int i = 0; i < M; i++) {
+        names[i] = "col_" + std::to_string(i);
     }
 }

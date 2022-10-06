@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 
 #include <utility/Exceptions.h>
 #include <utility/ResidueMap.h>

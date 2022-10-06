@@ -51,6 +51,11 @@ rotate/%: build/executable/rotate_map
 main/%: build/executable/main
 	$< $*
 
+# Plot a SAXS dataset along with any accompanying fits
+plot/%: build/executable/plot
+	@ measurement=$(shell find figures/ -name "$*.dat"); \
+	$< $${measurement}
+
 # Inspect the header of an EM map
 inspect/%: build/executable/inspect_map
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \

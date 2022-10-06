@@ -17,6 +17,7 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
     string pdb, mfile, output, settings, placement_strategy = "Radial";
+    bool use_existing_hydration = false;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
@@ -30,7 +31,8 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_flag("--center,!--no-center", setting::protein::center, "Decides whether the protein will be centered. Default: true.");
-    app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
+    app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the effective atomic charge will be used. Default: true.");
+    app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used. Default: false.");
     CLI11_PARSE(app, argc, argv);
 
     // if a settings file was provided
@@ -51,14 +53,21 @@ int main(int argc, char const *argv[]) {
     }
 
     Protein protein(pdb);
-    // protein.generate_new_hydration();
-    protein.save(output + "protein.pdb");
+    if (!use_existing_hydration || protein.hydration_atoms.empty()) {
+        protein.generate_new_hydration();
+    }
     hist::ScatteringHistogram h = protein.get_histogram();
     plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::figures::format);
     IntensityFitter fitter(mfile, h);
     std::shared_ptr<Fit> result = fitter.fit();
     FitReporter::report(result);
     FitReporter::save(output + "report.txt", result);
+
+    // save fit
+    auto fit = fitter.get_model_dataset();
+    auto data = fitter.get_dataset();
+    fit.save(output + "fit.fit");
+    data.save(output + utility::stem(mfile) + ".dat");
 
     // Fit plot
     plots::PlotIntensityFit::quick_plot(result, output + "fit." + setting::figures::format);

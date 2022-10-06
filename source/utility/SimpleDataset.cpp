@@ -293,6 +293,7 @@ void SimpleDataset::load(std::string path) {
     else if (M > 3) {
         utility::print_warning("Warning in SimpleDataset::load: Dataset has " + std::to_string(M) + " columns, while this class only supports operations on 3. Ensure that the file is of the format [x | y | yerr | rest].");
     }
+    names = {"q", "I", "Ierr", "qerr"}; // set column names
     unsigned int N = size();
     limit_x(setting::axes::qmin, setting::axes::qmax);
     if (N != size() && setting::general::verbose) {

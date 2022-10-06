@@ -11,61 +11,39 @@ class Dataset2D : public SimpleDataset {
         /**
          * @brief Default constructor.
          */
-        Dataset2D() noexcept : SimpleDataset(0, 4) {}
+        Dataset2D() noexcept;
 
         /**
          * @brief Construct a new empty dataset with the given number of rows.
          */
-        Dataset2D(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}
+        Dataset2D(unsigned int rows) noexcept;
 
         /**
          * @brief Construct a new dataset with x and y values. The xerr and yerr columns will be initialized to 0.
          */
-        Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Dataset2D(x.size()) {
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], 0, 0};
-            }
-        }
+        Dataset2D(std::vector<double> x, std::vector<double> y) noexcept;
 
         /**
          * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
          */
-        Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset2D(x, y) {
-            set_col_names({xlabel, ylabel, std::string(ylabel)+"err", std::string(xlabel)+"err"});
-            options.xlabel = xlabel;
-            options.ylabel = ylabel;
-        }
+        Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel);
 
         /**
          * @brief Construct a new dataset with x, y, and yerr values. The xerr column will be initialized to 0. 
          */
-        Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], yerr[i], 0};
-            }
-        }
+        Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept;
 
         /**
          * @brief Construct a new dataset with x, y, xerr, and yerr values.
          */
-        Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
-            for (unsigned int i = 0; i < x.size(); i++) {
-                row(i) = {x[i], y[i], xerr[i], yerr[i]};
-            }
-        }
+        Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept;
 
-        Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
-            for (unsigned int i = 0; i < data.size(); i++) {
-                row(i) = {data.x(i), data.y(i), data.yerr(i), 0};
-            }
-        }
+        Dataset2D(const SimpleDataset& data);
 
         /**
          * @brief Construct a new dataset from an input file.
          */
-        Dataset2D(std::string path) : Dataset2D() {
-            load(path);
-        }
+        Dataset2D(std::string path);
 
         /**
          * @brief Destructor.

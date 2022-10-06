@@ -48,3 +48,6 @@ target_link_libraries(plot_data saxs)
 
 add_executable(inspect_map inspect_map.cpp)
 target_link_libraries(inspect_map saxs)
+
+add_executable(plot plot.cpp)
+target_link_libraries(plot saxs)

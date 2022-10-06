@@ -140,6 +140,10 @@ class Dataset : public Matrix<double> {
         // Get the ith value in the second column.
         [[nodiscard]] double& y(unsigned int i) {return index(i, 1);}
 
-    private: 
         std::vector<std::string> names; // The column names
+    private: 
+        /**
+         * @brief Define default column names.
+         */
+        void set_default_names();
 };
