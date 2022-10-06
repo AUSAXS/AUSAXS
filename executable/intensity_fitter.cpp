@@ -16,7 +16,7 @@ using std::cout, std::endl;
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
-    string pdb, mfile, output, placement_strategy = "Radial";
+    string pdb, mfile, output, settings, placement_strategy = "Radial";
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
@@ -28,9 +28,18 @@ int main(int argc, char const *argv[]) {
     app.add_option("--radius_h,--rh", setting::grid::rh, "Radius of the hydration atoms.");
     app.add_option("--qlow", setting::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
+    auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_flag("--center,!--no-center", setting::protein::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
     CLI11_PARSE(app, argc, argv);
+
+    // if a settings file was provided
+    if (p_settings->count() != 0) {
+        setting::read(settings);        // read it
+        CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
+    } else {                            // otherwise check if there is a settings file in the same directory
+        setting::discover(std::filesystem::path(mfile).parent_path().string());
+    }
 
     // parse strategy
     if (placement_strategy == "Radial") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::RadialStrategy;}

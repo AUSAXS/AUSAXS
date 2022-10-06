@@ -26,15 +26,12 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
     CLI11_PARSE(app, argc, argv);
 
+    // if a settings file was provided
     if (p_settings->count() != 0) {
-        setting::read(settings);
-        CLI11_PARSE(app, argc, argv);
-    } else {
-        std::string path = std::filesystem::path(mfile).parent_path().string();
-        if (std::filesystem::exists(path + "/settings.txt")) {
-            std::cout << "Using discovered settings file at " << path << "/settings.txt" << std::endl;
-            setting::read(path + "/settings.txt");
-        }
+        setting::read(settings);        // read it
+        CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
+    } else {                            // otherwise check if there is a settings file in the same directory
+        setting::discover(std::filesystem::path(mfile).parent_path().string());
     }
 
     if (output.empty()) {

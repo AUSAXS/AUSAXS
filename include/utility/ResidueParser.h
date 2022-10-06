@@ -4,11 +4,7 @@
 #include <string>
 #include <map>
 
-#include <utility/Utility.h>
-#include <utility/Exceptions.h>
-#include <utility/SimpleMap.h>
-
-#include <curl/curl.h>
+#include <utility/SimpleResidueMap.h>
 
 namespace parser {
     namespace residue {

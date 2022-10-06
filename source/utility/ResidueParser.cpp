@@ -2,6 +2,7 @@
 #include <utility/Curl.h>
 #include <utility/Settings.h>
 #include <utility/Constants.h>
+#include <utility/Exceptions.h>
 
 #include <regex>
 #include <filesystem>
@@ -18,7 +19,7 @@ parser::residue::detail::Atom::Atom(std::string name, int charge) : name(name) {
     // thus the number of hydrogen bonds is later used as the effective charge of the atom
     // and so, when dealing with an ion, we just set the hydrogen_bonds equal to the charge
     // this is a hack solution, but it works as it should
-    hydrogen_bonds = charge;
+    hydrogen_bonds = charge; //? shouldn't this be charge = valency - hydrogen_bonds --> hydrogen_bonds = valency - charge?
 }
 
 void parser::residue::detail::Atom::add_bond(std::string symbol, unsigned int order) {
@@ -216,7 +217,7 @@ void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::Sim
 
 saxs::detail::SimpleResidueMap& parser::residue::ResidueStorage::get(std::string name) {
     if (data.find(name) == data.end()) {
-        std::cout << "Unknown residue: \"" << name << "\". Attempting to download specification." << std::endl;
+        utility::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
         download_residue(name);
     }
     return data.at(name);
@@ -272,7 +273,7 @@ void parser::residue::ResidueStorage::download_residue(std::string name) {
         if (!std::filesystem::exists(path + name + ".cif")) {
             curl::download("https://files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
         } else {
-            std::cout << "Residue " << name << " is already downloaded, but not present in the master list. Reloading and adding it now." << std::endl;
+            std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. Reloading and adding it now." << std::endl;
         }
 
         // parse the cif file & add it to storage

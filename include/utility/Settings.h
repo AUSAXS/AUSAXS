@@ -100,8 +100,20 @@ namespace setting {
         };
     };
 
-    void read(const std::string path);
-    void write(const std::string path);
+    /**
+     * @brief Read the settings from a file.
+     */
+    void read(std::string path);
+
+    /**
+     * @brief Write the settings to a file.
+     */
+    void write(std::string path);
+
+    /**
+     * @brief Check if a settings file exists in the given directory, and read it if so.
+     */
+    void discover(std::string path);
 
     namespace detail {
         // Super class for SmartOptions to allow polymorphic vectors

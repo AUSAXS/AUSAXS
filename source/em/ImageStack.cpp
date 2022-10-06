@@ -142,10 +142,8 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             double y = l.y(i);
             interpolated.push_back(x, y);
 
-            double x_next = l.x(i+1);
-            double y_next = l.y(i+1);
-
             unsigned int steps = 5;
+            double x_next = l.x(i+1);
             double step = (x_next - x)/steps;
             for (unsigned int j = 0; j < steps; j++) {
                 double x_new = x + (j+1)*step;

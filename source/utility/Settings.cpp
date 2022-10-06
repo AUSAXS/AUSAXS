@@ -40,7 +40,7 @@ void setting::read(std::string path) {
         if (start == line.size()) {return std::pair<std::string, std::vector<std::string>>("empty", {});} // line consists only of spaces
         std::string first = line.substr(0, start);
 
-        int end = start;
+        unsigned int end = start;
         std::vector<std::string> vals;
         while (end != line.size()) {
             // find start of word, skipping any amount of spacing
@@ -84,6 +84,18 @@ void setting::write(std::string path) {
         output << e->aliases[0] << " " << e->get() << "\n";
     }
     output.close();
+}
+
+#include <filesystem>
+void setting::discover(std::string path) {
+    if (path[path.size()-1] != '/') {path += "/";}
+    std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
+    for (const auto& e : valid_names) {
+        if (std::filesystem::exists(path + e + ".txt")) {
+            std::cout << "Using discovered settings file at " << path << std::endl;
+            setting::read(path + e + ".txt");
+        }
+    }
 }
 
 template<>

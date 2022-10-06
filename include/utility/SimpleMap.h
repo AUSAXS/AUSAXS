@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 #include <string>
 #include <iostream>
 
@@ -10,7 +11,7 @@
 namespace saxs {
     namespace detail {
         /**
-         * @brief A simple case-insensitive map. 
+         * @brief A simple case-insensitive hashmap. 
          */
         template<typename V>
         struct SimpleMap {
@@ -22,7 +23,7 @@ namespace saxs {
             /**
              * @brief Create a new SimpleMap from a std::map.
              */
-            SimpleMap(std::map<std::string, V> map) {
+            SimpleMap(std::unordered_map<std::string, V> map) {
                 for (auto& [key, value] : map) {
                     insert(key, value);
                 }
@@ -31,7 +32,7 @@ namespace saxs {
             /**
              * @brief Get a value from the storage. 
              */
-            virtual const V& get(const std::string& key) const {
+            virtual const V& get(std::string key) const {
                 std::string k2 = utility::to_lowercase(key);
                 if (data.find(k2) == data.end()) {
                     throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
@@ -61,57 +62,23 @@ namespace saxs {
                 return data.find(utility::to_lowercase(key)) != data.end();
             }
 
-            typename std::map<std::string, V>::const_iterator begin() const {
+            typename std::unordered_map<std::string, V>::const_iterator begin() const {
                 return data.begin();
             }
 
-            typename std::map<std::string, V>::const_iterator end() const {
+            typename std::unordered_map<std::string, V>::const_iterator end() const {
                 return data.end();
             }
 
-            typename std::map<std::string, V>::iterator begin() {
+            typename std::unordered_map<std::string, V>::iterator begin() {
                 return data.begin();
             }
 
-            typename std::map<std::string, V>::iterator end() {
+            typename std::unordered_map<std::string, V>::iterator end() {
                 return data.end();
             }
 
-            std::map<std::string, V> data;
-        };
-
-        /**
-         * @brief A simple extension of a SimpleMap, specializing it for residue storage. 
-         *        The only difference is that all keys containing "h" are automatically mapped to 0. 
-         */
-        struct SimpleResidueMap : SimpleMap<unsigned int> {
-            /**
-             * @brief Create a new empty SimpleResidueMap.
-             */
-            SimpleResidueMap() : SimpleMap() {
-                insert("h", 0);
-            }
-
-            /**
-             * @brief Create a new SimpleResidueMap from a std::map.
-             */
-            SimpleResidueMap(std::map<std::string, unsigned int> map) : SimpleMap(map) {
-                insert("h", 0);
-            }
-
-            /**
-             * @brief Get a value from the storage. 
-             */
-            const unsigned int& get(const std::string& key) const override {
-                std::string k2 = utility::to_lowercase(key);
-                if (k2[0] == 'h' || (std::isdigit(k2[0]) && k2[1] == 'h')) {
-                    return data.at("h");
-                }
-                if (data.find(k2) == data.end()) {
-                    throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
-                }
-                return data.at(k2);
-            }
+            std::unordered_map<std::string, V> data;
         };
     }
 }
