@@ -1,4 +1,6 @@
 # Todo
+ * [ ] LigandParser: Are charged atoms handled correctly? Unsure about this. 
+ * [ ] Least squares: Consider removing the offset parameter? Other programs doesn't use it, and it seems superfluous. 
  * [ ] EMFitter: Use a MinimumExplorer instead of Golden fitter in the final fit.
  * [ ] Tests: manager & table works fine individually, but breaks when run with the other tests. Probably some setting getting messed up somewhere (qmin, qmax?)
  * [ ] Hydrogens are still not handled correctly - if e.g. 2HB is listed, it is not automatically parsed as a hydrogen and subsequently crashes. 

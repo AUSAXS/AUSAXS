@@ -111,7 +111,7 @@ void Dataset::save(std::string path, std::string header) const {
 
 void Dataset::load(std::string path) {
     if (setting::general::verbose) {
-        utility::print_info("\nLoading dataset from \"" + path + "\"");
+        utility::print_info("Loading dataset from \"" + path + "\"");
     }
 
     // check if file was succesfully opened
@@ -161,6 +161,17 @@ void Dataset::load(std::string path) {
         set_default_names();
     }
     else if (M < mode) {throw except::io_error("Error in Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
+
+    // check if the file has the same number of columns as the dataset
+    if (mode < M) {
+        // if the file has less columns, fill the remaining columns with zeros
+        for (unsigned int i = 0; i < M-mode; i++) {
+            for (unsigned int i = 0; i < row_data.size(); i++) {
+                row_data[i].push_back(0);
+            }
+        }
+        mode = M;
+    }
 
     // copy all rows with the correct number of columns
     for (unsigned int i = 0; i < row_data.size(); i++) {
