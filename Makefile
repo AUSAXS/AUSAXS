@@ -52,9 +52,13 @@ main/%: build/executable/main
 	$< $*
 
 # Plot a SAXS dataset along with any accompanying fits
-plot/%: build/executable/plot
+#plot/%: build/executable/plot
+#	@ measurement=$(shell find figures/ -name "$*.dat"); \
+#	$< $${measurement}
+plot/%: scripts/plot_dataset.py
 	@ measurement=$(shell find figures/ -name "$*.dat"); \
-	$< $${measurement}
+	python3 $< $${measurement}
+	
 
 # Inspect the header of an EM map
 inspect/%: build/executable/inspect_map
