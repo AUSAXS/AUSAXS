@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
     std::vector<std::string> names = {"orange", "blue", "green", "yellow", "purple", "red", "magenta", "light green"};
     for (unsigned int i = 0; i < fitfiles.size(); i++) {
         Dataset2D fit(fitfiles[i]);
-        if (fitfiles[i].find("foxs") != std::string::npos) {fit.y() = fit.xerr();}
+        if ((fitfiles[i].find("foxs") != std::string::npos) || (fitfiles[i].find("crysol") != std::string::npos)) {fit.y() = fit.xerr();}
         if (fitfiles[i].find("waxsis") != std::string::npos) {
             std::cout << "\tWAXSiS fits are not handled correctly!" << std::endl;
             fit.normalize(data.y(0));

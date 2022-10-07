@@ -97,8 +97,15 @@ rigidbody/%: build/executable/rigidbody
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} figures/
 
-center := center
 options :=
+crysol/%: 
+	@ mkdir -p temp/crysol/
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" ${options}
+	@ mv temp/crysol/out.fit figures/intensity_fitter/$*/crysol.fit
+
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
 intensity_fit/%: build/executable/intensity_fitter
