@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility/Limit.h>
+#include <math/Vector3.h>
 
 #include <vector>
 #include <array>
@@ -120,9 +121,9 @@ class Axis {
 		 */
 		Limit limits() const noexcept {return Limit(min, max);}
 
-		unsigned int bins; // The number of equidistant bins. 
-		double min;        // The minimum value spanned by this Axis. 
-		double max;        // The maximum value spanned by this Axis. 
+		unsigned int bins; 	// The number of equidistant bins. 
+		double min;        	// The minimum value spanned by this Axis. 
+		double max;        	// The maximum value spanned by this Axis. 
 };
 
 /**
@@ -182,11 +183,11 @@ class Axis3D {
 		 * 
 		 * Construct a new Axis3D based on the minimum and maximum values for each axis, along with the bin width. 
 		 * 
-		 * @param min A 3D vector containing the minimum values for each coordinate. 
-		 * @param max A 3D vector containing the maximum values for each coordinate. 
+		 * @param min A Vector3D containing the minimum values for each coordinate. 
+		 * @param max A Vector3D containing the maximum values for each coordinate. 
 		 * @param width The bin width. 
 		 */
-		Axis3D(const std::vector<int>& min, const std::vector<int>& max, double width) noexcept : x((max[0]-min[0])/width, min[0], max[0]), y((max[1]-min[1])/width, min[1], max[1]), z((max[2]-min[2])/width, min[2], max[2]) {}
+		Axis3D(const Vector3<double>& min, const Vector3<double>& max, double width) noexcept : x((max[0]-min[0])/width, min[0], max[0]), y((max[1]-min[1])/width, min[1], max[1]), z((max[2]-min[2])/width, min[2], max[2]) {}
 
 		/**
 		 * @brief Assignment operator. 

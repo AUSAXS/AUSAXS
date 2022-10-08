@@ -19,14 +19,13 @@ parser::residue::detail::Atom::Atom(std::string name, int charge, std::string sy
     // thus the number of hydrogen bonds is later used as the effective charge of the atom
     // and so, when dealing with an ion, we just set the hydrogen_bonds equal to the charge
     // this is a hack solution, but it works as it should
-    hydrogen_bonds = charge; //? shouldn't this be charge = valency - hydrogen_bonds --> hydrogen_bonds = valency - charge?
+    hydrogen_bonds = charge; // adding additional hydrogen bonds is directly translated to adding additional charge
 }
 
 void parser::residue::detail::Atom::add_bond(std::string symbol, unsigned int order) {
     if (symbol == "H") {
         hydrogen_bonds++;
     }
-
     valency -= order;
 }
 
@@ -98,9 +97,14 @@ saxs::detail::ResidueMap parser::residue::detail::Residue::to_map() const {
 
         // check if the alternate name should also be inserted
         if (a.altname != a.name && !a.altname.empty()) {
+            std::cout << "Inserting " << a.altname << " with valency " << a.valency << " and " << a.hydrogen_bonds << " hydrogen bonds" << std::endl;
             map.insert(a.altname, a.symbol, a.hydrogen_bonds);
         }
         map.insert(a.name, a.symbol, a.hydrogen_bonds);
+    }
+
+    for (const auto&[atom, count] : map) {
+        std::cout << atom.name << " " << count << std::endl;
     }
     return map;
 }
@@ -131,8 +135,6 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
                     tokens = utility::split(line, " \n\r");
                     int charge = std::stoi(tokens[1]);
                     residue.add_atom(formula, charge, formula);
-
-                    std::cout << "Parsed a single ion " << formula << " with charge " << charge << std::endl;
                     return residue;
                 }
             }
@@ -161,13 +163,12 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
         std::string atom_id_alt = utility::remove_quotation_marks(tokens[2]);
         std::string type_symbol = tokens[3];
 
-        // HN is sometimes used as an alias for "H"
-        // if (atom_id_alt == "H") {atom_id_alt = "HN";}
-
         // Sometimes the "1" in e.g. CD1 is omitted
         if (atom_id == atom_id_alt) {
-            if (atom_id[atom_id.size() - 1] == '1') {
-                atom_id_alt = atom_id.substr(0, atom_id.size()-1);
+            if (auto N = atom_id.size(); N > 2) { // second character must be a locator e.g. A, B, C, D, E, ...
+                if (atom_id[N - 1] == '1' && !std::isdigit(atom_id[N - 2])) { // last character must be 1 & previous character must be a locator
+                    atom_id_alt = atom_id.substr(0, N - 1);
+                }
             }
         }
 
@@ -275,7 +276,7 @@ void parser::residue::ResidueStorage::download_residue(std::string name) {
         if (!std::filesystem::exists(path + name + ".cif")) {
             curl::download("https://files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
         } else {
-            std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. Reloading and adding it now." << std::endl;
+            std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. \n\tReloading and adding it now." << std::endl;
         }
 
         // parse the cif file & add it to storage

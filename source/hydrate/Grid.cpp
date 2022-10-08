@@ -31,23 +31,18 @@ Grid::Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid
 
 Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
     // find the bounding box
-    vector<int> imin, imax;
+    Vector3<double> nmin, nmax; // new min & max
     auto[min, max] = bounding_box(atoms);
 
-    // expand the box by the scaling factor
-    for (auto& v : min) {
-        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));} // if v is smaller than 0, multiply by 1+s
-        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}       //                    else multiply by 1-s
-    }
-
-    // add 1 in case the scaling factor is too small to actually make the box bigger, to ensure all atoms still fit
-    for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling) + 1));} // if v is larger than 0, multiply by 1+s
-        else {imax.push_back(std::round(v*(1 - setting::grid::scaling) + 1));}       //                   else multiply by 1-s
+    // expand bounding box by scaling factor
+    for (unsigned int i = 0; i < 3; i++) {
+        double expand = 0.5*(max[i] - min[i])*setting::grid::scaling;   // amount to expand in each direction
+        nmin[i] = min[i] - expand;
+        nmax[i] = max[i] + expand;
     }
 
     // setup the rest of the class members
-    axes = Axis3D(imin, imax, setting::grid::width);
+    axes = Axis3D(nmin, nmax, setting::grid::width);
     setup(width, ra, rh, ps, cs);
 
     // finally add the atoms to the grid
@@ -55,7 +50,7 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, settin
 }
 
 Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
-    vector<int> imin, imax;
+    Vector3<double> nmin, nmax; // new min & max
 
     // find the total bounding box containing all bodies
     Vector3 min{0, 0, 0}, max{0, 0, 0};
@@ -68,18 +63,15 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
         }
     }
 
-    // expand the box by 10%
-    for (auto& v : min) {
-        if (v < 0) {imin.push_back(std::round(v*(1 + setting::grid::scaling)));}
-        else {imin.push_back(std::round(v*(1 - setting::grid::scaling)));}
-    }
-    for (auto& v : max) {
-        if (v > 0) {imax.push_back(std::round(v*(1 + setting::grid::scaling)) + 1);}
-        else {imax.push_back(std::round(v*(1 - setting::grid::scaling)) + 1);}
+    // expand bounding box by scaling factor
+    for (unsigned int i = 0; i < 3; i++) {
+        double expand = 0.5*(max[i] - min[i])*setting::grid::scaling;   // amount to expand in each direction
+        nmin[i] = min[i] - expand;
+        nmax[i] = max[i] + expand;
     }
 
     // setup the rest of the class members
-    axes = Axis3D(imin, imax, setting::grid::width);
+    axes = Axis3D(nmin, nmax, setting::grid::width);
     setup(width, ra, rh, ps, cs);
 
     // finally add all atoms to the grid
@@ -198,7 +190,7 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
 std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const vector<Atom>& atoms) {
     // initialize the bounds as large as possible
     Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
-    Vector3 max = {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};
+    Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
     for (const auto& atom : atoms) {
         for (int i = 0; i < 3; i++) {
             min[i] = std::min(min[i], atom.coords[i]);

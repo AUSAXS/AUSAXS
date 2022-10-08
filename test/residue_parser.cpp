@@ -5,6 +5,9 @@
 #include <map>
 #include <string>
 
+#include <utility/Constants.h>
+#include <utility/Settings.h>
+
 /**
  * @brief The old version of the Constants.h file. This is used for testing the new version.
  */
@@ -296,32 +299,24 @@ namespace hydrogen_atoms {
         {"CYS", cysteine::get}, {"PRO", proline::get}, {"MYR", myristic_acid::get}};
 }
 
-#include <utility/Constants.h>
-#include <utility/Settings.h>
 TEST_CASE("residue_parser_single", "[residue_parser]") {
     auto GLY = constants::hydrogen_atoms::residues.get("GLY");
     auto GLY2 = hydrogen_atoms::glycine::get;
 
     for (const auto& [atom, num] : GLY2) {
-        REQUIRE(num == GLY.get(atom));
+        REQUIRE(num == GLY.get(atom, std::string(1, atom[0])));
     }
 }
 
-TEST_CASE("res_debug", "[residue_parser]") {
-    auto res = parser::residue::detail::Residue::parse("temp/residues/LYS.cif");
-    auto LYS = res.to_map();
-    auto LYS2 = hydrogen_atoms::lysine::get;
-
-    for (const auto& [atom, num] : LYS2) {
-        REQUIRE(num == LYS.get(atom));
-    }
-}
+// TEST_CASE("debug_1", "[residue_parser]") {
+//     auto map = parser::residue::detail::Residue::parse("temp/residues/MYR.cif").to_map();
+// }
 
 TEST_CASE("residue_parser_all", "[residue_parser]") {
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {
-                CHECK(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).get(atom));
+                CHECK(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).get(atom, std::string(1, atom[0])));
             }
         }
     }
