@@ -12,7 +12,7 @@ namespace parser {
             struct Atom {
                 Atom(std::string name, std::string altname, std::string symbol);
 
-                Atom(std::string name, int charge);
+                Atom(std::string name, int charge, std::string symbol);
 
                 void add_bond(std::string symbol, unsigned int order);
 
@@ -42,7 +42,7 @@ namespace parser {
 
                     void add_atom(std::string name, std::string altname, std::string symbol);
 
-                    void add_atom(std::string name, int charge);
+                    void add_atom(std::string name, int charge, std::string symbol);
 
                     void apply_bond(const std::vector<Bond>& bonds);
 

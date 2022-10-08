@@ -13,7 +13,7 @@ parser::residue::detail::Atom::Atom(std::string name, std::string altname, std::
     valency = constants::valence::atomic.get(symbol);
 }
                 
-parser::residue::detail::Atom::Atom(std::string name, int charge) : name(name) {
+parser::residue::detail::Atom::Atom(std::string name, int charge, std::string symbol) : name(name), symbol(symbol) {
     // the goal of this whole class is to determine the total charge surrounding an atom
     // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
     // thus the number of hydrogen bonds is later used as the effective charge of the atom
@@ -62,9 +62,9 @@ void parser::residue::detail::Residue::add_atom(std::string name, std::string al
     atoms.push_back(Atom(name, altname, symbol));
 }
 
-void parser::residue::detail::Residue::add_atom(std::string name, int charge) {
+void parser::residue::detail::Residue::add_atom(std::string name, int charge, std::string symbol) {
     name_map.insert({name, atoms.size()});
-    atoms.push_back(Atom(name, charge));
+    atoms.push_back(Atom(name, charge, symbol));
 }
 
 void parser::residue::detail::Residue::apply_bond(const std::vector<Bond>& bonds) {
@@ -130,7 +130,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
                 if (line.find("pdbx_formal_charge") != std::string::npos) {
                     tokens = utility::split(line, " \n\r");
                     int charge = std::stoi(tokens[1]);
-                    residue.add_atom(formula, charge);
+                    residue.add_atom(formula, charge, formula);
 
                     std::cout << "Parsed a single ion " << formula << " with charge " << charge << std::endl;
                     return residue;
