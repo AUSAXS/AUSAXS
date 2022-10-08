@@ -1,12 +1,12 @@
 # Todo
- * [ ] LigandParser: Are charged atoms handled correctly? Unsure about this. 
+ * [x] LigandParser: Are charged atoms handled correctly? Unsure about this. 
  * [ ] Least squares: Consider removing the offset parameter? Other programs doesn't use it, and it seems superfluous. 
- * [ ] EMFitter: Use a MinimumExplorer instead of Golden fitter in the final fit.
- * [ ] Tests: manager & table works fine individually, but breaks when run with the other tests. Probably some setting getting messed up somewhere (qmin, qmax?)
- * [ ] Hydrogens are still not handled correctly - if e.g. 2HB is listed, it is not automatically parsed as a hydrogen and subsequently crashes. 
+ * [x] EMFitter: Use a MinimumExplorer instead of Golden fitter in the final fit.
+ * [x] Tests: manager & table works fine individually, but breaks when run with the other tests. Probably some setting getting messed up somewhere (qmin, qmax?)
+ * [x] Hydrogens are still not handled correctly - if e.g. 2HB is listed, it is not automatically parsed as a hydrogen and subsequently crashes. 
  * [ ] MinimumExplorer: Fails if started in an area with no voxels
- * [ ] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash.
- * [ ] Grid: Binning range seems to be exclusive the top-most atom
+ * [ ] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash. UPDATE: maybe fixed now?
+ * [x] Grid: Binning range seems to be exclusive the top-most atom
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
  * [ ] ResidueParser: Consider creating 1 parsed file per residue and then dynamically loading only those that are needed for the current file. 

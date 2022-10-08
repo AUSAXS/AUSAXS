@@ -8,6 +8,8 @@
  */
 class Writer {
     public:
+        virtual ~Writer() = default;
+
         /**
          * @brief Write the contents of the backing File to a given path. 
          */

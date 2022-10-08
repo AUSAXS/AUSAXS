@@ -8,6 +8,8 @@
  */
 class Reader {
     public:
+        virtual ~Reader() = default;
+
         /**
          * @brief Read the data stored in a file. 
          */

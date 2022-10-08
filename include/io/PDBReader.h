@@ -20,6 +20,8 @@ class PDBReader : public Reader {
          */
         PDBReader(File* const file) : file(file) {}
 
+        ~PDBReader() override = default;
+
         /**
          * @brief Read a PDB format data file.
          * @param input_path Path to the input PDB format data file. 

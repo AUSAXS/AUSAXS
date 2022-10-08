@@ -368,29 +368,29 @@ TEST_CASE("dataset_moving_average", "[dataset]") {
             SECTION("3") {
                 data.moving_average(3);
                 REQUIRE(data.size() == 8);
-                CHECK(data.x(0) == 2);
-                CHECK(data.y(0) == (1./2 + 2 + 3./2)/2);
+                CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(2, 1e-6));
+                CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs((1./2 + 2 + 3./2)/2, 1e-6));
 
-                CHECK(data.x(1) == 3);
-                CHECK(data.y(1) == (2./2 + 3 + 4./2)/2);
+                CHECK_THAT(data.x(1), Catch::Matchers::WithinAbs(3, 1e-6));
+                CHECK_THAT(data.y(1), Catch::Matchers::WithinAbs((2./2 + 3 + 4./2)/2, 1e-6));
 
-                CHECK(data.x(2) == 4);
-                CHECK(data.y(2) == (3./2 + 4 + 5./2)/2);
+                CHECK_THAT(data.x(2), Catch::Matchers::WithinAbs(4, 1e-6));
+                CHECK_THAT(data.y(2), Catch::Matchers::WithinAbs((3./2 + 4 + 5./2)/2, 1e-6));
 
-                CHECK(data.x(3) == 5);
-                CHECK(data.y(3) == (4./2 + 5 + 6./2)/2);
+                CHECK_THAT(data.x(3), Catch::Matchers::WithinAbs(5, 1e-6));
+                CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs((4./2 + 5 + 6./2)/2, 1e-6));
 
-                CHECK(data.x(4) == 6);
-                CHECK(data.y(4) == (5./2 + 6 + 7./2)/2);
+                CHECK_THAT(data.x(4), Catch::Matchers::WithinAbs(6, 1e-6));
+                CHECK_THAT(data.y(4), Catch::Matchers::WithinAbs((5./2 + 6 + 7./2)/2, 1e-6));
 
-                CHECK(data.x(5) == 7);
-                CHECK(data.y(5) == (6./2 + 7 + 8./2)/2);
+                CHECK_THAT(data.x(5), Catch::Matchers::WithinAbs(7, 1e-6));
+                CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs((6./2 + 7 + 8./2)/2, 1e-6));
 
-                CHECK(data.x(6) == 8);
-                CHECK(data.y(6) == (7./2 + 8 + 9./2)/2);
+                CHECK_THAT(data.x(6), Catch::Matchers::WithinAbs(8, 1e-6));
+                CHECK_THAT(data.y(6), Catch::Matchers::WithinAbs((7./2 + 8 + 9./2)/2, 1e-6));
 
-                CHECK(data.x(7) == 9);
-                CHECK(data.y(7) == (8./2 + 9 + 10./2)/2);
+                CHECK_THAT(data.x(7), Catch::Matchers::WithinAbs(9, 1e-6));
+                CHECK_THAT(data.y(7), Catch::Matchers::WithinAbs((8./2 + 9 + 10./2)/2, 1e-6));
             }
 
             SECTION("5") {

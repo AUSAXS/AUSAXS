@@ -237,25 +237,31 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
     // fitter.normalize_intensity(I0);
 
     // fit function
-    static unsigned int counter;
-    counter = 0; // must be in separate line since we want to reset it every time this function is called
-    setting::protein::center = false;
+    static unsigned int counter;        // counter for the number of fevals. must be static to avoid going out of scope
+    counter = 0;                        // reset counter to 0 every time prepare_function is called
+    setting::protein::center = false;   // do not center the protein - this may cause issues
     setting::grid::percent_water = 0.05;
-    std::function<double(const double*)> chi2 = [&] (const double* params) {
-        static double last_c = 5;
+    
+     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
+     // 'this' is ok since prepare_function is private and thus only used within the class itself
+    std::function<double(const double*)> chi2 = [this, fitter] (const double* params) {
+        double last_c = 5;
         auto p = phm->get_protein(params[0]);
         // p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
         // p->remove_disconnected_atoms(20);
 
         std::shared_ptr<Fit> fit;
         if (setting::em::hydrate) {
-            p->clear_grid(); // clear grid from previous iteration
-            p->generate_new_hydration();
-            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100*level(1)}}); // use c from previous iteration as guess
+            p->clear_grid();                // clear grid from previous iteration
+            p->generate_new_hydration();    // generate a new hydration layer
+
+            // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
+            std::dynamic_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 
             fitter->set_scattering_hist(p->get_histogram());
-            fit = fitter->fit();
-            water_factors.push_back(fit->get_parameter("c"));   // Record c value
-            last_c = fit->get_parameter("c").value;             // Update c for next iteration
+
+            fit = fitter->fit();                                // do the fit
+            water_factors.push_back(fit->get_parameter("c"));   // record c value
+            last_c = fit->get_parameter("c").value;             // update c for next iteration
         } else {
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();

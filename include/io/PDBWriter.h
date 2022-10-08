@@ -19,6 +19,8 @@ class PDBWriter : public Writer {
          */
         PDBWriter(File* file) : file(file) {}
 
+        ~PDBWriter() override = default;
+
         /**
          * @brief Write the backing File to disk. 
          * @param path the output path.

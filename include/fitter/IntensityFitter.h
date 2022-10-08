@@ -97,13 +97,13 @@ class IntensityFitter : public SimpleIntensityFitter {
          */
         SimpleDataset get_dataset() const;
 
-		/**
-		 * @brief Set the guess value for the hydration scaling factor @a c.
-		 */
-		void set_guess(mini::Parameter guess);
+        /**
+         * @brief Set the guess value for the hydration scaling factor @a c.
+         */
+        void set_guess(mini::Parameter guess);
 
     private: 
-		mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
+    	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
 
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.
