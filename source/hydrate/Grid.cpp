@@ -37,8 +37,8 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, settin
     // expand bounding box by scaling factor
     for (unsigned int i = 0; i < 3; i++) {
         double expand = 0.5*(max[i] - min[i])*setting::grid::scaling;   // amount to expand in each direction
-        nmin[i] = min[i] - expand;
-        nmax[i] = max[i] + expand;
+        nmin[i] = min[i] - expand - setting::grid::width;               // ensure at least one additional bin is added
+        nmax[i] = max[i] + expand + setting::grid::width;               
     }
 
     // setup the rest of the class members
@@ -66,8 +66,8 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
     // expand bounding box by scaling factor
     for (unsigned int i = 0; i < 3; i++) {
         double expand = 0.5*(max[i] - min[i])*setting::grid::scaling;   // amount to expand in each direction
-        nmin[i] = min[i] - expand;
-        nmax[i] = max[i] + expand;
+        nmin[i] = min[i] - expand - setting::grid::width;               // ensure at least one additional bin is added
+        nmax[i] = max[i] + expand + setting::grid::width;               
     }
 
     // setup the rest of the class members

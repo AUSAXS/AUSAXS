@@ -515,35 +515,51 @@ TEST_CASE("volume_deflation", "[grid]") {
 TEST_CASE("space_saving_constructor", "[grid]") {
     vector<Atom> atoms = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2), Atom({1, 1, 1}, 0, "C", "", 2)};
 
-    // check that bounding_box works
-    auto[min, max] = Grid::bounding_box(atoms);
-    REQUIRE(min.x() == 0);
-    REQUIRE(min.y() == -5);
-    REQUIRE(min.z() == -7);
-    REQUIRE(max.x() == 5);
-    REQUIRE(max.y() == 1);
-    REQUIRE(max.z() == 1);
+    SECTION("bounding box") {
+        // check that bounding_box works
+        auto[min, max] = Grid::bounding_box(atoms);
+        CHECK(min.x() == 0);
+        CHECK(min.y() == -5);
+        CHECK(min.z() == -7);
+        CHECK(max.x() == 5);
+        CHECK(max.y() == 1);
+        CHECK(max.z() == 1);
+    }
 
-    // check that the grid constructor works as expected
-    Grid grid(atoms);
-    Axis3D axes = grid.get_axes();
-    REQUIRE(axes.x.min == 0);
-    REQUIRE(axes.y.min == std::round(-5*(1 + setting::grid::scaling)));
-    REQUIRE(axes.z.min == std::round(-7*(1 + setting::grid::scaling)));
-    REQUIRE(axes.x.max == std::round(5*(1 + setting::grid::scaling))+1);
-    REQUIRE(axes.y.max == std::round(1*(1 + setting::grid::scaling))+1);
-    REQUIRE(axes.z.max == std::round(1*(1 + setting::grid::scaling))+1);
+    auto func = [] (const Grid& grid) {
+        Axis3D axes = grid.get_axes();
+        CHECK(axes.x.min ==  0 - 5*setting::grid::scaling*0.5 - setting::grid::width);
+        CHECK(axes.y.min == -5 - 6*setting::grid::scaling*0.5 - setting::grid::width);
+        CHECK(axes.z.min == -7 - 8*setting::grid::scaling*0.5 - setting::grid::width);
+        CHECK(axes.x.max ==  5 + 5*setting::grid::scaling*0.5 + setting::grid::width);
+        CHECK(axes.y.max ==  1 + 6*setting::grid::scaling*0.5 + setting::grid::width);
+        CHECK(axes.z.max ==  1 + 8*setting::grid::scaling*0.5 + setting::grid::width);
 
-    // check that we're not using a ton of unnecessary bins
-    REQUIRE(axes.x.bins < 20);
-    REQUIRE(axes.y.bins < 20);
-    REQUIRE(axes.z.bins < 20);
+        // check that we're not using a ton of unnecessary bins
+        CHECK(axes.x.bins < 20);
+        CHECK(axes.y.bins < 20);
+        CHECK(axes.z.bins < 20);
 
-    // check that this is reflected in the grid itself
-    GridObj& g = grid.grid;
-    REQUIRE(g.xdim < 20);
-    REQUIRE(g.ydim < 20);
-    REQUIRE(g.zdim < 20);
+        // check that this is reflected in the grid itself
+        const GridObj& g = grid.grid;
+        CHECK(g.xdim < 20);
+        CHECK(g.ydim < 20);
+        CHECK(g.zdim < 20);
+    };
+
+    SECTION("single body") {
+        // check that the grid constructor works as expected
+        Grid grid(atoms);
+        func(grid);
+    }
+
+    SECTION("multiple bodies") {
+        vector<Body> bodies; 
+        for (const auto& a : atoms) {bodies.push_back(Body({a}));}
+
+        Grid grid(bodies);
+        func(grid);
+    }
 }
 
 TEST_CASE("copy", "[grid]") {

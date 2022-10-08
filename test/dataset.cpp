@@ -107,7 +107,7 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
 }
 
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
-    Dataset2D data1("data/lysozyme/2epe.RSR");
+    Dataset2D data1("data/lysozyme/2epe.dat");
     std::cout << "data1 size: " << data1.size() << std::endl;
 
     Dataset2D data2 = data1;
@@ -140,7 +140,7 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
 
 TEST_CASE("dataset_is_logarithmic", "[dataset],[files],[broken]") {
     SECTION("lysozyme") {
-        Dataset2D data("data/lysozyme/2epe.RSR");
+        Dataset2D data("data/lysozyme/2epe.dat");
         CHECK(data.is_logarithmic());
     }
 
@@ -159,9 +159,9 @@ TEST_CASE("dataset_is_logarithmic", "[dataset],[files],[broken]") {
 
 TEST_CASE("dataset_io", "[dataset],[files]") {
     SECTION("lysozyme") {
-        Dataset2D data("data/lysozyme/2epe.RSR");
-        data.save("temp/dataset/2epe.RSR");
-        Dataset2D data2("temp/dataset/2epe.RSR");
+        Dataset2D data("data/lysozyme/2epe.dat");
+        data.save("temp/dataset/2epe.dat");
+        Dataset2D data2("temp/dataset/2epe.dat");
         REQUIRE(data.size() == data2.size());
         REQUIRE(data.x().size() == data2.x().size());
         REQUIRE(data.y().size() == data2.y().size());
@@ -173,38 +173,11 @@ TEST_CASE("dataset_io", "[dataset],[files]") {
             CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(data2.yerr(i), 1e-3));
         }
     }
-
-    SECTION("troublesome dataset") {
-        setting::protein::use_effective_charge = false;
-        setting::em::sample_frequency = 5;
-
-        // generate a measurement from a map
-        em::ImageStack map("data/A2M_native/emd_12747.ccp4"); 
-        auto protein = map.get_protein(map.level(3));
-        auto m = protein->get_histogram().calc_debye_scattering_intensity();
-        m.reduce(100);
-        m.simulate_errors();
-        m.simulate_noise();
-        m.save("temp/dataset/troublesome_dataset.dat");
-
-        // load the dataset
-        SimpleDataset data("temp/dataset/troublesome_dataset.dat");
-        REQUIRE(data.size() == m.size());
-        REQUIRE(data.x().size() == m.x().size());
-        REQUIRE(data.y().size() == m.y().size());
-        REQUIRE(data.yerr().size() == m.yerr().size());
-
-        for (unsigned int i = 0; i < data.size(); i++) {
-            CHECK_THAT(data.x(i), Catch::Matchers::WithinRel(m.x(i), 1e-3));
-            CHECK_THAT(data.y(i), Catch::Matchers::WithinRel(m.y(i), 1e-3));
-            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(m.yerr(i), 1e-3));
-        }
-    }
 }
 
 TEST_CASE("dataset_read", "[dataset],[files]") {
     SECTION("actual data") {
-        Dataset2D data("data/lysozyme/2epe.RSR");
+        Dataset2D data("data/lysozyme/2epe.dat");
         auto x = data.x();
         auto y = data.y();
         auto yerr = data.yerr();
@@ -423,23 +396,23 @@ TEST_CASE("dataset_moving_average", "[dataset]") {
             SECTION("5") {
                 data.moving_average(5);
                 REQUIRE(data.size() == 6);
-                CHECK(data.x(0) == 3);
-                CHECK(data.y(0) == (1./4 + 2./2 + 3 + 4./2 + 5./4)/2.5);
+                CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(3, 1e-6));
+                CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs((1./4 + 2./2 + 3 + 4./2 + 5./4)/2.5, 1e-6));
 
-                CHECK(data.x(1) == 4);
-                CHECK(data.y(1) == (2./4 + 3./2 + 4 + 5./2 + 6./4)/2.5);
+                CHECK_THAT(data.x(1), Catch::Matchers::WithinAbs(4, 1e-6));
+                CHECK_THAT(data.y(1), Catch::Matchers::WithinAbs((2./4 + 3./2 + 4 + 5./2 + 6./4)/2.5, 1e-6));
 
-                CHECK(data.x(2) == 5);
-                CHECK(data.y(2) == (3./4 + 4./2 + 5 + 6./2 + 7./4)/2.5);
+                CHECK_THAT(data.x(2), Catch::Matchers::WithinAbs(5, 1e-6));
+                CHECK_THAT(data.y(2), Catch::Matchers::WithinAbs((3./4 + 4./2 + 5 + 6./2 + 7./4)/2.5, 1e-6));
 
-                CHECK(data.x(3) == 6);
-                CHECK(data.y(3) == (4./4 + 5./2 + 6 + 7./2 + 8./4)/2.5);
+                CHECK_THAT(data.x(3), Catch::Matchers::WithinAbs(6, 1e-6));
+                CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs((4./4 + 5./2 + 6 + 7./2 + 8./4)/2.5, 1e-6));
 
-                CHECK(data.x(4) == 7);
-                CHECK(data.y(4) == (5./4 + 6./2 + 7 + 8./2 + 9./4)/2.5);
+                CHECK_THAT(data.x(4), Catch::Matchers::WithinAbs(7, 1e-6));
+                CHECK_THAT(data.y(4), Catch::Matchers::WithinAbs((5./4 + 6./2 + 7 + 8./2 + 9./4)/2.5, 1e-6));
 
-                CHECK(data.x(5) == 8);
-                CHECK(data.y(5) == (6./4 + 7./2 + 8 + 9./2 + 10./4)/2.5);
+                CHECK_THAT(data.x(5), Catch::Matchers::WithinAbs(8, 1e-6));
+                CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs((6./4 + 7./2 + 8 + 9./2 + 10./4)/2.5, 1e-6));
             }
         }
     }

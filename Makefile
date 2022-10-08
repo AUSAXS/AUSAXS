@@ -211,7 +211,7 @@ test/%: $(shell find source/ -print) test/%.cpp
 
 tests: $(shell find source/ -print) $(shell find test/ -print)
 	@ make -C build test -j${cmake_threads}
-	build/test $(exclude_tags) ~[memtest]
+	build/test $(exclude_tags) ~[memtest] ${tags}
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
 build/source/tests/%: $(shell find source/ -print) build/Makefile
