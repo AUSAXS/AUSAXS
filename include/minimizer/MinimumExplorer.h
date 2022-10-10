@@ -17,6 +17,11 @@ namespace mini {
 
             MinimumExplorer(std::function<double(const double*)> func, const Parameter& param, unsigned int evals);
 
+            /**
+             * @brief Destructor.
+             */
+            ~MinimumExplorer() override = default;
+
 			/**
 			 * @brief Add a parameter.
 			 */

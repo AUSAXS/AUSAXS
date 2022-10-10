@@ -32,8 +32,8 @@ ROOTMinimizer::ROOTMinimizer(std::string package, std::string algorithm, std::fu
         std::for_each(params.begin(), params.end(), [this] (const Parameter& param) {add_parameter(param);});
 }
 
-ROOTMinimizer::~ROOTMinimizer() noexcept {
-    free(mini);
+ROOTMinimizer::~ROOTMinimizer() {
+    mini->~Minimizer();
 }
 
 void ROOTMinimizer::create_minimizer(std::string package, std::string algorithm) {

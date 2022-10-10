@@ -93,7 +93,7 @@ namespace mini {
             /**
              * @brief Destructor.
              */
-            ~ROOTMinimizer() noexcept;
+            ~ROOTMinimizer() override;
 
             /**
              * @brief Generate a landscape of the function.
@@ -106,7 +106,7 @@ namespace mini {
             Dataset2D get_evaluated_points() const override;
 
         private: 
-            ROOT::Math::Minimizer* mini;
+            ROOT::Math::Minimizer* mini; // cannot be a unique_ptr since ROOT::Math::Minimizer is abstract
             ROOT::Math::Functor functor;
 
             /**

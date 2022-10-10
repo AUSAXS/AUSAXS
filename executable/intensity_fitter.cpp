@@ -58,6 +58,7 @@ int main(int argc, char const *argv[]) {
     }
     hist::ScatteringHistogram h = protein.get_histogram();
     plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::figures::format);
+
     IntensityFitter fitter(mfile, h);
     std::shared_ptr<Fit> result = fitter.fit();
     FitReporter::report(result);
@@ -72,6 +73,10 @@ int main(int argc, char const *argv[]) {
     // Fit plot
     plots::PlotIntensityFit::quick_plot(result, output + "fit." + setting::figures::format);
     plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::figures::format);
+
+    // calculate rhoM
+    double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+    std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
     // std::vector<double> q;
     // for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}

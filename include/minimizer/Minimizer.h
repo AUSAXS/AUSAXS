@@ -35,6 +35,11 @@ namespace mini {
             Minimizer(std::function<double(const double*)> function);
 
             /**
+             * @brief Destructor.
+             */
+            virtual ~Minimizer() = default;
+
+            /**
              * @brief Set the function to be minimized.
              */
             virtual void set_function(double(&function)(const double*));

@@ -48,10 +48,10 @@ namespace setting {
     };
 
     struct axes {
-        inline static double scattering_intensity_plot_binned_width = 1;    // The width of each bin for the scattering plots.
-        inline static unsigned int bins = 1000;                             // The number of bins for the scattering plots.
-        inline static double qmin = 0.001;                                  // Lower limit on the used q-values
-        inline static double qmax = 1.001;                                  // Upper limit on the used q-values
+        inline static double scattering_intensity_plot_binned_width = 1; // The width of each bin for the scattering plots.
+        inline static unsigned int bins = 1000;                          // The number of bins for the scattering plots.
+        inline static double qmin = 0;                                   // Lower limit on the used q-values
+        inline static double qmax = 0.5;                                 // Upper limit on the used q-values
     };
 
     struct fit {

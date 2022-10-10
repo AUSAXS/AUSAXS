@@ -19,6 +19,11 @@ namespace mini {
             Scan(std::function<double(const double*)> func, const Parameter& param, unsigned int evals = 100);
 
             /**
+             * @brief Destructor.
+             */
+            virtual ~Scan() override = default;
+
+            /**
              * @brief Generate a landscape of the function.
              */
             Dataset2D landscape(unsigned int evals) override;

@@ -9,6 +9,11 @@ namespace mini {
             using Scan::Scan;
 
             /**
+             * @brief Destructor.
+             */
+            ~LimitedScan() override = default;
+
+            /**
              * @brief Set the maximum function value before terminating.
              */
             void set_limit(double limit) noexcept {

@@ -107,7 +107,7 @@ crysol/%:
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
-	crysol $${measurement} $${structure} --prefix="temp/crysol/out" ${options}
+	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
 	@ mv temp/crysol/out.fit figures/intensity_fitter/$*/crysol.fit
 
 # Perform a fit of a structure file to a measurement. 

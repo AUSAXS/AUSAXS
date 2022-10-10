@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>GCC Code Coverage Report</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style type="text/css">
+      :root {
+    font-family: sans-serif;
+    --unknown_color: LightGray;
+    --low_color: #FF6666;
+    --medium_color: #F9FD63;
+    --high_color: #85E485;
+    --covered_color: #85E485;
+    --uncovered_color: #FF8C8C;
+    --excluded_color: #53BFFD;
+    --warning_color: orangered;
+    --takenBranch_color: Green;
+    --notTakenBranch_color: Red;
+    --takenDecision_color: Green;
+    --uncheckedDecision_color: DarkOrange;
+    --notTakenDecision_color: Red
+
+}
+
+body
+{
+    color: #000000;
+    background-color: #FFFFFF;
+}
+
+h1
+{
+    text-align: center;
+    margin: 0;
+    padding-bottom: 10px;
+    font-size: 20pt;
+    font-weight: bold;
+}
+
+hr
+{
+    background-color: navy;
+    height: 2px;
+    border: 0;
+}
+
+/* Link formats: use maroon w/underlines */
+a:link
+{
+    color: navy;
+    text-decoration: underline;
+}
+a:visited
+{
+    color: maroon;
+    text-decoration: underline;
+}
+
+/*** Summary formats ***/
+
+.summary
+{
+    display: flex;
+    flex-flow: row wrap;
+    max-width: 100%;
+    justify-content: flex-start;
+}
+
+.summary > table
+{
+    flex: 1 0 7em;
+    border: 0;
+}
+
+.summary > :last-child {
+    margin-left: auto;
+}
+
+table.legend
+{
+    color: black;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+}
+
+table.legend th[scope=row]
+{
+    font-weight: normal;
+    text-align: right;
+    white-space: nowrap;
+}
+
+table.legend td
+{
+    color: blue;
+    text-align: left;
+    white-space: nowrap;
+    padding-left: 5px;
+}
+
+table.legend td.legend
+{
+    color: black;
+    font-size: 80%;
+}
+
+table.legend td.warning_text
+{
+    color: var(--warning_color);
+}
+
+table.coverage td,
+table.coverage th
+{
+    text-align: right;
+    color: black;
+    font-weight: normal;
+    white-space: nowrap;
+    padding-left: 5px;
+    padding-right: 4px;
+}
+
+table.coverage td
+{
+    background-color: LightSteelBlue;
+}
+
+table.coverage th[scope=row]
+{
+    color: black;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+table.coverage th[scope=col]
+{
+    color: blue;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+table.legend span
+{
+    margin-right: 4px;
+    padding: 2px;
+}
+
+table.legend span.coverage-unknown,
+table.legend span.coverage-none,
+table.legend span.coverage-low,
+table.legend span.coverage-medium,
+table.legend span.coverage-high
+{
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+table.legend span.coverage-unknown,
+table.coverage td.coverage-unknown,
+table.file-list td.coverage-unknow
+{
+    background-color: var(--unknown_color) !important;
+}
+
+table.legend span.coverage-none,
+table.legend span.coverage-low,
+table.coverage td.coverage-none,
+table.coverage td.coverage-low,
+table.file-list td.coverage-none,
+table.file-list td.coverage-low
+{
+    background-color: var(--low_color) !important;
+}
+
+table.legend span.coverage-medium,
+table.coverage td.coverage-medium,
+table.file-list td.coverage-medium
+{
+    background-color: var(--medium_color) !important;
+}
+
+table.legend span.coverage-high,
+table.coverage td.coverage-high,
+table.file-list td.coverage-high
+{
+    background-color: var(--high_color) !important;
+}
+/*** End of Summary formats ***/
+/*** Meter formats ***/
+
+/* Common */
+meter {
+    -moz-appearance: none;
+
+    width: 30vw;
+    min-width: 4em;
+    max-width: 15em;
+    height: 0.75em;
+    padding: 0;
+    vertical-align: baseline;
+    margin-top: 3px;
+    /* Outer background for Mozilla */
+    background: none;
+    background-color: whitesmoke;
+}
+
+/* Webkit */
+
+meter::-webkit-meter-bar {
+    /* Outer background for Webkit */
+    background: none;
+    background-color: whitesmoke;
+    height: 0.75em;
+    border-radius: 0px;
+}
+
+meter::-webkit-meter-optimum-value,
+meter::-webkit-meter-suboptimum-value,
+meter::-webkit-meter-even-less-good-value
+{
+    /* Inner shadow for Webkit */
+    border: solid 1px black;
+}
+
+meter.coverage-none::-webkit-meter-optimum-value,
+meter.coverage-low::-webkit-meter-optimum-value
+{
+    background: var(--low_color);
+}
+
+meter.coverage-medium::-webkit-meter-optimum-value
+{
+    background: var(--medium_color);
+}
+
+meter.coverage-high::-webkit-meter-optimum-value
+{
+    background: var(--high_color);
+}
+
+/* Mozilla */
+
+meter::-moz-meter-bar
+{
+    box-sizing: border-box;
+}
+
+meter:-moz-meter-optimum::-moz-meter-bar,
+meter:-moz-meter-sub-optimum::-moz-meter-bar,
+meter:-moz-meter-sub-sub-optimum::-moz-meter-bar
+{
+    /* Inner shadow for Mozilla */
+    border: solid 1px black;
+}
+
+meter.coverage-none:-moz-meter-optimum::-moz-meter-bar,
+meter.coverage-low:-moz-meter-optimum::-moz-meter-bar
+{
+    background: var(--low_color);
+}
+
+meter.coverage-medium:-moz-meter-optimum::-moz-meter-bar
+{
+    background: var(--medium_color);
+}
+
+meter.coverage-high:-moz-meter-optimum::-moz-meter-bar
+{
+    background: var(--high_color);
+}
+
+/*** End of Meter formats ***/
+.file-list td, .file-list th {
+    padding: 0 10px;
+    font-weight: bold;
+}
+
+.file-list th[scope^=col]
+{
+    text-align: center;
+    color: white;
+    background-color: SteelBlue;
+    font-size: 120%;
+}
+
+.file-list th[scope=row]
+{
+    text-align: left;
+    color: black;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 110%;
+}
+
+.file-list tr > td,
+.file-list tr > th {
+    background: aliceblue;
+}
+
+.file-list tr:nth-child(even) > td,
+.file-list tr:nth-child(even) > th {
+    background: LightSteelBlue
+}
+
+.file-list tr:hover > td,
+.file-list tr:hover > th[scope=row]
+{
+    background-color: #ddd;
+}
+td.CoverValue
+{
+    text-align: right;
+    white-space: nowrap;
+}
+
+td.coveredLine,
+span.coveredLine
+{
+    background-color: var(--covered_color) !important;
+}
+
+td.uncoveredLine,
+span.uncoveredLine
+{
+    background-color: var(--uncovered_color) !important;
+}
+
+td.excludedLine,
+span.excludedLine
+{
+    background-color: var(--excluded_color) !important;
+}
+
+.linebranch, .linedecision, .linecount
+{
+    font-family: monospace;
+    border-right: 1px gray solid;
+    background-color: lightgray;
+    text-align: right;
+}
+
+.linebranchDetails, .linedecisionDetails
+{
+    position: relative;
+}
+.linebranchSummary, .linedecisionSummary
+{
+    cursor: help;
+}
+.linebranchContents, .linedecisionContents
+{
+    font-family: sans-serif;
+    font-size: small;
+    text-align: left;
+    position: absolute;
+    width: 15em;
+    padding: 1em;
+    background: white;
+    border: solid gray 1px;
+    box-shadow: 5px 5px 10px gray;
+    z-index: 1; /* show in front of the table entries */
+}
+
+.takenBranch
+{
+    color: var(--takenBranch_color) !important;
+}
+
+.notTakenBranch
+{
+    color: var(--notTakenBranch_color) !important;
+}
+
+.takenDecision
+{
+    color: Green!important;
+}
+
+.notTakenDecision
+{
+    color: Red!important;
+}
+
+.uncheckedDecision
+{
+    color: DarkOrange!important;
+}
+
+.src
+{
+    padding-left: 12px;
+    text-align: left;
+
+    font-family: monospace;
+    white-space: pre;
+
+    tab-size: var(--tab_size);
+    -moz-tab-size: var(--tab_size);
+}
+
+span.takenBranch,
+span.notTakenBranch,
+span.takenDecision,
+span.notTakenDecision,
+span.uncheckedDecision
+{
+    font-family: monospace;
+    font-weight: bold;
+}
+
+pre
+{
+    height : 15px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.listOfFunctions td, .listOfFunctions th {
+    padding: 0 10px;
+}
+.listOfFunctions th
+{
+    text-align: center;
+    color: white;
+    background-color: SteelBlue;
+}
+.listOfFunctions tr > td {
+    background: aliceblue;
+}
+.listOfFunctions tr:nth-child(even) > td {
+    background: LightSteelBlue
+}
+.listOfFunctions tr:hover > td
+{
+    background-color: #ddd;
+}
+.listOfFunctions tr > td > a
+{
+    text-decoration: none;
+    color: inherit;
+}
+
+.source-line
+{
+    height : 15px;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.lineno
+{
+    background-color: #EFE383;
+    border-right: 1px solid #BBB15F;
+    text-align: right;
+    unicode-bidi: embed;
+    font-family: monospace;
+    white-space: pre;
+}
+
+.lineno > a
+{
+    text-decoration: none;
+    color: inherit;
+}
+
+.file-list
+{
+    margin: 1em auto;
+    border: 0;
+    border-spacing: 1px;
+}
+
+.file-source table
+{
+    border-spacing: 0;
+}
+
+.file-source table td,
+.file-source table th
+{
+    padding: 1px 10px;
+}
+
+.file-source table th
+{
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.file-source table td:last-child
+{
+    width: 100%;
+}
+footer
+{
+    text-align: center;
+    padding-top: 3px;
+}
+
+/* pygments syntax highlighting */
+pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.hll { background-color: #ffffcc }
+.c { color: #3D7B7B; font-style: italic } /* Comment */
+.err { border: 1px solid #FF0000 } /* Error */
+.k { color: #008000; font-weight: bold } /* Keyword */
+.o { color: #666666 } /* Operator */
+.ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.cp { color: #9C6500 } /* Comment.Preproc */
+.cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.gd { color: #A00000 } /* Generic.Deleted */
+.ge { font-style: italic } /* Generic.Emph */
+.gr { color: #E40000 } /* Generic.Error */
+.gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.gi { color: #008400 } /* Generic.Inserted */
+.go { color: #717171 } /* Generic.Output */
+.gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.gs { font-weight: bold } /* Generic.Strong */
+.gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.gt { color: #0044DD } /* Generic.Traceback */
+.kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.kp { color: #008000 } /* Keyword.Pseudo */
+.kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.kt { color: #B00040 } /* Keyword.Type */
+.m { color: #666666 } /* Literal.Number */
+.s { color: #BA2121 } /* Literal.String */
+.na { color: #687822 } /* Name.Attribute */
+.nb { color: #008000 } /* Name.Builtin */
+.nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.no { color: #880000 } /* Name.Constant */
+.nd { color: #AA22FF } /* Name.Decorator */
+.ni { color: #717171; font-weight: bold } /* Name.Entity */
+.ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.nf { color: #0000FF } /* Name.Function */
+.nl { color: #767600 } /* Name.Label */
+.nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.nt { color: #008000; font-weight: bold } /* Name.Tag */
+.nv { color: #19177C } /* Name.Variable */
+.ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.w { color: #bbbbbb } /* Text.Whitespace */
+.mb { color: #666666 } /* Literal.Number.Bin */
+.mf { color: #666666 } /* Literal.Number.Float */
+.mh { color: #666666 } /* Literal.Number.Hex */
+.mi { color: #666666 } /* Literal.Number.Integer */
+.mo { color: #666666 } /* Literal.Number.Oct */
+.sa { color: #BA2121 } /* Literal.String.Affix */
+.sb { color: #BA2121 } /* Literal.String.Backtick */
+.sc { color: #BA2121 } /* Literal.String.Char */
+.dl { color: #BA2121 } /* Literal.String.Delimiter */
+.sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.s2 { color: #BA2121 } /* Literal.String.Double */
+.se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.sh { color: #BA2121 } /* Literal.String.Heredoc */
+.si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.sx { color: #008000 } /* Literal.String.Other */
+.sr { color: #A45A77 } /* Literal.String.Regex */
+.s1 { color: #BA2121 } /* Literal.String.Single */
+.ss { color: #19177C } /* Literal.String.Symbol */
+.bp { color: #008000 } /* Name.Builtin.Pseudo */
+.fm { color: #0000FF } /* Name.Function.Magic */
+.vc { color: #19177C } /* Name.Variable.Class */
+.vg { color: #19177C } /* Name.Variable.Global */
+.vi { color: #19177C } /* Name.Variable.Instance */
+.vm { color: #19177C } /* Name.Variable.Magic */
+.il { color: #666666 } /* Literal.Number.Integer.Long */
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>GCC Code Coverage Report</h1>
+
+      <hr/>
+
+      <div class="summary">
+<div>
+  <table class="legend">
+    <tr>
+      <th scope="row">Directory:</th>
+      <td>source/</td>
+    </tr>
+    <tr>
+      <th scope="row">Date:</th>
+      <td>2022-10-10 13:17:56</td>
+    </tr>
+    <tr>
+      <th scope="row">Coverage:</th>
+      <td class="legend">
+        <span class="coverage-low">low: &ge; 0%</span>
+        <span class="coverage-medium">medium: &ge; 75.0%</span>
+        <span class="coverage-high">high: &ge; 90.0%</span>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div>
+  <table class="coverage">
+    <tr>
+      <th></th>
+      <th scope="col">Exec</th>
+      <th scope="col">Total</th>
+      <th scope="col">Coverage</th>
+    </tr>
+    <tr>
+      <th scope="row">Lines:</th>
+      <td>2741</td>
+      <td>4858</td>
+      <td class="coverage-low">56.4%</td>
+    </tr>
+    <tr>
+      <th scope="row">Functions:</th>
+      <td>466</td>
+      <td>862</td>
+      <td class="coverage-low">54.1%</td>
+    </tr>
+    <tr>
+      <th scope="row">Branches:</th>
+      <td>2793</td>
+      <td>9895</td>
+      <td class="coverage-low">28.2%</td>
+    </tr>
+  </table>
+</div>
+      </div>
+
+      <hr/>
+    </header>
+
+    <nav>
+    </nav>
+
+    <main>
+<table class="file-list">
+  <col/>
+  <colgroup span="3"/>
+  <colgroup span="2"/>
+  <colgroup span="2"/>
+
+  <tr>
+    <th scope="col">File</th>
+    <th scope="colgroup" colspan=3>Lines</th>
+    <th scope="colgroup" colspan=2>Functions</th>
+    <th scope="colgroup" colspan=2>Branches</th>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/Atom.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="55.1" title="55.1%">55.1</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">55.1%</td>
+    <td class="CoverValue line-coverage coverage-low">97 / 176</td>
+    <td class="CoverValue function-coverage coverage-low">53.2%</td>
+    <td class="CoverValue function-coverage coverage-low">25 / 47</td>
+    <td class="CoverValue branch-coverage coverage-low">30.2%</td>
+    <td class="CoverValue branch-coverage coverage-low">156 / 516</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/Body.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="87.6" title="87.6%">87.6</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">87.6%</td>
+    <td class="CoverValue line-coverage coverage-medium">162 / 185</td>
+    <td class="CoverValue function-coverage coverage-medium">85.1%</td>
+    <td class="CoverValue function-coverage coverage-medium">40 / 47</td>
+    <td class="CoverValue branch-coverage coverage-low">50.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">95 / 190</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/BodySplitter.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="94.0" title="94.0%">94.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">94.0%</td>
+    <td class="CoverValue line-coverage coverage-high">47 / 50</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">3 / 3</td>
+    <td class="CoverValue branch-coverage coverage-low">52.6%</td>
+    <td class="CoverValue branch-coverage coverage-low">41 / 78</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/Footer.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="37.5" title="37.5%">37.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">37.5%</td>
+    <td class="CoverValue line-coverage coverage-low">6 / 16</td>
+    <td class="CoverValue function-coverage coverage-low">50.0%</td>
+    <td class="CoverValue function-coverage coverage-low">4 / 8</td>
+    <td class="CoverValue branch-coverage coverage-low">17.9%</td>
+    <td class="CoverValue branch-coverage coverage-low">5 / 28</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/Header.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="37.5" title="37.5%">37.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">37.5%</td>
+    <td class="CoverValue line-coverage coverage-low">6 / 16</td>
+    <td class="CoverValue function-coverage coverage-low">50.0%</td>
+    <td class="CoverValue function-coverage coverage-low">4 / 8</td>
+    <td class="CoverValue branch-coverage coverage-low">22.7%</td>
+    <td class="CoverValue branch-coverage coverage-low">5 / 22</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/Protein.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="57.8" title="57.8%">57.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">57.8%</td>
+    <td class="CoverValue line-coverage coverage-low">133 / 230</td>
+    <td class="CoverValue function-coverage coverage-low">61.4%</td>
+    <td class="CoverValue function-coverage coverage-low">27 / 44</td>
+    <td class="CoverValue branch-coverage coverage-low">27.2%</td>
+    <td class="CoverValue branch-coverage coverage-low">104 / 382</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/StateManager.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="86.8" title="86.8%">86.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">86.8%</td>
+    <td class="CoverValue line-coverage coverage-medium">33 / 38</td>
+    <td class="CoverValue function-coverage coverage-medium">83.3%</td>
+    <td class="CoverValue function-coverage coverage-medium">15 / 18</td>
+    <td class="CoverValue branch-coverage coverage-low">44.4%</td>
+    <td class="CoverValue branch-coverage coverage-low">8 / 18</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      data/Terminate.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="38.5" title="38.5%">38.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">38.5%</td>
+    <td class="CoverValue line-coverage coverage-low">15 / 39</td>
+    <td class="CoverValue function-coverage coverage-low">20.0%</td>
+    <td class="CoverValue function-coverage coverage-low">1 / 5</td>
+    <td class="CoverValue branch-coverage coverage-low">17.6%</td>
+    <td class="CoverValue branch-coverage coverage-low">19 / 108</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      em/CounterCulling.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 10</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 1</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 8</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      em/Datatypes.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="11.4" title="11.4%">11.4</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">11.4%</td>
+    <td class="CoverValue line-coverage coverage-low">4 / 35</td>
+    <td class="CoverValue function-coverage coverage-low">33.3%</td>
+    <td class="CoverValue function-coverage coverage-low">1 / 3</td>
+    <td class="CoverValue branch-coverage coverage-low">4.5%</td>
+    <td class="CoverValue branch-coverage coverage-low">1 / 22</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      em/Image.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="61.8" title="61.8%">61.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">61.8%</td>
+    <td class="CoverValue line-coverage coverage-low">42 / 68</td>
+    <td class="CoverValue function-coverage coverage-low">64.3%</td>
+    <td class="CoverValue function-coverage coverage-low">9 / 14</td>
+    <td class="CoverValue branch-coverage coverage-low">42.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">37 / 88</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      em/ImageStack.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="20.4" title="20.4%">20.4</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">20.4%</td>
+    <td class="CoverValue line-coverage coverage-low">51 / 250</td>
+    <td class="CoverValue function-coverage coverage-low">28.6%</td>
+    <td class="CoverValue function-coverage coverage-low">14 / 49</td>
+    <td class="CoverValue branch-coverage coverage-low">6.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">36 / 596</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      em/NoCulling.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 5</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 1</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 4</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      em/PartialHistogramManager.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="87.5" title="87.5%">87.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">87.5%</td>
+    <td class="CoverValue line-coverage coverage-medium">91 / 104</td>
+    <td class="CoverValue function-coverage coverage-low">70.6%</td>
+    <td class="CoverValue function-coverage coverage-low">12 / 17</td>
+    <td class="CoverValue branch-coverage coverage-low">51.9%</td>
+    <td class="CoverValue branch-coverage coverage-low">82 / 158</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      fitter/Fit.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="32.3" title="32.3%">32.3</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">32.3%</td>
+    <td class="CoverValue line-coverage coverage-low">10 / 31</td>
+    <td class="CoverValue function-coverage coverage-low">25.0%</td>
+    <td class="CoverValue function-coverage coverage-low">3 / 12</td>
+    <td class="CoverValue branch-coverage coverage-low">33.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">4 / 12</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      fitter/FitReporter.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 40</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 9</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 108</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      fitter/IntensityFitter.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="64.9" title="64.9%">64.9</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">64.9%</td>
+    <td class="CoverValue line-coverage coverage-low">63 / 97</td>
+    <td class="CoverValue function-coverage coverage-low">42.9%</td>
+    <td class="CoverValue function-coverage coverage-low">6 / 14</td>
+    <td class="CoverValue branch-coverage coverage-low">33.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">103 / 312</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      fitter/SimpleIntensityFitter.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="52.0" title="52.0%">52.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">52.0%</td>
+    <td class="CoverValue line-coverage coverage-low">51 / 98</td>
+    <td class="CoverValue function-coverage coverage-low">44.4%</td>
+    <td class="CoverValue function-coverage coverage-low">8 / 18</td>
+    <td class="CoverValue branch-coverage coverage-low">32.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">75 / 232</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      histogram/DebyeLookupTable.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">53 / 53</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">13 / 13</td>
+    <td class="CoverValue branch-coverage coverage-low">67.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">35 / 52</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      histogram/Histogram.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="43.2" title="43.2%">43.2</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">43.2%</td>
+    <td class="CoverValue line-coverage coverage-low">19 / 44</td>
+    <td class="CoverValue function-coverage coverage-low">40.0%</td>
+    <td class="CoverValue function-coverage coverage-low">6 / 15</td>
+    <td class="CoverValue branch-coverage coverage-low">20.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">4 / 20</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      histogram/PartialHistogramManager.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="82.2" title="82.2%">82.2</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">82.2%</td>
+    <td class="CoverValue line-coverage coverage-medium">152 / 185</td>
+    <td class="CoverValue function-coverage coverage-medium">88.9%</td>
+    <td class="CoverValue function-coverage coverage-medium">16 / 18</td>
+    <td class="CoverValue branch-coverage coverage-low">55.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">136 / 246</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      histogram/ScatteringHistogram.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="33.8" title="33.8%">33.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">33.8%</td>
+    <td class="CoverValue line-coverage coverage-low">26 / 77</td>
+    <td class="CoverValue function-coverage coverage-low">36.4%</td>
+    <td class="CoverValue function-coverage coverage-low">4 / 11</td>
+    <td class="CoverValue branch-coverage coverage-low">18.2%</td>
+    <td class="CoverValue branch-coverage coverage-low">20 / 110</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/AxesPlacement.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">60 / 60</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">3 / 3</td>
+    <td class="CoverValue branch-coverage coverage-low">54.1%</td>
+    <td class="CoverValue branch-coverage coverage-low">80 / 148</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/ClusterCulling.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 167</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 9</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 308</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/CounterCulling.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="23.1" title="23.1%">23.1</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">23.1%</td>
+    <td class="CoverValue line-coverage coverage-low">6 / 26</td>
+    <td class="CoverValue function-coverage coverage-low">66.7%</td>
+    <td class="CoverValue function-coverage coverage-low">2 / 3</td>
+    <td class="CoverValue branch-coverage coverage-low">10.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">3 / 30</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/Grid.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="78.6" title="78.6%">78.6</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">78.6%</td>
+    <td class="CoverValue line-coverage coverage-medium">290 / 369</td>
+    <td class="CoverValue function-coverage coverage-medium">88.6%</td>
+    <td class="CoverValue function-coverage coverage-medium">39 / 44</td>
+    <td class="CoverValue branch-coverage coverage-low">44.5%</td>
+    <td class="CoverValue branch-coverage coverage-low">226 / 508</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/GridObj.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="60.0" title="60.0%">60.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">60.0%</td>
+    <td class="CoverValue line-coverage coverage-low">3 / 5</td>
+    <td class="CoverValue function-coverage coverage-low">60.0%</td>
+    <td class="CoverValue function-coverage coverage-low">3 / 5</td>
+    <td class="CoverValue branch-coverage coverage-low">50.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">3 / 6</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/JanPlacement.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">31 / 31</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">2 / 2</td>
+    <td class="CoverValue branch-coverage coverage-low">66.2%</td>
+    <td class="CoverValue branch-coverage coverage-low">45 / 68</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/OutlierCulling.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 32</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 3</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 58</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hydrate/RadialPlacement.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">128 / 128</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">5 / 5</td>
+    <td class="CoverValue branch-coverage coverage-low">67.9%</td>
+    <td class="CoverValue branch-coverage coverage-low">133 / 196</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      io/File.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="40.9" title="40.9%">40.9</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">40.9%</td>
+    <td class="CoverValue line-coverage coverage-low">36 / 88</td>
+    <td class="CoverValue function-coverage coverage-low">54.5%</td>
+    <td class="CoverValue function-coverage coverage-low">12 / 22</td>
+    <td class="CoverValue branch-coverage coverage-low">17.7%</td>
+    <td class="CoverValue branch-coverage coverage-low">23 / 130</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      io/PDBReader.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="90.2" title="90.2%">90.2</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">90.2%</td>
+    <td class="CoverValue line-coverage coverage-high">37 / 41</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">1 / 1</td>
+    <td class="CoverValue branch-coverage coverage-low">54.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">51 / 94</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      io/PDBWriter.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 22</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 3</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 58</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      io/Reader.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 2</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 1</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 2</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      io/Writer.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 2</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 1</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 2</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      math/LUPDecomposition.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">33 / 33</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">3 / 3</td>
+    <td class="CoverValue branch-coverage coverage-low">58.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">49 / 84</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      math/MatrixUtils.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="92.5" title="92.5%">92.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">92.5%</td>
+    <td class="CoverValue line-coverage coverage-high">37 / 40</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">4 / 4</td>
+    <td class="CoverValue branch-coverage coverage-low">50.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">10 / 20</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      math/SimpleLeastSquares.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="79.5" title="79.5%">79.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">79.5%</td>
+    <td class="CoverValue line-coverage coverage-medium">31 / 39</td>
+    <td class="CoverValue function-coverage coverage-low">44.4%</td>
+    <td class="CoverValue function-coverage coverage-low">4 / 9</td>
+    <td class="CoverValue branch-coverage coverage-low">42.9%</td>
+    <td class="CoverValue branch-coverage coverage-low">12 / 28</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      minimizer/Golden.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="63.8" title="63.8%">63.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">63.8%</td>
+    <td class="CoverValue line-coverage coverage-low">44 / 69</td>
+    <td class="CoverValue function-coverage coverage-low">44.4%</td>
+    <td class="CoverValue function-coverage coverage-low">4 / 9</td>
+    <td class="CoverValue branch-coverage coverage-low">20.7%</td>
+    <td class="CoverValue branch-coverage coverage-low">19 / 92</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      minimizer/Minimizer.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="72.7" title="72.7%">72.7</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">72.7%</td>
+    <td class="CoverValue line-coverage coverage-low">32 / 44</td>
+    <td class="CoverValue function-coverage coverage-low">64.3%</td>
+    <td class="CoverValue function-coverage coverage-low">9 / 14</td>
+    <td class="CoverValue branch-coverage coverage-low">25.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">12 / 48</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      minimizer/MinimumExplorer.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 116</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 8</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 122</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      minimizer/ROOTMinimizer.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="61.3" title="61.3%">61.3</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">61.3%</td>
+    <td class="CoverValue line-coverage coverage-low">46 / 75</td>
+    <td class="CoverValue function-coverage coverage-low">38.5%</td>
+    <td class="CoverValue function-coverage coverage-low">5 / 13</td>
+    <td class="CoverValue branch-coverage coverage-low">20.5%</td>
+    <td class="CoverValue branch-coverage coverage-low">32 / 156</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      minimizer/Scan.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="76.0" title="76.0%">76.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">76.0%</td>
+    <td class="CoverValue line-coverage coverage-medium">38 / 50</td>
+    <td class="CoverValue function-coverage coverage-low">54.5%</td>
+    <td class="CoverValue function-coverage coverage-low">6 / 11</td>
+    <td class="CoverValue branch-coverage coverage-low">34.7%</td>
+    <td class="CoverValue branch-coverage coverage-low">25 / 72</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      minimizer/Utility.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="37.0" title="37.0%">37.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">37.0%</td>
+    <td class="CoverValue line-coverage coverage-low">17 / 46</td>
+    <td class="CoverValue function-coverage coverage-low">50.0%</td>
+    <td class="CoverValue function-coverage coverage-low">14 / 28</td>
+    <td class="CoverValue branch-coverage coverage-low">17.5%</td>
+    <td class="CoverValue branch-coverage coverage-low">7 / 40</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/Plot.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="31.6" title="31.6%">31.6</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">31.6%</td>
+    <td class="CoverValue line-coverage coverage-low">42 / 133</td>
+    <td class="CoverValue function-coverage coverage-low">35.7%</td>
+    <td class="CoverValue function-coverage coverage-low">5 / 14</td>
+    <td class="CoverValue branch-coverage coverage-low">14.8%</td>
+    <td class="CoverValue branch-coverage coverage-low">54 / 364</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotDataset.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="74.1" title="74.1%">74.1</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">74.1%</td>
+    <td class="CoverValue line-coverage coverage-low">20 / 27</td>
+    <td class="CoverValue function-coverage coverage-low">50.0%</td>
+    <td class="CoverValue function-coverage coverage-low">6 / 12</td>
+    <td class="CoverValue branch-coverage coverage-low">27.8%</td>
+    <td class="CoverValue branch-coverage coverage-low">10 / 36</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotDistance.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 29</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 3</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 58</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotHistogram.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 15</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 6</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 22</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotImage.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 68</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 6</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 86</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotIntensity.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="47.1" title="47.1%">47.1</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">47.1%</td>
+    <td class="CoverValue line-coverage coverage-low">41 / 87</td>
+    <td class="CoverValue function-coverage coverage-low">53.8%</td>
+    <td class="CoverValue function-coverage coverage-low">7 / 13</td>
+    <td class="CoverValue branch-coverage coverage-low">19.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">32 / 168</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotIntensityFit.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 35</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 8</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 92</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotIntensityFitResiduals.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 28</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 8</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 62</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotOptions.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="65.0" title="65.0%">65.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">65.0%</td>
+    <td class="CoverValue line-coverage coverage-low">67 / 103</td>
+    <td class="CoverValue function-coverage coverage-low">63.6%</td>
+    <td class="CoverValue function-coverage coverage-low">14 / 22</td>
+    <td class="CoverValue branch-coverage coverage-low">23.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">309 / 1328</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      plots/PlotResolutionComparison.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 21</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 4</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 84</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      rigidbody/Parameters.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 10</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 4</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 8</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      rigidbody/RigidBody.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="44.8" title="44.8%">44.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">44.8%</td>
+    <td class="CoverValue line-coverage coverage-low">43 / 96</td>
+    <td class="CoverValue function-coverage coverage-low">60.0%</td>
+    <td class="CoverValue function-coverage coverage-low">6 / 10</td>
+    <td class="CoverValue branch-coverage coverage-low">18.3%</td>
+    <td class="CoverValue branch-coverage coverage-low">31 / 169</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      rigidbody/TransformationStrategy.cpp
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">28 / 28</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">2 / 2</td>
+    <td class="CoverValue branch-coverage coverage-low">61.9%</td>
+    <td class="CoverValue branch-coverage coverage-low">26 / 42</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/Dataset.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="72.1" title="72.1%">72.1</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">72.1%</td>
+    <td class="CoverValue line-coverage coverage-low">80 / 111</td>
+    <td class="CoverValue function-coverage coverage-low">64.7%</td>
+    <td class="CoverValue function-coverage coverage-low">11 / 17</td>
+    <td class="CoverValue branch-coverage coverage-low">34.2%</td>
+    <td class="CoverValue branch-coverage coverage-low">89 / 260</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/Dataset2D.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="63.8" title="63.8%">63.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">63.8%</td>
+    <td class="CoverValue line-coverage coverage-low">30 / 47</td>
+    <td class="CoverValue function-coverage coverage-low">53.3%</td>
+    <td class="CoverValue function-coverage coverage-low">8 / 15</td>
+    <td class="CoverValue branch-coverage coverage-low">31.4%</td>
+    <td class="CoverValue branch-coverage coverage-low">32 / 102</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/Multiset.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 40</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 22</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 68</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/ResidueMap.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="81.5" title="81.5%">81.5</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">81.5%</td>
+    <td class="CoverValue line-coverage coverage-medium">22 / 27</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">6 / 6</td>
+    <td class="CoverValue branch-coverage coverage-low">34.1%</td>
+    <td class="CoverValue branch-coverage coverage-low">15 / 44</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/ResidueParser.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="77.9" title="77.9%">77.9</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">77.9%</td>
+    <td class="CoverValue line-coverage coverage-medium">134 / 172</td>
+    <td class="CoverValue function-coverage coverage-low">60.0%</td>
+    <td class="CoverValue function-coverage coverage-low">15 / 25</td>
+    <td class="CoverValue branch-coverage coverage-low">39.0%</td>
+    <td class="CoverValue branch-coverage coverage-low">194 / 498</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/Settings.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="81.0" title="81.0%">81.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">81.0%</td>
+    <td class="CoverValue line-coverage coverage-medium">85 / 105</td>
+    <td class="CoverValue function-coverage coverage-low">68.2%</td>
+    <td class="CoverValue function-coverage coverage-low">15 / 22</td>
+    <td class="CoverValue branch-coverage coverage-low">37.6%</td>
+    <td class="CoverValue branch-coverage coverage-low">88 / 234</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/SimpleDataset.cpp
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="59.7" title="59.7%">59.7</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">59.7%</td>
+    <td class="CoverValue line-coverage coverage-low">141 / 236</td>
+    <td class="CoverValue function-coverage coverage-low">63.6%</td>
+    <td class="CoverValue function-coverage coverage-low">28 / 44</td>
+    <td class="CoverValue branch-coverage coverage-low">35.4%</td>
+    <td class="CoverValue branch-coverage coverage-low">148 / 418</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/Type.cpp
+    </th>
+    <td>
+      <meter class="coverage-none" min="0" max="100" value="0.0" title="0.0%">0.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-none">0.0%</td>
+    <td class="CoverValue line-coverage coverage-none">0 / 4</td>
+    <td class="CoverValue function-coverage coverage-none">0.0%</td>
+    <td class="CoverValue function-coverage coverage-none">0 / 1</td>
+    <td class="CoverValue branch-coverage coverage-none">0.0%</td>
+    <td class="CoverValue branch-coverage coverage-none">0 / 6</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utility/Utility.cpp
+    </th>
+    <td>
+      <meter class="coverage-medium" min="0" max="100" value="75.0" title="75.0%">75.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-medium">75.0%</td>
+    <td class="CoverValue line-coverage coverage-medium">78 / 104</td>
+    <td class="CoverValue function-coverage coverage-low">72.7%</td>
+    <td class="CoverValue function-coverage coverage-low">16 / 22</td>
+    <td class="CoverValue branch-coverage coverage-low">41.6%</td>
+    <td class="CoverValue branch-coverage coverage-low">69 / 166</td>
+  </tr>
+
+</table>
+      <hr/>
+    </main>
+
+    <footer>
+      Generated by: <a href="http://gcovr.com">GCOVR (Version 5.2)</a>
+    </footer>
+  </body>
+</html>

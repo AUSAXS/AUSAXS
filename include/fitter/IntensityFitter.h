@@ -43,6 +43,15 @@ class IntensityFitter : public SimpleIntensityFitter {
 
         /**
          * @brief Constructor.
+         *        Prepare a fit of the histogram to the measured data. 
+         * 
+         * @param data The measured data.
+         * @param h The histogram.
+         */
+		IntensityFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : SimpleIntensityFitter(data, h) {}
+
+        /**
+         * @brief Constructor.
          * 
          * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
          * 

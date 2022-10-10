@@ -16,6 +16,11 @@ namespace mini {
 
             Golden(std::function<double(const double*)> func, const Parameter& param);
 
+            /**
+             * @brief Destructor.
+             */
+            ~Golden() override = default;
+
 			/**
 			 * @brief Add a parameter.
 			 */
