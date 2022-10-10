@@ -212,7 +212,7 @@ double Atom::get_mass() const {
     }
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
-        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::atomic.get("H");
+        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
         return constants::mass::atomic.get(element);
     }
@@ -225,14 +225,7 @@ unsigned int Atom::Z() const {
     return constants::charge::atomic.get(element);
 }
 
-void Atom::print() const {
-    cout << "\nAtom no: " << serial << endl;
-    cout << setw(17) << "(x, y, z): (" << setw(6) << coords.x() << ", " << setw(6) << coords.y() << ", " << setw(6) << coords.z() << ")" << endl;
-    cout << setw(16) << "Weight: " << std::to_string(occupancy) << endl;
-    cout << setw(16) << "Symbol: " << element << endl;
-    cout << setw(16) << "Molecule: " << name << endl;
-    return;
-}
+void Atom::add_effective_charge(const double charge) {effective_charge += charge;}
 
 bool Atom::operator<(const Atom& rhs) const {
     return serial < rhs.serial;
@@ -240,10 +233,6 @@ bool Atom::operator<(const Atom& rhs) const {
 
 bool Atom::operator==(const Atom& rhs) const {
     return uid == rhs.uid;
-}
-
-bool Atom::equals(const Atom& rhs) const {
-    return operator==(rhs);
 }
 
 bool Atom::equals_content(const Atom& rhs) const {

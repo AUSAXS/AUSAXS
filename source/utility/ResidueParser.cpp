@@ -97,14 +97,9 @@ saxs::detail::ResidueMap parser::residue::detail::Residue::to_map() const {
 
         // check if the alternate name should also be inserted
         if (a.altname != a.name && !a.altname.empty()) {
-            std::cout << "Inserting " << a.altname << " with valency " << a.valency << " and " << a.hydrogen_bonds << " hydrogen bonds" << std::endl;
             map.insert(a.altname, a.symbol, a.hydrogen_bonds);
         }
         map.insert(a.name, a.symbol, a.hydrogen_bonds);
-    }
-
-    for (const auto&[atom, count] : map) {
-        std::cout << atom.name << " " << count << std::endl;
     }
     return map;
 }
@@ -144,7 +139,6 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     // find the beginning of the atom section
     while (std::getline(file, line)) {
         if (line.find("atom.pdbx_ordinal") != std::string::npos) {
-            // std::cout << "Found start of atom section" << std::endl;
             found_atom_section = true;
             break;
         }
@@ -154,7 +148,6 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     while (std::getline(file, line)) {
         // check for end of section
         if (line.find("#") != std::string::npos) {
-            // std::cout << "Found end of atom section" << std::endl;
             break;
         }
 
@@ -178,7 +171,6 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     // find the beginning of the bond section
     while (std::getline(file, line)) {
         if (line.find("bond.pdbx_ordinal") != std::string::npos) {
-            // std::cout << "Found start of bond section" << std::endl;
             found_bond_section = true;
             break;
         }
@@ -188,7 +180,6 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::st
     while (std::getline(file, line)) {
         // check for end of section
         if (line.find("#") != std::string::npos) {
-            // std::cout << "Found end of bond section" << std::endl;
             break;
         }
 
@@ -243,7 +234,6 @@ void parser::residue::ResidueStorage::initialize() {
             // the line following the # is the name of the residue
             std::getline(file, line);
             std::string residue = line;
-            // std::cout << "Read residue " << residue << " from master file." << std::endl;
 
             // prepare map
             std::unordered_map<saxs::detail::AtomKey, unsigned int> map;

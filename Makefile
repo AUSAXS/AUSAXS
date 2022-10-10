@@ -20,6 +20,16 @@ docs:
 gui: build/source/gui/gui
 	build/gui
 
+coverage/%: test/%
+	@ mkdir -p temp/coverage/
+	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
+	firefox temp/coverage/coverage.html
+
+coverage: tests
+	@ mkdir -p temp/coverage/
+	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
+	firefox temp/coverage/coverage.html
+
 gwidth := 1
 bwidth := 1
 ra := 2.4

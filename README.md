@@ -1,4 +1,6 @@
 # Todo
+ * [ ] CubicSpline: Fix memory error, convert to dataset member function, test it
+ * [ ] RollingAverager: Fix edge averages; convert to dataset member function, test it
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
  * [ ] Least squares: Consider removing the offset parameter? Other programs doesn't use it, and it seems superfluous. 
  * [ ] MinimumExplorer: Fails if started in an area with no voxels

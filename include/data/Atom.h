@@ -56,11 +56,6 @@ class Atom : public Record {
     double distance(const Atom& a) const;
 
     /** 
-     * @brief Prints the contents of this object to the terminal. (NOT FULLY IMPLEMENTED!)
-     */
-    void print() const;
-
-    /** 
      * @brief Move this atom by a vector.
      * 
      * @param v the translation vector.
@@ -140,7 +135,7 @@ class Atom : public Record {
     /**
      * @brief Add @p charge to the effective charge of this atom. 
      */
-    void add_effective_charge(const double charge) {effective_charge += charge;}
+    void add_effective_charge(const double charge);
 
     /**
      * @brief Comparison function to allow this class to be a map key. 
@@ -164,15 +159,6 @@ class Atom : public Record {
      * @param rhs Atom to compare against. 
      */
     bool equals_content(const Atom& rhs) const;
-
-    /**
-     * @brief Equality operator to determine if two atoms are equal.
-     *        Note that this compares their unique object identifier which is generated at object creation, completely disregarding
-     *        their contents. Unless a deliberate attempt at desyncing the id from the contents were made, equality of content follows
-     *        from equality of id. 
-     * @param rhs Atom to compare against. 
-     */
-    bool equals(const Atom& rhs) const;
 
     /**
      * @brief Inequality operator to determine if two atoms are not equal.

@@ -200,6 +200,15 @@ TEST_CASE("real_data", "[io],[files],[broken]") {
     }
 }
 
+TEST_CASE("protein_io", "[io],[files]") {
+    Protein protein("test/2epe.pdb");
+    protein.save("temp/io/temp.pdb");
+    Protein protein2("temp/io/temp.pdb");
+
+    CHECK(protein.get_protein_atoms() == protein2.get_protein_atoms());
+    CHECK(protein.get_hydration_atoms() == protein2.get_hydration_atoms());
+}
+
 TEST_CASE("file_copied_correctly", "[io],[files]") {
     Body body("data/lysozyme/2epe.pdb");
     CHECK(!body.get_file().header.get().empty());
