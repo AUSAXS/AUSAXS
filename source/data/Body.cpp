@@ -30,10 +30,6 @@ Body::~Body() = default;
 void Body::save(string path) {file.write(path);}
 
 void Body::calc_histogram() {
-    if (!updated_charge) {
-        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
-    }
-
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
     Axis axes = Axis(1000/width, 0, 1000); 
@@ -122,40 +118,23 @@ void Body::calc_histogram() {
     histogram = std::make_shared<hist::ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
-void Body::generate_new_hydration() {
-    // delete the old hydration layer
-    file.hydration_atoms = vector<Water>();
-
-    // move protein to center of mass
-    center();
-
-    // create the grid and hydrate it
-    create_grid();
-    file.hydration_atoms = grid->hydrate();
-}
-
-std::shared_ptr<Grid> Body::get_grid() {
-    return grid == nullptr ? create_grid() : grid;
-}
-
-void Body::generate_volume_file(string path) {
-    GridObj& g = grid->grid;
-    vector<Atom> filled;
-    for (size_t i = 0; i < g.xdim; i++) {
-        for (size_t j = 0; j < g.ydim; j++) {
-            for (size_t k = 0; k < g.zdim; k++) {
-                if (g.index(i, j, k) != GridObj::EMPTY) {
-                    Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", "");
-                    filled.push_back(a);
-                }
-            }
-        }
-    }
-    file.protein_atoms = filled;
-    file.hydration_atoms = vector<Water>();
-    save(path);
-    exit(0);
-}
+// void Body::generate_volume_file(string path) {
+//     GridObj& g = grid->grid;
+//     vector<Atom> filled;
+//     for (size_t i = 0; i < g.xdim; i++) {
+//         for (size_t j = 0; j < g.ydim; j++) {
+//             for (size_t k = 0; k < g.zdim; k++) {
+//                 if (g.index(i, j, k) != GridObj::EMPTY) {
+//                     Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", "");
+//                     filled.push_back(a);
+//                 }
+//             }
+//         }
+//     }
+//     file.protein_atoms = filled;
+//     file.hydration_atoms = vector<Water>();
+//     save(path);
+// }
 
 void Body::center() {
     if (!centered && setting::protein::center) {
@@ -190,16 +169,6 @@ double Body::get_volume_acids() const {
         }
     }
     return v;
-}
-
-double Body::get_volume_grid() {
-    if (grid == nullptr) {create_grid();}
-    return grid->get_volume();
-}
-
-std::shared_ptr<Grid> Body::create_grid() {
-    grid = std::make_shared<Grid>(file.protein_atoms);
-    return grid;
 }
 
 std::shared_ptr<hist::ScatteringHistogram> Body::get_histogram() {
@@ -242,20 +211,6 @@ void Body::update_effective_charge(double charge) {
     updated_charge = true;
 }
 
-void Body::update_effective_charge() {
-    changed_external_state();
-
-    double displaced_vol = get_volume_grid();
-    double displaced_charge = constants::charge::density::water*displaced_vol;
-    // cout << "Displaced volume: " << displaced_vol << ", displaced charge: " << displaced_charge << endl;
-
-    double charge_per_atom = -displaced_charge/file.protein_atoms.size();
-    cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << file.protein_atoms.size() << ")." << endl;
-
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge_per_atom] (Atom& a) {a.add_effective_charge(charge_per_atom);});
-    updated_charge = true;
-}
-
 double Body::get_total_charge() const {
     return std::accumulate(file.protein_atoms.begin(), file.protein_atoms.end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
 }
@@ -274,7 +229,6 @@ double Body::get_absolute_mass() const {
 Body& Body::operator=(const Body& rhs) {
     file = rhs.file; 
     uid = rhs.uid;
-    if (rhs.grid != nullptr) {grid = rhs.grid;}
     changed_internal_state();
     return *this;
 }

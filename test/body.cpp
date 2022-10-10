@@ -124,10 +124,10 @@ TEST_CASE("body_histogram", "[body]") {
 }
 
 TEST_CASE("translate", "[body]") {
-    vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                        Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
+                        Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
+                        Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     Body body(a, {});
 
     body.translate(Vector3<double>{1, 1, 1});
@@ -135,6 +135,12 @@ TEST_CASE("translate", "[body]") {
     REQUIRE(body.protein_atom(1).coords == Vector3<double>{0, 2, 0});
     REQUIRE(body.protein_atom(2).coords == Vector3<double>{2, 0, 0});
     REQUIRE(body.protein_atom(3).coords == Vector3<double>{2, 2, 0});
+
+    body.center();
+    REQUIRE(body.protein_atom(0).coords == Vector3<double>{-1, -1, -1});
+    REQUIRE(body.protein_atom(1).coords == Vector3<double>{ 1, -1, -1});
+    REQUIRE(body.protein_atom(2).coords == Vector3<double>{-1, -1,  1});
+    REQUIRE(body.protein_atom(3).coords == Vector3<double>{ 1,  1,  1});
 }
 
 TEST_CASE("rotate", "[body]") {
@@ -202,13 +208,30 @@ TEST_CASE("body_get_volume", "[body]") {
     REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
 }
 
-TEST_CASE("update_charge", "[broken],[body]") {
-    vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+TEST_CASE("update_charge", "[body]") {
+    vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                        Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
+                        Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
+                        Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     Body body(a, {});
-    body.update_effective_charge();
+
+    double c0 = a[0].get_effective_charge();    
+    double charge1 = std::accumulate(a.begin(), a.end(), 0.0, [](double sum, Atom& a) { return sum + a.get_effective_charge(); });
+    body.update_effective_charge(1.5);
+    double charge2 = std::accumulate(a.begin(), a.end(), 0.0, [](double sum, Atom& a) { return sum + a.get_effective_charge(); });
+    CHECK(charge1 == charge2+12);
+    CHECK(a[0].get_effective_charge() == c0+1.5);
+}
+
+TEST_CASE("body_equality", "[body]") {
+    vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> a2 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    Body b1(a1);
+    Body b2(a2);
+
+    CHECK(!(b1 == b2)); // even though they have the same contents, body equality is defined exclusively by a uid
+    Body b2c = b2;
+    CHECK(b2 == b2c);
 }
 
 TEST_CASE("grid_add_remove_bodies", "[body]") {

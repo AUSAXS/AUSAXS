@@ -57,11 +57,6 @@ class Body {
      */
     std::shared_ptr<hist::ScatteringHistogram> get_histogram();
 
-    /** 
-     * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.
-     */
-    void generate_new_hydration();
-
     /**
      * @brief Get a reference to the constituent atoms.
      */
@@ -98,24 +93,14 @@ class Body {
     double get_volume_acids() const;
 
     /**
-     * @brief Calculate the volume of this body based on the number of grid bins it spans
-     */
-    double get_volume_grid();
-
-    /**
      * @brief Calculate the volume of this body based on the number of C-alpha atoms
      */
     double get_volume_calpha() const;
 
-    /**
-     * @brief Get the grid representation of this body. 
-     */
-    std::shared_ptr<Grid> get_grid();
-
-    /**
-     * @brief Generate a PDB file at @p path showing the filled grid volume.
-     */
-    void generate_volume_file(std::string path);
+    // /**
+    //  * @brief Generate a PDB file at @p path showing the filled grid volume.
+    //  */
+    // void generate_volume_file(std::string path);
 
     /**
      * @brief Calculate the molar mass of this body in Daltons.
@@ -131,11 +116,6 @@ class Body {
      * @brief Get the total charge of this body.
      */
     double get_total_charge() const;
-
-    /**
-     * @brief Create a grid and fill it with the atoms of this body. 
-     */
-    std::shared_ptr<Grid> create_grid();
 
     /**
      * @brief Center this Body on origo. 
@@ -180,11 +160,6 @@ class Body {
 
     /**
      * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
-     */
-    void update_effective_charge();
-
-    /**
-     * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
      * 
      * @param charge the charge to be subtracted.
      */
@@ -225,7 +200,6 @@ class Body {
     // std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
   private:
     File file;                                                      // The file backing this body
-    std::shared_ptr<Grid> grid = nullptr;                           // The grid representation of this body
     std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 
     // The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
