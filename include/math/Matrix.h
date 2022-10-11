@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include <iomanip>
 
-#include <math/ConstSlice.h>
-#include <math/MutableSlice.h>
+#include <math/slices/ConstSlice.h>
+#include <math/slices/MutableSlice.h>
 #include <math/Vector.h>
 #include <math/LUPDecomposition.h>
 

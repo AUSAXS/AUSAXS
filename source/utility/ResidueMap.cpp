@@ -25,7 +25,7 @@ double ResidueMap::get(AtomKey key) {
     if (average.find(key.symbol) != average.end()) {
         return average.at(key.symbol);
     } else {
-        throw except::map_error("Error in SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element " + key.symbol + " is available.");
+        throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element " + key.symbol + " is available.");
     }
 }
 

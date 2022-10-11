@@ -16,6 +16,9 @@ struct Point1D : detail::IPoint {
 
     static unsigned int dim() {return 1;}
 
+    bool operator==(const Point1D& other) const {return x == other.x && xerr == other.xerr;}
+    bool operator!=(const Point1D& other) const {return !(*this == other);}
+
     double x = 0, xerr = 0;
 };
 
@@ -27,6 +30,9 @@ struct Point2D : Point1D {
 
     static unsigned int dim() {return 2;}
 
+    bool operator==(const Point2D& other) const {return Point1D::operator==(other) && y == other.y && yerr == other.yerr;}
+    bool operator!=(const Point2D& other) const {return !(*this == other);}
+
     double y = 0, yerr = 0;
 };
 
@@ -35,6 +41,9 @@ struct Point3D : Point2D {
     Point3D(double x, double y, double z) : Point2D(x, y), z(z) {}
 
     static unsigned int dim() {return 3;}
+
+    bool operator==(const Point3D& other) const {return Point2D::operator==(other) && z == other.z && zerr == other.zerr;}
+    bool operator!=(const Point3D& other) const {return !(*this == other);}
 
     double z = 0, zerr = 0;
 };

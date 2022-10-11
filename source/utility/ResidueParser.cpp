@@ -45,7 +45,7 @@ unsigned int parser::residue::detail::Bond::parse_order(std::string order) {
     if (order == "SING") {return 1;}
     else if (order == "DOUB") {return 2;}
     else if (order == "TRIP") {return 3;}
-    else {throw std::runtime_error("Invalid bond order: " + order);}
+    else {throw std::runtime_error("Bond::parse_order: Invalid bond order: " + order);}
 }
 
 
@@ -246,7 +246,7 @@ void parser::residue::ResidueStorage::initialize() {
 
                 // lines are of the form "element atom hydrogens"
                 std::vector<std::string> tokens = utility::split(line, " \n\r");
-                if (tokens.size() != 3) {throw except::io_error("Error in ResidueStorage::initialize: Invalid line in master file: " + line + ". Corrupted file?");}
+                if (tokens.size() != 3) {throw except::io_error("ResidueStorage::initialize: Invalid line in master file: " + line + ". Corrupted file?");}
                 std::string element = tokens[0];
                 std::string atom = tokens[1];
                 unsigned int hydrogens = std::stoi(tokens[2]);
@@ -275,7 +275,7 @@ void parser::residue::ResidueStorage::download_residue(std::string name) {
         // write the residue to the master file
         write_residue(name);
     } else {
-        throw except::map_error("Error in ResidueStorage::download_residue: Invalid residue name: \"" + name + "\"");
+        throw except::map_error("ResidueStorage::download_residue: Invalid residue name: \"" + name + "\"");
     }
 }
 
@@ -283,7 +283,7 @@ void parser::residue::ResidueStorage::write_residue(std::string name) {
     std::string path = setting::general::residue_folder;
     utility::create_directory(path);
     std::ofstream file(path + "master.dat", std::ios::app); // open in append mode
-    if (!file.is_open()) {throw except::io_error("Error in ResidueStorage::write_residue: Could not open file: " + path + "master" + ".dat");}
+    if (!file.is_open()) {throw except::io_error("ResidueStorage::write_residue: Could not open file: " + path + "master" + ".dat");}
 
     // write the map to the master file
     auto map = get(name);

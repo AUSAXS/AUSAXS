@@ -8,7 +8,7 @@
 #include <fstream>
 #include <random>
 
-using std::vector, std::string;
+using std::vector, std::string; 
 
 Dataset2D::Dataset2D() noexcept : SimpleDataset(0, 4) {}
 
@@ -34,7 +34,7 @@ Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<d
 
 Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
     for (unsigned int i = 0; i < x.size(); i++) {
-        row(i) = {x[i], y[i], xerr[i], yerr[i]};
+        row(i) = {x[i], y[i], yerr[i], xerr[i]};
     }
 }
 
@@ -50,9 +50,8 @@ Dataset2D::Dataset2D(std::string path) : Dataset2D() {
 
 void Dataset2D::scale_errors(double factor) {
     auto xerr = this->xerr();
-    auto yerr = this->yerr();
     std::transform(xerr.begin(), xerr.end(), xerr.begin(), [&factor] (double val) {return factor*val;});
-    std::transform(yerr.begin(), yerr.end(), yerr.begin(), [&factor] (double val) {return factor*val;});
+    SimpleDataset::scale_errors(factor);
 }
 
 void Dataset2D::push_back(double x, double y, double xerr, double yerr) {
@@ -65,13 +64,13 @@ void Dataset2D::push_back(double x, double y) {
 }
 
 void Dataset2D::push_back(const Point2D& point) noexcept {
-    push_back(point.x, point.y, point.yerr, point.xerr);
+    push_back(point.x, point.y, point.xerr, point.yerr);
 }
 
 void Dataset2D::load(std::string path) {
     Dataset::load(path);
     if (M != 4) {
-        throw except::io_error("Error in Dataset2D::load: Dataset has wrong number of columns.");
+        throw except::io_error("Dataset2D::load: Dataset has wrong number of columns.");
     }
     names = {"q", "I", "Ierr", "qerr"}; // set column names
     unsigned int N = size();

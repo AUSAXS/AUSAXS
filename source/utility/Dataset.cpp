@@ -19,10 +19,10 @@ Dataset::Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
     set_default_names();
 }
 
-void Dataset::operator=(const Matrix<double>&& other) {
-    if (other.M != M) {throw except::invalid_operation("Error in Dataset::operator=: Matrix has wrong number of columns.");}
-    this->data = std::move(other.data);
-    this->N = other.N;
+void Dataset::assign_matrix(const Matrix<double>&& m) {
+    if (m.M != M) {throw except::invalid_operation("Dataset::operator=: Matrix has wrong number of columns.");}
+    this->data = std::move(m.data);
+    this->N = m.N;
 }
 
 std::size_t Dataset::size() const noexcept {
@@ -35,7 +35,7 @@ Column<double> Dataset::col(std::string column) {
             return col(i);
         }
     }
-    throw except::invalid_operation("Error in Dataset::col: Column \"" + column + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
+    throw except::invalid_operation("Dataset::col: Column \"" + column + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
 }
 
 const ConstColumn<double> Dataset::col(std::string column) const {
@@ -44,7 +44,7 @@ const ConstColumn<double> Dataset::col(std::string column) const {
             return col(i);
         }
     }
-    throw except::invalid_operation("Error in Dataset::col: Column \"" + column + "\" not found. Available columns: " + utility::join(names, "\n"));
+    throw except::invalid_operation("Dataset::col: Column \"" + column + "\" not found. Available columns: " + utility::join(names, "\n"));
 }
 
 Column<double> Dataset::col(unsigned int index) {
@@ -64,7 +64,7 @@ const ConstRow<double> Dataset::row(unsigned int index) const {
 }
 
 void Dataset::set_col_names(std::vector<std::string> names) {
-    if (names.size() != M) {throw except::invalid_operation("Error in Dataset::set_col_names: Number of names does not match number of columns. (" + std::to_string(names.size()) + " != " + std::to_string(M) + ")");}
+    if (names.size() != M) {throw except::invalid_operation("Dataset::set_col_names: Number of names does not match number of columns. (" + std::to_string(names.size()) + " != " + std::to_string(M) + ")");}
     this->names = names;
 }
 
@@ -85,7 +85,7 @@ void Dataset::save(std::string path, std::string header) const {
 
     // check if file was succesfully opened
     std::ofstream output(path);
-    if (!output.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::save: Could not open file \"" + path + "\"");}
+    if (!output.is_open()) {throw std::ios_base::failure("IntensityFitter::save: Could not open file \"" + path + "\"");}
 
     // write header
     if (!header.empty()) {
@@ -93,7 +93,7 @@ void Dataset::save(std::string path, std::string header) const {
     }
 
     // write column titles
-    if (names.size() < M) {throw except::unexpected("Error in Dataset::save: Number of column names (" + std::to_string(names.size()) + ") does not match number of columns (" + std::to_string(M) + ").");}
+    if (names.size() < M) {throw except::unexpected("Dataset::save: Number of column names (" + std::to_string(names.size()) + ") does not match number of columns (" + std::to_string(M) + ").");}
     for (unsigned int j = 0; j < M; j++) {
         output << std::left << std::setw(14) << names[j] << "\t";
     }
@@ -116,7 +116,7 @@ void Dataset::load(std::string path) {
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("Error in Dataset::load: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("Dataset::load: Could not open file \"" + path + "\"");}
 
     std::string line;
     std::vector<std::vector<double>> row_data;
@@ -160,7 +160,7 @@ void Dataset::load(std::string path) {
         M = mode;
         set_default_names();
     }
-    else if (M < mode) {throw except::io_error("Error in Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
+    else if (M < mode) {throw except::io_error("Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
 
     // check if the file has the same number of columns as the dataset
     if (mode < M) {
@@ -182,7 +182,7 @@ void Dataset::load(std::string path) {
 
     // verify that at least one row was read correctly
     if (size() == 0) {
-        throw except::unexpected("Error in Dataset::load: No data could be read from the file.");
+        throw except::unexpected("Dataset::load: No data could be read from the file.");
     }
 
     // check if the file is abnormally large

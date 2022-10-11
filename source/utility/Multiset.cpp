@@ -18,12 +18,12 @@ Dataset2D& Multiset::operator[](unsigned int i) {
 }
 
 const Dataset2D& Multiset::get_data(std::string name) const {
-    if (names.count(name) == 0) {throw except::unknown_argument("Error in Multiset::get_data: No dataset named \"" + name + "\".");}
+    if (names.count(name) == 0) {throw except::unknown_argument("Multiset::get_data: No dataset named \"" + name + "\".");}
     return data[names.at(name)];
 }
 
 Dataset2D& Multiset::get_data(std::string name) {
-    if (names.count(name) == 0) {throw except::unknown_argument("Error in Multiset::get_data: No dataset named \"" + name + "\".");}
+    if (names.count(name) == 0) {throw except::unknown_argument("Multiset::get_data: No dataset named \"" + name + "\".");}
     return data[names.at(name)];
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/Slice.h>
+#include <math/slices/Slice.h>
 
 /**
  * @brief A representation of a mutable slice of a Matrix. 
@@ -37,7 +37,7 @@ class MutableSlice : public Slice<T> {
 		T& operator[](unsigned int i) {
 			#if (SAFE_MATH)
                 // if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
-                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in MutableSlice::operator[]: Index out of range.");}
+                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("MutableSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
@@ -49,7 +49,7 @@ class MutableSlice : public Slice<T> {
 		const T& operator[](unsigned int i) const override {
 			#if (SAFE_MATH)
                 // if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
-                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("Error in MutableSlice::operator[]: Index out of range.");}
+                if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("MutableSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
@@ -61,7 +61,7 @@ class MutableSlice : public Slice<T> {
 		MutableSlice& operator=(const Vector<T>& v) {
 			#if (SAFE_MATH)
 				if (v.size() != this->length) {
-					throw std::invalid_argument("Error in MutableSlice::operator=: Vector of size \"" + std::to_string(v.size()) + "\" does not fit in slice of size \"" + std::to_string(this->length) + "\".");
+					throw std::invalid_argument("MutableSlice::operator=: Vector of size \"" + std::to_string(v.size()) + "\" does not fit in slice of size \"" + std::to_string(this->length) + "\".");
 				}
 			#endif
 
@@ -211,9 +211,25 @@ MutableSlice<T> operator/(MutableSlice<T> left, double right) {return left /= ri
 template<typename T, typename Q>
 bool operator==(const MutableSlice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator==(v);}
 
+template<typename T, typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
+bool operator==(const MutableSlice<T>& lhs, const Q& rhs) {
+	if (lhs.size() != rhs.size()) {
+		throw std::invalid_argument("MutableSlice::operator==: Slice of size \"" + std::to_string(rhs.size()) + "\" does not fit in slice of size \"" + std::to_string(lhs.size()) + "\".");
+	}
+
+	bool equal = true;
+    for (unsigned int i = 0; i < lhs.size(); i++) {
+        equal = equal && lhs[i] == rhs[i];
+    }
+    return equal;
+}
+
 // Check if this Slice is not equal to a given Vector.
 template<typename T, typename Q>
-bool operator!=(const MutableSlice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator!=(v);}
+bool operator!=(const MutableSlice<T>& s, const Vector<Q>& v) {return !(s == v);}
+
+template<typename T, typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
+bool operator!=(const MutableSlice<T>& lhs, const Q& rhs) {return !(lhs == rhs);}
 
 template<typename T>
 class Row : public MutableSlice<T> {
@@ -222,23 +238,41 @@ class Row : public MutableSlice<T> {
 
 		Row(MutableSlice<T> s) : MutableSlice<T>(std::move(s)) {}
 
-		Row<T>& operator=(const Vector<T>& v) {MutableSlice<T> s(*this); MutableSlice<T>::operator=(v); return *this;}
+		// Vector assignment
+		Row<T>& operator=(const Vector<T>& v) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(v.size() != this->size(), false)) {
+					throw std::invalid_argument("Column::operator=: Vector of size \"" + std::to_string(v.size()) + "\" does not fit in slice of size \"" + std::to_string(this->size()) + "\".");
+				}
+            #endif
 
-		Row<T>& operator=(const MutableSlice<T>& s) {
-			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) = s[i];
-			}
+			MutableSlice<T>::operator=(v); 
 			return *this;
 		}
 
+		// Row assignment
 		Row<T>& operator=(const Row<T>& s) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(s.size() != this->size(), false)) {
+					throw std::invalid_argument("Column::operator=: Slice of size \"" + std::to_string(s.size()) + "\" does not fit in slice of size \"" + std::to_string(this->size()) + "\".");
+				}
+            #endif
+
 			for (unsigned int i = 0; i < this->length; i++) {
 				this->operator[](i) = s[i];
 			}
 			return *this;
 		}
 
-		Row<T>& operator=(const ConstRow<T>& s) {
+		// ConstRow assignment
+		template<typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
+		Row<T>& operator=(const Q& s) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(s.size() != this->size(), false)) {
+					throw std::invalid_argument("Column::operator=: Slice of size \"" + std::to_string(s.size()) + "\" does not fit in slice of size \"" + std::to_string(this->size()) + "\".");
+				}
+            #endif
+
 			for (unsigned int i = 0; i < this->length; i++) {
 				this->operator[](i) = s[i];
 			}
@@ -253,23 +287,41 @@ class Column : public MutableSlice<T> {
 
 		Column(MutableSlice<T> s) : MutableSlice<T>(std::move(s)) {}
 
-		Column<T>& operator=(const Vector<T>& v) {MutableSlice<T> s(*this); MutableSlice<T>::operator=(v); return *this;}
+		// Vector assignment
+		Column<T>& operator=(const Vector<T>& v) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(v.size() != this->size(), false)) {
+					throw std::invalid_argument("Column::operator=: Vector of size \"" + std::to_string(v.size()) + "\" does not fit in slice of size \"" + std::to_string(this->size()) + "\".");
+				}
+            #endif
 
-		Column<T>& operator=(const MutableSlice<T>& s) {
-			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) = s[i];
-			}
+			MutableSlice<T>::operator=(v);
 			return *this;
 		}
 
+		// Column assignment
 		Column<T>& operator=(const Column<T>& s) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(s.size() != this->size(), false)) {
+					throw std::invalid_argument("Column::operator=: Slice of size \"" + std::to_string(s.size()) + "\" does not fit in slice of size \"" + std::to_string(this->size()) + "\".");
+				}
+            #endif
+
 			for (unsigned int i = 0; i < this->length; i++) {
 				this->operator[](i) = s[i];
 			}
 			return *this;
 		}
 
-		Column<T>& operator=(const ConstColumn<T>& s) {
+		// ConstColumn assignment
+		template<typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
+		Column<T>& operator=(const Q& s) {
+			#if (SAFE_MATH)
+                if (__builtin_expect(s.size() != this->size(), false)) {
+					throw std::invalid_argument("Column::operator=: Slice of size \"" + std::to_string(s.size()) + "\" does not fit in slice of size \"" + std::to_string(this->size()) + "\".");
+				}
+            #endif
+
 			for (unsigned int i = 0; i < this->length; i++) {
 				this->operator[](i) = s[i];
 			}

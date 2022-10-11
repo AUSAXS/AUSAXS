@@ -7,8 +7,8 @@
 #include <initializer_list>
 #include <math.h>
 #include <iostream>
-#include <math/ConstSlice.h>
-#include <math/MutableSlice.h>
+#include <math/slices/ConstSlice.h>
+#include <math/slices/MutableSlice.h>
 
 namespace stats {
     namespace detail {

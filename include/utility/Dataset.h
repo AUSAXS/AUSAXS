@@ -75,11 +75,6 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] size_t size() const noexcept;
 
         /**
-         * @brief Assign a Matrix to this dataset.
-         */
-        void operator=(const Matrix<double>&& other);
-
-        /**
          * @brief Write this dataset to the specified file. 
          * 
          * @param path The path to the save location.
@@ -146,4 +141,10 @@ class Dataset : public Matrix<double> {
          * @brief Define default column names.
          */
         void set_default_names();
+
+    protected:
+        /**
+         * @brief Assign a matrix to this Dataset.
+         */
+        void assign_matrix(const Matrix<double>&& m);
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <math/Slice.h>
+#include <math/slices/Slice.h>
 
 /**
  * @brief \class ConstSlice.
@@ -109,3 +109,21 @@ class ConstColumn : public ConstSlice<T> {
 
 		ConstColumn(const ConstSlice<T> s) : ConstSlice<T>(std::move(s)) {}
 };
+
+template<typename T, typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
+bool operator==(const ConstSlice<T>& lhs, const Q& rhs) {
+	if (lhs.size() != rhs.size()) {
+		throw std::invalid_argument("ConstSlice::operator==: Slice of size \"" + std::to_string(rhs.size()) + "\" does not fit in slice of size \"" + std::to_string(lhs.size()) + "\".");
+	}
+
+	bool equal = true;
+    for (unsigned int i = 0; i < lhs.size(); i++) {
+        equal = equal && lhs[i] == rhs[i];
+    }
+    return equal;
+}
+
+template<typename T, typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
+bool operator!=(const ConstSlice<T>& lhs, const Q& rhs) {
+	return !(lhs == rhs);
+}

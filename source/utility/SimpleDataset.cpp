@@ -20,7 +20,7 @@ SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
 
 SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
     if (x.size() != y.size() || x.size() != yerr.size()) {
-        throw except::size_error("Error in SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
+        throw except::size_error("SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
     }
     for (unsigned int i = 0; i < x.size(); i++) {
         row(i) = {x[i], y[i], yerr[i]};
@@ -41,15 +41,16 @@ SimpleDataset::SimpleDataset(std::string path) {
 }
 
 void SimpleDataset::reduce(unsigned int target, bool log) {
-    if (size() < target) {throw except::invalid_operation("Error in Dataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
+    if (size() < target) {throw except::invalid_operation("Dataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
     Matrix<double> reduced(0, M);
 
     if (log) {
         double start = std::log10(x(0)); 
-        double end = std::log10(x(size()-1));
+        double end = std::log10(x().back());
         double width = (end - start)/target;
 
-        unsigned int j = 0;
+        reduced.push_back(row(0));
+        unsigned int j = 1;
         for (unsigned int i = 0; i < size(); i++) {
             double val = std::log10(x(i));
             if (start + j*width < val) { // find the first x-value higher than our next sampling point
@@ -106,26 +107,9 @@ void SimpleDataset::limit_y(const Limit& limits) {
 void SimpleDataset::limit_y(double min, double max) {limit_y({min, max});}
 
 void SimpleDataset::operator=(const Matrix<double>&& other) {
-    if (other.M != M) {throw except::invalid_operation("Error in Dataset::operator=: Matrix has wrong number of columns.");}
+    if (other.M != M) {throw except::invalid_operation("Dataset::operator=: Matrix has wrong number of columns.");}
     this->data = std::move(other.data);
     this->N = other.N;
-}
-
-bool SimpleDataset::is_logarithmic() const noexcept {
-    // generate a new dataset containing exp(Deltax) and fit it with linear regression.
-    // if the fit is decent, the data must have been logaritmic
-    SimpleDataset exp_data;
-    for (unsigned int i = 1; i < size(); i++) {
-        exp_data.push_back(x(i), std::exp(x(i)-x(i-1)));
-    }
-
-    SimpleLeastSquares fit(std::move(exp_data));
-    auto res = fit.fit();
-
-    std::cout << "DATASET IS_LOGARITHMIC FIT CHI: " << res->fval/res->dof << std::endl;
-    std::cout << "chi: " << res->fval << std::endl;
-    std::cout << "dof: " << res->dof << std::endl;
-    return res->fval/res->dof < 10;
 }
 
 Limit SimpleDataset::span_x() const noexcept {
@@ -156,8 +140,19 @@ Limit SimpleDataset::span_y_positive() const noexcept {
         return Limit(0, 0);
     }
 
-    Limit limits(y[0], y[0]);
-    for (unsigned int i = 0; i < size(); i++) {
+    Limit limits;
+    // find first non-zero y value
+    unsigned int i = 0;
+    for (; i < size(); i++) {
+        if (0 < y[i]) {
+            limits.min = y[i];
+            limits.max = y[i];
+            break;
+        }
+    }
+
+    // continue search for lower mins and higher max
+    for (; i < size(); i++) {
         double val = y[i];
         if (0 < val) {
             limits.min = std::min(val, limits.min);
@@ -288,7 +283,7 @@ void SimpleDataset::rebin() noexcept {
 void SimpleDataset::load(std::string path) {
     Dataset::load(path);
     if (M < 3) {
-        throw except::io_error("Error in SimpleDataset::load: Dataset has too few columns.");
+        throw except::io_error("SimpleDataset::load: Dataset has too few columns.");
     }
     else if (M > 3) {
         utility::print_warning("Warning in SimpleDataset::load: Dataset has " + std::to_string(M) + " columns, while this class only supports operations on 3. Ensure that the file is of the format [x | y | yerr | rest].");
@@ -308,7 +303,9 @@ void SimpleDataset::remove_consecutive_duplicates() {
     }
 
     Matrix new_data(N, M);
-    unsigned int index = 0;
+    new_data.row(0) = this->row(0);
+
+    unsigned int index = 1;
     double v = y(0);
     for (unsigned int i = 1; i < size(); i++) {
         if (y(i) != v) {
@@ -317,7 +314,7 @@ void SimpleDataset::remove_consecutive_duplicates() {
         }
     }
     new_data.resize(index, M);
-    this->data = new_data.data;
+    this->assign_matrix(std::move(new_data));
 }
 
 double SimpleDataset::mean() const {
@@ -360,5 +357,5 @@ void SimpleDataset::sort_x() {
     for (unsigned int i = 0; i < N; i++) {
         newdata.row(i) = this->row(indices[i]);
     }
-    this->data = newdata.data;
+    this->assign_matrix(std::move(newdata));
 }

@@ -107,12 +107,6 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
         void operator=(const Matrix<double>&& other);
 
         /**
-         * @brief Check if the data is logarithmic. 
-         *        This may be wrong if the x-data is very noisy.
-         */
-        bool is_logarithmic() const noexcept;
-
-        /**
          * @brief Get the spanned x-range. 
          */
         [[nodiscard]] Limit span_x() const noexcept;
