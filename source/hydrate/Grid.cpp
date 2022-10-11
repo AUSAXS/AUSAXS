@@ -374,12 +374,14 @@ void Grid::remove(std::vector<bool>& to_remove) {
         if (to_remove[index++]) {
             removed[atom.atom.uid] = true;
             total_removed++;
+        } else {
+            removed[atom.atom.uid] = false;
         }
     }
 
     index = 0;
     vector<GridMember<Atom>> removed_atoms(total_removed);
-    auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
+    auto predicate = [&removed, &removed_atoms, &index] (GridMember<Atom>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_atoms[index++] = std::move(gm);
             return true;

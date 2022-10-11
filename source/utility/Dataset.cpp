@@ -195,7 +195,9 @@ void Dataset::load(std::string path) {
         // check if file has already been rebinned
         if (line.find("REBINNED") == std::string::npos) {
             // if not, suggest it to the user
-            std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
+            if (setting::general::verbose) {
+                std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
+            }
         }
     }
 

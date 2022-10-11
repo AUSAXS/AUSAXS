@@ -67,16 +67,6 @@ class Limit {
         bool operator!=(const Limit& rhs) const noexcept {return !operator==(rhs);}
 
         /**
-         * @brief Subtract a constant from both ends of this limit. 
-         */
-        Limit operator-(double rhs) const noexcept {return Limit(min-rhs, max-rhs);}
-
-        /**
-         * @brief Add a constant from both ends of this limit. 
-         */
-        Limit operator+(double rhs) const noexcept {return Limit(min+rhs, max+rhs);}
-
-        /**
          * @brief Stream output operator. 
          * 
          * Allows this object to easily be output to a given stream. 
@@ -97,6 +87,20 @@ class Limit {
         double min; // The minimum value of this limit. 
         double max; // The maximum value of this limit. 
 };
+
+Limit operator-(Limit lhs, double rhs) noexcept {return lhs-=rhs;}
+Limit& operator-=(Limit& lhs, double rhs) noexcept {
+    lhs.min-=rhs;
+    lhs.max-=rhs;
+    return lhs;
+}
+
+Limit operator+(Limit lhs, double rhs) noexcept {return lhs+=rhs;}
+Limit& operator+=(Limit& lhs, double rhs) noexcept {
+    lhs.min+=rhs;
+    lhs.max+=rhs;
+    return lhs;
+}
 
 /**
  * @brief \class Limit3D

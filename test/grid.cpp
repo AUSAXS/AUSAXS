@@ -8,6 +8,7 @@
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
 #include <utility/Settings.h>
 #include <math/Vector3.h>
  
@@ -29,6 +30,16 @@ TEST_CASE("grid_generation", "[grid]") {
     REQUIRE(g.index(10, 11, 11) == GridObj::EMPTY);
     REQUIRE(g.index(11, 10, 10) == GridObj::EMPTY);
     REQUIRE(g.index(9, 8, 14) == GridObj::EMPTY);
+}
+
+TEST_CASE("grid_member", "[grid]") {
+    grid::GridMember<Atom> a(Atom({0.1, 0.2, 0.3}, 0, "C", "", 0), {1, 2, 3});
+    auto b = a;
+
+    CHECK(b == a);
+
+    auto c(std::move(b));
+    CHECK(c == a);
 }
 
 TEST_CASE("bounding_box", "[grid]") {
@@ -161,6 +172,7 @@ TEST_CASE("volume", "[grid]") {
 }
 
 TEST_CASE("hydrate", "[grid],[files]") {
+    setting::general::verbose = false;
 
     // check that all the expected hydration sites are found
     SECTION("correct placement") {
@@ -397,6 +409,28 @@ TEST_CASE("add_remove", "[grid]") {
         REQUIRE(wa[0] == w2);
     }
 
+    SECTION("remove index") {
+        Atom a4 = Atom({1, 0, 0}, 0, "C", "", 4);
+        Atom a5 = Atom({0, 1, 0}, 0, "C", "", 5);
+        Atom a6 = Atom({0, 0, 1}, 0, "C", "", 6);
+        Atom a7 = Atom({2, 0, 0}, 0, "C", "", 7);
+        Atom a8 = Atom({0, 2, 0}, 0, "C", "", 8);
+        Atom a9 = Atom({0, 0, 2}, 0, "C", "", 9);
+        a = {a1, a2, a3, a4, a5, a6, a7, a8, a9}; 
+
+        grid.add(a);
+        std::vector<bool> remove = {false, true, false, false, false, false, true, true, true};
+        grid.remove(remove);
+
+        vector<Atom> ga = grid.get_atoms();
+        REQUIRE(ga.size() == 5);
+        REQUIRE(ga[0] == a1);
+        REQUIRE(ga[1] == a3);
+        REQUIRE(ga[2] == a4);
+        REQUIRE(ga[3] == a5);
+        REQUIRE(ga[4] == a6);        
+    }
+
     SECTION("clear_waters") {
         grid.add(a);
         grid.add(w);
@@ -512,7 +546,49 @@ TEST_CASE("volume_deflation", "[grid]") {
     }
 }
 
-TEST_CASE("space_saving_constructor", "[grid]") {
+TEST_CASE("grid_cubic", "[grid]") {
+    setting::grid::cubic = true;
+
+    SECTION("largest x") {
+        Axis3D axes(-10, 10, -1, 1, -1, 1, 20);
+        int width = 1;
+        int radius = 3;
+
+        Grid grid(axes, width, radius);
+        auto gaxes = grid.get_axes();
+        CHECK(gaxes.x == axes.x);
+        CHECK(gaxes.x == gaxes.y);
+        CHECK(gaxes.x == gaxes.z);
+    }
+
+    SECTION("largest y") {
+        Axis3D axes(-1, 1, -10, 10, -1, 1, 20);
+        int width = 1;
+        int radius = 3;
+
+        Grid grid(axes, width, radius);
+        auto gaxes = grid.get_axes();
+        CHECK(gaxes.y == axes.y);
+        CHECK(gaxes.y == gaxes.y);
+        CHECK(gaxes.y == gaxes.z);
+    }
+
+    SECTION("largest x") {
+        Axis3D axes(-1, 1, -1, 1, -10, 10, 20);
+        int width = 1;
+        int radius = 3;
+
+        Grid grid(axes, width, radius);
+        auto gaxes = grid.get_axes();
+        CHECK(gaxes.z == axes.z);
+        CHECK(gaxes.z == gaxes.y);
+        CHECK(gaxes.z == gaxes.z);
+    }
+
+    setting::grid::cubic = false;
+}
+
+TEST_CASE("grid_space_saving_constructor", "[grid]") {
     vector<Atom> atoms = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2), Atom({1, 1, 1}, 0, "C", "", 2)};
 
     SECTION("bounding box") {
@@ -562,12 +638,18 @@ TEST_CASE("space_saving_constructor", "[grid]") {
     }
 }
 
-TEST_CASE("copy", "[grid]") {
+TEST_CASE("grid_copy", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     Grid grid1(axes, 1);
     grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
     grid1.hydrate();
 
+    // copy
     Grid grid2 = grid1.copy();
     REQUIRE(grid2 == grid1);
+
+    // assignment
+    Grid grid3(axes, 1);
+    grid3 = grid1;
+    REQUIRE(grid3 == grid1);
 }

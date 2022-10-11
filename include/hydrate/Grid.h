@@ -121,13 +121,13 @@ class Grid {
 
 		/** 
 		 * @brief Add a single atom to the grid. 
-		 *        This is a constant-time operation. 
+		 *        Complexity: O(1). 
 		 */
 		grid::GridMember<Atom> add(const Atom& atom, bool expand = false);
 
 		/** 
 		 * @brief Add a single hetatom to the grid. 
-		 *        This is a constant-time operation. 
+		 *        Complexity: O(1). 
 		 */
 		grid::GridMember<Water> add(const Water& atom, bool expand = false);
 
@@ -140,6 +140,7 @@ class Grid {
 
 		/**
 		 * @brief Remove atoms as specified by the @a to_remove vector. 
+		 * 		  Complexity: O(n).
 		 */
 		void remove(std::vector<bool>& to_remove);
 

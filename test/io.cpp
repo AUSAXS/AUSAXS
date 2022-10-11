@@ -201,7 +201,7 @@ TEST_CASE("real_data", "[io],[files],[broken]") {
 }
 
 TEST_CASE("protein_io", "[io],[files]") {
-    Protein protein("test/2epe.pdb");
+    Protein protein("test/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
     Protein protein2("temp/io/temp.pdb");
 
@@ -210,7 +210,7 @@ TEST_CASE("protein_io", "[io],[files]") {
 }
 
 TEST_CASE("file_copied_correctly", "[io],[files]") {
-    Body body("data/lysozyme/2epe.pdb");
+    Body body("test/files/2epe.pdb");
     CHECK(!body.get_file().header.get().empty());
     CHECK(!body.get_file().footer.get().empty());
 

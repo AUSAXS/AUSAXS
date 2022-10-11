@@ -71,7 +71,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 /**
  * @brief Generate a contour plot of the chi2 landscape for the EM fit. 
  */
-TEST_CASE("check_fit", "[em],[files],[manual]") {
+TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
     string mfile = "data/SASDDD3/SASDDD3.dat";
     string mapfile = "data/SASDDD3/emd_0560.map";
 

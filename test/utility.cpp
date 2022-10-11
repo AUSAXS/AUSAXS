@@ -213,3 +213,54 @@ TEST_CASE("utility", "[utility]") {
     CHECK(utility::extract_number<string>(s) == "814.98");
     CHECK(utility::extract_number<double>(s) == 814.98);
 }
+
+TEST_CASE("utility_limits", "[utility]") {
+    Limit lim1(0, 1);
+    Limit lim2(-5, 15.5);
+
+    SECTION("span") {
+        CHECK(lim1.span() == 1);
+        CHECK(lim2.span() == 20.5);
+    }
+
+    SECTION("center") {
+        CHECK(lim1.center() == 0.5);
+        CHECK(lim2.center() == 10.25);
+    }
+
+    SECTION("merge") {
+        SECTION("simple") {
+            lim1.merge(lim2);
+            CHECK(lim1.min == -5);
+            CHECK(lim1.max == 15.5);
+        }
+
+        SECTION("overlap") {
+            Limit lim2(0.5, 1.5);
+            lim1.merge(lim2);
+            CHECK(lim1.min == 0);
+            CHECK(lim1.max == 1.5);
+        }
+    }
+
+    SECTION("expand") {
+        lim1.expand(0.1);
+        CHECK(lim1.min == -0.1);
+        CHECK(lim1.max == 1.1);
+
+        lim1 = Limit(0, 5);
+        lim1.expand(0.1);
+        CHECK(lim1.min == -0.5);
+        CHECK(lim1.max == 5.5);
+    }
+
+    SECTION("add & subtract") {
+        lim1 += 2;
+        CHECK(lim1.min == 2);
+        CHECK(lim1.max == 3);
+
+        lim1 -= 0.5;
+        CHECK(lim1.min == 1.5);
+        CHECK(lim1.max == 2.5);
+    }
+}
