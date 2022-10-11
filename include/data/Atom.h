@@ -171,7 +171,7 @@ class Atom : public Record {
 
     // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
     Vector3<double> coords = {0, 0, 0};
-    std::string name, altLoc, resName, chainID, iCode, element, charge, recName;
+    std::string name, altLoc, resName, chainID, iCode, element, charge, recName = "ATOM  ";
     double occupancy = -1, tempFactor = -1;
     int serial = -1, resSeq = -1; 
 

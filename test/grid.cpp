@@ -173,7 +173,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
         setting::grid::percent_water = 0;
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);
-        REQUIRE(grid.get_atoms().size() == 1); // check get_protein_atoms
+        REQUIRE(grid.get_atoms().size() == 1); // check atoms
 
         vector<Water> water = grid.hydrate();
 
@@ -221,11 +221,11 @@ TEST_CASE("hydrate", "[grid],[files]") {
     SECTION("consistency") {
         Protein protein("data/LAR1-2/LAR1-2.pdb");
         protein.generate_new_hydration();
-        auto h1 = protein.get_hydration_atoms();
-        auto a1 = protein.get_protein_atoms();
+        auto h1 = protein.waters();
+        auto a1 = protein.atoms();
         protein.generate_new_hydration();
-        auto h2 = protein.get_hydration_atoms();
-        auto a2 = protein.get_protein_atoms();
+        auto h2 = protein.waters();
+        auto a2 = protein.atoms();
 
         // check that the hydration generation is deterministic
         for (unsigned int i = 0; i < h1.size(); i++) {

@@ -55,7 +55,7 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
     // find the total bounding box containing all bodies
     Vector3 min{0, 0, 0}, max{0, 0, 0};
     for (const Body& body : bodies) {
-        auto[cmin, cmax] = bounding_box(body.get_protein_atoms());
+        auto[cmin, cmax] = bounding_box(body.atoms());
 
         for (unsigned int i = 0; i < 3; i++) {
             if (cmin[i] < min[i]) {min[i] = cmin[i];}
@@ -76,7 +76,7 @@ Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setti
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
-        add(body.get_protein_atoms());
+        add(body.atoms());
     }
 }
 
@@ -318,11 +318,11 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
 }
 
 vector<GridMember<Atom>> Grid::add(const Body* const body) {
-    return add(body->get_protein_atoms());
+    return add(body->atoms());
 }
 
 void Grid::remove(const Body* const body) {
-    remove(body->get_protein_atoms());
+    remove(body->atoms());
 }
 
 GridMember<Atom> Grid::add(const Atom& atom, bool expand) {

@@ -113,19 +113,19 @@ TEST_CASE("partial_histogram_manager", "[managers]") {
         std::shared_ptr<Protein> protein = manager.get_protein(0);
 
         REQUIRE(protein->body_size() == 5);
-        CHECK(protein->bodies[0].get_protein_atoms().size() == 3);
-        CHECK(protein->bodies[1].get_protein_atoms().size() == 4);
-        CHECK(protein->bodies[2].get_protein_atoms().size() == 4);
-        CHECK(protein->bodies[3].get_protein_atoms().size() == 1);
-        CHECK(protein->bodies[4].get_protein_atoms().size() == 0);
+        CHECK(protein->bodies[0].atoms().size() == 3);
+        CHECK(protein->bodies[1].atoms().size() == 4);
+        CHECK(protein->bodies[2].atoms().size() == 4);
+        CHECK(protein->bodies[3].atoms().size() == 1);
+        CHECK(protein->bodies[4].atoms().size() == 0);
 
         protein = manager.get_protein(3);
         REQUIRE(protein->body_size() == 5);
-        CHECK(protein->bodies[0].get_protein_atoms().size() == 0);
-        CHECK(protein->bodies[1].get_protein_atoms().size() == 2);
-        CHECK(protein->bodies[2].get_protein_atoms().size() == 4);
-        CHECK(protein->bodies[3].get_protein_atoms().size() == 1);
-        CHECK(protein->bodies[4].get_protein_atoms().size() == 0);
+        CHECK(protein->bodies[0].atoms().size() == 0);
+        CHECK(protein->bodies[1].atoms().size() == 2);
+        CHECK(protein->bodies[2].atoms().size() == 4);
+        CHECK(protein->bodies[3].atoms().size() == 1);
+        CHECK(protein->bodies[4].atoms().size() == 0);
     }
 
     SECTION("simple comparison with standard approach") {

@@ -124,7 +124,7 @@ std::pair<const Body*, const Body*> RigidBody::find_host_bodies(const Atom* cons
     const Body *body1 = nullptr, *body2 = nullptr;
     const Atom a1 = *atom1; const Atom a2 = *atom2;
     for (const auto& body : protein.bodies) {
-        for (const auto& atom : body.get_protein_atoms()) {
+        for (const auto& atom : body.atoms()) {
             if (a1 == atom) {
                 body1 = &body;
                 break; // a1 and a2 *must* be from different bodies, so we break

@@ -154,7 +154,7 @@ TEST_CASE("debug", "[memtest]") {
         b1 = old_body;
     }
 
-    for (const auto& e : b1.get_protein_atoms()) {
+    for (const auto& e : b1.atoms()) {
         std::cout << e.as_pdb() << std::endl;
     }
 }

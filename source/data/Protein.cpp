@@ -36,8 +36,8 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
 Protein::Protein(string input) {
     Body b1(input);
     bodies = {b1};
-    hydration_atoms = std::move(bodies[0].get_hydration_atoms());
-    bodies[0].get_hydration_atoms().clear();
+    hydration_atoms = std::move(bodies[0].waters());
+    bodies[0].waters().clear();
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
 }
@@ -70,13 +70,13 @@ SimpleDataset Protein::simulate_dataset() {
 void Protein::save(string path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {
-        bodies[0].get_hydration_atoms() = hydration_atoms;
+        bodies[0].waters() = hydration_atoms;
         bodies[0].save(path);
         return;
     }
 
     // otherwise we'll have to create a new file
-    File file(get_protein_atoms(), hydration_atoms);
+    File file(atoms(), hydration_atoms);
     file.write(path);
 }
 
@@ -84,35 +84,39 @@ double Protein::get_volume_acids() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_volume_acids();});
 }
 
-double Protein::get_molar_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_molar_mass();});
+double Protein::molar_mass() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.molar_mass();});
 }
 
-double Protein::get_absolute_mass() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_absolute_mass();});
+double Protein::absolute_mass() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.absolute_mass();});
 }
 
-double Protein::get_total_charge() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_total_charge();});
+double Protein::total_atomic_charge() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_atomic_charge();});
+}
+
+double Protein::total_effective_charge() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_atomic_charge();});
 }
 
 double Protein::get_relative_charge() {
     double V = get_volume_grid();
-    double Z_protein = get_total_charge();
+    double Z_protein = total_atomic_charge();
     double Z_water = constants::charge::density::water*V;
     return Z_protein - Z_water;
 }
 
 double Protein::get_relative_charge_density() {
     double V = get_volume_grid();
-    double Z_protein = get_total_charge();
+    double Z_protein = total_atomic_charge();
     double Z_water = constants::charge::density::water*V;
     return (Z_protein - Z_water)/V;
 }
 
 double Protein::get_relative_mass_density() {
     double V = get_volume_grid();
-    double m_protein = get_absolute_mass();
+    double m_protein = absolute_mass();
     double m_water = constants::mass::density::water*V;
     return (m_protein - m_water)/V;
 }
@@ -127,12 +131,12 @@ std::shared_ptr<Grid> Protein::create_grid() {
     return grid;
 }
 
-vector<Atom> Protein::get_protein_atoms() const {
-    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.get_protein_atoms().size();});
+vector<Atom> Protein::atoms() const {
+    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.atoms().size();});
     vector<Atom> atoms(N);
     int n = 0; // current index
     for (const auto& body : bodies) {
-        for (const auto& a : body.get_protein_atoms()) {
+        for (const auto& a : body.atoms()) {
             atoms[n] = a;
             n++;
         }
@@ -148,14 +152,14 @@ Vector3<double> Protein::get_cm() const {
     // iterate through all constituent bodies
     for (const auto& body : bodies) {
         // iterate through their protein atoms
-        for (const auto& a : body.get_protein_atoms()) {
+        for (const auto& a : body.atoms()) {
             double m = a.get_mass();
             M += m;
             cm += a.coords*m;
         }
 
         // iterate through their hydration atoms
-        for (const auto& a : body.get_hydration_atoms()) {
+        for (const auto& a : body.waters()) {
             double m = a.get_mass();
             M += m;
             cm += a.coords*m;
@@ -172,7 +176,9 @@ Vector3<double> Protein::get_cm() const {
     return cm/M;
 }
 
-vector<Water> Protein::get_hydration_atoms() const {return hydration_atoms;}
+vector<Water>& Protein::waters() {return hydration_atoms;}
+
+const std::vector<Water>& Protein::waters() const {return hydration_atoms;}
 
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
@@ -223,7 +229,7 @@ size_t Protein::body_size() const {
 }
 
 size_t Protein::atom_size() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.get_protein_atoms().size();});
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.atoms().size();});
 }
 
 vector<double> Protein::calc_debye_scattering_intensity() {
@@ -231,7 +237,7 @@ vector<double> Protein::calc_debye_scattering_intensity() {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
 
-    vector<Atom> atoms = get_protein_atoms();
+    vector<Atom> atoms = this->atoms();
     const Axis& debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     vector<double> Q = vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
@@ -343,17 +349,17 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
     auto to_remove = grid->remove_disconnected_atoms(min);
 
     // sanity check
-    if (to_remove.size() != get_protein_atoms().size()) {
+    if (to_remove.size() != atoms().size()) {
         throw except::unexpected("Error in Protein::remove_disconnected_atoms: "
-        "The number of atoms to remove (" + std::to_string(to_remove.size()) + ") does not match the number of protein atoms (" + std::to_string(get_protein_atoms().size()) + ").");
+        "The number of atoms to remove (" + std::to_string(to_remove.size()) + ") does not match the number of protein atoms (" + std::to_string(atoms().size()) + ").");
     }
 
     // remove the atoms from the protein bodies
     unsigned int index = 0;
     for (auto& body : bodies) {
         unsigned int removed = 0;
-        std::vector<Atom> new_atoms(body.get_protein_atoms().size());
-        std::vector<Atom>& atoms = body.get_protein_atoms();
+        std::vector<Atom> new_atoms(body.atoms().size());
+        std::vector<Atom>& atoms = body.atoms();
         for (unsigned int i = 0; i < atoms.size(); i++) {
             if (to_remove[index + i]) {
                 removed++;
@@ -362,6 +368,6 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
             }
         }
         new_atoms.resize(atoms.size() - removed);
-        body.get_protein_atoms() = std::move(new_atoms);
+        body.atoms() = std::move(new_atoms);
     }
 }

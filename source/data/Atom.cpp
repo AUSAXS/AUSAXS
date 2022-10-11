@@ -207,19 +207,22 @@ string Atom::get_element() const {return element;}
 string Atom::get_recName() const {return recName;}
 
 double Atom::get_mass() const {
-    if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {
-        throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
-    }
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
+        if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {
+            throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
+        }
         return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
+        if (__builtin_expect(element.empty(), false)) {
+            throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
+        }
         return constants::mass::atomic.get(element);
     }
 };
 
 unsigned int Atom::Z() const {
-    if (__builtin_expect(element == "" || resName == "" || name == "", false)) {
+    if (__builtin_expect(element == "", false)) {
         throw except::invalid_argument("Error in Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
     }
     return constants::charge::atomic.get(element);

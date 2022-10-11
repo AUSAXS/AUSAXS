@@ -136,19 +136,24 @@ class Protein {
     /**
      * @brief Calculate the molar mass of this protein in Daltons.
      */
-    double get_molar_mass() const;
+    [[nodiscard]] double molar_mass() const;
 
     /**
      * @brief Get the absolute mass.
      * 
      * @return The mass in kg.
      */
-    double get_absolute_mass() const;
+    [[nodiscard]] double absolute_mass() const;
 
     /**
-     * @brief Get the total charge. 
+     * @brief Get the total atomic charge. 
      */
-    double get_total_charge() const;
+    [[nodiscard]] double total_atomic_charge() const;
+
+    /**
+     * @brief Get the total effective charge. 
+     */
+    [[nodiscard]] double total_effective_charge() const;
 
     /**
      * @brief Get the relative charge density. 
@@ -182,7 +187,7 @@ class Protein {
     void clear_grid();
 
     /**
-     * @brief Remove all hydration atoms.
+     * @brief Remove all waters.
      */
     void clear_hydration();
 
@@ -198,14 +203,22 @@ class Protein {
     void center();
 
     /**
-     * @brief Get a copy of all protein atoms from the underlying bodies.
+     * @brief Get a copy of all constituent atoms from the underlying bodies.
+     *        Complexity: O(n)
      */
-    std::vector<Atom> get_protein_atoms() const;
+    std::vector<Atom> atoms() const;
 
     /**
-     * @brief Get a copy of the hydration atoms. Use the member variable for reference access. 
+     * @brief Get a reference to the water molecules of this protein. 
+     *        Complexity: O(1)
      */
-    std::vector<Water> get_hydration_atoms() const;
+    std::vector<Water>& waters();
+
+    /**
+     * @brief Get a reference to the water molecules of this protein. 
+     *        Complexity: O(1)
+     */
+    const std::vector<Water>& waters() const;
 
     /**
      * @brief Create a grid and fill it with the atoms of this protein. 

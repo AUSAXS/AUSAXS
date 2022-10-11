@@ -116,7 +116,7 @@ TEST_CASE("pdb_input", "[io]") {
     Protein* protein = new Protein("temp/io/temp.pdb");
     protein->save("temp/io/temp2.pdb");
     protein = new Protein("temp/io/temp2.pdb");
-    vector<Atom> atoms = protein->get_protein_atoms();
+    vector<Atom> atoms = protein->atoms();
     Atom a = atoms[0];
 
     if (atoms.size() == 0) {
@@ -153,7 +153,7 @@ TEST_CASE("xml input", "[io],[broken]") {
     Protein* protein = new Protein("temp.xml");
     protein->save("temp2.xml");
     protein = new Protein("temp2.xml");
-    const vector<Water>& atoms = protein->get_hydration_atoms();
+    const vector<Water>& atoms = protein->waters();
     const Atom a = atoms[0];
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
@@ -205,8 +205,8 @@ TEST_CASE("protein_io", "[io],[files]") {
     protein.save("temp/io/temp.pdb");
     Protein protein2("temp/io/temp.pdb");
 
-    CHECK(protein.get_protein_atoms() == protein2.get_protein_atoms());
-    CHECK(protein.get_hydration_atoms() == protein2.get_hydration_atoms());
+    CHECK(protein.atoms() == protein2.atoms());
+    CHECK(protein.waters() == protein2.waters());
 }
 
 TEST_CASE("file_copied_correctly", "[io],[files]") {

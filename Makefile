@@ -22,11 +22,13 @@ gui: build/source/gui/gui
 
 coverage/%: test/%
 	@ mkdir -p temp/coverage/
+	@ rm temp/coverage/*
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 
 coverage: tests
 	@ mkdir -p temp/coverage/
+	@ rm temp/coverage/*
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 

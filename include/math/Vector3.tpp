@@ -85,6 +85,10 @@ bool Vector3<T>::operator==(const Vector3<Q>& v) const {
 }
 
 template<typename T> template<typename Q>
+bool Vector3<T>::equals(const Vector3<Q>& v, double p) const {
+	return abs(double(x()-v.x())) + abs(double(y()-v.y())) + abs(double(z()-v.z())) < p;
+}
+template<typename T> template<typename Q>
 bool Vector3<T>::operator!=(const Vector3<Q>& v) const {
 	return !(*this == v);
 }

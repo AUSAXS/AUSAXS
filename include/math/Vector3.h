@@ -102,6 +102,9 @@ class Vector3 {
 		template<typename Q>
 		bool operator!=(const Vector3<Q>& v) const;
 
+		template<typename Q>
+		bool equals(const Vector3<Q>& v, double precision) const;
+
         /**
          * @brief Get the dot product with another Vector.
          */

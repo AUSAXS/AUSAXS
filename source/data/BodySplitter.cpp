@@ -9,7 +9,7 @@ using std::vector, std::string;
 
 Protein BodySplitter::split(const string input, vector<int> splits) {
     Body body(input);
-    vector<Atom>& atoms = body.get_protein_atoms();
+    vector<Atom>& atoms = body.atoms();
 
     // we define a boolean vector with one entry for each residue sequence id
     vector<bool> split(atoms.back().resSeq, false);
@@ -52,12 +52,12 @@ vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) 
     for (unsigned int i = 0; i < protein.bodies.size()-1; i++) {
         const Body &body1 = bodies[i], &body2 = bodies[i+1]; 
 
-        int res1 = body1.get_protein_atoms().back().resSeq;
-        int res2 = body2.get_protein_atoms()[0].resSeq;
+        int res1 = body1.atoms().back().resSeq;
+        int res2 = body2.atoms()[0].resSeq;
 
         unsigned int index1 = -1, index2 = -1;
-        for (unsigned int j = body1.get_protein_atoms().size()-1; j > 0; j--) {
-            const Atom& atom = body1.protein_atom(j);
+        for (unsigned int j = body1.atoms().size()-1; j > 0; j--) {
+            const Atom& atom = body1.atoms(j);
             if (__builtin_expect(atom.resSeq != res1, false)) { // sanity check
                 throw except::unexpected("Error in BodySplitter::sequential_constrain: Could not find C-alpha atom.");
             }
@@ -66,8 +66,8 @@ vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) 
                 break;
             }
         }
-        for (unsigned int j = 0; j < body2.get_protein_atoms().size(); j++) {
-            const Atom& atom = body2.protein_atom(j);
+        for (unsigned int j = 0; j < body2.atoms().size(); j++) {
+            const Atom& atom = body2.atoms(j);
             if (__builtin_expect(atom.resSeq != res2, false)) { // sanity check
                 throw except::unexpected("Error in BodySplitter::sequential_constrain: Could not find C-alpha atom.");
             }
@@ -81,7 +81,7 @@ vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) 
         if (res1 == -1 || res2 == -1) {
             throw except::unexpected("Error in BodySplitter::sequential_constrain: Could not find C-alpha atom.");
         }
-        constraints[i] = Constraint(&body1.protein_atom(index1), &body2.protein_atom(index2), &body1, &body2);
+        constraints[i] = Constraint(&body1.atoms(index1), &body2.atoms(index2), &body1, &body2);
     }
     return constraints;
 }

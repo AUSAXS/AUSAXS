@@ -60,26 +60,26 @@ class Body {
     /**
      * @brief Get a reference to the constituent atoms.
      */
-    std::vector<Atom>& get_protein_atoms();
+    std::vector<Atom>& atoms();
 
     /**
      * @brief Get a reference to the constituent atoms.
      */
-    const std::vector<Atom>& get_protein_atoms() const;
+    const std::vector<Atom>& atoms() const;
 
     /**
      * @brief Get a reference to the hydration atoms.
      */
-    std::vector<Water>& get_hydration_atoms();
+    std::vector<Water>& waters();
 
     /**
      * @brief Get a reference to the hydration atoms.
      */
-    const std::vector<Water>& get_hydration_atoms() const;
+    const std::vector<Water>& waters() const;
  
-    Atom& protein_atom(unsigned int index);
+    Atom& atoms(unsigned int index);
 
-    const Atom& protein_atom(unsigned int index) const;
+    const Atom& atoms(unsigned int index) const;
 
     /** 
      * @brief Calculate the center-mass coordinates for the body.
@@ -105,17 +105,22 @@ class Body {
     /**
      * @brief Calculate the molar mass of this body in Daltons.
      */
-    double get_molar_mass() const;
+    double molar_mass() const;
 
     /**
      * @brief Get the absolute mass of this body in kg.
      */
-    double get_absolute_mass() const;
+    double absolute_mass() const;
 
     /**
-     * @brief Get the total charge of this body.
+     * @brief Get the total atomic charge of this body.
      */
-    double get_total_charge() const;
+    double total_atomic_charge() const;
+
+    /**
+     * @brief Get the total effective charge of this body.
+     */
+    double total_effective_charge() const;
 
     /**
      * @brief Center this Body on origo. 
@@ -144,7 +149,6 @@ class Body {
     void rotate(const Vector3<double>& axis, double rad);
 
     /**
-     * ! Not implemented
      * @brief Euler angle rotation of all atoms. 
      * 
      * @param alpha radians to rotate about the z-axis.

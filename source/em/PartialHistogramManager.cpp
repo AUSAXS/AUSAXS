@@ -124,7 +124,7 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
                 protein->bodies[charge_index] = new_protein->bodies[charge_index];
             } else {
                 // if we have the same number of atoms as earlier, nothing has changed
-                if (new_protein->bodies[charge_index].get_protein_atoms().size() == protein->bodies[charge_index].get_protein_atoms().size()) {
+                if (new_protein->bodies[charge_index].atoms().size() == protein->bodies[charge_index].atoms().size()) {
                     break;
                 }
 
