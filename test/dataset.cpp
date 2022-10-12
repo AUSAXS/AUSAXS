@@ -109,6 +109,26 @@ TEST_CASE("dataset_basics", "[dataset]") {
         CHECK(data3.y() == data2.y());
         CHECK(data3.xerr() == data2.xerr());
         CHECK(data3.yerr() == data2.yerr());
+
+        Dataset data4(vector<vector<double>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+        CHECK(data4.x() == Vector{1, 2, 3});
+        CHECK(data4.y() == Vector{4, 5, 6});
+        CHECK(data4.col(2) == Vector{7, 8, 9});
+        SimpleDataset data5(data4);
+        CHECK(data5.x() == Vector{1, 2, 3});
+        CHECK(data5.y() == Vector{4, 5, 6});
+        CHECK(data5.yerr() == Vector{7, 8, 9});
+        CHECK(data5.N == 3);
+        CHECK(data5.M == 3);
+
+        data4 = Dataset(vector<vector<double>>{{1, 3, 5, 7, 9}, {2, 4, 6, 8, 10}});
+        CHECK(data4.x() == Vector{1, 3, 5, 7, 9});
+        CHECK(data4.y() == Vector{2, 4, 6, 8, 10});
+        SimpleDataset data6(data4);
+        CHECK(data6.x() == Vector{1, 3, 5, 7, 9});
+        CHECK(data6.y() == Vector{2, 4, 6, 8, 10});
+        CHECK(data6.N == 5);
+        CHECK(data6.M == 3);
     }
 }
 
@@ -477,79 +497,155 @@ TEST_CASE("dataset_moving_average", "[dataset]") {
         SECTION("unweighted") {
             SECTION("3") {
                 auto res = MovingAverage::average(data.y(), 3);
-                REQUIRE(res.size() == 8);
-                CHECK(res[0] == 2);
-                CHECK(res[1] == 3);
-                CHECK(res[2] == 4);
-                CHECK(res[3] == 5);
-                CHECK(res[4] == 6);
-                CHECK(res[5] == 7);
-                CHECK(res[6] == 8);
-                CHECK(res[7] == 9);
+                REQUIRE(res.size() == 10);
+                CHECK(res[0] == 1);
+                CHECK(res[1] == 2);
+                CHECK(res[2] == 3);
+                CHECK(res[3] == 4);
+                CHECK(res[4] == 5);
+                CHECK(res[5] == 6);
+                CHECK(res[6] == 7);
+                CHECK(res[7] == 8);
+                CHECK(res[8] == 9);
+                CHECK(res[9] == 10);
             }
 
             SECTION("5") {
                 auto res = MovingAverage::average(data.y(), 5);
-                REQUIRE(res.size() == 6);
-                CHECK(res[0] == 3);
-                CHECK(res[1] == 4);
-                CHECK(res[2] == 5);
-                CHECK(res[3] == 6);
-                CHECK(res[4] == 7);
-                CHECK(res[5] == 8);
+                REQUIRE(res.size() == 10);
+                CHECK(res[0] == 1);
+                CHECK(res[1] == 2);
+                CHECK(res[2] == 3);
+                CHECK(res[3] == 4);
+                CHECK(res[4] == 5);
+                CHECK(res[5] == 6);
+                CHECK(res[6] == 7);
+                CHECK(res[7] == 8);
+                CHECK(res[8] == 9);
+                CHECK(res[9] == 10);
             }
         }
 
         SECTION("half_moving_average") {
             SECTION("3") {
-                data.moving_average(3);
-                REQUIRE(data.size() == 8);
-                CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(2, 1e-6));
-                CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs((1./2 + 2 + 3./2)/2, 1e-6));
+                SimpleDataset res = data.rolling_average(3);
+                REQUIRE(res.size() == 10);
+                CHECK_THAT(res.x(0), Catch::Matchers::WithinAbs(1, 1e-6));
+                CHECK_THAT(res.y(0), Catch::Matchers::WithinAbs(1, 1e-6));
 
-                CHECK_THAT(data.x(1), Catch::Matchers::WithinAbs(3, 1e-6));
-                CHECK_THAT(data.y(1), Catch::Matchers::WithinAbs((2./2 + 3 + 4./2)/2, 1e-6));
+                CHECK_THAT(res.x(1), Catch::Matchers::WithinAbs(2, 1e-6));
+                CHECK_THAT(res.y(1), Catch::Matchers::WithinAbs((1./2 + 2 + 3./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(2), Catch::Matchers::WithinAbs(4, 1e-6));
-                CHECK_THAT(data.y(2), Catch::Matchers::WithinAbs((3./2 + 4 + 5./2)/2, 1e-6));
+                CHECK_THAT(res.x(2), Catch::Matchers::WithinAbs(3, 1e-6));
+                CHECK_THAT(res.y(2), Catch::Matchers::WithinAbs((2./2 + 3 + 4./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(3), Catch::Matchers::WithinAbs(5, 1e-6));
-                CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs((4./2 + 5 + 6./2)/2, 1e-6));
+                CHECK_THAT(res.x(3), Catch::Matchers::WithinAbs(4, 1e-6));
+                CHECK_THAT(res.y(3), Catch::Matchers::WithinAbs((3./2 + 4 + 5./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(4), Catch::Matchers::WithinAbs(6, 1e-6));
-                CHECK_THAT(data.y(4), Catch::Matchers::WithinAbs((5./2 + 6 + 7./2)/2, 1e-6));
+                CHECK_THAT(res.x(4), Catch::Matchers::WithinAbs(5, 1e-6));
+                CHECK_THAT(res.y(4), Catch::Matchers::WithinAbs((4./2 + 5 + 6./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(5), Catch::Matchers::WithinAbs(7, 1e-6));
-                CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs((6./2 + 7 + 8./2)/2, 1e-6));
+                CHECK_THAT(res.x(5), Catch::Matchers::WithinAbs(6, 1e-6));
+                CHECK_THAT(res.y(5), Catch::Matchers::WithinAbs((5./2 + 6 + 7./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(6), Catch::Matchers::WithinAbs(8, 1e-6));
-                CHECK_THAT(data.y(6), Catch::Matchers::WithinAbs((7./2 + 8 + 9./2)/2, 1e-6));
+                CHECK_THAT(res.x(6), Catch::Matchers::WithinAbs(7, 1e-6));
+                CHECK_THAT(res.y(6), Catch::Matchers::WithinAbs((6./2 + 7 + 8./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(7), Catch::Matchers::WithinAbs(9, 1e-6));
-                CHECK_THAT(data.y(7), Catch::Matchers::WithinAbs((8./2 + 9 + 10./2)/2, 1e-6));
+                CHECK_THAT(res.x(7), Catch::Matchers::WithinAbs(8, 1e-6));
+                CHECK_THAT(res.y(7), Catch::Matchers::WithinAbs((7./2 + 8 + 9./2)/2, 1e-6));
+
+                CHECK_THAT(res.x(8), Catch::Matchers::WithinAbs(9, 1e-6));
+                CHECK_THAT(res.y(8), Catch::Matchers::WithinAbs((8./2 + 9 + 10./2)/2, 1e-6));
+
+                CHECK_THAT(res.x(9), Catch::Matchers::WithinAbs(10, 1e-6));
+                CHECK_THAT(res.y(9), Catch::Matchers::WithinAbs(10, 1e-6));
             }
 
             SECTION("5") {
-                data.moving_average(5);
-                REQUIRE(data.size() == 6);
-                CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(3, 1e-6));
-                CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs((1./4 + 2./2 + 3 + 4./2 + 5./4)/2.5, 1e-6));
+                SimpleDataset res = data.rolling_average(5);
+                REQUIRE(res.size() == 10);
+                CHECK_THAT(res.x(0), Catch::Matchers::WithinAbs(1, 1e-6));
+                CHECK_THAT(res.y(0), Catch::Matchers::WithinAbs(1, 1e-6));
 
-                CHECK_THAT(data.x(1), Catch::Matchers::WithinAbs(4, 1e-6));
-                CHECK_THAT(data.y(1), Catch::Matchers::WithinAbs((2./4 + 3./2 + 4 + 5./2 + 6./4)/2.5, 1e-6));
+                CHECK_THAT(res.x(1), Catch::Matchers::WithinAbs(2, 1e-6));
+                CHECK_THAT(res.y(1), Catch::Matchers::WithinAbs((1./2 + 2 + 3./2)/2, 1e-6));
 
-                CHECK_THAT(data.x(2), Catch::Matchers::WithinAbs(5, 1e-6));
-                CHECK_THAT(data.y(2), Catch::Matchers::WithinAbs((3./4 + 4./2 + 5 + 6./2 + 7./4)/2.5, 1e-6));
+                CHECK_THAT(res.x(2), Catch::Matchers::WithinAbs(3, 1e-6));
+                CHECK_THAT(res.y(2), Catch::Matchers::WithinAbs((1./4 + 2./2 + 3 + 4./2 + 5./4)/2.5, 1e-6));
 
-                CHECK_THAT(data.x(3), Catch::Matchers::WithinAbs(6, 1e-6));
-                CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs((4./4 + 5./2 + 6 + 7./2 + 8./4)/2.5, 1e-6));
+                CHECK_THAT(res.x(3), Catch::Matchers::WithinAbs(4, 1e-6));
+                CHECK_THAT(res.y(3), Catch::Matchers::WithinAbs((2./4 + 3./2 + 4 + 5./2 + 6./4)/2.5, 1e-6));
 
-                CHECK_THAT(data.x(4), Catch::Matchers::WithinAbs(7, 1e-6));
-                CHECK_THAT(data.y(4), Catch::Matchers::WithinAbs((5./4 + 6./2 + 7 + 8./2 + 9./4)/2.5, 1e-6));
+                CHECK_THAT(res.x(4), Catch::Matchers::WithinAbs(5, 1e-6));
+                CHECK_THAT(res.y(4), Catch::Matchers::WithinAbs((3./4 + 4./2 + 5 + 6./2 + 7./4)/2.5, 1e-6));
 
-                CHECK_THAT(data.x(5), Catch::Matchers::WithinAbs(8, 1e-6));
-                CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs((6./4 + 7./2 + 8 + 9./2 + 10./4)/2.5, 1e-6));
+                CHECK_THAT(res.x(5), Catch::Matchers::WithinAbs(6, 1e-6));
+                CHECK_THAT(res.y(5), Catch::Matchers::WithinAbs((4./4 + 5./2 + 6 + 7./2 + 8./4)/2.5, 1e-6));
+
+                CHECK_THAT(res.x(6), Catch::Matchers::WithinAbs(7, 1e-6));
+                CHECK_THAT(res.y(6), Catch::Matchers::WithinAbs((5./4 + 6./2 + 7 + 8./2 + 9./4)/2.5, 1e-6));
+
+                CHECK_THAT(res.x(7), Catch::Matchers::WithinAbs(8, 1e-6));
+                CHECK_THAT(res.y(7), Catch::Matchers::WithinAbs((6./4 + 7./2 + 8 + 9./2 + 10./4)/2.5, 1e-6));
+
+                CHECK_THAT(res.x(8), Catch::Matchers::WithinAbs(9, 1e-6));
+                CHECK_THAT(res.y(8), Catch::Matchers::WithinAbs((8./2 + 9 + 10./2)/2, 1e-6));
+
+                CHECK_THAT(res.x(9), Catch::Matchers::WithinAbs(10, 1e-6));
+                CHECK_THAT(res.y(9), Catch::Matchers::WithinAbs(10, 1e-6));
             }
+
+            SECTION("test") {
+                auto x = {0.020154074, 0.027431934, 0.034709794, 0.041987654, 0.049265514, 0.063821233, 0.071099093};
+                auto y = {1192.33, 549.73913, 1106.552, 2455.8911, 1551.5083, 1928.9173, 1233.6128};
+                Dataset2D _data(x, y, x, x);
+                SimpleDataset res = _data.rolling_average(7);
+                std::cout << res.x() << std::endl;
+                std::cout << res.y() << std::endl;
+            }
+        }
+    }
+}
+
+TEST_CASE("dataset_interpolate", "[dataset]") {
+    SECTION("simple") {
+        SimpleDataset data(
+            vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
+            vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+        );
+
+        data.interpolate(1);
+        REQUIRE(data.size() == 20);
+        CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(1, 1e-6));
+        CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs(1, 1e-6));
+
+        CHECK_THAT(data.x(1), Catch::Matchers::WithinAbs(1.5, 1e-6));
+        CHECK_THAT(data.y(1), Catch::Matchers::WithinAbs(1.5, 1e-6));
+
+        CHECK_THAT(data.x(2), Catch::Matchers::WithinAbs(2, 1e-6));
+        CHECK_THAT(data.y(2), Catch::Matchers::WithinAbs(2, 1e-6));
+
+        CHECK_THAT(data.x(3), Catch::Matchers::WithinAbs(2.5, 1e-6));
+        CHECK_THAT(data.y(3), Catch::Matchers::WithinAbs(2.5, 1e-6));
+
+        CHECK_THAT(data.x(4), Catch::Matchers::WithinAbs(3, 1e-6));
+        CHECK_THAT(data.y(4), Catch::Matchers::WithinAbs(3, 1e-6));
+
+        CHECK_THAT(data.x(5), Catch::Matchers::WithinAbs(3.5, 1e-6));
+        CHECK_THAT(data.y(5), Catch::Matchers::WithinAbs(3.5, 1e-6));
+    }
+
+    SECTION("sine") {
+        vector<double> x, y;
+        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+            x.push_back(xx);
+            y.push_back(sin(xx));
+        }
+
+        SimpleDataset data(x, y);
+        data.interpolate(5);
+        for (unsigned int i = 0; i < data.size(); i++) {
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(sin(data.x(i)), 1e-3));
         }
     }
 }
@@ -564,7 +660,8 @@ TEST_CASE("dataset_moving_average_plot", "[dataset],[manual]") {
     data.add_plot_options("points");
     plots::PlotDataset plot(data);
 
-    data.moving_average(5);
+    data = data.rolling_average(5);
+    data.interpolate(5);
     data.add_plot_options("line", {{"color", kRed}});
     plot.plot(data);
     plot.save("figures/test/dataset/moving_average.pdf");

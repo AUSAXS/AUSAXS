@@ -1,5 +1,7 @@
 #include <math/SimpleLeastSquares.h>
 #include <math/Statistics.h>
+#include <math/MovingAverager.h>
+#include <math/CubicSpline.h>
 #include <utility/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
@@ -211,4 +213,29 @@ void Dataset::set_default_names() {
     for (unsigned int i = 0; i < M; i++) {
         names[i] = "col_" + std::to_string(i);
     }
+}
+
+Dataset Dataset::rolling_average(unsigned int window_size) const {
+    Dataset result(*this);
+    result.y() = MovingAverage::average_half(y(), window_size);
+    return result;
+}
+
+void Dataset::interpolate(unsigned int n) {
+    CubicSpline spline(x().to_vector(), y().to_vector());
+    Matrix interpolated(size()*(n+1)-n-1, 2);
+    for (unsigned int i = 0; i < size()-1; i++) {
+        double x = this->x(i);
+        double y = this->y(i);
+        interpolated[i*(n+1)] = {x, y}; 
+
+        double x_next = this->x(i+1);
+        double step = (x_next - x)/(n+1);
+        for (unsigned int j = 0; j < n; j++) {
+            double x_new = x + (j+1)*step;
+            double y_new = spline.spline(x_new);
+            interpolated[i*(n+1) + j + 1] = {x_new, y_new};
+        }
+    }
+    *this = Dataset(std::move(interpolated));
 }

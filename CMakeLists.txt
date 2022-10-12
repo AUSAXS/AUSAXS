@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -lboost_program_options -Wall -Wextra -g -fno-finite-math-only --coverage -g")# -fsanitize=address") #-flto
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -lboost_program_options -Wall -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 project(SAXS VERSION 0.0)

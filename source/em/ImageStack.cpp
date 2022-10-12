@@ -116,7 +116,6 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter 
     return fit_helper(fitter, param);
 }
 
-#include <math/CubicSpline.h>
 #include <minimizer/LimitedScan.h>
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
@@ -128,35 +127,14 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     Dataset2D l = minimizer.landscape(setting::em::evals);
     auto min = l.find_minimum();
 
-    l.limit_y(0, min.y*5);  // focus on the area near the minimum
-    auto _l = l;            // save original data before averaging
-    l.moving_average(7);    // impose a moving average filter
-    
-    // interpolate more points for a nicer curve
-    //? move to dataset function? difficult since we cannot interpolate yerrs
-    { 
-        CubicSpline spline(l.x().to_vector(), l.y().to_vector());
-        Dataset2D interpolated;
-        for (unsigned int i = 0; i < l.size()-1; i++) {
-            double x = l.x(i);
-            double y = l.y(i);
-            interpolated.push_back(x, y);
+    l.limit_y(0, min.y*5);           // focus on the area near the minimum
+    SimpleDataset avg = l.rolling_average(7); // impose a moving average filter 
+    avg.interpolate(5);                       // interpolate more points
 
-            unsigned int steps = 5;
-            double x_next = l.x(i+1);
-            double step = (x_next - x)/steps;
-            for (unsigned int j = 0; j < steps; j++) {
-                double x_new = x + (j+1)*step;
-                double y_new = spline.spline(x_new);
-                interpolated.push_back(x_new, y_new);
-            }
-        }
-        l = interpolated;
-        min = l.find_minimum();
-        double spacing = l.x(1)-l.x(0); 
-        param.guess = min.x;
-        param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
-    }
+    min = avg.find_minimum();
+    double spacing = avg.x(1)-avg.x(0); 
+    param.guess = min.x;
+    param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
 
     if (setting::plot::em::plot_cutoff_points) {
         // plot the starting point in blue
@@ -164,10 +142,10 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
         p_start.push_back(min.x, min.y);
         p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
 
-        l.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
-        plots::PlotDataset plot(l);
-        _l.add_plot_options("points");
-        plot.plot(_l);
+        avg.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+        plots::PlotDataset plot(avg);
+        l.add_plot_options("points");
+        plot.plot(l);
         plot.plot(p_start);
         plot.save(setting::plot::path + "chi2_evaluated_points.pdf");
     }

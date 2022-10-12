@@ -15,6 +15,11 @@ class Dataset : public Matrix<double> {
         Dataset() {}
 
         /**
+         * @brief Matrix constructor.
+         */
+        Dataset(Matrix&& m) : Matrix(std::move(m)) {}
+
+        /**
          * @brief Create a new dataset with the given columns.
          */
         Dataset(std::vector<std::string> col_names) : Matrix(0, col_names.size()), names(col_names) {}
@@ -106,6 +111,21 @@ class Dataset : public Matrix<double> {
          * @brief Get a column name. 
          */
         [[nodiscard]] std::string get_col_names(unsigned int i);
+
+        /**
+         * @brief Interpolate @a num points between each pair of points in the dataset.
+         */
+        void interpolate(unsigned int num);
+
+        /**
+         * @brief Get the weighted rolling average of this dataset. 
+         *        The weight is defined as 1/(2)^i, where i is the index distance from the middle.
+         * 
+         * @param window The window size. 
+         * 
+         * @return A new (x, y) dataset with the rolling average. 
+         */
+        Dataset rolling_average(unsigned int window) const;
 
     //*#####################*//
     //*### Alias methods ###*//

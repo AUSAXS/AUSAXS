@@ -54,6 +54,21 @@ class Limit {
             max = max < 0 ? max * (1 - percent) : max*(1+percent);
         } 
 
+
+        Limit& operator-=(double c) noexcept {
+            min-=c;
+            max-=c;
+            return *this;
+        }
+        Limit operator-(double c) const noexcept {return Limit(*this)-=c;}
+
+        Limit& operator+=(double c) noexcept {
+            min+=c;
+            max+=c;
+            return *this;
+        }
+        Limit operator+(double c) const noexcept {return Limit(*this)+=c;}
+
         /**
          * @brief Equality operator. Check if this Limit is equal to another.
          */
@@ -87,20 +102,6 @@ class Limit {
         double min; // The minimum value of this limit. 
         double max; // The maximum value of this limit. 
 };
-
-Limit operator-(Limit lhs, double rhs) noexcept {return lhs-=rhs;}
-Limit& operator-=(Limit& lhs, double rhs) noexcept {
-    lhs.min-=rhs;
-    lhs.max-=rhs;
-    return lhs;
-}
-
-Limit operator+(Limit lhs, double rhs) noexcept {return lhs+=rhs;}
-Limit& operator+=(Limit& lhs, double rhs) noexcept {
-    lhs.min+=rhs;
-    lhs.max+=rhs;
-    return lhs;
-}
 
 /**
  * @brief \class Limit3D

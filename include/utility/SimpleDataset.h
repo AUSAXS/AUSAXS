@@ -17,6 +17,11 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
 
     public: 
         /**
+         * @brief Convert a Dataset to a SimpleDataset.
+         */
+        SimpleDataset(const Dataset& d);
+
+        /**
          * @brief Construct a new empty dataset with the given number of rows. 
          */
         SimpleDataset(unsigned int rows) noexcept;
@@ -218,14 +223,6 @@ class SimpleDataset : public Dataset, public plots::PlotOptionWrapper {
          * @brief Removes consecutive duplicate values.
          */
         void remove_consecutive_duplicates();
-
-        /**
-         * @brief Get the weighted moving average of this dataset. 
-         *        The weight is defined as 1/(2)^i, where i is the index distance from the middle.
-         * 
-         * @param window_size The size of the averaging window.
-         */
-        void moving_average(unsigned int window_size);
 
         /**
          * @brief Sort this dataset by the x-values. 

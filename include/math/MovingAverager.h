@@ -10,7 +10,7 @@ struct MovingAverage {
         /**
          * @brief Calculate the moving average of the vector.
          *        For each point in the vector, the average of the @a window_size points in the current window is calculated.
-         *        The first and last @a (window_size-1)/2 points are skipped, so the averaged vector is @a window_size-1 smaller than the input.
+         *        Edge points are calculated with smaller windows. 
          * 
          * @param data The data to average. Container must support indexing and size().
          * @param window_size The window size. 
@@ -25,7 +25,7 @@ struct MovingAverage {
          * @brief Calculate the moving average of the vector.
          *        For each point in the vector, the weighted average of the @a window_size points in the current window is calculated.
          *        The weight is defined as (1/2)^i, where i is the index distance from the current point.
-         *        The first and last @a (window_size-1)/2 points are skipped, so the averaged vector is @a window_size-1 smaller than the input.
+         *        Edge points are calculated with smaller windows. 
          * 
          * @param data The data to average. Container must support indexing [] and size().
          * @param window_size The window size. 
@@ -61,16 +61,27 @@ struct MovingAverage {
         template<typename T>
         static std::vector<double> weighted_average(const T& data, std::vector<double> weights) {
             unsigned int window_size = weights.size();
-            std::vector<double> averages(data.size() - window_size + 1);
+            std::vector<double> averages(data.size());
+            unsigned int mid = (weights.size()-1)/2;
 
-            double w_sum = std::accumulate(weights.begin(), weights.end(), 0.0);
+            auto average = [&data, &weights, &mid] (unsigned int index, int steps) {
+                double sum = 0;
+                double w_sum = 0;
+                for (int j = -steps; j < steps+1; j++) {
+                    sum += data[index+j] * weights[mid+j];
+                    w_sum += weights[mid+j];
+                }
+                return sum/w_sum;
+            };
+
             unsigned int steps = (window_size-1)/2;
             for (unsigned int i = steps; i < data.size() - steps; i++) {
-                double sum = 0;
-                for (unsigned int j = i - steps; j < i + steps+1; j++) {
-                    sum += data[j] * weights[j - (i - steps)];
-                }
-                averages[i - steps] = sum/w_sum;
+                averages[i] = average(i, steps);
+            }
+
+            for (unsigned int i = 0; i < steps; i++) {
+                averages[i] = average(i, i);
+                averages[data.size()-1-i] = average(data.size()-1-i, i);
             }
 
             return averages;
