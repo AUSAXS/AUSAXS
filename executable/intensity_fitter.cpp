@@ -75,7 +75,7 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::figures::format);
 
     // calculate rhoM
-    double rhoM = protein.get_absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+    double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
     std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
     // std::vector<double> q;

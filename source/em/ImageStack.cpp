@@ -92,7 +92,7 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {level(0.5), level(7)};
+    Limit lim = {level(0.5), level(8)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -105,7 +105,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {level(0.5), level(7)};
+    Limit lim = {level(0.5), level(8)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
@@ -199,7 +199,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
     emfit->evaluated_points = minimizer.get_evaluated_points();
-    phm->get_protein()->save("output/em_fitter/" + utility::stem(filename) + ".pdb");
+    phm->get_protein()->save("output/em_fitter/" + utility::stem(filename) + "/model.pdb");
     return emfit;
 }
 
@@ -262,7 +262,7 @@ ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, string file) {
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, string file) {
-    Axis axis(points, level(1), level(7));
+    Axis axis(points, level(1), level(8));
     return cutoff_scan(axis, file);
 }
 
@@ -272,12 +272,12 @@ ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::Sc
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, level(1), level(7));
+    Axis axis(points, level(1), level(8));
     return cutoff_scan(axis, h);
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, level(1), level(7));
+    Axis axis(points, level(1), level(8));
     return cutoff_scan_fit(axis, h);
 }
 
@@ -287,7 +287,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, std::strin
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, level(1), level(7));
+    Axis axis(points, level(1), level(8));
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }

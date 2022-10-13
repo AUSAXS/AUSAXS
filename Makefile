@@ -122,6 +122,14 @@ crysol/%:
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
 	@ mv temp/crysol/out.fit figures/intensity_fitter/$*/crysol.fit
 
+pepsi/%:
+	@ mkdir -p temp/pepsi/
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	structure=$$(find $${folder}/ -name "*.pdb"); \
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/out.fit"
+	
+
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
 intensity_fit/%: build/executable/intensity_fitter

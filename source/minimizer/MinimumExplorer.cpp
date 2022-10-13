@@ -36,7 +36,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     unsigned int vchanges = 0;  // we want at least 2 changes for a decent estimate
     unsigned int counter = 0;   // counter to prevent infinite loop
     double factor = 2;          // step scaling factor
-    while (counter < 50) {
+    while (counter < 20) {
         x += spacing;
         double f = function(&x);
 
@@ -48,10 +48,9 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         } else {
             spacing *= factor;
         }
-
-        if (50 < counter++) {break;}
+        counter++;
     }
-    if (counter == 50) {throw except::bad_order("Error in MinimumExplorer::landscape: Could not determine spacing for landscape.");}
+    if (counter == 20) {throw except::bad_order("Error in MinimumExplorer::landscape: Could not determine spacing for landscape.");}
     spacing /= 2; // step size is twice the distance between fval changes after ending the earlier loop
 
     // get an estimate of the minimum value
