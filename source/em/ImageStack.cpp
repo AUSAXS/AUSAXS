@@ -121,10 +121,11 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
 
-    // mini::LimitedScan minimizer(prepare_function(fitter), param, setting::em::evals);
-    // minimizer.set_limit(fitter->dof()*100);
-    mini::Scan minimizer(prepare_function(fitter), param, setting::em::evals);
+    mini::LimitedScan minimizer(prepare_function(fitter), param, setting::em::evals);
+    minimizer.set_limit(fitter->dof()*100);
+    // mini::Scan minimizer(prepare_function(fitter), param, setting::em::evals);
     Dataset2D l = minimizer.landscape(setting::em::evals);
+    l.sort_x();
     auto min = l.find_minimum();
 
     l.limit_y(0, min.y*5);           // focus on the area near the minimum

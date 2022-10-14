@@ -2,6 +2,7 @@
 
 #include <minimizer/Scan.h>
 #include <limits>
+#include <list>
 
 namespace mini {
     class LimitedScan : public Scan {
@@ -37,11 +38,36 @@ namespace mini {
                 if (parameters.size() == 1) {
                     const Limit& bounds = parameters[0].bounds.value();
                     unsigned int c = 0;
+                    std::list<double> last_evals;
+                    unsigned int count = 0;
                     for (double val = bounds.max; bounds.min < val; val -= bounds.span()/evals) {
                         double fval = function(&val);
 
-                        // if we are more than half-way through the scan and the function value is greater than the limit, stop
-                        if (evals/2 < c++ && limit < fval) {break;}
+                        // add the evaluation to the list
+                        if (last_evals.size() < 7) {
+                            last_evals.push_front(fval);
+                        } else {
+                            last_evals.pop_back();
+                            last_evals.push_front(fval);
+                        }
+                        
+                        // calculate average of list
+                        double avg = std::accumulate(last_evals.begin(), last_evals.end(), 0.0) / last_evals.size();
+
+                        // if we are more than half-way through the scan, we check for the stop condition
+                        if (evals*0.8 < c++) {
+                            std::cout << limit << " " << fval << " " << avg << std::endl;
+                            // if the fval is greater than the limit and we are not converging on a solution, we stop
+                            if (limit < fval && avg < fval) {
+                                count++;
+                                // three consecutive fvals greater than the avg means we stop
+                                if (3 < count) {
+                                    break;
+                                }
+                            } else {
+                                count = 0;
+                            }
+                        }
                     }
                     return get_evaluated_points();
                 } 
