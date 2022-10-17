@@ -18,7 +18,7 @@ MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func, cons
 
 //! Not currently overriding super method! Fix inheritance...
 Dataset2D MinimumExplorer::landscape(unsigned int evals) {
-    if (parameters.empty()) {throw except::bad_order("Error in MinimumExplorer::landscape: No parameters were supplied.");}
+    if (parameters.empty()) {throw except::bad_order("MinimumExplorer::landscape: No parameters were supplied.");}
 
     const Parameter& param = parameters[0];
     double xmin = *param.guess;
@@ -26,34 +26,70 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     const double xmid = xmin;
     double x = xmin;
 
-    // determine spacing required for change in function value
+    //***************************************************************//
+    //***        DETERMINE SPACING BETWEEN EVALUATIONS            ***//
+    //***************************************************************//
+    // we want to find the smallest spacing that still changes the function value
     double spacing = 1e-5;
-    if (param.has_bounds()) {
-        spacing = std::min(spacing, (param.bounds->max - param.bounds->min)/evals);
-    }
-
-    record_evaluations(false);  // disable recording while determining spacing
     unsigned int vchanges = 0;  // we want at least 2 changes for a decent estimate
     unsigned int counter = 0;   // counter to prevent infinite loop
     double factor = 2;          // step scaling factor
-    while (counter < 20) {
-        x += spacing;
+    record_evaluations(false);  // disable recording while determining spacing
+
+    // reset the spacing
+    auto reset_spacing = [&] () {
+        spacing = 1e-5;
+        if (param.has_bounds()) {
+            spacing = std::min(spacing, (param.bounds->max - param.bounds->min)/evals);
+        }
+    };
+
+    // update the spacing
+    auto update_spacing = [&] (double x) {
         double f = function(&x);
 
         // check if the function value changed
         if (1e-6 < std::abs(f - fmin)) {
             vchanges++;
-            factor = 1.3;                   // scale slower since we're close to the final step size
-            if (2 < vchanges) {break;}      // stop after fval changed twice
+            factor = 1.3;                    // scale slower since we're close to the final step size
+            if (2 < vchanges) {return true;} // stop after fval changed twice
         } else {
             spacing *= factor;
         }
         counter++;
+        return false;
+    };
+
+    reset_spacing();
+    while (counter < 20) { 
+        x += spacing;                   // move to the right
+        if (update_spacing(x)) {break;} // check if we have enough changes
+        x = xmid;                       // move back to the middle
     }
-    if (counter == 20) {throw except::bad_order("Error in MinimumExplorer::landscape: Could not determine spacing for landscape.");}
+
+    // if counter is 20 we couldn't determine the spacing by going to the right, so we try again but now going left
+    if (counter == 20) {
+        counter = 0;
+        x = xmid;
+        reset_spacing();
+        while (counter < 20) {
+            x -= spacing;                   // move to the left
+            if (update_spacing(x)) {break;} // check if we have enough changes
+            x = xmid;                       // move back to the middle
+        }
+    }
+
+    // if counter is still 20 going left didn't work either. the function is probably ill-defined
+    if (counter == 20) {
+        throw except::bad_order("MinimumExplorer::landscape: Could not determine spacing for landscape.");
+    }
+
     spacing /= 2; // step size is twice the distance between fval changes after ending the earlier loop
 
-    // get an estimate of the minimum value
+
+    //***************************************************************//
+    //***                 ESTIMATE MINIMUM VALUE                  ***//
+    //***************************************************************//
     record_evaluations(true); // start recording again
 
     // go three steps to the left
@@ -172,7 +208,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
 }
 
 Dataset2D MinimumExplorer::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("Error in MinimumExplorer::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
+    if (evaluations.empty()) {throw except::bad_order("MinimumExplorer::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
 
     unsigned int N = evaluations.size();
     std::vector<double> x(N), y(N);
@@ -191,7 +227,7 @@ Result MinimumExplorer::minimize_override() {
 }
 
 void MinimumExplorer::add_parameter(const Parameter& param) {
-    if (!param.has_guess()) {throw except::invalid_operation("Error in MinimumExplorer::add_parameter: Guess value must be supplied.");}
-    if (!parameters.empty()) {throw except::invalid_operation("Error in MinimumExplorer::add_parameter: This minimizer only supports 1D problems.");}
+    if (!param.has_guess()) {throw except::invalid_operation("MinimumExplorer::add_parameter: Guess value must be supplied.");}
+    if (!parameters.empty()) {throw except::invalid_operation("MinimumExplorer::add_parameter: This minimizer only supports 1D problems.");}
     parameters.push_back(param);
 }

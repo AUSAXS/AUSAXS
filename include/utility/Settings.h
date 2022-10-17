@@ -81,6 +81,8 @@ namespace setting {
         inline static bool hydrate = true;               // Whether to hydrate the protein in the EM algorithm.
         inline static unsigned int evals = 100;          // Base number of evaluations used in the EM fitter. 
 
+        inline static bool save_pdb = true;              // Whether to save the final atomic structure as a PDB file.
+
         struct simulation {
             inline static bool noise = true; // Whether to generate noise for the simulations. 
         };

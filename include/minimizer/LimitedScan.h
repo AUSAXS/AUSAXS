@@ -55,8 +55,7 @@ namespace mini {
                         double avg = std::accumulate(last_evals.begin(), last_evals.end(), 0.0) / last_evals.size();
 
                         // if we are more than half-way through the scan, we check for the stop condition
-                        if (evals*0.8 < c++) {
-                            std::cout << limit << " " << fval << " " << avg << std::endl;
+                        if (evals*0.7 < c++) {
                             // if the fval is greater than the limit and we are not converging on a solution, we stop
                             if (limit < fval && avg < fval) {
                                 count++;
@@ -72,13 +71,9 @@ namespace mini {
                     return get_evaluated_points();
                 } 
                 
-                else if (parameters.size() == 2) {
+                else { // parameters.size() <= 2 
                     throw except::unexpected("Error in LimitedScan::landscape: Not implemented.");
                 } 
-                
-                else {
-                    throw except::unexpected("Error in LimitedScan::landscape: Not implemented.");
-                }                
             }
 
         private: 

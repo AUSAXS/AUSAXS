@@ -13,7 +13,7 @@ void FitReporter::report(const Fit& fit) {
 void FitReporter::report(const std::shared_ptr<Fit> fit) {report(*fit);}
 
 void FitReporter::report(const std::vector<Fit>& fits, std::vector<std::string> titles) {
-    if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("Error in FitReporter::report: Size of fits and titles must be equal.");}
+    if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("FitReporter::report: Size of fits and titles must be equal.");}
 
     auto title_reporter = get_title_reporter(titles);
     for (unsigned int i = 0; i < fits.size(); i++) {
@@ -26,7 +26,7 @@ void FitReporter::save(std::string path, const Fit& fit) {
     utility::create_directory(path);
 
     std::ofstream out(path);
-    if (!out.is_open()) {throw except::io_error("Error in FitReporter::save: Could not open file path \"" + path + "\".");}
+    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
     out << fit.to_string() << std::endl;
     out.close();
 }
@@ -36,11 +36,11 @@ void FitReporter::save(std::string path, const std::shared_ptr<Fit> fit) {
 }
 
 void FitReporter::save(std::string path, const std::vector<Fit>& fits, std::vector<std::string> titles) {
-    if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("Error in FitReporter::report: Size of fits and titles must be equal.");}
+    if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("FitReporter::report: Size of fits and titles must be equal.");}
     utility::create_directory(path);
 
     std::ofstream out(path);
-    if (!out.is_open()) {throw except::io_error("Error in FitReporter::save: Could not open file path \"" + path + "\".");}
+    if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
 
     auto title_reporter = get_title_reporter(titles);
     for (unsigned int i = 0; i < fits.size(); i++) {

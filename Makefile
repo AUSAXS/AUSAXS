@@ -145,8 +145,14 @@ intensity_fit/%: build/executable/intensity_fitter
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
 consistency/%: build/executable/consistency
-	@ map=$(shell find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
-	$< $${map}
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	emmap=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4"); \
+	for map in $${emmap}; do\
+		echo "Testing " $${map} " ...";\
+		sleep 1;\
+		$< $${map};\
+	done
 
 # usage: make fit_consistency/2epe res=10
 # Check the consistency of the program. 

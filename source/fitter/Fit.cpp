@@ -52,7 +52,7 @@ std::string Fit::to_string() const noexcept {
        << "\n|                       FIT REPORT                         |"
        << "\n+----------------------------------------------------------+"
        << "\n| Converged: " << (status == 0 ? "yes" : "no ") << "                              Fevals: " << print_element(fevals, 4) << " |"
-       << "\n| chi2: " << print_element(fval, 10) << "   dof: " << print_element(dof, 6) << "   chi2/dof: " << print_element(fval/dof, 12) << " |"
+       << "\n| chi2: " << print_element(fval, 10) << "   dof: " << print_element(dof, 6) << "    chi2/dof: " << print_element(fval/dof, 12) << " |"
        << "\n+----------------------------------------------------------+"
        << "\n| PAR      | VAL          | UNC          |                 |";
     for (const auto& e : parameters) {
