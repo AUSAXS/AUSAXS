@@ -45,14 +45,16 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     };
 
     // update the spacing
+    double fprev = fmin;
     auto update_spacing = [&] (double x) {
         double f = function(&x);
 
         // check if the function value changed
-        if (1e-6 < std::abs(f - fmin)) {
+        if (1e-6 < std::abs(f - fprev)) {
             vchanges++;
-            factor = 1.3;                    // scale slower since we're close to the final step size
             if (2 < vchanges) {return true;} // stop after fval changed twice
+            fprev = f;
+            factor = 1.3;                    // scale slower since we're close to the final step size
         } else {
             spacing *= factor;
         }
@@ -94,8 +96,10 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
 
     // go three steps to the left
     x = xmid;               // go back to the middle
-    double fprev = fmin;    // keep track of last value
+    fprev = fmin;           // keep track of last value
     counter = 0;            // reset counter
+    unsigned int iter = 0;  // keep track of how many iterations we've done
+    double start_space = spacing;
     for (int i = 0; i < 4; i++) {
         x -= spacing;
         double f = function(&x);
@@ -103,10 +107,18 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         // check if the function value actually changed
         if (std::abs(fprev - f) < 1e-6) {
             // if not, refine the spacing and try again
+            iter++;
             x += spacing;
             spacing *= 1.3;
             i--;
             evaluations.pop_back();
+
+            // if we've tried too many times going to the left doesn't work
+            if (iter == 10) {
+                spacing = start_space;
+                counter = 4; // mark left side as being finished
+                break;
+            }
         }
 
         // check if this is a new minimum
@@ -129,6 +141,8 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     x = xmid;       // go back to the middle
     fprev = fmin;   // reset fprev
     counter = 0;    // reset counter
+    iter = 0;       // reset iter
+    start_space = spacing;
     for (int i = 0; i < 4; i++) {
         x += spacing;
         double f = function(&x);
@@ -136,10 +150,18 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         // check if the function value actually changed
         if (std::abs(fprev - f) < 1e-6) {
             // if not, refine the spacing and try again
+            iter++;
             x -= spacing;
             spacing *= 1.3;
             i--;
             evaluations.pop_back();
+
+            // if we've tried too many times going to the right doesn't work
+            if (iter == 10) {
+                spacing = start_space;
+                counter = 4; // mark right side as being finished
+                break;
+            }
         }
 
         // check if this is a new minimum

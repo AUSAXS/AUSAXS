@@ -2,6 +2,7 @@
 #include <utility/Utility.h>
 
 #include <fstream>
+#include <filesystem>
 
 bool is_comment_char(char c) {
     switch (c) {
@@ -86,13 +87,12 @@ void setting::write(std::string path) {
     output.close();
 }
 
-#include <filesystem>
 void setting::discover(std::string path) {
     if (path[path.size()-1] != '/') {path += "/";}
     std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
     for (const auto& e : valid_names) {
         if (std::filesystem::exists(path + e + ".txt")) {
-            std::cout << "Using discovered settings file at " << path << std::endl;
+            std::cout << "Using discovered settings file at " << path + e + ".txt" << std::endl;
             setting::read(path + e + ".txt");
         }
     }

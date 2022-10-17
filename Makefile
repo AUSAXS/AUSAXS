@@ -147,7 +147,7 @@ intensity_fit/%: build/executable/intensity_fitter
 consistency/%: build/executable/consistency
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
-	emmap=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4"); \
+	emmap=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 	for map in $${emmap}; do\
 		echo "Testing " $${map} " ...";\
 		sleep 1;\

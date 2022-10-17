@@ -133,9 +133,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     //**********************************************************//
     //*** CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ***//
     //**********************************************************//
-    l.limit_y(0, min.y*5); // focus on the area near the minimum
-    if (l.size() < 7) { // if we have too few points after imposing the limit, we must sample some more
-        Limit bounds; // first we determine the bounds of the area we want to sample
+    l.limit_y(0, min.y*5);  // focus on the area near the minimum
+    if (l.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
+        Limit bounds;       // first we determine the bounds of the area we want to sample
         if (l.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
             double s = (param.bounds->max - param.bounds->min)/setting::em::evals;
             bounds = {min.x - s, min.x + s};
@@ -146,13 +146,13 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
         // prepare a new minimizer with the new bounds
         std::cout << "Function is varying strongly. Sampling more points around the minimum." << std::endl;
-        mini::LimitedScan mini2(prepare_function(fitter), mini::Parameter("cutoff", bounds), setting::em::evals/2);
+        mini::LimitedScan mini2(prepare_function(fitter), mini::Parameter("cutoff", bounds), setting::em::evals/4);
         l = mini2.landscape(setting::em::evals/2);
         l.sort_x();
         min = l.find_minimum();
         l.limit_y(0, min.y*5);
 
-        if (l.size() < 7) {
+        if (l.size() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
         }
     }
@@ -175,7 +175,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
         p_start.push_back(min.x, min.y);
         p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
 
-        avg.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 3}});
+        avg.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
         plots::PlotDataset plot(avg);
         l.add_plot_options("points");
         plot.plot(l);
@@ -218,7 +218,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
 
             // do the actual plotting
-            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 3}});
+            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
             plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);

@@ -12,6 +12,7 @@ int main(int argc, char const *argv[]) {
     setting::plot::em::plot_cutoff_points = true;
     setting::em::sample_frequency = 2;
     setting::em::save_pdb = false;
+    setting::em::hydrate = false;
 
     // check that we have at least one argument
     if (argc < 2) {
@@ -24,13 +25,16 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
     string path = "figures/consistency/" + utility::stem(mapfile) + "/";
 
-    unsigned int evals = 100;
+    unsigned int evals = 1000;
     Dataset data({"dof", "chi2", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
         std::cout << "Starting iteration " << i+1 << " of " << evals << std::endl;
         // generate a pdb file from the map at some cutoff
         auto protein = map.get_protein(map.level(3));
-        protein->generate_new_hydration();
+
+        if (setting::em::hydrate) {
+            protein->generate_new_hydration();
+        }
 
         // generate a measurement from the protein
         string mfile = path + "test.RSR";

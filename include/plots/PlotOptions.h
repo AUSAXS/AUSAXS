@@ -66,6 +66,8 @@ namespace plots {
             double ylabel_offset = 0;       // Offset for the y-axis label
             unsigned int xdigits = 0;       // Number of digits to show on the x-axis
             unsigned int ydigits = 0;       // Number of digits to show on the y-axis
+            int xdivisions = 510;           // Number of divisions on the x-axis
+            int ydivisions = 510;           // Number of divisions on the y-axis
 
         private: 
             struct ISmartOption {
@@ -115,6 +117,8 @@ namespace plots {
                 make_shared({"ylabeloffset", "y_label_offset", "ylabel_offset", "y_offset"}, ylabel_offset),
                 make_shared({"xdigits"}, xdigits),
                 make_shared({"ydigits"}, ydigits),
+                make_shared({"xdivs", "xdivisions"}, xdigits),
+                make_shared({"ydivs", "ydivisions"}, ydigits),
             };
 
             void parse(std::string key, std::any val);
