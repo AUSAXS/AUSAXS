@@ -58,6 +58,10 @@ void plots::draw(const std::shared_ptr<TGraph> graph, const PlotOptions& options
         if (!std::isinf(options.ylimits.max)) {graph->SetMaximum(options.ylimits.max);}
     }
 
+    // handle number of digits
+    if (0 < options.xdigits) {graph->GetXaxis()->SetMaxDigits(options.xdigits);}
+    if (0 < options.ydigits) {graph->GetYaxis()->SetMaxDigits(options.ydigits);}
+
     // handle log scale
     detail::handle_log(options, canvas);
 
@@ -146,6 +150,10 @@ void plots::draw(const Multiset& data, const std::shared_ptr<TCanvas> canvas) {
         if (!std::isinf(options.ylimits.max)) {graphs.SetMaximum(options.ylimits.max);}
     }
 
+    // handle number of digits
+    if (0 < options.xdigits) {graphs.GetXaxis()->SetMaxDigits(options.xdigits);}
+    if (0 < options.ydigits) {graphs.GetYaxis()->SetMaxDigits(options.ydigits);}
+
     // handle log
     detail::handle_log(options, canvas);
 
@@ -215,6 +223,10 @@ void plots::draw(const std::shared_ptr<TH1D> hist, const PlotOptions& options, c
         if (!std::isinf(options.ylimits.min)) {hist->SetMinimum(options.ylimits.min);} 
         if (!std::isinf(options.ylimits.max)) {hist->SetMaximum(options.ylimits.max);}
     }
+
+    // handle number of digits
+    if (0 < options.xdigits) {hist->GetXaxis()->SetMaxDigits(options.xdigits);}
+    if (0 < options.ydigits) {hist->GetYaxis()->SetMaxDigits(options.ydigits);}
 
     // handle log scale
     detail::handle_log(options, canvas);

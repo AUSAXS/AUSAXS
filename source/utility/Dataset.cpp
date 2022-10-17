@@ -176,10 +176,14 @@ void Dataset::load(std::string path) {
     }
 
     // copy all rows with the correct number of columns
+    unsigned int count = 0;
     for (unsigned int i = 0; i < row_data.size(); i++) {
-        if (row_data[i].size() == mode) {
-            push_back(row_data[i]);
-        }
+        if (row_data[i].size() != mode) {continue;}
+        if (count++ < setting::axes::skip) {continue;}
+        push_back(row_data[i]);
+    }
+    if (setting::axes::skip != 0 && setting::general::verbose) {
+        std::cout << "\tSkipped " << count - size() << " data points from beginning of file." << std::endl;
     }
 
     // verify that at least one row was read correctly

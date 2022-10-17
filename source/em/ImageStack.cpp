@@ -92,7 +92,7 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {level(0.5), level(8)};
+    Limit lim = {level(0.25), level(8)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -105,7 +105,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogr
 }
 
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {level(0.5), level(8)};
+    Limit lim = {level(0.25), level(8)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
@@ -143,7 +143,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
         p_start.push_back(min.x, min.y);
         p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
 
-        avg.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+        avg.add_plot_options("lines", {{"color", kRed}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 3}});
         plots::PlotDataset plot(avg);
         l.add_plot_options("points");
         plot.plot(l);
@@ -182,7 +182,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             p_start.add_plot_options("point", {{"color", kBlue}, {"s", 0.8}, {"ms", 8}});
 
             // do the actual plotting
-            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
+            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 3}});
             plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);
@@ -200,7 +200,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
     emfit->evaluated_points = minimizer.get_evaluated_points();
-    phm->get_protein()->save("output/em_fitter/" + utility::stem(filename) + "/model.pdb");
+    phm->get_protein()->save(setting::plot::path + "/model.pdb");
     return emfit;
 }
 
@@ -233,6 +233,7 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
         if (setting::em::hydrate) {
             p->clear_grid();                // clear grid from previous iteration
             p->generate_new_hydration();    // generate a new hydration layer
+            // p->remove_disconnected_atoms(); // remove disconnected atoms
 
             // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
             std::dynamic_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 

@@ -61,7 +61,7 @@ namespace mini {
                             if (limit < fval && avg < fval) {
                                 count++;
                                 // three consecutive fvals greater than the avg means we stop
-                                if (3 < count) {
+                                if (3 <= count) {
                                     break;
                                 }
                             } else {

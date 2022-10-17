@@ -52,6 +52,7 @@ namespace setting {
         inline static unsigned int bins = 1000;                          // The number of bins for the scattering plots.
         inline static double qmin = 0;                                   // Lower limit on the used q-values
         inline static double qmax = 0.5;                                 // Upper limit on the used q-values
+        inline static unsigned int skip = 0;                             // The number of points to skip from the top of the scattering curve.
     };
 
     struct fit {
@@ -181,6 +182,7 @@ namespace setting {
             make_shared({"scattering-intensity-plot-binned-width"}, setting::axes::scattering_intensity_plot_binned_width),
             make_shared({"qlow", "qmin"}, setting::axes::qmin),
             make_shared({"qhigh", "qmax"}, setting::axes::qmax),
+            make_shared({"skip", "skip-rows"}, setting::axes::skip),
 
             // fit
             make_shared({"N"}, setting::fit::N),
