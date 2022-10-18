@@ -5,6 +5,9 @@
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
 
+#include <filesystem>
+#include <fstream>
+
 using std::string;
 
 int main(int argc, char const *argv[]) {
@@ -29,6 +32,44 @@ int main(int argc, char const *argv[]) {
     Dataset data({"dof", "chi2", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
         std::cout << "Starting iteration " << i+1 << " of " << evals << std::endl;
+
+        // load all files from previous runs
+        if (std::filesystem::exists(path + "fits/" + std::to_string(i) + ".txt")) {
+            std::cout << "\tFound existing fit" << std::endl;
+            std::fstream file(path + "fits/" + std::to_string(i) + ".txt");
+            std::string line;
+
+            // skip the headers
+            for (unsigned int j = 0; j < 5; j++) {
+                std::getline(file, line);
+            }
+            auto tokens = utility::split(line, "| ");
+            double chi2 = std::stod(tokens[1]);
+            double dof = std::stod(tokens[3]);
+
+            // skip stuff until we get to the parameters
+            for (unsigned int j = 0; j < 3; j++) {
+                std::getline(file, line);
+            }
+
+            // read the cutoff
+            double cutoff = -1;
+            for (unsigned int j = 0; j < 3; j++) {
+                tokens = utility::split(line, "| ");            
+                if (tokens[0] == "cutoff") {
+                    cutoff = std::stod(tokens[1]);
+                    break;
+                }
+            }
+
+            if (cutoff == -1) {
+                throw except::io_error("main: Could not find cutoff");
+            }
+            data.push_back({dof, chi2, cutoff});
+            std::cout << "\tSuccessfully read existing fit" << std::endl;
+            continue;
+        }
+
         // generate a pdb file from the map at some cutoff
         auto protein = map.get_protein(map.level(3));
 
