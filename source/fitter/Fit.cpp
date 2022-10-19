@@ -6,8 +6,7 @@
 #include <sstream>
 
 Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(res, chi2, 0) {
-    dof = fitter.dof() - res.dim();
-
+    dof = fitter.dof();
     add_fit(fitter);
     add_plots(fitter);
 }

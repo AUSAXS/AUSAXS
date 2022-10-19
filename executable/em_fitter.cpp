@@ -24,6 +24,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
     app.add_option("--qlow", setting::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
+    app.add_option("--frequency", setting::em::sample_frequency, "Sampling frequency of the EM map.");
     CLI11_PARSE(app, argc, argv);
 
     // if a settings file was provided
@@ -47,10 +48,9 @@ int main(int argc, char const *argv[]) {
     FitReporter::report(res);
     FitReporter::save(setting::plot::path + "report.txt", res);
 
+    res->figures.data.save(setting::plot::path + utility::stem(mfile) + ".dat");
+    res->figures.intensity_interpolated.save(setting::plot::path + "fit.fit");
     plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "intensity_fit.pdf");
     plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals.pdf");
-
-    // auto scan = map.cutoff_scan(100, mfile);
-    // plots::PlotDataset::quick_plot(scan, path + "scan.pdf");
     return 0;
 }

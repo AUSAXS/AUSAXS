@@ -127,6 +127,11 @@ class Dataset : public Matrix<double> {
          */
         Dataset rolling_average(unsigned int window) const;
 
+        /**
+         * @brief Append another dataset to this one.
+         */
+        void append(const Dataset& other);
+
     //*#####################*//
     //*### Alias methods ###*//
     //*#####################*//

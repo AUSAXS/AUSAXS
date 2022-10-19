@@ -1,10 +1,7 @@
 # Todo
- * [x] CubicSpline: Fix memory error, convert to dataset member function, test it
- * [x] RollingAverager: Fix edge averages; convert to dataset member function, test it
+ * [ ] EMFitter: Check correct dof is returned always (both for hydration enabled & without)
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
- * [x] Least squares: Consider removing the offset parameter? Other programs doesn't use it, and it seems superfluous. 
- * [x] MinimumExplorer: Fails if started in an area with no voxels
- * [ ] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash. UPDATE: maybe fixed now?
+ * [x] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash. UPDATE: maybe fixed now?
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
  * [ ] ResidueParser: Consider creating 1 parsed file per residue and then dynamically loading only those that are needed for the current file. 
@@ -28,8 +25,6 @@
  	eval "$(/home/au561871/tools/eman2/bin/conda shell.bash hook)"
 	python3 ~/tools/eman2/bin/e2pdb2mrc.py
 	
- * [x] Fitter can be optimized. Current implementation spends too much time on the lower half of the chi2 curve, where there's no oscillations. 
-
 ## Compiler flags:
  * fno-finite-math-only: Can probably be removed, not sure of performance benefits. Note that its removal would specifically break limit handling of plots where std::isinf checks are used. 
 

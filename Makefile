@@ -7,11 +7,28 @@ cmake_threads := 6
 source := $(addprefix source/, $(shell find source/ -printf "%P "))
 include := $(addprefix include/, $(shell find include/ -printf "%P "))
 
-#################################################################################
-###				EXECUTABLES					 ###
-#################################################################################
 .SECONDARY:
+#################################################################################
+###				PYTHON PLOTS					 ###
+#################################################################################
 
+# Plot a SAXS dataset along with any accompanying fits
+plot_fits/%: scripts/plot_dataset.py
+	@ measurement=$(shell find figures/intensity_fitter/ -name "$*.dat"); \
+	python3 $< $${measurement}
+
+plot_em/%: scripts/plot_intensityfit.py
+	@ measurement=$$(find figures/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
+	for f in $${measurement}; do\
+		folder=$$(dirname $${f}); \
+		fit=$${folder}/fit.fit; \
+		python3 $< $${f} $${fit} 5; \
+	done
+
+#################################################################################
+###				UTILITY					 ###
+#################################################################################
+# compile & show the docs
 docs: 
 	@ make -C build doc
 	firefox build/docs/html/index.html 
@@ -20,57 +37,58 @@ docs:
 gui: build/source/gui/gui
 	build/gui
 
+# show the coverage of a single test. requires code to be compiled with the --coverage option.
 coverage/%: test/%
 	@ mkdir -p temp/coverage/
 	@ rm temp/coverage/*
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 
+# show the coverage of all tests. requires code to be compiled with the --coverage option.
 coverage: tests
 	@ mkdir -p temp/coverage/
 	@ rm temp/coverage/*
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 
-gwidth := 1
-bwidth := 1
-ra := 2.4
-rh := 1.5
-ps := Radial
+#################################################################################
+###				EXECUTABLES					 ###
+#################################################################################
+
+# all targets passes the options string to the executable
+options :=
+
+# hydrate a structure and show it in pymol
 hydrate/%: build/executable/new_hydration
 	@ structure=$(shell find data/ -name "$*.pdb"); \
-	$< $${structure} output/$*.pdb --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --placement_strategy ${ps}
+	$< $${structure} output/$*.pdb --grid_width ${options}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
+# show a structure in pymol
 view/%: 
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$(pymol) $${structure}
 
 res := 10
+# show a simulated structure in pymol
 simview/%:
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	emmap=$(shell find sim/ -name "$*_$(res).mrc" -or -name "$*_$(res).ccp4"); \
 	$(pymol) $${structure} $${emmap} -d "isomesh normal, $*_$(res), 1"
 
+# calculate the histogram for a given structure
 hist/%: build/executable/hist
 	@structure=$(shell find data/ -name "$*.pdb"); \
-	$< $${structure} figures/ --grid_width ${gwidth} --radius_a ${ra} --radius_h ${rh} --bin_width ${bwidth} --placement_strategy ${ps}
+	$< $${structure} figures/ --grid_width ${options}
 
+# flip the axes of an EM map
 order := ""
 rotate/%: build/executable/rotate_map
 	$< data/$* ${order}
 
+# main executable. primarily used for debugging purposes
 main/%: build/executable/main
 	$< $*
-
-# Plot a SAXS dataset along with any accompanying fits
-#plot/%: build/executable/plot
-#	@ measurement=$(shell find figures/ -name "$*.dat"); \
-#	$< $${measurement}
-plot/%: scripts/plot_dataset.py
-	@ measurement=$(shell find figures/ -name "$*.dat"); \
-	python3 $< $${measurement}
-	
 
 # Inspect the header of an EM map
 inspect/%: build/executable/inspect_map
@@ -93,6 +111,7 @@ em_fitter/%: build/executable/em_fitter
 		echo "Fitting " $${emmap} " ...";\
 		sleep 1;\
 		$< $${emmap} $${measurement};\
+		make plot_em/$*;\
 	done
 
 # Fit both an EM map and a PDB file to a SAXS measurement. 
@@ -113,7 +132,7 @@ rigidbody/%: build/executable/rigidbody
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} figures/
 
-options :=
+# perform a fit with crysol
 crysol/%: 
 	@ mkdir -p temp/crysol/
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
@@ -122,12 +141,14 @@ crysol/%:
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
 	@ mv temp/crysol/out.fit figures/intensity_fitter/$*/crysol.fit
 
+# perform a fit with pepsi-saxs
 pepsi/%:
 	@ mkdir -p temp/pepsi/
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/out.fit"
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit"
+	@ mv temp/pepsi/pepsi.fit figures/intensity_fitter/$*/pepsi.fit
 	
 
 # Perform a fit of a structure file to a measurement. 

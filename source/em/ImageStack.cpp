@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <fstream>
+#include <filesystem>
 
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
@@ -15,9 +16,8 @@
 #include <minimizer/Scan.h>
 #include <minimizer/ROOTMinimizer.h>
 #include <minimizer/MinimumExplorer.h>
+#include <minimizer/LimitedScan.h>
 #include <math/Statistics.h>
-
-#include <filesystem>
 
 using namespace em;
 
@@ -116,17 +116,19 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter 
     return fit_helper(fitter, param);
 }
 
-#include <minimizer/LimitedScan.h>
 std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
+    auto f = prepare_function(fitter);
+    Dataset2D evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
 
     //**********************************************************//
     //***                DETERMINE LANDSCAPE                 ***//
     //**********************************************************//
-    mini::LimitedScan minimizer(prepare_function(fitter), param, setting::em::evals);
+    mini::LimitedScan minimizer(f, param, setting::em::evals);
     minimizer.set_limit(fitter->dof()*50);
     Dataset2D l = minimizer.landscape(setting::em::evals);
+    evals.append(l);
     l.sort_x();
     auto min = l.find_minimum();
 
@@ -146,8 +148,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
         // prepare a new minimizer with the new bounds
         std::cout << "Function is varying strongly. Sampling more points around the minimum." << std::endl;
-        mini::LimitedScan mini2(prepare_function(fitter), mini::Parameter("cutoff", bounds), setting::em::evals/4);
+        mini::LimitedScan mini2(f, mini::Parameter("cutoff", bounds), setting::em::evals/4);
         l = mini2.landscape(setting::em::evals/2);
+        evals.append(l);
         l.sort_x();
         min = l.find_minimum();
         l.limit_y(0, min.y*5);
@@ -192,8 +195,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     mini::Result res;
     if (setting::em::hydrate) {
         // sample the area around the minimum
-        mini::MinimumExplorer explorer(prepare_function(fitter), param, 50);
+        mini::MinimumExplorer explorer(f, param, 50);
         res = explorer.minimize();
+        evals.append(explorer.get_evaluated_points());
 
         if (setting::plot::em::plot_cutoff_points) {
             auto area = explorer.get_evaluated_points();
@@ -201,7 +205,6 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
             double sigma = area.std();
-            std::cout << "sigma: " << sigma << std::endl;
 
             // plot horizontal lines at the mean and mean +/- sigma
             auto xspan = area.span_x();
@@ -230,13 +233,20 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     
     // otherwise do a quick fit to ensure we're at the very bottom of the valley
     else {
-        mini::Golden golden(prepare_function(fitter), param);
+        mini::Golden golden(f, param);
         res = golden.minimize();
+        evals.append(golden.get_evaluated_points());
     }
 
+    // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
+    min = evals.find_minimum();
+    std::vector<double> opt = {min.x}; 
+    f(opt.data());
+
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
-    emfit->evaluated_points = minimizer.get_evaluated_points();
-    if (setting::em::save_pdb) {phm->get_protein()->save(setting::plot::path + "/model.pdb");}
+    emfit->evaluated_points = evals;
+    emfit->fevals = evals.size();
+    if (setting::em::save_pdb) {phm->get_protein()->save(setting::plot::path + "model.pdb");}
     return emfit;
 }
 
@@ -272,7 +282,7 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
             // p->remove_disconnected_atoms(); // remove disconnected atoms
 
             // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
-            std::dynamic_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 10}}); 
+            std::dynamic_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
             fit = fitter->fit();                                // do the fit

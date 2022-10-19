@@ -37,6 +37,9 @@ for f in files:
     elif "waxsis" in f:
         fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=0, usecols=[0, 1]))
         labels.append("WAXSiS")
+    elif "pepsi" in f:
+        fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=0, comments="#", usecols=[0, 3]))
+        labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$, Pepsi")
     else: 
         print(f"Unknown fit file: \"{f}\"")
 

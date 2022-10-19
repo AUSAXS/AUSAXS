@@ -243,3 +243,12 @@ void Dataset::interpolate(unsigned int n) {
     }
     *this = Dataset(std::move(interpolated));
 }
+
+void Dataset::append(const Dataset& other) {
+    if (M != other.M) {throw except::invalid_argument("Dataset::append: Number of columns does not match.");}
+    unsigned int n = size();
+    extend(other.size());
+    for (unsigned int i = 0; i < other.size(); i++) {
+        row(n+i) = other.row(i);
+    }
+}
