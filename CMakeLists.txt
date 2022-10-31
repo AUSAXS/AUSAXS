@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -lboost_program_options -Wall -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -lboost_program_options -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 
 project(SAXS VERSION 0.0)
@@ -20,7 +20,6 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
 )
 
-include(FetchContent)
 FetchContent_Declare(
   CLI11
   GIT_REPOSITORY https://github.com/CLIUtils/CLI11
@@ -28,7 +27,14 @@ FetchContent_Declare(
   GIT_PROGRESS TRUE
 )
 
-FetchContent_MakeAvailable(Catch2 CLI11)
+FetchContent_Declare(
+  dlib
+  GIT_REPOSITORY https://github.com/davisking/dlib
+  GIT_TAG v19.18
+  GIT_PROGRESS TRUE
+)
+
+FetchContent_MakeAvailable(Catch2 CLI11 dlib)
 
 
 ############################################
@@ -44,6 +50,7 @@ include_directories(${ROOT_INCLUDE_DIR})
 list(APPEND LIBRARIES ${ROOT_LIBRARIES})
 link_libraries(${LIBRARIES})
 link_libraries(CLI11::CLI11)
+link_libraries(dlib::dlib)
 
 find_package(CURL REQUIRED)
 link_libraries(CURL::libcurl)

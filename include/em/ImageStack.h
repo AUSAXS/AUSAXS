@@ -52,7 +52,7 @@ namespace em {
             /**
              * @brief Destructor.
              */
-            ~ImageStack();;
+            ~ImageStack();
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 

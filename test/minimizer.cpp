@@ -1,5 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <dlib/optimization.h>
+#include <dlib/global_optimization.h>
 
 #include <minimizer/MinimumExplorer.h>
 #include <minimizer/ROOTMinimizer.h>
@@ -161,4 +163,26 @@ TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
     SECTION("problem04") {ExplorerTest1D(problem04);}
     // SECTION("problem13") {ExplorerTest1D(problem13);}
     // SECTION("problem18") {ExplorerTest1D(problem18);}
+}
+
+typedef dlib::matrix<double,0,1> column_vector;
+TEST_CASE("dlib", "[minimizer]") {
+    SECTION("bfgs") {
+        auto dlibTest1D = [] (const TestFunction& test) {
+            auto wrapper = [&test] (const column_vector& x) {
+                return test.function(&x(0));
+            };
+
+            column_vector starting_point = {test.get_center()[0]};
+            column_vector bmin = {test.bounds[0].min};
+            column_vector bmax = {test.bounds[0].max};
+
+            dlib::find_min_box_constrained(dlib::bfgs_search_strategy(), dlib::objective_delta_stop_strategy(1e-7), wrapper, dlib::derivative(wrapper), starting_point, bmin, bmax);
+
+            CHECK_THAT(starting_point(0), Catch::Matchers::WithinAbs(test.min[0], 1e-3));
+        };
+        SECTION("problem04") {dlibTest1D(problem04);}
+        SECTION("problem13") {dlibTest1D(problem13);}
+        SECTION("problem18") {dlibTest1D(problem18);}
+    }
 }
