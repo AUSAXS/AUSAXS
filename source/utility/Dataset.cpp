@@ -252,3 +252,15 @@ void Dataset::append(const Dataset& other) {
         row(n+i) = other.row(i);
     }
 }
+
+#include <sstream>
+std::string Dataset::to_string() const {
+    std::stringstream ss;
+    for (unsigned int i = 0; i < size(); i++) {
+        for (unsigned int j = 0; j < M; j++) {
+            ss << std::setw(8) << std::setprecision(3) << std::scientific << index(i, j) << " ";
+        }
+        ss << "\n";
+    }
+    return ss.str();
+}

@@ -4,7 +4,7 @@
 #include <math/CubicSpline.h>
 #include <histogram/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
-#include <minimizer/ROOTMinimizer.h>
+#include <minimizer/dlibMinimizer.h>
 #include <minimizer/Golden.h>
 #include <minimizer/Scan.h>
 #include <plots/all.h>
@@ -19,7 +19,7 @@ IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const L
 
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-    mini::ROOTMinimizer mini("Minuit2", "Migrad", f, guess);
+    mini::dlibMinimizer mini(f, guess);
     auto res = mini.minimize();
 
     // mini::Scan mini(f, guess, 1000);

@@ -161,13 +161,6 @@ class SimpleIntensityFitter : public Fitter {
 		std::vector<double> splice(const std::vector<double>& ym) const;
 
 		/**
-		 * @brief Load a data file containing the observed I values. 
-		 * 
-		 * @param file The file to be read. 
-		 */
-		SimpleDataset read(std::string file) const;
-
-		/**
 		 * @brief Initialize this class based on a model histogram. 
 		 */
 		void model_setup(const hist::ScatteringHistogram& model, const Limit& limits);

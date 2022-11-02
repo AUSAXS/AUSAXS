@@ -1,7 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 #include <fitter/SimpleIntensityFitter.h>
 #include <math/CubicSpline.h>
@@ -9,10 +7,6 @@
 #include <utility/Settings.h>
 #include <histogram/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
-
-#include <Math/Minimizer.h>
-#include <Math/Factory.h>
-#include <Math/Functor.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
@@ -136,44 +130,6 @@ vector<double> SimpleIntensityFitter::splice(const vector<double>& ym) const {
         Im[i] = s.spline(data.x(i));
     }
     return Im;
-}
-
-SimpleDataset SimpleIntensityFitter::read(string file) const {
-    // check if file was succesfully opened
-    std::ifstream input(file);
-    if (!input.is_open()) {throw std::ios_base::failure("Error in IntensityFitter::read: Could not open file \"" + file + "\"");}
-
-    SimpleDataset temp;
-    string line; // placeholder for the current line
-    while(getline(input, line)) {
-        if (line[0] == ' ') {line = line.substr(1);} // fix leading space
-        vector<string> tokens;
-        boost::split(tokens, line, boost::is_any_of(" ,\t")); // spaces, commas, and tabs can all be used as separators (but not a mix of them)
-
-        // determine if we are in some sort of header
-        if (tokens.size() < 3 || tokens.size() > 4) {continue;} // too many separators
-        bool skip = false;
-        for (int i = 0; i < 3; i++) { // check if they are numbers
-            if (!tokens[i].empty() && tokens[i].find_first_not_of("0123456789-.Ee") != string::npos) {skip = true;}
-        }
-        if (skip) {continue;}
-
-        // now we are most likely beyond any headers
-        double _q, _I, _sigma;
-        _q = std::stod(tokens[0]); // we know for sure that the strings are convertible to numbers (boost check)
-        _I = std::stod(tokens[1]);
-        _sigma = std::stod(tokens[2]);
-
-        if (_q > 10) {continue;} // probably not a q-value if it's larger than 10
-
-        // check user-defined limits
-        if (_q < setting::axes::qmin) {continue;}
-        if (_q > setting::axes::qmax) {continue;}
-
-        // add the values to our vectors
-        temp.push_back(_q, _I, _sigma);
-    }
-    return temp;
 }
 
 unsigned int SimpleIntensityFitter::degrees_of_freedom() const {

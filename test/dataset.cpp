@@ -184,6 +184,14 @@ TEST_CASE("dataset_xlimits", "[dataset]") {
     }
 }
 
+TEST_CASE("dataset_plots", "[dataset]") {
+    std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
+    SimpleDataset data(x, y);
+
+    plots::PlotDataset::quick_plot(data, "test.plot");
+}
+
 TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
     setting::general::verbose = false;
     SimpleDataset data("data/SHOC2/SHOC2.dat");

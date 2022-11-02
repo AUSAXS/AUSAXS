@@ -4,7 +4,6 @@
 #include <dlib/global_optimization.h>
 
 #include <minimizer/MinimumExplorer.h>
-#include <minimizer/ROOTMinimizer.h>
 #include <minimizer/dlibMinimizer.h>
 #include <minimizer/Scan.h>
 #include <minimizer/Golden.h>
@@ -111,31 +110,9 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
     SECTION("problem18 rough") {ScanTest1DRough(problem18);}
 }
 
-TEST_CASE("root_minimizer", "[minimizer],[broken]") {
-    auto ROOTTest1D = [] (const TestFunction& test) {
-        mini::ROOTMinimizer mini("Minuit2", "migrad", test.function, {"a", test.bounds[0]});
-        auto res = mini.minimize();
-        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-    };
-    auto ROOTTest2D = [] (const TestFunction& test, std::vector<double> guess) {
-        std::vector<mini::Parameter> params = {{"x1", guess[0], test.bounds[0]}, {"x2", guess[1], test.bounds[1]}};
-        mini::ROOTMinimizer mini("GSLSimAn", "migrad", test.function, params);
-        auto res = mini.minimize();
-        CHECK_THAT(res.get_parameter("x1").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-        CHECK_THAT(res.get_parameter("x2").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
-    };
-
-    SECTION("problem04") {ROOTTest1D(problem04);}
-    SECTION("problem13") {ROOTTest1D(problem13);}
-    SECTION("problem18") {ROOTTest1D(problem18);}
-    SECTION("Decanomial") {ROOTTest2D(Decanomial, Decanomial.get_center());}
-    SECTION("Hosaki") {ROOTTest2D(Hosaki, Hosaki.get_center());}
-    SECTION("RosenbrockModified") {ROOTTest2D(RosenbrockModified, RosenbrockModified.get_center());}
-}
-
 TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
     auto ExplorerTest1D = [] (const TestFunction& test) {
-        mini::ROOTMinimizer mini1("Minuit2", "migrad", test.function, {"a", test.bounds[0]});
+        mini::dlibMinimizer mini1(test.function, {"a", test.bounds[0]});
         auto res = mini1.minimize();
 
         mini::Parameter p = res.get_parameter("a");

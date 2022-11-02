@@ -19,3 +19,4 @@ valgrind.txt
 *.ccp4
 *.mrc
 *.cif
+**/__pycache__

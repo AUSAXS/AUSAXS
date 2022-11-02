@@ -132,6 +132,8 @@ class Dataset : public Matrix<double> {
          */
         void append(const Dataset& other);
 
+        std::string to_string() const;
+
     //*#####################*//
     //*### Alias methods ###*//
     //*#####################*//

@@ -41,6 +41,8 @@ namespace plots {
 
             PlotOptions& operator=(const PlotOptions& opt);
 
+            std::string to_string() const;
+
             // remember to add new options to the equality operator overload
             int color = 1;                  // Color. Default is kBlack = 1
             double alpha = 1;               // Opacity

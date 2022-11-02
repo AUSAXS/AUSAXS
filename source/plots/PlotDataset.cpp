@@ -46,10 +46,24 @@ void plots::PlotDataset::save(std::string path) const {
     canvas->SaveAs(path.c_str());
 }
 
+// template<typename T>
+// void plots::PlotDataset::quick_plot(const T& data, std::string path) {
+//     plots::PlotDataset plot(data);
+//     plot.save(path);
+// }
+
+#include <fstream>
 template<typename T>
 void plots::PlotDataset::quick_plot(const T& data, std::string path) {
-    plots::PlotDataset plot(data);
-    plot.save(path);
+    std::ofstream file(path);
+    if (!file.is_open()) {throw except::io_error("PlotDataset::quick_plot: Could not open file " + path + " for writing!");}
+
+    file << "PlotDataset\n" 
+        << data.to_string() 
+        << "\n"
+        << data.get_plot_options().to_string() 
+        << std::endl;
+    file.close();
 }
 
 void plots::PlotDataset::prepare_canvas() {

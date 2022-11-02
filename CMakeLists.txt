@@ -33,7 +33,7 @@ FetchContent_Declare(
   GIT_TAG v19.18
   GIT_PROGRESS TRUE
 )
-set(DLIB_DISABLE_ASSERTS true)
+set(DLIB_ENABLE_ASSERTS false)
 
 FetchContent_MakeAvailable(Catch2 CLI11 dlib)
 

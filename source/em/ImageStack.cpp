@@ -12,11 +12,7 @@
 #include <plots/all.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
-#include <minimizer/Golden.h>
-#include <minimizer/Scan.h>
-#include <minimizer/ROOTMinimizer.h>
-#include <minimizer/MinimumExplorer.h>
-#include <minimizer/LimitedScan.h>
+#include <minimizer/all.h>
 #include <math/Statistics.h>
 
 using namespace em;
