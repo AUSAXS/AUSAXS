@@ -219,7 +219,7 @@ double Atom::get_mass() const {
         }
         return constants::mass::atomic.get(element);
     }
-};
+}
 
 unsigned int Atom::Z() const {
     if (__builtin_expect(element == "", false)) {

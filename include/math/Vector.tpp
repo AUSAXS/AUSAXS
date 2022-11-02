@@ -83,7 +83,7 @@ template<typename T>
 double Vector<T>::magnitude() const {return norm();}
 
 template<typename T> template<typename Q>
-double Vector<T>::distance(const Vector<Q>& v) const {return sqrt(distance2(v));};
+double Vector<T>::distance(const Vector<Q>& v) const {return sqrt(distance2(v));}
 
 template<typename T> template<typename Q>
 double Vector<T>::distance2(const Vector<Q>& v) const {
@@ -127,7 +127,7 @@ template<typename T>
 void Vector<T>::push_back(T val) {data.push_back(val); N++;}
 
 template<typename T>
-size_t Vector<T>::size() const {return N;};
+size_t Vector<T>::size() const {return N;}
 
 template<typename T>
 size_t Vector<T>::dim() const {return size();}

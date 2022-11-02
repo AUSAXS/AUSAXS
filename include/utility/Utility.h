@@ -120,7 +120,7 @@ namespace utility {
         };
 
         std::ostream& operator<<(std::ostream& os, const __dummy& obj);
-    };
+    }
 
     detail::__dummy fixedwidth(double number, unsigned int width);
 }

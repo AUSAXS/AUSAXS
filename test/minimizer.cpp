@@ -5,6 +5,7 @@
 
 #include <minimizer/MinimumExplorer.h>
 #include <minimizer/ROOTMinimizer.h>
+#include <minimizer/dlibMinimizer.h>
 #include <minimizer/Scan.h>
 #include <minimizer/Golden.h>
 #include <plots/all.h>
@@ -185,4 +186,15 @@ TEST_CASE("dlib", "[minimizer]") {
         SECTION("problem13") {dlibTest1D(problem13);}
         SECTION("problem18") {dlibTest1D(problem18);}
     }
+}
+
+TEST_CASE("dlib_interface", "[minimizer]") {
+    auto dlibTest1D = [] (const TestFunction& test) {
+        mini::dlibMinimizer mini(test.function, {"a", test.bounds[0]});
+        auto res = mini.minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+    };
+    SECTION("problem04") {dlibTest1D(problem04);}
+    SECTION("problem13") {dlibTest1D(problem13);}
+    SECTION("problem18") {dlibTest1D(problem18);}
 }

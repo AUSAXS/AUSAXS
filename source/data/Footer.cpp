@@ -19,7 +19,7 @@ void Footer::remove(std::string type) {
     contents = std::move(new_contents);
 }
 
-std::string Footer::get() const {return utility::join(contents, "\n") + (size() == 0 ? "" : "\n");};
+std::string Footer::get() const {return utility::join(contents, "\n") + (size() == 0 ? "" : "\n");}
 
 Footer& Footer::operator=(const Footer& footer) {
     contents = footer.contents;

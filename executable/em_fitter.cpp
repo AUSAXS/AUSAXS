@@ -11,7 +11,6 @@ using std::string;
 
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
     setting::em::hydrate = true;
     setting::fit::verbose = false;
 
@@ -34,6 +33,8 @@ int main(int argc, char const *argv[]) {
     } else {                            // otherwise check if there is a settings file in the same directory
         setting::discover(std::filesystem::path(mfile).parent_path().string());
     }
+
+    std::cout << setting::em::sample_frequency << std::endl;
 
     if (output.empty()) {
         output = "figures/";

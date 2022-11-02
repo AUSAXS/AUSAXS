@@ -8,7 +8,7 @@ std::string Header::as_pdb() const {return get();}
 
 void Header::add(const std::string s) {contents.push_back(s);}
 
-std::string Header::get() const {return utility::join(contents, "\n") + (size() == 0 ? "" : "\n");};
+std::string Header::get() const {return utility::join(contents, "\n") + (size() == 0 ? "" : "\n");}
 
 void Header::remove(std::string type) {
     std::vector<std::string> new_contents;

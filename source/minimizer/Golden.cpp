@@ -65,7 +65,7 @@ Limit Golden::search(Limit bounds) const {
 }
 
 Dataset2D Golden::landscape(unsigned int evals) {
-    if (parameters.empty()) {throw except::bad_order("Error in Golden::landscape: No parameters were supplied.");}
+    if (parameters.empty()) {throw except::bad_order("Golden::landscape: No parameters were supplied.");}
     std::vector<double> x, y;
 
     auto bounds = parameters[0].bounds.value();
@@ -83,7 +83,7 @@ Dataset2D Golden::landscape(unsigned int evals) {
 }
 
 Dataset2D Golden::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("Error in Golden::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
+    if (evaluations.empty()) {throw except::bad_order("Golden::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
 
     unsigned int N = evaluations.size();
     std::vector<double> x(N), y(N);
@@ -101,8 +101,8 @@ Result Golden::minimize_override() {
 }
 
 void Golden::add_parameter(const Parameter& param) {
-    if (!param.has_bounds()) {throw except::invalid_argument("Error in Golden::add_parameter: The parameter must be supplied with limits for this minimizer.");}
-    if (!parameters.empty()) {throw except::invalid_operation("Error in Golden::add_parameter: This minimizer only supports 1D problems.");}
+    if (!param.has_bounds()) {throw except::invalid_argument("Golden::add_parameter: The parameter must be supplied with limits for this minimizer.");}
+    if (!parameters.empty()) {throw except::invalid_operation("Golden::add_parameter: This minimizer only supports 1D problems.");}
     if (param.has_guess()) {utility::print_warning("Warning in Golden::add_parameter: Guess value will be ignored.");}
     parameters.push_back(param);
 }
