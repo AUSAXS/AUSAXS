@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <sstream>
 
 namespace plots {
 	class PlotDataset : public Plot {
@@ -32,13 +33,6 @@ namespace plots {
 			template<typename T> 
 			void plot(const T& data);
 
-            /**
-             * @brief Save this image at the given location in the specified format. 
-             * 
-             * @param path The path & format of the image. 
-             */
-			void save(std::string path) const override;
-
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
@@ -47,11 +41,6 @@ namespace plots {
 			static void quick_plot(const T& data, std::string path);
 
 		private:
-			std::shared_ptr<TCanvas> canvas;
-
-			template<typename T>
-			void initial_plot(const T& data);
-
-			void prepare_canvas();
+			std::stringstream ss;
 		};
 }

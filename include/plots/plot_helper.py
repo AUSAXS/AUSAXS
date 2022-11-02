@@ -34,9 +34,6 @@ class Options:
         self.xlog = False
         self.ylog = False
 
-        # plot on top of previous plot
-        self.same = False
-
     def parse_option(self, line):
         words = line.split()
         if len(words) < 2:

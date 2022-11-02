@@ -4,8 +4,6 @@
 #include <string>
 #include <utility>
 
-#include <TH1D.h>
-
 #include <histogram/Histogram.h>
 #include <histogram/DebyeLookupTable.h>
 #include <utility/SimpleDataset.h>
@@ -51,21 +49,21 @@ namespace hist {
 			 * 
 			 * @return A vector of histograms of the form (atom-atom hist, water-water hist, atom-water hist, total hist))
 			 */
-			std::vector<std::shared_ptr<TH1D>> plot_distance() const;
+			std::vector<Histogram> plot_distance() const;
 
 			/**
 			 * @brief Prepare a plot of the Debye scattering intensities.
 			 * 
 			 * @return A histogram of the scattering intensity. 
 			 */
-			std::unique_ptr<TH1D> plot_debye_scattering() const;
+			Histogram plot_debye_scattering() const;
 
 			/**
 			 * @brief Prepare a plot of the Guinier gyration ratio. 
 			 * 
 			 * @return A histogram with logarithmic base-10 y-axis. 
 			 */
-			std::unique_ptr<TH1D> plot_guinier_approx() const;
+			Histogram plot_guinier_approx() const;
 
 			/**
 			 * @brief Calculate the squared Guinier gyration ratio. 
@@ -98,8 +96,8 @@ namespace hist {
 			 */
 			ScatteringHistogram& operator=(ScatteringHistogram&& h);
 
-			std::vector<double> p_pp, p_hh, p_hp; // binned distances
-			std::vector<double> d; // The distance corresponding to each bin.
+			Histogram p_pp, p_hh, p_hp; // binned distances
+			std::vector<double> d; // The physical distance corresponding to each bin.
 			std::vector<double> q; // The q values used as the x-axis.
 
 		private:

@@ -10,7 +10,7 @@ namespace hist {
      * 
      * A representation of a histogram. 
      */
-    class Histogram {
+    class Histogram : public plots::PlotOptionWrapper {
         public:
             /**
              * @brief Default constructor.
@@ -46,15 +46,10 @@ namespace hist {
              */
             Histogram(const Axis& axis) noexcept;
 
-            /**
-             * @brief Add another Histogram to this one.
-             */
-            Histogram& operator+=(const Histogram& rhs) noexcept;
-
-            /**
-             * @brief Subtract another Histogram from this one.
-             */
-            Histogram& operator-=(const Histogram& rhs) noexcept;
+            Histogram& operator+=(const Histogram& rhs);
+            Histogram& operator-=(const Histogram& rhs);
+            double& operator[](const int i);
+            double operator[](const int i) const;
 
             /**
              * @brief Reduce the view axis to show only the non-zero area. 
@@ -88,34 +83,7 @@ namespace hist {
              */
             [[nodiscard]] size_t size() const noexcept;
 
-            /**
-             * @brief Overwrite the plot options for this Histogram.
-             */
-            void set_plot_options(const plots::PlotOptions& options);
-
-            /**
-             * @brief Change the plot options for this Histogram.
-             */
-            void add_plot_options(const std::map<std::string, std::any>& options);
-
-            /**
-             * @brief Change the plot options for this Histogram.
-             * 
-             * @param style The plotting style. Should be one of the accepted variations of "markers" or "line". 
-             * @param options The other plot options.
-             */
-            void add_plot_options(std::string style, std::map<std::string, std::any> options = {});
-
-            /**
-             * @brief Change the plot options for this dataset.
-             * 
-             * @param color The color.
-             * @param options The other plot options.
-             */
-            void add_plot_options(int color, std::map<std::string, std::any> options = {});
-
             Vector<double> p;                // The bin values. 
             Axis axis;                       // The axis spanned by this histogram. 
-            plots::PlotOptions plot_options; // The plot options used to draw this Histogram.
     };
 }

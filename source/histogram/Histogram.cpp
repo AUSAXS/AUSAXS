@@ -10,14 +10,22 @@ Histogram::Histogram(const Vector<double>& p, const Axis& axis) noexcept : p(p),
 
 Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
 
-Histogram& Histogram::operator+=(const Histogram& rhs) noexcept {
+Histogram& Histogram::operator+=(const Histogram& rhs) {
     p += rhs.p;
     return *this;
 }
 
-Histogram& Histogram::operator-=(const Histogram& rhs) noexcept {
+Histogram& Histogram::operator-=(const Histogram& rhs) {
     p -= rhs.p;
     return *this;
+}
+
+double& Histogram::operator[](const int i) {
+    return p[i];
+}
+
+double Histogram::operator[](const int i) const {
+    return p[i];
 }
 
 void Histogram::shorten_axis() {
@@ -68,11 +76,3 @@ Limit Histogram::span_positive() const noexcept {
 }
 
 size_t Histogram::size() const noexcept {return p.size();}
-
-void Histogram::set_plot_options(const plots::PlotOptions& options) {plot_options = options;}
-
-void Histogram::add_plot_options(const std::map<std::string, std::any>& options) {plot_options.set(options);}
-
-void Histogram::add_plot_options(std::string style, std::map<std::string, std::any> options) {plot_options.set(style, options);}
-
-void Histogram::add_plot_options(int color, std::map<std::string, std::any> options) {plot_options.set(color, options);}

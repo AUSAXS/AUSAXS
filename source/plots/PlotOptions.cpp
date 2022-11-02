@@ -5,16 +5,12 @@
 #include <typeindex>
 #include <initializer_list>
 
-#include <TGraphErrors.h>
-
 using namespace plots;
 using std::string;
 
 double inf = std::numeric_limits<double>::infinity();
 
 PlotOptions::PlotOptions() : draw_line(true) {}
-
-PlotOptions::PlotOptions(int color) : color(color), draw_line(true) {}
 
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
@@ -33,12 +29,6 @@ PlotOptions& PlotOptions::set(string style, std::map<string, std::any> options) 
 
 PlotOptions& PlotOptions::set(std::map<string, std::any> options) {
     std::for_each(options.begin(), options.end(), [this] (const auto& opt) {parse(opt.first, opt.second);});
-    return *this;
-}
-
-PlotOptions& PlotOptions::set(int color, std::map<std::string, std::any> options) {
-    parse("color", color);
-    set(options);
     return *this;
 }
 
@@ -103,10 +93,6 @@ template<>
 void PlotOptions::SmartOption<int>::parse(const std::any val) {
     if (std::type_index{typeid(int)} == val.type()) {
         value = std::any_cast<int>(val);
-    } else if (std::type_index{typeid(EColor)} == val.type()) {
-        value = std::any_cast<EColor>(val);
-    } else if (std::type_index{typeid(ELineStyle)} == val.type()) {
-        value = std::any_cast<ELineStyle>(val);
     } else {
         throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
@@ -172,7 +158,6 @@ std::string PlotOptions::to_string() const {
     ss << "    draw_line "      << draw_line << std::endl;
     ss << "    draw_errors "    << draw_errors << std::endl;
     ss << "    draw_markers "   << draw_markers << std::endl;
-    ss << "    same "           << use_existing_axes << std::endl;
     ss << "    logx "           << logx << std::endl;
     ss << "    logy "           << logy << std::endl;
     ss << "    title "          << title << std::endl;
@@ -185,12 +170,10 @@ std::string PlotOptions::to_string() const {
 
 void PlotOptionWrapper::set_plot_options(const plots::PlotOptions& options) {this->options = options;}
 
-void PlotOptionWrapper::add_plot_options(const std::map<std::string, std::any>& options) {this->options.set(options);}
+void PlotOptionWrapper::add_plot_options(std::map<std::string, std::any>& options) {this->options.set(options);}
 
 void PlotOptionWrapper::add_plot_options(std::string style, std::map<std::string, std::any> options) {this->options.set(style, options);}
 
-void PlotOptionWrapper::add_plot_options(int color, std::map<std::string, std::any> options) {this->options.set(color, options);}
-
-void PlotOptionWrapper::set_plot_color(int color) {this->options.color = color;}
+void PlotOptionWrapper::set_plot_color(std::string color) {this->options.color = color;}
 
 plots::PlotOptions PlotOptionWrapper::get_plot_options() const {return options;}

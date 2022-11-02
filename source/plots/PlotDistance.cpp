@@ -7,54 +7,45 @@
 #include <string.h>
 #include <vector>
 
-#include <TLegend.h>
-#include <TH1D.h>
-#include <TCanvas.h>
-
 using std::unique_ptr, std::string;
 
 plots::PlotDistance::~PlotDistance() = default;
 
-void plots::PlotDistance::save(string path) const {
-    utility::create_directory(path);
-
-    unique_ptr<TCanvas> canvas = std::make_unique<TCanvas>(utility::uid("canvas").c_str(), "canvas", 600, 600);
-    auto hists = d.plot_distance();
-    
-    // use some nicer colors
-    hists[0]->SetLineColor(kOrange+1);
-    hists[1]->SetLineColor(kAzure+1);
-    hists[2]->SetLineColor(kGreen+1);
-    hists[3]->SetLineColor(kBlack);
-
-    // titles
-    hists[3]->GetXaxis()->SetTitle("Distance [#AA]");
-    hists[3]->GetXaxis()->CenterTitle();
-    hists[3]->GetYaxis()->SetTitle("Count");
-    hists[3]->GetYaxis()->CenterTitle();
-    // hists[3]->GetYaxis()->SetTitleOffset();
-
-    // draw the histograms on the canvas
-    hists[3]->Draw("HIST L");
-    hists[0]->Draw("SAME HIST L");
-    hists[1]->Draw("SAME HIST L");
-    hists[2]->Draw("SAME HIST L");
-
-    // create a legend
-    unique_ptr<TLegend> legend = std::make_unique<TLegend>(0.6, 0.65, 0.9, 0.9);
-    legend->AddEntry("h_tot", "Total", "l");
-    legend->AddEntry("h_pp", "Atom-atom", "l");
-    legend->AddEntry("h_hh", "Water-water", "l");
-    legend->AddEntry("h_hp", "Atom-water", "l");
-    legend->SetTextSize(0.04);
-    legend->Draw();
-
-    // setup the canvas and save the plot
-    canvas->SetLeftMargin(0.15);
-    canvas->SaveAs(path.c_str());
+plots::PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, std::string path) {
+    plot(d);
+    save(path);
 }
 
-void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& h, std::string path) {
-    plots::PlotDistance p(h);
-    p.save(path);
+void plots::PlotDistance::plot(const hist::ScatteringHistogram& d) {
+    PlotOptions options;
+    options.xlabel = "Distance [Å]";
+    options.ylabel = "Count";
+
+    SimpleDataset p(d.p.data, d.q);
+    SimpleDataset pp(d.p_pp.p.data, d.q);
+    SimpleDataset ph(d.p_hp.p.data, d.q);
+    SimpleDataset hh(d.p_hh.p.data, d.q);
+
+    p.set_plot_options({{"color", "k"}, {"label", "total"}});
+    pp.set_plot_options({{"color", "tab:orange"}, {"label", "atom-atom"}});
+    ph.set_plot_options({{"color", "tab:green"}, {"label", "atom-water"}});
+    hh.set_plot_options({{"color", "tab:blue"}, {"label", "water-water"}});
+
+    ss << "PlotDistance\np\n"
+        << p.to_string()
+        << "\n"
+        << p.get_plot_options().to_string()
+        << "\npp\n"
+        << pp.to_string()
+        << "\n"
+        << pp.get_plot_options().to_string()
+        << "\nph\n"
+        << ph.to_string()
+        << "\n"
+        << ph.get_plot_options().to_string()
+        << "\nhh\n"
+        << hh.to_string()
+        << "\n"
+        << hh.get_plot_options().to_string()
+        << std::endl;
 }

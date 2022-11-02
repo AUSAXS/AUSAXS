@@ -18,8 +18,6 @@ namespace plots {
         public:
             PlotOptions();
 
-            PlotOptions(int color);
-
             /**
              * @brief Create a new set of plot settings. 
              * 
@@ -37,17 +35,17 @@ namespace plots {
 
             PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
 
-            PlotOptions& set(int color, std::map<std::string, std::any> options = {});
+            PlotOptions& set(std::map<std::string, std::any> options = {});
 
             PlotOptions& operator=(const PlotOptions& opt);
 
             std::string to_string() const;
 
             // remember to add new options to the equality operator overload
-            int color = 1;                  // Color. Default is kBlack = 1
+            std::string color = "k";        // Color. Default is black.
             double alpha = 1;               // Opacity
-            int marker_style = 8;           // Marker style
-            int line_style = 1;             // Line style
+            std::string marker_style = "."; // Marker style
+            std::string line_style = "-";   // Line style
             unsigned int line_width = 1;    // Line width
             double marker_size = 0.5;       // Marker size
             bool draw_line = true;          // Draw a line through the points
@@ -139,7 +137,7 @@ namespace plots {
             /**
              * @brief Add plot options for this dataset.
              */
-            void add_plot_options(const std::map<std::string, std::any>& options);
+            void add_plot_options(std::map<std::string, std::any>& options);
 
             /**
              * @brief Add plot options for this dataset, forcing the specified style. 
@@ -148,14 +146,9 @@ namespace plots {
             void add_plot_options(std::string style, std::map<std::string, std::any> options = {});
 
             /**
-             * @brief Add plot options for this dataset, forcing the specified color. 
-             */
-            void add_plot_options(int color, std::map<std::string, std::any> options = {});
-
-            /**
              * @brief Set the plot color for this dataset. 
              */
-            void set_plot_color(int color);
+            void set_plot_color(std::string color);
         
             /**
              * @brief Get the current plot options.
