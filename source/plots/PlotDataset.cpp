@@ -29,6 +29,7 @@ void plots::PlotDataset::plot(const T& data) {
         << data.to_string() 
         << "\n"
         << data.get_plot_options().to_string() 
+        << "END\n"
         << std::endl;
 }
 

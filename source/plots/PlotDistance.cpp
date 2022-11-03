@@ -1,4 +1,5 @@
 #include <plots/PlotDistance.h>
+#include <plots/PlotDataset.h>
 #include <hist/DebyeLookupTable.h>
 #include <utility/Settings.h>
 #include <utility/Utility.h>
@@ -12,40 +13,29 @@ using std::unique_ptr, std::string;
 plots::PlotDistance::~PlotDistance() = default;
 
 plots::PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, std::string path) {
-    plot(d);
-    save(path);
+    quick_plot(d, path);
 }
 
-void plots::PlotDistance::plot(const hist::ScatteringHistogram& d) {
+void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& d, std::string path) {
     PlotOptions options;
     options.xlabel = "Distance [Å]";
     options.ylabel = "Count";
 
-    SimpleDataset p(d.p.data, d.q);
-    SimpleDataset pp(d.p_pp.p.data, d.q);
-    SimpleDataset ph(d.p_hp.p.data, d.q);
-    SimpleDataset hh(d.p_hh.p.data, d.q);
+    auto distances = d.axis.as_vector();
+    SimpleDataset p(d.p.data, distances);
+    SimpleDataset pp(d.p_pp.p.data, distances);
+    SimpleDataset ph(d.p_hp.p.data, distances);
+    SimpleDataset hh(d.p_hh.p.data, distances);
 
     p.add_plot_options("lines", {{"color", style::color::black}, {"legend", "total"}});
     pp.add_plot_options("lines", {{"color", style::color::orange}, {"legend", "atom-atom"}});
     ph.add_plot_options("lines", {{"color", style::color::green}, {"legend", "atom-water"}});
     hh.add_plot_options("lines", {{"color", style::color::blue}, {"legend", "water-water"}});
 
-    ss << "PlotDistance\np\n"
-        << p.to_string()
-        << "\n"
-        << p.get_plot_options().to_string()
-        << "\npp\n"
-        << pp.to_string()
-        << "\n"
-        << pp.get_plot_options().to_string()
-        << "\nph\n"
-        << ph.to_string()
-        << "\n"
-        << ph.get_plot_options().to_string()
-        << "\nhh\n"
-        << hh.to_string()
-        << "\n"
-        << hh.get_plot_options().to_string()
-        << std::endl;
+    plots::PlotDataset plot;
+    plot.plot(p);
+    plot.plot(pp);
+    plot.plot(ph);
+    plot.plot(hh);
+    plot.save(path);
 }

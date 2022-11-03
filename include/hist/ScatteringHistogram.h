@@ -31,7 +31,7 @@ namespace hist {
 			}
 
 			ScatteringHistogram(const std::vector<double>& p_pp, const std::vector<double>& p_hh, const std::vector<double>& p_hp, const std::vector<double>& p_tot, const Axis& axis)
-				: Histogram(p_tot, axis), p_pp(p_pp), p_hh(p_hh), p_hp(p_hp) {setup();}
+				: Histogram(p_tot, axis), p_pp(p_pp, axis), p_hh(p_hh, axis), p_hp(p_hp, axis) {setup();}
 
 			/**
 			 * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 

@@ -29,5 +29,4 @@ with open(file, "r") as f:
         print(line)
         if line == "PlotDataset":
             data, options = read_dataset(f)
-            print(data)
             plot_dataset(data, options, file)

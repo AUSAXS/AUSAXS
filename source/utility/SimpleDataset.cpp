@@ -32,16 +32,16 @@ SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
 
 SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
     if (x.size() != y.size() || x.size() != yerr.size()) {
-        throw except::size_error("SimpleDataset::SimpleDataset: x, y, and yerr must have the same size.");
+        throw except::size_error("SimpleDataset::SimpleDataset: x, y, and yerr must have the same size (" + std::to_string(x.size()) + ", " + std::to_string(y.size()) + ", " + std::to_string(yerr.size()) + ".");
     }
     for (unsigned int i = 0; i < x.size(); i++) {
         row(i) = {x[i], y[i], yerr[i]};
     }
 }
 
-SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(x.size())) {}
+SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(y.size())) {}
 
-SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset({x, y, std::vector<double>(x.size())}) {
+SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset({x, y, std::vector<double>(y.size())}) {
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
     options.xlabel = xlabel;
     options.ylabel = ylabel;

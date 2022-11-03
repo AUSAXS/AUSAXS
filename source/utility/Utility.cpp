@@ -33,7 +33,7 @@ void utility::print_info(std::string text) {
     std::cout << "\n\033[1;34m" << text << "\033[0m" << std::endl;
 }
 
-void utility::create_directory(std::string& path) {
+void utility::create_directory(std::string path) {
     std::filesystem::path p(path);
     if (p.has_parent_path()) {
         std::filesystem::create_directories(p.parent_path());

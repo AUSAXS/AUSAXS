@@ -12,6 +12,11 @@ namespace plots {
 	class PlotDataset : public Plot {
 		public:
 			/**
+			 * @brief Default constructor.
+			 */
+			PlotDataset() {}
+
+			/**
 			 * @brief Constructor.
 			 */
 			template<typename T>
@@ -39,8 +44,5 @@ namespace plots {
 			 */
 			template<typename T>
 			static void quick_plot(const T& data, std::string path);
-
-		private:
-			std::stringstream ss;
 		};
 }

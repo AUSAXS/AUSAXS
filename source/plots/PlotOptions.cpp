@@ -155,22 +155,22 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
 
 std::string PlotOptions::to_string() const {
     std::stringstream ss;
-    ss << "PlotOptions " << std::endl;
-    ss << "    color "          << color << std::endl;
-    ss << "    marker_style "   << marker_style << std::endl;
-    ss << "    line_style "     << line_style << std::endl;
-    ss << "    line_width "     << line_width << std::endl;
-    ss << "    marker_size "    << marker_size << std::endl;
-    ss << "    draw_line "      << draw_line << std::endl;
-    ss << "    draw_errors "    << draw_errors << std::endl;
-    ss << "    draw_markers "   << draw_markers << std::endl;
-    ss << "    logx "           << logx << std::endl;
-    ss << "    logy "           << logy << std::endl;
-    ss << "    title "          << title << std::endl;
-    ss << "    xlabel "         << xlabel << std::endl;
-    ss << "    ylabel "         << ylabel << std::endl;
-    ss << "    ylimits "        << ylimits.min << ylimits.max << std::endl;
-    ss << "    xlimits "        << xlimits.min << ylimits.max << std::endl;
+    ss << "PlotOptions " << "\n"
+        << "color "          << color << "\n"
+        << "marker_style "   << marker_style << "\n"
+        << "line_style "     << line_style << "\n"
+        << "line_width "     << line_width << "\n"
+        << "marker_size "    << marker_size << "\n"
+        << "draw_line "      << draw_line << "\n"
+        << "draw_errors "    << draw_errors << "\n"
+        << "draw_markers "   << draw_markers << "\n"
+        << "logx "           << logx << "\n"
+        << "logy "           << logy << "\n"
+        << "title "          << title << "\n"
+        << "xlabel "         << xlabel << "\n"
+        << "ylabel "         << ylabel << "\n"
+        << "ylimits "        << ylimits.min << " " << ylimits.max << "\n"
+        << "xlimits "        << xlimits.min << " " << ylimits.max << std::endl;
     return ss.str();
 }
 

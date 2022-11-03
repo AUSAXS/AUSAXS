@@ -41,7 +41,7 @@ namespace utility {
     /**
      * @brief Create all parent directories of the path.
      */
-    void create_directory(std::string& path);
+    void create_directory(std::string path);
 
     /**
      * @brief Append a string to the stem of a path. 

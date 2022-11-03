@@ -139,9 +139,6 @@ def plot_dataset(data, options, path):
         options: Plot options.
     """
 
-    if not options.same:
-        plt.figure()
-
     if options.drawerror:
         if (data.shape[1] < 3):
             print("Error: Not enough columns for error bars.")
@@ -184,6 +181,7 @@ def plot_dataset(data, options, path):
     if (options.legend != ""):
         plt.legend()
     
-    path = path.rsplit('.', 1)[0] + '.png'
+    path = path.rsplit('.', 1)[0]
+    print(path)
     plt.savefig(path)
     return
