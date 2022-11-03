@@ -10,6 +10,26 @@
 
 extern double inf;
 
+struct color {
+	typedef std::string Color;
+
+	inline static Color black = "k";
+	inline static Color red = "tab:red";
+	inline static Color green = "tab:green";
+	inline static Color blue = "tab:blue";
+	inline static Color orange = "tab:orange";
+
+};
+
+struct linestyle {
+	typedef std::string LineStyle;
+
+	inline static LineStyle solid = "-";
+	inline static LineStyle dashed = "--";
+	inline static LineStyle dotted = ":";
+	inline static LineStyle dashdot = "-.";
+};
+
 namespace plots {
     /**
      * @brief Defines the plot style used for a single plot.
@@ -35,33 +55,32 @@ namespace plots {
 
             PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
 
-            PlotOptions& set(std::map<std::string, std::any> options = {});
-
             PlotOptions& operator=(const PlotOptions& opt);
 
             std::string to_string() const;
 
             // remember to add new options to the equality operator overload
-            std::string color = "k";        // Color. Default is black.
-            double alpha = 1;               // Opacity
-            std::string marker_style = "."; // Marker style
-            std::string line_style = "-";   // Line style
-            unsigned int line_width = 1;    // Line width
-            double marker_size = 0.5;       // Marker size
-            bool draw_line = true;          // Draw a line through the points
-            bool draw_errors = false;       // Draw error bars if possible
-            bool draw_markers = false;      // Draw a marker for each point
-            bool draw_bars = false;         // Draw bars for a histogram.
-            bool use_existing_axes = false; // Draw with existing axes. Must be false for the first plot on each canvas. 
-            bool logx = false;              // Log scale for the x-axis. Only valid if use_existing_axes is false.  
-            bool logy = false;              // Log scale for the y-axis. Only valid if use_existing_axes is false. 
-            Limit ylimits;                  // Limits on the y-axis
-            Limit xlimits;                  // Limits on the x-axis
+            color::Color color = "k";               // Color. Default is black.
+            double alpha = 1;                       // Opacity
+            std::string marker_style = ".";         // Marker style
+            linestyle::LineStyle line_style = "-";  // Line style
+            unsigned int line_width = 1;            // Line width
+            double marker_size = 0.5;               // Marker size
+            bool draw_line = true;                  // Draw a line through the points
+            bool draw_errors = false;               // Draw error bars if possible
+            bool draw_markers = false;              // Draw a marker for each point
+            bool draw_bars = false;                 // Draw bars for a histogram.
+            bool use_existing_axes = false;         // Draw with existing axes. Must be false for the first plot on each canvas. 
+            bool logx = false;                      // Log scale for the x-axis. Only valid if use_existing_axes is false.  
+            bool logy = false;                      // Log scale for the y-axis. Only valid if use_existing_axes is false. 
+            Limit ylimits;                          // Limits on the y-axis
+            Limit xlimits;                          // Limits on the x-axis
 
             // cosmetic
             std::string title = "";         // Title
             std::string xlabel = "";        // Label for the x-axis
             std::string ylabel = "";        // Label for the y-axis
+            std::string legend = "";        // Legend entry
             double xlabel_offset = 0;       // Offset for the x-axis label
             double ylabel_offset = 0;       // Offset for the y-axis label
             unsigned int xdigits = 0;       // Number of digits to show on the x-axis
@@ -119,6 +138,7 @@ namespace plots {
                 make_shared({"ydigits"}, ydigits),
                 make_shared({"xdivs", "xdivisions"}, xdigits),
                 make_shared({"ydivs", "ydivisions"}, ydigits),
+                make_shared({"legend"}, legend)
             };
 
             void parse(std::string key, std::any val);

@@ -8,8 +8,8 @@ class Protein;
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/StateManager.h>
-#include <histogram/ScatteringHistogram.h>
-#include <histogram/Histogram.h>
+#include <hist/ScatteringHistogram.h>
+#include <hist/Histogram.h>
 
 namespace hist {
 		/**

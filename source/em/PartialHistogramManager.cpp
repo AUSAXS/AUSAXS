@@ -2,7 +2,7 @@
 
 #include <em/PartialHistogramManager.h>
 #include <em/ImageStack.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <utility/Utility.h>
 
@@ -38,7 +38,7 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
     }
 
     if (charge_levels.empty()) {
-        throw except::out_of_bounds("Error in PartialHistogramManager::generate_protein: charge_levels is empty.");
+        throw except::out_of_bounds("PartialHistogramManager::generate_protein: charge_levels is empty.");
     }
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
@@ -68,7 +68,7 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
 
             // increment the charge level
             if (__builtin_expect(charge_index+1 == charge_levels.size(), false)) {
-                throw except::unexpected("Error in em::PartialHistogramManager::generate_protein: Reached end of charge levels list.");
+                throw except::unexpected("em::PartialHistogramManager::generate_protein: Reached end of charge levels list.");
             }
             charge = charge_levels[++charge_index];
         }
@@ -96,7 +96,7 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
 
     // sanity check
     if (charge_levels.empty()) {
-        throw except::unexpected("Error in PartialHistogramManager::update_protein: charge_levels is empty.");
+        throw except::unexpected("PartialHistogramManager::update_protein: charge_levels is empty.");
     }
 
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
@@ -162,7 +162,7 @@ void em::PartialHistogramManager::update_protein(double cutoff) {
 }
 
 std::shared_ptr<Protein> em::PartialHistogramManager::get_protein() const {
-    if (protein == nullptr) {throw except::nullptr_error("Error in PartialHistogramManager::get_protein: Protein has not been initialized yet.");}
+    if (protein == nullptr) {throw except::nullptr_error("PartialHistogramManager::get_protein: Protein has not been initialized yet.");}
     return protein;
 }
 

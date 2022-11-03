@@ -1,5 +1,5 @@
 #include <plots/PlotDistance.h>
-#include <histogram/DebyeLookupTable.h>
+#include <hist/DebyeLookupTable.h>
 #include <utility/Settings.h>
 #include <utility/Utility.h>
 
@@ -26,10 +26,10 @@ void plots::PlotDistance::plot(const hist::ScatteringHistogram& d) {
     SimpleDataset ph(d.p_hp.p.data, d.q);
     SimpleDataset hh(d.p_hh.p.data, d.q);
 
-    p.set_plot_options({{"color", "k"}, {"label", "total"}});
-    pp.set_plot_options({{"color", "tab:orange"}, {"label", "atom-atom"}});
-    ph.set_plot_options({{"color", "tab:green"}, {"label", "atom-water"}});
-    hh.set_plot_options({{"color", "tab:blue"}, {"label", "water-water"}});
+    p.add_plot_options("lines", {{"color", color::black}, {"legend", "total"}});
+    pp.add_plot_options("lines", {{"color", color::orange}, {"legend", "atom-atom"}});
+    ph.add_plot_options("lines", {{"color", color::green}, {"legend", "atom-water"}});
+    hh.add_plot_options("lines", {{"color", color::blue}, {"legend", "water-water"}});
 
     ss << "PlotDistance\np\n"
         << p.to_string()

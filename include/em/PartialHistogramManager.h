@@ -5,7 +5,7 @@
 #include <em/ImageStack.h>
 #include <em/CullingStrategy.h>
 #include <data/Protein.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 
 namespace em {
     /**

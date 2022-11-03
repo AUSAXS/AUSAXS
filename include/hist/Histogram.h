@@ -46,11 +46,6 @@ namespace hist {
              */
             Histogram(const Axis& axis) noexcept;
 
-            Histogram& operator+=(const Histogram& rhs);
-            Histogram& operator-=(const Histogram& rhs);
-            double& operator[](const int i);
-            double operator[](const int i) const;
-
             /**
              * @brief Reduce the view axis to show only the non-zero area. 
              *        Minimum size is 10 units.
@@ -82,6 +77,13 @@ namespace hist {
              * @brief Get the size of this Histogram.
              */
             [[nodiscard]] size_t size() const noexcept;
+
+            [[nodiscard]] std::string to_string() const noexcept;
+
+            Histogram& operator+=(const Histogram& rhs);
+            Histogram& operator-=(const Histogram& rhs);
+            double& operator[](const int i);
+            double operator[](const int i) const;
 
             Vector<double> p;                // The bin values. 
             Axis axis;                       // The axis spanned by this histogram. 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <minimizer/Scan.h>
+#include <mini/Scan.h>
 #include <limits>
 #include <list>
 

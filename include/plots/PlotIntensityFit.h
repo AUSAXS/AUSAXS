@@ -2,7 +2,7 @@
 
 #include <fitter/Fit.h>
 #include <plots/Plot.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
 
 #include <memory>
@@ -50,18 +50,7 @@ namespace plots {
 			 */
 			static void quick_plot(const std::shared_ptr<Fit> fit, std::string path);
 
-			/**
-			 * @brief Create and save the plot at the given path. 
-			 * 
-			 * @param path Save location and format. 
-			 */
-			void save(std::string path) const override;
-
 		private:
-			std::shared_ptr<TCanvas> canvas;
-
-			void plot(const Fit::Plots& graphs) const;
-
-			void prepare_canvas();
+			void plot(const Fit::Plots& graphs);
 	};
 }

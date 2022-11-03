@@ -1,22 +1,21 @@
-#include <histogram/DebyeLookupTable.h>
+#include <hist/DebyeLookupTable.h>
 #include <utility/Utility.h>
 
-using std::vector;
 using namespace table;
 
 DebyeLookupTable::DebyeLookupTable() {}
 
-DebyeLookupTable::DebyeLookupTable(const vector<double>& q, const vector<double>& d) {
+DebyeLookupTable::DebyeLookupTable(const std::vector<double>& q, const std::vector<double>& d) {
     initialize(q, d);
 }
 
-void DebyeLookupTable::initialize(const vector<double>& q, const vector<double>& d) {
+void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vector<double>& d) {
     // check if the default table can be used
     if (is_default(q, d)) {
-        // check if the default table has already been instantiated                
+        // check if the default table has already been instantiated 
         if (default_table.is_empty()) {
             double width = setting::axes::scattering_intensity_plot_binned_width;
-            vector<double> _d(default_size/width, 0);
+            std::vector<double> _d(default_size/width, 0);
             for (unsigned int i = 1; i < _d.size(); i++) {
                 _d[i] = width*(i+0.5);
             }
@@ -68,7 +67,7 @@ bool DebyeLookupTable::uses_default_table() const {
     return false;
 }
 
-void DebyeLookupTable::initialize(LookupTable<double, double>& table, const vector<double>& q, const vector<double>& d) {
+void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std::vector<double>& q, const std::vector<double>& d) {
     table.initialize(q, d);
     for (unsigned int i = 0; i < q.size(); i++) {
         for (unsigned int j = 0; j < d.size(); j++) {
@@ -85,7 +84,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const vect
     }
 }
 
-bool DebyeLookupTable::is_default(const vector<double>& q, const vector<double>& d) {
+bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vector<double>& d) {
     // check q
     Axis axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     double width = setting::axes::scattering_intensity_plot_binned_width;

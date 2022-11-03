@@ -1,6 +1,6 @@
 #pragma once
 
-#include <minimizer/Minimizer.h>
+#include <mini/Minimizer.h>
 
 namespace mini {
 	/**

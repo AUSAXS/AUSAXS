@@ -199,8 +199,8 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
     data.rebin();
     data.save("temp/dataset/rebin/rebinned.dat");
 
-    data.add_plot_options("errors", {{"color", kOrange+2}, {"logx", true}, {"logy", true}});
-    data_unbinned.add_plot_options("errors", {{"color", kBlack}, {"logx", true}, {"logy", true}});
+    data.add_plot_options("errors", {{"color", color::orange}, {"logx", true}, {"logy", true}});
+    data_unbinned.add_plot_options("errors", {{"color", color::black}, {"logx", true}, {"logy", true}});
 
     plots::PlotDataset plot(data_unbinned);
     plot.plot(data);
@@ -217,11 +217,11 @@ TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
 
     data2.simulate_errors();
 
-    data1.add_plot_options("markers", {{"color", kBlack}, {"lw", 2}});
-    data2.add_plot_options("markers", {{"color", kOrange+2}, {"lw", 2}});
+    data1.add_plot_options("markers", {{"color", color::black}, {"lw", 2}});
+    data2.add_plot_options("markers", {{"color", color::orange}, {"lw", 2}});
 
     plots::PlotIntensity plot(data1);
-    plot.plot_intensity(data2);
+    plot.plot(data2);
     plot.save("temp/dataset/compare_errors.pdf");
 }
 
@@ -446,7 +446,7 @@ TEST_CASE("dataset_reduceplot", "[dataset],[manual]") {
     plots::PlotIntensity plot(h);
     SimpleDataset data = h.calc_debye_scattering_intensity();
     data.reduce(20);
-    plot.plot_intensity(data);
+    plot.plot(data);
     plot.save("reduce_test.pdf");
 }
 
@@ -670,7 +670,7 @@ TEST_CASE("dataset_moving_average_plot", "[dataset],[manual]") {
 
     data = data.rolling_average(5);
     data.interpolate(5);
-    data.add_plot_options("line", {{"color", kRed}});
+    data.add_plot_options("line", {{"color", color::red}});
     plot.plot(data);
     plot.save("figures/test/dataset/moving_average.pdf");
 }

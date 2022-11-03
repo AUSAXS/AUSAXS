@@ -1,4 +1,4 @@
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <utility/Settings.h>
 #include <utility/Constants.h>
 #include <utility/Axis.h>
@@ -89,12 +89,11 @@ SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
 
     Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
     std::vector<double> Iq(debye_axis.bins, 0);
-    double log_conv = log10(exp(1)); // we have to convert natural log to log10
     for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
-        Iq[i] = -pow(q[i], 2)*Rg2/3*log_conv;
+        Iq[i] = std::exp(-pow(q[i], 2)*Rg2/3);
     }
 
-    return SimpleDataset(q, Iq, "q", "logI");
+    return SimpleDataset(q, Iq, "q", "I");
 }
 
 ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) = default;

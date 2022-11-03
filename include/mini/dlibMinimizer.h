@@ -1,6 +1,6 @@
 #pragma once
 
-#include <minimizer/Minimizer.h>
+#include <mini/Minimizer.h>
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
 

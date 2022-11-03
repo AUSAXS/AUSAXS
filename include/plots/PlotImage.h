@@ -1,9 +1,5 @@
 #pragma once
 
-#include <TCanvas.h>
-#include <TPad.h>
-#include <TH2D.h>
-
 #include <plots/Plot.h>
 #include <em/Image.h>
 
@@ -28,18 +24,11 @@ namespace plots {
             ~PlotImage();
 
             /**
-             * @brief Save this image at the given location in the specified format. 
-             * 
-             * @param path The path & format of the image. 
-             */
-            void save(std::string path) const override;
-
-            /**
              * @brief Overlay the atomic locations on top of the plot. 
              * 
              * @param cutoff The cutoff value of the electron density. 
              */
-            void plot_atoms(double cutoff) const;
+            void plot_atoms(const em::Image& image, double cutoff);
 
 			/**
 			 * @brief Plot and save the input Image at the specified location. 
@@ -48,11 +37,6 @@ namespace plots {
             static void quick_plot(const em::Image& image, std::string path);
 
         private:
-            std::unique_ptr<TCanvas> canvas;
-            std::unique_ptr<TPad> pad1;
-            std::unique_ptr<TPad> pad2;
-            const em::Image& image;
-
-            std::unique_ptr<TH2D> plot_hist() const;
+            void plot(const em::Image& image);
     };
 }

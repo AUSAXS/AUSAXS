@@ -75,6 +75,10 @@ void PlotOptions::SmartOption<string>::parse(const std::any val) {
         value = string(std::any_cast<const char*>(val));
     } else if (std::type_index{typeid(string)} == val.type()) {
         value = std::any_cast<string>(val);
+    } else if (std::type_index{typeid(color::Color)} == val.type()) {
+        value = std::any_cast<color::Color>(val);
+    } else if (std::type_index{typeid(linestyle::LineStyle)} == val.type()) {
+        value = std::any_cast<linestyle::LineStyle>(val);
     } else {
         throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a string. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }

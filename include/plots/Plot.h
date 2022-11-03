@@ -3,7 +3,7 @@
 #include <plots/PlotOptions.h>
 #include <utility/Dataset.h>
 #include <utility/Multiset.h>
-#include <histogram/Histogram.h>
+#include <hist/Histogram.h>
 
 #include <string.h>
 #include <memory.h>

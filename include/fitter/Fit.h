@@ -5,7 +5,7 @@
 
 #include <utility/Dataset.h>
 #include <utility/Multiset.h>
-#include <minimizer/Utility.h>
+#include <mini/Utility.h>
 
 class Fitter;
 

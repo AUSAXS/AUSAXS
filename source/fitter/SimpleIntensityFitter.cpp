@@ -5,7 +5,7 @@
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
 #include <utility/Settings.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;

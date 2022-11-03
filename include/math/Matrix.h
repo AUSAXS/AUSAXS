@@ -154,10 +154,7 @@ class Matrix {
         // Read-write iterator
         typename std::vector<Q>::iterator end();
 
-        /**
-         * @brief Format and print this Matrix to the terminal.
-         */
-        void print(std::string message = "") const;
+        std::string to_string() const;
 
         size_t N, M;
         std::vector<Q> data;

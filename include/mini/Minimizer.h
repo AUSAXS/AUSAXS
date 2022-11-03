@@ -2,7 +2,7 @@
 
 #include <utility/Axis.h>
 #include <utility/Dataset2D.h>
-#include <minimizer/Utility.h>
+#include <mini/Utility.h>
 
 #include <string>
 #include <vector>

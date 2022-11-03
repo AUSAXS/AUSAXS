@@ -34,8 +34,8 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     std::cout << "Optimal cutoff is " << res->get_parameter("cutoff").value << std::endl;
 
     // Fit intensity plot (debug, should be equal to the next one)
-    plots::PlotIntensity plot_i(protein.get_histogram(), kBlack);
-    plot_i.plot_intensity(res, kBlue);
+    plots::PlotIntensity plot_i(protein.get_histogram(), color::black);
+    plot_i.plot(res);
     plot_i.save("em_intensity.pdf");
 
     // Fit plot
@@ -61,7 +61,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
-    fit.add_plot_options("markers", {{"color", kOrange+2}});
+    fit.add_plot_options("markers", {{"color", color::orange}});
 
     plots::PlotDataset plot(scan);
     plot.plot(fit);
@@ -91,7 +91,7 @@ TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
     auto data = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
-    fit.add_plot_options("markers", {{"color", kOrange+2}});
+    fit.add_plot_options("markers", {{"color", color::orange}});
 
     auto fitted_water_factors = map.get_fitted_water_factors_dataset();
     plots::PlotDataset::quick_plot(fitted_water_factors, "figures/test/em/check_fit_landscape_wf.pdf");

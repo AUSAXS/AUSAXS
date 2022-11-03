@@ -2,8 +2,8 @@
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <data/StateManager.h>
-#include <histogram/ScatteringHistogram.h>
-#include <histogram/PartialHistogramManager.h>
+#include <hist/ScatteringHistogram.h>
+#include <hist/PartialHistogramManager.h>
 
 using namespace hist;
 

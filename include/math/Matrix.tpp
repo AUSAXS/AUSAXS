@@ -186,15 +186,16 @@ template<typename Q>
 typename std::vector<Q>::iterator Matrix<Q>::end() {return data.end();}
 
 template<typename Q>
-void Matrix<Q>::print(std::string message) const {
-    if (!message.empty()) {std::cout << message << std::endl;}
-    for (size_t i = 0; i < N; i++) {
-        std::cout << "\t" << std::setprecision(3);
-        for (size_t j = 0; j < M; j++) {
-            std::cout << std::setw(8) << index(i, j);
+std::string Matrix<Q>::to_string() const {
+    std::stringstream ss;
+    for (unsigned int i = 0; i < N; i++) {
+        ss << "\t" << std::setprecision(3);
+        for (unsigned int j = 0; j < M; j++) {
+            ss << std::setw(8) << index(i, j);
         }
-        std::cout << std::endl;
+        ss << std::endl;
     }
+    return ss.str();
 }
 
 template<typename Q> template<typename R>

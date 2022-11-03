@@ -1,7 +1,7 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 
 namespace plots {
 	/**

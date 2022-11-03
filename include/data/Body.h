@@ -8,7 +8,7 @@
 #include <hydrate/Grid.h>
 #include <io/File.h>
 #include <utility/Constants.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <data/StateManager.h>
 
 class Body {

@@ -1,4 +1,4 @@
-#include <histogram/Histogram.h>
+#include <hist/Histogram.h>
 
 #include <algorithm>
 
@@ -73,6 +73,15 @@ Limit Histogram::span_positive() const noexcept {
         limits.max = std::max(val, limits.max);
     }
     return limits;
+}
+
+std::string Histogram::to_string() const noexcept {
+    std::stringstream ss;
+    auto ax = axis.as_vector();
+    for (int i = 0; i < size(); i++) {
+        ss << ax[i] << " " << p[i] << std::endl;
+    }
+    return ss.str();
 }
 
 size_t Histogram::size() const noexcept {return p.size();}

@@ -3,7 +3,7 @@
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <io/File.h>
-#include <histogram/Histogram.h>
+#include <hist/Histogram.h>
 #include <fitter/IntensityFitter.h>
 
 using namespace hist;

@@ -40,7 +40,7 @@ class Axis {
 		 * @param xmin The minimum value spanned by this axis. 
 		 * @param xmax The maximum value spanned by this axis. 
 		 */
-		Axis(const int bins, const double xmin, const double xmax) noexcept : bins(bins), min(xmin), max(xmax)  {}
+		Axis(int bins, double xmin, double xmax) noexcept : bins(bins), min(xmin), max(xmax)  {}
 
 		/**
 		 * @brief List initializer. 

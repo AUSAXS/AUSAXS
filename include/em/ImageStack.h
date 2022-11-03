@@ -8,11 +8,11 @@
 #include <em/Image.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <fitter/SimpleIntensityFitter.h>
 #include <fitter/IntensityFitter.h>
 #include <utility/Multiset.h>
-#include <minimizer/Minimizer.h>
+#include <mini/Minimizer.h>
 
 namespace em {
     class PartialHistogramManager;

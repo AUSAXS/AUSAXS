@@ -3,13 +3,12 @@
 #include <vector>
 #include <list>
 
-#include <TH2D.h>
-
 #include <em/Datatypes.h>
 #include <data/Protein.h>
 #include <hydrate/Grid.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <math/Matrix.h>
+#include <hist/Histogram2D.h>
 
 /**
  * @brief Describes the bounds of some object contained within a 2D matrix. 
@@ -72,7 +71,7 @@ namespace em {
             
             ~Image() = default;
 
-            std::unique_ptr<TH2D> as_hist() const;
+            hist::Histogram2D as_hist() const;
 
             std::list<Atom> generate_atoms(double cutoff) const;
 

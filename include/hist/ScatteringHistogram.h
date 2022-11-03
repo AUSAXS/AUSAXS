@@ -4,8 +4,8 @@
 #include <string>
 #include <utility>
 
-#include <histogram/Histogram.h>
-#include <histogram/DebyeLookupTable.h>
+#include <hist/Histogram.h>
+#include <hist/DebyeLookupTable.h>
 #include <utility/SimpleDataset.h>
 
 namespace hist {
@@ -61,7 +61,7 @@ namespace hist {
 			/**
 			 * @brief Prepare a plot of the Guinier gyration ratio. 
 			 * 
-			 * @return A histogram with logarithmic base-10 y-axis. 
+			 * @return I(q)
 			 */
 			Histogram plot_guinier_approx() const;
 

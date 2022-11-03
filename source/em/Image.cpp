@@ -1,11 +1,6 @@
 #include <list>
 #include <vector>
 
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TCanvas.h>
-#include <TStyle.h>
-
 #include <em/Image.h>
 #include <utility/Utility.h>
 
@@ -66,12 +61,13 @@ double Image::squared_sum() const {
     return sum;
 }
 
-std::unique_ptr<TH2D> Image::as_hist() const {
-    if (header == nullptr) {throw except::invalid_operation("Error in Image::as_hist: Header must be initialized to use this method.");}
-    std::unique_ptr<TH2D> hist = std::make_unique<TH2D>(utility::uid("hist").c_str(), "hist", header->nx, 0, header->cella_x, header->ny, 0, header->cella_y);
+hist::Histogram2D Image::as_hist() const {
+    if (header == nullptr) {throw except::invalid_operation("Image::as_hist: Header must be initialized to use this method.");}
+    hist::Histogram2D hist(Axis(header->nx, 0, header->cella_x), Axis(header->ny, 0, header->cella_y));
+
     for (unsigned int x = 0; x < N; x++) {
         for (unsigned int y = 0; y < M; y++) {
-            hist->SetBinContent(x, y, index(x, y));
+            hist.index(x, y) = index(x, y);
         }
     }
     return hist;

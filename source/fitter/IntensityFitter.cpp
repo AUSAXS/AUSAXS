@@ -2,16 +2,12 @@
 #include <fitter/IntensityFitter.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
-#include <minimizer/dlibMinimizer.h>
-#include <minimizer/Golden.h>
-#include <minimizer/Scan.h>
+#include <mini/dlibMinimizer.h>
+#include <mini/Golden.h>
+#include <mini/Scan.h>
 #include <plots/all.h>
-
-#include <Math/Minimizer.h>
-#include <Math/Factory.h>
-#include <Math/Functor.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 
