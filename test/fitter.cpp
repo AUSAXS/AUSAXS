@@ -10,7 +10,7 @@
 #include <utility/Multiset.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
-#include <histogram/Histogram.h>
+#include <hist/Histogram.h>
 
 TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
     unsigned int repeats = 100;

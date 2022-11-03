@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <random>
+#include <atomic>
 
 #include <math/Vector3.h>
 #include <rigidbody/Parameters.h>

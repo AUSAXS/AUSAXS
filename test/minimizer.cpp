@@ -3,10 +3,7 @@
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
 
-#include <minimizer/MinimumExplorer.h>
-#include <minimizer/dlibMinimizer.h>
-#include <minimizer/Scan.h>
-#include <minimizer/Golden.h>
+#include <mini/all.h>
 #include <plots/all.h>
 
 using std::vector;
@@ -59,8 +56,8 @@ TEST_CASE("1d_landscape", "[minimizer],[manual]") {
 
     Dataset2D evaluations = mini.get_evaluated_points();
     Dataset2D landscape = mini.landscape();
-    landscape.add_plot_options("lines", {{"color", kBlack}});
-    evaluations.add_plot_options("markers", {{"color", kOrange+2}});
+    landscape.add_plot_options(style::draw::line, {{"color", style::color::black}});
+    evaluations.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
     plots::PlotDataset plot(landscape);
     plot.plot(evaluations);
@@ -120,11 +117,11 @@ TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
         res = mini2.minimize();
 
         Dataset2D data1 = mini1.get_evaluated_points();
-        data1.add_plot_options("markers", {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", kAzure}});
+        data1.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::blue}});
         plots::PlotDataset plot(data1);
 
         Dataset2D data2 = mini2.get_evaluated_points();
-        data2.add_plot_options("markers", {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", kOrange+2}});
+        data2.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::orange}});
         plots::PlotDataset::quick_plot(data2, "figures/test/minimizer/explorer_test_single.pdf");
         plot.plot(data2);
 

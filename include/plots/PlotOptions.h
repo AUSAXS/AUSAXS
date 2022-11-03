@@ -10,24 +10,32 @@
 
 extern double inf;
 
-struct color {
+struct style {
+    typedef std::string LineStyle;
+    typedef std::string DrawStyle;
 	typedef std::string Color;
 
-	inline static Color black = "k";
-	inline static Color red = "tab:red";
-	inline static Color green = "tab:green";
-	inline static Color blue = "tab:blue";
-	inline static Color orange = "tab:orange";
+    struct color {
+        inline static Color black = "k";
+        inline static Color red = "tab:red";
+        inline static Color green = "tab:green";
+        inline static Color blue = "tab:blue";
+        inline static Color orange = "tab:orange";
+    };
 
-};
+    struct line {
+        inline static LineStyle solid = "-";
+        inline static LineStyle dashed = "--";
+        inline static LineStyle dotted = ":";
+        inline static LineStyle dashdot = "-.";
+    };
 
-struct linestyle {
-	typedef std::string LineStyle;
-
-	inline static LineStyle solid = "-";
-	inline static LineStyle dashed = "--";
-	inline static LineStyle dotted = ":";
-	inline static LineStyle dashdot = "-.";
+    struct draw {
+        inline static DrawStyle line = "line";
+        inline static DrawStyle hist = "hist";
+        inline static DrawStyle points = "scatter";
+        inline static DrawStyle errors = "errorbar";
+    };
 };
 
 namespace plots {
@@ -44,7 +52,15 @@ namespace plots {
              * @param style Should be either "markers" or "line", depending on which style is required. 
              * @param options The remaining options. If both markers and lines are needed, set both to true here. 
              */
-            PlotOptions(std::string style, std::map<std::string, std::any> options);
+            PlotOptions(style::DrawStyle style, std::map<std::string, std::any> options);
+
+            /**
+             * @brief Create a new set of plot settings. 
+             * 
+             * @param style Should be either "markers" or "line", depending on which style is required. 
+             * @param options The remaining options. If both markers and lines are needed, set both to true here. 
+             */
+            PlotOptions( style, std::map<std::string, std::any> options);
 
             /**
              * @brief Copy constructor.
@@ -53,17 +69,17 @@ namespace plots {
 
             PlotOptions& set(std::map<std::string, std::any> options);
 
-            PlotOptions& set(std::string style, std::map<std::string, std::any> options = {});
+            PlotOptions& set(style::DrawStyle style, std::map<std::string, std::any> options = {});
 
             PlotOptions& operator=(const PlotOptions& opt);
 
             std::string to_string() const;
 
             // remember to add new options to the equality operator overload
-            color::Color color = "k";               // Color. Default is black.
+            style::Color color = "k";               // Color. Default is black.
             double alpha = 1;                       // Opacity
             std::string marker_style = ".";         // Marker style
-            linestyle::LineStyle line_style = "-";  // Line style
+            style::LineStyle line_style = "-";      // Line style
             unsigned int line_width = 1;            // Line width
             double marker_size = 0.5;               // Marker size
             bool draw_line = true;                  // Draw a line through the points

@@ -1,4 +1,4 @@
-#include <minimizer/Minimizer.h>
+#include <mini/Minimizer.h>
 #include <utility/Exceptions.h>
 
 #include <functional>

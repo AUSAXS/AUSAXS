@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <utility/Utility.h>
-#include <histogram/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
 #include <data/Water.h>
@@ -20,9 +20,9 @@ TEST_CASE("check_scaling_factor", "[histogram]") {
     Protein protein(a, w);
 
     hist::ScatteringHistogram hist = protein.get_histogram();
-    vector<double> p_pp = hist.p_pp;
-    vector<double> p_hp = hist.p_hp;
-    vector<double> p_hh = hist.p_hh;
+    vector<double> p_pp = hist.p_pp.p;
+    vector<double> p_hp = hist.p_hp.p;
+    vector<double> p_hh = hist.p_hh.p;
 
     hist.apply_water_scaling_factor(2);
     for (size_t i = 0; i < p_pp.size(); i++) {

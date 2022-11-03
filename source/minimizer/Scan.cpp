@@ -1,5 +1,5 @@
-#include <minimizer/Scan.h>
-#include <minimizer/Golden.h>
+#include <mini/Scan.h>
+#include <mini/Golden.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 

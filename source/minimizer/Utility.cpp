@@ -1,4 +1,4 @@
-#include <minimizer/Utility.h>
+#include <mini/Utility.h>
 #include <utility/Exceptions.h>
 
 #include <algorithm>

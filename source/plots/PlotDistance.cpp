@@ -26,10 +26,10 @@ void plots::PlotDistance::plot(const hist::ScatteringHistogram& d) {
     SimpleDataset ph(d.p_hp.p.data, d.q);
     SimpleDataset hh(d.p_hh.p.data, d.q);
 
-    p.add_plot_options("lines", {{"color", color::black}, {"legend", "total"}});
-    pp.add_plot_options("lines", {{"color", color::orange}, {"legend", "atom-atom"}});
-    ph.add_plot_options("lines", {{"color", color::green}, {"legend", "atom-water"}});
-    hh.add_plot_options("lines", {{"color", color::blue}, {"legend", "water-water"}});
+    p.add_plot_options("lines", {{"color", style::color::black}, {"legend", "total"}});
+    pp.add_plot_options("lines", {{"color", style::color::orange}, {"legend", "atom-atom"}});
+    ph.add_plot_options("lines", {{"color", style::color::green}, {"legend", "atom-water"}});
+    hh.add_plot_options("lines", {{"color", style::color::blue}, {"legend", "water-water"}});
 
     ss << "PlotDistance\np\n"
         << p.to_string()

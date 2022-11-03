@@ -8,9 +8,7 @@
 #include <fitter/Fitter.h>
 #include <math/SimpleLeastSquares.h>
 #include <utility/Exceptions.h>
-#include <minimizer/Utility.h>
-
-#include <Math/SpecFuncMathCore.h> // for the incomplete gamma function
+#include <mini/Utility.h>
 
 SimpleLeastSquares::SimpleLeastSquares(const SimpleDataset& data) : data(data) {}
 
@@ -39,14 +37,14 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     double b_err2 = Sxx/delta; 
 
     // double cov_ab = -Sx/delta;
-    double Q = ROOT::Math::inc_gamma((double) data.size()/2 -1, chi2()/2);
+    // double Q = ROOT::Math::inc_gamma((double) data.size()/2 -1, chi2()/2);
 
     std::shared_ptr<Fit> f = std::make_shared<Fit>();
     f->parameters = {{"a", a, sqrt(a_err2)}, {"b", b, sqrt(b_err2)}};
     f->dof = data.size() - 2;
     f->fval = chi2();
     f->fevals = 1;
-    f->status = Q > 0.001 ? 0 : 1;
+    // f->status = Q > 0.001 ? 0 : 1;
     return f;
 }
 

@@ -16,14 +16,14 @@ namespace plots {
 			 * 
 			 * @param d The ScatteringHistogram to be plotted. 
 			 */
-			PlotIntensity(const hist::ScatteringHistogram& d, std::string color = color::black);
+			PlotIntensity(const hist::ScatteringHistogram& d, style::Color color = style::color::black);
 
 			/**
 			 * @brief Constructor.
 			 * 
 			 * @param d The dataset to be plotted.
 			 */
-			PlotIntensity(const SimpleDataset& d, std::string color = color::black);
+			PlotIntensity(const SimpleDataset& d, style::Color color = style::color::black);
 
 			/**
 			 * @brief Destructor.
@@ -33,17 +33,17 @@ namespace plots {
 			/**
 			 * @brief Plot a scattering histogram.
 			 */
-			void plot(const hist::ScatteringHistogram& data, std::string color = color::black);
+			void plot(const hist::ScatteringHistogram& data, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot an additional data set as points. 
 			 */
-			void plot(const SimpleDataset& data, std::string color = color::black);
+			void plot(const SimpleDataset& data, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			void plot(const std::shared_ptr<Fit> fit, const PlotOptions& options);
+			void plot(const std::shared_ptr<Fit> fit, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 

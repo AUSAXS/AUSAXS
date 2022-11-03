@@ -12,7 +12,6 @@
 #include <utility/Settings.h>
 #include <math/Vector3.h>
  
-using namespace ROOT;
 using std::vector;
 
 TEST_CASE("grid_generation", "[grid]") {

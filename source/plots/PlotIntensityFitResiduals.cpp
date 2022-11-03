@@ -26,8 +26,8 @@ void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<Fit> fit
 }
 
 void plots::PlotIntensityFitResiduals::plot(const SimpleDataset graph) {
-    PlotOptions options("markers", {{"color", color::orange}, {"markerstyle", 7}, {"title", "Residuals"}, {"xlabel", "q"}, {"ylabel", "Residual"}});
-    PlotOptions line("line", {{"color", color::black}});
+    PlotOptions options("markers", {{"color", style::color::orange}, {"markerstyle", 7}, {"title", "Residuals"}, {"xlabel", "q"}, {"ylabel", "Residual"}});
+    PlotOptions line("line", {{"color", style::color::black}});
 
     ss << "PlotIntensityFitResiduals\n"
         << graph.to_string()

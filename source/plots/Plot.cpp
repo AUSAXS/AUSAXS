@@ -1,7 +1,7 @@
 #include <plots/Plot.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
-#include <histogram/Histogram.h>
+#include <hist/Histogram.h>
 
 #include <fstream>
 

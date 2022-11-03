@@ -20,7 +20,7 @@ void plots::PlotImage::plot_atoms(const em::Image& image, double cutoff) {
     }
 
     SimpleDataset p(x, y);
-    p.add_plot_options("points", {{"color", color::black}, {"marker_size", 2}});
+    p.add_plot_options("points", {{"color", style::color::black}, {"marker_size", 2}});
 
     ss << "PlotImageAtoms"
         << p.to_string()

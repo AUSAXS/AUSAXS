@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <histogram/DebyeLookupTable.h>
+#include <hist/DebyeLookupTable.h>
 #include <data/Atom.h>
 
 using std::vector;

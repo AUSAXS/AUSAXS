@@ -9,20 +9,20 @@
 
 using std::unique_ptr, std::shared_ptr, std::string, std::vector;
 
-plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, std::string color = color::black) {
+plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, style::Color color) {
     plot(d, color);
 }
 
-plots::PlotIntensity::PlotIntensity(const SimpleDataset& d, std::string color = color::black) {
+plots::PlotIntensity::PlotIntensity(const SimpleDataset& d, style::Color color) {
     plot(d, color);
 }
 
 plots::PlotIntensity::~PlotIntensity() = default;
 
-void plots::PlotIntensity::plot(const SimpleDataset& data, std::string color = color::black) {
+void plots::PlotIntensity::plot(const SimpleDataset& data, style::Color color) {
     plots::PlotOptions options = data.get_plot_options();
     options.xlabel = "q";
-    options.ylabel = "Intensity";
+    options.ylabel = "I";
     options.ylimits = data.span_y_positive();
     options.color = color;
 
@@ -33,10 +33,12 @@ void plots::PlotIntensity::plot(const SimpleDataset& data, std::string color = c
        << std::endl;
 }
 
-void plots::PlotIntensity::plot(const SimpleDataset& data, std::string color = color::black) {
+void plots::PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Color color) {
     PlotOptions options(data.get_plot_options());
     options.use_existing_axes = true;
     options.color = color;
+    options.xlabel = "q";
+    options.ylabel = "I";
 
     ss << "PlotIntensity\n"
        << data.to_string()
@@ -45,7 +47,7 @@ void plots::PlotIntensity::plot(const SimpleDataset& data, std::string color = c
        << std::endl;
 }
 
-void plots::PlotIntensity::plot(const std::shared_ptr<Fit> fit, const PlotOptions& plot_options) {
+void plots::PlotIntensity::plot(const std::shared_ptr<Fit> fit, style::Color color) {
     plot(fit->figures.intensity);
 }
 

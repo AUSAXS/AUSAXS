@@ -34,17 +34,17 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     std::cout << "Optimal cutoff is " << res->get_parameter("cutoff").value << std::endl;
 
     // Fit intensity plot (debug, should be equal to the next one)
-    plots::PlotIntensity plot_i(protein.get_histogram(), color::black);
-    plot_i.plot(res);
+    plots::PlotIntensity plot_i(protein.get_histogram(), style::color::black);
+    plot_i.plot(res, style::color::blue);
     plot_i.save("em_intensity.pdf");
 
     // Fit plot
     plots::PlotIntensityFit plot_f(res);
-    plot_f.save("em_intensity_fit." + setting::figures::format);
+    plot_f.save("em_intensity_fit.pdf");
 
     // Residual plot
     plots::PlotIntensityFitResiduals plot_r(res);
-    plot_r.save("em_residuals." + setting::figures::format);
+    plot_r.save("em_residuals.pdf");
 
     FitReporter::report(res);
 }
@@ -61,7 +61,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
-    fit.add_plot_options("markers", {{"color", color::orange}});
+    fit.add_plot_options("markers", {{"color", style::color::orange}});
 
     plots::PlotDataset plot(scan);
     plot.plot(fit);
@@ -91,7 +91,7 @@ TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
     auto data = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
     SimpleDataset& scan = data.contour;
     SimpleDataset& fit = data.fit.evaluated_points;
-    fit.add_plot_options("markers", {{"color", color::orange}});
+    fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
     auto fitted_water_factors = map.get_fitted_water_factors_dataset();
     plots::PlotDataset::quick_plot(fitted_water_factors, "figures/test/em/check_fit_landscape_wf.pdf");
@@ -177,26 +177,26 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
 
             // chi2 contour plot
             Dataset2D& scan = data.contour;
-            fit.add_plot_options("markers", {{"color", kOrange+2}});
+            fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
             plots::PlotDataset plot_c(scan);
             plot_c.plot(fit);
             plot_c.save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
 
-            scan.add_plot_options("line", {{"color", kBlack}, {"alpha", 1.}});
+            scan.add_plot_options(style::draw::line, {{"color", style::color::black}});
             contours.push_back(scan);
             evaluations.push_back(fit);
         }
 
         Dataset2D fit_mins;
-        fit_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}}));
+        fit_mins.set_plot_options(plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}}));
         for (const auto& val : optvals) {
             fit_mins.push_back(val.first, val.second);
             std::cout << "(x, y): " << "(" << val.first << ", " << val.second << ")" << std::endl;
         }
 
         Dataset2D scan_mins;
-        scan_mins.set_plot_options(plots::PlotOptions("markers", {{"color", kBlue+2}, {"ms", 8}, {"s", 0.8}}));
+        scan_mins.set_plot_options(plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"ms", 8}, {"s", 0.8}}));
         for (const Dataset2D& contour : contours) {
             scan_mins.push_back(contour.find_minimum());
         }
@@ -211,7 +211,7 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
         REQUIRE(scan_mins.size() == fit_mins.size());
 
         Dataset2D diff;
-        diff.set_plot_options(plots::PlotOptions("markers", {{"color", kOrange+2}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}));
+        diff.set_plot_options(plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}));
         for (unsigned int i = 0; i < scan_mins.size(); i++) {
             double delta_x = fit_mins.x(i) - scan_mins.x(i);
             double delta_y = fit_mins.y(i) - scan_mins.y(i);
@@ -327,7 +327,7 @@ TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
     // data.scale_errors(1000); // scale all errors so we can actually see them
 
     plots::PlotIntensity plot(protein.get_histogram()); // plot actual curve
-    plot.plot_intensity(data);                          // plot simulated data points
+    plot.plot(data);                          // plot simulated data points
     plot.save("figures/test/em/plot_pdb_as_points.pdf");
 }
 

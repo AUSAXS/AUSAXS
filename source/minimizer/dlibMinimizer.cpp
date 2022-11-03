@@ -1,4 +1,4 @@
-#include <minimizer/dlibMinimizer.h>
+#include <mini/dlibMinimizer.h>
 
 using namespace mini;
 

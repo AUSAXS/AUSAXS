@@ -172,11 +172,11 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
         // plot the starting point in blue
         SimpleDataset p_start;
         p_start.push_back(min.x, min.y);
-        p_start.add_plot_options("point", {{"color", color::blue}, {"s", 0.8}, {"ms", 8}});
+        p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 0.8}, {"ms", 8}});
 
-        avg.add_plot_options("lines", {{"color", color::red}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
+        avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
         plots::PlotDataset plot(avg);
-        l.add_plot_options("points");
+        l.add_plot_options(style::draw::points);
         plot.plot(l);
         plot.plot(p_start);
         plot.save(setting::plot::path + "chi2_evaluated_points.pdf");
@@ -207,17 +207,17 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
             SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
             SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
-            l.add_plot_options("lines", {{"color", color::red}});
-            lp.add_plot_options("lines", {{"color", color::red}, {"linestyle", "--"}});
-            lm.add_plot_options("lines", {{"color", color::red}, {"linestyle", "--"}});
+            l.add_plot_options(style::draw::points, {{"color", style::color::red}});
+            lp.add_plot_options(style::draw::points, {{"color", style::color::red}, {"linestyle", "--"}});
+            lm.add_plot_options(style::draw::points, {{"color", style::color::red}, {"linestyle", "--"}});
 
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min.x, min.y);
-            p_start.add_plot_options("point", {{"color", color::blue}, {"s", 0.8}, {"ms", 8}});
+            p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 0.8}, {"ms", 8}});
 
             // do the actual plotting
-            area.add_plot_options("points", {{"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
+            area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
             plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);

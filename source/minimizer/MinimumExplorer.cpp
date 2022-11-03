@@ -1,4 +1,4 @@
-#include <minimizer/MinimumExplorer.h>
+#include <mini/MinimumExplorer.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 

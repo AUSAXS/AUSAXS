@@ -199,8 +199,8 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
     data.rebin();
     data.save("temp/dataset/rebin/rebinned.dat");
 
-    data.add_plot_options("errors", {{"color", color::orange}, {"logx", true}, {"logy", true}});
-    data_unbinned.add_plot_options("errors", {{"color", color::black}, {"logx", true}, {"logy", true}});
+    data.add_plot_options(style::draw::errors, {{"color", style::color::orange}, {"logx", true}, {"logy", true}});
+    data_unbinned.add_plot_options(style::draw::errors, {{"color", style::color::black}, {"logx", true}, {"logy", true}});
 
     plots::PlotDataset plot(data_unbinned);
     plot.plot(data);
@@ -217,8 +217,8 @@ TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
 
     data2.simulate_errors();
 
-    data1.add_plot_options("markers", {{"color", color::black}, {"lw", 2}});
-    data2.add_plot_options("markers", {{"color", color::orange}, {"lw", 2}});
+    data1.add_plot_options(style::draw::points, {{"color", style::color::black}, {"lw", 2}});
+    data2.add_plot_options(style::draw::points, {{"color", style::color::orange}, {"lw", 2}});
 
     plots::PlotIntensity plot(data1);
     plot.plot(data2);
@@ -670,7 +670,7 @@ TEST_CASE("dataset_moving_average_plot", "[dataset],[manual]") {
 
     data = data.rolling_average(5);
     data.interpolate(5);
-    data.add_plot_options("line", {{"color", color::red}});
+    data.add_plot_options(style::draw::line, {{"color", style::color::red}});
     plot.plot(data);
     plot.save("figures/test/dataset/moving_average.pdf");
 }
