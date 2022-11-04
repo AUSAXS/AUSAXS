@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <hydrate/RadialPlacement.h>
 #include <hydrate/Grid.h>
 #include <utility/Settings.h>

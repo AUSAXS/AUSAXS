@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+set(CXX_STANDARD C++17)
 
 project(SAXS VERSION 0.0)
 
@@ -39,22 +40,14 @@ FetchContent_MakeAvailable(Catch2 CLI11 dlib)
 
 
 ############################################
-##           Link libraries               ##
+##           Windows dependencies         ##
 ############################################
-set(LIBRARIES)
-
-# ROOT
-find_package(ROOT REQUIRED)
-link_directories(${ROOT_LIBRARY_DIR})
-include_directories(${ROOT_INCLUDE_DIR})
-
-list(APPEND LIBRARIES ${ROOT_LIBRARIES})
-link_libraries(${LIBRARIES})
-link_libraries(CLI11::CLI11)
-link_libraries(dlib::dlib)
-
+if (WIN32)
+	set(CURL_LIBRARY "$ENV{HOME}/tools/curl/curl/build/lib/.libs/")
+	set(CURL_INCLUDE_DIR "$ENV{HOME}/tools/curl/curl/include")
+endif()
 find_package(CURL REQUIRED)
-link_libraries(CURL::libcurl)
+
 
 ############################################
 ##                Doxygen                 ##
@@ -72,12 +65,16 @@ endif(DOXYGEN_FOUND)
 
 
 ############################################
-##           Include sources              ##
+##           Build library                ##
 ############################################
 file(GLOB_RECURSE HEADERS "include/*.h")
 file(GLOB_RECURSE SOURCES "source/*.cpp")
 add_library(saxs ${HEADERS} ${SOURCES})
 target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
+target_link_libraries(saxs -static gcc stdc++ CLI11::CLI11 dlib::dlib CURL::libcurl)
+if (WIN32) 
+	target_link_libraries(saxs -static winpthread)
+endif()
 
 
 ############################################
@@ -87,7 +84,7 @@ file(GLOB_RECURSE TEST_SRC
   "test/*.h"
   "test/*.cpp")
 add_executable(test ${TEST_SRC})
-target_link_libraries(test PRIVATE saxs Catch2::Catch2WithMain)
+target_link_libraries(test PRIVATE saxs -static Catch2::Catch2WithMain)
 
 
 ############################################

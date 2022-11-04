@@ -4,9 +4,9 @@
 #include <sstream>
 #include <map>
 #include <math.h>
-#include <boost/algorithm/string.hpp>
 
 #include <utility/Exceptions.h>
+#include <utility/Utility.h>
 
 class Record {
     public: 
@@ -18,12 +18,11 @@ class Record {
         virtual std::string as_pdb() const = 0;
 
         static RecordType get_type(std::string s) {
-            boost::erase_all(s, " ");  // remove any spaces so we only match the type itself. some programs are inconsistent with spacing after e.g. END or TER
-            boost::erase_all(s, "\r"); // some programs adds a carriage return after END, which we have to remove
+            utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER
             if (type_map.count(s) == 1) {
                 return type_map.at(s);
             }
-            throw except::parse_error("Error in Record::get_type: Could not determine type \"" + s + "\"");
+            throw except::parse_error("Record::get_type: Could not determine type \"" + s + "\"");
         }
 
     private:

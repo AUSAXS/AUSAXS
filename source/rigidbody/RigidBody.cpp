@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/Parameters.h>
 #include <rigidbody/RigidTransform.h>

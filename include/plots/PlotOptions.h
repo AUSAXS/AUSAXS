@@ -33,7 +33,7 @@ struct style {
     struct draw {
         inline static DrawStyle line = "line";
         inline static DrawStyle hist = "hist";
-        inline static DrawStyle points = "scatter";
+        inline static DrawStyle points = "points";
         inline static DrawStyle errors = "errorbar";
     };
 };

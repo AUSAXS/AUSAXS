@@ -1,8 +1,8 @@
 // includes
 #include <string>
 #include <iomanip>
-#include <boost/algorithm/string.hpp>
 
+#include <utility/Utility.h>
 #include <data/Terminate.h>
 
 using std::string, std::left, std::right, std::setw;
@@ -33,12 +33,12 @@ void Terminate::parse_pdb(const string s) {
 
     // sanity check
     if (Record::get_type(recName) != RecordType::TERMINATE) {
-        throw except::parse_error("Error in Atom::parse_pdb: input string is not \"TER   \" (" + recName + ").");
+        throw except::parse_error("Terminate::parse_pdb: input string is not \"TER   \" (" + recName + ").");
     }
 
     // remove any spaces
-    boost::erase_all(serial, " ");
-    boost::erase_all(resSeq, " ");
+    utility::remove_all(serial, " ");
+    utility::remove_all(resSeq, " ");
 
     // set all of the properties
     try {

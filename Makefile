@@ -51,9 +51,9 @@ coverage: tests
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 
-#################################################################################
-###				EXECUTABLES					 ###
-#################################################################################
+###################################################################################
+###				EXECUTABLES					###
+###################################################################################
 
 # all targets passes the options string to the executable
 options :=
@@ -212,9 +212,9 @@ plot_data/%: build/executable/plot_data
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${measurement}
 
-#################################################################################
+####################################################################################
 ###			     SIMULATIONS					 ###
-#################################################################################
+####################################################################################
 
 # eval "$(~/tools/eman2/bin/conda shell.bash hook)"
 simulate/%: 
@@ -243,9 +243,9 @@ stuff/%: build/executable/stuff data/%.pdb
 #	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4
 	@$< data/$*.pdb $(shell find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
 
-#################################################################################
+####################################################################################
 ###				TESTS						 ###
-#################################################################################
+####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 memtest/%: $(shell find source/ -print) test/%.cpp	
@@ -264,13 +264,23 @@ tests: $(shell find source/ -print) $(shell find test/ -print)
 build/source/tests/%: $(shell find source/ -print) build/Makefile
 	@ make -C build $* -j${cmake_threads}
 
-#################################################################################
+####################################################################################
 ###				BUILD						 ###
-#################################################################################
-.PHONY: build
+####################################################################################
+.PHONY: build winbuild
 build: 
 	@ mkdir -p build; 
 	@ cd build; cmake ../
+
+winbuild: 
+	@ mkdir -p winbuild;
+	@ cd winbuild; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-mingw.cmake -DBUILD_SHARED_LIBS=OFF ../ 
+
+winbuild/executable/%: $(source) $(include) executable/%.cpp
+	@ cmake --build winbuild/ --target $(*F) -j${cmake_threads}
+
+winbuild/%: $(source) $(include)
+	@ cmake --build winbuild/ --target $(*F) -j${cmake_threads} 
 
 build/executable/%: $(source) $(include) executable/%.cpp
 	@ cmake --build build/ --target $(*F) -j${cmake_threads} 
@@ -285,3 +295,5 @@ build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
 clean/build: 
 	@ rmdir -f build
 
+clean/winbuild:
+	@ rmdir -f winbuild

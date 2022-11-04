@@ -45,7 +45,7 @@ bool utility::equal(double a, double b, double c) {
 }
 
 std::string utility::remove_extension(std::string path) {
-    return std::filesystem::path(path).replace_extension("");
+    return std::filesystem::path(path).replace_extension("").string();
 }
 
 std::string utility::stem_append(std::string path, std::string s) {
@@ -54,7 +54,7 @@ std::string utility::stem_append(std::string path, std::string s) {
 }
 
 std::string utility::stem(std::string path) {
-    return std::filesystem::path(path).stem();    
+    return std::filesystem::path(path).stem().string();    
 }
 
 template<>

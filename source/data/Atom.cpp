@@ -4,7 +4,6 @@
 #include <utility>
 #include <iomanip>
 #include <iostream>
-#include <boost/algorithm/string.hpp>
 
 #include <data/Record.h>
 #include <data/Atom.h>

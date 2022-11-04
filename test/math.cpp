@@ -16,9 +16,8 @@
 #include <math/LUPDecomposition.h>
 #include <math/QRDecomposition.h>
 #include <math/Statistics.h>
-
-#include <TCanvas.h>
-#include <TGraph.h>
+#include <utility/SimpleDataset.h>
+#include <plots/PlotDataset.h>
 
 using std::cout, std::endl;
 
@@ -138,6 +137,7 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
 
     CubicSpline csin(x, y);
     std::vector<double> newx, newy;
+
     for (size_t i = 0; i < x.size()-1; i++) {
         newx.push_back(x[i]);
         newy.push_back(y[i]);
@@ -146,18 +146,15 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
             newy.push_back(csin.spline(z));
         }
     }
-    std::unique_ptr<TCanvas> c = std::make_unique<TCanvas>("c1", "canvas", 600, 600);
-    std::unique_ptr<TGraph> g1 = std::make_unique<TGraph>(newx.size(), &newx[0], &newy[0]);
-    std::unique_ptr<TGraph> g2 = std::make_unique<TGraph>(len, &x.data[0], &y.data[0]);
-    g1->SetLineColor(kRed);
-    g1->Draw("AC");
-    g2->Draw("SAME *");
 
-    // setup the canvas and save the plot
-    std::string path = "temp/cubicspline.pdf";
-    c->SetRightMargin(0.15);
-    c->SetLeftMargin(0.15);
-    c->SaveAs(path.c_str());
+    SimpleDataset original(x, y);
+    SimpleDataset interpolated(newx, newy);
+    original.add_plot_options(style::draw::points, {{"color", style::color::black}});
+    interpolated.add_plot_options(style::draw::line, {{"color", style::color::red}});
+
+    plots::PlotDataset plot(original);
+    plot.plot(interpolated);
+    plot.save("temp/cubicspline.png");
 }
 
 TEST_CASE("orthonormal_rotations", "[math]") {
