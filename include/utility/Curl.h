@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <curl/curl.h>
+#include <utility/Utility.h>
 
 namespace curl {
     /**

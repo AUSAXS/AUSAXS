@@ -1,10 +1,12 @@
 ROOTDIR=${PWD}
 CROSS_COMPILE="x86_64-w64-mingw32"
 
+git clone https://github.com/openssl/openssl.git
+git clone https://github.com/curl/curl.git
+
 ###############
 ### OPENSSL ###
 ###############
-git clone https://github.com/openssl/openssl.git
 mkdir -p build/openssl
 cd build/openssl
 ${ROOTDIR}/openssl/Configure --cross-compile-prefix=${CROSS_COMPILE}- mingw64
@@ -21,9 +23,7 @@ cp -r *.dll ${ROOTDIR}/lib
 #############
 ### CURL ####
 #############
-git clone https://github.com/curl/curl.git
 autoreconf -fi curl
-
 mkdir -p build/curl
 export CPPFLAGS="-I${ROOTDIR}/include"
 export LDFLAGS="-L${ROOTDIR}/lib"

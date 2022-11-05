@@ -18,7 +18,7 @@ class Record {
         virtual std::string as_pdb() const = 0;
 
         static RecordType get_type(std::string s) {
-            utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER
+            s = utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER
             if (type_map.count(s) == 1) {
                 return type_map.at(s);
             }
@@ -47,5 +47,5 @@ class Record {
             {"MTRIX2", RecordType::HEADER}, {"MTRIX3", RecordType::HEADER}, 
             {"CONECT", RecordType::FOOTER}, {"MASTER", RecordType::FOOTER}, {"END"   , RecordType::FOOTER}, {"ENDMDL", RecordType::FOOTER},
             {"ANISOU", RecordType::NOTYPE}
-            };
+        };
 };

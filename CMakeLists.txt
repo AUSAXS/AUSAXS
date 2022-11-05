@@ -47,10 +47,10 @@ if (WIN32)
 	add_definitions(-DCURL_STATICLIB)
 	set(CMAKE_LIBRARY_PATH $ENV{HOME}/tools/curl/lib)
 	set(CMAKE_INCLUDE_PATH $ENV{HOME}/tools/curl/include)
-	find_library(CURL_LIB libcurl)
+	find_library(CURL_LIB libcurl.a)
 	find_path(CURL_INC curl/curl.h)
-	find_library(OPENSSL_CRYPTO_LIB libcrypto)
-	find_library(OPENSSL_SSL_LIB libssl)
+	find_library(OPENSSL_CRYPTO_LIB libcrypto.a)
+	find_library(OPENSSL_SSL_LIB libssl.a)
 
 	# find libs
 	if(NOT CURL_LIB)
@@ -63,7 +63,7 @@ if (WIN32)
 		message(FATAL_ERROR "libssl couldn't be found.")
 	endif()
 
-	set(CURL -static gcc stdc++ winpthread ${CURL_LIB} ${OPENSSL_CRYPTO_LIB} ${OPENSSL_SSL_LIB} ws2_32 libwldap32.a crypt32)
+	set(CURL -static gcc stdc++ winpthread ${CURL_LIB} ${OPENSSL_SSL_LIB} ${OPENSSL_CRYPTO_LIB} ws2_32 libwldap32.a crypt32)
 	include_directories(${CURL_INC})
 
 # for linux we assume the users can figure out how to install missing packages by themselves

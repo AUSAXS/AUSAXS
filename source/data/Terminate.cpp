@@ -37,8 +37,8 @@ void Terminate::parse_pdb(const string s) {
     }
 
     // remove any spaces
-    utility::remove_all(serial, " ");
-    utility::remove_all(resSeq, " ");
+    serial = utility::remove_all(serial, " ");
+    resSeq = utility::remove_all(resSeq, " ");
 
     // set all of the properties
     try {

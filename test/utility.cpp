@@ -160,6 +160,32 @@ TEST_CASE("split", "[utility]") {
     }
 }
 
+TEST_CASE("remove_all", "[utility]") {
+    SECTION("empty") {
+        REQUIRE(utility::remove_all("", "a") == "");
+    }
+
+    SECTION("single") {
+        REQUIRE(utility::remove_all("a", "a") == "");
+    }
+
+    SECTION("multiple") {
+        REQUIRE(utility::remove_all("aaa", "a") == "");
+    }
+
+    SECTION("multiple with other") {
+        REQUIRE(utility::remove_all("ababab", "a") == "bbb");
+    }
+
+    SECTION("multiple with other 2") {
+        REQUIRE(utility::remove_all("ababab", "b") == "aaa");
+    }
+
+    SECTION("real issues") {
+        REQUIRE(utility::remove_all("TITLE \r", " \r") == "TITLE");
+    }
+}
+
 TEST_CASE("join", "[utility]") {
     SECTION("empty") {
         string result = utility::join({}, ",");

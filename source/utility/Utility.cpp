@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include <utility/Settings.h>
+#include <utility/ConsoleColor.h>
 
 bool utility::approx(double v1, double v2, double abs, double eps) {
     return std::abs(v1 - v2) <= std::max(abs, eps * std::max(std::abs(v1), std::abs(v2)));
@@ -22,15 +23,15 @@ std::string utility::remove_spaces(std::string s) {
 }
 
 void utility::print_warning(std::string text) {
-    std::cout << "\033[1;31m" << text << "\033[0m" << std::endl;
+    console::print(text, console::color::red);
 }
 
 void utility::print_success(std::string text) {
-    std::cout << "\033[1;32m" << text << "\033[0m" << std::endl;
+    console::print(text, console::color::green);
 }
 
 void utility::print_info(std::string text) {
-    std::cout << "\n\033[1;34m" << text << "\033[0m" << std::endl;
+    console::print(text, console::color::blue);
 }
 
 void utility::create_directory(std::string path) {
