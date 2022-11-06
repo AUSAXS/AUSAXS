@@ -1,43 +1,24 @@
 ROOTDIR=${PWD}
 CROSS_COMPILE="x86_64-w64-mingw32"
 
-git clone https://github.com/openssl/openssl.git
-git clone https://github.com/curl/curl.git
-
 ###############
 ### OPENSSL ###
 ###############
-mkdir -p build/openssl
+#git clone --branch openssl-3.0.7 https://github.com/openssl/openssl.git src/openssl
+mkdir -p ${ROOTDIR}/build/openssl
 cd build/openssl
-${ROOTDIR}/openssl/Configure --cross-compile-prefix=${CROSS_COMPILE}- mingw64
+${ROOTDIR}/src/openssl/Configure --prefix=/usr/${CROSS_COMPILE}/usr/local/ --cross-compile-prefix=${CROSS_COMPILE}- mingw64 #--prefix=${ROOTDIR}/openssl 
 make -j6
+sudo make install_sw
 
-# move built files to new location
-mkdir -p ${ROOTDIR}/include
-mkdir -p ${ROOTDIR}/lib
-cp -r ${ROOTDIR}/openssl/include/* ${ROOTDIR}/include
-cp -r include/* ${ROOTDIR}/include
-cp -r *.a ${ROOTDIR}/lib
-cp -r *.dll ${ROOTDIR}/lib
+############
+### CURL ###
+############
+#git clone --branch curl-7_86_0 https://github.com/curl/curl.git src/curl
+#autoreconf -fi src/curl
 
-#############
-### CURL ####
-#############
-autoreconf -fi curl
-mkdir -p build/curl
-export CPPFLAGS="-I${ROOTDIR}/include"
-export LDFLAGS="-L${ROOTDIR}/lib"
-export AR=${CROSS_COMPILE}-ar
-export AS=${CROSS_COMPILE}-as
-export LD=${CROSS_COMPILE}-ld
-export RANLIB=${CROSS_COMPILE}-ranlib
-export CC=${CROSS_COMPILE}-gcc
-export NM=${CROSS_COMPILE}-nm
-export LIBS="-lssl -lcrypto"
-cd build/curl
-${ROOTDIR}/curl/configure --prefix=${ROOTDIR}/build --target=${CROSS_COMPILE} --host=${CROSS_COMPILE} --with-openssl
+mkdir -p ${ROOTDIR}/build/curl
+cd ${ROOTDIR}/build/curl
+${ROOTDIR}/src/curl/configure --prefix=/usr/${CROSS_COMPILE}/usr/local/ --target=${CROSS_COMPILE} --host=${CROSS_COMPILE} --with-openssl=${ROOTDIR}/openssl #--prefix=${ROOTDIR}/curl --exec-prefix ${ROOTDIR}/curl 
 make -j6
-
-cp -r ${ROOTDIR}/curl/include/* ${ROOTDIR}/include
-cp -r lib/.libs/*.a ${ROOTDIR}/lib
-cp -r lib/.libs/*.dll ${ROOTDIR}/lib
+sudo make install

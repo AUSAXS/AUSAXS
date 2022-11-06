@@ -264,7 +264,7 @@ void parser::residue::ResidueStorage::download_residue(std::string name) {
     if (std::regex_match(name, regex)) {
         // check if the file already exists. if not, download it.
         if (!std::filesystem::exists(path + name + ".cif")) {
-            curl::download("https://files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
+            curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
         } else {
             std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. \n\tReloading and adding it now." << std::endl;
         }

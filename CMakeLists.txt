@@ -45,32 +45,19 @@ FetchContent_MakeAvailable(Catch2 CLI11 dlib)
 # when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
 	add_definitions(-DCURL_STATICLIB)
-	set(CMAKE_LIBRARY_PATH $ENV{HOME}/tools/curl/lib)
-	set(CMAKE_INCLUDE_PATH $ENV{HOME}/tools/curl/include)
-	find_library(CURL_LIB libcurl.a)
-	find_path(CURL_INC curl/curl.h)
-	find_library(OPENSSL_CRYPTO_LIB libcrypto.a)
-	find_library(OPENSSL_SSL_LIB libssl.a)
-
-	# find libs
-	if(NOT CURL_LIB)
-		message(FATAL_ERROR "libcurl couldn't be found.")
-	elseif(NOT CURL_INC)
-		message(FATAL_ERROR "curl.h couldn't be found.")	
-	elseif(NOT OPENSSL_CRYPTO_LIB)
-		message(FATAL_ERROR "libcrypto couldn't be found.")
-	elseif(NOT OPENSSL_SSL_LIB)
-		message(FATAL_ERROR "libssl couldn't be found.")
-	endif()
-
-	set(CURL -static gcc stdc++ winpthread ${CURL_LIB} ${OPENSSL_SSL_LIB} ${OPENSSL_CRYPTO_LIB} ws2_32 libwldap32.a crypt32)
-	include_directories(${CURL_INC})
+	set(OPENSSL_USE_STATIC_LIBS TRUE)
+	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.a")
+	find_package(CURL REQUIRED)
+	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
+	set(CURL -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
 
 # for linux we assume the users can figure out how to install missing packages by themselves
 elseif (UNIX)
 	find_package(CURL REQUIRED)
-	set(CURL CURL::libcurl)
+	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
+	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 endif()
+
 
 ############################################
 ##                Doxygen                 ##
@@ -95,6 +82,7 @@ file(GLOB_RECURSE SOURCES "source/*.cpp")
 add_library(saxs ${HEADERS} ${SOURCES})
 target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
 target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
+
 
 ############################################
 ##             Unit Testing               ##
