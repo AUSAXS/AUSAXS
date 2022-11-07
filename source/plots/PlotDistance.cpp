@@ -22,10 +22,10 @@ void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& d, std::st
     options.ylabel = "Count";
 
     auto distances = d.axis.as_vector();
-    SimpleDataset p(d.p.data, distances);
-    SimpleDataset pp(d.p_pp.p.data, distances);
-    SimpleDataset ph(d.p_hp.p.data, distances);
-    SimpleDataset hh(d.p_hh.p.data, distances);
+    SimpleDataset p(distances, d.p.data);
+    SimpleDataset pp(distances, d.p_pp.p.data);
+    SimpleDataset ph(distances, d.p_hp.p.data);
+    SimpleDataset hh(distances, d.p_hh.p.data);
 
     p.add_plot_options("lines", {{"color", style::color::black}, {"legend", "total"}});
     pp.add_plot_options("lines", {{"color", style::color::orange}, {"legend", "atom-atom"}});

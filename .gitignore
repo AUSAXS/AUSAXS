@@ -2,6 +2,7 @@
 build
 winbuild
 temp
+debug
 external
 figures/*
 output/*

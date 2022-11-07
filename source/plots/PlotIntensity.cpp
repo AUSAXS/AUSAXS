@@ -26,7 +26,7 @@ void plots::PlotIntensity::plot(const SimpleDataset& data, style::Color color) {
     options.ylimits = data.span_y_positive();
     options.color = color;
 
-    ss << "PlotIntensity\n"
+    ss << "PlotDataset\n"
        << data.to_string()
        << "\n"
        << options.to_string()
@@ -40,7 +40,7 @@ void plots::PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Co
     options.xlabel = "q";
     options.ylabel = "I";
 
-    ss << "PlotIntensity\n"
+    ss << "PlotDataset\n"
        << data.to_string()
        << "\n"
        << options.to_string()
@@ -58,13 +58,13 @@ void plots::PlotIntensity::plot_guinier_approx(const hist::ScatteringHistogram& 
     options.ylabel = "I";
 
     auto guinier = data.plot_guinier_approx();
-    ss << "Guinier approx\n"
+    ss << "Guinier\n"
        << guinier.to_string()
        << "\n"
        << options.to_string()
        << std::endl;
 
-    ss << "Gyration ratio\n"
+    ss << "Gyration_ratio\n"
         << sqrt(data.calc_guinier_gyration_ratio_squared())
         << std::endl;
 }

@@ -81,7 +81,7 @@ namespace plots {
             std::string marker_style = ".";         // Marker style
             style::LineStyle line_style = "-";      // Line style
             unsigned int line_width = 1;            // Line width
-            double marker_size = 0.5;               // Marker size
+            double marker_size = 5;                 // Marker size
             bool draw_line = true;                  // Draw a line through the points
             bool draw_errors = false;               // Draw error bars if possible
             bool draw_markers = false;              // Draw a marker for each point

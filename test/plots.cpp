@@ -24,15 +24,19 @@ TEST_CASE("plot_image", "[plots]") {
 }
 
 TEST_CASE("plot_intensity", "[plots]") {
-    
+    SimpleDataset data("test/files/2epe.dat");
+    plots::PlotIntensity::quick_plot(data, "temp/plot/dataset.png");    
 }
 
 TEST_CASE("plot_intensityfit", "[plots]") {
-    
-}
+    Protein protein("test/files/2epe.pdb");
+    protein.generate_new_hydration();
 
-TEST_CASE("plot_intensityfitresiduals", "[plots]") {
-    
+    hist::ScatteringHistogram h = protein.get_histogram();
+    IntensityFitter fitter("test/files/2epe.dat", h);
+    std::shared_ptr<Fit> result = fitter.fit();
+    plots::PlotIntensityFit::quick_plot(result, "temp/plot/intensityfit.png");
+    plots::PlotIntensityFitResiduals::quick_plot(result, "temp/plot/intensityfitresiduals.png");
 }
 
 TEST_CASE("plot_resolution", "[plots]") {

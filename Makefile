@@ -25,6 +25,10 @@ plot_em/%: scripts/plot_intensityfit.py
 		python3 $< $${f} $${fit} 5; \
 	done
 
+# run the plotting script on all files in a folder
+plot/%: scripts/plot.py
+	python3 $< $*
+
 #################################################################################
 ###				UTILITY					 ###
 #################################################################################
