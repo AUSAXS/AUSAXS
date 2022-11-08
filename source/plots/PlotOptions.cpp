@@ -149,7 +149,7 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     xlimits = opt.xlimits;
     xlabel_offset = opt.xlabel_offset;
     ylabel_offset = opt.ylabel_offset;
-
+    legend = opt.legend;
     return *this;
 }
 
@@ -169,6 +169,7 @@ std::string PlotOptions::to_string() const {
         << "title "          << title << "\n"
         << "xlabel "         << xlabel << "\n"
         << "ylabel "         << ylabel << "\n"
+        << "legend "         << legend << "\n"
         << "ylimits "        << ylimits.min << " " << ylimits.max << "\n"
         << "xlimits "        << xlimits.min << " " << ylimits.max << std::endl;
     return ss.str();

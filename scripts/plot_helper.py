@@ -205,6 +205,7 @@ def plot_dataset(d: Dataset):
             linestyle="none",
             marker=d.options.markerstyle, 
             markersize=d.options.markersize, 
+            label=d.options.legend,
             capsize=2,
             zorder=5
         )
@@ -215,6 +216,7 @@ def plot_dataset(d: Dataset):
             linestyle="none",
             marker=d.options.markerstyle, 
             markersize=d.options.markersize, 
+            label=d.options.legend
         )
 
     if d.options.drawline:
@@ -222,6 +224,7 @@ def plot_dataset(d: Dataset):
             color=d.options.color, 
             linestyle=d.options.linestyle, 
             linewidth=d.options.linewidth, 
+            label=d.options.legend
         )
     
     global first_plot
@@ -230,6 +233,7 @@ def plot_dataset(d: Dataset):
         plt.title(d.options.title)
         plt.xlabel(r"{}".format(d.options.xlabel))
         plt.ylabel(r"{}".format(d.options.ylabel))
+        plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 4))
         if (d.options.xrange != []):
             plt.xlim(d.options.xrange)
         if (d.options.yrange != []):
@@ -238,8 +242,8 @@ def plot_dataset(d: Dataset):
             plt.xscale("log")
         if (d.options.ylog):
             plt.yscale("log")
-        if (d.options.legend != ""):
-            plt.legend()        
+    if (d.options.legend != ""):
+        plt.legend()        
     return
 
 def plot_hline(h: Hline):
