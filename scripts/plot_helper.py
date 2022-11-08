@@ -18,6 +18,7 @@ class PlotType(Enum):
     ImageAtoms = "PlotImageAtoms"
     Hline = "PlotHline"
     Vline = "PlotVline"
+    Invalid = ""
 
 # Options class. Defines how a dataset is plotted.
 class Options:
@@ -71,9 +72,9 @@ class Options:
         elif (words[0] == "title"):
             self.title = words[1]
         elif (words[0] == "xlabel"):
-            self.xlabel = words[1]
+            self.xlabel = " ".join(words[1:])
         elif (words[0] == "ylabel"):
-            self.ylabel = words[1]
+            self.ylabel = " ".join(words[1:])
         elif (words[0] == "legend"):
             self.legend = words[1]
         
@@ -93,7 +94,7 @@ class Options:
         elif (words[0] == "same"):
             self.same = int(words[1])
         else:
-            print("Error: Invalid option: " + words[0])
+            print("Options.parse_option: Invalid option: " + words[0])
             exit(1)
 
 class Dataset:
@@ -101,60 +102,93 @@ class Dataset:
         self.data = np.array(data)
         self.options = options
 
-def read_dataset(file: str):
+class Hline: 
+    def __init__(self, y, options):
+        self.y = y
+        self.options = options
+
+class Vline:
+    def __init__(self, x, options):
+        self.x = x
+        self.options = options
+
+def read_options(file):
+    """Reads plot options from a .plot file.
+
+    Args:
+        file: The file iterator.
+
+    Returns:
+        options: The plot options.
+    """
+
+    options: Options = Options()
+    while(line := file.readline()):
+        line = line.rstrip()
+
+        # empty lines separates sections
+        if line == "":
+            break
+
+        options.parse_option(line)
+    return options
+
+def read_dataset(file):
     """Reads a dataset from a .plot file.
 
     Args:
-        file: The file object to read from.
+        file: The file iterator.
 
     Returns:
         datasets: A list of datasets.
     """
 
-    datasets: list[Dataset] = []
-    with open(file, "r") as f:
-        data: list[tuple[float]] = []
-        options: Options = Options()
-        section: int = 0
-        f.readline() # skip first line
-        for line in f:
-            line = line.rstrip()
+    data: list[tuple[float]] = []
+    while(line := file.readline()):
+        line = line.rstrip()
 
-            # empty lines separates sections
-            if line == "":
-                section += 1
-                continue
+        # empty lines separates sections
+        if line == "":
+            break
 
-            match section:
-                # SECTION 0: reading the dataset itself
-                case 0:
-                    words = line.split()
+        words = line.split()
 
-                    # otherwise just parse the line
-                    l = [float(w) for w in words]
-                    data.append(l)
-                    continue
+        # otherwise just parse the line
+        l = [float(w) for w in words]
+        data.append(l)
+        continue
+    return Dataset(data, read_options(file))
 
-                # SECTION 1: reading the plot options
-                case 1: 
-                    options.parse_option(line)
-                    continue
+def read_hline(file):
+    """Reads a horizontal line from a .plot file.
 
-                # SECTION 2: checking for more plots
-                case 2: 
-                    if line == PlotType.Dataset.value:
-                        datasets.append(Dataset(data, options))
-                        data = []
-                        options = Options()
-                        section = 0
-                        continue
-                case _:
-                    break
+    Args:
+        file: The file iterator.
 
-    datasets.append(Dataset(data, options))
-    return datasets
+    Returns:
+        hline: The horizontal line.
+    """
 
-def plot_datasets(datasets: list[Dataset], path: str): 
+    val = float(file.readline().rstrip())
+    file.readline() # empty space
+    return Hline(val, read_options(file))
+
+def read_vline(file):
+    """Reads a vertical line from a .plot file.
+
+    Args:
+        file: The file iterator.
+
+    Returns:
+        vline: The vertical line.
+    """
+
+    val = float(file.readline().rstrip())
+    file.readline() # empty space
+    return Vline(val, read_options(file))
+
+first_plot: bool = True
+def plot_dataset(d: Dataset): 
     """Plots a dataset.
 
     Args:
@@ -162,54 +196,78 @@ def plot_datasets(datasets: list[Dataset], path: str):
         options: Plot options.
     """
 
-    plt.figure(figsize=(10, 8))
-    first: bool = True
-    for d in datasets:
-        if d.options.drawerror:
-            if (d.data.shape[1] < 3):
-                print("Error: Not enough columns for error bars.")
-                exit(1)
-            plt.errorbar(d.data[:,0], d.data[:,1], yerr=d.data[:,2], 
-                color=d.options.color, 
-                linestyle="none",
-                marker=d.options.markerstyle, 
-                markersize=d.options.markersize, 
-                capsize=2, 
-            )
+    if d.options.drawerror:
+        if (d.data.shape[1] < 3):
+            print("plot_dataset: Not enough columns for error bars.")
+            exit(1)
+        plt.errorbar(d.data[:,0], d.data[:,1], yerr=d.data[:,2], 
+            color=d.options.color, 
+            linestyle="none",
+            marker=d.options.markerstyle, 
+            markersize=d.options.markersize, 
+            capsize=2,
+            zorder=5
+        )
 
-        elif d.options.drawmarker: 
-            plt.plot(d.data[:,0], d.data[:,1], 
-                color=d.options.color, 
-                linestyle="none",
-                marker=d.options.markerstyle, 
-                markersize=d.options.markersize, 
-            )
+    elif d.options.drawmarker: 
+        plt.plot(d.data[:,0], d.data[:,1], 
+            color=d.options.color, 
+            linestyle="none",
+            marker=d.options.markerstyle, 
+            markersize=d.options.markersize, 
+        )
 
-        if d.options.drawline:
-            plt.plot(d.data[:,0], d.data[:,1], 
-                color=d.options.color, 
-                linestyle=d.options.linestyle, 
-                linewidth=d.options.linewidth, 
-            )
-        
-        if (first):
-            first = False
-            plt.title(d.options.title)
-            plt.xlabel(d.options.xlabel)
-            plt.ylabel(d.options.ylabel)
-            if (d.options.xrange != []):
-                plt.xlim(d.options.xrange)
-            if (d.options.yrange != []):
-                plt.ylim(d.options.yrange)
-            if (d.options.xlog):
-                plt.xscale("log")
-            if (d.options.ylog):
-                plt.yscale("log")
-            if (d.options.legend != ""):
-                plt.legend()
-        
-    path = path.rsplit('.', 1)[0]
-    plt.savefig(path)
+    if d.options.drawline:
+        plt.plot(d.data[:,0], d.data[:,1], 
+            color=d.options.color, 
+            linestyle=d.options.linestyle, 
+            linewidth=d.options.linewidth, 
+        )
+    
+    global first_plot
+    if (first_plot):
+        first_plot = False
+        plt.title(d.options.title)
+        plt.xlabel(r"{}".format(d.options.xlabel))
+        plt.ylabel(r"{}".format(d.options.ylabel))
+        if (d.options.xrange != []):
+            plt.xlim(d.options.xrange)
+        if (d.options.yrange != []):
+            plt.ylim(d.options.yrange)
+        if (d.options.xlog):
+            plt.xscale("log")
+        if (d.options.ylog):
+            plt.yscale("log")
+        if (d.options.legend != ""):
+            plt.legend()        
+    return
+
+def plot_hline(h: Hline):
+    """Plots a horizontal line.
+
+    Args:
+        h: The horizontal line to plot.
+    """
+
+    plt.axhline(h.y, 
+        color=h.options.color, 
+        linestyle=h.options.linestyle, 
+        linewidth=h.options.linewidth, 
+    )
+    return
+
+def plot_vline(v: Vline):
+    """Plots a vertical line.
+
+    Args:
+        v: The vertical line to plot.
+    """
+
+    plt.axvline(v.x, 
+        color=v.options.color, 
+        linestyle=v.options.linestyle, 
+        linewidth=v.options.linewidth, 
+    )
     return
 
 def plot_file(file: str):
@@ -219,47 +277,50 @@ def plot_file(file: str):
         file: The input file.
     """
 
-    def determine_type(file: str):
-        """Determines the type of the file.
+    def determine_type(line: str) -> PlotType:
+        for t in PlotType:
+            if line == t.value:
+                return t
+        return PlotType.Invalid
 
-        Args:
-            file: The input file.
+    global first_plot
+    first_plot = True
+    plt.figure(figsize=(10, 8))
+    with open(file) as f:
+        # keep reading until eof
+        while line := f.readline():
+            # determine the type of plot to make
+            match determine_type(line.rstrip()):
+                case PlotType.Dataset:
+                    dataset: Dataset = read_dataset(f)
+                    plot_dataset(dataset)
 
-        Returns:
-            The PlotType of the file.
-        """
+                case PlotType.Hline:
+                    hline: Hline = read_hline(f)
+                    plot_hline(hline)
 
-        with open(file) as f:
-            line = f.readline().rstrip()
-            for p in PlotType:
-                if line == p.value:
-                    return p
+                case PlotType.Vline:
+                    vline: Vline = read_vline(f)
+                    plot_vline(vline)
 
-    match determine_type(file):
-        case PlotType.Dataset:
-            datasets: list[Dataset] = read_dataset(file) # read the datasets
-            path: str = file.rsplit('.', 1)[0] # remove the .plot extension
-            plot_datasets(datasets, path)  # actually plot the datasets
+                case PlotType.Histogram:
+                    print("Histogram not implemented yet.")
+                    exit(1)
 
-        case PlotType.Histogram:
-            print("Histogram not implemented yet.")
-            exit(1)
+                case PlotType.Image:
+                    print("Image not implemented yet.")
+                    exit(1)
 
-        case PlotType.Image:
-            print("Image not implemented yet.")
-            exit(1)
+                case PlotType.ImageAtoms:
+                    print("ImageAtoms not implemented yet.")
+                    exit(1)
 
-        case PlotType.ImageAtoms:
-            print("ImageAtoms not implemented yet.")
-            exit(1)
+                case _: 
+                    print("plot_file: Invalid plot type: " + line)
+                    exit(1)
 
-        case PlotType.Hline:
-            print("Hline not implemented yet.")
-            exit(1)
-
-        case PlotType.Vline:
-            print("Vline not implemented yet.")
-            exit(1)
+    path = file.rsplit('.', 1)[0]
+    plt.savefig(path)
 
     # delete the .plot file
     # os.remove(file)

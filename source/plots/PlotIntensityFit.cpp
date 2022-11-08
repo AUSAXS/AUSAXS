@@ -27,7 +27,7 @@ void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<Fit> fit, std::st
 
 void plots::PlotIntensityFit::plot(const Fit::Plots& graphs) {
     PlotOptions options_data, options_interpolated, options_intensity;
-    options_data.set("errors", {{"color", style::color::orange}, {"title", "Fit"}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"logy", true}, {"logx", true}});
+    options_data.set("errors", {{"color", style::color::orange}, {"title", "Fit"}, {"xlabel", "$q$ [$\\AA^{-1}$]"}, {"ylabel", "$I$ [arb]"}, {"logy", true}, {"logx", true}});
     options_interpolated.set("markers", {{"color", style::color::black}});
     options_intensity.set("line", {{"color", style::color::black}});
 

@@ -71,6 +71,10 @@ Fit::Plots SimpleIntensityFitter::plot() {
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.intensity = SimpleDataset(h.q, ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
+
+    auto lim = graphs.data.get_xlimits();
+    lim.expand(0.05);
+    graphs.intensity.limit_x(lim);
     return graphs;
 }
 

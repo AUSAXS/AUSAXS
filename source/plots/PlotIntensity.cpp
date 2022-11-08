@@ -21,8 +21,8 @@ plots::PlotIntensity::~PlotIntensity() = default;
 
 void plots::PlotIntensity::plot(const SimpleDataset& data, style::Color color) {
     plots::PlotOptions options = data.get_plot_options();
-    options.xlabel = "q";
-    options.ylabel = "I";
+    options.xlabel = "$q$ [$\\AA^{-1}$]";
+    options.ylabel = "$I$ [arb]";
     options.ylimits = data.span_y_positive();
     options.color = color;
 
@@ -37,8 +37,8 @@ void plots::PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Co
     PlotOptions options(data.get_plot_options());
     options.use_existing_axes = true;
     options.color = color;
-    options.xlabel = "q";
-    options.ylabel = "I";
+    options.xlabel = "$q$ [$\\AA^{-1}$]";
+    options.ylabel = "$I$ [arb]";
 
     ss << "PlotDataset\n"
        << data.to_string()
@@ -54,8 +54,8 @@ void plots::PlotIntensity::plot(const std::shared_ptr<Fit> fit, style::Color col
 void plots::PlotIntensity::plot_guinier_approx(const hist::ScatteringHistogram& data) {
     PlotOptions options = data.get_plot_options();
     options.legend = "Guinier approx";
-    options.xlabel = "q [Å]";
-    options.ylabel = "I";
+    options.xlabel = "$q$ [$\\AA^{-1}$]";
+    options.ylabel = "$I$ [arb]";
 
     auto guinier = data.plot_guinier_approx();
     ss << "Guinier\n"
