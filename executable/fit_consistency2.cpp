@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mapfile); 
     Protein protein(pdbfile);
 
-    unsigned int evals = 1000;
+    unsigned int evals = 100;
     Dataset data({"dof", "chi2_struct", "chi2_map", "cutoff"});
     for (unsigned int i = 0; i < evals; i++) {
         std::cout << "Starting iteration " << i+1 << " of " << evals << std::endl;
@@ -38,14 +38,11 @@ int main(int argc, char const *argv[]) {
         SimpleDataset msim = protein.simulate_dataset();
         msim.save(mfile);
 
-        // fit the measurement to the protein
-        auto res1 = protein.fit(mfile);
-
         // fit the measurement to the map
         auto res2 = map.fit(mfile);
 
         // add to output file
-        data.push_back({double(res1->dof), res1->fval, res2->fval, res2->get_parameter("cutoff")});
+        data.push_back({double(res2->dof), res2->fval, res2->get_parameter("cutoff")});
     }
     data.save(path + "out.txt");
 }

@@ -93,8 +93,10 @@ class Protein {
 
     /**
      * @brief Simulate a SAXS dataset based on this protein.
+     * 
+     * @param add_noise Whether to add noise to the simulated dataset.
      */
-    SimpleDataset simulate_dataset();
+    SimpleDataset simulate_dataset(bool add_noise = true);
 
     /** 
      * @brief Writes this body to disk.

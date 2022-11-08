@@ -1,9 +1,23 @@
 #include <utility/Constants.h>
 
-/**
- * The maps are initialized here to avoid recompiling the entire project every time they are updated.
- */
 namespace constants {
+    filetypes::detail::FileType::FileType(std::vector<std::string> extensions) {
+        for (auto& ext : extensions) {
+            ext = utility::to_lowercase(ext);
+        }
+        this->extensions = extensions;
+    }
+
+    bool filetypes::detail::FileType::validate(std::string path) const {
+        path = utility::to_lowercase(path);
+        for (auto ext : extensions) {
+            if (path.size() >= ext.size() && path.substr(path.size() - ext.size()) == ext) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     const saxs::detail::SimpleMap<char> name_1symbol_map = std::unordered_map<std::string, char>{
         {"glycine", 'G'}, {"alanine", 'A'}, {"valine", 'V'}, {"leucine", 'L'}, {"isoleucine", 'I'}, {"phenylalanine", 'F'}, {"tyrosine", 'Y'}, 
         {"tryptophan", 'W'}, {"aspartic_acid", 'D'}, {"glutamic_acid", 'E'}, {"serine", 'S'}, {"threonine", 'T'}, {"asparagine", 'N'}, 

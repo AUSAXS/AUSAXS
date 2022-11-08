@@ -76,7 +76,7 @@ namespace stats {
     template<typename T>
     T mode(const std::vector<T>& v) {
         if (v.empty()) {
-            throw std::invalid_argument("Error in stats::mode: Vector is empty.");
+            throw std::invalid_argument("stats::mode: Vector is empty.");
         }
         std::vector<T> v_copy = v;
         std::sort(v_copy.begin(), v_copy.end());

@@ -20,6 +20,20 @@ constexpr double simple_pow(double val, unsigned int power) {
  * @brief This namespace contains all constants used in this project. 
  */
 namespace constants {
+    namespace filetypes {
+        namespace detail {
+            struct FileType {
+                FileType(std::vector<std::string> extensions);
+                bool validate(std::string path) const;
+                std::vector<std::string> extensions;
+            };
+        }
+
+        const detail::FileType structure = {{"pdb", "ent"}};
+        const detail::FileType saxs_data = {{"dat", "txt", "rsr"}};
+        const detail::FileType em_map = {{"map", "ccp4", "mrc"}};
+    }
+
     /**
      * @brief Radius
      * 

@@ -59,11 +59,13 @@ void Protein::translate(const Vector3<double>& v) {
     }
 }
 
-SimpleDataset Protein::simulate_dataset() {
+SimpleDataset Protein::simulate_dataset(bool add_noise) {
     SimpleDataset data = get_histogram().calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.simulate_errors();
-    data.simulate_noise();
+    if (add_noise) {
+        data.simulate_noise();
+    }
     return data;
 }
 

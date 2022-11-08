@@ -119,9 +119,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     auto f = prepare_function(fitter);
     Dataset2D evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
 
-    //**********************************************************//
-    //***                DETERMINE LANDSCAPE                 ***//
-    //**********************************************************//
+    //##########################################################//
+    //###                DETERMINE LANDSCAPE                 ###//
+    //##########################################################//
     mini::LimitedScan minimizer(f, param, setting::em::evals);
     minimizer.set_limit(fitter->dof()*50);
     Dataset2D l = minimizer.landscape(setting::em::evals);
@@ -129,9 +129,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     l.sort_x();
     auto min = l.find_minimum();
 
-    //**********************************************************//
-    //*** CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ***//
-    //**********************************************************//
+    //##########################################################//
+    //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
+    //##########################################################//
     l.limit_y(0, min.y*5);  // focus on the area near the minimum
     if (l.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;       // first we determine the bounds of the area we want to sample
@@ -157,9 +157,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
         }
     }
 
-    //**********************************************************//
-    //***         AVERAGE & INTERPLATE MORE POINTS           ***//
-    //**********************************************************//
+    //##########################################################//
+    //###         AVERAGE & INTERPLATE MORE POINTS           ###//
+    //##########################################################//
     SimpleDataset avg = l.rolling_average(7); // impose a moving average filter 
     avg.interpolate(5);                       // interpolate more points
 
@@ -170,12 +170,12 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
 
     // optional plot
     if (setting::plot::em::plot_cutoff_points) {
-        // plot the starting point in blue
+        // plot the minimum in blue
         SimpleDataset p_start;
         p_start.push_back(min.x, min.y);
-        p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 0.8}, {"ms", 8}});
+        p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
-        avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
+        avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
         plots::PlotDataset plot(avg);
         l.add_plot_options(style::draw::points);
         plot.plot(l);
@@ -184,9 +184,9 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     }
 
 
-    //**********************************************************//
-    //***             EXPLORE AREA AROUND MINIMUM            ***//
-    //**********************************************************//
+    //##########################################################//
+    //###             EXPLORE AREA AROUND MINIMUM            ###//
+    //##########################################################//
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum
     // we therefore want to sample the area near the minimum to get an average
     mini::Result res;
@@ -208,17 +208,17 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
             SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
             SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
             SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
-            l.add_plot_options(style::draw::points, {{"color", style::color::red}});
-            lp.add_plot_options(style::draw::points, {{"color", style::color::red}, {"linestyle", "--"}});
-            lm.add_plot_options(style::draw::points, {{"color", style::color::red}, {"linestyle", "--"}});
+            l.add_plot_options(style::draw::line, {{"color", style::color::red}});
+            lp.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
+            lm.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
 
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min.x, min.y);
-            p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 0.8}, {"ms", 8}});
+            p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
             // do the actual plotting
-            area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "chi2"}, {"xdigits", 2}});
+            area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "chi2"}});
             plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);

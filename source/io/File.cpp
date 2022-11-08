@@ -54,7 +54,7 @@ void File::add(Record::RecordType type, const string s) {
     } else if (type == Record::RecordType::FOOTER) {
         footer.add(s);
     } else {
-        throw except::invalid_argument("Error in File::add: Type is not \"HEADER\" or \"FOOTER\"!");
+        throw except::invalid_argument("File::add: Type is not \"HEADER\" or \"FOOTER\"!");
     }
 }
 
@@ -118,20 +118,22 @@ void File::refresh() {
 
 std::unique_ptr<Reader> File::construct_reader(string path) {
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
-        throw except::invalid_argument("Error in File::construct_reader: .xml input files are not supported.");
+        throw except::invalid_argument("File::construct_reader: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
         return std::make_unique<PDBReader>(this);
+    } else if (path.find(".ent") != string::npos || path.find(".ENT") != string::npos) { // .ent file
+        return std::make_unique<PDBReader>(this);
     } else { // anything else - we cannot handle this
-        throw except::invalid_argument("Error in File::construct_reader: Unsupported file extension of input file \"" + path + "\".");
+        throw except::invalid_argument("File::construct_reader: Unsupported file extension of input file \"" + path + "\".");
     }
 }
 
 std::unique_ptr<Writer> File::construct_writer(string path) {
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
-        throw except::invalid_argument("Error in File::construct_writer: .xml input files are not supported.");
+        throw except::invalid_argument("File::construct_writer: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
         return std::make_unique<PDBWriter>(this);
     } else { // anything else - we cannot handle this
-        throw except::invalid_argument("Error in File::construct_writer: Unsupported file extension of input file \"" + path + "\".");
+        throw except::invalid_argument("File::construct_writer: Unsupported file extension of input file \"" + path + "\".");
     }
 }

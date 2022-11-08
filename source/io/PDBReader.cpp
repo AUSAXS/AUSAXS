@@ -16,7 +16,7 @@ void PDBReader::read(std::string input_path) {
 
     // check if file was succesfully opened
     std::ifstream input(input_path);
-    if (!input.is_open()) {throw except::io_error("Error in PDB_file::read: Could not open file \"" + input_path + "\"");}
+    if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + input_path + "\"");}
 
     string line; // placeholder for the current line
     File& f = *file;
@@ -50,7 +50,7 @@ void PDBReader::read(std::string input_path) {
             } case Record::RecordType::NOTYPE: {
                 break;
             } default: {
-                throw except::io_error("Error in PDB_file::read: Malformed input file - unrecognized type \"" + type + "\".");
+                throw except::io_error("PDBReader::read: Malformed input file - unrecognized type \"" + type + "\".");
             }
         };
     }

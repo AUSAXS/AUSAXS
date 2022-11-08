@@ -110,12 +110,13 @@ inspect/%: build/executable/inspect_map
 em_fitter/%: build/executable/em_fitter
 	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
-	emmaps=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
-	for emmap in $${emmaps}; do\
-		echo "Fitting " $${emmap} " ...";\
-		sleep 1;\
-		$< $${emmap} $${measurement};\
-		make plot_em/$*;\
+	emmaps=$$(cat $${folder}/maps.txt); \
+	for map in $${emmaps}; do\
+		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
+		echo "Fitting " $${path} "..."; \
+		sleep 1; \
+		$< $${path} $${measurement}; \
+		make plot_em/$*; \
 	done
 
 # Fit both an EM map and a PDB file to a SAXS measurement. 
@@ -199,6 +200,13 @@ fit_consistency2/%: build/executable/fit_consistency2
 	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
 	echo "$< $${emmap} $${structure}"; \
 	$< $${emmap} $${structure}
+
+map_pdb_consistency/%: build/executable/em_pdb_fitter
+	@ map=$$(find data -name "$*.ccp4" -or -name "$*.map" -or -name "$*.mrc"); \
+	folder=$$(dirname $${map}); \
+	pdb=$$(find $${folder} -name "*.ent"); \
+	$< $${map} $${pdb}
+	make plot/figures/em_pdb_fitter/$*
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

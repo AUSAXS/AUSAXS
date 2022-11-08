@@ -8,24 +8,23 @@
 
 namespace console {
     namespace color {
-        enum color {
-            black, 
-            blue, 
-            green, 
-            cyan, 
-            red, 
-            magenta, 
-            brown, 
-            lightgray, 
-            darkgray, 
-            lightblue, 
-            lightgreen, 
-            lightcyan, 
-            lightred, 
-            lightmagenta, 
-            yellow, 
-            white
-        };
+        typedef int color;
+        color black = 0;
+        color red = 1;
+        color green = 2;
+        color yellow = 3;
+        color blue = 4;
+        color magenta = 5;
+        color cyan = 6;
+        color lightgray = 7;
+        color darkgray = 60;
+        color lightred = 61;
+        color lightgreen = 62;
+        color lightyellow = 63;
+        color lightblue = 64;
+        color lightmagenta = 65;
+        color lightcyan = 66;
+        color white = 67;
     }
 
     #if defined(_WIN32) || defined(_WIN64)

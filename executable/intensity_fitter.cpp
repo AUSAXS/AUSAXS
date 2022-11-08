@@ -35,12 +35,27 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used. Default: false.");
     CLI11_PARSE(app, argc, argv);
 
+    //####################//
+    //### PARSE INPUT ###//
+    //####################//
     // if a settings file was provided
     if (p_settings->count() != 0) {
         setting::read(settings);        // read it
         CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
     } else {                            // otherwise check if there is a settings file in the same directory
         setting::discover(std::filesystem::path(mfile).parent_path().string());
+    }
+
+    // validate input
+    if (!constants::filetypes::structure.validate(pdb)) {
+        if (constants::filetypes::em_map.validate(mfile)) {
+            std::swap(pdb, mfile);
+        } else {
+            throw except::invalid_argument("Unknown EM extensions: " + pdb + " and " + mfile);
+        }
+    }
+    if (!constants::filetypes::saxs_data.validate(mfile)) {
+        throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
     }
 
     // parse strategy
@@ -52,6 +67,9 @@ int main(int argc, char const *argv[]) {
         output = "figures/intensity_fitter/" + utility::stem(mfile) + "/";
     }
 
+    //######################//
+    //### ACTUAL PROGRAM ###//
+    //######################//
     Protein protein(pdb);
     if (!use_existing_hydration || protein.hydration_atoms.empty()) {
         protein.generate_new_hydration();

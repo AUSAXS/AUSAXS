@@ -14,7 +14,7 @@ void PDBWriter::write(string output_path) {
     file->refresh();
     utility::create_directory(output_path);
     std::ofstream output(output_path);
-    if (!output.is_open()) {throw std::ios_base::failure("Error in PDB_file::write: Could not open file \"" + output_path + "\"");}
+    if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + output_path + "\"");}
     output << as_pdb() << std::flush;
     output.close();
     std::cout << "Output written to file " + output_path + "." << std::endl;

@@ -34,7 +34,17 @@ int main(int argc, char const *argv[]) {
         setting::discover(std::filesystem::path(mfile).parent_path().string());
     }
 
-    std::cout << setting::em::sample_frequency << std::endl;
+    // validate input
+    if (!constants::filetypes::em_map.validate(mapfile)) {
+        if (constants::filetypes::em_map.validate(mfile)) {
+            std::swap(mapfile, mfile);
+        } else {
+            throw except::invalid_argument("Unknown EM extensions: " + mapfile + " and " + mfile);
+        }
+    }
+    if (!constants::filetypes::saxs_data.validate(mfile)) {
+        throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
+    }
 
     if (output.empty()) {
         output = "figures/";
