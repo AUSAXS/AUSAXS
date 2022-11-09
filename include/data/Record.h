@@ -34,7 +34,9 @@ class Record {
         //      NOTYPEs are ignored. 
         inline static const std::map<string, RecordType> type_map = {
             {"ATOM"  , RecordType::ATOM}, {"HETATM", RecordType::ATOM},
+
             {"TER"   , RecordType::TERMINATE}, 
+
             {"HEADER", RecordType::HEADER}, {"TITLE" , RecordType::HEADER}, {"COMPND", RecordType::HEADER}, {"SOURCE", RecordType::HEADER}, 
             {"KEYWDS", RecordType::HEADER}, {"EXPDTA", RecordType::HEADER}, {"AUTHOR", RecordType::HEADER}, {"REVDAT", RecordType::HEADER}, 
             {"JRNL"  , RecordType::HEADER}, {"REMARK", RecordType::HEADER}, {"DBREF" , RecordType::HEADER}, {"SEQRES", RecordType::HEADER}, 
@@ -44,8 +46,10 @@ class Record {
             {"HETNAM", RecordType::HEADER}, {"HETSYN", RecordType::HEADER}, {"FORMUL", RecordType::HEADER}, {"CISPEP", RecordType::HEADER}, 
             {"SITE"  , RecordType::HEADER}, {"SEQADV", RecordType::HEADER}, {"LINK"  , RecordType::HEADER}, {"MODEL" , RecordType::HEADER}, 
             {"LINKR" , RecordType::HEADER}, {"SPRSDE", RecordType::HEADER}, {"MODRES", RecordType::HEADER}, {"MTRIX1", RecordType::HEADER}, 
-            {"MTRIX2", RecordType::HEADER}, {"MTRIX3", RecordType::HEADER}, 
+            {"MTRIX2", RecordType::HEADER}, {"MTRIX3", RecordType::HEADER}, {"DBREF1", RecordType::HEADER}, {"DBREF2", RecordType::HEADER},
+
             {"CONECT", RecordType::FOOTER}, {"MASTER", RecordType::FOOTER}, {"END"   , RecordType::FOOTER}, {"ENDMDL", RecordType::FOOTER},
+
             {"ANISOU", RecordType::NOTYPE}
         };
 };

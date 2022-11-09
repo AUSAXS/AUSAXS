@@ -17,7 +17,7 @@ namespace setting {
     };
 
     struct figures {
-        inline static std::string format = "pdf"; // The output format.
+        inline static std::string format = "png"; // The output format.
     };
 
     struct grid {

@@ -165,7 +165,7 @@ intensity_fit/%: build/executable/intensity_fitter
 	for pdb in $${structure}; do\
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
-		$< $${pdb} $${measurement} ${options};\
+		$< $${measurement} $${pdb} ${options};\
 	done
 
 # Check the consistency of the program. 
@@ -201,7 +201,7 @@ fit_consistency2/%: build/executable/fit_consistency2
 	echo "$< $${emmap} $${structure}"; \
 	$< $${emmap} $${structure}
 
-map_pdb_consistency/%: build/executable/em_pdb_fitter
+map_consistency/%: build/executable/em_pdb_fitter
 	@ map=$$(find data -name "$*.ccp4" -or -name "$*.map" -or -name "$*.mrc"); \
 	folder=$$(dirname $${map}); \
 	pdb=$$(find $${folder} -name "*.ent"); \

@@ -48,10 +48,12 @@ int main(int argc, char const *argv[]) {
 
     // validate input
     if (!constants::filetypes::structure.validate(pdb)) {
-        if (constants::filetypes::em_map.validate(mfile)) {
+        // check if the two inputs are switched
+        if (constants::filetypes::structure.validate(mfile)) {
+            // if so, silently swap them and proceed
             std::swap(pdb, mfile);
         } else {
-            throw except::invalid_argument("Unknown EM extensions: " + pdb + " and " + mfile);
+            throw except::invalid_argument("Unknown PDB extensions: " + pdb + " and " + mfile);
         }
     }
     if (!constants::filetypes::saxs_data.validate(mfile)) {

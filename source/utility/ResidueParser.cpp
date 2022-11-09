@@ -208,10 +208,12 @@ void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::Res
 }
 
 saxs::detail::ResidueMap& parser::residue::ResidueStorage::get(std::string name) {
+    std::cout << "ResidueStorage::Getting " << name << std::endl;
     if (data.find(name) == data.end()) {
         utility::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
         download_residue(name);
     }
+    std::cout << "\tok" << name << std::endl;
     return data.at(name);
 }
 

@@ -58,6 +58,7 @@ Atom::Atom(int serial, string name, string altLoc, string resName, string chainI
 Atom::Atom() : uid(uid_counter++) {}
 
 void Atom::parse_pdb(string s) {
+    std::cout << "Atom::parse_pdb" << std::endl;
     s = utility::remove_all(s, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - s.size();
     if (pad_size < 0) {
@@ -124,11 +125,15 @@ void Atom::parse_pdb(string s) {
         throw e;
     }
 
+    std::cout << "Atom::parse_pdb: setting effective charge" << std::endl;
     if (setting::protein::use_effective_charge) {
+        std::cout << "Atom::parse_pdb: using effective charge" << std::endl;
         effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
+        std::cout << "Atom::parse_pdb: not using effective charge" << std::endl;
         effective_charge = constants::charge::atomic.get(this->element);
     }
+    std::cout << "Atom::parse_pdb: end" << std::endl;
 }
 
 string Atom::as_pdb() const {

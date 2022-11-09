@@ -23,6 +23,7 @@ std::string utility::remove_spaces(std::string s) {
 }
 
 void utility::print_warning(std::string text) {
+    std::cout << text << std::endl;
     console::print(text, console::color::red);
 }
 
@@ -32,6 +33,7 @@ void utility::print_success(std::string text) {
 
 void utility::print_info(std::string text) {
     #if defined(_WIN32) || defined(_WIN64)
+        std::cout << text << std::endl;
         console::print(text, console::color::lightblue);
     #else
         console::print(text, console::color::blue);
@@ -145,10 +147,12 @@ std::string utility::remove_all(std::string s, std::string remove) {
 }
 
 std::string utility::to_lowercase(std::string s) {
+    std::cout << "utility::to_lowercase " << s << std::endl;
     std::string new_s;
     for (auto c : s) {
         new_s += std::tolower(c);
     }
+    std::cout << "utility::to_lowercase " << new_s << std::endl;
     return new_s;
 }
 

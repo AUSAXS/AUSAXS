@@ -33,10 +33,12 @@ namespace saxs {
              * @brief Get a value from the storage. 
              */
             virtual const V& get(std::string key) const {
+                std::cout << "Getting " << key << std::endl;
                 std::string k2 = utility::to_lowercase(key);
                 if (data.find(k2) == data.end()) {
                     throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
                 }
+                std::cout << "\tok " << std::endl;
                 return data.at(k2);
             }
 
