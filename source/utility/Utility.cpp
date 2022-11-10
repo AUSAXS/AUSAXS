@@ -31,11 +31,7 @@ void utility::print_success(std::string text) {
 }
 
 void utility::print_info(std::string text) {
-    #if defined(_WIN32) || defined(_WIN64)
-        console::print(text, console::color::lightblue);
-    #else
-        console::print(text, console::color::blue);
-    #endif
+    console::print(text, console::color::lightblue);
 }
 
 void utility::create_directory(std::string path) {

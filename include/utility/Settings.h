@@ -82,6 +82,7 @@ namespace setting {
         inline static unsigned int evals = 100;          // Base number of evaluations used in the EM fitter. 
 
         inline static bool save_pdb = true;              // Whether to save the final atomic structure as a PDB file.
+        inline static Limit alpha_levels = {0.25, 8};    // The range of alpha-levels to search.
 
         struct simulation {
             inline static bool noise = true; // Whether to generate noise for the simulations. 

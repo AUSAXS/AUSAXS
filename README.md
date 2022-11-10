@@ -43,10 +43,12 @@
 
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
- * ROOT (compile options: `cmake -DCMAKE_INSTALL_PREFIX=<install> -Dminuit2=ON -DCMAKE_CXX_STANDARD=17 -Dbuiltin_gsl=ON <source>`)
  * Elements
  * CLI11
  * catch2 for tests
+ * CURL
+ * OpenSSL (CURL)
+ * binutils-dev (backward-cpp stacktraces)
 
 # FITTING:
 FOXS SAXS fitting program

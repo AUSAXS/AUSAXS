@@ -70,15 +70,19 @@ hydrate/%: build/executable/new_hydration
 
 # show a structure in pymol
 view/%: 
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	$(pymol) $${structure}
+	@ file=$$(find data/ -name "$*.pdb"); \
+	$(pymol) $${file} -r scripts/pymol.py
+
+viewmap/%: 
+	@ file=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
+	$(pymol) $${file} -r scripts/pymol.py -d "isomesh mesh, $*, 3"
 
 res := 10
 # show a simulated structure in pymol
 simview/%:
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	emmap=$(shell find sim/ -name "$*_$(res).mrc" -or -name "$*_$(res).ccp4"); \
-	$(pymol) $${structure} $${emmap} -d "isomesh normal, $*_$(res), 1"
+	$(pymol) $${structure} $${emmap} -d "isomesh mesh, $*_$(res), 1"
 
 # calculate the histogram for a given structure
 hist/%: build/executable/hist
