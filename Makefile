@@ -102,6 +102,9 @@ inspect/%: build/executable/inspect_map
 		folder=$$(dirname $${measurement}); \
 		names=$$(cat $${folder}/maps.txt); \
 		emmaps=(); \
+		for n in $${names}; do \
+			emmaps+=$$(find data/$${n} -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
+		done \
 	else \
 		emmaps=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
 	fi; \
