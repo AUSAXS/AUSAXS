@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -march=native -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CXX_STANDARD C++17)
+set(DEBUG TRUE)
 
 project(SAXS VERSION 0.0)
 
@@ -15,28 +16,34 @@ include(FetchContent)
 #set(FETCHCONTENT_UPDATES_DISCONNECT ON)
 
 FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG f4af9f69265d009a457aa99d1075cfba78652a66
-  GIT_PROGRESS TRUE
+	Catch2
+	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+	GIT_TAG f4af9f69265d009a457aa99d1075cfba78652a66
+	GIT_PROGRESS TRUE
 )
 
 FetchContent_Declare(
-  CLI11
-  GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-  GIT_TAG b9be5b9444772324459989177108a6a65b8b2769
-  GIT_PROGRESS TRUE
+	CLI11
+	GIT_REPOSITORY https://github.com/CLIUtils/CLI11
+	GIT_TAG b9be5b9444772324459989177108a6a65b8b2769
+	GIT_PROGRESS TRUE
 )
 
 FetchContent_Declare(
-  dlib
-  GIT_REPOSITORY https://github.com/davisking/dlib
-  GIT_TAG v19.18
-  GIT_PROGRESS TRUE
+	dlib
+	GIT_REPOSITORY https://github.com/davisking/dlib
+	GIT_TAG v19.18
+	GIT_PROGRESS TRUE
 )
 set(DLIB_ENABLE_ASSERTS false)
 
-FetchContent_MakeAvailable(Catch2 CLI11 dlib)
+FetchContent_Declare(
+	backward
+	GIT_REPOSITORY https://github.com/bombela/backward-cpp
+	GIT_TAG v1.6
+)
+
+FetchContent_MakeAvailable(Catch2 CLI11 dlib backward)
 
 
 ############################################
@@ -56,6 +63,9 @@ elseif (UNIX)
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
 	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
+	if (DEBUG)
+		link_libraries(-lbfd -ldl) # for stacktraces
+	endif()
 endif()
 
 
@@ -64,13 +74,14 @@ endif()
 ############################################
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-  set(sim3a_Doxygen "${CMAKE_CURRENT_BINARY_DIR}/saxs.dox")
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/saxs.dox.in ${sim3a_Doxygen} @ONLY)
-  add_custom_target(doc
-    ${DOXYGEN_EXECUTABLE} ${sim3a_Doxygen}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with Doxygen" VERBATIM
-)
+	set(sim3a_Doxygen "${CMAKE_CURRENT_BINARY_DIR}/saxs.dox")
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/saxs.dox.in ${sim3a_Doxygen} @ONLY)
+	add_custom_target(
+		doc
+		${DOXYGEN_EXECUTABLE} ${sim3a_Doxygen}
+    		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    		COMMENT "Generating API documentation with Doxygen" VERBATIM
+	)
 endif(DOXYGEN_FOUND)
 
 
@@ -87,9 +98,11 @@ target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
 ############################################
 ##             Unit Testing               ##
 ############################################
-file(GLOB_RECURSE TEST_SRC
-  "test/*.h"
-  "test/*.cpp")
+file(GLOB_RECURSE 
+	TEST_SRC
+	"test/*.h"
+	"test/*.cpp"
+)
 add_executable(test ${TEST_SRC})
 target_link_libraries(test PRIVATE saxs Catch2::Catch2WithMain)
 

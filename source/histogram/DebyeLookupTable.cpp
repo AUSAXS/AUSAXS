@@ -31,8 +31,8 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
 
         // assign the lambda lookup function to a custom table lookup
         initialize(table, q, d);
-        lookup_function = [&] (double q, double d) {return table.lookup(q, d);};
-        index_lookup_function = [&] (int i, int j) {return table.lookup_index(i, j);};
+        lookup_function = [this] (double q, double d) {return table.lookup(q, d);};
+        index_lookup_function = [this] (int i, int j) {return table.lookup_index(i, j);};
     }
 }
 
@@ -96,7 +96,7 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
 
     // check d
     if (d.empty()) {return false;} // check if empty
-    if (d[d.size()-1] > default_size) {return false;} // check if too large for default table
+    if (d.back() > default_size) {return false;} // check if too large for default table
     if (!utility::approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
     if (!utility::approx(d[3]-d[2], width)) {return false;} // check second width
 

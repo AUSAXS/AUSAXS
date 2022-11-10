@@ -47,6 +47,7 @@ class Record {
             {"SITE"  , RecordType::HEADER}, {"SEQADV", RecordType::HEADER}, {"LINK"  , RecordType::HEADER}, {"MODEL" , RecordType::HEADER}, 
             {"LINKR" , RecordType::HEADER}, {"SPRSDE", RecordType::HEADER}, {"MODRES", RecordType::HEADER}, {"MTRIX1", RecordType::HEADER}, 
             {"MTRIX2", RecordType::HEADER}, {"MTRIX3", RecordType::HEADER}, {"DBREF1", RecordType::HEADER}, {"DBREF2", RecordType::HEADER},
+            {"CAVEAT", RecordType::HEADER},
 
             {"CONECT", RecordType::FOOTER}, {"MASTER", RecordType::FOOTER}, {"END"   , RecordType::FOOTER}, {"ENDMDL", RecordType::FOOTER},
 

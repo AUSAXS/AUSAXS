@@ -31,7 +31,7 @@ namespace table {
              * @param i The row index.
              * @param j The column index. 
              */
-            const double& index(unsigned int i, unsigned int j) const {return data[M*i + j];}
+            const double& index(unsigned int i, unsigned int j) const {return data.at(M*i + j);}
 
             /**
              * @brief Read-write access to the given table index.  
@@ -80,12 +80,14 @@ namespace table {
 
                 Tmap.reserve(N);
                 for (unsigned int i = 0; i < N; i++) {
-                    Tmap[rows[i]] = i;
+                    Tmap.emplace(rows[i], i);
+                    // Tmap[rows[i]] = i;
                 }
 
                 Qmap.reserve(M);
                 for (unsigned int i = 0; i < M; i++) {
-                    Qmap[columns[i]] = i;
+                    Qmap.emplace(columns[i], i);
+                    // Qmap[columns[i]] = i;
                 }
             }
 

@@ -45,7 +45,7 @@ Atom::Atom(int serial, string name, string altLoc, string resName, string chainI
             try {
                 effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
             } catch (const except::base& e) {
-                throw except::invalid_argument("Error in Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+                throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
             }
         } 
         // otherwise just use the atomic charge (this will never fail)
@@ -58,7 +58,6 @@ Atom::Atom(int serial, string name, string altLoc, string resName, string chainI
 Atom::Atom() : uid(uid_counter++) {}
 
 void Atom::parse_pdb(string s) {
-    std::cout << "Atom::parse_pdb" << std::endl;
     s = utility::remove_all(s, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - s.size();
     if (pad_size < 0) {
@@ -84,7 +83,7 @@ void Atom::parse_pdb(string s) {
 
     // sanity check
     if (__builtin_expect(!(Record::get_type(recName) == RecordType::ATOM), false)) {
-        throw except::parse_error("Error in Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
+        throw except::parse_error("Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
     }
 
     // remove any spaces from the numbers
@@ -121,19 +120,15 @@ void Atom::parse_pdb(string s) {
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         this->charge = charge;
     } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
-        utility::print_warning("Error in Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
+        utility::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         throw e;
     }
 
-    std::cout << "Atom::parse_pdb: setting effective charge" << std::endl;
     if (setting::protein::use_effective_charge) {
-        std::cout << "Atom::parse_pdb: using effective charge" << std::endl;
         effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
-        std::cout << "Atom::parse_pdb: not using effective charge" << std::endl;
         effective_charge = constants::charge::atomic.get(this->element);
     }
-    std::cout << "Atom::parse_pdb: end" << std::endl;
 }
 
 string Atom::as_pdb() const {
@@ -189,7 +184,7 @@ void Atom::set_name(string name) {this->name = name;}
 
 void Atom::set_element(string element) {
     if (__builtin_expect(!constants::mass::atomic.contains(element), false)) { // check that the weight is defined
-        throw except::invalid_argument("Error in Atom::set_element: The weight of element " + element + " is not defined.");
+        throw except::invalid_argument("Atom::set_element: The weight of element " + element + " is not defined.");
     }
     this->element = element;
 }
@@ -214,12 +209,12 @@ double Atom::get_mass() const {
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
         if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {
-            throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
+            throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
         }
         return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
         if (__builtin_expect(element.empty(), false)) {
-            throw except::invalid_argument("Error in Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
+            throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
         }
         return constants::mass::atomic.get(element);
     }
@@ -227,7 +222,7 @@ double Atom::get_mass() const {
 
 unsigned int Atom::Z() const {
     if (__builtin_expect(element == "", false)) {
-        throw except::invalid_argument("Error in Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
+        throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
     }
     return constants::charge::atomic.get(element);
 }

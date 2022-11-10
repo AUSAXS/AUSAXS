@@ -327,6 +327,6 @@ def plot_file(file: str):
     plt.savefig(path)
 
     # delete the .plot file
-    # os.remove(file)
+    os.remove(file)
 
     return

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 
 #include <plots/all.h>
 #include <em/ImageStack.h>
@@ -32,6 +33,11 @@ int main(int argc, char const *argv[]) {
     SimpleDataset msim = protein.simulate_dataset(false);
     msim.save(mfile);
     auto res = map.fit(mfile);
+    std::filesystem::remove(mfile);
+
+    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "fit.png");
+    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals.png");
+
     FitReporter::report(res);
     FitReporter::save(setting::plot::path + "fit.txt", res);
 }

@@ -1,7 +1,7 @@
 # Todo
+ * [ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
  * [ ] EMFitter: Check correct dof is returned always (both for hydration enabled & without)
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
- * [x] ImageStack: prepare_function() can only be bound to a single fitter for some reason - performing a second fit with the same function leads to a crash. UPDATE: maybe fixed now?
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
  * [ ] ResidueParser: Consider creating 1 parsed file per residue and then dynamically loading only those that are needed for the current file. 

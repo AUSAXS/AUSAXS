@@ -14,11 +14,8 @@ File::File(const vector<Atom>& protein_atoms, const vector<Water>& hydration_ato
     : header(header), footer(footer), terminate(terminate), protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
 File::File(string filename) {
-    std::cout << "File::File" << std::endl;
     reader = construct_reader(filename);
-    std::cout << "File::File: constructed reader, now reading data" << std::endl;
     read(filename);
-    std::cout << "File::File end" << std::endl;
 }
 
 File::~File() = default;
@@ -120,7 +117,6 @@ void File::refresh() {
 }
 
 std::unique_ptr<Reader> File::construct_reader(string path) {
-    std::cout << "File::construct_reader" << std::endl;
     if (path.find(".xml") != string::npos || path.find(".XML") != string::npos) { // .xml file
         throw except::invalid_argument("File::construct_reader: .xml input files are not supported.");
     } else if (path.find(".pdb") != string::npos || path.find(".PDB") != string::npos) { // .pdb file
@@ -130,7 +126,6 @@ std::unique_ptr<Reader> File::construct_reader(string path) {
     } else { // anything else - we cannot handle this
         throw except::invalid_argument("File::construct_reader: Unsupported file extension of input file \"" + path + "\".");
     }
-    std::cout << "File::construct_reader end" << std::endl;
 }
 
 std::unique_ptr<Writer> File::construct_writer(string path) {
