@@ -23,7 +23,7 @@ def Rz(t):
 	t = float(t)*pi
 	return [cos(t), -sin(t), 0., 
 		sin(t), cos(t),  0.,
-		0.,      0.,     0.]
+		0.,      0.,     1.]
 
 @cmd.extend
 def viewx(angle):
@@ -36,3 +36,27 @@ def viewy(angle):
 @cmd.extend
 def viewz(angle):
 	cmd.set_view(Rz(angle) + setup)
+
+counter = 0
+@cmd.extend
+def snapshot():
+	cmd.set("mesh_radius", 0.02) 	# thinner mesh lines
+	cmd.set("ray_shadows", "off")	# disable shadows
+	cmd.set("antialias", 2)		# best quality
+	cmd.set("hash_max", 300)	# improve performance
+	cmd.bg_color("white")		# make it a bit easier to see
+
+	# guess file name
+	objects = cmd.get_object_list("(all)")
+	filename = ""
+	for o in objects:
+		if "SAS" in o:
+			filename = o
+			break
+	if filename == "":
+		print("Couldn't determine filename. Saving as 'temp'.")
+		filename = "temp"
+	
+	global counter
+	counter += 1
+	cmd.png(filename+"_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=1)

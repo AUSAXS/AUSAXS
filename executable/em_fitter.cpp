@@ -24,6 +24,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qlow", setting::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
     app.add_option("--frequency", setting::em::sample_frequency, "Sampling frequency of the EM map.");
+    app.add_flag("--hydrate,!--no-hydrate", setting::em::hydrate, "Whether to hydrate the protein before fitting.");
     CLI11_PARSE(app, argc, argv);
 
     // if a settings file was provided

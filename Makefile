@@ -70,18 +70,24 @@ hydrate/%: build/executable/new_hydration
 
 # show a structure in pymol
 view/%: 
-	@ file=$$(find data/ -name "$*.pdb"); \
+	@ file=$$(find data -name "$*.pdb"); \
 	$(pymol) $${file} -r scripts/pymol.py
 
 viewmap/%: 
-	@ file=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
-	$(pymol) $${file} -r scripts/pymol.py -d "isomesh mesh, $*, 3"
+	@ file=$$(find data -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
+	if [ $${file} ]; then \
+		folder=$$(dirname $${file}); \
+		pdb=$$(find $${folder} -name "*.pdb" -or -name "*.ent"); \
+		$(pymol) $${file} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
+	fi
+#		$(pymol) $${file} $${pdb} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
+#	fi
 
 res := 10
 # show a simulated structure in pymol
 simview/%:
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	emmap=$(shell find sim/ -name "$*_$(res).mrc" -or -name "$*_$(res).ccp4"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	emmap=$$(find sim/ -name "$*_$(res).mrc" -or -name "$*_$(res).ccp4"); \
 	$(pymol) $${structure} $${emmap} -d "isomesh mesh, $*_$(res), 1"
 
 # calculate the histogram for a given structure
@@ -128,7 +134,7 @@ em_fitter/%: build/executable/em_fitter
 		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 		echo "Fitting " $${path} "..."; \
 		sleep 1; \
-		$< $${path} $${measurement}; \
+		$< $${path} $${measurement} ${options}; \
 		make plot_em/$*; \
 	done
 
