@@ -78,7 +78,7 @@ Limit Histogram::span_positive() const noexcept {
 std::string Histogram::to_string() const noexcept {
     std::stringstream ss;
     auto ax = axis.as_vector();
-    for (int i = 0; i < size(); i++) {
+    for (unsigned int i = 0; i < size(); i++) {
         ss << ax[i] << " " << p[i] << std::endl;
     }
     return ss.str();
