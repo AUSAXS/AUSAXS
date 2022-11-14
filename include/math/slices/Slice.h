@@ -119,8 +119,6 @@ class Slice {
 
 template <class C>
 concept SliceType = requires(C c) {
-    // IILE, that only binds to A<...> specialisations
-    // Including classes derived from them
     []<typename X>(Slice<X>&){}(c);
 };
 

@@ -51,10 +51,21 @@ class Fit : public mini::Result {
         /**
          * @brief Get a string representation of this object. 
          */
-        std::string to_string() const noexcept;
+        virtual std::string to_string() const noexcept;
 
         SimpleDataset evaluated_points;
         Plots figures;
         SimpleDataset residuals;
         unsigned int dof;
 };
+
+struct EMFit : public Fit {
+    using Fit::Fit;
+
+    std::string to_string() const noexcept override;
+
+    double level;
+};
+
+template<typename C>
+concept FitType = std::derived_from<C, Fit>;

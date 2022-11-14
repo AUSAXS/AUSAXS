@@ -24,8 +24,6 @@ namespace em {
      */
     class ImageStack {
         public:
-            class EMFit : public Fit {using Fit::Fit;};
-
             struct Landscape {
                 Landscape() {}
                 Landscape(const EMFit& fit, const Dataset2D& contour) : fit(fit), contour(contour) {}
@@ -245,7 +243,12 @@ namespace em {
             /**
              * @brief Get the cutoff corresponding to a PyMOL level. This is just the number of sigmas of the root-mean-square deviation.
              */
-            double level(double sigma) const;
+            double from_level(double sigma) const;
+
+            /**
+             * @brief Get the PyMOL level corresponding to a given cutoff. 
+             */
+            double to_level(double cutoff) const;
 
             /**
              * @brief Calculate the root-mean-square of this map. 
