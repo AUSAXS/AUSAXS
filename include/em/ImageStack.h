@@ -246,7 +246,7 @@ namespace em {
             double from_level(double sigma) const;
 
             /**
-             * @brief Get the PyMOL level corresponding to a given cutoff.
+             * @brief Get the PyMOL level corresponding to a given cutoff. 
              */
             double to_level(double cutoff) const;
 

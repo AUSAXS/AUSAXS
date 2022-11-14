@@ -4,6 +4,7 @@ template<typename T> class Vector;
 
 #include <vector>
 #include <signal.h>
+#include <concepts>
 
 #define SAFE_MATH true
 
@@ -115,3 +116,26 @@ class Slice {
         const unsigned int N, M;
         unsigned int start, step, length;
 };
+
+template <class C>
+concept SliceType = requires(C c) {
+    []<typename X>(Slice<X>&){}(c);
+};
+
+template<SliceType T, SliceType Q>
+bool operator==(const T& lhs, const Q& rhs) {
+	if (lhs.size() != rhs.size()) {
+		throw std::invalid_argument("ConstSlice::operator==: Slice of size \"" + std::to_string(rhs.size()) + "\" does not fit in slice of size \"" + std::to_string(lhs.size()) + "\".");
+	}
+
+	bool equal = true;
+    for (unsigned int i = 0; i < lhs.size(); i++) {
+        equal = equal && lhs[i] == rhs[i];
+    }
+    return equal;
+}
+
+template<SliceType T, SliceType Q>
+bool operator!=(const T& lhs, const Q& rhs) {
+    return !(lhs == rhs);
+}

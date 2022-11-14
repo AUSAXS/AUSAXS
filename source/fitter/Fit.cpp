@@ -67,4 +67,5 @@ std::string EMFit::to_string() const noexcept {
     ss << Fit::to_string();
     ss << "\n| Cutoff corresponds to PyMOL level " << print_element(level, 12) << "           |";
     ss << "\n+----------------------------------------------------------+";
+    return ss.str();
 }

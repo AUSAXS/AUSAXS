@@ -211,25 +211,9 @@ MutableSlice<T> operator/(MutableSlice<T> left, double right) {return left /= ri
 template<typename T, typename Q>
 bool operator==(const MutableSlice<T>& s, const Vector<Q>& v) {return s.operator Vector<T>().operator==(v);}
 
-template<typename T, typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
-bool operator==(const MutableSlice<T>& lhs, const Q& rhs) {
-	if (lhs.size() != rhs.size()) {
-		throw std::invalid_argument("MutableSlice::operator==: Slice of size \"" + std::to_string(rhs.size()) + "\" does not fit in slice of size \"" + std::to_string(lhs.size()) + "\".");
-	}
-
-	bool equal = true;
-    for (unsigned int i = 0; i < lhs.size(); i++) {
-        equal = equal && lhs[i] == rhs[i];
-    }
-    return equal;
-}
-
 // Check if this Slice is not equal to a given Vector.
 template<typename T, typename Q>
 bool operator!=(const MutableSlice<T>& s, const Vector<Q>& v) {return !(s == v);}
-
-template<typename T, typename Q, std::enable_if_t<std::is_base_of_v<Slice<T>, Q>, int> = 0>
-bool operator!=(const MutableSlice<T>& lhs, const Q& rhs) {return !(lhs == rhs);}
 
 template<typename T>
 class Row : public MutableSlice<T> {

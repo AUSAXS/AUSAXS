@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mfpmath=sse -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mfpmath=sse -g -fno-finite-math-only -Wall -Wpedantic -Wextra")# --coverage -g -fsanitize=address -flto -march=native
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
+set(DEBUG TRUE)
+
 
 project(SAXS VERSION 0.0)
 set(DEBUG TRUE)
@@ -13,6 +15,14 @@ set(DEBUG TRUE)
 ############################################
 include(FetchContent)
 #set(FETCHCONTENT_UPDATES_DISCONNECT ON)
+FetchContent_Declare(
+	dlib
+	GIT_REPOSITORY https://github.com/davisking/dlib
+	GIT_TAG v19.18
+	GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(dlib)
+
 FetchContent_Declare(
 	Catch2
 	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -28,19 +38,13 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-	dlib
-	GIT_REPOSITORY https://github.com/davisking/dlib
-	GIT_TAG v19.18
-	GIT_PROGRESS TRUE
-)
-
-FetchContent_Declare(
 	backward
 	GIT_REPOSITORY https://github.com/bombela/backward-cpp
 	GIT_TAG v1.6
 )
 
-FetchContent_MakeAvailable(Catch2 CLI11 dlib backward)
+set(CMAKE_CXX_STANDARD 20)
+FetchContent_MakeAvailable(Catch2 CLI11 backward)
 
 
 ############################################
