@@ -126,7 +126,7 @@ inspect/%: build/executable/inspect_map
 
 # Fit an EM map to a SAXS measurement file.  
 # The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement.
-em_fitter/%: build/executable/em_fitter
+em_fit/%: build/executable/em_fitter
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	emmaps=$$(cat $${folder}/maps.txt); \
