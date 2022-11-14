@@ -10,7 +10,7 @@ int main(int argc, char const *argv[]) {
     em::ImageStack map(mfile);
 
     std::cout << *map.get_header() << std::endl;
-    std::cout << "1σ level: " << map.level(1) << std::endl;
+    std::cout << "1σ level: " << map.from_level(1) << std::endl;
 
     return 0;
 }

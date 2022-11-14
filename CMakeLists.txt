@@ -1,20 +1,18 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Ofast -mfpmath=sse -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CXX_STANDARD C++17)
-set(DEBUG TRUE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mfpmath=sse -g -fno-finite-math-only -Wall -Wpedantic -Wextra")# --coverage -g -fsanitize=address -flto -march=native
+set(CMAKE_CXX_STANDARD 20)
 
 project(SAXS VERSION 0.0)
-
+set(DEBUG TRUE)
 
 ############################################
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
 #set(FETCHCONTENT_UPDATES_DISCONNECT ON)
-
 FetchContent_Declare(
 	Catch2
 	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -35,7 +33,6 @@ FetchContent_Declare(
 	GIT_TAG v19.18
 	GIT_PROGRESS TRUE
 )
-set(DLIB_ENABLE_ASSERTS false)
 
 FetchContent_Declare(
 	backward

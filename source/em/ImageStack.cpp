@@ -51,7 +51,7 @@ void ImageStack::validate_extension(string file) const {
     throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
-void ImageStack::save(string path, double cutoff) const {
+void ImageStack::save(double cutoff, string path) const {
     std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
     protein->save(path);
 }
@@ -88,32 +88,32 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
     phm->set_charge_levels(levels);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {level(setting::em::alpha_levels.min), level(setting::em::alpha_levels.max)};
+std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
+    Limit lim = {from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
 
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file) {
-    Limit lim = {level(setting::em::alpha_levels.min), level(setting::em::alpha_levels.max)};
+std::shared_ptr<EMFit> ImageStack::fit(string file) {
+    Limit lim = {from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit(string file, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit(string file, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
@@ -243,6 +243,7 @@ std::shared_ptr<ImageStack::EMFit> ImageStack::fit_helper(std::shared_ptr<Simple
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
     emfit->evaluated_points = evals;
     emfit->fevals = evals.size();
+    emfit->level = to_level(min.x);
     if (setting::em::save_pdb) {phm->get_protein()->save(setting::plot::path + "model.pdb");}
     return emfit;
 }
@@ -307,7 +308,7 @@ ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, string file) {
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, string file) {
-    Axis axis(points, level(setting::em::alpha_levels.min), level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan(axis, file);
 }
 
@@ -317,12 +318,12 @@ ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::Sc
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, level(setting::em::alpha_levels.min), level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan(axis, h);
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, level(setting::em::alpha_levels.min), level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan_fit(axis, h);
 }
 
@@ -332,7 +333,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, std::strin
 }
 
 ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, level(setting::em::alpha_levels.min), level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }
@@ -362,7 +363,7 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit_helper(const Axis& points, std
     landscape.contour = minimizer.landscape(points.bins);
 
     // fit
-    double l = level(1);
+    double l = from_level(1);
     Limit limit(0.5*l, 5*l);
     minimizer.clear_parameters();
     minimizer.add_parameter({"cutoff", limit.center(), limit});
@@ -441,8 +442,12 @@ void ImageStack::determine_minimum_bounds(double min_val) {
     std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
 }
 
-double ImageStack::level(double sigma) const {
+double ImageStack::from_level(double sigma) const {
     return sigma*rms();
+}
+
+double ImageStack::to_level(double cutoff) const {
+    return cutoff/rms();
 }
 
 double ImageStack::rms() const {

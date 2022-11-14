@@ -82,7 +82,7 @@ int main(int argc, char const *argv[]) {
     IntensityFitter fitter(mfile, h);
     std::shared_ptr<Fit> result = fitter.fit();
     FitReporter::report(result);
-    FitReporter::save(output + "report.txt", result);
+    FitReporter::save(result, output + "report.txt");
 
     // save fit
     auto fit = fitter.get_model_dataset();

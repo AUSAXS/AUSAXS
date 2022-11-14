@@ -58,3 +58,11 @@ class Fit : public mini::Result {
         SimpleDataset residuals;
         unsigned int dof;
 };
+
+struct EMFit : public Fit {
+    using Fit::Fit;
+
+    std::string to_string() const noexcept;
+
+    double level;    
+};

@@ -40,5 +40,5 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals.png");
 
     FitReporter::report(res);
-    FitReporter::save(setting::plot::path + "fit.txt", res);
+    FitReporter::save(res, setting::plot::path + "fit.txt");
 }
