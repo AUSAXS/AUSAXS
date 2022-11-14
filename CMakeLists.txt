@@ -6,15 +6,15 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
 set(DEBUG TRUE)
 
-project(SAXS VERSION 0.0)
 
+project(SAXS VERSION 0.0)
+set(DEBUG TRUE)
 
 ############################################
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
 #set(FETCHCONTENT_UPDATES_DISCONNECT ON)
-
 FetchContent_Declare(
 	dlib
 	GIT_REPOSITORY https://github.com/davisking/dlib

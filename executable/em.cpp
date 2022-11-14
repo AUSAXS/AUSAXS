@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]) {
         auto pdb_h = pdb.get_histogram();
         auto res = map.fit(pdb_h);
         FitReporter::report(res);
-        FitReporter::save(path + "report.txt", res);
+        FitReporter::save(res, path + "report.txt");
 
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
@@ -68,7 +68,7 @@ int main(int argc, char const *argv[]) {
 
         auto res = map.fit(mfile);
         FitReporter::report(res);
-        FitReporter::save(path + "report.txt", res);
+        FitReporter::save(res, path + "report.txt");
 
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
@@ -91,10 +91,10 @@ int main(int argc, char const *argv[]) {
         // plots::PlotIntensity::quick_plot(map.get_histogram(map.level(1.5)), path + "intensity15.pdf");
         // plots::PlotIntensity::quick_plot(map.get_histogram(map.level(1)), path + "intensity1.pdf");
 
-        auto d1 = map.get_histogram(map.level(3)).calc_debye_scattering_intensity();
+        auto d1 = map.get_histogram(map.from_level(3)).calc_debye_scattering_intensity();
         d1.normalize(1e7);
         plots::PlotIntensity plot(d1);
-        auto p = map.get_protein(map.level(3));
+        auto p = map.get_protein(map.from_level(3));
         p->generate_new_hydration();
         p->get_histogram().calc_debye_scattering_intensity().save("hydrated.txt");
 
@@ -109,7 +109,7 @@ int main(int argc, char const *argv[]) {
         // map.get_histogram(map.level(2)).calc_debye_scattering_intensity().save("intensity2.txt");
         // map.get_histogram(map.level(1.5)).calc_debye_scattering_intensity().save("intensity15.txt");
         // map.get_histogram(map.level(1)).calc_debye_scattering_intensity().save("intensity1.txt");
-        map.save("data/output/" + utility::stem(mapfile) + ".pdb", map.level(3));
+        map.save(map.from_level(3), "data/output/" + utility::stem(mapfile) + ".pdb");
     }
 
     return 0;

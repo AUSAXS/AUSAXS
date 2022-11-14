@@ -51,7 +51,7 @@ void ImageStack::validate_extension(string file) const {
     throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
-void ImageStack::save(string path, double cutoff) const {
+void ImageStack::save(double cutoff, string path) const {
     std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
     protein->save(path);
 }

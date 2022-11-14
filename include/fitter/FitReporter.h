@@ -23,6 +23,6 @@ class FitReporter {
         template<FitType T>
         static void save(std::string path, const std::vector<T>& fits, std::vector<std::string> titles = {});
 
-    private:
+  private:
         static std::function<std::string(std::string)> get_title_reporter(std::vector<std::string> titles); 
 };

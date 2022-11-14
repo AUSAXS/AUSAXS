@@ -58,7 +58,7 @@ int main(int argc, char const *argv[]) {
     // Fit the measurements to the EM density map.
     auto res = map.fit(mfile);
     FitReporter::report(res);
-    FitReporter::save(setting::plot::path + "report.txt", res);
+    FitReporter::save(res, setting::plot::path + "report.txt");
 
     res->figures.data.save(setting::plot::path + utility::stem(mfile) + ".dat");
     res->figures.intensity_interpolated.save(setting::plot::path + "fit.fit");
