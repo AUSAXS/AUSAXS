@@ -13,9 +13,10 @@
 #include <math/Vector.h>
 #include <math/LUPDecomposition.h>
 
-#define SAFE_MATH true
+#ifndef SAFE_MATH
+    #define SAFE_MATH true
+#endif
 
-#include <signal.h>
 template<typename Q> // using Q to avoid conflict with transpose method T()
 class Matrix {
     public: 
@@ -136,22 +137,16 @@ class Matrix {
          */
         Matrix<Q> transpose() const;
 
-        // Read-only indexer
-        const Q& index(unsigned int i, unsigned int j) const;
+        const Q& operator()(unsigned int i, unsigned int j) const;
+        Q& operator()(unsigned int i, unsigned int j);
 
-        // Read-write indexer
+        const Q& index(unsigned int i, unsigned int j) const;
         Q& index(unsigned int i, unsigned int j);
 
-        // Read-only iterator
         const typename std::vector<Q>::const_iterator begin() const;
-
-        // Read-only iterator
         const typename std::vector<Q>::const_iterator end() const;
 
-        // Read-write iterator
         typename std::vector<Q>::iterator begin();
-
-        // Read-write iterator
         typename std::vector<Q>::iterator end();
 
         std::string to_string() const;

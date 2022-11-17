@@ -113,6 +113,7 @@ class IntensityFitter : public SimpleIntensityFitter {
 
     private: 
     	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
+        mini::Landscape evaluations; // The evaluated points
 
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.

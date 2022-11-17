@@ -152,12 +152,20 @@ Matrix<Q> Matrix<Q>::transpose() const {
 }
 
 template<typename Q>
+const Q& Matrix<Q>::operator()(unsigned int i, unsigned int j) const {
+    return index(i, j);
+}
+
+template<typename Q>
+Q& Matrix<Q>::operator()(unsigned int i, unsigned int j) {
+    return index(i, j);
+}
+
+template<typename Q>
 const Q& Matrix<Q>::index(unsigned int i, unsigned int j) const {
     #if (SAFE_MATH)
-        if (__builtin_expect(i >= N, false)) {raise(SIGSEGV);}
-        if (__builtin_expect(j >= M, false)) {raise(SIGSEGV);}
-        // if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
-        // if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Error in Matrix::index: Column index out of range.");}
+        if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Matrix::index: Row index out of range.");}
+        if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Matrix::index: Column index out of range.");}
     #endif
     return data[M*i + j];
 }
@@ -165,10 +173,8 @@ const Q& Matrix<Q>::index(unsigned int i, unsigned int j) const {
 template<typename Q>
 Q& Matrix<Q>::index(unsigned int i, unsigned int j) {
     #if (SAFE_MATH)
-        if (__builtin_expect(i >= N, false)) {raise(SIGSEGV);}
-        if (__builtin_expect(j >= M, false)) {raise(SIGSEGV);}
-        // if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Error in Matrix::index: Row index out of range.");}
-        // if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Error in Matrix::index: Column index out of range.");}
+        if (__builtin_expect(i >= N, false)) {throw std::out_of_range("Matrix::index: Row index out of range.");}
+        if (__builtin_expect(j >= M, false)) {throw std::out_of_range("Matrix::index: Column index out of range.");}
     #endif
     return data[M*i + j];
 }
