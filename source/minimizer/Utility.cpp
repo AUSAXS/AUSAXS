@@ -13,7 +13,7 @@ size_t Result::dim() const noexcept {return size();}
 
 const FittedParameter& Result::get_parameter(std::string name) const {
     auto pos = std::find_if(parameters.begin(), parameters.end(), [&name] (const FittedParameter& param) {return param.name == name;});
-    if (pos == parameters.end()) {throw except::unknown_argument("Error in Result::get_parameter: No parameter named \"" + name + "\" was found.");}
+    if (pos == parameters.end()) {throw except::unknown_argument("Result::get_parameter: No parameter named \"" + name + "\" was found.");}
     return *pos;
 }
 
@@ -22,7 +22,7 @@ FittedParameter& Result::get_parameter(std::string name) {
 }
 
 const FittedParameter& Result::get_parameter(unsigned int index) const {
-    if (size() < index) {throw except::out_of_bounds("Error in Result::get_parameter: Index \"" + std::to_string(index) + "\" is out of bounds (" + std::to_string(size()) + ").");}
+    if (size() < index) {throw except::out_of_bounds("Result::get_parameter: Index \"" + std::to_string(index) + "\" is out of bounds (" + std::to_string(size()) + ").");}
     return parameters[index];
 }
 

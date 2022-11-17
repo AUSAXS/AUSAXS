@@ -33,7 +33,7 @@ ImageStack::ImageStack(string file, unsigned int resolution)
     validate_extension(file);
 
     std::ifstream input(file, std::ios::binary);
-    if (!input.is_open()) {throw except::io_error("Error in ImageStack::ImageStack: Could not open file \"" + file + "\"");}
+    if (!input.is_open()) {throw except::io_error("ImageStack::ImageStack: Could not open file \"" + file + "\"");}
 
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     size_x = header->nx; size_y = header->ny; size_z = header->nz;
@@ -48,7 +48,7 @@ void ImageStack::validate_extension(string file) const {
     if (extension == ".ccp4") {return;}
     if (extension == ".map") {return;}
     if (extension == ".mrc") {return;}
-    throw except::invalid_extension("Error in Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
+    throw except::invalid_extension("Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
 void ImageStack::save(double cutoff, string path) const {
@@ -65,7 +65,7 @@ size_t ImageStack::size() const {return size_z;}
 const vector<Image>& ImageStack::images() const {return data;}
 
 std::unique_ptr<Grid> ImageStack::create_grid(double) const {
-    throw except::unexpected("Error in Imagestack::create_grid: Not implemented yet.");
+    throw except::unexpected("Imagestack::create_grid: Not implemented yet.");
 }
 
 hist::ScatteringHistogram ImageStack::get_histogram(double cutoff) const {
@@ -180,7 +180,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         l.add_plot_options(style::draw::points);
         plot.plot(l);
         plot.plot(p_start);
-        plot.save(setting::plot::path + "chi2_evaluated_points.pdf");
+        plot.save(setting::plot::path + "chi2_evaluated_points." + setting::figures::format);
     }
 
 
@@ -224,7 +224,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             plot.plot(lm);
             plot.plot(lp);
             plot.plot(p_start);
-            plot.save(setting::plot::path + "chi2_near_minimum.pdf");
+            plot.save(setting::plot::path + "chi2_near_minimum." + setting::figures::format);
         }
     } 
     
@@ -280,7 +280,7 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
             // p->remove_disconnected_atoms(); // remove disconnected atoms
 
             // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
-            std::dynamic_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 
+            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
             fit = fitter->fit();                                // do the fit
@@ -398,8 +398,6 @@ void ImageStack::read(std::ifstream& istream, size_t byte_size) {
     for (unsigned int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
-
-    std::cout << "ImageStack size: (" << size_x << ", " << size_y << ", " << size_z << ")" << std::endl;
 }
 
 float& ImageStack::index(unsigned int x, unsigned int y, unsigned int layer) {

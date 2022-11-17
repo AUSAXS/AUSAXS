@@ -324,7 +324,7 @@ def plot_file(file: str):
                     exit(1)
 
     path = file.rsplit('.', 1)[0]
-    plt.savefig(path)
+    plt.savefig(path, dpi=300)
 
     # delete the .plot file
     os.remove(file)

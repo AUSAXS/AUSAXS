@@ -48,7 +48,7 @@ void Terminate::parse_pdb(const string s) {
         this->resSeq = std::stoi(resSeq);
         this->iCode = iCode;
     } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
-        throw except::parse_error("Error in Terminate::parse_pdb: Invalid field values in line \"" + s + "\".");
+        throw except::parse_error("Terminate::parse_pdb: Invalid field values in line \"" + s + "\".");
     }
 
     // DEBUG OUTPUT

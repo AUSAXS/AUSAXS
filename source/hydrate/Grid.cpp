@@ -114,7 +114,7 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
     // check if the grid is abnormally large
     long long int total_bins = (long long) axes.x.bins*axes.y.bins*axes.z.bins;
     if (total_bins > 32e9) {
-        throw except::invalid_argument("Error in Grid: Too many bins.");
+        throw except::invalid_argument("Grid: Too many bins.");
     } else if (total_bins > 4e9) {
         utility::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
     }
@@ -135,7 +135,7 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
             water_placer = std::make_unique<JanPlacement>(this);
             break;
         default: 
-            throw except::unknown_argument("Error in Grid::Grid: Unkown PlacementStrategy");
+            throw except::unknown_argument("Grid::Grid: Unkown PlacementStrategy");
     }
 
     switch (cs) {
@@ -149,7 +149,7 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
             water_culler = std::make_unique<RandomCulling>(this);
             break;
         default: 
-            throw except::unknown_argument("Error in Grid::Grid: Unkown CullingStrategy");
+            throw except::unknown_argument("Grid::Grid: Unkown CullingStrategy");
     }
 }
 
@@ -172,7 +172,7 @@ vector<GridMember<Water>> Grid::find_free_locs() {
 
 std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     if (__builtin_expect(a_members.size() == 0, false)) {
-        throw except::invalid_operation("Error in Grid::bounding_box: Calculating a boundary box for a grid with no members!");
+        throw except::invalid_operation("Grid::bounding_box: Calculating a boundary box for a grid with no members!");
     }
 
     // initialize the bounds as large as possible
@@ -311,7 +311,7 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
 
     // // sanity check
     // if (index != to_remove_t.size()) {
-    //     throw except::unexpected("Error in Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
+    //     throw except::unexpected("Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
     // }
 
     return to_remove;
@@ -332,7 +332,7 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
     // sanity check
     bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
+        throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
     if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;} // can probably be removed
@@ -352,7 +352,7 @@ GridMember<Water> Grid::add(const Water& water, bool expand) {
     // sanity check
     bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (__builtin_expect(out_of_bounds, false)) {
-        throw except::out_of_bounds("Error in Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
+        throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
     }
 
     GridMember gm(water, loc);
@@ -396,7 +396,7 @@ void Grid::remove(std::vector<bool>& to_remove) {
 
     // sanity check
     if (__builtin_expect(prev_size - cur_size != total_removed, false)) {
-        throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
+        throw except::invalid_operation("Grid::remove: Something went wrong.");
     }
 
     // clean up the grid
@@ -410,7 +410,7 @@ void Grid::remove(std::vector<bool>& to_remove) {
 void Grid::remove(const Atom& atom) {
     auto pos = std::find(a_members.begin(), a_members.end(), atom);
     if (__builtin_expect(pos == a_members.end(), false)) {
-        throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
+        throw except::invalid_operation("Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
     GridMember<Atom>& member = *pos;
@@ -425,7 +425,7 @@ void Grid::remove(const Atom& atom) {
 void Grid::remove(const Water& water) {
     auto pos = std::find(w_members.begin(), w_members.end(), water);
     if (__builtin_expect(pos == w_members.end(), false)) {
-        throw except::invalid_operation("Error in Grid::remove: Attempting to remove an atom which is not part of the grid!");
+        throw except::invalid_operation("Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
     GridMember<Water>& member = *pos;
@@ -459,7 +459,7 @@ void Grid::remove(const vector<Atom>& atoms) {
 
     // sanity check
     if (__builtin_expect(prev_size - cur_size != atoms.size(), false)) {
-        throw except::invalid_operation("Error in Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
+        throw except::invalid_operation("Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
     }
 
     // clean up the grid
@@ -493,7 +493,7 @@ void Grid::remove(const vector<Water>& waters) {
 
     // sanity check
     if (__builtin_expect(prev_size - cur_size != waters.size(), false)) {
-        throw except::invalid_operation("Error in Grid::remove: Something went wrong.");
+        throw except::invalid_operation("Grid::remove: Something went wrong.");
     }
 
     // clean up the grid

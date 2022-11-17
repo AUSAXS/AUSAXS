@@ -41,7 +41,7 @@ void PlotOptions::parse(string key, std::any val) {
             }
         }
     }
-    throw except::parse_error("Error in PlotOptions::parse: Unknown option \"" + key + "\".");
+    throw except::parse_error("PlotOptions::parse: Unknown option \"" + key + "\".");
 }
 
 template<>
@@ -54,19 +54,19 @@ void PlotOptions::SmartOption<Limit>::parse(const std::any val) {
     // handle double list initializer like {1.5, 2.5}
     else if (std::type_index{typeid(std::vector<double>)} == val.type()) {
         std::vector<double> vals(std::any_cast<std::vector<double>>(val));
-        if (vals.size() != 2) {throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
+        if (vals.size() != 2) {throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
         value = Limit(vals[0], vals[1]);
     } 
     
     // handle integer list initializer like {1, 2}
     else if (std::type_index{typeid(std::vector<int>)} == val.type()) {
         std::vector<int> vals(std::any_cast<std::vector<int>>(val));
-        if (vals.size() != 2) {throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
+        if (vals.size() != 2) {throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must contain two values. Received \"" + std::to_string(vals.size()) + "\".");}
         value = Limit(vals[0], vals[1]);
     } 
     
     // otherwise throw
-    else { throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a pair of two values. Received \"" + std::string(typeid(val.type()).name()) + "\".");}
+    else { throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a pair of two values. Received \"" + std::string(typeid(val.type()).name()) + "\".");}
 }
 
 template<>
@@ -82,7 +82,7 @@ void PlotOptions::SmartOption<string>::parse(const std::any val) {
     } else if (std::type_index{typeid(style::DrawStyle)} == val.type()) {
         value = std::any_cast<style::DrawStyle>(val);
     } else {
-        throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a string. Received \"" + std::string(typeid(val.type()).name()) + "\".");
+        throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a string. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
 }
 
@@ -91,7 +91,7 @@ void PlotOptions::SmartOption<bool>::parse(const std::any val) {
     if (std::type_index{typeid(bool)} == val.type()) {
         value = std::any_cast<bool>(val);
     } else {
-        throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a boolean. Received \"" + std::string(typeid(val.type()).name()) + "\".");
+        throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a boolean. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
 }
 
@@ -100,7 +100,7 @@ void PlotOptions::SmartOption<int>::parse(const std::any val) {
     if (std::type_index{typeid(int)} == val.type()) {
         value = std::any_cast<int>(val);
     } else {
-        throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
+        throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
 }
 
@@ -110,10 +110,10 @@ void PlotOptions::SmartOption<unsigned int>::parse(const std::any val) {
         value = std::any_cast<unsigned int>(val);
     } else if (std::type_index{typeid(int)} == val.type()) {
         int parsed_val = std::any_cast<int>(val);
-        if (parsed_val < 0) {throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be strictly positive.");}
+        if (parsed_val < 0) {throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be strictly positive.");}
         value = parsed_val;
     } else {
-        throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
+        throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be an integer. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
 }
 
@@ -124,7 +124,7 @@ void PlotOptions::SmartOption<double>::parse(const std::any val) {
     } else if (std::type_index{typeid(int)} == val.type()) {
         value = std::any_cast<int>(val);
     } else {
-        throw except::invalid_argument("Error in PlotOptions::set: Option \"" + aliases[0] + "\" must be a double. Received \"" + std::string(typeid(val.type()).name()) + "\".");
+        throw except::invalid_argument("PlotOptions::set: Option \"" + aliases[0] + "\" must be a double. Received \"" + std::string(typeid(val.type()).name()) + "\".");
     }
 }
 

@@ -17,7 +17,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
             transform = std::make_unique<RigidTransform>(this); 
             break;
         default: 
-            throw except::unknown_argument("Error in RigidBody::RigidBody: Unkown TransformationStrategy.");
+            throw except::unknown_argument("RigidBody::RigidBody: Unkown TransformationStrategy.");
     }
 
     // Set parameter generation strategy
@@ -26,7 +26,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
             parameter_generator = std::make_unique<SimpleParameterGeneration>(1000, 5, M_PI/3);
             break;
         default: 
-            throw except::unknown_argument("Error in RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
+            throw except::unknown_argument("RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
     }
 
     // Set body selection strategy
@@ -38,7 +38,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
             body_selector = std::make_unique<SequentialSelect>(protein);
             break;
         default: 
-            throw except::unknown_argument("Error in RigidBody::RigidBody: Unknown BodySelectStrategy.");
+            throw except::unknown_argument("RigidBody::RigidBody: Unknown BodySelectStrategy.");
     }
 }
 
@@ -138,7 +138,7 @@ std::pair<const Body*, const Body*> RigidBody::find_host_bodies(const Atom* cons
 
     // check that both b1 and b2 were found
     if (body1 == nullptr || body2 == nullptr) {
-        throw except::invalid_argument("Error in RigidBody::create_constraint: Could not determine host bodies for the two atoms.");
+        throw except::invalid_argument("RigidBody::create_constraint: Could not determine host bodies for the two atoms.");
     }
 
     return std::make_pair(body1, body2);

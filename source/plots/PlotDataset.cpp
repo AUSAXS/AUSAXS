@@ -14,7 +14,7 @@ plots::PlotDataset::PlotDataset(const T& data) {
 }
 
 plots::PlotDataset::PlotDataset(const Multiset& data) {
-    if (data.empty()) {throw except::size_error("Error in PlotDataset::PlotDataset: The given Multiset is empty!");}
+    if (data.empty()) {throw except::size_error("PlotDataset::PlotDataset: The given Multiset is empty!");}
 
     for (const auto& d : data) {
         plot(d);

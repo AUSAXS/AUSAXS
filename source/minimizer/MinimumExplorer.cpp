@@ -26,9 +26,9 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     const double xmid = xmin;
     double x = xmin;
 
-    //***************************************************************//
-    //***        DETERMINE SPACING BETWEEN EVALUATIONS            ***//
-    //***************************************************************//
+    //###############################################################//
+    //###        DETERMINE SPACING BETWEEN EVALUATIONS            ###//
+    //###############################################################//
     // we want to find the smallest spacing that still changes the function value
     double spacing = 1e-5;
     unsigned int vchanges = 0;  // we want at least 2 changes for a decent estimate
@@ -89,9 +89,9 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     spacing /= 2; // step size is twice the distance between fval changes after ending the earlier loop
 
 
-    //***************************************************************//
-    //***                 ESTIMATE MINIMUM VALUE                  ***//
-    //***************************************************************//
+    //###############################################################//
+    //###                 ESTIMATE MINIMUM VALUE                  ###//
+    //###############################################################//
     record_evaluations(true); // start recording again
 
     // go three steps to the left

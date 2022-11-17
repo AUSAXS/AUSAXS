@@ -23,7 +23,7 @@ void LUPDecomposition::decompose() {
                 i_max = k;
             }
         }
-        if (A_max < precision) {throw std::invalid_argument("Error in LUDecomposition::decompose: Matrix is degenerate.");}
+        if (A_max < precision) {throw std::invalid_argument("LUDecomposition::decompose: Matrix is degenerate.");}
         if (i_max != i) {
             // pivot P
             j = P[i];

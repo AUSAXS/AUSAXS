@@ -63,18 +63,18 @@ double SimpleLeastSquares::chi2() const {
 }
 
 Fit::Plots SimpleLeastSquares::plot() {
-    throw except::unexpected("Error in SimpleLeastSquares::plot: Not implemented yet. ");
+    throw except::unexpected("SimpleLeastSquares::plot: Not implemented yet. ");
     return Fit::Plots();
 }
 
 SimpleDataset SimpleLeastSquares::plot_residuals() {
-    throw except::unexpected("Error in SimpleLeastSquares::plot_residuals: Not implemented yet. ");
+    throw except::unexpected("SimpleLeastSquares::plot_residuals: Not implemented yet. ");
     return SimpleDataset();
 }
 
 unsigned int SimpleLeastSquares::dof() const {return data.size() - 2;}
 
 std::shared_ptr<Fit> SimpleLeastSquares::get_fit() const {
-    throw except::unexpected("Error in SimpleLeastSquares::get_fit: Not implemented yet. ");
+    throw except::unexpected("SimpleLeastSquares::get_fit: Not implemented yet. ");
     return nullptr;
 }

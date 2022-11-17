@@ -21,7 +21,7 @@ float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
 list<Atom> Image::generate_atoms(double cutoff) const {
-    if (__builtin_expect(header == nullptr, false)) {throw except::invalid_operation("Error in Image::generate_atoms: Header must be initialized to use this method.");}
+    if (__builtin_expect(header == nullptr, false)) {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
     list<Atom> atoms;
 
     // loop through all pixels in this image

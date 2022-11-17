@@ -1,12 +1,10 @@
 # Todo
  * [ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
- * [ ] EMFitter: Check correct dof is returned always (both for hydration enabled & without)
+ * [x] EMFitter: Check correct dof is returned always (both for hydration enabled & without)
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
  * [ ] ResidueParser: Consider creating 1 parsed file per residue and then dynamically loading only those that are needed for the current file. 
- * [ ] DebyeLookupTable: Sometimes fails because it arbitrarily switches to non-default table lookups, but apparently only for A2M_ma. Create more tests and see if it can be reproduced. (Failed at Step 6: Evaluated cutoff value 0.220487 with chi2 468285
-)
  * [ ] Protein: Figure out how getMass should work in without effective charge enabled
  * [ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
  * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 

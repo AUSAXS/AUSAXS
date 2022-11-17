@@ -48,7 +48,7 @@ void SimpleIntensityFitter::normalize_intensity(double new_I0) {
 }
 
 Fit::Plots SimpleIntensityFitter::plot() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -79,7 +79,7 @@ Fit::Plots SimpleIntensityFitter::plot() {
 }
 
 SimpleDataset SimpleIntensityFitter::plot_residuals() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -107,7 +107,7 @@ void SimpleIntensityFitter::set_scattering_hist(const hist::ScatteringHistogram&
 }
 
 double SimpleIntensityFitter::chi2(const double*) {
-    throw except::invalid_operation("Error in SimpleIntensityFitter::chi2: Not implemented.");
+    throw except::invalid_operation("SimpleIntensityFitter::chi2: Not implemented.");
     // vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     // vector<double> Im = splice(ym);
 
@@ -145,6 +145,6 @@ unsigned int SimpleIntensityFitter::dof() const {
 }
 
 std::shared_ptr<Fit> SimpleIntensityFitter::get_fit() const {
-    if (fitted == nullptr) {throw except::bad_order("Error in SimpleIntensityFitter::get_fit: Cannot get the fit results before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("SimpleIntensityFitter::get_fit: Cannot get the fit results before a fit has been made!");}
     return fitted;
 }

@@ -296,7 +296,7 @@ void Protein::center() {
 }
 
 void Protein::bind_body_signallers() {
-    if (phm == nullptr) {throw except::unexpected("Error in Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
+    if (phm == nullptr) {throw except::unexpected("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(phm->get_probe(i));
     }
@@ -352,7 +352,7 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
 
     // sanity check
     if (to_remove.size() != atoms().size()) {
-        throw except::unexpected("Error in Protein::remove_disconnected_atoms: "
+        throw except::unexpected("Protein::remove_disconnected_atoms: "
         "The number of atoms to remove (" + std::to_string(to_remove.size()) + ") does not match the number of protein atoms (" + std::to_string(atoms().size()) + ").");
     }
 

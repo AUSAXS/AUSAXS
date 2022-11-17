@@ -39,16 +39,16 @@ Dataset2D Scan::landscape(unsigned int evals) {
     } 
     
     else if (parameters.size() == 2) {
-        throw except::unexpected("Error in Scan::landscape: Not implemented.");
+        throw except::unexpected("Scan::landscape: Not implemented.");
     } 
     
     else {
-        throw except::unexpected("Error in Scan::landscape: Not implemented.");
+        throw except::unexpected("Scan::landscape: Not implemented.");
     }
 }
 
 void Scan::looper(std::vector<double>&, unsigned int) const {
-    throw except::unexpected("Error in Scan::looper: Not implemented.");
+    throw except::unexpected("Scan::looper: Not implemented.");
     // Limit bounds = parameters[index].bounds.value();
     // for (double val = bounds.min; val < bounds.max; val += bounds.span()/bins) {
     //     p[index] = val;
@@ -63,7 +63,7 @@ void Scan::looper(std::vector<double>&, unsigned int) const {
 }
 
 Dataset2D Scan::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("Error in Scan::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
+    if (evaluations.empty()) {throw except::bad_order("Scan::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
 
     unsigned int N = evaluations.size();
     std::vector<double> x(N), y(N);
@@ -75,8 +75,8 @@ Dataset2D Scan::get_evaluated_points() const {
 }
 
 void Scan::add_parameter(const Parameter& param) {
-    if (!param.has_bounds()) {throw except::invalid_argument("Error in Scan::add_parameter: The parameter must be supplied with limits for this minimizer.");}
-    if (!parameters.empty()) {throw except::invalid_operation("Error in Scan::add_parameter: This minimizer only supports 1D problems.");}
+    if (!param.has_bounds()) {throw except::invalid_argument("Scan::add_parameter: The parameter must be supplied with limits for this minimizer.");}
+    if (!parameters.empty()) {throw except::invalid_operation("Scan::add_parameter: This minimizer only supports 1D problems.");}
     if (param.has_guess()) {utility::print_warning("Warning in Scan::add_parameter: Guess value will be ignored.");}
     parameters.push_back(param);
 }

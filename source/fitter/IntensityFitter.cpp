@@ -45,7 +45,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
 }
 
 Fit::Plots IntensityFitter::plot() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot: Cannot plot before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -74,7 +74,7 @@ Fit::Plots IntensityFitter::plot() {
 }
 
 SimpleDataset IntensityFitter::plot_residuals() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -121,7 +121,7 @@ double IntensityFitter::chi2(const double* params) {
 }
 
 double IntensityFitter::get_intercept() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -134,7 +134,7 @@ double IntensityFitter::get_intercept() {
 }
 
 SimpleDataset IntensityFitter::get_model_dataset() {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -149,7 +149,7 @@ SimpleDataset IntensityFitter::get_model_dataset() {
 }
 
 SimpleDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
-    if (fitted == nullptr) {throw except::bad_order("Error in IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
+    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;

@@ -239,7 +239,7 @@ vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) 
 
     // sanity check
     if (sum != grid->a_members.size()) {
-        throw except::unexpected("Error in CounterClusterCulling::cull: Group sizes (" + std::to_string(sum) + ") do not add up to total number of atoms (" + std::to_string(grid->a_members.size()) + ").");
+        throw except::unexpected("CounterClusterCulling::cull: Group sizes (" + std::to_string(sum) + ") do not add up to total number of atoms (" + std::to_string(grid->a_members.size()) + ").");
     }
 
     // mark atoms for removal
@@ -257,7 +257,7 @@ vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) 
 
     // sanity check
     if (remove_count != 0) {
-        throw except::unexpected("Error in CounterClusterCulling::cull: Could not find all " + std::to_string(remove_count) + " atoms to be removed.");
+        throw except::unexpected("CounterClusterCulling::cull: Could not find all " + std::to_string(remove_count) + " atoms to be removed.");
     }
 
     return atoms_to_remove;

@@ -59,7 +59,7 @@ vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) 
         for (unsigned int j = body1.atoms().size()-1; j > 0; j--) {
             const Atom& atom = body1.atoms(j);
             if (__builtin_expect(atom.resSeq != res1, false)) { // sanity check
-                throw except::unexpected("Error in BodySplitter::sequential_constrain: Could not find C-alpha atom.");
+                throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
             }
             if (atom.name == "CA") {
                 index1 = j;
@@ -69,7 +69,7 @@ vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) 
         for (unsigned int j = 0; j < body2.atoms().size(); j++) {
             const Atom& atom = body2.atoms(j);
             if (__builtin_expect(atom.resSeq != res2, false)) { // sanity check
-                throw except::unexpected("Error in BodySplitter::sequential_constrain: Could not find C-alpha atom.");
+                throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
             }
             if (atom.name == "CA") {
                 index2 = j;
@@ -79,7 +79,7 @@ vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) 
 
         // sanity check
         if (res1 == -1 || res2 == -1) {
-            throw except::unexpected("Error in BodySplitter::sequential_constrain: Could not find C-alpha atom.");
+            throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
         }
         constraints[i] = Constraint(&body1.atoms(index1), &body2.atoms(index2), &body1, &body2);
     }

@@ -9,7 +9,7 @@
 using std::string, std::vector;
 
 plots::PlotResolutionComparison::PlotResolutionComparison(Multiset data) {
-    if (data.empty()) {throw except::size_error("Error in PlotResolutionComparison::PlotResolutionComparison: The given Multiset is empty!");}
+    if (data.empty()) {throw except::size_error("PlotResolutionComparison::PlotResolutionComparison: The given Multiset is empty!");}
 
     // change colors & plot raw figure before we scale the y-values
     data[0].add_plot_options("line", {{"logx", true}, {"logy", true}, {"xlabel", "q"}, {"ylabel", "Intensity"}, {"ylimit", Limit(1e-4, inf)}});

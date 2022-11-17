@@ -14,8 +14,8 @@ Minimizer::Minimizer(std::function<double(const double*)> f) {
 }
 
 Result Minimizer::minimize() {
-    if (!is_parameter_set()) {throw except::bad_order("Error in Minimizer::minimize: No parameters were supplied.");}
-    if (!is_function_set()) {throw except::bad_order("Error in Minimizer::minimize: No function was set.");}
+    if (!is_parameter_set()) {throw except::bad_order("Minimizer::minimize: No parameters were supplied.");}
+    if (!is_function_set()) {throw except::bad_order("Minimizer::minimize: No function was set.");}
 
     clear_evaluated_points();
     return minimize_override();
@@ -55,7 +55,7 @@ void Minimizer::record_evaluations(bool setting) {
 
 void Minimizer::add_parameter(const Parameter& param) {
     if (!param.has_bounds() && !param.has_guess()) {
-        throw except::invalid_argument("Error in Minimizer::add_parameter: Parameter \"" + param.name + "\"must either have a limit or a guess value.");
+        throw except::invalid_argument("Minimizer::add_parameter: Parameter \"" + param.name + "\"must either have a limit or a guess value.");
     }
     parameters.push_back(param);
 }

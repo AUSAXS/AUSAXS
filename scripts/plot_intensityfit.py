@@ -32,7 +32,7 @@ ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.', ms=1)
 ax[1].set_xlabel("q")
 ax[1].set_ylabel("Residuals")
 
-fig.savefig(os.path.dirname(sys.argv[1]) + '/log.pdf')
+fig.savefig(os.path.dirname(sys.argv[1]) + '/log.png', dpi=300)
 
 ax[0].semilogx()
-fig.savefig(os.path.dirname(sys.argv[1]) + '/loglog.pdf')
+fig.savefig(os.path.dirname(sys.argv[1]) + '/loglog.png', dpi=300)
