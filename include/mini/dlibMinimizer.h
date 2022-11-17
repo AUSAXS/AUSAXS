@@ -9,7 +9,7 @@ namespace mini {
         typedef dlib::matrix<double,0,1> column_vector;
         public:
             dlibMinimizer() {}
-            dlibMinimizer(std::function<double(const double*)> function, Parameter param = Parameter());
+            dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param = Parameter());
             dlibMinimizer(std::function<double(double)> function, Parameter param = Parameter());
             ~dlibMinimizer() override;
 

@@ -67,7 +67,7 @@ TEST_CASE("fitreporter", "[utility],[manual]") {
             FitReporter::report(fit);
         }
         SECTION("File printing") {
-            FitReporter::save("temp/fitreport1.txt", fit);
+            FitReporter::save(fit, "temp/fitreport1.txt");
         }
     }
 
@@ -86,7 +86,7 @@ TEST_CASE("fitreporter", "[utility],[manual]") {
             FitReporter::report(fits, titles);   
         }
         SECTION("File printing") {
-            FitReporter::save("temp/fitreport2.txt", fits, titles);
+            FitReporter::save(fits, "temp/fitreport2.txt", titles);
         }
     }
 }

@@ -144,7 +144,7 @@ class SimpleIntensityFitter : public Fitter {
 		/**
 		 * @brief Calculate chi2 for a given choice of parameters @a params.
 		 */
-		virtual double chi2(const double* params);
+		virtual double chi2(std::vector<double> params);
 
 		/**
 		 * @brief Prepare this class for fitting.

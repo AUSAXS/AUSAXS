@@ -9,8 +9,8 @@
 using std::vector;
 
 struct TestFunction {
-    TestFunction(std::function<double(const double*)> function, std::vector<Limit> bounds, std::vector<double> min) : function(function), bounds(bounds), min(min) {}
-    TestFunction(std::function<double(const double*)> function, Limit bounds, double min) : TestFunction(function, vector{bounds}, vector{min}) {}
+    TestFunction(std::function<double(std::vector<double>)> function, std::vector<Limit> bounds, std::vector<double> min) : function(function), bounds(bounds), min(min) {}
+    TestFunction(std::function<double(std::vector<double>)> function, Limit bounds, double min) : TestFunction(function, vector{bounds}, vector{min}) {}
 
     std::vector<double> get_center() const {
         std::vector<double> v;
@@ -18,18 +18,18 @@ struct TestFunction {
         return v;
     }
 
-    std::function<double(const double*)> function;
+    std::function<double(std::vector<double>)> function;
     std::vector<Limit> bounds;
     std::vector<double> min;
 };
 
 // 1D functions
-TestFunction problem04([] (const double* pars) {double x = pars[0]; return -(16*x*x - 24*x + 5)*std::exp(-x);}, Limit(1, 6), 2.868034);
-TestFunction problem13([] (const double* pars) {double x = pars[0]; return -std::pow(x, 0.66) - std::pow(1 - x*x, 0.33);}, Limit(0, 1), 1./std::sqrt(2));
-TestFunction problem18([] (const double* pars) {double x = pars[0]; return x <= 3 ? (x-2)*(x-2) : 2*std::log(x - 2) + 1;}, Limit(0, 6), 2);
+TestFunction problem04([] (std::vector<double> pars) {double x = pars[0]; return -(16*x*x - 24*x + 5)*std::exp(-x);}, Limit(1, 6), 2.868034);
+TestFunction problem13([] (std::vector<double> pars) {double x = pars[0]; return -std::pow(x, 0.66) - std::pow(1 - x*x, 0.33);}, Limit(0, 1), 1./std::sqrt(2));
+TestFunction problem18([] (std::vector<double> pars) {double x = pars[0]; return x <= 3 ? (x-2)*(x-2) : 2*std::log(x - 2) + 1;}, Limit(0, 6), 2);
 
 // 2D functions (nice)
-TestFunction Decanomial([] (const double* pars) {
+TestFunction Decanomial([] (std::vector<double> pars) {
     double x1 = pars[0], x2 = pars[1]; 
     return 0.001*std::pow(std::abs(std::pow(x2, 4) + 12*std::pow(x2, 3) + 54*std::pow(x2, 2) + 108*x2 + 81) 
                         + std::abs(std::pow(x1, 10) - 20*std::pow(x1, 9) + 180*std::pow(x1, 8) - 960*std::pow(x1, 7) + 3360*std::pow(x1, 6) - 
@@ -37,13 +37,13 @@ TestFunction Decanomial([] (const double* pars) {
     {Limit(0, 2.5), Limit(-4, -2)}, 
     {2, -3}
 );
-TestFunction Hosaki([] (const double* pars) {
+TestFunction Hosaki([] (std::vector<double> pars) {
     double x1 = pars[0], x2 = pars[1]; 
     return (1 - 8*x1 + 7*x1*x1 - 7*std::pow(x1, 3)/3 + std::pow(x1, 4)/4)*x2*x2*std::exp(-x1);}, 
     {Limit(0, 5), Limit(0, 5)}, 
     {4, 2}
 );
-TestFunction RosenbrockModified([] (const double* pars) {
+TestFunction RosenbrockModified([] (std::vector<double> pars) {
     double x1 = pars[0], x2 = pars[1]; 
     return 74 + 100*std::pow(x2 - x1*x1, 2) + std::pow(1-x1, 2) - 400*std::exp(-(std::pow(x1+1, 2)+std::pow(x2+1, 2))*10);}, 
     {Limit(-1, 0.4), Limit(-1, 1)}, 
@@ -144,7 +144,7 @@ typedef dlib::matrix<double,0,1> column_vector;
 TEST_CASE("dlib", "[minimizer]") {
     auto dlibTest1D = [] (const TestFunction& test, auto strat) {
         auto wrapper = [&test] (const column_vector& x) {
-            return test.function(&x(0));
+            return test.function({x(0)});
         };
 
         column_vector starting_point = {test.get_center()[0]};
@@ -155,7 +155,7 @@ TEST_CASE("dlib", "[minimizer]") {
     auto dlibTest2D = [] (const TestFunction& test, auto strat) {
         auto wrapper = [&test] (const column_vector& x) {
             std::vector<double> v = {x(0), x(1)};
-            return test.function(v.data());
+            return test.function(v);
         };
 
         column_vector starting_point = {test.get_center()[0], test.get_center()[1]};

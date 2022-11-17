@@ -237,8 +237,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
     min = evals.find_minimum();
-    std::vector<double> opt = {min.x}; 
-    f(opt.data());
+    f({min.x});
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
     emfit->evaluated_points = evals;
@@ -248,7 +247,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     return emfit;
 }
 
-std::function<double(const double*)> ImageStack::prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter) {
+std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
@@ -267,7 +266,7 @@ std::function<double(const double*)> ImageStack::prepare_function(std::shared_pt
     
      // fitter is captured by value to guarantee its lifetime will be the same as the lambda
      // 'this' is ok since prepare_function is private and thus only used within the class itself
-    std::function<double(const double*)> chi2 = [this, fitter] (const double* params) {
+    std::function<double(std::vector<double>)> chi2 = [this, fitter] (std::vector<double> params) {
         double last_c = 5;
         auto p = phm->get_protein(params[0]);
         // p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");

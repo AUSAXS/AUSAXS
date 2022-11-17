@@ -5,15 +5,15 @@
 
 using namespace mini;
 
-Scan::Scan(double(&func)(const double*), unsigned int evals) : Minimizer(func), bins(evals) {}
+Scan::Scan(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func), bins(evals) {}
 
-Scan::Scan(std::function<double(const double*)> func, unsigned int evals) : Minimizer(func), bins(evals) {}
+Scan::Scan(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func), bins(evals) {}
 
-Scan::Scan(double(&func)(const double*), const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
+Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
     add_parameter(param);
 }
 
-Scan::Scan(std::function<double(const double*)> func, const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
+Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
     add_parameter(param);
 }
 
@@ -33,7 +33,7 @@ Dataset2D Scan::landscape(unsigned int evals) {
     if (parameters.size() == 1) {
         const Limit& bounds = parameters[0].bounds.value();
         for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
-            function(&val);
+            function({val});
         }
         return get_evaluated_points();
     } 

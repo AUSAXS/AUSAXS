@@ -7,10 +7,10 @@ dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter p
     // wrapper = [this](column_vector x) { return this->function(x(0));};
 }
 
-dlibMinimizer::dlibMinimizer(std::function<double(const double*)> function, Parameter param) {
+dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param) {
     add_parameter(param);
     set_function(function);
-    dlib_fwrapper = [this](column_vector x) {return this->function(&x(0));};
+    dlib_fwrapper = [this](column_vector x) {return this->function({x(0)});};
 }
 
 dlibMinimizer::~dlibMinimizer() = default;

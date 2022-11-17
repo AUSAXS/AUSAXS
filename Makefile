@@ -136,7 +136,7 @@ em_fit/%: build/executable/em_fitter
 		sleep 1; \
 		$< $${path} $${measurement} ${options}; \
 		make plot_em/$*; \
-		make plot/$*; \
+		make plot/figures/em_fitter/$*; \
 	done
 
 # Fit both an EM map and a PDB file to a SAXS measurement. 

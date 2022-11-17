@@ -5,11 +5,11 @@
 
 using namespace mini;
 
-Minimizer::Minimizer(double(&f)(const double*)) {
+Minimizer::Minimizer(double(&f)(std::vector<double>)) {
     set_function(f);
 }
 
-Minimizer::Minimizer(std::function<double(const double*)> f) {
+Minimizer::Minimizer(std::function<double(std::vector<double>)> f) {
     set_function(f);
 }
 
@@ -21,20 +21,19 @@ Result Minimizer::minimize() {
     return minimize_override();
 }
 
-void Minimizer::set_function(double(&f)(const double*)) {
+void Minimizer::set_function(double(&f)(std::vector<double>)) {
     raw = std::bind(f, std::placeholders::_1);
     set_function(raw);
 }
 
-void Minimizer::set_function(std::function<double(const double*)> f) {
-    raw = [f, this] (const double* par) {
+void Minimizer::set_function(std::function<double(std::vector<double>)> f) {
+    raw = [f, this] (std::vector<double> p) {
         fevals++;
-        return f(par);
+        return f(p);
     };
-    wrapper = [this] (const double* par) {
-        double fval = raw(par);
-        std::vector<double> pars(par, par+parameters.size());
-        evaluations.push_back(Evaluation(pars, fval));
+    wrapper = [this] (std::vector<double> p) {
+        double fval = raw(p);
+        evaluations.push_back(Evaluation(p, fval));
         return fval;
     };
 

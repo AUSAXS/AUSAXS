@@ -10,13 +10,13 @@ namespace mini {
 	 */
 	class Scan : public Minimizer {
 		public:
-			Scan(double(&func)(const double*), unsigned int evals = 100);
+			Scan(double(&func)(std::vector<double>), unsigned int evals = 100);
 
-            Scan(std::function<double(const double*)> func, unsigned int evals = 100);
+            Scan(std::function<double(std::vector<double>)> func, unsigned int evals = 100);
 
-            Scan(double(&func)(const double*), const Parameter& param, unsigned int evals = 100);
+            Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals = 100);
 
-            Scan(std::function<double(const double*)> func, const Parameter& param, unsigned int evals = 100);
+            Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals = 100);
 
             /**
              * @brief Destructor.

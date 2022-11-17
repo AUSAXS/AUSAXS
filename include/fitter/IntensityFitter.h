@@ -117,5 +117,5 @@ class IntensityFitter : public SimpleIntensityFitter {
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.
          */
-        double chi2(const double* params) override;
+        double chi2(std::vector<double> params) override;
 };

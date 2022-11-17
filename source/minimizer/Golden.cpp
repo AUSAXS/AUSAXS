@@ -4,15 +4,15 @@
 
 using namespace mini;
 
-Golden::Golden(double(&func)(const double*)) : Minimizer(func) {}
+Golden::Golden(double(&func)(std::vector<double>)) : Minimizer(func) {}
 
-Golden::Golden(std::function<double(const double*)> func) : Minimizer(func) {}
+Golden::Golden(std::function<double(std::vector<double>)> func) : Minimizer(func) {}
 
-Golden::Golden(double(&func)(const double*), const Parameter& param) : Minimizer(func) {
+Golden::Golden(double(&func)(std::vector<double>), const Parameter& param) : Minimizer(func) {
     add_parameter(param);
 }
 
-Golden::Golden(std::function<double(const double*)> func, const Parameter& param) : Minimizer(func) {
+Golden::Golden(std::function<double(std::vector<double>)> func, const Parameter& param) : Minimizer(func) {
     add_parameter(param);
 }
 
@@ -35,8 +35,8 @@ Limit Golden::search(Limit bounds) const {
 
     double c = a + invphi2*diff;
     double d = a + invphi*diff;
-    double fc = function(&c);
-    double fd = function(&d);
+    double fc = function({c});
+    double fd = function({d});
 
     for (unsigned int k = 0; k < n-1; k++) {
         if (fc < fd) {
@@ -45,7 +45,7 @@ Limit Golden::search(Limit bounds) const {
             fd = fc;
             diff = invphi*diff;
             c = a + invphi2*diff;
-            fc = function(&c);
+            fc = function({c});
         } else {
             a = c;
             c = d; 
@@ -53,7 +53,7 @@ Limit Golden::search(Limit bounds) const {
             diff = invphi*diff;
             d = a + invphi*diff;
             d = a + invphi*diff;
-            fd = function(&d);
+            fd = function({d});
         }
     }
 
@@ -70,7 +70,7 @@ Dataset2D Golden::landscape(unsigned int evals) {
 
     auto bounds = parameters[0].bounds.value();
     for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
-        double fval = function(&val);
+        double fval = function({val});
         if (std::isnan(fval) || std::isinf(fval)) {
             utility::print_warning("Warning in Golden::landscape: Function value is nan or inf and will be skipped.");
             continue;
@@ -97,7 +97,7 @@ Dataset2D Golden::get_evaluated_points() const {
 Result Golden::minimize_override() {
     Limit optimal_interval = search(parameters[0].bounds.value());
     FittedParameter p(parameters[0], optimal_interval.center(), optimal_interval-optimal_interval.center());
-    return Result(p, function(&p.value), fevals);
+    return Result(p, function({p.value}), fevals);
 }
 
 void Golden::add_parameter(const Parameter& param) {

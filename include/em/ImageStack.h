@@ -332,7 +332,7 @@ namespace em {
              * @brief Prepare the fitting function. 
              *        Note that the lifetime of the returned function is the same as that of the fitter.
              */
-            std::function<double(const double*)> prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter);
+            std::function<double(std::vector<double>)> prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 

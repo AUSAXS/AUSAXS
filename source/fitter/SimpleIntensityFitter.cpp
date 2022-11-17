@@ -106,7 +106,7 @@ void SimpleIntensityFitter::set_scattering_hist(const hist::ScatteringHistogram&
     this->h = h;
 }
 
-double SimpleIntensityFitter::chi2(const double*) {
+double SimpleIntensityFitter::chi2(std::vector<double>) {
     throw except::invalid_operation("SimpleIntensityFitter::chi2: Not implemented.");
     // vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     // vector<double> Im = splice(ym);

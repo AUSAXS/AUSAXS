@@ -25,14 +25,14 @@ namespace mini {
              * 
              * Initialize this minimizer with a function and dimensionality.
              */
-            Minimizer(double(&function)(const double*));
+            Minimizer(double(&function)(std::vector<double>));
 
             /**
              * @brief Constructor.
              * 
              * Initialize this minimizer with a function and dimensionality.
              */
-            Minimizer(std::function<double(const double*)> function);
+            Minimizer(std::function<double(std::vector<double>)> function);
 
             /**
              * @brief Destructor.
@@ -42,12 +42,12 @@ namespace mini {
             /**
              * @brief Set the function to be minimized.
              */
-            virtual void set_function(double(&function)(const double*));
+            virtual void set_function(double(&function)(std::vector<double>));
 
             /**
              * @brief Set the function to be minimized.
              */
-            virtual void set_function(std::function<double(const double*)> function);
+            virtual void set_function(std::function<double(std::vector<double>)> function);
 
             /**
              * @brief Perform the minimization.
@@ -88,7 +88,7 @@ namespace mini {
             double tol = 1e-4;
         protected:
             std::vector<Parameter> parameters;
-            std::function<double(const double*)> function;
+            std::function<double(std::vector<double>)> function;
             std::vector<Evaluation> evaluations;
             unsigned int fevals = 0;
 
@@ -108,8 +108,8 @@ namespace mini {
             bool is_parameter_set() const noexcept;
 
         private:
-            std::function<double(const double*)> wrapper;
-            std::function<double(const double*)> raw;
+            std::function<double(std::vector<double>)> wrapper;
+            std::function<double(std::vector<double>)> raw;
 
             /**
              * @brief The minimization function to be defined by subclasses. 

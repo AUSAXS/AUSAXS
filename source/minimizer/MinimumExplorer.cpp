@@ -4,15 +4,15 @@
 
 using namespace mini;
 
-MinimumExplorer::MinimumExplorer(double(&func)(const double*), unsigned int evals) : Minimizer(func), evals(evals) {}
+MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func), evals(evals) {}
 
-MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func, unsigned int evals) : Minimizer(func), evals(evals) {}
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func), evals(evals) {}
 
-MinimumExplorer::MinimumExplorer(double(&func)(const double*), const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
+MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
     add_parameter(param);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(const double*)> func, const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
     add_parameter(param);
 }
 
@@ -22,7 +22,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
 
     const Parameter& param = parameters[0];
     double xmin = *param.guess;
-    double fmin = function(&xmin);
+    double fmin = function({xmin});
     const double xmid = xmin;
     double x = xmin;
 
@@ -47,7 +47,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     // update the spacing
     double fprev = fmin;
     auto update_spacing = [&] (double x) {
-        double f = function(&x);
+        double f = function({x});
 
         // check if the function value changed
         if (1e-6 < std::abs(f - fprev)) {
@@ -102,7 +102,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     double start_space = spacing;
     for (int i = 0; i < 4; i++) {
         x -= spacing;
-        double f = function(&x);
+        double f = function({x});
 
         // check if the function value actually changed
         if (std::abs(fprev - f) < 1e-6) {
@@ -145,7 +145,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     start_space = spacing;
     for (int i = 0; i < 4; i++) {
         x += spacing;
-        double f = function(&x);
+        double f = function({x});
 
         // check if the function value actually changed
         if (std::abs(fprev - f) < 1e-6) {
@@ -191,7 +191,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         unsigned int above = 0; // number of consecutive points higher than the mean
         while (above < 4 && counter++ < (evals-9)/2) {
             x += spacing;
-            double f = function(&x);
+            double f = function({x});
             if (f < fmin) {
                 fmin = f;
                 xmin = x;
@@ -212,7 +212,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
         x = xmid - 4*spacing;   // start four steps to the left of the middle
         while (above < 4 && counter++ < (evals-9)/2) {
             x -= spacing;
-            double f = function(&x);
+            double f = function({x});
             if (f < fmin) {
                 fmin = f;
                 xmin = x;

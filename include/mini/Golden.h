@@ -8,13 +8,13 @@ namespace mini {
 	 */
 	class Golden : public Minimizer {
 		public:
-            Golden(double(&func)(const double*));
+            Golden(double(&func)(std::vector<double>));
 
-            Golden(std::function<double(const double*)> func);
+            Golden(std::function<double(std::vector<double>)> func);
 
-            Golden(double(&func)(const double*), const Parameter& param);
+            Golden(double(&func)(std::vector<double>), const Parameter& param);
 
-            Golden(std::function<double(const double*)> func, const Parameter& param);
+            Golden(std::function<double(std::vector<double>)> func, const Parameter& param);
 
             /**
              * @brief Destructor.

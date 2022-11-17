@@ -298,7 +298,7 @@ TEST_CASE("instability", "[em],[files],[manual]") {
     em::ImageStack image("data/A2M_native/emd_12747.ccp4");
 
     SimpleDataset data;
-    Axis range(100, image.level(0.5), image.level(7));
+    Axis range(100, image.from_level(0.5), image.from_level(7));
     unsigned int prev = image.count_voxels(range.min);
     for (unsigned int i = 1; i < range.bins; i++) {
         double cutoff = range.min + i * range.step();
@@ -313,7 +313,7 @@ TEST_CASE("instability", "[em],[files],[manual]") {
 
 TEST_CASE("save_as_pdb", "[em],[manual]") {
     em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
-    image.get_protein(image.level(3))->save("figures/test/em/save_as_pdb.pdb");
+    image.get_protein(image.from_level(3))->save("figures/test/em/save_as_pdb.pdb");
 }
 
 TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {

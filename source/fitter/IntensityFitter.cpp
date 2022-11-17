@@ -95,7 +95,7 @@ SimpleDataset IntensityFitter::plot_residuals() {
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
-double IntensityFitter::chi2(const double* params) {
+double IntensityFitter::chi2(std::vector<double> params) {
     double c = params[0];
 
     // apply c

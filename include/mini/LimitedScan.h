@@ -41,7 +41,7 @@ namespace mini {
                     std::list<double> last_evals;
                     unsigned int count = 0;
                     for (double val = bounds.max; bounds.min < val; val -= bounds.span()/evals) {
-                        double fval = function(&val);
+                        double fval = function({val});
 
                         // add the evaluation to the list
                         if (last_evals.size() < 7) {
@@ -72,7 +72,7 @@ namespace mini {
                 } 
                 
                 else { // parameters.size() <= 2 
-                    throw except::unexpected("Error in LimitedScan::landscape: Not implemented.");
+                    throw except::unexpected("LimitedScan::landscape: Not implemented.");
                 } 
             }
 
