@@ -1,3 +1,4 @@
+#include <preprocessor.h>
 #include <mini/Golden.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
@@ -72,7 +73,7 @@ Dataset2D Golden::landscape(unsigned int evals) {
     for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
         double fval = function({val});
         if (std::isnan(fval) || std::isinf(fval)) {
-            utility::print_warning("Warning in Golden::landscape: Function value is nan or inf and will be skipped.");
+            debug_print("Warning in Golden::landscape: Function value is nan or inf and will be skipped.");
             continue;
         }
         x.push_back(val);
@@ -103,6 +104,6 @@ Result Golden::minimize_override() {
 void Golden::add_parameter(const Parameter& param) {
     if (!param.has_bounds()) {throw except::invalid_argument("Golden::add_parameter: The parameter must be supplied with limits for this minimizer.");}
     if (!parameters.empty()) {throw except::invalid_operation("Golden::add_parameter: This minimizer only supports 1D problems.");}
-    if (param.has_guess()) {utility::print_warning("Warning in Golden::add_parameter: Guess value will be ignored.");}
+    if (param.has_guess()) {debug_print("Warning in Golden::add_parameter: Guess value will be ignored.");}
     parameters.push_back(param);
 }

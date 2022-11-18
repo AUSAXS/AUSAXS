@@ -22,9 +22,9 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
 
     const Parameter& param = parameters[0];
     double xmin = *param.guess;
-    double fmin = function({xmin});
-    const double xmid = xmin;
+    double xmid = xmin;
     double x = xmin;
+    double fmin = function({xmin});
 
     //###############################################################//
     //###        DETERMINE SPACING BETWEEN EVALUATIONS            ###//

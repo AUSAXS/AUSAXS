@@ -1,12 +1,17 @@
 #pragma once
 
 #include <vector>
+#include <list>
 #include <string>
 
 #include <mini/utility/Evaluation.h>
 #include <math/Matrix.h>
 
 namespace mini {
+    /**
+     * @brief A 2D grid of function evaluations. 
+     *        The grid must be regularly spaced.
+     */
     struct Landscape {
         /**
          * @brief Default constructor.
@@ -31,9 +36,9 @@ namespace mini {
         void rotate90() noexcept;
 
         /**
-         * @brief Set the evaluated points.
+         * @brief Add a set of evaluated points.
          */
-        void set_evaluations(const std::vector<Evaluation>& evaluations) noexcept;
+        void add_evaluations(const std::vector<Evaluation>& evaluations) noexcept;
 
         /**
          * @brief Find the minimum evaluated point in the landscape.
@@ -58,7 +63,7 @@ namespace mini {
          */
         void load(std::string filename);
 
-        std::vector<Evaluation> evaluations;
+        std::list<Evaluation> evaluations;
         std::vector<double> x, y;
         Matrix<double> z;
     };    

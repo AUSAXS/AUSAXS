@@ -1,3 +1,4 @@
+#include <preprocessor.h>
 #include <mini/Scan.h>
 #include <mini/Golden.h>
 #include <utility/Exceptions.h>
@@ -77,7 +78,7 @@ Dataset2D Scan::get_evaluated_points() const {
 void Scan::add_parameter(const Parameter& param) {
     if (!param.has_bounds()) {throw except::invalid_argument("Scan::add_parameter: The parameter must be supplied with limits for this minimizer.");}
     if (!parameters.empty()) {throw except::invalid_operation("Scan::add_parameter: This minimizer only supports 1D problems.");}
-    if (param.has_guess()) {utility::print_warning("Warning in Scan::add_parameter: Guess value will be ignored.");}
+    if (param.has_guess()) {debug_print("Warning in Scan::add_parameter: Guess value will be ignored.");}
     parameters.push_back(param);
 }
 

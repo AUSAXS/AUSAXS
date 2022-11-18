@@ -12,13 +12,10 @@ using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) : SimpleIntensityFitter(model, limits) {}
 
 shared_ptr<Fit> IntensityFitter::fit() {
-    evaluations.reserve(100);
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
 
-    auto mini = mini::create_minimizer(f, guess);
-
-    mini::dlibMinimizer mini(f, guess);
-    auto res = mini.minimize();
+    auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
+    auto res = mini->minimize();
 
     // mini::Scan mini(f, guess, 1000);
     // auto res = mini.minimize();
@@ -119,7 +116,6 @@ double IntensityFitter::chi2(std::vector<double> params) {
         chi += v*v;
     }
 
-    evaluations.push_back(mini::Evaluation({c}, chi));
     return chi;
 }
 

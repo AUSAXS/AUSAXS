@@ -267,16 +267,13 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
      // fitter is captured by value to guarantee its lifetime will be the same as the lambda
      // 'this' is ok since prepare_function is private and thus only used within the class itself
     std::function<double(std::vector<double>)> chi2 = [this, fitter] (std::vector<double> params) {
-        double last_c = 5;
+        double last_c = 5; // arbitrary start value
         auto p = phm->get_protein(params[0]);
-        // p->save("temp2/nh/" + std::to_string(counter++) + "_b.pdb");
-        // p->remove_disconnected_atoms(20);
 
         std::shared_ptr<Fit> fit;
         if (setting::em::hydrate) {
             p->clear_grid();                // clear grid from previous iteration
             p->generate_new_hydration();    // generate a new hydration layer
-            // p->remove_disconnected_atoms(); // remove disconnected atoms
 
             // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
             std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 
@@ -289,8 +286,6 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
         }
-        // p->save("temp2/nh/" + std::to_string(counter) + "_a.pdb");
-        // plots::PlotDistance::quick_plot(h, "temp.pdf");
 
         double val = fit->fval;
         if (setting::fit::verbose) {

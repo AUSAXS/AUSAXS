@@ -278,6 +278,7 @@ namespace em {
             unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
             std::shared_ptr<em::PartialHistogramManager> phm;   // The histogram manager. Manages both the backing protein & its scattering curve. 
             std::vector<mini::FittedParameter> water_factors;   // If hydration is enabled, the fitted water scaling factors will be recorded here.
+            std::vector<std::vector<mini::Evaluation>> evals;   // The evaluated points.
 
             /**
              * @brief Update the cutoff sections that will be used.

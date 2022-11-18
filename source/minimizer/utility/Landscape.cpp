@@ -9,13 +9,14 @@ using namespace mini;
 void Landscape::rotate90() noexcept {
     x.swap(y);
 }
-void Landscape::set_evaluations(const std::vector<Evaluation>& evaluations) noexcept {
-    this->evaluations = evaluations;
+
+void Landscape::add_evaluations(const std::vector<Evaluation>& evaluations) noexcept {
+    this->evaluations.insert(this->evaluations.end(), evaluations.begin(), evaluations.end());
 }
 
 Evaluation Landscape::find_min_val() const {
     if (x.empty() || y.empty()) {
-        throw except::size_error("Landscape::find_min_val(): x or y is empty.");
+        throw except::size_error("Landscape::find_min_val: x or y is empty.");
     }
 
     Evaluation min({x[0], y[0]}, z(0, 0));
@@ -32,11 +33,11 @@ Evaluation Landscape::find_min_val() const {
 
 Evaluation Landscape::find_min_eval() const {
     if (evaluations.empty()) {
-        throw except::size_error("Landscape::find_min(): Landscape is empty.");
+        throw except::size_error("Landscape::find_min: Landscape is empty.");
     }
 
-    double min = evaluations[0].fval;
-    auto min_e = evaluations[0];
+    double min = evaluations.front().fval;
+    auto min_e = evaluations.front();
     for (auto e : evaluations) {
         if (e.fval < min) {
             min = e.fval;
@@ -49,7 +50,7 @@ Evaluation Landscape::find_min_eval() const {
 void Landscape::save(std::string filename) const {
     std::ofstream file(filename);
     if (!file.is_open()) {
-        throw except::io_error("Landscape::save(): Could not open file " + filename + " for writing.");
+        throw except::io_error("Landscape::save: Could not open file " + filename + " for writing.");
     }
 
     file << "matrix_size: " << x.size() << "\t" << y.size() << "\n";
@@ -69,14 +70,14 @@ Landscape::Landscape(std::string file) {
 void Landscape::load(std::string filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        throw except::io_error("Landscape::load(): Could not open file " + filename + " for reading.");
+        throw except::io_error("Landscape::load: Could not open file " + filename + " for reading.");
     }
 
     std::string line;
     std::getline(file, line);
     auto tokens = utility::split(line, " \t");
     if (tokens.size() != 3) {
-        throw except::io_error("Landscape::load(): Invalid file format.");
+        throw except::io_error("Landscape::load: Invalid file format.");
     }
 
     auto x_size = std::stoi(tokens[1]);
@@ -90,7 +91,7 @@ void Landscape::load(std::string filename) {
             std::getline(file, line);
             tokens = utility::split(line, " \t");
             if (tokens.size() != 3) {
-                throw except::io_error("Landscape::load(): Invalid file format.");
+                throw except::io_error("Landscape::load: Invalid file format.");
             }
 
             // only set each y once

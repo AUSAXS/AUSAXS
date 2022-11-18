@@ -4,10 +4,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mfpmath=sse -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(DEBUG TRUE)
-
 
 project(SAXS VERSION 0.0)
+add_compile_definitions(DEBUG=1 SAFE_MATH=1)
 set(DEBUG TRUE)
 
 ############################################

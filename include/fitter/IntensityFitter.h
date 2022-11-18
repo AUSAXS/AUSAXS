@@ -119,7 +119,6 @@ class IntensityFitter : public SimpleIntensityFitter {
 
     private: 
     	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
-        std::vector<mini::Evaluation> evaluations; // The evaluated points.
         mini::Type fit_type = mini::Type::BFGS;    // The algorithm to use.
 
         /**
