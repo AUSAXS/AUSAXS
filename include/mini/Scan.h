@@ -10,6 +10,8 @@ namespace mini {
 	 */
 	class Scan : public Minimizer {
 		public:
+			Scan() = default;
+
 			Scan(double(&func)(std::vector<double>), unsigned int evals = 100);
 
             Scan(std::function<double(std::vector<double>)> func, unsigned int evals = 100);

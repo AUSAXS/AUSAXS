@@ -12,7 +12,6 @@ int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::fit::verbose = false;
     setting::em::sample_frequency = 2;
-    setting::em::alpha_levels = {10, 30};
 
     // check that we have at least one argument
     if (argc != 3) {

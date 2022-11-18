@@ -8,14 +8,11 @@
 #include <stdexcept>
 #include <iomanip>
 
+#include <preprocessor.h>
 #include <math/slices/ConstSlice.h>
 #include <math/slices/MutableSlice.h>
 #include <math/Vector.h>
 #include <math/LUPDecomposition.h>
-
-#ifndef SAFE_MATH
-    #define SAFE_MATH true
-#endif
 
 template<typename Q> // using Q to avoid conflict with transpose method T()
 class Matrix {

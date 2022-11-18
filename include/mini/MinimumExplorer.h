@@ -9,13 +9,15 @@ namespace mini {
 	 */
 	class MinimumExplorer : public Minimizer {
 		public:
-            MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals);
+            MinimumExplorer() = default;
 
-            MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals);
+            MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals = 100);
 
-            MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals);
+            MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals = 100);
 
-            MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals);
+            MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals = 100);
+
+            MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals = 100);
 
             /**
              * @brief Destructor.

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <preprocessor.h>
 #include <initializer_list>
 #include <algorithm>
 #include <vector>
@@ -8,8 +9,6 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-
-#define SAFE_MATH true
 
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
 template<typename T>

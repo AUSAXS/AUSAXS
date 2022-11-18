@@ -4,9 +4,7 @@
 #include <math/CubicSpline.h>
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
-#include <mini/dlibMinimizer.h>
-#include <mini/Golden.h>
-#include <mini/Scan.h>
+#include <mini/all.h>
 #include <plots/all.h>
 
 using std::string, std::vector, std::shared_ptr, std::unique_ptr;
@@ -14,7 +12,11 @@ using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) : SimpleIntensityFitter(model, limits) {}
 
 shared_ptr<Fit> IntensityFitter::fit() {
+    evaluations.reserve(100);
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
+
+    auto mini = mini::create_minimizer(f, guess);
+
     mini::dlibMinimizer mini(f, guess);
     auto res = mini.minimize();
 
@@ -117,6 +119,7 @@ double IntensityFitter::chi2(std::vector<double> params) {
         chi += v*v;
     }
 
+    evaluations.push_back(mini::Evaluation({c}, chi));
     return chi;
 }
 

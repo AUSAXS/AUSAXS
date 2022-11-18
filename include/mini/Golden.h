@@ -8,6 +8,8 @@ namespace mini {
 	 */
 	class Golden : public Minimizer {
 		public:
+            Golden() = default;
+
             Golden(double(&func)(std::vector<double>));
 
             Golden(std::function<double(std::vector<double>)> func);

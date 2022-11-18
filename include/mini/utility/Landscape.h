@@ -38,12 +38,12 @@ namespace mini {
         /**
          * @brief Find the minimum evaluated point in the landscape.
          */
-        Evaluation find_min_eval() const;
+        [[nodiscard]] Evaluation find_min_eval() const;
 
         /**
          * @brief Find the minimum value in the landscape.
          */
-        Evaluation find_min_val() const;
+        [[nodiscard]] Evaluation find_min_val() const;
 
         /**
          * @brief Save the landscape to a file.

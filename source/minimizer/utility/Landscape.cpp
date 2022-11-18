@@ -62,7 +62,9 @@ void Landscape::save(std::string filename) const {
     file.close();
 }
 
-Landscape::Landscape(std::string file) {load(file);}
+Landscape::Landscape(std::string file) {
+    load(file);
+}
 
 void Landscape::load(std::string filename) {
     std::ifstream file(filename);
