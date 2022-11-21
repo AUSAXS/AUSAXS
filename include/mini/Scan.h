@@ -28,12 +28,7 @@ namespace mini {
             /**
              * @brief Generate a landscape of the function.
              */
-            Dataset2D landscape(unsigned int evals) override;
-
-            /**
-             * @brief Get the evaluated points and their function values.
-             */
-            Dataset2D get_evaluated_points() const override;
+            mini::Landscape landscape(unsigned int evals) override;
 
 			/**
 			 * @brief Set the number of evaluations. 
@@ -49,7 +44,5 @@ namespace mini {
 			 * @brief Perform the minimization.
 			 */
 			Result minimize_override() override;
-
-			void looper(std::vector<double>& p, unsigned int index) const;
 	};
 }

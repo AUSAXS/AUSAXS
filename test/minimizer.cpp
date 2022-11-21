@@ -54,8 +54,8 @@ TEST_CASE("1d_landscape", "[minimizer],[manual]") {
     mini::Golden mini(problem04.function, {"x1", problem04.bounds[0]});
     auto res = mini.minimize();
 
-    Dataset2D evaluations = mini.get_evaluated_points();
-    Dataset2D landscape = mini.landscape();
+    SimpleDataset evaluations = mini.get_evaluated_points().as_dataset();
+    SimpleDataset landscape = mini.landscape().as_dataset();
     landscape.add_plot_options(style::draw::line, {{"color", style::color::black}});
     evaluations.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
@@ -116,17 +116,17 @@ TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
         mini::MinimumExplorer mini2(test.function, p, 100);
         res = mini2.minimize();
 
-        Dataset2D data1 = mini1.get_evaluated_points();
+        SimpleDataset data1 = mini1.get_evaluated_points().as_dataset();
         data1.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::blue}});
         plots::PlotDataset plot(data1);
 
-        Dataset2D data2 = mini2.get_evaluated_points();
+        SimpleDataset data2 = mini2.get_evaluated_points().as_dataset();
         data2.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::orange}});
         plots::PlotDataset::quick_plot(data2, "figures/test/minimizer/explorer_test_single.pdf");
         plot.plot(data2);
 
         mini::Golden mini3(test.function, {"a", test.bounds[0]});
-        Dataset2D line = mini3.landscape(1000);
+        SimpleDataset line = mini3.landscape(1000).as_dataset();
         plot.plot(line);
 
         plot.save("figures/test/minimizer/explorer_test.pdf");

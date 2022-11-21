@@ -16,16 +16,6 @@ namespace mini {
 
             ~dlibMinimizer() override;
 
-            /**
-             * @brief Generate a landscape of the function.
-             */
-            Dataset2D landscape(unsigned int evals = 100) override;
-
-            /**
-             * @brief Get the evaluated points and their function values.
-             */
-            Dataset2D get_evaluated_points() const override;
-
         private: 
             std::function<double(column_vector)> dlib_fwrapper;
 

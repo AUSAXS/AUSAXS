@@ -28,16 +28,6 @@ namespace mini {
 			 */
 			void add_parameter(const Parameter& param) override;
 
-            /**
-             * @brief Generate a landscape of the function.
-             */
-            Dataset2D landscape(unsigned int evals = 100) override;
-
-            /**
-             * @brief Get the evaluated points and their function values.
-             */
-            Dataset2D get_evaluated_points() const override;
-
         private:
             inline static const double phi = (1 + std::sqrt(5))/2;
             inline static const double invphi = 1/phi;

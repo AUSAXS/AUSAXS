@@ -27,7 +27,7 @@ Limit Golden::search(Limit bounds) const {
     b = temp - a;
 
     double diff = b - a;
-    if (__builtin_expect(diff < tol, false)) {
+    if (diff < tol) [[unlikely]] {
         return Limit(a, b);
     }
 
@@ -63,36 +63,6 @@ Limit Golden::search(Limit bounds) const {
     } else {
         return Limit(c, b);
     }
-}
-
-Dataset2D Golden::landscape(unsigned int evals) {
-    if (parameters.empty()) {throw except::bad_order("Golden::landscape: No parameters were supplied.");}
-    std::vector<double> x, y;
-
-    auto bounds = parameters[0].bounds.value();
-    for (double val = bounds.min; val < bounds.max; val += bounds.span()/evals) {
-        double fval = function({val});
-        if (std::isnan(fval) || std::isinf(fval)) {
-            debug_print("Warning in Golden::landscape: Function value is nan or inf and will be skipped.");
-            continue;
-        }
-        x.push_back(val);
-        y.push_back(fval);
-    }
-
-    return Dataset2D(x, y);
-}
-
-Dataset2D Golden::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("Golden::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
-
-    unsigned int N = evaluations.size();
-    std::vector<double> x(N), y(N);
-    for (unsigned int i = 0; i < N; i++) {
-        x[i] = evaluations[i].vals[0];
-        y[i] = evaluations[i].fval;
-    }
-    return Dataset2D(x, y, "x", "f(x)");
 }
 
 Result Golden::minimize_override() {

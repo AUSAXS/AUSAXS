@@ -22,13 +22,11 @@ void Scan::set_evals(unsigned int evals) noexcept {
     bins = evals;
 }
 
-Dataset2D Scan::landscape(unsigned int evals) {
+mini::Landscape Scan::landscape(unsigned int evals) {
     // check if the minimizer has already been called
-    if (!evaluations.empty()) {
+    if (!evaluations.evals.empty()) {
         // if so, we can just reuse its result
-        Dataset2D data;
-        std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back(eval.vals[0], eval.fval);});
-        return data;
+        return evaluations;
     }
 
     if (parameters.size() == 1) {
@@ -48,33 +46,6 @@ Dataset2D Scan::landscape(unsigned int evals) {
     }
 }
 
-void Scan::looper(std::vector<double>&, unsigned int) const {
-    throw except::unexpected("Scan::looper: Not implemented.");
-    // Limit bounds = parameters[index].bounds.value();
-    // for (double val = bounds.min; val < bounds.max; val += bounds.span()/bins) {
-    //     p[index] = val;
-    //     if (index < parameters.size()) {
-    //         looper(p, index+1);
-    //     } else {
-    //         if (function(p.data()) < current_best) {
-    //             // update best pars
-    //         }
-    //     }
-    // }
-}
-
-Dataset2D Scan::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("Scan::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
-
-    unsigned int N = evaluations.size();
-    std::vector<double> x(N), y(N);
-    for (unsigned int i = 0; i < N; i++) {
-        x[i] = evaluations[i].vals[0];
-        y[i] = evaluations[i].fval;
-    }
-    return Dataset2D(x, y, "x", "f(x)");
-}
-
 void Scan::add_parameter(const Parameter& param) {
     if (!param.has_bounds()) {throw except::invalid_argument("Scan::add_parameter: The parameter must be supplied with limits for this minimizer.");}
     if (!parameters.empty()) {throw except::invalid_operation("Scan::add_parameter: This minimizer only supports 1D problems.");}
@@ -83,7 +54,7 @@ void Scan::add_parameter(const Parameter& param) {
 }
 
 Result Scan::minimize_override() {
-    Dataset2D data = landscape(bins);
+    SimpleDataset data = landscape(bins).as_dataset();
     auto min = data.find_minimum();
 
     // find local minimum

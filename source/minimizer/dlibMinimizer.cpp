@@ -3,8 +3,12 @@
 using namespace mini;
 
 dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter param) {
-    // this->function = function;
-    // wrapper = [this](column_vector x) { return this->function(x(0));};
+    auto f = [=] (std::vector<double> x) {
+        return function(x[0]);
+    };
+    add_parameter(param);
+    set_function(f);
+    dlib_fwrapper = [this](column_vector x) {return this->function({x(0)});};
 }
 
 dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param) {
@@ -14,22 +18,6 @@ dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function
 }
 
 dlibMinimizer::~dlibMinimizer() = default;
-
-Dataset2D dlibMinimizer::landscape(unsigned int evals) {
-    throw except::unexpected("dlibMinimizer::landscape: Not implemented yet.");
-}
-
-Dataset2D dlibMinimizer::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("dlibMinimizer::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
-
-    unsigned int N = evaluations.size();
-    std::vector<double> x(N), y(N);
-    for (unsigned int i = 0; i < N; i++) {
-        x[i] = evaluations[i].vals[0];
-        y[i] = evaluations[i].fval;
-    }
-    return Dataset2D(x, y, "x", "f(x)");    
-}
 
 Result dlibMinimizer::minimize_override() {
     if (!is_parameter_set()) {throw except::bad_order("dlibMinimizer::minimize: No parameters were supplied.");}

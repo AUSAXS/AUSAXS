@@ -26,13 +26,11 @@ namespace mini {
              *        The scan will start at the maximum x value and work its way to the minimum.
              *        This will terminate early if the function value exceeds the limit.
              */
-            Dataset2D landscape(unsigned int evals) override {
+            mini::Landscape landscape(unsigned int evals) override {
                 // check if the minimizer has already been called
-                if (!evaluations.empty()) {
+                if (!evaluations.evals.empty()) {
                     // if so, we can just reuse its result
-                    Dataset2D data;
-                    std::for_each(evaluations.begin(), evaluations.end(), [&data] (const Evaluation& eval) {data.push_back(eval.vals[0], eval.fval);});
-                    return data;
+                    return evaluations;
                 }
 
                 if (parameters.size() == 1) {

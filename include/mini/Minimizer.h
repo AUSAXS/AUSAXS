@@ -68,12 +68,12 @@ namespace mini {
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            virtual Dataset2D landscape(unsigned int bins = 100) = 0;
+            virtual mini::Landscape landscape(unsigned int bins = 100);
 
             /**
              * @brief Get the evaluated points. 
              */
-            virtual Dataset2D get_evaluated_points() const = 0;
+            mini::Landscape get_evaluated_points() const;
 
             /**
              * @brief Check if this minimizer has been initialized.
@@ -89,7 +89,7 @@ namespace mini {
         protected:
             std::vector<Parameter> parameters;
             std::function<double(std::vector<double>)> function;
-            std::vector<Evaluation> evaluations;
+            mini::Landscape evaluations;
             unsigned int fevals = 0;
 
             /**

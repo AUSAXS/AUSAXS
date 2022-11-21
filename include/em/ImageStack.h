@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <utility>
 
 #include <em/CullingStrategy.h>
 #include <em/Datatypes.h>
@@ -24,15 +25,6 @@ namespace em {
      */
     class ImageStack {
         public:
-            struct Landscape {
-                Landscape() {}
-                Landscape(const EMFit& fit, const Dataset2D& contour) : fit(fit), contour(contour) {}
-                Landscape(Dataset2D&& contour) : contour(std::move(contour)) {}
-
-                EMFit fit;
-                Dataset2D contour;
-            };
-
             /**
              * @brief Constructor.
              * 
@@ -90,7 +82,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            Landscape cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
+            mini::Landscape cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -100,7 +92,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            Landscape cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h);
+            mini::Landscape cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -110,7 +102,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            Landscape cutoff_scan(const Axis& points, std::string file);
+            mini::Landscape cutoff_scan(const Axis& points, std::string file);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -120,7 +112,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            Landscape cutoff_scan(unsigned int points, std::string file);
+            mini::Landscape cutoff_scan(unsigned int points, std::string file);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -130,7 +122,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            Landscape cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
+            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -140,7 +132,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            Landscape cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
+            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -150,7 +142,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            Landscape cutoff_scan_fit(unsigned int points, std::string file);
+            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::string file);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -160,7 +152,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            Landscape cutoff_scan_fit(const Axis& points, std::string file);
+            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::string file);
 
             /**
              * @brief Get a specific Image stored in this object. 
@@ -319,7 +311,7 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            Landscape cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter);
+            mini::Landscape cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter);
 
             /**
              * @brief A helper function for the cutoff scan & fit method.
@@ -327,7 +319,7 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            Landscape cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter);
+            std::pair<EMFit, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter);
 
             /**
              * @brief Prepare the fitting function. 

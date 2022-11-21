@@ -5,10 +5,12 @@
 #include <utility/Multiset.h>
 
 #include <memory>
-#include <string>
-#include <sstream>
+#include <concepts>
 
 namespace plots {
+	template<typename C>
+	concept DatasetType = std::is_base_of_v<Dataset, C> || std::is_base_of_v<Multiset, C>;
+
 	class PlotDataset : public Plot {
 		public:
 			/**
@@ -19,7 +21,7 @@ namespace plots {
 			/**
 			 * @brief Constructor.
 			 */
-			template<typename T>
+			template<DatasetType T>
 			PlotDataset(const T& d);
 
 			/**
@@ -35,14 +37,14 @@ namespace plots {
 			/**
 			 * @brief Plot an additional Dataset. 
 			 */
-			template<typename T> 
+			template<DatasetType T> 
 			void plot(const T& data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			template<typename T>
+			template<DatasetType T>
 			static void quick_plot(const T& data, std::string path);
 		};
 }

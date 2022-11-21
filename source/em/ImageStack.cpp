@@ -117,42 +117,50 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     update_charge_levels(*param.bounds);
     determine_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
-    Dataset2D evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
+    mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
 
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
     mini::LimitedScan minimizer(f, param, setting::em::evals);
     minimizer.set_limit(fitter->dof()*50);
-    Dataset2D l = minimizer.landscape(setting::em::evals);
-    evals.append(l);
-    l.sort_x();
-    auto min = l.find_minimum();
+    SimpleDataset d;
+    {
+        auto l = minimizer.landscape(setting::em::evals);
+        evals.append(l);
+        d = l.as_dataset();
+    }
+
+    d.sort_x();
+    auto min = d.find_minimum();
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    l.limit_y(0, min.y*5);  // focus on the area near the minimum
-    if (l.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
+    d.limit_y(0, min.y*5);  // focus on the area near the minimum
+    if (d.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;       // first we determine the bounds of the area we want to sample
-        if (l.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
+        if (d.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
             double s = (param.bounds->max - param.bounds->min)/setting::em::evals;
             bounds = {min.x - s, min.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
-            bounds = l.span_x();
+            bounds = d.span_x();
         }
 
         // prepare a new minimizer with the new bounds
-        std::cout << "Function is varying strongly. Sampling more points around the minimum." << std::endl;
+        utility::print_warning("Function is varying strongly. Sampling more points around the minimum.");
         mini::LimitedScan mini2(f, mini::Parameter("cutoff", bounds), setting::em::evals/4);
-        l = mini2.landscape(setting::em::evals/2);
-        evals.append(l);
-        l.sort_x();
-        min = l.find_minimum();
-        l.limit_y(0, min.y*5);
+        {
+            auto l = mini2.landscape(setting::em::evals/2);
+            evals.append(l);
+            d = l.as_dataset();
+        }
+        d.sort_x();
+        min = d.find_minimum();
+        d.limit_y(0, min.y*5);
 
-        if (l.size() < 10) {
+        if (d.size() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
         }
     }
@@ -160,7 +168,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    SimpleDataset avg = l.rolling_average(7); // impose a moving average filter 
+    SimpleDataset avg = d.rolling_average(7); // impose a moving average filter 
     avg.interpolate(5);                       // interpolate more points
 
     min = avg.find_minimum();
@@ -177,8 +185,8 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
 
         avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "chi2"}});
         plots::PlotDataset plot(avg);
-        l.add_plot_options(style::draw::points);
-        plot.plot(l);
+        d.add_plot_options(style::draw::points);
+        plot.plot(d);
         plot.plot(p_start);
         plot.save(setting::plot::path + "chi2_evaluated_points." + setting::figures::format);
     }
@@ -194,11 +202,14 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         // sample the area around the minimum
         mini::MinimumExplorer explorer(f, param, 50);
         res = explorer.minimize();
-        evals.append(explorer.get_evaluated_points());
 
+        SimpleDataset area;
+        {
+            auto l = explorer.landscape(setting::em::evals);
+            evals.append(l);
+            area = l.as_dataset();
+        }
         if (setting::plot::em::plot_cutoff_points) {
-            auto area = explorer.get_evaluated_points();
-
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
             double sigma = area.std();
@@ -236,12 +247,12 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
-    min = evals.find_minimum();
+    min = evals.as_dataset().find_minimum();
     f({min.x});
 
     std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
     emfit->evaluated_points = evals;
-    emfit->fevals = evals.size();
+    emfit->fevals = evals.evals.size();
     emfit->level = to_level(min.x);
     if (setting::em::save_pdb) {phm->get_protein()->save(setting::plot::path + "model.pdb");}
     return emfit;
@@ -296,43 +307,43 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     return chi2;
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, string file) {
+mini::Landscape ImageStack::cutoff_scan(const Axis& points, string file) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, string file) {
+mini::Landscape ImageStack::cutoff_scan(unsigned int points, string file) {
     Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan(axis, file);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
+mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
     return cutoff_scan_helper(points, fitter);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
+mini::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
     Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan(axis, h);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
     Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan_fit(axis, h);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, std::string file) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::string file) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
     return cutoff_scan_fit_helper(points, fitter);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
     Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
+mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
     update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
@@ -341,20 +352,19 @@ ImageStack::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::sh
     return minimizer.landscape(points.bins);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
     return cutoff_scan_fit_helper(points, fitter);
 }
 
-ImageStack::Landscape ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
     update_charge_levels(points.limits());
     determine_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
 
     // cutoff scan
-    Landscape landscape;
     mini::Golden minimizer(func, mini::Parameter{"cutoff", points.limits()});
-    landscape.contour = minimizer.landscape(points.bins);
+    mini::Landscape landscape = minimizer.landscape(points.bins);
 
     // fit
     double l = from_level(1);
@@ -365,9 +375,8 @@ ImageStack::Landscape ImageStack::cutoff_scan_fit_helper(const Axis& points, std
 
     EMFit emfit(*fitter, res, res.fval);
     emfit.evaluated_points = minimizer.get_evaluated_points();
-    landscape.fit = emfit;
 
-    return landscape;
+    return {emfit, landscape};
 }
 
 unsigned int ImageStack::count_voxels(double cutoff) const {

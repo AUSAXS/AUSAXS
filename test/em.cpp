@@ -57,10 +57,9 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
     Protein protein("data/A2M_native/native.pdb");
     hist::ScatteringHistogram hist = protein.get_histogram();
 
-    auto data = image.cutoff_scan_fit({1000, 1, 2}, hist);
-
-    SimpleDataset& scan = data.contour;
-    SimpleDataset& fit = data.fit.evaluated_points;
+    auto[r, s] = image.cutoff_scan_fit({1000, 1, 2}, hist);
+    auto fit = r.evaluated_points.as_dataset();
+    auto scan = s.as_dataset();
     fit.add_plot_options("markers", {{"color", style::color::orange}});
 
     plots::PlotDataset plot(scan);
@@ -88,9 +87,9 @@ TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
     setting::em::hydrate = true;
     em::ImageStack map(mapfile);
 
-    auto data = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
-    SimpleDataset& scan = data.contour;
-    SimpleDataset& fit = data.fit.evaluated_points;
+    auto[r, s] = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
+    auto fit = r.evaluated_points.as_dataset();
+    auto scan = s.as_dataset();
     fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
     auto fitted_water_factors = map.get_fitted_water_factors_dataset();
@@ -162,21 +161,21 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
         setting::em::sample_frequency = 2;
         setting::em::simulation::noise = false;
         for (unsigned int i = 0; i < repeats; i++) {
-            auto contour = image.cutoff_scan({10, 0, 6}, hist);
-            contours.push_back(contour.contour);
-            compare_contours(contour.contour);
+            auto landscape = image.cutoff_scan({10, 0, 6}, hist).as_dataset();
+            contours.push_back(landscape);
+            compare_contours(landscape);
         }
     }
 
     SECTION("with_noise") {
         setting::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
-            auto data = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
-            SimpleDataset& fit = data.fit.evaluated_points;
+            auto[r, s] = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
+            auto fit = r.evaluated_points.as_dataset();
             optvals.push_back({fit.x(fit.size()-1), fit.y(fit.size()-1)});
 
             // chi2 contour plot
-            Dataset2D& scan = data.contour;
+            auto scan = s.as_dataset();
             fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
             plots::PlotDataset plot_c(scan);

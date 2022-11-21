@@ -4,6 +4,8 @@
 
 namespace mini {
     struct Evaluation {
+        Evaluation() = default;
+
         Evaluation(std::vector<double> vals, double fval) : vals(vals), fval(fval) {}
 
         std::vector<double> vals;

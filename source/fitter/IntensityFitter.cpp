@@ -13,7 +13,6 @@ IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const L
 
 shared_ptr<Fit> IntensityFitter::fit() {
     auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
-
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
 
@@ -39,6 +38,7 @@ shared_ptr<Fit> IntensityFitter::fit() {
     fitted = std::make_shared<Fit>(res, res.fval, data.size()-1); // start with the fit performed here
     fitted->add_fit(ab_fit);                                      // add the a,b inner fit
     fitted->add_plots(*this);                                     // make the result plottable
+    fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
 
     return fitted;
 }

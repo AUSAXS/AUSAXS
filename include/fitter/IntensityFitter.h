@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/Fit.h>
+#include <mini/all.h>
 #include <fitter/SimpleIntensityFitter.h>
 #include <hist/ScatteringHistogram.h>
 

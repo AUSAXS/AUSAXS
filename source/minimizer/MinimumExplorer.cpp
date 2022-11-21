@@ -16,8 +16,7 @@ MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func
     add_parameter(param);
 }
 
-//! Not currently overriding super method! Fix inheritance...
-Dataset2D MinimumExplorer::landscape(unsigned int evals) {
+mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
     if (parameters.empty()) {throw except::bad_order("MinimumExplorer::landscape: No parameters were supplied.");}
 
     const Parameter& param = parameters[0];
@@ -111,7 +110,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
             x += spacing;
             spacing *= 1.3;
             i--;
-            evaluations.pop_back();
+            evaluations.evals.pop_back();
 
             // if we've tried too many times going to the left doesn't work
             if (iter == 10) {
@@ -154,7 +153,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
             x -= spacing;
             spacing *= 1.3;
             i--;
-            evaluations.pop_back();
+            evaluations.evals.pop_back();
 
             // if we've tried too many times going to the right doesn't work
             if (iter == 10) {
@@ -181,7 +180,7 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     bool right = !(counter == 4);
 
     // we now change tactics: instead of requiring 3 monotonic increases in fval before stopping, we now just want it to be higher than the mean four times in a row
-    auto points = get_evaluated_points();    
+    auto points = get_evaluated_points().as_dataset();
     double mu = points.mean();
 
     if (right) {
@@ -229,20 +228,8 @@ Dataset2D MinimumExplorer::landscape(unsigned int evals) {
     return get_evaluated_points();
 }
 
-Dataset2D MinimumExplorer::get_evaluated_points() const {
-    if (evaluations.empty()) {throw except::bad_order("MinimumExplorer::get_evaluated_points: Cannot get evaluated points before a minimization call has been made.");}
-
-    unsigned int N = evaluations.size();
-    std::vector<double> x(N), y(N);
-    for (unsigned int i = 0; i < N; i++) {
-        x[i] = evaluations[i].vals[0];
-        y[i] = evaluations[i].fval;
-    }
-    return Dataset2D(x, y, "x", "f(x)");
-}
-
 Result MinimumExplorer::minimize_override() {
-    auto l = landscape(evals);
+    auto l = landscape(evals).as_dataset();
     auto min = l.find_minimum();
     FittedParameter p(parameters[0], min.x, l.span_x() - min.x);
     return Result(p, l.mean(), fevals);

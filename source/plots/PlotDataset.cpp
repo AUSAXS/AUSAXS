@@ -8,7 +8,7 @@
 
 using std::string, std::vector;
 
-template<typename T>
+template<plots::DatasetType T>
 plots::PlotDataset::PlotDataset(const T& data) {
     plot(data);
 }
@@ -23,7 +23,7 @@ plots::PlotDataset::PlotDataset(const Multiset& data) {
 
 plots::PlotDataset::~PlotDataset() = default;
 
-template<typename T>
+template<plots::DatasetType T>
 void plots::PlotDataset::plot(const T& data) {
     ss << "PlotDataset\n" 
         << data.to_string() 
@@ -32,7 +32,7 @@ void plots::PlotDataset::plot(const T& data) {
         << std::endl;
 }
 
-template<typename T>
+template<plots::DatasetType T>
 void plots::PlotDataset::quick_plot(const T& data, std::string path) {
     PlotDataset plot(data);
     plot.save(path);

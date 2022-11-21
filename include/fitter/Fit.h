@@ -53,7 +53,7 @@ class Fit : public mini::Result {
          */
         virtual std::string to_string() const noexcept;
 
-        SimpleDataset evaluated_points;
+        mini::Landscape evaluated_points;
         Plots figures;
         SimpleDataset residuals;
         unsigned int dof;

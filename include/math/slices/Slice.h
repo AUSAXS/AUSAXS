@@ -2,11 +2,11 @@
 
 template<typename T> class Vector;
 
+#include <preprocessor.h>
+
 #include <vector>
 #include <signal.h>
 #include <concepts>
-
-#define SAFE_MATH true
 
 /**
  * @brief \class Slice
