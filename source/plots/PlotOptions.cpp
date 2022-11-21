@@ -6,7 +6,6 @@
 #include <initializer_list>
 
 using namespace plots;
-using std::string;
 
 double inf = std::numeric_limits<double>::infinity();
 
@@ -14,25 +13,25 @@ PlotOptions::PlotOptions() : draw_line(true) {}
 
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
-PlotOptions::PlotOptions(string style, std::map<std::string, std::any> options) {
+PlotOptions::PlotOptions(std::string style, std::map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
     set(options);
 }
 
-PlotOptions& PlotOptions::set(string style, std::map<string, std::any> options) {
+PlotOptions& PlotOptions::set(std::string style, std::map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
     set(options);
     return *this;
 }
 
-PlotOptions& PlotOptions::set(std::map<string, std::any> options) {
+PlotOptions& PlotOptions::set(std::map<std::string, std::any> options) {
     std::for_each(options.begin(), options.end(), [this] (const auto& opt) {parse(opt.first, opt.second);});
     return *this;
 }
 
-void PlotOptions::parse(string key, std::any val) {
+void PlotOptions::parse(std::string key, std::any val) {
     for (const auto& opt : options) {
         for (const auto& alias : opt->aliases) {
             if (alias == key) {
@@ -70,11 +69,11 @@ void PlotOptions::SmartOption<Limit>::parse(const std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<string>::parse(const std::any val) {
+void PlotOptions::SmartOption<std::string>::parse(const std::any val) {
     if (std::type_index{typeid(const char*)} == val.type()) {
-        value = string(std::any_cast<const char*>(val));
-    } else if (std::type_index{typeid(string)} == val.type()) {
-        value = std::any_cast<string>(val);
+        value = std::string(std::any_cast<const char*>(val));
+    } else if (std::type_index{typeid(std::string)} == val.type()) {
+        value = std::any_cast<std::string>(val);
     } else if (std::type_index{typeid(style::Color)} == val.type()) {
         value = std::any_cast<style::Color>(val);
     } else if (std::type_index{typeid(style::LineStyle)} == val.type()) {
@@ -144,11 +143,10 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     title = opt.title; 
     xlabel = opt.xlabel; 
     ylabel = opt.ylabel; 
+    zlabel = opt.zlabel;
     draw_bars = opt.draw_bars;
     ylimits = opt.ylimits;
     xlimits = opt.xlimits;
-    xlabel_offset = opt.xlabel_offset;
-    ylabel_offset = opt.ylabel_offset;
     legend = opt.legend;
     return *this;
 }
@@ -169,18 +167,19 @@ std::string PlotOptions::to_string() const {
         << "title "          << title << "\n"
         << "xlabel "         << xlabel << "\n"
         << "ylabel "         << ylabel << "\n"
+        << "zlabel "         << ylabel << "\n"
         << "legend "         << legend << "\n"
         << "ylimits "        << ylimits.min << " " << ylimits.max << "\n"
         << "xlimits "        << xlimits.min << " " << ylimits.max << std::endl;
     return ss.str();
 }
 
-void PlotOptionWrapper::set_plot_options(const plots::PlotOptions& options) {this->options = options;}
+void Plottable::set_plot_options(const plots::PlotOptions& options) {this->options = options;}
 
-void PlotOptionWrapper::add_plot_options(std::map<std::string, std::any>& options) {this->options.set(options);}
+void Plottable::add_plot_options(std::map<std::string, std::any> options) {this->options.set(options);}
 
-void PlotOptionWrapper::add_plot_options(std::string style, std::map<std::string, std::any> options) {this->options.set(style, options);}
+void Plottable::add_plot_options(std::string style, std::map<std::string, std::any> options) {this->options.set(style, options);}
 
-void PlotOptionWrapper::set_plot_color(std::string color) {this->options.color = color;}
+void Plottable::set_plot_color(std::string color) {this->options.color = color;}
 
-plots::PlotOptions PlotOptionWrapper::get_plot_options() const {return options;}
+plots::PlotOptions Plottable::get_plot_options() const {return options;}

@@ -13,3 +13,5 @@
  */
 #define debug_print(msg) \
     do { if (DEBUG) std::cout << msg << std::endl; } while (0)
+
+#define _USE_MATH_DEFINES // for M_PI on Windows

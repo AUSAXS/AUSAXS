@@ -1,12 +1,10 @@
 #include <em/CounterCulling.h>
 
-using std::vector;
-
-vector<Atom> em::CounterCulling::cull(std::list<Atom>& atoms) const {
+std::vector<Atom> em::CounterCulling::cull(std::list<Atom>& atoms) const {
     double percent = 1 - double(target_count)/atoms.size();
 
     // prepare output vector
-    vector<Atom> output;
+    std::vector<Atom> output;
     output.reserve(atoms.size());
 
     // iterate through the input list

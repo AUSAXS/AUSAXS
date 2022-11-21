@@ -13,13 +13,11 @@
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 
-using std::vector, std::string, std::unique_ptr;
-
 Body::Body() {}
 
-Body::Body(string path) : file(path), uid(uid_counter++) {}
+Body::Body(std::string path) : file(path), uid(uid_counter++) {}
 
-Body::Body(const vector<Atom>& protein_atoms, const vector<Water>& hydration_atoms) : file(protein_atoms, hydration_atoms), uid(uid_counter++) {}
+Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : file(protein_atoms, hydration_atoms), uid(uid_counter++) {}
 
 Body::Body(const Body& body) : file(body.file), uid(body.uid) {}
 
@@ -27,16 +25,16 @@ Body::Body(Body&& body) : file(std::move(body.file)), uid(body.uid) {}
 
 Body::~Body() = default;
 
-void Body::save(string path) {file.write(path);}
+void Body::save(std::string path) {file.write(path);}
 
 void Body::calc_histogram() {
     // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
     Axis axes = Axis(1000/width, 0, 1000); 
-    vector<double> p_pp(axes.bins, 0);
-    vector<double> p_hh(axes.bins, 0);
-    vector<double> p_hp(axes.bins, 0);
-    vector<double> p_tot(axes.bins, 0);
+    std::vector<double> p_pp(axes.bins, 0);
+    std::vector<double> p_hh(axes.bins, 0);
+    std::vector<double> p_hp(axes.bins, 0);
+    std::vector<double> p_tot(axes.bins, 0);
 
     // extremely wasteful to calculate this from scratch every time
     std::vector<float> data_p(file.protein_atoms.size()*4);

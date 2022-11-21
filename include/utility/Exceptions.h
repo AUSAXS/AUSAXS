@@ -2,17 +2,15 @@
 
 #include <string>
 
-using std::string;
-
 /**
  * @brief This namespace contains all custom exceptions for this project. 
  */
 namespace except {
     struct base : public std::exception {
         base(const char* msg) : msg(msg) {}
-        base(const string msg) : msg(msg) {}
+        base(const std::string msg) : msg(msg) {}
         const char* what() const noexcept {return msg.data();}
-        const string msg;
+        const std::string msg;
     };
 
     // Invalid call order. A method depends on another before it can be run. Used for fits (a fit must be made before a plot can).

@@ -10,8 +10,6 @@
 #include <fstream>
 #include <random>
 
-using std::vector, std::string;
-
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     if (d.M <= 1) {
         throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least two columns.");
@@ -179,7 +177,7 @@ SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min,
     std::mt19937 gen(dev());
     auto uniform = std::uniform_real_distribution<double>(min, max);
 
-    vector<double> x(size), y(size), yerr(size);
+    std::vector<double> x(size), y(size), yerr(size);
     for (unsigned int i = 0; i < size; i++) {
         x[i] = i;
         y[i] = uniform(gen);

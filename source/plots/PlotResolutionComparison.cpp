@@ -6,8 +6,6 @@
 #include <string.h>
 #include <vector>
 
-using std::string, std::vector;
-
 plots::PlotResolutionComparison::PlotResolutionComparison(Multiset data) {
     if (data.empty()) {throw except::size_error("PlotResolutionComparison::PlotResolutionComparison: The given Multiset is empty!");}
 

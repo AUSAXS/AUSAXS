@@ -8,8 +8,6 @@
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 
-using std::string, std::vector, std::shared_ptr, std::unique_ptr;
-
 SimpleIntensityFitter::SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
     model_setup(model, limits);
 }
@@ -27,9 +25,9 @@ void SimpleIntensityFitter::model_setup(const hist::ScatteringHistogram& model, 
     if (setting::em::simulation::noise) {data.simulate_noise();}
 }
 
-shared_ptr<Fit> SimpleIntensityFitter::fit() {
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+std::shared_ptr<Fit> SimpleIntensityFitter::fit() {
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
     SimpleDataset fit_data(Im, data.y(), data.yerr());
@@ -53,16 +51,16 @@ Fit::Plots SimpleIntensityFitter::plot() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // if we have a I0, we need to rescale the data
     // double factor = I0/ym[0];
     // std::transform(Im.begin(), Im.end(), Im.begin(), [&factor] (double y) {return factor*y;});
 
     // calculate the scaled I model values
-    vector<double> I_scaled(data.size()); // spliced data
-    vector<double> ym_scaled(ym.size()); // original scaled data
+    std::vector<double> I_scaled(data.size()); // spliced data
+    std::vector<double> ym_scaled(ym.size()); // original scaled data
     std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
@@ -84,17 +82,17 @@ SimpleDataset SimpleIntensityFitter::plot_residuals() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // calculate the residuals
-    vector<double> residuals(data.size());
+    std::vector<double> residuals(data.size());
     for (size_t i = 0; i < data.size(); ++i) {
         residuals[i] = ((data.y(i) - a*Im[i]-b)/data.yerr(i));
     }
 
     // prepare the dataset
-    vector<double> xerr(data.size(), 0);
+    std::vector<double> xerr(data.size(), 0);
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
@@ -123,12 +121,12 @@ double SimpleIntensityFitter::chi2(std::vector<double>) {
     // return chi;
 }
 
-void SimpleIntensityFitter::setup(string file) {
+void SimpleIntensityFitter::setup(std::string file) {
     data = SimpleDataset(file); // read observed values from input file
 }
 
-vector<double> SimpleIntensityFitter::splice(const vector<double>& ym) const {
-    vector<double> Im = vector<double>(data.size()); // spliced model values
+std::vector<double> SimpleIntensityFitter::splice(const std::vector<double>& ym) const {
+    std::vector<double> Im(data.size()); // spliced model values
     CubicSpline s(h.q, ym);
     for (size_t i = 0; i < data.size(); ++i) {
         Im[i] = s.spline(data.x(i));

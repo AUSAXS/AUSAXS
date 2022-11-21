@@ -7,11 +7,9 @@
 #include <mini/all.h>
 #include <plots/all.h>
 
-using std::string, std::vector, std::shared_ptr, std::unique_ptr;
-
 IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) : SimpleIntensityFitter(model, limits) {}
 
-shared_ptr<Fit> IntensityFitter::fit() {
+std::shared_ptr<Fit> IntensityFitter::fit() {
     std::function<double(std::vector<double>)> f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
@@ -24,8 +22,8 @@ shared_ptr<Fit> IntensityFitter::fit() {
 
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
     SimpleDataset fit_data(Im, data.y(), data.yerr());
@@ -51,12 +49,12 @@ Fit::Plots IntensityFitter::plot() {
     double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
-    vector<double> I_scaled(data.size()); // spliced data
-    vector<double> ym_scaled(ym.size()); // original scaled data
+    std::vector<double> I_scaled(data.size()); // spliced data
+    std::vector<double> ym_scaled(ym.size()); // original scaled data
     std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
@@ -80,17 +78,17 @@ SimpleDataset IntensityFitter::plot_residuals() {
     double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // calculate the residuals
-    vector<double> residuals(data.size());
+    std::vector<double> residuals(data.size());
     for (size_t i = 0; i < data.size(); ++i) {
         residuals[i] = ((data.y(i) - (a*Im[i]+b))/data.yerr(i));
     }
 
     // prepare the TGraph
-    vector<double> xerr(data.size(), 0);
+    std::vector<double> xerr(data.size(), 0);
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
@@ -99,8 +97,8 @@ double IntensityFitter::chi2(std::vector<double> params) {
 
     // apply c
     h.apply_water_scaling_factor(c);
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
     SimpleDataset fit_data(Im, data.y(), data.yerr());
@@ -127,7 +125,7 @@ double IntensityFitter::get_intercept() {
     double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     CubicSpline s(h.q, ym);
     return a*s.spline(0) + b;
 }
@@ -140,14 +138,14 @@ SimpleDataset IntensityFitter::get_model_dataset() {
     double c = fitted->get_parameter("c").value;
 
     h.apply_water_scaling_factor(c);
-    vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
     std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
 
     return SimpleDataset(data.x(), Im, "q", "I"); 
 }
 
-SimpleDataset IntensityFitter::get_model_dataset(const vector<double>& q) {
+SimpleDataset IntensityFitter::get_model_dataset(const std::vector<double>& q) {
     if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;

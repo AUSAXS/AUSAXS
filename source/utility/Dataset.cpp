@@ -11,8 +11,6 @@
 #include <string>
 #include <fstream>
 
-using std::vector, std::string;
-
 Dataset::Dataset(unsigned int rows, unsigned int cols) : Matrix(rows, cols) {
     set_default_names();
 }
@@ -128,7 +126,7 @@ void Dataset::load(std::string path) {
         if (line.empty()) {continue;}
 
         // remove leading whitespace
-        vector<string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
+        std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
 
         // remove empty tokens
         for (unsigned int i = 0; i < tokens.size(); i++) {
@@ -141,7 +139,7 @@ void Dataset::load(std::string path) {
         // check if all tokens are numbers
         bool skip = false;
         for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != string::npos) {
+            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
                 skip = true;
             }
         }

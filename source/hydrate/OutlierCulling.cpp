@@ -3,16 +3,14 @@
 
 #include <utility>
 
-using std::vector;
-
-vector<Water> grid::OutlierCulling::cull(vector<grid::GridMember<Water>>& placed_water) const {
+std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
-        vector<Water> final_water(placed_water.size());
+        std::vector<Water> final_water(placed_water.size());
         std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.atom;});
         return final_water;
     }
 
-    vector<std::pair<GridMember<Water>, int>> v(placed_water.size());
+    std::vector<std::pair<GridMember<Water>, int>> v(placed_water.size());
     const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
     const GridObj& gref = grid->grid;
@@ -41,8 +39,8 @@ vector<Water> grid::OutlierCulling::cull(vector<grid::GridMember<Water>>& placed
     std::sort(v.begin(), v.end(), [](auto &left, auto &right) {return left.second < right.second;});
 
     // copy the first target_count entries in the sorted vector
-    vector<Water> final_water(target_count); // the final water molecules that will be used
-    vector<Water> removed_water(placed_water.size() - target_count); // the water molecules which will be removed
+    std::vector<Water> final_water(target_count); // the final water molecules that will be used
+    std::vector<Water> removed_water(placed_water.size() - target_count); // the water molecules which will be removed
     size_t n = 0;
     for (n = 0; n < target_count; n++) {
         final_water[n] = v[n].first.atom;

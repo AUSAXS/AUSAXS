@@ -1,21 +1,19 @@
 #include <hydrate/AxesPlacement.h>
 #include <hydrate/Grid.h>
 
-using std::vector;
-
-vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
+std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
     unsigned int ra = grid->ra, rh = grid->rh;
 
     // short lambda to actually place the generated water molecules
-    vector<GridMember<Water>> placed_water(grid->a_members.size());
+    std::vector<GridMember<Water>> placed_water(grid->a_members.size());
     size_t index = 0;
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Water a = Water::create_new_water(exact_loc);
         GridMember<Water> gm = grid->add(a, true);
-        if (__builtin_expect(placed_water.size() <= index, false)) {
+        if (placed_water.size() <= index) [[unlikely]] {
             placed_water.resize(2*index);
         }
         placed_water[index++] = gm;

@@ -7,8 +7,6 @@
 #include <string.h>
 #include <vector>
 
-using std::unique_ptr, std::shared_ptr, std::string, std::vector;
-
 plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, style::Color color) {
     plot(d, color);
 }

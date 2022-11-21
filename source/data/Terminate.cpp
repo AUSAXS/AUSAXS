@@ -5,9 +5,9 @@
 #include <utility/Utility.h>
 #include <data/Terminate.h>
 
-using std::string, std::left, std::right, std::setw;
+using std::left, std::right, std::setw;
 
-Terminate::Terminate(int serial, string resName, string chainID, int resSeq, string iCode) {
+Terminate::Terminate(int serial, std::string resName, std::string chainID, int resSeq, std::string iCode) {
     this->serial = serial;
     this->resName = resName;
     this->chainID = chainID;
@@ -17,7 +17,7 @@ Terminate::Terminate(int serial, string resName, string chainID, int resSeq, str
 
 Record::RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 
-void Terminate::parse_pdb(const string s) {
+void Terminate::parse_pdb(const std::string s) {
     if (s.size() < 28) {return;} // sometimes the terminate record consists only of "TER   "
 
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#TER
@@ -26,7 +26,7 @@ void Terminate::parse_pdb(const string s) {
     //                   0     1     2        
     //                   0  6  1  8  0  1  2  6  7  
     const char form[] = "%6c%5c%6c%3c%1c%1c%4c%1c";
-    string recName = "      ", serial = "     ", space1 = "      ", resName = "   ", space2 = " ", 
+    std::string recName = "      ", serial = "     ", space1 = "      ", resName = "   ", space2 = " ", 
         chainID = " ", resSeq = "    ", iCode = " ";
     sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), resName.data(), 
         space2.data(), chainID.data(), resSeq.data(), iCode.data());
@@ -56,7 +56,7 @@ void Terminate::parse_pdb(const string s) {
     // cout << this->as_pdb() << endl;
 }
 
-string Terminate::as_pdb() const {
+std::string Terminate::as_pdb() const {
     std::stringstream ss;
     //                   RN SE S1 RN S2 CI RS iC
     //                   0     1     2        

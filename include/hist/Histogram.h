@@ -10,7 +10,7 @@ namespace hist {
      * 
      * A representation of a histogram. 
      */
-    class Histogram : public plots::PlotOptionWrapper {
+    class Histogram : public plots::Plottable {
         public:
             /**
              * @brief Default constructor.

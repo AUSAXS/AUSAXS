@@ -7,22 +7,21 @@
 #include <fitter/IntensityFitter.h>
 
 using namespace hist;
-using std::vector;
 
-Protein::Protein(const vector<Body>& bodies, const vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
+Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
 }
 
-Protein::Protein(const vector<Atom>& protein_atoms, const vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
+Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
 }
 
-Protein::Protein(const vector<vector<Atom>>& protein_atoms, const vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
+Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     for (size_t i = 0; i < protein_atoms.size(); i++) {
-        bodies.push_back(Body(protein_atoms[i], vector<Water>(0)));
+        bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
     }
     phm = std::make_unique<PartialHistogramManager>(this);
     bind_body_signallers();
@@ -33,7 +32,7 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
     bind_body_signallers();
 }
 
-Protein::Protein(string input) {
+Protein::Protein(std::string input) {
     Body b1(input);
     bodies = {b1};
     hydration_atoms = std::move(bodies[0].waters());
@@ -42,7 +41,7 @@ Protein::Protein(string input) {
     bind_body_signallers();
 }
 
-Protein::Protein(const vector<string>& input) {
+Protein::Protein(const std::vector<std::string>& input) {
     for (size_t i = 0; i < input.size(); i++) {
         bodies.push_back(Body(input[i]));
     }
@@ -69,7 +68,7 @@ SimpleDataset Protein::simulate_dataset(bool add_noise) {
     return data;
 }
 
-void Protein::save(string path) {
+void Protein::save(std::string path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {
         bodies[0].waters() = hydration_atoms;
@@ -133,9 +132,9 @@ std::shared_ptr<Grid> Protein::create_grid() {
     return grid;
 }
 
-vector<Atom> Protein::atoms() const {
+std::vector<Atom> Protein::atoms() const {
     int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.atoms().size();});
-    vector<Atom> atoms(N);
+    std::vector<Atom> atoms(N);
     int n = 0; // current index
     for (const auto& body : bodies) {
         for (const auto& a : body.atoms()) {
@@ -178,13 +177,13 @@ Vector3<double> Protein::get_cm() const {
     return cm/M;
 }
 
-vector<Water>& Protein::waters() {return hydration_atoms;}
+std::vector<Water>& Protein::waters() {return hydration_atoms;}
 
 const std::vector<Water>& Protein::waters() const {return hydration_atoms;}
 
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
-    hydration_atoms = vector<Water>();
+    hydration_atoms = std::vector<Water>();
     phm->signal_modified_hydration_layer();
 
     // move protein to center of mass
@@ -234,20 +233,20 @@ size_t Protein::atom_size() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.atoms().size();});
 }
 
-vector<double> Protein::calc_debye_scattering_intensity() {
+std::vector<double> Protein::calc_debye_scattering_intensity() {
     if (!updated_charge && setting::protein::use_effective_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
 
-    vector<Atom> atoms = this->atoms();
+    std::vector<Atom> atoms = this->atoms();
     const Axis& debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
-    vector<double> Q = vector<double>(debye_axis.bins);
+    std::vector<double> Q = std::vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
         Q[i] = debye_axis.min + i*debye_width;
     }
 
-    vector<double> I;
+    std::vector<double> I;
     I.reserve(Q.size());
     for (const auto& q : Q) {
         double sum = 0;

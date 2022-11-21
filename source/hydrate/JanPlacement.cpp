@@ -1,15 +1,13 @@
 #include <hydrate/JanPlacement.h>
 #include <hydrate/Grid.h>
 
-using std::vector;
-
-vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
+std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
     // place a water molecule (note: not added to the grid before the end of this method)
-    vector<Water> placed_water(grid->a_members.size());
+    std::vector<Water> placed_water(grid->a_members.size());
     size_t index = 0;
     auto add_loc = [&] (const Vector3<int>& v) {
         Water a = Water::create_new_water(grid->to_xyz(v));
@@ -49,7 +47,7 @@ vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
 
     // finally we can add the atoms to the grid
     placed_water.resize(index);
-    vector<grid::GridMember<Water>> v = grid->add(placed_water);
+    std::vector<grid::GridMember<Water>> v = grid->add(placed_water);
     grid->expand_volume();
 
     return v;

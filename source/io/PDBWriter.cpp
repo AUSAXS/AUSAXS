@@ -10,7 +10,7 @@
 #include <fstream>
 #include <algorithm>
 
-void PDBWriter::write(string output_path) {
+void PDBWriter::write(std::string output_path) {
     file->refresh();
     utility::create_directory(output_path);
     std::ofstream output(output_path);
@@ -20,9 +20,9 @@ void PDBWriter::write(string output_path) {
     std::cout << "Output written to file " + output_path + "." << std::endl;
 }
 
-string PDBWriter::as_pdb() const {
+std::string PDBWriter::as_pdb() const {
     File& f = *file;
-    string s = f.header.get();
+    std::string s = f.header.get();
 
     unsigned int i_ter = f.terminate.serial;
     bool printed_ter = false;

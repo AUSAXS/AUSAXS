@@ -18,18 +18,12 @@
 
 using namespace em;
 
-using std::vector;
-
-ImageStack::ImageStack(const vector<Image>& images, unsigned int resolution) 
-    : resolution(resolution), size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
-    
+ImageStack::ImageStack(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {    
     data = images;
     phm->set_charge_levels(); // set default charge levels
 }
 
-ImageStack::ImageStack(string file, unsigned int resolution) 
-    : filename(file), header(std::make_shared<ccp4::Header>()), resolution(resolution), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
-
+ImageStack::ImageStack(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
     validate_extension(file);
 
     std::ifstream input(file, std::ios::binary);
@@ -43,15 +37,15 @@ ImageStack::ImageStack(string file, unsigned int resolution)
 
 ImageStack::~ImageStack() = default;
 
-void ImageStack::validate_extension(string file) const {
-    string extension = std::filesystem::path(file).extension().string();
+void ImageStack::validate_extension(std::string file) const {
+    std::string extension = std::filesystem::path(file).extension().string();
     if (extension == ".ccp4") {return;}
     if (extension == ".map") {return;}
     if (extension == ".mrc") {return;}
     throw except::invalid_extension("Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
 }
 
-void ImageStack::save(double cutoff, string path) const {
+void ImageStack::save(double cutoff, std::string path) const {
     std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
     protein->save(path);
 }
@@ -62,7 +56,7 @@ const Image& ImageStack::image(unsigned int layer) const {return data[layer];}
 
 size_t ImageStack::size() const {return size_z;}
 
-const vector<Image>& ImageStack::images() const {return data;}
+const std::vector<Image>& ImageStack::images() const {return data;}
 
 std::unique_ptr<Grid> ImageStack::create_grid(double) const {
     throw except::unexpected("Imagestack::create_grid: Not implemented yet.");
@@ -81,7 +75,7 @@ std::shared_ptr<Protein> ImageStack::get_protein(double cutoff) const {
 }
 
 void ImageStack::update_charge_levels(Limit limit) const noexcept {
-    vector<double> levels;
+    std::vector<double> levels;
     for (unsigned int i = 0; i < setting::em::charge_levels; i++) {
         levels.push_back(limit.min + i*limit.span()/setting::em::charge_levels);
     }
@@ -101,13 +95,13 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini:
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(string file) {
+std::shared_ptr<EMFit> ImageStack::fit(std::string file) {
     Limit lim = {from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(string file, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit(std::string file, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return fit_helper(fitter, param);
@@ -177,7 +171,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
 
     // optional plot
-    if (setting::plot::em::plot_cutoff_points) {
+    if (setting::plot::em::additional_plots) {
         // plot the minimum in blue
         SimpleDataset p_start;
         p_start.push_back(min.x, min.y);
@@ -208,7 +202,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             evals.append(l);
             area = l.as_dataset();
         }
-        if (setting::plot::em::plot_cutoff_points) {
+        if (setting::plot::em::additional_plots) {
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
             double sigma = area.std();
@@ -243,6 +237,22 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         mini::Golden golden(f, param);
         res = golden.minimize();
         evals.append(golden.get_evaluated_points());
+    }
+
+    // make landscape plot
+    if (setting::plot::em::additional_plots && setting::em::hydrate) {
+        mini::Landscape l;
+        l.evals.reserve(1000);
+        for (unsigned int i = 0; i < this->evals.size(); i++) {
+            for (unsigned int j = 0; j < this->evals[i].strip.evals.size(); j++) {
+                double x = this->evals[i].cutoff;
+                double y = this->evals[i].strip.evals[j].vals.front();
+                double z = this->evals[i].strip.evals[j].fval;
+                l.evals.push_back(mini::Evaluation({x, y}, z));
+            }
+        }
+        l.add_plot_options({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "chi2"}});
+        plots::PlotLandscape::quick_plot(l, setting::plot::path + "chi2_landscape." + setting::figures::format);
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
@@ -289,9 +299,10 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
-            fit = fitter->fit();                                // do the fit
-            water_factors.push_back(fit->get_parameter("c"));   // record c value
-            last_c = fit->get_parameter("c").value;             // update c for next iteration
+            fit = fitter->fit();                                                            // do the fit
+            water_factors.push_back(fit->get_parameter("c"));                               // record c value
+            last_c = fit->get_parameter("c").value;                                         // update c for next iteration
+            evals.push_back(detail::ExtendedLandscape(params[0], fit->evaluated_points));   // record evaluated points
         } else {
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
@@ -306,12 +317,12 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     return chi2;
 }
 
-mini::Landscape ImageStack::cutoff_scan(const Axis& points, string file) {
+mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::string file) {
     std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
-mini::Landscape ImageStack::cutoff_scan(unsigned int points, string file) {
+mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::string file) {
     Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
     return cutoff_scan(axis, file);
 }
@@ -387,7 +398,7 @@ size_t ImageStack::get_byte_size() const {
 }
 
 void ImageStack::read(std::ifstream& istream, size_t byte_size) {
-    data = vector<Image>(size_z, Image(header));
+    data = std::vector<Image>(size_z, Image(header));
     for (unsigned int i = 0; i < size_x; i++) {
         for (unsigned int j = 0; j < size_y; j++) {
             for (unsigned int k = 0; k < size_z; k++) {
@@ -415,7 +426,7 @@ std::shared_ptr<ccp4::Header> ImageStack::get_header() const {
 }
 
 Limit ImageStack::get_limits() const {
-    return resolution == 0 ? Limit(setting::axes::qmin, setting::axes::qmax) : Limit(setting::axes::qmin, 2*M_PI/resolution);
+    return Limit(setting::axes::qmin, setting::axes::qmax);
 }
 
 double ImageStack::mean() const {
@@ -436,9 +447,6 @@ ObjectBounds3D ImageStack::minimum_volume(double cutoff) {
 }
 
 void ImageStack::determine_minimum_bounds(double min_val) {
-    // set_staining(min_val);
-    // double cutoff = positively_stained() ? std::abs(min_val) : -std::abs(min_val);
-    // std::for_each(data.begin(), data.end(), [&cutoff] (Image& image) {image.setup_bounds(cutoff);});
     std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
 }
 

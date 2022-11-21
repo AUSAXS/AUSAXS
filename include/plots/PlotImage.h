@@ -21,7 +21,7 @@ namespace plots {
             /**
              * @brief Destructor. 
              */
-            ~PlotImage();
+            ~PlotImage() override;
 
             /**
              * @brief Overlay the atomic locations on top of the plot. 

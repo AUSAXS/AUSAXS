@@ -100,7 +100,7 @@ namespace setting {
             // Whether to plot the evaluated chi2 points. 
             // Produces 2 plots; one of the full landscape and another of the area near the minimum. 
             // The number of points is roughly determined by setting::em::evals
-            inline static bool plot_cutoff_points = true; 
+            inline static bool additional_plots = true; 
         };
     };
 

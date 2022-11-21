@@ -5,7 +5,7 @@
 #include <plots/PlotOptions.h>
 
 namespace hist {
-    class Histogram2D : public Matrix<double>, public plots::PlotOptionWrapper {
+    class Histogram2D : public Matrix<double>, public plots::Plottable {
         public: 
             Histogram2D() {}
 

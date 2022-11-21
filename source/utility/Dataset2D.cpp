@@ -8,8 +8,6 @@
 #include <fstream>
 #include <random>
 
-using std::vector, std::string; 
-
 Dataset2D::Dataset2D() noexcept : SimpleDataset(0, 4) {}
 
 Dataset2D::Dataset2D(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}

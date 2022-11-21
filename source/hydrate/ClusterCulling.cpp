@@ -1,8 +1,6 @@
-#define _USE_MATH_DEFINES
+#include <preprocessor.h>
 #include <hydrate/ClusterCulling.h>
 #include <hydrate/Grid.h>
-
-using std::vector;
 
 grid::ClusterCulling::ClusterCulling(Grid* grid) : grid(grid) {
     prepare_rotations();
@@ -18,7 +16,7 @@ void grid::ClusterCulling::prepare_rotations() {
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
     // we do this to ensure the sphere is symmetric. If we simply generate it all at once, floating-point errors moves some of the bins around
-    vector<Vector3<double>> sphere;
+    std::vector<Vector3<double>> sphere;
     for (double theta = 0; theta <= M_PI*0.5; theta+=ang) {
         for (double phi = 0; phi <= M_PI*0.5; phi+=ang) {
             double x = cos(phi)*sin(theta);
@@ -36,7 +34,7 @@ void grid::ClusterCulling::prepare_rotations() {
     }
 
     // remove duplicates
-    vector<Vector3<double>> rots;
+    std::vector<Vector3<double>> rots;
     for (auto& p : sphere) {
         bool present = false;
         for (int i = 0; i < 3; i++) { // fix the easy floating point errors
@@ -65,7 +63,7 @@ void grid::ClusterCulling::prepare_rotations() {
     rot_bins_3ra = std::move(bins_3ra);
 }
 
-vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) const {
+std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) const {
     // find the center of an expanded atom
     unsigned int ra = grid->ra;
     auto find_center = [this, ra] (const Vector3<int> pos) {

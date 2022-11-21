@@ -18,10 +18,10 @@ void PDBReader::read(std::string input_path) {
     std::ifstream input(input_path);
     if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + input_path + "\"");}
 
-    string line; // placeholder for the current line
+    std::string line; // placeholder for the current line
     File& f = *file;
     while(getline(input, line)) {
-        string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
+        std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
             case Record::RecordType::ATOM: {
                 // first just parse it as an atom; we can reuse it anyway even if it is a water molecule

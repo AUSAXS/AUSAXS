@@ -22,14 +22,13 @@
 #include <math/Vector3.h>
 #include <utility/Utility.h>
 
-using std::vector, std::string, std::shared_ptr, std::unique_ptr;
 using namespace grid;
 
 Grid::Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) : axes(axes) {
     setup(width, ra, rh, ps, cs);
 }
 
-Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
+Grid::Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
     // find the bounding box
     Vector3<double> nmin, nmax; // new min & max
     auto[min, max] = bounding_box(atoms);
@@ -49,7 +48,7 @@ Grid::Grid(const vector<Atom>& atoms, double width, double ra, double rh, settin
     add(atoms);
 }
 
-Grid::Grid(const vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
+Grid::Grid(const std::vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
     Vector3<double> nmin, nmax; // new min & max
 
     // find the total bounding box containing all bodies
@@ -153,13 +152,13 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
     }
 }
 
-vector<Water> Grid::hydrate() {
-    vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
+std::vector<Water> Grid::hydrate() {
+    std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
     water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 
-vector<GridMember<Water>> Grid::find_free_locs() {
+std::vector<GridMember<Water>> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     if (w_members.size() != 0) {
             utility::print_warning("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
@@ -171,7 +170,7 @@ vector<GridMember<Water>> Grid::find_free_locs() {
 }
 
 std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
-    if (__builtin_expect(a_members.size() == 0, false)) {
+    if (a_members.size() == 0) [[unlikely]] {
         throw except::invalid_operation("Grid::bounding_box: Calculating a boundary box for a grid with no members!");
     }
 
@@ -187,7 +186,7 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     return std::make_pair(min, max);
 }
 
-std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const vector<Atom>& atoms) {
+std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector<Atom>& atoms) {
     // initialize the bounds as large as possible
     Vector3 min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
     Vector3 max = {std::numeric_limits<double>::min(), std::numeric_limits<double>::min(), std::numeric_limits<double>::min()};
@@ -216,8 +215,8 @@ void Grid::set_radius_water(double radius) {
     this->rh = new_r;
 }
 
-vector<Water> Grid::get_waters() const {
-    vector<Water> atoms(w_members.size());
+std::vector<Water> Grid::get_waters() const {
+    std::vector<Water> atoms(w_members.size());
     int i = 0; // counter
     for (const auto& water : w_members) {
         atoms[i] = water.atom;
@@ -227,8 +226,8 @@ vector<Water> Grid::get_waters() const {
     return atoms;
 }
 
-vector<Atom> Grid::get_atoms() const {
-    vector<Atom> atoms(a_members.size());
+std::vector<Atom> Grid::get_atoms() const {
+    std::vector<Atom> atoms(a_members.size());
     int i = 0; // counter
     for (const auto& atom : a_members) {
         atoms[i] = atom.atom;
@@ -317,7 +316,7 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     return to_remove;
 }
 
-vector<GridMember<Atom>> Grid::add(const Body* const body) {
+std::vector<GridMember<Atom>> Grid::add(const Body* const body) {
     return add(body->atoms());
 }
 
@@ -331,7 +330,7 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
 
     // sanity check
     bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
-    if (__builtin_expect(out_of_bounds, false)) {
+    if (out_of_bounds) [[unlikely]] {
         throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
@@ -351,7 +350,7 @@ GridMember<Water> Grid::add(const Water& water, bool expand) {
 
     // sanity check
     bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
-    if (__builtin_expect(out_of_bounds, false)) {
+    if (out_of_bounds) [[unlikely]] {
         throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
     }
 
@@ -380,7 +379,7 @@ void Grid::remove(std::vector<bool>& to_remove) {
     }
 
     index = 0;
-    vector<GridMember<Atom>> removed_atoms(total_removed);
+    std::vector<GridMember<Atom>> removed_atoms(total_removed);
     auto predicate = [&removed, &removed_atoms, &index] (GridMember<Atom>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_atoms[index++] = std::move(gm);
@@ -395,7 +394,7 @@ void Grid::remove(std::vector<bool>& to_remove) {
     size_t cur_size = a_members.size();
 
     // sanity check
-    if (__builtin_expect(prev_size - cur_size != total_removed, false)) {
+    if (prev_size - cur_size != total_removed) [[unlikely]] {
         throw except::invalid_operation("Grid::remove: Something went wrong.");
     }
 
@@ -409,7 +408,7 @@ void Grid::remove(std::vector<bool>& to_remove) {
 
 void Grid::remove(const Atom& atom) {
     auto pos = std::find(a_members.begin(), a_members.end(), atom);
-    if (__builtin_expect(pos == a_members.end(), false)) {
+    if (pos == a_members.end()) [[unlikely]] {
         throw except::invalid_operation("Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
@@ -424,7 +423,7 @@ void Grid::remove(const Atom& atom) {
 
 void Grid::remove(const Water& water) {
     auto pos = std::find(w_members.begin(), w_members.end(), water);
-    if (__builtin_expect(pos == w_members.end(), false)) {
+    if (pos == w_members.end()) [[unlikely]] {
         throw except::invalid_operation("Grid::remove: Attempting to remove an atom which is not part of the grid!");
     }
 
@@ -436,14 +435,14 @@ void Grid::remove(const Water& water) {
     grid.index(x, y, z) = GridObj::EMPTY;
 }
 
-void Grid::remove(const vector<Atom>& atoms) {
+void Grid::remove(const std::vector<Atom>& atoms) {
     // we make a vector of all possible uids
     std::unordered_map<int, bool> removed;
     // and fill it with the uids that should be removed
     std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& atom) {removed[atom.uid] = true;});
 
     size_t index = 0; // current index in removed_atoms
-    vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
+    std::vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
     auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_atoms[index++] = gm;
@@ -458,7 +457,7 @@ void Grid::remove(const vector<Atom>& atoms) {
     size_t cur_size = a_members.size();
 
     // sanity check
-    if (__builtin_expect(prev_size - cur_size != atoms.size(), false)) {
+    if (prev_size - cur_size != atoms.size()) [[unlikely]] {
         throw except::invalid_operation("Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
     }
 
@@ -470,14 +469,14 @@ void Grid::remove(const vector<Atom>& atoms) {
     }
 }
 
-void Grid::remove(const vector<Water>& waters) {
+void Grid::remove(const std::vector<Water>& waters) {
     // we make a vector of all possible uids
-    vector<bool> removed(Atom::uid_counter);
+    std::vector<bool> removed(Atom::uid_counter);
     // and fill it with the uids that should be removed
     std::for_each(waters.begin(), waters.end(), [&removed] (const Water& water) {removed[water.uid] = true;});
 
     size_t index = 0; // current index in removed_waters
-    vector<GridMember<Water>> removed_waters(waters.size()); // the waters which will be removed
+    std::vector<GridMember<Water>> removed_waters(waters.size()); // the waters which will be removed
     auto predicate = [&removed, &removed_waters, &index] (const GridMember<Water>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_waters[index++] = gm;
@@ -492,7 +491,7 @@ void Grid::remove(const vector<Water>& waters) {
     size_t cur_size = w_members.size();
 
     // sanity check
-    if (__builtin_expect(prev_size - cur_size != waters.size(), false)) {
+    if (prev_size - cur_size != waters.size()) [[unlikely]] {
         throw except::invalid_operation("Grid::remove: Something went wrong.");
     }
 
@@ -563,7 +562,7 @@ void Grid::deflate_volume(const Vector3<int>& loc, const bool is_water) {
 }
 
 void Grid::clear_waters() {
-    vector<Water> waters;
+    std::vector<Water> waters;
     waters.reserve(w_members.size());
 
     std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.atom);});

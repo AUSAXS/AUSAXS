@@ -1,9 +1,7 @@
-#define _USE_MATH_DEFINES
+#include <preprocessor.h>
 #include <hydrate/RadialPlacement.h>
 #include <hydrate/Grid.h>
 #include <utility/Settings.h>
-
-using std::vector;
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
     int rh = grid->rh, ra = grid->ra;
@@ -20,7 +18,7 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
     // we do this to ensure the sphere is symmetric. If we simply generate it all at once, floating-point errors moves some of the bins around
-    vector<Vector3<double>> sphere;
+    std::vector<Vector3<double>> sphere;
     for (double theta = 0; theta <= M_PI*0.5; theta+=ang) {
         for (double phi = 0; phi <= M_PI*0.5; phi+=ang) {
             double x = cos(phi)*sin(theta);
@@ -38,7 +36,7 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     }
 
     // remove duplicates
-    vector<Vector3<double>> rots;
+    std::vector<Vector3<double>> rots;
     for (auto& p : sphere) {
         bool present = false;
         for (int i = 0; i < 3; i++) { // fix the easy floating point errors
@@ -75,13 +73,13 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     rot_locs_rarh = std::move(locs_rarh);
 }
 
-vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
+std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     // dereference the values we'll need for better performance
     auto bins = grid->get_bins();
     GridObj& gref = grid->grid;
 
     // we define a helper lambda
-    vector<GridMember<Water>> placed_water(grid->a_members.size());
+    std::vector<GridMember<Water>> placed_water(grid->a_members.size());
     unsigned int index = 0;
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Water a = Water::create_new_water(exact_loc);

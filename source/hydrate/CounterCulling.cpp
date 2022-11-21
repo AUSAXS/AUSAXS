@@ -1,24 +1,22 @@
 #include <hydrate/CounterCulling.h>
 #include <hydrate/Grid.h>
 
-using std::vector;
-
-vector<Water> grid::CounterCulling::cull(vector<grid::GridMember<Water>>& placed_water) const {
+std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
-        vector<Water> final_water(placed_water.size());
+        std::vector<Water> final_water(placed_water.size());
         std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.atom;});
         return final_water;
     }
 
     int factor = std::floor(placed_water.size()/target_count); // reduction factor
     if (factor < 2) {
-        vector<Water> final_water(placed_water.size());
+        std::vector<Water> final_water(placed_water.size());
         std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.atom;});
         return final_water;
     }
 
-    vector<Water> final_water(placed_water.size()); // the final water molecules that will be used
-    vector<Water> removed_water(placed_water.size()); // the water molecules which will be removed
+    std::vector<Water> final_water(placed_water.size()); // the final water molecules that will be used
+    std::vector<Water> removed_water(placed_water.size()); // the water molecules which will be removed
     size_t rm_index = 0; // current index in removed_water
     size_t pw_index = 0; // current index in placed_water
     size_t counter = 0; // counter

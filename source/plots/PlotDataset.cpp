@@ -6,8 +6,6 @@
 #include <string.h>
 #include <vector>
 
-using std::string, std::vector;
-
 template<plots::DatasetType T>
 plots::PlotDataset::PlotDataset(const T& data) {
     plot(data);

@@ -94,15 +94,10 @@ namespace plots {
 
             // cosmetic
             std::string title = "";         // Title
-            std::string xlabel = "";        // Label for the x-axis
-            std::string ylabel = "";        // Label for the y-axis
+            std::string xlabel = "x";        // Label for the x-axis
+            std::string ylabel = "y";        // Label for the y-axis
+            std::string zlabel = "z";        // Label for the z-axis
             std::string legend = "";        // Legend entry
-            double xlabel_offset = 0;       // Offset for the x-axis label
-            double ylabel_offset = 0;       // Offset for the y-axis label
-            unsigned int xdigits = 0;       // Number of digits to show on the x-axis
-            unsigned int ydigits = 0;       // Number of digits to show on the y-axis
-            int xdivisions = 510;           // Number of divisions on the x-axis
-            int ydivisions = 510;           // Number of divisions on the y-axis
 
         private: 
             struct ISmartOption {
@@ -140,20 +135,14 @@ namespace plots {
                 make_shared({"error", "errors"}, draw_errors),
                 make_shared({"marker", "markers", "point", "points"}, draw_markers),
                 make_shared({"bars", "bars"}, draw_bars),
-                make_shared({"useexistingaxes", "use-existing-axes", "use_existing_axes", "share_axes", "share_axis"}, use_existing_axes),
                 make_shared({"title"}, title),
                 make_shared({"xlabel"}, xlabel),
                 make_shared({"ylabel"}, ylabel),
+                make_shared({"zlabel"}, zlabel),
                 make_shared({"logx", "log_x"}, logx),
                 make_shared({"logy", "log_y"}, logy),
                 make_shared({"xlim", "x_lim", "xlimits", "xlimit"}, xlimits),
                 make_shared({"ylim", "y_lim", "ylimits", "ylimit"}, ylimits),
-                make_shared({"xlabeloffset", "x_label_offset", "xlabel_offset", "x_offset"}, xlabel_offset),
-                make_shared({"ylabeloffset", "y_label_offset", "ylabel_offset", "y_offset"}, ylabel_offset),
-                make_shared({"xdigits"}, xdigits),
-                make_shared({"ydigits"}, ydigits),
-                make_shared({"xdivs", "xdivisions"}, xdigits),
-                make_shared({"ydivs", "ydivisions"}, ydigits),
                 make_shared({"legend"}, legend)
             };
 
@@ -163,7 +152,7 @@ namespace plots {
     /**
      * @brief A small wrapper class for PlotOptions, intended for inheritance. 
      */
-    class PlotOptionWrapper {
+    class Plottable {
         public:         
             /**
              * @brief Set the plot options for this dataset. 
@@ -173,7 +162,7 @@ namespace plots {
             /**
              * @brief Add plot options for this dataset.
              */
-            void add_plot_options(std::map<std::string, std::any>& options);
+            void add_plot_options(std::map<std::string, std::any> options);
 
             /**
              * @brief Add plot options for this dataset, forcing the specified style. 

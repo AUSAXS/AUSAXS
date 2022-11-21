@@ -5,7 +5,6 @@
 #include <utility/Utility.h>
 
 using namespace em;
-using std::list, std::vector;
 
 Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(header->nx), M(header->ny), header(header), data(N, M), z(layer), bounds(N, M) {}
 
@@ -20,9 +19,9 @@ void Image::set_z(unsigned int z) {
 float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
-list<Atom> Image::generate_atoms(double cutoff) const {
+std::list<Atom> Image::generate_atoms(double cutoff) const {
     if (__builtin_expect(header == nullptr, false)) {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
-    list<Atom> atoms;
+    std::list<Atom> atoms;
 
     // loop through all pixels in this image
     double xscale = header->cella_x/N;
@@ -47,7 +46,7 @@ list<Atom> Image::generate_atoms(double cutoff) const {
 }
 
 unsigned int Image::count_voxels(double cutoff) const {
-    list<Atom> l = generate_atoms(cutoff);
+    std::list<Atom> l = generate_atoms(cutoff);
     return l.size();
 }
 

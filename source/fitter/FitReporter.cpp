@@ -62,11 +62,11 @@ std::function<std::string(std::string)> FitReporter::get_title_reporter(std::vec
         title_reporter = [] (std::string) {return "";};
     } else {
         title_reporter = [] (std::string title) {
-            string output;
+            std::string output;
             output += "\n+----------------------------------------------------------+";
 
             int spaces = (60 - title.size())/2 - 1;
-            string spacing(spaces, ' ');
+            std::string spacing(spaces, ' ');
             output += "\n|" + spacing + title + (title.size() % 2 == 0 ? spacing : spacing + " ") + "|\n";
             return output;
         };

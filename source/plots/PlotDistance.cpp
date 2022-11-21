@@ -8,8 +8,6 @@
 #include <string.h>
 #include <vector>
 
-using std::unique_ptr, std::string;
-
 plots::PlotDistance::~PlotDistance() = default;
 
 plots::PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, std::string path) {

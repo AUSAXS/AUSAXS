@@ -4,16 +4,17 @@
 
 #include <mini/utility/Evaluation.h>
 #include <utility/SimpleDataset.h>
+#include <plots/PlotOptions.h>
 
 namespace mini {
-    class Landscape {
+    class Landscape : public plots::Plottable {
         public: 
             /**
              * @brief Default constructor.
              */
             Landscape() noexcept = default;
 
-            Landscape(unsigned int size) : evals(size) {};
+            Landscape(unsigned int size) : evals(size) {}
 
             Landscape(std::vector<Evaluation> evals) : evals(std::move(evals)) {}
 
@@ -26,6 +27,8 @@ namespace mini {
 
             void append(std::vector<Evaluation> evals) {this->evals.insert(this->evals.end(), evals.begin(), evals.end());}
             void append(Landscape evals) {append(evals.evals);}
+
+            std::string to_string() const;
 
             std::vector<Evaluation> evals;
     };    
