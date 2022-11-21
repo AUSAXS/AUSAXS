@@ -32,7 +32,7 @@ struct Parameter {
     /**
      * @brief Get a string representation of this Parameter.
      */
-    string to_string() const {
+    std::string to_string() const {
         return "translation: " + dx.to_string() + ", angles: (" + std::to_string(alpha) + ", " + std::to_string(beta) + ", " + std::to_string(gamma) + ")"; 
     }
 

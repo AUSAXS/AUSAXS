@@ -37,6 +37,7 @@ class Options:
         self.title = ""
         self.xlabel = "x"
         self.ylabel = "y"
+        self.zlabel = "z"
         self.legend = ""
 
         # axes
@@ -75,6 +76,8 @@ class Options:
             self.xlabel = " ".join(words[1:])
         elif (words[0] == "ylabel"):
             self.ylabel = " ".join(words[1:])
+        elif (words[0] == "zlabel"):
+            self.zlabel = " ".join(words[1:])
         elif (words[0] == "legend"):
             self.legend = words[1]
         

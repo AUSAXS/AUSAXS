@@ -14,12 +14,6 @@ std::shared_ptr<Fit> IntensityFitter::fit() {
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
 
-    // mini::Scan mini(f, guess, 1000);
-    // auto res = mini.minimize();
-    // auto d = mini.get_evaluated_points();
-    // d.add_plot_options("points", {{"xlabel", "c"}, {"ylabel", "chi2"}});
-    // plots::PlotDataset::quick_plot(d, "scan.pdf");
-
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");

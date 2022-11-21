@@ -32,7 +32,7 @@ class Record {
         //      All HEADERs will be combined into a single string. HEADERs must always be above the ATOM section.
         //      FOOTERs are treated identically to HEADERs, but must always be after the ATOM section.
         //      NOTYPEs are ignored. 
-        inline static const std::map<string, RecordType> type_map = {
+        inline static const std::map<std::string, RecordType> type_map = {
             {"ATOM"  , RecordType::ATOM}, {"HETATM", RecordType::ATOM},
 
             {"TER"   , RecordType::TERMINATE}, 

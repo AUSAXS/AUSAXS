@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 namespace mini {
     struct Evaluation {
@@ -11,6 +12,6 @@ namespace mini {
         std::string to_string() const;
 
         std::vector<double> vals;
-        double fval;
+        double fval = 0;
     };
 }

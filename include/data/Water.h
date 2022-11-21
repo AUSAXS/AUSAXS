@@ -13,7 +13,7 @@ class Water : public Atom {
 
         RecordType get_type() const override {return RecordType::WATER;}
 
-        string get_recName() const override {return "HETATM";}
+        std::string get_recName() const override {return "HETATM";}
 
         bool is_water() const override {return true;}
 

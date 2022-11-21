@@ -44,8 +44,8 @@ namespace em {
                  */
                 ExtendedLandscape(double cutoff, mini::Landscape& l) : cutoff(cutoff), strip(std::move(l)) {}
 
-                mini::Landscape strip;
                 double cutoff;
+                mini::Landscape strip;
             };
         };
 

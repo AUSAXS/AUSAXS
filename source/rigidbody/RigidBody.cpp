@@ -43,7 +43,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 }
 
 #include <thread>
-void RigidBody::optimize(string measurement_path) {
+void RigidBody::optimize(std::string measurement_path) {
     protein.generate_new_hydration();
     SimpleIntensityFitter fitter(measurement_path, protein.get_histogram());
     double _chi2 = fitter.fit()->fval;
