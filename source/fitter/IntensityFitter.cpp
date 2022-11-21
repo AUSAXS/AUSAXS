@@ -12,7 +12,7 @@ using std::string, std::vector, std::shared_ptr, std::unique_ptr;
 IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) : SimpleIntensityFitter(model, limits) {}
 
 shared_ptr<Fit> IntensityFitter::fit() {
-    auto f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
+    std::function<double(std::vector<double>)> f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
 

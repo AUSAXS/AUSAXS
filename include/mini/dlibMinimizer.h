@@ -8,7 +8,7 @@ namespace mini {
     class dlibMinimizer : public Minimizer {
         typedef dlib::matrix<double,0,1> column_vector;
         public:
-            dlibMinimizer() = default;
+            dlibMinimizer();
 
             dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param = Parameter());
 

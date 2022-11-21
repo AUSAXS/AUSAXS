@@ -73,7 +73,7 @@ class IntensityFitter : public SimpleIntensityFitter {
          */
         std::shared_ptr<Fit> fit() override;
 
-        template<mini::Type t>
+        template<mini::type t>
         std::shared_ptr<Fit> fit() {
             fit_type = t;
             return fit();
@@ -120,7 +120,7 @@ class IntensityFitter : public SimpleIntensityFitter {
 
     private: 
     	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
-        mini::Type fit_type = mini::Type::BFGS;    // The algorithm to use.
+        mini::type fit_type = mini::type::BFGS;    // The algorithm to use.
 
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.

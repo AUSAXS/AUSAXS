@@ -27,13 +27,11 @@ void Minimizer::set_function(double(&f)(std::vector<double>)) {
 }
 
 void Minimizer::set_function(std::function<double(std::vector<double>)> f) {
-    raw = [f, this] (std::vector<double> p) {
-        fevals++;
-        return f(p);
-    };
+    raw = std::move(f);
     wrapper = [this] (std::vector<double> p) {
         double fval = raw(p);
         evaluations.evals.push_back(Evaluation(p, fval));
+        fevals++;
         return fval;
     };
 

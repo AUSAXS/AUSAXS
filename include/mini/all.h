@@ -10,9 +10,10 @@
 
 #include <memory>
 #include <functional>
+#include <concepts>
 
 namespace mini {
-    enum class Type {
+    enum class type {
         BFGS,
         GOLDEN,
         MINIMUM_EXPLORER,
@@ -21,17 +22,17 @@ namespace mini {
     };
 
     namespace detail {
-        static std::shared_ptr<Minimizer> create_minimizer(Type t) {
+        static std::shared_ptr<Minimizer> create_minimizer(type t) {
             switch (t) {
-                case Type::BFGS:
+                case type::BFGS:
                     return std::make_shared<dlibMinimizer>();
-                case Type::GOLDEN:
+                case type::GOLDEN:
                     return std::make_shared<Golden>();
-                case Type::MINIMUM_EXPLORER:
+                case type::MINIMUM_EXPLORER:
                     return std::make_shared<MinimumExplorer>();
-                case Type::SCAN:
+                case type::SCAN:
                     return std::make_shared<Scan>();
-                case Type::LIMITED_SCAN:
+                case type::LIMITED_SCAN:
                     return std::make_shared<LimitedScan>();
                 default:
                     throw except::invalid_argument("all::create_minimizer: Unknown minimizer type.");
@@ -39,37 +40,25 @@ namespace mini {
         }
     }
 
-    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(Type t, double(&func)(std::vector<double>)) {
+    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func) {
         auto minimizer = detail::create_minimizer(t);
         minimizer->set_function(func);
         return minimizer;
     }
 
-    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(Type t, std::function<double(std::vector<double>)> func) {
-        auto minimizer = detail::create_minimizer(t);
-        minimizer->set_function(func);
-        return minimizer;
-    }
-
-    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(Type t, double(&func)(std::vector<double>), const Parameter& param) {
+    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param) {
         auto minimizer = create_minimizer(t, func);
         minimizer->add_parameter(param);
         return minimizer;
     }
 
-    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(Type t, std::function<double(std::vector<double>)> func, const Parameter& param) {
-        auto minimizer = create_minimizer(t, func);
-        minimizer->add_parameter(param);
-        return minimizer;
-    }
-
-    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(Type t, std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) {
+    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param, unsigned int evals) {
         switch (t) {
-            case Type::MINIMUM_EXPLORER:
+            case type::MINIMUM_EXPLORER:
                 return std::make_shared<MinimumExplorer>(func, param, evals);
-            case Type::SCAN:
+            case type::SCAN:
                 return std::make_shared<Scan>(func, param, evals);
-            case Type::LIMITED_SCAN:
+            case type::LIMITED_SCAN:
                 return std::make_shared<LimitedScan>(func, param, evals);
             default:
                 debug_print("all::create_minimizer: evals is only used for MinimumExplorer, Scan, and LimitedScan.");

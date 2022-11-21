@@ -2,19 +2,21 @@
 
 using namespace mini;
 
-dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter param) {
+dlibMinimizer::dlibMinimizer() {
+    dlib_fwrapper = [this](column_vector x) {return this->function({x(0)});};
+}
+
+dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter param) : dlibMinimizer() {
     auto f = [=] (std::vector<double> x) {
         return function(x[0]);
     };
     add_parameter(param);
     set_function(f);
-    dlib_fwrapper = [this](column_vector x) {return this->function({x(0)});};
 }
 
-dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param) {
+dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param) : dlibMinimizer() {
     add_parameter(param);
     set_function(function);
-    dlib_fwrapper = [this](column_vector x) {return this->function({x(0)});};
 }
 
 dlibMinimizer::~dlibMinimizer() = default;

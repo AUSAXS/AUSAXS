@@ -88,7 +88,7 @@ namespace mini {
             double tol = 1e-4;
         protected:
             std::vector<Parameter> parameters;
-            std::function<double(std::vector<double>)> function;
+            std::function<double(std::vector<double>)> function = [](std::vector<double>){throw except::unexpected("Minimizer::function: Function was not initialized."); return 0.0;};
             mini::Landscape evaluations;
             unsigned int fevals = 0;
 

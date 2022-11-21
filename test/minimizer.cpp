@@ -188,3 +188,17 @@ TEST_CASE("dlib_interface", "[minimizer]") {
     SECTION("problem13") {dlibTest1D(problem13);}
     SECTION("problem18") {dlibTest1D(problem18);}
 }
+
+TEST_CASE("create_minimizer", "[minimizer]") {
+    SECTION("dlib") {
+        auto dlib = mini::create_minimizer(mini::type::BFGS, problem04.function, {"a", problem04.bounds[0]});
+        auto res = dlib->minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], dlib->tol));
+    }
+
+    SECTION("golden") {
+        auto golden = mini::create_minimizer(mini::type::GOLDEN, problem04.function, {"a", problem04.bounds[0]});
+        auto res = golden->minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], golden->tol));
+    }
+}
