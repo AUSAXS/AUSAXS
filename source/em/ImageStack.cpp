@@ -123,7 +123,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
     mini::LimitedScan minimizer(f, param, setting::em::evals);
-    minimizer.set_limit(fitter->dof()*50);
+    minimizer.set_limit(fitter->dof()*20);
     SimpleDataset d;
     {
         auto l = minimizer.landscape(setting::em::evals);
@@ -190,7 +190,6 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         plot.plot(p_start);
         plot.save(setting::plot::path + "chi2_evaluated_points." + setting::figures::format);
     }
-
 
     //##########################################################//
     //###             EXPLORE AREA AROUND MINIMUM            ###//
@@ -287,7 +286,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             p->generate_new_hydration();    // generate a new hydration layer
 
             // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
-            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 100}}); 
+            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
             fit = fitter->fit();                                // do the fit
@@ -300,7 +299,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
         double val = fit->fval;
         if (setting::fit::verbose) {
-            std::cout << "Step " << counter++ << ": Evaluated cutoff value " << params[0] << " with chi2 " << val << std::endl;
+            std::cout << "Step " << utility::print_element(counter++, 5) << ": Evaluated cutoff value " << utility::print_element(params[0], 12) << " with chi2 " << utility::print_element(val, 12) << std::flush << "\r";
         }
         return val;
     }; 

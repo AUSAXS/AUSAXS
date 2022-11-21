@@ -40,18 +40,39 @@ namespace mini {
         }
     }
 
+    /**
+     * @brief Create a new minimizer. 
+     * 
+     * @param t The algorithm to use. 
+     * @param func The function to minimize. 
+     */
     [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func) {
         auto minimizer = detail::create_minimizer(t);
         minimizer->set_function(func);
         return minimizer;
     }
 
+    /**
+     * @brief Create a new minimizer. 
+     * 
+     * @param t The algorithm to use. 
+     * @param func The function to minimize. 
+     * @param param The first parameter. 
+     */
     [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param) {
         auto minimizer = create_minimizer(t, func);
         minimizer->add_parameter(param);
         return minimizer;
     }
 
+    /**
+     * @brief Create a new minimizer. 
+     * 
+     * @param t The algorithm to use. 
+     * @param func The function to minimize. 
+     * @param param The first parameter. 
+     * @param evals The number of evaluations to perform. Not supported by all minimizers.
+     */
     [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param, unsigned int evals) {
         switch (t) {
             case type::MINIMUM_EXPLORER:
@@ -61,7 +82,6 @@ namespace mini {
             case type::LIMITED_SCAN:
                 return std::make_shared<LimitedScan>(func, param, evals);
             default:
-                debug_print("all::create_minimizer: evals is only used for MinimumExplorer, Scan, and LimitedScan.");
                 return create_minimizer(t, func, param);
         }
     }

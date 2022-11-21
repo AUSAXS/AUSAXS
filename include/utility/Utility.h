@@ -3,8 +3,28 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iomanip>
 
 namespace utility {
+    /**
+     * @brief Print an element with the given width.
+     */
+    template<typename T>
+    struct print_element {
+        print_element(T t, int width) : t(t), width(width) {}
+
+        friend std::ostream& operator<<(std::ostream& os, const print_element<T> e) noexcept {
+            std::stringstream ss; ss << e.t;
+            std::string val = ss.str();
+            if (val.size() > e.width) {val = val.substr(0, e.width);}
+
+            os << std::left << std::setw(e.width) << e.t; return os;
+        }
+
+        T t;
+        unsigned int width;
+    };
+
     /**
      * @brief Check if two numbers are approximately equal. 
      * 

@@ -12,7 +12,7 @@ using std::string;
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::hydrate = true;
-    setting::fit::verbose = false;
+    setting::fit::verbose = true;
     // setting::em::alpha_levels = {0.05, 8};
 
     CLI::App app{"Fit an EM map to a SAXS measurement."};

@@ -48,7 +48,7 @@ void plots::PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Co
 }
 
 void plots::PlotIntensity::plot(const std::shared_ptr<Fit> fit, style::Color color) {
-    plot(fit->figures.intensity);
+    plot(fit->figures.intensity, color);
 }
 
 void plots::PlotIntensity::plot_guinier_approx(const hist::ScatteringHistogram& data) {

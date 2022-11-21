@@ -76,8 +76,8 @@ void RegularLandscape::load(std::string filename) {
         throw except::io_error("Landscape::load: Invalid file format.");
     }
 
-    auto x_size = std::stoi(tokens[1]);
-    auto y_size = std::stoi(tokens[2]);
+    unsigned int x_size = std::stoi(tokens[1]);
+    unsigned int y_size = std::stoi(tokens[2]);
     x.resize(x_size);
     y.resize(y_size);
     z = Matrix<double>(x_size, y_size);
