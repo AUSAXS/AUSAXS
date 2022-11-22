@@ -306,12 +306,6 @@ namespace em {
              * TODO Determine a better, more dynamic approach to determining this minimum. 
              */
             void determine_minimum_bounds(double min_val);
-
-            /**
-             * @brief Check if the extension is valid.
-             *        Throws an exception if not.
-             */
-            void validate_extension(std::string file) const;
             
             void read(std::ifstream& istream, size_t byte_size);
 

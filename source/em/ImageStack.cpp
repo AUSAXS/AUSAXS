@@ -24,7 +24,7 @@ ImageStack::ImageStack(const std::vector<Image>& images) : size_x(images[0].N), 
 }
 
 ImageStack::ImageStack(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
-    validate_extension(file);
+    constants::filetypes::em_map.validate(file);
 
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("ImageStack::ImageStack: Could not open file \"" + file + "\"");}
@@ -36,14 +36,6 @@ ImageStack::ImageStack(std::string file) : filename(file), header(std::make_shar
 }
 
 ImageStack::~ImageStack() = default;
-
-void ImageStack::validate_extension(std::string file) const {
-    std::string extension = std::filesystem::path(file).extension().string();
-    if (extension == ".ccp4") {return;}
-    if (extension == ".map") {return;}
-    if (extension == ".mrc") {return;}
-    throw except::invalid_extension("Imagestack::validate_extension: Invalid extension \"" + extension + "\".");
-}
 
 void ImageStack::save(double cutoff, std::string path) const {
     std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
