@@ -15,7 +15,7 @@
 using std::vector;
 
 TEST_CASE("extract_image", "[em],[files],[manual]") {
-    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4"); 
+    em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4"); 
 
     plots::PlotImage plot(image.image(5));
     // plot.plot_atoms(0.1);
@@ -227,7 +227,7 @@ TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
 
     setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
 
-    std::string file = "data/A2M_ma/A2M_ma.ccp4";
+    std::string file = "data/A2M_2020_Q4/A2M_2020_Q4.ccp4";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
@@ -240,7 +240,7 @@ TEST_CASE("get_histogram", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
 
-    std::string file = "data/A2M_ma/A2M_ma.ccp4";
+    std::string file = "data/A2M_2020_Q4/A2M_2020_Q4.ccp4";
     em::ImageStack image(file);
     auto hist = image.get_histogram(2);
     plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
@@ -250,7 +250,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::axes::qmax = 0.4;
-    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
+    em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4");
 
     CHECK(image.image(95).count_voxels(15) == 32);
     CHECK(image.image(100).count_voxels(10) == 208);
@@ -294,7 +294,7 @@ TEST_CASE("instability", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     setting::axes::qmax = 0.4;
-    em::ImageStack image("data/A2M_native/emd_12747.ccp4");
+    em::ImageStack image("data/emd_12747/emd_12747.map");
 
     SimpleDataset data;
     Axis range(100, image.from_level(0.5), image.from_level(7));
@@ -311,7 +311,7 @@ TEST_CASE("instability", "[em],[files],[manual]") {
 }
 
 TEST_CASE("save_as_pdb", "[em],[manual]") {
-    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
+    em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4");
     image.get_protein(image.from_level(3))->save("figures/test/em/save_as_pdb.pdb");
 }
 
@@ -345,32 +345,6 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual],[broken]") {
     data.add_plot_options("errors", {{"logx", true}, {"logy", true}});
     plots::PlotDataset plot(data);
     plot.save("temp/em/check_errors.pdf");
-}
-
-TEST_CASE("staining_and_limits", "[em],[files],[broken]") {
-    SECTION("maptest.ccp4") {
-        em::ImageStack image("data/maptest.ccp4");
-        // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::axes::qmin, setting::axes::qmax));
-    }
-
-    SECTION("A2M_ma.ccp4") {
-        em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
-        // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::axes::qmin, setting::axes::qmax));
-    }
-
-    SECTION("native10.ccp4") {
-        em::ImageStack image("sim/native_10.ccp4");
-        // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::axes::qmin, 2*M_PI/10));
-    }
-
-    SECTION("native23.ccp4") {
-        em::ImageStack image("sim/native_23.ccp4");
-        // CHECK(image.positively_stained());
-        CHECK(image.get_limits() == Limit(setting::axes::qmin, 2*M_PI/23));
-    }
 }
 
 TEST_CASE("minimum_area", "[em]") {

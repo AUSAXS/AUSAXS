@@ -296,6 +296,7 @@ def plot_landscape(d: Dataset):
 
     # ax.plot_trisurf(d.data[:,0], d.data[:,1], np.log10(d.data[:,2]), cmap=mpl.cm.coolwarm)
 
+    # x, y, z = d.data[:, 0], d.data[:, 1], np.log10(d.data[:, 2])
     x, y, z = d.data[:, 0], d.data[:, 1], d.data[:, 2]
     lim = 5*np.min(z)
     x = x[z < lim]
