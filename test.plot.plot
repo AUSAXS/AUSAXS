@@ -21,8 +21,9 @@ draw_markers 0
 logx 0
 logy 0
 title 
-xlabel 
-ylabel 
+xlabel x
+ylabel y
+zlabel z
 legend 
 ylimits 0 0
 xlimits 0 0

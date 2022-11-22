@@ -58,7 +58,7 @@ int main(int argc, char const *argv[]) {
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
 
         auto scan = map.cutoff_scan(100, pdb_h);
-        plots::PlotDataset::quick_plot(scan, path + "scan.pdf");
+        plots::PlotDataset::quick_plot(scan.as_dataset(), path + "scan.pdf");
     }
 
     //* MEASUREMENT FIT
@@ -100,7 +100,7 @@ int main(int argc, char const *argv[]) {
 
         auto d = p->get_histogram().calc_debye_scattering_intensity();
         d.normalize(1e7);
-        plot.plot_intensity(d);
+        plot.plot(d);
         plot.save("test.pdf");
         // plots::PlotIntensity::quick_plot(p->get_histogram(), "test.pdf");
 

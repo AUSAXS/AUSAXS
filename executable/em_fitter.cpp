@@ -63,7 +63,7 @@ int main(int argc, char const *argv[]) {
 
     res->figures.data.save(setting::plot::path + utility::stem(mfile) + ".dat");
     res->figures.intensity_interpolated.save(setting::plot::path + "fit.fit");
-    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "intensity_fit.pdf");
-    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals.pdf");
+    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "intensity_fit." + setting::plot::format);
+    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals." + setting::plot::format);
     return 0;
 }

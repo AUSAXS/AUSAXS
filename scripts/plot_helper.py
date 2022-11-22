@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 from enum import Enum
 import os
@@ -12,6 +13,7 @@ def isfloat(value: str):
 
 
 class PlotType(Enum):
+    Landscape = "PlotLandscape"
     Dataset = "PlotDataset"
     Histogram = "PlotHistogram"
     Image = "PlotImage"
@@ -277,6 +279,36 @@ def plot_vline(v: Vline):
     )
     return
 
+def plot_landscape(d: Dataset):
+    """Plots a landscape.
+
+    Args:
+        d: The dataset to plot.
+    """
+    
+    ax = plt.gcf().add_subplot(111, projection='3d')
+    def log_tick_formatter(val, pos=None):
+        return f"$10^{{{int(val)}}}$"  # remove int() if you don't use MaxNLocator
+        # return f"{10**val:.2e}"      # e-Notation
+
+    # ax.zaxis.set_major_formatter(mpl.ticker.FuncFormatter(log_tick_formatter))
+    # ax.zaxis.set_major_locator(mpl.ticker.MaxNLocator(integer=True))
+
+    # ax.plot_trisurf(d.data[:,0], d.data[:,1], np.log10(d.data[:,2]), cmap=mpl.cm.coolwarm)
+
+    x, y, z = d.data[:, 0], d.data[:, 1], d.data[:, 2]
+    lim = 5*np.min(z)
+    x = x[z < lim]
+    y = y[z < lim]
+    z = z[z < lim]
+
+    ax.scatter(x, y, z, c=z, cmap=mpl.colormaps["coolwarm"])
+    ax.set_xlabel(r"{}".format(d.options.xlabel))
+    ax.set_ylabel(r"{}".format(d.options.ylabel))
+    ax.set_zlabel(r"{}".format(d.options.zlabel))
+    plt.show()
+    return
+
 def plot_file(file: str):
     """Plots a .plot file.
 
@@ -310,6 +342,10 @@ def plot_file(file: str):
                     vline: Vline = read_vline(f)
                     plot_vline(vline)
 
+                case PlotType.Landscape:
+                    dataset: Dataset = read_dataset(f)    
+                    plot_landscape(dataset)
+
                 case PlotType.Histogram:
                     print("Histogram not implemented yet.")
                     exit(1)
@@ -330,6 +366,6 @@ def plot_file(file: str):
     plt.savefig(path, dpi=300)
 
     # delete the .plot file
-    os.remove(file)
+    # os.remove(file)
 
     return

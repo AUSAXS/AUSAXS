@@ -64,6 +64,7 @@ logy 0
 title 
 xlabel $q$ [$\AA^{-1}$]
 ylabel $I$ [arb]
+zlabel z
 legend 
 ylimits 0 0
 xlimits 0 0
@@ -104,6 +105,7 @@ logy 0
 title 
 xlabel $q$ [$\AA^{-1}$]
 ylabel $I$ [arb]
+zlabel z
 legend 
 ylimits 19978.5 9.59786e+06
 xlimits 0 9.59786e+06

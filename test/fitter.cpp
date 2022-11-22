@@ -35,7 +35,7 @@ TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
         auto fit = image.fit(hist);
         optimal_vals.p.push_back(fit->get_parameter("cutoff").value);
     }
-    optimal_vals.generate_axis(10);
+    optimal_vals.generate_axis();
 
     plots::PlotHistogram plot(optimal_vals);
     plot.save("figures/test/fitter/consistency_check.pdf");

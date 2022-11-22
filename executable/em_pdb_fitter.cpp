@@ -35,8 +35,8 @@ int main(int argc, char const *argv[]) {
     auto res = map.fit(mfile);
     std::filesystem::remove(mfile);
 
-    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "fit.png");
-    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals.png");
+    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "fit." + setting::plot::format);
+    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals." + setting::plot::format);
 
     FitReporter::report(res);
     FitReporter::save(res, setting::plot::path + "fit.txt");

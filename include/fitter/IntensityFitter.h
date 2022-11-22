@@ -118,6 +118,11 @@ class IntensityFitter : public SimpleIntensityFitter {
          */
         void set_guess(mini::Parameter guess);
 
+        /**
+         * @brief Set the fitting algorithm to use.
+         */
+        void set_algorithm(mini::type t);
+
     private: 
     	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
         mini::type fit_type = mini::type::BFGS;    // The algorithm to use.

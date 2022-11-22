@@ -160,3 +160,7 @@ SimpleDataset IntensityFitter::get_dataset() const {
 void IntensityFitter::set_guess(mini::Parameter guess) {
     this->guess = guess;
 }
+
+void IntensityFitter::set_algorithm(mini::type t) {
+    this->fit_type = t;
+}

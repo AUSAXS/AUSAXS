@@ -16,7 +16,7 @@ using std::cout, std::endl;
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
-    string pdb, mfile, output, settings, placement_strategy = "Radial";
+    std::string pdb, mfile, output, settings, placement_strategy = "Radial";
     bool use_existing_hydration = false;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
@@ -77,7 +77,7 @@ int main(int argc, char const *argv[]) {
         protein.generate_new_hydration();
     }
     hist::ScatteringHistogram h = protein.get_histogram();
-    plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::figures::format);
+    plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
 
     IntensityFitter fitter(mfile, h);
     std::shared_ptr<Fit> result = fitter.fit();
@@ -91,8 +91,8 @@ int main(int argc, char const *argv[]) {
     data.save(output + utility::stem(mfile) + ".dat");
 
     // Fit plot
-    plots::PlotIntensityFit::quick_plot(result, output + "fit." + setting::figures::format);
-    plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::figures::format);
+    plots::PlotIntensityFit::quick_plot(result, output + "fit." + setting::plot::format);
+    plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::plot::format);
 
     // calculate rhoM
     double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));

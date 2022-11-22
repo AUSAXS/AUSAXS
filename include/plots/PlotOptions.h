@@ -34,7 +34,7 @@ struct style {
         inline static DrawStyle line = "line";
         inline static DrawStyle hist = "hist";
         inline static DrawStyle points = "points";
-        inline static DrawStyle errors = "errorbar";
+        inline static DrawStyle errors = "errors";
     };
 };
 

@@ -16,10 +16,6 @@ namespace setting {
         inline static bool verbose = true;                          // Whether to print out extra information.
     };
 
-    struct figures {
-        inline static std::string format = "png"; // The output format.
-    };
-
     struct grid {
         enum PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
         enum CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
@@ -90,7 +86,8 @@ namespace setting {
     };
 
     struct plot {
-        inline static std::string path = "figures/"; // The path to the output folder. 
+        inline static std::string path = "figures/";    // The path to the output folder. 
+        inline static std::string format = "png";       // The output format.
 
         struct image {
             inline static std::vector<double> contour = {}; // The contour levels for the image plots.
@@ -101,6 +98,7 @@ namespace setting {
             // Produces 2 plots; one of the full landscape and another of the area near the minimum. 
             // The number of points is roughly determined by setting::em::evals
             inline static bool additional_plots = true; 
+            inline static bool landscape = true; 
         };
     };
 
@@ -166,7 +164,7 @@ namespace setting {
 
         inline static const std::vector<std::shared_ptr<ISmartOption>> options = {
             // figures
-            make_shared({"format"}, setting::figures::format),
+            make_shared({"format"}, setting::plot::format),
 
             // grid
             make_shared({"percent-water"}, setting::grid::percent_water),

@@ -71,8 +71,8 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
  * @brief Generate a contour plot of the chi2 landscape for the EM fit. 
  */
 TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
-    string mfile = "data/SASDDD3/SASDDD3.dat";
-    string mapfile = "data/SASDDD3/emd_0560.map";
+    std::string mfile = "data/SASDDD3/SASDDD3.dat";
+    std::string mapfile = "data/SASDDD3/emd_0560.map";
 
     // read custom settings
     std::string path = std::filesystem::path(mfile).parent_path().string();
@@ -227,7 +227,7 @@ TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
 
     setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
 
-    string file = "data/A2M_ma/A2M_ma.ccp4";
+    std::string file = "data/A2M_ma/A2M_ma.ccp4";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
@@ -240,7 +240,7 @@ TEST_CASE("get_histogram", "[em],[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
 
-    string file = "data/A2M_ma/A2M_ma.ccp4";
+    std::string file = "data/A2M_ma/A2M_ma.ccp4";
     em::ImageStack image(file);
     auto hist = image.get_histogram(2);
     plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
@@ -274,11 +274,11 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     // std::cout << "105.png: " << image.image(105).count_voxels(10) << std::endl;
 }
 
-TEST_CASE("voxelcount", "[em],[slow],[manual]") {
+TEST_CASE("voxelcount", "[em],[manual]") {
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
+    setting::em::sample_frequency = 2;
     setting::axes::qmax = 0.4;
-    em::ImageStack image("data/A2M_ma/A2M_ma.ccp4");
+    em::ImageStack image("data/emd_24889/emd_24889.map");
 
     Dataset2D data;
     Axis range(1000, 0, 15);
@@ -286,7 +286,7 @@ TEST_CASE("voxelcount", "[em],[slow],[manual]") {
         data.push_back({val, double(image.count_voxels(val))});
     }
 
-    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}});
+    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}});
     plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
 }
 
@@ -361,13 +361,13 @@ TEST_CASE("staining_and_limits", "[em],[files],[broken]") {
     }
 
     SECTION("native10.ccp4") {
-        em::ImageStack image("sim/native_10.ccp4", 10);
+        em::ImageStack image("sim/native_10.ccp4");
         // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::axes::qmin, 2*M_PI/10));
     }
 
     SECTION("native23.ccp4") {
-        em::ImageStack image("sim/native_23.ccp4", 23);
+        em::ImageStack image("sim/native_23.ccp4");
         // CHECK(image.positively_stained());
         CHECK(image.get_limits() == Limit(setting::axes::qmin, 2*M_PI/23));
     }

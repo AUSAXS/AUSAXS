@@ -182,7 +182,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         d.add_plot_options(style::draw::points);
         plot.plot(d);
         plot.plot(p_start);
-        plot.save(setting::plot::path + "chi2_evaluated_points." + setting::figures::format);
+        plot.save(setting::plot::path + "chi2_evaluated_points." + setting::plot::format);
     }
 
     //##########################################################//
@@ -228,7 +228,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             plot.plot(lm);
             plot.plot(lp);
             plot.plot(p_start);
-            plot.save(setting::plot::path + "chi2_near_minimum." + setting::figures::format);
+            plot.save(setting::plot::path + "chi2_near_minimum." + setting::plot::format);
         }
     } 
     
@@ -252,7 +252,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             }
         }
         l.add_plot_options({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "chi2"}});
-        plots::PlotLandscape::quick_plot(l, setting::plot::path + "chi2_landscape." + setting::figures::format);
+        plots::PlotLandscape::quick_plot(l, setting::plot::path + "chi2_landscape." + setting::plot::format);
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
@@ -283,6 +283,9 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     counter = 0;                        // reset counter to 0 every time prepare_function is called
     setting::protein::center = false;   // do not center the protein - this may cause issues
     setting::grid::percent_water = 0.05;
+    if (setting::plot::em::landscape && setting::em::hydrate) {
+        std::static_pointer_cast<IntensityFitter>(fitter)->set_algorithm(mini::type::SCAN); 
+    }
     
      // fitter is captured by value to guarantee its lifetime will be the same as the lambda
      // 'this' is ok since prepare_function is private and thus only used within the class itself

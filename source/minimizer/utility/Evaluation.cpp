@@ -7,6 +7,6 @@ std::string mini::Evaluation::to_string() const {
     for (auto val : vals) {
         s += std::to_string(val) + " ";
     }
-    s += fval;
+    s += std::to_string(fval);
     return s;
 }

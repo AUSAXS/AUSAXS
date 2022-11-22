@@ -42,10 +42,10 @@ void Histogram::shorten_axis() {
     axis = Axis{max_bin, 0, max_bin*width};
 }
 
-void Histogram::generate_axis(unsigned int size) {
+void Histogram::generate_axis() {
     Limit limits = span();
     axis.min = limits.min; axis.max = limits.max;
-    axis.bins = size;
+    axis.bins = p.size() == 0 ? 100 : p.size();
 }
 
 void Histogram::set_axis(const Axis& axis) noexcept {

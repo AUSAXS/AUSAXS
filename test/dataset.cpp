@@ -602,15 +602,6 @@ TEST_CASE("dataset_moving_average", "[dataset]") {
                 CHECK_THAT(res.x(9), Catch::Matchers::WithinAbs(10, 1e-6));
                 CHECK_THAT(res.y(9), Catch::Matchers::WithinAbs(10, 1e-6));
             }
-
-            SECTION("test") {
-                auto x = {0.020154074, 0.027431934, 0.034709794, 0.041987654, 0.049265514, 0.063821233, 0.071099093};
-                auto y = {1192.33, 549.73913, 1106.552, 2455.8911, 1551.5083, 1928.9173, 1233.6128};
-                Dataset2D _data(x, y, x, x);
-                SimpleDataset res = _data.rolling_average(7);
-                std::cout << res.x() << std::endl;
-                std::cout << res.y() << std::endl;
-            }
         }
     }
 }
@@ -623,7 +614,7 @@ TEST_CASE("dataset_interpolate", "[dataset]") {
         );
 
         data.interpolate(1);
-        REQUIRE(data.size() == 20);
+        REQUIRE(data.size() == 18);
         CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(1, 1e-6));
         CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs(1, 1e-6));
 

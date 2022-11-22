@@ -55,7 +55,7 @@ namespace hist {
             /**
              * @brief Automatically generate an axis containing all elements. 
              */
-            void generate_axis(unsigned int size = 100);
+            void generate_axis();
 
             /**
              * @brief Set the axis of this Histogram.

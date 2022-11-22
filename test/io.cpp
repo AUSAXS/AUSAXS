@@ -19,7 +19,7 @@ bool compare_files(std::string p1, std::string p2) {
         return false; //file problem
     }   
 
-    string l1, l2;
+    std::string l1, l2;
     Atom a1, a2;
     int max_i = 99999; 
     for (int i = 0; i < max_i; i++) {
@@ -189,7 +189,7 @@ TEST_CASE("real_data", "[io],[files],[broken]") {
         }
 
         cout << "Testing " << file.path().stem() << endl;
-        string filename = "temp/io/" + utility::stem(file.path().string()) + ".pdb";
+        std::string filename = "temp/io/" + utility::stem(file.path().string()) + ".pdb";
         Protein protein(file.path().string());
         protein.save(filename);
         bool success = compare_files(file.path().string(), filename);
@@ -205,8 +205,17 @@ TEST_CASE("protein_io", "[io],[files]") {
     protein.save("temp/io/temp.pdb");
     Protein protein2("temp/io/temp.pdb");
 
-    CHECK(protein.atoms() == protein2.atoms());
-    CHECK(protein.waters() == protein2.waters());
+    REQUIRE(protein.atoms().size() == protein2.atoms().size());
+    for (unsigned int i = 0; i < protein.atoms().size(); i++) {
+        REQUIRE(protein.atoms()[i].equals_content(protein2.atoms()[i]));
+    }
+
+    REQUIRE(protein.waters().size() == protein2.waters().size());
+    for (unsigned int i = 0; i < protein.waters().size(); i++) {
+        REQUIRE(protein.waters()[i].equals_content(protein2.waters()[i]));
+    }
+
+    remove("temp/io/temp.pdb");
 }
 
 TEST_CASE("file_copied_correctly", "[io],[files]") {
