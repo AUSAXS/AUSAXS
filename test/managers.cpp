@@ -3,6 +3,7 @@
 
 #include <data/StateManager.h>
 #include <data/Protein.h>
+#include <em/ImageStack.h>
 #include <em/PartialHistogramManager.h>
 
 #include <iostream>

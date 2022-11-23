@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <em/ImageStack.h>
+#include <em/detail/ImageStackBase.h>
 #include <em/CullingStrategy.h>
 #include <data/Protein.h>
 #include <hist/ScatteringHistogram.h>
@@ -19,7 +19,7 @@ namespace em {
             /**
              * @brief Construct a Manager from an ImageStack.
              */
-            PartialHistogramManager(const ImageStack& images);
+            PartialHistogramManager(const ImageStackBase& images);
 
             /**
              * @brief Destructor.
@@ -65,7 +65,7 @@ namespace em {
             hist::ScatteringHistogram get_histogram_slow(double cutoff) const;
         
         private:
-            const ImageStack& images; 
+            const ImageStackBase& images; 
             std::shared_ptr<Protein> protein;
             std::vector<double> charge_levels;
             double previous_cutoff = 0;

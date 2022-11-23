@@ -1,12 +1,11 @@
 #include <vector>
 
 #include <em/PartialHistogramManager.h>
-#include <em/ImageStack.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <utility/Utility.h>
 
-em::PartialHistogramManager::PartialHistogramManager(const ImageStack& images) : images(images) {}
+em::PartialHistogramManager::PartialHistogramManager(const ImageStackBase& images) : images(images) {}
 
 hist::ScatteringHistogram em::PartialHistogramManager::get_histogram(double cutoff) {
     update_protein(cutoff);
