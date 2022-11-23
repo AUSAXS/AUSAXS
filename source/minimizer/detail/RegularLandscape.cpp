@@ -1,4 +1,4 @@
-#include <mini/utility/RegularLandscape.h>
+#include <mini/detail/RegularLandscape.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 

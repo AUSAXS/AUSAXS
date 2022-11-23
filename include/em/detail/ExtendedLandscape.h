@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mini/utility/Landscape.h>
+#include <mini/detail/Landscape.h>
 
 namespace em {
     namespace detail {

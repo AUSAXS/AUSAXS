@@ -1,5 +1,5 @@
-#include <mini/utility/FittedParameter.h>
-#include <mini/utility/Parameter.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Parameter.h>
 
 using namespace mini;
 

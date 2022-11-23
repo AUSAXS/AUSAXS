@@ -1,4 +1,4 @@
-#include <mini/utility/Result.h>
+#include <mini/detail/Result.h>
 #include <utility/Exceptions.h>
 
 using namespace mini;

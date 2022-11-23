@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <mini/utility/Landscape.h>
+#include <mini/detail/Landscape.h>
 #include <math/Matrix.h>
 
 namespace mini {

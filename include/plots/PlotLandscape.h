@@ -1,7 +1,7 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <mini/utility/Landscape.h>
+#include <mini/detail/Landscape.h>
 
 #include <string>
 

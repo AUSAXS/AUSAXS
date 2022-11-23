@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include <mini/utility/FittedParameter.h>
+#include <mini/detail/FittedParameter.h>
 
 namespace mini {
     struct Result {

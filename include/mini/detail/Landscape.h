@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <mini/utility/Evaluation.h>
+#include <mini/detail/Evaluation.h>
 #include <utility/SimpleDataset.h>
 #include <plots/PlotOptions.h>
 

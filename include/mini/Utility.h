@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mini/utility/Evaluation.h>
-#include <mini/utility/Parameter.h>
-#include <mini/utility/FittedParameter.h>
-#include <mini/utility/Landscape.h>
-#include <mini/utility/Result.h>
+#include <mini/detail/Evaluation.h>
+#include <mini/detail/Parameter.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Landscape.h>
+#include <mini/detail/Result.h>

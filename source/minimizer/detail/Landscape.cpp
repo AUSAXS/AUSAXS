@@ -1,4 +1,4 @@
-#include <mini/utility/Landscape.h>
+#include <mini/detail/Landscape.h>
 
 SimpleDataset mini::Landscape::as_dataset() const {
     if (evals.empty()) {throw except::bad_order("Landscape::as_dataset: Cannot get evaluated points before a minimization call has been made.");}
