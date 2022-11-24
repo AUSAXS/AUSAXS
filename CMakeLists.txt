@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast -mfpmath=sse -Wall -Wpedantic -Wextra -g -fno-finite-math-only")# --coverage -g")# -fsanitize=address") #-flto
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_BUILD_TYPE DEBUG)
 
 project(SAXS VERSION 0.0)
-add_compile_definitions(DEBUG=1 SAFE_MATH=1)
-set(DEBUG TRUE)
+add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
+add_compile_options(
+	-Ofast -mfpmath=sse -fno-finite-math-only
+	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
+	"$<$<CONFIG:RELEASE>:-flto;-march=native>"
+)
+
 
 ############################################
 ##            Dependencies                ##
@@ -63,8 +68,8 @@ elseif (UNIX)
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
 	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
-	if (DEBUG)
-		link_libraries(-lbfd -ldl) # for stacktraces
+	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
+		link_libraries(-lbfd -ldl)
 	endif()
 endif()
 
@@ -103,9 +108,11 @@ file(GLOB_RECURSE
 	"test/*.h"
 	"test/*.cpp"
 )
-add_executable(test ${TEST_SRC})
+add_executable(test ${TEST_SRC} ${BACKWARD_ENABLE})
 target_link_libraries(test PRIVATE saxs Catch2::Catch2WithMain)
-
+if (CMAKE_BUILD_TYPE MATCHES DEBUG)
+	add_backward(test)
+endif()
 
 ############################################
 ##          Other executables             ##

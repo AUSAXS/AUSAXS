@@ -48,7 +48,7 @@ TEST_CASE("compare_debye", "[protein]") {
 }
 
 TEST_CASE("compare_debye_real", "[protein],[files],[slow]") {
-    Protein protein("data/2epe.pdb");
+    Protein protein("test/files/2epe.pdb");
     protein.clear_hydration();
 
     std::cout << "hydration atoms: " << protein.hydration_atoms.size() << std::endl; 
@@ -85,8 +85,10 @@ TEST_CASE("histogram", "[protein]") {
         protein.updated_charge = true;
 
         // calculate the histogram
-        hist::ScatteringHistogram hist = protein.get_histogram();
-        const vector<double> d = hist.p;
+        hist::ScatteringHistogram hist_smart = protein.get_histogram();
+        hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow();
+        const vector<double> d_s = hist_smart.p;
+        const vector<double> d_d = hist_dumb.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -95,9 +97,13 @@ TEST_CASE("histogram", "[protein]") {
         //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
         //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
         const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        for (size_t i = 0; i < d_exp.size(); i++) {
-            if (d[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d[i] << ", " << d_exp[i] << endl;
+        for (unsigned int i = 0; i < d_exp.size(); i++) {
+            if (d_s[i] != d_exp[i]) {
+                cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
+                REQUIRE(false);
+            }
+            if (d_d[i] != d_exp[i]) {
+                cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -121,8 +127,10 @@ TEST_CASE("histogram", "[protein]") {
         protein.updated_charge = true;
 
         // calculate the histogram
-        hist::ScatteringHistogram hist = protein.get_histogram();
-        const vector<double> d = hist.p;
+        hist::ScatteringHistogram hist_smart = protein.get_histogram();
+        hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow();
+        const vector<double> d_s = hist_smart.p;
+        const vector<double> d_d = hist_dumb.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -131,9 +139,13 @@ TEST_CASE("histogram", "[protein]") {
         //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
         //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
         const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        for (size_t i = 0; i < d_exp.size(); i++) {
-            if (d[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d[i] << ", " << d_exp[i] << endl;
+        for (unsigned int i = 0; i < d_exp.size(); i++) {
+            if (d_s[i] != d_exp[i]) {
+                cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
+                REQUIRE(false);
+            }
+            if (d_d[i] != d_exp[i]) {
+                cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
                 REQUIRE(false);
             }
         }
@@ -164,8 +176,10 @@ TEST_CASE("histogram", "[protein]") {
         protein.updated_charge = true;
 
         // calculate the histogram
-        hist::ScatteringHistogram hist = protein.get_histogram();
-        const vector<double> d = hist.p;
+        hist::ScatteringHistogram hist_smart = protein.get_histogram();
+        hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow();
+        const vector<double> d_s = hist_smart.p;
+        const vector<double> d_d = hist_dumb.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -174,16 +188,20 @@ TEST_CASE("histogram", "[protein]") {
         //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
         //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
         const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        for (size_t i = 0; i < d_exp.size(); i++) {
-            if (d[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d[i] << ", " << d_exp[i] << endl;
+        for (unsigned int i = 0; i < d_exp.size(); i++) {
+            if (d_s[i] != d_exp[i]) {
+                cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
+                REQUIRE(false);
+            }
+            if (d_d[i] != d_exp[i]) {
+                cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
                 REQUIRE(false);
             }
         }
         REQUIRE(true);
     }
 
-    SECTION("compare with slow, simple") {
+    SECTION("multiple bodies, simple") {
         setting::protein::use_effective_charge = true;
         // make the protein
         vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
@@ -191,14 +209,14 @@ TEST_CASE("histogram", "[protein]") {
         vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
         vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
         vector<vector<Atom>> ap = {b1, b2, b3, b4};
-        Protein protein(ap, {});
+        Protein many(ap, {});
 
         // make the body
         vector<Atom> ab = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                             Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                             Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
                             Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        Protein protein2(ab, {});
+        Protein one(ab, {});
 
         // create some water molecules
         vector<Water> ws(10);
@@ -206,30 +224,30 @@ TEST_CASE("histogram", "[protein]") {
             ws[i] = Water::create_new_water(Vector3<double>(i, i, i));
         }
 
-        protein2.waters() = ws;
-        protein.waters() = ws;
+        many.waters() = ws;
+        one.waters() = ws;
 
         // we now have a protein consisting of three bodies with the exact same contents as a single body.
         // the idea is now to compare the ScatteringHistogram output from their distance calculations, since it
         // is far easier to do for the single body. 
-        hist::ScatteringHistogram d_b = protein2.get_histogram();
-        hist::ScatteringHistogram d_p = protein.get_histogram();
+        hist::ScatteringHistogram d_m = many.get_histogram();
+        hist::ScatteringHistogram d_o = one.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p = d_p.p;
-        const vector<double>& b_tot = d_b.p;
+        const vector<double>& p_m = d_m.p;
+        const vector<double>& p_o = d_o.p;
 
         // compare each entry
-        for (size_t i = 0; i < b_tot.size(); i++) {
-            if (!utility::approx(p[i], b_tot[i])) {
-                cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
+        for (size_t i = 0; i < p_o.size(); i++) {
+            if (!utility::approx(p_o[i], p_m[i])) {
+                cout << "Failed on index " << i << ". Values: " << p_m[i] << ", " << p_o[i] << endl;
                 REQUIRE(false);
             }
         }
         REQUIRE(true);
     }
 
-    SECTION("compare with slow, real input") {
+    SECTION("multiple bodies, real input") {
         setting::protein::use_effective_charge = true;
         Body body("data/lysozyme/2epe.pdb");
         body.center();

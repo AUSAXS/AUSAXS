@@ -55,7 +55,7 @@ target_link_libraries(inspect_map saxs)
 add_executable(plot plot.cpp ${BACKWARD_ENABLE})
 target_link_libraries(plot saxs)
 
-if (DEBUG)
+if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 	add_backward(new_hydration)
 	add_backward(hist)
 	add_backward(main)

@@ -222,19 +222,24 @@ TEST_CASE("plotoptions", "[utility]") {
     }
 }
 
-TEST_CASE("utility", "[utility]") {
+TEST_CASE("extract_number", "[utility]") {
     string s = "result should be 92 alright";
+    std::cout << "check" << std::endl;
     CHECK(utility::extract_number<string>(s) == "92");
+    std::cout << "check" << std::endl;
     CHECK(utility::extract_number<int>(s) == 92);
 
+    std::cout << "check" << std::endl;
     s = "okay now it should be 311.51";
     CHECK(utility::extract_number<string>(s) == "311.51");
     CHECK(utility::extract_number<double>(s) == 311.51);
 
+    std::cout << "check" << std::endl;
     s = "ad713e15.c";
     CHECK(utility::extract_number<string>(s) == "713");
     CHECK(utility::extract_number<int>(s) == 713);
 
+    std::cout << "check" << std::endl;
     s = "814.98.txt";
     CHECK(utility::extract_number<string>(s) == "814.98");
     CHECK(utility::extract_number<double>(s) == 814.98);

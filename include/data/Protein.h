@@ -231,8 +231,6 @@ class Protein {
      * @brief Calculate the Debye scattering intensity for this protein. Does not include hydration atoms. 
      *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
      *        create a ScatteringHistogram and call its equivalent method instead. 
-     * 
-     * @return vector<double> 
      */
     std::vector<double> calc_debye_scattering_intensity();
 
