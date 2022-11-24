@@ -13,6 +13,7 @@ lib
 valgrind.txt
 *log
 
+*.plot
 *.pdf
 *.xml
 *.pdb

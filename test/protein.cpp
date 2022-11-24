@@ -19,32 +19,14 @@ TEST_CASE("simulate_dataset", "[protein],[files]") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
-    Protein protein("data/lysozyme/2epe.pdb");
+    Protein protein("test/files/2epe.pdb");
     SimpleDataset data = protein.simulate_dataset();
 
     SimpleIntensityFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot1(res);
-    plot1.save("figures/test/protein/check_chi2_1.pdf");
-
-    // check that reduced chi2 is ~1
-    std::cout << "Reduced chi2 is " << res->fval/res->dof << std::endl;
-
-    //! The following tests are kinda weird and unnecessary I think
-    // data.scale_errors(2);
-    // fitter = SimpleIntensityFitter(data, protein.get_histogram());
-    // res = fitter.fit();
-    // REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
-    // plots::PlotIntensityFit plot2(res);
-    // plot2.save("figures/test/protein/check_chi2_2.pdf");
-
-    // data.scale_errors(1./4);
-    // fitter = SimpleIntensityFitter(data, protein.get_histogram());
-    // res = fitter.fit();
-    // REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
-    // plots::PlotIntensityFit plot3(res);
-    // plot3.save("figures/test/protein/check_chi2_3.pdf");
+    plot1.save("figures/test/protein/check_chi2_1.png");
 }
 
 TEST_CASE("compare_debye", "[protein]") {

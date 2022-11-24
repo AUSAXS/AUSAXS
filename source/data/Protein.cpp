@@ -1,10 +1,10 @@
-#include <cassert>
-
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <io/File.h>
 #include <hist/Histogram.h>
 #include <fitter/IntensityFitter.h>
+
+#include <iomanip>
 
 using namespace hist;
 
@@ -295,7 +295,7 @@ void Protein::center() {
 }
 
 void Protein::bind_body_signallers() {
-    if (phm == nullptr) {throw except::unexpected("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
+    if (phm == nullptr) [[unlikely]] {throw except::unexpected("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(phm->get_probe(i));
     }
@@ -309,7 +309,6 @@ std::shared_ptr<Fit> Protein::fit(std::string measurement) {
 
 std::shared_ptr<PartialHistogramManager> Protein::get_histogram_manager() const {return phm;}
 
-#include <iomanip>
 void Protein::generate_unit_cell() {
     if (grid == nullptr) {create_grid();}
         // auto[min, max] = grid->bounding_box();

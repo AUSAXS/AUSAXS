@@ -1,6 +1,6 @@
 # Todo
+ * [ ] CCP4 reader: Major bug discovered. Ensure reading is *always* done along same axes as specified in the header. 
  * [ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
- * [x] EMFitter: Check correct dof is returned always (both for hydration enabled & without)
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
  * [ ] EM: Compare maps from different simulation methods
@@ -10,9 +10,7 @@
  * [ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
  * [ ] EMFitter: Handle absolute scale properly.
  * [ ] gentag alt for de andre filer
- * [ ] flow diagram med hvad vi rent faktisk laver
  * [ ] General: Consistency check of DrhoM
- * [ ] EM: Research and implement Electron Transfer Function (if not too difficult)
  * [ ] IO: Support multiple terminate statements
  * [ ] Memory test all other executables.
 
@@ -42,15 +40,9 @@
 # Dependencies
 Maybe bundle them somehow to make it easier to install?
  * Elements
- * CLI11
- * catch2 for tests
  * CURL
  * OpenSSL (CURL)
  * binutils-dev (backward-cpp stacktraces)
-
-# FITTING:
-FOXS SAXS fitting program
-ATSAS CRYSOL
 
 # Other personal notes
 ## Articles
