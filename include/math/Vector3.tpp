@@ -31,8 +31,8 @@ Vector3<T>& Vector3<T>::operator=(const Vector3<T>& v) {
 
 template<numeric T>
 Vector3<T>& Vector3<T>::operator=(std::initializer_list<T> l) {
-    if (l.size() != 3) {
-        throw except::invalid_argument("Vector3: Initializer list must have size 3");
+    if (l.size() != 3) [[unlikely]] {
+        throw except::invalid_argument("Vector3::operator=: Initializer list must have size 3");
     }
     data[0] = *l.begin();
     data[1] = *(l.begin() + 1);

@@ -50,8 +50,9 @@ class Limit {
          *        Both ends of the limit will be grow by the specified percentage. 
          */
         void expand(double percent) noexcept {
-            min = min < 0 ? min * (1 + percent) : min*(1-percent);
-            max = max < 0 ? max * (1 - percent) : max*(1+percent);
+            double span = this->span();
+            min -= span*percent;
+            max += span*percent;
         } 
 
 

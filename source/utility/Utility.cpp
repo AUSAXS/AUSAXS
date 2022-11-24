@@ -58,16 +58,6 @@ std::string utility::stem(std::string path) {
     return std::filesystem::path(path).stem().string();    
 }
 
-template<>
-std::string utility::extract_number<std::string>(std::string s) {
-    unsigned int start = 0;
-    while (!std::isdigit(s[start]) && start != s.size()) {start++;}
-    unsigned int end = start;
-    while ((std::isdigit(s[end]) || s[end] == '.') && end != s.size()) {end++;}
-    while (end > 0 && s[end-1] == '.') {end--;}
-    return s.substr(start, end-start);
-}
-
 std::vector<std::string> utility::split(std::string str, char delimiter) {
     std::string token;
     std::stringstream ss(str);

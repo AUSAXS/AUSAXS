@@ -19,7 +19,7 @@ Matrix<Q>::Matrix(const Matrix<Q>& A) : N(A.N), M(A.M), data(A.data) {}
 template<numeric Q>
 Matrix<Q>::Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size()), M(l.begin()->size()) {
     for (const auto& row : l) {
-        if (__builtin_expect(row.size() != M, false)) {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
+        if (row.size() != M) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
         for (const auto& e : row) {
             data.push_back(e);
         }
@@ -29,7 +29,7 @@ Matrix<Q>::Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size(
 template<numeric Q>
 Matrix<Q>::Matrix(std::vector<std::vector<Q>> v) : N(v[0].size()), M(v.size()), data(N*M) {
     for (unsigned int col = 0; col < M; col++) {
-        if (__builtin_expect(v[col].size() != N, false)) {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
+        if (v[col].size() != N) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
         for (unsigned int row = 0; row < N; row++) {
             index(row, col) = v[col][row];
         }

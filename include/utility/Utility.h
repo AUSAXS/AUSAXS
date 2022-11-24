@@ -45,13 +45,6 @@ namespace utility {
      */
     std::string remove_quotation_marks(std::string s);
 
-    template<typename T>
-    T extract_number(std::string s) {
-        std::stringstream ss(extract_number<std::string>(s));
-        T val; ss >> val;
-        return val;
-    }
-
     /**
      * @brief Remove the extension from a filename. 
      *        This is just a simple wrapper around filesystem::path::replace_extension.

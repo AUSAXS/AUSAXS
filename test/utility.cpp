@@ -222,29 +222,6 @@ TEST_CASE("plotoptions", "[utility]") {
     }
 }
 
-TEST_CASE("extract_number", "[utility]") {
-    string s = "result should be 92 alright";
-    std::cout << "check" << std::endl;
-    CHECK(utility::extract_number<string>(s) == "92");
-    std::cout << "check" << std::endl;
-    CHECK(utility::extract_number<int>(s) == 92);
-
-    std::cout << "check" << std::endl;
-    s = "okay now it should be 311.51";
-    CHECK(utility::extract_number<string>(s) == "311.51");
-    CHECK(utility::extract_number<double>(s) == 311.51);
-
-    std::cout << "check" << std::endl;
-    s = "ad713e15.c";
-    CHECK(utility::extract_number<string>(s) == "713");
-    CHECK(utility::extract_number<int>(s) == 713);
-
-    std::cout << "check" << std::endl;
-    s = "814.98.txt";
-    CHECK(utility::extract_number<string>(s) == "814.98");
-    CHECK(utility::extract_number<double>(s) == 814.98);
-}
-
 TEST_CASE("utility_limits", "[utility]") {
     Limit lim1(0, 1);
     Limit lim2(-5, 15.5);
@@ -256,7 +233,7 @@ TEST_CASE("utility_limits", "[utility]") {
 
     SECTION("center") {
         CHECK(lim1.center() == 0.5);
-        CHECK(lim2.center() == 10.25);
+        CHECK(lim2.center() == 5.25);
     }
 
     SECTION("merge") {
@@ -267,8 +244,8 @@ TEST_CASE("utility_limits", "[utility]") {
         }
 
         SECTION("overlap") {
-            Limit lim2(0.5, 1.5);
-            lim1.merge(lim2);
+            Limit lim3(0.5, 1.5);
+            lim1.merge(lim3);
             CHECK(lim1.min == 0);
             CHECK(lim1.max == 1.5);
         }

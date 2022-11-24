@@ -43,15 +43,15 @@ gui: build/source/gui/gui
 
 # show the coverage of a single test. requires code to be compiled with the --coverage option.
 coverage/%: test/%
+	@ rm -r temp/coverage
 	@ mkdir -p temp/coverage/
-	@ rm temp/coverage/*
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 
 # show the coverage of all tests. requires code to be compiled with the --coverage option.
 coverage: tests
+	@ rm -r temp/coverage
 	@ mkdir -p temp/coverage/
-	@ rm temp/coverage/*
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
 
