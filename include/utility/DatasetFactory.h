@@ -12,7 +12,7 @@ namespace factory {
         } else if (data->M == 4) {
             return std::static_pointer_cast<Dataset2D>(std::move(data));
         } else {
-            throw except::invalid_operation("Error in factory::create: Dataset has wrong number of columns.");
+            throw except::invalid_operation("factory::create: Dataset has wrong number of columns.");
         }
     }
 }

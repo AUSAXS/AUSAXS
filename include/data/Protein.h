@@ -277,9 +277,9 @@ class Protein {
     std::shared_ptr<hist::PartialHistogramManager> get_histogram_manager() const;
 
     std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
-    std::vector<Body> bodies; // The constituent bodies
-    bool updated_charge = false; // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
-    bool centered = false; // True if this object is centered, false otherwise. 
+    std::vector<Body> bodies;           // The constituent bodies
+    bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
+    bool centered = false;              // True if this object is centered, false otherwise. 
   private:
     std::shared_ptr<Grid> grid = nullptr; // The grid representation of this body
     std::shared_ptr<hist::PartialHistogramManager> phm = nullptr;

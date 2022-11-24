@@ -23,17 +23,19 @@ TEST_CASE("body_histogram", "[body]") {
                             Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                             Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
                             Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        Body body(a, {});
+        Protein protein(a, {});
 
         // set the weights to 1 so we can analytically determine the result
-        for (auto& atom : body.atoms()) {
-            atom.set_effective_charge(1);
+        for (auto& body : protein.bodies) {
+            for (auto& atom : body.atoms()) {
+                atom.set_effective_charge(1);
+            }
         }
-        body.updated_charge = true;
+        protein.updated_charge = true;
 
         // calculate the histogram
-        shared_ptr<hist::ScatteringHistogram> hist = body.get_histogram();
-        const vector<double> d = hist->p;
+        hist::ScatteringHistogram hist = protein.get_histogram_manager()->calculate_slow();
+        const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -57,17 +59,17 @@ TEST_CASE("body_histogram", "[body]") {
                             Water(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Water(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
                             Water(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Water(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
                             Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        Body body(a, w);
+        Protein protein(a, w);
 
         // set the weights to 1 so we can analytically determine the result
-        for (auto& atom : body.waters()) {
+        for (auto& atom : protein.waters()) {
             atom.set_effective_charge(1);
         }
-        body.updated_charge = true;
+        protein.updated_charge = true;
 
         // calculate the histogram
-        shared_ptr<hist::ScatteringHistogram> hist = body.get_histogram();
-        const vector<double> d = hist->p;
+        hist::ScatteringHistogram hist = protein.get_histogram_manager()->calculate_slow();
+        const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
         //      each point has:
@@ -90,22 +92,24 @@ TEST_CASE("body_histogram", "[body]") {
                         Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
         vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        Body body(a, w);
+        Protein protein(a, w);
 
         // set the weights to 1 so we can analytically determine the result
         // waters
-        for (auto& atom : body.waters()) {
+        for (auto& atom : protein.waters()) {
             atom.set_effective_charge(1);
         }
         // atoms
-        for (auto& atom : body.atoms()) {
-            atom.set_effective_charge(1);
+        for (auto& body : protein.bodies) {
+            for (auto& atom : body.atoms()) {
+                atom.set_effective_charge(1);
+            }
         }
-        body.updated_charge = true;
+        protein.updated_charge = true;
 
         // calculate the histogram
-        shared_ptr<hist::ScatteringHistogram> hist = body.get_histogram();
-        const vector<double> d = hist->p;
+        hist::ScatteringHistogram hist = protein.get_histogram_manager()->calculate_slow();
+        const vector<double> d = hist.p;
 
         // calculation: 8 identical points. 
         //      each point has:

@@ -183,7 +183,7 @@ TEST_CASE("histogram", "[protein]") {
         REQUIRE(true);
     }
 
-    SECTION("compare with body, simple") {
+    SECTION("compare with slow, simple") {
         setting::protein::use_effective_charge = true;
         // make the protein
         vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
@@ -198,7 +198,7 @@ TEST_CASE("histogram", "[protein]") {
                             Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                             Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
                             Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        Body body(ab, {});
+        Protein protein2(ab, {});
 
         // create some water molecules
         vector<Water> ws(10);
@@ -206,18 +206,18 @@ TEST_CASE("histogram", "[protein]") {
             ws[i] = Water::create_new_water(Vector3<double>(i, i, i));
         }
 
-        body.waters() = ws;
+        protein2.waters() = ws;
         protein.waters() = ws;
 
         // we now have a protein consisting of three bodies with the exact same contents as a single body.
         // the idea is now to compare the ScatteringHistogram output from their distance calculations, since it
         // is far easier to do for the single body. 
-        shared_ptr<hist::ScatteringHistogram> d_b = body.get_histogram();
+        hist::ScatteringHistogram d_b = protein2.get_histogram();
         hist::ScatteringHistogram d_p = protein.get_histogram();
 
         // direct access to the histogram data (only p is defined)
         const vector<double>& p = d_p.p;
-        const vector<double>& b_tot = d_b->p;
+        const vector<double>& b_tot = d_b.p;
 
         // compare each entry
         for (size_t i = 0; i < b_tot.size(); i++) {
@@ -229,7 +229,7 @@ TEST_CASE("histogram", "[protein]") {
         REQUIRE(true);
     }
 
-    SECTION("compare with body, real input") {
+    SECTION("compare with slow, real input") {
         setting::protein::use_effective_charge = true;
         Body body("data/lysozyme/2epe.pdb");
         body.center();
@@ -237,8 +237,8 @@ TEST_CASE("histogram", "[protein]") {
         // We iterate through the protein data from the body, and split it into multiple pieces of size 100.  
         vector<vector<Atom>> patoms; // vector containing the pieces we split it into
         vector<Atom> p_current(100); // vector containing the current piece
-        size_t index = 0; // current index in p_current
-        for (size_t i = 0; i < body.atoms().size(); i++) {
+        unsigned int index = 0;      // current index in p_current
+        for (unsigned int i = 0; i < body.atoms().size(); i++) {
             p_current[index] = body.atoms(i);
             index++;
             if (index == 100) { // if index is 100, reset to 0
@@ -265,7 +265,7 @@ TEST_CASE("histogram", "[protein]") {
         }
 
         // stronger consistency check - we check that all atoms are equal, and appear in the exact same order
-        for (size_t i = 0; i < protein_atoms.size(); i++) {
+        for (unsigned int i = 0; i < protein_atoms.size(); i++) {
             if (protein_atoms[i] != body_atoms[i]) {
                 cout << "Comparison failed on index " << i << endl;
                 cout << protein_atoms[i].as_pdb() << endl;
@@ -276,18 +276,17 @@ TEST_CASE("histogram", "[protein]") {
 
         // generate a hydration layer for the protein, and copy it over to the body
         protein.generate_new_hydration();
-        body.get_file().hydration_atoms = protein.hydration_atoms;
 
         // generate the distance histograms
-        shared_ptr<hist::ScatteringHistogram> d_b = body.get_histogram();
         hist::ScatteringHistogram d_p = protein.get_histogram();
+        hist::ScatteringHistogram d_b = protein.get_histogram_manager()->calculate_slow();
 
         // direct access to the histogram data (only p is defined)
         const vector<double>& p = d_p.p;
-        const vector<double>& b_tot = d_b->p;
+        const vector<double>& b_tot = d_b.p;
 
         // compare each entry
-        for (size_t i = 0; i < b_tot.size(); i++) {
+        for (unsigned int i = 0; i < b_tot.size(); i++) {
             if (!utility::approx(p[i], b_tot[i])) {
                 cout << "Failed on index " << i << ". Values: " << p[i] << ", " << b_tot[i] << endl;
                 REQUIRE(false);
@@ -357,13 +356,4 @@ TEST_CASE("get_volume", "[protein]") {
     Protein protein(ap, {});
 
     REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
-}
-
-TEST_CASE("remove_clusters", "[protein],[manual]") {
-    setting::protein::center = false;
-    Protein protein("test/files/17_b.pdb");
-    protein.clear_hydration();
-    protein.remove_disconnected_atoms(30);
-    protein.generate_new_hydration();
-    protein.save("temp/protein/remove_clusters_out.pdb");
 }

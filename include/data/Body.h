@@ -53,11 +53,6 @@ class Body {
 		void save(std::string path);
 
 		/**
-		 * @brief Get the distances between each atom.
-		 */
-		std::shared_ptr<hist::ScatteringHistogram> get_histogram();
-
-		/**
 		 * @brief Get a reference to the constituent atoms.
 		 */
 		std::vector<Atom>& atoms();
@@ -157,11 +152,6 @@ class Body {
 		 */
 		void rotate(double alpha, double beta, double gamma);
 
-		/** 
-		 * @brief Calculate the distances between each pair of atoms. 
-		 */
-		void calc_histogram();
-
 		/**
 		 * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
 		 * 
@@ -201,13 +191,12 @@ class Body {
 		 */
 		void changed_internal_state() const;
 
-		size_t uid;                           // An unique identifier for this body
-		bool updated_charge = false;          // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
-		bool centered = false;                // True if this object is centered, false otherwise
-		inline static size_t uid_counter = 0; // The unique counter. 
+		unsigned int uid;                     		// A unique identifier for this body
+		bool updated_charge = false;          		// True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
+		bool centered = false;                		// True if this object is centered, false otherwise
+		inline static unsigned int uid_counter = 0; // The unique counter. 
 	private:
-		File file;                                                      // The file backing this body
-		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+		File file;                            		// The file backing this body
 
 		// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
 		std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 

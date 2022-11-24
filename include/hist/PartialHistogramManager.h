@@ -3,79 +3,17 @@
 // forwards declaration
 class Protein;
 
-#include <vector>
-
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/StateManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <hist/Histogram.h>
+#include <hist/detail/MasterHistogram.h>
+#include <hist/detail/CompactCoordinates.h>
+
+#include <vector>
 
 namespace hist {
-		/**
-		 * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
-		 *        The idea is that by only extracting the absolute necessities for the distance calculation, more values can be stored
-		 *        in the cache at any given time. This is meant as a helper class to DistanceCalculator.
-		 */
-	struct CompactCoordinates {
-		struct Data {
-			Data() {}
-			Data(const Vector3<double>& v, float w) : x(v.x()), y(v.y()), z(v.z()), w(w) {}
-			float x, y, z, w;
-		};
-
-		CompactCoordinates() {}
-
-		/**
-		 * @brief Extract the necessary coordinates and weights from a body. 
-		 */
-		CompactCoordinates(const Body& body);
-
-		/**
-		 * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
-		 */
-		CompactCoordinates(const std::vector<Water>& atoms);
-
-		size_t size;
-		std::vector<Data> data;
-	};
-
-	/**
-	 * @brief Simple data containers defined for clarity.  
-	 */
-	typedef Histogram PartialHistogram;
-	typedef Histogram HydrationHistogram;
-
-	/**
-	 * @brief We also define the MasterHistogram type, which is identical to a PartialHistogram. 
-	 *        We do this to make += and -= well-defined operations. 
-	 */
-	class MasterHistogram : public Histogram {
-		public: 
-			MasterHistogram() {}
-
-			/**
-			 * @brief Create a new Master Histogram. 
-			 * @param p The current histogram. 
-			 * @param p_base The constant, unchanging part of the histogram. 
-			 */
-			MasterHistogram(const std::vector<double>& p_base, const Axis& axis);
-
-			/**
-			 * @brief Add a PartialHistogram to the MasterHistogram. 
-			 */
-			MasterHistogram& operator+=(const PartialHistogram& rhs);
-
-			/**
-			 * @brief Subtract a PartialHistogram from the MasterHistogram. We have to use a lambda since the standard std::minus would
-			 *        reverse the order of the entries.
-			 */
-			MasterHistogram& operator-=(const PartialHistogram& rhs);
-
-			// The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
-			Histogram base;
-	};
-
 	/**
 	 * The basic idea is that we have a bunch of partial histograms (contained in @a partials), which combined represents the total scattering histogram. 
 	 * As an example, if we had 4 bodies, it would look something like this:
@@ -116,6 +54,12 @@ namespace hist {
 			ScatteringHistogram calculate_all();
 
 			/**
+			 * @brief Calculate the scattering histogram without utilizing partial histograms. 
+			 * 		  This is primarily intended for testing. 
+			 */
+			ScatteringHistogram calculate_slow() const;
+
+			/**
 			 * @brief Get a signalling object for signalling a change of state. 
 			 *        Each body is supposed to hold one of these, and trigger it when they change state. 
 			 */
@@ -132,17 +76,17 @@ namespace hist {
 			StateManager& get_state_manager();
 
 		private:
-			const size_t size;                            // number of managed bodies
-			StateManager statemanager;                    // a helper which keeps track of state changes in each body
-			std::vector<CompactCoordinates> coords_p;          // a compact representation of the relevant data from the managed bodies
-			CompactCoordinates coords_h;                  // a compact representation of the hydration data
-			Protein* protein;                             // pointer to the parent Protein
+			const unsigned int size;                            // number of managed bodies
+			StateManager statemanager;                    		// a helper which keeps track of state changes in each body
+			std::vector<detail::CompactCoordinates> coords_p;   // a compact representation of the relevant data from the managed bodies
+			detail::CompactCoordinates coords_h;                // a compact representation of the hydration data
+			Protein* protein;                             		// pointer to the parent Protein
 
 			// histogram data
-			MasterHistogram master;                       // the current total histogram
-			std::vector<std::vector<PartialHistogram>> partials_pp; // the partial histograms
-			std::vector<HydrationHistogram> partials_hp;       // the partial hydration-atom histograms
-			HydrationHistogram partials_hh;               // the partial histogram for the hydration layer
+			detail::MasterHistogram master;                       			// the current total histogram
+			std::vector<std::vector<detail::PartialHistogram>> partials_pp; // the partial histograms
+			std::vector<detail::HydrationHistogram> partials_hp;       		// the partial hydration-atom histograms
+			detail::HydrationHistogram partials_hh;               			// the partial histogram for the hydration layer
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a index and all others. 
