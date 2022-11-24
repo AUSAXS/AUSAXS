@@ -5,8 +5,10 @@
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector.h>
+#include <utility/concepts.h>
+#include <utility/Exceptions.h>
 
-template<class T> 
+template<numeric T> 
 class Vector3 {
 	public:
 		/**
@@ -26,8 +28,8 @@ class Vector3 {
 
 		Vector3(const Vector<T>& v) : Vector3(v.copy()) {}
 		Vector3(Vector<T>&& v) {
-			if (v.size() != 3) {
-				throw std::invalid_argument("Error in Vector3::Vector3: Vector must have size 3");
+			if (v.size() != 3) [[unlikely]] {
+				throw except::invalid_argument("Vector3::Vector3: Vector must have size 3");
 			}
 			x() = v[0];
 			y() = v[1];
@@ -45,7 +47,7 @@ class Vector3 {
 				y() = M.index(0, 1);
 				z() = M.index(0, 2);
 			} else {
-				throw std::invalid_argument("Error in Vector3::Vector3: Matrix must be 1x3 or 3x1");
+				throw except::invalid_argument("Vector3::Vector3: Matrix must be 1x3 or 3x1");
 			}
 		}
 
@@ -79,11 +81,11 @@ class Vector3 {
 		Vector3<T>& operator=(std::initializer_list<T> l);
 
         // Plus-assignment, w += v
-        template<typename Q>
+        template<numeric Q>
         Vector3<T>& operator+=(const Vector3<Q>& v);
 
         // Minus-assignment, w -= v
-        template<typename Q>
+        template<numeric Q>
         Vector3<T>& operator-=(const Vector3<Q>& v);
 
         // Scalar division-assignment, w /= a
@@ -93,22 +95,22 @@ class Vector3 {
         Vector3<T>& operator*=(double a);
 
         // Vector multiplication-assignment, w /= v
-		template<typename Q>
+		template<numeric Q>
         Vector3<T>& operator*=(const Vector3<Q>& v);
 
-		template<typename Q>
+		template<numeric Q>
 		bool operator==(const Vector3<Q>& v) const;
 
-		template<typename Q>
+		template<numeric Q>
 		bool operator!=(const Vector3<Q>& v) const;
 
-		template<typename Q>
+		template<numeric Q>
 		bool equals(const Vector3<Q>& v, double precision) const;
 
         /**
          * @brief Get the dot product with another Vector.
          */
-        template<typename Q>
+        template<numeric Q>
         double dot(const Vector3<Q>& v) const;
 
         /**
@@ -124,19 +126,19 @@ class Vector3 {
 		/**
 		 * @brief Get the Euclidian distance to another vector. 
 		 */
-		template<typename Q>
+		template<numeric Q>
 		double distance(const Vector3<Q>& v) const;
 
         /**
          * @brief Get the squared Euclidian distance to another Vector.
          */
-        template<typename Q>
+        template<numeric Q>
         double distance2(const Vector3<Q>& v) const;
 
 		/**
 		 * @brief Calculate the cross product of this vector with another. 
 		 */
-		template<typename Q>
+		template<numeric Q>
 		Vector3 cross(const Vector3<Q>& v) const;
 
 		/**
@@ -145,7 +147,7 @@ class Vector3 {
 		 * @param axis The rotation axis. 
 		 * @param angle The angle to rotate. 
 		 */
-		template<typename Q>
+		template<numeric Q>
 		void rotate(const Vector3<Q>& axis, double angle);
 
 		/**
@@ -204,11 +206,11 @@ class Vector3 {
 		std::array<T, 3> data;
 };
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector3<Q> operator*(const Matrix<T>& M, const Vector3<Q>& v) {
     #if (SAFE_MATH)
-        if (__builtin_expect(M.M != v.size(), false)) {
-            throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(M.M) + ", expected: " + std::to_string(v.size()) + "]).");
+        if (M.M != v.size()) [[unlikely]] {
+            throw except::invalid_argument("Vector3::operator*: Invalid matrix dimensions (got: " + std::to_string(M.M) + ", expected: " + std::to_string(v.size()) + "]).");
         }
     #endif
 
@@ -221,48 +223,48 @@ Vector3<Q> operator*(const Matrix<T>& M, const Vector3<Q>& v) {
     return w;
 }
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 bool operator==(const Vector3<T>& v, const Vector<Q>& w) {
 	#if (SAFE_MATH)
-		if (__builtin_expect(v.size() != w.size(), false)) {
-			throw std::invalid_argument("Invalid vector dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(w.size()) + "]).");
+		if (v.size() != w.size()) [[unlikely]] {
+			throw except::invalid_argument("Vector3::operator*: Invalid vector dimensions (got: " + std::to_string(v.size()) + ", expected: " + std::to_string(w.size()) + "]).");
 		}
 	#endif
 
 	return abs(v.x() - w[0]) + abs(v.y() - w[1]) + abs(v.z() - w[2]) < Vector3<T>::precision;
 }
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 bool operator==(const Vector<T>& v, const Vector3<Q>& w) {return w == v;}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 bool operator!=(const Vector3<T>& v, const Vector<Q>& w) {return !(v == w);}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 bool operator!=(const Vector<T>& v, const Vector3<Q>& w) {return !(w == v);}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector3<T> operator+(Vector3<T> left, const Vector3<Q>& right) {return left += right;}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector3<T> operator-(Vector3<T> left, const Vector3<Q>& right) {return left -= right;}
 
-template<typename T>
+template<numeric T>
 Vector3<T> operator-(Vector3<T> v) {return Vector3<T>() - v;}
 
-template<typename T>
+template<numeric T>
 Vector3<T> operator*(Vector3<T> left, double right) {return left *= right;}
 
-template<typename T>
+template<numeric T>
 Vector3<T> operator*(double left, Vector3<T> right) {return right *= left;}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector3<T> operator*(Vector3<T> left, const Vector3<Q>& right) {return left *= right;}
 
-template<typename T>
+template<numeric T>
 Vector3<T> operator/(Vector3<T> left, double right) {return left /= right;}
 
-template<typename T>
+template<numeric T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {os << v.to_string(); return os;}
 
 #include <math/Vector3.tpp>

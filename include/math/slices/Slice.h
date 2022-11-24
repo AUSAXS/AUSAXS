@@ -1,12 +1,13 @@
 #pragma once
 
-template<typename T> class Vector;
-
 #include <preprocessor.h>
+#include <utility/concepts.h>
 
 #include <vector>
 #include <signal.h>
 #include <concepts>
+
+template<numeric T> class Vector;
 
 /**
  * @brief \class Slice
@@ -14,7 +15,7 @@ template<typename T> class Vector;
  * A Slice is a type of cut of a Matrix, typically either in the form of a single row or column. 
  * The idea with this class is to give mutable access to such a structure. 
  */
-template<typename T>
+template<numeric T>
 class Slice {
     public:
         /**

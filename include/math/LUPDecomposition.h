@@ -2,20 +2,25 @@
 
 #include <math/Decomposition.h>
 #include <math/Vector.h>
+#include <utility/concepts.h>
 
-template<typename T> class Matrix;
+#include <memory>
+
+template<numeric T> class Matrix;
 
 class LUPDecomposition : public Decomposition {
-  public: 
-    LUPDecomposition(const Matrix<double>& A);
+    public: 
+        LUPDecomposition(const Matrix<double>& A);
 
-    // follows the C implementation from Wikipedia: https://en.wikipedia.org/wiki/LU_decomposition
-    void decompose();
+        ~LUPDecomposition() override = default;
 
-    double determinant() const;
+        // follows the C implementation from Wikipedia: https://en.wikipedia.org/wiki/LU_decomposition
+        void decompose();
 
-    int permutations;
-  private: 
-    Vector<double> P;
-    std::unique_ptr<Matrix<double>> Ap;
+        double determinant() const;
+
+        int permutations;
+    private: 
+        Vector<double> P;
+        std::unique_ptr<Matrix<double>> Ap;
 };

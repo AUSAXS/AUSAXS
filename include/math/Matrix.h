@@ -1,20 +1,17 @@
 #pragma once
 
-#include <iostream>
 #include <iterator>
 #include <initializer_list>
-#include <algorithm>
-#include <numeric>
-#include <stdexcept>
-#include <iomanip>
+#include <concepts>
 
 #include <preprocessor.h>
+#include <utility/concepts.h>
 #include <math/slices/ConstSlice.h>
 #include <math/slices/MutableSlice.h>
+#include <utility/Exceptions.h>
 #include <math/Vector.h>
-#include <math/LUPDecomposition.h>
 
-template<typename Q> // using Q to avoid conflict with transpose method T()
+template<numeric Q>
 class Matrix {
     public: 
         /**
@@ -71,8 +68,8 @@ class Matrix {
         Matrix<Q> operator-() const;
         Matrix<Q>& operator*=(double a);
         Matrix<Q>& operator/=(double a);
-        template<typename R> Matrix<Q>& operator+=(const Matrix<R>& A);
-        template<typename R> Matrix<Q>& operator-=(const Matrix<R>& A);
+        template<numeric R> Matrix<Q>& operator+=(const Matrix<R>& A);
+        template<numeric R> Matrix<Q>& operator-=(const Matrix<R>& A);
 
         /**
          * @brief Extend the number of rows by the specified amount. Data in the old rows is preserved. 
@@ -107,11 +104,11 @@ class Matrix {
         Row<Q> row(unsigned int i);
 
         // Approximate equality operator
-        template<typename R>
+        template<numeric R>
         bool operator==(const Matrix<R>& A) const;
 
         // Approximate inequality operator
-        template<typename R>
+        template<numeric R>
         bool operator!=(const Matrix<R>& A) const;
 
         /**
@@ -157,7 +154,7 @@ class Matrix {
          * @brief Check if the matrix is compatible with ours.
          *        This check can be disabled by setting the macro SAFE_MATH to 0.
          */
-        template<typename R>
+        template<numeric R>
         void compatibility_check(const Matrix<R>& A) const;
 
         /**
@@ -173,26 +170,26 @@ class Matrix {
         void compatibility_check_M(unsigned int M) const;
 };
 
-template<typename Q, typename R>
+template<numeric Q, numeric R>
 Matrix<Q> operator+(Matrix<Q> left, const Matrix<R>& right) {return left += right;}
 
-template<typename Q, typename R>
+template<numeric Q, numeric R>
 Matrix<Q> operator-(Matrix<Q> left, const Matrix<R>& right) {return left -= right;} 
 
-template<typename Q>
+template<numeric Q>
 Matrix<Q> operator*(Matrix<Q> left, double right) {return left *= right;}
 
-template<typename Q>
+template<numeric Q>
 Matrix<Q> operator*(double left, Matrix<Q> right) {return right *= left;}
 
-template<typename Q>
+template<numeric Q>
 Matrix<Q> operator/(Matrix<Q> left, double right) {return left /= right;}
 
-template<typename Q, typename R>
+template<numeric Q, numeric R>
 Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
     #if (SAFE_MATH)
-        if (__builtin_expect(A.M != v.N, false)) {
-            throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
+        if (A.M != v.N) [[unlikely]] {
+            throw except::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(v.N) + ", expected: " + std::to_string(A.M) + "]).");
         }
     #endif
 
@@ -205,11 +202,11 @@ Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
     return w;
 }
 
-template<typename Q, typename R>
+template<numeric Q, numeric R>
 Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
     #if (SAFE_MATH)
-        if (__builtin_expect(A.M != B.N, false)) {
-            throw std::invalid_argument("Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
+        if (A.M != B.N) [[unlikely]] {
+            throw except::invalid_argument("Matrix::operator*: Invalid matrix dimensions (got: " + std::to_string(A.M) + ", " + std::to_string(A.N) + ", expected: " + std::to_string(B.N) + ", " + std::to_string(B.M) + "]).");
         }
     #endif
 

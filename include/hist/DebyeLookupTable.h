@@ -3,6 +3,8 @@
 #include <utility/Settings.h>
 #include <utility/Table.h>
 
+#include <functional>
+
 namespace table {
     /**
      * @brief \class DebyeLookupTable

@@ -1,17 +1,15 @@
 #pragma once
 
+#include <utility/concepts.h>
 #include <preprocessor.h>
+
 #include <initializer_list>
-#include <algorithm>
 #include <vector>
-#include <numeric>
-#include <math.h>
+#include <string>
 #include <iostream>
-#include <sstream>
-#include <iomanip>
 
 // A basic vector class. Sizes are checked before each operation, so an std::invalid_argument is thrown if they do not match.
-template<typename T>
+template<numeric T>
 class Vector {
     public:
         /**
@@ -56,11 +54,11 @@ class Vector {
         Vector<T>& operator=(std::initializer_list<T> l);
 
         // Plus-assignment, w += v
-        template<typename Q>
+        template<numeric Q>
         Vector<T>& operator+=(const Vector<Q>& v);
 
         // Minus-assignment, w -= v
-        template<typename Q>
+        template<numeric Q>
         Vector<T>& operator-=(const Vector<Q>& v);
 
         // Scalar division-assignment, w /= a
@@ -70,7 +68,7 @@ class Vector {
         Vector<T>& operator*=(double a);
 
         // Vector multiplication-assignment, w *= v
-        template<typename Q>
+        template<numeric Q>
         Vector<T>& operator*=(const Vector<Q>& v);
 
         // Conversion to std::vector
@@ -83,17 +81,17 @@ class Vector {
         T& operator[](unsigned int i);
 
         // Approximate equality, w ~ v
-        template<typename Q>
+        template<numeric Q>
         bool operator==(const Vector<Q>& v) const;
 
         // Approximate inequality operator, w != v
-        template<typename Q>
+        template<numeric Q>
         bool operator!=(const Vector<Q>& v) const;
 
         /**
          * @brief Get the dot product with another Vector.
          */
-        template<typename Q>
+        template<numeric Q>
         double dot(const Vector<Q>& v) const;
 
         /**
@@ -109,13 +107,13 @@ class Vector {
         /**
          * @brief Get the Euclidian distance to another Vector.
          */
-        template<typename Q>
+        template<numeric Q>
         double distance(const Vector<Q>& v) const;
 
         /**
          * @brief Get the squared Euclidian distance to another Vector.
          */
-        template<typename Q>
+        template<numeric Q>
         double distance2(const Vector<Q>& v) const;
 
         /**
@@ -162,32 +160,32 @@ class Vector {
         static constexpr double precision = 1e-9;
 
         // check if the vector is compatible with ours
-        template<typename Q>
+        template<numeric Q>
         void compatibility_check(const Vector<Q>& v) const;
 };
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector<T> operator+(Vector<T> left, const Vector<Q>& right) {return left += right;}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector<T> operator-(Vector<T> left, const Vector<Q>& right) {return left -= right;}
 
-template<typename T>
+template<numeric T>
 Vector<T> operator*(Vector<T> left, double right) {return left *= right;}
 
-template<typename T>
+template<numeric T>
 Vector<T> operator*(double left, Vector<T> right) {return right *= left;}
 
-template<typename T, typename Q>
+template<numeric T, numeric Q>
 Vector<T> operator*(Vector<T> left, const Vector<Q>& right) {return left *= right;}
 
-template<typename T>
+template<numeric T>
 Vector<T> operator/(Vector<T> left, double right) {return left /= right;}
 
-template<typename T>
+template<numeric T>
 Vector<T> operator-(Vector<T> v) {return Vector<T>(v.size()) - v;}
 
-template<typename T> 
+template<numeric T> 
 std::ostream& operator<<(std::ostream& os, const Vector<T>& v) {os << v.to_string(); return os;}
 
 #include <math/Vector.tpp>

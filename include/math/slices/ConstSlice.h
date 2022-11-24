@@ -7,7 +7,7 @@
  * 
  * This class represents read-only slices.
  */
-template<typename T>
+template<numeric T>
 class ConstSlice : public Slice<T> {
 	public:
 		/**

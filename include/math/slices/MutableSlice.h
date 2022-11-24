@@ -5,7 +5,7 @@
 /**
  * @brief A representation of a mutable slice of a Matrix. 
  */
-template<typename T>
+template<numeric T>
 class MutableSlice : public Slice<T> {
 	public:
 		/**

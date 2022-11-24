@@ -1,11 +1,12 @@
 #pragma once
 
 #include <tuple>
+#include <utility/concepts.h>
 
-template<class T>
+template<numeric T>
 class Matrix;
 
-template<class T>
+template<numeric T>
 class Vector3;
 
 namespace matrix {

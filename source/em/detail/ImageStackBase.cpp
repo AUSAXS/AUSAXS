@@ -79,6 +79,7 @@ void ImageStackBase::read(std::ifstream& istream, size_t byte_size) {
             }
         }
     }
+    if (istream.peek() != EOF) {throw except::io_error("ImageStackBase::read: File is larger than expected.");}
 
     // set z values
     for (unsigned int z = 0; z < size_z; z++) {

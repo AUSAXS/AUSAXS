@@ -2,6 +2,8 @@
 #include <math/Vector3.h>
 #include <math/Matrix.h>
 
+#include <math.h>
+
 Matrix<double> matrix::rotation_matrix(double alpha, double beta, double gamma) {
     double cosa = cos(alpha), cosb = cos(beta), cosg = cos(gamma);
     double sina = sin(alpha), sinb = sin(beta), sing = sin(gamma);

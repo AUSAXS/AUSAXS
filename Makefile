@@ -282,7 +282,7 @@ tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 memtest/%: $(shell find source/ -print) test/%.cpp	
 	@ make -C build test -j${cmake_threads}
-	valgrind --suppressions=suppressions.txt --track-origins=yes --log-file="valgrind.txt" build/test [$(*F)] ${tags}
+	valgrind --track-origins=yes --log-file="valgrind.txt" build/test [$(*F)] ${tags}
 
 test/%: $(shell find source/ -print) test/%.cpp
 	@ make -C build test -j${cmake_threads}
