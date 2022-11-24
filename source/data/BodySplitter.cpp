@@ -56,7 +56,7 @@ std::vector<Constraint> BodySplitter::sequential_constraints(const Protein& prot
         unsigned int index1 = -1, index2 = -1;
         for (unsigned int j = body1.atoms().size()-1; j > 0; j--) {
             const Atom& atom = body1.atoms(j);
-            if (__builtin_expect(atom.resSeq != res1, false)) { // sanity check
+            if (atom.resSeq != res1) [[unlikely]] { // sanity check
                 throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
             }
             if (atom.name == "CA") {
@@ -66,7 +66,7 @@ std::vector<Constraint> BodySplitter::sequential_constraints(const Protein& prot
         }
         for (unsigned int j = 0; j < body2.atoms().size(); j++) {
             const Atom& atom = body2.atoms(j);
-            if (__builtin_expect(atom.resSeq != res2, false)) { // sanity check
+            if (atom.resSeq != res2) [[unlikely]] { // sanity check
                 throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
             }
             if (atom.name == "CA") {

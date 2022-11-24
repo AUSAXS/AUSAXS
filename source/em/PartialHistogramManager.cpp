@@ -66,7 +66,7 @@ std::unique_ptr<Protein> em::PartialHistogramManager::generate_protein(double cu
             current_atoms.resize(atoms.size());
 
             // increment the charge level
-            if (__builtin_expect(charge_index+1 == charge_levels.size(), false)) {
+            if (charge_index+1 == charge_levels.size()) [[unlikely]] {
                 throw except::unexpected("em::PartialHistogramManager::generate_protein: Reached end of charge levels list.");
             }
             charge = charge_levels[++charge_index];

@@ -141,7 +141,7 @@ Histogram PartialHistogramManager::calculate() {
     const std::vector<bool> internally_modified = statemanager.get_internally_modified_bodies();
 
     // check if the object has already been initialized
-    if (__builtin_expect(master.p.size() == 0, false)) {
+    if (master.p.size() == 0) [[unlikely]] {
         initialize(); 
     } 
     

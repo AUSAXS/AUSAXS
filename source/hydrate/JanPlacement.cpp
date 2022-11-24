@@ -11,7 +11,7 @@ std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     size_t index = 0;
     auto add_loc = [&] (const Vector3<int>& v) {
         Water a = Water::create_new_water(grid->to_xyz(v));
-        if (__builtin_expect(placed_water.size() <= index, false)) {
+        if (placed_water.size() <= index) [[unlikely]] {
             placed_water.resize(2*index);
         }
         placed_water[index++] = a;

@@ -116,24 +116,6 @@ void Body::calc_histogram() {
     histogram = std::make_shared<hist::ScatteringHistogram>(p_pp, p_hh, p_hp, p_tot, axes);
 }
 
-// void Body::generate_volume_file(string path) {
-//     GridObj& g = grid->grid;
-//     vector<Atom> filled;
-//     for (size_t i = 0; i < g.xdim; i++) {
-//         for (size_t j = 0; j < g.ydim; j++) {
-//             for (size_t k = 0; k < g.zdim; k++) {
-//                 if (g.index(i, j, k) != GridObj::EMPTY) {
-//                     Atom a(1, "CA", " ", "LEU", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", "");
-//                     filled.push_back(a);
-//                 }
-//             }
-//         }
-//     }
-//     file.protein_atoms = filled;
-//     file.hydration_atoms = vector<Water>();
-//     save(path);
-// }
-
 void Body::center() {
     if (!centered && setting::protein::center) {
         translate(-get_cm());

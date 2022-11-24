@@ -84,7 +84,7 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Water a = Water::create_new_water(exact_loc);
         GridMember<Water> gm = grid->add(a, true);
-        if (__builtin_expect(placed_water.size() <= index, false)) {
+        if (placed_water.size() <= index) [[unlikely]] {
             placed_water.resize(2*index);
         }
         placed_water[index++] = gm;

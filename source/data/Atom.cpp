@@ -82,7 +82,7 @@ void Atom::parse_pdb(string s) {
         occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
 
     // sanity check
-    if (__builtin_expect(!(Record::get_type(recName) == RecordType::ATOM), false)) {
+    if (!(Record::get_type(recName) == RecordType::ATOM)) [[unlikely]] {
         throw except::parse_error("Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
     }
 
@@ -183,7 +183,7 @@ void Atom::set_resName(string resName) {this->resName = resName;}
 void Atom::set_name(string name) {this->name = name;}
 
 void Atom::set_element(string element) {
-    if (__builtin_expect(!constants::mass::atomic.contains(element), false)) { // check that the weight is defined
+    if (!constants::mass::atomic.contains(element)) [[unlikely]] { // check that the weight is defined
         throw except::invalid_argument("Atom::set_element: The weight of element " + element + " is not defined.");
     }
     this->element = element;
@@ -208,12 +208,12 @@ string Atom::get_recName() const {return recName;}
 double Atom::get_mass() const {
     if (setting::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
-        if (__builtin_expect(element.empty() || resName.empty() || name.empty(), false)) {
+        if (element.empty() || resName.empty() || name.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
         }
         return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
-        if (__builtin_expect(element.empty(), false)) {
+        if (element.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
         }
         return constants::mass::atomic.get(element);
@@ -221,7 +221,7 @@ double Atom::get_mass() const {
 }
 
 unsigned int Atom::Z() const {
-    if (__builtin_expect(element == "", false)) {
+    if (element == "") [[unlikely]] {
         throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
     }
     return constants::charge::atomic.get(element);

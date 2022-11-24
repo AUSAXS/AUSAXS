@@ -73,7 +73,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
         for (unsigned int j = 0; j < d.size(); j++) {
             double qd = q[i]*d[j];
             double val;
-            if (__builtin_expect(qd < tolerance, false)) {
+            if (qd < tolerance) [[unlikely]] {
                 double qd2 = qd*qd;
                 val = 1 - qd2/6 + qd2*qd2/120;
             } else {

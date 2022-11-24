@@ -21,7 +21,7 @@ double ResidueMap::get(AtomKey key) {
     if (key.symbol == "H") {return 0;}
 
     // estimate the number of bonds as the average for that element
-    if (__builtin_expect(update_average, false)) {this->calculate_average();}
+    if (update_average) [[unlikely]] {this->calculate_average();}
     if (average.find(key.symbol) != average.end()) {
         return average.at(key.symbol);
     } else {
