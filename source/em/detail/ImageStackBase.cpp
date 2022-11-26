@@ -72,13 +72,40 @@ size_t ImageStackBase::get_byte_size() const {
 
 void ImageStackBase::read(std::ifstream& istream, size_t byte_size) {
     data = std::vector<Image>(size_z, Image(header));
-    for (unsigned int i = 0; i < size_x; i++) {
-        for (unsigned int j = 0; j < size_y; j++) {
-            for (unsigned int k = 0; k < size_z; k++) {
+
+    int col = header->mapc; // column axis
+    int row = header->mapr; // row axis
+    int sec = header->maps; // section axis
+
+    unsigned int i1, i2, i3;
+    auto set_size = [this] (int axis) {
+        switch (axis) {
+            case 1: return size_x;
+            case 2: return size_y;
+            case 3: return size_z;
+            default: throw except::invalid_argument("ImageStackBase::read: Invalid axis");
+        }
+    };
+
+    i1 = set_size(col);
+    i2 = set_size(row);
+    i3 = set_size(sec);
+
+    for (unsigned int i = 0; i < i3; i++) {
+        for (unsigned int j = 0; j < i2; j++) {
+            for (unsigned int k = 0; k < i1; k++) {
                 istream.read(reinterpret_cast<char*>(&index(i, j, k)), byte_size);
             }
         }
     }
+
+    // for (unsigned int i = 0; i < size_x; i++) {
+    //     for (unsigned int j = 0; j < size_y; j++) {
+    //         for (unsigned int k = 0; k < size_z; k++) {
+    //             istream.read(reinterpret_cast<char*>(&index(i, j, k)), byte_size);
+    //         }
+    //     }
+    // }
     if (istream.peek() != EOF) {throw except::io_error("ImageStackBase::read: File is larger than expected.");}
 
     // set z values
