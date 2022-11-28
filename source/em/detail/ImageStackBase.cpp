@@ -77,36 +77,34 @@ void ImageStackBase::read(std::ifstream& istream, size_t byte_size) {
     int row = header->mapr; // row axis
     int sec = header->maps; // section axis
 
-    unsigned int i1, i2, i3;
+    unsigned int xm, ym, zm;
     auto set_size = [this] (int axis) {
         switch (axis) {
             case 1: return size_x;
             case 2: return size_y;
             case 3: return size_z;
-            default: throw except::invalid_argument("ImageStackBase::read: Invalid axis");
+            default: throw except::invalid_argument("ImageStack::read: Invalid axis");
         }
     };
 
-    i1 = set_size(col);
-    i2 = set_size(row);
-    i3 = set_size(sec);
+    xm = set_size(col);
+    ym = set_size(row);
+    zm = set_size(sec);
 
-    for (unsigned int i = 0; i < i3; i++) {
-        for (unsigned int j = 0; j < i2; j++) {
-            for (unsigned int k = 0; k < i1; k++) {
-                istream.read(reinterpret_cast<char*>(&index(i, j, k)), byte_size);
+    std::array<unsigned int, 3> i = {0, 0, 0};
+    unsigned int &x = i[header->mapc-1];
+    unsigned int &y = i[header->mapr-1];
+    unsigned int &z = i[header->maps-1];
+
+    // default order is 123, so we have to iterate over z first, then y, then x
+    for (i[2] = 0; i[2] < zm; i[2]++) {
+        for (i[1] = 0; i[1] < ym; i[1]++) {
+            for (i[0] = 0; i[0] < xm; i[0]++) {
+                istream.read(reinterpret_cast<char*>(&index(x, y, z)), byte_size);
             }
         }
     }
-
-    // for (unsigned int i = 0; i < size_x; i++) {
-    //     for (unsigned int j = 0; j < size_y; j++) {
-    //         for (unsigned int k = 0; k < size_z; k++) {
-    //             istream.read(reinterpret_cast<char*>(&index(i, j, k)), byte_size);
-    //         }
-    //     }
-    // }
-    if (istream.peek() != EOF) {throw except::io_error("ImageStackBase::read: File is larger than expected.");}
+    if (istream.peek() != EOF) {throw except::io_error("ImageStack::read: File is larger than expected.");}
 
     // set z values
     for (unsigned int z = 0; z < size_z; z++) {

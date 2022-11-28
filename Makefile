@@ -106,18 +106,7 @@ main/%: build/executable/main
 
 # Inspect the header of an EM map
 inspect/%: build/executable/inspect_map
-	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	echo $${measurement};\
-	if [ "$${measurement}" ]; then \
-		folder=$$(dirname $${measurement}); \
-		names=$$(cat $${folder}/maps.txt); \
-		emmaps=(); \
-		for n in $${names}; do \
-			emmaps+=$$(find data/$${n} -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
-		done \
-	else \
-		emmaps=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
-	fi; \
+	@ emmaps=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
 	for emmap in $${emmaps}; do\
 		echo "Opening " $${emmap} " ...";\
 		sleep 1;\

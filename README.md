@@ -1,5 +1,5 @@
 # Todo
- * [ ] CCP4 reader: Major bug discovered. Ensure reading is *always* done along same axes as specified in the header. 
+ * [x] CCP4 reader: Major bug discovered. Ensure reading is *always* done along same axes as specified in the header. 
  * [ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
