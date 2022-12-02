@@ -10,10 +10,6 @@ class Header : Record {
 public: 
 	Header() {}
 
-	Header(const Header& header) noexcept : contents(header.contents) {}
-
-	Header(const Header&& header) noexcept : contents(std::move(header.contents)) {}
-
 	~Header() override {}
 
 	/**
@@ -54,8 +50,6 @@ public:
 	 * @brief Get the number of header lines.
 	 */
 	size_t size() const;
-
-	Header& operator=(const Header& header);
 
 private: 
 	std::vector<std::string> contents;

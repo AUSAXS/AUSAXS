@@ -19,7 +19,7 @@ std::string em::ccp4::Header::to_string() const noexcept {
     return s.str();
 }
 
-size_t em::ccp4::Header::get_byte_size() const {
+unsigned int em::ccp4::Header::get_byte_size() const {
     switch(mode) {
         case 0: // int8 --> short int
             return sizeof(short int);

@@ -13,6 +13,11 @@ class Terminate : public Record {
     std::string resName, chainID, iCode;
 
     /**
+     * @brief Default constructor. 
+     */
+    Terminate() {}
+
+    /**
      * @brief Constructor.
      * 
      * @param serial Serial number of the record. 
@@ -22,11 +27,6 @@ class Terminate : public Record {
      * @param iCode iCode. 
      */
     Terminate(int serial, std::string resName, std::string chainID, int resSeq, std::string iCode);
-
-    /**
-     * @brief Default constructor. 
-     */
-    Terminate() {}
 
     /**
      * @brief Destructor.

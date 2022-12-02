@@ -59,6 +59,11 @@ namespace table {
              */
             bool uses_default_table() const;
 
+            /**
+             * @brief Reset the default table. 
+             */
+            static void reset();
+
         private: 
             std::function<double(double, double)> lookup_function;      // The lookup function when providing q and d values. 
             std::function<double(int, int)> index_lookup_function;      // The lookup function when providing indices in the table. 

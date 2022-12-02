@@ -44,6 +44,7 @@ gui: build/source/gui/gui
 # show the coverage of a single test. requires code to be compiled with the --coverage option.
 coverage/%: test/%
 	@ rm -r temp/coverage
+	@ rm -r build/CMakeFiles/test.dir/test/*.gcda
 	@ mkdir -p temp/coverage/
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
@@ -51,6 +52,7 @@ coverage/%: test/%
 # show the coverage of all tests. requires code to be compiled with the --coverage option.
 coverage: tests
 	@ rm -r temp/coverage
+	@ rm -r build/CMakeFiles/test.dir/test/*.gcda
 	@ mkdir -p temp/coverage/
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html

@@ -102,3 +102,7 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
 
     return true;
 }
+
+void DebyeLookupTable::reset() {
+    default_table = LookupTable<double, double>();
+}

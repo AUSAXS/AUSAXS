@@ -66,17 +66,20 @@ unsigned int ImageStackBase::count_voxels(double cutoff) const {
     return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (double sum, const Image& im) {return sum + im.count_voxels(cutoff);});
 }
 
-size_t ImageStackBase::get_byte_size() const {
+unsigned int ImageStackBase::get_byte_size() const {
     return header->get_byte_size();
 }
 
-void ImageStackBase::read(std::ifstream& istream, size_t byte_size) {
+void ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
     data = std::vector<Image>(size_z, Image(header));
 
     int col = header->mapc; // column axis
     int row = header->mapr; // row axis
     int sec = header->maps; // section axis
 
+    // the data is stored in the order of column, row, section
+    // we have to convert this format to (x, y, z)
+    // first determine the limits of each axis
     unsigned int xm, ym, zm;
     auto set_size = [this] (int axis) {
         switch (axis) {
@@ -87,16 +90,20 @@ void ImageStackBase::read(std::ifstream& istream, size_t byte_size) {
         }
     };
 
+    // set the limits of each axis
     xm = set_size(col);
     ym = set_size(row);
     zm = set_size(sec);
 
+    // define an index array to contain the current indices of each axis
     std::array<unsigned int, 3> i = {0, 0, 0};
+
+    // define a permutated reference to each index 
     unsigned int &x = i[header->mapc-1];
     unsigned int &y = i[header->mapr-1];
     unsigned int &z = i[header->maps-1];
 
-    // default order is 123, so we have to iterate over z first, then y, then x
+    // do the actual reading. Note that the default order is 123, so we have to iterate over z first, then y, then x
     for (i[2] = 0; i[2] < zm; i[2]++) {
         for (i[1] = 0; i[1] < ym; i[1]++) {
             for (i[0] = 0; i[0] < xm; i[0]++) {
@@ -104,6 +111,7 @@ void ImageStackBase::read(std::ifstream& istream, size_t byte_size) {
             }
         }
     }
+    // check that we have read the correct number of bytes
     if (istream.peek() != EOF) {throw except::io_error("ImageStack::read: File is larger than expected.");}
 
     // set z values

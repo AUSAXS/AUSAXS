@@ -84,6 +84,7 @@ TEST_CASE("lookup_tables", "[table]") {
 TEST_CASE("debye_lookup_table", "[table]") {
     setting::axes::qmax = 1.001;
     SECTION("default_table") {
+        table::DebyeLookupTable::reset();
         double width = setting::axes::scattering_intensity_plot_binned_width;
         vector<double> d(200/width, 0);
         for (unsigned int i = 1; i < d.size(); i++) {

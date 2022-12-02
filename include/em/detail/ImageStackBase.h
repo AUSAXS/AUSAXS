@@ -140,12 +140,12 @@ namespace em {
             unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
             std::shared_ptr<em::PartialHistogramManager> phm;   // The histogram manager. Manages both the backing protein & its scattering curve. 
             
-            void read(std::ifstream& istream, size_t byte_size);
+            void read(std::ifstream& istream, unsigned int byte_size);
 
             /**
              * @brief Get the data byte size of the CCP file. 
              */
-            size_t get_byte_size() const;
+            unsigned int get_byte_size() const;
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 

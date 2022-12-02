@@ -10,10 +10,6 @@ class Footer : Record {
 public: 
 	Footer() {}
 
-	Footer(const Footer& footer) noexcept : contents(footer.contents) {}
-
-	Footer(const Footer&& footer) noexcept : contents(std::move(footer.contents)) {}
-
 	~Footer() override {}
 
 	/**
@@ -54,8 +50,6 @@ public:
 	 * @brief Get the number of header lines.
 	 */
 	size_t size() const;
-
-	Footer& operator=(const Footer& footer);
 
 private: 
 	std::vector<std::string> contents;

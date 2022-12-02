@@ -65,7 +65,7 @@ namespace em {
             /**
              * @brief Get the byte size of each voxel.
              */
-            size_t get_byte_size() const;
+            unsigned int get_byte_size() const;
 
             /**
              * @brief Rotate the map contents. This does not affect the operation of this program.
