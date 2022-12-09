@@ -81,6 +81,8 @@ viewmap/%:
 		folder=$$(dirname $${file}); \
 		pdb=$$(find $${folder} -name "*.pdb" -or -name "*.ent"); \
 		$(pymol) $${file} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
+	else \
+		echo "File \"$*\" not found."; \
 	fi
 #		$(pymol) $${file} $${pdb} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
 #	fi
@@ -95,7 +97,8 @@ simview/%:
 # calculate the histogram for a given structure
 hist/%: build/executable/hist
 	@structure=$(shell find data/ -name "$*.pdb"); \
-	$< $${structure} figures/ --grid_width ${options}
+	$< $${structure} figures/hist/$*/ ${options}
+	make plot/figures/hist/$*/
 
 # flip the axes of an EM map
 order := ""

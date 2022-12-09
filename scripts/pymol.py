@@ -43,7 +43,7 @@ def snapshot():
 	cmd.set("mesh_radius", 0.02) 	# thinner mesh lines
 	cmd.set("ray_shadows", "off")	# disable shadows
 	cmd.set("antialias", 2)		# best quality
-	cmd.set("hash_max", 300)	# improve performance
+	cmd.set("hash_max", 4196)	# improve performance
 	cmd.bg_color("white")		# make it a bit easier to see
 
 	# guess file name
@@ -60,3 +60,12 @@ def snapshot():
 	global counter
 	counter += 1
 	cmd.png(filename+"_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=1)
+
+# pymol doesn't seem to be able to parse arguments correctly, so we need a separate method for when we cannot use ray
+@cmd.extend
+def drawshot():
+	global counter
+	counter += 1
+	cmd.set("opaque_background", "on")
+	cmd.draw
+	cmd.png("temp_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=0)

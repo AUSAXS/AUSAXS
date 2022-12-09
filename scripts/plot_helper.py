@@ -307,7 +307,7 @@ def plot_landscape(d: Dataset):
     ax.set_xlabel(r"{}".format(d.options.xlabel))
     ax.set_ylabel(r"{}".format(d.options.ylabel))
     ax.set_zlabel(r"{}".format(d.options.zlabel))
-    plt.show()
+    # plt.show()
     return
 
 def plot_file(file: str):

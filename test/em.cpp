@@ -480,7 +480,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
 
 TEST_CASE("voxelcount", "[em],[manual]") {
     setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    setting::em::sample_frequency = 1;
     setting::axes::qmax = 0.4;
     em::ImageStack image("data/emd_24889/emd_24889.map");
 
@@ -491,7 +491,7 @@ TEST_CASE("voxelcount", "[em],[manual]") {
     }
 
     data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}});
-    plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.pdf"); 
+    plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.png"); 
 }
 
 TEST_CASE("instability", "[em],[files],[manual]") {

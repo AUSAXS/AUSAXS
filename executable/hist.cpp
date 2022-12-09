@@ -37,12 +37,12 @@ int main(int argc, char const *argv[]) {
     hist::ScatteringHistogram d = protein.get_histogram();
 
     // Distance plot
-    plots::PlotDistance d_plot(d, output + "distance." + setting::figures::format);
+    plots::PlotDistance d_plot(d, output + "distance." + setting::plot::format);
 
     // Debye scattering intensity plot
-    plots::PlotIntensity i_plot(d);
-    i_plot.plot_guinier_approx(d);
-    i_plot.save(output + "intensity." + setting::figures::format);
+    // plots::PlotIntensity i_plot(d);
+    // i_plot.plot_guinier_approx(d);
+    // i_plot.save(output + "intensity." + setting::plot::format);
 
     std::cout << "Protein size: " << protein.atom_size() << std::endl;
     return 0;

@@ -11,7 +11,7 @@ using std::string;
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::fit::verbose = false;
-    setting::em::sample_frequency = 2;
+    setting::em::sample_frequency = 1;
 
     // check that we have at least one argument
     if (argc != 3) {
