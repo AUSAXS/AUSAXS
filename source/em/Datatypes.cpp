@@ -16,6 +16,7 @@ std::string em::ccp4::Header::to_string() const noexcept {
     s << "Minimum pixel: " << dmin << ", maximum pixel: " << dmax << ", mean: " << dmean << "\n";
     s << "Space group number: " << ispg << "\n";
     s << "Extended header size: " << nsymbt << "\n";
+    s << "Byte size: " << get_byte_size() << " (mode: " << mode << ")\n";
     return s.str();
 }
 

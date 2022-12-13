@@ -3,7 +3,7 @@
 #include <fitter/Fit.h>
 #include <plots/Plot.h>
 #include <hist/ScatteringHistogram.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/SimpleIntensityFitter.h>
 
 #include <memory>
 #include <string>
