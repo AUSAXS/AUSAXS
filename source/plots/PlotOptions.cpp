@@ -170,7 +170,7 @@ std::string PlotOptions::to_string() const {
         << "zlabel "         << zlabel << "\n"
         << "legend "         << legend << "\n"
         << "ylimits "        << ylimits.min << " " << ylimits.max << "\n"
-        << "xlimits "        << xlimits.min << " " << ylimits.max << std::endl;
+        << "xlimits "        << xlimits.min << " " << xlimits.max << std::endl;
     return ss.str();
 }
 

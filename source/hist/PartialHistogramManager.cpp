@@ -55,9 +55,8 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManager::initialize() {
-    // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
-    Axis axis = Axis(1000/width, 0, 1000); 
+    Axis axis = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
@@ -278,9 +277,8 @@ ScatteringHistogram PartialHistogramManager::calculate_slow() const {
     auto atoms = protein->atoms();
     auto waters = protein->waters();
 
-    // generous sizes - 1000Å should be enough for just about any structure
     double width = setting::axes::scattering_intensity_plot_binned_width;
-    Axis axes = Axis(1000/width, 0, 1000); 
+    Axis axes = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
     std::vector<double> p_pp(axes.bins, 0);
     std::vector<double> p_hh(axes.bins, 0);
     std::vector<double> p_hp(axes.bins, 0);
