@@ -87,12 +87,12 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
     unsigned int index = 0;
     auto bx = parameters[0].bounds.value();
     for (unsigned int i = 0; i < bins; i++) {
-        double vx = bx.min + bx.span()*(i/(bins-1));
+        double vx = bx.min + i*bx.span()/(bins-1);
         double fval;
         if (parameters.size() == 2) {
             auto by = parameters[1].bounds.value();
             for (unsigned int j = 0; j < bins; j++) {
-                double vy = by.min + by.span()*(j/(bins-1));
+                double vy = by.min + j*by.span()/(bins-1);
                 fval = function({vx, vy});
                 l.evals[index++] = Evaluation({vx, vy}, fval);
             }

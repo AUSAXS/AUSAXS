@@ -1,9 +1,10 @@
 #include <mini/dlibMinimizer.h>
+#include <utility/Utility.h>
 
 using namespace mini;
 
 dlibMinimizer::dlibMinimizer() {
-    dlib_fwrapper = [this](column_vector x) {return this->function({x(0)});};
+    dlib_fwrapper = [this](column_vector x) {return this->function(std::vector<double>(x.begin(), x.end()));};
 }
 
 dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter param) : dlibMinimizer() {
@@ -14,8 +15,10 @@ dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter p
     set_function(f);
 }
 
-dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param) : dlibMinimizer() {
-    add_parameter(param);
+dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param) : dlibMinimizer() {
+    for (auto& p : param) {
+        add_parameter(p);
+    }
     set_function(function);
 }
 
@@ -26,27 +29,41 @@ Result dlibMinimizer::minimize_override() {
     if (!is_function_set()) {throw except::bad_order("dlibMinimizer::minimize: No function was set.");}
 
     // prepare guess value
-    column_vector x;
-    if (parameters[0].has_guess()) {
-        x = {*parameters[0].guess};
-    } else if (parameters[0].has_bounds()) {
-        x = {parameters[0].bounds->center()};
-    } else {
-        throw except::invalid_argument("dlibMinimizer::minimize: Either a guess or bounds must be supplied.");
+    bool bounds = true;
+    column_vector x(parameters.size());
+    column_vector min(parameters.size());
+    column_vector max(parameters.size());
+    for (unsigned int i = 0; i < parameters.size(); i++) {
+        if (parameters[i].has_guess()) {
+            x(i) = parameters[i].guess.value();
+        } else if (parameters[i].has_bounds()) {
+            x(i) = parameters[i].bounds->center();
+        } else {
+            throw except::invalid_argument("dlibMinimizer::minimize: Either a guess or bounds must be supplied.");
+        }
+
+        if (!parameters[i].has_bounds()) {
+            bounds = false;
+            if (i != 0) {
+                utility::print_warning("dlibMinimizer::minimize_override: Bounds supplied for some parameters, but not all. Disabling bounds.");
+            }
+        } else {
+            min(i) = parameters[i].bounds->min;
+            max(i) = parameters[i].bounds->max;
+        }
     }
 
     double fmin;
-    if (parameters[0].has_bounds()) {
+    if (bounds) {
         fmin = dlib::find_min_box_constrained(
             dlib::bfgs_search_strategy(), 
             dlib::objective_delta_stop_strategy(1e-7), 
             dlib_fwrapper, 
             dlib::derivative(dlib_fwrapper), 
             x, 
-            parameters[0].bounds->min,
-            parameters[0].bounds->max
+            min,
+            max
         );
-
     } else {
         fmin = dlib::find_min_using_approximate_derivatives(
             dlib::bfgs_search_strategy(),
@@ -64,7 +81,7 @@ Result dlibMinimizer::minimize_override() {
     for (unsigned int i = 0; i < parameters.size(); i++) {
         FittedParameter param;
         param.name = parameters[i].name;
-        param.value = x;
+        param.value = x(i);
         param.error = {0, 0};
         res.add_parameter(param);
     }

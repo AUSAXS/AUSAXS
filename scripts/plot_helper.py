@@ -298,10 +298,10 @@ def plot_landscape(d: Dataset):
 
     # x, y, z = d.data[:, 0], d.data[:, 1], np.log10(d.data[:, 2])
     x, y, z = d.data[:, 0], d.data[:, 1], d.data[:, 2]
-    lim = 5*np.min(z)
-    x = x[z < lim]
-    y = y[z < lim]
-    z = z[z < lim]
+    # lim = 5*np.min(z)
+    # x = x[z < lim]
+    # y = y[z < lim]
+    # z = z[z < lim]
 
     ax.scatter(x, y, z, c=z, cmap=mpl.colormaps["coolwarm"])
     ax.set_xlabel(r"{}".format(d.options.xlabel))

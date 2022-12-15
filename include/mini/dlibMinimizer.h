@@ -10,7 +10,7 @@ namespace mini {
         public:
             dlibMinimizer();
 
-            dlibMinimizer(std::function<double(std::vector<double>)> function, Parameter param = Parameter());
+            dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param = {});
 
             dlibMinimizer(std::function<double(double)> function, Parameter param = Parameter());
 

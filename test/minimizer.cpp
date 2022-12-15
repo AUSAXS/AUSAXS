@@ -39,15 +39,15 @@ TestFunction Decanomial([] (std::vector<double> pars) {
 );
 TestFunction Hosaki([] (std::vector<double> pars) {
     double x1 = pars[0], x2 = pars[1]; 
-    return (1 - 8*x1 + 7*x1*x1 - 7*std::pow(x1, 3)/3 + std::pow(x1, 4)/4)*x2*x2*std::exp(-x1);}, 
+    return (1 - 8*x1 + 7*x1*x1 - 7*std::pow(x1, 3)/3 + std::pow(x1, 4)/4)*x2*x2*std::exp(-x2);}, 
     {Limit(0, 5), Limit(0, 5)}, 
     {4, 2}
 );
-TestFunction RosenbrockModified([] (std::vector<double> pars) {
+TestFunction Rosenbrock([] (std::vector<double> pars) {
     double x1 = pars[0], x2 = pars[1]; 
-    return 74 + 100*std::pow(x2 - x1*x1, 2) + std::pow(1-x1, 2) - 400*std::exp(-(std::pow(x1+1, 2)+std::pow(x2+1, 2))*10);}, 
-    {Limit(-1, 0.4), Limit(-1, 1)}, 
-    {-0.9, -0.95}
+    return std::pow(1-x1, 2) + 100*std::pow(x2-x1*x1, 2);}, 
+    {Limit(-2, 2), Limit(-2, 2)}, 
+    {1, 1}
 );
 
 TEST_CASE("1d_landscape", "[minimizer],[manual]") {
@@ -109,7 +109,7 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
 
 TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
     auto ExplorerTest1D = [] (const TestFunction& test) {
-        mini::dlibMinimizer mini1(test.function, {"a", test.bounds[0]});
+        mini::dlibMinimizer mini1(test.function, {{"a", test.bounds[0]}});
         auto res = mini1.minimize();
 
         mini::Parameter p = res.get_parameter("a");
@@ -142,51 +142,28 @@ TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
 
 typedef dlib::matrix<double,0,1> column_vector;
 TEST_CASE("dlib", "[minimizer]") {
-    auto dlibTest1D = [] (const TestFunction& test, auto strat) {
-        auto wrapper = [&test] (const column_vector& x) {
-            return test.function({x(0)});
-        };
-
-        column_vector starting_point = {test.get_center()[0]};
-        dlib::find_min_box_constrained(strat, dlib::objective_delta_stop_strategy(1e-7), wrapper, dlib::derivative(wrapper), starting_point, test.bounds[0].min, test.bounds[0].max);
-        CHECK_THAT(starting_point(0), Catch::Matchers::WithinAbs(test.min[0], 1e-3));
-    };
-
-    auto dlibTest2D = [] (const TestFunction& test, auto strat) {
-        auto wrapper = [&test] (const column_vector& x) {
-            std::vector<double> v = {x(0), x(1)};
-            return test.function(v);
-        };
-
-        column_vector starting_point = {test.get_center()[0], test.get_center()[1]};
-        column_vector bmin = {test.bounds[0].min, test.bounds[1].min};
-        column_vector bmax = {test.bounds[0].max, test.bounds[1].max};
-        dlib::find_min_box_constrained(strat, dlib::objective_delta_stop_strategy(1e-7), wrapper, dlib::derivative(wrapper), starting_point, bmin, bmax);
-
-        CHECK_THAT(starting_point(0), Catch::Matchers::WithinAbs(test.min[0], 1e-3));
-        CHECK_THAT(starting_point(1), Catch::Matchers::WithinAbs(test.min[1], 1e-3));
-    };
-
-    SECTION("bfgs") {
-        SECTION("problem04") {dlibTest1D(problem04, dlib::bfgs_search_strategy());}
-        SECTION("problem13") {dlibTest1D(problem13, dlib::bfgs_search_strategy());}
-        SECTION("problem18") {dlibTest1D(problem18, dlib::bfgs_search_strategy());}
-
-        SECTION("Decanomial") {dlibTest2D(Decanomial, dlib::bfgs_search_strategy());}
-        SECTION("Hosaki") {dlibTest2D(Hosaki, dlib::bfgs_search_strategy());}
-        SECTION("RosenbrockModified") {dlibTest2D(RosenbrockModified, dlib::bfgs_search_strategy());}
-    }
-}
-
-TEST_CASE("dlib_interface", "[minimizer]") {
     auto dlibTest1D = [] (const TestFunction& test) {
-        mini::dlibMinimizer mini(test.function, {"a", test.bounds[0]});
+        auto mini = mini::dlibMinimizer(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
         auto res = mini.minimize();
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
     };
-    SECTION("problem04") {dlibTest1D(problem04);}
-    SECTION("problem13") {dlibTest1D(problem13);}
-    SECTION("problem18") {dlibTest1D(problem18);}
+
+    auto dlibTest2D = [] (const TestFunction& test) {
+        auto mini = mini::dlibMinimizer(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
+        auto res = mini.minimize();
+        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+        CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
+    };
+
+    SECTION("bfgs") {
+        SECTION("problem04") {dlibTest1D(problem04);}
+        SECTION("problem13") {dlibTest1D(problem13);}
+        SECTION("problem18") {dlibTest1D(problem18);}
+
+        SECTION("Decanomial") {dlibTest2D(Decanomial);}
+        SECTION("Hosaki")     {dlibTest2D(Hosaki);}
+        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock);}
+    }
 }
 
 TEST_CASE("create_minimizer", "[minimizer]") {
