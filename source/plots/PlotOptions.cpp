@@ -137,7 +137,6 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     draw_line = opt.draw_line;
     draw_errors = opt.draw_errors;
     draw_markers = opt.draw_markers;
-    use_existing_axes = opt.use_existing_axes;
     logx = opt.logx; 
     logy = opt.logy;
     title = opt.title; 

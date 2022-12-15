@@ -86,7 +86,6 @@ namespace plots {
             bool draw_errors = false;               // Draw error bars if possible
             bool draw_markers = false;              // Draw a marker for each point
             bool draw_bars = false;                 // Draw bars for a histogram.
-            bool use_existing_axes = false;         // Draw with existing axes. Must be false for the first plot on each canvas. 
             bool logx = false;                      // Log scale for the x-axis. Only valid if use_existing_axes is false.  
             bool logy = false;                      // Log scale for the y-axis. Only valid if use_existing_axes is false. 
             Limit ylimits;                          // Limits on the y-axis

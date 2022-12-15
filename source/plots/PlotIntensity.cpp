@@ -22,6 +22,7 @@ void plots::PlotIntensity::plot(const SimpleDataset& data, style::Color color) {
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
     options.ylimits = data.span_y_positive();
+    options.logx = true;
     options.logy = true;
     options.color = color;
 
@@ -34,10 +35,10 @@ void plots::PlotIntensity::plot(const SimpleDataset& data, style::Color color) {
 
 void plots::PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Color color) {
     PlotOptions options(data.get_plot_options());
-    options.use_existing_axes = true;
     options.color = color;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
+    options.logx = true;
     options.logy = true;
 
     ss << "PlotDataset\n"
@@ -56,6 +57,7 @@ void plots::PlotIntensity::plot_guinier_approx(const hist::ScatteringHistogram& 
     options.legend = "Guinier approx";
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
+    options.logx = true;
     options.logy = true;
 
     auto guinier = data.plot_guinier_approx();
