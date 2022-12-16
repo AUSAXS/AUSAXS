@@ -1,12 +1,10 @@
 #pragma once
 
 #include <mini/Minimizer.h>
-#include <dlib/optimization.h>
-#include <dlib/global_optimization.h>
 
 namespace mini {
+    struct column_vector;
     class dlibMinimizer : public Minimizer {
-        typedef dlib::matrix<double,0,1> column_vector;
         public:
             dlibMinimizer();
 

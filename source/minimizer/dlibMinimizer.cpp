@@ -1,7 +1,16 @@
 #include <mini/dlibMinimizer.h>
 #include <utility/Utility.h>
 
+#include <dlib/optimization.h>
+#include <dlib/global_optimization.h>
+
 using namespace mini;
+namespace mini {
+    // typedef dlib::matrix<double, 0, 1> column_vector;
+    struct column_vector : dlib::matrix<double, 0, 1> {
+        using dlib::matrix<double, 0, 1>::matrix;
+    };
+}
 
 dlibMinimizer::dlibMinimizer() {
     dlib_fwrapper = [this](column_vector x) {return this->function(std::vector<double>(x.begin(), x.end()));};
