@@ -37,3 +37,11 @@ const FittedParameter& Result::get_parameter(unsigned int index) const {
 FittedParameter& Result::get_parameter(unsigned int index) {
     return const_cast<FittedParameter&>(std::as_const(*this).get_parameter(index));
 }
+
+FittedParameter Result::operator[](unsigned int index) const {
+    return get_parameter(index);
+}
+
+FittedParameter& Result::operator[](unsigned int index) {
+    return get_parameter(index);
+}

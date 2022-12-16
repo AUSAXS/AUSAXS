@@ -85,3 +85,7 @@ std::string Histogram::to_string() const noexcept {
 }
 
 size_t Histogram::size() const noexcept {return p.size();}
+
+SimpleDataset Histogram::as_dataset() const {
+    return SimpleDataset(axis.as_vector(), std::vector<double>(p.begin(), p.end()));
+}

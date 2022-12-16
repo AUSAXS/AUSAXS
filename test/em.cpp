@@ -2,6 +2,8 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <iostream>
+#include <filesystem>
+#include <fstream>
 
 #include <em/ImageStack.h>
 #include <plots/all.h>
@@ -10,7 +12,6 @@
 #include <utility/Multiset.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
-#include <filesystem>
 
 using std::vector;
 

@@ -5,6 +5,7 @@
 #include <fitter/IntensityFitter.h>
 
 #include <iomanip>
+#include <cassert>
 
 using namespace hist;
 
