@@ -51,6 +51,16 @@ namespace mini {
         FittedParameter& get_parameter(unsigned int index);
 
         /**
+         * @brief Get a parameter based on its index from this result.
+         */
+        FittedParameter& operator[](unsigned int index);
+
+        /**
+         * @brief Get a parameter based on its index from this result.
+         */
+        FittedParameter operator[](unsigned int index) const;
+
+        /**
          * @brief Add a parameter to this result.
          */
         void add_parameter(const FittedParameter& param) noexcept;

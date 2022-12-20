@@ -2,7 +2,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include <preprocessor.h>
+#include <Symbols.h>
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
 #include <em/detail/ImageStackBase.h>

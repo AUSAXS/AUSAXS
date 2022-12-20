@@ -4,8 +4,8 @@
 #include <initializer_list>
 #include <concepts>
 
-#include <preprocessor.h>
-#include <utility/concepts.h>
+#include <Symbols.h>
+#include <utility/Concepts.h>
 #include <math/slices/ConstSlice.h>
 #include <math/slices/MutableSlice.h>
 #include <utility/Exceptions.h>

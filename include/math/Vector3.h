@@ -5,7 +5,7 @@
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector.h>
-#include <utility/concepts.h>
+#include <utility/Concepts.h>
 #include <utility/Exceptions.h>
 
 template<numeric T> 

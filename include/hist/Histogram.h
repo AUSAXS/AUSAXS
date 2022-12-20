@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility/SimpleDataset.h>
 #include <utility/Axis.h>
 #include <math/Vector.h>
 #include <plots/PlotOptions.h>
@@ -80,12 +81,14 @@ namespace hist {
 
             [[nodiscard]] std::string to_string() const noexcept;
 
+            SimpleDataset as_dataset() const;
+
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);
             double& operator[](const int i);
             double operator[](const int i) const;
 
-            Vector<double> p;                // The bin values. 
-            Axis axis;                       // The axis spanned by this histogram. 
+            Vector<double> p;   // The bin values. 
+            Axis axis;          // The axis spanned by this histogram. 
     };
 }

@@ -2,7 +2,7 @@
 
 #include <math/Decomposition.h>
 #include <math/Vector.h>
-#include <utility/concepts.h>
+#include <utility/Concepts.h>
 
 #include <memory>
 

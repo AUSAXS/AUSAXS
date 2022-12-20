@@ -1,5 +1,5 @@
 # Todo
- * [ ] PlotOptions: Remove use_existing_axes. Probably more stuff to remove as well. 
+ * [x] dlibMinimizer: Hide all dlib includes in .cpp.
  * [ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
  * [ ] RhoM: Calculate total weight of protein, multiply (divide) by Avogadro constant, divide by volume to get average density. Should be 1.4 or something like that. 
  * [ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
