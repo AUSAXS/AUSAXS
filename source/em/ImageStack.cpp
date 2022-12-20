@@ -54,7 +54,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    d.limit_y(0, min.y*5);  // focus on the area near the minimum
+    d.limit_y(0, min.y*5); // focus on the area near the minimum
     if (d.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;       // first we determine the bounds of the area we want to sample
         if (d.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
@@ -116,12 +116,12 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     mini::Result res;
     if (setting::em::hydrate) {
         // sample the area around the minimum
-        mini::MinimumExplorer explorer(f, param, 50);
+        mini::MinimumExplorer explorer(f, param, setting::em::evals);
         res = explorer.minimize();
 
         SimpleDataset area;
         {
-            auto l = explorer.landscape(setting::em::evals);
+            auto l = explorer.landscape();
             evals.append(l);
             area = l.as_dataset();
         }
@@ -304,7 +304,7 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis&
 
     // fit
     double l = from_level(1);
-    Limit limit(0.5*l, 5*l);
+    Limit limit(setting::em::alpha_levels.min*l, setting::em::alpha_levels.max*l);
     minimizer.clear_parameters();
     minimizer.add_parameter({"cutoff", limit.center(), limit});
     auto res = minimizer.minimize();

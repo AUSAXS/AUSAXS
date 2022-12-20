@@ -429,9 +429,9 @@ TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
     setting::em::sample_frequency = 1;
     setting::axes::qmax = 0.4;
 
-    setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
-
-    std::string file = "data/A2M_2020_Q4/A2M_2020_Q4.ccp4";
+    // std::string file = "data/A2M_2020_Q4/A2M_2020_Q4.ccp4";
+    // setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
+    std::string file = "data/Gregers_cryo/Gregers_cryo.mrc";
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));

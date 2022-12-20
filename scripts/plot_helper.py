@@ -192,6 +192,44 @@ def read_vline(file):
     file.readline() # empty space
     return Vline(val, read_options(file))
 
+def read_2dhist(file):
+    """Reads a 2d histogram from a .plot file.
+
+    Args:
+        file: The file iterator.
+
+    Returns:
+        hist: The 2d histogram.
+    """
+
+    # read axes
+    xline = file.readline().rstrip().split() # format is "xaxis: <n> <min> <max>"
+    x_axis = [int(xline[1]), float(xline[2]), float(xline[3])]
+    yline = file.readline().rstrip().split()
+    y_axis = [int(yline[1]), float(yline[2]), float(yline[3])]
+
+    x, y = [], []
+    xstep = (x_axis[2] - x_axis[1])/x_axis[0]
+    for i in range(x_axis[0]):
+        x.append(x_axis[1] + i*xstep)
+
+    ystep = (y_axis[2] - y_axis[1])/y_axis[0]
+    for i in range(y_axis[0]):
+        y.append(y_axis[1] + i*ystep)       
+
+    z = []
+    while(line := file.readline()):
+        line = line.rstrip()
+
+        # empty lines separates sections
+        if line == "":
+            break
+
+        words = line.split()
+        z.append([float(w) for w in words])
+
+    return [np.array(x), np.array(y), np.array(z), read_options(file)]
+
 first_plot: bool = True
 def plot_dataset(d: Dataset): 
     """Plots a dataset.
@@ -310,6 +348,20 @@ def plot_landscape(d: Dataset):
     # plt.show()
     return
 
+def plot_image(x, y, z):
+    """Plots a 2D histogram.
+
+    Args:
+        x: The x-axis data.
+        y: The y-axis data.
+        z: The z-axis data.
+    """
+
+    X, Y = np.meshgrid(x, y)
+    plt.contourf(X, Y, z, 100, cmap=mpl.cm.coolwarm)
+    plt.colorbar()
+    return
+
 def plot_file(file: str):
     """Plots a .plot file.
 
@@ -352,8 +404,8 @@ def plot_file(file: str):
                     exit(1)
 
                 case PlotType.Image:
-                    print("Image not implemented yet.")
-                    exit(1)
+                    x, y, z, options = read_2dhist(f)
+                    plot_image(x, y, z)
 
                 case PlotType.ImageAtoms:
                     print("ImageAtoms not implemented yet.")
@@ -365,6 +417,7 @@ def plot_file(file: str):
 
     path = file.rsplit('.', 1)[0]
     plt.savefig(path, dpi=300)
+    plt.close()
 
     # delete the .plot file
     # os.remove(file)

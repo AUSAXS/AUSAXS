@@ -119,6 +119,7 @@ void Dataset::load(std::string path) {
     if (!input.is_open()) {throw std::ios_base::failure("Dataset::load: Could not open file \"" + path + "\"");}
 
     std::string line;
+    std::vector<std::string> header;
     std::vector<std::vector<double>> row_data;
     std::vector<unsigned int> col_number;
     while(getline(input, line)) {
@@ -143,7 +144,10 @@ void Dataset::load(std::string path) {
                 skip = true;
             }
         }
-        if (skip) {continue;}
+        if (skip) {
+            header.push_back(line);
+            continue;
+        }
 
         // add values to dataset
         std::vector<double> vals(tokens.size());
@@ -187,6 +191,24 @@ void Dataset::load(std::string path) {
     // verify that at least one row was read correctly
     if (size() == 0) {
         throw except::unexpected("Dataset::load: No data could be read from the file.");
+    }
+
+    // scan the headers for units. must be either [Å] or [nm]
+    bool found_unit = false;
+    for (auto& s : header) {
+        if (s.find("[nm]") != std::string::npos) {
+            std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;
+            for (unsigned int i = 0; i < size(); i++) {
+                index(i, 0) /= 10;
+            }
+            found_unit = true;
+        } else if (s.find("[Å]") != std::string::npos) {
+            std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;
+            found_unit = true;
+        }
+    }
+    if (!found_unit) {
+        std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;
     }
 
     // check if the file is abnormally large

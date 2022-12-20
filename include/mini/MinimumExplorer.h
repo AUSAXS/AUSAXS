@@ -32,7 +32,7 @@ namespace mini {
             /**
              * @brief Generate a landscape of the function.
              */
-            mini::Landscape landscape(unsigned int evals) override;
+            mini::Landscape landscape(unsigned int evals = 100) override;
 
         private:
             unsigned int evals;

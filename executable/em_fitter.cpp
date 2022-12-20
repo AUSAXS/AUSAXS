@@ -22,8 +22,10 @@ int main(int argc, char const *argv[]) {
     app.add_option("input_exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
-    app.add_option("--qlow", setting::axes::qmin, "Lower limit on used q values from measurement file.");
-    app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
+    app.add_option("--qmin", setting::axes::qmin, "Lower limit on used q values from measurement file.");
+    app.add_option("--qmax", setting::axes::qmax, "Upper limit on used q values from measurement file.");
+    app.add_option("--levelmin", setting::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance.");
+    app.add_option("--levelmax", setting::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map.");
     app.add_option("--frequency", setting::em::sample_frequency, "Sampling frequency of the EM map.");
     app.add_flag("--hydrate,!--no-hydrate", setting::em::hydrate, "Whether to hydrate the protein before fitting.");
     CLI11_PARSE(app, argc, argv);

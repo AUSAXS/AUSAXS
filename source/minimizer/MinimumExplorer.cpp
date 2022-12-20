@@ -18,6 +18,7 @@ MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func
 
 mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
     if (parameters.empty()) {throw except::bad_order("MinimumExplorer::landscape: No parameters were supplied.");}
+    if (!evaluations.evals.empty()) {return evaluations;} // if the minimizer has already been called, we can just reuse its result
 
     const Parameter& param = parameters[0];
     double xmin = *param.guess;

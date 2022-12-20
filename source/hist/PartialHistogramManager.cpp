@@ -41,6 +41,26 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
     // calculate self-correlation
     for (unsigned int i = 0; i < current.size; i++) {p_pp[0] += current.data[i].w*current.data[i].w;}
 
+    // use 8 threads to calculate the distances
+    // std::vector<std::thread> threads;
+    // for (unsigned int i = 0; i < 8; i++) {
+    //     threads.push_back(std::thread([this, &current, &p_pp, &width, index, i]() 
+    //     {
+    //         for (unsigned int j = i; j < current.size; j += 8) {
+    //             for (unsigned int k = j+1; k < current.size; k++) {
+    //                 float weight = current.data[j].w*current.data[k].w;
+    //                 float dx = current.data[j].x - current.data[k].x;
+    //                 float dy = current.data[j].y - current.data[k].y;
+    //                 float dz = current.data[j].z - current.data[k].z;
+    //                 float dist = sqrt(dx*dx + dy*dy + dz*dz);
+    //                 p_pp[dist/width] += 2*weight;
+    //             }
+    //         }
+    //     }));
+    // }
+    // for (unsigned int i = 0; i < 8; i++) {threads[i].join();}
+    // threads.clear();
+
     // store the coordinates for later
     coords_p[index] = std::move(current);
 

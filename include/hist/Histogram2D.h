@@ -13,6 +13,8 @@ namespace hist {
 
             Histogram2D(Axis x_axis, Axis y_axis) : Matrix(x_axis.bins, y_axis.bins), x_axis(x_axis), y_axis(y_axis) {}
 
+            std::string to_string() const;
+
             Axis x_axis, y_axis;
     };
 }
