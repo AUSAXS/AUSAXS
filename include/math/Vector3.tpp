@@ -126,7 +126,7 @@ void Vector3<T>::rotate(const Matrix<double>& matrix) {
 }
 
 template<numeric T>
-Vector3<double>& Vector3<T>::normalize() {
+Vector3<T>& Vector3<T>::normalize() {
     *this /= this->norm();
     return *this;
 }

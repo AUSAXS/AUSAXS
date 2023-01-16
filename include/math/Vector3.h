@@ -160,7 +160,7 @@ class Vector3 {
 		/**
 		 * @brief Normalize this vector to unit length.
 		 */
-		Vector3<double>& normalize();
+		Vector3<T>& normalize();
 
 		/**
 		 * @brief Generate a complete 3D basis from this vector. 

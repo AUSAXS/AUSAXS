@@ -13,19 +13,13 @@
 #include <concepts>
 
 namespace mini {
-    enum class type {
-        BFGS,
-        GOLDEN,
-        MINIMUM_EXPLORER,
-        SCAN,
-        LIMITED_SCAN
-    };
-
     namespace detail {
         static std::shared_ptr<Minimizer> create_minimizer(type t) {
             switch (t) {
+                case type::DLIB_GLOBAL:
+                    return std::make_shared<dlibMinimizer<type::DLIB_GLOBAL>>();
                 case type::BFGS:
-                    return std::make_shared<dlibMinimizer>();
+                    return std::make_shared<dlibMinimizer<type::BFGS>>();
                 case type::GOLDEN:
                     return std::make_shared<Golden>();
                 case type::MINIMUM_EXPLORER:

@@ -6,17 +6,16 @@
 
 using namespace mini;
 namespace mini {
-    // typedef dlib::matrix<double, 0, 1> column_vector;
     struct column_vector : dlib::matrix<double, 0, 1> {
         using dlib::matrix<double, 0, 1>::matrix;
     };
 }
 
-dlibMinimizer::dlibMinimizer() {
-    dlib_fwrapper = [this](column_vector x) {return this->function(std::vector<double>(x.begin(), x.end()));};
-}
+template<mini::type algo>
+dlibMinimizer<algo>::dlibMinimizer() = default;
 
-dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter param) : dlibMinimizer() {
+template<mini::type algo>
+dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, Parameter param) {
     auto f = [=] (std::vector<double> x) {
         return function(x[0]);
     };
@@ -24,16 +23,19 @@ dlibMinimizer::dlibMinimizer(std::function<double(double)> function, Parameter p
     set_function(f);
 }
 
-dlibMinimizer::dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param) : dlibMinimizer() {
+template<mini::type algo>
+dlibMinimizer<algo>::dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param) {
     for (auto& p : param) {
         add_parameter(p);
     }
     set_function(function);
 }
 
-dlibMinimizer::~dlibMinimizer() = default;
+template<mini::type algo>
+dlibMinimizer<algo>::~dlibMinimizer() = default;
 
-Result dlibMinimizer::minimize_override() {
+template<mini::type algo>
+Result dlibMinimizer<algo>::minimize_override() {
     if (!is_parameter_set()) {throw except::bad_order("dlibMinimizer::minimize: No parameters were supplied.");}
     if (!is_function_set()) {throw except::bad_order("dlibMinimizer::minimize: No function was set.");}
 
@@ -63,21 +65,32 @@ Result dlibMinimizer::minimize_override() {
     }
 
     double fmin;
+    auto fwrapper = [this](dlib::matrix<double, 0, 1> x) {return this->function(std::vector<double>(x.begin(), x.end()));};
     if (bounds) {
-        fmin = dlib::find_min_box_constrained(
-            dlib::bfgs_search_strategy(), 
-            dlib::objective_delta_stop_strategy(1e-7), 
-            dlib_fwrapper, 
-            dlib::derivative(dlib_fwrapper), 
-            x, 
-            min,
-            max
-        );
+        if (algo == mini::type::DLIB_GLOBAL) {
+            auto eval = dlib::find_min_global(
+                fwrapper, 
+                min, 
+                max,
+                dlib::max_function_calls(10000)
+            );
+            fmin = eval.y;
+        } else if (algo == mini::type::BFGS) {
+            fmin = dlib::find_min_box_constrained(
+                dlib::bfgs_search_strategy(), 
+                dlib::objective_delta_stop_strategy(1e-7), 
+                fwrapper, 
+                dlib::derivative(fwrapper), 
+                x, 
+                min,
+                max
+            );
+        }
     } else {
         fmin = dlib::find_min_using_approximate_derivatives(
             dlib::bfgs_search_strategy(),
             dlib::objective_delta_stop_strategy(1e-7),
-            dlib_fwrapper,
+            fwrapper,
             x,
             -1
         );
@@ -96,3 +109,6 @@ Result dlibMinimizer::minimize_override() {
     }
     return res;
 }
+
+template class mini::dlibMinimizer<mini::type::DLIB_GLOBAL>;
+template class mini::dlibMinimizer<mini::type::BFGS>;

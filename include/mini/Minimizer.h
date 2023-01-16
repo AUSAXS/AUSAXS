@@ -10,6 +10,15 @@
 #include <functional>
 
 namespace mini {
+    enum class type {
+        BFGS,
+        DLIB_GLOBAL,
+        GOLDEN,
+        MINIMUM_EXPLORER,
+        SCAN,
+        LIMITED_SCAN
+    };
+
     /**
      * @brief A common interface for global minimizers. 
      */

@@ -312,7 +312,7 @@ build/executable/%: $(source) $(include) executable/%.cpp
 	@ cmake --build build/ --target $(*F) -j${cmake_threads} 
 
 build/%: $(source) $(include)
-	@ cmake --build build/ --target $(*F) -j${cmake_threads} 
+	@ cmake --build build/ --target $(*F) -j${cmake_threads}
 	
 build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
 	@ mkdir -p build
