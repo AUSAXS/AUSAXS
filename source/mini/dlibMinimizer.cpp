@@ -72,8 +72,9 @@ Result dlibMinimizer<algo>::minimize_override() {
                 fwrapper, 
                 min, 
                 max,
-                dlib::max_function_calls(10000)
+                dlib::max_function_calls(_max_evals)
             );
+            x = eval.x;
             fmin = eval.y;
         } else if (algo == mini::type::BFGS) {
             fmin = dlib::find_min_box_constrained(
@@ -87,6 +88,7 @@ Result dlibMinimizer<algo>::minimize_override() {
             );
         }
     } else {
+        utility::print_warning("dlibMinimizer::minimize_override: No bounds supplied. Using unconstrained minimization.");
         fmin = dlib::find_min_using_approximate_derivatives(
             dlib::bfgs_search_strategy(),
             dlib::objective_delta_stop_strategy(1e-7),
@@ -108,6 +110,11 @@ Result dlibMinimizer<algo>::minimize_override() {
         res.add_parameter(param);
     }
     return res;
+}
+
+template<mini::type algo>
+void dlibMinimizer<algo>::max_evals(unsigned int max_evals) {
+    this->_max_evals = max_evals;
 }
 
 template class mini::dlibMinimizer<mini::type::DLIB_GLOBAL>;

@@ -60,7 +60,7 @@ namespace plots {
              * @param style Should be either "markers" or "line", depending on which style is required. 
              * @param options The remaining options. If both markers and lines are needed, set both to true here. 
              */
-            PlotOptions( style, std::map<std::string, std::any> options);
+            PlotOptions(style, std::map<std::string, std::any> options);
 
             /**
              * @brief Copy constructor.

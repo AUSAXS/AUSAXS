@@ -142,27 +142,50 @@ TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
 
 typedef dlib::matrix<double,0,1> column_vector;
 TEST_CASE("dlib", "[minimizer]") {
-    auto dlibTest1D = [] (const TestFunction& test) {
-        auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
-        auto res = mini.minimize();
-        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+    auto dlibTest1D = [] (const TestFunction& test, mini::type type) {
+        if (type == mini::type::BFGS) {
+            auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
+            auto res = mini.minimize();
+            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+        } else if (type == mini::type::DLIB_GLOBAL) {
+            auto mini = mini::dlibMinimizer<mini::type::DLIB_GLOBAL>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
+            auto res = mini.minimize();
+            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+        }
     };
 
-    auto dlibTest2D = [] (const TestFunction& test) {
-        auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
-        auto res = mini.minimize();
-        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
-        CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
+    auto dlibTest2D = [] (const TestFunction& test, mini::type type) {
+        if (type == mini::type::BFGS) {
+            auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
+            auto res = mini.minimize();
+            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+            CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
+        } else if (type == mini::type::DLIB_GLOBAL) {
+            auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.bounds[0].center(), test.bounds[0]}, mini::Parameter{"b", test.bounds[1].center(), test.bounds[1]}});
+            auto res = mini.minimize();
+            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
+            CHECK_THAT(res.get_parameter("b").value, Catch::Matchers::WithinAbs(test.min[1], mini.tol));
+        }
     };
 
     SECTION("bfgs") {
-        SECTION("problem04") {dlibTest1D(problem04);}
-        SECTION("problem13") {dlibTest1D(problem13);}
-        SECTION("problem18") {dlibTest1D(problem18);}
+        SECTION("problem04") {dlibTest1D(problem04, mini::type::BFGS);}
+        SECTION("problem13") {dlibTest1D(problem13, mini::type::BFGS);}
+        SECTION("problem18") {dlibTest1D(problem18, mini::type::BFGS);}
 
-        SECTION("Decanomial") {dlibTest2D(Decanomial);}
-        SECTION("Hosaki")     {dlibTest2D(Hosaki);}
-        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock);}
+        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::type::BFGS);}
+        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::type::BFGS);}
+        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::type::BFGS);}
+    }
+
+    SECTION("dlib_global") {
+        SECTION("problem04") {dlibTest1D(problem04, mini::type::DLIB_GLOBAL);}
+        SECTION("problem13") {dlibTest1D(problem13, mini::type::DLIB_GLOBAL);}
+        SECTION("problem18") {dlibTest1D(problem18, mini::type::DLIB_GLOBAL);}
+
+        SECTION("Decanomial") {dlibTest2D(Decanomial, mini::type::DLIB_GLOBAL);}
+        SECTION("Hosaki")     {dlibTest2D(Hosaki, mini::type::DLIB_GLOBAL);}
+        SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::type::DLIB_GLOBAL);}
     }
 }
 
