@@ -10,6 +10,7 @@ class Protein;
 #include <hist/Histogram.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/HistogramManager.h>
 
 #include <vector>
 
@@ -31,68 +32,28 @@ namespace hist {
 	 */
 
 	/**
-	 * @brief A smart distance calculator which efficiently calculates the scattering histogram.
+	 * @brief A single-threaded smart distance calculator which efficiently calculates the distance histogram.
 	 */
-	class PartialHistogramManager {
+	class PartialHistogramManager : public HistogramManager {
 		public:
-			PartialHistogramManager(Protein* protein); 
+			using HistogramManager::HistogramManager;
 
+			/**
+			 * @brief Calculate only the total scattering histogram. 
+			 */
+			Histogram calculate() override;
+
+			/**
+			 * @brief Calculate all contributions to the scattering histogram. 
+			 */
+			ScatteringHistogram calculate_all() override;
+
+		private:
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
 			 */
 			void initialize();
-
-			/**
-			 * @brief Calculate only the total scattering histogram. 
-			 */
-			Histogram calculate();
-
-			/**
-			 * @brief Calculate all contributions to the scattering histogram. 
-			 */
-			ScatteringHistogram calculate_all();
-
-			/**
-			 * @brief Calculate the scattering histogram without utilizing partial histograms. 
-			 * 		  This is only intended for testing. 
-			 */
-			ScatteringHistogram calculate_slow() const;
-
-			/**
-			 * @brief Calculate the scattering histogram without utilizing partial histograms with multithreading. 
-			 * 		  This is only intended for testing. 
-			 */
-			ScatteringHistogram calculate_slow_mt() const;
-
-			/**
-			 * @brief Get a signalling object for signalling a change of state. 
-			 *        Each body is supposed to hold one of these, and trigger it when they change state. 
-			 */
-			std::shared_ptr<StateManager::BoundSignaller> get_probe(unsigned int i);
-
-			/**
-			 * @brief Signal that the hydration layer was modified. 
-			 *        This is supposed to be used only by the Protein class, which has direct access to this object. Thus a signalling object is unnecessary. 
-			 */
-			void signal_modified_hydration_layer();
-
-			const StateManager& get_state_manager() const;
-
-			StateManager& get_state_manager();
-
-		private:
-			const unsigned int size;                            // number of managed bodies
-			StateManager statemanager;                    		// a helper which keeps track of state changes in each body
-			std::vector<detail::CompactCoordinates> coords_p;   // a compact representation of the relevant data from the managed bodies
-			detail::CompactCoordinates coords_h;                // a compact representation of the hydration data
-			Protein* protein;                             		// pointer to the parent Protein
-
-			// histogram data
-			detail::MasterHistogram master;                       			// the current total histogram
-			std::vector<std::vector<detail::PartialHistogram>> partials_pp; // the partial histograms
-			std::vector<detail::HydrationHistogram> partials_hp;       		// the partial hydration-atom histograms
-			detail::HydrationHistogram partials_hh;               			// the partial histogram for the hydration layer
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a index and all others. 
