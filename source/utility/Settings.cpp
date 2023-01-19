@@ -23,12 +23,12 @@ void set(std::string opt, std::vector<std::string> val) {
         }
     }
 
-    throw except::unexpected("\"Settings::set\": Option \"" + opt + "\" not found.");
+    throw except::unexpected("Settings::set: Option \"" + opt + "\" not found.");
 }
 
 void setting::read(std::string path) {
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("\"Settings::read\": Could not open setup file.");}
+    if (!input.is_open()) {throw std::ios_base::failure("Settings::read: Could not open setup file.");}
 
     auto split_tokens = [] (std::string line) {
         unsigned int start = 0;
@@ -60,7 +60,7 @@ void setting::read(std::string path) {
             vals.push_back(line.substr(start, end-start));
             start = end;
         }
-        if (vals.empty()) {throw except::parse_error("\nSettings::read\n: Could not find matching value for option \"" + first + "\"");}
+        if (vals.empty()) {throw except::parse_error("Settings::read: Could not find matching value for option \"" + first + "\"");}
         return std::pair(first, vals);
     };
 
@@ -77,7 +77,7 @@ void setting::read(std::string path) {
 void setting::write(std::string path) {
     utility::create_directory(path);
     std::ofstream output(path);
-    if (!output.is_open()) {throw std::ios_base::failure("\"Settings::read\": Could not open setup file.");}
+    if (!output.is_open()) {throw std::ios_base::failure("Settings::read: Could not open setup file.");}
 
     // write settings
     output << "### Auto-generated settings file ###\n";
@@ -129,13 +129,13 @@ std::string setting::detail::SmartOption<bool>::get() const {return std::to_stri
 
 template<>
 void setting::detail::SmartOption<std::string>::set(std::vector<std::string> str) const {
-    if (str.size() != 1) {throw except::parse_error("\"Settings::SmartOption::parse\": Option received too many values.");}
+    if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option received too many values.");}
     setting = str[0];
 }
 
 template<>
 void setting::detail::SmartOption<bool>::set(std::vector<std::string> str) const {
-    if (str.size() != 1) {throw except::parse_error("\"Settings::SmartOption::parse\": Option received too many values.");}
+    if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option received too many values.");}
 
     if (str[0] == "true" || str[0] == "TRUE" || str[0] == "1") {setting = true; return;}
     else if (str[0] == "false" || str[0] == "FALSE" || str[0] == "0") {setting = false; return;}
@@ -144,19 +144,19 @@ void setting::detail::SmartOption<bool>::set(std::vector<std::string> str) const
 
 template<>
 void setting::detail::SmartOption<double>::set(std::vector<std::string> str) const {
-    if (str.size() != 1) {throw except::parse_error("\"Settings::SmartOption::parse\": Option received too many values.");}
+    if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option received too many values.");}
     setting = std::stod(str[0]);
 }
 
 template<>
 void setting::detail::SmartOption<int>::set(std::vector<std::string> str) const {
-    if (str.size() != 1) {throw except::parse_error("\"Settings::SmartOption::parse\": Option received too many values.");}
+    if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option received too many values.");}
     setting = std::stoi(str[0]); 
 }
 
 template<>
 void setting::detail::SmartOption<unsigned int>::set(std::vector<std::string> str) const {
-    if (str.size() != 1) {throw except::parse_error("\"Settings::SmartOption::parse\": Option received too many values.");}
+    if (str.size() != 1) {throw except::parse_error("Settings::SmartOption::parse: Option received too many values.");}
     setting = std::stoi(str[0]);
 }
 

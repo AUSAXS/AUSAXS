@@ -10,6 +10,7 @@
 
 using std::vector, std::shared_ptr, std::cout, std::endl;
 
+
 TEST_CASE("state_manager", "[managers]") {
     unsigned int size = 5;
     StateManager manager(size);
@@ -77,7 +78,7 @@ TEST_CASE("protein_manager", "[managers]") {
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, true});
 }
 
-TEST_CASE("partial_histogram_manager", "[managers]") {
+TEST_CASE("em_partial_histogram_manager", "[managers]") {
     setting::protein::use_effective_charge = false;
 
     auto compare = [] (em::PartialHistogramManager& manager, double cutoff) {

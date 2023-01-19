@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <thread>
 
 #include <math/Vector3.h>
 #include <utility/Axis.h>
@@ -12,8 +13,13 @@
 // A small container of the various settings. These should be set *before* their respective classes are instantiated. 
 namespace setting {
     struct general {
-        static constexpr char residue_folder[] = "temp/residues/";  // Download location for all ligand files. Must be constexpr. 
-        inline static bool verbose = true;                          // Whether to print out extra information.
+        static constexpr char residue_folder[] = "temp/residues/";                  // Download location for all ligand files. Must be constexpr. 
+        inline static bool verbose = true;                                          // Whether to print out extra information.
+        inline static unsigned int threads = std::thread::hardware_concurrency();   // The number of threads to use for parallelization.
+
+        struct detail {
+            inline static unsigned int job_size = 200; // The number of atoms to process in each job.
+        };
     };
 
     struct grid {
@@ -79,7 +85,9 @@ namespace setting {
         inline static unsigned int evals = 100;          // Base number of evaluations used in the EM fitter. 
 
         inline static bool save_pdb = true;              // Whether to save the final atomic structure as a PDB file.
-        inline static Limit alpha_levels = {0.5, 8};    // The range of alpha-levels to search.
+        inline static Limit alpha_levels = {0.5, 8};     // The range of alpha-levels to search.
+
+        inline static bool fixed_weights = false;        // Whether to use fixed or dynamic weights for the EM algorithm. Fixed weights means that all atoms will have the same weight of 1. 
 
         struct simulation {
             inline static bool noise = true; // Whether to generate noise for the simulations. 
@@ -145,13 +153,13 @@ namespace setting {
              * @brief Assign a new value to the setting represented by this SmartOption. 
              *        The string will be cast into a proper type. This method must be specialized for all possible setting types.
              */
-            void set(std::vector<std::string>) const override {throw except::unexpected("Error in \"Settings::SmartOption::set\": Not implemented for type \"" + type(setting) + "\".");}
+            void set(std::vector<std::string>) const override {throw except::unexpected("Settings::SmartOption::set: Not implemented for type \"" + type(setting) + "\".");}
 
             /**
              * @brief Get a string representation of the setting represented by this SmartOption.
              *        This method must be specialized for all possible setting types.
              */
-            std::string get() const override {throw except::unexpected("Error in \"Settings::SmartOption::set\": Not implemented for type \"" + type(setting) + "\".");}
+            std::string get() const override {throw except::unexpected("Settings::SmartOption::set: Not implemented for type \"" + type(setting) + "\".");}
         };
 
         /**
@@ -163,6 +171,7 @@ namespace setting {
             return std::make_shared<SmartOption<T>>(aliases, setting);
         }
 
+        // The following vector lists the settings which will be made available for both reading and writing in the settings file. 
         inline static const std::vector<std::shared_ptr<ISmartOption>> options = {
             // figures
             make_shared({"format"}, setting::plot::format),
@@ -197,6 +206,7 @@ namespace setting {
             make_shared({"charge-levels"}, setting::em::charge_levels),
             make_shared({"noise"}, setting::em::simulation::noise),
             make_shared({"contour"}, setting::plot::image::contour),
+            make_shared({"fixed-weights"}, setting::em::fixed_weights),
 
             // plot
 

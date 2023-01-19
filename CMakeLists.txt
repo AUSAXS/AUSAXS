@@ -8,7 +8,7 @@ set(CMAKE_BUILD_TYPE DEBUG)
 project(SAXS VERSION 0.0)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
 add_compile_options(
-	-Ofast -mfpmath=sse -fno-finite-math-only# --coverage
+	-Ofast -fno-finite-math-only# --coverage
 	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
 	"$<$<CONFIG:RELEASE>:-flto;-march=native>"
 )
@@ -50,6 +50,9 @@ FetchContent_Declare(
 set(CMAKE_CXX_STANDARD 20)
 FetchContent_MakeAvailable(Catch2 CLI11 backward)
 
+# thread-pool
+set(BSThreadPool_DIR ${CMAKE_SOURCE_DIR}/external/thread-pool/build)
+find_package(BSThreadPool)
 
 ############################################
 ##           Find and link CURL           ##
@@ -79,16 +82,15 @@ endif()
 ############################################
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-	set(sim3a_Doxygen "${CMAKE_CURRENT_BINARY_DIR}/saxs.dox")
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/saxs.dox.in ${sim3a_Doxygen} @ONLY)
+	set(sim3a_Doxygen "${CMAKE_BINARY_DIR}/saxs.dox")
+	configure_file(${CMAKE_SOURCE_DIR}/saxs.dox.in ${sim3a_Doxygen} @ONLY)
 	add_custom_target(
 		doc
 		${DOXYGEN_EXECUTABLE} ${sim3a_Doxygen}
-    		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    		WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     		COMMENT "Generating API documentation with Doxygen" VERBATIM
 	)
 endif(DOXYGEN_FOUND)
-
 
 ############################################
 ##           Build library                ##
@@ -96,9 +98,8 @@ endif(DOXYGEN_FOUND)
 file(GLOB_RECURSE HEADERS "include/*.h")
 file(GLOB_RECURSE SOURCES "source/*.cpp")
 add_library(saxs ${HEADERS} ${SOURCES})
-target_include_directories (saxs PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/source")
-target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
-
+target_include_directories (saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source" "${CMAKE_SOURCE_DIR}/external/thread-pool")
+target_link_libraries(saxs CLI11::CLI11 dlib::dlib BSThreadPool::BSThreadPool ${CURL})
 
 ############################################
 ##             Unit Testing               ##

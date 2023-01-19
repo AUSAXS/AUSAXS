@@ -29,6 +29,12 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
     double zscale = header->cella_z/header->nz;
 
     unsigned int step = setting::em::sample_frequency;
+    
+    // define a weight function for more efficient switching. 
+    auto weight = setting::em::fixed_weights ? 
+        [](float) {return 1.0f;} :      // fixed weights enabled - all voxels have the same weight of 1
+        [] (float val) {return val;};   // fixed weights disabled - voxels have a weight equal to their density
+    
     for (unsigned int x = 0; x < N; x += step) {
         for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
             float val = index(x, y);
@@ -37,8 +43,7 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
             }
 
             Vector3 coords{x*xscale, y*yscale, z*zscale};
-            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, val, 0, "C", ""));
-            // atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, 1, 0, "C", ""));
+            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, weight(val), 0, "C", ""));
         }
     }
 

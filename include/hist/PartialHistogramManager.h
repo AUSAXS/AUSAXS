@@ -55,9 +55,15 @@ namespace hist {
 
 			/**
 			 * @brief Calculate the scattering histogram without utilizing partial histograms. 
-			 * 		  This is primarily intended for testing. 
+			 * 		  This is only intended for testing. 
 			 */
 			ScatteringHistogram calculate_slow() const;
+
+			/**
+			 * @brief Calculate the scattering histogram without utilizing partial histograms with multithreading. 
+			 * 		  This is only intended for testing. 
+			 */
+			ScatteringHistogram calculate_slow_mt() const;
 
 			/**
 			 * @brief Get a signalling object for signalling a change of state. 

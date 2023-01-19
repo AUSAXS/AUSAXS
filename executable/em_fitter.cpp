@@ -18,8 +18,8 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Fit an EM map to a SAXS measurement."};
 
     std::string mfile, mapfile, settings, output;
-    app.add_option("input_map", mapfile, "Path to the EM map.")->required()->check(CLI::ExistingFile);
-    app.add_option("input_exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
+    app.add_option("input-map", mapfile, "Path to the EM map.")->required()->check(CLI::ExistingFile);
+    app.add_option("input-exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
     app.add_option("--qmin", setting::axes::qmin, "Lower limit on used q values from measurement file.");
@@ -28,6 +28,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--levelmax", setting::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map.");
     app.add_option("--frequency", setting::em::sample_frequency, "Sampling frequency of the EM map.");
     app.add_flag("--hydrate,!--no-hydrate", setting::em::hydrate, "Whether to hydrate the protein before fitting.");
+    app.add_flag("--fixed-weight,!--no-fixed-weight", setting::em::fixed_weights, "Whether to use a fixed weight for the fit.");
     CLI11_PARSE(app, argc, argv);
 
     // if a settings file was provided
