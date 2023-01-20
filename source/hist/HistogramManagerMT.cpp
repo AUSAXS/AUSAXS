@@ -5,6 +5,10 @@
 
 using namespace hist;
 
+HistogramManagerMT::HistogramManagerMT(HistogramManager& hm) : HistogramManager(hm) {}
+
+HistogramManagerMT::~HistogramManagerMT() = default;
+
 Histogram HistogramManagerMT::calculate() {
     return HistogramManager::calculate().p;
 }
@@ -106,22 +110,19 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     // COLLECT RESULTS //
     //#################//    
     std::vector<double> p_pp(axes.bins, 0);
-    for (unsigned int i = 0; i < pp.size(); i++) {
-        std::vector<double> tmp = pp[i].get();
+    for (const auto& tmp : pp.get()) {
         for (unsigned int j = 0; j < axes.bins; j++) {
             p_pp[j] += tmp[j];
         }
     }
     std::vector<double> p_hh(axes.bins, 0);
-    for (unsigned int i = 0; i < hh.size(); i++) {
-        std::vector<double> tmp = hh[i].get();
+    for (const auto& tmp : hh.get()) {
         for (unsigned int j = 0; j < axes.bins; j++) {
             p_hh[j] += tmp[j];
         }
     }
     std::vector<double> p_hp(axes.bins, 0);
-    for (unsigned int i = 0; i < hp.size(); i++) {
-        std::vector<double> tmp = hp[i].get();
+    for (const auto& tmp : hp.get()) {
         for (unsigned int j = 0; j < axes.bins; j++) {
             p_hp[j] += tmp[j];
         }

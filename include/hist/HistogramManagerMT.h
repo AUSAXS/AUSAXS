@@ -11,6 +11,10 @@ namespace hist {
 		public:
 			using HistogramManager::HistogramManager;
 
+			HistogramManagerMT(HistogramManager&);
+
+			~HistogramManagerMT() override;
+
 			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */

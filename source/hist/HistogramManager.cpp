@@ -7,19 +7,9 @@
 
 using namespace hist;
 
-HistogramManager::HistogramManager(Protein* protein) 
-    : size(protein->bodies.size()), statemanager(size), coords_p(size), protein(protein), partials_pp(size, std::vector<detail::PartialHistogram>(size)), partials_hp(size) 
-    {
-        for (unsigned int i = 0; i < size; i++) {protein->bodies[i].register_probe(statemanager.get_probe(i));}
-    }
+HistogramManager::HistogramManager(Protein* protein) : protein(protein) {}
 
-std::shared_ptr<StateManager::BoundSignaller> HistogramManager::get_probe(unsigned int i) {return statemanager.get_probe(i);}
-
-void HistogramManager::signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
-
-const StateManager& HistogramManager::get_state_manager() const {return statemanager;}
-
-StateManager& HistogramManager::get_state_manager() {return statemanager;}
+HistogramManager::~HistogramManager() = default;
 
 Histogram HistogramManager::calculate() {return calculate_all().p;}
 

@@ -11,6 +11,8 @@
 #include <utility/Constants.h>
 #include <utility/Utility.h>
 #include <fitter/SimpleIntensityFitter.h>
+#include <hist/HistogramManagerMT.h>
+#include <hist/PartialHistogramManagerMT.h>
 #include <plots/all.h>
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
@@ -64,142 +66,22 @@ TEST_CASE("compare_debye_real", "[protein],[files],[slow]") {
     }
 }
 
+/**
+ * @brief Compare two histograms. 
+ *        Only indices [0, p1.size()] are checked.
+ */
+bool compare_hist(Vector<double> p1, Vector<double> p2) {
+    for (size_t i = 0; i < p1.size(); i++) {
+        if (!utility::approx(p1[i], p2[i])) {
+            cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
 TEST_CASE("histogram", "[protein]") {
     setting::axes::scattering_intensity_plot_binned_width = 1;
-    SECTION("atoms only") {
-        setting::protein::use_effective_charge = false;
-        // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        vector<vector<Atom>> atoms = {b1, b2, b3, b4};
-        Protein protein(atoms, {});
-
-        // set the weights to 1 so we can analytically determine the result
-        for (auto& body : protein.bodies) {
-            for (auto& atom : body.atoms()) {
-                atom.set_effective_charge(1);
-            }
-        }
-        protein.updated_charge = true;
-
-        // calculate the histogram
-        hist::ScatteringHistogram hist_smart = protein.get_histogram();
-        hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow();
-        const vector<double> d_s = hist_smart.p;
-        const vector<double> d_d = hist_dumb.p;
-
-        // calculation: 8 identical points. 
-        //      each point has:
-        //          1 line  of length 0
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        for (unsigned int i = 0; i < d_exp.size(); i++) {
-            if (d_s[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
-                REQUIRE(false);
-            }
-            if (d_d[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
-                REQUIRE(false);
-            }
-        }
-        REQUIRE(true);
-    }
-
-    SECTION("waters only") {
-        setting::protein::use_effective_charge = false;
-        // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-        vector<Atom> a = {};
-        vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
-                            Water(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Water(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
-                            Water(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Water(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
-                            Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        Protein protein(a, w);
-
-        // set the weights to 1 so we can analytically determine the result
-        for (auto& atom : protein.hydration_atoms) {
-            atom.set_effective_charge(1);
-        }
-        protein.updated_charge = true;
-
-        // calculate the histogram
-        hist::ScatteringHistogram hist_smart = protein.get_histogram();
-        hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow();
-        const vector<double> d_s = hist_smart.p;
-        const vector<double> d_d = hist_dumb.p;
-
-        // calculation: 8 identical points. 
-        //      each point has:
-        //          1 line  of length 0
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        for (unsigned int i = 0; i < d_exp.size(); i++) {
-            if (d_s[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
-                REQUIRE(false);
-            }
-            if (d_d[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
-                REQUIRE(false);
-            }
-        }
-        REQUIRE(true);
-    }
-
-    SECTION("both atoms & water") {
-        setting::protein::use_effective_charge = false;
-        // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-        vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-        vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        vector<vector<Atom>> a = {b1, b2, b3};
-        Protein protein(a, w);
-
-        // set the weights to 1 so we can analytically determine the result
-        // waters
-        for (auto& atom : protein.hydration_atoms) {
-            atom.set_effective_charge(1);
-        }
-        // atoms
-        for (auto& body : protein.bodies) {
-            for (auto& atom : body.atoms()) {
-                atom.set_effective_charge(1);
-            }
-        }
-        protein.updated_charge = true;
-
-        // calculate the histogram
-        hist::ScatteringHistogram hist_smart = protein.get_histogram();
-        hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow();
-        const vector<double> d_s = hist_smart.p;
-        const vector<double> d_d = hist_dumb.p;
-
-        // calculation: 8 identical points. 
-        //      each point has:
-        //          1 line  of length 0
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        for (unsigned int i = 0; i < d_exp.size(); i++) {
-            if (d_s[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
-                REQUIRE(false);
-            }
-            if (d_d[i] != d_exp[i]) {
-                cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
-                REQUIRE(false);
-            }
-        }
-        REQUIRE(true);
-    }
 
     SECTION("multiple bodies, simple") {
         setting::protein::use_effective_charge = true;
@@ -297,7 +179,7 @@ TEST_CASE("histogram", "[protein]") {
 
         // generate the distance histograms
         hist::ScatteringHistogram d_p = protein.get_histogram();
-        hist::ScatteringHistogram d_b = protein.get_histogram_manager()->calculate_slow();
+        hist::ScatteringHistogram d_b = hist::HistogramManager(&protein).calculate_all();
 
         // direct access to the histogram data (only p is defined)
         const vector<double>& p = d_p.p;
@@ -349,10 +231,13 @@ TEST_CASE("histogram", "[protein]") {
         }
         REQUIRE(true);
     }
+}
 
-    SECTION("multithreading") {
-        SECTION("simple data") {
-            setting::protein::use_effective_charge = false;
+TEST_CASE("distance_histograms", "[protein]") {
+    setting::protein::use_effective_charge = false;
+
+    SECTION("analytical") {
+        SECTION("atoms only") {
             // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
             vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
             vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
@@ -374,53 +259,131 @@ TEST_CASE("histogram", "[protein]") {
             }
             protein.updated_charge = true;
 
-            // calculate the histogram
-            hist::ScatteringHistogram hist_smart = protein.get_histogram();
-            hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow_mt();
-            const auto& d_s = hist_smart.p;
-            const auto& d_d = hist_dumb.p;
-
             // calculation: 8 identical points. 
             //      each point has:
             //          1 line  of length 0
             //          3 lines of length 2
             //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
             //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-            const vector<double> d_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-            for (unsigned int i = 0; i < d_exp.size(); i++) {
-                if (d_s[i] != d_exp[i]) {
-                    cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_exp[i] << endl;
-                    REQUIRE(false);
-                }
-                if (d_d[i] != d_exp[i]) {
-                    cout << "Failed on index " << i << ". Values: " << d_d[i] << ", " << d_exp[i] << endl;
-                    REQUIRE(false);
-                }
+            const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
+
+            SECTION("hm") {
+                hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm.p));
             }
-            REQUIRE(true);
+            SECTION("hm_mt") {
+                hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt.p));
+            }
+            SECTION("phm") {
+                hist::ScatteringHistogram phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm.p));
+            }
+            SECTION("phm_mt") {
+                hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt.p));
+            }
         }
 
-        SECTION("real data") {
-            setting::protein::use_effective_charge = true;
-                        
-            // create the atom, and perform a sanity check on our extracted list
-            Protein protein("test/files/2epe.pdb");
-            protein.generate_new_hydration();
-            hist::ScatteringHistogram hist_smart = protein.get_histogram();
-            hist::ScatteringHistogram hist_dumb = protein.get_histogram_manager()->calculate_slow_mt();
+        SECTION("waters only") {
+            // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+            vector<Atom> a = {};
+            vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
+                                Water(Vector3<double>(1, -1, -1), 1, "C", "C", 1),  Water(Vector3<double>(1, 1, -1), 1, "C", "C", 1), 
+                                Water(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),  Water(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                                Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+            Protein protein(a, w);
 
-            // direct access to the histogram data (p = p_tot)
-            const auto& d_s = hist_smart.p;
-            const auto& d_d = hist_dumb.p;
+            // set the weights to 1 so we can analytically determine the result
+            for (auto& atom : protein.hydration_atoms) {
+                atom.set_effective_charge(1);
+            }
+            protein.updated_charge = true;
+            const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
 
-            // compare each entry
-            for (unsigned int i = 0; i < d_d.size(); i++) {
-                if (!utility::approx(d_s[i], d_d[i])) {
-                    cout << "Failed on index " << i << ". Values: " << d_s[i] << ", " << d_d[i] << endl;
-                    REQUIRE(false);
+            SECTION("hm") {
+                hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm.p));
+            }
+            SECTION("hm_mt") {
+                hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt.p));
+            }
+            SECTION("phm") {
+                hist::ScatteringHistogram phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm.p));
+            }
+            SECTION("phm_mt") {
+                hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt.p));
+            }
+        }
+
+        SECTION("both waters and atoms") {
+            // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+            vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+            vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+            vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+            vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+            vector<vector<Atom>> a = {b1, b2, b3};
+            Protein protein(a, w);
+
+            // set the weights to 1 so we can analytically determine the result
+            // waters
+            for (auto& atom : protein.hydration_atoms) {
+                atom.set_effective_charge(1);
+            }
+            // atoms
+            for (auto& body : protein.bodies) {
+                for (auto& atom : body.atoms()) {
+                    atom.set_effective_charge(1);
                 }
             }
-            REQUIRE(true);
+            protein.updated_charge = true;
+            const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
+
+            SECTION("hm") {
+                hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm.p));
+            }
+            SECTION("hm_mt") {
+                hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt.p));
+            }
+            SECTION("phm") {
+                hist::ScatteringHistogram phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm.p));
+            }
+            SECTION("phm_mt") {
+                hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt.p));
+            }
+        }
+    }
+
+    SECTION("real data") {
+        setting::protein::use_effective_charge = true;
+                
+        // create the atom, and perform a sanity check on our extracted list
+        Protein protein("test/files/2epe.pdb");
+        protein.generate_new_hydration();
+
+        auto p_exp = hist::HistogramManager(&protein).calculate().p;
+        SECTION("hm") {
+            hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp, hm.p));
+        }
+        SECTION("hm_mt") {
+            hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp, hm_mt.p));
+        }
+        SECTION("phm") {
+            hist::ScatteringHistogram phm = hist::PartialHistogramManager(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp, phm.p));
+        }
+        SECTION("phm_mt") {
+            hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp, phm_mt.p));
         }
     }
 }

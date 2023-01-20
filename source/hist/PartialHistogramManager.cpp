@@ -1,9 +1,23 @@
 #include <data/Protein.h>
 #include <hist/PartialHistogramManager.h>
 
-#include <BS_thread_pool.hpp>
-
 using namespace hist;
+
+PartialHistogramManager::PartialHistogramManager(Protein* protein)
+    : HistogramManager(protein), size(protein->bodies.size()), statemanager(size), coords_p(size), partials_pp(size, std::vector<detail::PartialHistogram>(size)), partials_hp(size) 
+    {
+        for (unsigned int i = 0; i < size; i++) {protein->bodies[i].register_probe(statemanager.get_probe(i));}
+    }
+
+PartialHistogramManager::~PartialHistogramManager() = default;
+
+std::shared_ptr<StateManager::BoundSignaller> PartialHistogramManager::get_probe(unsigned int i) {return statemanager.get_probe(i);}
+
+void PartialHistogramManager::signal_modified_hydration_layer() {statemanager.modified_hydration_layer();}
+
+const StateManager& PartialHistogramManager::get_state_manager() const {return statemanager;}
+
+StateManager& PartialHistogramManager::get_state_manager() {return statemanager;}
 
 Histogram PartialHistogramManager::calculate() {
     const std::vector<bool> externally_modified = statemanager.get_externally_modified_bodies();
@@ -238,7 +252,7 @@ void PartialHistogramManager::calc_hh() {
 
     // calculate internal distances for the hydration layer
     coords_h = detail::CompactCoordinates(protein->hydration_atoms);
-    for (unsigned int i = 0; i < 4*protein->hydration_atoms.size(); i++) {
+    for (unsigned int i = 0; i < protein->hydration_atoms.size(); i++) {
         for (unsigned int j = i+1; j < protein->hydration_atoms.size(); j++) {
             float weight = coords_h.data[i].w*coords_h.data[j].w;
             float dx = coords_h.data[i].x - coords_h.data[j].x;
