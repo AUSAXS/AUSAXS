@@ -138,7 +138,7 @@ string Atom::as_pdb() const {
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
     //          format: "%6c%5c%2c%4c%1c%3c %1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c"
     ss << left << setw(6) << get_recName()                                   // 1 - 6
-        << right << setw(5) << serial                                        // 7 - 11
+        << right << setw(5) << serial % 100000                               // 7 - 11
         << " "                                                               // 12
         << " " << left << setw(3) << name                                    // 13 - 16
         << left << setw(1) << altLoc                                         // 17

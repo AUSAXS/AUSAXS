@@ -10,13 +10,13 @@
 using namespace hist;
 
 Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
-    phm = std::make_unique<PartialHistogramManager>(this);
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
 }
 
 Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
-    phm = std::make_unique<PartialHistogramManager>(this);
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
 }
 
@@ -24,12 +24,12 @@ Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std:
     for (size_t i = 0; i < protein_atoms.size(); i++) {
         bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
     }
-    phm = std::make_unique<PartialHistogramManager>(this);
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
 }
 
 Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
-    phm = std::make_unique<PartialHistogramManager>(this);
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
 }
 
@@ -38,7 +38,7 @@ Protein::Protein(std::string input) {
     bodies = {b1};
     hydration_atoms = std::move(bodies[0].waters());
     bodies[0].waters().clear();
-    phm = std::make_unique<PartialHistogramManager>(this);
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
 }
 
@@ -46,7 +46,7 @@ Protein::Protein(const std::vector<std::string>& input) {
     for (size_t i = 0; i < input.size(); i++) {
         bodies.push_back(Body(input[i]));
     }
-    phm = std::make_unique<PartialHistogramManager>(this);
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
 }
 

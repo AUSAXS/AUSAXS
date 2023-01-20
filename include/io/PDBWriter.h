@@ -32,7 +32,7 @@ class PDBWriter : public Writer {
 
         /**
          * @brief Create a string representation of this File.
-         * @return The string representation. 
+         * @return The string representation. Each index is a file to be written. 
          */
-        std::string as_pdb() const;
+        std::vector<std::string> as_pdb() const;
 };

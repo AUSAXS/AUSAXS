@@ -8,7 +8,7 @@
 #include <data/Atom.h>
 #include <data/Water.h>
 #include <data/StateManager.h>
-#include <hist/PartialHistogramManager.h>
+#include <hist/PartialHistogramManagerMT.h>
 #include <utility/SimpleDataset.h>
 #include <fitter/Fit.h>
 

@@ -103,7 +103,6 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     for (unsigned int i = 0; i < waters.size(); i+=job_size) {
         hp.push_back(pool.submit(calc_hp, i, std::min(i+job_size, (unsigned int)waters.size())));
     }
-    utility::print_info("Submitted " + std::to_string(pp.size() + hh.size() + hp.size()) + " tasks to thread pool. Waiting for completion...");
     pool.wait_for_tasks();
 
     //#################//
