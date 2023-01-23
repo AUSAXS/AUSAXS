@@ -36,7 +36,7 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
 Protein::Protein(std::string input) {
     Body b1(input);
     bodies = {b1};
-    hydration_atoms = std::move(bodies[0].waters());
+    waters() = std::move(bodies[0].waters());
     bodies[0].waters().clear();
     phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
@@ -54,7 +54,7 @@ void Protein::translate(const Vector3<double>& v) {
     for (auto& body : bodies) {
         body.translate(v);
     }
-    for (auto& hetatom : hydration_atoms) {
+    for (auto& hetatom : waters()) {
         hetatom.translate(v);
     }
 }
@@ -72,13 +72,13 @@ SimpleDataset Protein::simulate_dataset(bool add_noise) {
 void Protein::save(std::string path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {
-        bodies[0].waters() = hydration_atoms;
+        bodies[0].waters() = waters();
         bodies[0].save(path);
         return;
     }
 
     // otherwise we'll have to create a new file
-    File file(atoms(), hydration_atoms);
+    File file(atoms(), waters());
     file.write(path);
 }
 
@@ -169,7 +169,7 @@ Vector3<double> Protein::get_cm() const {
     }
 
     // iterate through any generated hydration atoms
-    for (const auto& a : hydration_atoms) {
+    for (const auto& a : waters()) {
         double m = a.get_mass();
         M += m;
         cm += a.coords*m;
@@ -184,7 +184,7 @@ const std::vector<Water>& Protein::waters() const {return hydration_atoms;}
 
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
-    hydration_atoms = std::vector<Water>();
+    waters() = std::vector<Water>();
     phm->signal_modified_hydration_layer();
 
     // move protein to center of mass
@@ -193,7 +193,7 @@ void Protein::generate_new_hydration() {
     // create the grid and hydrate it
     if (grid == nullptr) {create_grid();}
     else {grid->clear_waters();}
-    hydration_atoms = grid->hydrate();
+    waters() = grid->hydrate();
 }
 
 ScatteringHistogram Protein::get_histogram() {

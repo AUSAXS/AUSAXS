@@ -13,5 +13,5 @@ class Reader {
         /**
          * @brief Read the data stored in a file. 
          */
-        virtual void read(std::string);
+        virtual void read(std::string) = 0;
 };

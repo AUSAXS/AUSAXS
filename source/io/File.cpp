@@ -26,6 +26,7 @@ void File::update(std::vector<Atom>& patoms, std::vector<Water>& hatoms) {
 void File::read(std::string path) {reader->read(path);}
 
 void File::write(std::string path) {
+    refresh();
     writer = construct_writer(path);
     writer->write(path);
 }
@@ -42,7 +43,8 @@ void File::add(const Water& r) {
     hydration_atoms.push_back(r);
 }
 
-void File::add(const Terminate&) {
+void File::add(const Terminate& ter) {
+    terminate = ter;
     // terminates.push_back(r);
 }
 
@@ -93,7 +95,7 @@ void File::refresh() {
             resSeq++; // TER records always denotes the end of a sequence
             serial++;
         }
-        a.set_serial(serial); // fix possible errors in the serial
+        a.set_serial(serial % 100000); // fix possible errors in the serial
         serial++;
     }
 
@@ -106,7 +108,7 @@ void File::refresh() {
     chainID = protein_atoms[protein_atoms.size()-1].chainID;
     resSeq = protein_atoms[protein_atoms.size()-1].resSeq + 1;
     for (auto& a : hydration_atoms) {
-        a.set_serial(serial);
+        a.set_serial(serial % 100000);
         a.set_resSeq(resSeq);
         a.set_chainID(chainID);
         resSeq++;

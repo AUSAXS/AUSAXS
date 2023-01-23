@@ -232,3 +232,36 @@ TEST_CASE("file_copied_correctly", "[io],[files]") {
     CHECK(!body3.get_file().header.get().empty());
     CHECK(!body3.get_file().footer.get().empty());
 }
+
+TEST_CASE("write_into_multiple_files", "[io]") {
+    std::vector<Atom> atoms(101000);
+    for (unsigned int i = 0; i < atoms.size(); i++) {
+        atoms[i] = Atom({1,2,3}, 1, "C", "LYS", i);
+    }
+    std::vector<Water> waters(100);
+    for (unsigned int i = 0; i < waters.size(); i++) {
+        waters[i] = Water({1,2,3}, 1, "O", "HOH", i);
+    }
+
+    Protein protein(atoms, waters);
+    protein.save("temp/io/temp.pdb");
+    
+    REQUIRE(std::filesystem::exists("temp/io/temp_1.pdb"));
+    REQUIRE(std::filesystem::exists("temp/io/temp_2.pdb"));
+
+    // first file
+    Protein protein2("temp/io/temp_1.pdb");
+    REQUIRE(protein2.bodies[0].atoms().size() == 100000);
+    REQUIRE(protein2.bodies[0].atoms().back().serial == 99999);
+
+    Protein protein3("temp/io/temp_2.pdb");
+    REQUIRE(protein3.bodies[0].atoms().size() == 1000);
+    for (int i = 0; i < 1000; i++) {
+        REQUIRE(protein3.bodies[0].atoms()[i].serial == i);
+    }
+    REQUIRE(protein3.bodies[0].get_file().terminate.serial == 1000);
+    REQUIRE(protein3.waters().size() == 100);
+    for (int i = 0; i < 100; i++) {
+        REQUIRE(protein3.waters()[i].serial == i+1001);
+    }
+}

@@ -13,5 +13,5 @@ class Writer {
         /**
          * @brief Write the contents of the backing File to a given path. 
          */
-        virtual void write(std::string);
+        virtual void write(std::string) = 0;
 };

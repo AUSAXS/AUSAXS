@@ -11,7 +11,6 @@
 #include <algorithm>
 
 void PDBWriter::write(std::string output_path) {
-    file->refresh();
     utility::create_directory(output_path);
 
     auto content = as_pdb();
@@ -43,6 +42,7 @@ std::vector<std::string> PDBWriter::as_pdb() const {
     bool printed_ter = false;
     for (unsigned int i = 0; i < f.protein_atoms.size(); i++) {
         if (i == i_ter) { // check if this is where the terminate is supposed to go
+            f.terminate.set_serial(f.terminate.serial % 100000);
             s += f.terminate.as_pdb(); // write it if so
             printed_ter = true;
         }
@@ -56,7 +56,10 @@ std::vector<std::string> PDBWriter::as_pdb() const {
     }
 
     // print terminate if missing
-    if (!printed_ter) {s += f.terminate.as_pdb();}
+    if (!printed_ter) {
+        f.terminate.set_serial(f.terminate.serial % 100000);
+        s += f.terminate.as_pdb();
+    }
 
     // print hetatoms
     for (unsigned int i = 0; i < f.hydration_atoms.size(); i++) {
