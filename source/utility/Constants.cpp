@@ -64,4 +64,11 @@ namespace constants {
     namespace hydrogen_atoms {
         parser::residue::ResidueStorage residues;
     }
+
+    namespace symbols {
+        std::string hydrogen = "H";
+        std::string carbon = "C";
+        std::string nitrogen = "N";
+        std::string oxygen = "O";
+    }
 }

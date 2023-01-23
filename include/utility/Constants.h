@@ -145,4 +145,11 @@ namespace constants {
         // get the number of hydrogen atoms attached to an atom of a specific acid. Example: get.at("GLY").at("CA") = 2
         extern parser::residue::ResidueStorage residues;
     }
+
+    namespace symbols {
+        extern std::string hydrogen;
+        extern std::string carbon;
+        extern std::string nitrogen;
+        extern std::string oxygen;
+    }
 }

@@ -470,15 +470,14 @@ void Grid::remove(const std::vector<Atom>& atoms) {
 }
 
 void Grid::remove(const std::vector<Water>& waters) {
-    // we make a vector of all possible uids
-    std::vector<bool> removed(Atom::uid_counter);
-    // and fill it with the uids that should be removed
+    // we make a map and fill it with the uids that should be removed
+    std::unordered_map<unsigned int, bool> removed;
     std::for_each(waters.begin(), waters.end(), [&removed] (const Water& water) {removed[water.uid] = true;});
 
     size_t index = 0; // current index in removed_waters
     std::vector<GridMember<Water>> removed_waters(waters.size()); // the waters which will be removed
     auto predicate = [&removed, &removed_waters, &index] (const GridMember<Water>& gm) {
-        if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
+        if (removed.contains(gm.atom.uid)) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_waters[index++] = gm;
             return true;
         }

@@ -102,7 +102,7 @@ void Dataset::save(std::string path, std::string header) const {
     // write data
     for (unsigned int i = 0; i < N; i++) {
         for (unsigned int j = 0; j < M-1; j++) {
-            output << std::left << std::scientific << std::setw(14) << index(i, j) << "\t";
+            output << std::left << std::setprecision(8) << std::scientific << std::setw(16) << index(i, j) << "\t";
         }
         output << index(i, M-1) << "\n";
     }

@@ -15,14 +15,14 @@ ResidueMap::ResidueMap(std::unordered_map<AtomKey, unsigned int> map) {
 
 double ResidueMap::get(AtomKey key) {
     // first check if the key is in the map
-    if (map.find(key) != map.end()) {return map.at(key);}
+    if (map.contains(key)) {return map.at(key);}
 
     // if not, check if the key is a hydrogen
     if (key.symbol == "H") {return 0;}
 
     // estimate the number of bonds as the average for that element
     if (update_average) [[unlikely]] {this->calculate_average();}
-    if (average.find(key.symbol) != average.end()) {
+    if (average.contains(key.symbol)) {
         return average.at(key.symbol);
     } else {
         throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element " + key.symbol + " is available.");

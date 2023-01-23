@@ -87,15 +87,17 @@ void setting::write(std::string path) {
     output.close();
 }
 
-void setting::discover(std::string path) {
+bool setting::discover(std::string path) {
     if (path[path.size()-1] != '/') {path += "/";}
     std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
     for (const auto& e : valid_names) {
         if (std::filesystem::exists(path + e + ".txt")) {
             std::cout << "Using discovered settings file at " << path + e + ".txt" << std::endl;
             setting::read(path + e + ".txt");
+            return true;
         }
     }
+    return false;
 }
 
 template<>

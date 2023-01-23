@@ -95,8 +95,7 @@ void File::refresh() {
             resSeq++; // TER records always denotes the end of a sequence
             serial++;
         }
-        a.set_serial(serial % 100000); // fix possible errors in the serial
-        serial++;
+        a.set_serial(serial++ % 100000); // fix possible errors in the serial
     }
 
     if (!terminate_inserted) {
@@ -108,11 +107,9 @@ void File::refresh() {
     chainID = protein_atoms[protein_atoms.size()-1].chainID;
     resSeq = protein_atoms[protein_atoms.size()-1].resSeq + 1;
     for (auto& a : hydration_atoms) {
-        a.set_serial(serial % 100000);
-        a.set_resSeq(resSeq);
+        a.set_serial(serial++ % 100000);
+        a.set_resSeq(resSeq++);
         a.set_chainID(chainID);
-        resSeq++;
-        serial++;
     }
 }
 

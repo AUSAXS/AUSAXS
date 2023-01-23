@@ -123,8 +123,9 @@ namespace setting {
 
     /**
      * @brief Check if a settings file exists in the given directory, and read it if so.
+     * @return True if a settings file was found and read.
      */
-    void discover(std::string path);
+    bool discover(std::string path);
 
     namespace detail {
         // Super class for SmartOptions to allow polymorphic vectors

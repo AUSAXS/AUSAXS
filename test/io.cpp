@@ -265,3 +265,9 @@ TEST_CASE("write_into_multiple_files", "[io]") {
         REQUIRE(protein3.waters()[i].serial == i+1001);
     }
 }
+
+#include <em/ImageStack.h>
+TEST_CASE("em_write_into_multiple_files", "[io]") {
+    em::ImageStack image("data/Gregers_cryo/Gregers_cryo.mrc");
+    image.get_protein(0.1)->save("temp/io/temp.pdb");
+}
