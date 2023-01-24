@@ -6,7 +6,11 @@
 
 #include <vector>
 
-em::ProteinManager::ProteinManager(const em::ImageStackBase* images) : images(images) {}
+em::ProteinManager::ProteinManager(const em::ImageStackBase* images) : images(images) {
+    double max = images->from_level(5);
+    Axis axis(setting::em::charge_levels, 0, max);
+    set_charge_levels(axis.as_vector());
+}
 
 hist::ScatteringHistogram em::ProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
@@ -169,12 +173,6 @@ std::shared_ptr<Protein> em::ProteinManager::get_protein() const {
 std::shared_ptr<Protein> em::ProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
     return protein;
-}
-
-void em::ProteinManager::set_charge_levels() noexcept {
-    double max = images->from_level(5);
-    Axis axis(setting::em::charge_levels, 0, max);
-    set_charge_levels(axis.as_vector());
 }
 
 void em::ProteinManager::set_charge_levels(Axis levels) noexcept {

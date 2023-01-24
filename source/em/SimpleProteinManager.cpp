@@ -8,8 +8,6 @@ void em::SimpleProteinManager::update_protein(double cutoff) {
     protein->set_histogram_manager<hist::HistogramManagerMT>();
 }
 
-void em::SimpleProteinManager::set_charge_levels() noexcept {}
-
 void em::SimpleProteinManager::set_charge_levels(std::vector<double>) noexcept {}
 
 void em::SimpleProteinManager::set_charge_levels(Axis) noexcept {}

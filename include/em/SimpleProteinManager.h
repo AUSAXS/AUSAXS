@@ -14,8 +14,6 @@ namespace em {
              */
             void update_protein(double cutoff) override;
 
-            void set_charge_levels() noexcept override;
-
             void set_charge_levels(std::vector<double> levels) noexcept override;
 
             void set_charge_levels(Axis levels) noexcept override;

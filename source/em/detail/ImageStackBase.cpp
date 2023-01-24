@@ -8,8 +8,9 @@
 
 em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
-    phm = setting::em::fixed_weights ? std::make_shared<em::SimpleProteinManager>(this) : std::make_shared<em::ProteinManager>(this);
-    phm->set_charge_levels(); // set default charge levels
+    phm = setting::em::fixed_weights ? 
+        em::ProteinManagerFactory::create<em::SimpleProteinManager>(this) : 
+        em::ProteinManagerFactory::create<em::ProteinManager>(this);
 }
 
 em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()) {
@@ -21,8 +22,9 @@ em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(st
     size_x = header->nx; size_y = header->ny; size_z = header->nz;
     read(input, get_byte_size());
 
-    phm = setting::em::fixed_weights ? std::make_shared<em::SimpleProteinManager>(this) : std::make_shared<em::ProteinManager>(this);
-    phm->set_charge_levels(); // set default charge levels
+    phm = setting::em::fixed_weights ? 
+        em::ProteinManagerFactory::create<em::SimpleProteinManager>(this) : 
+        em::ProteinManagerFactory::create<em::ProteinManager>(this);
 }
 
 em::ImageStackBase::~ImageStackBase() = default;
