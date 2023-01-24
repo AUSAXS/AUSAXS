@@ -1,11 +1,12 @@
-#include <vector>
-
 #include <em/ProteinManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <utility/Utility.h>
+#include <em/detail/ImageStackBase.h>
 
-em::ProteinManager::ProteinManager(const ImageStackBase& images) : images(images) {}
+#include <vector>
+
+em::ProteinManager::ProteinManager(const em::ImageStackBase* images) : images(images) {}
 
 hist::ScatteringHistogram em::ProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
@@ -15,7 +16,7 @@ hist::ScatteringHistogram em::ProteinManager::get_histogram(double cutoff) {
 std::vector<Atom> em::ProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
-    const std::vector<Image>& imagestack = images.images();
+    const std::vector<Image>& imagestack = images->images();
     unsigned int step = setting::em::sample_frequency;
     for (unsigned int i = 0; i < imagestack.size(); i += step) {
         std::list<Atom> im_atoms = imagestack[i].generate_atoms(cutoff);
@@ -171,7 +172,7 @@ std::shared_ptr<Protein> em::ProteinManager::get_protein(double cutoff) {
 }
 
 void em::ProteinManager::set_charge_levels() noexcept {
-    double max = images.from_level(5);
+    double max = images->from_level(5);
     Axis axis(setting::em::charge_levels, 0, max);
     set_charge_levels(axis.as_vector());
 }

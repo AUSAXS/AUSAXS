@@ -1,31 +1,18 @@
-#include <algorithm>
-#include <fstream>
-#include <filesystem>
-
-#include <Symbols.h>
-#include <em/NoCulling.h>
-#include <em/CounterCulling.h>
 #include <em/detail/ImageStackBase.h>
-#include <em/SimpleProteinManager.h>
-#include <em/ProteinManager.h>
-#include <data/Atom.h>
+#include <Symbols.h>
 #include <data/Protein.h>
-#include <fitter/SimpleIntensityFitter.h>
-#include <plots/all.h>
+#include <em/detail/ProteinManagerFactory.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
-#include <mini/all.h>
-#include <math/Statistics.h>
 
-using namespace em;
+#include <fstream>
 
-ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
+em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
-    phm = setting::em::fixed_weights ? std::make_unique<em::SimpleProteinManager>(*this) : std::make_unique<em::ProteinManager>(*this);
+    phm = setting::em::fixed_weights ? std::make_shared<em::SimpleProteinManager>(this) : std::make_shared<em::ProteinManager>(this);
     phm->set_charge_levels(); // set default charge levels
 }
 
-ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()) {
+em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()) {
     constants::filetypes::em_map.validate(file);
 
     std::ifstream input(file, std::ios::binary);
@@ -34,46 +21,46 @@ ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::m
     size_x = header->nx; size_y = header->ny; size_z = header->nz;
     read(input, get_byte_size());
 
-    phm = setting::em::fixed_weights ? std::make_unique<em::SimpleProteinManager>(*this) : std::make_unique<em::ProteinManager>(*this);
+    phm = setting::em::fixed_weights ? std::make_shared<em::SimpleProteinManager>(this) : std::make_shared<em::ProteinManager>(this);
     phm->set_charge_levels(); // set default charge levels
 }
 
-ImageStackBase::~ImageStackBase() = default;
+em::ImageStackBase::~ImageStackBase() = default;
 
-void ImageStackBase::save(double cutoff, std::string path) const {
+void em::ImageStackBase::save(double cutoff, std::string path) const {
     std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
     protein->save(path);
 }
 
-Image& ImageStackBase::image(unsigned int layer) {return data[layer];}
+em::Image& em::ImageStackBase::image(unsigned int layer) {return data[layer];}
 
-const Image& ImageStackBase::image(unsigned int layer) const {return data[layer];}
+const em::Image& em::ImageStackBase::image(unsigned int layer) const {return data[layer];}
 
-unsigned int ImageStackBase::size() const {return size_z;}
+unsigned int em::ImageStackBase::size() const {return size_z;}
 
-const std::vector<Image>& ImageStackBase::images() const {return data;}
+const std::vector<em::Image>& em::ImageStackBase::images() const {return data;}
 
-hist::ScatteringHistogram ImageStackBase::get_histogram(double cutoff) const {
+hist::ScatteringHistogram em::ImageStackBase::get_histogram(double cutoff) const {
     return phm->get_histogram(cutoff);
 }
 
-hist::ScatteringHistogram ImageStackBase::get_histogram(const std::shared_ptr<EMFit> res) const {
+hist::ScatteringHistogram em::ImageStackBase::get_histogram(const std::shared_ptr<EMFit> res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
-std::shared_ptr<Protein> ImageStackBase::get_protein(double cutoff) const {
+std::shared_ptr<Protein> em::ImageStackBase::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 
-unsigned int ImageStackBase::count_voxels(double cutoff) const {
+unsigned int em::ImageStackBase::count_voxels(double cutoff) const {
     return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (double sum, const Image& im) {return sum + im.count_voxels(cutoff);});
 }
 
-unsigned int ImageStackBase::get_byte_size() const {
+unsigned int em::ImageStackBase::get_byte_size() const {
     return header->get_byte_size();
 }
 
-void ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
+void em::ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
     data = std::vector<Image>(size_z, Image(header));
 
     int col = header->mapc; // column axis
@@ -123,23 +110,23 @@ void ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
     }
 }
 
-float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {
+float& em::ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {
     return data[layer].index(x, y);
 }
 
-float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) const {
+float em::ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) const {
     return data[layer].index(x, y);
 }
 
-std::shared_ptr<ccp4::Header> ImageStackBase::get_header() const {
+std::shared_ptr<em::ccp4::Header> em::ImageStackBase::get_header() const {
     return header;
 }
 
-Limit ImageStackBase::get_limits() const {
+Limit em::ImageStackBase::get_limits() const {
     return Limit(setting::axes::qmin, setting::axes::qmax);
 }
 
-double ImageStackBase::mean() const {
+double em::ImageStackBase::mean() const {
     double sum = 0;
     for (unsigned int z = 0; z < size_z; z++) {
         sum += image(z).mean();
@@ -147,7 +134,7 @@ double ImageStackBase::mean() const {
     return sum/size_z;
 }
 
-ObjectBounds3D ImageStackBase::minimum_volume(double cutoff) {
+ObjectBounds3D em::ImageStackBase::minimum_volume(double cutoff) {
     ObjectBounds3D bounds(size_x, size_y, size_z);
     for (unsigned int z = 0; z < size_z; z++) {
         bounds[z] = image(z).setup_bounds(cutoff);
@@ -156,19 +143,19 @@ ObjectBounds3D ImageStackBase::minimum_volume(double cutoff) {
     return bounds;
 }
 
-void ImageStackBase::set_minimum_bounds(double min_val) {
+void em::ImageStackBase::set_minimum_bounds(double min_val) {
     std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
 }
 
-double ImageStackBase::from_level(double sigma) const {
+double em::ImageStackBase::from_level(double sigma) const {
     return sigma*rms();
 }
 
-double ImageStackBase::to_level(double cutoff) const {
+double em::ImageStackBase::to_level(double cutoff) const {
     return cutoff/rms();
 }
 
-double ImageStackBase::rms() const {
+double em::ImageStackBase::rms() const {
     static double rms = 0; // only initialized once
     if (rms == 0) {
         double sum = std::accumulate(data.begin(), data.end(), 0.0, [] (double sum, const Image& image) {return sum + image.squared_sum();});
@@ -177,6 +164,6 @@ double ImageStackBase::rms() const {
     return rms;
 }
 
-std::shared_ptr<em::ProteinManager> ImageStackBase::get_histogram_manager() const {
+std::shared_ptr<em::ProteinManager> em::ImageStackBase::get_protein_manager() const {
     return phm;
 }

@@ -204,10 +204,10 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
 
     plots::PlotDataset plot(data_unbinned);
     plot.plot(data);
-    plot.save("temp/dataset/rebin/both.pdf");
+    plot.save("temp/dataset/rebin/both.png");
 
-    plots::PlotDataset::quick_plot(data_unbinned, "temp/dataset/rebin/original.pdf");
-    plots::PlotDataset::quick_plot(data, "temp/dataset/rebin/rebinned.pdf");
+    plots::PlotDataset::quick_plot(data_unbinned, "temp/dataset/rebin/original.png");
+    plots::PlotDataset::quick_plot(data, "temp/dataset/rebin/rebinned.png");
 }
 
 TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
@@ -222,7 +222,7 @@ TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
 
     plots::PlotIntensity plot(data1);
     plot.plot(data2);
-    plot.save("temp/dataset/compare_errors.pdf");
+    plot.save("temp/dataset/compare_errors.png");
 }
 
 TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
@@ -237,7 +237,7 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
     }
 
     hist.generate_axis();
-    plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.pdf");
+    plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.png");
 }
 
 TEST_CASE("dataset_io", "[dataset],[files]") {
@@ -447,7 +447,7 @@ TEST_CASE("dataset_reduceplot", "[dataset],[manual]") {
     SimpleDataset data = h.calc_debye_scattering_intensity();
     data.reduce(20);
     plot.plot(data);
-    plot.save("reduce_test.pdf");
+    plot.save("reduce_test.png");
 }
 
 TEST_CASE("dataset_stats", "[dataset]") {
@@ -663,5 +663,20 @@ TEST_CASE("dataset_moving_average_plot", "[dataset],[manual]") {
     data.interpolate(5);
     data.add_plot_options(style::draw::line, {{"color", style::color::red}});
     plot.plot(data);
-    plot.save("figures/test/dataset/moving_average.pdf");
+    plot.save("figures/test/dataset/moving_average.png");
+}
+
+TEST_CASE("dataset_io_accuracy", "[dataset]") {
+    SimpleDataset data;
+    for (double x = 1.347e-01; x < 1.351e-01; x += 1e-6) {
+        data.push_back(x, sin(x));
+    }
+    data.save("figures/test/dataset_io_accuracy.dat");
+
+    SimpleDataset data2("figures/test/dataset_io_accuracy.dat");
+    REQUIRE(data.size() == data2.size());
+    for (unsigned int i = 0; i < data.size(); i++) {
+        CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
+        CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(data2.y(i), 1e-6));
+    }
 }

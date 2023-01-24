@@ -9,6 +9,7 @@ class Protein;
 #include <hist/detail/BodyTracker.h>
 
 #include <vector>
+#include <concepts>
 
 namespace hist {
 	/**
@@ -31,14 +32,12 @@ namespace hist {
 			 */
 			virtual ScatteringHistogram calculate_all();
 
-			enum class Type {
-				Simple,
-				SimpleMT,
-				Partial,
-				PartialMT
-			};
-
 		protected:
 			Protein* protein;	// pointer to the parent Protein
     };
+
+	namespace detail {
+		template<typename T>
+        concept HistogramManagerType = std::derived_from<T, HistogramManager>;
+	}
 }

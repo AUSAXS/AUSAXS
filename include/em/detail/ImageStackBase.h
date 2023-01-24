@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 
+#include <em/detail/ProteinManagerFactory.h>
 #include <em/Datatypes.h>
 #include <em/Image.h>
 
@@ -123,7 +124,13 @@ namespace em {
             /**
              * @brief Get the histogram manager.
              */
-            std::shared_ptr<em::ProteinManager> get_histogram_manager() const;
+            std::shared_ptr<em::ProteinManager> get_protein_manager() const;
+
+            /**
+             * @brief Set the histogram manager.
+             */
+            template<detail::ProteinManagerType T>
+            void set_protein_manager() {phm = em::ProteinManagerFactory::create<T>(this);}
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.

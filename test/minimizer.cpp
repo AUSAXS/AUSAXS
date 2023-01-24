@@ -202,9 +202,3 @@ TEST_CASE("create_minimizer", "[minimizer]") {
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], golden->tol));
     }
 }
-
-#include <em/ImageStack.h>
-TEST_CASE("debug", "[minimizer]") {
-    em::ImageStack image("data/Gregers_cryo/Gregers_cryo.mrc");
-    image.fit("data/Gregers/Gregers.dat");
-}

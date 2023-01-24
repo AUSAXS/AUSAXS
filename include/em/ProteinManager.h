@@ -1,11 +1,14 @@
 #pragma once
 
-#include <vector>
+namespace em {
+    class ImageStackBase;
+}
 
-#include <em/detail/ImageStackBase.h>
-#include <em/CullingStrategy.h>
 #include <data/Protein.h>
 #include <hist/ScatteringHistogram.h>
+
+#include <vector>
+#include <concepts>
 
 namespace em {
     /**
@@ -19,7 +22,7 @@ namespace em {
             /**
              * @brief Construct a Manager from an ImageStack.
              */
-            ProteinManager(const ImageStackBase& images);
+            ProteinManager(const em::ImageStackBase* images);
 
             /**
              * @brief Destructor.
@@ -59,7 +62,7 @@ namespace em {
             std::vector<double> get_charge_levels() const noexcept;
 
         protected:
-            const ImageStackBase& images; 
+            const em::ImageStackBase* images; 
             std::shared_ptr<Protein> protein;
 
             /**
@@ -81,4 +84,9 @@ namespace em {
              */
             std::unique_ptr<Protein>generate_protein(double cutoff) const;
     };
+
+    namespace detail {
+        template<typename T>
+        concept ProteinManagerType = std::derived_from<T, ProteinManager>;
+    }
 }

@@ -666,3 +666,8 @@ TEST_CASE("minimum_area", "[em]") {
         CHECK(bounds.bounded_volume() == ((2 + 3 + 2 + 3 + 2 + 3) + (3 + 4 + 1 + 4 + 1 + 4)));
     }
 }
+
+TEST_CASE("fixed_weights", "[em]") {
+    std::cout << "IMPORTANT TEST CASE NOT IMPLEMENETED YET" << std::endl;
+    exit(1);
+}

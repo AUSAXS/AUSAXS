@@ -4,7 +4,7 @@
 #include <data/StateManager.h>
 #include <data/Protein.h>
 #include <em/ImageStack.h>
-#include <em/PartialHistogramManager.h>
+#include <em/ProteinManager.h>
 
 #include <iostream>
 
@@ -31,7 +31,7 @@ TEST_CASE("state_manager", "[managers]") {
 TEST_CASE("partial_histogram_manager_works", "[managers]") {
     vector<Body> bodies(5);
     Protein protein(bodies);
-    shared_ptr<hist::PartialHistogramManager> phm = protein.get_histogram_manager();
+    shared_ptr<hist::HistogramManager> phm = protein.get_histogram_manager();
     StateManager& manager = phm->get_state_manager();
 
     manager.reset();
@@ -44,7 +44,7 @@ TEST_CASE("protein_manager", "[managers]") {
     vector<Body> bodies(5);
     Protein protein(bodies);
 
-    shared_ptr<hist::PartialHistogramManager> phm = protein.get_histogram_manager();
+    shared_ptr<hist::HistogramManager> phm = protein.get_histogram_manager();
     StateManager& manager = phm->get_state_manager();
 
     manager.reset();
@@ -81,9 +81,9 @@ TEST_CASE("protein_manager", "[managers]") {
 TEST_CASE("em_partial_histogram_manager", "[managers]") {
     setting::protein::use_effective_charge = false;
 
-    auto compare = [] (em::PartialHistogramManager& manager, double cutoff) {
-        hist::ScatteringHistogram h1 = manager.get_histogram_slow(cutoff);
-        hist::ScatteringHistogram h2 = manager.get_histogram(cutoff);
+    auto compare = [] (std::shared_ptr<em::ProteinManager> manager1, std::shared_ptr<em::ProteinManager> manager2, double cutoff) {
+        hist::ScatteringHistogram h1 = manager1->get_histogram(cutoff);
+        hist::ScatteringHistogram h2 = manager2->get_histogram(cutoff);
 
         if (h1.p.size() != h2.p.size()) {
             unsigned int lim = std::min(h1.p.size(), h2.p.size());
@@ -110,9 +110,9 @@ TEST_CASE("em_partial_histogram_manager", "[managers]") {
         em::Image image(data, header, 0);
         em::ImageStack images({image});
 
-        em::PartialHistogramManager manager(images);
-        manager.set_charge_levels({2, 4, 6, 8});
-        std::shared_ptr<Protein> protein = manager.get_protein(0);
+        auto manager = em::ProteinManagerFactory::create<em::ProteinManager>(&images);
+        manager->set_charge_levels({2, 4, 6, 8});
+        std::shared_ptr<Protein> protein = manager->get_protein(0);
 
         REQUIRE(protein->body_size() == 5);
         CHECK(protein->bodies[0].atoms().size() == 3);
@@ -121,7 +121,7 @@ TEST_CASE("em_partial_histogram_manager", "[managers]") {
         CHECK(protein->bodies[3].atoms().size() == 1);
         CHECK(protein->bodies[4].atoms().size() == 0);
 
-        protein = manager.get_protein(3);
+        protein = manager->get_protein(3);
         REQUIRE(protein->body_size() == 5);
         CHECK(protein->bodies[0].atoms().size() == 0);
         CHECK(protein->bodies[1].atoms().size() == 2);
@@ -139,46 +139,53 @@ TEST_CASE("em_partial_histogram_manager", "[managers]") {
             em::Image image(data, header, 0);
             em::ImageStack images({image});
 
-            em::PartialHistogramManager manager(images);
-            manager.set_charge_levels({2, 4, 6, 8});
+            std::shared_ptr<em::ProteinManager> manager1 = em::ProteinManagerFactory::create<em::ProteinManager>(&images);
+            std::shared_ptr<em::ProteinManager> manager2 = em::ProteinManagerFactory::create<em::SimpleProteinManager>(&images);
+            manager1->set_charge_levels({2, 4, 6, 8});
 
             // try an arbitrary cutoff level
-            REQUIRE(compare(manager, 3));
+            REQUIRE(compare(manager1, manager2, 3));
 
             // try a lower cutoff level
-            REQUIRE(compare(manager, 1));
+            REQUIRE(compare(manager1, manager2, 1));
 
             // try a higher cutoff level
-            REQUIRE(compare(manager, 4));
+            REQUIRE(compare(manager1, manager2, 4));
 
             // some more tests
-            REQUIRE(compare(manager, 5));
-            REQUIRE(compare(manager, 2));
-            REQUIRE(compare(manager, 3.6));
-            REQUIRE(compare(manager, 1));
+            REQUIRE(compare(manager1, manager2, 5));
+            REQUIRE(compare(manager1, manager2, 2));
+            REQUIRE(compare(manager1, manager2, 3.6));
+            REQUIRE(compare(manager1, manager2, 1));
         }
 
         SECTION("real example") {
             em::ImageStack images("data/maptest.ccp4");
-            auto manager = *images.get_histogram_manager();
+            images.set_protein_manager<em::ProteinManager>();
+            auto manager1 = images.get_protein_manager();
+            images.set_protein_manager<em::SimpleProteinManager>();
+            auto manager2 = images.get_protein_manager();
 
-            REQUIRE(compare(manager, 4));
-            REQUIRE(compare(manager, 3));
-            REQUIRE(compare(manager, 2));
-            REQUIRE(compare(manager, 5));
-            REQUIRE(compare(manager, 6));
+            REQUIRE(compare(manager1, manager2, 4));
+            REQUIRE(compare(manager1, manager2, 3));
+            REQUIRE(compare(manager1, manager2, 2));
+            REQUIRE(compare(manager1, manager2, 5));
+            REQUIRE(compare(manager1, manager2, 6));
         }
     }
 
     SECTION("comparison with standard approach") {
         setting::em::sample_frequency = 2;
         em::ImageStack images("data/emd_12752/emd_12752.map");
-        auto manager = *images.get_histogram_manager();
+        images.set_protein_manager<em::ProteinManager>();
+        auto manager1 = images.get_protein_manager();
+        images.set_protein_manager<em::SimpleProteinManager>();
+        auto manager2 = images.get_protein_manager();
 
-        REQUIRE(compare(manager, 0.04));
-        REQUIRE(compare(manager, 0.03));
-        REQUIRE(compare(manager, 0.02));
-        REQUIRE(compare(manager, 0.05));
-        REQUIRE(compare(manager, 0.06));
+        REQUIRE(compare(manager1, manager2, 0.04));
+        REQUIRE(compare(manager1, manager2, 0.03));
+        REQUIRE(compare(manager1, manager2, 0.02));
+        REQUIRE(compare(manager1, manager2, 0.05));
+        REQUIRE(compare(manager1, manager2, 0.06));
     }
 }

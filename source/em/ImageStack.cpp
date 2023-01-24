@@ -188,7 +188,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min.x);
-    if (setting::em::save_pdb) {get_histogram_manager()->get_protein()->save(setting::plot::path + "model.pdb");}
+    if (setting::em::save_pdb) {get_protein_manager()->get_protein()->save(setting::plot::path + "model.pdb");}
     return emfit;
 }
 
@@ -216,7 +216,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
      // 'this' is ok since prepare_function is private and thus only used within the class itself
     std::function<double(std::vector<double>)> chi2 = [this, fitter] (std::vector<double> params) {
         double last_c = 5; // arbitrary start value
-        auto p = get_histogram_manager()->get_protein(params[0]);
+        auto p = get_protein_manager()->get_protein(params[0]);
 
         std::shared_ptr<Fit> fit;
         if (setting::em::hydrate) {
@@ -335,5 +335,5 @@ void ImageStack::update_charge_levels(Limit limit) const noexcept {
     for (unsigned int i = 0; i < setting::em::charge_levels; i++) {
         levels.push_back(limit.min + i*limit.span()/setting::em::charge_levels);
     }
-    get_histogram_manager()->set_charge_levels(levels);
+    get_protein_manager()->set_charge_levels(levels);
 }

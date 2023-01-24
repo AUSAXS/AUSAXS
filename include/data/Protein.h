@@ -7,8 +7,7 @@
 #include <data/Body.h>
 #include <data/Atom.h>
 #include <data/Water.h>
-#include <data/StateManager.h>
-#include <hist/PartialHistogramManagerMT.h>
+#include <hist/detail/HistogramManagerFactory.h>
 #include <utility/SimpleDataset.h>
 #include <fitter/Fit.h>
 
@@ -274,7 +273,17 @@ class Protein {
 
 		std::shared_ptr<hist::HistogramManager> get_histogram_manager() const;
 
-		void set_histogram_manager(hist::HistogramManager::Type type);
+		/**
+		 * @brief Create a new histogram manager of type \a T.
+		 * 
+		 * @tparam T: Manager to create. Only the PartialHistogramManagerMT is intended for production. Options:
+		 *         - HistogramManager: A simple manager that recalculates the entire histogram every time.
+		 *         - HistogramManagerMT: A multithreaded implementation of the simple manager.
+		 *         - PartialHistogramManager: A smart manager that only recalculates the parts of the histogram that are needed.
+		 *         - PartialHistogramManagerMT: A multithreaded implementation of the partial manager.
+		 */
+		template<hist::detail::HistogramManagerType T>
+		void set_histogram_manager() {phm = hist::HistogramManagerFactory::create<T>(this);}
 
 		std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
 		std::vector<Body> bodies;           // The constituent bodies
