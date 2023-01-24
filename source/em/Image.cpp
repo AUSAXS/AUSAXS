@@ -66,7 +66,7 @@ double Image::squared_sum() const {
 }
 
 hist::Histogram2D Image::as_hist() const {
-    if (header == nullptr) {throw except::invalid_operation("Image::as_hist: Header must be initialized to use this method.");}
+    if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::as_hist: Header must be initialized to use this method.");}
     hist::Histogram2D hist(Axis(header->nx, 0, header->cella_x), Axis(header->ny, 0, header->cella_y));
 
     for (unsigned int x = 0; x < N; x++) {
@@ -99,6 +99,10 @@ Limit Image::limits() const {
     }
 
     return Limit(min, max);
+}
+
+void Image::set_header(std::shared_ptr<ccp4::Header> header) {
+    this->header = header;
 }
 
 const ObjectBounds2D& Image::get_bounds() const {

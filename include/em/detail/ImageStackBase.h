@@ -77,6 +77,11 @@ namespace em {
             std::shared_ptr<ccp4::Header> get_header() const;
 
             /**
+             * @brief Set the header. 
+             */
+            void set_header(std::shared_ptr<ccp4::Header> header);
+
+            /**
              * @brief Get the number of images stored in this object.
              */
             unsigned int size() const;

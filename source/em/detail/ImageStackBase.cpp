@@ -124,6 +124,13 @@ std::shared_ptr<em::ccp4::Header> em::ImageStackBase::get_header() const {
     return header;
 }
 
+void em::ImageStackBase::set_header(std::shared_ptr<ccp4::Header> header) {
+    this->header = header;
+    for (auto& image : data) {
+        image.set_header(header);
+    }
+}
+
 Limit em::ImageStackBase::get_limits() const {
     return Limit(setting::axes::qmin, setting::axes::qmax);
 }

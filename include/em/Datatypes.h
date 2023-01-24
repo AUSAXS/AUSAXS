@@ -14,34 +14,34 @@ namespace em {
         struct Header {
             Header() {}
 
-            // members CANNOT be reordered!
-            int nx; // # of cols
-            int ny; // # of rows
-            int nz; // # of sections
-            int mode; // bit format of data section
-            int nxstart; // start position of image
-            int nystart;
-            int nzstart;
-            int mx; // grid size
-            int my;
-            int mz;
-            float cella_x; // cell size
-            float cella_y;
-            float cella_z;
-            float cellb_alpha; // cell angles
-            float cellb_beta;
-            float cellb_gamma;
-            int mapc;
-            int mapr;
-            int maps;
-            float dmin; // minimum pixel value
-            float dmax; // maximum pixel value
-            float dmean; // mean pixel value
-            int ispg;
-            int nsymbt;
+            //! members CANNOT be reordered!
+            int nx;             // Number of points along x-axis.
+            int ny;             // Number of points along y-axis.
+            int nz;             // Number of points along z-axis.
+            int mode;           // Bit format of the data.
+            int nxstart;        // Location of first column in the unit cell.
+            int nystart;        // Location of first row in the unit cell.
+            int nzstart;        // Location of first section in the unit cell. 
+            int mx;             // Sampling rate along the x-axis in the unit cell.
+            int my;             // Sampling rate along the y-axis in the unit cell.
+            int mz;             // Sampling rate along the z-axis in the unit cell.
+            float cella_x;      // Map size in Ångström along x-axis. 
+            float cella_y;      // Map size in Ångström along y-axis.
+            float cella_z;      // Map size in Ångström along z-axis.
+            float cellb_alpha;  // Cell angle alpha in degrees.
+            float cellb_beta;   // Cell angle beta in degrees.
+            float cellb_gamma;  // Cell angle gamma in degrees.
+            int mapc;           // Axis corresponding to columns (1,2,3 for X,Y,Z).
+            int mapr;           // Axis corresponding to rows (1,2,3 for X,Y,Z).
+            int maps;           // Axis corresponding to sections (1,2,3 for X,Y,Z).
+            float dmin;         // Minimum pixel value.
+            float dmax;         // Maximum pixel value.
+            float dmean;        // Mean pixel value.
+            int ispg;           // Space group number.
+            int nsymbt;         // Size of extended header in bytes.
             std::array<char, 8> extra1;
             std::array<char, 4> exttyp;
-            int nversion;
+            int nversion;       // Version number of the format.
             std::array<char, 84> extra2;
             float origin_x;
             float origin_y;
@@ -73,6 +73,6 @@ namespace em {
              */
             void rotate(int x, int y, int z) noexcept;
         };
-        static_assert(sizeof(Header) == 1024, "Size of CCP4 is wrong.");
+        static_assert(sizeof(Header) == 1024, "em::ccp4::Header: Size of Header is wrong.");
     }
 }

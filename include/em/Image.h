@@ -95,7 +95,15 @@ namespace em {
              */
             Limit limits() const;
 
+            /**
+             * @brief Get the current bounds of this image. 
+             */
             const ObjectBounds2D& get_bounds() const;
+
+            /**
+             * @brief Set the header. 
+             */
+            void set_header(std::shared_ptr<ccp4::Header> header);
 
             /**
              * @brief Get the minimum area covering all pixels with a density more extreme than the cutoff. 

@@ -667,7 +667,42 @@ TEST_CASE("minimum_area", "[em]") {
     }
 }
 
-TEST_CASE("fixed_weights", "[em]") {
-    std::cout << "IMPORTANT TEST CASE NOT IMPLEMENETED YET" << std::endl;
-    exit(1);
+TEST_CASE("em_weights", "[em]") {
+    SECTION("fixed") {
+        setting::em::fixed_weights = true;
+        Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
+        Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
+        em::ImageStack images({data, data2});
+        std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+        header->cella_x = 6; header->cella_y = 6; header->cella_z = 2;
+        images.set_header(header);
+        
+        auto protein = images.get_protein(1);
+        REQUIRE(protein->atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
+        for (const auto& atom : protein->atoms()) {
+            REQUIRE(atom.get_occupancy() == 1);
+        }
+        setting::em::fixed_weights = false;
+    }
+    
+    SECTION("dynamic") {
+        Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
+        Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
+        em::ImageStack images({data, data2});
+        std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
+        header->cella_x = 6; header->cella_y = 6; header->cella_z = 2;
+        images.set_header(header);
+
+        auto protein = images.get_protein(1);
+        REQUIRE(protein->atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
+        std::map<float, unsigned int> counts = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}};
+        for (const auto& atom : protein->atoms()) {
+            counts[atom.get_occupancy()]++;
+        }
+        REQUIRE(counts.at(1) == 2+0+1+1+1+2 + 2+1+2+1+3+2);
+        REQUIRE(counts.at(2) == 0+0+0+0+0+0 + 2+1+1+1+1+1);
+        REQUIRE(counts.at(3) == 1+1+2+1+1+1 + 1+2+0+1+0+3);
+        REQUIRE(counts.at(4) == 0);
+        REQUIRE(counts.at(5) == 1+2+0+1+1+1 + 0+0+0+0+0+0);
+    }
 }
