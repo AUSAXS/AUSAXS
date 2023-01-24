@@ -14,17 +14,17 @@ namespace em {
      * This class generates and updates histograms in a smart way. This is done by splitting the 
      * generated atoms into multiple bodies, and then utilizing the smart histogram manager from the Protein. 
      */
-    class PartialHistogramManager {
+    class ProteinManager {
         public:
             /**
              * @brief Construct a Manager from an ImageStack.
              */
-            PartialHistogramManager(const ImageStackBase& images);
+            ProteinManager(const ImageStackBase& images);
 
             /**
              * @brief Destructor.
              */
-            ~PartialHistogramManager() = default;
+            virtual ~ProteinManager() = default;
 
             /**
              * @brief Get the histogram for a given cutoff.
@@ -44,45 +44,41 @@ namespace em {
             /**
              * @brief Set the charge levels to default values.
              */
-            void set_charge_levels() noexcept;
+            virtual void set_charge_levels() noexcept;
 
             /**
              * @brief Set the charge levels.
              */
-            void set_charge_levels(std::vector<double> levels) noexcept;
+            virtual void set_charge_levels(std::vector<double> levels) noexcept;
 
             /**
              * @brief Set the charge levels.
              */
-            void set_charge_levels(Axis levels) noexcept;
+            virtual void set_charge_levels(Axis levels) noexcept;
 
             std::vector<double> get_charge_levels() const noexcept;
 
-            /**
-             * @brief Alternate unoptimized approach to generating the histogram. 
-             *        This is primarily meant for debugging purposes. 
-             */
-            hist::ScatteringHistogram get_histogram_slow(double cutoff) const;
-        
-        private:
+        protected:
             const ImageStackBase& images; 
             std::shared_ptr<Protein> protein;
-            std::vector<double> charge_levels;
-            double previous_cutoff = 0;
-
-            /**
-             * @brief Update the Protein to reflect a new cutoff value.
-             */
-            void update_protein(double cutoff);
-
-            /**
-             * @brief Generate a new Protein for a given cutoff. 
-             */
-            std::unique_ptr<Protein>generate_protein(double cutoff) const;
 
             /**
              * @brief Generate the atmos for a given cutoff.
              */
             std::vector<Atom> generate_atoms(double cutoff) const;
+
+            /**
+             * @brief Update the Protein to reflect a new cutoff value.
+             */
+            virtual void update_protein(double cutoff);
+
+        private:
+            std::vector<double> charge_levels;
+            double previous_cutoff = 0;
+
+            /**
+             * @brief Generate a new Protein for a given cutoff. 
+             */
+            std::unique_ptr<Protein>generate_protein(double cutoff) const;
     };
 }

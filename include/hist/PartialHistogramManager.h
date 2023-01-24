@@ -1,6 +1,8 @@
 #pragma once
 
 #include <hist/HistogramManager.h>
+#include <hist/detail/MasterHistogram.h>
+#include <hist/detail/CompactCoordinates.h>
 
 namespace hist {
 	/**
@@ -55,8 +57,6 @@ namespace hist {
 			StateManager& get_state_manager();
 
 		protected:
-			const unsigned int size;                            // number of managed bodies
-			StateManager statemanager;                    		// a helper which keeps track of state changes in each body
 			std::vector<detail::CompactCoordinates> coords_p;   // a compact representation of the relevant data from the managed bodies
 			detail::CompactCoordinates coords_h;                // a compact representation of the hydration data
 

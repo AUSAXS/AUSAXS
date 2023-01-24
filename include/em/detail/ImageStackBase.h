@@ -2,13 +2,13 @@
 
 #include <vector>
 #include <string>
-#include <utility>
+#include <memory>
 
 #include <em/Datatypes.h>
 #include <em/Image.h>
 
 namespace em {
-    class PartialHistogramManager;
+    class ProteinManager;
 
     /**
      * @brief \class ImageStackBase
@@ -123,7 +123,7 @@ namespace em {
             /**
              * @brief Get the histogram manager.
              */
-            std::shared_ptr<em::PartialHistogramManager> get_histogram_manager() const;
+            std::shared_ptr<em::ProteinManager> get_histogram_manager() const;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
@@ -135,10 +135,10 @@ namespace em {
 
         private:
             std::string filename;
-            std::shared_ptr<ccp4::Header> header;               // The header of the map file. 
-            std::vector<Image> data;                            // The actual image data. 
-            unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
-            std::shared_ptr<em::PartialHistogramManager> phm;   // The histogram manager. Manages both the backing protein & its scattering curve. 
+            std::shared_ptr<ccp4::Header> header;       // The header of the map file. 
+            std::vector<Image> data;                    // The actual image data. 
+            unsigned int size_x, size_y, size_z;        // The number of pixels in each dimension.
+            std::shared_ptr<em::ProteinManager> phm;    // The histogram manager. Manages both the backing protein & its scattering curve. 
             
             void read(std::ifstream& istream, unsigned int byte_size);
 

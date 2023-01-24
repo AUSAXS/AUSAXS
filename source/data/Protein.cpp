@@ -3,6 +3,7 @@
 #include <io/File.h>
 #include <hist/Histogram.h>
 #include <fitter/IntensityFitter.h>
+#include <hist/HistogramManagerMT.h>
 
 #include <iomanip>
 #include <cassert>
@@ -308,7 +309,24 @@ std::shared_ptr<Fit> Protein::fit(std::string measurement) {
     return fitter.fit();
 }
 
-std::shared_ptr<PartialHistogramManager> Protein::get_histogram_manager() const {return phm;}
+std::shared_ptr<HistogramManager> Protein::get_histogram_manager() const {return phm;}
+
+void Protein::set_histogram_manager(hist::HistogramManager::Type type) {
+    switch (type) {
+        case hist::HistogramManager::Type::Simple:
+            phm = std::make_shared<HistogramManager>(this);
+            break;
+        case hist::HistogramManager::Type::SimpleMT:
+            phm = std::make_shared<HistogramManagerMT>(this);
+            break;
+        case hist::HistogramManager::Type::Partial:
+            phm = std::make_shared<PartialHistogramManager>(this);
+            break;
+        case hist::HistogramManager::Type::PartialMT:
+            phm = std::make_shared<PartialHistogramManagerMT>(this);
+            break;
+    }
+}
 
 void Protein::generate_unit_cell() {
     if (grid == nullptr) {create_grid();}

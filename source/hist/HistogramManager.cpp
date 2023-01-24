@@ -7,7 +7,7 @@
 
 using namespace hist;
 
-HistogramManager::HistogramManager(Protein* protein) : protein(protein) {}
+HistogramManager::HistogramManager(Protein* protein) : BodyTracker(protein), protein(protein) {}
 
 HistogramManager::~HistogramManager() = default;
 

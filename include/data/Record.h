@@ -1,9 +1,7 @@
 #pragma once
 
 #include <string>
-#include <sstream>
 #include <map>
-#include <math.h>
 
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>

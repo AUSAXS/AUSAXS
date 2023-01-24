@@ -1,5 +1,5 @@
 #include <em/ImageStack.h>
-#include <em/PartialHistogramManager.h>
+#include <em/ProteinManager.h>
 #include <fitter/IntensityFitter.h>
 #include <plots/all.h>
 

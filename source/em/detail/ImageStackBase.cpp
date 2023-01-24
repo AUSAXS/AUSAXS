@@ -6,7 +6,8 @@
 #include <em/NoCulling.h>
 #include <em/CounterCulling.h>
 #include <em/detail/ImageStackBase.h>
-#include <em/PartialHistogramManager.h>
+#include <em/SimpleProteinManager.h>
+#include <em/ProteinManager.h>
 #include <data/Atom.h>
 #include <data/Protein.h>
 #include <fitter/SimpleIntensityFitter.h>
@@ -18,20 +19,22 @@
 
 using namespace em;
 
-ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {    
+ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
+    phm = setting::em::fixed_weights ? std::make_unique<em::SimpleProteinManager>(*this) : std::make_unique<em::ProteinManager>(*this);
     phm->set_charge_levels(); // set default charge levels
 }
 
-ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()), phm(std::make_unique<em::PartialHistogramManager>(*this)) {
+ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()) {
     constants::filetypes::em_map.validate(file);
 
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
-
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     size_x = header->nx; size_y = header->ny; size_z = header->nz;
     read(input, get_byte_size());
+
+    phm = setting::em::fixed_weights ? std::make_unique<em::SimpleProteinManager>(*this) : std::make_unique<em::ProteinManager>(*this);
     phm->set_charge_levels(); // set default charge levels
 }
 
@@ -174,6 +177,6 @@ double ImageStackBase::rms() const {
     return rms;
 }
 
-std::shared_ptr<em::PartialHistogramManager> ImageStackBase::get_histogram_manager() const {
+std::shared_ptr<em::ProteinManager> ImageStackBase::get_histogram_manager() const {
     return phm;
 }
