@@ -41,28 +41,28 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     //##########################################################//
     mini::LimitedScan minimizer(f, param, setting::em::evals);
     minimizer.set_limit(fitter->dof()*20);
-    SimpleDataset d;
+    SimpleDataset chi2_landscape;
     {
         auto l = minimizer.landscape(setting::em::evals);
         evals.append(l);
-        d = l.as_dataset();
+        chi2_landscape = l.as_dataset();
     }
 
-    d.sort_x();
-    auto min = d.find_minimum();
+    chi2_landscape.sort_x();
+    auto min = chi2_landscape.find_minimum();
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    d.limit_y(0, min.y*5); // focus on the area near the minimum
-    if (d.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
-        Limit bounds;       // first we determine the bounds of the area we want to sample
-        if (d.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
+    chi2_landscape.limit_y(0, min.y*5);  // focus on the area near the minimum
+    if (chi2_landscape.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
+        Limit bounds;                    // first we determine the bounds of the area we want to sample
+        if (chi2_landscape.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
             double s = (param.bounds->max - param.bounds->min)/setting::em::evals;
             bounds = {min.x - s, min.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
-            bounds = d.span_x();
+            bounds = chi2_landscape.span_x();
         }
 
         // prepare a new minimizer with the new bounds
@@ -71,13 +71,13 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         {
             auto l = mini2.landscape(setting::em::evals/2);
             evals.append(l);
-            d = l.as_dataset();
+            chi2_landscape = l.as_dataset();
         }
-        d.sort_x();
-        min = d.find_minimum();
-        d.limit_y(0, min.y*5);
+        chi2_landscape.sort_x();
+        min = chi2_landscape.find_minimum();
+        chi2_landscape.limit_y(0, min.y*5);
 
-        if (d.size() < 10) {
+        if (chi2_landscape.size() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
         }
     }
@@ -85,27 +85,41 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    SimpleDataset avg = d.rolling_average(7); // impose a moving average filter 
-    avg.interpolate(5);                       // interpolate more points
+    SimpleDataset avg = chi2_landscape.rolling_average(7);  // impose a moving average filter 
+    avg.interpolate(5);                                     // interpolate more points
 
     min = avg.find_minimum();
     double spacing = avg.x(1)-avg.x(0); 
     param.guess = min.x;
     param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
 
-    // optional plot
+    // Plot all evaluated points
     if (setting::plot::em::additional_plots) {
-        // plot the minimum in blue
-        SimpleDataset p_start;
-        p_start.push_back(min.x, min.y);
-        p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
+        { // Plot evaluated points around the minimum
+            // plot the minimum in blue
+            SimpleDataset p_min, chi2_copy = chi2_landscape;
+            p_min.push_back(min.x, min.y);
+            p_min.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
+            p_min.y() /= fitter->dof();
+            chi2_copy.y() /= fitter->dof();
 
-        avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-        plots::PlotDataset plot(avg);
-        d.add_plot_options(style::draw::points);
-        plot.plot(d);
-        plot.plot(p_start);
-        plot.save(setting::plot::path + "chi2_evaluated_points." + setting::plot::format);
+            // prepare rest of the plot
+            avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
+            avg.y() /= fitter->dof();
+            plots::PlotDataset plot(avg);
+            chi2_copy.add_plot_options(style::draw::points);
+            plot.plot(chi2_copy);
+            plot.plot(p_min);
+            plot.save(setting::plot::path + "chi2_evaluated_points_limited." + setting::plot::format);
+        }
+
+        { // Plot all evaluated points
+            auto l = evals.as_dataset();
+            l.sort_x();
+            l.y() /= fitter->dof();
+            l.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
+            plots::PlotDataset::quick_plot(l, setting::plot::path + "chi2_evaluated_points_full." + setting::plot::format);
+        }
     }
 
     //##########################################################//
@@ -127,6 +141,8 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             evals.append(l);
             area = l.as_dataset();
         }
+
+        // Plot evaluated points near the minimum
         if (setting::plot::em::additional_plots) {
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
@@ -140,14 +156,19 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             l.add_plot_options(style::draw::line, {{"color", style::color::red}});
             lp.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
             lm.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
+            l.y() /= fitter->dof();
+            lp.y() /= fitter->dof();
+            lm.y() /= fitter->dof();
 
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min.x, min.y);
             p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
+            p_start.y() /= fitter->dof();
 
             // do the actual plotting
             area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
+            area.y() /= fitter->dof();
             plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);
@@ -164,7 +185,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         evals.append(golden.get_evaluated_points());
     }
 
-    // make landscape plot
+    // Make 3D landscape plot
     if (setting::plot::em::additional_plots && setting::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
@@ -172,7 +193,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             for (unsigned int j = 0; j < this->evals[i].strip.evals.size(); j++) {
                 double x = this->evals[i].cutoff;
                 double y = this->evals[i].strip.evals[j].vals.front();
-                double z = this->evals[i].strip.evals[j].fval;
+                double z = this->evals[i].strip.evals[j].fval / fitter->dof();
                 l.evals.push_back(mini::Evaluation({x, y}, z));
             }
         }

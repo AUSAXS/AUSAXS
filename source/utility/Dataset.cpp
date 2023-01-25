@@ -95,14 +95,14 @@ void Dataset::save(std::string path, std::string header) const {
     // write column titles
     if (names.size() < M) {throw except::unexpected("Dataset::save: Number of column names (" + std::to_string(names.size()) + ") does not match number of columns (" + std::to_string(M) + ").");}
     for (unsigned int j = 0; j < M; j++) {
-        output << std::left << std::setw(14) << names[j] << "\t";
+        output << std::left << std::setw(16) << names[j] << "\t";
     }
     output << std::endl;
 
     // write data
     for (unsigned int i = 0; i < N; i++) {
         for (unsigned int j = 0; j < M-1; j++) {
-            output << std::left << std::setprecision(8) << std::scientific << std::setw(16) << index(i, j) << "\t";
+            output << std::left << std::setw(16) << std::setprecision(8) << std::scientific << index(i, j) << "\t";
         }
         output << index(i, M-1) << "\n";
     }
@@ -278,7 +278,7 @@ std::string Dataset::to_string() const {
     std::stringstream ss;
     for (unsigned int i = 0; i < size(); i++) {
         for (unsigned int j = 0; j < M; j++) {
-            ss << std::setw(8) << std::setprecision(3) << std::scientific << index(i, j) << " ";
+            ss << std::setw(16) << std::setprecision(8) << std::scientific << index(i, j) << " ";
         }
         ss << "\n";
     }

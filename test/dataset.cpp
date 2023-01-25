@@ -671,9 +671,9 @@ TEST_CASE("dataset_io_accuracy", "[dataset]") {
     for (double x = 1.347e-01; x < 1.351e-01; x += 1e-6) {
         data.push_back(x, sin(x));
     }
-    data.save("figures/test/dataset_io_accuracy.dat");
+    data.save("temp/dataset_io_accuracy.dat");
 
-    SimpleDataset data2("figures/test/dataset_io_accuracy.dat");
+    SimpleDataset data2("temp/dataset_io_accuracy.dat");
     REQUIRE(data.size() == data2.size());
     for (unsigned int i = 0; i < data.size(); i++) {
         CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
