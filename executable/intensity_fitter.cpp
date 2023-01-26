@@ -23,7 +23,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
     app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,--gw", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
-    app.add_option("--bin_width,--bw", setting::axes::scattering_intensity_plot_binned_width, "Bin width for the distance histograms. Default: 1.");
+    app.add_option("--bin_width,--bw", setting::axes::distance_bin_width, "Bin width for the distance histograms. Default: 1.");
     app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.");
     app.add_option("--radius_a,--ra", setting::grid::ra, "Radius of the protein atoms.");
     app.add_option("--radius_h,--rh", setting::grid::rh, "Radius of the hydration atoms.");

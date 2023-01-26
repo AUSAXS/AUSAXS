@@ -81,7 +81,7 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 }
 
 TEST_CASE("histogram", "[protein]") {
-    setting::axes::scattering_intensity_plot_binned_width = 1;
+    setting::axes::distance_bin_width = 1;
 
     SECTION("multiple bodies, simple") {
         setting::protein::use_effective_charge = true;

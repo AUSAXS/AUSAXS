@@ -14,7 +14,7 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
     if (is_default(q, d)) {
         // check if the default table has already been instantiated 
         if (default_table.is_empty()) {
-            double width = setting::axes::scattering_intensity_plot_binned_width;
+            double width = setting::axes::distance_bin_width;
             std::vector<double> _d(default_size/width, 0);
             for (unsigned int i = 1; i < _d.size(); i++) {
                 _d[i] = width*(i+0.5);
@@ -87,7 +87,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
 bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vector<double>& d) {
     // check q
     Axis axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
 
     if (q.size() != axis.bins) {return false;}
     if (q[0] != axis.min) {return false;}

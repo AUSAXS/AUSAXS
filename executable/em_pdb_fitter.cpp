@@ -10,8 +10,9 @@ using std::string;
 
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
-    setting::fit::verbose = false;
+    setting::fit::verbose = true;
     setting::em::sample_frequency = 1;
+    setting::em::alpha_levels = {1, 10};
 
     // check that we have at least one argument
     if (argc != 3) {

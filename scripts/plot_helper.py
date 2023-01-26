@@ -377,7 +377,7 @@ def plot_file(file: str):
 
     global first_plot
     first_plot = True
-    plt.figure(figsize=(10, 8))
+    plt.figure()
     with open(file) as f:
         # keep reading until eof
         while line := f.readline():
@@ -416,6 +416,7 @@ def plot_file(file: str):
                     exit(1)
 
     path = file.rsplit('.', 1)[0]
+    plt.tight_layout()
     plt.savefig(path, dpi=300)
     plt.close()
 

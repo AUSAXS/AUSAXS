@@ -54,7 +54,7 @@ namespace utility {
     /**
      * @brief Create all parent directories of the path.
      */
-    void create_directory(std::string path);
+    void create_directory(const std::string& path);
 
     /**
      * @brief Append a string to the stem of a path. 
@@ -102,18 +102,18 @@ namespace utility {
     /**
      * @brief Print a warning message. The text will be red in the terminal. 
      */
-    void print_warning(std::string text);
+    void print_warning(const std::string& text);
 
     /**
      * @brief Print a success message. The text will be green in the terminal. 
      */
-    void print_success(std::string text);
+    void print_success(const std::string& text);
 
     /**
      * @brief Print a info message. The text will be blue in the terminal. 
      *        Should only be used as a header for a info section. Use tabs to indent other text in the section. 
      */
-    void print_info(std::string text);
+    void print_info(const std::string& text);
 
     /**
      * @brief Get a unique identifier.

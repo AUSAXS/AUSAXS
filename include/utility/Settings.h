@@ -50,12 +50,12 @@ namespace setting {
     };
 
     struct axes {
-        inline static unsigned int max_distance = 2000;                     // The maximum distance in the p(r) function in Ångström. Should always be much larger than the actual maximum distance. 
-        inline static double scattering_intensity_plot_binned_width = 1;    // The width of each bin for the scattering plots.
-        inline static unsigned int bins = 1000;                             // The number of bins for the scattering plots.
-        inline static double qmin = 1e-4;                                   // Lower limit on the used q-values
-        inline static double qmax = 0.5;                                    // Upper limit on the used q-values
-        inline static unsigned int skip = 0;                                // The number of points to skip from the top of the scattering curve.
+        inline static unsigned int max_distance = 2000; // The maximum distance in the p(r) function in Ångström. Should always be much larger than the actual maximum distance. 
+        inline static double distance_bin_width = 1;          // The width of each bin for the scattering plots.
+        inline static unsigned int bins = 1000;         // The number of bins for the scattering plots.
+        inline static double qmin = 1e-4;               // Lower limit on the used q-values
+        inline static double qmax = 0.5;                // Upper limit on the used q-values
+        inline static unsigned int skip = 0;            // The number of points to skip from the top of the scattering curve.
     };
 
     struct fit {
@@ -191,7 +191,7 @@ namespace setting {
             make_shared({"effectivecharge", "effective-charge", "use-effective-charge"}, setting::protein::use_effective_charge),
 
             // axes
-            make_shared({"scattering-intensity-plot-binned-width"}, setting::axes::scattering_intensity_plot_binned_width),
+            make_shared({"scattering-intensity-plot-binned-width"}, setting::axes::distance_bin_width),
             make_shared({"qlow", "qmin"}, setting::axes::qmin),
             make_shared({"qhigh", "qmax"}, setting::axes::qmax),
             make_shared({"skip", "skip-rows"}, setting::axes::skip),

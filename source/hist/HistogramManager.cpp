@@ -17,7 +17,7 @@ ScatteringHistogram HistogramManager::calculate_all() {
     auto atoms = protein->atoms();
     auto waters = protein->waters();
 
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
     Axis axes = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
     std::vector<double> p_pp(axes.bins, 0);
     std::vector<double> p_hh(axes.bins, 0);

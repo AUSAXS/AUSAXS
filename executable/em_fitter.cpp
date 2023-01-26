@@ -13,7 +13,7 @@ int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::hydrate = true;
     setting::fit::verbose = true;
-    setting::em::alpha_levels = {0.5, 10};
+    setting::em::alpha_levels = {0.01, 10};
 
     CLI::App app{"Fit an EM map to a SAXS measurement."};
 
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[]) {
         output = "figures/";
     }
     setting::plot::path = output + "em_fitter/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
-    
+
     std::cout << "Performing EM fit with map " << mapfile << " and measurement " << mfile << std::endl;
     em::ImageStack map(mapfile); 
 

@@ -85,7 +85,7 @@ TEST_CASE("debye_lookup_table", "[table]") {
     setting::axes::qmax = 1.001;
     SECTION("default_table") {
         table::DebyeLookupTable::reset();
-        double width = setting::axes::scattering_intensity_plot_binned_width;
+        double width = setting::axes::distance_bin_width;
         vector<double> d(200/width, 0);
         for (unsigned int i = 1; i < d.size(); i++) {
             d[i] = width*(i+0.5);

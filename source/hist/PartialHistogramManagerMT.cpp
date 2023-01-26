@@ -107,7 +107,7 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
 }
 
 void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
     detail::CompactCoordinates current(protein->bodies[index]);
 
     // calculate internal distances between atoms
@@ -164,7 +164,7 @@ void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManagerMT::initialize() {
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
     Axis axis = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
@@ -182,7 +182,7 @@ void PartialHistogramManagerMT::initialize() {
 }
 
 void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
 
     detail::CompactCoordinates& coords_n = coords_p[n];
     detail::CompactCoordinates& coords_m = coords_p[m];
@@ -222,7 +222,7 @@ void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
 }
 
 void PartialHistogramManagerMT::calc_pp(unsigned int index) {
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
     detail::CompactCoordinates& coords_i = coords_p[index];
 
     auto calc_pp = [&] (unsigned int imin, unsigned int imax, const detail::CompactCoordinates& coords_j) {
@@ -276,7 +276,7 @@ void PartialHistogramManagerMT::calc_pp(unsigned int index) {
 }
 
 void PartialHistogramManagerMT::calc_hp(unsigned int index) {
-    double width = setting::axes::scattering_intensity_plot_binned_width;
+    double width = setting::axes::distance_bin_width;
     detail::CompactCoordinates& coords = coords_p[index];
 
     auto calc_hp = [&] (unsigned int imin, unsigned int imax) {
@@ -315,7 +315,7 @@ void PartialHistogramManagerMT::calc_hp(unsigned int index) {
 }
 
 void PartialHistogramManagerMT::calc_hh() {
-    const double& width = setting::axes::scattering_intensity_plot_binned_width;
+    const double& width = setting::axes::distance_bin_width;
 
     // calculate internal distances for the hydration layer
     auto calc_hh = [&] (unsigned int imin, unsigned int imax) {

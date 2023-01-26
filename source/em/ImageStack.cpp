@@ -127,8 +127,6 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     //##########################################################//
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum
     // we therefore want to sample the area near the minimum to get an average
-    std::cout << "param: (" << param.bounds->min << ", " << param.bounds->max << ")" << std::endl;
-    std::cout << param << std::endl;
     mini::Result res;
     if (setting::em::hydrate) {
         // sample the area around the minimum

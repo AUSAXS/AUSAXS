@@ -4,9 +4,6 @@ target_link_libraries(new_hydration saxs)
 add_executable(hist hist.cpp ${BACKWARD_ENABLE})
 target_link_libraries(hist saxs)
 
-add_executable(main main.cpp ${BACKWARD_ENABLE})
-target_link_libraries(main saxs)
-
 add_executable(em em.cpp ${BACKWARD_ENABLE})
 target_link_libraries(em saxs)
 
@@ -46,19 +43,12 @@ target_link_libraries(em_fitter saxs)
 add_executable(em_pdb_fitter em_pdb_fitter.cpp ${BACKWARD_ENABLE})
 target_link_libraries(em_pdb_fitter saxs)
 
-add_executable(plot_data plot_data.cpp ${BACKWARD_ENABLE})
-target_link_libraries(plot_data saxs)
-
 add_executable(inspect_map inspect_map.cpp ${BACKWARD_ENABLE})
 target_link_libraries(inspect_map saxs)
-
-add_executable(plot plot.cpp ${BACKWARD_ENABLE})
-target_link_libraries(plot saxs)
 
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 	add_backward(new_hydration)
 	add_backward(hist)
-	add_backward(main)
 	add_backward(em)
 	add_backward(optimize_radius)
 	add_backward(intensity_fitter)
@@ -72,7 +62,5 @@ if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 	add_backward(unit_cell)
 	add_backward(em_fitter)
 	add_backward(em_pdb_fitter)
-	add_backward(plot_data)
 	add_backward(inspect_map)
-	add_backward(plot)
 endif()

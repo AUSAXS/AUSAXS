@@ -3,6 +3,16 @@ import numpy as np
 import sys
 import os
 
+params = {
+    'legend.fontsize': 14,
+    'figure.figsize': (10, 8),
+    'axes.labelsize': 14,
+    'axes.titlesize':14,
+    'xtick.labelsize':11,
+    'ytick.labelsize':11
+}
+plt.rcParams.update(params)
+
 if (len(sys.argv) != 4):
     print("Usage: python plot_intensityfit.py <data> <fit> <# to subtract from dof>")
     exit(1)
@@ -33,6 +43,8 @@ ax[1].set_xlabel("q")
 ax[1].set_ylabel("Residuals")
 
 fig.savefig(os.path.dirname(sys.argv[1]) + '/log.png', dpi=300)
+print(f"Plotted log.png")
 
 ax[0].semilogx()
 fig.savefig(os.path.dirname(sys.argv[1]) + '/loglog.png', dpi=300)
+print(f"Plotted loglog.png")

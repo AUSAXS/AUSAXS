@@ -6,33 +6,52 @@ import os
 from plot_helper import *
 
 # handle command line arguments
+help = "Usage: plot <folder>"
+params = {
+    'legend.fontsize': 14,
+    'figure.figsize': (10, 8),
+    'axes.labelsize': 14,
+    'axes.titlesize':14,
+    'xtick.labelsize':11,
+    'ytick.labelsize':11
+}
+
 match len(sys.argv):
     case 1: 
         if os.path.exists("figures"):
             folder = "figures"
         else: 
-            print("Usage: plot <folder>")
+            print(help)
             exit(0)
     case 2:
         if (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
             print("Plotting tool for the .plot files from AUSAXS.")
-            print("Usage: plot <folder>")
+            print(help)
             exit(0)
         else:
             folder = sys.argv[1]
             if not os.path.exists(folder):
                 print(f"Folder {sys.argv[1]} does not exist.")
                 exit(1)
+    case 3: # secret option to change matplotlib parameters
+        folder = sys.argv[1]
+        if not os.path.exists(folder):
+            print(f"Folder {sys.argv[1]} does not exist.")
+            exit(1)
+        if sys.argv[2] == "--bigtext":
+            params = {
+                'legend.fontsize': 28,
+                'figure.figsize': (10, 8),
+                'axes.labelsize': 28,
+                'axes.titlesize': 28,
+                'xtick.labelsize': 20,
+                'ytick.labelsize': 20
+            }
+            
     case _:
-        print("Usage: plot <folder>")
+        print(help)
         exit(0)
 
-params = {'legend.fontsize': 'x-large',
-          'figure.figsize': (15, 5),
-         'axes.labelsize': 'x-large',
-         'axes.titlesize':'x-large',
-         'xtick.labelsize':'x-large',
-         'ytick.labelsize':'x-large'}
 plt.rcParams.update(params)
 
 if folder == "":

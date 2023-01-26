@@ -22,19 +22,19 @@ std::string utility::remove_spaces(std::string s) {
     return s;
 }
 
-void utility::print_warning(std::string text) {
+void utility::print_warning(const std::string& text) {
     console::print(text, console::color::red);
 }
 
-void utility::print_success(std::string text) {
+void utility::print_success(const std::string& text) {
     console::print(text, console::color::green);
 }
 
-void utility::print_info(std::string text) {
+void utility::print_info(const std::string& text) {
     console::print(text, console::color::lightblue);
 }
 
-void utility::create_directory(std::string path) {
+void utility::create_directory(const std::string& path) {
     std::filesystem::path p(path);
     if (p.has_parent_path()) {
         std::filesystem::create_directories(p.parent_path());

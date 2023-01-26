@@ -7,17 +7,19 @@ cmake_threads := 6
 source := $(addprefix source/, $(shell find source/ -printf "%P "))
 include := $(addprefix include/, $(shell find include/ -printf "%P "))
 
+# all targets passes the options string to the executable
+options :=
+
 .SECONDARY:
 #################################################################################
-###				PYTHON PLOTS					 ###
+###				PYTHON PLOTS				      ###
 #################################################################################
-
 # Plot a SAXS dataset along with any accompanying fits
 plot_fits/%: scripts/plot_dataset.py
 	@ measurement=$(shell find figures/intensity_fitter/ -name "$*.dat"); \
 	python3 $< $${measurement}
 
-plot_em/%: scripts/plot_intensityfit.py
+plot_em/%: scripts/plot_fit.py
 	@ measurement=$$(find figures/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
 	for f in $${measurement}; do\
 		folder=$$(dirname $${f}); \
@@ -28,9 +30,13 @@ plot_em/%: scripts/plot_intensityfit.py
 # run the plotting script on all files in a folder
 plot/%: scripts/plot.py
 	python3 $< $*
+	
+# run the plotting script on all files in a folder, using larger text fonts than usual
+bigplot/%: scripts/plot.py
+	python3 $< $* --bigtext
 
 #################################################################################
-###				UTILITY					 ###
+###				UTILITY					      ###
 #################################################################################
 # compile & show the docs
 docs: 
@@ -60,9 +66,6 @@ coverage: tests
 ###################################################################################
 ###				EXECUTABLES					###
 ###################################################################################
-
-# all targets passes the options string to the executable
-options :=
 
 # hydrate a structure and show it in pymol
 hydrate/%: build/executable/new_hydration
