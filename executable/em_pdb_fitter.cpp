@@ -15,7 +15,9 @@ int main(int argc, char const *argv[]) {
     setting::em::alpha_levels = {1, 10};
 
     // check that we have at least one argument
-    if (argc != 3) {
+    if (argc == 5) {
+        setting::em::alpha_levels = {std::stod(argv[3]), std::stod(argv[4])};
+    } else if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << "<mapfile> <pdbfile>" << std::endl;
         return 1;
     }
@@ -39,6 +41,7 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "fit." + setting::plot::format);
     plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals." + setting::plot::format);
 
+    std::cout << "DOF: " << res->dof << std::endl;
     FitReporter::report(res);
     FitReporter::save(res, setting::plot::path + "fit.txt");
 }

@@ -222,7 +222,7 @@ map_consistency/%: build/executable/em_pdb_fitter
 	@ map=$$(find data -name "$*.ccp4" -or -name "$*.map" -or -name "$*.mrc"); \
 	folder=$$(dirname $${map}); \
 	pdb=$$(find $${folder} -name "*.ent"); \
-	$< $${map} $${pdb}
+	$< $${map} $${pdb} $${options}
 	make plot/figures/em_pdb_fitter/$*
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 

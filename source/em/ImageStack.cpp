@@ -100,12 +100,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             SimpleDataset p_min, chi2_copy = chi2_landscape;
             p_min.push_back(min.x, min.y);
             p_min.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
-            p_min.y() /= fitter->dof();
-            chi2_copy.y() /= fitter->dof();
 
             // prepare rest of the plot
             avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            avg.y() /= fitter->dof();
             plots::PlotDataset plot(avg);
             chi2_copy.add_plot_options(style::draw::points);
             plot.plot(chi2_copy);
@@ -116,7 +113,6 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
         { // Plot all evaluated points
             auto l = evals.as_dataset();
             l.sort_x();
-            l.y() /= fitter->dof();
             l.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
             plots::PlotDataset::quick_plot(l, setting::plot::path + "chi2_evaluated_points_full." + setting::plot::format);
         }
@@ -154,19 +150,14 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             l.add_plot_options(style::draw::line, {{"color", style::color::red}});
             lp.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
             lm.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
-            l.y() /= fitter->dof();
-            lp.y() /= fitter->dof();
-            lm.y() /= fitter->dof();
 
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min.x, min.y);
             p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
-            p_start.y() /= fitter->dof();
 
             // do the actual plotting
             area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            area.y() /= fitter->dof();
             plots::PlotDataset plot(area);
             plot.plot(l);
             plot.plot(lm);
@@ -191,7 +182,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             for (unsigned int j = 0; j < this->evals[i].strip.evals.size(); j++) {
                 double x = this->evals[i].cutoff;
                 double y = this->evals[i].strip.evals[j].vals.front();
-                double z = this->evals[i].strip.evals[j].fval / fitter->dof();
+                double z = this->evals[i].strip.evals[j].fval;
                 l.evals.push_back(mini::Evaluation({x, y}, z));
             }
         }
@@ -203,7 +194,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     min = evals.as_dataset().find_minimum();
     f({min.x});
 
-    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, min.y);
+    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min.x);

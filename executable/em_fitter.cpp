@@ -63,6 +63,7 @@ int main(int argc, char const *argv[]) {
 
     // Fit the measurements to the EM density map.
     auto res = map.fit(mfile);
+    std::cout << "DOF: " << res->dof << std::endl;
     FitReporter::report(res);
     FitReporter::save(res, setting::plot::path + "report.txt");
 
