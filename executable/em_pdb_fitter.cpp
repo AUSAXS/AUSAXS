@@ -43,5 +43,5 @@ int main(int argc, char const *argv[]) {
 
     std::cout << "DOF: " << res->dof << std::endl;
     FitReporter::report(res);
-    FitReporter::save(res, setting::plot::path + "fit.txt");
+    FitReporter::save(res, setting::plot::path + "report.txt");
 }
