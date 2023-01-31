@@ -48,59 +48,67 @@ class Options:
         self.xlog = False
         self.ylog = False
 
+        # other stuff
+        self.dof = 0 # degrees of freedom for chi2 plots
+
     def parse_option(self, line):
         words = line.split()
         if len(words) < 2:
             return
 
         # visuals
-        if (words[0] == "color"):
-            self.color = words[1]
-        elif (words[0] == "line_style"):
-            self.linestyle = words[1]
-        elif (words[0] == "marker_style"):
-            self.markerstyle = words[1]
-        elif (words[0] == "line_width"):
-            self.linewidth = float(words[1])
-        elif (words[0] == "marker_size"):
-            self.markersize = float(words[1])
-        elif (words[0] == "draw_line"):
-            self.drawline = int(words[1])
-        elif (words[0] == "draw_markers"):
-            self.drawmarker = int(words[1])
-        elif (words[0] == "draw_errors"):
-            self.drawerror = int(words[1])
+        match (words[0]): 
+            case "color":
+                self.color = words[1]
+            case "line_style":
+                self.linestyle = words[1]
+            case "marker_style":
+                self.markerstyle = words[1]
+            case "line_width":
+                self.linewidth = float(words[1])
+            case "marker_size":
+                self.markersize = float(words[1])
+            case "draw_line":
+                self.drawline = int(words[1])
+            case "draw_markers":
+                self.drawmarker = int(words[1])
+            case "draw_errors":
+                self.drawerror = int(words[1])
 
         # labels
-        elif (words[0] == "title"):
-            self.title = words[1]
-        elif (words[0] == "xlabel"):
-            self.xlabel = " ".join(words[1:])
-        elif (words[0] == "ylabel"):
-            self.ylabel = " ".join(words[1:])
-        elif (words[0] == "zlabel"):
-            self.zlabel = " ".join(words[1:])
-        elif (words[0] == "legend"):
-            self.legend = words[1]
+            case "title":
+                self.title = words[1]
+            case "xlabel":
+                self.xlabel = " ".join(words[1:])
+            case "ylabel":
+                self.ylabel = " ".join(words[1:])
+            case "zlabel":
+                self.zlabel = " ".join(words[1:])
+            case "legend":
+                self.legend = words[1]
         
         # axes
-        elif (words[0] == "xlimits"):
-            if (words[1] == words[2]):
-                return
-            self.xrange = [float(words[1]), float(words[2])]
-        elif (words[0] == "ylimits"):
-            if (words[1] == words[2]):
-                return
-            self.yrange = [float(words[1]), float(words[2])]
-        elif (words[0] == "logx"):
-            self.xlog = int(words[1])
-        elif (words[0] == "logy"):
-            self.ylog = int(words[1])
-        elif (words[0] == "same"):
-            self.same = int(words[1])
-        else:
-            print("Options.parse_option: Invalid option: " + words[0])
-            exit(1)
+            case "xlimits":
+                if (words[1] == words[2]):
+                    return
+                self.xrange = [float(words[1]), float(words[2])]
+            case "ylimits":
+                if (words[1] == words[2]):
+                    return
+                self.yrange = [float(words[1]), float(words[2])]
+            case "logx":
+                self.xlog = int(words[1])
+            case "logy":
+                self.ylog = int(words[1])
+
+        # other stuff
+            case "dof": 
+                self.dof = int(words[1])
+
+        # invalid option
+            case _:
+                print("Options.parse_option: Invalid option: " + words[0])
+                exit(1)
 
 class Dataset:
     def __init__(self, data, options):
@@ -239,6 +247,10 @@ def plot_dataset(d: Dataset):
         options: Plot options.
     """
 
+    # divide by degrees of freedom if present. Easy fix to support reduced chi2 landscapes.
+    if d.options.dof != 0:
+        d.data[:,1] = d.data[:,1]/d.options.dof
+
     if d.options.drawerror:
         if (d.data.shape[1] < 3):
             print("plot_dataset: Not enough columns for error bars.")
@@ -269,7 +281,7 @@ def plot_dataset(d: Dataset):
             linewidth=d.options.linewidth, 
             label=d.options.legend
         )
-    
+
     global first_plot
     if (first_plot):
         first_plot = False
