@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_BUILD_TYPE RELEASE)
 
 project(SAXS VERSION 0.0)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
@@ -47,12 +47,17 @@ FetchContent_Declare(
 	GIT_TAG v1.6
 )
 
+FetchContent_Declare(
+	BSThreadPool
+	GIT_REPOSITORY https://github.com/darren-harton/thread-pool
+)
 set(CMAKE_CXX_STANDARD 20)
-FetchContent_MakeAvailable(Catch2 CLI11 backward)
+FetchContent_MakeAvailable(Catch2 CLI11 backward BSThreadPool)
 
-# thread-pool
-set(BSThreadPool_DIR ${CMAKE_SOURCE_DIR}/external/thread-pool/build)
-find_package(BSThreadPool)
+include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
+if (CMAKE_BUILD_TYPE MATCHES RELEASE)
+	set(BACKWARD_ENABLE "")
+endif()
 
 ############################################
 ##           Find and link CURL           ##
@@ -98,8 +103,9 @@ endif(DOXYGEN_FOUND)
 file(GLOB_RECURSE HEADERS "include/*.h")
 file(GLOB_RECURSE SOURCES "source/*.cpp")
 add_library(saxs ${HEADERS} ${SOURCES})
-target_include_directories (saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source" "${CMAKE_SOURCE_DIR}/external/thread-pool")
-target_link_libraries(saxs CLI11::CLI11 dlib::dlib BSThreadPool::BSThreadPool ${CURL})
+target_include_directories (saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
+link_libraries(saxs)
 
 ############################################
 ##             Unit Testing               ##
@@ -110,7 +116,7 @@ file(GLOB_RECURSE
 	"test/*.cpp"
 )
 add_executable(test ${TEST_SRC} ${BACKWARD_ENABLE})
-target_link_libraries(test PRIVATE saxs Catch2::Catch2WithMain)
+target_link_libraries(test PRIVATE Catch2::Catch2WithMain)
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 	add_backward(test)
 endif()
