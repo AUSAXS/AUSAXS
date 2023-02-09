@@ -38,7 +38,7 @@ match len(sys.argv):
         if not os.path.exists(folder):
             print(f"Folder {sys.argv[1]} does not exist.")
             exit(1)
-        if sys.argv[2] == "--bigtext":
+        if sys.argv[2] == "--big":
             params = {
                 'legend.fontsize': 28,
                 'figure.figsize': (10, 8),

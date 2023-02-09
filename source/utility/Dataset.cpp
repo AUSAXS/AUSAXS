@@ -29,6 +29,10 @@ std::size_t Dataset::size() const noexcept {
     return N;
 }
 
+bool Dataset::empty() const noexcept {
+    return size() == 0;
+}
+
 Column<double> Dataset::col(std::string column) {
     for (size_t i = 0; i < names.size(); ++i) {
         if (names[i] == column) {

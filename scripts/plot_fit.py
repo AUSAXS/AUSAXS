@@ -3,13 +3,30 @@ import numpy as np
 import sys
 import os
 
+# params = {
+#     'legend.fontsize': 14,
+#     'figure.figsize': (10, 8),
+#     'axes.labelsize': 14,
+#     'axes.titlesize':14,
+#     'xtick.labelsize':11,
+#     'ytick.labelsize':11
+#     'lines.linewidth': 1,
+#     'lines.markersize': 1,
+#     'lines.markeredgewidth': 1, # capthick
+#     'errorbar.capsize': 1,
+# }
+
 params = {
-    'legend.fontsize': 14,
+    'legend.fontsize': 28,
     'figure.figsize': (10, 8),
-    'axes.labelsize': 14,
-    'axes.titlesize':14,
-    'xtick.labelsize':11,
-    'ytick.labelsize':11
+    'axes.labelsize': 28,
+    'axes.titlesize': 28,
+    'xtick.labelsize': 20,
+    'ytick.labelsize': 20,
+    'lines.linewidth': 3,
+    'lines.markersize': 12,
+    'lines.markeredgewidth': 1, # capthick
+    'errorbar.capsize': 1,
 }
 plt.rcParams.update(params)
 
@@ -30,15 +47,15 @@ chi2r = chi2(fit[:, 1]) / (len(data[:, 1]) - dof)
 # plot the data in loglog and with residuals underneath
 
 fig, ax = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
-ax[0].errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0, ms=1, capsize=1, elinewidth=0.5, capthick=0.5)
-ax[0].plot(fit[:, 0], fit[:, 1], label=r"$\chi^2_{red} = " + f"{chi2r:.3f}$", lw=1, color='red')
+ax[0].errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0)
+ax[0].plot(fit[:, 0], fit[:, 1], label=r"$\chi^2_{red} = " + f"{chi2r:.3f}$", color='red')
 ax[0].set_ylabel("I(q)")
 ax[0].legend()
 ax[0].semilogy()
 ax[0].set_title(os.path.basename(sys.argv[1].split('.')[0]))
 
 ax[1].axhline(0, color='k', lw=0.5)
-ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.', ms=1)
+ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.')
 ax[1].set_xlabel("q")
 ax[1].set_ylabel("Residuals")
 

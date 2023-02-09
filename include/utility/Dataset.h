@@ -79,6 +79,8 @@ class Dataset : public Matrix<double> {
          */
         [[nodiscard]] size_t size() const noexcept;
 
+        [[nodiscard]] bool empty() const noexcept;
+
         /**
          * @brief Write this dataset to the specified file. 
          * 

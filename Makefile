@@ -21,6 +21,7 @@ plot_fits/%: scripts/plot_dataset.py
 
 plot_em/%: scripts/plot_fit.py
 	@ measurement=$$(find figures/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
+	echo $${measurement}; \
 	for f in $${measurement}; do\
 		folder=$$(dirname $${f}); \
 		fit=$${folder}/fit.fit; \
@@ -30,10 +31,10 @@ plot_em/%: scripts/plot_fit.py
 # run the plotting script on all files in a folder
 plot/%: scripts/plot.py
 	python3 $< $*
-	
+
 # run the plotting script on all files in a folder, using larger text fonts than usual
 bigplot/%: scripts/plot.py
-	python3 $< $* --bigtext
+	python3 $< $* --big
 
 #################################################################################
 ###				UTILITY					      ###
@@ -67,10 +68,16 @@ coverage: tests
 ###				EXECUTABLES					###
 ###################################################################################
 
+# calculate the scattering from a pdb structure
+scatter/%: build/executable/scattering
+	@ structure=$(shell find data/ -name "$*.pdb"); \
+	$< $${structure} ${options}
+	make plot/figures/scattering/$*
+
 # hydrate a structure and show it in pymol
 hydrate/%: build/executable/new_hydration
 	@ structure=$(shell find data/ -name "$*.pdb"); \
-	$< $${structure} output/$*.pdb --grid_width ${options}
+	$< $${structure} output/$*.pdb ${options}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
 # show a structure in pymol
@@ -237,10 +244,6 @@ unit_cell/%: build/executable/unit_cell
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure}
 
-plot_data/%: build/executable/plot_data
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	$< $${measurement}
-
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################
@@ -299,7 +302,11 @@ build/source/tests/%: $(shell find source/ -print) build/Makefile
 .PHONY: build winbuild
 build: 
 	@ mkdir -p build; 
-	@ cd build; cmake ../
+	@ cd build; cmake ../ $(ARGS)
+
+buildstatic: 
+	@ mkdir -p build; 
+	@ cd build; cmake -DBUILD_SHARED_LIBS=OFF ../ 
 
 winbuild: 
 	@ mkdir -p winbuild;

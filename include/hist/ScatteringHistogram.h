@@ -49,33 +49,33 @@ namespace hist {
 			 * 
 			 * @return A vector of histograms of the form (atom-atom hist, water-water hist, atom-water hist, total hist))
 			 */
-			std::vector<Histogram> plot_distance() const;
+			[[nodiscard]] std::vector<Histogram> plot_distance() const;
 
 			/**
 			 * @brief Prepare a plot of the Debye scattering intensities.
 			 * 
 			 * @return A histogram of the scattering intensity. 
 			 */
-			Histogram plot_debye_scattering() const;
+			[[nodiscard]] Histogram plot_debye_scattering() const;
 
 			/**
 			 * @brief Prepare a plot of the Guinier gyration ratio. 
 			 * 
 			 * @return I(q)
 			 */
-			Histogram plot_guinier_approx() const;
+			[[nodiscard]] Histogram plot_guinier_approx() const;
 
 			/**
 			 * @brief Calculate the squared Guinier gyration ratio. 
 			 */
-			double calc_guinier_gyration_ratio_squared() const;
+			[[nodiscard]] double calc_guinier_gyration_ratio_squared() const;
 
 			/**
 			 * @brief Calculate the intensity based on the Debye scattering equation.
 			 * 
 			 * @return I(q)
 			 */
-			SimpleDataset calc_debye_scattering_intensity() const;
+			[[nodiscard]] SimpleDataset calc_debye_scattering_intensity() const;
 
 			/**
 			 * @brief Calculate the intensity based on the Debye scattering equation for a specific set of scattering vectors.
@@ -84,7 +84,7 @@ namespace hist {
 			 * 
 			 * @return I(q)
 			 */
-			SimpleDataset calc_debye_scattering_intensity(const std::vector<double>& q) const;
+			[[nodiscard]] SimpleDataset calc_debye_scattering_intensity(const std::vector<double>& q) const;
 
 			/**
 			 * @brief Assign another ScatteringHistogram to this object.
@@ -95,6 +95,8 @@ namespace hist {
 			 * @brief Assign another ScatteringHistogram to this object.
 			 */
 			ScatteringHistogram& operator=(ScatteringHistogram&& h);
+
+            [[nodiscard]] std::string to_string() const noexcept override;
 
 			Histogram p_pp, p_hh, p_hp; // binned distances
 			std::vector<double> d; // The physical distance corresponding to each bin.
@@ -108,7 +110,7 @@ namespace hist {
 			 * 
 			 * @return log10 I(q)
 			 */
-			SimpleDataset calc_guinier_approx() const;
+			[[nodiscard]] SimpleDataset calc_guinier_approx() const;
 
 			void setup();
 	};

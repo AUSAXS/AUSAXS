@@ -96,5 +96,9 @@ SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     return SimpleDataset(q, Iq, "q", "I");
 }
 
+std::string ScatteringHistogram::to_string() const noexcept {
+    return calc_debye_scattering_intensity().to_string();
+}
+
 ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) = default;
 ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) = default;

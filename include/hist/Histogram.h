@@ -79,9 +79,9 @@ namespace hist {
              */
             [[nodiscard]] size_t size() const noexcept;
 
-            [[nodiscard]] std::string to_string() const noexcept;
+            [[nodiscard]] virtual std::string to_string() const noexcept;
 
-            SimpleDataset as_dataset() const;
+            [[nodiscard]] SimpleDataset as_dataset() const;
 
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);

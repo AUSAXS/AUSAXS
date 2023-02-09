@@ -44,7 +44,7 @@ for f in files:
         print(f"Unknown fit file: \"{f}\"")
 
 # plot the data
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(10, 6))
 ax.errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0, ms=1, capsize=1, elinewidth=0.5, capthick=0.5)
 for f, l in zip(fits, labels):
     if ("waxsis" in str.lower(l)): continue
@@ -55,10 +55,10 @@ ax.set_ylabel("I(q)")
 ax.set_title(os.path.basename(mfile.split('.')[0]))
 ax.legend()
 ax.semilogy()
-fig.savefig(dir + '/log.pdf')
+fig.savefig(dir + '/log.png')
 
 ax.semilogx()
-fig.savefig(dir + '/loglog.pdf')
+fig.savefig(dir + '/loglog.png')
 
 ax.set_xlim(0.1, 0.5)
-fig.savefig(dir + '/loglog_short.pdf')
+fig.savefig(dir + '/loglog_short.png')

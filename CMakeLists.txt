@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_BUILD_TYPE RELEASE)
 
 project(SAXS VERSION 0.0)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
@@ -57,17 +57,32 @@ find_package(BSThreadPool)
 ############################################
 ##           Find and link CURL           ##
 ############################################
+
+# specify that we want to use static libs
+if (NOT BUILD_SHARED_LIBS)
+	message(STATUS "Building static executables.")
+	set(STATIC -static)
+	set(OPENSSL_USE_STATIC_LIBS TRUE)		# tell openssl to look for static libs
+	set(BACKWARD_ENABLE "") 			# disable backwards
+	add_definitions(-DCURL_STATICLIB)
+endif()
+
 # when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
-	add_definitions(-DCURL_STATICLIB)
-	set(OPENSSL_USE_STATIC_LIBS TRUE)
+	if (BUILD_SHARED_LIBS)
+		message(ERROR "Build error: Currently only static building is supported for Windows")
+	endif()
 	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.a")
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
-	set(CURL -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
+	set(CURL ${STATIC} gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
 
 # for linux we assume the users can figure out how to install missing packages by themselves
 elseif (UNIX)
+	if (NOT BUILD_SHARED_LIBS)
+		set(CURL_LIBRARY "~/tools/curl/curl/lib/libcurl.a")
+		set(OPENSSL_LIBRARIES "~/tools/curl/openssl/lib64/libcrypto.a ~/tools/curl/openssl/lib64/libssl.a")
+	endif()
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
 	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
@@ -118,4 +133,6 @@ endif()
 ############################################
 ##          Other executables             ##
 ############################################
+link_libraries(saxs)
+
 add_subdirectory(executable)
