@@ -25,8 +25,8 @@ int main(int argc, char const *argv[]) {
     // load the input files
     string mapfile = argv[1];
     string pdbfile = argv[2];
-    setting::plot::path = "figures/em_pdb_fitter/" + utility::stem(mapfile) + "/";
-    string mfile = setting::plot::path + "temp.dat";
+    setting::general::output = "figures/em_pdb_fitter/" + utility::stem(mapfile) + "/";
+    string mfile = setting::general::output + "temp.dat";
 
     // load the map and protein
     em::ImageStack map(mapfile); 
@@ -38,10 +38,10 @@ int main(int argc, char const *argv[]) {
     auto res = map.fit(mfile);
     std::filesystem::remove(mfile);
 
-    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "fit." + setting::plot::format);
-    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals." + setting::plot::format);
+    plots::PlotIntensityFit::quick_plot(res, setting::general::output + "fit." + setting::plot::format);
+    plots::PlotIntensityFitResiduals::quick_plot(res, setting::general::output + "residuals." + setting::plot::format);
 
     std::cout << "DOF: " << res->dof << std::endl;
     FitReporter::report(res);
-    FitReporter::save(res, setting::plot::path + "report.txt");
+    FitReporter::save(res, setting::general::output + "report.txt");
 }

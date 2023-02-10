@@ -281,7 +281,7 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
-                    if (grid.index(i, j, k) != 0) {continue;} // skip if the bin is already occupied
+                    if (grid.index(i, j, k) != GridObj::EMPTY) {continue;} // skip if the bin is already occupied
                     added_volume++;
                     grid.index(i, j, k) = marker;
                 }
@@ -316,11 +316,11 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     return to_remove;
 }
 
-std::vector<GridMember<Atom>> Grid::add(const Body* const body) {
+std::vector<GridMember<Atom>> Grid::add(const Body* body) {
     return add(body->atoms());
 }
 
-void Grid::remove(const Body* const body) {
+void Grid::remove(const Body* body) {
     remove(body->atoms());
 }
 
@@ -337,9 +337,9 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
     if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;} // can probably be removed
 
     GridMember gm(atom, loc);
-    if (expand) {expand_volume(gm);}
     a_members.push_back(gm);
     grid.index(x, y, z) = GridObj::A_CENTER;
+    if (expand) {expand_volume(gm);}
 
     return gm;
 }
@@ -355,9 +355,9 @@ GridMember<Water> Grid::add(const Water& water, bool expand) {
     }
 
     GridMember gm(water, loc);
-    if (expand) {expand_volume(gm);}
     w_members.push_back(gm);
     grid.index(x, y, z) = GridObj::H_CENTER;
+    if (expand) {expand_volume(gm);}
 
     return gm;
 }
@@ -415,8 +415,8 @@ void Grid::remove(const Atom& atom) {
     GridMember<Atom>& member = *pos;
     const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
-    deflate_volume(member);
     a_members.erase(pos);
+    deflate_volume(member);
     grid.index(x, y, z) = GridObj::EMPTY;
     volume--;
 }
@@ -430,8 +430,8 @@ void Grid::remove(const Water& water) {
     GridMember<Water>& member = *pos;
     const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
-    deflate_volume(member);
     w_members.erase(pos);
+    deflate_volume(member);
     grid.index(x, y, z) = GridObj::EMPTY;
 }
 
@@ -513,24 +513,24 @@ void Grid::deflate_volume() {
 }
 
 void Grid::deflate_volume(GridMember<Atom>& atom) {
-    if (!atom.expanded_volume) {return;} // check if this location has already been expanded
+    if (!atom.expanded_volume) {return;} // check if this location has already been deflated
 
-    atom.expanded_volume = false; // mark this location as expanded
-    deflate_volume(atom.loc, false); // do the expansion
+    atom.expanded_volume = false; // mark this location as deflated
+    deflate_volume(atom.loc, false); // do the deflation
 }
 
 void Grid::deflate_volume(GridMember<Water>& water) {
-    if (!water.expanded_volume) {return;} // check if this location has already been expanded
+    if (!water.expanded_volume) {return;} // check if this location has already been deflated
 
-    water.expanded_volume = false; // mark this location as expanded
-    deflate_volume(water.loc, true); // do the expansion
+    water.expanded_volume = false; // mark this location as deflated
+    deflate_volume(water.loc, true); // do the deflated
 }
 
-void Grid::deflate_volume(const Vector3<int>& loc, const bool is_water) {
+void Grid::deflate_volume(const Vector3<int>& loc, bool is_water) {
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int r = is_water ? rh : ra; // determine which radius to use for the expansion
+    int r = is_water ? rh : ra; // determine which radius to use for the deflation
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
@@ -545,8 +545,8 @@ void Grid::deflate_volume(const Vector3<int>& loc, const bool is_water) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(loc.x() - i, 2) + std::pow(loc.y() - j, 2) + std::pow(loc.z() - k, 2)) <= r) {
                     if (grid.index(i, j, k) == GridObj::EMPTY) {continue;} // skip if bin is empty
-                    removed_volume++;
                     grid.index(i, j, k) = GridObj::EMPTY;
+                    removed_volume++;
                 }
             }
         }
@@ -604,14 +604,72 @@ Grid& Grid::operator=(const Grid& rhs) {
 
 bool Grid::operator==(const Grid& rhs) const {
     // we do everything but check the contents of the grid. 
-    if (volume != rhs.volume) {return false;}
-    if (a_members.size() != rhs.a_members.size()) {return false;}
-    if (w_members.size() != rhs.w_members.size()) {return false;}
-    if (ra != rhs.ra) {return false;}
-    if (rh != rhs.rh) {return false;}
-    if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
-    if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
-    if (width != rhs.width) {return false;}
-    if (axes != rhs.axes) {return false;}
+    if (volume != rhs.volume) {
+        std::cout << "volume: " << volume << " != " << rhs.volume << std::endl;
+        return false;}
+    if (a_members.size() != rhs.a_members.size()) {
+        std::cout << "a_members: " << a_members.size() << " != " << rhs.a_members.size() << std::endl;
+        return false;}
+    if (w_members.size() != rhs.w_members.size()) {
+        std::cout << "w_members: " << w_members.size() << " != " << rhs.w_members.size() << std::endl;
+        return false;}
+    if (ra != rhs.ra) {
+        std::cout << "ra: " << ra << " != " << rhs.ra << std::endl;
+        return false;}
+    if (rh != rhs.rh) {
+        std::cout << "rh: " << rh << " != " << rhs.rh << std::endl;
+        return false;}
+    if (typeid(water_culler) != typeid(rhs.water_culler)) {
+        std::cout << "water_culler: " << typeid(water_culler).name() << " != " << typeid(rhs.water_culler).name() << std::endl;
+        return false;}
+    if (typeid(water_placer) != typeid(rhs.water_placer)) {
+        std::cout << "water_placer: " << typeid(water_placer).name() << " != " << typeid(rhs.water_placer).name() << std::endl;
+        return false;}
+    if (width != rhs.width) {
+        std::cout << "width: " << width << " != " << rhs.width << std::endl;
+        return false;}
+    if (axes != rhs.axes) {
+        std::cout << "axes: " << axes << " != " << rhs.axes << std::endl;
+        return false;}
     return true;
+
+    // if (volume != rhs.volume) {return false;}
+    // if (a_members.size() != rhs.a_members.size()) {return false;}
+    // if (w_members.size() != rhs.w_members.size()) {return false;}
+    // if (ra != rhs.ra) {return false;}
+    // if (rh != rhs.rh) {return false;}
+    // if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
+    // if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
+    // if (width != rhs.width) {return false;}
+    // if (axes != rhs.axes) {return false;}
+    // return true;
+}
+
+#include <data/Protein.h>
+void Grid::save(std::string path) const {
+    std::vector<Atom> atoms;
+    std::vector<Water> waters;
+    unsigned int c = 0;
+    for (unsigned int i = 0; i < grid.xdim; i++) {
+        for (unsigned int j = 0; j < grid.ydim; j++) {
+            for (unsigned int k = 0; k < grid.zdim; k++) {
+                switch (grid.index(i, j, k)) {
+                    case GridObj::A_CENTER:
+                        atoms.push_back(Atom(c++, "C", "", "LYS", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", ""));
+                        break;
+                    case GridObj::A_AREA:
+                        atoms.push_back(Atom(c++, "C", "", "LYS", "B", 2, "", Vector3<double>(i, j, k), 1, 0, "C", ""));
+                        break;
+                    case GridObj::H_CENTER:
+                        waters.push_back(Water(c++, "H", "", "HOH", "C", 3, "", Vector3<double>(i, j, k), 1, 0, "H", ""));
+                        break;
+                    case GridObj::H_AREA:
+                        waters.push_back(Water(c++, "H", "", "HOH", "D", 4, "", Vector3<double>(i, j, k), 1, 0, "H", ""));
+                        break;
+                }
+            }
+        }
+    }
+    Protein p(atoms, waters);
+    p.save(path);
 }

@@ -16,6 +16,7 @@ namespace setting {
         static constexpr char residue_folder[] = "temp/residues/";                  // Download location for all ligand files. Must be constexpr. 
         inline static bool verbose = true;                                          // Whether to print out extra information.
         inline static unsigned int threads = std::thread::hardware_concurrency();   // The number of threads to use for parallelization.
+        inline static std::string output = "output/";                               // The output directory.
 
         struct detail {
             inline static unsigned int job_size = 200; // The number of atoms to process in each job.
@@ -95,7 +96,6 @@ namespace setting {
     };
 
     struct plot {
-        inline static std::string path = "figures/";    // The path to the output folder. 
         inline static std::string format = "png";       // The output format.
 
         struct image {

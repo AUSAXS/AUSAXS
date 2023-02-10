@@ -222,6 +222,7 @@ void Protein::clear_grid() {
 }
 
 void Protein::clear_hydration() {
+    if (grid != nullptr) {grid->clear_waters();} // also clear the waters from the grid
     hydration_atoms.clear();
 }
 

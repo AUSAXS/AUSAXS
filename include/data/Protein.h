@@ -99,7 +99,6 @@ class Protein {
 
 		/** 
 		 * @brief Writes this body to disk.
-		 * @param path path to the destination. 
 		 */
 		void save(std::string path);
 

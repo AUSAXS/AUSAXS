@@ -180,32 +180,99 @@ TEST_CASE("body_equality", "[body]") {
 }
 
 TEST_CASE("grid_add_remove_bodies", "[body]") {
-    vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    Body b1(a1), b2(a2), b3(a3), b4(a4);
-    vector<Body> bodies = {b1, b2, b3, b4};
-    Protein protein(bodies);
+    SECTION("single") {
+        Body b({Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)});
+        Grid g(Axis3D(-2, 2, -2, 2, -2, 2, 5), 1);
 
-    auto grid = protein.get_grid();
-    REQUIRE(grid->a_members.size() == 8);
-    grid->remove(&b2);
-    REQUIRE(grid->a_members.size() == 6);
-    grid->remove(&b1);
-    REQUIRE(grid->a_members.size() == 4);
-    grid->remove(&b3);
-    REQUIRE(grid->a_members.size() == 2);
+        g.add(&b);
+        REQUIRE(g.a_members.size() == 2);
+        REQUIRE(g.get_volume() != 0);
 
-    auto remaining = grid->a_members;
-    for (const auto& e : remaining) {
-        REQUIRE((e == a4[0] || e == a4[1]));
+        g.remove(&b);
+        REQUIRE(g.a_members.size() == 0);
+        REQUIRE(g.get_volume() == 0);
     }
 
-    // check volume
-    REQUIRE(grid->volume != 0);
-    grid->remove(&b4);
-    REQUIRE(grid->volume == 0);
+    SECTION("multiple") {
+        vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+        vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+        vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+        Body b1(a1), b2(a2), b3(a3), b4(a4);
+        vector<Body> bodies = {b1, b2, b3, b4};
+        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5, 11), 1, 1);
+
+        grid.add(&b1);
+        grid.add(&b2);
+        grid.add(&b3);
+        grid.add(&b4);
+        REQUIRE(grid.a_members.size() == 8);
+
+        unsigned int vol = grid.get_volume();
+        grid.save("debug1.pdb");
+        grid.remove(&b2);
+        grid.add(&b2);
+        grid.save("debug2.pdb");
+        REQUIRE(grid.get_volume() == vol);
+        grid.remove(&b2);
+        REQUIRE(grid.a_members.size() == 6);
+
+        vol = grid.get_volume();
+        grid.remove(&b1);
+        grid.add(&b1);
+        REQUIRE(grid.get_volume() == vol);
+        grid.remove(&b1);
+        REQUIRE(grid.a_members.size() == 4);
+
+        vol = grid.get_volume();
+        grid.remove(&b3);
+        grid.add(&b3);
+        REQUIRE(grid.get_volume() == vol);
+        grid.remove(&b3);
+        REQUIRE(grid.a_members.size() == 2);
+
+        auto remaining = grid.a_members;
+        for (const auto& e : remaining) {
+            REQUIRE((e == a4[0] || e == a4[1]));
+        }
+
+        // check volume
+        REQUIRE(grid.get_volume() != 0);
+        grid.remove(&b4);
+        REQUIRE(grid.get_volume() == 0);
+    }
+
+    // SECTION("real data") {
+    //     Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+    //     unsigned int N = protein.atoms().size();
+    //     auto grid = protein.get_grid();
+    //     REQUIRE(grid->a_members.size() == N);
+    //     REQUIRE(grid->get_volume() != 0);
+
+    //     unsigned int vol = grid->get_volume();
+    //     grid->remove(&protein.bodies[0]);
+    //     grid->add(&protein.bodies[0]);
+    //     REQUIRE(grid->get_volume() == vol);
+    //     grid->remove(&protein.bodies[0]);
+    //     REQUIRE(grid->a_members.size() == N - protein.bodies[0].atoms().size());
+    //     REQUIRE(grid->get_volume() != 0);
+
+    //     vol = grid->get_volume();
+    //     grid->remove(&protein.bodies[1]);
+    //     grid->add(&protein.bodies[1]);
+    //     REQUIRE(grid->get_volume() == vol);
+    //     grid->remove(&protein.bodies[1]);        
+    //     REQUIRE(grid->a_members.size() == N - protein.bodies[0].atoms().size() - protein.bodies[1].atoms().size());
+    //     REQUIRE(grid->get_volume() != 0);
+
+    //     vol = grid->get_volume();
+    //     grid->remove(&protein.bodies[2]);
+    //     grid->add(&protein.bodies[2]);
+    //     REQUIRE(grid->get_volume() == vol);
+    //     grid->remove(&protein.bodies[2]);
+    //     REQUIRE(grid->a_members.size() == 0);
+    //     REQUIRE(grid->get_volume() == 0);
+    // }
 }
 
 TEST_CASE("split_body", "[body],[files]") {

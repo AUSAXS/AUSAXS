@@ -5,7 +5,7 @@ std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
-    unsigned int ra = grid->ra, rh = grid->rh;
+    unsigned int ra = grid->get_ra(), rh = grid->get_rh();
 
     // short lambda to actually place the generated water molecules
     std::vector<GridMember<Water>> placed_water(grid->a_members.size());
@@ -75,7 +75,7 @@ bool grid::AxesPlacement::collision_check(const Vector3<unsigned int>& loc) cons
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
-    int ra = grid->ra, rh = grid->rh;
+    int ra = grid->get_ra(), rh = grid->get_rh();
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]

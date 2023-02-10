@@ -123,7 +123,7 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     RigidBody rbody(protein);
     rbody.generate_new_hydration();
 
-    IntensityFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
+    IntensityFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());
     fitter.fit()->fval;
 }
 
@@ -152,4 +152,53 @@ TEST_CASE("body_selectors", "[rigidbody]") {
     REQUIRE(count[1] > 10);
     REQUIRE(count[2] > 10);
     REQUIRE(count[3] > 10);
+}
+
+TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
+    Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+    REQUIRE(protein.bodies.size() == 3);
+    protein.generate_new_hydration();
+    std::vector<Water> oldwaters = protein.waters();
+    Grid oldgrid = *protein.get_grid();
+    std::cout << "Body atoms:" 
+                << "\n\t" << protein.bodies.at(0).atoms().size() 
+                << "\n\t" << protein.bodies.at(1).atoms().size() 
+                << "\n\t" << protein.bodies.at(2).atoms().size() << std::endl;
+
+    // fit the protein
+    IntensityFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+    auto chi2 = fitter.fit()->fval;
+
+    // remove the first body
+    Body& body = protein.bodies.at(0);
+    Body old_body(body);
+    std::shared_ptr<Grid> grid = protein.get_grid();
+
+    grid->remove(&body);
+//    body.translate(Vector3<double>(0, 0, 10));              // translate the body
+//    body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
+    grid->add(&body);
+    protein.generate_new_hydration();                       // generate a new hydration shell
+    fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
+    auto _chi2 = fitter.fit()->fval;                        // fit the protein
+    CHECK_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));   // chi2 should be different
+
+    // add the body back
+    grid->remove(&body);
+    body = old_body;                                        // reset the body
+    grid->add(&body);
+    protein.generate_new_hydration();                       // generate a new hydration shell
+    fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
+    _chi2 = fitter.fit()->fval;                             // fit the protein
+    CHECK_THAT(chi2, Catch::Matchers::WithinRel(_chi2));    // chi2 should be the same
+
+    // check that the grid is the same
+    Grid newgrid = *protein.get_grid();
+    REQUIRE(oldgrid == newgrid);
+
+    // check that the waters are the same
+    auto newwaters = protein.waters();
+    for (unsigned int i = 0; i < newwaters.size(); i++) {
+        CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
+    }
 }

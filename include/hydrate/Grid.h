@@ -117,7 +117,7 @@ class Grid {
 		 * 
 		 * @param body The body to be added. 
 		 */
-		std::vector<grid::GridMember<Atom>> add(const Body* const body);
+		std::vector<grid::GridMember<Atom>> add(const Body* body);
 
 		/** 
 		 * @brief Add a single atom to the grid. 
@@ -136,7 +136,7 @@ class Grid {
 		 * 
 		 * @param body The body to be removed. 
 		 */
-		void remove(const Body* const body);
+		void remove(const Body* body);
 
 		/**
 		 * @brief Remove atoms as specified by the @a to_remove vector. 
@@ -274,6 +274,10 @@ class Grid {
 
 		Axis3D get_axes() const {return axes;}
 
+		unsigned int get_ra() const {return ra;}
+
+		unsigned int get_rh() const {return rh;}
+
 		/**
 		 * @brief Convert a vector of bin locations (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
 		 * @param v the bin location.
@@ -314,9 +318,16 @@ class Grid {
 		 */
 		bool operator==(const Grid& rhs) const;
 
+		/**
+		 * @brief Save this Grid as a PDB file.
+		 */
+		void save(std::string path) const;
+
 		GridObj grid; // The actual grid.
 		std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
 		std::list<grid::GridMember<Water>> w_members; // A list of all member water molecules and where they are located. 
+
+	protected: // only protected since they are important for testing
 		unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
 		unsigned int ra = 0; // Radius of each atom represented as a number of bins
 		unsigned int rh = 0; // Radius of each water molecule represented as a number of bins

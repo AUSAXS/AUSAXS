@@ -107,14 +107,14 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             chi2_copy.add_plot_options(style::draw::points);
             plot.plot(chi2_copy);
             plot.plot(p_min);
-            plot.save(setting::plot::path + "chi2_evaluated_points_limited." + setting::plot::format);
+            plot.save(setting::general::output + "chi2_evaluated_points_limited." + setting::plot::format);
         }
 
         { // Plot all evaluated points
             auto l = evals.as_dataset();
             l.sort_x();
             l.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset::quick_plot(l, setting::plot::path + "chi2_evaluated_points_full." + setting::plot::format);
+            plots::PlotDataset::quick_plot(l, setting::general::output + "chi2_evaluated_points_full." + setting::plot::format);
         }
     }
 
@@ -163,7 +163,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             plot.plot(lm);
             plot.plot(lp);
             plot.plot(p_start);
-            plot.save(setting::plot::path + "chi2_near_minimum." + setting::plot::format);
+            plot.save(setting::general::output + "chi2_near_minimum." + setting::plot::format);
         }
     } 
     
@@ -187,7 +187,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
             }
         }
         l.add_plot_options({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "$\\chi^2$"}});
-        plots::PlotLandscape::quick_plot(l, setting::plot::path + "chi2_landscape." + setting::plot::format);
+        plots::PlotLandscape::quick_plot(l, setting::general::output + "chi2_landscape." + setting::plot::format);
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
@@ -198,7 +198,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min.x);
-    if (setting::em::save_pdb) {get_protein_manager()->get_protein()->save(setting::plot::path + "model.pdb");}
+    if (setting::em::save_pdb) {get_protein_manager()->get_protein()->save(setting::general::output + "model.pdb");}
     return emfit;
 }
 

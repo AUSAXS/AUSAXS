@@ -14,6 +14,12 @@
  
 using std::vector;
 
+// Debug class to expose the volume variable
+class GridDebug : public Grid {
+    using Grid::Grid;
+    public: unsigned int unexpanded_volume() {return volume;}
+};
+
 TEST_CASE("grid_generation", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
@@ -153,21 +159,21 @@ TEST_CASE("volume", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 1;
-    Grid grid(axes, width, radius);
+    GridDebug grid(axes, width, radius);
 
     // cout << grid.get_volume() << endl;
     vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
     vector<Water> w = {Water({2, 2, 2}, 0, "C", "", 0), Water({2, 2, 3}, 0, "C", "", 0)};
     grid.add(a);
     grid.add(w);
-    REQUIRE(grid.volume == 1); // atoms are added as point-particles, and only occupy one unit of space.
+    REQUIRE(grid.unexpanded_volume() == 1); // atoms are added as point-particles, and only occupy one unit of space.
 
     grid.expand_volume();
-    REQUIRE(grid.volume == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
+    REQUIRE(grid.unexpanded_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
 
     grid.add(Atom({0, 0, -1}, 0, "C", "", 0));
     grid.expand_volume();
-    REQUIRE(grid.volume == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
+    REQUIRE(grid.unexpanded_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
 }
 
 TEST_CASE("hydrate", "[grid],[files]") {
@@ -201,30 +207,33 @@ TEST_CASE("hydrate", "[grid],[files]") {
 
     // check that a hydration operation is reversible
     SECTION("reversible") {
-        // get the grid before hydrating it
-        Protein protein("data/LAR1-2/LAR1-2.pdb");
-        protein.clear_hydration();
-        auto g1 = protein.get_grid()->grid;
+        SECTION("LAR1-2") {
+            // get the grid before hydrating it
+            Protein protein("data/LAR1-2/LAR1-2.pdb");
+            protein.clear_hydration();
+            auto g1 = *protein.get_grid();
 
-        // hydrate it and clear the hydration
-        protein.generate_new_hydration();
-        protein.clear_hydration();
-        auto g2 = protein.get_grid()->grid;
+            // hydrate it and clear the hydration
+            protein.generate_new_hydration();
+            protein.clear_hydration();
+            auto g2 = *protein.get_grid();
 
-        // check sizes
-        REQUIRE(g1.xdim == g2.xdim);
-        REQUIRE(g1.ydim == g2.ydim);
-        REQUIRE(g1.zdim == g2.zdim);
+            // check sizes
+            REQUIRE(g1.grid.xdim == g2.grid.xdim);
+            REQUIRE(g1.grid.ydim == g2.grid.ydim);
+            REQUIRE(g1.grid.zdim == g2.grid.zdim);
 
-        // check that the grids are the same
-        for (unsigned int i = 0; i < g1.xdim; i++) {
-            for (unsigned int j = 0; j < g1.ydim; j++) {
-                for (unsigned int k = 0; k < g1.zdim; k++) {
-                    if (g1.index(i, j, k) != g2.index(i, j, k)) {
-                        REQUIRE(g1.index(i, j, k) != g2.index(i, j, k));
+            // check that the grids are the same
+            for (unsigned int i = 0; i < g1.grid.xdim; i++) {
+                for (unsigned int j = 0; j < g1.grid.ydim; j++) {
+                    for (unsigned int k = 0; k < g1.grid.zdim; k++) {
+                        if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
+                            REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
+                        }
                     }
                 }
             }
+            REQUIRE(g1.get_volume() == g2.get_volume());
         }
     }
 
@@ -444,7 +453,7 @@ TEST_CASE("correct_volume", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 10; // we use a very large radius so the atoms will heavily overlap
-    Grid grid(axes, width, radius);
+    GridDebug grid(axes, width, radius);
 
     // atoms
     Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
@@ -459,24 +468,24 @@ TEST_CASE("correct_volume", "[grid]") {
     vector<Water> w = {w1, w2, w3};
 
     // single non-overlapping
-    REQUIRE(grid.volume == 0);
+    REQUIRE(grid.unexpanded_volume() == 0);
     grid.add(a1);
-    REQUIRE(grid.volume != 0);
+    REQUIRE(grid.unexpanded_volume() != 0);
     grid.remove(a1);
-    REQUIRE(grid.volume == 0);
+    REQUIRE(grid.unexpanded_volume() == 0);
 
     grid.add(w1);
-    REQUIRE(grid.volume == 0);
+    REQUIRE(grid.unexpanded_volume() == 0);
     grid.remove(w1);
-    REQUIRE(grid.volume == 0);
+    REQUIRE(grid.unexpanded_volume() == 0);
 
     // multiple overlapping
     grid.add(a);
     grid.add(w);
-    REQUIRE(grid.volume != 0);
+    REQUIRE(grid.unexpanded_volume() != 0);
     grid.remove(a);
     grid.remove(w);
-    REQUIRE(grid.volume == 0);
+    REQUIRE(grid.unexpanded_volume() == 0);
 }
 
 TEST_CASE("find_free_locs", "[grid]") {
@@ -520,16 +529,16 @@ TEST_CASE("volume_deflation", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 3;
-    Grid grid(axes, width, radius);
+    GridDebug grid(axes, width, radius);
 
     vector<Atom> a = {Atom({3, 0, 0}, 0, "C", "", 1), Atom({0, 3, 0}, 0, "C", "", 2)};
     grid.add(a);
-    REQUIRE(grid.volume == 2);
+    REQUIRE(grid.unexpanded_volume() == 2);
 
     grid.expand_volume();
     grid.deflate_volume();
     GridObj &g = grid.grid;
-    REQUIRE(grid.volume == 2);
+    REQUIRE(grid.unexpanded_volume() == 2);
 
     auto bins = grid.get_bins();
     for (int i = 0; i < bins.x(); i++) {

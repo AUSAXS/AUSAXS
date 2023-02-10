@@ -56,7 +56,7 @@ int main(int argc, char const *argv[]) {
     if (output.empty()) {
         output = "figures/";
     }
-    setting::plot::path = output + "em_fitter/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
+    setting::general::output = output + "em_fitter/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
 
     std::cout << "Performing EM fit with map " << mapfile << " and measurement " << mfile << std::endl;
     em::ImageStack map(mapfile); 
@@ -65,11 +65,11 @@ int main(int argc, char const *argv[]) {
     auto res = map.fit(mfile);
     std::cout << "DOF: " << res->dof << std::endl;
     FitReporter::report(res);
-    FitReporter::save(res, setting::plot::path + "report.txt");
+    FitReporter::save(res, setting::general::output + "report.txt");
 
-    res->figures.data.save(setting::plot::path + utility::stem(mfile) + ".dat");
-    res->figures.intensity_interpolated.save(setting::plot::path + "fit.fit");
-    plots::PlotIntensityFit::quick_plot(res, setting::plot::path + "intensity_fit." + setting::plot::format);
-    plots::PlotIntensityFitResiduals::quick_plot(res, setting::plot::path + "residuals." + setting::plot::format);
+    res->figures.data.save(setting::general::output + utility::stem(mfile) + ".dat");
+    res->figures.intensity_interpolated.save(setting::general::output + "fit.fit");
+    plots::PlotIntensityFit::quick_plot(res, setting::general::output + "intensity_fit." + setting::plot::format);
+    plots::PlotIntensityFitResiduals::quick_plot(res, setting::general::output + "residuals." + setting::plot::format);
     return 0;
 }

@@ -18,7 +18,7 @@ std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    int r_eff = grid->ra + grid->rh;
+    int r_eff = grid->get_ra() + grid->get_rh();
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
         for (int j = min.y(); j < max.y(); j++) {

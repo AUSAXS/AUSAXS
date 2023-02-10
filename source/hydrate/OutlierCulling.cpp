@@ -11,7 +11,7 @@ std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water
     }
 
     std::vector<std::pair<GridMember<Water>, int>> v(placed_water.size());
-    const int r = 3*grid->ra; // use 2*atomic_radius as the boundary
+    const int r = 3*grid->get_ra(); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
     const GridObj& gref = grid->grid;
     size_t index = 0;

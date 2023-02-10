@@ -9,6 +9,7 @@
 #include <utility/Exceptions.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
+#include <io/XYZWriter.h>
 
 RigidBody::RigidBody(Protein& protein) : protein(protein) {
     // Set body transformation strategy
@@ -42,63 +43,85 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
     }
 }
 
-#include <thread>
+#include <sstream>
 void RigidBody::optimize(std::string measurement_path) {
     protein.generate_new_hydration();
     SimpleIntensityFitter fitter(measurement_path, protein.get_histogram());
-    double _chi2 = fitter.fit()->fval;
-    std::cout << "Initial chi2: " << _chi2 << std::endl;
+    double best_chi2 = fitter.fit()->fval;
+    std::cout << "Initial chi2: " << best_chi2 << std::endl;
 
     Parameters params(protein);
     std::shared_ptr<Grid> grid = protein.get_grid();
-    for (int i = 0; i < 10; i++) {
+    io::XYZWriter writer(setting::general::output + "trajectory.xyz");
+
+    auto gen_print = [] (const Protein& protein) {
+        std::stringstream ss;
+        for (const auto& atom : protein.atoms()) {
+            ss << atom.as_pdb();
+        }
+        for (const auto& water: protein.waters()) {
+            ss << water.as_pdb();
+        }
+        return ss.str();
+    };
+    std::string print = gen_print(protein);
+
+    for (int i = 0; i < 100; i++) {
+        std::stringstream iteration_out;
+        iteration_out << "\nIteration " << i << std::endl;
+
         // select a body to be modified this iteration
-        int body_index = body_selector->next();
-        Body& body = protein.bodies.at(body_index);
+        Body& body = protein.bodies.at(body_selector->next());
         Parameter param = parameter_generator->next();
 
-        Body old_body(body);
-        Grid old_grid(*grid);
-
-        // remove the body from the grid        
-        grid->remove(&body);
-
-        // update the body to reflect the new params
+        Body old_body(body);        // save the old body
+        grid->remove(&body);        // remove the body from the grid
         Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        body.translate(param.dx);
-        body.rotate(R);
+        body.translate(param.dx);   // translate the body
+        body.rotate(R);             // rotate the body
+        grid->add(&body);           // add the body back to the grid
+        protein.generate_new_hydration(); 
 
-        // add the body to the grid again
-        grid->add(&body);
-        protein.generate_new_hydration();
-
-        // calculate the new chi2
+        // update the body location in the fitter
         fitter.set_scattering_hist(protein.get_histogram());
-        double __chi2 = fitter.fit()->fval;
+        double new_chi2 = fitter.fit()->fval;
 
-        std::cout << "chi2 for new configuration: " << __chi2 << std::endl;
+        iteration_out << "\tchi2 for new configuration: " << new_chi2 << std::endl;
+        writer.write_frame(protein);
 
         // if the old configuration was better
-        if (__chi2 >= _chi2) {
-            body = old_body;
-            protein.set_grid(old_grid);
+        if (new_chi2 >= best_chi2) {
+            grid->remove(&body);        // remove the body from the grid
+            body = std::move(old_body); // restore the old body
+            grid->add(&body);           // add the old body back to the grid
+            // protein.set_grid(old_grid);
             protein.generate_new_hydration();
             fitter.set_scattering_hist(protein.get_histogram());
 
-            double ___chi2 = fitter.fit()->fval;
-            std::cout << "\trerolled changes. chi2 is now: " << ___chi2 << std::endl << std::endl;
+            double recalc_chi2 = fitter.fit()->fval;
+            iteration_out << "\trerolled changes. chi2 is now: " << recalc_chi2 << std::endl;
 
             protein.generate_new_hydration();
             fitter.set_scattering_hist(protein.get_histogram());
-            ___chi2 = fitter.fit()->fval;
-            std::cout << "\tsanity check. chi2 is now: " << ___chi2 << std::endl << std::endl;
+            recalc_chi2 = fitter.fit()->fval;
+            iteration_out << "\tsanity check." << std::endl; 
+            iteration_out << "\t\tchi2 is now: " << recalc_chi2 << std::endl;
+            iteration_out << "\t\tshould be  : " << best_chi2 << std::endl;
+
+            std::string new_print = gen_print(protein);
+            if (new_print != print) {
+                std::cout << iteration_out.str();
+                utility::print_warning("\t\tWarning: The body has changed.");
+            }
 
         } else {
             // accept the changes
-            _chi2 = __chi2;
+            best_chi2 = new_chi2;
             params.update(body.uid, param);
-            protein.save("temp/rigidbody/protein_" + std::to_string(i) + ".pdb");
-            std::cout << "\tkeeping changes. new best chi2: " << _chi2 << std::endl << std::endl;
+            print = gen_print(protein);
+//            protein.save("temp/rigidbody/protein_" + std::to_string(i) + ".pdb");
+            std::cout << "\nIteration " << i << std::endl;
+            utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
         }
     }
 }
