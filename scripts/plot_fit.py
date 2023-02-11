@@ -60,8 +60,8 @@ ax[1].set_xlabel("q")
 ax[1].set_ylabel("Residuals")
 
 fig.savefig(os.path.dirname(sys.argv[1]) + '/log.png', dpi=300)
-print(f"Plotted log.png")
+print("Plotted log.png")
 
 ax[0].semilogx()
 fig.savefig(os.path.dirname(sys.argv[1]) + '/loglog.png', dpi=300)
-print(f"Plotted loglog.png")
+print("Plotted loglog.png")

@@ -1,4 +1,4 @@
-from pymol import cmd, stored
+from pymol import cmd
 from math import pi, cos, sin
 
 view = cmd.get_view()
@@ -7,21 +7,21 @@ setup = list(view[9:])
 # t is the angle in radians
 def Rx(t):
 	t = float(t)*pi
-	return [1., 0.,         0., 
+	return [1., 0.,         0.,
 		0., cos(t), -sin(t),
 		0., sin(t), cos(t)]
 
 # t is the angle in radians
 def Ry(t):
 	t = float(t)*pi
-	return [cos(t),  0., sin(t), 
+	return [cos(t),  0., sin(t),
 		0., 1.,  0.,
 		-sin(t), 0., cos(t)]
 
 # t is the angle in radians
 def Rz(t):
 	t = float(t)*pi
-	return [cos(t), -sin(t), 0., 
+	return [cos(t), -sin(t), 0.,
 		sin(t), cos(t),  0.,
 		0.,      0.,     1.]
 
@@ -32,7 +32,7 @@ def viewx(angle):
 @cmd.extend
 def viewy(angle):
 	cmd.set_view(Ry(angle) + setup)
-	
+
 @cmd.extend
 def viewz(angle):
 	cmd.set_view(Rz(angle) + setup)
@@ -67,5 +67,5 @@ def drawshot():
 	global counter
 	counter += 1
 	cmd.set("opaque_background", "on")
-	cmd.draw
+#	cmd.draw()
 	cmd.png("temp_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=0)

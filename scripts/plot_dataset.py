@@ -4,10 +4,10 @@ import sys
 import os
 
 mfile = sys.argv[1]
-dir = os.path.dirname(mfile)
+folder = os.path.dirname(mfile)
 
 # get all .fit files in the directory
-files = [f for f in os.listdir(dir) if f.endswith('.fit')]
+files = [f for f in os.listdir(folder) if f.endswith('.fit')]
 
 # load the data
 data = np.loadtxt(mfile, skiprows=1)
@@ -23,24 +23,24 @@ for f in files:
     f = f[:-4]
 
     if "fit" in f:
-        fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=1, usecols=[0, 1]))
+        fits.append(np.loadtxt(folder + '/' + f + ".fit", skiprows=1, usecols=[0, 1]))
         chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - 3)
         labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$, Fit")
     elif "foxs" in f:
-        fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=3, usecols=[0, 3]))
+        fits.append(np.loadtxt(folder + '/' + f + ".fit", skiprows=3, usecols=[0, 3]))
         chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - 2)
         labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$, FoXS")
     elif "crysol" in f:
-        fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=1, usecols=[0, 3]))
+        fits.append(np.loadtxt(folder + '/' + f + ".fit", skiprows=1, usecols=[0, 3]))
         chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - 2)
         labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$, Crysol")
     elif "waxsis" in f:
-        fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=0, usecols=[0, 1]))
+        fits.append(np.loadtxt(folder + '/' + f + ".fit", skiprows=0, usecols=[0, 1]))
         labels.append("WAXSiS")
     elif "pepsi" in f:
-        fits.append(np.loadtxt(dir + '/' + f + ".fit", skiprows=0, comments="#", usecols=[0, 3]))
+        fits.append(np.loadtxt(folder + '/' + f + ".fit", skiprows=0, comments="#", usecols=[0, 3]))
         labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$, Pepsi")
-    else: 
+    else:
         print(f"Unknown fit file: \"{f}\"")
 
 # plot the data
@@ -55,10 +55,10 @@ ax.set_ylabel("I(q)")
 ax.set_title(os.path.basename(mfile.split('.')[0]))
 ax.legend()
 ax.semilogy()
-fig.savefig(dir + '/log.png')
+fig.savefig(folder + '/log.png')
 
 ax.semilogx()
-fig.savefig(dir + '/loglog.png')
+fig.savefig(folder + '/loglog.png')
 
 ax.set_xlim(0.1, 0.5)
-fig.savefig(dir + '/loglog_short.png')
+fig.savefig(folder + '/loglog_short.png')

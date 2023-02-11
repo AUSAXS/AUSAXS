@@ -289,7 +289,7 @@ void Grid::expand_volume(const Vector3<int>& loc, bool is_water) {
         }
     }
 
-    if (!is_water) {volume += added_volume;};
+    if (!is_water) {volume += added_volume;}
 }
 
 std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
@@ -334,7 +334,7 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
         throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
-    if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;} // can probably be removed
+    if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;}
 
     GridMember gm(atom, loc);
     a_members.push_back(gm);
@@ -593,7 +593,7 @@ Grid& Grid::operator=(const Grid& rhs) {
     grid = rhs.grid;
     a_members = rhs.a_members;
     w_members = rhs.w_members;
-    width = width;
+    width = rhs.width;
     volume = rhs.volume;
     ra = rhs.ra;
     rh = rhs.rh;
