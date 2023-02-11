@@ -29,24 +29,24 @@ class Atom : public Record {
             Vector3<double> coords, double occupancy, double tempFactor, std::string element, std::string charge);
 
         /**
-         * @brief Construct a new empty Atom object.
+         * @brief Default constructor.
          */
         Atom();
 
+        /**
+         * @brief Destructor.
+         */
         virtual ~Atom() override {}
 
         RecordType get_type() const override;
 
         /**
-         * @brief Set the properties of this Atom based on a .pdb format string. 
-         * 
-         * @param s A .pdb format ATOM string. 
+         * @brief Set the properties of this Atom based on a .pdb format ATOM string. 
          */
         void parse_pdb(std::string s) override;
 
         /**
          * @brief Create a .pdb format string representation of this Atom. 
-         * @return The string representation of this Atom. 
          */
         std::string as_pdb() const override;
 
@@ -56,30 +56,101 @@ class Atom : public Record {
         double distance(const Atom& a) const;
 
         /** 
-         * @brief Move this atom by a vector.
-         * 
-         * @param v the translation vector.
+         * @brief Translate this atom.
          */
         void translate(Vector3<double> v);
 
         /**
-         * @brief Determine if this is a water molecule.
+         * @brief Check if this is a water molecule.
+         *        Will always return false for this class.
          */
         virtual bool is_water() const;
 
     //*** setters ***//
+        /**
+         * @brief Set the atomic coordinates.
+         */
         void set_coordinates(Vector3<double> v);
+
+
+        /**
+         * @brief Set the x coordinate.
+         */
         void set_x(double x);
+
+        /**
+         * @brief Set the y coordinate.
+         */
         void set_y(double y);
+
+        /**
+         * @brief Set the z coordinate.
+         */
         void set_z(double z);
+
+        /**
+         * @brief Set the occupancy.
+         * 
+         * @param occupancy the occupancy.
+         */
         void set_occupancy(double occupancy);
+
+        /**
+         * @brief Set the temperature factor for this atom.
+         *        Currently this is not used for anything. 
+         * 
+         * @param tempFactor the temperature factor.
+         */
         void set_tempFactor(double tempFactor);
+
+
+        /**
+         * @brief Set the alternate location for this atom.
+         * 
+         * @param altLoc the alternate location, e.g. A.
+         */
         void set_altLoc(std::string altLoc);
+
+        /**
+         * @brief Set the serial number for this atom.
+         * 
+         * @param serial the serial number, e.g. 1.
+         */
         void set_serial(int serial);
+
+        /**
+         * @brief Set the residue sequence number for this atom.
+         * 
+         * @param resSeq the residue sequence number, e.g. 1.
+         */
         void set_resSeq(int resSeq);
+
+        /**
+         * @brief Set the effective charge for this atom.
+         * 
+         * @param charge the effective charge, e.g. +1.
+         */
         void set_effective_charge(double charge);
+
+        /**
+         * @brief Set the chain ID for this atom.
+         * 
+         * @param chainID the chain ID, e.g. A.
+         */
         void set_chainID(std::string chainID);
+
+        /**
+         * @brief Set the insertion code for this atom.
+         * 
+         * @param iCode the insertion code, e.g. A.
+         */
         void set_iCode(std::string iCode);
+
+        /**
+         * @brief Set the charge for this atom.
+         * 
+         * @param charge the charge, e.g. +1.
+         */
         void set_charge(std::string charge);
 
         /**

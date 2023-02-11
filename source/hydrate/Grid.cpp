@@ -237,6 +237,18 @@ std::vector<Atom> Grid::get_atoms() const {
     return atoms;
 }
 
+void Grid::force_expand_volume() {
+    for (auto& atom : a_members) {
+        atom.expanded_volume = false;
+        expand_volume(atom);
+    }
+
+    for (auto& water : w_members) {
+        water.expanded_volume = false;
+        expand_volume(water);
+    }
+}
+
 void Grid::expand_volume() {
     // iterate through each member location
     for (auto& atom : a_members) {

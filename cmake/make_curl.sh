@@ -1,3 +1,4 @@
+#!/bin/sh
 # default installation paths are designed to work with find_package in CMake when using a mingw toolchain
 
 ROOTDIR=${PWD}

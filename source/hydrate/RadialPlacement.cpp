@@ -4,7 +4,7 @@
 #include <utility/Settings.h>
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
-    int rh = grid->get_rh(), ra = grid->get_ra();
+    int rh = grid->get_radius_water(), ra = grid->get_radius_atoms();
     double width = grid->get_width();
 
     // vector<vector<int>> bins;

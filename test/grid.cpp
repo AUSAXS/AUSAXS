@@ -17,7 +17,12 @@ using std::vector;
 // Debug class to expose the volume variable
 class GridDebug : public Grid {
     using Grid::Grid;
-    public: unsigned int unexpanded_volume() {return volume;}
+    public: 
+        auto unexpanded_volume() {return volume;}
+        auto bounding_box_index() {return Grid::bounding_box_index();}
+        auto to_bins(const Vector3<double> v) {return Grid::to_bins(v);}
+        auto find_free_locs() {return Grid::find_free_locs();}
+        static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
 };
 
 TEST_CASE("grid_generation", "[grid]") {
@@ -50,7 +55,7 @@ TEST_CASE("grid_member", "[grid]") {
 TEST_CASE("bounding_box", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
-    Grid grid(axes, width);
+    GridDebug grid(axes, width);
 
     SECTION("simple") {
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
@@ -292,7 +297,7 @@ TEST_CASE("width", "[grid]") {
         double width = 0.1;
         int radius = 3;
         Axis3D axes(-10, 10, -10, 10, -10, 10, width);
-        Grid grid(axes, width, radius);
+        GridDebug grid(axes, width, radius);
 
         vector<Atom> a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
         grid.add(a);
@@ -337,7 +342,7 @@ TEST_CASE("add_remove", "[grid]") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 3;
-    Grid grid(axes, width, radius);
+    GridDebug grid(axes, width, radius);
 
     // atoms
     Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
@@ -493,7 +498,7 @@ TEST_CASE("find_free_locs", "[grid]") {
         Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
         int width = 1;
         int radius = 3;
-        Grid grid(axes, width, radius, radius, ch, setting::grid::culling_strategy);
+        GridDebug grid(axes, width, radius, radius, ch, setting::grid::culling_strategy);
 
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);
@@ -601,7 +606,7 @@ TEST_CASE("grid_space_saving_constructor", "[grid]") {
 
     SECTION("bounding box") {
         // check that bounding_box works
-        auto[min, max] = Grid::bounding_box(atoms);
+        auto[min, max] = GridDebug::bounding_box(atoms);
         CHECK(min.x() == 0);
         CHECK(min.y() == -5);
         CHECK(min.z() == -7);

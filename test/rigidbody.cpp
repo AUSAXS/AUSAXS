@@ -160,10 +160,6 @@ TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
     protein.generate_new_hydration();
     std::vector<Water> oldwaters = protein.waters();
     Grid oldgrid = *protein.get_grid();
-    std::cout << "Body atoms:" 
-                << "\n\t" << protein.bodies.at(0).atoms().size() 
-                << "\n\t" << protein.bodies.at(1).atoms().size() 
-                << "\n\t" << protein.bodies.at(2).atoms().size() << std::endl;
 
     // fit the protein
     IntensityFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
@@ -175,8 +171,9 @@ TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
     std::shared_ptr<Grid> grid = protein.get_grid();
 
     grid->remove(&body);
-//    body.translate(Vector3<double>(0, 0, 10));              // translate the body
-//    body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
+    grid->force_expand_volume(); 
+    // body.translate(Vector3<double>(0, 0, 10));              // translate the body
+    // body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
     grid->add(&body);
     protein.generate_new_hydration();                       // generate a new hydration shell
     fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
@@ -185,6 +182,7 @@ TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
 
     // add the body back
     grid->remove(&body);
+    grid->force_expand_volume();
     body = old_body;                                        // reset the body
     grid->add(&body);
     protein.generate_new_hydration();                       // generate a new hydration shell

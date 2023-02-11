@@ -180,13 +180,6 @@ TEST_CASE("body_equality", "[body]") {
 }
 
 TEST_CASE("grid_add_remove_bodies", "[body]") {
-    auto force_expand = [] (Grid& grid) {
-        for (auto& e : grid.a_members) {
-            e.expanded_volume = false;
-        }
-        grid.expand_volume();
-    };
-
     SECTION("single") {
         Body b({Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)});
         Grid g(Axis3D(-2, 2, -2, 2, -2, 2, 5), 1);
@@ -215,32 +208,28 @@ TEST_CASE("grid_add_remove_bodies", "[body]") {
         grid.add(&b4);
         REQUIRE(grid.a_members.size() == 8);
 
-        utility::print_info("CASE 1");
         unsigned int vol = grid.get_volume();
-        grid.save("debug1.pdb");
         grid.remove(&b2);
         grid.add(&b2);
-        grid.save("debug2.pdb");
         REQUIRE(grid.get_volume() == vol);
         grid.remove(&b2);
+        grid.force_expand_volume();
         REQUIRE(grid.a_members.size() == 6);
 
-        force_expand(grid);
-        utility::print_info("CASE 2");
         vol = grid.get_volume();
         grid.remove(&b1);
         grid.add(&b1);
         REQUIRE(grid.get_volume() == vol);
         grid.remove(&b1);
+        grid.force_expand_volume();
         REQUIRE(grid.a_members.size() == 4);
 
-        force_expand(grid);
-        utility::print_info("CASE 3");
         vol = grid.get_volume();
         grid.remove(&b3);
         grid.add(&b3);
         REQUIRE(grid.get_volume() == vol);
         grid.remove(&b3);
+        grid.force_expand_volume();
         REQUIRE(grid.a_members.size() == 2);
 
         auto remaining = grid.a_members;
@@ -261,25 +250,24 @@ TEST_CASE("grid_add_remove_bodies", "[body]") {
         REQUIRE(grid->a_members.size() == N);
         REQUIRE(grid->get_volume() != 0);
 
-        force_expand(*grid);
         unsigned int vol = grid->get_volume();
         grid->remove(&protein.bodies[0]);
         grid->add(&protein.bodies[0]);
         REQUIRE(grid->get_volume() == vol);
         grid->remove(&protein.bodies[0]);
+        grid->force_expand_volume();
         REQUIRE(grid->a_members.size() == N - protein.bodies[0].atoms().size());
         REQUIRE(grid->get_volume() != 0);
 
-        force_expand(*grid);
         vol = grid->get_volume();
         grid->remove(&protein.bodies[1]);
         grid->add(&protein.bodies[1]);
         REQUIRE(grid->get_volume() == vol);
         grid->remove(&protein.bodies[1]);        
+        grid->force_expand_volume();
         REQUIRE(grid->a_members.size() == N - protein.bodies[0].atoms().size() - protein.bodies[1].atoms().size());
         REQUIRE(grid->get_volume() != 0);
 
-        force_expand(*grid);
         vol = grid->get_volume();
         grid->remove(&protein.bodies[2]);
         grid->add(&protein.bodies[2]);

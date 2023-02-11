@@ -51,7 +51,7 @@ void grid::ClusterCulling::prepare_rotations() {
         }
     }
 
-    int ra = grid->get_ra();
+    int ra = grid->get_radius_atoms();
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
         bins_2ra.push_back(Vector3<int>(std::trunc(1.5*ra*xr), std::trunc(1.5*ra*yr), std::trunc(1.5*ra*zr)));
@@ -65,7 +65,7 @@ void grid::ClusterCulling::prepare_rotations() {
 
 std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_size) const {
     // find the center of an expanded atom
-    unsigned int ra = grid->get_ra();
+    unsigned int ra = grid->get_radius_atoms();
     auto find_center = [this, ra] (const Vector3<int> pos) {
         // we split the search for each axis into two parts so we can break out of the loop early if we leave the atom
         // so instead of (pos_x - ra) to (pos_x + ra), we do (pos_x) to (pos_x - ra) and (pos_x) to (pos_x + ra) (repeat for y & z)
