@@ -67,7 +67,8 @@ for f in files:
         load_fit(fitdata, "Pepsi")
 
     elif "waxs".lower() in stem.lower():
-        fitdata = np.loadtxt(f, skiprows=0, usecols=[0, 1])
+        fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 1])
+        fitdata[:, 0] = fitdata[:, 0] / 10
         load_fit(fitdata, "WAXSiS")
 
     elif "gromacs".lower() in stem.lower(): 
