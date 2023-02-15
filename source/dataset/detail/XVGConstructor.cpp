@@ -108,26 +108,12 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(std::string path) {
         throw except::io_error("DATConstructor::construct: No data could be read from the file.");
     }
 
-    // scan the headers for units. must be either [Å] or [nm]
-    bool found_unit = false;
-    for (auto& s : header) {
-        if (s.find("[nm]") != std::string::npos) {
-            if (setting::general::verbose) {std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;}
-            for (unsigned int i = 0; i < dataset->size(); i++) {
-                dataset->index(i, 0) /= 10;
-            }
-            found_unit = true;
-            break;
-        } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-            if (setting::general::verbose) {std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;}
-            found_unit = true;
-            break;
-        }
+    // unit conversion
+    if (setting::general::verbose) {std::cout << "\tAssuming q is given in units of [nm]." << std::endl;}
+    for (unsigned int i = 0; i < dataset->size(); i++) {
+        dataset->index(i, 0) /= 10;
     }
-    if (!found_unit) {
-        if (setting::general::verbose) {std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;}
-    }
-
+    
     // check if the file is abnormally large
     if (dataset->size() > 300) {
         // reread first line
