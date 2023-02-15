@@ -164,8 +164,7 @@ Record::RecordType Atom::get_type() const {return RecordType::ATOM;}
 
 double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
 void Atom::translate(Vector3<double> v) {coords += v;}
-bool Atom::is_water() const {return resName == "HOH";}
-
+bool Atom::is_water() const {return (resName == "HOH") | (resName == "SOL");}
 void Atom::set_coordinates(Vector3<double> v) {coords = v;}
 void Atom::set_x(double x) {coords.x() = x;}
 void Atom::set_y(double y) {coords.y() = y;}

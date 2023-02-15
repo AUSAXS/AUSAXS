@@ -8,7 +8,7 @@ using namespace saxs::detail;
 
 ResidueMap::ResidueMap() {}
 
-ResidueMap::ResidueMap(std::unordered_map<AtomKey, unsigned int> map) {
+ResidueMap::ResidueMap(std::unordered_map<AtomKey, int> map) {
     this->map = map;
     this->calculate_average();
 }
@@ -29,17 +29,17 @@ double ResidueMap::get(AtomKey key) {
     }
 }
 
-void ResidueMap::insert(AtomKey key, unsigned int value) {
+void ResidueMap::insert(AtomKey key, int value) {
     map[key] = value;
     update_average = true;
 }
 
-void ResidueMap::insert(std::string name, std::string symbol, unsigned int value) {
+void ResidueMap::insert(std::string name, std::string symbol, int value) {
     insert(AtomKey(name, symbol), value);
 }
 
 void ResidueMap::calculate_average() {
-    std::unordered_map<std::string, unsigned int> counts;
+    std::unordered_map<std::string, int> counts;
     
     for (auto& [key, value] : map) {
         average[key.symbol] += value;

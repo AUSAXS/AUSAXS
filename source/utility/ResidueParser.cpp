@@ -236,7 +236,7 @@ void parser::residue::ResidueStorage::initialize() {
             std::string residue = line;
 
             // prepare map
-            std::unordered_map<saxs::detail::AtomKey, unsigned int> map;
+            std::unordered_map<saxs::detail::AtomKey, int> map;
             while (file.peek() != EOF) {
                 std::getline(file, line);
                 // stop if we reach the start of a new residue
@@ -249,7 +249,7 @@ void parser::residue::ResidueStorage::initialize() {
                 if (tokens.size() != 3) {throw except::io_error("ResidueStorage::initialize: Invalid line in master file: " + line + ". Corrupted file?");}
                 std::string element = tokens[0];
                 std::string atom = tokens[1];
-                unsigned int hydrogens = std::stoi(tokens[2]);
+                int hydrogens = std::stoi(tokens[2]);
                 map.emplace(saxs::detail::AtomKey(atom, element), hydrogens);
             }
             insert(residue, std::move(map));

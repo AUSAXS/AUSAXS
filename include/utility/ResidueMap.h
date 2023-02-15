@@ -33,14 +33,22 @@ namespace std {
 
 namespace saxs {
     namespace detail {
+        /**
+         * @brief A simple map that stores the number of hydrogen bonds for each atom in a residue. 
+         *        Since we do not model actual hydrogens, we instead modify the charge of the atom to which the hydrogen is bonded.
+         *        This map serves as a lookup table for these effective charge calculations. 
+         */
         class ResidueMap {
             public:
                 /**
-                 * @brief Create a new empty SimpleResidueMap.
+                 * @brief Default constructor.
                  */
                 ResidueMap();
 
-                ResidueMap(std::unordered_map<AtomKey, unsigned int> map);
+                /**
+                 * @brief Construct a ResidueMap from an existing map.
+                 */
+                ResidueMap(std::unordered_map<AtomKey, int> map);
 
                 /**
                  * @brief Get a value from the storage. 
@@ -53,29 +61,42 @@ namespace saxs {
                  * @brief Get a value from the storage. 
                  *        Hydrogens will always return 0. 
                  *        If the key is not found, the average number of bonds in this residue for that element is returned. 
+                 * 
+                 * @param name The name of the atom.
+                 * @param symbol The symbol of the atom.
                  */
                 double get(std::string name, std::string symbol) {return this->get(AtomKey(name, symbol));}
 
                 /**
                  * @brief Insert a new element into the map. 
+                 * 
+                 * @param key The key to insert.
+                 * @param value The number of bonds.
                  */
-                void insert(AtomKey key, unsigned int value);
+                void insert(AtomKey key, int value);
 
                 /**
                  * @brief Insert a new element into the map. 
+                 * 
+                 * @param name The name of the atom.
+                 * @param symbol The symbol of the atom.
+                 * @param value The number of bonds.
                  */
-                void insert(std::string name, std::string symbol, unsigned int value);
+                void insert(std::string name, std::string symbol, int value);
 
-                std::unordered_map<AtomKey, unsigned int>::const_iterator begin() const {return map.begin();}
-                std::unordered_map<AtomKey, unsigned int>::const_iterator end() const {return map.end();}
-                std::unordered_map<AtomKey, unsigned int>::iterator begin() {return map.begin();}
-                std::unordered_map<AtomKey, unsigned int>::iterator end() {return map.end();}
+                std::unordered_map<AtomKey, int>::const_iterator begin() const {return map.begin();}
+                std::unordered_map<AtomKey, int>::const_iterator end() const {return map.end();}
+                std::unordered_map<AtomKey, int>::iterator begin() {return map.begin();}
+                std::unordered_map<AtomKey, int>::iterator end() {return map.end();}
 
             private: 
-                std::unordered_map<AtomKey, unsigned int> map;      // the actual map data
+                std::unordered_map<AtomKey, int> map;      // the actual map data
                 std::unordered_map<std::string, double> average;    // the average number of bonds for each element in this residue.
                 bool update_average = false;                        // whether the average needs to be updated
                 
+                /**
+                 * @brief Calculate the average number of bonds for this residue. 
+                 */
                 void calculate_average();
         };
     }

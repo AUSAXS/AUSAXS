@@ -183,13 +183,14 @@ pepsi/%:
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
 intensity_fit/%: build/executable/intensity_fitter
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	for pdb in $${structure}; do\
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
 		$< $${measurement} $${pdb} ${options};\
+		make plot_fits/$*;\
 	done
 
 # Check the consistency of the program. 

@@ -7,6 +7,8 @@
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
 
+#include <vector>
+#include <string>
 #include <fstream>
 
 std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path) {
@@ -16,7 +18,7 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path) {
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("Dataset::load: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("DATConstructor::construct: Could not open file \"" + path + "\"");}
 
     std::string line;
     std::vector<std::string> header;
@@ -78,7 +80,7 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path) {
             break;
         }
         default: {
-            throw except::io_error("Dataset::load: File has an unsupported number of columns (" + std::to_string(mode) + ").");
+            throw except::io_error("DATConstructor::construct: File has an unsupported number of columns (" + std::to_string(mode) + ").");
         }
     }
 
@@ -95,27 +97,27 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path) {
 
     // verify that at least one row was read correctly
     if (dataset->empty()) {
-        throw except::io_error("Dataset::load: No data could be read from the file.");
+        throw except::io_error("DATConstructor::construct: No data could be read from the file.");
     }
 
     // scan the headers for units. must be either [Å] or [nm]
     bool found_unit = false;
     for (auto& s : header) {
         if (s.find("[nm]") != std::string::npos) {
-            std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;
+            if (setting::general::verbose) {std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;}
             for (unsigned int i = 0; i < dataset->size(); i++) {
                 dataset->index(i, 0) /= 10;
             }
             found_unit = true;
             break;
         } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-            std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;
+            if (setting::general::verbose) {std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;}
             found_unit = true;
             break;
         }
     }
     if (!found_unit) {
-        std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;
+        if (setting::general::verbose) {std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;}
     }
 
     // check if the file is abnormally large
