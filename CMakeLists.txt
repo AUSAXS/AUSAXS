@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_BUILD_TYPE RELEASE)
 
 project(SAXS VERSION 0.0)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
@@ -25,6 +25,7 @@ FetchContent_Declare(
 	GIT_TAG v19.18
 	GIT_PROGRESS TRUE
 )
+set(DLIB_NO_GUI_SUPPORT TRUE)
 FetchContent_MakeAvailable(dlib)
 
 FetchContent_Declare(
@@ -75,7 +76,7 @@ if (WIN32)
 elseif (UNIX)
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
-	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
+	set(CURL -static-libgcc -static-libstdc++ CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl -lgcov)
 	endif()

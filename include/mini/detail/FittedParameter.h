@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <utility/Limit.h>
-#include <utility/PointSet.h>
+#include <dataset/PointSet.h>
 
 namespace mini {
     struct Parameter;

@@ -2,7 +2,7 @@
 
 #include <math/Matrix.h>
 #include <utility/Exceptions.h>
-#include <utility/PointSet.h>
+#include <dataset/PointSet.h>
 
 /**
  * @brief A representation of a dataset. The set consists of fixed number of named columns, with a variable number of rows. 

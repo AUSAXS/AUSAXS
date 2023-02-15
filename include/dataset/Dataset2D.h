@@ -1,7 +1,7 @@
 #pragma once
 
-#include <utility/PointSet.h>
-#include <utility/SimpleDataset.h>
+#include <dataset/PointSet.h>
+#include <dataset/SimpleDataset.h>
 
 /**
  * @brief A dataset is a collection of points of the form x | y | xerr | yerr. 

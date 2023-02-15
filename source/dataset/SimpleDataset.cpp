@@ -1,6 +1,6 @@
 #include <math/SimpleLeastSquares.h>
 #include <math/Statistics.h>
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>

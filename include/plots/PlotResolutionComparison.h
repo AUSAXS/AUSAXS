@@ -2,7 +2,7 @@
 
 #include <plots/Plot.h>
 #include <plots/PlotDataset.h>
-#include <utility/Multiset.h>
+#include <dataset/Multiset.h>
 
 #include <memory>
 #include <string>

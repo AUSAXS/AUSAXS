@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utility/Axis.h>
-#include <utility/Dataset2D.h>
+#include <dataset/Dataset2D.h>
 #include <mini/Utility.h>
 
 #include <string>

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include <utility/Dataset2D.h>
+#include <dataset/Dataset2D.h>
 
 class Multiset {
     public:

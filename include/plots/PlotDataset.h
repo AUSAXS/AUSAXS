@@ -1,8 +1,8 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <utility/Dataset.h>
-#include <utility/Multiset.h>
+#include <dataset/Dataset.h>
+#include <dataset/Multiset.h>
 
 #include <memory>
 #include <concepts>

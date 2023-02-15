@@ -1,8 +1,8 @@
 #pragma once
 
 #include <plots/PlotOptions.h>
-#include <utility/PointSet.h>
-#include <utility/Dataset.h>
+#include <dataset/PointSet.h>
+#include <dataset/Dataset.h>
 
 /**
  * @brief A simple dataset is a collection of points of the form x | y | yerr. 

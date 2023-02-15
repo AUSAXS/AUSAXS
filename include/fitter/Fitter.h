@@ -8,8 +8,8 @@
 #include <utility>
 #include <memory>
 
-#include <utility/Multiset.h>
-#include <utility/Dataset.h>
+#include <dataset/Multiset.h>
+#include <dataset/Dataset.h>
 #include <fitter/Fit.h>
 
 class Fitter {

@@ -30,7 +30,7 @@ namespace constants {
         }
 
         const detail::FileType structure = {{"pdb", "ent"}};
-        const detail::FileType saxs_data = {{"dat", "txt", "rsr"}};
+        const detail::FileType saxs_data = {{"dat", "txt", "rsr", "xvg"}};
         const detail::FileType em_map = {{"map", "ccp4", "mrc"}};
     }
 

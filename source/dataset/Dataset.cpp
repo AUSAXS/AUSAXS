@@ -2,7 +2,7 @@
 #include <math/Statistics.h>
 #include <math/MovingAverager.h>
 #include <math/CubicSpline.h>
-#include <utility/Dataset.h>
+#include <dataset/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Axis.h>
 #include <math/Vector.h>
 #include <plots/PlotOptions.h>

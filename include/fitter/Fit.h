@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <utility/Dataset.h>
-#include <utility/Multiset.h>
+#include <dataset/Dataset.h>
+#include <dataset/Multiset.h>
 #include <mini/Utility.h>
 
 class Fitter;

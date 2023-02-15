@@ -8,7 +8,7 @@
 #include <data/Atom.h>
 #include <data/Water.h>
 #include <hist/detail/HistogramManagerFactory.h>
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 #include <fitter/Fit.h>
 
 class Protein {

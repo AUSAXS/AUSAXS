@@ -6,7 +6,7 @@
 
 #include <hist/Histogram.h>
 #include <hist/DebyeLookupTable.h>
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 
 namespace hist {
 	class ScatteringHistogram : public Histogram {

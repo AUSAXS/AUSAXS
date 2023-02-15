@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <mini/detail/Evaluation.h>
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 #include <plots/PlotOptions.h>
 
 namespace mini {
