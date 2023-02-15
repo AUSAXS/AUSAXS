@@ -4,6 +4,7 @@
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
+#include <dataset/DatasetFactory.h>
 
 #include <vector>
 #include <string>
@@ -45,9 +46,13 @@ SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::
     options.ylabel = ylabel;
 }
 
-// load is responsible for preparing the class
-SimpleDataset::SimpleDataset(std::string path) {
-    load(path);
+SimpleDataset::SimpleDataset(std::string path) : SimpleDataset() {
+    auto data = factory::DatasetFactory::construct(path);
+    if (data->M != 3) {
+        throw except::io_error("SimpleDataset::SimpleDataset: Dataset must have exactly three columns.");
+    }
+    this->data = std::move(data->data);
+    this->N = data->N;
 }
 
 void SimpleDataset::reduce(unsigned int target, bool log) {
@@ -117,7 +122,7 @@ void SimpleDataset::limit_y(const Limit& limits) {
 void SimpleDataset::limit_y(double min, double max) {limit_y({min, max});}
 
 void SimpleDataset::operator=(const Matrix<double>&& other) {
-    if (other.M != M) {throw except::invalid_operation("Dataset::operator=: Matrix has wrong number of columns.");}
+    if (other.M != M) {throw except::invalid_operation("SimpleDataset::operator=: Matrix has wrong number of columns.");}
     this->data = std::move(other.data);
     this->N = other.N;
 }
@@ -288,7 +293,7 @@ void SimpleDataset::rebin() noexcept {
         double Ierr = std::pow(siginv, -0.5);
         data.push_back(q, I, Ierr);
     }
-    *this = data;
+    *this = std::move(data);
 }
 
 void SimpleDataset::load(std::string path) {

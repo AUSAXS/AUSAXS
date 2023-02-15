@@ -7,7 +7,6 @@
 #include <plots/all.h>
 #include <fitter/SimpleIntensityFitter.h>
 #include <fitter/FitReporter.h>
-#include <utility/Multiset.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
 #include <hist/Histogram.h>

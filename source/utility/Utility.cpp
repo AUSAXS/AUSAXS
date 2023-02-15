@@ -54,6 +54,10 @@ std::string utility::stem_append(std::string path, std::string s) {
     return p.parent_path().string() + "/" + p.stem().string() + s + p.extension().string();
 }
 
+std::string utility::extension(std::string path) {
+    return std::filesystem::path(path).extension().string();
+}
+
 std::string utility::stem(std::string path) {
     return std::filesystem::path(path).stem().string();    
 }

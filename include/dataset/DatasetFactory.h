@@ -1,18 +1,18 @@
 #pragma once
 
-#include <utility/Dataset.h>
-#include <utility/SimpleDataset.h>
-#include <utility/Dataset2D.h>
+#include <memory>
+
+#include <dataset/Dataset.h>
 
 namespace factory {
-    static std::shared_ptr<SimpleDataset> create(std::string filename) {
-        std::shared_ptr<Dataset> data = std::make_shared<Dataset>(filename);
-        if (data->M == 3) {
-            return std::static_pointer_cast<SimpleDataset>(data);
-        } else if (data->M == 4) {
-            return std::static_pointer_cast<Dataset2D>(std::move(data));
-        } else {
-            throw except::invalid_operation("factory::create: Dataset has wrong number of columns.");
-        }
-    }
+    /**
+     * @brief Factory class for creating datasets from files.
+     *        The factory will automatically determine the correct constructor to use based on the file extension.
+     */
+    struct DatasetFactory {
+        /**
+         * @brief Construct a dataset from a file.
+         */
+        static std::shared_ptr<Dataset> construct(std::string filename);
+    };
 }

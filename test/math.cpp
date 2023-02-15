@@ -16,7 +16,7 @@
 #include <math/LUPDecomposition.h>
 #include <math/QRDecomposition.h>
 #include <math/Statistics.h>
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 #include <plots/PlotDataset.h>
 
 using std::cout, std::endl;

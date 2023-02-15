@@ -68,6 +68,11 @@ namespace utility {
     std::string stem(std::string path);
 
     /**
+     * @brief Get the extension of a path.
+     */
+    std::string extension(std::string path);
+
+    /**
      * @brief Convert a string to lowercase.
      */
     std::string to_lowercase(std::string s);

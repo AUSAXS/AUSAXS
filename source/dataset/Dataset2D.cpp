@@ -2,6 +2,7 @@
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
+#include <dataset/DatasetFactory.h>
 
 #include <vector>
 #include <string>
@@ -43,7 +44,12 @@ Dataset2D::Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
 }
 
 Dataset2D::Dataset2D(std::string path) : Dataset2D() {
-    load(path);
+    auto data = factory::DatasetFactory::construct(path);
+    if (data->M != 4) {
+        throw except::io_error("SimpleDataset::SimpleDataset: Dataset must have exactly three columns.");
+    }
+    this->data = std::move(data->data);
+    this->N = data->N;
 }
 
 void Dataset2D::scale_errors(double factor) {

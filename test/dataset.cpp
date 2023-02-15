@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <utility/Settings.h>
-#include <utility/Dataset.h>
+#include <dataset/Dataset.h>
 #include <em/ImageStack.h>
 #include <plots/all.h>
 

@@ -40,6 +40,11 @@ class Dataset : public Matrix<double> {
         Dataset(unsigned int rows, unsigned int cols);
 
         /**
+         * @brief Create a new dataset from a data file.
+         */
+        Dataset(std::string path);
+
+        /**
          * @brief Destructor.
          */
         virtual ~Dataset() = default;

@@ -6,6 +6,7 @@
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>
+#include <dataset/DatasetFactory.h>
 
 #include <vector>
 #include <string>
@@ -16,6 +17,11 @@ Dataset::Dataset(unsigned int rows, unsigned int cols) : Matrix(rows, cols) {
 }
 
 Dataset::Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
+    set_default_names();
+}
+
+Dataset::Dataset(std::string path) : Dataset() {
+    *this = std::move(*factory::DatasetFactory::construct(path));
     set_default_names();
 }
 
@@ -114,126 +120,10 @@ void Dataset::save(std::string path, std::string header) const {
 }
 
 void Dataset::load(std::string path) {
-    if (setting::general::verbose) {
-        utility::print_info("Loading dataset from \"" + path + "\"");
-    }
-
-    // check if file was succesfully opened
-    std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("Dataset::load: Could not open file \"" + path + "\"");}
-
-    std::string line;
-    std::vector<std::string> header;
-    std::vector<std::vector<double>> row_data;
-    std::vector<unsigned int> col_number;
-    while(getline(input, line)) {
-        // skip empty lines
-        if (line.empty()) {continue;}
-
-        // remove leading whitespace
-        std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
-
-        // remove empty tokens
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].empty()) {
-                tokens.erase(tokens.begin() + i);
-                i--;
-            }
-        }
-
-        // check if all tokens are numbers
-        bool skip = false;
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            if (tokens[i].find_first_not_of("0123456789+-.Ee\n\r") != std::string::npos) {
-                skip = true;
-            }
-        }
-        if (skip) {
-            header.push_back(line);
-            continue;
-        }
-
-        // add values to dataset
-        std::vector<double> vals(tokens.size());
-        for (unsigned int i = 0; i < tokens.size(); i++) {
-            vals[i] = std::stod(tokens[i]);
-        }
-        row_data.push_back(vals);
-        col_number.push_back(vals.size());
-    }
-
-    // determine the most common number of columns, since that will likely be the data
-    unsigned int mode = stats::mode(col_number);
-    if (M == 0) {
-        M = mode;
-        set_default_names();
-    }
-    else if (M < mode) {throw except::io_error("Dataset::load: Number of columns in file does not match storage capacity of this class. (" + std::to_string(mode) + " != " + std::to_string(M) + ")");}
-
-    // check if the file has the same number of columns as the dataset
-    if (mode < M) {
-        // if the file has less columns, fill the remaining columns with zeros
-        for (unsigned int i = 0; i < M-mode; i++) {
-            for (unsigned int i = 0; i < row_data.size(); i++) {
-                row_data[i].push_back(0);
-            }
-        }
-        mode = M;
-    }
-
-    // copy all rows with the correct number of columns
-    unsigned int count = 0;
-    for (unsigned int i = 0; i < row_data.size(); i++) {
-        if (row_data[i].size() != mode) {continue;}
-        if (count++ < setting::axes::skip) {continue;}
-        push_back(row_data[i]);
-    }
-    if (setting::axes::skip != 0 && setting::general::verbose) {
-        std::cout << "\tSkipped " << count - size() << " data points from beginning of file." << std::endl;
-    }
-
-    // verify that at least one row was read correctly
-    if (size() == 0) {
-        throw except::unexpected("Dataset::load: No data could be read from the file.");
-    }
-
-    // scan the headers for units. must be either [Å] or [nm]
-    bool found_unit = false;
-    for (auto& s : header) {
-        if (s.find("[nm]") != std::string::npos) {
-            std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;
-            for (unsigned int i = 0; i < size(); i++) {
-                index(i, 0) /= 10;
-            }
-            found_unit = true;
-        } else if (s.find("[Å]") != std::string::npos) {
-            std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;
-            found_unit = true;
-        }
-    }
-    if (!found_unit) {
-        std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;
-    }
-
-    // check if the file is abnormally large
-    if (size() > 300) {
-        // reread first line
-        input.clear();
-        input.seekg(0, input.beg);
-        getline(input, line);
-
-        // check if file has already been rebinned
-        if (line.find("REBINNED") == std::string::npos) {
-            // if not, suggest it to the user
-            if (setting::general::verbose) {
-                std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
-            }
-        }
-    }
-
-    if (setting::general::verbose) {
-        std::cout << "\tSuccessfully read " << size() << " data points from " << path << std::endl;
-    }
+    auto data = factory::DatasetFactory::construct(path);
+    if (data->M != M) {throw except::invalid_operation("Dataset::load: Number of columns does not match. (" + std::to_string(data->M) + " != " + std::to_string(M) + ")");}    
+    *this = std::move(*data);
+    set_default_names();
 }
 
 void Dataset::set_default_names() {
