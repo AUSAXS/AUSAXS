@@ -43,7 +43,7 @@ def load_fit(fitdata, title: str):
     popt, _ = curve_fit(lambda x, a, b: a*x + b, fitdata[:, 1], data[:, 1], sigma=data[:, 2], absolute_sigma=True, p0=[1, 0])
     fitdata[:, 1] = popt[0] * fitdata[:, 1] + popt[1]
     fits.append(fitdata)
-    print(f"Fit {title} to {mfile} with parameters {popt}.")
+    # print(f"Fit {title} to {mfile} with parameters {popt}.")
 
     chi2r = chi2(fits[-1][:, 1]) / (len(data[:, 1]) - 3)
     labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$ " + title)
@@ -52,7 +52,6 @@ def load_fit(fitdata, title: str):
 for f in files: 
     # get the stem of f without the path or extension
     stem = os.path.splitext(os.path.basename(f))[0]
-    print(stem)
 
     if "foxs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=3, usecols=[0, 3])

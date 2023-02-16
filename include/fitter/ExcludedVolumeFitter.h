@@ -2,7 +2,7 @@
 
 #include <fitter/Fit.h>
 #include <mini/all.h>
-#include <fitter/LinearFitter.h>
+#include <fitter/HydrationFitter.h>
 #include <hist/ScatteringHistogram.h>
 
 /**
@@ -14,53 +14,9 @@
  *    c: The scattering length of the hydration shell.
  *    d: The excluded volume. 
  */
-class ExcludedVolumeFitter : public LinearFitter {
-    public: 
-        /**
-         * @brief Constructor.
-         * 
-         * Prepare a fit of the measured values in @a input to a model to be defined later. 
-         * 
-         * @param input The path to the file containing the measured values. 
-         */
-        ExcludedVolumeFitter(std::string input) : LinearFitter(input) {}
-
-        /**
-         * @brief Constructor.
-         *        Prepare a fit of the histogram to the measured values. 
-         * 
-         * @param input The path to the file containing the measured values. 
-         * @param h The histogram.
-         */
-        ExcludedVolumeFitter(std::string input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
-
-        /**
-         * @brief Constructor.
-         *        Prepare a fit of the histogram to the measured values. 
-         * 
-         * @param input The path to the file containing the measured values. 
-         * @param h The histogram.
-         */
-        ExcludedVolumeFitter(std::string input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
-
-        /**
-         * @brief Constructor.
-         *        Prepare a fit of the histogram to the measured data. 
-         * 
-         * @param data The measured data.
-         * @param h The histogram.
-         */
-		ExcludedVolumeFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
-
-        /**
-         * @brief Constructor.
-         * 
-         * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
-         * 
-         * @param model The model histogram. 
-         * @param limits The limits on the generated data points. 
-         */
-        ExcludedVolumeFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+class ExcludedVolumeFitter : public HydrationFitter {
+    public:
+        using HydrationFitter::HydrationFitter; 
 
         /**
          * @brief Destructor.

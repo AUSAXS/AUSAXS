@@ -93,17 +93,13 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(std::string path, uns
 
         // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
         if (mode != expected_cols) {
-            if (setting::general::verbose) {
-                utility::print_warning("\tWarning: File has more columns than expected. Ignoring the extra columns.");
-
-                // shorten the data to the expected number of columns
-                for (unsigned int i = 0; i < data_cols.size(); i++) {
-                    std::vector<double> row(expected_cols);
-                    for (unsigned int j = 0; j < expected_cols; j++) {
-                        row[j] = data_cols[i][j];
-                    }
-                    data_cols[i] = std::move(row);
+            // shorten the data to the expected number of columns
+            for (unsigned int i = 0; i < data_cols.size(); i++) {
+                std::vector<double> row(expected_cols);
+                for (unsigned int j = 0; j < expected_cols; j++) {
+                    row[j] = data_cols[i][j];
                 }
+                data_cols[i] = std::move(row);
             }
         }
 

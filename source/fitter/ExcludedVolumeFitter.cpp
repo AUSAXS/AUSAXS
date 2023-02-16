@@ -7,14 +7,12 @@
 #include <mini/all.h>
 #include <plots/all.h>
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
-
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
 
-    // apply c
+    // apply c & d
     h.apply_water_scaling_factor(res.get_parameter("c").value);
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     std::vector<double> Im = splice(ym);

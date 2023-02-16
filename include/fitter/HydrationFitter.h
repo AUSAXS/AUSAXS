@@ -64,7 +64,7 @@ class HydrationFitter : public LinearFitter {
         /**
          * @brief Destructor.
          */
-        ~HydrationFitter() override = default;
+        virtual ~HydrationFitter() override = default;
 
         /**
          * @brief Perform the fit.

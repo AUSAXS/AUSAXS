@@ -271,3 +271,45 @@ TEST_CASE("em_write_into_multiple_files", "[io],[broken]") {
     em::ImageStack image("data/Gregers_cryo/Gregers_cryo.mrc");
     image.get_protein(0.1)->save("temp/io/temp.pdb");
 }
+
+TEST_CASE("can_parse_hydrogens", "[io]") {
+    std::vector<std::string> val = {"ATOM      1  N   VAL     1      -3.299   8.066 -11.443  1.00  0.00           N",
+                                    "ATOM      2  H   VAL     1      -3.411   8.677 -12.239  1.00  0.00           H",
+                                    "ATOM      3  CA  VAL     1      -3.085   6.673 -11.780  1.00  0.00           C",
+                                    "ATOM      4  HA  VAL     1      -3.328   6.080 -10.899  1.00  0.00           H",
+                                    "ATOM      5  CB  VAL     1      -3.927   6.165 -12.947  1.00  0.00           C",
+                                    "ATOM      6  HB  VAL     1      -3.774   6.930 -13.708  1.00  0.00           H",
+                                    "ATOM      7  CG1 VAL     1      -3.577   4.780 -13.486  1.00  0.00           C",
+                                    "ATOM      8 HG11 VAL     1      -3.508   4.011 -12.716  1.00  0.00           H",
+                                    "ATOM      9 HG12 VAL     1      -4.289   4.438 -14.237  1.00  0.00           H",
+                                    "ATOM     10 HG13 VAL     1      -2.612   4.760 -13.992  1.00  0.00           H",
+                                    "ATOM     11  CG2 VAL     1      -5.370   6.065 -12.463  1.00  0.00           C",
+                                    "ATOM     12 HG21 VAL     1      -5.876   7.021 -12.328  1.00  0.00           H",
+                                    "ATOM     13 HG22 VAL     1      -6.043   5.567 -13.162  1.00  0.00           H",
+                                    "ATOM     14 HG23 VAL     1      -5.354   5.510 -11.524  1.00  0.00           H",
+                                    "ATOM     15  C   VAL     1      -1.621   6.436 -12.123  1.00  0.00           C",
+                                    "ATOM     16  O   VAL     1      -1.200   7.045 -13.104  1.00  0.00           O",
+    };
+
+    Atom atom;
+    atom.parse_pdb(val[7]);
+    REQUIRE(atom.name == "HG11");
+    REQUIRE(atom.element == "H");
+    REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-3.508, 1e-6));
+    REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.011, 1e-6));
+    REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-12.716, 1e-6));
+
+    atom.parse_pdb(val[8]);
+    REQUIRE(atom.name == "HG12");
+    REQUIRE(atom.element == "H");
+    REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-4.289, 1e-6));
+    REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.438, 1e-6));
+    REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-14.237, 1e-6));
+
+    atom.parse_pdb(val[9]);
+    REQUIRE(atom.name == "HG13");
+    REQUIRE(atom.element == "H");
+    REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-2.612, 1e-6));
+    REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.760, 1e-6));
+    REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-13.992, 1e-6));
+}

@@ -88,7 +88,7 @@ void Atom::parse_pdb(string s) {
 
     // remove any spaces from the numbers
     serial = utility::remove_all(serial, " ");
-    name = utility::remove_all(name, " ");
+    name = utility::remove_all(space1+name, " "); // we add space1 since some programs (gromacs) uses it for the name.
     resName = utility::remove_all(resName, " ");
     resSeq = utility::remove_all(resSeq, " ");
     x = utility::remove_all(x, " ");

@@ -6,6 +6,7 @@
 #include <data/Water.h>
 #include <utility/Exceptions.h>
 #include <utility/Settings.h>
+#include <utility/Constants.h>
 
 #include <fstream>
 
@@ -30,11 +31,9 @@ void PDBReader::read(std::string input_path) {
 
                 // if this is a water molecule, add it to the hydration atoms
                 // otherwise add it to the protein atoms
-                if (atom.is_water()) {
-                    f.add(Water(std::move(atom)));
-                } else {
-                    f.add(atom);
-                }
+                if (atom.element == constants::symbols::hydrogen) {continue;} // skip hydrogens
+                if (atom.is_water()) {f.add(Water(std::move(atom)));} 
+                else {f.add(atom);}
                 break;
             } case Record::RecordType::TERMINATE: {
                 Terminate term;

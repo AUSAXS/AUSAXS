@@ -15,7 +15,7 @@ options :=
 ###				PYTHON PLOTS				      ###
 #################################################################################
 # Plot a SAXS dataset along with any accompanying fits
-plot_fits/%: scripts/plot_dataset.py
+plot_fits/%: scripts/compare_fit.py
 	@ measurement=$(shell find figures/intensity_fitter/ -name "$*.dat"); \
 	python3 $< $${measurement}
 

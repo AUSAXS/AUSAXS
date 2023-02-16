@@ -11,6 +11,12 @@
 #include <dataset/SimpleDataset.h>
 #include <fitter/Fit.h>
 
+/**
+ * @brief A representation of a protein.
+ * 
+ * A protein is a collection of bodies. Each body is a collection of atoms.
+ * The hydration layer does not belong to any individual body, and is thus stored in this class. 
+ */
 class Protein {
 	public: 
 		/**
@@ -21,9 +27,9 @@ class Protein {
 		/**
 		 * @brief Copy constructor.
 		 * 
-		 * Proteins cannot be copied. 
+		 * Proteins should never be copied. 
 		 */
-		Protein(const Protein& protein) = delete;
+		Protein(const Protein&) = delete;
 
 		/**
 		 * @brief Move constructor.
