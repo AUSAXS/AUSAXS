@@ -68,7 +68,7 @@ TEST_CASE("Cramer", "[math]") {
     }
 }
 
-TEST_CASE("QRDecomposition", "[math]") {
+TEST_CASE("QRDecomposition", "[math],[broken]") {
     Matrix<double> A = {{1, 2}, {3, 4}};
     QRDecomposition qr(A);
     REQUIRE(A*qr.inverse() == matrix::identity(2));

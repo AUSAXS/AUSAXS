@@ -10,7 +10,6 @@
 
 using std::vector, std::shared_ptr, std::cout, std::endl;
 
-
 TEST_CASE("state_manager", "[managers]") {
     unsigned int size = 5;
     StateManager manager(size);
@@ -130,8 +129,8 @@ TEST_CASE("em_partial_histogram_manager", "[managers]") {
         CHECK(protein->bodies[4].atoms().size() == 0);
     }
 
-    SECTION("simple comparison with standard approach") {
-        SECTION("positive") {
+    SECTION("comparison with standard approach") {
+        SECTION("simple") {
             std::shared_ptr<em::ccp4::Header> header = std::make_shared<em::ccp4::Header>();
             header->cella_x = 1, header->cella_y = 1, header->cella_z = 1, header->nz = 1;
 
@@ -170,6 +169,7 @@ TEST_CASE("em_partial_histogram_manager", "[managers]") {
             REQUIRE(compare(manager1, manager2, 3));
             REQUIRE(compare(manager1, manager2, 2));
             REQUIRE(compare(manager1, manager2, 5));
+            REQUIRE(compare(manager1, manager2, 2));
             REQUIRE(compare(manager1, manager2, 6));
         }
     }

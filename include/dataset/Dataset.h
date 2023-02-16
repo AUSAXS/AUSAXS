@@ -122,6 +122,7 @@ class Dataset : public Matrix<double> {
 
         /**
          * @brief Interpolate @a num points between each pair of points in the dataset.
+         *        All data but the x and y columns will be discarded.
          */
         void interpolate(unsigned int num);
 
@@ -209,6 +210,13 @@ class Dataset : public Matrix<double> {
     protected:
         /**
          * @brief Assign a matrix to this Dataset.
+         *        The compatibility of the matrix is checked.
          */
         void assign_matrix(const Matrix<double>&& m);
+
+        /**
+         * @brief Forcibly assign a matrix to this Dataset.
+         *        The compatibility of the matrix is not checked. 
+         */
+        void force_assign_matrix(const Matrix<double>&& m);
 };

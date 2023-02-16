@@ -549,8 +549,8 @@ TEST_CASE("volume_deflation", "[grid]") {
     for (int i = 0; i < bins.x(); i++) {
         for (int j = 0; j < bins.y(); j++) {
             for (int k = 0; k < bins.z(); k++) {
-                if (__builtin_expect(i == 10 && j == 13 && k == 10, false)) {continue;} // center of the first atom
-                if (__builtin_expect(i == 13 && j == 10 && k == 10, false)) {continue;} // center of the second atom
+                if (i == 10 && j == 13 && k == 10, false) {continue;} // center of the first atom
+                if (i == 13 && j == 10 && k == 10, false) {continue;} // center of the second atom
                 if (g.index(i, j, k) != GridObj::EMPTY) {
                     REQUIRE(false);
                 }

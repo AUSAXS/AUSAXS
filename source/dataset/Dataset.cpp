@@ -26,9 +26,17 @@ Dataset::Dataset(std::string path) : Dataset() {
 }
 
 void Dataset::assign_matrix(const Matrix<double>&& m) {
-    if (m.M != M) {throw except::invalid_operation("Dataset::operator=: Matrix has wrong number of columns.");}
+    if (m.M != M) {
+        throw except::invalid_operation("Dataset::operator=: Matrix has wrong number of columns. "
+        "Expected " + std::to_string(M) + ", but got " + std::to_string(m.M));
+    }
+    force_assign_matrix(std::move(m));
+}
+
+void Dataset::force_assign_matrix(const Matrix<double>&& m) {
     this->data = std::move(m.data);
     this->N = m.N;
+    this->M = m.M;
 }
 
 std::size_t Dataset::size() const noexcept {
@@ -183,7 +191,8 @@ void Dataset::interpolate(unsigned int n) {
             interpolated[i*(n+1) + j + 1] = {x_new, y_new};
         }
     }
-    assign_matrix(std::move(interpolated));
+    // force assign since we can only interpolate the x and y columns. 
+    force_assign_matrix(std::move(interpolated));
 }
 
 void Dataset::append(const Dataset& other) {

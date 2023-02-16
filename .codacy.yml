@@ -1,5 +1,5 @@
 ---
 exclude_paths:
-  - "test"
-  - "executable"
+  - "test/*"
+  - "executable/*"
   - "README.md"
