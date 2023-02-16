@@ -81,9 +81,6 @@ class Dataset2D : public SimpleDataset {
 
         // Get the ith value in the fourth column.
         [[nodiscard]] double& xerr(unsigned int i) {return index(i, 3);}
-
-    private: 
-        void load(std::string path) override;
 };
 
 // Object conversion between Dataset2D and SimpleDataset is often used. This check ensures that the conversion is safe.

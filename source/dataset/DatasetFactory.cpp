@@ -6,7 +6,7 @@
 #include <utility/Utility.h>
 #include <utility/Constants.h>
 
-std::shared_ptr<Dataset> factory::DatasetFactory::construct(std::string filename) {
+std::shared_ptr<Dataset> factory::DatasetFactory::construct(std::string filename, unsigned int expected_cols) {
     std::unique_ptr<detail::DatasetConstructor> constructor;
     auto ext = utility::extension(filename);
     if (ext == ".dat" || ext == ".txt" || ext == ".rsr") {
@@ -16,5 +16,5 @@ std::shared_ptr<Dataset> factory::DatasetFactory::construct(std::string filename
     } else {
         throw except::invalid_operation("factory::create: Unknown file extension \"" + ext + "\".");
     }
-    return constructor->construct(filename);
+    return constructor->construct(filename, expected_cols);
 }

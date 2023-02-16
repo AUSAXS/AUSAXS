@@ -11,7 +11,7 @@
 #include <string>
 #include <fstream>
 
-std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path) {
+std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, unsigned int expected_cols) {
     if (setting::general::verbose) {
         utility::print_info("Loading dataset from \"" + path + "\"");
     }
@@ -62,37 +62,73 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path) {
 
     // determine the most common number of columns, since that will likely be the data
     unsigned int mode = stats::mode(col_number);
-    std::shared_ptr<Dataset> dataset;
-    switch (mode) {
-        case 2: {
-            if (setting::general::verbose) {std::cout << "\t2 columns detected. Assuming the format is x | y" << std::endl;}
-            dataset = std::make_shared<Dataset>();
-            break;
-        }
-        case 3: {
-            if (setting::general::verbose) {std::cout << "\t3 columns detected. Assuming the format is x | y | yerr" << std::endl;}
-            dataset = std::make_shared<Dataset>(SimpleDataset());
-            break;
-        }
-        case 4: {
-            if (setting::general::verbose) {std::cout << "\t4 columns detected. Assuming the format is x | y | yerr | xerr" << std::endl;}
-            dataset = std::make_shared<Dataset>(Dataset2D());
-            break;
-        }
-        default: {
-            throw except::io_error("DATConstructor::construct: File has an unsupported number of columns (" + std::to_string(mode) + ").");
+    if (setting::general::verbose) {
+        switch (mode) {
+            case 2: 
+                std::cout << "\t2 columns detected. Assuming the format is [x | y]" << std::endl;
+                break;
+            case 3:
+                std::cout << "\t3 columns detected. Assuming the format is [x | y | yerr]" << std::endl;
+                break;
+            case 4:
+                std::cout << "\t4 columns detected. Assuming the format is [x | y | yerr | xerr]" << std::endl;
+                break;
+            default:
+                throw except::io_error("DATConstructor::construct: File has an unsupported number of columns (" + std::to_string(mode) + ").");
         }
     }
 
-    // copy all rows with the correct number of columns
-    unsigned int count = 0;
-    for (unsigned int i = 0; i < row_data.size(); i++) {
-        if (row_data[i].size() != mode) {continue;}
-        if (count++ < setting::axes::skip) {continue;}
-        dataset->push_back(row_data[i]);
+    // check that we have at least the expected number of columns
+    if (expected_cols != 0 && mode < expected_cols) {
+        throw except::io_error("DATConstructor::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
     }
+
+    // copy the data to the dataset
+    std::shared_ptr<Dataset> dataset;
+    unsigned int count = 0;
+    {
+        // first copy all rows with the most common number of columns to a temporary vector
+        std::vector<std::vector<double>> data_cols;
+        for (unsigned int i = 0; i < row_data.size(); i++) {
+            if (row_data[i].size() != mode) {continue;}     // skip rows with the wrong number of columns
+            if (count++ < setting::axes::skip) {continue;}  // skip the first few rows if requested
+            data_cols.push_back(std::move(row_data[i]));
+        }
+
+        // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
+        if (mode != expected_cols) {
+            if (setting::general::verbose) {
+                utility::print_warning("\tWarning: File has more columns than expected. Ignoring the extra columns.");
+
+                // shorten the data to the expected number of columns
+                for (unsigned int i = 0; i < data_cols.size(); i++) {
+                    std::vector<double> row(expected_cols);
+                    for (unsigned int j = 0; j < expected_cols; j++) {
+                        row[j] = data_cols[i][j];
+                    }
+                    data_cols[i] = std::move(row);
+                }
+            }
+        }
+
+        // add the data to the dataset
+        // dataset = std::make_shared<Dataset>(std::move(data_cols));
+        dataset = std::make_shared<Dataset>(0, expected_cols);
+        for (unsigned int i = 0; i < data_cols.size(); i++) {
+            dataset->push_back(data_cols[i]);
+        }
+    }
+
+    // skip the first few rows if requested
     if (setting::axes::skip != 0 && setting::general::verbose) {
         std::cout << "\tSkipped " << count - dataset->size() << " data points from beginning of file." << std::endl;
+    }
+
+    // remove all rows outside the specified q-range
+    unsigned int N = dataset->size();
+    dataset->limit_x(setting::axes::qmin, setting::axes::qmax);
+    if (N != dataset->size() && setting::general::verbose) {
+        std::cout << "\tRemoved " << N - dataset->size() << " data points outside specified q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
     }
 
     // verify that at least one row was read correctly

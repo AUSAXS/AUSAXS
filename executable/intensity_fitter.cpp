@@ -27,8 +27,8 @@ int main(int argc, char const *argv[]) {
     app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.");
     app.add_option("--radius_a,--ra", setting::grid::ra, "Radius of the protein atoms.");
     app.add_option("--radius_h,--rh", setting::grid::rh, "Radius of the hydration atoms.");
-    app.add_option("--qlow", setting::axes::qmin, "Lower limit on used q values from measurement file.");
-    app.add_option("--qhigh", setting::axes::qmax, "Upper limit on used q values from measurement file.");
+    app.add_option("--qmin", setting::axes::qmin, "Lower limit on used q values from the measurement file.");
+    app.add_option("--qmax", setting::axes::qmax, "Upper limit on used q values from the measurement file.");
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_flag("--center,!--no-center", setting::protein::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the effective atomic charge will be used. Default: true.");

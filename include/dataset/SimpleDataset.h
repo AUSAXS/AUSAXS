@@ -74,34 +74,6 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         virtual void load(std::string path) override;
 
         /**
-         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-         *        This assumes that the x-values are sorted. 
-         *        Complexity: O(n)
-         */
-        void limit_x(const Limit& limits);
-
-        /**
-         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
-         *        This assumes that the x-values are sorted. 
-         *        Complexity: O(n)
-         */
-        void limit_x(double min, double max);
-
-        /**
-         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-         *        This assumes that the y-values are unsorted. 
-         *        Complexity: O(n)
-         */
-        void limit_y(const Limit& limits);
-
-        /**
-         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
-         *        This assumes that the y-values are unsorted. 
-         *        Complexity: O(n)
-         */
-        void limit_y(double min, double max);
-
-        /**
          * @brief Reduce the number of data points to the specified amount. 
          */
         void reduce(unsigned int target, bool log = false);

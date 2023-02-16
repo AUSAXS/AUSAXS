@@ -273,12 +273,14 @@ void Protein::update_effective_charge() {
     // double displaced_vol = get_volume_acids();
     double displaced_charge = constants::charge::density::water*displaced_vol;
     // cout << "Volume: acid: " << get_volume_acids() << ", grid: " << displaced_vol << endl;
-    std::cout << "Displaced charge: " << displaced_charge << std::endl;
 
     // number of atoms
     unsigned int N = size();
     double charge_per_atom = -displaced_charge/N;
-    std::cout << "Added " << charge_per_atom << " additional charge to each protein atom (N: " << N << ")." << std::endl;
+    if (setting::general::verbose) {
+        std::cout << "Total displaced charge: " << displaced_charge << std::endl;
+        std::cout << "Added " << charge_per_atom << " additional charge to each atom (N: " << N << ")." << std::endl;
+    }
 
     // subtract the charge from all protein atoms
     for (auto& body : bodies) {

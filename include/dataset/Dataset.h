@@ -3,6 +3,7 @@
 #include <math/Matrix.h>
 #include <utility/Exceptions.h>
 #include <dataset/PointSet.h>
+#include <utility/Limit.h>
 
 /**
  * @brief A representation of a dataset. The set consists of fixed number of named columns, with a variable number of rows. 
@@ -139,11 +140,40 @@ class Dataset : public Matrix<double> {
          */
         void append(const Dataset& other);
 
-        std::string to_string() const;
+        /**
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         *        This assumes that the x-values are sorted. 
+         *        Complexity: O(n)
+         */
+        void limit_x(const Limit& limits);
 
-    //*#####################*//
-    //*### Alias methods ###*//
-    //*#####################*//
+        /**
+         * @brief Impose limits on the data. All points with an x-value outside this range will be removed. 
+         *        This assumes that the x-values are sorted. 
+         *        Complexity: O(n)
+         */
+        void limit_x(double min, double max);
+
+        /**
+         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
+         *        Complexity: O(n)
+         */
+        void limit_y(const Limit& limits);
+
+        /**
+         * @brief Impose limits on the data. All points with an y-value outside this range will be removed. 
+         *        Complexity: O(n)
+         */
+        void limit_y(double min, double max);
+
+        /**
+         * @brief Get the string representation of this object.
+         */
+        [[nodiscard]] std::string to_string() const;
+
+    //#####################//
+    //### Alias methods ###//
+    //#####################//
 
         // Get the first column.
         [[nodiscard]] const ConstColumn<double> x() const {return col(0);}

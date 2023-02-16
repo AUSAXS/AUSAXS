@@ -39,6 +39,34 @@ bool Dataset::empty() const noexcept {
     return size() == 0;
 }
 
+void Dataset::limit_x(const Limit& limits) {
+    if (size() == 0) {return;}
+    if (limits.min < x(0) && x(size()-1) < limits.max) {return;}
+
+    Matrix<double> limited(0, M); 
+    for (unsigned int i = 0; i < size(); i++) {
+        double val = x(i);
+        if (val < limits.min || limits.max < val) {continue;}
+        limited.push_back(row(i));
+    }
+    assign_matrix(std::move(limited));
+}
+
+void Dataset::limit_y(const Limit& limits) {
+    if (size() == 0) {return;}
+
+    Matrix<double> limited(0, M);
+    for (unsigned int i = 0; i < size(); i++) {
+        double val = y(i);
+        if (val < limits.min || limits.max < val) {continue;}
+        limited.push_back(row(i));
+    }
+    assign_matrix(std::move(limited));
+}
+
+void Dataset::limit_x(double min, double max) {limit_x({min, max});}
+void Dataset::limit_y(double min, double max) {limit_y({min, max});}
+
 Column<double> Dataset::col(std::string column) {
     for (size_t i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
@@ -120,7 +148,7 @@ void Dataset::save(std::string path, std::string header) const {
 }
 
 void Dataset::load(std::string path) {
-    auto data = factory::DatasetFactory::construct(path);
+    auto data = factory::DatasetFactory::construct(path, M);
     if (data->M != M) {throw except::invalid_operation("Dataset::load: Number of columns does not match. (" + std::to_string(data->M) + " != " + std::to_string(M) + ")");}    
     *this = std::move(*data);
     set_default_names();
@@ -155,7 +183,7 @@ void Dataset::interpolate(unsigned int n) {
             interpolated[i*(n+1) + j + 1] = {x_new, y_new};
         }
     }
-    *this = Dataset(std::move(interpolated));
+    assign_matrix(std::move(interpolated));
 }
 
 void Dataset::append(const Dataset& other) {

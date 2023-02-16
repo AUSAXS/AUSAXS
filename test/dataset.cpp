@@ -172,15 +172,39 @@ TEST_CASE("dataset_ylimits", "[dataset]") {
 }
 
 TEST_CASE("dataset_xlimits", "[dataset]") {
-    std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
-    SimpleDataset data(x, y);
+    SECTION("simple") {
+        std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+        std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
+        SimpleDataset data(x, y);
 
-    Limit limit(0.5, 5);
-    data.limit_x(limit);
-    for (unsigned int i = 0; i < data.size(); i++) {
-        CHECK(limit.min <= data.x(i));
-        CHECK(data.x(i) <= limit.max);
+        Limit limit(0.5, 5);
+        data.limit_x(limit);
+        for (unsigned int i = 0; i < data.size(); i++) {
+            CHECK(limit.min <= data.x(i));
+            CHECK(data.x(i) <= limit.max);
+        }
+    }
+
+    SECTION("real data") {
+        SimpleDataset data("test/files/2epe.dat");
+
+        unsigned int start = 0;
+        while (data.x(start) < 0.01) {            
+            start++;
+        }
+
+        unsigned int end = data.size()-1;
+        while (0.3 < data.x(end)) {
+            end--;
+        }
+
+        auto data_limited = data;
+        data_limited.limit_x(0.01, 0.3);
+        REQUIRE(data_limited.size() == end-start+1);
+        for (unsigned int i = 0; i < data_limited.size(); i++) {
+            CHECK(data_limited.x(i) == data.x(i+start));
+            CHECK(data_limited.y(i) == data.y(i+start));
+        }
     }
 }
 
@@ -260,7 +284,7 @@ TEST_CASE("dataset_io", "[dataset],[files]") {
 }
 
 TEST_CASE("dataset_read", "[dataset],[files]") {
-    setting::general::verbose = false;
+    setting::general::verbose = true;
     SECTION("actual data") {
         Dataset2D data("test/files/2epe.dat");
         auto x = data.x();

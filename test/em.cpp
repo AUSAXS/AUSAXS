@@ -33,8 +33,7 @@ TEST_CASE("ImageStackBase::read", "[em][ImageStackBase]") {
 
     // we want to test that the read function can correctly read map files with different row/column/layer orderings
     SECTION("order") {
-        // std::string file = "test/files/A2M_2020_Q4.ccp4";
-        std::string file = "test/files/test.ccp4";
+        std::string file = "test/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
         auto header = isb.get_header();

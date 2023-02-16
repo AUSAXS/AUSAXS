@@ -6,6 +6,7 @@
 #include <data/Water.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
+#include <utility/Settings.h>
 
 #include <fstream>
 #include <algorithm>
@@ -19,7 +20,7 @@ void PDBWriter::write(std::string output_path) {
         if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + output_path + "\"");}
         output << content[0] << std::flush;
         output.close();
-        std::cout << "Output written to file " + output_path + "." << std::endl;
+        if (setting::general::verbose) {std::cout << "Output written to file " + output_path + "." << std::endl;}
     }
     else {
         for (unsigned int i = 0; i < content.size(); i++) {

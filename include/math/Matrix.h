@@ -30,9 +30,15 @@ class Matrix {
         Matrix(std::initializer_list<std::initializer_list<Q>> l);
 
         /**
-         * @brief Construct a Matrix based on a series of vectors. The vectors must be of the same size. 
+         * @brief Construct a Matrix based on a list of row vectors. The vectors must be of the same size.
          */
         Matrix(std::vector<std::vector<Q>> v);
+
+        /**
+         * @brief Construct a Matrix based on a series of column vectors. The vectors must be of the same size. 
+         */
+        template<numeric... R>
+        Matrix(const Vector<Q>& v, const Vector<R>&... vs);
 
         /**
          * @brief Construct a Matrix based on a vector.

@@ -44,10 +44,7 @@ Dataset2D::Dataset2D(const SimpleDataset& data) : Dataset2D(data.size()) {
 }
 
 Dataset2D::Dataset2D(std::string path) : Dataset2D() {
-    auto data = factory::DatasetFactory::construct(path);
-    if (data->M != 4) {
-        throw except::io_error("SimpleDataset::SimpleDataset: Dataset must have exactly three columns.");
-    }
+    auto data = factory::DatasetFactory::construct(path, 4);
     this->data = std::move(data->data);
     this->N = data->N;
 }
@@ -69,17 +66,4 @@ void Dataset2D::push_back(double x, double y) {
 
 void Dataset2D::push_back(const Point2D& point) noexcept {
     push_back(point.x, point.y, point.xerr, point.yerr);
-}
-
-void Dataset2D::load(std::string path) {
-    Dataset::load(path);
-    if (M != 4) {
-        throw except::io_error("Dataset2D::load: Dataset has wrong number of columns.");
-    }
-    names = {"q", "I", "Ierr", "qerr"}; // set column names
-    unsigned int N = size();
-    limit_x(setting::axes::qmin, setting::axes::qmax);
-    if (N != size() && setting::general::verbose) {
-        std::cout << "\tRemoved " << N - size() << " data points outside specified q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
-    }
 }

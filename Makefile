@@ -190,6 +190,7 @@ intensity_fit/%: build/executable/intensity_fitter
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
 		$< $${measurement} $${pdb} ${options};\
+		make plot/figures/intensity_fitter/$*;\
 		make plot_fits/$*;\
 	done
 

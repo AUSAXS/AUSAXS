@@ -12,7 +12,10 @@ namespace detail {
     struct DatasetConstructor {
         /**
          * @brief Construct a dataset from a file.
+         * 
+         * @param path The path to the file.
+         * @param expected_cols The expected number of columns. Any additional columns will be ignored.
          */
-        virtual std::shared_ptr<Dataset> construct(std::string path) = 0;
+        virtual std::shared_ptr<Dataset> construct(std::string path, unsigned int expected_cols) = 0;
     };
 }

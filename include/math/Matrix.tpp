@@ -37,6 +37,16 @@ Matrix<Q>::Matrix(std::vector<std::vector<Q>> v) : N(v[0].size()), M(v.size()), 
 }
 
 template<numeric Q>
+template<numeric... R>
+Matrix<Q>::Matrix(const Vector<Q>& v, const Vector<R>&... vs) : N(v.N), M(1 + sizeof...(R)), data(N*M) {
+    if (N == 0) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: vectors must be of equal size!");}
+    for (const auto& e : v) {
+        data.push_back(e);
+    }
+    (..., (data.insert(data.end(), vs.begin(), vs.end())));
+}
+
+template<numeric Q>
 Matrix<Q>::Matrix(const Vector<Q>& v) : N(v.N), M(1), data(v.data) {}
 
 template<numeric Q>

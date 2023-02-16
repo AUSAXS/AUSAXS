@@ -47,16 +47,12 @@ SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::
 }
 
 SimpleDataset::SimpleDataset(std::string path) : SimpleDataset() {
-    auto data = factory::DatasetFactory::construct(path);
-    if (data->M != 3) {
-        throw except::io_error("SimpleDataset::SimpleDataset: Dataset must have exactly three columns.");
-    }
-    this->data = std::move(data->data);
-    this->N = data->N;
+    auto data = factory::DatasetFactory::construct(path, 3);
+    *this = std::move(*data);
 }
 
 void SimpleDataset::reduce(unsigned int target, bool log) {
-    if (size() < target) {throw except::invalid_operation("Dataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
+    if (size() < target) {throw except::invalid_operation("SimpleDataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
     Matrix<double> reduced(0, M);
 
     if (log) {
@@ -89,37 +85,6 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
     options.draw_line = false;
     options.draw_markers = true;
 }
-
-void SimpleDataset::limit_x(const Limit& limits) {
-    if (size() == 0) {return;}
-    if (limits.min < x(0) && x(size()-1) < limits.max) {return;}
-
-    Matrix<double> limited(0, M); 
-    for (unsigned int i = 0; i < size(); i++) {
-        double val = x(i);
-        if (val < limits.min || limits.max < val) {continue;}
-        limited.push_back(row(i));
-    }
-
-    *this = std::move(limited);
-}
-
-void SimpleDataset::limit_x(double min, double max) {limit_x({min, max});}
-
-void SimpleDataset::limit_y(const Limit& limits) {
-    if (size() == 0) {return;}
-
-    Matrix<double> limited(0, M);
-    for (unsigned int i = 0; i < size(); i++) {
-        double val = y(i);
-        if (val < limits.min || limits.max < val) {continue;}
-        limited.push_back(row(i));
-    }
-
-    *this = std::move(limited);
-}
-
-void SimpleDataset::limit_y(double min, double max) {limit_y({min, max});}
 
 void SimpleDataset::operator=(const Matrix<double>&& other) {
     if (other.M != M) {throw except::invalid_operation("SimpleDataset::operator=: Matrix has wrong number of columns.");}
@@ -298,18 +263,7 @@ void SimpleDataset::rebin() noexcept {
 
 void SimpleDataset::load(std::string path) {
     Dataset::load(path);
-    if (M < 3) {
-        throw except::io_error("SimpleDataset::load: Dataset has too few columns.");
-    }
-    else if (M > 3) {
-        utility::print_warning("Warning in SimpleDataset::load: Dataset has " + std::to_string(M) + " columns, while this class only supports operations on 3. Ensure that the file is of the format [x | y | yerr | rest].");
-    }
     names = {"q", "I", "Ierr", "qerr"}; // set column names
-    unsigned int N = size();
-    limit_x(setting::axes::qmin, setting::axes::qmax);
-    if (N != size() && setting::general::verbose) {
-        std::cout << "\tRemoved " << N - size() << " data points outside specified q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
-    }
 }
 
 void SimpleDataset::remove_consecutive_duplicates() {
