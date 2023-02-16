@@ -11,7 +11,7 @@ struct BodySplitter {
      * 
      * @param input The path to the input data file. 
      */
-    static Protein split(const std::string input, std::vector<int> splits);
+    static Protein split(const std::string& input, std::vector<int> splits);
 
     /**
      * @brief Creates a single constraint between each body and the next in the sequence. 

@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-Protein BodySplitter::split(const std::string input, std::vector<int> splits) {
+Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
     Body body(input);
     std::vector<Atom>& atoms = body.atoms();
 

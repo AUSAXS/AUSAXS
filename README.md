@@ -1,17 +1,17 @@
-# Todo
-* [ ]	Matrix: Change vector of vectors constructor to be row-majority, and use the variadic constructor for columns instead
-* [ ]	Testing: Redo all tests such that they are more structured, with a single executable for each category. 
-* [ ]	BSThreadPool: Streamline download and build process. Currently it is all manual. 
-* [ ]	DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
-* [ ]	EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
-* [ ]	Protein: Figure out how getMass should work in without effective charge enabled
-* [ ]	EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
-* [ ]	Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
-* [x]	EMFitter: Handle absolute scale properly. (Doesn't matter. It is scaled to fit SAXS data anyways)
-* [ ]	gentag alt for de andre filer
-* [ ]	General: Consistency check of DrhoM
-* [ ]	IO: Support multiple terminate statements
-* [ ]	Memory test all other executables.
+# Todo,
+*	[ ] Matrix: Change vector of vectors constructor to be row-majority, and use the variadic constructor for columns instead
+*	[ ] Testing: Redo all tests such that they are more structured, with a single executable for each category. 
+*	[ ] BSThreadPool: Streamline download and build process. Currently it is all manual. 
+*	[ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
+*	[ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
+*	[ ] Protein: Figure out how getMass should work in without effective charge enabled
+*	[ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
+*	[ ]	Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
+*	[x]	EMFitter: Handle absolute scale properly. (Doesn't matter. It is scaled to fit SAXS data anyways)
+*	[ ]	gentag alt for de andre filer
+*	[ ]	General: Consistency check of DrhoM
+*	[ ]	IO: Support multiple terminate statements
+*	[ ]	Memory test all other executables.
 
 # Stuff to consider
 ## EM
