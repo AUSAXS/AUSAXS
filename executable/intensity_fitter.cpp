@@ -6,7 +6,7 @@
 
 #include <data/Body.h>
 #include <data/Protein.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/HydrationFitter.h>
 #include <fitter/Fit.h>
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
@@ -81,7 +81,7 @@ int main(int argc, char const *argv[]) {
     hist::ScatteringHistogram h = protein.get_histogram();
     plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
 
-    IntensityFitter fitter(mfile, h);
+    HydrationFitter fitter(mfile, h);
     std::shared_ptr<Fit> result = fitter.fit();
     FitReporter::report(result);
     FitReporter::save(result, output + "report.txt");

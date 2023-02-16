@@ -4,7 +4,7 @@
 #include <rigidbody/RigidTransform.h>
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/RandomSelect.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/HydrationFitter.h>
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
 
@@ -77,7 +77,7 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     protein_LAR12.generate_new_hydration();
 
     SECTION("intensity_fitter") {
-        IntensityFitter fitter("data/lysozyme/2epe.dat", protein_2epe.get_histogram());
+        HydrationFitter fitter("data/lysozyme/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -90,7 +90,7 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     }
 
     SECTION("simple_intensity_fitter") {
-        SimpleIntensityFitter fitter("data/lysozyme/2epe.dat", protein_2epe.get_histogram());
+        LinearFitter fitter("data/lysozyme/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -105,7 +105,7 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 
 TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
     Protein protein("data/lysozyme/2epe.pdb");
-    SimpleIntensityFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+    LinearFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
 
     protein.generate_new_hydration();
     double chi2 = fitter.fit()->fval;
@@ -123,7 +123,7 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     RigidBody rbody(protein);
     rbody.generate_new_hydration();
 
-    IntensityFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());
+    HydrationFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());
     fitter.fit()->fval;
 }
 
@@ -162,7 +162,7 @@ TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
     Grid oldgrid = *protein.get_grid();
 
     // fit the protein
-    IntensityFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+    HydrationFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
     auto chi2 = fitter.fit()->fval;
 
     // remove the first body

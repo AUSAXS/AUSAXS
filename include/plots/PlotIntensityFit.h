@@ -3,7 +3,7 @@
 #include <fitter/Fit.h>
 #include <plots/Plot.h>
 #include <hist/ScatteringHistogram.h>
-#include <fitter/SimpleIntensityFitter.h>
+#include <fitter/LinearFitter.h>
 
 #include <memory>
 #include <string>
@@ -23,7 +23,7 @@ namespace plots {
 			 * 
 			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
 			 */
-			PlotIntensityFit(SimpleIntensityFitter& fitter);
+			PlotIntensityFit(LinearFitter& fitter);
 
 			/**
 			 * @brief Constructor.

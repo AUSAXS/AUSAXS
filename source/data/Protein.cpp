@@ -2,7 +2,7 @@
 #include <data/Body.h>
 #include <io/File.h>
 #include <hist/Histogram.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/HydrationFitter.h>
 
 #include <cassert>
 
@@ -306,7 +306,7 @@ void Protein::bind_body_signallers() {
 
 std::shared_ptr<Fit> Protein::fit(std::string measurement) {
     hist::ScatteringHistogram h = get_histogram();
-    IntensityFitter fitter(measurement, h);
+    HydrationFitter fitter(measurement, h);
     return fitter.fit();
 }
 

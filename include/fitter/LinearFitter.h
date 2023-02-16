@@ -5,7 +5,7 @@
 #include <hist/ScatteringHistogram.h>
 
 /**
- * @brief Perform a simple chi2 fit of a data set to a scattering curve. 
+ * @brief Fit an intensity curve to a dataset. 
  * 
  * Two parameters will be fitted: 
  *    a: The slope of the curve.
@@ -13,7 +13,7 @@
  * 
  * This is just a convenient wrapper around SimpleLeastSquares. 
  */
-class SimpleIntensityFitter : public Fitter {
+class LinearFitter : public Fitter {
 	public: 
 		/**
 		 * @brief Constructor.
@@ -22,7 +22,7 @@ class SimpleIntensityFitter : public Fitter {
 		 * 
 		 * @param input The path to the file containing the measured values. 
 		 */
-		SimpleIntensityFitter(std::string input) {setup(input);}
+		LinearFitter(std::string input) {setup(input);}
 
 		/**
 		 * @brief Constructor.
@@ -32,7 +32,7 @@ class SimpleIntensityFitter : public Fitter {
 		 * @param input The path to the file containing the measured values. 
 		 * @param h The ScatteringHistogram to fit. 
 		 */
-		SimpleIntensityFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
+		LinearFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
 
 		/**
 		 * @brief Constructor.
@@ -42,21 +42,21 @@ class SimpleIntensityFitter : public Fitter {
 		 * @param input the path to the file containing the measured values. 
 		 * @param h The ScatteringHistogram to fit. 
 		 */
-		SimpleIntensityFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+		LinearFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 
 		/**
 		 * @brief Constructor. 
 		 * 
 		 * Prepare a fit to the dataset.
 		 */
-		SimpleIntensityFitter(const SimpleDataset& data) : data(data) {}
+		LinearFitter(const SimpleDataset& data) : data(data) {}
 
 		/**
 		 * @brief Constructor. 
 		 * 
 		 * Prepare a fit of the histogram to the dataset. 
 		 */
-		SimpleIntensityFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
+		LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
 
 		/**
 		 * @brief Constructor.
@@ -67,7 +67,7 @@ class SimpleIntensityFitter : public Fitter {
 		 * @param model The model histogram. 
 		 * @param limits The limits on the generated data points. 
 		 */
-		SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+		LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
 
 		/**
 		 * @brief Constructor.
@@ -77,12 +77,12 @@ class SimpleIntensityFitter : public Fitter {
 		 * @param model The model histogram. 
 		 * @param limits The limits on the generated data points. 
 		 */
-		SimpleIntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+		LinearFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
 
 		/**
 		 * @brief Destructor.
 		 */
-		virtual ~SimpleIntensityFitter() override = default;
+		virtual ~LinearFitter() override = default;
 
 		/**
 		 * @brief Perform the fit.

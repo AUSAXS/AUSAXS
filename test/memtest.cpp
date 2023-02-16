@@ -89,7 +89,7 @@ TEST_CASE("compact_coordinates", "[memtest],[slow]") {
     // std::shared_ptr<Grid> grid = protein.get_grid();
 
     rigidbody.generate_new_hydration();
-    SimpleIntensityFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
+    LinearFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
     double _chi2 = fitter.fit()->fval;
     std::cout << "Initial chi2: " << _chi2 << std::endl;
 

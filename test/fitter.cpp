@@ -5,7 +5,6 @@
 
 #include <em/ImageStack.h>
 #include <plots/all.h>
-#include <fitter/SimpleIntensityFitter.h>
 #include <fitter/FitReporter.h>
 #include <utility/Utility.h>
 #include <utility/Settings.h>

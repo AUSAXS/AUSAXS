@@ -10,7 +10,7 @@
 #include <hydrate/Grid.h>
 #include <utility/Constants.h>
 #include <utility/Utility.h>
-#include <fitter/SimpleIntensityFitter.h>
+#include <fitter/LinearFitter.h>
 #include <hist/HistogramManagerMT.h>
 #include <hist/PartialHistogramManagerMT.h>
 #include <plots/all.h>
@@ -24,7 +24,7 @@ TEST_CASE("simulate_dataset", "[protein],[files]") {
     Protein protein("test/files/2epe.pdb");
     SimpleDataset data = protein.simulate_dataset();
 
-    SimpleIntensityFitter fitter(data, protein.get_histogram());
+    LinearFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot1(res);

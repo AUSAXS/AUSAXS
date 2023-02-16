@@ -5,7 +5,7 @@
 #include <rigidbody/SequentialSelect.h>
 #include <rigidbody/SimpleParameterGeneration.h>
 #include <rigidbody/RandomSelect.h>
-#include <fitter/SimpleIntensityFitter.h>
+#include <fitter/LinearFitter.h>
 #include <utility/Exceptions.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
@@ -46,7 +46,7 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 #include <sstream>
 void RigidBody::optimize(std::string measurement_path) {
     protein.generate_new_hydration();
-    SimpleIntensityFitter fitter(measurement_path, protein.get_histogram());
+    LinearFitter fitter(measurement_path, protein.get_histogram());
     double best_chi2 = fitter.fit()->fval;
     std::cout << "Initial chi2: " << best_chi2 << std::endl;
 
@@ -175,7 +175,7 @@ void RigidBody::create_constraint(const Atom& atom1, const Atom& atom2, const Bo
     create_constraint(&atom1, &atom2, &body1, &body2);
 }
 
-double RigidBody::chi2(IntensityFitter& fitter) const {
+double RigidBody::chi2(HydrationFitter& fitter) const {
     std::shared_ptr<Fit> result = fitter.fit();
     return result->fval;
 }

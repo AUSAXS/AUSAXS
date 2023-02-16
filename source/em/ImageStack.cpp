@@ -1,6 +1,6 @@
 #include <em/ImageStack.h>
 #include <em/ProteinManager.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/HydrationFitter.h>
 #include <plots/all.h>
 
 using namespace em;
@@ -14,7 +14,7 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
 
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
     return fit_helper(fitter, param);
 }
 
@@ -26,11 +26,11 @@ std::shared_ptr<EMFit> ImageStack::fit(std::string file) {
 
 std::shared_ptr<EMFit> ImageStack::fit(std::string file, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFitter> fitter, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitter, mini::Parameter param) {
     update_charge_levels(*param.bounds);
     set_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
@@ -202,7 +202,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<SimpleIntensityFit
     return emfit;
 }
 
-std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<SimpleIntensityFitter> fitter) {
+std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<LinearFitter> fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
@@ -219,7 +219,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     setting::protein::center = false;   // do not center the protein - this may cause issues
     setting::grid::percent_water = 0.05;
     if (setting::plot::em::landscape && setting::em::hydrate) {
-        std::static_pointer_cast<IntensityFitter>(fitter)->set_algorithm(mini::type::SCAN); 
+        std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN); 
     }
     
      // fitter is captured by value to guarantee its lifetime will be the same as the lambda
@@ -233,8 +233,8 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             p->clear_grid();                // clear grid from previous iteration
             p->generate_new_hydration();    // generate a new hydration layer
 
-            // pointer cast is ok since the type should always be IntensityFitter when hydration is enabled
-            std::static_pointer_cast<IntensityFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
+            // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
+            std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
             fit = fitter->fit();                                                            // do the fit
@@ -256,7 +256,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 }
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::string file) {
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
@@ -266,7 +266,7 @@ mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::string file) {
 }
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
     return cutoff_scan_helper(points, fitter);
 }
 
@@ -281,17 +281,17 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int point
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::string file) {
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(points, fitter);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
     Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(file) : std::make_shared<SimpleIntensityFitter>(file);    
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }
 
-mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
+mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
     update_charge_levels(points.limits());
     set_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
@@ -301,11 +301,11 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<SimpleIntensityFitter> fitter = setting::em::hydrate ? std::make_shared<IntensityFitter>(h, get_limits()) : std::make_shared<SimpleIntensityFitter>(h, get_limits());
+    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
     return cutoff_scan_fit_helper(points, fitter);
 }
 
-std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<SimpleIntensityFitter> fitter) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
     update_charge_levels(points.limits());
     set_minimum_bounds(points.min);
     auto func = prepare_function(fitter);

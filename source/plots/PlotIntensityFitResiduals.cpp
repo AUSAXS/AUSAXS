@@ -5,7 +5,7 @@
 #include <string.h>
 #include <vector>
 
-plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(SimpleIntensityFitter& fitter) : Plot() {
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(LinearFitter& fitter) : Plot() {
     SimpleDataset graph = fitter.plot_residuals();
     plot(graph);
 }

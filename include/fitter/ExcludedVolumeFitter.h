@@ -2,18 +2,19 @@
 
 #include <fitter/Fit.h>
 #include <mini/all.h>
-#include <fitter/SimpleIntensityFitter.h>
+#include <fitter/LinearFitter.h>
 #include <hist/ScatteringHistogram.h>
 
 /**
  * @brief Fit an intensity curve to a dataset. 
  * 
- * Three parameters will be fitted: 
- *    a: The slope of the curve
- *    b: The intercept of the curve
- *    c: The scaling factor for the hydration shell
+ * Four parameters will be fitted: 
+ *    a: The slope of the curve.
+ *    b: The intercept of the curve.
+ *    c: The scattering length of the hydration shell.
+ *    d: The excluded volume. 
  */
-class IntensityFitter : public SimpleIntensityFitter {
+class ExcludedVolumeFitter : public LinearFitter {
     public: 
         /**
          * @brief Constructor.
@@ -22,7 +23,7 @@ class IntensityFitter : public SimpleIntensityFitter {
          * 
          * @param input The path to the file containing the measured values. 
          */
-        IntensityFitter(std::string input) : SimpleIntensityFitter(input) {}
+        ExcludedVolumeFitter(std::string input) : LinearFitter(input) {}
 
         /**
          * @brief Constructor.
@@ -31,7 +32,7 @@ class IntensityFitter : public SimpleIntensityFitter {
          * @param input The path to the file containing the measured values. 
          * @param h The histogram.
          */
-        IntensityFitter(std::string input, const hist::ScatteringHistogram& h) : SimpleIntensityFitter(input, h) {}
+        ExcludedVolumeFitter(std::string input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
 
         /**
          * @brief Constructor.
@@ -40,7 +41,7 @@ class IntensityFitter : public SimpleIntensityFitter {
          * @param input The path to the file containing the measured values. 
          * @param h The histogram.
          */
-        IntensityFitter(std::string input, hist::ScatteringHistogram&& h) : SimpleIntensityFitter(input, h) {}
+        ExcludedVolumeFitter(std::string input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
 
         /**
          * @brief Constructor.
@@ -49,7 +50,7 @@ class IntensityFitter : public SimpleIntensityFitter {
          * @param data The measured data.
          * @param h The histogram.
          */
-		IntensityFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : SimpleIntensityFitter(data, h) {}
+		ExcludedVolumeFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
 
         /**
          * @brief Constructor.
@@ -59,12 +60,12 @@ class IntensityFitter : public SimpleIntensityFitter {
          * @param model The model histogram. 
          * @param limits The limits on the generated data points. 
          */
-        IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+        ExcludedVolumeFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
 
         /**
          * @brief Destructor.
          */
-        ~IntensityFitter() override = default;
+        ~ExcludedVolumeFitter() override = default;
 
         /**
          * @brief Perform the fit.
@@ -84,34 +85,34 @@ class IntensityFitter : public SimpleIntensityFitter {
          * 
          * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
          */
-        Fit::Plots plot() override;
+        [[nodiscard]] Fit::Plots plot() override;
 
         /**
          * @brief Make a residual plot of the fit.
          * 
          * @return A TGraphErrors with the residuals and their uncertainties. 
          */
-        SimpleDataset plot_residuals() override;
+        [[nodiscard]] SimpleDataset plot_residuals() override;
 
         /**
          * @brief Get the intercept of the model. This might be useful for calculating the concentration.
          */
-        double get_intercept();
+        [[nodiscard]] double get_intercept();
 
         /**
          * @brief Get the model dataset for the points specified by the input data file. 
          */
-        SimpleDataset get_model_dataset();
+        [[nodiscard]] SimpleDataset get_model_dataset();
 
         /**
          * @brief Get the model dataset for the points specified by @a q. 
          */
-        SimpleDataset get_model_dataset(const std::vector<double>& q);
+        [[nodiscard]] SimpleDataset get_model_dataset(const std::vector<double>& q);
 
         /**
          * @brief Get the dataset being fitted. 
          */
-        SimpleDataset get_dataset() const;
+        [[nodiscard]] SimpleDataset get_dataset() const;
 
         /**
          * @brief Set the guess value for the hydration scaling factor @a c.
@@ -130,5 +131,5 @@ class IntensityFitter : public SimpleIntensityFitter {
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.
          */
-        double chi2(std::vector<double> params) override;
+        [[nodiscard]] double chi2(std::vector<double> params) override;
 };

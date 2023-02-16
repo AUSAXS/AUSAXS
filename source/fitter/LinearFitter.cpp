@@ -1,22 +1,22 @@
 #include <iostream>
 #include <fstream>
 
-#include <fitter/SimpleIntensityFitter.h>
+#include <fitter/LinearFitter.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
 #include <utility/Settings.h>
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 
-SimpleIntensityFitter::SimpleIntensityFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
+LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
     model_setup(model, limits);
 }
 
-SimpleIntensityFitter::SimpleIntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) {
+LinearFitter::LinearFitter(const hist::ScatteringHistogram& model, const Limit& limits) {
     model_setup(model, limits);
 }
 
-void SimpleIntensityFitter::model_setup(const hist::ScatteringHistogram& model, const Limit& limits) {
+void LinearFitter::model_setup(const hist::ScatteringHistogram& model, const Limit& limits) {
     data = model.calc_debye_scattering_intensity();
     data.reduce(setting::fit::N, true);
     data.limit_x(limits);
@@ -25,7 +25,7 @@ void SimpleIntensityFitter::model_setup(const hist::ScatteringHistogram& model, 
     if (setting::em::simulation::noise) {data.simulate_noise();}
 }
 
-std::shared_ptr<Fit> SimpleIntensityFitter::fit() {
+std::shared_ptr<Fit> LinearFitter::fit() {
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     std::vector<double> Im = splice(ym);
 
@@ -40,12 +40,12 @@ std::shared_ptr<Fit> SimpleIntensityFitter::fit() {
     return fitted;
 }
 
-void SimpleIntensityFitter::normalize_intensity(double new_I0) {
+void LinearFitter::normalize_intensity(double new_I0) {
     if (I0 < 0) {data.normalize(new_I0);} // if y0 has not been set yet, we must rescale the data
     I0 = new_I0;
 }
 
-Fit::Plots SimpleIntensityFitter::plot() {
+Fit::Plots LinearFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -76,7 +76,7 @@ Fit::Plots SimpleIntensityFitter::plot() {
     return graphs;
 }
 
-SimpleDataset SimpleIntensityFitter::plot_residuals() {
+SimpleDataset LinearFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
@@ -96,16 +96,16 @@ SimpleDataset SimpleIntensityFitter::plot_residuals() {
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
-void SimpleIntensityFitter::set_scattering_hist(hist::ScatteringHistogram&& h) {
+void LinearFitter::set_scattering_hist(hist::ScatteringHistogram&& h) {
     this->h = std::move(h);
 }
 
-void SimpleIntensityFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
+void LinearFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
     this->h = h;
 }
 
-double SimpleIntensityFitter::chi2(std::vector<double>) {
-    throw except::invalid_operation("SimpleIntensityFitter::chi2: Not implemented.");
+double LinearFitter::chi2(std::vector<double>) {
+    throw except::invalid_operation("LinearFitter::chi2: Not implemented.");
     // vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     // vector<double> Im = splice(ym);
 
@@ -121,11 +121,11 @@ double SimpleIntensityFitter::chi2(std::vector<double>) {
     // return chi;
 }
 
-void SimpleIntensityFitter::setup(std::string file) {
+void LinearFitter::setup(std::string file) {
     data = SimpleDataset(file); // read observed values from input file
 }
 
-std::vector<double> SimpleIntensityFitter::splice(const std::vector<double>& ym) const {
+std::vector<double> LinearFitter::splice(const std::vector<double>& ym) const {
     std::vector<double> Im(data.size()); // spliced model values
     CubicSpline s(h.q, ym);
     for (size_t i = 0; i < data.size(); ++i) {
@@ -134,15 +134,15 @@ std::vector<double> SimpleIntensityFitter::splice(const std::vector<double>& ym)
     return Im;
 }
 
-unsigned int SimpleIntensityFitter::degrees_of_freedom() const {
+unsigned int LinearFitter::degrees_of_freedom() const {
     return data.size() - 2;
 }
 
-unsigned int SimpleIntensityFitter::dof() const {
+unsigned int LinearFitter::dof() const {
     return degrees_of_freedom();
 }
 
-std::shared_ptr<Fit> SimpleIntensityFitter::get_fit() const {
-    if (fitted == nullptr) {throw except::bad_order("SimpleIntensityFitter::get_fit: Cannot get the fit results before a fit has been made!");}
+std::shared_ptr<Fit> LinearFitter::get_fit() const {
+    if (fitted == nullptr) {throw except::bad_order("LinearFitter::get_fit: Cannot get the fit results before a fit has been made!");}
     return fitted;
 }

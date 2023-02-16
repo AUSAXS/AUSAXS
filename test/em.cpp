@@ -7,7 +7,6 @@
 
 #include <em/ImageStack.h>
 #include <plots/all.h>
-#include <fitter/SimpleIntensityFitter.h>
 #include <fitter/FitReporter.h>
 #include <dataset/Multiset.h>
 #include <utility/Utility.h>

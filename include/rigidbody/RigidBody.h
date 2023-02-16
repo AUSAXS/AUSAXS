@@ -7,7 +7,7 @@
 #include <rigidbody/BodySelectStrategy.h>
 #include <rigidbody/TransformationStrategy.h>
 #include <rigidbody/ParameterGenerationStrategy.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/HydrationFitter.h>
 
 class RigidBody {
 	public:
@@ -70,7 +70,7 @@ class RigidBody {
 		/**
 		 * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 
 		 */
-		double chi2(IntensityFitter& fitter) const;
+		double chi2(HydrationFitter& fitter) const;
 
 		/**
 		 * @brief Rotate a body with the currently chosen transformation strategy. 

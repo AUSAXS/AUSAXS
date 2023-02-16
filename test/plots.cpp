@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <plots/all.h>
-#include <fitter/IntensityFitter.h>
+#include <fitter/HydrationFitter.h>
 
 TEST_CASE("plot_dataset", "[plots],[manual]") {
     SimpleDataset data("test/files/2epe.dat");
@@ -34,7 +34,7 @@ TEST_CASE("plot_intensityfit", "[plots],[manual]") {
     protein.generate_new_hydration();
 
     hist::ScatteringHistogram h = protein.get_histogram();
-    IntensityFitter fitter("test/files/2epe.dat", h);
+    HydrationFitter fitter("test/files/2epe.dat", h);
     std::shared_ptr<Fit> result = fitter.fit();
     plots::PlotIntensityFit::quick_plot(result, "temp/plot/intensityfit.png");
     plots::PlotIntensityFitResiduals::quick_plot(result, "temp/plot/intensityfitresiduals.png");

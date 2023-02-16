@@ -35,12 +35,6 @@ class Matrix {
         Matrix(std::vector<std::vector<Q>> v);
 
         /**
-         * @brief Construct a Matrix based on a series of column vectors. The vectors must be of the same size. 
-         */
-        template<numeric... R>
-        Matrix(const Vector<Q>& v, const Vector<R>&... vs);
-
-        /**
          * @brief Construct a Matrix based on a vector.
          */
         Matrix(const Vector<Q>& v);

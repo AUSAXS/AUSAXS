@@ -1,5 +1,5 @@
+#include <fitter/HydrationFitter.h>
 #include <fitter/Fit.h>
-#include <fitter/IntensityFitter.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <hist/ScatteringHistogram.h>
@@ -7,10 +7,10 @@
 #include <mini/all.h>
 #include <plots/all.h>
 
-IntensityFitter::IntensityFitter(const hist::ScatteringHistogram& model, const Limit& limits) : SimpleIntensityFitter(model, limits) {}
+HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
 
-std::shared_ptr<Fit> IntensityFitter::fit() {
-    std::function<double(std::vector<double>)> f = std::bind(&IntensityFitter::chi2, this, std::placeholders::_1);
+std::shared_ptr<Fit> HydrationFitter::fit() {
+    std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
 
@@ -35,8 +35,8 @@ std::shared_ptr<Fit> IntensityFitter::fit() {
     return fitted;
 }
 
-Fit::Plots IntensityFitter::plot() {
-    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
+Fit::Plots HydrationFitter::plot() {
+    if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -64,8 +64,8 @@ Fit::Plots IntensityFitter::plot() {
     return graphs;
 }
 
-SimpleDataset IntensityFitter::plot_residuals() {
-    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot_residuals: Cannot plot before a fit has been made!");}
+SimpleDataset HydrationFitter::plot_residuals() {
+    if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot_residuals: Cannot plot before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -86,7 +86,7 @@ SimpleDataset IntensityFitter::plot_residuals() {
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
-double IntensityFitter::chi2(std::vector<double> params) {
+double HydrationFitter::chi2(std::vector<double> params) {
     double c = params[0];
 
     // apply c
@@ -111,8 +111,8 @@ double IntensityFitter::chi2(std::vector<double> params) {
     return chi;
 }
 
-double IntensityFitter::get_intercept() {
-    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+double HydrationFitter::get_intercept() {
+    if (fitted == nullptr) {throw except::bad_order("HydrationFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -124,8 +124,8 @@ double IntensityFitter::get_intercept() {
     return a*s.spline(0) + b;
 }
 
-SimpleDataset IntensityFitter::get_model_dataset() {
-    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
+SimpleDataset HydrationFitter::get_model_dataset() {
+    if (fitted == nullptr) {throw except::bad_order("HydrationFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -139,8 +139,8 @@ SimpleDataset IntensityFitter::get_model_dataset() {
     return SimpleDataset(data.x(), Im, "q", "I"); 
 }
 
-SimpleDataset IntensityFitter::get_model_dataset(const std::vector<double>& q) {
-    if (fitted == nullptr) {throw except::bad_order("IntensityFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
+SimpleDataset HydrationFitter::get_model_dataset(const std::vector<double>& q) {
+    if (fitted == nullptr) {throw except::bad_order("HydrationFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
@@ -153,14 +153,14 @@ SimpleDataset IntensityFitter::get_model_dataset(const std::vector<double>& q) {
     return model;
 }
 
-SimpleDataset IntensityFitter::get_dataset() const {
+SimpleDataset HydrationFitter::get_dataset() const {
     return data;
 }
 
-void IntensityFitter::set_guess(mini::Parameter guess) {
+void HydrationFitter::set_guess(mini::Parameter guess) {
     this->guess = guess;
 }
 
-void IntensityFitter::set_algorithm(mini::type t) {
+void HydrationFitter::set_algorithm(mini::type t) {
     this->fit_type = t;
 }
