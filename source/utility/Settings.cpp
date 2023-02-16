@@ -34,7 +34,7 @@ void setting::read(std::string path) {
         unsigned int start = 0;
 
         // find end of first word
-        while (line[start] != ' ' && start < line.size()) {
+        while (start < line.size() && line[start] != ' ') {
             start++;
             continue;
         }
@@ -45,7 +45,7 @@ void setting::read(std::string path) {
         std::vector<std::string> vals;
         while (end != line.size()) {
             // find start of word, skipping any amount of spacing
-            while (line[start] == ' ' && start < line.size()) {
+            while (start < line.size() && line[start] == ' ') {
                 start++;
                 continue;
             }

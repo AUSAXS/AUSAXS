@@ -121,7 +121,7 @@ void Atom::parse_pdb(string s) {
         this->charge = charge;
     } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
         utility::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
-        throw e;
+        throw;
     }
 
     if (setting::protein::use_effective_charge) {

@@ -214,8 +214,6 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // fitter.normalize_intensity(I0);
 
     // fit function
-    static unsigned int counter;        // counter for the number of fevals. must be static to avoid going out of scope
-    counter = 0;                        // reset counter to 0 every time prepare_function is called
     setting::protein::center = false;   // do not center the protein - this may cause issues
     setting::grid::percent_water = 0.05;
     if (setting::plot::em::landscape && setting::em::hydrate) {
@@ -225,7 +223,8 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
      // fitter is captured by value to guarantee its lifetime will be the same as the lambda
      // 'this' is ok since prepare_function is private and thus only used within the class itself
     std::function<double(std::vector<double>)> chi2 = [this, fitter] (std::vector<double> params) {
-        double last_c = 5; // arbitrary start value
+        static unsigned int counter = 0;
+        static double last_c = 5;
         auto p = get_protein_manager()->get_protein(params[0]);
 
         std::shared_ptr<Fit> fit;
