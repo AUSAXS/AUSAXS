@@ -56,7 +56,7 @@ def snapshot():
 	if filename == "":
 		print("Couldn't determine filename. Saving as 'temp'.")
 		filename = "temp"
-	
+
 	global counter
 	counter += 1
 	cmd.png(filename+"_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=1)

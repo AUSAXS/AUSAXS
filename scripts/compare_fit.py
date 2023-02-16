@@ -18,7 +18,7 @@ if args.output:
     folder = args.output
     if not os.path.exists(folder):
         os.mkdir(folder)
-    
+
 files: list[str] = args.fit
 if files:
     for f in files:
@@ -49,7 +49,7 @@ def load_fit(fitdata, title: str):
     labels.append(r"$\chi^2_{red} = " + f"{chi2r:.3f}$ " + title)
 
 # parse each file
-for f in files: 
+for f in files:
     # get the stem of f without the path or extension
     stem = os.path.splitext(os.path.basename(f))[0]
 
@@ -70,7 +70,7 @@ for f in files:
         fitdata[:, 0] = fitdata[:, 0] / 10
         load_fit(fitdata, "WAXSiS")
 
-    elif "gromacs".lower() in stem.lower(): 
+    elif "gromacs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments=["@", "#", "&"], usecols=[0, 1])
         # interpolate the data to match the dataset
         x = fitdata[:, 0]/10

@@ -181,7 +181,7 @@ void em::ProteinManager::set_charge_levels(Axis levels) noexcept {
 
 void em::ProteinManager::set_charge_levels(std::vector<double> levels) noexcept {
     // make sure the last bin can contain all atoms
-    if (std::abs(levels[levels.size()-1] < 10000)) {
+    if (std::abs(levels[levels.size()-1]) < 10000) {
         levels.push_back(levels[0] < 0 ? -10000 : 10000);
     } 
     charge_levels = levels;

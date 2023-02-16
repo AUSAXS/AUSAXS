@@ -13,7 +13,7 @@ bool is_comment_char(char c) {
     }
 }
 
-void set(std::string opt, std::vector<std::string> val) {
+void set(const std::string& opt, std::vector<std::string> val) {
     for (const auto& e : setting::detail::options) {
         for (const auto& alias : e->aliases) {
             if (alias == opt) {
@@ -53,7 +53,7 @@ void setting::read(std::string path) {
             end = start;
 
             // find end of word
-            while (line[end] != ' ' && end < line.size()) {
+            while (end < line.size() && line[end] != ' ') {
                 end++;
                 continue;
             }
@@ -103,7 +103,7 @@ bool setting::discover(std::string path) {
 template<>
 std::string setting::detail::SmartOption<std::vector<std::string>>::get() const {
     std::string str;
-    std::for_each(setting.begin(), setting.end(), [&str] (std::string s) {str += s + " ";});
+    std::for_each(setting.begin(), setting.end(), [&str] (const std::string& s) {str += s + " ";});
     return str;
 }
 

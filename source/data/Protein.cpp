@@ -327,7 +327,6 @@ void Protein::generate_unit_cell() {
         else {      v *= (1 - setting::grid::scaling);} //                   else multiply by 1-s
     }
     auto cell_w = max - min;
-    auto center = get_cm();
     translate(-min);
 
     // create unit cell

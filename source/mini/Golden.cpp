@@ -53,7 +53,6 @@ Limit Golden::search(Limit bounds) const {
             fc = fd;
             diff = invphi*diff;
             d = a + invphi*diff;
-            d = a + invphi*diff;
             fd = function({d});
         }
     }

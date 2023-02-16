@@ -9,14 +9,13 @@ void LUPDecomposition::decompose() {
 
     Vector<double> row;
     P = Vector<double>(A.N); // enumerate our matrix rows so we can keep track of permutations.
-    for (size_t i = 0; i < A.N; ++i) {P[i] = i;}
+    for (unsigned int i = 0; i < A.N; ++i) {P[i] = i;}
     permutations = 0;
 
-    double A_max; size_t i_max;
-    size_t j, k;
-    for (size_t i = 0; i < A.N; ++i) {
+    unsigned int i_max, j, k;
+    for (unsigned int i = 0; i < A.N; ++i) {
         // find pivot point
-        A_max = 0; i_max = 0;
+        double A_max = 0; i_max = 0;
         for (k = i; k < A.N; ++k) {
             if (abs(A[k][i]) > A_max) {
                 A_max = abs(A[k][i]);
@@ -51,7 +50,7 @@ double LUPDecomposition::determinant() const {
     Matrix<double>& A = *Ap;
 
     double det = A[0][0];
-    for (size_t i = 1; i < A.N; ++i) {
+    for (unsigned int i = 1; i < A.N; ++i) {
         det *= A[i][i];
     }
     return permutations % 2 == 0 ? det : -det;
