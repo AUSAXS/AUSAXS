@@ -4,6 +4,7 @@
 #include <mini/all.h>
 #include <fitter/HydrationFitter.h>
 #include <hist/ScatteringHistogram.h>
+#include <data/Protein.h>
 
 /**
  * @brief Fit an intensity curve to a dataset. 
@@ -16,7 +17,7 @@
  */
 class ExcludedVolumeFitter : public HydrationFitter {
     public:
-        using HydrationFitter::HydrationFitter; 
+        ExcludedVolumeFitter(std::string input, Protein& protein);
 
         /**
          * @brief Destructor.
@@ -28,10 +29,10 @@ class ExcludedVolumeFitter : public HydrationFitter {
          * 
          * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
          */
-        std::shared_ptr<Fit> fit() override;
+        [[nodiscard]] std::shared_ptr<Fit> fit() override;
 
         template<mini::type t>
-        std::shared_ptr<Fit> fit() {
+        [[nodiscard]] std::shared_ptr<Fit> fit() {
             fit_type = t;
             return fit();
         }
@@ -73,16 +74,14 @@ class ExcludedVolumeFitter : public HydrationFitter {
         /**
          * @brief Set the guess value for the hydration scaling factor @a c.
          */
-        void set_guess(mini::Parameter guess);
-
-        /**
-         * @brief Set the fitting algorithm to use.
-         */
-        void set_algorithm(mini::type t);
+        void set_guess(std::vector<mini::Parameter> guess);
 
     private: 
-    	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
-        mini::type fit_type = mini::type::BFGS;    // The algorithm to use.
+        std::vector<mini::Parameter> guess;      // The guess values for the parameters.
+        Protein& protein;                        // The protein being fitted.
+        mini::type fit_type = mini::type::BFGS;  // The algorithm to use.
+
+        void update_excluded_volume(double d);
 
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.

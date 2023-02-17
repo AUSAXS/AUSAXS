@@ -9,7 +9,6 @@
 #include <hydrate/CullingStrategy.h>
 #include <hydrate/GridMember.h>
 #include <utility/Settings.h>
-#include <utility/Exceptions.h>
 #include <utility/Axis.h>
 #include <hydrate/GridObj.h>
 
@@ -96,6 +95,11 @@ class Grid {
 		 * @brief Copy constructor. 
 		 */
 		Grid(const Grid& grid);
+
+		/**
+		 * @brief Move constructor. 
+		 */
+		Grid(Grid&& grid) noexcept;
 
 		/** 
 		 * @brief Add a vector of atoms to the grid. 
@@ -306,16 +310,16 @@ class Grid {
 		}
 
 		/**
-		 * @brief Get a copy of this Grid. 
+		 * @brief Set this Grid equal to another.
 		 * 		  Complexity: O(n) in the number of bins.
 		 */
-		Grid copy() const;
+		Grid& operator=(const Grid& rhs);
 
 		/**
 		 * @brief Set this Grid equal to another.
 		 * 		  Complexity: O(n) in the number of bins.
 		 */
-		Grid& operator=(const Grid& rhs);
+		Grid& operator=(Grid&& rhs) noexcept;
 
 		/**
 		 * @brief Check if this Grid is identical to another.

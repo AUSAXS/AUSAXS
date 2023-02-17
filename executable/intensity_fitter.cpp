@@ -7,6 +7,7 @@
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <fitter/HydrationFitter.h>
+#include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/Fit.h>
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
@@ -78,10 +79,11 @@ int main(int argc, char const *argv[]) {
     if (!use_existing_hydration || protein.hydration_atoms.empty()) {
         protein.generate_new_hydration();
     }
-    hist::ScatteringHistogram h = protein.get_histogram();
-    plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
+    // hist::ScatteringHistogram h = protein.get_histogram();
+    // plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
 
-    HydrationFitter fitter(mfile, h);
+    ExcludedVolumeFitter fitter(mfile, protein);
+    // HydrationFitter fitter(mfile, h);
     std::shared_ptr<Fit> result = fitter.fit();
     FitReporter::report(result);
     FitReporter::save(result, output + "report.txt");

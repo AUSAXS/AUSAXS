@@ -1,11 +1,5 @@
 #include <vector>
 #include <map>
-#include <utility>
-#include <algorithm>
-#include <list>
-#include <limits>
-#include <typeinfo>
-#include <cassert>
 
 #include <hydrate/Grid.h>
 #include <data/Atom.h>
@@ -21,6 +15,7 @@
 #include <utility/Settings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
+#include <data/Protein.h>
 
 using namespace grid;
 
@@ -86,6 +81,10 @@ Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, set
     this->rh = grid.rh;
     this->a_members = grid.a_members;
     this->w_members = grid.w_members;
+}
+
+Grid::Grid(Grid&& grid) noexcept {
+    *this = std::move(grid);
 }
 
 void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
@@ -578,7 +577,7 @@ void Grid::clear_waters() {
 
     std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.atom);});
     remove(waters);
-    assert(w_members.size() == 0);
+    if (w_members.size() != 0) [[unlikely]] {throw except::unexpected("Grid::clear_waters: Something went wrong.");}
 }
 
 Vector3<int> Grid::get_bins() const {
@@ -597,10 +596,6 @@ double Grid::get_volume() {
     return pow(width, 3)*volume;
 }
 
-Grid Grid::copy() const {
-    return Grid(*this);
-}
-
 Grid& Grid::operator=(const Grid& rhs) {
     grid = rhs.grid;
     a_members = rhs.a_members;
@@ -611,6 +606,18 @@ Grid& Grid::operator=(const Grid& rhs) {
     rh = rhs.rh;
     axes = rhs.axes;
     // culler & placer cannot be modified after program is run, so they'll automatically be equal always
+    return *this;
+}
+
+Grid& Grid::operator=(Grid&& rhs) noexcept {
+    grid = std::move(rhs.grid);
+    a_members = std::move(rhs.a_members);
+    w_members = std::move(rhs.w_members);
+    width = rhs.width;
+    volume = rhs.volume;
+    ra = rhs.ra;
+    rh = rhs.rh;
+    axes = std::move(rhs.axes);
     return *this;
 }
 
@@ -642,7 +649,8 @@ bool Grid::operator==(const Grid& rhs) const {
         return false;}
     if (axes != rhs.axes) {
         std::cout << "axes: " << axes << " != " << rhs.axes << std::endl;
-        return false;}
+        return false;
+    }
     return true;
 
     // if (volume != rhs.volume) {return false;}
@@ -657,7 +665,6 @@ bool Grid::operator==(const Grid& rhs) const {
     // return true;
 }
 
-#include <data/Protein.h>
 void Grid::save(std::string path) const {
     std::vector<Atom> atoms;
     std::vector<Water> waters;

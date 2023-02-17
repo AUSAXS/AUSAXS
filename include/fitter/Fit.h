@@ -51,7 +51,7 @@ class Fit : public mini::Result {
         /**
          * @brief Get a string representation of this object. 
          */
-        virtual std::string to_string() const noexcept;
+        [[nodiscard]] virtual std::string to_string() const noexcept;
 
         mini::Landscape evaluated_points;
         Plots figures;
@@ -62,7 +62,7 @@ class Fit : public mini::Result {
 struct EMFit : public Fit {
     using Fit::Fit;
 
-    std::string to_string() const noexcept override;
+    [[nodiscard]] std::string to_string() const noexcept override;
 
     double level;
 };

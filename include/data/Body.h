@@ -170,6 +170,11 @@ class Body {
 		Body& operator=(const Body& rhs);
 
 		/**
+		 * @brief Assign another body to this object. 
+		 */
+		Body& operator=(Body&& rhs);
+
+		/**
 		 * @brief Check if this object is equal to another. 
 		 */
 		bool operator==(const Body& rhs) const;

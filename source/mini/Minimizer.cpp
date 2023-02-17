@@ -115,3 +115,7 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
 
     return l;
 }
+
+void Minimizer::set_max_evals(unsigned int max_evals) {
+    this->max_evals = max_evals;
+}

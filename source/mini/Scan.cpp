@@ -6,20 +6,22 @@
 
 using namespace mini;
 
-Scan::Scan(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func), bins(evals) {}
+Scan::Scan(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
+}
 
-Scan::Scan(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func), bins(evals) {}
+Scan::Scan(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
+}
 
-Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
+Scan::Scan(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
     add_parameter(param);
 }
 
-Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func), bins(evals) {
+Scan::Scan(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
     add_parameter(param);
-}
-
-void Scan::set_evals(unsigned int evals) noexcept {
-    bins = evals;
 }
 
 mini::Landscape Scan::landscape(unsigned int evals) {
@@ -53,7 +55,7 @@ void Scan::add_parameter(const Parameter& param) {
 }
 
 Result Scan::minimize_override() {
-    SimpleDataset data = landscape(bins).as_dataset();
+    SimpleDataset data = landscape(max_evals).as_dataset();
     auto min = data.find_minimum();
 
     // find local minimum

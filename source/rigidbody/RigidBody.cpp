@@ -46,9 +46,13 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 #include <sstream>
 void RigidBody::optimize(std::string measurement_path) {
     protein.generate_new_hydration();
-    LinearFitter fitter(measurement_path, protein.get_histogram());
+    HydrationFitter fitter(measurement_path, protein.get_histogram());
     double best_chi2 = fitter.fit()->fval;
-    std::cout << "Initial chi2: " << best_chi2 << std::endl;
+
+    if (setting::general::verbose) {
+        utility::print_info("\nStarting rigid body optimization.");
+        std::cout << "\tInitial chi2: " << best_chi2 << std::endl;
+    }
 
     Parameters params(protein);
     std::shared_ptr<Grid> grid = protein.get_grid();
@@ -66,6 +70,8 @@ void RigidBody::optimize(std::string measurement_path) {
     };
     std::string print = gen_print(protein);
 
+    std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
+    std::vector<Water> best_waters = protein.waters();
     for (int i = 0; i < 100; i++) {
         std::stringstream iteration_out;
         iteration_out << "\nIteration " << i << std::endl;
@@ -74,12 +80,12 @@ void RigidBody::optimize(std::string measurement_path) {
         Body& body = protein.bodies.at(body_selector->next());
         Parameter param = parameter_generator->next();
 
-        Body old_body(body);        // save the old body
-        grid->remove(&body);        // remove the body from the grid
+        Body old_body(body);                                            // save the old body
+        grid->remove(&body);                                            // remove the body from the grid
         Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        body.translate(param.dx);   // translate the body
-        body.rotate(R);             // rotate the body
-        grid->add(&body);           // add the body back to the grid
+        body.translate(param.dx);                                       // translate the body
+        body.rotate(R);                                                 // rotate the body
+        grid->add(&body);                                               // add the body back to the grid
         protein.generate_new_hydration(); 
 
         // update the body location in the fitter
@@ -91,13 +97,12 @@ void RigidBody::optimize(std::string measurement_path) {
 
         // if the old configuration was better
         if (new_chi2 >= best_chi2) {
-            grid->remove(&body);        // remove the body from the grid
-            body = std::move(old_body); // restore the old body
-            grid->add(&body);           // add the old body back to the grid
-            // protein.set_grid(old_grid);
-            protein.generate_new_hydration();
-            fitter.set_scattering_hist(protein.get_histogram());
+            body = std::move(old_body);     // restore the old body
+            *grid = *best_grid;             // restore the old grid
+            protein.waters() = best_waters; // restore the old waters
 
+            // DEBUG //
+            fitter.set_scattering_hist(protein.get_histogram());
             double recalc_chi2 = fitter.fit()->fval;
             iteration_out << "\trerolled changes. chi2 is now: " << recalc_chi2 << std::endl;
 
@@ -116,10 +121,11 @@ void RigidBody::optimize(std::string measurement_path) {
 
         } else {
             // accept the changes
+            best_grid = std::make_shared<Grid>(*grid);
+            best_waters = protein.waters();
             best_chi2 = new_chi2;
             params.update(body.uid, param);
             print = gen_print(protein);
-//            protein.save("temp/rigidbody/protein_" + std::to_string(i) + ".pdb");
             std::cout << "\nIteration " << i << std::endl;
             utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
         }

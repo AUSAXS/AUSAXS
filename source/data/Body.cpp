@@ -93,6 +93,7 @@ void Body::rotate(const Vector3<double>& axis, double angle) {
 
 void Body::update_effective_charge(double charge) {
     changed_external_state();
+    changed_internal_state();
     std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;
 }
@@ -114,6 +115,13 @@ double Body::absolute_mass() const {
     std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
     std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const Water& a) {M += a.get_mass();});
     return M;
+}
+
+Body& Body::operator=(Body&& rhs) {
+    file = std::move(rhs.file); 
+    uid = rhs.uid;
+    changed_internal_state();
+    return *this;
 }
 
 Body& Body::operator=(const Body& rhs) {

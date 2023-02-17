@@ -27,6 +27,11 @@ Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std:
     bind_body_signallers();
 }
 
+Protein::Protein(const Protein& protein) : hydration_atoms(protein.hydration_atoms), bodies(protein.bodies), updated_charge(protein.updated_charge), centered(protein.centered) {
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    bind_body_signallers();
+}
+
 Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
     phm = std::make_unique<PartialHistogramManagerMT>(this);
     bind_body_signallers();
@@ -98,7 +103,7 @@ double Protein::total_atomic_charge() const {
 }
 
 double Protein::total_effective_charge() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_atomic_charge();});
+    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_effective_charge();});
 }
 
 double Protein::get_relative_charge() {
@@ -224,6 +229,7 @@ void Protein::clear_grid() {
 void Protein::clear_hydration() {
     if (grid != nullptr) {grid->clear_waters();} // also clear the waters from the grid
     hydration_atoms.clear();
+    signal_modified_hydration_layer();
 }
 
 size_t Protein::body_size() const {
@@ -268,18 +274,19 @@ std::vector<double> Protein::calc_debye_scattering_intensity() {
     return I;
 }
 
-void Protein::update_effective_charge() { 
-    double displaced_vol = get_volume_grid();
-    // double displaced_vol = get_volume_acids();
-    double displaced_charge = constants::charge::density::water*displaced_vol;
-    // cout << "Volume: acid: " << get_volume_acids() << ", grid: " << displaced_vol << endl;
+void Protein::update_effective_charge(double scaling) {
+    static double previous_charge = 0;
+
+    double displaced_vol = scaling*get_volume_grid();
+    double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
+    previous_charge += displaced_charge;
 
     // number of atoms
     unsigned int N = size();
     double charge_per_atom = -displaced_charge/N;
     if (setting::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
-        std::cout << "Added " << charge_per_atom << " additional charge to each atom (N: " << N << ")." << std::endl;
+        std::cout << "Added " << charge_per_atom << " electrons to each atom (N: " << N << ")." << std::endl;
     }
 
     // subtract the charge from all protein atoms
@@ -295,6 +302,11 @@ void Protein::center() {
         translate(-get_cm());
         centered = true;
     }
+}
+
+void Protein::signal_modified_hydration_layer() const {
+    if (phm == nullptr) [[unlikely]] {throw except::unexpected("Protein::signal_modified_hydration_layer: Somehow the histogram manager has not been initialized.");}
+    phm->signal_modified_hydration_layer();
 }
 
 void Protein::bind_body_signallers() {

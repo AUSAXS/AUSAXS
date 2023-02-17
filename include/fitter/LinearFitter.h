@@ -89,21 +89,21 @@ class LinearFitter : public Fitter {
 		 * 
 		 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
 		 */
-		virtual std::shared_ptr<Fit> fit() override;
+		[[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
 
 		/**
 		 * @brief Make a plot of the fit. 
 		 * 
 		 * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
 		 */
-		virtual Fit::Plots plot() override;
+		[[nodiscard]] virtual Fit::Plots plot() override;
 
 		/**
 		 * @brief Make a residual plot of the fit.
 		 * 
 		 * @return A TGraphErrors with the residuals and their uncertainties. 
 		 */
-		virtual SimpleDataset plot_residuals() override;
+		[[nodiscard]] virtual SimpleDataset plot_residuals() override;
 
 		/**
 		 * @brief Change the scattering histogram used for the fit. 
@@ -123,17 +123,17 @@ class LinearFitter : public Fitter {
 		/**
 		 * @brief Get the number of degrees of freedom. 
 		 */
-		unsigned int degrees_of_freedom() const;
+		[[nodiscard]] unsigned int degrees_of_freedom() const;
 
 		/**
 		 * @brief Get the number of degrees of freedom. 
 		 */
-		unsigned int dof() const override;
+		[[nodiscard]] unsigned int dof() const override;
 
 		/**
 		 * @brief Get the result of the last fit() call. 
 		 */
-		virtual std::shared_ptr<Fit> get_fit() const override;
+		[[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const override;
 
 	protected: 
 		std::shared_ptr<Fit> fitted; // The previous fit result
@@ -144,7 +144,7 @@ class LinearFitter : public Fitter {
 		/**
 		 * @brief Calculate chi2 for a given choice of parameters @a params.
 		 */
-		virtual double chi2(std::vector<double> params);
+		[[nodiscard]] virtual double chi2(std::vector<double> params);
 
 		/**
 		 * @brief Prepare this class for fitting.
@@ -158,7 +158,7 @@ class LinearFitter : public Fitter {
 		 * 
 		 * @param ym the model y-values corresponding to xm
 		 */
-		std::vector<double> splice(const std::vector<double>& ym) const;
+		[[nodiscard]] std::vector<double> splice(const std::vector<double>& ym) const;
 
 		/**
 		 * @brief Initialize this class based on a model histogram. 

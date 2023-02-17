@@ -9,6 +9,7 @@
 #include <utility/Utility.h>
 #include <utility/Settings.h>
 #include <hist/Histogram.h>
+#include <fitter/ExcludedVolumeFitter.h>
 
 TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
     unsigned int repeats = 100;
@@ -37,4 +38,27 @@ TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
 
     plots::PlotHistogram plot(optimal_vals);
     plot.save("figures/test/fitter/consistency_check.pdf");
+}
+
+TEST_CASE("excluded_volume", "[fitter]") {
+    setting::protein::use_effective_charge = true;
+
+    SECTION("simple") {
+        std::string mfile = "test/files/2epe.dat";
+        Protein protein("test/files/2epe.pdb");
+
+        HydrationFitter fitter(mfile, protein.get_histogram());
+        auto fit1 = fitter.fit();
+
+        protein.update_effective_charge(1.2);
+        fitter.set_scattering_hist(protein.get_histogram());
+        auto fit2 = fitter.fit();
+        REQUIRE(fit1->fval != fit2->fval);
+
+        protein.update_effective_charge(1.0);
+        fitter.set_scattering_hist(protein.get_histogram());
+        fit2 = fitter.fit();
+        REQUIRE(fit1->fval == fit2->fval);
+    }
+
 }

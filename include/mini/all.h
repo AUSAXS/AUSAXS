@@ -64,19 +64,25 @@ namespace mini {
      * 
      * @param t The algorithm to use. 
      * @param func The function to minimize. 
+     * @param param The parameter list.
+     */
+    [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const std::vector<Parameter>& param) {
+        auto minimizer = create_minimizer(t, func);
+        std::for_each(param.begin(), param.end(), [&](const Parameter& p) { minimizer->add_parameter(p);});
+        return minimizer;
+    }
+
+    /**
+     * @brief Create a new minimizer. 
+     * 
+     * @param t The algorithm to use. 
+     * @param func The function to minimize. 
      * @param param The first parameter. 
      * @param evals The number of evaluations to perform. Not supported by all minimizers.
      */
     [[maybe_unused]] static std::shared_ptr<Minimizer> create_minimizer(type t, const std::function<double(std::vector<double>)>& func, const Parameter& param, unsigned int evals) {
-        switch (t) {
-            case type::MINIMUM_EXPLORER:
-                return std::make_shared<MinimumExplorer>(func, param, evals);
-            case type::SCAN:
-                return std::make_shared<Scan>(func, param, evals);
-            case type::LIMITED_SCAN:
-                return std::make_shared<LimitedScan>(func, param, evals);
-            default:
-                return create_minimizer(t, func, param);
-        }
+        auto minimizer = create_minimizer(t, func, param);
+        minimizer->set_max_evals(evals);
+        return minimizer;
     }
 }

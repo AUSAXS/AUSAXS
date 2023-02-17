@@ -18,11 +18,7 @@ namespace mini {
 
             ~dlibMinimizer() override;
 
-            void max_evals(unsigned int max_evals);
-
         private: 
-            unsigned int _max_evals = 100;
-
             /**
              * @brief Perform the minimization.
              */

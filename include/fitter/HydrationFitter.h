@@ -71,10 +71,10 @@ class HydrationFitter : public LinearFitter {
          * 
          * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
          */
-        std::shared_ptr<Fit> fit() override;
+        [[nodiscard]] std::shared_ptr<Fit> fit() override;
 
         template<mini::type t>
-        std::shared_ptr<Fit> fit() {
+        [[nodiscard]] std::shared_ptr<Fit> fit() {
             fit_type = t;
             return fit();
         }
@@ -123,12 +123,13 @@ class HydrationFitter : public LinearFitter {
          */
         void set_algorithm(mini::type t);
 
-    private: 
-    	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
-        mini::type fit_type = mini::type::BFGS;    // The algorithm to use.
-
+    protected:
         /**
          * @brief Calculate chi2 for a given choice of parameters @a params.
          */
         [[nodiscard]] double chi2(std::vector<double> params) override;
+
+    private: 
+    	mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
+        mini::type fit_type = mini::type::BFGS;    // The algorithm to use.
 };

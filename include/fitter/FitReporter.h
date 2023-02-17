@@ -24,5 +24,5 @@ class FitReporter {
         static void save(const std::vector<T>& fits, std::string path, std::vector<std::string> titles = {});
 
   private:
-        static std::function<std::string(std::string)> get_title_reporter(std::vector<std::string> titles); 
+        [[nodiscard]] static std::function<std::string(std::string)> get_title_reporter(std::vector<std::string> titles); 
 };

@@ -26,10 +26,8 @@ class Protein {
 
 		/**
 		 * @brief Copy constructor.
-		 * 
-		 * Proteins should never be copied. 
 		 */
-		Protein(const Protein&) = delete;
+		Protein(const Protein&);
 
 		/**
 		 * @brief Move constructor.
@@ -183,9 +181,9 @@ class Protein {
 		std::shared_ptr<Grid> get_grid();
 
 		/**
-		 * @brief Set the grid representation. 
+		 * @brief Set the grid representation.
 		 */
-		void set_grid(const Grid& grid);
+		void set_grid(const Grid&);
 
 		/**
 		 * @brief Clear the current grid.
@@ -279,6 +277,18 @@ class Protein {
 		std::shared_ptr<hist::HistogramManager> get_histogram_manager() const;
 
 		/**
+		 * @brief Signal that the hydration layer has been modified.
+		 */
+		void signal_modified_hydration_layer() const;
+
+		/**
+		 * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
+		 * 
+		 * @param scaling The excluded volume scaling factor. Default: 1. 
+		 */
+		void update_effective_charge(double scaling = 1);
+
+		/**
 		 * @brief Create a new histogram manager of type \a T.
 		 * 
 		 * @tparam T: Manager to create. Only the PartialHistogramManagerMT is intended for production. Options:
@@ -304,9 +314,4 @@ class Protein {
 		 * @param v the translation vector.
 		 */
 		void translate(const Vector3<double>& v);
-
-		/**
-		 * @brief Subtract the charge of the displaced water molecules from the effective charge of the protein atoms. 
-		 */
-		void update_effective_charge();
 };

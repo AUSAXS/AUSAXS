@@ -71,6 +71,7 @@ TEST_CASE("Constraints", "[rigidbody]") {
 }
 
 TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
+    setting::general::verbose = false;
     Protein protein_2epe("data/lysozyme/2epe.pdb");
     Protein protein_LAR12("data/LAR1-2/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
@@ -104,6 +105,7 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
 }
 
 TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
+    setting::general::verbose = false;
     Protein protein("data/lysozyme/2epe.pdb");
     LinearFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
 
@@ -118,6 +120,7 @@ TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
 }
 
 TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
+    setting::general::verbose = false;
     vector<int> splits = {9, 99};
     Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
     RigidBody rbody(protein);
@@ -129,9 +132,9 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
 
 TEST_CASE("body_selectors", "[rigidbody]") {
     vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-    vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+    vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+    vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     vector<vector<Atom>> atoms = {b1, b2, b3, b4};
     Protein protein(atoms, {});
 
@@ -154,7 +157,57 @@ TEST_CASE("body_selectors", "[rigidbody]") {
     REQUIRE(count[3] > 10);
 }
 
-TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
+TEST_CASE("consistent_fits_add_remove_bodies_grid", "[rigidbody]") {
+    setting::general::verbose = false;
+    Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+    REQUIRE(protein.bodies.size() == 3);
+    protein.generate_new_hydration();
+    std::vector<Water> oldwaters = protein.waters();
+
+    // fit the protein
+    HydrationFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+    auto chi2 = fitter.fit()->fval;
+
+    // remove the first body
+    Body& body = protein.bodies.at(0);
+    Body old_body(body);
+
+    Grid original_grid = *protein.get_grid();
+    std::shared_ptr<Grid> grid = protein.get_grid();
+    std::shared_ptr<Grid> old_grid = std::make_shared<Grid>(original_grid);
+    std::vector<Water> old_waters = protein.waters();
+
+    grid->remove(&body);
+    body.translate(Vector3<double>(0, 0, 10));              // translate the body
+    body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
+    grid->add(&body);
+    protein.generate_new_hydration();                       // generate a new hydration shell
+    fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
+    auto _chi2 = fitter.fit()->fval;                        // fit the protein
+    CHECK_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));   // chi2 should be different
+
+    // reset the state of the protein
+    protein.set_grid(*old_grid);                            // reset the grid
+    body = std::move(old_body);                             // reset the body
+    protein.waters() = old_waters;                          // reset the waters
+
+    protein.generate_new_hydration();                       // generate a new hydration shell
+    fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
+    _chi2 = fitter.fit()->fval;                             // fit the protein
+    CHECK_THAT(chi2, Catch::Matchers::WithinRel(_chi2));    // chi2 should be the same
+
+    // check that the grid is the same
+    REQUIRE(*protein.get_grid() == original_grid);
+
+    // check that the waters are the same
+    auto newwaters = protein.waters();
+    for (unsigned int i = 0; i < newwaters.size(); i++) {
+        CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
+    }
+}
+
+TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody],[broken]") {
+    setting::general::verbose = false;
     Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
     REQUIRE(protein.bodies.size() == 3);
     protein.generate_new_hydration();
@@ -172,8 +225,8 @@ TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody]") {
 
     grid->remove(&body);
     grid->force_expand_volume(); 
-    // body.translate(Vector3<double>(0, 0, 10));              // translate the body
-    // body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
+    body.translate(Vector3<double>(0, 0, 10));              // translate the body
+    body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
     grid->add(&body);
     protein.generate_new_hydration();                       // generate a new hydration shell
     fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions

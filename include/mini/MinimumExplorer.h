@@ -35,8 +35,6 @@ namespace mini {
             mini::Landscape landscape(unsigned int evals = 100) override;
 
         private:
-            unsigned int evals;
-
 			/**
 			 * @brief Perform the minimization.
 			 */

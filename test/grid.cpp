@@ -549,8 +549,8 @@ TEST_CASE("volume_deflation", "[grid]") {
     for (int i = 0; i < bins.x(); i++) {
         for (int j = 0; j < bins.y(); j++) {
             for (int k = 0; k < bins.z(); k++) {
-                if (i == 10 && j == 13 && k == 10, false) {continue;} // center of the first atom
-                if (i == 13 && j == 10 && k == 10, false) {continue;} // center of the second atom
+                if (i == 10 && j == 13 && k == 10) {continue;} // center of the first atom
+                if (i == 13 && j == 10 && k == 10) {continue;} // center of the second atom
                 if (g.index(i, j, k) != GridObj::EMPTY) {
                     REQUIRE(false);
                 }
@@ -657,12 +657,25 @@ TEST_CASE("grid_copy", "[grid]") {
     grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
     grid1.hydrate();
 
-    // copy
-    Grid grid2 = grid1.copy();
+    Grid grid2 = grid1;
     REQUIRE(grid2 == grid1);
 
-    // assignment
     Grid grid3(axes, 1);
     grid3 = grid1;
     REQUIRE(grid3 == grid1);
+}
+
+TEST_CASE("grid_move", "[grid]") {
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Grid grid1(axes, 1);
+    grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
+    grid1.hydrate();
+
+    Grid gridcopy = grid1;
+    Grid grid2 = std::move(grid1);
+    REQUIRE(grid2 == gridcopy);
+
+    Grid grid3(axes, 1);
+    grid3 = std::move(grid2);
+    REQUIRE(grid3 == gridcopy);
 }

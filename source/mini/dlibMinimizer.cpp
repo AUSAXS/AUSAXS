@@ -72,7 +72,7 @@ Result dlibMinimizer<algo>::minimize_override() {
                 fwrapper, 
                 min, 
                 max,
-                dlib::max_function_calls(_max_evals)
+                dlib::max_function_calls(max_evals)
             );
             x = eval.x;
             fmin = eval.y;
@@ -110,11 +110,6 @@ Result dlibMinimizer<algo>::minimize_override() {
         res.add_parameter(param);
     }
     return res;
-}
-
-template<mini::type algo>
-void dlibMinimizer<algo>::max_evals(unsigned int max_evals) {
-    this->_max_evals = max_evals;
 }
 
 template class mini::dlibMinimizer<mini::type::DLIB_GLOBAL>;

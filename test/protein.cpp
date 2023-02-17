@@ -395,10 +395,10 @@ TEST_CASE("distance_histograms", "[protein]") {
 
 TEST_CASE("get_cm", "[protein]") {
     // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
+    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0")};
+    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
     vector<vector<Atom>> ap = {b1, b2, b3, b4};
     Protein protein(ap, {});
 
@@ -408,12 +408,33 @@ TEST_CASE("get_cm", "[protein]") {
 
 TEST_CASE("get_volume", "[protein]") {
     // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
+    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0")};
+    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double> (1, 1,  1), 1, 0, "C", "0")};
     vector<vector<Atom>> ap = {b1, b2, b3, b4};
     Protein protein(ap, {});
 
     REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
+}
+
+TEST_CASE("update_effective_charge", "[protein]") {
+    // make the protein
+    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
+    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0")};
+    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
+    vector<vector<Atom>> ap = {b1, b2, b3, b4};
+    Protein protein(ap, {});
+
+    double charge = protein.total_atomic_charge();
+    double effective_charge = protein.total_effective_charge();
+    REQUIRE(charge == effective_charge);
+
+    protein.update_effective_charge(0.5);
+    effective_charge = protein.total_effective_charge();
+    REQUIRE(charge != effective_charge);
+
+    protein.update_effective_charge(0);
+    REQUIRE(charge == protein.total_effective_charge());
 }

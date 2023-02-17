@@ -61,7 +61,7 @@ namespace mini {
             /**
              * @brief Perform the minimization.
              */
-            Result minimize();
+            [[nodiscard]] Result minimize();
 
             /**
              * @brief Add a parameter.
@@ -77,22 +77,28 @@ namespace mini {
              * @brief Generate a landscape of the function values. 
              *        Only valid for 1D or 2D problems.
              */
-            virtual mini::Landscape landscape(unsigned int bins = 100);
+            [[nodiscard]] virtual mini::Landscape landscape(unsigned int bins = 100);
 
             /**
              * @brief Get the evaluated points. 
              */
-            mini::Landscape get_evaluated_points() const;
+            [[nodiscard]] mini::Landscape get_evaluated_points() const;
 
             /**
              * @brief Check if this minimizer has been initialized.
              */
-            bool empty() const noexcept;
+            [[nodiscard]] bool empty() const noexcept;
 
             /**
              * @brief Change whether the evaluations are recorded or not.
              */
             void record_evaluations(bool setting);
+
+            /**
+             * @brief Set the maximum number of evaluations.
+             *        Note that this is not supported by all minimizers, in which case it will be ignored.
+             */
+            virtual void set_max_evals(unsigned int evals);
 
             double tol = 1e-4;
         protected:
@@ -100,6 +106,7 @@ namespace mini {
             std::function<double(std::vector<double>)> function = [](std::vector<double>){throw except::unexpected("Minimizer::function: Function was not initialized."); return 0.0;};
             mini::Landscape evaluations;
             unsigned int fevals = 0;
+            unsigned int max_evals = 100;
 
             /**
              * @brief Clear the evaluated points.
@@ -109,12 +116,12 @@ namespace mini {
             /**
              * @brief Check if the function is set.
              */
-            bool is_function_set() const noexcept;
+            [[nodiscard]] bool is_function_set() const noexcept;
 
             /**
              * @brief Check if at least one parameter has been provided.
              */
-            bool is_parameter_set() const noexcept;
+            [[nodiscard]] bool is_parameter_set() const noexcept;
 
         private:
             std::function<double(std::vector<double>)> wrapper;
@@ -124,6 +131,6 @@ namespace mini {
              * @brief The minimization function to be defined by subclasses. 
              *        Should be kept private, such that it can only be accessed through the common minimize() function defined here.
              */
-            virtual Result minimize_override() = 0;
+            [[nodiscard]] virtual Result minimize_override() = 0;
     };
 }

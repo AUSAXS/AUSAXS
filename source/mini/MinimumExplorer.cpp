@@ -4,15 +4,21 @@
 
 using namespace mini;
 
-MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func), evals(evals) {}
+MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
+}
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func), evals(evals) {}
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
+}
 
-MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
+MinimumExplorer::MinimumExplorer(double(&func)(std::vector<double>), const Parameter& param, unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
     add_parameter(param);
 }
 
-MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func), evals(evals) {
+MinimumExplorer::MinimumExplorer(std::function<double(std::vector<double>)> func, const Parameter& param, unsigned int evals) : Minimizer(func) {
+    set_max_evals(evals);
     add_parameter(param);
 }
 
@@ -230,7 +236,7 @@ mini::Landscape MinimumExplorer::landscape(unsigned int evals) {
 }
 
 Result MinimumExplorer::minimize_override() {
-    auto l = landscape(evals).as_dataset();
+    auto l = landscape(max_evals).as_dataset();
     auto min = l.find_minimum();
     FittedParameter p(parameters[0], min.x, l.span_x() - min.x);
     return Result(p, l.mean(), fevals);

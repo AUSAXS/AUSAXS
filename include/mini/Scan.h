@@ -30,16 +30,9 @@ namespace mini {
              */
             mini::Landscape landscape(unsigned int evals) override;
 
-			/**
-			 * @brief Set the number of evaluations. 
-			 */
-			void set_evals(unsigned int evals) noexcept;
-
 			void add_parameter(const Parameter& param);
 
 		private:
-			unsigned int bins = 100;
-
 			/**
 			 * @brief Perform the minimization.
 			 */

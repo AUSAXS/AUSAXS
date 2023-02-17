@@ -7,12 +7,21 @@
 #include <mini/all.h>
 #include <plots/all.h>
 
+ExcludedVolumeFitter::ExcludedVolumeFitter(std::string input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein) {
+    HydrationFitter hfit(input, protein.get_histogram());
+    auto hres = hfit.fit();
+    double c = hres->get_parameter("c").value;
+    this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.8, 1.2}}};
+}
+
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
+    fit_type = mini::type::DLIB_GLOBAL;
+    setting::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
+    auto mini = mini::create_minimizer(fit_type, f, guess);
     auto res = mini->minimize();
 
-    // apply c & d
+    update_excluded_volume(res.get_parameter("d").value);
     h.apply_water_scaling_factor(res.get_parameter("c").value);
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     std::vector<double> Im = splice(ym);
@@ -30,65 +39,25 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     fitted->add_plots(*this);                                     // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
 
+    setting::general::verbose = true;
     return fitted;
 }
 
 Fit::Plots ExcludedVolumeFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::plot: Cannot plot before a fit has been made!");}
-
-    double a = fitted->get_parameter("a").value;
-    double b = fitted->get_parameter("b").value;
-    double c = fitted->get_parameter("c").value;
-
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    std::vector<double> Im = splice(ym);
-
-    // calculate the scaled I model values
-    std::vector<double> I_scaled(data.size()); // spliced data
-    std::vector<double> ym_scaled(ym.size()); // original scaled data
-    std::transform(Im.begin(), Im.end(), I_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
-    std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
-
-    // prepare the TGraphs
-    Fit::Plots graphs;
-    graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h.q, ym_scaled);
-    graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
-
-    auto lim = graphs.data.get_xlimits();
-    lim.expand(0.05);
-    graphs.intensity.limit_x(lim);
-    return graphs;
+    update_excluded_volume(fitted->get_parameter("d").value);
+    return HydrationFitter::plot();
 }
 
 SimpleDataset ExcludedVolumeFitter::plot_residuals() {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::plot_residuals: Cannot plot before a fit has been made!");}
- 
-    double a = fitted->get_parameter("a").value;
-    double b = fitted->get_parameter("b").value;
-    double c = fitted->get_parameter("c").value;
-
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    std::vector<double> Im = splice(ym);
-
-    // calculate the residuals
-    std::vector<double> residuals(data.size());
-    for (size_t i = 0; i < data.size(); ++i) {
-        residuals[i] = ((data.y(i) - (a*Im[i]+b))/data.yerr(i));
-    }
-
-    // prepare the TGraph
-    std::vector<double> xerr(data.size(), 0);
-    return Dataset2D(data.x(), residuals, xerr, data.yerr());
+    update_excluded_volume(fitted->get_parameter("d").value);
+    return HydrationFitter::plot_residuals();
 }
 
 double ExcludedVolumeFitter::chi2(std::vector<double> params) {
-    double c = params[0];
-
-    // apply c
-    h.apply_water_scaling_factor(c);
+    update_excluded_volume(params[1]);
+    h.apply_water_scaling_factor(params[0]);
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     std::vector<double> Im = splice(ym);
 
@@ -106,59 +75,37 @@ double ExcludedVolumeFitter::chi2(std::vector<double> params) {
         chi += v*v;
     }
 
+    std::cout << "c = " << params[0] << ", d = " << params[1] << ", chi2 = " << chi << std::endl;
     return chi;
 }
 
 double ExcludedVolumeFitter::get_intercept() {
-    if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
- 
-    double a = fitted->get_parameter("a").value;
-    double b = fitted->get_parameter("b").value;
-    double c = fitted->get_parameter("c").value;
+    if (fitted == nullptr) {throw except::bad_order("HydrationFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
+    update_excluded_volume(fitted->get_parameter("d").value);
+    return HydrationFitter::get_intercept();
+}
 
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    CubicSpline s(h.q, ym);
-    return a*s.spline(0) + b;
+void ExcludedVolumeFitter::update_excluded_volume(double d) {
+    protein.update_effective_charge(d);
+    h = protein.get_histogram();
 }
 
 SimpleDataset ExcludedVolumeFitter::get_model_dataset() {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
- 
-    double a = fitted->get_parameter("a").value;
-    double b = fitted->get_parameter("b").value;
-    double c = fitted->get_parameter("c").value;
-
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    std::vector<double> Im = splice(ym);
-    std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
-
-    return SimpleDataset(data.x(), Im, "q", "I"); 
+    update_excluded_volume(fitted->get_parameter("d").value);
+    return HydrationFitter::get_model_dataset();
 }
 
 SimpleDataset ExcludedVolumeFitter::get_model_dataset(const std::vector<double>& q) {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
- 
-    double a = fitted->get_parameter("a").value;
-    double b = fitted->get_parameter("b").value;
-    double c = fitted->get_parameter("c").value;
-
-    h.apply_water_scaling_factor(c);
-    SimpleDataset model = h.calc_debye_scattering_intensity(q);
-    auto y = model.y();
-    std::transform(y.begin(), y.end(), y.begin(), [&a, &b] (double I) {return I*a+b;});
-    return model;
+    update_excluded_volume(fitted->get_parameter("d").value);
+    return HydrationFitter::get_model_dataset(q);
 }
 
 SimpleDataset ExcludedVolumeFitter::get_dataset() const {
     return data;
 }
 
-void ExcludedVolumeFitter::set_guess(mini::Parameter guess) {
+void ExcludedVolumeFitter::set_guess(std::vector<mini::Parameter> guess) {
     this->guess = guess;
-}
-
-void ExcludedVolumeFitter::set_algorithm(mini::type t) {
-    this->fit_type = t;
 }

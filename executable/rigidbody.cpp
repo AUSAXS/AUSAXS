@@ -2,13 +2,9 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 
 #include <data/Body.h>
 #include <data/Protein.h>
-#include <fitter/IntensityFitter.h>
-#include <plots/PlotIntensityFit.h>
-#include <plots/PlotIntensityFitResiduals.h>
 #include <rigidbody/RigidBody.h>
 #include <data/BodySplitter.h>
 
