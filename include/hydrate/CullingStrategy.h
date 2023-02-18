@@ -37,7 +37,7 @@ namespace grid {
             void set_target_count(size_t target_count) {this->target_count = target_count;}
 
         protected: 
-            size_t target_count = 0; // The desired number of molecules after the culling.
+            unsigned int target_count = 0; // The desired number of molecules after the culling.
             Grid* grid; // A reference to the grid used in Grid.
     };
 }

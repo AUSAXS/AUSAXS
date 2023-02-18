@@ -75,12 +75,7 @@ Grid::Grid(const std::vector<Body>& bodies, double width, double ra, double rh, 
 }
 
 Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {
-    this->grid = grid.grid;
-    this->volume = grid.volume;
-    this->ra = grid.ra;
-    this->rh = grid.rh;
-    this->a_members = grid.a_members;
-    this->w_members = grid.w_members;
+    *this = grid;
 }
 
 Grid::Grid(Grid&& grid) noexcept {
@@ -154,6 +149,9 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
 std::vector<Water> Grid::hydrate() {
     std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
     water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
+
+    std::cout << "Found " << placed_water.size() << " free locations." << std::endl;
+    std::cout << "Goal is to place " << setting::grid::percent_water*a_members.size() << " water molecules." << std::endl;
     return water_culler->cull(placed_water);
 }
 
@@ -469,7 +467,7 @@ void Grid::remove(const std::vector<Atom>& atoms) {
 
     // sanity check
     if (prev_size - cur_size != atoms.size()) [[unlikely]] {
-        throw except::invalid_operation("Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
+        throw except::unexpected("Grid::remove: Expected to remove " + std::to_string(atoms.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
     }
 
     // clean up the grid
@@ -502,7 +500,7 @@ void Grid::remove(const std::vector<Water>& waters) {
 
     // sanity check
     if (prev_size - cur_size != waters.size()) [[unlikely]] {
-        throw except::invalid_operation("Grid::remove: Something went wrong.");
+        throw except::unexpected("Grid::remove: Expected to remove " + std::to_string(waters.size()) + " elements, but only " + std::to_string(prev_size - cur_size) + " were actually removed.");
     }
 
     // clean up the grid

@@ -189,7 +189,7 @@ const std::vector<Water>& Protein::waters() const {return hydration_atoms;}
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
     waters() = std::vector<Water>();
-    phm->signal_modified_hydration_layer();
+    signal_modified_hydration_layer();
 
     // move protein to center of mass
     center();

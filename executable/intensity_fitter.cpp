@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
     std::string pdb, mfile, output, settings, placement_strategy = "Radial";
-    bool use_existing_hydration = false;
+    bool use_existing_hydration = false, fit_excluded_volume = false;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", output, "Path to save the generated figures at.");
@@ -34,6 +34,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--center,!--no-center", setting::protein::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the effective atomic charge will be used. Default: true.");
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used. Default: false.");
+    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
     //####################//
@@ -82,15 +83,16 @@ int main(int argc, char const *argv[]) {
     // hist::ScatteringHistogram h = protein.get_histogram();
     // plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
 
-    ExcludedVolumeFitter fitter(mfile, protein);
-    // HydrationFitter fitter(mfile, h);
-    std::shared_ptr<Fit> result = fitter.fit();
+    std::shared_ptr<HydrationFitter> fitter;
+    if (fit_excluded_volume) {fitter = std::make_shared<ExcludedVolumeFitter>(mfile, protein);}
+    else {fitter = std::make_shared<HydrationFitter>(mfile, protein.get_histogram());}
+    std::shared_ptr<Fit> result = fitter->fit();
     FitReporter::report(result);
     FitReporter::save(result, output + "report.txt");
 
     // save fit
-    auto fit = fitter.get_model_dataset();
-    auto data = fitter.get_dataset();
+    auto fit = fitter->get_model_dataset();
+    auto data = fitter->get_dataset();
     fit.save(output + "fit.fit");
     data.save(output + utility::stem(mfile) + ".dat");
 

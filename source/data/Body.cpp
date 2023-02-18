@@ -121,6 +121,7 @@ Body& Body::operator=(Body&& rhs) {
     file = std::move(rhs.file); 
     uid = rhs.uid;
     changed_internal_state();
+    changed_external_state();
     return *this;
 }
 
@@ -128,6 +129,7 @@ Body& Body::operator=(const Body& rhs) {
     file = rhs.file; 
     uid = rhs.uid;
     changed_internal_state();
+    changed_external_state();
     return *this;
 }
 

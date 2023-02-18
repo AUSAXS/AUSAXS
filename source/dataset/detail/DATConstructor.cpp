@@ -13,7 +13,7 @@
 
 std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, unsigned int expected_cols) {
     if (setting::general::verbose) {
-        utility::print_info("Loading dataset from \"" + path + "\"");
+        utility::print_info("\nReading dataset from \"" + path + "\"");
     }
 
     // check if file was succesfully opened

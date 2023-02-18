@@ -8,7 +8,7 @@
 
 std::shared_ptr<Dataset> factory::DatasetFactory::construct(std::string filename, unsigned int expected_cols) {
     std::unique_ptr<detail::DatasetConstructor> constructor;
-    auto ext = utility::extension(filename);
+    auto ext = utility::to_lowercase(utility::extension(filename));
     if (ext == ".dat" || ext == ".txt" || ext == ".rsr") {
         constructor = std::make_unique<detail::DATConstructor>();
     } else if (ext == ".xvg") {

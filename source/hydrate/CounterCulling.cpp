@@ -17,9 +17,9 @@ std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water
 
     std::vector<Water> final_water(placed_water.size()); // the final water molecules that will be used
     std::vector<Water> removed_water(placed_water.size()); // the water molecules which will be removed
-    size_t rm_index = 0; // current index in removed_water
-    size_t pw_index = 0; // current index in placed_water
-    size_t counter = 0; // counter
+    unsigned int rm_index = 0; // current index in removed_water
+    unsigned int pw_index = 0; // current index in placed_water
+    unsigned int counter = 0; // counter
     for (const auto& a : placed_water) {
         counter++;
         if (counter % factor != 0) {

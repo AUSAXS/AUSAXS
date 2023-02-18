@@ -90,10 +90,16 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
         placed_water[index++] = gm;
     };
 
+    std::cout << "Atom order: " << std::endl;
+    for (const auto& atom : grid->a_members) {
+        std::cout << atom.loc << std::endl;
+    }
+
     for (const auto& atom : grid->a_members) {
         int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
+        std::cout << "Placing water around atom at location " << x << " " << y << " " << z << std::endl;
 
-        for (size_t i = 0; i < rot_bins_rarh.size(); i++) {
+        for (unsigned int i = 0; i < rot_bins_rarh.size(); i++) {
             int xr = x + rot_bins_rarh[i].x(), yr = y + rot_bins_rarh[i].y(), zr = z + rot_bins_rarh[i].z(); // new coordinates
             
             // check bounds
@@ -104,12 +110,15 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
             if (zr < 0) zr = 0;
             if (zr >= (int) bins.z()) zr = bins.z()-1;
 
+            std::cout << "\tChecking location " << xr << " " << yr << " " << zr << std::endl;
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
             Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
             if (gref.index(xr, yr, zr) == GridObj::EMPTY && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
                 Vector3<double> exact_loc = atom.atom.coords + rot_locs_rarh[i];
                 add_loc(exact_loc);
-            };
+            } else {
+                std::cout << "\t\tInvalid location" << std::endl;
+            }
         }
     }
 
@@ -118,6 +127,7 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 }
 
 bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
+    std::cout << "\t\tChecking location " << loc << std::endl;
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -145,6 +155,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
 
         if (gref.index(xr, yr, zr) != GridObj::EMPTY) {
             if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
+            std::cout << "\t\t\tCollision at 1rh" << std::endl;
             return false;
         }
 
@@ -191,7 +202,9 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
         }
     }
     if (score <= setting::grid::placement::min_score*rot_bins_1rh.size()) {
+        std::cout << "\t\t\tScored too low" << std::endl;
         return false;
     }
+    std::cout << "\t\tAccepted" << std::endl;
     return true;
 }

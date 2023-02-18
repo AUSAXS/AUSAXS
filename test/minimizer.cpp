@@ -84,14 +84,14 @@ TEST_CASE("golden_minimizer", "[minimizer]") {
 TEST_CASE("scan_minimizer", "[minimizer]") {
     auto ScanTest1D = [] (const TestFunction& test) {
         mini::Scan mini(test.function, {"a", test.bounds[0]});
-        mini.set_evals(1000);
+        mini.set_max_evals(1000);
         auto res = mini.minimize();
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
     };
 
     auto ScanTest1DRough = [] (const TestFunction& test) {
         mini::Scan mini(test.function, {"a", test.bounds[0]});
-        mini.set_evals(10);
+        mini.set_max_evals(10);
         auto res = mini.minimize();
         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini.tol));
     };

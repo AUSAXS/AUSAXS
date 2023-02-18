@@ -57,26 +57,7 @@ SimpleDataset ExcludedVolumeFitter::plot_residuals() {
 
 double ExcludedVolumeFitter::chi2(std::vector<double> params) {
     update_excluded_volume(params[1]);
-    h.apply_water_scaling_factor(params[0]);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    std::vector<double> Im = splice(ym);
-
-    // we want to fit a*Im + b to Io
-    SimpleDataset fit_data(Im, data.y(), data.yerr());
-    if (I0 > 0) {fit_data.normalize(I0);}
-
-    SimpleLeastSquares fitter(fit_data);
-    auto[a, b] = fitter.fit_params_only();
-
-    // calculate chi2
-    double chi = 0;
-    for (size_t i = 0; i < data.size(); i++) {
-        double v = (data.y(i) - (a*Im[i]+b))/data.yerr(i);
-        chi += v*v;
-    }
-
-    std::cout << "c = " << params[0] << ", d = " << params[1] << ", chi2 = " << chi << std::endl;
-    return chi;
+    return HydrationFitter::chi2(params);
 }
 
 double ExcludedVolumeFitter::get_intercept() {
