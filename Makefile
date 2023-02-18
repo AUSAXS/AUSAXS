@@ -10,6 +10,7 @@ include := $(addprefix include/, $(shell find include/ -printf "%P "))
 # all targets passes the options string to the executable
 options :=
 
+
 .SECONDARY:
 #################################################################################
 ###				PYTHON PLOTS				      ###
@@ -35,6 +36,7 @@ plot/%: scripts/plot.py
 # run the plotting script on all files in a folder, using larger text fonts than usual
 bigplot/%: scripts/plot.py
 	python3 $< $* --big
+
 
 #################################################################################
 ###				UTILITY					      ###
@@ -63,6 +65,7 @@ coverage: tests
 	@ mkdir -p temp/coverage/
 	gcovr --filter source/ --filter include/ --exclude-throw-branches --html-details temp/coverage/coverage.html
 	firefox temp/coverage/coverage.html
+
 
 ###################################################################################
 ###				EXECUTABLES					###
@@ -246,6 +249,7 @@ unit_cell/%: build/executable/unit_cell
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure}
 
+
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################
@@ -277,26 +281,28 @@ stuff/%: build/executable/stuff data/%.pdb
 #	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4
 	@$< data/$*.pdb $(shell find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
 
+
 ####################################################################################
 ###				TESTS						 ###
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 memtest/%: $(shell find source/ -print) test/%.cpp	
-	@ make -C build test -j${cmake_threads}
 	valgrind --track-origins=yes --log-file="valgrind.txt" build/test [$(*F)] ${tags}
 
-test/%: $(shell find source/ -print) test/%.cpp
-	@ make -C build test -j${cmake_threads}
-	build/test [$(*F)] ~[slow] ~[broken] ${tags}
-
 tests: $(shell find source/ -print) $(shell find test/ -print)
-	@ make -C build test -j${cmake_threads}
-	build/test $(exclude_tags) ~[memtest] ${tags}
+	@ make -C build tests -j${cmake_threads}
+	@ for test in $$(find build/test/*); do\
+		$${test} $(exclude_tags);\
+	done
+
+test/%: build/test/test_% test/%.cpp
+	$< [$(*F)] ~[slow] ~[broken] ${tags}
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
-build/source/tests/%: $(shell find source/ -print) build/Makefile
-	@ make -C build $* -j${cmake_threads}
+build/test/%: $(shell find source/ -print) build/Makefile
+	@ cmake --build build --target $* -j${cmake_threads}
+
 
 ####################################################################################
 ###				BUILD						 ###
@@ -326,7 +332,7 @@ build/executable/%: $(source) $(include) executable/%.cpp
 build/%: $(source) $(include)
 	@ cmake --build build/ --target $(*F) -j${cmake_threads}
 	
-build/Makefile: $(shell find -name "CMakeLists.txt" -printf "%P ")
+build/Makefile: CMakeLists.txt
 	@ mkdir -p build
 	@ cd build; cmake ../
 	

@@ -56,9 +56,10 @@ set(CMAKE_CXX_STANDARD 20)
 FetchContent_MakeAvailable(Catch2 CLI11 backward BSThreadPool)
 
 include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
-if (CMAKE_BUILD_TYPE MATCHES RELEASE)
-	set(BACKWARD_ENABLE "")
-endif()
+
+# we cannot debug without debug symbols
+set(ENABLE_DEBUG $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
+
 
 ############################################
 ##           Find and link CURL           ##
@@ -98,6 +99,7 @@ if(DOXYGEN_FOUND)
 	)
 endif(DOXYGEN_FOUND)
 
+
 ############################################
 ##           Build library                ##
 ############################################
@@ -108,6 +110,7 @@ target_include_directories (saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "$
 target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
 link_libraries(saxs)
 
+
 ############################################
 ##             Unit Testing               ##
 ############################################
@@ -116,11 +119,21 @@ file(GLOB_RECURSE
 	"test/*.h"
 	"test/*.cpp"
 )
-add_executable(test ${TEST_SRC} ${BACKWARD_ENABLE})
-target_link_libraries(test PRIVATE Catch2::Catch2WithMain)
-if (CMAKE_BUILD_TYPE MATCHES DEBUG)
-	add_backward(test)
-endif()
+
+add_custom_target(tests)
+foreach(test ${TEST_SRC})
+	cmake_path(GET test STEM testname)
+	set(name "test_${testname}")
+	add_executable("${name}" ${test} ${ENABLE_DEBUG})
+	target_link_libraries("${name}" Catch2::Catch2WithMain)
+	set_target_properties("${name}" PROPERTIES 
+		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test"
+	)
+	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
+		add_backward("${name}")
+	endif()	
+	add_dependencies(tests "${name}")
+endforeach()
 
 ############################################
 ##          Other executables             ##
