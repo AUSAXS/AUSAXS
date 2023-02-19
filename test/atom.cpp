@@ -7,65 +7,65 @@
 #include <utility/Settings.h>
 #include <utility/Constants.h>
 
-TEST_CASE("atom_constructors", "[atom]") {
-    setting::protein::use_effective_charge = false;
-    // "element", "resName", and "name" are used for some internal logic, and must have reasonable values. "" can also be used. 
-//*** ATOMS ***//
-    Atom a1 = Atom(15, "", "altLoc", "", "chainID", 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, "He", "2-");
-    Atom a2 = Atom({3, 0, 5}, 2, "He", "", 3);
-
-    CHECK(a1.serial == 15);
-    CHECK(a1.name == "");
-    CHECK(a1.altLoc == "altLoc");
-    CHECK(a1.resName == "");
-    CHECK(a1.chainID == "chainID");
-    CHECK(a1.resSeq == 3);
-    CHECK(a1.iCode == "iCode");
-    CHECK(a1.coords == Vector3({0, 1, 2}));
-    CHECK(a1.occupancy == 2.5);
-    CHECK(a1.tempFactor == 3.5);
-    CHECK(a1.element == "He");
-    CHECK(a1.charge == "2-");
-    CHECK(a1.get_type() == Record::RecordType::ATOM);
-    CHECK(a1.is_water() == false);
-
-    CHECK(a2.serial == 3);
-    CHECK(a2.name == "");
-    CHECK(a2.altLoc == "");
-    CHECK(a2.resName == "");
-    CHECK(a2.chainID == "");
-    CHECK(a2.resSeq == -1);
-    CHECK(a2.iCode == "");
-    CHECK(a2.coords == Vector3({3, 0, 5}));
-    CHECK(a2.occupancy == 2);
-    CHECK(a2.tempFactor == -1);
-    CHECK(a2.element == "He");
-    CHECK(a2.charge == "");
-    CHECK(a2.get_type() == Record::RecordType::ATOM);
-    CHECK(a2.is_water() == false);
-}
-
-TEST_CASE("water_constructors", "[atom]") {
+TEST_CASE("constructors") {
     setting::protein::use_effective_charge = false;
 
-    Water w1 = Water::create_new_water(Vector3<double>({1, 2, 3}));
-    CHECK(w1.serial == -1);
-    CHECK(w1.name == "O");
-    CHECK(w1.altLoc == "");
-    CHECK(w1.resName == "HOH");
-    CHECK(w1.chainID == "");
-    CHECK(w1.resSeq == -1);
-    CHECK(w1.iCode == "");
-    CHECK(w1.coords == Vector3({1, 2, 3}));
-    CHECK(w1.occupancy == 1);
-    CHECK(w1.tempFactor == 0);
-    CHECK(w1.element == "O");
-    CHECK(w1.charge == "");
-    CHECK(w1.get_type() == Record::RecordType::WATER);
-    CHECK(w1.is_water() == true);
+    SECTION("atom") {
+        // "element", "resName", and "name" are used for some internal logic, and must have reasonable values. "" can also be used. 
+        Atom a1 = Atom(15, "", "altLoc", "", "chainID", 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, "He", "2-");
+        Atom a2 = Atom({3, 0, 5}, 2, "He", "", 3);
+
+        CHECK(a1.serial == 15);
+        CHECK(a1.name == "");
+        CHECK(a1.altLoc == "altLoc");
+        CHECK(a1.resName == "");
+        CHECK(a1.chainID == "chainID");
+        CHECK(a1.resSeq == 3);
+        CHECK(a1.iCode == "iCode");
+        CHECK(a1.coords == Vector3({0, 1, 2}));
+        CHECK(a1.occupancy == 2.5);
+        CHECK(a1.tempFactor == 3.5);
+        CHECK(a1.element == "He");
+        CHECK(a1.charge == "2-");
+        CHECK(a1.get_type() == Record::RecordType::ATOM);
+        CHECK(a1.is_water() == false);
+
+        CHECK(a2.serial == 3);
+        CHECK(a2.name == "");
+        CHECK(a2.altLoc == "");
+        CHECK(a2.resName == "");
+        CHECK(a2.chainID == "");
+        CHECK(a2.resSeq == -1);
+        CHECK(a2.iCode == "");
+        CHECK(a2.coords == Vector3({3, 0, 5}));
+        CHECK(a2.occupancy == 2);
+        CHECK(a2.tempFactor == -1);
+        CHECK(a2.element == "He");
+        CHECK(a2.charge == "");
+        CHECK(a2.get_type() == Record::RecordType::ATOM);
+        CHECK(a2.is_water() == false);
+    }
+
+    SECTION("water") {
+        Water w1 = Water::create_new_water(Vector3<double>({1, 2, 3}));
+        CHECK(w1.serial == -1);
+        CHECK(w1.name == "O");
+        CHECK(w1.altLoc == "");
+        CHECK(w1.resName == "HOH");
+        CHECK(w1.chainID == "");
+        CHECK(w1.resSeq == -1);
+        CHECK(w1.iCode == "");
+        CHECK(w1.coords == Vector3({1, 2, 3}));
+        CHECK(w1.occupancy == 1);
+        CHECK(w1.tempFactor == 0);
+        CHECK(w1.element == "O");
+        CHECK(w1.charge == "");
+        CHECK(w1.get_type() == Record::RecordType::WATER);
+        CHECK(w1.is_water() == true);
+    }
 }
 
-TEST_CASE("atom_setters_getters", "[atom]") {
+TEST_CASE("setters_getters") {
     Atom a1;
     a1.set_x(2);
     a1.set_y(3);
@@ -102,7 +102,7 @@ TEST_CASE("atom_setters_getters", "[atom]") {
     CHECK(a2.get_coordinates() == Vector3({2, 3, 4}));
 }
 
-TEST_CASE("atom_use_effective_charge", "[atom]") {
+TEST_CASE("use_effective_charge") {
     setting::protein::use_effective_charge = true;
     Atom a(15, "O", "altLoc", "LYS", "chainID", 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, "O", "0+");
 
@@ -116,7 +116,7 @@ TEST_CASE("atom_use_effective_charge", "[atom]") {
     CHECK(a.get_mass() == constants::mass::atomic.get("O"));
 }
 
-TEST_CASE("atom_pdb", "[atom]") {
+TEST_CASE("pdb") {
     std::string s = "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C ";
     Atom a; 
     a.parse_pdb(s);
@@ -139,7 +139,7 @@ TEST_CASE("atom_pdb", "[atom]") {
     CHECK(a.equals_content(b));
 }
 
-TEST_CASE("atom_coords", "[atom]") {
+TEST_CASE("coords") {
     Atom a1({0, 0, 0}, 1, "O", "", 1);
     Atom a2({1, 0, 0}, 1, "O", "", 1);
     Atom a3({0, 1, 0}, 1, "O", "", 1);
@@ -158,7 +158,7 @@ TEST_CASE("atom_coords", "[atom]") {
     CHECK(a1.distance(a5) == 0);
 }
 
-TEST_CASE("operators", "[atom]") {
+TEST_CASE("operators") {
 //*** ATOMS ***//
     Atom a1 = Atom({3, 0, 5}, 2, "He", "", 3);
     Atom a2 = a1;

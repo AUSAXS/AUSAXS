@@ -14,12 +14,12 @@
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
-TEST_CASE("translate", "[body]") {
+TEST_CASE("translate") {
     setting::protein::use_effective_charge = false;
-    vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
-                        Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+    vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                      Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
+                      Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
+                      Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     Body body(a, {});
 
     SECTION("translate") {
@@ -66,7 +66,7 @@ TEST_CASE("translate", "[body]") {
     }
 }
 
-TEST_CASE("body_rotate", "[body]") {
+TEST_CASE("rotate") {
     SECTION("simple rotations") {
         vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), 
                         Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), 
@@ -116,7 +116,7 @@ TEST_CASE("body_rotate", "[body]") {
     }
 }
 
-TEST_CASE("body_get_cm", "[body]") {
+TEST_CASE("get_cm") {
     vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                         Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
                         Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
@@ -126,7 +126,7 @@ TEST_CASE("body_get_cm", "[body]") {
     REQUIRE(cm == Vector3<double>({0, 0, 0}));
 }
 
-TEST_CASE("body_get_volume", "[body]") {
+TEST_CASE("get_volume") {
     vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                         Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
                         Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
@@ -135,7 +135,7 @@ TEST_CASE("body_get_volume", "[body]") {
     REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
 }
 
-TEST_CASE("body_charge", "[body]") {
+TEST_CASE("charge") {
     vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
@@ -156,7 +156,7 @@ TEST_CASE("body_charge", "[body]") {
     }
 }
 
-TEST_CASE("body_mass", "[body]") {
+TEST_CASE("mass") {
     vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
                         Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
@@ -168,7 +168,7 @@ TEST_CASE("body_mass", "[body]") {
     utility::print_warning("Check definition of molar mass.");
 }
 
-TEST_CASE("body_equality", "[body]") {
+TEST_CASE("equality") {
     vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> a2 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     Body b1(a1);
@@ -179,7 +179,7 @@ TEST_CASE("body_equality", "[body]") {
     CHECK(b2 == b2c);
 }
 
-TEST_CASE("grid_add_remove_bodies", "[body]") {
+TEST_CASE("grid_add_remove_bodies") {
     SECTION("single") {
         Body b({Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)});
         Grid g(Axis3D(-2, 2, -2, 2, -2, 2, 5), 1);
@@ -321,7 +321,7 @@ TEST_CASE("generate_sequential_constraints", "[body],[files]") {
     REQUIRE(c2.atom2->serial == 814);
 }
 
-TEST_CASE("body_copy", "[body]") {
+TEST_CASE("copy") {
     vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
@@ -367,7 +367,7 @@ TEST_CASE("body_copy", "[body]") {
     }
 }
 
-TEST_CASE("body_io", "[body]") {
+TEST_CASE("io") {
     vector<Atom> a = {Atom(1, "C"  , "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                       Atom(3, "O"  , "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "O", "0"),   Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
                       Atom(5, "N"  , "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "N", "0"),   Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),

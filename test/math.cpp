@@ -40,7 +40,7 @@ static Matrix<double> GenRandMatrix(int n, int m) {
     return M;
 }
 
-TEST_CASE("Cramer", "[math]") {
+TEST_CASE("Cramer") {
     Matrix<double> A = {{2, 3}, {3, -4}};
     Vector<double> b = {12, 1};
     Cramer2DSolver solver1(A);
@@ -68,7 +68,7 @@ TEST_CASE("Cramer", "[math]") {
     }
 }
 
-TEST_CASE("QRDecomposition", "[math],[broken]") {
+TEST_CASE("QRDecomposition", "[broken]") {
     Matrix<double> A = {{1, 2}, {3, 4}};
     QRDecomposition qr(A);
     REQUIRE(A*qr.inverse() == matrix::identity(2));
@@ -157,7 +157,7 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
     plot.save("temp/cubicspline.png");
 }
 
-TEST_CASE("orthonormal_rotations", "[math]") {
+TEST_CASE("orthonormal_rotations") {
     for (int i = 0; i < 10; i++) {
         Vector3<double> angles = GenRandVector(3);
         Matrix R = matrix::rotation_matrix(angles.x(), angles.y(), angles.z());

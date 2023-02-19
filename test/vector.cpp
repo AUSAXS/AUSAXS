@@ -16,7 +16,7 @@ static Vector<double> GenRandVector(int m) {
     return v;
 }
 
-TEST_CASE("basic operations", "[vector]") {
+TEST_CASE("basic operations") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};
@@ -70,7 +70,7 @@ TEST_CASE("basic operations", "[vector]") {
     REQUIRE(z/8 == Vector<double>{4./8, 3./8, 2./8, 1./8});
 }
 
-TEST_CASE("assignment", "[math]") {
+TEST_CASE("assignment") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};
@@ -97,7 +97,7 @@ TEST_CASE("assignment", "[math]") {
     REQUIRE(y == Vector<double>{1, 2, 3, 4, 5});
 }
 
-TEST_CASE("distance", "[math]") {
+TEST_CASE("distance") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};
@@ -111,7 +111,7 @@ TEST_CASE("distance", "[math]") {
     REQUIRE(y.distance(z) == sqrt(4+0+4+16));
 }
 
-TEST_CASE("iterator", "[math]") {
+TEST_CASE("iterator") {
     Vector<double> x = {1, 2, 3, 4};
     Vector<double> y = {2, 3, 4, 5};
     Vector<double> z = {4, 3, 2, 1};

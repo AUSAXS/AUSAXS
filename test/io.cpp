@@ -68,7 +68,7 @@ bool compare_files(std::string p1, std::string p2) {
     return false;
 }
 
-TEST_CASE("body_file", "[io]") {
+TEST_CASE("body_file") {
     setting::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "REMARK ONE" << endl;
@@ -102,7 +102,7 @@ TEST_CASE("body_file", "[io]") {
     remove("temp/io/temp2.pdb");
 }
 
-TEST_CASE("pdb_input", "[io]") {
+TEST_CASE("pdb_input") {
     setting::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
@@ -138,7 +138,7 @@ TEST_CASE("pdb_input", "[io]") {
     remove("temp/io/temp2.pdb");
 }
 
-TEST_CASE("xml input", "[io],[broken]") {
+TEST_CASE("xml input", "[broken]") {
     std::ofstream xml_file("temp.xml");
     xml_file << "<PDBx:atom_site id=\"1\"> \
         \n    <PDBx:Cartn_x>2.1</PDBx:Cartn_x> \
@@ -175,7 +175,7 @@ TEST_CASE("xml input", "[io],[broken]") {
  * @brief Load and copy each file in the data/ folder, and then compare the two files line-by-line.
  *        This is probably one of the strongest tests we can make for i/o
  */
-TEST_CASE("real_data", "[io],[files],[broken]") {
+TEST_CASE("real_data", "[files],[broken]") {
     setting::general::verbose = false;
     setting::protein::use_effective_charge = false;
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
@@ -200,7 +200,7 @@ TEST_CASE("real_data", "[io],[files],[broken]") {
     }
 }
 
-TEST_CASE("protein_io", "[io],[files]") {
+TEST_CASE("protein_io") {
     Protein protein("test/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
     Protein protein2("temp/io/temp.pdb");
@@ -218,7 +218,7 @@ TEST_CASE("protein_io", "[io],[files]") {
     remove("temp/io/temp.pdb");
 }
 
-TEST_CASE("file_copied_correctly", "[io],[files]") {
+TEST_CASE("file_copied_correctly") {
     Body body("test/files/2epe.pdb");
     CHECK(!body.get_file().header.get().empty());
     CHECK(!body.get_file().footer.get().empty());
@@ -233,7 +233,7 @@ TEST_CASE("file_copied_correctly", "[io],[files]") {
     CHECK(!body3.get_file().footer.get().empty());
 }
 
-TEST_CASE("write_into_multiple_files", "[io]") {
+TEST_CASE("write_into_multiple_files") {
     std::vector<Atom> atoms(101000);
     for (unsigned int i = 0; i < atoms.size(); i++) {
         atoms[i] = Atom({1,2,3}, 1, "C", "LYS", i);
@@ -267,12 +267,12 @@ TEST_CASE("write_into_multiple_files", "[io]") {
 }
 
 #include <em/ImageStack.h>
-TEST_CASE("em_write_into_multiple_files", "[io],[broken]") {
+TEST_CASE("em_write_into_multiple_files", "[broken]") {
     em::ImageStack image("data/Gregers_cryo/Gregers_cryo.mrc");
     image.get_protein(0.1)->save("temp/io/temp.pdb");
 }
 
-TEST_CASE("can_parse_hydrogens", "[io]") {
+TEST_CASE("can_parse_hydrogens") {
     std::vector<std::string> val = {"ATOM      1  N   VAL     1      -3.299   8.066 -11.443  1.00  0.00           N",
                                     "ATOM      2  H   VAL     1      -3.411   8.677 -12.239  1.00  0.00           H",
                                     "ATOM      3  CA  VAL     1      -3.085   6.673 -11.780  1.00  0.00           C",

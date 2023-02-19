@@ -25,7 +25,7 @@ class GridDebug : public Grid {
         static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
 };
 
-TEST_CASE("grid_generation", "[grid]") {
+TEST_CASE("generation") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     Grid grid(axes, width);
@@ -42,7 +42,7 @@ TEST_CASE("grid_generation", "[grid]") {
     REQUIRE(g.index(9, 8, 14) == GridObj::EMPTY);
 }
 
-TEST_CASE("grid_member", "[grid]") {
+TEST_CASE("GridMember") {
     grid::GridMember<Atom> a(Atom({0.1, 0.2, 0.3}, 0, "C", "", 0), {1, 2, 3});
     auto b = a;
 
@@ -52,7 +52,7 @@ TEST_CASE("grid_member", "[grid]") {
     CHECK(c == a);
 }
 
-TEST_CASE("bounding_box", "[grid]") {
+TEST_CASE("bounding_box") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     GridDebug grid(axes, width);
@@ -85,7 +85,7 @@ TEST_CASE("bounding_box", "[grid]") {
     }
 }
 
-TEST_CASE("volume_expansion", "[grid]") {
+TEST_CASE("volume_expansion") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 3;
@@ -160,7 +160,7 @@ TEST_CASE("volume_expansion", "[grid]") {
     CHECK(g.index(13, 13, 13) == GridObj::EMPTY);
 }
 
-TEST_CASE("volume", "[grid]") {
+TEST_CASE("volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 1;
@@ -259,7 +259,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
     }
 }
 
-TEST_CASE("width", "[grid]") {
+TEST_CASE("width") {
     auto test_width_basics = [] (setting::grid::PlacementStrategy strategy) {
         setting::grid::placement_strategy = strategy;
         double width = 0.1;
@@ -338,7 +338,7 @@ TEST_CASE("width", "[grid]") {
     }
 }
 
-TEST_CASE("add_remove", "[grid]") {
+TEST_CASE("add_remove") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 3;
@@ -454,7 +454,7 @@ TEST_CASE("add_remove", "[grid]") {
     }
 }
 
-TEST_CASE("correct_volume", "[grid]") {
+TEST_CASE("correct_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 10; // we use a very large radius so the atoms will heavily overlap
@@ -493,7 +493,7 @@ TEST_CASE("correct_volume", "[grid]") {
     REQUIRE(grid.unexpanded_volume() == 0);
 }
 
-TEST_CASE("find_free_locs", "[grid]") {
+TEST_CASE("find_free_locs") {
     auto test_func = [] (setting::grid::PlacementStrategy ch) {
         Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
         int width = 1;
@@ -530,7 +530,7 @@ TEST_CASE("find_free_locs", "[grid]") {
 }
 
 // Test that expansion and deflation completely cancels each other. 
-TEST_CASE("volume_deflation", "[grid]") {
+TEST_CASE("volume_deflation") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     int width = 1;
     int radius = 3;
@@ -559,7 +559,7 @@ TEST_CASE("volume_deflation", "[grid]") {
     }
 }
 
-TEST_CASE("grid_cubic", "[grid]") {
+TEST_CASE("cubic_grid") {
     setting::grid::cubic = true;
 
     SECTION("largest x") {
@@ -601,7 +601,7 @@ TEST_CASE("grid_cubic", "[grid]") {
     setting::grid::cubic = false;
 }
 
-TEST_CASE("grid_space_saving_constructor", "[grid]") {
+TEST_CASE("space_saving_constructor") {
     vector<Atom> atoms = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2), Atom({1, 1, 1}, 0, "C", "", 2)};
 
     SECTION("bounding box") {
@@ -651,7 +651,7 @@ TEST_CASE("grid_space_saving_constructor", "[grid]") {
     }
 }
 
-TEST_CASE("grid_copy", "[grid]") {
+TEST_CASE("copy") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     Grid grid1(axes, 1);
     grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
@@ -665,7 +665,7 @@ TEST_CASE("grid_copy", "[grid]") {
     REQUIRE(grid3 == grid1);
 }
 
-TEST_CASE("grid_move", "[grid]") {
+TEST_CASE("move") {
     Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
     Grid grid1(axes, 1);
     grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));

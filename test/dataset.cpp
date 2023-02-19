@@ -10,7 +10,7 @@
 
 using std::vector;
 
-TEST_CASE("dataset_basics", "[dataset]") {
+TEST_CASE("basics") {
     std::vector<double> xd = {   1,   2,   3,   4,   5,   6,   7,   8,   9};
     std::vector<double> yd = {  -6,  -4,  -1,   2,   1,   3,   6,   7,   9};
     std::vector<double> xed = {0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5};
@@ -132,7 +132,7 @@ TEST_CASE("dataset_basics", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_pushback", "[dataset]") {
+TEST_CASE("pushback") {
     SECTION("Dataset2D") {
         Dataset2D data;
         data.push_back(1, 2, 3, 4);
@@ -158,7 +158,7 @@ TEST_CASE("dataset_pushback", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_ylimits", "[dataset]") {
+TEST_CASE("ylimits") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
     SimpleDataset data(x, y);
@@ -171,7 +171,7 @@ TEST_CASE("dataset_ylimits", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_xlimits", "[dataset]") {
+TEST_CASE("xlimits") {
     SECTION("simple") {
         std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
         std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
@@ -208,7 +208,7 @@ TEST_CASE("dataset_xlimits", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_plots", "[dataset]") {
+TEST_CASE("plots") {
     std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     std::vector<double> y = {-6, -4, -1, 2, 1, 3, 6, 7, 9};
     SimpleDataset data(x, y);
@@ -216,7 +216,7 @@ TEST_CASE("dataset_plots", "[dataset]") {
     plots::PlotDataset::quick_plot(data, "test.plot");
 }
 
-TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
+TEST_CASE("rebin", "[manual]") {
     setting::general::verbose = false;
     SimpleDataset data("data/SHOC2/SHOC2.dat");
     SimpleDataset data_unbinned = data;
@@ -234,7 +234,7 @@ TEST_CASE("dataset_rebin", "[dataset],[files],[manual]") {
     plots::PlotDataset::quick_plot(data, "temp/dataset/rebin/rebinned.png");
 }
 
-TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
+TEST_CASE("sim_err", "[manual]") {
     setting::general::verbose = false;
     Dataset2D data1("test/files/2epe.dat");
     Dataset2D data2 = data1;
@@ -249,7 +249,7 @@ TEST_CASE("dataset_sim_err", "[dataset],[files],[manual]") {
     plot.save("temp/dataset/compare_errors.png");
 }
 
-TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
+TEST_CASE("sim_noise", "[manual]") {
     SimpleDataset data = SimpleDataset::generate_random_data(10000);
     SimpleDataset data2(data);
     data.simulate_noise();
@@ -264,28 +264,10 @@ TEST_CASE("dataset_sim_noise", "[dataset],[manual]") {
     plots::PlotHistogram::quick_plot(hist, "temp/dataset/gaussian_noise.png");
 }
 
-TEST_CASE("dataset_io", "[dataset],[files]") {
+TEST_CASE("io") {
     setting::general::verbose = false;
-    SECTION("lysozyme") {
-        Dataset2D data("test/files/2epe.dat");
-        data.save("temp/dataset/2epe.dat");
-        Dataset2D data2("temp/dataset/2epe.dat");
-        REQUIRE(data.size() == data2.size());
-        REQUIRE(data.x().size() == data2.x().size());
-        REQUIRE(data.y().size() == data2.y().size());
-        REQUIRE(data.yerr().size() == data2.yerr().size());
 
-        for (unsigned int i = 0; i < data.size(); i++) {
-            CHECK_THAT(data.x(i), Catch::Matchers::WithinRel(data2.x(i), 1e-3));
-            CHECK_THAT(data.y(i), Catch::Matchers::WithinRel(data2.y(i), 1e-3));
-            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(data2.yerr(i), 1e-3));
-        }
-    }
-}
-
-TEST_CASE("dataset_read", "[dataset],[files]") {
-    setting::general::verbose = true;
-    SECTION("actual data") {
+    SECTION("read") {
         Dataset2D data("test/files/2epe.dat");
         auto x = data.x();
         auto y = data.y();
@@ -304,16 +286,47 @@ TEST_CASE("dataset_read", "[dataset],[files]") {
             CHECK_THAT(yerr[i], Catch::Matchers::WithinRel(validate_yerr[i]));
         }
     }
+
+    SECTION("write") {
+        Dataset2D data("test/files/2epe.dat");
+        data.save("temp/dataset/2epe.dat");
+        Dataset2D data2("temp/dataset/2epe.dat");
+        REQUIRE(data.size() == data2.size());
+        REQUIRE(data.x().size() == data2.x().size());
+        REQUIRE(data.y().size() == data2.y().size());
+        REQUIRE(data.yerr().size() == data2.yerr().size());
+
+        for (unsigned int i = 0; i < data.size(); i++) {
+            CHECK_THAT(data.x(i), Catch::Matchers::WithinRel(data2.x(i), 1e-3));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinRel(data2.y(i), 1e-3));
+            CHECK_THAT(data.yerr(i), Catch::Matchers::WithinRel(data2.yerr(i), 1e-3));
+        }
+    }
+
+    SECTION("accuracy") {
+        SimpleDataset data;
+        for (double x = 1.347e-01; x < 1.351e-01; x += 1e-6) {
+            data.push_back(x, sin(x));
+        }
+        data.save("temp/dataset_io_accuracy.dat");
+
+        SimpleDataset data2("temp/dataset_io_accuracy.dat");
+        REQUIRE(data.size() == data2.size());
+        for (unsigned int i = 0; i < data.size(); i++) {
+            CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(data2.y(i), 1e-6));
+        }
+    }
 }
 
-TEST_CASE("dataset_scale", "[dataset]") {
+TEST_CASE("scale") {
     vector<double> x = {1, 2, 3, 4, 5};
     vector<double> y = {10, 20, 30, 40, 50};
     vector<double> yerr = {1, 2, 3, 4, 5};
     vector<double> xerr = {0.1, 0.2, 0.3, 0.4, 0.5};
     Dataset2D data(x, y, xerr, yerr);
 
-    SECTION("scale") {
+    SECTION("scale y") {
         data.scale_y(2);
         CHECK(data.y().to_vector() == vector<double>({20, 40, 60, 80, 100}));
 
@@ -350,7 +363,7 @@ TEST_CASE("dataset_scale", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_reduce", "[dataset]") {
+TEST_CASE("reduce") {
     vector<double> x = {1, 2, 3, 4, 5};
     vector<double> y = {10, 20, 30, 40, 50};
     Dataset2D data(x, y, "i", "j");
@@ -370,7 +383,7 @@ TEST_CASE("dataset_reduce", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_ranges", "[dataset]") {
+TEST_CASE("ranges") {
     vector<double> x = {1, 2, 3, 4, 5};
     vector<double> y = {10, 20, 30, 40, 50};
     SimpleDataset data(x, y);
@@ -415,7 +428,7 @@ TEST_CASE("dataset_ranges", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_point2d", "[dataset]") {
+TEST_CASE("point2d") {
     Point2D p0(0, 4);
     Point2D p1(1, 2);
     Point2D p2(3, 4);
@@ -442,7 +455,7 @@ TEST_CASE("dataset_point2d", "[dataset]") {
     CHECK(data.find_minimum() == p1);
 }
 
-TEST_CASE("dataset_remove_duplicates", "[dataset]") {
+TEST_CASE("remove_duplicates") {
     vector<double> x = {1, 2, 3, 4, 5, 5, 5, 6, 7, 8, 9};
     vector<double> y = {10, 20, 30, 40, 50, 50, 50, 60, 70, 80, 90};
     Dataset2D data(x, y);
@@ -453,7 +466,7 @@ TEST_CASE("dataset_remove_duplicates", "[dataset]") {
     CHECK(data.y().to_vector() == vector<double>({10, 20, 30, 40, 50, 60, 70, 80, 90}));
 }
 
-TEST_CASE("dataset_sort", "[dataset]") {
+TEST_CASE("sort") {
     vector<double> x = {1, 0, 4, 3, 2};
     vector<double> y = {10, 0, 40, 30, 20};
     Dataset2D data(x, y);
@@ -463,7 +476,7 @@ TEST_CASE("dataset_sort", "[dataset]") {
     CHECK(data.y().to_vector() == vector<double>({0, 10, 20, 30, 40}));
 }
 
-TEST_CASE("dataset_reduceplot", "[dataset],[manual]") {
+TEST_CASE("reduceplot", "[manual]") {
     Protein protein("test/files/2epe.pdb");
     auto h = protein.get_histogram();
 
@@ -474,7 +487,7 @@ TEST_CASE("dataset_reduceplot", "[dataset],[manual]") {
     plot.save("reduce_test.png");
 }
 
-TEST_CASE("dataset_stats", "[dataset]") {
+TEST_CASE("stats") {
     Dataset2D data1(
         vector<double>{1, 1, 1, 1}, 
         vector<double>{10, 3, 5, 6}, 
@@ -519,7 +532,7 @@ TEST_CASE("dataset_stats", "[dataset]") {
 }
 
 #include <math/MovingAverager.h>
-TEST_CASE("dataset_moving_average", "[dataset]") {
+TEST_CASE("moving_average") {
     SECTION("simple") {
         SimpleDataset data(
             vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
@@ -630,7 +643,7 @@ TEST_CASE("dataset_moving_average", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_interpolate", "[dataset]") {
+TEST_CASE("interpolate") {
     SECTION("simple") {
         SimpleDataset data(
             vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
@@ -673,7 +686,7 @@ TEST_CASE("dataset_interpolate", "[dataset]") {
     }
 }
 
-TEST_CASE("dataset_moving_average_plot", "[dataset],[manual]") {
+TEST_CASE("moving_average_plot", "[manual]") {
     vector<double> x, y;
     for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
         x.push_back(xx);
@@ -688,19 +701,4 @@ TEST_CASE("dataset_moving_average_plot", "[dataset],[manual]") {
     data.add_plot_options(style::draw::line, {{"color", style::color::red}});
     plot.plot(data);
     plot.save("figures/test/dataset/moving_average.png");
-}
-
-TEST_CASE("dataset_io_accuracy", "[dataset]") {
-    SimpleDataset data;
-    for (double x = 1.347e-01; x < 1.351e-01; x += 1e-6) {
-        data.push_back(x, sin(x));
-    }
-    data.save("temp/dataset_io_accuracy.dat");
-
-    SimpleDataset data2("temp/dataset_io_accuracy.dat");
-    REQUIRE(data.size() == data2.size());
-    for (unsigned int i = 0; i < data.size(); i++) {
-        CHECK_THAT(data.x(i), Catch::Matchers::WithinAbs(data2.x(i), 1e-6));
-        CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(data2.y(i), 1e-6));
-    }
 }

@@ -17,7 +17,7 @@
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
-TEST_CASE("simulate_dataset", "[protein],[files]") {
+TEST_CASE("simulate_dataset") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
@@ -31,7 +31,7 @@ TEST_CASE("simulate_dataset", "[protein],[files]") {
     plot1.save("figures/test/protein/check_chi2_1.png");
 }
 
-TEST_CASE("compare_debye", "[protein]") {
+TEST_CASE("compare_debye") {
     vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                        Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                        Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
@@ -49,7 +49,7 @@ TEST_CASE("compare_debye", "[protein]") {
     }
 }
 
-TEST_CASE("compare_debye_real", "[protein],[files],[slow]") {
+TEST_CASE("compare_debye_real") {
     Protein protein("test/files/2epe.pdb");
     protein.clear_hydration();
 
@@ -80,7 +80,7 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
     return true;
 }
 
-TEST_CASE("histogram", "[protein]") {
+TEST_CASE("histogram") {
     setting::axes::distance_bin_width = 1;
 
     SECTION("multiple bodies, simple") {
@@ -233,7 +233,7 @@ TEST_CASE("histogram", "[protein]") {
     }
 }
 
-TEST_CASE("distance_histograms", "[protein]") {
+TEST_CASE("distance_histograms") {
     setting::protein::use_effective_charge = false;
 
     SECTION("analytical") {
@@ -393,7 +393,7 @@ TEST_CASE("distance_histograms", "[protein]") {
     }
 }
 
-TEST_CASE("get_cm", "[protein]") {
+TEST_CASE("get_cm") {
     // make the protein
     vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
@@ -406,7 +406,7 @@ TEST_CASE("get_cm", "[protein]") {
     REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
 
-TEST_CASE("get_volume", "[protein]") {
+TEST_CASE("get_volume") {
     // make the protein
     vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
@@ -418,7 +418,7 @@ TEST_CASE("get_volume", "[protein]") {
     REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 }
 
-TEST_CASE("update_effective_charge", "[protein]") {
+TEST_CASE("update_effective_charge") {
     // make the protein
     vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};

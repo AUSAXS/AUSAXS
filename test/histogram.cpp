@@ -10,7 +10,7 @@
 
 using std::vector;
 
-TEST_CASE("check_scaling_factor", "[histogram]") {
+TEST_CASE("check_scaling_factor") {
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
     vector<Atom> b1 =   {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> b2 =   {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};

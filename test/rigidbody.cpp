@@ -8,7 +8,7 @@
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
 
-TEST_CASE("Constraints", "[rigidbody]") {
+TEST_CASE("Constraints") {
     Atom a1(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
     Atom a2(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
     Atom a3(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
@@ -72,13 +72,13 @@ TEST_CASE("Constraints", "[rigidbody]") {
 
 TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     setting::general::verbose = false;
-    Protein protein_2epe("data/lysozyme/2epe.pdb");
+    Protein protein_2epe("test/files/2epe.pdb");
     Protein protein_LAR12("data/LAR1-2/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
     protein_LAR12.generate_new_hydration();
 
     SECTION("intensity_fitter") {
-        HydrationFitter fitter("data/lysozyme/2epe.dat", protein_2epe.get_histogram());
+        HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -91,7 +91,7 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     }
 
     SECTION("simple_intensity_fitter") {
-        LinearFitter fitter("data/lysozyme/2epe.dat", protein_2epe.get_histogram());
+        LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -104,10 +104,10 @@ TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
     }
 }
 
-TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
+TEST_CASE("can_repeat_fit") {
     setting::general::verbose = false;
-    Protein protein("data/lysozyme/2epe.pdb");
-    LinearFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+    Protein protein("test/files/2epe.pdb");
+    LinearFitter fitter("test/files/2epe.dat", protein.get_histogram());
 
     protein.generate_new_hydration();
     double chi2 = fitter.fit()->fval;
@@ -119,7 +119,7 @@ TEST_CASE("can_repeat_fit", "[rigidbody],[files]") {
     }
 }
 
-TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
+TEST_CASE("rigidbody_opt", "[manual]") {
     setting::general::verbose = false;
     vector<int> splits = {9, 99};
     Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
@@ -130,7 +130,7 @@ TEST_CASE("rigidbody_opt", "[rigidbody],[files],[manual]") {
     fitter.fit()->fval;
 }
 
-TEST_CASE("body_selectors", "[rigidbody]") {
+TEST_CASE("body_selectors") {
     vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
@@ -157,7 +157,7 @@ TEST_CASE("body_selectors", "[rigidbody]") {
     REQUIRE(count[3] > 10);
 }
 
-TEST_CASE("consistent_fits_add_remove_bodies_grid", "[rigidbody]") {
+TEST_CASE("iteration_step") {
     // setting::general::verbose = true;
     auto validate_single_step = [] (Protein& protein) {
         std::cout << "FIRST" << std::endl;
@@ -291,7 +291,7 @@ TEST_CASE("consistent_fits_add_remove_bodies_grid", "[rigidbody]") {
     // }
 }
 
-TEST_CASE("consistent_fits_add_remove_bodies", "[rigidbody],[broken]") {
+TEST_CASE("iteration_step_old", "[broken]") {
     setting::general::verbose = false;
     Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
     REQUIRE(protein.bodies.size() == 3);

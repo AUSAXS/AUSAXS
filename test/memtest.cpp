@@ -12,9 +12,9 @@ using std::vector;
 
 /**
  * @brief These tests are meant to be run with valgrind to help identify memory issues. 
- *        I'll expand it as I encounter more leaks/bugs with the tool. 
+ *        I'll expand it as I encounter more leaks/bugs with the software. 
  */
-TEST_CASE("atom_assign", "[memtest]") {
+TEST_CASE("atom_assign", "[manual]") {
     vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                           Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
                           Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
@@ -25,13 +25,13 @@ TEST_CASE("atom_assign", "[memtest]") {
     b2 = b1;
 }
 
-TEST_CASE("body_splitter", "[memtest]") {
+TEST_CASE("body_splitter", "[manual]") {
     vector<int> splits = {9, 99};
     Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
     RigidBody body(protein);
 }
 
-TEST_CASE("body_assign", "[memtest]") {
+TEST_CASE("body_assign", "[manual]") {
     vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                           Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
                           Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
@@ -44,7 +44,7 @@ TEST_CASE("body_assign", "[memtest]") {
 }
 
 #include <plots/PlotDataset.h>
-TEST_CASE("memtest_rebin", "[memtest],[files]") {
+TEST_CASE("memtest_rebin", "[files]") {
     SimpleDataset data("data/SHOC2/SHOC2.dat");
     SimpleDataset data_unbinned = data;
     // data.rebin();
@@ -55,14 +55,14 @@ TEST_CASE("memtest_rebin", "[memtest],[files]") {
     // plot.save("temp/dataset_rebin.pdf");
 }
 
-TEST_CASE("vector_assign", "[memtest]") {
+TEST_CASE("vector_assign", "[manual]") {
     vector<int> v = {1, 2, 3, 4};
     int& v1 = v[0];
     v.assign({0, 3});
     std::cout << v1 << std::endl;
 }
 
-TEST_CASE("grid_add", "[memtest]") {
+TEST_CASE("grid_add", "[manual]") {
     vector<int> splits = {9, 99};
     Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
     RigidBody rbody(protein);
@@ -73,7 +73,7 @@ TEST_CASE("grid_add", "[memtest]") {
 
 #include "rigidbody/RandomSelect.h"
 #include "rigidbody/SimpleParameterGeneration.h"
-TEST_CASE("compact_coordinates", "[memtest],[slow]") {
+TEST_CASE("compact_coordinates", "[slow],[manual]") {
     vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                        Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
@@ -140,7 +140,7 @@ TEST_CASE("compact_coordinates", "[memtest],[slow]") {
     }
 }
 
-TEST_CASE("debug", "[memtest]") {
+TEST_CASE("debug", "[manual]") {
     vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                        Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
@@ -159,7 +159,7 @@ TEST_CASE("debug", "[memtest]") {
     }
 }
 
-TEST_CASE("debug2", "[memtest]") {
+TEST_CASE("debug2", "[manual]") {
     vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
                        Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
@@ -180,15 +180,7 @@ TEST_CASE("debug2", "[memtest]") {
     }
 }
 
-TEST_CASE("test", "[memtest]") {
-    vector<double> v1(0);
-    vector<double>& vref = v1; 
-    vector<double> v2(vref);
-
-    std::cout << v2.size() << std::endl;
-}
-
-TEST_CASE("file_assign", "[memtest]") {
+TEST_CASE("file_assign", "[manual]") {
     vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                           Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
                           Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),

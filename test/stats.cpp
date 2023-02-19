@@ -6,7 +6,7 @@
 
 using std::vector;
 
-TEST_CASE("basic_stats", "[stats]") {
+TEST_CASE("basics") {
     SECTION("weighted_mean_error") {
         CHECK_THAT(stats::weighted_mean_error(vector{1, 2, 3, 4}), Catch::Matchers::WithinAbs(0.838116, 1e-6));
         CHECK_THAT(stats::weighted_mean_error(vector<double>{1, 0.5, 0.1, 2, 0.9, 3}), Catch::Matchers::WithinAbs(0.0968561, 1e-6));
@@ -46,11 +46,9 @@ TEST_CASE("basic_stats", "[stats]") {
     }
 }
 
-TEST_CASE("math_mode", "[stats]") {
-    SECTION("mode") {
-        CHECK(stats::mode(vector{10, 3, 5, 6, 6}) == 6);
-        CHECK(stats::mode(vector{12, 14, 15, 15, 14, 17, 15}) == 15);
-        CHECK(stats::mode(vector{54, 66, 78, 80, 82, 84, 84, 90, 93}) == 84);
-        CHECK(stats::mode(vector{8, 1, 3, 5, 8, 6, 3, 7, 8, 9, 3, 2, 1}) == 8);
-    }
+TEST_CASE("mode") {
+    CHECK(stats::mode(vector{10, 3, 5, 6, 6}) == 6);
+    CHECK(stats::mode(vector{12, 14, 15, 15, 14, 17, 15}) == 15);
+    CHECK(stats::mode(vector{54, 66, 78, 80, 82, 84, 84, 90, 93}) == 84);
+    CHECK(stats::mode(vector{8, 1, 3, 5, 8, 6, 3, 7, 8, 9, 3, 2, 1}) == 8);
 }

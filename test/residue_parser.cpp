@@ -299,7 +299,7 @@ namespace hydrogen_atoms {
         {"CYS", cysteine::get}, {"PRO", proline::get}, {"MYR", myristic_acid::get}};
 }
 
-TEST_CASE("residue_parser_single", "[residue_parser]") {
+TEST_CASE("parse_single") {
     auto GLY = constants::hydrogen_atoms::residues.get("GLY");
     auto GLY2 = hydrogen_atoms::glycine::get;
 
@@ -312,7 +312,7 @@ TEST_CASE("residue_parser_single", "[residue_parser]") {
 //     auto map = parser::residue::detail::Residue::parse("temp/residues/MYR.cif").to_map();
 // }
 
-TEST_CASE("residue_parser_all", "[residue_parser]") {
+TEST_CASE("parse_all") {
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {

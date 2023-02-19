@@ -50,7 +50,7 @@ TestFunction Rosenbrock([] (std::vector<double> pars) {
     {1, 1}
 );
 
-TEST_CASE("1d_landscape", "[minimizer],[manual]") {
+TEST_CASE("1d_landscape", "[manual]") {
     mini::Golden mini(problem04.function, {"x1", problem04.bounds[0]});
     auto res = mini.minimize();
 
@@ -69,7 +69,7 @@ TEST_CASE("1d_landscape", "[minimizer],[manual]") {
 //     auto res = mini.minimize();
 // }
 
-TEST_CASE("golden_minimizer", "[minimizer]") {
+TEST_CASE("golden_minimizer") {
     auto GoldenTest = [] (const TestFunction& test) {
         mini::Golden mini(test.function, {"a", test.bounds[0]});
         auto res = mini.minimize();
@@ -81,7 +81,7 @@ TEST_CASE("golden_minimizer", "[minimizer]") {
     SECTION("problem18") {GoldenTest(problem18);}
 }
 
-TEST_CASE("scan_minimizer", "[minimizer]") {
+TEST_CASE("scan_minimizer") {
     auto ScanTest1D = [] (const TestFunction& test) {
         mini::Scan mini(test.function, {"a", test.bounds[0]});
         mini.set_max_evals(1000);
@@ -107,7 +107,7 @@ TEST_CASE("scan_minimizer", "[minimizer]") {
     SECTION("problem18 rough") {ScanTest1DRough(problem18);}
 }
 
-TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
+TEST_CASE("minimum_explorer", "[manual]") {
     auto ExplorerTest1D = [] (const TestFunction& test) {
         mini::dlibMinimizer<mini::type::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
         auto res = mini1.minimize();
@@ -141,7 +141,7 @@ TEST_CASE("minimum_explorer", "[minimizer],[manual]") {
 }
 
 typedef dlib::matrix<double,0,1> column_vector;
-TEST_CASE("dlib", "[minimizer]") {
+TEST_CASE("dlib") {
     auto dlibTest1D = [] (const TestFunction& test, mini::type type) {
         if (type == mini::type::BFGS) {
             auto mini = mini::dlibMinimizer<mini::type::BFGS>(test.function, {mini::Parameter{"a", test.get_center()[0], test.bounds[0]}});
@@ -189,7 +189,7 @@ TEST_CASE("dlib", "[minimizer]") {
     }
 }
 
-TEST_CASE("create_minimizer", "[minimizer]") {
+TEST_CASE("create_minimizer") {
     SECTION("dlib") {
         auto dlib = mini::create_minimizer(mini::type::BFGS, problem04.function, {"a", problem04.bounds[0]});
         auto res = dlib->minimize();

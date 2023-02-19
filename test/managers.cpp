@@ -10,7 +10,7 @@
 
 using std::vector, std::shared_ptr, std::cout, std::endl;
 
-TEST_CASE("state_manager", "[managers]") {
+TEST_CASE("state_manager") {
     unsigned int size = 5;
     StateManager manager(size);
 
@@ -27,7 +27,7 @@ TEST_CASE("state_manager", "[managers]") {
     CHECK(manager.is_externally_modified(4));
 }
 
-TEST_CASE("partial_histogram_manager_works", "[managers]") {
+TEST_CASE("partial_histogram_manager_works") {
     vector<Body> bodies(5);
     Protein protein(bodies);
     shared_ptr<hist::HistogramManager> phm = protein.get_histogram_manager();
@@ -39,7 +39,7 @@ TEST_CASE("partial_histogram_manager_works", "[managers]") {
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, true, false, false});
 }
 
-TEST_CASE("protein_manager", "[managers]") {
+TEST_CASE("protein_manager") {
     vector<Body> bodies(5);
     Protein protein(bodies);
 
@@ -77,7 +77,7 @@ TEST_CASE("protein_manager", "[managers]") {
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, true});
 }
 
-TEST_CASE("em_partial_histogram_manager", "[managers]") {
+TEST_CASE("em_partial_histogram_manager") {
     setting::protein::use_effective_charge = false;
 
     auto compare = [] (std::shared_ptr<em::ProteinManager> manager1, std::shared_ptr<em::ProteinManager> manager2, double cutoff) {

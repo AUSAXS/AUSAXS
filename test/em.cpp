@@ -14,7 +14,7 @@
 
 using std::vector;
 
-TEST_CASE("ImageStackBase::read", "[em][ImageStackBase]") {
+TEST_CASE("ImageStackBase::read") {
     // test that the header is read correctly
     SECTION("correct header") {
         std::string file = "test/files/A2M_2020_Q4.ccp4";
@@ -217,20 +217,20 @@ TEST_CASE("ImageStackBase::read", "[em][ImageStackBase]") {
     }
 }
 
-TEST_CASE("extract_image", "[em],[files],[manual]") {
-    em::ImageStack image("data/files/A2M_2020_Q4.ccp4"); 
+TEST_CASE("extract_image", "[manual]") {
+    em::ImageStack image("test/files/A2M_2020_Q4.ccp4"); 
 
     plots::PlotImage plot(image.image(5));
     // plot.plot_atoms(0.1);
     plot.save("test.pdf");
 }
 
-TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
+TEST_CASE("test_model", "[slow],[manual]") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
-    Protein protein("data/A2M_native/native.pdb");
+    Protein protein("test/A2M_native/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
     // set optimal cutoff
@@ -252,7 +252,7 @@ TEST_CASE("test_model", "[em],[files],[slow],[manual]") {
     FitReporter::report(res);
 }
 
-TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
+TEST_CASE("generate_contour", "[files],[slow],[manual]") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
@@ -273,7 +273,7 @@ TEST_CASE("generate_contour", "[em],[files],[slow],[manual]") {
 /**
  * @brief Generate a contour plot of the chi2 landscape for the EM fit. 
  */
-TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
+TEST_CASE("check_fit", "[files],[manual],[slow]") {
     std::string mfile = "data/SASDDD3/SASDDD3.dat";
     std::string mapfile = "data/SASDDD3/emd_0560.map";
 
@@ -303,7 +303,7 @@ TEST_CASE("check_fit", "[em],[files],[manual],[slow]") {
     plot.save("figures/test/em/check_fit_landscape.pdf");
 }
 
-TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
+TEST_CASE("check_bound_savings", "[manual],[slow]") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     em::ImageStack image("sim/native_10.ccp4");
@@ -321,7 +321,7 @@ TEST_CASE("check_bound_savings", "[em],[files],[slow]") {
     std::cout << "Cutoff = 4: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 }
 
-TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
+TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
     unsigned int repeats = 50;
 
     setting::protein::use_effective_charge = false;
@@ -423,14 +423,13 @@ TEST_CASE("repeat_chi2_contour", "[em],[files],[slow],[manual]") {
     }
 }
 
-TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
+TEST_CASE("plot_images", "[files],[manual],[slow]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::axes::qmax = 0.4;
 
-    // std::string file = "data/A2M_2020_Q4/A2M_2020_Q4.ccp4";
-    // setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
-    std::string file = "data/Gregers_cryo/Gregers_cryo.mrc";
+    std::string file = "test/files/A2M_2020_Q4.ccp4";
+    setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
@@ -439,21 +438,21 @@ TEST_CASE("plot_images", "[em],[files],[manual],[slow]") {
     }
 }
 
-TEST_CASE("get_histogram", "[em],[files],[manual]") {
+TEST_CASE("get_histogram", "[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
 
-    std::string file = "data/A2M_2020_Q4/A2M_2020_Q4.ccp4";
+    std::string file = "test/files/A2M_2020_Q4.ccp4";
     em::ImageStack image(file);
     auto hist = image.get_histogram(2);
     plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
 }
 
-TEST_CASE("voxelplot", "[em],[files],[manual]") {
+TEST_CASE("voxelplot", "[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::axes::qmax = 0.4;
-    em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4");
+    em::ImageStack image("test/files/A2M_2020_Q4.ccp4");
 
     CHECK(image.image(95).count_voxels(15) == 32);
     CHECK(image.image(100).count_voxels(10) == 208);
@@ -477,7 +476,7 @@ TEST_CASE("voxelplot", "[em],[files],[manual]") {
     // std::cout << "105.png: " << image.image(105).count_voxels(10) << std::endl;
 }
 
-TEST_CASE("voxelcount", "[em],[manual]") {
+TEST_CASE("voxelcount", "[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 1;
     setting::axes::qmax = 0.4;
@@ -493,7 +492,7 @@ TEST_CASE("voxelcount", "[em],[manual]") {
     plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.png"); 
 }
 
-TEST_CASE("instability", "[em],[files],[manual]") {
+TEST_CASE("instability", "[files],[manual]") {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
     setting::axes::qmax = 0.4;
@@ -513,12 +512,12 @@ TEST_CASE("instability", "[em],[files],[manual]") {
     plots::PlotDataset::quick_plot(data, "figures/test/em/instability.pdf"); 
 }
 
-TEST_CASE("save_as_pdb", "[em],[manual]") {
+TEST_CASE("save_as_pdb", "[manual]") {
     em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4");
     image.get_protein(image.from_level(3))->save("figures/test/em/save_as_pdb.pdb");
 }
 
-TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
+TEST_CASE("plot_pdb_as_points", "[files],[manual]") {
     Protein protein("data/maptest.pdb");
 
     auto h = protein.get_histogram();
@@ -533,7 +532,7 @@ TEST_CASE("plot_pdb_as_points", "[em],[files],[manual]") {
     plot.save("figures/test/em/plot_pdb_as_points.pdf");
 }
 
-TEST_CASE("check_simulated_errors", "[em],[files],[manual],[broken]") {
+TEST_CASE("check_simulated_errors", "[files],[manual],[broken]") {
     setting::axes::qmax = 0.4;
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
@@ -550,7 +549,7 @@ TEST_CASE("check_simulated_errors", "[em],[files],[manual],[broken]") {
     plot.save("temp/em/check_errors.pdf");
 }
 
-TEST_CASE("minimum_area", "[em]") {
+TEST_CASE("minimum_area") {
     SECTION("correct_bounds") {
         Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
         em::Image image(data);
@@ -665,7 +664,7 @@ TEST_CASE("minimum_area", "[em]") {
     }
 }
 
-TEST_CASE("em_weights", "[em]") {
+TEST_CASE("em_weights") {
     SECTION("fixed") {
         setting::em::fixed_weights = true;
         Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};

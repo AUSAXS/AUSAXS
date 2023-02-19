@@ -11,7 +11,7 @@
 #include <hist/Histogram.h>
 #include <fitter/ExcludedVolumeFitter.h>
 
-TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
+TEST_CASE("consistency_check", "[slow],[manual]") {
     unsigned int repeats = 100;
 
     setting::protein::use_effective_charge = false;
@@ -40,7 +40,7 @@ TEST_CASE("consistency_check", "[fitter],[slow],[manual]") {
     plot.save("figures/test/fitter/consistency_check.pdf");
 }
 
-TEST_CASE("excluded_volume", "[fitter]") {
+TEST_CASE("excluded_volume") {
     setting::protein::use_effective_charge = true;
 
     SECTION("simple") {

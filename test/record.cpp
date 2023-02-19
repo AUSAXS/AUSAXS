@@ -5,7 +5,7 @@
 #include <data/Footer.h>
 #include <data/Header.h>
 
-TEST_CASE("record", "[record]") {
+TEST_CASE("record") {
     CHECK(Record::get_type("ATOM") == Record::RecordType::ATOM);
     CHECK(Record::get_type("HETATM") == Record::RecordType::ATOM);
     CHECK(Record::get_type("TER") == Record::RecordType::TERMINATE);
@@ -14,7 +14,7 @@ TEST_CASE("record", "[record]") {
 }
 
 
-TEST_CASE("terminate", "[record]") {
+TEST_CASE("terminate") {
     Terminate t1(1, "LYS", "A", 2, "B");
     CHECK(t1.serial == 1);
     CHECK(t1.resName == "LYS");
@@ -37,7 +37,7 @@ TEST_CASE("terminate", "[record]") {
     CHECK(t1.serial == 5);
 }
 
-TEST_CASE("footer", "[record]") {
+TEST_CASE("footer") {
     Footer f1;
     CHECK(f1.get_type() == Record::RecordType::FOOTER);
 
@@ -54,7 +54,7 @@ TEST_CASE("footer", "[record]") {
     CHECK(f1.get() == "END    test3\n");
 }
 
-TEST_CASE("header", "[record]") {
+TEST_CASE("header") {
     Header f1;
     CHECK(f1.get_type() == Record::RecordType::HEADER);
 

@@ -7,7 +7,7 @@
 
 using std::vector, std::string;
 
-TEST_CASE("plots", "[utility],[manual]") {
+TEST_CASE("plots", "[manual]") {
     std::vector<double> x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
     std::vector<double> y = {-5, -3, 4, 8, 12, 7, 3, 1, -3, -5, -9};
     std::vector<double> yerr = vector<double>(y.size(), 0.5);
@@ -54,7 +54,7 @@ TEST_CASE("plots", "[utility],[manual]") {
     }
 }
 
-TEST_CASE("fitreporter", "[utility],[manual]") {
+TEST_CASE("fitreporter", "[manual]") {
     Fit fit;
     fit.status = true;
     fit.fevals = 100;
@@ -91,7 +91,7 @@ TEST_CASE("fitreporter", "[utility],[manual]") {
     }
 }
 
-TEST_CASE("split", "[utility]") {
+TEST_CASE("split") {
     SECTION("single delimiter") {
         SECTION("empty") {
             vector<string> result = utility::split("", ',');
@@ -160,7 +160,7 @@ TEST_CASE("split", "[utility]") {
     }
 }
 
-TEST_CASE("remove_all", "[utility]") {
+TEST_CASE("remove_all") {
     SECTION("empty") {
         REQUIRE(utility::remove_all("", "a") == "");
     }
@@ -186,7 +186,7 @@ TEST_CASE("remove_all", "[utility]") {
     }
 }
 
-TEST_CASE("join", "[utility]") {
+TEST_CASE("join") {
     SECTION("empty") {
         string result = utility::join({}, ",");
         REQUIRE(result == "");
@@ -208,7 +208,7 @@ TEST_CASE("join", "[utility]") {
     }
 }
 
-TEST_CASE("plotoptions", "[utility]") {
+TEST_CASE("plotoptions") {
     plots::PlotOptions options;
 
     SECTION("set") {
@@ -222,7 +222,7 @@ TEST_CASE("plotoptions", "[utility]") {
     }
 }
 
-TEST_CASE("utility_limits", "[utility]") {
+TEST_CASE("limits") {
     Limit lim1(0, 1);
     Limit lim2(-5, 15.5);
 

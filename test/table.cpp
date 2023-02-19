@@ -14,7 +14,7 @@ namespace std {
     };
 }
 
-TEST_CASE("lookup_tables", "[table]") {
+TEST_CASE("lookup_tables") {
     setting::axes::qmax = 1.001;
     SECTION("integer table") {
         vector<unsigned int> rows = {1, 2, 3};
@@ -81,7 +81,7 @@ TEST_CASE("lookup_tables", "[table]") {
     }
 }
 
-TEST_CASE("debye_lookup_table", "[table]") {
+TEST_CASE("debye_lookup_table") {
     setting::axes::qmax = 1.001;
     SECTION("default_table") {
         table::DebyeLookupTable::reset();

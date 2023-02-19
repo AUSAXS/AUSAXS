@@ -10,7 +10,7 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
-TEST_CASE("slice_access", "[slices]") {
+TEST_CASE("access") {
     Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
     
     // row through operator[]
@@ -30,7 +30,7 @@ TEST_CASE("slice_access", "[slices]") {
     REQUIRE(A.col(3) == Vector<double>{2, 2, 4});
 }
 
-TEST_CASE("slice_assignment", "[slices]") {
+TEST_CASE("assignment") {
     Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
 
     // row assignment
@@ -70,7 +70,7 @@ TEST_CASE("slice_assignment", "[slices]") {
     REQUIRE(A.col(1) == Vector<double>{4, 7, 2});
 }
 
-TEST_CASE("slice_copy", "[slices]") {
+TEST_CASE("copy") {
     Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
     auto a = A.row(1);
 
@@ -82,7 +82,7 @@ TEST_CASE("slice_copy", "[slices]") {
     REQUIRE(b[3] == 1);
 }
 
-TEST_CASE("slice_vector_cast", "[slices]") {
+TEST_CASE("vector_cast") {
     Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
     Vector<double> a = A.col(2);
     REQUIRE((a.N == 3 && a.data.size() == 3));
@@ -90,7 +90,7 @@ TEST_CASE("slice_vector_cast", "[slices]") {
     REQUIRE((A.col(2).operator Vector<double>().N == 3 && A.col(2).operator Vector<double>().data.size() == 3)); // chain cast
 }
 
-TEST_CASE("slice_dot_product", "[slices]") {
+TEST_CASE("dot_product") {
     Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
 
     // dot with vector
@@ -108,13 +108,13 @@ TEST_CASE("slice_dot_product", "[slices]") {
 
 }
 
-TEST_CASE("slice_norm", "[slices]") {
+TEST_CASE("norm") {
     Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
     REQUIRE(A.col(0).norm() == sqrt(1+81+36));
     REQUIRE(A.row(0).norm() == sqrt(1+4+4+49));
 }
 
-TEST_CASE("slice_iterators", "[slices]") {
+TEST_CASE("iterators") {
     SECTION("basic") {
         Matrix<double> A = {{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}};
         auto r = A.row(0);

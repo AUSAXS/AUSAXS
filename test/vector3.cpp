@@ -16,7 +16,7 @@ static Vector<double> GenRandVector(int m) {
     return v;
 }
 
-TEST_CASE("basic operations", "[vector3]") {
+TEST_CASE("basic operations") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -66,7 +66,7 @@ TEST_CASE("basic operations", "[vector3]") {
     REQUIRE(z == Vector3<double>{0.5025707110324167, 0.5743665268941905, 0.6461623427559643});
 }
 
-TEST_CASE("constructors", "[vector3]") {
+TEST_CASE("constructors") {
     SECTION("vector3") {
         Vector3<double> x = {1, 2, 3};
 
@@ -110,7 +110,7 @@ TEST_CASE("constructors", "[vector3]") {
     }
 }
 
-TEST_CASE("assignment", "[vector3]") {
+TEST_CASE("assignment") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -132,7 +132,7 @@ TEST_CASE("assignment", "[vector3]") {
     REQUIRE(y == Vector3<double>{7, 8, 9});
 }
 
-TEST_CASE("conversion", "[vector3]") {
+TEST_CASE("conversion") {
     Vector3<double> x = {1, 2, 3};
 
     Vector<double> v = x;
@@ -149,7 +149,7 @@ TEST_CASE("conversion", "[vector3]") {
     REQUIRE(M.M == 1);
 }
 
-TEST_CASE("matrix_product", "[vector3]") {
+TEST_CASE("matrix_product") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -164,7 +164,7 @@ TEST_CASE("matrix_product", "[vector3]") {
     REQUIRE(m*z == Vector3<double>{50, 122, 194});
 }
 
-TEST_CASE("cross_product", "[vector3]") {
+TEST_CASE("cross_product") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -175,7 +175,7 @@ TEST_CASE("cross_product", "[vector3]") {
     REQUIRE(w == Vector3<double>{-6, 12, -6});
 }
 
-TEST_CASE("distance", "[vector3]") {
+TEST_CASE("distance") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -189,7 +189,7 @@ TEST_CASE("distance", "[vector3]") {
     REQUIRE(y.distance(z) == sqrt(27));
 }
 
-TEST_CASE("rotation", "[vector3]") {
+TEST_CASE("rotation") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -226,7 +226,7 @@ TEST_CASE("rotation", "[vector3]") {
     REQUIRE(z == Vector3<double>{0.0886646879, 7.4409765368, 2.5737145825}); 
 }
 
-TEST_CASE("normalize", "[vector3]") {
+TEST_CASE("normalize") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};
@@ -238,7 +238,7 @@ TEST_CASE("normalize", "[vector3]") {
     REQUIRE(x.normalize() == Vector3<double>{1, 1, 0}*sqrt(2)/2);
 }
 
-TEST_CASE("generate_basis", "[vector3]") {
+TEST_CASE("generate_basis") {
     Vector3<double> x = {1, 2, 3};
     Vector3<double> y = {4, 5, 6};
     Vector3<double> z = {7, 8, 9};

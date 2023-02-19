@@ -10,7 +10,7 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
-TEST_CASE("basic operations", "[matrix]") {
+TEST_CASE("basic operations") {
     Matrix<double> A({{1, 2}, {3, 4}});
     Matrix<double> B({{5, 6}, {7, 8}});
     Matrix<double> C({{2, 3}, {3, 4}});
@@ -50,7 +50,7 @@ TEST_CASE("basic operations", "[matrix]") {
     REQUIRE(B*C == Matrix{{28, 39}, {38, 53}});
 }
 
-TEST_CASE("assignment", "[matrix]") {
+TEST_CASE("assignment") {
     Matrix<double> A({{1, 2}, {3, 4}});
     Matrix<double> B({{5, 6}, {7, 8}});
     Matrix<double> C({{2, 3}, {3, 4}});
@@ -78,7 +78,7 @@ TEST_CASE("assignment", "[matrix]") {
     REQUIRE(C == A);
 }
 
-TEST_CASE("multiplication", "[matrix]") {
+TEST_CASE("multiplication") {
     Matrix<double> A({{1, 2}, {3, 4}});
     Matrix<double> B({{5, 6}, {7, 8}});
     Matrix<double> C({{2, 3}, {3, 4}});
@@ -99,7 +99,7 @@ TEST_CASE("multiplication", "[matrix]") {
     REQUIRE(C.T() == Matrix<double>{{2, 3}, {3, 4}});
 }
 
-TEST_CASE("determinant", "[matrix]") {
+TEST_CASE("determinant") {
     Matrix<double> A({{1, 2}, {3, 4}});
     Matrix<double> B({{5, 6}, {7, 8}});
     Matrix<double> C({{2, 3}, {3, 4}});
