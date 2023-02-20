@@ -92,8 +92,6 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 
     for (const auto& atom : grid->a_members) {
         int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-        std::cout << "Placing water around atom at location " << x << " " << y << " " << z << std::endl;
-
         for (unsigned int i = 0; i < rot_bins_rarh.size(); i++) {
             int xr = x + rot_bins_rarh[i].x(), yr = y + rot_bins_rarh[i].y(), zr = z + rot_bins_rarh[i].z(); // new coordinates
             
@@ -111,9 +109,6 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
                 Vector3<double> exact_loc = atom.atom.coords + rot_locs_rarh[i];
                 add_loc(exact_loc);
             }
-            if (gref.index(xr, yr, zr) != GridObj::EMPTY) {
-                std::cout << "\tLocation " << xr << " " << yr << " " << zr << " is not empty (" << gref.index(xr, yr, zr) << ")" << std::endl;
-            }
         }
     }
 
@@ -122,7 +117,6 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 }
 
 bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
-    std::cout << "\tChecking location " << loc << std::endl;
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -150,7 +144,6 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
 
         if (gref.index(xr, yr, zr) != GridObj::EMPTY) {
             if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
-            std::cout << "\t\tCollision at 1rh" << std::endl;
             return false;
         }
 
@@ -196,10 +189,6 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
             }
         }
     }
-    if (score <= setting::grid::placement::min_score*rot_bins_1rh.size()) {
-        std::cout << "\tScored too low" << std::endl;
-        return false;
-    }
-        std::cout << "\tAccepted" << std::endl;
+    if (score <= setting::grid::placement::min_score*rot_bins_1rh.size()) {return false;}
     return true;
 }

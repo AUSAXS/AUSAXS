@@ -160,7 +160,6 @@ TEST_CASE("body_selectors") {
 TEST_CASE("iteration_step") {
     setting::general::verbose = false;
     auto validate_single_step = [] (Protein& protein) {
-        std::cout << "FIRST" << std::endl;
         protein.generate_new_hydration();
 
         // fit the protein
@@ -180,7 +179,6 @@ TEST_CASE("iteration_step") {
         body.translate(Vector3<double>(0, 0, 10));              // translate the body
         body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
         grid->add(&body);
-        std::cout << "\n\nSECOND" << std::endl;
         protein.generate_new_hydration();                       // generate a new hydration shell
         fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
         auto _chi2 = fitter.fit()->fval;                        // fit the protein
@@ -250,12 +248,10 @@ TEST_CASE("iteration_step") {
                 }
             }
         }
-        grid->force_expand_volume();
 
         //################################################//
         //### check that the protein has been reverted ###//
         //################################################//
-        std::cout << "\n\nTHIRD" << std::endl;
         protein.generate_new_hydration();                       // generate a new hydration shell
         fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
         _chi2 = fitter.fit()->fval;                             // fit the protein
@@ -266,7 +262,6 @@ TEST_CASE("iteration_step") {
         auto oldwaters = old_protein.waters();
         REQUIRE(newwaters.size() == oldwaters.size());
         for (unsigned int i = 0; i < newwaters.size(); i++) {
-            std::cout << newwaters.at(i).coords << " " << oldwaters.at(i).coords << std::endl;
             CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
         }
 
@@ -281,28 +276,28 @@ TEST_CASE("iteration_step") {
         REQUIRE(*grid == old_grid);
     };
 
-    // SECTION("simple") {
-    //     Atom a1(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "");
-    //     Atom a2(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "");
-    //     Atom a3(3, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "");
-    //     Atom a4(4, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "");
-    //     Atom a5(5, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "");
-    //     Atom a6(6, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "");
-    //     Atom a7(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "");
-    //     Atom a8(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "");
+    SECTION("simple") {
+        Atom a1(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "");
+        Atom a2(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "");
+        Atom a3(3, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "");
+        Atom a4(4, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "");
+        Atom a5(5, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "");
+        Atom a6(6, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "");
+        Atom a7(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "");
+        Atom a8(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "");
 
-    //     Body b1(std::vector<Atom>{a1, a2});
-    //     Body b2(std::vector<Atom>{a3, a4});
-    //     Body b3(std::vector<Atom>{a5, a6});
-    //     Body b4(std::vector<Atom>{a7, a8});
-    //     vector<Body> ap = {b1, b2, b3, b4};
-    //     Protein protein(ap);
-    //     Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 40), 1);
-    //     grid.add(protein.atoms());
-    //     protein.set_grid(grid);
+        Body b1(std::vector<Atom>{a1, a2});
+        Body b2(std::vector<Atom>{a3, a4});
+        Body b3(std::vector<Atom>{a5, a6});
+        Body b4(std::vector<Atom>{a7, a8});
+        vector<Body> ap = {b1, b2, b3, b4};
+        Protein protein(ap);
+        Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 40), 1);
+        grid.add(protein.atoms());
+        protein.set_grid(grid);
 
-    //     validate_single_step(protein);
-    // }
+        validate_single_step(protein);
+    }
 
     SECTION("real data") {
         Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
