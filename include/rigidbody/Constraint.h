@@ -73,7 +73,7 @@ class Constraint {
          * 
          * @param offset The radial offset between the new and original positions. 
          */
-        static double transform(const double offset) {
+        static double transform(double offset) {
             return offset*offset*offset*offset;
         }
 

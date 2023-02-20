@@ -10,22 +10,22 @@
  * More specifically its implementations will decide in which order the bodies will be transformed by the optimization algorithm.
  */
 class BodySelectStrategy {
-  public:
-    /**
-     * @brief Construtor. 
-     */
-    BodySelectStrategy(const Protein& protein) : protein(protein) {}
+    public:
+        /**
+         * @brief Construtor. 
+         */
+        BodySelectStrategy(const Protein& protein) : protein(protein) {}
 
-    /**
-     * @brief Destructor.
-     */
-    virtual ~BodySelectStrategy() = default;
+        /**
+         * @brief Destructor.
+         */
+        virtual ~BodySelectStrategy() = default;
 
-    /**
-     * @brief Get the index of the next body to be transformed. 
-     */
-    virtual size_t next() = 0;
+        /**
+         * @brief Get the index of the next body to be transformed. 
+         */
+        virtual size_t next() = 0;
 
-  protected: 
-    const Protein& protein;
+    protected: 
+        const Protein& protein;
 };

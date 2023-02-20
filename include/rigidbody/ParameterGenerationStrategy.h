@@ -20,10 +20,10 @@ class ParameterGenerationStrategy {
          * @param rad_start The start angle in radians of the generated rotations. 
          */
         ParameterGenerationStrategy(int iterations, double length_start, double rad_start) : iterations(iterations) {
-          std::random_device random;
-          generator = std::mt19937(random());
-          translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
-          rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
+            std::random_device random;
+            generator = std::mt19937(random());
+            translation_dist = std::uniform_real_distribution<double>(-length_start, length_start);
+            rotation_dist = std::uniform_real_distribution<double>(-rad_start, rad_start);
         }
 
         /**
@@ -32,10 +32,10 @@ class ParameterGenerationStrategy {
         virtual ~ParameterGenerationStrategy() = default;
 
         Parameter next() {
-          auto[rx, ry, rz] = get_rotation();
-          Vector3 x = get_translation();
-          iteration++;
-          return Parameter(x, rx, ry, rz);
+            auto[rx, ry, rz] = get_rotation();
+            Vector3 x = get_translation();
+            iteration++;
+            return Parameter(x, rx, ry, rz);
         }
 
     protected:

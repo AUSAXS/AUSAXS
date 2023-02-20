@@ -7,8 +7,8 @@
 #include <data/Protein.h>
 #include <rigidbody/RigidBody.h>
 #include <data/BodySplitter.h>
-
-using std::cout, std::endl;
+#include <fitter/FitReporter.h>
+#include <plots/all.h>
 
 int main(int argc, char const *argv[]) { 
     setting::grid::scaling = 1;
@@ -34,11 +34,17 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
-    vector<int> splits = {9, 99};
+    std::vector<int> splits = {9, 99};
     Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
     RigidBody body(protein);
 
     protein.save(setting::general::output + "initial.pdb");
     body.optimize(input_measurement);
+    protein.save(setting::general::output + "optimized.pdb");
+    HydrationFitter fitter(input_measurement, protein.get_histogram());
+    auto res = fitter.fit();
+    FitReporter::report(res);
+    FitReporter::save(res, setting::general::output + "fit.txt");
+    plots::PlotIntensityFit::quick_plot(res, setting::general::output + "fit.png");
     return 0;
 }

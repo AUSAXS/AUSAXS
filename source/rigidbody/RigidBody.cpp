@@ -72,7 +72,7 @@ void RigidBody::optimize(std::string measurement_path) {
 
     std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
     std::vector<Water> best_waters = protein.waters();
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1000; i++) {
         std::stringstream iteration_out;
         iteration_out << "\nIteration " << i << std::endl;
 
@@ -130,6 +130,7 @@ void RigidBody::optimize(std::string measurement_path) {
             utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
         }
     }
+    protein.save(setting::general::output + "optimized.pdb");
 }
 
 void RigidBody::generate_new_hydration() {

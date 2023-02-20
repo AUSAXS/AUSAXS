@@ -6,8 +6,6 @@
 #include <unordered_map>
 #include <vector>
 
-using std::vector;
-
 /**
  * @brief \struct Parameter. 
  * 
@@ -27,7 +25,7 @@ struct Parameter {
      * @param beta The second Euler angle.
      * @param gamma The third Euler angle.
      */
-    Parameter(const Vector3<double>& dx,const double alpha, const double beta, const double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
+    Parameter(const Vector3<double>& dx, double alpha, double beta, double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
 
     /**
      * @brief Get a string representation of this Parameter.
@@ -87,5 +85,5 @@ struct Parameters {
     const Parameter get(unsigned int uid);
 
     std::unordered_map<unsigned int, unsigned int> id_to_index;
-    vector<Parameter> params;
+    std::vector<Parameter> params;
 };

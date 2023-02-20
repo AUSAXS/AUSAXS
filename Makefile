@@ -163,6 +163,8 @@ rigidbody/%: build/executable/rigidbody
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} figures/
+	make plot/output
+	make plot_fits/$*
 
 # perform a fit with crysol
 crysol/%: 
