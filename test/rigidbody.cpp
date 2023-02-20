@@ -70,7 +70,7 @@ TEST_CASE("Constraints") {
     }
 }
 
-TEST_CASE("can_reuse_fitter", "[rigidbody],[files]") {
+TEST_CASE("can_reuse_fitter", "[files]") {
     setting::general::verbose = false;
     Protein protein_2epe("test/files/2epe.pdb");
     Protein protein_LAR12("data/LAR1-2/LAR1-2.pdb");
@@ -158,19 +158,19 @@ TEST_CASE("body_selectors") {
 }
 
 TEST_CASE("iteration_step") {
-    // setting::general::verbose = true;
+    setting::general::verbose = false;
     auto validate_single_step = [] (Protein& protein) {
         std::cout << "FIRST" << std::endl;
         protein.generate_new_hydration();
 
         // fit the protein
-        HydrationFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+        HydrationFitter fitter("test/files/2epe.dat", protein.get_histogram());
         auto chi2 = fitter.fit()->fval;
 
         Body&                 body = protein.bodies.at(0);
         std::shared_ptr<Grid> grid = protein.get_grid();
         Body                  old_body(body);
-        std::shared_ptr<Grid> old_grid = protein.get_grid();
+        Grid                  old_grid = *protein.get_grid();
         Protein               old_protein(protein);
 
         //####################################//
@@ -181,7 +181,7 @@ TEST_CASE("iteration_step") {
         body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
         grid->add(&body);
         std::cout << "\n\nSECOND" << std::endl;
-        // protein.generate_new_hydration();                       // generate a new hydration shell
+        protein.generate_new_hydration();                       // generate a new hydration shell
         fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
         auto _chi2 = fitter.fit()->fval;                        // fit the protein
         CHECK_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));   // chi2 should be different
@@ -189,34 +189,34 @@ TEST_CASE("iteration_step") {
         //######################################//
         //### reset the state of the protein ###//
         //######################################//
-        protein.set_grid(*old_grid);                            // reset the grid
+        protein.set_grid(old_grid);                             // reset the grid
         body = std::move(old_body);                             // reset the body
+        grid = protein.get_grid();                              // reset the grid pointer
 
         // check that the grid is exactly identical
-        auto axes = protein.get_grid()->get_axes();
-        auto oldaxes = old_grid->get_axes();
+        auto axes = grid->get_axes();
+        auto oldaxes = old_grid.get_axes();
         REQUIRE(axes == oldaxes);
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(protein.get_grid()->grid.index(i, j, k) == old_grid->grid.index(i, j, k));
+                    CHECK(grid->grid.index(i, j, k) == old_grid.grid.index(i, j, k));
                 }
             }
         }
-        REQUIRE(*protein.get_grid() == *old_grid);
+        REQUIRE(*grid == old_grid);
 
         // check that the atoms are the same
         auto atoms = protein.atoms();
         auto oldatoms = old_protein.atoms();
         REQUIRE(atoms.size() == oldatoms.size());
         for (unsigned int i = 0; i < atoms.size(); i++) {
-            std::cout << atoms.at(i).coords << std::endl;
             CHECK(atoms.at(i).coords == oldatoms.at(i).coords);
         }
 
         // check that the grid water members are the same
-        auto wm = protein.get_grid()->w_members;
-        auto oldwm = old_grid->w_members;
+        auto wm = grid->w_members;
+        auto oldwm = old_grid.w_members;
         REQUIRE(wm.size() == oldwm.size());
 
         auto wm_it = wm.begin();
@@ -228,8 +228,8 @@ TEST_CASE("iteration_step") {
         }
 
         // check that the grid atom members are the same
-        auto am = protein.get_grid()->a_members;
-        auto oldam = old_grid->a_members;
+        auto am = grid->a_members;
+        auto oldam = old_grid.a_members;
         REQUIRE(am.size() == oldam.size());
 
         auto am_it = am.begin();
@@ -239,6 +239,18 @@ TEST_CASE("iteration_step") {
             am_it++;
             oldam_it++;
         }
+
+        // check that there's no water in the grid after a call to clear_hydration
+        protein.clear_hydration();
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    REQUIRE(grid->grid.index(i, j, k) != GridObj::H_AREA);
+                    REQUIRE(grid->grid.index(i, j, k) != GridObj::H_CENTER);
+                }
+            }
+        }
+        grid->force_expand_volume();
 
         //################################################//
         //### check that the protein has been reverted ###//
@@ -254,41 +266,49 @@ TEST_CASE("iteration_step") {
         auto oldwaters = old_protein.waters();
         REQUIRE(newwaters.size() == oldwaters.size());
         for (unsigned int i = 0; i < newwaters.size(); i++) {
+            std::cout << newwaters.at(i).coords << " " << oldwaters.at(i).coords << std::endl;
             CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
         }
 
         // check that the grid is the same
-        REQUIRE(*protein.get_grid() == *old_grid);
+        for (unsigned int i = 0; i < axes.x.bins; i++) {
+            for (unsigned int j = 0; j < axes.y.bins; j++) {
+                for (unsigned int k = 0; k < axes.z.bins; k++) {
+                    CHECK(grid->grid.index(i, j, k) == old_grid.grid.index(i, j, k));
+                }
+            }
+        }
+        REQUIRE(*grid == old_grid);
     };
 
-    SECTION("simple") {
-        Atom a1(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "");
-        Atom a2(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "");
-        Atom a3(3, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "");
-        Atom a4(4, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "");
-        Atom a5(5, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "");
-        Atom a6(6, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "");
-        Atom a7(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "");
-        Atom a8(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "");
+    // SECTION("simple") {
+    //     Atom a1(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "");
+    //     Atom a2(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "");
+    //     Atom a3(3, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "");
+    //     Atom a4(4, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "");
+    //     Atom a5(5, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "");
+    //     Atom a6(6, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "");
+    //     Atom a7(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "");
+    //     Atom a8(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "");
 
-        Body b1(std::vector<Atom>{a1, a2});
-        Body b2(std::vector<Atom>{a3, a4});
-        Body b3(std::vector<Atom>{a5, a6});
-        Body b4(std::vector<Atom>{a7, a8});
-        vector<Body> ap = {b1, b2, b3, b4};
-        Protein protein(ap);
-        Grid grid(Axis3D(-50, 50, -50, 50, -50, 50, 100), 1);
-        grid.add(protein.atoms());
-        protein.set_grid(grid);
+    //     Body b1(std::vector<Atom>{a1, a2});
+    //     Body b2(std::vector<Atom>{a3, a4});
+    //     Body b3(std::vector<Atom>{a5, a6});
+    //     Body b4(std::vector<Atom>{a7, a8});
+    //     vector<Body> ap = {b1, b2, b3, b4};
+    //     Protein protein(ap);
+    //     Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 40), 1);
+    //     grid.add(protein.atoms());
+    //     protein.set_grid(grid);
 
-        validate_single_step(protein);
-    }
-
-    // SECTION("real data") {
-    //     Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
-    //     REQUIRE(protein.bodies.size() == 3);
     //     validate_single_step(protein);
     // }
+
+    SECTION("real data") {
+        Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+        REQUIRE(protein.bodies.size() == 3);
+        validate_single_step(protein);
+    }
 }
 
 TEST_CASE("iteration_step_old", "[broken]") {

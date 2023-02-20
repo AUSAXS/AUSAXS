@@ -41,18 +41,7 @@ namespace grid {
         // Whether the volume of this location has been expanded or not.
         bool expanded_volume = false; 
 
-        /**
-         * @brief Equality operator. 
-         *        Check if this GridMember atom is the same as the one provided. 
-         * @param rhs External atom to compare against. 
-         */
         bool operator==(const T& rhs) const {return atom == rhs;}
-
-        /**
-         * @brief Equality operator. 
-         *        Check if this GridMember the same as another. 
-         * @param rhs GridMember to compare against. 
-         */
         bool operator==(const GridMember<T>& rhs) const {
             if (atom != rhs.atom) {return false;}
             if (loc != rhs.loc) {return false;}
@@ -60,15 +49,17 @@ namespace grid {
             return true;
         } 
 
-        /**
-         * @brief Assignment operator. 
-         *        Assign new a new GridMember to this object. 
-         * @param rhs The assigned GridMember. 
-         */
         GridMember& operator=(const GridMember<T>& rhs) {
             atom = rhs.atom;
             loc = rhs.loc;
             expanded_volume = rhs.expanded_volume;
+            return *this;
+        }
+
+        GridMember& operator=(GridMember<T>&& rhs) {
+            atom = std::move(rhs.atom);
+            loc = std::move(rhs.loc);
+            expanded_volume = std::move(rhs.expanded_volume);
             return *this;
         }
     };

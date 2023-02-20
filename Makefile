@@ -296,11 +296,12 @@ tests: $(shell find source/ -print) $(shell find test/ -print)
 		$${test} $(exclude_tags);\
 	done
 
-test/%: build/test/test_% test/%.cpp
-	$< [$(*F)] ~[slow] ~[broken] ${tags}
+test/%: test/%.cpp
+	@ make -C build "test_$*"
+	build/test/test_$* ~[slow] ~[broken] ${tags}
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
-build/test/%: $(shell find source/ -print) build/Makefile
+build/test/%: $(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
 	@ cmake --build build --target $* -j${cmake_threads}
 
 

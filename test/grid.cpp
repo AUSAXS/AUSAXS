@@ -679,3 +679,33 @@ TEST_CASE("move") {
     grid3 = std::move(grid2);
     REQUIRE(grid3 == gridcopy);
 }
+
+TEST_CASE("hydration") {
+    setting::grid::rh = 1;
+    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Grid grid(axes, 1);
+    grid.add(Atom({0, 0, 0}, 0, "C", "", 0));
+    grid.hydrate();
+
+    // check that the waters have been expanded
+    for (const auto& w : grid.w_members) {
+        CHECK(w.expanded_volume);
+    }
+
+    grid.clear_waters();
+
+    for (unsigned int i = 0; i < axes.x.bins; i++) {
+        for (unsigned int j = 0; j < axes.y.bins; j++) {
+            for (unsigned int k = 0; k < axes.z.bins; k++) {
+                auto index = grid.grid.index(i, j, k);
+                if (index != GridObj::EMPTY) {
+                    if (index == GridObj::A_CENTER || index == GridObj::A_AREA) {
+                        continue;
+                    }
+                    std::cout << "Failed on index " << i << ", " << j << ", " << k << " with " << index << std::endl;
+                    REQUIRE(false);
+                }
+            }
+        }
+    }
+}

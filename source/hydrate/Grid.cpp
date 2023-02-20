@@ -148,11 +148,31 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
 
 std::vector<Water> Grid::hydrate() {
     std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
 
+    std::cout << "after placement ";
+    unsigned int count = 0;
+    for (auto& w : w_members) {
+        if (w.expanded_volume) {
+            count++;
+        }
+    }
+    std::cout << count << "/" << placed_water.size() << " have been expanded" << std::endl;
+
+    water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
     std::cout << "Found " << placed_water.size() << " free locations." << std::endl;
     std::cout << "Goal is to place " << setting::grid::percent_water*a_members.size() << " water molecules." << std::endl;
-    return water_culler->cull(placed_water);
+
+    auto _d = water_culler->cull(placed_water);
+    // return water_culler->cull(placed_water);
+
+    count = 0;
+    for (auto& w : w_members) {
+        if (w.expanded_volume) {
+            count++;
+        }
+    }
+    std::cout << count << "/" << placed_water.size() << " have been expanded" << std::endl;
+    return _d;
 }
 
 std::vector<GridMember<Water>> Grid::find_free_locs() {
@@ -346,9 +366,9 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
     if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;}
 
     GridMember gm(atom, loc);
-    a_members.push_back(gm);
     grid.index(x, y, z) = GridObj::A_CENTER;
     if (expand) {expand_volume(gm);}
+    a_members.push_back(gm);
 
     return gm;
 }
@@ -364,9 +384,9 @@ GridMember<Water> Grid::add(const Water& water, bool expand) {
     }
 
     GridMember gm(water, loc);
-    w_members.push_back(gm);
     grid.index(x, y, z) = GridObj::H_CENTER;
     if (expand) {expand_volume(gm);}
+    w_members.push_back(gm);
 
     return gm;
 }
@@ -422,11 +442,10 @@ void Grid::remove(const Atom& atom) {
     }
 
     GridMember<Atom>& member = *pos;
-    const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
     a_members.erase(pos);
     deflate_volume(member);
-    grid.index(x, y, z) = GridObj::EMPTY;
+    grid.index(member.loc) = GridObj::EMPTY;
     volume--;
 }
 
@@ -437,11 +456,10 @@ void Grid::remove(const Water& water) {
     }
 
     GridMember<Water>& member = *pos;
-    const int x = member.loc.x(), y = member.loc.y(), z = member.loc.z();
 
     w_members.erase(pos);
     deflate_volume(member);
-    grid.index(x, y, z) = GridObj::EMPTY;
+    grid.index(member.loc) = GridObj::EMPTY;
 }
 
 void Grid::remove(const std::vector<Atom>& atoms) {
@@ -480,23 +498,23 @@ void Grid::remove(const std::vector<Atom>& atoms) {
 
 void Grid::remove(const std::vector<Water>& waters) {
     // we make a map and fill it with the uids that should be removed
-    std::unordered_map<unsigned int, bool> removed;
-    std::for_each(waters.begin(), waters.end(), [&removed] (const Water& water) {removed[water.uid] = true;});
+    std::unordered_map<unsigned int, bool> to_remove_id;
+    std::for_each(waters.begin(), waters.end(), [&to_remove_id] (const Water& water) {to_remove_id[water.uid] = true;});
 
-    size_t index = 0; // current index in removed_waters
-    std::vector<GridMember<Water>> removed_waters(waters.size()); // the waters which will be removed
-    auto predicate = [&removed, &removed_waters, &index] (const GridMember<Water>& gm) {
-        if (removed.contains(gm.atom.uid)) { // now we can simply look up in our removed vector to determine if an element should be removed
-            removed_waters[index++] = gm;
+    unsigned int index = 0; // current index in removed_waters
+    std::vector<GridMember<Water>> to_remove(waters.size()); // the waters which will be removed
+    auto predicate = [&to_remove_id, &to_remove, &index] (const GridMember<Water>& gm) {
+        if (to_remove_id.contains(gm.atom.uid)) { // now we can simply look up in our removed vector to determine if an element should be removed
+            to_remove[index++] = gm;
             return true;
         }
         return false;
     };
 
     // we save the sizes so we can make a sanity check after the removal    
-    size_t prev_size = w_members.size();
+    unsigned int prev_size = w_members.size();
     w_members.remove_if(predicate);
-    size_t cur_size = w_members.size();
+    unsigned int cur_size = w_members.size();
 
     // sanity check
     if (prev_size - cur_size != waters.size()) [[unlikely]] {
@@ -504,9 +522,9 @@ void Grid::remove(const std::vector<Water>& waters) {
     }
 
     // clean up the grid
-    for (auto& atom : removed_waters) {
-        deflate_volume(atom);
-        grid.index(atom.loc) = GridObj::EMPTY;
+    for (auto& water : to_remove) {
+        deflate_volume(water);
+        grid.index(water.loc) = GridObj::EMPTY;
     }
 }
 
@@ -524,15 +542,15 @@ void Grid::deflate_volume() {
 void Grid::deflate_volume(GridMember<Atom>& atom) {
     if (!atom.expanded_volume) {return;} // check if this location has already been deflated
 
-    atom.expanded_volume = false; // mark this location as deflated
+    atom.expanded_volume = false; // mark the water as deflated
     deflate_volume(atom.loc, false); // do the deflation
 }
 
 void Grid::deflate_volume(GridMember<Water>& water) {
     if (!water.expanded_volume) {return;} // check if this location has already been deflated
 
-    water.expanded_volume = false; // mark this location as deflated
-    deflate_volume(water.loc, true); // do the deflated
+    water.expanded_volume = false; // mark the water as deflated
+    deflate_volume(water.loc, true); // do the deflation
 }
 
 void Grid::deflate_volume(const Vector3<int>& loc, bool is_water) {
@@ -552,7 +570,7 @@ void Grid::deflate_volume(const Vector3<int>& loc, bool is_water) {
         for (int j = ym; j < yp; j++) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
-                if (std::sqrt(std::pow(loc.x() - i, 2) + std::pow(loc.y() - j, 2) + std::pow(loc.z() - k, 2)) <= r) {
+                if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
                     if (grid.index(i, j, k) == GridObj::EMPTY) {continue;} // skip if bin is empty
                     grid.index(i, j, k) = GridObj::EMPTY;
                     removed_volume++;
@@ -572,7 +590,6 @@ void Grid::deflate_volume(const Vector3<int>& loc, bool is_water) {
 void Grid::clear_waters() {
     std::vector<Water> waters;
     waters.reserve(w_members.size());
-
     std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.atom);});
     remove(waters);
     if (w_members.size() != 0) [[unlikely]] {throw except::unexpected("Grid::clear_waters: Something went wrong.");}
