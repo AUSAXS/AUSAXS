@@ -18,5 +18,5 @@ struct BodySplitter {
      * 
      * @param protein The protein to be constrained. 
      */
-    static std::vector<Constraint> sequential_constraints(const Protein& protein);
+    static std::vector<rigidbody::Constraint> sequential_constraints(const Protein& protein);
 };

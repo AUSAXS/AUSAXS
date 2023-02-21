@@ -342,23 +342,23 @@ TEST_CASE("generate_sequential_constraints", "[body],[files]") {
     setting::general::verbose = false;
     vector<int> splits = {9, 99};
     Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
-    vector<Constraint> constraints = BodySplitter::sequential_constraints(protein);
+    vector<rigidbody::Constraint> constraints = BodySplitter::sequential_constraints(protein);
 
     REQUIRE(constraints.size() == 2);
 
     // check first constraint
-    Constraint& c1 = constraints[0];
-    REQUIRE(c1.atom1->name == "CA");
-    REQUIRE(c1.atom1->serial == 131);
-    REQUIRE(c1.atom2->name == "CA");
-    REQUIRE(c1.atom2->serial == 138);
+    rigidbody::Constraint& c1 = constraints[0];
+    REQUIRE(c1.get_atom1().name == "CA");
+    REQUIRE(c1.get_atom1().serial == 131);
+    REQUIRE(c1.get_atom2().name == "CA");
+    REQUIRE(c1.get_atom2().serial == 138);
 
     // check second constraint
-    Constraint& c2 = constraints[1];
-    REQUIRE(c2.atom1->name == "CA");
-    REQUIRE(c2.atom1->serial == 809);
-    REQUIRE(c2.atom2->name == "CA");
-    REQUIRE(c2.atom2->serial == 814);
+    rigidbody::Constraint& c2 = constraints[1];
+    REQUIRE(c2.get_atom1().name == "CA");
+    REQUIRE(c2.get_atom1().serial == 809);
+    REQUIRE(c2.get_atom2().name == "CA");
+    REQUIRE(c2.get_atom2().serial == 814);
 }
 
 TEST_CASE("copy") {

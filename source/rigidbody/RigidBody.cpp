@@ -5,11 +5,13 @@
 #include <rigidbody/SequentialSelect.h>
 #include <rigidbody/SimpleParameterGeneration.h>
 #include <rigidbody/RandomSelect.h>
-#include <fitter/LinearFitter.h>
+#include <rigidbody/ConstrainedFitter.h>
 #include <utility/Exceptions.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <io/XYZWriter.h>
+
+using namespace rigidbody;
 
 RigidBody::RigidBody(Protein& protein) : protein(protein) {
     // Set body transformation strategy
@@ -46,7 +48,8 @@ RigidBody::RigidBody(Protein& protein) : protein(protein) {
 #include <sstream>
 void RigidBody::optimize(std::string measurement_path) {
     protein.generate_new_hydration();
-    HydrationFitter fitter(measurement_path, protein.get_histogram());
+    fitter::ConstrainedFitter fitter(measurement_path, protein.get_histogram());
+    fitter.set_constraints(std::move(constraints));
     double best_chi2 = fitter.fit()->fval;
 
     if (setting::general::verbose) {
@@ -133,56 +136,53 @@ void RigidBody::optimize(std::string measurement_path) {
     protein.save(setting::general::output + "optimized.pdb");
 }
 
-void RigidBody::generate_new_hydration() {
-    protein.generate_new_hydration();
-}
+void RigidBody::generate_simple_constraints() {
+    if (setting::general::verbose) {utility::print_info("Generating simple constraints for rigid body optimization.");}
+    for (unsigned int ibody1 = 0; ibody1 < protein.bodies.size(); ibody1++) {
+        for (unsigned int ibody2 = 0; ibody2 < protein.bodies.size(); ibody2++) {
+            if (ibody1 == ibody2) {continue;}
+            const Body& body1 = protein.body(ibody1);
+            const Body& body2 = protein.body(ibody2);
 
-void RigidBody::add_constraint(const Constraint& constraint) {
-    constraints.push_back(constraint);
-}
+            double min_dist = std::numeric_limits<double>::max();
+            unsigned int min_atom1 = 0, min_atom2 = 0;
+            for (unsigned int iatom1 = 0; iatom1 < body1.atoms().size(); iatom1++) {
+                const Atom& atom1 = body1.atoms(iatom1);
+                for (unsigned int iatom2 = 0; iatom2 < body2.atoms().size(); iatom2++) {
+                    const Atom& atom2 = body2.atoms(iatom2);
+                    if (atom1.name == constants::symbols::carbon && atom2.name == constants::symbols::carbon) {
+                        double dist = atom1.distance(atom2);
+                        if (dist < min_dist) {
+                            min_dist = dist;
+                            min_atom1 = iatom1;
+                            min_atom2 = iatom2;
+                        }
+                    }
+                }
+            }
 
-void RigidBody::create_constraint(const Atom* const atom1, const Atom* const atom2, const Body* const body1, const Body* const body2) {
-    Constraint constraint(atom1, atom2, body1, body2);
-    add_constraint(constraint);
-}
+            // check if the bodies are close enough for a constraint to make sense
+            if (min_dist > 4) {continue;} 
+            rigidbody::Constraint constraint(&protein, ibody2, ibody2, min_atom1, min_atom2);
+            add_constraint(std::move(constraint));
 
-void RigidBody::create_constraint(const Atom* const atom1, const Atom* const atom2) {
-    auto[body1, body2] = find_host_bodies(atom1, atom2);
-    create_constraint(atom1, atom2, std::move(body1), std::move(body2));
-}
-
-std::pair<const Body*, const Body*> RigidBody::find_host_bodies(const Atom* const atom1, const Atom* const atom2) const noexcept(false) {
-    const Body *body1 = nullptr, *body2 = nullptr;
-    const Atom a1 = *atom1; const Atom a2 = *atom2;
-    for (const auto& body : protein.bodies) {
-        for (const auto& atom : body.atoms()) {
-            if (a1 == atom) {
-                body1 = &body;
-                break; // a1 and a2 *must* be from different bodies, so we break
-            } else if (a2 == atom) {
-                body2 = &body;
-                break; // same
+            if (setting::general::verbose) {
+                std::cout << "Constraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
             }
         }
     }
-
-    // check that both b1 and b2 were found
-    if (body1 == nullptr || body2 == nullptr) {
-        throw except::invalid_argument("RigidBody::create_constraint: Could not determine host bodies for the two atoms.");
-    }
-
-    return std::make_pair(body1, body2);
+    
 }
 
-void RigidBody::create_constraint(const Atom& atom1, const Atom& atom2) {
-    create_constraint(&atom1, &atom2);
+void RigidBody::add_constraint(const rigidbody::Constraint& constraint) {
+    constraints.push_back(constraint);
 }
 
-void RigidBody::create_constraint(const Atom& atom1, const Atom& atom2, const Body& body1, const Body& body2) {
-    create_constraint(&atom1, &atom2, &body1, &body2);
+void RigidBody::add_constraint(rigidbody::Constraint&& constraint) {
+    constraints.push_back(std::move(constraint));
 }
 
-double RigidBody::chi2(HydrationFitter& fitter) const {
+double RigidBody::chi2(fitter::HydrationFitter& fitter) const {
     std::shared_ptr<Fit> result = fitter.fit();
     return result->fval;
 }

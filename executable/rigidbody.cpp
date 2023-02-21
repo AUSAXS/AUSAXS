@@ -39,9 +39,9 @@ int main(int argc, char const *argv[]) {
     RigidBody body(protein);
 
     protein.save(setting::general::output + "initial.pdb");
-    body.optimize(input_measurement);
+    body.optimize(input_measurement);    
     protein.save(setting::general::output + "optimized.pdb");
-    HydrationFitter fitter(input_measurement, protein.get_histogram());
+    fitter::HydrationFitter fitter(input_measurement, protein.get_histogram());
     auto res = fitter.fit();
     FitReporter::report(res);
     FitReporter::save(res, setting::general::output + "fit.txt");

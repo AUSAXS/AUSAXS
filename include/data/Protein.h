@@ -206,6 +206,9 @@ class Protein {
 		 */
 		void center();
 
+		Body& body(unsigned int index);
+		const Body& body(unsigned int index) const;
+
 		/**
 		 * @brief Get a copy of all constituent atoms from the underlying bodies.
 		 *        Complexity: O(n)

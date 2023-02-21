@@ -7,6 +7,8 @@
 #include <mini/all.h>
 #include <plots/all.h>
 
+using namespace fitter;
+
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
@@ -86,7 +88,7 @@ SimpleDataset HydrationFitter::plot_residuals() {
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
-double HydrationFitter::chi2(std::vector<double> params) {
+double HydrationFitter::chi2(const std::vector<double>& params) {
     double c = params[0];
 
     // apply c

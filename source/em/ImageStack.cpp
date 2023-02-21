@@ -4,6 +4,7 @@
 #include <plots/all.h>
 
 using namespace em;
+using namespace fitter;
 
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
     Limit lim = {from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max)};

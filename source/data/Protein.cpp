@@ -318,7 +318,7 @@ void Protein::bind_body_signallers() {
 
 std::shared_ptr<Fit> Protein::fit(std::string measurement) {
     hist::ScatteringHistogram h = get_histogram();
-    HydrationFitter fitter(measurement, h);
+    fitter::HydrationFitter fitter(measurement, h);
     return fitter.fit();
 }
 
@@ -385,3 +385,6 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
         body.atoms() = std::move(new_atoms);
     }
 }
+
+Body& Protein::body(unsigned int index) {return bodies[index];}
+const Body& Protein::body(unsigned int index) const {return bodies[index];}

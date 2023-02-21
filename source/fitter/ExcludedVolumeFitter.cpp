@@ -7,6 +7,8 @@
 #include <mini/all.h>
 #include <plots/all.h>
 
+using namespace fitter;
+
 ExcludedVolumeFitter::ExcludedVolumeFitter(std::string input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein) {
     HydrationFitter hfit(input, protein.get_histogram());
     auto hres = hfit.fit();
@@ -55,7 +57,7 @@ SimpleDataset ExcludedVolumeFitter::plot_residuals() {
     return HydrationFitter::plot_residuals();
 }
 
-double ExcludedVolumeFitter::chi2(std::vector<double> params) {
+double ExcludedVolumeFitter::chi2(const std::vector<double>& params) {
     update_excluded_volume(params[1]);
     return HydrationFitter::chi2(params);
 }

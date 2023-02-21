@@ -43,10 +43,10 @@ Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
     return Protein(bodies);
 }
 
-std::vector<Constraint> BodySplitter::sequential_constraints(const Protein& protein) {
+std::vector<rigidbody::Constraint> BodySplitter::sequential_constraints(const Protein& protein) {
     const std::vector<Body>& bodies = protein.bodies;
 
-    std::vector<Constraint> constraints(bodies.size()-1);
+    std::vector<rigidbody::Constraint> constraints(bodies.size()-1);
     for (unsigned int i = 0; i < protein.bodies.size()-1; i++) {
         const Body &body1 = bodies[i], &body2 = bodies[i+1]; 
 
@@ -79,7 +79,7 @@ std::vector<Constraint> BodySplitter::sequential_constraints(const Protein& prot
         if (res1 == -1 || res2 == -1) {
             throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
         }
-        constraints[i] = Constraint(&body1.atoms(index1), &body2.atoms(index2), &body1, &body2);
+        constraints[i] = rigidbody::Constraint(&protein, i, i+1, index1, index2);
     }
     return constraints;
 }

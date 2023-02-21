@@ -8,6 +8,8 @@
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
 
+using namespace rigidbody;
+
 TEST_CASE("Constraints") {
     Atom a1(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
     Atom a2(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
@@ -22,33 +24,33 @@ TEST_CASE("Constraints") {
     Body b2(std::vector<Atom>{a3, a4});
     Body b3(std::vector<Atom>{a5, a6});
     Body b4(std::vector<Atom>{a7, a8});
-    vector<Body> ap = {b1, b2, b3, b4};
+    std::vector<Body> ap = {b1, b2, b3, b4};
     Protein protein(ap);
 
     RigidBody rigidbody(protein);
     
     SECTION("Invalid constraints") {
-        REQUIRE_THROWS(rigidbody.create_constraint(a1, a2)); // same body
-        REQUIRE_THROWS(rigidbody.create_constraint(a6, a8)); // non-C
+        REQUIRE_THROWS(Constraint(&protein, a1, a2)); // same body
+        REQUIRE_THROWS(Constraint(&protein, a6, a8)); // non-C
     }
 
     SECTION("Check construction") {
-        rigidbody.create_constraint(a1, a3);
+        Constraint c(&protein, a1, a3);
 
-        REQUIRE(*rigidbody.constraints[0].atom1 == a1);
-        REQUIRE(*rigidbody.constraints[0].atom2 == a3);
-        REQUIRE(rigidbody.constraints[0].body1->uid == protein.bodies[0].uid);
-        REQUIRE(rigidbody.constraints[0].body2->uid == protein.bodies[1].uid);
+        REQUIRE(c.iatom1 == 0);
+        REQUIRE(c.iatom2 == 0);
+        REQUIRE(c.ibody1 == 0);
+        REQUIRE(c.ibody2 == 1);
     }
 
     SECTION("get_connections") {
         RigidTransform transform(&rigidbody);
-        Constraint constraint1(&a1, &a3, &b1, &b2);
-        Constraint constraint2(&a5, &a7, &b3, &b4);
+        Constraint constraint1(&protein, a1, a3);
+        Constraint constraint2(&protein, a5, a7);
         rigidbody.add_constraint(constraint1);
         rigidbody.add_constraint(constraint2);
 
-        vector<Body*> group = transform.get_connected(constraint1);
+        std::vector<Body*> group = transform.get_connected(constraint1);
         REQUIRE(group.size() == 1);
         REQUIRE(*group[0] == b1);
 
@@ -56,14 +58,14 @@ TEST_CASE("Constraints") {
         REQUIRE(group.size() == 1);
         REQUIRE(*group[0] == b3);
 
-        Constraint constraint3(&a3, &a5, &b2, &b3);
+        Constraint constraint3(&protein, a3, a5);
         rigidbody.add_constraint(constraint3);
         group = transform.get_connected(constraint3);
         REQUIRE(group.size() == 2);
         REQUIRE(*group[0] == b1);
         REQUIRE(*group[1] == b2);
 
-        Constraint constraint4(&a1, &a7, &b1, &b4);
+        Constraint constraint4(&protein, a1, a7);
         rigidbody.add_constraint(constraint4);
         group = transform.get_connected(constraint3);
         REQUIRE(group.size() == 4);
@@ -78,7 +80,7 @@ TEST_CASE("can_reuse_fitter", "[files]") {
     protein_LAR12.generate_new_hydration();
 
     SECTION("intensity_fitter") {
-        HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
+        fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -91,7 +93,7 @@ TEST_CASE("can_reuse_fitter", "[files]") {
     }
 
     SECTION("simple_intensity_fitter") {
-        LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
+        fitter::LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
         fitter.set_scattering_hist(protein_LAR12.get_histogram());
@@ -107,7 +109,7 @@ TEST_CASE("can_reuse_fitter", "[files]") {
 TEST_CASE("can_repeat_fit") {
     setting::general::verbose = false;
     Protein protein("test/files/2epe.pdb");
-    LinearFitter fitter("test/files/2epe.dat", protein.get_histogram());
+    fitter::LinearFitter fitter("test/files/2epe.dat", protein.get_histogram());
 
     protein.generate_new_hydration();
     double chi2 = fitter.fit()->fval;
@@ -121,21 +123,21 @@ TEST_CASE("can_repeat_fit") {
 
 TEST_CASE("rigidbody_opt", "[manual]") {
     setting::general::verbose = false;
-    vector<int> splits = {9, 99};
+    std::vector<int> splits = {9, 99};
     Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
     RigidBody rbody(protein);
-    rbody.generate_new_hydration();
+    protein.generate_new_hydration();
 
-    HydrationFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());
+    fitter::HydrationFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());
     fitter.fit()->fval;
 }
 
 TEST_CASE("body_selectors") {
-    vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    vector<vector<Atom>> atoms = {b1, b2, b3, b4};
+    std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+    std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+    std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+    std::vector<std::vector<Atom>> atoms = {b1, b2, b3, b4};
     Protein protein(atoms, {});
 
     std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(protein);
@@ -163,7 +165,7 @@ TEST_CASE("iteration_step") {
         protein.generate_new_hydration();
 
         // fit the protein
-        HydrationFitter fitter("test/files/2epe.dat", protein.get_histogram());
+        fitter::HydrationFitter fitter("test/files/2epe.dat", protein.get_histogram());
         auto chi2 = fitter.fit()->fval;
 
         Body&                 body = protein.bodies.at(0);
@@ -290,7 +292,7 @@ TEST_CASE("iteration_step") {
         Body b2(std::vector<Atom>{a3, a4});
         Body b3(std::vector<Atom>{a5, a6});
         Body b4(std::vector<Atom>{a7, a8});
-        vector<Body> ap = {b1, b2, b3, b4};
+        std::vector<Body> ap = {b1, b2, b3, b4};
         Protein protein(ap);
         Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 40), 1);
         grid.add(protein.atoms());
@@ -315,7 +317,7 @@ TEST_CASE("iteration_step_old", "[broken]") {
     Grid oldgrid = *protein.get_grid();
 
     // fit the protein
-    HydrationFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
+    fitter::HydrationFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
     auto chi2 = fitter.fit()->fval;
 
     // remove the first body

@@ -83,9 +83,9 @@ int main(int argc, char const *argv[]) {
     // hist::ScatteringHistogram h = protein.get_histogram();
     // plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
 
-    std::shared_ptr<HydrationFitter> fitter;
-    if (fit_excluded_volume) {fitter = std::make_shared<ExcludedVolumeFitter>(mfile, protein);}
-    else {fitter = std::make_shared<HydrationFitter>(mfile, protein.get_histogram());}
+    std::shared_ptr<fitter::HydrationFitter> fitter;
+    if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
+    else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
     std::shared_ptr<Fit> result = fitter->fit();
     FitReporter::report(result);
     FitReporter::save(result, output + "report.txt");

@@ -24,7 +24,7 @@ TEST_CASE("simulate_dataset") {
     Protein protein("test/files/2epe.pdb");
     SimpleDataset data = protein.simulate_dataset();
 
-    LinearFitter fitter(data, protein.get_histogram());
+    fitter::LinearFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot1(res);

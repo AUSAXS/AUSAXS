@@ -2,6 +2,8 @@
 
 #include <vector>
 
+using namespace rigidbody;
+
 Parameters::Parameters(const Protein& protein) : params(protein.bodies.size()) {
     const std::vector<Body>& bodies = protein.bodies;
     for (unsigned int i = 0; i < params.size(); i++) {

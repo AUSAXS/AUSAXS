@@ -47,7 +47,7 @@ TEST_CASE("excluded_volume") {
         std::string mfile = "test/files/2epe.dat";
         Protein protein("test/files/2epe.pdb");
 
-        HydrationFitter fitter(mfile, protein.get_histogram());
+        fitter::HydrationFitter fitter(mfile, protein.get_histogram());
         auto fit1 = fitter.fit();
 
         protein.update_effective_charge(1.2);

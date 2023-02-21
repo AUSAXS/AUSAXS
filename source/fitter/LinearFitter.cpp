@@ -8,6 +8,8 @@
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 
+using namespace fitter;
+
 LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
     model_setup(model, limits);
 }
@@ -104,7 +106,7 @@ void LinearFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
     this->h = h;
 }
 
-double LinearFitter::chi2(std::vector<double>) {
+double LinearFitter::chi2(const std::vector<double>&) {
     throw except::invalid_operation("LinearFitter::chi2: Not implemented.");
     // vector<double> ym = h.calc_debye_scattering_intensity().get("I");
     // vector<double> Im = splice(ym);

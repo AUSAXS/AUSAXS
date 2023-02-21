@@ -5,7 +5,7 @@
 #include <string.h>
 #include <vector>
 
-plots::PlotIntensityFit::PlotIntensityFit(LinearFitter& fitter) : Plot() {
+plots::PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot() {
     auto graphs = fitter.plot();
     plot(graphs);
 }

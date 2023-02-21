@@ -3,6 +3,8 @@
 
 #include <vector>
 
+using namespace rigidbody;
+
 std::vector<Body*> TransformationStrategy::get_connected(const Constraint& pivot) const {
     const std::vector<Constraint>& constraints = protein->constraints;  // easy access to the set of all constraints
     std::unordered_map<size_t, size_t> group;                           // a map of body uids to group ids
@@ -24,8 +26,8 @@ std::vector<Body*> TransformationStrategy::get_connected(const Constraint& pivot
         }
 
         // get the current group id of each body from the constraint
-        unsigned int id1 = group.at(constraint.body1->uid);
-        unsigned int id2 = group.at(constraint.body2->uid);
+        unsigned int id1 = group.at(constraint.get_body1().uid);
+        unsigned int id2 = group.at(constraint.get_body2().uid);
 
         // if they are not already in the same group, we merge their groups
         if (group.at(id1) != group.at(id2)) {
@@ -43,7 +45,7 @@ std::vector<Body*> TransformationStrategy::get_connected(const Constraint& pivot
     }
 
     // get the id of the pivot, and return a vector of all bodies from the same group
-    unsigned int id = group.at(pivot.body1->uid);
+    unsigned int id = group.at(pivot.get_body1().uid);
     std::vector<Body*> connected;
     for(auto& body : protein->protein.bodies) {
         if (group.at(body.uid) == id) {

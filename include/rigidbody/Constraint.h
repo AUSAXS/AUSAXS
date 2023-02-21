@@ -2,88 +2,113 @@
 
 #include <data/Atom.h>
 #include <data/Body.h>
-#include <utility/Exceptions.h>
-#include <utility/Constants.h>
 
 #include <memory>
 
-/**
- * @brief \class Constraint. 
- * 
- * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
- * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 
- * constrained atoms. 
- */
-class Constraint {
-    public: 
-        /**
-         * @brief Default constructor.
-         */
-        Constraint() {}
+class Protein;
 
-        /**
-         * @brief Constructor. 
-         * 
-         * Create a new constraint between a pair of atoms. 
-         * 
-         * @param atom1 
-         * @param atom2 
-         * @param body1 
-         * @param body2 
-         */
-        Constraint(const Atom* atom1, const Atom* atom2, const Body* body1, const Body* body2) 
-            : atom1(atom1), atom2(atom2), body1(body1), body2(body2) {
+namespace rigidbody {
+    namespace detail {
+        struct AtomLoc {int body, atom;};
+    }
 
-            // we only want to allow constraints between the backbone C-alpha structure
-            if (atom1->element != constants::symbols::carbon || atom2->element != constants::symbols::carbon) {
-                throw except::invalid_argument("Constraint::Constraint: Constraints only makes sense between the carbon-atoms of the backbone!");
-            }
 
-            // constraints within the same body doesn't make sense
-            if (body1->uid == body2->uid) {
-                throw except::invalid_argument("Constraint::Constraint: Cannot create a constraint between atoms in the same body!");
-            }
+    /**
+     * @brief \class Constraint. 
+     * 
+     * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
+     * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 
+     * constrained atoms. 
+     */
+    class Constraint {
+        public: 
+            /**
+             * @brief Default constructor.
+             */
+            Constraint() {}
 
-            // set the base radius and perform a sanity check
-            r_base = atom1->distance(*atom2);
-            if (r_base > 4) {
-                throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");
-            }
+            /**
+             * @brief Create a new constraint between a pair of atoms.
+             * 
+             * We use indexes since the bodies and atoms may change during the optimization.
+             * Thus to use a constraint, the order of the bodies and atoms cannot change. 
+             * 
+             * Complexity: O(1)
+             * 
+             * @param protein The protein this constraint belongs to.
+             * @param ibody1 The index of the first body.
+             * @param ibody2 The index of the second body.
+             * @param iatom1 The index of the first atom in the first body.
+             * @param iatom2 The index of the second atom in the second body.
+             */
+            Constraint(const Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
-            // set the unique identifier. we will probably never deal with more than 1e6 atoms, so this should be unique
-            uid = uid_counter++;
-        }
+            /**
+             * @brief Create a new constraint between a pair of atoms.
+             * 
+             * Complexity: O(n) where n is the number of atoms in the protein.
+             * 
+             * @param protein The protein this constraint belongs to.
+             * @param atom1 The first atom.
+             * @param atom2 The second atom.
+             */
+            Constraint(const Protein* protein, const Atom& atom1, const Atom& atom2);
 
-        /**
-         * @brief Evaluate this constraint for the current positions. 
-         */
-        double evaluate() {return transform(r_base - atom1->distance(*atom2));}
+            /**
+             * @brief Evaluate this constraint for the current positions. 
+             * 
+             * @return The chi2 contribution of this constraint.
+             */
+            double evaluate() const;
 
-        /**
-         * @brief Check if a constraint is identical to this object. 
-         * 
-         * @param constraint The constraint to be checked for equality. 
-         */
-        bool operator==(const Constraint& constraint) const {
-            return atom1 == constraint.atom1 && atom2 == constraint.atom2;
-        }
+            /**
+             * @brief Get the first atom of this constraint. 
+             */
+            const Atom& get_atom1() const;
 
-        /**
-         * @brief Transforms a distance into a proper constraint for least-squares fitting. 
-         * 
-         * @param offset The radial offset between the new and original positions. 
-         */
-        static double transform(double offset) {
-            return offset*offset*offset*offset;
-        }
+            /**
+             * @brief Get the second atom of this constraint. 
+             */
+            const Atom& get_atom2() const;
 
-        unsigned int uid;  // Unique identifier for this constraint. 
-        double r_base;     // The normal distance between the two atoms. 
-        const Atom* atom1; // The first atom. 
-        const Atom* atom2; // The second atom. 
-        const Body* body1; // The first body.
-        const Body* body2; // The second body.
+            /**
+             * @brief Get the first body of this constraint. 
+             */
+            const Body& get_body1() const;
 
-    private: 
-        static inline unsigned int uid_counter = 0; 
-};
+            /**
+             * @brief Get the second body of this constraint. 
+             */
+            const Body& get_body2() const;
+
+            /**
+             * @brief Check if a constraint is identical to this object. 
+             * 
+             * @param constraint The constraint to be checked for equality. 
+             */
+            bool operator==(const Constraint& constraint) const;
+
+            /**
+             * @brief Transforms a distance into a proper constraint for least-squares fitting. 
+             * 
+             * @param offset The radial offset between the new and original positions. 
+             */
+            static double transform(double offset);
+
+            unsigned int uid;       // Unique identifier for this constraint. 
+            double r_base;          // The normal distance between the two atoms. 
+            const Protein* protein; // The protein this constraint belongs to.
+            unsigned int ibody1;    // The index of the first body.
+            unsigned int ibody2;    // The index of the second body.
+            unsigned int iatom1;    // The index of the first atom.
+            unsigned int iatom2;    // The index of the second atom.
+        private: 
+            static inline unsigned int uid_counter = 0; 
+
+            /**
+             * @brief Find the bodies containing the argument atoms.
+             *        This is linear in the total number of atoms. 
+             */
+            std::pair<detail::AtomLoc, detail::AtomLoc> find_host_bodies(const Atom& atom1, const Atom& atom2) const;
+    };
+}

@@ -22,7 +22,7 @@ namespace plots {
 			 * 
 			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
 			 */
-			PlotIntensityFitResiduals(LinearFitter& fitter);
+			PlotIntensityFitResiduals(fitter::LinearFitter& fitter);
 
 			/**
 			 * @brief Constructor.
