@@ -2,7 +2,7 @@
 
 #include <random>
 
-#include <rigidbody/ParameterGenerationStrategy.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>
 
 namespace rigidbody {
     /**

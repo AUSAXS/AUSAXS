@@ -106,3 +106,10 @@ const Body& Constraint::get_body1() const {
 const Body& Constraint::get_body2() const {
     return protein->body(ibody2);
 }
+
+std::string Constraint::print() const {
+    std::stringstream ss;
+    ss << "Constraint between (" << protein->body(ibody1).atoms(iatom1).serial << ", " << protein->body(ibody1).atoms(iatom1).name << ") and "
+                             "(" << protein->body(ibody2).atoms(iatom2).serial << ", " << protein->body(ibody2).atoms(iatom2).name << ")";
+    return ss.str();
+}

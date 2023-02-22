@@ -11,6 +11,11 @@
 #include <utility/Exceptions.h>
 #include <math/Vector.h>
 
+/**
+ * @brief Representation of a matrix. 
+ * 
+ * This class uses a single 1D array to efficiently store the data, and offers a variety of vector operations.
+ */
 template<numeric Q>
 class Matrix {
     public: 

@@ -3,9 +3,7 @@
 #include <math/slices/Slice.h>
 
 /**
- * @brief \class ConstSlice.
- * 
- * This class represents read-only slices.
+ * @brief A constant, read-only, slice of a Matrix.
  */
 template<numeric T>
 class ConstSlice : public Slice<T> {

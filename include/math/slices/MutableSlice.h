@@ -3,7 +3,7 @@
 #include <math/slices/Slice.h>
 
 /**
- * @brief A representation of a mutable slice of a Matrix. 
+ * @brief A mutable slice of a Matrix. 
  */
 template<numeric T>
 class MutableSlice : public Slice<T> {

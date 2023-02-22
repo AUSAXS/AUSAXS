@@ -1,4 +1,4 @@
-#include <rigidbody/Parameters.h>
+#include <rigidbody/parameters/Parameters.h>
 
 #include <vector>
 

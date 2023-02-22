@@ -2,7 +2,7 @@
 
 #include <random>
 
-#include <rigidbody/BodySelectStrategy.h>
+#include <rigidbody/selection/BodySelectStrategy.h>
 #include <data/Protein.h>
 
 namespace rigidbody {

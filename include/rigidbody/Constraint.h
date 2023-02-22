@@ -4,6 +4,7 @@
 #include <data/Body.h>
 
 #include <memory>
+#include <iostream>
 
 class Protein;
 
@@ -14,7 +15,7 @@ namespace rigidbody {
 
 
     /**
-     * @brief \class Constraint. 
+     * @brief Constraint. 
      * 
      * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
      * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 
@@ -94,6 +95,13 @@ namespace rigidbody {
              * @param offset The radial offset between the new and original positions. 
              */
             static double transform(double offset);
+
+            /**
+             * @brief Generate a string representation of this constraint.
+             */
+            std::string print() const;
+
+            friend std::ostream& operator<<(std::ostream& os, const Constraint& constraint) {os << constraint.print(); return os;}
 
             unsigned int uid;       // Unique identifier for this constraint. 
             double r_base;          // The normal distance between the two atoms. 

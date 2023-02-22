@@ -7,7 +7,7 @@ namespace rigidbody {
     class RigidBody;
 
     /**
-     * @brief \class TransformationStrategy. 
+     * @brief TransformationStrategy. 
      * 
      * This super-class defines the interface for the body transformation strategies for the rigid-body optimization. 
      * More specifically its implementations essentially specifies how other connected bodies are affected by a transformation. 

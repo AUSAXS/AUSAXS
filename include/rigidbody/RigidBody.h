@@ -4,9 +4,9 @@
 
 #include <data/Protein.h>
 #include <rigidbody/Constraint.h>
-#include <rigidbody/BodySelectStrategy.h>
-#include <rigidbody/TransformationStrategy.h>
-#include <rigidbody/ParameterGenerationStrategy.h>
+#include <rigidbody/selection/BodySelectStrategy.h>
+#include <rigidbody/transform/TransformationStrategy.h>
+#include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <fitter/HydrationFitter.h>
 
 namespace rigidbody {

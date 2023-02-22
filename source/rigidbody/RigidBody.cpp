@@ -1,10 +1,10 @@
 #include <Symbols.h>
 #include <rigidbody/RigidBody.h>
-#include <rigidbody/Parameters.h>
-#include <rigidbody/RigidTransform.h>
-#include <rigidbody/SequentialSelect.h>
-#include <rigidbody/SimpleParameterGeneration.h>
-#include <rigidbody/RandomSelect.h>
+#include <rigidbody/parameters/Parameters.h>
+#include <rigidbody/parameters/SimpleParameterGeneration.h>
+#include <rigidbody/transform/RigidTransform.h>
+#include <rigidbody/selection/SequentialSelect.h>
+#include <rigidbody/selection/RandomSelect.h>
 #include <rigidbody/ConstrainedFitter.h>
 #include <utility/Exceptions.h>
 #include <math/Matrix.h>
@@ -147,16 +147,16 @@ void RigidBody::generate_simple_constraints() {
             double min_dist = std::numeric_limits<double>::max();
             unsigned int min_atom1 = 0, min_atom2 = 0;
             for (unsigned int iatom1 = 0; iatom1 < body1.atoms().size(); iatom1++) {
+                if (body1.atoms(iatom1).name != constants::symbols::carbon) {continue;}
                 const Atom& atom1 = body1.atoms(iatom1);
                 for (unsigned int iatom2 = 0; iatom2 < body2.atoms().size(); iatom2++) {
                     const Atom& atom2 = body2.atoms(iatom2);
-                    if (atom1.name == constants::symbols::carbon && atom2.name == constants::symbols::carbon) {
-                        double dist = atom1.distance(atom2);
-                        if (dist < min_dist) {
-                            min_dist = dist;
-                            min_atom1 = iatom1;
-                            min_atom2 = iatom2;
-                        }
+                    if (atom2.name != constants::symbols::carbon) {continue;}
+                    double dist = atom1.distance(atom2);
+                    if (dist < min_dist) {
+                        min_dist = dist;
+                        min_atom1 = iatom1;
+                        min_atom2 = iatom2;
                     }
                 }
             }

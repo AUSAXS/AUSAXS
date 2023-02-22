@@ -8,7 +8,7 @@
 
 namespace rigidbody {
     /**
-     * @brief \struct Parameter. 
+     * @brief Parameter. 
      * 
      * A small structure for storing a single set of parameters. 
      */

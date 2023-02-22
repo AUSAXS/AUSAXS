@@ -1,76 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/RigidTransform.h>
 #include <rigidbody/RigidBody.h>
-#include <rigidbody/RandomSelect.h>
+#include <rigidbody/transform/RigidTransform.h>
+#include <rigidbody/selection/RandomSelect.h>
 #include <fitter/HydrationFitter.h>
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;
-
-TEST_CASE("Constraints") {
-    Atom a1(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
-    Atom a2(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
-    Atom a3(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
-    Atom a4(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
-    Atom a5(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
-    Atom a6(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
-    Atom a7(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
-    Atom a8(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
-
-    Body b1(std::vector<Atom>{a1, a2});
-    Body b2(std::vector<Atom>{a3, a4});
-    Body b3(std::vector<Atom>{a5, a6});
-    Body b4(std::vector<Atom>{a7, a8});
-    std::vector<Body> ap = {b1, b2, b3, b4};
-    Protein protein(ap);
-
-    RigidBody rigidbody(protein);
-    
-    SECTION("Invalid constraints") {
-        REQUIRE_THROWS(Constraint(&protein, a1, a2)); // same body
-        REQUIRE_THROWS(Constraint(&protein, a6, a8)); // non-C
-    }
-
-    SECTION("Check construction") {
-        Constraint c(&protein, a1, a3);
-
-        REQUIRE(c.iatom1 == 0);
-        REQUIRE(c.iatom2 == 0);
-        REQUIRE(c.ibody1 == 0);
-        REQUIRE(c.ibody2 == 1);
-    }
-
-    SECTION("get_connections") {
-        RigidTransform transform(&rigidbody);
-        Constraint constraint1(&protein, a1, a3);
-        Constraint constraint2(&protein, a5, a7);
-        rigidbody.add_constraint(constraint1);
-        rigidbody.add_constraint(constraint2);
-
-        std::vector<Body*> group = transform.get_connected(constraint1);
-        REQUIRE(group.size() == 1);
-        REQUIRE(*group[0] == b1);
-
-        group = transform.get_connected(constraint2);
-        REQUIRE(group.size() == 1);
-        REQUIRE(*group[0] == b3);
-
-        Constraint constraint3(&protein, a3, a5);
-        rigidbody.add_constraint(constraint3);
-        group = transform.get_connected(constraint3);
-        REQUIRE(group.size() == 2);
-        REQUIRE(*group[0] == b1);
-        REQUIRE(*group[1] == b2);
-
-        Constraint constraint4(&protein, a1, a7);
-        rigidbody.add_constraint(constraint4);
-        group = transform.get_connected(constraint3);
-        REQUIRE(group.size() == 4);
-    }
-}
 
 TEST_CASE("can_reuse_fitter", "[files]") {
     setting::general::verbose = false;

@@ -1,4 +1,4 @@
-#include <rigidbody/TransformationStrategy.h>
+#include <rigidbody/transform/TransformationStrategy.h>
 #include <rigidbody/RigidBody.h>
 
 #include <vector>

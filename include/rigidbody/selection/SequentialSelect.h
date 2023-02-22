@@ -2,11 +2,11 @@
 
 #include <random>
 
-#include <rigidbody/BodySelectStrategy.h>
+#include <rigidbody/selection/BodySelectStrategy.h>
 
 namespace rigidbody {
 	/**
-	 * @brief \class RandomSelect
+	 * @brief RandomSelect
 	 * 
 	 * This selection strategy randomly selects a Body. 
 	 */

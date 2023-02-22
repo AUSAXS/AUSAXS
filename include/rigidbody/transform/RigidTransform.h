@@ -5,11 +5,11 @@
 
 #include <data/Protein.h>
 #include <rigidbody/RigidBody.h>
-#include <rigidbody/TransformationStrategy.h>
+#include <rigidbody/transform/TransformationStrategy.h>
 
 namespace rigidbody {
     /**
-     * @brief \class RigidTransform. 
+     * @brief RigidTransform. 
      * 
      * With this transformation strategy, everything connected to the target of the transformation will be transformed as well. 
      */

@@ -10,7 +10,7 @@
 template<numeric T> class Vector;
 
 /**
- * @brief \class Slice
+ * @brief Slice
  * 
  * A Slice is a type of cut of a Matrix, typically either in the form of a single row or column. 
  * The idea with this class is to give mutable access to such a structure. 
@@ -52,7 +52,7 @@ class Slice {
 		/**
 		 * @brief Get the length of this Slice.
 		 */
-		size_t size() const noexcept {return length;}
+		unsigned int size() const noexcept {return length;}
 
         /**
          * @brief Cast this Slice into a Vector. 
