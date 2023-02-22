@@ -7,22 +7,22 @@ namespace rigidbody {
     class RigidBody;
 
     /**
-     * @brief TransformationStrategy. 
+     * @brief TransformStrategy. 
      * 
      * This super-class defines the interface for the body transformation strategies for the rigid-body optimization. 
      * More specifically its implementations essentially specifies how other connected bodies are affected by a transformation. 
      */
-    class TransformationStrategy {
+    class TransformStrategy {
         public:
             /**
              * @brief Construtor. 
              */
-            TransformationStrategy(const RigidBody* protein) : protein(protein) {}
+            TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
 
             /**
              * @brief Destructor.
              */
-            virtual ~TransformationStrategy() = default;
+            virtual ~TransformStrategy() = default;
 
             /**
              * @brief Rotate a body. 
@@ -30,7 +30,7 @@ namespace rigidbody {
              * @param angle The rotation angle in radians. 
              * @param body The body being rotated. 
              */
-            virtual void rotate(const double rad, Constraint& constraint) = 0;
+            virtual void rotate(double rad, Constraint& constraint) = 0;
 
             /**
              * @brief Translate a body. 
@@ -38,7 +38,7 @@ namespace rigidbody {
              * @param length The distance to translate. 
              * @param body The body being translated. 
              */
-            virtual void translate(const double length, Constraint& constraint) = 0;
+            virtual void translate(double length, Constraint& constraint) = 0;
 
             /**
              * @brief Get all bodies connected by constraints to the first body of the pivot. 
@@ -47,6 +47,6 @@ namespace rigidbody {
             std::vector<Body*> get_connected(const Constraint& pivot) const;
 
         protected: 
-        const RigidBody* protein;
+            RigidBody* rigidbody;
     };
 }

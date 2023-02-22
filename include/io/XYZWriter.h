@@ -30,9 +30,9 @@ namespace io {
             /**
              * @brief Write a frame to the file.
              */
-            void write_frame(const Protein& protein) {
+            void write_frame(const Protein* protein) {
                 static unsigned int frame = 0;
-                auto atoms = protein.atoms();
+                auto atoms = protein->atoms();
                 file << " " << atoms.size() << std::endl;
                 file << " Frame " << frame++ << std::endl;
                 for (const auto& atom : atoms) {

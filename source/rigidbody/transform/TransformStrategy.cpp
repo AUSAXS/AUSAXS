@@ -1,17 +1,17 @@
-#include <rigidbody/transform/TransformationStrategy.h>
+#include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/RigidBody.h>
 
 #include <vector>
 
 using namespace rigidbody;
 
-std::vector<Body*> TransformationStrategy::get_connected(const Constraint& pivot) const {
-    const std::vector<Constraint>& constraints = protein->constraints;  // easy access to the set of all constraints
+std::vector<Body*> TransformStrategy::get_connected(const Constraint& pivot) const {
+    const std::vector<Constraint>& constraints = rigidbody->constraints;  // easy access to the set of all constraints
     std::unordered_map<size_t, size_t> group;                           // a map of body uids to group ids
     std::unordered_map<size_t, std::list<const Body*>> group_members;   // a map of group ids to a list of its members
 
     // each body starts in its own group
-    std::for_each(protein->protein.bodies.begin(), protein->protein.bodies.end(), [&group, &group_members] (const Body& body) {
+    std::for_each(rigidbody->bodies.begin(), rigidbody->bodies.end(), [&group, &group_members] (const Body& body) {
         group[body.uid] = body.uid;
         group_members[body.uid] = {&body};
     });
@@ -47,7 +47,7 @@ std::vector<Body*> TransformationStrategy::get_connected(const Constraint& pivot
     // get the id of the pivot, and return a vector of all bodies from the same group
     unsigned int id = group.at(pivot.get_body1().uid);
     std::vector<Body*> connected;
-    for(auto& body : protein->protein.bodies) {
+    for(auto& body : rigidbody->bodies) {
         if (group.at(body.uid) == id) {
             connected.push_back(&body);
         }

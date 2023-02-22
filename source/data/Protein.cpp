@@ -13,6 +13,11 @@ Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydr
     bind_body_signallers();
 }
 
+Protein::Protein(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
+    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    bind_body_signallers();
+}
+
 Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
     phm = std::make_unique<PartialHistogramManagerMT>(this);
@@ -20,7 +25,7 @@ Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water
 }
 
 Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    for (size_t i = 0; i < protein_atoms.size(); i++) {
+    for (unsigned int i = 0; i < protein_atoms.size(); i++) {
         bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
     }
     phm = std::make_unique<PartialHistogramManagerMT>(this);
@@ -232,12 +237,12 @@ void Protein::clear_hydration() {
     signal_modified_hydration_layer();
 }
 
-size_t Protein::body_size() const {
+unsigned int Protein::body_size() const {
     return bodies.size();
 }
 
-size_t Protein::atom_size() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (size_t sum, const Body& body) {return sum + body.atoms().size();});
+unsigned int Protein::atom_size() const {
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (unsigned int sum, const Body& body) {return sum + body.atoms().size();});
 }
 
 std::vector<double> Protein::calc_debye_scattering_intensity() {

@@ -27,7 +27,7 @@ class Protein {
 		/**
 		 * @brief Copy constructor.
 		 */
-		Protein(const Protein&);
+		Protein(const Protein& protein);
 
 		/**
 		 * @brief Move constructor.
@@ -42,7 +42,16 @@ class Protein {
 		 * @param bodies The constituent bodies of this protein. 
 		 * @param hydration_atoms The hydration layer. 
 		 */
-		explicit Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms = {});
+		Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms = {});
+
+		/**
+		 * @brief Constructor.
+		 * 
+		 * Create a new protein based on a set of bodies.
+		 * 
+		 * @param bodies The constituent bodies of this protein. 
+		 */
+		explicit Protein(std::vector<Body>&& bodies);
 
 		/**
 		 * @brief Constructor.
@@ -53,7 +62,7 @@ class Protein {
 		 * @param protein_atoms The constituent atoms of this protein. 
 		 * @param hydration_atoms The hydration layer. 
 		 */
-		explicit Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
+		Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
 
 		/**
 		 * @brief Constructor. 
@@ -63,7 +72,7 @@ class Protein {
 		 * @param protein_atoms The constituent atoms of each body. 
 		 * @param hydration_atoms The hydration layer. 
 		 */
-		explicit Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
+		Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
 
 		/**
 		 * @brief Constructor. 
@@ -86,20 +95,20 @@ class Protein {
 		/**
 		 * @brief Get the distances between each atom.
 		 */
-		hist::ScatteringHistogram get_histogram();
+		[[nodiscard]] hist::ScatteringHistogram get_histogram();
 
 		/**
 		 * @brief Get the total distance histogram only. 
 		 *        This is a slightly faster alternative to get_histogram() when only the total histogram is needed. 
 		 */
-		hist::Histogram get_total_histogram();
+		[[nodiscard]] hist::Histogram get_total_histogram();
 
 		/**
 		 * @brief Simulate a SAXS dataset based on this protein.
 		 * 
 		 * @param add_noise Whether to add noise to the simulated dataset.
 		 */
-		SimpleDataset simulate_dataset(bool add_noise = true);
+		[[nodiscard]] SimpleDataset simulate_dataset(bool add_noise = true);
 
 		/** 
 		 * @brief Writes this body to disk.
@@ -116,26 +125,26 @@ class Protein {
 		 * 
 		 * @return The volume in Å^3.
 		 */
-		double get_volume_acids() const;
+		[[nodiscard]] double get_volume_acids() const;
 
 		/**
 		 * @brief Calculate the volume of this protein based on the number of grid bins it spans.
 		 * 
 		 * @return The volume in Å^3.
 		 */
-		double get_volume_grid();
+		[[nodiscard]] double get_volume_grid();
 
 		/**
 		 * @brief Calculate the volume of this protein based on the number of C-alpha atoms
 		 * 
 		 * @return The volume in Å^3.
 		 */
-		double get_volume_calpha() const;
+		[[nodiscard]] double get_volume_calpha() const;
 
 		/** 
 		 * @brief Calculate the center-mass coordinates.
 		 */
-		Vector3<double> get_cm() const;
+		[[nodiscard]] Vector3<double> get_cm() const;
 
 		/**
 		 * @brief Calculate the molar mass of this protein in Daltons.
@@ -162,23 +171,23 @@ class Protein {
 		/**
 		 * @brief Get the relative charge density. 
 		 */
-		double get_relative_charge_density();
+		[[nodiscard]] double get_relative_charge_density();
 
 		/**
 		 * @brief Get the relative mass density.
 		 */
-		double get_relative_mass_density();
+		[[nodiscard]] double get_relative_mass_density();
 
 		/**
 		 * @brief Get the relative charge.
 		 *        This is the total charge subtracted by the total charge of water of the same volume. 
 		 */
-		double get_relative_charge();
+		[[nodiscard]] double get_relative_charge();
 
 		/**
 		 * @brief Get the grid representation. 
 		 */
-		std::shared_ptr<Grid> get_grid();
+		[[nodiscard]] std::shared_ptr<Grid> get_grid();
 
 		/**
 		 * @brief Set the grid representation.
@@ -206,26 +215,35 @@ class Protein {
 		 */
 		void center();
 
-		Body& body(unsigned int index);
-		const Body& body(unsigned int index) const;
+		/**
+		 * @brief Get a reference to the body at the given index. 
+		 * 		  Complexity: O(1)
+		 */
+		[[nodiscard]] Body& body(unsigned int index);
+
+		/**
+		 * @brief Get a reference to the body at the given index. 
+		 * 		  Complexity: O(1)
+		 */
+		[[nodiscard]] const Body& body(unsigned int index) const;
 
 		/**
 		 * @brief Get a copy of all constituent atoms from the underlying bodies.
 		 *        Complexity: O(n)
 		 */
-		std::vector<Atom> atoms() const;
+		[[nodiscard]] std::vector<Atom> atoms() const;
 
 		/**
 		 * @brief Get a reference to the water molecules of this protein. 
 		 *        Complexity: O(1)
 		 */
-		std::vector<Water>& waters();
+		[[nodiscard]] std::vector<Water>& waters();
 
 		/**
 		 * @brief Get a reference to the water molecules of this protein. 
 		 *        Complexity: O(1)
 		 */
-		const std::vector<Water>& waters() const;
+		[[nodiscard]] const std::vector<Water>& waters() const;
 
 		/**
 		 * @brief Create a grid and fill it with the atoms of this protein. 
@@ -237,22 +255,22 @@ class Protein {
 		 *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
 		 *        create a ScatteringHistogram and call its equivalent method instead. 
 		 */
-		std::vector<double> calc_debye_scattering_intensity();
+		[[nodiscard]] std::vector<double> calc_debye_scattering_intensity();
 
 		/**
 		 * @brief Get the number of constituent bodies. 
 		 */
-		size_t body_size() const;
+		[[nodiscard]] unsigned int body_size() const;
 
 		/**
 		 * @brief Get the total number of constituent atoms, excluding hydration. 
 		 */
-		size_t atom_size() const;
+		[[nodiscard]] unsigned int atom_size() const;
 
 		/**
 		 * @brief Get the total number of constituent atoms, excluding hydration. Equivalent to \a body_size. 
 		 */    
-		size_t size() const {return atom_size();}
+		[[nodiscard]] unsigned int size() const {return atom_size();}
 
 		/**
 		 * @brief Bind the signaller objects in each body to the histogram manager. 
@@ -275,9 +293,12 @@ class Protein {
 		 * 
 		 * @param measurement Path to the measurement file to be fitted.
 		 */
-		std::shared_ptr<Fit> fit(std::string measurement);
+		[[nodiscard]] std::shared_ptr<Fit> fit(std::string measurement);
 
-		std::shared_ptr<hist::HistogramManager> get_histogram_manager() const;
+		/**
+		 * @brief Get the histogram manager of this protein.
+		 */
+		[[nodiscard]] std::shared_ptr<hist::HistogramManager> get_histogram_manager() const;
 
 		/**
 		 * @brief Signal that the hydration layer has been modified.
@@ -292,7 +313,7 @@ class Protein {
 		void update_effective_charge(double scaling = 1);
 
 		/**
-		 * @brief Create a new histogram manager of type \a T.
+		 * @brief Create and use a new histogram manager of type \a T.
 		 * 
 		 * @tparam T: Manager to create. Only the PartialHistogramManagerMT is intended for production. Options:
 		 *         - HistogramManager: A simple manager that recalculates the entire histogram every time.

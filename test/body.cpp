@@ -244,7 +244,7 @@ TEST_CASE("grid") {
     }
 
     SECTION("real data") {
-        Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+        Protein protein = rigidbody::BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
         unsigned int N = protein.atoms().size();
         auto grid = protein.get_grid();
         REQUIRE(grid->a_members.size() == N);

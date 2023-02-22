@@ -1,9 +1,10 @@
 #pragma once
 
 #include <rigidbody/Constraint.h>
-#include <data/Protein.h>
 
 namespace rigidbody {
+    class RigidBody;
+
     /**
      * @brief \class ConstraintSelectStrategy. 
      * 
@@ -15,7 +16,7 @@ namespace rigidbody {
             /**
              * @brief Construtor. 
              */
-            BodySelectStrategy(const Protein& protein) : protein(protein) {}
+            BodySelectStrategy(const RigidBody* rigidbody);
 
             /**
              * @brief Destructor.
@@ -25,9 +26,10 @@ namespace rigidbody {
             /**
              * @brief Get the index of the next body to be transformed. 
              */
-            virtual size_t next() = 0;
+            virtual unsigned int next() = 0;
 
         protected: 
-            const Protein& protein;
+            const RigidBody* rigidbody;
+            unsigned int N;
     };
 }

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <random>
-
 #include <rigidbody/selection/BodySelectStrategy.h>
-#include <data/Protein.h>
+
+#include <random>
 
 namespace rigidbody {
     /**
@@ -14,23 +13,17 @@ namespace rigidbody {
             /**
              * @brief Constructor.
              */
-            RandomSelect(const Protein& protein) : BodySelectStrategy(protein) {
-                std::random_device random;
-                generator = std::mt19937(random());
-                distribution = std::uniform_int_distribution<int>(0, protein.bodies.size()-1);
-            }
+            RandomSelect(const RigidBody* rigidbody);
 
             /**
              * @brief Destructor.
              */
-            ~RandomSelect() override = default;
+            ~RandomSelect() override;
 
             /**
              * @brief Get the index of the next body to be transformed. 
              */
-            size_t next() override {
-                return distribution(generator);
-            }
+            unsigned int next() override;
 
         private:
             std::mt19937 generator;                          // The random number generator. 

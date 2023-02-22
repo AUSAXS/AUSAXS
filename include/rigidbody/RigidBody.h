@@ -5,21 +5,20 @@
 #include <data/Protein.h>
 #include <rigidbody/Constraint.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
-#include <rigidbody/transform/TransformationStrategy.h>
+#include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <fitter/HydrationFitter.h>
 
 namespace rigidbody {
-	class RigidBody {
+	class RigidBody : private Protein {
 		public:
-			/**
-			 * @brief Construtor. 
-			 * 
-			 * Prepare a new rigid body for optimization. 
-			 * 
-			 * @param protein The protein to be optimized. 
-			 */
-			explicit RigidBody(Protein& protein);
+			friend TransformStrategy;
+			friend BodySelectStrategy;
+			friend ParameterGenerationStrategy;
+
+			explicit RigidBody(std::string input);
+
+			explicit RigidBody(std::vector<Body>&& bodies);
 
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
@@ -43,12 +42,11 @@ namespace rigidbody {
 			 */
 			void generate_simple_constraints();
 
-			Protein& protein;
 			std::vector<Constraint> constraints;
 
 		private:
 			std::unique_ptr<BodySelectStrategy> body_selector;
-			std::unique_ptr<TransformationStrategy> transform;
+			std::unique_ptr<TransformStrategy> transform;
 			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
 
 			/**

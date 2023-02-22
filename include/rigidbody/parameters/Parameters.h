@@ -1,11 +1,11 @@
 #pragma once
 
 #include <math/Vector3.h>
-#include <data/Protein.h>
 
 #include <unordered_map>
 #include <vector>
 
+class Protein;
 namespace rigidbody {
     /**
      * @brief Parameter. 
@@ -57,7 +57,7 @@ namespace rigidbody {
          * 
          * @param protein The protein to create this object for. 
          */
-        Parameters(const Protein& protein);
+        Parameters(const Protein* protein);
 
         /**
          * @brief Update the parameter set for a single body. 

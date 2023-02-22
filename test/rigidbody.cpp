@@ -63,7 +63,6 @@ TEST_CASE("rigidbody_opt", "[manual]") {
     setting::general::verbose = false;
     std::vector<int> splits = {9, 99};
     Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
-    RigidBody rbody(protein);
     protein.generate_new_hydration();
 
     fitter::HydrationFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());

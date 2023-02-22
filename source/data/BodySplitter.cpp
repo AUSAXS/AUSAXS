@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+using namespace rigidbody;
+
 Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
     Body body(input);
     std::vector<Atom>& atoms = body.atoms();
@@ -41,45 +43,4 @@ Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
     bodies[index_body] = Body(a);
 
     return Protein(bodies);
-}
-
-std::vector<rigidbody::Constraint> BodySplitter::sequential_constraints(const Protein& protein) {
-    const std::vector<Body>& bodies = protein.bodies;
-
-    std::vector<rigidbody::Constraint> constraints(bodies.size()-1);
-    for (unsigned int i = 0; i < protein.bodies.size()-1; i++) {
-        const Body &body1 = bodies[i], &body2 = bodies[i+1]; 
-
-        int res1 = body1.atoms().back().resSeq;
-        int res2 = body2.atoms()[0].resSeq;
-
-        unsigned int index1 = -1, index2 = -1;
-        for (unsigned int j = body1.atoms().size()-1; j > 0; j--) {
-            const Atom& atom = body1.atoms(j);
-            if (atom.resSeq != res1) [[unlikely]] { // sanity check
-                throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
-            }
-            if (atom.name == "CA") {
-                index1 = j;
-                break;
-            }
-        }
-        for (unsigned int j = 0; j < body2.atoms().size(); j++) {
-            const Atom& atom = body2.atoms(j);
-            if (atom.resSeq != res2) [[unlikely]] { // sanity check
-                throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
-            }
-            if (atom.name == "CA") {
-                index2 = j;
-                break;
-            }
-        }
-
-        // sanity check
-        if (res1 == -1 || res2 == -1) {
-            throw except::unexpected("BodySplitter::sequential_constrain: Could not find C-alpha atom.");
-        }
-        constraints[i] = rigidbody::Constraint(&protein, i, i+1, index1, index2);
-    }
-    return constraints;
 }
