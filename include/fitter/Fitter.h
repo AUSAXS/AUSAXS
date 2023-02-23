@@ -35,4 +35,6 @@ class Fitter {
         [[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const = 0;
 
         [[nodiscard]] virtual unsigned int dof() const = 0;
+
+        [[nodiscard]] virtual double chi2(const std::vector<double>& params) = 0;
 };

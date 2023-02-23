@@ -145,7 +145,7 @@ namespace fitter {
 			/**
 			 * @brief Calculate chi2 for a given choice of parameters @a params.
 			 */
-			[[nodiscard]] virtual double chi2(const std::vector<double>& params);
+			[[nodiscard]] virtual double chi2(const std::vector<double>& params) override;
 
 			/**
 			 * @brief Prepare this class for fitting.

@@ -11,6 +11,8 @@
 #include <math/MatrixUtils.h>
 #include <io/XYZWriter.h>
 
+#include <sstream>
+
 using namespace rigidbody;
 
 RigidBody::RigidBody(Protein&& protein) : Protein(std::move(protein)) {
@@ -53,10 +55,9 @@ void RigidBody::setup() {
     }
 }
 
-#include <sstream>
 void RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
-    fitter::ConstrainedFitter fitter(measurement_path, get_histogram());
+    fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
     fitter.set_constraints(std::move(constraints));
     double best_chi2 = fitter.fit()->fval;
 
@@ -66,12 +67,13 @@ void RigidBody::optimize(std::string measurement_path) {
     }
 
     Parameters params(this);
-    std::shared_ptr<Grid> grid = get_grid();
     io::XYZWriter writer(setting::general::output + "trajectory.xyz");
 
+    // save the best configuration so we can restore it after each failed attempt
+    std::shared_ptr<Grid> grid = get_grid();
     std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
     std::vector<Water> best_waters = waters();
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < setting::rigidbody::iterations; i++) {
         std::stringstream iteration_out;
         iteration_out << "\nIteration " << i << std::endl;
 
@@ -99,19 +101,6 @@ void RigidBody::optimize(std::string measurement_path) {
             body = std::move(old_body); // restore the old body
             *grid = *best_grid;         // restore the old grid
             waters() = best_waters;     // restore the old waters
-
-            // DEBUG //
-            fitter.set_scattering_hist(get_histogram());
-            double recalc_chi2 = fitter.fit()->fval;
-            iteration_out << "\trerolled changes. chi2 is now: " << recalc_chi2 << std::endl;
-
-            generate_new_hydration();
-            fitter.set_scattering_hist(get_histogram());
-            recalc_chi2 = fitter.fit()->fval;
-            iteration_out << "\tsanity check." << std::endl; 
-            iteration_out << "\t\tchi2 is now: " << recalc_chi2 << std::endl;
-            iteration_out << "\t\tshould be  : " << best_chi2 << std::endl;
-
         } else {
             // accept the changes
             best_grid = std::make_shared<Grid>(*grid);
@@ -128,31 +117,35 @@ void RigidBody::optimize(std::string measurement_path) {
 void RigidBody::generate_simple_constraints() {
     if (setting::general::verbose) {utility::print_info("Generating simple constraints for rigid body optimization.");}
     for (unsigned int ibody1 = 0; ibody1 < bodies.size(); ibody1++) {
-        for (unsigned int ibody2 = 0; ibody2 < bodies.size(); ibody2++) {
-            if (ibody1 == ibody2) {continue;}
+        for (unsigned int ibody2 = ibody1+1; ibody2 < bodies.size(); ibody2++) {
             const Body& body1 = body(ibody1);
             const Body& body2 = body(ibody2);
 
             double min_dist = std::numeric_limits<double>::max();
-            unsigned int min_atom1 = 0, min_atom2 = 0;
+            int min_atom1 = -1, min_atom2 = -1;
             for (unsigned int iatom1 = 0; iatom1 < body1.atoms().size(); iatom1++) {
-                if (body1.atoms(iatom1).name != constants::symbols::carbon) {continue;}
                 const Atom& atom1 = body1.atoms(iatom1);
+                if (atom1.element != constants::symbols::carbon) {continue;}
+
                 for (unsigned int iatom2 = 0; iatom2 < body2.atoms().size(); iatom2++) {
                     const Atom& atom2 = body2.atoms(iatom2);
-                    if (atom2.name != constants::symbols::carbon) {continue;}
+                    if (atom2.element != constants::symbols::carbon) {continue;}
+
                     double dist = atom1.distance(atom2);
-                    if (dist < min_dist) {
-                        min_dist = dist;
-                        min_atom1 = iatom1;
-                        min_atom2 = iatom2;
-                    }
+                    if (dist > min_dist) {continue;}
+
+                    min_dist = dist;
+                    min_atom1 = iatom1;
+                    min_atom2 = iatom2;
                 }
             }
 
+            // no carbon atoms found
+            if (min_atom1 == -1 || min_atom2 == -1) {continue;}
+
             // check if the bodies are close enough for a constraint to make sense
-            if (min_dist > 4) {continue;} 
-            rigidbody::Constraint constraint(this, ibody2, ibody2, min_atom1, min_atom2);
+            if (min_dist > setting::rigidbody::bond_distance) {continue;} 
+            rigidbody::Constraint constraint(this, ibody1, ibody2, min_atom1, min_atom2);
             add_constraint(std::move(constraint));
 
             if (setting::general::verbose) {
@@ -160,18 +153,28 @@ void RigidBody::generate_simple_constraints() {
             }
         }
     }
-    
+    if (constraints.empty()) {
+        throw except::unexpected("RigidBody::generate_simple_constraints: No constraints were generated. This is probably a bug.");
+    }
 }
 
-void RigidBody::add_constraint(const rigidbody::Constraint& constraint) {
+void RigidBody::add_constraint(std::shared_ptr<rigidbody::Constraint> constraint) {
     constraints.push_back(constraint);
 }
 
 void RigidBody::add_constraint(rigidbody::Constraint&& constraint) {
-    constraints.push_back(std::move(constraint));
+    constraints.push_back(std::make_shared<rigidbody::Constraint>(std::move(constraint)));
+}
+
+void RigidBody::add_constraint(unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) {
+    constraints.push_back(std::make_shared<rigidbody::Constraint>(this, ibody1, ibody2, iatom1, iatom2));
 }
 
 double RigidBody::chi2(fitter::HydrationFitter& fitter) const {
     std::shared_ptr<Fit> result = fitter.fit();
     return result->fval;
+}
+
+std::vector<std::shared_ptr<Constraint>> RigidBody::get_constraints() const {
+    return constraints;
 }

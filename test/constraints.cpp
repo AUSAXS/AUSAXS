@@ -48,8 +48,8 @@ TEST_CASE_METHOD(fixture, "connections") {
     RigidBody rigidbody(protein);
     
     RigidTransform transform(&rigidbody);
-    Constraint constraint1(&protein, a1, a3);
-    Constraint constraint2(&protein, a5, a7);
+    std::shared_ptr<Constraint> constraint1 = std::make_shared<Constraint>(&protein, a1, a3);
+    std::shared_ptr<Constraint> constraint2 = std::make_shared<Constraint>(&protein, a5, a7);
     rigidbody.add_constraint(constraint1);
     rigidbody.add_constraint(constraint2);
 
@@ -90,10 +90,11 @@ TEST_CASE_METHOD(fixture, "affects_fitter") {
 
 TEST_CASE("simple_constraint_generation") {
     SECTION("simple") {
-        Atom a1 = Atom(Vector3<double>(0, 0, 0), 1, "C", "C", 1);
-        Atom a2 = Atom(Vector3<double>(0, 0, 1), 1, "C", "C", 1);
-        Atom a3 = Atom(Vector3<double>(0, 0, 2), 1, "C", "C", 1);
-        Atom a4 = Atom(Vector3<double>(0, 0, 3), 1, "C", "C", 1);
+        int distance = setting::rigidbody::bond_distance;
+        Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, "C", "C", 1);
+        Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, "C", "C", 1);
+        Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, "C", "C", 1);
+        Atom a4 = Atom(Vector3<double>(0, 0, 3*distance), 1, "C", "C", 1);
 
         Body b1 = Body(std::vector<Atom>{a1});
         Body b2 = Body(std::vector<Atom>{a2});

@@ -2,30 +2,36 @@
 
 using namespace fitter;
 
-double ConstrainedFitter::chi2(const std::vector<double>& params) {
-    double chi2 = HydrationFitter::chi2(params);
-    for (const rigidbody::Constraint& constraint : constraints) {
-        chi2 += constraint.evaluate();
+template<fitter_t T>
+double ConstrainedFitter<T>::chi2(const std::vector<double>& params) {
+    double chi2 = T::chi2(params);
+    for (const auto& constraint : constraints) {
+        chi2 += constraint->evaluate();
     }
     return chi2;
 }
 
-void ConstrainedFitter::add_constraint(const rigidbody::Constraint& constraint) {
-    constraints.push_back(constraint);
-}
-
-void ConstrainedFitter::add_constraint(rigidbody::Constraint&& constraint) {
+template<fitter_t T>
+void ConstrainedFitter<T>::add_constraint(std::unique_ptr<rigidbody::Constraint> constraint) {
     constraints.push_back(std::move(constraint));
 }
 
-void ConstrainedFitter::set_constraints(const std::vector<rigidbody::Constraint>& constraints) {
+template<fitter_t T>
+void ConstrainedFitter<T>::add_constraint(rigidbody::Constraint&& constraint) {
+    constraints.push_back(std::make_shared<rigidbody::Constraint>(std::move(constraint)));
+}
+
+template<fitter_t T>
+void ConstrainedFitter<T>::set_constraints(std::vector<std::shared_ptr<rigidbody::Constraint>> constraints) {
     this->constraints = constraints;
 }
 
-void ConstrainedFitter::set_constraints(std::vector<rigidbody::Constraint>&& constraints) {
+template<fitter_t T>
+void ConstrainedFitter<T>::set_constraints(std::vector<std::shared_ptr<rigidbody::Constraint>> constraints) {
     this->constraints = std::move(constraints);
 }
 
-const std::vector<rigidbody::Constraint>& ConstrainedFitter::get_constraints() const {
+template<fitter_t T>
+const std::vector<std::shared_ptr<rigidbody::Constraint>>& ConstrainedFitter<T>::get_constraints() const {
     return constraints;
 }

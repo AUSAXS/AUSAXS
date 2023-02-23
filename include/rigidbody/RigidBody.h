@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <data/Protein.h>
 #include <rigidbody/Constraint.h>
 #include <rigidbody/selection/BodySelectStrategy.h>
@@ -9,13 +7,12 @@
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 #include <fitter/HydrationFitter.h>
 
-namespace rigidbody {
-	class RigidBody : private Protein {
-		public:
-			friend TransformStrategy;
-			friend BodySelectStrategy;
-			friend ParameterGenerationStrategy;
+#include <memory>
+#include <unordered_map>
 
+namespace rigidbody {
+	class RigidBody : public Protein {
+		public:
 			RigidBody(Protein&& protein);
 
 			RigidBody(const Protein& protein);
@@ -28,12 +25,17 @@ namespace rigidbody {
 			/**
 			 * @brief Add a constraint to this rigid body. 
 			 */
-			void add_constraint(const rigidbody::Constraint& constraint);
-
+			void add_constraint(std::shared_ptr<rigidbody::Constraint> constraint);
+			
 			/**
 			 * @brief Add a constraint to this rigid body. 
 			 */
 			void add_constraint(rigidbody::Constraint&& constraint);
+
+			/**
+			 * @brief Add a constraint to this rigid body. 
+			 */
+			void add_constraint(unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
 			/**
 			 * @brief Generate a set of simple constraints. 
@@ -42,12 +44,12 @@ namespace rigidbody {
 			 */
 			void generate_simple_constraints();
 
-			std::vector<Constraint> constraints;
-
+			std::vector<std::shared_ptr<Constraint>> get_constraints() const;
 		private:
 			std::unique_ptr<BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;
 			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
+			std::vector<std::shared_ptr<Constraint>> constraints;
 
 			/**
 			 * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 

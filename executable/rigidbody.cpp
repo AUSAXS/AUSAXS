@@ -34,14 +34,13 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
-    std::vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
-    RigidBody body(protein);
+    rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
+    rigidbody.generate_simple_constraints();
 
-    protein.save(setting::general::output + "initial.pdb");
-    body.optimize(input_measurement);    
-    protein.save(setting::general::output + "optimized.pdb");
-    fitter::HydrationFitter fitter(input_measurement, protein.get_histogram());
+    rigidbody.save(setting::general::output + "initial.pdb");
+    rigidbody.optimize(input_measurement);    
+    rigidbody.save(setting::general::output + "optimized.pdb");
+    fitter::HydrationFitter fitter(input_measurement, rigidbody.get_histogram());
     auto res = fitter.fit();
     FitReporter::report(res);
     FitReporter::save(res, setting::general::output + "fit.txt");

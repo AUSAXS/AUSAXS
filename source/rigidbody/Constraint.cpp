@@ -43,7 +43,7 @@ Constraint::Constraint(const Protein* protein, const Atom& atom1, const Atom& at
 
     // set the base radius and perform a sanity check
     r_base = atom1.distance(atom2);
-    if (r_base > 4) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
+    if (r_base > setting::rigidbody::bond_distance) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
 
     uid = uid_counter++;
 }
