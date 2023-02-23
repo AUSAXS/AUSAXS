@@ -299,7 +299,7 @@ tests: $(shell find source/ -print) $(shell find test/ -print)
 	done
 
 test/%: test/%.cpp
-	@ make -C build "test_$*"
+	@ make -C build "test_$*" -j${cmake_threads}
 	build/test/test_$* ~[slow] ~[broken] ${tags}
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)

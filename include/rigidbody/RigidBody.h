@@ -16,9 +16,9 @@ namespace rigidbody {
 			friend BodySelectStrategy;
 			friend ParameterGenerationStrategy;
 
-			explicit RigidBody(std::string input);
+			RigidBody(Protein&& protein);
 
-			explicit RigidBody(std::vector<Body>&& bodies);
+			RigidBody(const Protein& protein);
 
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
@@ -63,5 +63,10 @@ namespace rigidbody {
 			 * @brief Translate a body with the currently chosen transformation strategy. 
 			 */
 			void translate();
+
+			/**
+			 * @brief Small initialization function.
+			 */
+			void setup();
 	};
 }

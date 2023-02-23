@@ -16,7 +16,7 @@ namespace rigidbody {
         /**
          * @brief Default constructor.
          */
-        Parameter() : dx(0, 0, 0), alpha(0), beta(0), gamma(0) {}
+        Parameter();
 
         /**
          * @brief Constructor.
@@ -26,14 +26,12 @@ namespace rigidbody {
          * @param beta The second Euler angle.
          * @param gamma The third Euler angle.
          */
-        Parameter(const Vector3<double>& dx, double alpha, double beta, double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
+        Parameter(const Vector3<double>& dx, double alpha, double beta, double gamma);
 
         /**
          * @brief Get a string representation of this Parameter.
          */
-        std::string to_string() const {
-            return "translation: " + dx.to_string() + ", angles: (" + std::to_string(alpha) + ", " + std::to_string(beta) + ", " + std::to_string(gamma) + ")"; 
-        }
+        std::string to_string() const;
 
         /**
          * @brief Output the string representation of this Parameter to a stream.

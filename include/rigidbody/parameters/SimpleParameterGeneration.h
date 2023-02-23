@@ -17,34 +17,18 @@ namespace rigidbody {
              * @param length_start The start length of the generated translation vectors. 
              * @param rad_start The start angle in radians of the generated rotations. 
              */
-            SimpleParameterGeneration(int iterations, double length_start, double rad_start) : ParameterGenerationStrategy(iterations, length_start, rad_start) {}
+            SimpleParameterGeneration(int iterations, double length_start, double rad_start);
 
             /**
              * @brief Destructor.
              */
-            ~SimpleParameterGeneration() override = default;
+            ~SimpleParameterGeneration() override;
 
-            std::tuple<double, double, double> get_rotation() override {
-                double scaling = scale();
+            std::tuple<double, double, double> get_rotation() override;
 
-                double dr1 = rotation_dist(generator)*scaling;
-                double dr2 = rotation_dist(generator)*scaling;
-                double dr3 = rotation_dist(generator)*scaling;
-                return std::tuple(dr1, dr2, dr3);
-            }
-
-            Vector3<double> get_translation() override {       
-                double scaling = scale();
-
-                double dx = translation_dist(generator)*scaling;
-                double dy = translation_dist(generator)*scaling;
-                double dz = translation_dist(generator)*scaling;
-                return Vector3(dx, dy, dz);
-            }
+            Vector3<double> get_translation() override;
 
         private: 
-            double scale() const {
-                return double(iterations - iteration)/iterations; 
-            }
+            double scale() const;
     };
 }

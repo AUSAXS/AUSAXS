@@ -75,10 +75,10 @@ TEST_CASE("body_selectors") {
     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     std::vector<std::vector<Atom>> atoms = {b1, b2, b3, b4};
-    Protein protein(atoms, {});
+    RigidBody rigidbody({atoms, {}});
 
-    std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(protein);
-    std::vector<int> count(protein.bodies.size());
+    std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(&rigidbody);
+    std::vector<int> count(4);
     for (unsigned int i = 0; i < 100; i++) {
         unsigned int num = strat->next();
         if (num > count.size()-1) {
@@ -137,10 +137,14 @@ TEST_CASE("iteration_step") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(grid->grid.index(i, j, k) == old_grid.grid.index(i, j, k));
+                    if (grid->grid.index(i, j, k) != old_grid.grid.index(i, j, k)) {
+                        std::cout << "Failed on (i, j, k) = (" << i << ", j " << j << ", k " << k << ")" << std::endl;
+                        REQUIRE(grid->grid.index(i, j, k) == old_grid.grid.index(i, j, k));
+                    }
                 }
             }
         }
+        REQUIRE(true); // this is just to increment the successful tests counter
         REQUIRE(*grid == old_grid);
 
         // check that the atoms are the same
@@ -148,8 +152,14 @@ TEST_CASE("iteration_step") {
         auto oldatoms = old_protein.atoms();
         REQUIRE(atoms.size() == oldatoms.size());
         for (unsigned int i = 0; i < atoms.size(); i++) {
-            CHECK(atoms.at(i).coords == oldatoms.at(i).coords);
+            if (atoms.at(i).coords != oldatoms.at(i).coords) {
+                std::cout << "Failed on atom " << i << std::endl;
+                std::cout << "Old coords: " << oldatoms.at(i).coords << std::endl;
+                std::cout << "New coords: " << atoms.at(i).coords << std::endl;
+                REQUIRE(atoms.at(i).coords == oldatoms.at(i).coords);
+            }
         }
+        REQUIRE(true);
 
         // check that the grid water members are the same
         auto wm = grid->w_members;
@@ -159,10 +169,13 @@ TEST_CASE("iteration_step") {
         auto wm_it = wm.begin();
         auto oldwm_it = oldwm.begin();
         while (wm_it != wm.end()) {
-            CHECK(*wm_it == *oldwm_it);
+            if (*wm_it != *oldwm_it) {
+                REQUIRE(*wm_it == *oldwm_it);
+            }
             wm_it++;
             oldwm_it++;
         }
+        REQUIRE(true);
 
         // check that the grid atom members are the same
         auto am = grid->a_members;
@@ -172,21 +185,31 @@ TEST_CASE("iteration_step") {
         auto am_it = am.begin();
         auto oldam_it = oldam.begin();
         while (am_it != am.end()) {
-            CHECK(*am_it == *oldam_it);
+            if (*am_it != *oldam_it) {
+                REQUIRE(*am_it == *oldam_it);
+            }
             am_it++;
             oldam_it++;
         }
+        REQUIRE(true);
 
         // check that there's no water in the grid after a call to clear_hydration
         protein.clear_hydration();
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    REQUIRE(grid->grid.index(i, j, k) != GridObj::H_AREA);
-                    REQUIRE(grid->grid.index(i, j, k) != GridObj::H_CENTER);
+                    if (grid->grid.index(i, j, k) == GridObj::H_CENTER) {
+                        std::cout << "Failed on (i, j, k) = (" << i << ", j " << j << ", k " << k << ")" << std::endl;
+                        REQUIRE(grid->grid.index(i, j, k) != GridObj::H_CENTER);
+                    }
+                    if (grid->grid.index(i, j, k) == GridObj::H_AREA) {
+                        std::cout << "Failed on (i, j, k) = (" << i << ", j " << j << ", k " << k << ")" << std::endl;
+                        REQUIRE(grid->grid.index(i, j, k) != GridObj::H_AREA);
+                    }
                 }
             }
         }
+        REQUIRE(true);
 
         //################################################//
         //### check that the protein has been reverted ###//
@@ -201,17 +224,27 @@ TEST_CASE("iteration_step") {
         auto oldwaters = old_protein.waters();
         REQUIRE(newwaters.size() == oldwaters.size());
         for (unsigned int i = 0; i < newwaters.size(); i++) {
-            CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
+            if (newwaters.at(i).coords != oldwaters.at(i).coords) {
+                std::cout << "Failed on water " << i << std::endl;
+                std::cout << "Old coords: " << oldwaters.at(i).coords << std::endl;
+                std::cout << "New coords: " << newwaters.at(i).coords << std::endl;
+                REQUIRE(oldwaters.at(i).coords == newwaters.at(i).coords);
+            }
         }
+        REQUIRE(true);
 
         // check that the grid is the same
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    CHECK(grid->grid.index(i, j, k) == old_grid.grid.index(i, j, k));
+                    if (grid->grid.index(i, j, k) != old_grid.grid.index(i, j, k)) {
+                        std::cout << "Failed on (i, j, k) = (" << i << ", j " << j << ", k " << k << ")" << std::endl;
+                        REQUIRE(grid->grid.index(i, j, k) == old_grid.grid.index(i, j, k));
+                    }
                 }
             }
         }
+        REQUIRE(true);
         REQUIRE(*grid == old_grid);
     };
 

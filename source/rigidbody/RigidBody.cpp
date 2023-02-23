@@ -13,39 +13,15 @@
 
 using namespace rigidbody;
 
-RigidBody::RigidBody(std::vector<Body>&& bodies) : Protein(std::move(bodies)) {
-    // Set body transformation strategy
-    switch (setting::rigidbody::tsc) {
-        case setting::rigidbody::RigidTransform:
-            transform = std::make_unique<RigidTransform>(this); 
-            break;
-        default: 
-            throw except::unknown_argument("RigidBody::RigidBody: Unkown TransformationStrategy.");
-    }
-
-    // Set parameter generation strategy
-    switch (setting::rigidbody::pgsc) {
-        case setting::rigidbody::Simple:
-            parameter_generator = std::make_unique<SimpleParameterGeneration>(1000, 5, M_PI/3);
-            break;
-        default: 
-            throw except::unknown_argument("RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
-    }
-
-    // Set body selection strategy
-    switch (setting::rigidbody::bssc) {
-        case setting::rigidbody::RandomSelect:
-            body_selector = std::make_unique<RandomSelect>(this);
-            break;
-        case setting::rigidbody::SequentialSelect:
-            body_selector = std::make_unique<SequentialSelect>(this);
-            break;
-        default: 
-            throw except::unknown_argument("RigidBody::RigidBody: Unknown BodySelectStrategy.");
-    }
+RigidBody::RigidBody(Protein&& protein) : Protein(std::move(protein)) {
+    setup();
 }
 
-RigidBody::RigidBody(std::string input) : Protein(input) {
+RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
+    setup();
+}
+
+void RigidBody::setup() {
     // Set body transformation strategy
     switch (setting::rigidbody::tsc) {
         case setting::rigidbody::RigidTransform:
