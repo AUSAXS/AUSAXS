@@ -23,7 +23,7 @@ namespace rigidbody {
             /**
              * @brief Get the index of the next body to be transformed. 
              */
-            unsigned int next() override;
+            std::pair<unsigned int, unsigned int> next() override;
 
         private:
             std::mt19937 generator;                          // The random number generator. 

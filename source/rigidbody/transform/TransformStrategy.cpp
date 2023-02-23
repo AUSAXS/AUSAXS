@@ -55,20 +55,18 @@ using namespace rigidbody;
 //     return TransformGroup{.bodies=connected, .pivot=&pivot};
 // }
 
-TransformStrategy::TransformGroup TransformStrategy::get_connected(const Constraint& pivot) {
-    // check if the constraint map is up to date
-    if (constraint_map.size() != rigidbody->bodies.size()) {
-        generate_constraint_map();
-    }
+TransformStrategy::TransformGroup::TransformGroup(std::vector<Body*> bodies, std::shared_ptr<Constraint> target, Vector3<double> pivot) 
+    : bodies(bodies), target(target), pivot(pivot) {}
 
+TransformStrategy::TransformGroup TransformStrategy::get_connected(std::shared_ptr<Constraint> pivot) {
     // recursively explore a branch by stepping through its constraints, starting from the pivot and stopping if we reach ibody1 again
-    unsigned int ibody1 = pivot.ibody1;
+    unsigned int ibody1 = pivot->ibody1;
     std::function<std::vector<Body*>(unsigned int, std::vector<Body*>)> explore_branch = [&] (unsigned int ibody, std::vector<Body*> branch) {
         branch.push_back(&rigidbody->bodies[ibody]);
         if (ibody == ibody1) {
             return branch;
         }
-        for (const auto& constraint : constraint_map[ibody]) {
+        for (const auto& constraint : rigidbody->constraint_map[ibody]) {
             if (constraint->ibody1 == ibody) {
                 explore_branch(constraint->ibody2, branch);
             } else {
@@ -79,33 +77,23 @@ TransformStrategy::TransformGroup TransformStrategy::get_connected(const Constra
     };
 
     // explore all branches
-    auto path1 = explore_branch(pivot.ibody1, std::vector<Body*>());
-    auto path2 = explore_branch(pivot.ibody2, std::vector<Body*>());
+    auto path1 = explore_branch(pivot->ibody1, std::vector<Body*>());
+    auto path2 = explore_branch(pivot->ibody2, std::vector<Body*>());
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size()) {
-        return TransformGroup{.bodies={&rigidbody->bodies[ibody1]}, .pivot=&pivot};
+        return TransformGroup({&rigidbody->bodies[ibody1]}, pivot, pivot->get_atom1().coords);
     }
 
+    // check if the system is overconstrained
     if (0.5*rigidbody->body_size() < path1.size() && 0.5*rigidbody->body_size() < path2.size()) {
         throw except::size_error("TransformStrategy::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
     // if the paths are different lengths, we return the shorter path as the group
     if (path1.size() < path2.size()) {
-        return TransformGroup{.bodies=path1, .pivot=&pivot};
+        return TransformGroup(path1, pivot, pivot->get_atom1().coords);
     } else {
-        return TransformGroup{.bodies=path2, .pivot=&pivot};
-    }
-}
-
-void TransformStrategy::generate_constraint_map() {
-    for (const auto& body : rigidbody->bodies) {
-        constraint_map[body.uid] = std::vector<std::shared_ptr<rigidbody::Constraint>>();
-    }
-
-    for (const auto& constraint : rigidbody->get_constraints()) {
-        constraint_map[constraint->get_body1().uid].push_back(constraint);
-        constraint_map[constraint->get_body2().uid].push_back(constraint);
+        return TransformGroup(path2, pivot, pivot->get_atom2().coords);
     }
 }

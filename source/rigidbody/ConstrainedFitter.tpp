@@ -27,11 +27,6 @@ void ConstrainedFitter<T>::set_constraints(std::vector<std::shared_ptr<rigidbody
 }
 
 template<fitter_t T>
-void ConstrainedFitter<T>::set_constraints(std::vector<std::shared_ptr<rigidbody::Constraint>> constraints) {
-    this->constraints = std::move(constraints);
-}
-
-template<fitter_t T>
 const std::vector<std::shared_ptr<rigidbody::Constraint>>& ConstrainedFitter<T>::get_constraints() const {
     return constraints;
 }

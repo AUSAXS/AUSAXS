@@ -44,7 +44,16 @@ namespace rigidbody {
 			 */
 			void generate_simple_constraints();
 
+			/**
+			 * @brief Generate a map of constraints for each body.
+			 * 
+			 * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
+			 */
+            void generate_constraint_map();
+
 			std::vector<std::shared_ptr<Constraint>> get_constraints() const;
+
+			std::unordered_map<unsigned int, std::vector<std::shared_ptr<Constraint>>> constraint_map;
 		private:
 			std::unique_ptr<BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;
@@ -55,16 +64,6 @@ namespace rigidbody {
 			 * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 
 			 */
 			double chi2(fitter::HydrationFitter& fitter) const;
-
-			/**
-			 * @brief Rotate a body with the currently chosen transformation strategy. 
-			 */
-			void rotate();
-
-			/**
-			 * @brief Translate a body with the currently chosen transformation strategy. 
-			 */
-			void translate();
 
 			/**
 			 * @brief Small initialization function.

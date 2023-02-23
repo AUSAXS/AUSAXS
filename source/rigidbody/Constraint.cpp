@@ -3,7 +3,7 @@
 
 using namespace rigidbody;
 
-Constraint::Constraint(const Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
+Constraint::Constraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
     : protein(protein), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) {
     const Body& body1 = protein->body(ibody1);
     const Body& body2 = protein->body(ibody2);
@@ -25,7 +25,7 @@ Constraint::Constraint(const Protein* protein, unsigned int ibody1, unsigned int
     uid = uid_counter++;
 }
 
-Constraint::Constraint(const Protein* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
+Constraint::Constraint(Protein* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
     // we only want to allow constraints between the backbone C-alpha structure
     if (atom1.element != constants::symbols::carbon || atom2.element != constants::symbols::carbon) {
         throw except::invalid_argument("Constraint::Constraint: Constraints only makes sense between the carbon-atoms of the backbone!");
@@ -104,6 +104,14 @@ const Body& Constraint::get_body1() const {
 }
 
 const Body& Constraint::get_body2() const {
+    return protein->body(ibody2);
+}
+
+Body& Constraint::get_body1() {
+    return protein->body(ibody1);
+}
+
+Body& Constraint::get_body2() {
     return protein->body(ibody2);
 }
 

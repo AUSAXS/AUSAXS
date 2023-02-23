@@ -42,7 +42,7 @@ namespace rigidbody {
              * @param iatom1 The index of the first atom in the first body.
              * @param iatom2 The index of the second atom in the second body.
              */
-            Constraint(const Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+            Constraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -53,7 +53,7 @@ namespace rigidbody {
              * @param atom1 The first atom.
              * @param atom2 The second atom.
              */
-            Constraint(const Protein* protein, const Atom& atom1, const Atom& atom2);
+            Constraint(Protein* protein, const Atom& atom1, const Atom& atom2);
 
             /**
              * @brief Evaluate this constraint for the current positions. 
@@ -78,9 +78,19 @@ namespace rigidbody {
             const Body& get_body1() const;
 
             /**
+             * @brief Get the first body of this constraint. 
+             */
+            Body& get_body1();
+
+            /**
              * @brief Get the second body of this constraint. 
              */
             const Body& get_body2() const;
+
+            /**
+             * @brief Get the second body of this constraint. 
+             */
+            Body& get_body2();
 
             /**
              * @brief Check if a constraint is identical to this object. 
@@ -105,7 +115,7 @@ namespace rigidbody {
 
             unsigned int uid;       // Unique identifier for this constraint. 
             double r_base;          // The normal distance between the two atoms. 
-            const Protein* protein; // The protein this constraint belongs to.
+            Protein* protein;       // The protein this constraint belongs to.
             unsigned int ibody1;    // The index of the first body.
             unsigned int ibody2;    // The index of the second body.
             unsigned int iatom1;    // The index of the first atom.

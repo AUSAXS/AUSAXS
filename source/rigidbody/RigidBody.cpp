@@ -57,8 +57,9 @@ void RigidBody::setup() {
 
 void RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
+    generate_constraint_map();
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
-    fitter.set_constraints(std::move(constraints));
+    fitter.set_constraints(constraints);
     double best_chi2 = fitter.fit()->fval;
 
     if (setting::general::verbose) {
@@ -73,19 +74,22 @@ void RigidBody::optimize(std::string measurement_path) {
     std::shared_ptr<Grid> grid = get_grid();
     std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
     std::vector<Water> best_waters = waters();
-    for (int i = 0; i < setting::rigidbody::iterations; i++) {
+    for (unsigned int i = 0; i < setting::rigidbody::iterations; i++) {
+        bool printed = false;
         std::stringstream iteration_out;
         iteration_out << "\nIteration " << i << std::endl;
 
         // select a body to be modified this iteration
-        Body& body = bodies.at(body_selector->next());
+        auto [ibody, iconstraint] = body_selector->next();
+        Body& body = bodies.at(ibody);
+        std::shared_ptr<Constraint> constraint = constraint_map.at(ibody).at(iconstraint);
         Parameter param = parameter_generator->next();
 
         Body old_body(body);                                            // save the old body
         grid->remove(&body);                                            // remove the body from the grid
         Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        body.translate(param.dx);                                       // translate the body
-        body.rotate(R);                                                 // rotate the body
+        transform->translate(param.dx, constraint);                     // translate the body
+        transform->rotate(R, constraint);                               // rotate the body
         grid->add(&body);                                               // add the body back to the grid
         generate_new_hydration(); 
 
@@ -93,11 +97,11 @@ void RigidBody::optimize(std::string measurement_path) {
         fitter.set_scattering_hist(get_histogram());
         double new_chi2 = fitter.fit()->fval;
 
-        iteration_out << "\tchi2 for new configuration: " << new_chi2 << std::endl;
         writer.write_frame(this);
 
         // if the old configuration was better
         if (new_chi2 >= best_chi2) {
+            iteration_out << "\tRejected. chi2 for configuration was " << new_chi2 << std::endl;
             body = std::move(old_body); // restore the old body
             *grid = *best_grid;         // restore the old grid
             waters() = best_waters;     // restore the old waters
@@ -109,8 +113,15 @@ void RigidBody::optimize(std::string measurement_path) {
             params.update(body.uid, param);
             std::cout << "\nIteration " << i << std::endl;
             utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
+            printed = true;
+        }
+
+        // periodically print the status
+        if (i % 1 == 0 && setting::general::verbose && !printed) {
+            std::cout << iteration_out.str();
         }
     }
+
     save(setting::general::output + "optimized.pdb");
 }
 
@@ -156,6 +167,8 @@ void RigidBody::generate_simple_constraints() {
     if (constraints.empty()) {
         throw except::unexpected("RigidBody::generate_simple_constraints: No constraints were generated. This is probably a bug.");
     }
+
+    generate_constraint_map();
 }
 
 void RigidBody::add_constraint(std::shared_ptr<rigidbody::Constraint> constraint) {
@@ -177,4 +190,18 @@ double RigidBody::chi2(fitter::HydrationFitter& fitter) const {
 
 std::vector<std::shared_ptr<Constraint>> RigidBody::get_constraints() const {
     return constraints;
+}
+
+void RigidBody::generate_constraint_map() {
+    if (constraint_map.size() == bodies.size()) {return;}
+
+    for (unsigned int i = 0; i < bodies.size(); i++) {
+        constraint_map[i] = std::vector<std::shared_ptr<rigidbody::Constraint>>();
+    }
+
+    for (const auto& constraint : get_constraints()) {
+        constraint_map.at(constraint->ibody1).push_back(constraint);
+        constraint_map.at(constraint->ibody2).push_back(constraint);
+        std::cout << "Constraint between " << constraint->ibody1 << " and " << constraint->ibody2 << std::endl;
+    }
 }

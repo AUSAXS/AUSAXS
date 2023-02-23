@@ -3,14 +3,18 @@
 
 using namespace rigidbody;
 
-SequentialSelect::SequentialSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
-    std::random_device random;
-    generator = std::mt19937(random());
-    distribution = std::uniform_int_distribution<int>(0, N-1);
-}
+SequentialSelect::SequentialSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
 
 SequentialSelect::~SequentialSelect() = default;
 
-unsigned int SequentialSelect::next() {
-    return distribution(generator);
+std::pair<unsigned int, unsigned int> SequentialSelect::next() {
+    unsigned int N = rigidbody->constraint_map.size();
+    unsigned int M = rigidbody->constraint_map.at(ibody).size();
+
+    if (iconstraint == M) {
+        ibody = (ibody + 1) % N;
+        iconstraint = 0;
+    }
+
+    return std::make_pair(ibody, iconstraint++);
 }

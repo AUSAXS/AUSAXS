@@ -7,22 +7,15 @@ RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbo
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::rotate(double rad, Constraint& constraint) {
+void RigidTransform::rotate(const Matrix<double>& M, std::shared_ptr<Constraint> constraint) {
     auto group = get_connected(constraint);
 
-    Vector3 r = constraint.get_atom1().coords - constraint.get_atom2().coords;
-    Vector3<double> u1, u2, u3;
-    std::tie(u1, u2, u3) = r.generate_basis();
-
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&u1, &rad] (Body* body) {body->rotate(u1, rad);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M] (Body* body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(group.pivot);});
 }
 
-void RigidTransform::translate(double length, Constraint& constraint) {
+void RigidTransform::translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) {
     auto group = get_connected(constraint);
-
-    Vector3 r = constraint.get_atom1().coords - constraint.get_atom2().coords;
-    Vector3<double> u1, u2, u3;
-    std::tie(u1, u2, u3) = r.generate_basis();
-
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&u1, &length] (Body* body) {body->translate(length*u1);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&t] (Body* body) {body->translate(t);});
 }

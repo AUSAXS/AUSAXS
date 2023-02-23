@@ -31,14 +31,14 @@ namespace rigidbody {
              * @param rad Rotation angle in radians.
              * @param constraint The constraint. 
              */
-            void rotate(double rad, Constraint& constraint);
+            void rotate(const Matrix<double>& M, std::shared_ptr<Constraint> constraint) override;
 
             /**
              * @brief Translate all bodies connected to one side of the constraint. 
              * 
-             * @param v The translation vector. 
+             * @param t The translation vector. 
              * @param constraint The constraint.
              */
-            void translate(double length, Constraint& constraint) override;
+            void translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
     };
 }

@@ -24,9 +24,9 @@ namespace rigidbody {
             virtual ~BodySelectStrategy() = default;
 
             /**
-             * @brief Get the index of the next body to be transformed. 
+             * @brief Get the index of the next body and constraint to be transformed. 
              */
-            virtual unsigned int next() = 0;
+            virtual std::pair<unsigned int, unsigned int> next() = 0;
 
         protected: 
             const RigidBody* rigidbody;

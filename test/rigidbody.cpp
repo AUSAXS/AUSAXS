@@ -8,6 +8,8 @@
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
 
+#include <unordered_map>
+
 using namespace rigidbody;
 
 TEST_CASE("can_reuse_fitter", "[files]") {
@@ -76,24 +78,27 @@ TEST_CASE("body_selectors") {
     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     std::vector<std::vector<Atom>> atoms = {b1, b2, b3, b4};
     RigidBody rigidbody({atoms, {}});
+    rigidbody.generate_simple_constraints();
 
-    std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(&rigidbody);
-    std::vector<int> count(4);
-    for (unsigned int i = 0; i < 100; i++) {
-        unsigned int num = strat->next();
-        if (num > count.size()-1) {
-            std::cout << "Strategy selected a body outside the allowed range. Number: " << num << std::endl;
-            REQUIRE(false);
-        } else {
-            count[num]++;
+    SECTION("RandomSelect") {
+        std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(&rigidbody);
+        std::unordered_map<unsigned int, unsigned int> count;
+        for (unsigned int i = 0; i < 100; i++) {
+            auto[ibody, iconstraint] = strat->next();
+            if (ibody > count.size()-1) {
+                std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
+                REQUIRE(false);
+            } else {
+                count[ibody]++;
+            }
         }
-    }
 
-    // check that each one was chosen at least 10 times
-    REQUIRE(count[0] > 10);
-    REQUIRE(count[1] > 10);
-    REQUIRE(count[2] > 10);
-    REQUIRE(count[3] > 10);
+        // check that each one was chosen at least 10 times
+        REQUIRE(count[0] > 10);
+        REQUIRE(count[1] > 10);
+        REQUIRE(count[2] > 10);
+        REQUIRE(count[3] > 10);
+    }
 }
 
 TEST_CASE("iteration_step") {

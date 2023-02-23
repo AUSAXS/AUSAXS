@@ -37,13 +37,6 @@ namespace fitter {
             void set_constraints(std::vector<std::shared_ptr<rigidbody::Constraint>> constraints);
 
             /**
-             * @brief Set the constraints for the fitter. 
-             * 
-             * Overwrites any existing constraints.
-             */
-            void set_constraints(const std::vector<std::shared_ptr<rigidbody::Constraint>> constraints);
-
-            /**
              * @brief Get the constraints. 
              * 
              * @return The constraints. 
@@ -54,3 +47,5 @@ namespace fitter {
             std::vector<std::shared_ptr<rigidbody::Constraint>> constraints;
     };
 }
+
+#include <rigidbody/ConstrainedFitter.tpp>

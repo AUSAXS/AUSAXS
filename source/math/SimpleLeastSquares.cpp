@@ -42,20 +42,15 @@ std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     std::shared_ptr<Fit> f = std::make_shared<Fit>();
     f->parameters = {{"a", a, sqrt(a_err2)}, {"b", b, sqrt(b_err2)}};
     f->dof = data.size() - 2;
-    f->fval = chi2();
+    f->fval = chi2({});
     f->fevals = 1;
     // f->status = Q > 0.001 ? 0 : 1;
     return f;
 }
 
-double SimpleLeastSquares::chi2() const {
+double SimpleLeastSquares::chi2(const std::vector<double>&) {
     double chi = 0;
-    for (size_t i = 0; i < data.size(); ++i) {
-        // double chi2 = pow((data.y[i] - (a*data.x[i] + b))/data.yerr[i], 2);
-        // std::cout << "index " << i << ": " << chi2 << std::endl;
-        // std::cout << "\ty = " << data.y[i] << std::endl;
-        // std::cout << "\tx = " << data.x[i] << std::endl;
-        // std::cout << "\tax+b = " << a*data.x[i]+b << std::endl;
+    for (unsigned int i = 0; i < data.size(); ++i) {
         chi += pow((data.y(i) - (a*data.x(i) + b))/data.yerr(i), 2);
     }
 

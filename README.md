@@ -1,4 +1,4 @@
-# Todo,
+# Todo
 *	[ ] Matrix: Change vector of vectors constructor to be row-majority, and use the variadic constructor for columns instead
 *	[ ] Testing: Redo all tests such that they are more structured, with a single executable for each category. 
 *	[ ] BSThreadPool: Streamline download and build process. Currently it is all manual. 
@@ -7,13 +7,15 @@
 *	[ ] Protein: Figure out how getMass should work in without effective charge enabled
 *	[ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
 *	[ ]	Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
-*	[x]	EMFitter: Handle absolute scale properly. (Doesn't matter. It is scaled to fit SAXS data anyways)
 *	[ ]	gentag alt for de andre filer
 *	[ ]	General: Consistency check of DrhoM
 *	[ ]	IO: Support multiple terminate statements
 *	[ ]	Memory test all other executables.
 
 # Stuff to consider
+## RigidBody
+* 	Use a combined translation + rotation matrix when rotating about a constraint. Requires the introduction of 4D vectors.
+
 ## EM
 *	Consider the effects of discretization. 
 *	e2pdb2mrc.py: 
@@ -28,7 +30,6 @@
 *	Consider removing all bounds checks (or maybe use a compile-flag to enable them)
 
 ## ScatteringHistogram:
-*	Optional argument of q-values to calculate I(q) for - this would remove the necessity of splicing in the IntensityFitter
 *	Take a closer look at the form factor
 *	Convert `a` to a more sensible output (units)
 

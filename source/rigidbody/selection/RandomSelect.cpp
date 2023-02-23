@@ -11,7 +11,23 @@ RandomSelect::RandomSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigi
 
 RandomSelect::~RandomSelect() = default;
 
-unsigned int RandomSelect::next() {
-    return distribution(generator);
-}
+std::pair<unsigned int, unsigned int> RandomSelect::next() {
+    unsigned int ibody = distribution(generator);
 
+    unsigned int N = rigidbody->constraint_map.at(ibody).size();
+    switch (N) {
+        case 0: {
+            throw except::invalid_argument("RandomSelect::next: No constraints for body " + std::to_string(ibody));
+        }
+        case 1: {
+            return std::make_pair(ibody, 0);
+        }
+        default: {
+            std::mt19937 generator2;
+            std::uniform_int_distribution<int> distribution2(0, rigidbody->constraint_map.at(ibody).size()-1);
+            unsigned int iconstraint = distribution2(generator2);
+
+            return std::make_pair(ibody, iconstraint);
+        }
+    }
+}

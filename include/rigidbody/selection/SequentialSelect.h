@@ -6,9 +6,11 @@
 
 namespace rigidbody {
 	/**
-	 * @brief RandomSelect
+	 * @brief Sequential body selection strategy.
 	 * 
-	 * This selection strategy randomly selects a Body. 
+	 * This selection strategy selects the bodies sequentially, including all the constraints of each body.
+	 * Example: If we have the bodies A(3), B(2), C(2) where A has 3 constraints, B has 2 constraints and C has 2 constraints,
+	 * 		the order of selection would be A1, A2, A3, B1, B2, C1, C2.
 	 */
 	class SequentialSelect : public BodySelectStrategy {
 		public: 
@@ -25,10 +27,10 @@ namespace rigidbody {
 			/**
 			 * @brief Get the index of the next body to be transformed. 
 			 */
-			unsigned int next() override;
+			std::pair<unsigned int, unsigned int> next() override;
 
 		private:
-			std::mt19937 generator;                          // The random number generator. 
-			std::uniform_int_distribution<int> distribution; // The random number distribution. 
+			unsigned int ibody; // The index of the body to be transformed. 
+			unsigned int iconstraint; // The index of the constraint to be transformed.
 	};	
 }

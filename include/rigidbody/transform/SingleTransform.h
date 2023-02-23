@@ -8,7 +8,7 @@ namespace rigidbody {
             SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
             ~SingleTransform() = default;
 
-            void rotate(double rad, Constraint& constraint) override;
-            void translate(double length, Constraint& constraint) override;
+            void rotate(const Matrix<double>&, std::shared_ptr<Constraint> constraint) override;
+            void translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
     };
 }
