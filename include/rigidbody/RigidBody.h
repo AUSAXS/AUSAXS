@@ -52,6 +52,7 @@ namespace rigidbody {
             void generate_constraint_map();
 
 			std::vector<std::shared_ptr<Constraint>> get_constraints() const;
+			std::shared_ptr<Constraint> get_constraint(unsigned int index) const;
 
 			std::unordered_map<unsigned int, std::vector<std::shared_ptr<Constraint>>> constraint_map;
 		private:

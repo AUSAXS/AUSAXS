@@ -5,84 +5,43 @@
 
 using namespace rigidbody;
 
-// TransformStrategy::TransformGroup TransformStrategy::get_connected(const Constraint& pivot) const {
-//     const std::vector<Constraint>& constraints = rigidbody->constraints;    // easy access to the set of all constraints
-//     std::unordered_map<unsigned int, unsigned int> group;                   // a map of body uids to group ids
-//     std::unordered_map<unsigned int, std::list<const Body*>> group_members; // a map of group ids to a list of its members
-
-//     // each body starts in its own group
-//     std::for_each(rigidbody->bodies.begin(), rigidbody->bodies.end(), [&group, &group_members] (const Body& body) {
-//         group[body.uid] = body.uid;
-//         group_members[body.uid] = {&body};
-//     });
-
-//     // iterate through all constraints
-//     for (unsigned int i = 0; i < constraints.size(); i++) {
-//         const Constraint& constraint = constraints[i];
-
-//         // if the constraint is the pivot, we skip it
-//         if (constraint == pivot) {
-//             continue;
-//         }
-
-//         // get the current group id of each body from the constraint
-//         unsigned int id1 = group[constraint.get_body1().uid];
-//         unsigned int id2 = group[constraint.get_body2().uid];
-
-//         // if they are not already in the same group, we merge their groups
-//         if (group[id1] != group[id2]) {
-//             // references to the two group lists
-//             std::list<const Body*>& members1 = group_members[id1];
-//             std::list<const Body*>& members2 = group_members[id2];
-
-//             // change all members of group2 to group1
-//             for (const auto& body : members2) {
-//                 group[body->uid] = id1;
-//                 members1.push_back(body);
-//             }
-//             group_members.erase(id2); // erase the old member list
-//         }
-//     }
-
-//     // get the group id of the pivot, and return a vector of all bodies from the same group
-//     unsigned int id = group[pivot.get_body1().uid];
-//     std::vector<Body*> connected;
-//     for(auto& body : rigidbody->bodies) {
-//         if (group[body.uid] == id) {
-//             connected.push_back(&body);
-//         }
-//     }
-//     return TransformGroup{.bodies=connected, .pivot=&pivot};
-// }
-
-TransformStrategy::TransformGroup::TransformGroup(std::vector<Body*> bodies, std::shared_ptr<Constraint> target, Vector3<double> pivot) 
-    : bodies(bodies), target(target), pivot(pivot) {}
+TransformStrategy::TransformGroup::TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<Constraint> target, Vector3<double> pivot) 
+    : bodies(bodies), indices(indices), target(target), pivot(pivot) {}
 
 TransformStrategy::TransformGroup TransformStrategy::get_connected(std::shared_ptr<Constraint> pivot) {
     // recursively explore a branch by stepping through its constraints, starting from the pivot and stopping if we reach ibody1 again
     unsigned int ibody1 = pivot->ibody1;
-    std::function<std::vector<Body*>(unsigned int, std::vector<Body*>)> explore_branch = [&] (unsigned int ibody, std::vector<Body*> branch) {
-        branch.push_back(&rigidbody->bodies[ibody]);
+    std::function<std::vector<unsigned int>(unsigned int, std::vector<unsigned int>)> explore_branch = [&] (unsigned int ibody, std::vector<unsigned int> indices) {
+        indices.push_back(ibody);
         if (ibody == ibody1) {
-            return branch;
+            return indices;
         }
         for (const auto& constraint : rigidbody->constraint_map[ibody]) {
             if (constraint->ibody1 == ibody) {
-                explore_branch(constraint->ibody2, branch);
+                explore_branch(constraint->ibody2, indices);
             } else {
-                explore_branch(constraint->ibody1, branch);
+                explore_branch(constraint->ibody1, indices);
             }
         }
-        return branch;
+        return indices;
     };
 
     // explore all branches
-    auto path1 = explore_branch(pivot->ibody1, std::vector<Body*>());
-    auto path2 = explore_branch(pivot->ibody2, std::vector<Body*>());
+    auto path1 = explore_branch(pivot->ibody1, std::vector<unsigned int>());
+    auto path2 = explore_branch(pivot->ibody2, std::vector<unsigned int>());
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size()) {
-        return TransformGroup({&rigidbody->bodies[ibody1]}, pivot, pivot->get_atom1().coords);
+        return TransformGroup({&rigidbody->bodies[ibody1]}, {ibody1}, pivot, pivot->get_atom1().coords);
+    }
+
+    // create a vector of pointers to the bodies in the paths
+    std::vector<Body*> bodies1, bodies2;
+    for (const auto& ibody : path1) {
+        bodies1.push_back(&rigidbody->bodies[ibody]);
+    }
+    for (const auto& ibody : path2) {
+        bodies2.push_back(&rigidbody->bodies[ibody]);
     }
 
     // check if the system is overconstrained
@@ -92,8 +51,32 @@ TransformStrategy::TransformGroup TransformStrategy::get_connected(std::shared_p
 
     // if the paths are different lengths, we return the shorter path as the group
     if (path1.size() < path2.size()) {
-        return TransformGroup(path1, pivot, pivot->get_atom1().coords);
+        return TransformGroup(bodies1, path1, pivot, pivot->get_atom1().coords);
     } else {
-        return TransformGroup(path2, pivot, pivot->get_atom2().coords);
+        return TransformGroup(bodies2, path2, pivot, pivot->get_atom2().coords);
+    }
+}
+
+void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M] (Body* body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(group.pivot);});
+}
+
+void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& group) {
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&t] (Body* body) {body->translate(t);});
+}
+
+void TransformStrategy::undo() {
+    for (auto& body : bodybackup) {
+        rigidbody->bodies[body.index] = std::move(body.body);
+    }
+    bodybackup.clear();
+}
+
+void TransformStrategy::backup(TransformGroup& group) {
+    bodybackup.clear();
+    for (unsigned int i = 0; i < group.bodies.size(); i++) {
+        bodybackup.emplace_back(*group.bodies[i], group.indices[i]);
     }
 }

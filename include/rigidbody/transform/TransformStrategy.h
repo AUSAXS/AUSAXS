@@ -25,34 +25,65 @@ namespace rigidbody {
             virtual ~TransformStrategy() = default;
 
             /**
-             * @brief Rotate a body. 
+             * @brief Apply a transformation to a body. 
+             * 
+             * The most recent transformation can be undone by calling undo().
              * 
              * @param M The rotation matrix.
+             * @param t The translation vector. 
+             * @param constraint The constraint to transform along.
              */
-            virtual void rotate(const Matrix<double>& M, std::shared_ptr<Constraint> constraint) = 0;
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) = 0;
 
             /**
-             * @brief Translate a body. 
-             * 
-             * @param t The translation vector. 
-             * @param constraint The constraint to translate along.
+             * @brief Undo the previous transformation. 
              */
-            virtual void translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) = 0;
+            virtual void undo();
 
         protected: 
             RigidBody* rigidbody;
 
             struct TransformGroup {
-                TransformGroup(std::vector<Body*> bodies, std::shared_ptr<Constraint> target, Vector3<double> pivot);
-                std::vector<Body*> bodies;
-                std::shared_ptr<Constraint> target;
-                Vector3<double> pivot;
+                TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<Constraint> target, Vector3<double> pivot);
+                std::vector<Body*> bodies;          // The bodies to transform.
+                std::vector<unsigned int> indices;  // The indices of the bodies in the rigidbody.
+                std::shared_ptr<Constraint> target; // The constraint to transform along.
+                Vector3<double> pivot;              // The pivot point of the transformation.
             };
+
+            struct BackupBody {
+                BackupBody(Body body, unsigned int index) : body(body), index(index) {}
+                Body body;
+                unsigned int index;
+            };
+
+            std::vector<BackupBody> bodybackup;
+
+            /**
+             * @brief Create a backup of the bodies in the group.
+             */
+            void backup(TransformGroup& group);
 
             /**
              * @brief Get all bodies connected by constraints to the first body of the pivot. 
              *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
              */
             TransformGroup get_connected(std::shared_ptr<Constraint> pivot);
+
+            /**
+             * @brief Rotate a body. 
+             * 
+             * @param M The rotation matrix.
+             * @param group The group to apply the rotation to.
+             */
+            virtual void rotate(const Matrix<double>& M, TransformGroup& group);
+
+            /**
+             * @brief Translate a body. 
+             * 
+             * @param t The translation vector. 
+             * @param constraint The group to apply the translation to. 
+             */
+            virtual void translate(const Vector3<double>& t, TransformGroup& group);
     };
 }

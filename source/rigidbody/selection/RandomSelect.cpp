@@ -23,7 +23,8 @@ std::pair<unsigned int, unsigned int> RandomSelect::next() {
             return std::make_pair(ibody, 0);
         }
         default: {
-            std::mt19937 generator2;
+            std::random_device random;
+            std::mt19937 generator2(random());
             std::uniform_int_distribution<int> distribution2(0, rigidbody->constraint_map.at(ibody).size()-1);
             unsigned int iconstraint = distribution2(generator2);
 

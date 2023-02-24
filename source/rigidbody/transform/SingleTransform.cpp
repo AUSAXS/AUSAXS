@@ -2,15 +2,9 @@
 
 using namespace rigidbody;
 
-void SingleTransform::rotate(const Matrix<double>& M, std::shared_ptr<Constraint> constraint) {
-    Body& body = constraint->get_body1();
-
-    body.translate(-constraint->get_atom1().coords);
-    body.rotate(M);
-    body.translate(constraint->get_atom1().coords);
-}
-
-void SingleTransform::translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) {
-    Body& body = constraint->get_body1();
-    body.translate(t);
+void SingleTransform::apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) {
+    TransformGroup group({&constraint->get_body1()}, {constraint->ibody1}, constraint, constraint->get_atom1().coords);
+    backup(group);
+    rotate(M, group);
+    translate(t, group);
 }

@@ -4,6 +4,7 @@
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/selection/RandomSelect.h>
+#include <rigidbody/selection/SequentialSelect.h>
 #include <fitter/HydrationFitter.h>
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
@@ -78,26 +79,84 @@ TEST_CASE("body_selectors") {
     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     std::vector<std::vector<Atom>> atoms = {b1, b2, b3, b4};
     RigidBody rigidbody({atoms, {}});
-    rigidbody.generate_simple_constraints();
 
     SECTION("RandomSelect") {
-        std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(&rigidbody);
-        std::unordered_map<unsigned int, unsigned int> count;
-        for (unsigned int i = 0; i < 100; i++) {
-            auto[ibody, iconstraint] = strat->next();
-            if (ibody > count.size()-1) {
-                std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
-                REQUIRE(false);
-            } else {
-                count[ibody]++;
+        // add a varying number of constraints to each body
+        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+            for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
+                for (unsigned int k = j; k < 5; k++) {
+                    rigidbody.add_constraint(i, j, 0, 0);
+                }
             }
         }
 
-        // check that each one was chosen at least 10 times
-        REQUIRE(count[0] > 10);
-        REQUIRE(count[1] > 10);
-        REQUIRE(count[2] > 10);
-        REQUIRE(count[3] > 10);
+        rigidbody.generate_constraint_map();
+        std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(&rigidbody);
+        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+
+        // count how many times each body and constraint is selected
+        unsigned int iterations = 1000;
+        for (unsigned int i = 0; i < iterations; i++) {
+            auto[ibody, iconstraint] = strat->next();
+            if (ibody > rigidbody.body_size()-1) {
+                std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
+                REQUIRE(false);
+            } 
+            if (iconstraint > rigidbody.constraint_map.at(ibody).size()-1) {
+                std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
+                REQUIRE(false);
+            }
+            count[ibody][iconstraint]++;
+        }
+
+        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+            // calculate how many times each body was selected
+            double sum = 0;
+            for (unsigned int j = 0; j < rigidbody.constraint_map.at(i).size(); j++) {
+                sum += count[i][j];
+            }
+
+            // check that each body was selected at least 20% of the time
+            REQUIRE(sum > iterations*0.2);
+
+            // check that the constraints were randomly selected
+            for (unsigned int j = i; j < rigidbody.constraint_map.at(i).size(); j++) {
+                REQUIRE(count[i][j] > 0.7*sum/rigidbody.constraint_map.at(i).size());
+            }
+        }
+    }
+
+    SECTION("SequentialSelect") {
+        // add a varying number of constraints to each body
+        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+            for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
+                for (unsigned int k = j; k < 5; k++) {
+                    rigidbody.add_constraint(i, j, 0, 0);
+                }
+            }
+        }
+
+        rigidbody.generate_constraint_map();
+        std::unique_ptr<BodySelectStrategy> strat = std::make_unique<SequentialSelect>(&rigidbody);
+        std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
+
+        // check that the constraints are selected sequentially
+        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+            for (unsigned int j = 0; j < rigidbody.constraint_map.at(i).size(); j++) {
+                auto[ibody, iconstraint] = strat->next();
+                REQUIRE(ibody == i);
+                REQUIRE(iconstraint == j);
+            }
+        }
+
+        // check that the strategy loops back to the beginning
+        auto[ibody, iconstraint] = strat->next();
+        REQUIRE(ibody == 0);
+        REQUIRE(iconstraint == 0);
+    }
+
+    SECTION("RandomConstraintSelect") {
+        REQUIRE(false);        
     }
 }
 

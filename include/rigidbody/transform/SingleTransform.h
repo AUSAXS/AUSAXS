@@ -8,7 +8,15 @@ namespace rigidbody {
             SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
             ~SingleTransform() = default;
 
-            void rotate(const Matrix<double>&, std::shared_ptr<Constraint> constraint) override;
-            void translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
+            /**
+             * @brief Apply a transformation to the rigidbody.
+             * 
+             * The most recent transformation can be undone by calling undo().
+             * 
+             * @param M The rotation matrix.
+             * @param t The translation vector. 
+             * @param constraint The constraint to transform along.
+             */
+            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
     };
 }

@@ -65,9 +65,9 @@ namespace setting {
     };
 
     struct rigidbody {
-        enum TransformationStrategyChoice {RigidTransform};
+        enum TransformationStrategyChoice {RigidTransform, SingleTransform};
         enum ParameterGenerationStrategyChoice {Simple};
-        enum BodySelectStrategyChoice {RandomSelect, SequentialSelect};
+        enum BodySelectStrategyChoice {RandomSelect, RandomConstraintSelect, SequentialSelect};
 
         inline static TransformationStrategyChoice tsc = TransformationStrategyChoice::RigidTransform;
         inline static ParameterGenerationStrategyChoice pgsc = ParameterGenerationStrategyChoice::Simple;

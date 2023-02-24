@@ -30,7 +30,7 @@ namespace rigidbody {
 			std::pair<unsigned int, unsigned int> next() override;
 
 		private:
-			unsigned int ibody; // The index of the body to be transformed. 
-			unsigned int iconstraint; // The index of the constraint to be transformed.
+			unsigned int ibody = 0; 		// The index of the body to be transformed. 
+			unsigned int iconstraint = 0; 	// The index of the constraint to be transformed.
 	};	
 }

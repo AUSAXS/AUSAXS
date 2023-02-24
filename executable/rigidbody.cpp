@@ -34,6 +34,8 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
+    setting::rigidbody::tsc = setting::rigidbody::TransformationStrategyChoice::RigidTransform;
+    setting::rigidbody::bssc = setting::rigidbody::BodySelectStrategyChoice::RandomSelect;
     rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
     rigidbody.generate_simple_constraints();
 

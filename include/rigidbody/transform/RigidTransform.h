@@ -26,19 +26,14 @@ namespace rigidbody {
             ~RigidTransform() override;
 
             /**
-             * @brief Rotate all bodies connected to one side of the constraint.
+             * @brief Apply a transformation to the rigidbody.
              * 
-             * @param rad Rotation angle in radians.
-             * @param constraint The constraint. 
-             */
-            void rotate(const Matrix<double>& M, std::shared_ptr<Constraint> constraint) override;
-
-            /**
-             * @brief Translate all bodies connected to one side of the constraint. 
+             * The most recent transformation can be undone by calling undo().
              * 
+             * @param M The rotation matrix.
              * @param t The translation vector. 
-             * @param constraint The constraint.
+             * @param constraint The constraint to transform along.
              */
-            void translate(const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
+            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
     };
 }

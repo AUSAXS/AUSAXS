@@ -3,8 +3,10 @@
 #include <rigidbody/parameters/Parameters.h>
 #include <rigidbody/parameters/SimpleParameterGeneration.h>
 #include <rigidbody/transform/RigidTransform.h>
+#include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/selection/SequentialSelect.h>
 #include <rigidbody/selection/RandomSelect.h>
+#include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/ConstrainedFitter.h>
 #include <utility/Exceptions.h>
 #include <math/Matrix.h>
@@ -29,6 +31,9 @@ void RigidBody::setup() {
         case setting::rigidbody::RigidTransform:
             transform = std::make_unique<RigidTransform>(this); 
             break;
+        case setting::rigidbody::SingleTransform:
+            transform = std::make_unique<SingleTransform>(this);
+            break;
         default: 
             throw except::unknown_argument("RigidBody::RigidBody: Unkown TransformationStrategy.");
     }
@@ -46,6 +51,9 @@ void RigidBody::setup() {
     switch (setting::rigidbody::bssc) {
         case setting::rigidbody::RandomSelect:
             body_selector = std::make_unique<RandomSelect>(this);
+            break;
+        case setting::rigidbody::RandomConstraintSelect:
+            body_selector = std::make_unique<RandomConstraintSelect>(this);
             break;
         case setting::rigidbody::SequentialSelect:
             body_selector = std::make_unique<SequentialSelect>(this);
@@ -75,22 +83,13 @@ void RigidBody::optimize(std::string measurement_path) {
     std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
     std::vector<Water> best_waters = waters();
     for (unsigned int i = 0; i < setting::rigidbody::iterations; i++) {
-        bool printed = false;
-        std::stringstream iteration_out;
-        iteration_out << "\nIteration " << i << std::endl;
-
         // select a body to be modified this iteration
         auto [ibody, iconstraint] = body_selector->next();
-        Body& body = bodies.at(ibody);
         std::shared_ptr<Constraint> constraint = constraint_map.at(ibody).at(iconstraint);
         Parameter param = parameter_generator->next();
 
-        Body old_body(body);                                            // save the old body
-        grid->remove(&body);                                            // remove the body from the grid
         Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        transform->translate(param.dx, constraint);                     // translate the body
-        transform->rotate(R, constraint);                               // rotate the body
-        grid->add(&body);                                               // add the body back to the grid
+        transform->apply(R, param.dx, constraint);
         generate_new_hydration(); 
 
         // update the body location in the fitter
@@ -101,24 +100,21 @@ void RigidBody::optimize(std::string measurement_path) {
 
         // if the old configuration was better
         if (new_chi2 >= best_chi2) {
-            iteration_out << "\tRejected. chi2 for configuration was " << new_chi2 << std::endl;
-            body = std::move(old_body); // restore the old body
+            transform->undo();          // undo the body transforms
             *grid = *best_grid;         // restore the old grid
             waters() = best_waters;     // restore the old waters
+
+            if (i % 10 == 0 && setting::general::verbose) {
+                std::cout << "\rIteration " << i << "          " << std::flush;
+            }
         } else {
             // accept the changes
             best_grid = std::make_shared<Grid>(*grid);
             best_waters = waters();
             best_chi2 = new_chi2;
-            params.update(body.uid, param);
-            std::cout << "\nIteration " << i << std::endl;
+            // params.update(body.uid, param);
+            std::cout << "\rIteration " << i << std::endl;
             utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
-            printed = true;
-        }
-
-        // periodically print the status
-        if (i % 1 == 0 && setting::general::verbose && !printed) {
-            std::cout << iteration_out.str();
         }
     }
 
@@ -190,6 +186,10 @@ double RigidBody::chi2(fitter::HydrationFitter& fitter) const {
 
 std::vector<std::shared_ptr<Constraint>> RigidBody::get_constraints() const {
     return constraints;
+}
+
+std::shared_ptr<Constraint> RigidBody::get_constraint(unsigned int index) const {
+    return constraints.at(index);
 }
 
 void RigidBody::generate_constraint_map() {
