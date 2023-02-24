@@ -36,7 +36,8 @@ int main(int argc, char const *argv[]) {
 
     setting::rigidbody::tsc = setting::rigidbody::TransformationStrategyChoice::RigidTransform;
     setting::rigidbody::bssc = setting::rigidbody::BodySelectStrategyChoice::RandomSelect;
-    rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
+    // rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
+    rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {2, 5, 9, 99, 194});
     rigidbody.generate_simple_constraints();
 
     rigidbody.save(setting::general::output + "initial.pdb");
