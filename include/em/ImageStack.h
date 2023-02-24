@@ -25,14 +25,14 @@ namespace em {
              * @param file Path to the measurement file. 
              * @param param The cutoff parameter.
              */
-            std::shared_ptr<EMFit> fit(std::string file, mini::Parameter param);
+            std::shared_ptr<fitter::EMFit> fit(std::string file, mini::Parameter param);
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
              * @param file Path to the measurement file. 
              */
-            std::shared_ptr<EMFit> fit(std::string file);
+            std::shared_ptr<fitter::EMFit> fit(std::string file);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
@@ -40,14 +40,14 @@ namespace em {
              * @param h The histogram to fit to.  
              * @param param The cutoff parameter.
              */
-            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h, mini::Parameter param);
+            std::shared_ptr<fitter::EMFit> fit(const hist::ScatteringHistogram& h, mini::Parameter param);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<EMFit> fit(const hist::ScatteringHistogram& h);
+            std::shared_ptr<fitter::EMFit> fit(const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -97,7 +97,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -107,7 +107,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -117,7 +117,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::string file);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::string file);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -127,7 +127,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::string file);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::string file);
 
             /**
              * @brief Get the fitted water scaling factors.
@@ -159,7 +159,7 @@ namespace em {
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::shared_ptr<EMFit> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter, mini::Parameter param = {});
+            std::shared_ptr<fitter::EMFit> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter, mini::Parameter param = {});
 
             /**
              * @brief A helper function for the cutoff scanning method.
@@ -175,6 +175,6 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            std::pair<EMFit, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
     };
 }

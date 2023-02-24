@@ -10,6 +10,8 @@
 #include <utility/Exceptions.h>
 #include <mini/Utility.h>
 
+using namespace fitter;
+
 SimpleLeastSquares::SimpleLeastSquares(const SimpleDataset& data) : data(data) {}
 
 SimpleLeastSquares::SimpleLeastSquares(SimpleDataset&& data) : data(std::move(data)) {}

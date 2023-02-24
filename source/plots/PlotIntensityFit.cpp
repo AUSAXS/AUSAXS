@@ -10,22 +10,22 @@ plots::PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot()
     plot(graphs);
 }
 
-plots::PlotIntensityFit::PlotIntensityFit(const Fit& fit) : Plot() {
+plots::PlotIntensityFit::PlotIntensityFit(const fitter::Fit& fit) : Plot() {
     plot(fit.figures);
 }
 
-plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<Fit> fit) : Plot() {
+plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<fitter::Fit> fit) : Plot() {
     plot(fit->figures);
 }
 
 plots::PlotIntensityFit::~PlotIntensityFit() = default;
 
-void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<Fit> fit, std::string path) {
+void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit, std::string path) {
     PlotIntensityFit plot(fit);
     plot.save(path);
 }
 
-void plots::PlotIntensityFit::plot(const Fit::Plots& graphs) {
+void plots::PlotIntensityFit::plot(const fitter::Fit::Plots& graphs) {
     PlotOptions options_data, options_interpolated, options_intensity;
     options_data.set("errors", {{"color", style::color::orange}, {"title", "Fit"}, {"xlabel", "$q$ [$\\AA^{-1}$]"}, {"ylabel", "$I$ [arb]"}, {"logy", true}, {"logx", true}});
     options_interpolated.set("markers", {{"color", style::color::black}});

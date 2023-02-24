@@ -15,10 +15,11 @@ int main(int argc, char const *argv[]) {
     setting::grid::cubic = true;
 
     CLI::App app{"Rigid-body optimization."};
-    std::string input_structure, input_measurement, output, placement_strategy;
+    std::string input_structure, input_measurement, input_calibration, output, placement_strategy;
     app.add_option("input_s", input_structure, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", input_measurement, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
     app.add_option("output", output, "Path to save the hydrated file at.")->required();
+    auto p_cal = app.add_option("--calibrate", input_calibration, "Path to the calibration data.")->check(CLI::ExistingFile);
     app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,-w", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
     app.add_option("--bin_width", setting::axes::distance_bin_width, "Bin width for the distance histograms. Default: 1.");
@@ -40,13 +41,19 @@ int main(int argc, char const *argv[]) {
     rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {2, 5, 9, 99, 194});
     rigidbody.generate_simple_constraints();
 
+    if (p_cal->count() != 0) {
+        fitter::HydrationFitter fitter(input_calibration, rigidbody.get_histogram());
+        auto res = fitter.fit();
+        rigidbody.apply_calibration(res);
+    }
+
     rigidbody.save(setting::general::output + "initial.pdb");
     rigidbody.optimize(input_measurement);    
     rigidbody.save(setting::general::output + "optimized.pdb");
     fitter::HydrationFitter fitter(input_measurement, rigidbody.get_histogram());
     auto res = fitter.fit();
-    FitReporter::report(res);
-    FitReporter::save(res, setting::general::output + "fit.txt");
+    fitter::FitReporter::report(res);
+    fitter::FitReporter::save(res, setting::general::output + "fit.txt");
     plots::PlotIntensityFit::quick_plot(res, setting::general::output + "fit.png");
     return 0;
 }

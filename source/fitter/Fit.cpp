@@ -5,6 +5,8 @@
 
 #include <sstream>
 
+using namespace fitter;
+
 Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(res, chi2, fitter.dof()) {
     add_fit(fitter);
     add_plots(fitter);

@@ -162,7 +162,7 @@ optimize_radius/%: build/source/scripts/optimize_radius
 rigidbody/%: build/executable/rigidbody
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	$< $${structure} $${measurement} figures/
+	$< $${structure} $${measurement} figures/ ${options}
 	make plot/output
 	make plot_fits/$*
 

@@ -195,7 +195,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     min = evals.as_dataset().find_minimum();
     f({min.x});
 
-    std::shared_ptr<EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
+    std::shared_ptr<fitter::EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min.x);

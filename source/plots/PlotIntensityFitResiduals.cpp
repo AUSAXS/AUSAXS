@@ -10,17 +10,17 @@ plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(fitter::LinearFitter
     plot(graph);
 }
 
-plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const Fit& fit) : Plot() {
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const fitter::Fit& fit) : Plot() {
     plot(fit.residuals);
 }
 
-plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_ptr<Fit> fit) : Plot() {
+plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_ptr<fitter::Fit> fit) : Plot() {
     plot(fit->residuals);
 }
 
 plots::PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
 
-void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<Fit> fit, std::string path) {
+void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<fitter::Fit> fit, std::string path) {
     PlotIntensityFitResiduals plot(fit);
     plot.save(path);
 }

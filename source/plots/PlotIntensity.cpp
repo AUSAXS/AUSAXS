@@ -49,7 +49,7 @@ void plots::PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Co
        << std::endl;
 }
 
-void plots::PlotIntensity::plot(const std::shared_ptr<Fit> fit, style::Color color) {
+void plots::PlotIntensity::plot(const std::shared_ptr<fitter::Fit> fit, style::Color color) {
     plot(fit->figures.intensity, color);
 }
 

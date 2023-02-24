@@ -293,7 +293,7 @@ class Protein {
 		 * 
 		 * @param measurement Path to the measurement file to be fitted.
 		 */
-		[[nodiscard]] std::shared_ptr<Fit> fit(std::string measurement);
+		[[nodiscard]] std::shared_ptr<fitter::Fit> fit(std::string measurement);
 
 		/**
 		 * @brief Get the histogram manager of this protein.

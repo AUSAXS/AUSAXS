@@ -73,8 +73,8 @@ namespace setting {
         inline static ParameterGenerationStrategyChoice pgsc = ParameterGenerationStrategyChoice::Simple;
         inline static BodySelectStrategyChoice bssc = BodySelectStrategyChoice::RandomSelect;
 
-        inline static unsigned int iterations = 1000; // The number of iterations to run the rigid body optimization for.
-        inline static double bond_distance = 3;       // The maximum distance in Ångström between two atoms that allows for a constraint. 
+        inline static unsigned int iterations = 1000;   // The number of iterations to run the rigid body optimization for.
+        inline static double bond_distance = 3;         // The maximum distance in Ångström between two atoms that allows for a constraint. 
     };
 
     struct em {

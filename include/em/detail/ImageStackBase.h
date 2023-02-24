@@ -64,7 +64,7 @@ namespace em {
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            hist::ScatteringHistogram get_histogram(const std::shared_ptr<EMFit> res) const;
+            hist::ScatteringHistogram get_histogram(const std::shared_ptr<fitter::EMFit> res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.

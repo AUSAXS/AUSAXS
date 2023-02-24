@@ -66,9 +66,10 @@ void RigidBody::setup() {
 void RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     generate_constraint_map();
-    fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
-    fitter.set_constraints(constraints);
-    double best_chi2 = fitter.fit()->fval;
+    auto fitter = prepare_fitter(measurement_path);
+    // fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
+    // fitter.set_constraints(constraints);
+    double best_chi2 = fitter->fit()->fval;
 
     if (setting::general::verbose) {
         utility::print_info("\nStarting rigid body optimization.");
@@ -95,8 +96,8 @@ void RigidBody::optimize(std::string measurement_path) {
         generate_new_hydration(); 
 
         // update the body location in the fitter
-        fitter.set_scattering_hist(get_histogram());
-        double new_chi2 = fitter.fit()->fval;
+        update_fitter(fitter);
+        double new_chi2 = fitter->fit()->fval;
 
         writer.write_frame(this);
 
@@ -204,5 +205,32 @@ void RigidBody::generate_constraint_map() {
     for (const auto& constraint : get_constraints()) {
         constraint_map.at(constraint->ibody1).push_back(constraint);
         constraint_map.at(constraint->ibody2).push_back(constraint);
+    }
+}
+
+void RigidBody::apply_calibration(std::shared_ptr<fitter::Fit> calibration) {
+    if (setting::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
+    this->calibration = calibration;
+}
+
+std::shared_ptr<fitter::LinearFitter> RigidBody::prepare_fitter(std::string measurement_path) {
+    if (calibration == nullptr) {
+        fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
+        fitter.set_constraints(constraints);
+        return std::make_shared<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
+    } else {
+        fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, get_histogram());
+        fitter.set_constraints(constraints);
+        return std::make_shared<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
+    }
+}
+
+void RigidBody::update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
+    if (calibration == nullptr) {
+        fitter->set_scattering_hist(get_histogram());
+    } else {
+        auto histogram = get_histogram();
+        histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
+        fitter->set_scattering_hist(std::move(histogram));
     }
 }

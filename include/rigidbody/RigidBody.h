@@ -51,15 +51,33 @@ namespace rigidbody {
 			 */
             void generate_constraint_map();
 
+			/**
+			 * @brief Apply a calibration to this rigid body. 
+			 * 
+			 * This will fix the solvent scattering density to the fitted value.
+			 */
+			void apply_calibration(std::shared_ptr<fitter::Fit> calibration);
+
 			std::vector<std::shared_ptr<Constraint>> get_constraints() const;
 			std::shared_ptr<Constraint> get_constraint(unsigned int index) const;
 
 			std::unordered_map<unsigned int, std::vector<std::shared_ptr<Constraint>>> constraint_map;
 		private:
+			std::shared_ptr<fitter::Fit> calibration = nullptr;
 			std::unique_ptr<BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;
 			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
 			std::vector<std::shared_ptr<Constraint>> constraints;
+
+			/**
+			 * @brief Prepare the fitter for this rigidbody.
+			 */
+			std::shared_ptr<fitter::LinearFitter> prepare_fitter(std::string measurement_path); 
+
+			/**
+			 * @brief Update the fitter with the current rigid body parameters.
+			 */
+			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
 
 			/**
 			 * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 

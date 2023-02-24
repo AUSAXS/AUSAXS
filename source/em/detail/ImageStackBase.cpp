@@ -46,7 +46,7 @@ hist::ScatteringHistogram em::ImageStackBase::get_histogram(double cutoff) const
     return phm->get_histogram(cutoff);
 }
 
-hist::ScatteringHistogram em::ImageStackBase::get_histogram(const std::shared_ptr<EMFit> res) const {
+hist::ScatteringHistogram em::ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 

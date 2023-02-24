@@ -321,7 +321,7 @@ void Protein::bind_body_signallers() {
     }
 }
 
-std::shared_ptr<Fit> Protein::fit(std::string measurement) {
+std::shared_ptr<fitter::Fit> Protein::fit(std::string measurement) {
     hist::ScatteringHistogram h = get_histogram();
     fitter::HydrationFitter fitter(measurement, h);
     return fitter.fit();

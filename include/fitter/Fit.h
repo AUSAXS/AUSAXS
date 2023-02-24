@@ -7,65 +7,66 @@
 #include <dataset/Multiset.h>
 #include <mini/Utility.h>
 
-class Fitter;
+namespace fitter {
+    class Fitter;
+    class Fit : public mini::Result {
+        public:
+            struct Plots {
+                SimpleDataset intensity;              // The full intensity line
+                SimpleDataset intensity_interpolated; // The intensity line interpolated at the data points. 
+                SimpleDataset data;                   // The data itself
+            };
 
-class Fit : public mini::Result {
-    public:
-        struct Plots {
-            SimpleDataset intensity;              // The full intensity line
-            SimpleDataset intensity_interpolated; // The intensity line interpolated at the data points. 
-            SimpleDataset data;                   // The data itself
-        };
+            Fit() noexcept {}
 
-        Fit() noexcept {}
+            /**
+             * @brief Constructor.
+             * 
+             * Create a new Fit object based on a fitter and a minimizer result.
+             */
+            Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept;
 
-        /**
-         * @brief Constructor.
-         * 
-         * Create a new Fit object based on a fitter and a minimizer result.
-         */
-        Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept;
+            /**
+             * @brief Constructor.
+             * 
+             * Create a new Fit object based on a minimizer result.
+             */
+            Fit(const mini::Result& res, double chi2, double dof) noexcept;
+            
+            /**
+             * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
+             */ 
+            void add_fit(Fitter& fit) noexcept;
 
-        /**
-         * @brief Constructor.
-         * 
-         * Create a new Fit object based on a minimizer result.
-         */
-        Fit(const mini::Result& res, double chi2, double dof) noexcept;
-        
-        /**
-         * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
-         */ 
-        void add_fit(Fitter& fit) noexcept;
+            /**
+             * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
+             */
+            void add_fit(std::shared_ptr<Fit> fit) noexcept;
 
-        /**
-         * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
-         */
-        void add_fit(std::shared_ptr<Fit> fit) noexcept;
+            /**
+             * @brief Add plots to this fit.
+             */
+            void add_plots(Fitter& fitter);
 
-        /**
-         * @brief Add plots to this fit.
-         */
-        void add_plots(Fitter& fitter);
+            /**
+             * @brief Get a string representation of this object. 
+             */
+            [[nodiscard]] virtual std::string to_string() const noexcept;
 
-        /**
-         * @brief Get a string representation of this object. 
-         */
-        [[nodiscard]] virtual std::string to_string() const noexcept;
+            mini::Landscape evaluated_points;
+            Plots figures;
+            SimpleDataset residuals;
+            unsigned int dof;
+    };
 
-        mini::Landscape evaluated_points;
-        Plots figures;
-        SimpleDataset residuals;
-        unsigned int dof;
-};
+    struct EMFit : public Fit {
+        using Fit::Fit;
 
-struct EMFit : public Fit {
-    using Fit::Fit;
+        [[nodiscard]] std::string to_string() const noexcept override;
 
-    [[nodiscard]] std::string to_string() const noexcept override;
+        double level;
+    };
 
-    double level;
-};
-
-template<typename C>
-concept FitType = std::derived_from<C, Fit>;
+    template<typename C>
+    concept FitType = std::derived_from<C, Fit>;
+}

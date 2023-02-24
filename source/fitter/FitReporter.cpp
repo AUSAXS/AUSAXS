@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 
+using namespace fitter;
+
 template<FitType T>
 void FitReporter::report(const T& fit) {
     std::cout << fit.to_string() << std::endl;

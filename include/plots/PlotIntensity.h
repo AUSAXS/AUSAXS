@@ -43,7 +43,7 @@ namespace plots {
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			void plot(const std::shared_ptr<Fit> fit, style::Color color = style::color::black);
+			void plot(const std::shared_ptr<fitter::Fit> fit, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
