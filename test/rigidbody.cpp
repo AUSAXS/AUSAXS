@@ -4,12 +4,14 @@
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/selection/RandomSelect.h>
+#include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/selection/SequentialSelect.h>
 #include <fitter/HydrationFitter.h>
 #include <data/BodySplitter.h>
 #include <data/Protein.h>
 
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace rigidbody;
 
@@ -80,16 +82,16 @@ TEST_CASE("body_selectors") {
     std::vector<std::vector<Atom>> atoms = {b1, b2, b3, b4};
     RigidBody rigidbody({atoms, {}});
 
-    SECTION("RandomSelect") {
-        // add a varying number of constraints to each body
-        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
-            for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
-                for (unsigned int k = j; k < 5; k++) {
-                    rigidbody.add_constraint(i, j, 0, 0);
-                }
+    // add a varying number of constraints to each body
+    for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
+        for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
+            for (unsigned int k = j; k < 5; k++) {
+                rigidbody.add_constraint(i, j, 0, 0);
             }
         }
+    }
 
+    SECTION("RandomSelect") {
         rigidbody.generate_constraint_map();
         std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomSelect>(&rigidbody);
         std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
@@ -98,11 +100,11 @@ TEST_CASE("body_selectors") {
         unsigned int iterations = 1000;
         for (unsigned int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint] = strat->next();
-            if (ibody > rigidbody.body_size()-1) {
+            if (ibody >= rigidbody.body_size()) {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
-            if (iconstraint > rigidbody.constraint_map.at(ibody).size()-1) {
+            if (iconstraint >= rigidbody.constraint_map.at(ibody).size()) {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
@@ -127,15 +129,6 @@ TEST_CASE("body_selectors") {
     }
 
     SECTION("SequentialSelect") {
-        // add a varying number of constraints to each body
-        for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
-            for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
-                for (unsigned int k = j; k < 5; k++) {
-                    rigidbody.add_constraint(i, j, 0, 0);
-                }
-            }
-        }
-
         rigidbody.generate_constraint_map();
         std::unique_ptr<BodySelectStrategy> strat = std::make_unique<SequentialSelect>(&rigidbody);
         std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
@@ -156,7 +149,139 @@ TEST_CASE("body_selectors") {
     }
 
     SECTION("RandomConstraintSelect") {
-        REQUIRE(false);        
+        rigidbody.generate_constraint_map();
+        std::unique_ptr<BodySelectStrategy> strat = std::make_unique<RandomConstraintSelect>(&rigidbody);
+        std::unordered_map<unsigned int, unsigned int> count;
+
+        // count how many times each constraint is selected
+        unsigned int iterations = 1000;
+        for (unsigned int i = 0; i < iterations; i++) {
+            auto[ibody, iconstraint] = strat->next();
+            if (ibody >= rigidbody.body_size()) {
+                std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
+                REQUIRE(false);
+            } 
+            if (iconstraint >= rigidbody.constraint_map.at(ibody).size()) {
+                std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
+                REQUIRE(false);
+            }
+            count[ibody]++;
+        }
+
+        for (unsigned int i = 0; i < rigidbody.get_constraints().size(); i++) {
+            REQUIRE(count[i] > 0.8*iterations/rigidbody.body_size());
+        }
+    }
+}
+
+TEST_CASE("transforms") {
+    std::vector<Atom> b0 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    std::vector<Atom> b1 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+    std::vector<Atom> b2 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+    std::vector<Atom> b3 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+    std::vector<Atom> b4 = {Atom(Vector3<double>( 0,  0,  0), 1, "C", "C", 1), Atom(Vector3<double>( 0, 0,  2), 1, "C", "C", 1)};
+    std::vector<std::vector<Atom>> atoms = {b0, b1, b2, b3, b4};
+    RigidBody rigidbody({atoms, {}});
+
+    rigidbody.add_constraint(0, 1, 0, 0); // 0
+    rigidbody.add_constraint(1, 2, 0, 0); // 1
+    rigidbody.add_constraint(2, 3, 0, 0); // 2
+    rigidbody.add_constraint(3, 4, 0, 0); // 3
+    rigidbody.generate_constraint_map();
+
+    SECTION("Single") {
+    }
+
+    SECTION("Rigid") {
+        auto vector_contains = [] (std::vector<unsigned int> vec, std::vector<unsigned int> vals) {
+            std::unordered_set<unsigned int> set(vec.begin(), vec.end());
+            for (auto val : vals) {
+                if (!set.contains(val)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        SECTION("get_connected") {
+            struct TestRigidTransform : public RigidTransform {
+                using RigidTransform::RigidTransform;
+                using RigidTransform::get_connected;
+            };
+
+            SECTION("simple") {
+                TestRigidTransform transform(&rigidbody);
+
+                // 0 - 1 - 2 - 3 - 4            //
+                auto group = transform.get_connected(rigidbody.get_constraint(0));
+                REQUIRE(group.indices.size() == 1);
+                CHECK(group.indices[0] == 0);
+
+                group = transform.get_connected(rigidbody.get_constraint(1));
+                REQUIRE(group.indices.size() == 2);
+                CHECK(vector_contains(group.indices, {0, 1}));
+
+                group = transform.get_connected(rigidbody.get_constraint(2));
+                REQUIRE(group.indices.size() == 2);
+                CHECK(vector_contains(group.indices, {3, 4}));
+
+                group = transform.get_connected(rigidbody.get_constraint(3));
+                REQUIRE(group.indices.size() == 1);
+                CHECK(group.indices[0] == 4);
+            }
+
+            SECTION("complex") {
+                std::vector<Atom> b5 = {Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), Atom(Vector3<double>(0, 2, 0), 1, "C", "C", 1)};
+                std::vector<Atom> b6 = {Atom(Vector3<double>(0, 3, 0), 1, "C", "C", 1), Atom(Vector3<double>(0, 4, 0), 1, "C", "C", 1)};
+                std::vector<Atom> b7 = {Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), Atom(Vector3<double>(2, 0, 0), 1, "C", "C", 1)};
+                atoms = {b0, b1, b2, b3, b4, b5, b6, b7};
+                RigidBody rigidbody2({atoms, {}});
+
+                rigidbody2.add_constraint(0, 1, 0, 0); // 0
+                rigidbody2.add_constraint(1, 2, 0, 0); // 1
+                rigidbody2.add_constraint(2, 3, 0, 0); // 2
+                rigidbody2.add_constraint(3, 4, 0, 0); // 3
+                rigidbody2.add_constraint(3, 5, 0, 0); // 4
+                rigidbody2.add_constraint(5, 6, 0, 0); // 5
+                rigidbody2.add_constraint(3, 7, 0, 0); // 6
+                rigidbody2.generate_constraint_map();
+
+                //             5 - 6            //
+                //             |                //
+                // 0 - 1 - 2 - 3 - 4            //
+                //             |                //
+                //             7                //
+
+                TestRigidTransform transform(&rigidbody2);
+                auto group = transform.get_connected(rigidbody2.get_constraint(0));
+                REQUIRE(group.indices.size() == 1);
+                CHECK(group.indices[0] == 0);
+
+                group = transform.get_connected(rigidbody2.get_constraint(1));
+                REQUIRE(group.indices.size() == 2);
+                CHECK(vector_contains(group.indices, {0, 1}));
+
+                group = transform.get_connected(rigidbody2.get_constraint(2));
+                REQUIRE(group.indices.size() == 3);
+                CHECK(vector_contains(group.indices, {0, 1, 2}));
+
+                group = transform.get_connected(rigidbody2.get_constraint(3));
+                REQUIRE(group.indices.size() == 1);
+                CHECK(group.indices[0] == 4);
+
+                group = transform.get_connected(rigidbody2.get_constraint(4));
+                REQUIRE(group.indices.size() == 2);
+                CHECK(vector_contains(group.indices, {5, 6}));
+
+                group = transform.get_connected(rigidbody2.get_constraint(5));
+                REQUIRE(group.indices.size() == 1);
+                CHECK(group.indices[0] == 6);
+
+                group = transform.get_connected(rigidbody2.get_constraint(6));
+                REQUIRE(group.indices.size() == 1);
+                CHECK(group.indices[0] == 7);
+            }
+        }
     }
 }
 

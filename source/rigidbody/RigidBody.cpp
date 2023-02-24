@@ -83,6 +83,8 @@ void RigidBody::optimize(std::string measurement_path) {
     std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
     std::vector<Water> best_waters = waters();
     for (unsigned int i = 0; i < setting::rigidbody::iterations; i++) {
+        writer.write_frame(this);
+
         // select a body to be modified this iteration
         auto [ibody, iconstraint] = body_selector->next();
         std::shared_ptr<Constraint> constraint = constraint_map.at(ibody).at(iconstraint);
@@ -202,6 +204,5 @@ void RigidBody::generate_constraint_map() {
     for (const auto& constraint : get_constraints()) {
         constraint_map.at(constraint->ibody1).push_back(constraint);
         constraint_map.at(constraint->ibody2).push_back(constraint);
-        std::cout << "Constraint between " << constraint->ibody1 << " and " << constraint->ibody2 << std::endl;
     }
 }

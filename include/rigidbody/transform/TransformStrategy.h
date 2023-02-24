@@ -65,12 +65,6 @@ namespace rigidbody {
             void backup(TransformGroup& group);
 
             /**
-             * @brief Get all bodies connected by constraints to the first body of the pivot. 
-             *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
-             */
-            TransformGroup get_connected(std::shared_ptr<Constraint> pivot);
-
-            /**
              * @brief Rotate a body. 
              * 
              * @param M The rotation matrix.
