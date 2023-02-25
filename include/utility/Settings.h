@@ -75,6 +75,10 @@ namespace setting {
 
         inline static unsigned int iterations = 1000;   // The number of iterations to run the rigid body optimization for.
         inline static double bond_distance = 3;         // The maximum distance in Ångström between two atoms that allows for a constraint. 
+
+        struct detail {
+            inline static std::vector<int> constraints; // The residue ids to place a constraint at.
+        };
     };
 
     struct em {
@@ -203,6 +207,9 @@ namespace setting {
             make_shared({"N"}, setting::fit::N),
 
             // rigidbody
+            make_shared({"rigidbody-iterations"}, setting::rigidbody::iterations),
+            make_shared({"bond-distance"}, setting::rigidbody::bond_distance),
+            make_shared({"constraints"}, setting::rigidbody::detail::constraints),
 
             // em
             make_shared({"sample-frequency"}, setting::em::sample_frequency),
@@ -217,6 +224,7 @@ namespace setting {
         };
 
         // declare template specializations
+        template<> std::string SmartOption<std::vector<int>>::get() const;
         template<> std::string SmartOption<std::vector<std::string>>::get() const;
         template<> std::string SmartOption<std::vector<double>>::get() const;
         template<> std::string SmartOption<std::string>::get() const;
@@ -231,5 +239,6 @@ namespace setting {
         template<> void SmartOption<unsigned int>::set(std::vector<std::string> str) const;
         template<> void SmartOption<std::vector<std::string>>::set(std::vector<std::string> str) const;
         template<> void SmartOption<std::vector<double>>::set(std::vector<std::string> str) const;
+        template<> void SmartOption<std::vector<int>>::set(std::vector<std::string> str) const;
     }
 }

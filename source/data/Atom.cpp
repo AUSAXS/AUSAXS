@@ -148,9 +148,9 @@ string Atom::as_pdb() const {
         << right << setw(4) << resSeq                                        // 23 - 26
         << right << setw(1) << iCode                                         // 27
         << "   "                                                             // 28 - 30
-        << right << setw(8) << utility::fixedwidth(coords.x(), 8)            // 31 - 38
-        << right << setw(8) << utility::fixedwidth(coords.y(), 8)            // 39 - 46
-        << right << setw(8) << utility::fixedwidth(coords.z(), 8)            // 47 - 54
+        << right << setw(8) << utility::fixedwidth(coords.x(), 7)            // 31 - 38
+        << right << setw(8) << utility::fixedwidth(coords.y(), 7)            // 39 - 46
+        << right << setw(8) << utility::fixedwidth(coords.z(), 7)            // 47 - 54
         << right << setw(6) << utility::fixedwidth(occupancy, 6)             // 55 - 60
         << right << setw(6) << utility::fixedwidth(tempFactor, 6)            // 61 - 66
         << "          "                                                      // 67 - 76

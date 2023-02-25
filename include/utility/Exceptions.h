@@ -13,6 +13,9 @@ namespace except {
         const std::string msg;
     };
 
+    // Missing argument. Used whenever a required option is missing.
+    struct missing_option : public base {using base::base;};
+
     // Invalid call order. A method depends on another before it can be run. Used for fits (a fit must be made before a plot can).
     struct bad_order : public base {using base::base;};
 

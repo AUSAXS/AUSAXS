@@ -74,8 +74,15 @@ TransformStrategy::TransformGroup RigidTransform::get_connected(std::shared_ptr<
         throw except::size_error("TransformStrategy::get_connected: The system is overconstrained. Use a different TransformStrategy.");
     }
 
-    // if the paths are different lengths, we return the shorter path as the group
-    if (path1.size() < path2.size()) {
+    unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
+        return sum + rigidbody->body(ibody).atoms().size();
+    });
+    unsigned int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
+        return sum + rigidbody->body(ibody).atoms().size();
+    });
+
+    // return the path with the least atoms, since that will be the cheapest to transform
+    if (N1 < N2) {
         return TransformGroup(bodies1, path1, pivot, pivot->get_atom1().coords);
     } else {
         return TransformGroup(bodies2, path2, pivot, pivot->get_atom2().coords);

@@ -115,6 +115,13 @@ std::string setting::detail::SmartOption<std::vector<double>>::get() const {
 }
 
 template<>
+std::string setting::detail::SmartOption<std::vector<int>>::get() const {
+    std::string str;
+    std::for_each(setting.begin(), setting.end(), [&str] (int s) {str += std::to_string(s) + " ";});
+    return str;
+}
+
+template<>
 std::string setting::detail::SmartOption<std::string>::get() const {return setting;}
 
 template<>
@@ -173,6 +180,16 @@ void setting::detail::SmartOption<std::vector<double>>::set(std::vector<std::str
     for (auto& s : str) {
         if (s.empty() || s == " ") {continue;}
         new_val.push_back(std::stod(s));
+    }
+    setting = new_val;
+}
+
+template<>
+void setting::detail::SmartOption<std::vector<int>>::set(std::vector<std::string> str) const {
+    std::vector<int> new_val;
+    for (auto& s : str) {
+        if (s.empty() || s == " ") {continue;}
+        new_val.push_back(std::stoi(s));
     }
     setting = new_val;
 }

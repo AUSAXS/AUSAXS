@@ -219,7 +219,9 @@ std::shared_ptr<fitter::LinearFitter> RigidBody::prepare_fitter(std::string meas
         fitter.set_constraints(constraints);
         return std::make_shared<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
     } else {
-        fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, get_histogram());
+        auto histogram = get_histogram();
+        histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
+        fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, std::move(histogram));
         fitter.set_constraints(constraints);
         return std::make_shared<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
     }

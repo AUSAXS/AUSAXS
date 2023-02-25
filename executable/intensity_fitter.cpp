@@ -86,9 +86,9 @@ int main(int argc, char const *argv[]) {
     std::shared_ptr<fitter::HydrationFitter> fitter;
     if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
     else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
-    std::shared_ptr<Fit> result = fitter->fit();
-    FitReporter::report(result);
-    FitReporter::save(result, output + "report.txt");
+    std::shared_ptr<fitter::Fit> result = fitter->fit();
+    fitter::FitReporter::report(result);
+    fitter::FitReporter::save(result, output + "report.txt");
 
     // save fit
     auto fit = fitter->get_model_dataset();

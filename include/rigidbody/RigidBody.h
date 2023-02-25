@@ -58,6 +58,11 @@ namespace rigidbody {
 			 */
 			void apply_calibration(std::shared_ptr<fitter::Fit> calibration);
 
+			/**
+			 * @brief Update the fitter with the current rigid body parameters.
+			 */
+			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
+
 			std::vector<std::shared_ptr<Constraint>> get_constraints() const;
 			std::shared_ptr<Constraint> get_constraint(unsigned int index) const;
 
@@ -73,11 +78,6 @@ namespace rigidbody {
 			 * @brief Prepare the fitter for this rigidbody.
 			 */
 			std::shared_ptr<fitter::LinearFitter> prepare_fitter(std::string measurement_path); 
-
-			/**
-			 * @brief Update the fitter with the current rigid body parameters.
-			 */
-			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
 
 			/**
 			 * @brief Perform a single step of the optimization, and calculate the resulting chi2 value. 
