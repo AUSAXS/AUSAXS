@@ -1,11 +1,9 @@
-#include <utility/SimpleDataset.h>
+#include <dataset/SimpleDataset.h>
 #include <utility/Utility.h>
 
 #include <filesystem>
 #include <iostream>
 #include <fstream>
-
-using std::string;
 
 /**
  * @brief Rebin a dataset. This dramatically reduces the number of data points.
@@ -18,15 +16,15 @@ int main(int argc, char const *argv[]) {
     }
 
     // check if file is already rebinned
-    string mfile = argv[1];
+    std::string mfile = argv[1];
     std::ifstream input(mfile);
     if (!input.is_open()) {
         std::cerr << "Error: Could not open file \"" << mfile << "\"" << std::endl;
         return 1;
     }
-    string line;
+    std::string line;
     std::getline(input, line);
-    if (line.find("REBINNED") != string::npos) {
+    if (line.find("REBINNED") != std::string::npos) {
         std::cerr << "Error: File \"" << mfile << "\" has already been rebinned" << std::endl;
         return 1;
     }

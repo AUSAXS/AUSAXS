@@ -321,7 +321,7 @@ TEST_CASE("grid") {
 TEST_CASE("split_body", "[body],[files]") {
     setting::general::verbose = false;
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+    Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
 
     // check sizes
     REQUIRE(protein.bodies.size() == 3);
@@ -336,29 +336,6 @@ TEST_CASE("split_body", "[body],[files]") {
     CHECK(b2.atoms(0).resSeq == 9);
     CHECK(b2.atoms().back().resSeq == 98);
     CHECK(b3.atoms(0).resSeq == 99);
-}
-
-TEST_CASE("generate_sequential_constraints", "[body],[files]") {
-    setting::general::verbose = false;
-    vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
-    vector<rigidbody::Constraint> constraints = BodySplitter::sequential_constraints(protein);
-
-    REQUIRE(constraints.size() == 2);
-
-    // check first constraint
-    rigidbody::Constraint& c1 = constraints[0];
-    REQUIRE(c1.get_atom1().name == "CA");
-    REQUIRE(c1.get_atom1().serial == 131);
-    REQUIRE(c1.get_atom2().name == "CA");
-    REQUIRE(c1.get_atom2().serial == 138);
-
-    // check second constraint
-    rigidbody::Constraint& c2 = constraints[1];
-    REQUIRE(c2.get_atom1().name == "CA");
-    REQUIRE(c2.get_atom1().serial == 809);
-    REQUIRE(c2.get_atom2().name == "CA");
-    REQUIRE(c2.get_atom2().serial == 814);
 }
 
 TEST_CASE("copy") {

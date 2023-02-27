@@ -343,7 +343,7 @@ void PartialHistogramManagerMT::calc_hh() {
     // submit jobs to the thread pool
     BS::multi_future<std::vector<double>> hh;
     for (unsigned int i = 0; i < protein->hydration_atoms.size(); i += setting::general::detail::job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min(i+setting::general::detail::job_size, (uint) protein->hydration_atoms.size())));
+        hh.push_back(pool->submit(calc_hh, i, std::min(i+setting::general::detail::job_size, (unsigned int) protein->hydration_atoms.size())));
     }
     hh.push_back(pool->submit(calc_self));
     pool->wait_for_tasks();

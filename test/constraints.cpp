@@ -44,48 +44,18 @@ TEST_CASE_METHOD(fixture, "constructor") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "connections") {
-    RigidBody rigidbody(protein);
-    
-    RigidTransform transform(&rigidbody);
-    std::shared_ptr<Constraint> constraint1 = std::make_shared<Constraint>(&protein, a1, a3);
-    std::shared_ptr<Constraint> constraint2 = std::make_shared<Constraint>(&protein, a5, a7);
-    rigidbody.add_constraint(constraint1);
-    rigidbody.add_constraint(constraint2);
-
-    std::vector<Body*> group = transform.get_connected(constraint1);
-    REQUIRE(group.size() == 1);
-    REQUIRE(*group[0] == b1);
-
-    group = transform.get_connected(constraint2);
-    REQUIRE(group.size() == 1);
-    REQUIRE(*group[0] == b3);
-
-    Constraint constraint3(&protein, a3, a5);
-    rigidbody.add_constraint(constraint3);
-    group = transform.get_connected(constraint3);
-    REQUIRE(group.size() == 2);
-    REQUIRE(*group[0] == b1);
-    REQUIRE(*group[1] == b2);
-
-    Constraint constraint4(&protein, a1, a7);
-    rigidbody.add_constraint(constraint4);
-    group = transform.get_connected(constraint3);
-    REQUIRE(group.size() == 4);
-}
-
 TEST_CASE_METHOD(fixture, "affects_fitter") {
     setting::general::verbose = false;
-    fitter::ConstrainedFitter fitter("test/files/2epe.dat", protein.get_histogram());
+    fitter::ConstrainedFitter<HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
     double chi2 = fitter.fit()->fval;
 
-    Constraint constraint(&protein, a1, a3);
+    std::shared_ptr<Constraint> constraint = std::make_shared<Constraint>(&protein, a1, a3);
     protein.body(0).translate(Vector3<double>(1, 0, 0));
     fitter.add_constraint(constraint);
     double chi2c = fitter.fit()->fval;
 
-    CHECK(constraint.evaluate() > 0);
-    REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint.evaluate(), 0.1));
+    CHECK(constraint->evaluate() > 0);
+    REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint->evaluate(), 0.1));
 }
 
 TEST_CASE("simple_constraint_generation") {
@@ -101,20 +71,17 @@ TEST_CASE("simple_constraint_generation") {
         Body b3 = Body(std::vector<Atom>{a3});
         Body b4 = Body(std::vector<Atom>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
-        Protein protein = Protein(ap);
-
-        RigidBody rigidbody(protein);
+        RigidBody rigidbody(ap);
         rigidbody.generate_simple_constraints();
-        REQUIRE(rigidbody.constraints.size() == 3);
+        REQUIRE(rigidbody.get_constraints().size() == 3);
     }
 
     SECTION("real data") {
-        Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
-        RigidBody rigidbody(protein);
+        RigidBody rigidbody = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
         rigidbody.generate_simple_constraints();
 
-        REQUIRE(rigidbody.constraints.size() == 2);
-        std::cout << rigidbody.constraints[0] << std::endl;
-        std::cout << rigidbody.constraints[1] << std::endl;
+        REQUIRE(rigidbody.get_constraints().size() == 2);
+        std::cout << rigidbody.get_constraint(0) << std::endl;
+        std::cout << rigidbody.get_constraint(1) << std::endl;
     }
 }

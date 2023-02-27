@@ -6,12 +6,9 @@
 
 #include <data/Body.h>
 #include <data/Protein.h>
-#include <fitter/IntensityFitter.h>
 #include <fitter/Fit.h>
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
-
-using std::cout, std::endl;
 
 int main(int argc, char const *argv[]) {
     CLI::App app{"Calculate the scattering from a pdb structure."};

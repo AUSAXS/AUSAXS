@@ -249,7 +249,7 @@ TEST_CASE("test_model", "[slow],[manual]") {
     plots::PlotIntensityFitResiduals plot_r(res);
     plot_r.save("em_residuals.pdf");
 
-    FitReporter::report(res);
+    fitter::FitReporter::report(res);
 }
 
 TEST_CASE("generate_contour", "[files],[slow],[manual]") {

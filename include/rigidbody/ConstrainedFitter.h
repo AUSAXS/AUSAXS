@@ -21,7 +21,7 @@ namespace fitter {
             /**
              * @brief Add a constraint to the fitter. 
              */
-            void add_constraint(std::unique_ptr<rigidbody::Constraint> constraint);
+            void add_constraint(std::shared_ptr<rigidbody::Constraint> constraint);
 
             /**
              * @brief Add a constraint to the fitter. 

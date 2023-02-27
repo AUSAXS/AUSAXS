@@ -35,7 +35,7 @@ TEST_CASE("plot_intensityfit", "[manual]") {
 
     hist::ScatteringHistogram h = protein.get_histogram();
     fitter::HydrationFitter fitter("test/files/2epe.dat", h);
-    std::shared_ptr<Fit> result = fitter.fit();
+    std::shared_ptr<fitter::Fit> result = fitter.fit();
     plots::PlotIntensityFit::quick_plot(result, "temp/plot/intensityfit.png");
     plots::PlotIntensityFitResiduals::quick_plot(result, "temp/plot/intensityfitresiduals.png");
 }

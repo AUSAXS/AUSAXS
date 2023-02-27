@@ -27,7 +27,7 @@ TEST_CASE("atom_assign", "[manual]") {
 
 TEST_CASE("body_splitter", "[manual]") {
     vector<int> splits = {9, 99};
-    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+    Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
     rigidbody::RigidBody body(protein);
 }
 
@@ -64,80 +64,10 @@ TEST_CASE("vector_assign", "[manual]") {
 
 TEST_CASE("grid_add", "[manual]") {
     vector<int> splits = {9, 99};
-    Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
-    rigidbody::RigidBody rbody(protein);
-    rbody.protein.generate_new_hydration();
-    rbody.protein.clear_grid();
-    rbody.protein.generate_new_hydration();
-}
-
-#include "rigidbody/RandomSelect.h"
-#include "rigidbody/SimpleParameterGeneration.h"
-TEST_CASE("compact_coordinates", "[slow],[manual]") {
-    vector<Atom> a1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
-                       Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"),  Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> a2 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"),  Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
-                       Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
-
-    Body b1(a1);
-    Body b2(a2);
-
-    Protein protein = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
-    rigidbody::RigidBody rigidbody(protein);
-
-    rigidbody::Parameters params(protein);
-    // std::shared_ptr<Grid> grid = protein.get_grid();
-
-    protein.generate_new_hydration();
-    fitter::LinearFitter fitter("data/LAR1-2/LAR1-2.RSR", protein.get_histogram());
-    double _chi2 = fitter.fit()->fval;
-    std::cout << "Initial chi2: " << _chi2 << std::endl;
-
-    rigidbody::RandomSelect bodyselector(rigidbody.protein);
-    rigidbody::SimpleParameterGeneration parameter_generator(100, 5, 0.3);
-
-    for (unsigned int i = 0; i < 100; i++) {
-        // select a body to be modified this iteration
-        int body_index = bodyselector.next();
-        Body& body = rigidbody.protein.bodies[body_index];
-        rigidbody::Parameter param = parameter_generator.next();
-
-        Body old_body(body);
-        // grid->remove(&body);
-
-        // update the body to reflect the new params
-        Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-        body.translate(param.dx);
-        body.rotate(R);
- 
-        // add the body to the grid again
-        // grid->add(&body);
-        std::shared_ptr<Grid> grid = protein.create_grid();
-        protein.generate_new_hydration();
-
-        // calculate the new chi2
-        auto h = rigidbody.protein.get_histogram();
-        fitter.set_scattering_hist(h);
-        double __chi2 = fitter.fit()->fval;
-
-        std::cout << "new chi2: " << __chi2 << std::endl;
-        // if the old configuration was better
-        if (__chi2 >= _chi2) {
-            std::cout << "REROLLING CHANGES" << std::endl;
-            body = old_body;
-        } else {
-            std::cout << "KEEPING CHANGES" << std::endl;
-            // accept the changes
-            _chi2 = __chi2;
-            params.update(body.uid, param);
-        }
-
-        grid = protein.create_grid();
-        protein.generate_new_hydration();
-        fitter.set_scattering_hist(protein.get_histogram());
-        double ___chi2 = fitter.fit()->fval;
-        std::cout << "\tchi2 is now " << ___chi2 << std::endl;
-    }
+    rigidbody::RigidBody rbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+    rbody.generate_new_hydration();
+    rbody.clear_grid();
+    rbody.generate_new_hydration();
 }
 
 TEST_CASE("debug", "[manual]") {

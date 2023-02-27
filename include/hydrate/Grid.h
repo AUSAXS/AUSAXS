@@ -303,9 +303,13 @@ class Grid {
 		 */
 		template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 		Vector3<double> to_xyz(const Vector3<T>& v) const {
-			double x = axes.x.min + width*v[0];
-			double y = axes.y.min + width*v[1];
-			double z = axes.z.min + width*v[2];
+			return to_xyz(v.x(), v.y(), v.z());
+		}
+
+		Vector3<double> to_xyz(int i, int j, int k) const {
+			double x = axes.x.min + width*i;
+			double y = axes.y.min + width*j;
+			double z = axes.z.min + width*k;
 			return {x, y, z};
 		}
 
@@ -334,6 +338,11 @@ class Grid {
 		 * 		  Complexity: O(n) in the number of bins.
 		 */
 		void save(std::string path) const;
+
+		/**
+		 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
+		 */
+		Body generate_excluded_volume() const;
 
 		GridObj grid; // The actual grid.
 		std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.

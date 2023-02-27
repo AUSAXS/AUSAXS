@@ -5,12 +5,10 @@
 #include <utility/Utility.h>
 #include <plots/all.h>
 
-using std::vector, std::string;
-
 TEST_CASE("plots", "[manual]") {
     std::vector<double> x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
     std::vector<double> y = {-5, -3, 4, 8, 12, 7, 3, 1, -3, -5, -9};
-    std::vector<double> yerr = vector<double>(y.size(), 0.5);
+    std::vector<double> yerr = std::vector<double>(y.size(), 0.5);
     SimpleDataset data(x, y, yerr);
 
     // SECTION("markers") {
@@ -45,7 +43,7 @@ TEST_CASE("plots", "[manual]") {
         std::vector<double> y2 = {11,    10.5,  10,    9.5,   8.5,  7.4,  5.6, 3.3, 2.2, 2};
         std::vector<double> y2err = {0.5, 0.5,  0.5,   0.5,   0.5,  0.5,  0.5, 0.5, 0.5, 0.5};
 
-        std::shared_ptr<Fit> fit = std::make_shared<Fit>();
+        std::shared_ptr<fitter::Fit> fit = std::make_shared<fitter::Fit>();
         fit->figures.data = SimpleDataset(x, y1, y2err);
         fit->figures.intensity = SimpleDataset(x, y2);
         fit->figures.intensity_interpolated = SimpleDataset(x, y2);
@@ -55,7 +53,7 @@ TEST_CASE("plots", "[manual]") {
 }
 
 TEST_CASE("fitreporter", "[manual]") {
-    Fit fit;
+    fitter::Fit fit;
     fit.status = true;
     fit.fevals = 100;
     fit.fval = 1000;
@@ -64,29 +62,29 @@ TEST_CASE("fitreporter", "[manual]") {
 
     SECTION("Single") {
         SECTION("Terminal printing") {
-            FitReporter::report(fit);
+            fitter::FitReporter::report(fit);
         }
         SECTION("File printing") {
-            FitReporter::save(fit, "temp/fitreport1.txt");
+            fitter::FitReporter::save(fit, "temp/fitreport1.txt");
         }
     }
 
     SECTION("Multi") {
-        Fit fit2;
+        fitter::Fit fit2;
         fit.status = false;
         fit2.fevals = 20;
         fit2.fval = 200;
         fit2.dof = 6;
         fit2.parameters = {{"a", 1, 0.1}, {"b", 0.5, 0.3}, {"c", 8, 0.6}};
 
-        vector<Fit> fits = {fit, fit2};
-        vector<string> titles = {"First fit", "Second fit"};
+        std::vector<fitter::Fit> fits = {fit, fit2};
+        std::vector<std::string> titles = {"First fit", "Second fit"};
 
         SECTION("Terminal printing") {
-            FitReporter::report(fits, titles);   
+            fitter::FitReporter::report(fits, titles);   
         }
         SECTION("File printing") {
-            FitReporter::save(fits, "temp/fitreport2.txt", titles);
+            fitter::FitReporter::save(fits, "temp/fitreport2.txt", titles);
         }
     }
 }
@@ -94,18 +92,18 @@ TEST_CASE("fitreporter", "[manual]") {
 TEST_CASE("split") {
     SECTION("single delimiter") {
         SECTION("empty") {
-            vector<string> result = utility::split("", ',');
+            std::vector<std::string> result = utility::split("", ',');
             REQUIRE(result.size() == 0);
         }
 
         SECTION("single") {
-            vector<string> result = utility::split("a", ',');
+            std::vector<std::string> result = utility::split("a", ',');
             REQUIRE(result.size() == 1);
             REQUIRE(result[0] == "a");
         }
 
         SECTION("multiple") {
-            vector<string> result = utility::split("a,b,c", ',');
+            std::vector<std::string> result = utility::split("a,b,c", ',');
             REQUIRE(result.size() == 3);
             REQUIRE(result[0] == "a");
             REQUIRE(result[1] == "b");
@@ -115,18 +113,18 @@ TEST_CASE("split") {
 
     SECTION("multiple delimiters") {
         SECTION("empty") {
-            vector<string> result = utility::split("", ",");
+            std::vector<std::string> result = utility::split("", ",");
             REQUIRE(result.size() == 0);
         }
 
         SECTION("single") {
-            vector<string> result = utility::split("a", ",");
+            std::vector<std::string> result = utility::split("a", ",");
             REQUIRE(result.size() == 1);
             REQUIRE(result[0] == "a");
         }
 
         SECTION("multiple") {
-            vector<string> result = utility::split("a,b,c", ",");
+            std::vector<std::string> result = utility::split("a,b,c", ",");
             REQUIRE(result.size() == 3);
             REQUIRE(result[0] == "a");
             REQUIRE(result[1] == "b");
@@ -134,7 +132,7 @@ TEST_CASE("split") {
         }
 
         SECTION("multiple with spaces") {
-            vector<string> result = utility::split("a, b, c", ", ");
+            std::vector<std::string> result = utility::split("a, b, c", ", ");
             REQUIRE(result.size() == 3);
             REQUIRE(result[0] == "a");
             REQUIRE(result[1] == "b");
@@ -142,7 +140,7 @@ TEST_CASE("split") {
         }
 
         SECTION("multiple with lots of stuff") {
-            vector<string> result = utility::split("  ,aaba  ,, ,,bda,  ced,,,  ,", ", ");
+            std::vector<std::string> result = utility::split("  ,aaba  ,, ,,bda,  ced,,,  ,", ", ");
             REQUIRE(result.size() == 3);
             REQUIRE(result[0] == "aaba");
             REQUIRE(result[1] == "bda");
@@ -150,7 +148,7 @@ TEST_CASE("split") {
         }
 
         SECTION("actual example") {
-            vector<string> result = utility::split("0.009813      	0.00667934    	0.00133647    	1\n\r", ", \t\n\r");
+            std::vector<std::string> result = utility::split("0.009813      	0.00667934    	0.00133647    	1\n\r", ", \t\n\r");
             REQUIRE(result.size() == 4);
             REQUIRE(result[0] == "0.009813");
             REQUIRE(result[1] == "0.00667934");
@@ -188,22 +186,22 @@ TEST_CASE("remove_all") {
 
 TEST_CASE("join") {
     SECTION("empty") {
-        string result = utility::join({}, ",");
+        std::string result = utility::join({}, ",");
         REQUIRE(result == "");
     }
 
     SECTION("single") {
-        string result = utility::join({"a"}, ",");
+        std::string result = utility::join({"a"}, ",");
         REQUIRE(result == "a");
     }
 
     SECTION("multiple") {
-        string result = utility::join({"a", "b", "c"}, ",");
+        std::string result = utility::join({"a", "b", "c"}, ",");
         REQUIRE(result == "a,b,c");
     }
 
     SECTION("multiple with spaces") {
-        string result = utility::join({"a", " b", " c"}, ",");
+        std::string result = utility::join({"a", " b", " c"}, ",");
         REQUIRE(result == "a, b, c");
     }
 }
@@ -212,7 +210,7 @@ TEST_CASE("plotoptions") {
     plots::PlotOptions options;
 
     SECTION("set") {
-        options.set({{"xlabel", "label for x"}, {"ylabel", string("label for y")}, {"line", true}, {"errors", true}, {"color", style::color::blue}, {"alpha", 0.3}});
+        options.set({{"xlabel", "label for x"}, {"ylabel", std::string("label for y")}, {"line", true}, {"errors", true}, {"color", style::color::blue}, {"alpha", 0.3}});
         CHECK(options.xlabel == "label for x");
         CHECK(options.ylabel == "label for y");
         CHECK(options.draw_line == true);

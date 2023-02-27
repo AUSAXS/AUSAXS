@@ -5,8 +5,6 @@
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
 
-using std::string;
-
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::sample_frequency = 2;
@@ -19,19 +17,19 @@ int main(int argc, char const *argv[]) {
     // string mapfile = "data/A2M/emd_12748.map";
     // string mapfile = "data/A2M/emd_12752.map"; // tryp
     // string mapfile = "data/A2M/emd_12753.map"; // tryp
-    string mapfile = "data/SHOC2/emd_25044.map";
+    std::string mapfile = "data/SHOC2/emd_25044.map";
     // string mapfile = "data/SHOC2/emd_26667.map";
     // string mapfile = "data/flipped_ns_igefceria.mrc";
     // string mapfile = "sim/2epe_10.ccp4";
 
     // string pdbfile = "data/lysozyme/2epe.pdb";
-    string pdbfile = "data/SHOC2/7sd0.pdb";
+    std::string pdbfile = "data/SHOC2/7sd0.pdb";
     // string pdbfile = "data/native.pdb";
 
     // string mfile = "data/lysozyme/2epe.RSR";
     // string mfile = "data/A2M_native.RSR";
     // string mfile = "data/A2M_tryp.RSR";
-    string mfile = "data/SHOC2/7sd0.dat";
+    std::string mfile = "data/SHOC2/7sd0.dat";
 
     // override the default settings if we have arguments
     if (argc == 4) {
@@ -46,13 +44,13 @@ int main(int argc, char const *argv[]) {
     //* STRUCTURE FIT
     // Fit the entire structure file to the EM density map.
     if (false) {
-        string path = "figures/em/structure_fit/" + utility::stem(mapfile) + "/" + utility::stem(pdbfile) + "/";
+        std::string path = "figures/em/structure_fit/" + utility::stem(mapfile) + "/" + utility::stem(pdbfile) + "/";
 
         Protein pdb(pdbfile);
         auto pdb_h = pdb.get_histogram();
         auto res = map.fit(pdb_h);
-        FitReporter::report(res);
-        FitReporter::save(res, path + "report.txt");
+        fitter::FitReporter::report(res);
+        fitter::FitReporter::save(res, path + "report.txt");
 
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
@@ -64,11 +62,11 @@ int main(int argc, char const *argv[]) {
     //* MEASUREMENT FIT
     // Fit the measurements to the EM density map.
     if (true) {
-        string path = "figures/em/measurement_fit/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
+        std::string path = "figures/em/measurement_fit/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
 
         auto res = map.fit(mfile);
-        FitReporter::report(res);
-        FitReporter::save(res, path + "report.txt");
+        fitter::FitReporter::report(res);
+        fitter::FitReporter::save(res, path + "report.txt");
 
         plots::PlotIntensityFit::quick_plot(res, path + "intensity_fit.pdf");
         plots::PlotIntensityFitResiduals::quick_plot(res, path + "residuals.pdf");
@@ -84,7 +82,7 @@ int main(int argc, char const *argv[]) {
         // for(const em::Image& image : map.images()) {
         //     plots::PlotImage::quick_plot(image, "figures/em/images/" + utility::stem(mapfile) + "/" + std::to_string(c++) + ".png");
         // }
-        string path = "figures/em/cut/" + utility::stem(mapfile) + "/";
+        std::string path = "figures/em/cut/" + utility::stem(mapfile) + "/";
         // plots::PlotIntensity::quick_plot(map.get_histogram(map.level(3)), path + "intensity3.pdf");
         // plots::PlotIntensity::quick_plot(map.get_histogram(map.level(2.5)), path + "intensity25.pdf");
         // plots::PlotIntensity::quick_plot(map.get_histogram(map.level(2)), path + "intensity2.pdf");

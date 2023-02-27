@@ -120,6 +120,11 @@ file(GLOB_RECURSE
 	"test/*.cpp"
 )
 
+# make the tests available through cmake
+list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+include(CTest)
+include(Catch)
+
 add_custom_target(tests)
 foreach(test ${TEST_SRC})
 	cmake_path(GET test STEM testname)
@@ -133,6 +138,7 @@ foreach(test ${TEST_SRC})
 		add_backward("${name}")
 	endif()	
 	add_dependencies(tests "${name}")
+	catch_discover_tests("${name}" TEST_SPEC "~[slow] ~[broken]" WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/..")
 endforeach()
 
 ############################################

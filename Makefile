@@ -1,6 +1,7 @@
 # generate lists of files for easy use as dependencies
 pymol := pymol
 simprog := pdb2mrc
+pdbfixer := ~/tools/conda/bin/pdbfixer
 
 cmake_threads := 6
 
@@ -70,6 +71,10 @@ coverage: tests
 ###################################################################################
 ###				EXECUTABLES					###
 ###################################################################################
+
+# fix a pdb file
+data/%_fixed.pdb: data/%.pdb
+	@ $(pdbfixer) $< --replace-nonstandard --add-atoms=all --add-residues --output=$@
 
 # calculate the scattering from a pdb structure
 scatter/%: build/executable/scattering

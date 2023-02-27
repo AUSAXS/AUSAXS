@@ -165,7 +165,7 @@ TEST_CASE("body_selectors") {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
-            count[ibody]++;
+            count[iconstraint]++;
         }
 
         for (unsigned int i = 0; i < rigidbody.get_constraints().size(); i++) {
@@ -514,3 +514,26 @@ TEST_CASE("iteration_step_old", "[broken]") {
         CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
     }
 }
+
+// TEST_CASE("generate_sequential_constraints", "[body],[files]") {
+//     setting::general::verbose = false;
+//     vector<int> splits = {9, 99};
+//     Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+//     vector<rigidbody::Constraint> constraints = rigidbody::BodySplitter::sequential_constraints(protein);
+
+//     REQUIRE(constraints.size() == 2);
+
+//     // check first constraint
+//     rigidbody::Constraint& c1 = constraints[0];
+//     REQUIRE(c1.get_atom1().name == "CA");
+//     REQUIRE(c1.get_atom1().serial == 131);
+//     REQUIRE(c1.get_atom2().name == "CA");
+//     REQUIRE(c1.get_atom2().serial == 138);
+
+//     // check second constraint
+//     rigidbody::Constraint& c2 = constraints[1];
+//     REQUIRE(c2.get_atom1().name == "CA");
+//     REQUIRE(c2.get_atom1().serial == 809);
+//     REQUIRE(c2.get_atom2().name == "CA");
+//     REQUIRE(c2.get_atom2().serial == 814);
+// }

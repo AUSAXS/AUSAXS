@@ -12,7 +12,7 @@ double ConstrainedFitter<T>::chi2(const std::vector<double>& params) {
 }
 
 template<fitter_t T>
-void ConstrainedFitter<T>::add_constraint(std::unique_ptr<rigidbody::Constraint> constraint) {
+void ConstrainedFitter<T>::add_constraint(std::shared_ptr<rigidbody::Constraint> constraint) {
     constraints.push_back(std::move(constraint));
 }
 

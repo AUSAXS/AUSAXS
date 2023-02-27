@@ -42,6 +42,6 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensityFitResiduals::quick_plot(res, setting::general::output + "residuals." + setting::plot::format);
 
     std::cout << "DOF: " << res->dof << std::endl;
-    FitReporter::report(res);
-    FitReporter::save(res, setting::general::output + "report.txt");
+    fitter::FitReporter::report(res);
+    fitter::FitReporter::save(res, setting::general::output + "report.txt");
 }

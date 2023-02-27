@@ -631,46 +631,16 @@ Grid& Grid::operator=(Grid&& rhs) noexcept {
 
 bool Grid::operator==(const Grid& rhs) const {
     // we do everything but check the contents of the grid. 
-    if (volume != rhs.volume) {
-        std::cout << "volume: " << volume << " != " << rhs.volume << std::endl;
-        return false;}
-    if (a_members.size() != rhs.a_members.size()) {
-        std::cout << "a_members: " << a_members.size() << " != " << rhs.a_members.size() << std::endl;
-        return false;}
-    if (w_members.size() != rhs.w_members.size()) {
-        std::cout << "w_members: " << w_members.size() << " != " << rhs.w_members.size() << std::endl;
-        return false;}
-    if (ra != rhs.ra) {
-        std::cout << "ra: " << ra << " != " << rhs.ra << std::endl;
-        return false;}
-    if (rh != rhs.rh) {
-        std::cout << "rh: " << rh << " != " << rhs.rh << std::endl;
-        return false;}
-    if (typeid(water_culler) != typeid(rhs.water_culler)) {
-        std::cout << "water_culler: " << typeid(water_culler).name() << " != " << typeid(rhs.water_culler).name() << std::endl;
-        return false;}
-    if (typeid(water_placer) != typeid(rhs.water_placer)) {
-        std::cout << "water_placer: " << typeid(water_placer).name() << " != " << typeid(rhs.water_placer).name() << std::endl;
-        return false;}
-    if (width != rhs.width) {
-        std::cout << "width: " << width << " != " << rhs.width << std::endl;
-        return false;}
-    if (axes != rhs.axes) {
-        std::cout << "axes: " << axes << " != " << rhs.axes << std::endl;
-        return false;
-    }
+    if (volume != rhs.volume) {return false;}
+    if (a_members.size() != rhs.a_members.size()) {return false;}
+    if (w_members.size() != rhs.w_members.size()) {return false;}
+    if (ra != rhs.ra) {return false;}
+    if (rh != rhs.rh) {return false;}
+    if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
+    if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
+    if (width != rhs.width) {return false;}
+    if (axes != rhs.axes) {return false;}
     return true;
-
-    // if (volume != rhs.volume) {return false;}
-    // if (a_members.size() != rhs.a_members.size()) {return false;}
-    // if (w_members.size() != rhs.w_members.size()) {return false;}
-    // if (ra != rhs.ra) {return false;}
-    // if (rh != rhs.rh) {return false;}
-    // if (typeid(water_culler) != typeid(rhs.water_culler)) {return false;}
-    // if (typeid(water_placer) != typeid(rhs.water_placer)) {return false;}
-    // if (width != rhs.width) {return false;}
-    // if (axes != rhs.axes) {return false;}
-    // return true;
 }
 
 void Grid::save(std::string path) const {
@@ -699,4 +669,23 @@ void Grid::save(std::string path) const {
     }
     Protein p(atoms, waters);
     p.save(path);
+}
+
+Body Grid::generate_excluded_volume() const {
+    Body body;
+    for (unsigned int i = 0; i < grid.xdim; i++) {
+        for (unsigned int j = 0; j < grid.ydim; j++) {
+            for (unsigned int k = 0; k < grid.zdim; k++) {
+                switch (grid.index(i, j, k)) {
+                    case GridObj::A_AREA:
+                    case GridObj::A_CENTER: 
+                        body.atoms().push_back(Water::create_new_water(to_xyz(i, j, k)));
+                        break;
+                    default: 
+                        break;
+                }
+            }
+        }
+    }
+    return body;
 }

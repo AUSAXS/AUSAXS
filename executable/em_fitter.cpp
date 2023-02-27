@@ -7,8 +7,6 @@
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
 
-using std::string;
-
 int main(int argc, char const *argv[]) {
     setting::protein::use_effective_charge = false;
     setting::em::hydrate = true;
@@ -64,8 +62,8 @@ int main(int argc, char const *argv[]) {
     // Fit the measurements to the EM density map.
     auto res = map.fit(mfile);
     std::cout << "DOF: " << res->dof << std::endl;
-    FitReporter::report(res);
-    FitReporter::save(res, setting::general::output + "report.txt");
+    fitter::FitReporter::report(res);
+    fitter::FitReporter::save(res, setting::general::output + "report.txt");
 
     res->figures.data.save(setting::general::output + utility::stem(mfile) + ".dat");
     res->figures.intensity_interpolated.save(setting::general::output + "fit.fit");

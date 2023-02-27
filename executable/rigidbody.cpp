@@ -68,9 +68,16 @@ int main(int argc, char const *argv[]) {
     rigidbody.save(setting::general::output + "initial.pdb");
     rigidbody.optimize(mfile);    
     rigidbody.save(setting::general::output + "optimized.pdb");
-    std::shared_ptr<fitter::LinearFitter> fitter = std::make_shared<fitter::LinearFitter>(mfile);
-    rigidbody.update_fitter(fitter);
-    auto res = fitter->fit();
+
+    std::shared_ptr<fitter::Fit> res;
+    if (p_cal->count() != 0) {
+        std::shared_ptr<fitter::LinearFitter> fitter = std::make_shared<fitter::LinearFitter>(mfile);
+        rigidbody.update_fitter(fitter);
+        res = fitter->fit();
+    } else {
+        std::shared_ptr<fitter::HydrationFitter> fitter = std::make_shared<fitter::HydrationFitter>(mfile, rigidbody.get_histogram());
+        res = fitter->fit();
+    }
     fitter::FitReporter::report(res);
     fitter::FitReporter::save(res, setting::general::output + "fit.txt");
     plots::PlotIntensityFit::quick_plot(res, setting::general::output + "fit.png");

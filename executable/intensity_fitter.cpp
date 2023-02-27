@@ -12,8 +12,6 @@
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
 
-using std::cout, std::endl;
-
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
