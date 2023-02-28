@@ -41,7 +41,7 @@ void RigidBody::setup() {
     // Set parameter generation strategy
     switch (setting::rigidbody::pgsc) {
         case setting::rigidbody::Simple:
-            parameter_generator = std::make_unique<SimpleParameterGeneration>(1000, 5, M_PI/3);
+            parameter_generator = std::make_unique<SimpleParameterGeneration>(setting::rigidbody::iterations, 5, M_PI/3);
             break;
         default: 
             throw except::unknown_argument("RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
@@ -63,7 +63,7 @@ void RigidBody::setup() {
     }
 }
 
-void RigidBody::optimize(std::string measurement_path) {
+std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     generate_constraint_map();
     auto fitter = prepare_fitter(measurement_path);
@@ -122,6 +122,8 @@ void RigidBody::optimize(std::string measurement_path) {
     }
 
     save(setting::general::output + "optimized.pdb");
+    update_fitter(fitter);
+    return fitter->fit();
 }
 
 void RigidBody::generate_simple_constraints() {
@@ -227,7 +229,7 @@ std::shared_ptr<fitter::LinearFitter> RigidBody::prepare_fitter(std::string meas
     }
 }
 
-void RigidBody::update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
+void RigidBody:: update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
     if (calibration == nullptr) {
         fitter->set_scattering_hist(get_histogram());
     } else {

@@ -15,11 +15,11 @@
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
 
-    std::string pdb, mfile, output, settings, placement_strategy = "Radial";
+    std::string pdb, mfile, settings, placement_strategy = "Radial";
     bool use_existing_hydration = false, fit_excluded_volume = false;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
-    app.add_option("--output,-o", output, "Path to save the generated figures at.");
+    app.add_option("--output,-o", setting::general::output, "Path to save the generated figures at.")->default_val("output/intensity_fitter/");
     app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,--gw", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
     app.add_option("--bin_width,--bw", setting::axes::distance_bin_width, "Bin width for the distance histograms. Default: 1.");
@@ -35,9 +35,11 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted. Default: true.");
     CLI11_PARSE(app, argc, argv);
 
-    //####################//
+    //###################//
     //### PARSE INPUT ###//
-    //####################//
+    //###################//
+    setting::general::output += utility::stem(mfile) + "/";
+
     // if a settings file was provided
     if (p_settings->count() != 0) {
         setting::read(settings);        // read it
@@ -67,10 +69,6 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
-    if (output.empty()) {
-        output = "figures/intensity_fitter/" + utility::stem(mfile) + "/";
-    }
-
     //######################//
     //### ACTUAL PROGRAM ###//
     //######################//
@@ -86,17 +84,17 @@ int main(int argc, char const *argv[]) {
     else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
     std::shared_ptr<fitter::Fit> result = fitter->fit();
     fitter::FitReporter::report(result);
-    fitter::FitReporter::save(result, output + "report.txt");
+    fitter::FitReporter::save(result, setting::general::output + "report.txt");
 
     // save fit
     auto fit = fitter->get_model_dataset();
     auto data = fitter->get_dataset();
-    fit.save(output + "fit.fit");
-    data.save(output + utility::stem(mfile) + ".dat");
+    fit.save(setting::general::output + "fit.fit");
+    data.save(setting::general::output + utility::stem(mfile) + ".dat");
 
     // Fit plot
-    plots::PlotIntensityFit::quick_plot(result, output + "fit." + setting::plot::format);
-    plots::PlotIntensityFitResiduals::quick_plot(result, output + "residuals." + setting::plot::format);
+    plots::PlotIntensityFit::quick_plot(result, setting::general::output + "fit." + setting::plot::format);
+    plots::PlotIntensityFitResiduals::quick_plot(result, setting::general::output + "residuals." + setting::plot::format);
 
     // calculate rhoM
     double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));

@@ -52,7 +52,7 @@ namespace setting {
 
     struct axes {
         inline static unsigned int max_distance = 2000; // The maximum distance in the p(r) function in Ångström. Should always be much larger than the actual maximum distance. 
-        inline static double distance_bin_width = 1;          // The width of each bin for the scattering plots.
+        inline static double distance_bin_width = 1;    // The width of each bin for the scattering plots.
         inline static unsigned int bins = 1000;         // The number of bins for the scattering plots.
         inline static double qmin = 1e-4;               // Lower limit on the used q-values
         inline static double qmax = 0.5;                // Upper limit on the used q-values
@@ -81,9 +81,14 @@ namespace setting {
         };
     };
 
+    struct crystal {
+        enum MillerGenerationChoice {All, Fibonacci};
+        inline static MillerGenerationChoice mgc = MillerGenerationChoice::All; // The choice of Miller index generation algorithm.
+    };
+
     struct em {
         enum CullingStrategyChoice {NoStrategy, CounterStrategy};
-        CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; // The choice of culling algorithm. 
+        inline static CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; // The choice of culling algorithm. 
 
         inline static unsigned int sample_frequency = 1; // How often a bin is sampled in any direction. 
         inline static double concentration = 2;          // The concentration in mg/mL used when calculating the absolute intensity scale for simulations.

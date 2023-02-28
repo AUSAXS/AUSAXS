@@ -467,52 +467,52 @@ TEST_CASE("iteration_step") {
     }
 }
 
-TEST_CASE("iteration_step_old", "[broken]") {
-    setting::general::verbose = false;
-    Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
-    REQUIRE(protein.bodies.size() == 3);
-    protein.generate_new_hydration();
-    std::vector<Water> oldwaters = protein.waters();
-    Grid oldgrid = *protein.get_grid();
+class RigidBodyTest : public RigidBody {
+    public: 
+        using RigidBody::RigidBody;
+        using RigidBody::transform;
+};
 
-    // fit the protein
-    fitter::HydrationFitter fitter("data/lysozyme/2epe.dat", protein.get_histogram());
-    auto chi2 = fitter.fit()->fval;
+TEST_CASE("can_find_optimal_conformation") {
+    setting::grid::cubic = true;
+    setting::grid::scaling = 2;
+    setting::rigidbody::iterations = 1000;
+    RigidBodyTest body = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+    body.generate_simple_constraints();
 
-    // remove the first body
-    Body& body = protein.bodies.at(0);
-    Body old_body(body);
-    std::shared_ptr<Grid> grid = protein.get_grid();
+    SECTION("test 1") {
+        body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint(0));
+        body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.get_constraint(1));
+        body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.get_constraint(2));
+        auto hist = body.get_histogram().calc_debye_scattering_intensity();
+        hist.reduce(100);
+        hist.simulate_errors();
+        hist.simulate_noise();
+        hist.save("temp/rigidbody/test1.dat");
+        body.save("temp/rigidbody/test1.pdb");
 
-    grid->remove(&body);
-    grid->force_expand_volume(); 
-    body.translate(Vector3<double>(0, 0, 10));              // translate the body
-    body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
-    grid->add(&body);
-    protein.generate_new_hydration();                       // generate a new hydration shell
-    fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
-    auto _chi2 = fitter.fit()->fval;                        // fit the protein
-    CHECK_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));   // chi2 should be different
-
-    // add the body back
-    grid->remove(&body);
-    grid->force_expand_volume();
-    body = old_body;                                        // reset the body
-    grid->add(&body);
-    protein.generate_new_hydration();                       // generate a new hydration shell
-    fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
-    _chi2 = fitter.fit()->fval;                             // fit the protein
-    CHECK_THAT(chi2, Catch::Matchers::WithinRel(_chi2));    // chi2 should be the same
-
-    // check that the grid is the same
-    Grid newgrid = *protein.get_grid();
-    REQUIRE(oldgrid == newgrid);
-
-    // check that the waters are the same
-    auto newwaters = protein.waters();
-    for (unsigned int i = 0; i < newwaters.size(); i++) {
-        CHECK(oldwaters.at(i).coords == newwaters.at(i).coords);
+        RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+        body2.generate_simple_constraints();
+        auto res = body2.optimize("temp/rigidbody/test1.dat");
+        REQUIRE(res->fval/res->dof < 2);
     }
+
+    // SECTION("test 2") {
+    //     body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint(0));
+    //     body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.get_constraint(1));
+    //     body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.get_constraint(2));
+    //     auto hist = body.get_histogram().calc_debye_scattering_intensity();
+    //     hist.reduce(100);
+    //     hist.simulate_errors();
+    //     hist.simulate_noise();
+    //     hist.save("temp/rigidbody/test1.dat");
+    //     body.save("temp/rigidbody/test1.pdb");
+
+    //     RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+    //     body2.generate_simple_constraints();
+    //     auto res = body2.optimize("temp/rigidbody/test1.dat");
+    //     REQUIRE(res->fval/res->dof < 2);
+    // }
 }
 
 // TEST_CASE("generate_sequential_constraints", "[body],[files]") {

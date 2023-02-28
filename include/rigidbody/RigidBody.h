@@ -20,7 +20,7 @@ namespace rigidbody {
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
 			 */
-			void optimize(std::string measurement_path);
+			std::shared_ptr<fitter::Fit> optimize(std::string measurement_path);
 
 			/**
 			 * @brief Add a constraint to this rigid body. 
@@ -67,7 +67,7 @@ namespace rigidbody {
 			std::shared_ptr<Constraint> get_constraint(unsigned int index) const;
 
 			std::unordered_map<unsigned int, std::vector<std::shared_ptr<Constraint>>> constraint_map;
-		private:
+		protected:
 			std::shared_ptr<fitter::Fit> calibration = nullptr;
 			std::unique_ptr<BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;

@@ -15,11 +15,11 @@ int main(int argc, char const *argv[]) {
 
     CLI::App app{"Fit an EM map to a SAXS measurement."};
 
-    std::string mfile, mapfile, settings, output;
+    std::string mfile, mapfile, settings;
     app.add_option("input-map", mapfile, "Path to the EM map.")->required()->check(CLI::ExistingFile);
     app.add_option("input-exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
-    app.add_option("--output,-o", output, "Path to save the generated figures at.");
+    app.add_option("--output,-o", setting::general::output, "Path to save the generated figures at.")->default_val("output/em_fitter/");
     app.add_option("--qmin", setting::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qmax", setting::axes::qmax, "Upper limit on used q values from measurement file.");
     app.add_option("--levelmin", setting::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance.");
@@ -28,6 +28,11 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--hydrate,!--no-hydrate", setting::em::hydrate, "Whether to hydrate the protein before fitting.");
     app.add_flag("--fixed-weight,!--no-fixed-weight", setting::em::fixed_weights, "Whether to use a fixed weight for the fit.");
     CLI11_PARSE(app, argc, argv);
+
+    //###################//
+    //### PARSE INPUT ###//
+    //###################//
+    setting::general::output += utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
 
     // if a settings file was provided
     if (p_settings->count() != 0) {
@@ -50,11 +55,6 @@ int main(int argc, char const *argv[]) {
     if (!constants::filetypes::saxs_data.validate(mfile)) {
         throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
     }
-
-    if (output.empty()) {
-        output = "figures/";
-    }
-    setting::general::output = output + "em_fitter/" + utility::stem(mfile) + "/" + utility::stem(mapfile) + "/";
 
     std::cout << "Performing EM fit with map " << mapfile << " and measurement " << mfile << std::endl;
     em::ImageStack map(mapfile); 

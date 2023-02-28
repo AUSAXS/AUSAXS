@@ -15,11 +15,11 @@ int main(int argc, char const *argv[]) {
     setting::grid::cubic = true;
 
     CLI::App app{"Rigid-body optimization."};
-    std::string pdb, mfile, input_calibration, output, placement_strategy, settings;
+    std::string pdb, mfile, input_calibration, placement_strategy, settings;
     std::vector<unsigned int> constraints;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
-    app.add_option("output", output, "Path to save the hydrated file at.")->required();
+    app.add_option("output", setting::general::output, "Path to save the hydrated file at.")->default_val("output/rigidbody/");
     auto p_cal = app.add_option("--calibrate", input_calibration, "Path to the calibration data.")->check(CLI::ExistingFile);
     app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,-w", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
@@ -33,9 +33,11 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--effective-charge,!--no-effective-charge", setting::protein::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
     CLI11_PARSE(app, argc, argv);
     
-    //####################//
+    //###################//
     //### PARSE INPUT ###//
-    //####################//
+    //###################//
+    setting::general::output += utility::stem(mfile) + "/";
+
     // if a settings file was provided
     if (p_settings->count() != 0) {
         setting::read(settings);        // read it

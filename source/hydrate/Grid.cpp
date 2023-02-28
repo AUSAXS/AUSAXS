@@ -689,3 +689,7 @@ Body Grid::generate_excluded_volume() const {
     }
     return body;
 }
+
+GridObj::DATATYPE Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
+    return grid.index(i, j, k);
+}

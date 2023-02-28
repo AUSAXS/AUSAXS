@@ -18,11 +18,11 @@ options :=
 #################################################################################
 # Plot a SAXS dataset along with any accompanying fits
 plot_fits/%: scripts/compare_fit.py
-	@ measurement=$(shell find figures/intensity_fitter/ -name "$*.dat"); \
+	@ measurement=$(shell find output/intensity_fitter/ -name "$*.dat"); \
 	python3 $< $${measurement}
 
 plot_em/%: scripts/plot_fit.py
-	@ measurement=$$(find figures/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$$(find output/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
 	echo $${measurement}; \
 	for f in $${measurement}; do\
 		folder=$$(dirname $${f}); \
@@ -80,7 +80,7 @@ data/%_fixed.pdb: data/%.pdb
 scatter/%: build/executable/scattering
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	$< $${structure} ${options}
-	make plot/figures/scattering/$*
+	make plot/output/scattering/$*
 
 # hydrate a structure and show it in pymol
 hydrate/%: build/executable/new_hydration
@@ -115,8 +115,8 @@ simview/%:
 # calculate the histogram for a given structure
 hist/%: build/executable/hist
 	@structure=$(shell find data/ -name "$*.pdb"); \
-	$< $${structure} figures/hist/$*/ ${options}
-	make plot/figures/hist/$*/
+	$< $${structure} output/hist/$*/ ${options}
+	make plot/output/hist/$*/
 
 # flip the axes of an EM map
 order := ""
@@ -148,7 +148,7 @@ em_fit/%: build/executable/em_fitter
 		sleep 1; \
 		$< $${path} $${measurement} ${options}; \
 		make plot_em/$*; \
-		make plot/figures/em_fitter/$*; \
+		make plot/output/em_fitter/$*; \
 	done
 
 # Fit both an EM map and a PDB file to a SAXS measurement. 
@@ -160,14 +160,14 @@ em/%: build/executable/em
 	$< $${emmap} $${structure} $${measurement}
 
 optimize_radius/%: build/source/scripts/optimize_radius
-	$< data/$*.pdb figures/
+	$< data/$*.pdb output/
 
 # Perform a rigid-body optimization of the input structure. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
 rigidbody/%: build/executable/rigidbody
 	@ structure=$(shell find data/ -name "$*.pdb"); \
 	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	$< $${structure} $${measurement} figures/ ${options}
+	$< $${structure} $${measurement} ${options}
 	make plot/output
 	make plot_fits/$*
 
@@ -178,7 +178,7 @@ crysol/%:
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
-	@ mv temp/crysol/out.fit figures/intensity_fitter/$*/crysol.fit
+	@ mv temp/crysol/out.fit output/intensity_fitter/$*/crysol.fit
 
 # perform a fit with pepsi-saxs
 pepsi/%:
@@ -187,7 +187,7 @@ pepsi/%:
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit"
-	@ mv temp/pepsi/pepsi.fit figures/intensity_fitter/$*/pepsi.fit
+	@ mv temp/pepsi/pepsi.fit output/intensity_fitter/$*/pepsi.fit
 	
 
 # Perform a fit of a structure file to a measurement. 
@@ -200,7 +200,7 @@ intensity_fit/%: build/executable/intensity_fitter
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
 		$< $${measurement} $${pdb} ${options};\
-		make plot/figures/intensity_fitter/$*;\
+		make plot/output/intensity_fitter/$*;\
 		make plot_fits/$*;\
 	done
 
@@ -242,7 +242,7 @@ map_consistency/%: build/executable/em_pdb_fitter
 	folder=$$(dirname $${map}); \
 	pdb=$$(find $${folder} -name "*.ent"); \
 	$< $${map} $${pdb} $${options}
-	make plot/figures/em_pdb_fitter/$*
+	make plot/output/em_pdb_fitter/$*
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

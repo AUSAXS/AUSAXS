@@ -34,7 +34,7 @@ void Fit::add_fit(std::shared_ptr<Fit> fit) noexcept {
 
 std::string Fit::to_string() const noexcept {
     std::stringstream ss;
-    ss << "+----------------------------------------------------------+"
+    ss <<   "+----------------------------------------------------------+"
        << "\n|                       FIT REPORT                         |"
        << "\n+----------------------------------------------------------+"
        << "\n| Converged: " << (status == 0 ? "yes" : "no ") << "                              Fevals: " << utility::print_element(fevals, 4) << " |"

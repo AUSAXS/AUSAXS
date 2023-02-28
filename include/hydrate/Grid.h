@@ -344,6 +344,11 @@ class Grid {
 		 */
 		Body generate_excluded_volume() const;
 
+		/**
+		 * @brief Get the contents of a single bin.
+		 */
+		GridObj::DATATYPE index(unsigned int i, unsigned int j, unsigned int k) const;
+
 		GridObj grid; // The actual grid.
 		std::list<grid::GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
 		std::list<grid::GridMember<Water>> w_members; // A list of all member water molecules and where they are located. 
