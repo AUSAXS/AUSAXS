@@ -5,21 +5,21 @@
 namespace crystal {
     class AllMillers : public MillerGenerationStrategy {
         public: 
-            AllMillers(unsigned int max_h, unsigned int max_k, unsigned int max_l) : max_h(max_h), max_k(max_k), max_l(max_l) {}
+            AllMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
 
-            std::vector<Miller<>> generate() override {
-                std::vector<Miller<>> millers;
-                millers.reserve((max_h + 1)*(2*max_k + 1)*(2*max_l + 1));
-                for (int h = 0; h <= max_h; h++) {
-                    for (int k = -max_k; k <= max_k; k++) {
-                        for (int l = -max_l; l <= max_l; l++) {
-                            millers.push_back(Miller<>(h, k, l));
+            std::vector<Miller> generate() const override {
+                std::vector<Miller> millers;
+                millers.reserve((h + 1)*(2*k + 1)*(2*l + 1));
+                for (int h = 0; h <= this->h; h++) {
+                    for (int k = -this->k; k <= this->k; k++) {
+                        for (int l = -this->l; l <= this->l; l++) {
+                            millers.push_back(Miller(h, k, l));
                         }
                     }
                 }
                 return millers;
             }
         private: 
-            int max_h, max_k, max_l;
+            int h, k, l;
     };
 }

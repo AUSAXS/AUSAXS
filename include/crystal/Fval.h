@@ -18,7 +18,7 @@ namespace crystal {
 
             double I() const;
 
-            Miller<> hkl;
+            Miller hkl;
             double qlength;
             Vector3<double> q;
             std::complex<double> fval;

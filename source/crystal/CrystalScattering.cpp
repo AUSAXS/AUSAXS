@@ -2,24 +2,37 @@
 #include <crystal/Fval.h>
 #include <utility/Exceptions.h>
 #include <crystal/miller/AllMillers.h>
+#include <crystal/miller/FibonacciMillers.h>
+#include <crystal/miller/ReducedMillers.h>
 
 #include <atomic>
 #include <thread>
 
 using namespace crystal;
 
-CrystalScattering::CrystalScattering(const Grid& grid) : grid(grid) {
-    switch (setting::crystal::MillerGenerationChoice) {
+CrystalScattering::CrystalScattering(const Grid& grid) {
+    switch (setting::crystal::mgc) {
         case setting::crystal::All: {
-            miller_strategy = std::make_shared<AllMillers>(setting::miller::max_h, setting::miller::max_k, setting::miller::max_l);
+            miller_strategy = std::make_shared<AllMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
             break;
         }
+        case setting::crystal::Fibonacci: {
+            miller_strategy = std::make_shared<FibonacciMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
+            break;
+        }
+        case setting::crystal::Reduced: {
+            miller_strategy = std::make_shared<ReducedMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
+            break;
+        }
+
+        default: {
+            throw except::unknown_argument("CrystalScattering::CrystalScattering: Unknown MillerGenerationStrategy.");
+        }
     }
-    miller_strategy = std::make_shared<>(setting::miller::max_h, setting::miller::max_k, setting::miller::max_l);
+    convert_grid(grid);
 }
 
 SimpleDataset CrystalScattering::calculate() const {
-    if (Fval::get_points().empty()) {convert_grid();}
     auto millers = miller_strategy->generate();
 
     std::vector<Fval> fvals(millers.size());
@@ -79,14 +92,14 @@ SimpleDataset CrystalScattering::calculate() const {
 }
 
 
-void CrystalScattering::convert_grid() const {
+void CrystalScattering::convert_grid(const Grid& grid) const {
     auto axes = grid.get_axes();
     std::vector<Vector3<double>> points(axes.x.bins*axes.y.bins*axes.z.bins);
     unsigned int index = 0;
     double xstep = axes.x.step(), ystep = axes.y.step(), zstep = axes.z.step();
-    for (int i = 0; i < axes.x.bins; i++) {
-        for (int j = 0; j < axes.y.bins; j++) {
-            for (int k = 0; k < axes.z.bins; k++) {
+    for (unsigned int i = 0; i < axes.x.bins; i++) {
+        for (unsigned int j = 0; j < axes.y.bins; j++) {
+            for (unsigned int k = 0; k < axes.z.bins; k++) {
                 if (grid.index(i, j, k)) {
                     points[index] = Vector3<double>(axes.x.min + i*xstep, axes.y.min + j*ystep, axes.z.min + k*zstep);
                 }

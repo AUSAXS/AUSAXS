@@ -14,7 +14,6 @@ namespace crystal {
             SimpleDataset calculate() const;
 
         private:
-            const Grid& grid;
             std::shared_ptr<MillerGenerationStrategy> miller_strategy;
 
             /**
@@ -22,6 +21,6 @@ namespace crystal {
              * 
              * All non-filled voxels are discarded. 
              */
-            void convert_grid() const; 
+            void convert_grid(const Grid& grid) const; 
     };
 }

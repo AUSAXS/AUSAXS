@@ -497,22 +497,39 @@ TEST_CASE("can_find_optimal_conformation") {
         REQUIRE(res->fval/res->dof < 2);
     }
 
-    // SECTION("test 2") {
-    //     body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint(0));
-    //     body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.get_constraint(1));
-    //     body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.get_constraint(2));
-    //     auto hist = body.get_histogram().calc_debye_scattering_intensity();
-    //     hist.reduce(100);
-    //     hist.simulate_errors();
-    //     hist.simulate_noise();
-    //     hist.save("temp/rigidbody/test1.dat");
-    //     body.save("temp/rigidbody/test1.pdb");
+    SECTION("test 2") {
+        body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint(0));
+        body.transform->apply(matrix::rotation_matrix({1, 0, 1}, M_PI_2), {0, 0, 0}, body.get_constraint(1));
+        body.transform->apply(matrix::rotation_matrix({0, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint(2));
+        auto hist = body.get_histogram().calc_debye_scattering_intensity();
+        hist.reduce(100);
+        hist.simulate_errors();
+        hist.simulate_noise();
+        hist.save("temp/rigidbody/test2.dat");
+        body.save("temp/rigidbody/test2.pdb");
 
-    //     RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
-    //     body2.generate_simple_constraints();
-    //     auto res = body2.optimize("temp/rigidbody/test1.dat");
-    //     REQUIRE(res->fval/res->dof < 2);
-    // }
+        RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+        body2.generate_simple_constraints();
+        auto res = body2.optimize("temp/rigidbody/test2.dat");
+        REQUIRE(res->fval/res->dof < 2);
+    }
+
+    SECTION("test 3") {
+        body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {10, 0, 0}, body.get_constraint(0));
+        body.transform->apply(matrix::rotation_matrix({1, 0, 1}, 0), {0, 10, 0}, body.get_constraint(1));
+        body.transform->apply(matrix::rotation_matrix({0, 1, 1}, 0), {0, 0, 10}, body.get_constraint(2));
+        auto hist = body.get_histogram().calc_debye_scattering_intensity();
+        hist.reduce(100);
+        hist.simulate_errors();
+        hist.simulate_noise();
+        hist.save("temp/rigidbody/test3.dat");
+        body.save("temp/rigidbody/test3.pdb");
+
+        RigidBody body2 = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
+        body2.generate_simple_constraints();
+        auto res = body2.optimize("temp/rigidbody/test3.dat");
+        REQUIRE(res->fval/res->dof < 2);
+    }
 }
 
 // TEST_CASE("generate_sequential_constraints", "[body],[files]") {

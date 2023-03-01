@@ -127,7 +127,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
 }
 
 void RigidBody::generate_simple_constraints() {
-    if (setting::general::verbose) {utility::print_info("Generating simple constraints for rigid body optimization.");}
+    if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
     for (unsigned int ibody1 = 0; ibody1 < bodies.size(); ibody1++) {
         for (unsigned int ibody2 = ibody1+1; ibody2 < bodies.size(); ibody2++) {
             const Body& body1 = body(ibody1);
@@ -161,7 +161,7 @@ void RigidBody::generate_simple_constraints() {
             add_constraint(std::move(constraint));
 
             if (setting::general::verbose) {
-                std::cout << "Constraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
+                std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
             }
         }
     }

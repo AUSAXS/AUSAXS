@@ -6,11 +6,12 @@
 *	[ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
 *	[ ] Protein: Figure out how getMass should work in without effective charge enabled
 *	[ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
-*	[ ]	Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
-*	[ ]	gentag alt for de andre filer
-*	[ ]	General: Consistency check of DrhoM
-*	[ ]	IO: Support multiple terminate statements
-*	[ ]	Memory test all other executables.
+*	[ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
+*	[ ] gentag alt for de andre filer
+*	[ ] General: Consistency check of DrhoM
+*	[ ] IO: Support multiple terminate statements
+*	[ ] Memory test all other executables.
+* 	[ ] Axis3D: Remove either (int, int, int, int, int, int, int) or (int, int, int, int, int, int, double) constructor - having both is error-prone
 
 # Stuff to consider
 ## RigidBody
