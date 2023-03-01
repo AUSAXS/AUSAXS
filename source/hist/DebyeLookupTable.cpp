@@ -1,5 +1,6 @@
 #include <hist/DebyeLookupTable.h>
 #include <utility/Utility.h>
+#include <utility/Axis.h>
 
 using namespace table;
 

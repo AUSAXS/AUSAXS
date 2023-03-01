@@ -182,7 +182,7 @@ TEST_CASE("equality") {
 TEST_CASE("grid") {
     SECTION("single") {
         Body b({Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)});
-        Grid g(Axis3D(-2, 2, -2, 2, -2, 2, 5), 1);
+        Grid g(Axis3D(-2, 2, -2, 2, -2, 2), 1);
 
         g.add(&b);
         REQUIRE(g.a_members.size() == 2);
@@ -200,7 +200,7 @@ TEST_CASE("grid") {
         vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
         Body b1(a1), b2(a2), b3(a3), b4(a4);
         vector<Body> bodies = {b1, b2, b3, b4};
-        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5, 11), 1, 1);
+        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5), 1, 1);
 
         grid.add(&b1);
         grid.add(&b2);
@@ -284,7 +284,7 @@ TEST_CASE("grid") {
         vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
         Body b1(a1), b2(a2), b3(a3), b4(a4);
         vector<Body> bodies = {b1, b2, b3, b4};
-        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5, 11), 1, 1);
+        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5), 1, 1);
 
         grid.add(&b1);
         grid.add(&b2);
@@ -305,9 +305,6 @@ TEST_CASE("grid") {
         // do the reset
         grid = grid_copy;
         REQUIRE(grid.a_members.size() == 8);
-
-        auto it = grid.a_members.begin();
-        
 
         grid.add(&b1);
         grid.add(&b2);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <utility/Settings.h>
-#include <utility/Table.h>
+#include <utility/LookupTable.h>
 
 #include <functional>
 

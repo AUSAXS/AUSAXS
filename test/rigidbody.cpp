@@ -453,7 +453,7 @@ TEST_CASE("iteration_step") {
         Body b4(std::vector<Atom>{a7, a8});
         std::vector<Body> ap = {b1, b2, b3, b4};
         Protein protein(ap);
-        Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 40), 1);
+        Grid grid(Axis3D(-20, 20, -20, 20, -20, 20), 1);
         grid.add(protein.atoms());
         protein.set_grid(grid);
 

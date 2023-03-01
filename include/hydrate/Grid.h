@@ -9,7 +9,7 @@
 #include <hydrate/CullingStrategy.h>
 #include <hydrate/GridMember.h>
 #include <utility/Settings.h>
-#include <utility/Axis.h>
+#include <utility/Axis3D.h>
 #include <hydrate/GridObj.h>
 
 // forwards declaration

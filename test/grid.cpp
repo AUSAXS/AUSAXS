@@ -26,7 +26,7 @@ class GridDebug : public Grid {
 };
 
 TEST_CASE("generation") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     Grid grid(axes, width);
 
@@ -53,7 +53,7 @@ TEST_CASE("GridMember") {
 }
 
 TEST_CASE("bounding_box") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     GridDebug grid(axes, width);
 
@@ -86,7 +86,7 @@ TEST_CASE("bounding_box") {
 }
 
 TEST_CASE("volume_expansion") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     int radius = 3;
     Grid grid(axes, width, radius);
@@ -161,7 +161,7 @@ TEST_CASE("volume_expansion") {
 }
 
 TEST_CASE("volume") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     int radius = 1;
     GridDebug grid(axes, width, radius);
@@ -186,7 +186,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
 
     // check that all the expected hydration sites are found
     SECTION("correct placement") {
-        Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+        Axis3D axes(-10, 10, -10, 10, -10, 10);
         int width = 1;
         int radius = 3;
         Grid grid(axes, width, radius);
@@ -339,7 +339,7 @@ TEST_CASE("width") {
 }
 
 TEST_CASE("add_remove") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     int radius = 3;
     GridDebug grid(axes, width, radius);
@@ -455,7 +455,7 @@ TEST_CASE("add_remove") {
 }
 
 TEST_CASE("correct_volume") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     int radius = 10; // we use a very large radius so the atoms will heavily overlap
     GridDebug grid(axes, width, radius);
@@ -495,7 +495,7 @@ TEST_CASE("correct_volume") {
 
 TEST_CASE("find_free_locs") {
     auto test_func = [] (setting::grid::PlacementStrategy ch) {
-        Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+        Axis3D axes(-10, 10, -10, 10, -10, 10);
         int width = 1;
         int radius = 3;
         GridDebug grid(axes, width, radius, radius, ch, setting::grid::culling_strategy);
@@ -531,7 +531,7 @@ TEST_CASE("find_free_locs") {
 
 // Test that expansion and deflation completely cancels each other. 
 TEST_CASE("volume_deflation") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     int width = 1;
     int radius = 3;
     GridDebug grid(axes, width, radius);
@@ -563,7 +563,7 @@ TEST_CASE("cubic_grid") {
     setting::grid::cubic = true;
 
     SECTION("largest x") {
-        Axis3D axes(-10, 10, -1, 1, -1, 1, 20);
+        Axis3D axes(-10, 10, -1, 1, -1, 1);
         int width = 1;
         int radius = 3;
 
@@ -575,7 +575,7 @@ TEST_CASE("cubic_grid") {
     }
 
     SECTION("largest y") {
-        Axis3D axes(-1, 1, -10, 10, -1, 1, 20);
+        Axis3D axes(-1, 1, -10, 10, -1, 1);
         int width = 1;
         int radius = 3;
 
@@ -587,7 +587,7 @@ TEST_CASE("cubic_grid") {
     }
 
     SECTION("largest x") {
-        Axis3D axes(-1, 1, -1, 1, -10, 10, 20);
+        Axis3D axes(-1, 1, -1, 1, -10, 10);
         int width = 1;
         int radius = 3;
 
@@ -652,7 +652,7 @@ TEST_CASE("space_saving_constructor") {
 }
 
 TEST_CASE("copy") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     Grid grid1(axes, 1);
     grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
     grid1.hydrate();
@@ -666,7 +666,7 @@ TEST_CASE("copy") {
 }
 
 TEST_CASE("move") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     Grid grid1(axes, 1);
     grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
     grid1.hydrate();
@@ -682,7 +682,7 @@ TEST_CASE("move") {
 
 TEST_CASE("hydration") {
     setting::grid::rh = 1;
-    Axis3D axes(-10, 10, -10, 10, -10, 10, 20);
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
     Grid grid(axes, 1);
     grid.add(Atom({0, 0, 0}, 0, "C", "", 0));
     grid.hydrate();

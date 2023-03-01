@@ -6,7 +6,7 @@
 #include <thread>
 
 #include <math/Vector3.h>
-#include <utility/Axis.h>
+#include <utility/Limit3D.h>
 #include <utility/Type.h>
 #include <utility/Exceptions.h>
 

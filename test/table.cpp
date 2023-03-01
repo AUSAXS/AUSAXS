@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/DebyeLookupTable.h>
+#include <utility/Axis.h>
 #include <data/Atom.h>
 
 using std::vector;
