@@ -265,6 +265,9 @@ template<numeric T>
 Vector3<T> operator/(Vector3<T> left, double right) {return left /= right;}
 
 template<numeric T>
+Vector3<T> operator/(double left, Vector3<T> right) {return Vector3<T>(left/right.x(), left/right.y(), left/right.z());}
+
+template<numeric T>
 std::ostream& operator<<(std::ostream& os, const Vector3<T>& v) {os << v.to_string(); return os;}
 
 #include <math/Vector3.tpp>

@@ -1,4 +1,7 @@
 #include <crystal/miller/ReducedMillers.h>
+#include <utility/Settings.h>
+
+#include <iostream>
 
 using namespace crystal;
 
@@ -12,11 +15,13 @@ std::vector<Miller> ReducedMillers::generate() const {
 
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
+    int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
     for (const auto& base : bases) {
-        int multiplier = 0;
-        while (multiplier++ < 100000) { // hard limit to prevent infinite loop
-            if (base.h*multiplier > h || base.k*multiplier > k || base.l*multiplier > l) {break;}
-            millers.emplace_back(base.h*multiplier, base.k*multiplier, base.l*multiplier);
+        int multiplier = 1;
+        while (multiplier++ < 10000) { // hard limit to prevent infinite loop
+            Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
+            if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
+            millers.emplace_back(miller);
         }
     }
 
@@ -24,7 +29,7 @@ std::vector<Miller> ReducedMillers::generate() const {
 }
 
 std::vector<Miller> ReducedMillers::generate_independent_bases() const {
-    double limit = 4;
+    double limit = setting::crystal::reduced::hkl_limit;
     double limit2 = limit*limit;
 
     std::vector<Miller> millers;
@@ -40,9 +45,9 @@ std::vector<Miller> ReducedMillers::generate_independent_bases() const {
 
     // filter out Friedel symmetry equivalent pairs
     std::vector<Miller> friedel_independent;
-    for (int i = 0; i < millers.size(); i++) {
+    for (unsigned int i = 0; i < millers.size(); i++) {
         bool is_independent = true;
-        for (int j = 0; j < i; j++) {
+        for (unsigned int j = 0; j < i; j++) {
             if (millers[i].friedel_equivalent(millers[j])) {
                 is_independent = false;
                 break;
@@ -59,10 +64,10 @@ std::vector<Miller> ReducedMillers::generate_independent_bases() const {
     // since the indices are sorted, we only check the previous indices for linear independence
     // thus we will keep the shortest bases and discard the longer ones
     std::vector<Miller> linearly_independent;
-    for (int i = 1; i < friedel_independent.size(); i++) {
+    for (unsigned int i = 1; i < friedel_independent.size(); i++) {
         bool is_independent = true;
-        for (int j = 0; j < i; j++) {
-            for (int k = 1; k <= limit; k++) {
+        for (unsigned int j = 0; j < i; j++) {
+            for (unsigned int k = 1; k <= limit; k++) {
                 if (friedel_independent[i] == friedel_independent[j]*k) {
                     is_independent = false;
                     break;

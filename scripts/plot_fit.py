@@ -3,31 +3,31 @@ import numpy as np
 import sys
 import os
 
-# params = {
-#     'legend.fontsize': 14,
-#     'figure.figsize': (10, 8),
-#     'axes.labelsize': 14,
-#     'axes.titlesize':14,
-#     'xtick.labelsize':11,
-#     'ytick.labelsize':11
-#     'lines.linewidth': 1,
-#     'lines.markersize': 1,
-#     'lines.markeredgewidth': 1, # capthick
-#     'errorbar.capsize': 1,
-# }
-
 params = {
-    'legend.fontsize': 28,
+    'legend.fontsize': 14,
     'figure.figsize': (10, 8),
-    'axes.labelsize': 28,
-    'axes.titlesize': 28,
-    'xtick.labelsize': 20,
-    'ytick.labelsize': 20,
-    'lines.linewidth': 3,
-    'lines.markersize': 12,
+    'axes.labelsize': 14,
+    'axes.titlesize':14,
+    'xtick.labelsize':11,
+    'ytick.labelsize':11,
+    'lines.linewidth': 1,
+    'lines.markersize': 1,
     'lines.markeredgewidth': 1, # capthick
     'errorbar.capsize': 1,
 }
+
+# params = {
+#     'legend.fontsize': 28,
+#     'figure.figsize': (10, 8),
+#     'axes.labelsize': 28,
+#     'axes.titlesize': 28,
+#     'xtick.labelsize': 20,
+#     'ytick.labelsize': 20,
+#     'lines.linewidth': 3,
+#     'lines.markersize': 12,
+#     'lines.markeredgewidth': 1, # capthick
+#     'errorbar.capsize': 1,
+# }
 plt.rcParams.update(params)
 
 if (len(sys.argv) != 4):

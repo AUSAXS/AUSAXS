@@ -24,8 +24,8 @@ namespace setting {
     };
 
     struct grid {
-        enum PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
-        enum CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
+        enum class PlacementStrategy {AxesStrategy, RadialStrategy, JanStrategy};
+        enum class CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
 
         inline static PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy; // The choice of placement algorithm.
         inline static CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;      // The choice of culling algorithm. 
@@ -65,9 +65,9 @@ namespace setting {
     };
 
     struct rigidbody {
-        enum TransformationStrategyChoice {RigidTransform, SingleTransform};
-        enum ParameterGenerationStrategyChoice {Simple};
-        enum BodySelectStrategyChoice {RandomSelect, RandomConstraintSelect, SequentialSelect};
+        enum class TransformationStrategyChoice {RigidTransform, SingleTransform};
+        enum class ParameterGenerationStrategyChoice {Simple};
+        enum class BodySelectStrategyChoice {RandomSelect, RandomConstraintSelect, SequentialSelect};
 
         inline static TransformationStrategyChoice tsc = TransformationStrategyChoice::RigidTransform;
         inline static ParameterGenerationStrategyChoice pgsc = ParameterGenerationStrategyChoice::Simple;
@@ -82,15 +82,18 @@ namespace setting {
     };
 
     struct crystal {
-        enum MillerGenerationChoice {All, Fibonacci, Reduced};
+        enum class MillerGenerationChoice {All, Fibonacci, Reduced};
         inline static MillerGenerationChoice mgc = MillerGenerationChoice::All; // The choice of Miller index generation algorithm.
         inline static unsigned int h = 100;                                     // The maximum Miller index along the x direction.
         inline static unsigned int k = 100;                                     // The maximum Miller index along the y direction.
         inline static unsigned int l = 100;                                     // The maximum Miller index along the z direction.
+        struct reduced {
+            inline static double hkl_limit = 4; // The maximum Miller length to use in the Reduced algorithm. h^2 + k^2 + l^2 <= hkl_limit^2
+        };
     };
 
     struct em {
-        enum CullingStrategyChoice {NoStrategy, CounterStrategy};
+        enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
         inline static CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; // The choice of culling algorithm. 
 
         inline static unsigned int sample_frequency = 1; // How often a bin is sampled in any direction. 

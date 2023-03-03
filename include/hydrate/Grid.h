@@ -21,31 +21,27 @@ class Grid {
 		 * @brief Constructor.
 		 * 
 		 * @param base the base point for the grid.
-		 * @param width the distance between each point.
-		 * @param bins the number of bins in all dimensions. 
 		 */
-		Grid(const Axis3D& axes, double width) : Grid(axes, width, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
+		Grid(const Axis3D& axes) : Grid(axes, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
 
 		/**
 		 * @brief Constructor.
 		 * 
 		 * @param base the base point for the grid.
-		 * @param width the distance between each point.
 		 * @param bins the number of bins in all dimensions. 
 		 * @param radius the radius of each atom.
 		 */
-		Grid(const Axis3D& axes, double width, int radius) : Grid(axes, width, radius, radius, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
+		Grid(const Axis3D& axes, int radius) : Grid(axes, radius, radius, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
 
 		/**
 		 * @brief Constructor.
 		 * 
 		 * @param base the base point for the grid.
-		 * @param width the distance between each point.
 		 * @param bins the number of bins in each dimension. 
 		 * @param ra the radius of each atom.
 		 * @param rh the radius of each water molecule.
 		 */
-		Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
+		Grid(const Axis3D& axes, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
 
 		/**
 		 * @brief Space-saving constructor. 

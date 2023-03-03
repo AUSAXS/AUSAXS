@@ -102,6 +102,11 @@ class Axis3D {
 		 */
 		void rebin(double width) noexcept;
 
+        /**
+         * @brief Get the bin width.
+         */
+        double width() const;
+
 		Axis x; // The x-axis. 
 		Axis y; // The y-axis. 
 		Axis z; // The z-axis. 

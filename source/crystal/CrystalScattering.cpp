@@ -4,23 +4,37 @@
 #include <crystal/miller/AllMillers.h>
 #include <crystal/miller/FibonacciMillers.h>
 #include <crystal/miller/ReducedMillers.h>
+#include <crystal/io/CrystalReaderFactory.h>
 
 #include <atomic>
 #include <thread>
 
 using namespace crystal;
 
+CrystalScattering::CrystalScattering(const std::string& input) {
+    initialize();
+    auto reader = io::CrystalReaderFactory::create(input);
+    auto [bases, points] = reader->read(input);
+    Fval::set_points(std::move(points));
+    Fval::set_basis(bases);
+}
+
 CrystalScattering::CrystalScattering(const Grid& grid) {
+    initialize();
+    convert_grid(grid);
+}
+
+void CrystalScattering::initialize() {
     switch (setting::crystal::mgc) {
-        case setting::crystal::All: {
+        case setting::crystal::MillerGenerationChoice::All: {
             miller_strategy = std::make_shared<AllMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
             break;
         }
-        case setting::crystal::Fibonacci: {
+        case setting::crystal::MillerGenerationChoice::Fibonacci: {
             miller_strategy = std::make_shared<FibonacciMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
             break;
         }
-        case setting::crystal::Reduced: {
+        case setting::crystal::MillerGenerationChoice::Reduced: {
             miller_strategy = std::make_shared<ReducedMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
             break;
         }
@@ -29,10 +43,11 @@ CrystalScattering::CrystalScattering(const Grid& grid) {
             throw except::unknown_argument("CrystalScattering::CrystalScattering: Unknown MillerGenerationStrategy.");
         }
     }
-    convert_grid(grid);
 }
 
 SimpleDataset CrystalScattering::calculate() const {
+    if (Fval::get_points().empty()) {throw except::invalid_argument("CrystalScattering::calculate: No points were set.");}
+    if (Fval::get_basis().x.x() == 0 || Fval::get_basis().y.y() == 0 || Fval::get_basis().z.z() == 0) {throw except::invalid_argument("CrystalScattering::calculate: No basis was set.");}
     auto millers = miller_strategy->generate();
 
     std::vector<Fval> fvals(millers.size());
@@ -90,7 +105,6 @@ SimpleDataset CrystalScattering::calculate() const {
 
     return data;
 }
-
 
 void CrystalScattering::convert_grid(const Grid& grid) const {
     auto axes = grid.get_axes();

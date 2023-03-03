@@ -1,4 +1,7 @@
 #include <crystal/Fval.h>
+#include <Symbols.h>
+
+#include <cmath>
 
 using namespace crystal;
 
@@ -13,8 +16,18 @@ void Fval::set_points(std::vector<Vector3<double>>&& points) {
     Fval::points = std::move(points);
 }
 
+void Fval::set_basis(const Basis3D& basis) {
+    ap = {2*M_PI/basis.x.x(), 0, 0};
+    bp = {0, 2*M_PI/basis.y.y(), 0};
+    cp = {0, 0, 2*M_PI/basis.z.z()};
+}
+
 std::vector<Vector3<double>>& Fval::get_points() {
     return points;
+}
+
+Basis3D Fval::get_basis() {
+    return Basis3D(ap, bp, cp);
 }
 
 double Fval::I() const {

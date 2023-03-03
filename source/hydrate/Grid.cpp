@@ -19,8 +19,8 @@
 
 using namespace grid;
 
-Grid::Grid(const Axis3D& axes, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) : axes(axes) {
-    setup(width, ra, rh, ps, cs);
+Grid::Grid(const Axis3D& axes, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) : axes(axes) {
+    setup(axes.width(), ra, rh, ps, cs);
 }
 
 Grid::Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
@@ -74,7 +74,7 @@ Grid::Grid(const std::vector<Body>& bodies, double width, double ra, double rh, 
     }
 }
 
-Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.width, grid.ra, grid.rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {
+Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.ra, grid.rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {
     *this = grid;
 }
 

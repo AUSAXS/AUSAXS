@@ -72,19 +72,24 @@ coverage: tests
 ###				EXECUTABLES					###
 ###################################################################################
 
+crystal/%: build/executable/crystal_scattering
+	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid");\
+	$< $${grid} ${options}
+	make plot/output/crystal/$*
+
 # fix a pdb file
 data/%_fixed.pdb: data/%.pdb
 	@ $(pdbfixer) $< --replace-nonstandard --add-atoms=all --add-residues --output=$@
 
 # calculate the scattering from a pdb structure
 scatter/%: build/executable/scattering
-	@ structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure} ${options}
 	make plot/output/scattering/$*
 
 # hydrate a structure and show it in pymol
 hydrate/%: build/executable/new_hydration
-	@ structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure} output/$*.pdb ${options}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
 
@@ -114,7 +119,7 @@ simview/%:
 
 # calculate the histogram for a given structure
 hist/%: build/executable/hist
-	@structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure} output/hist/$*/ ${options}
 	make plot/output/hist/$*/
 
@@ -154,9 +159,9 @@ em_fit/%: build/executable/em_fitter
 # Fit both an EM map and a PDB file to a SAXS measurement. 
 # The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement. 
 em/%: build/executable/em
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	emmap=$(shell find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	emmap=$$(find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
 	$< $${emmap} $${structure} $${measurement}
 
 optimize_radius/%: build/source/scripts/optimize_radius
@@ -165,8 +170,8 @@ optimize_radius/%: build/source/scripts/optimize_radius
 # Perform a rigid-body optimization of the input structure. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
 rigidbody/%: build/executable/rigidbody
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${structure} $${measurement} ${options}
 	make plot/output
 	make plot_fits/$*
@@ -174,7 +179,7 @@ rigidbody/%: build/executable/rigidbody
 # perform a fit with crysol
 crysol/%: 
 	@ mkdir -p temp/crysol/
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	crysol $${measurement} $${structure} --prefix="temp/crysol/out" --constant ${options}
@@ -183,7 +188,7 @@ crysol/%:
 # perform a fit with pepsi-saxs
 pepsi/%:
 	@ mkdir -p temp/pepsi/
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit"
@@ -193,7 +198,7 @@ pepsi/%:
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
 intensity_fit/%: build/executable/intensity_fitter
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	for pdb in $${structure}; do\
@@ -207,7 +212,7 @@ intensity_fit/%: build/executable/intensity_fitter
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
 consistency/%: build/executable/consistency
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	emmap=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 	for map in $${emmap}; do\
@@ -221,9 +226,9 @@ consistency/%: build/executable/consistency
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
 # A simulated EM map must be available. The resolution can be specified with the "res" argument. 
 fit_consistency/%: build/executable/fit_consistency
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	emmap=$(shell find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
 	$< $${emmap} $${structure} $${measurement}
 
 # usage: make fit_consistency2/2epe res=10
@@ -232,7 +237,7 @@ fit_consistency/%: build/executable/fit_consistency
 # A simulated EM map must be present available with the given resolution. 
 # A measurement will be simulated from the PDB structure, and fitted to the EM map. 
 fit_consistency2/%: build/executable/fit_consistency2
-	@ structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
 	echo "$< $${emmap} $${structure}"; \
 	$< $${emmap} $${structure}
@@ -247,13 +252,13 @@ map_consistency/%: build/executable/em_pdb_fitter
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 
 rebin/%: build/executable/rebin
-	@ measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${measurement}
 
 # Calculate a unit cell and write it to the file as a CRYST1 record. 
 # The wildcard should be the name of a PDB structure file. 
 unit_cell/%: build/executable/unit_cell
-	@ structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure}
 
 
@@ -263,7 +268,7 @@ unit_cell/%: build/executable/unit_cell
 
 # eval "$(~/tools/eman2/bin/conda shell.bash hook)"
 simulate/%: 
-	@ structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	python3 ~/tools/eman2/bin/e2pdb2mrc.py $${structure} sim/$*_$(res).mrc res=$(res) het
 
 #simulate/%: 
@@ -271,14 +276,14 @@ simulate/%:
 #	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center
 
 simfit/%: build/executable/fit_consistency
-	@ structure=$(shell find data/ -name "$*.pdb"); \
-	measurement=$(shell find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center; \
 	echo "./fit_consistency $${structure} $${measurement} sim/$*_$(res).mrc\n"; \
 	$< sim/$*_$(res).mrc $${structure} $${measurement}
 
 old_simulate/%: 
-	@ structure=$(shell find data/ -name "$*.pdb"); \
+	@ structure=$$(find data/ -name "$*.pdb"); \
 	phenix.fmodel $${structure} high_resolution=$(res) generate_fake_p1_symmetry=True;\
 	phenix.mtz2map mtz_file=$(*F).pdb.mtz pdb_file=$${structure} labels=FMODEL,PHIFMODEL output.prefix=$(*F);\
 	rm $(*F).pdb.mtz;\
@@ -286,7 +291,7 @@ old_simulate/%:
 
 stuff/%: build/executable/stuff data/%.pdb
 #	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4
-	@$< data/$*.pdb $(shell find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
+	@$< data/$*.pdb $$(find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
 
 
 ####################################################################################

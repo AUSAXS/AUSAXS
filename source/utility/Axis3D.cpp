@@ -1,4 +1,5 @@
 #include <utility/Axis3D.h>
+#include <utility/Exceptions.h>
 
 Axis3D::Axis3D() noexcept {}
 
@@ -38,4 +39,17 @@ void Axis3D::rebin(double width) noexcept {
     x.bins = (x.max - x.min)/width;
     y.bins = (y.max - y.min)/width;
     z.bins = (z.max - z.min)/width;
+}
+
+double Axis3D::width() const {
+    if (x.bins == 0 || y.bins == 0 || z.bins == 0) {
+        throw except::invalid_operation("Axis3D::width(): Cannot calculate width of an empty axis.");
+    }
+    auto xw = x.width();
+    auto yw = y.width();
+    auto zw = z.width();
+    if (xw != yw || xw != zw) {
+        throw except::invalid_operation("Axis3D::width(): Cannot calculate width of an axis with non-uniform bin widths.");
+    }
+    return xw;
 }

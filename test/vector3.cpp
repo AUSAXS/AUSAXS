@@ -44,6 +44,20 @@ TEST_CASE("basic operations") {
     REQUIRE(z-x == Vector3{6, 6, 6});
     REQUIRE(z-y == Vector3{3, 3, 3});
 
+    // division
+    REQUIRE(x/2 == Vector3<double>{0.5, 1, 1.5});
+    REQUIRE(y/2 == Vector3<double>{2, 2.5, 3});
+    REQUIRE(z/2 == Vector3<double>{3.5, 4, 4.5});
+
+    REQUIRE(2/x == Vector3<double>{2, 1, 2.0/3});
+    REQUIRE(2/y == Vector3<double>{0.5, 2.0/5, 1.0/3});
+    REQUIRE(2/z == Vector3<double>{2.0/7, 0.5, 2.0/9});
+
+    // multiplication
+    REQUIRE(x*2 == Vector3<double>{2, 4, 6});
+    REQUIRE(y*2 == Vector3<double>{8, 10, 12});
+    REQUIRE(z*2 == Vector3<double>{14, 16, 18});
+
     // negation
     REQUIRE(-x == Vector3{-1, -2, -3});
     REQUIRE(-y == Vector3{-4, -5, -6});

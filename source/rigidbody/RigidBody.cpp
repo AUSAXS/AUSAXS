@@ -28,10 +28,10 @@ RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
 void RigidBody::setup() {
     // Set body transformation strategy
     switch (setting::rigidbody::tsc) {
-        case setting::rigidbody::RigidTransform:
+        case setting::rigidbody::TransformationStrategyChoice::RigidTransform:
             transform = std::make_unique<RigidTransform>(this); 
             break;
-        case setting::rigidbody::SingleTransform:
+        case setting::rigidbody::TransformationStrategyChoice::SingleTransform:
             transform = std::make_unique<SingleTransform>(this);
             break;
         default: 
@@ -40,7 +40,7 @@ void RigidBody::setup() {
 
     // Set parameter generation strategy
     switch (setting::rigidbody::pgsc) {
-        case setting::rigidbody::Simple:
+        case setting::rigidbody::ParameterGenerationStrategyChoice::Simple:
             parameter_generator = std::make_unique<SimpleParameterGeneration>(setting::rigidbody::iterations, 5, M_PI/3);
             break;
         default: 
@@ -49,13 +49,13 @@ void RigidBody::setup() {
 
     // Set body selection strategy
     switch (setting::rigidbody::bssc) {
-        case setting::rigidbody::RandomSelect:
+        case setting::rigidbody::BodySelectStrategyChoice::RandomSelect:
             body_selector = std::make_unique<RandomSelect>(this);
             break;
-        case setting::rigidbody::RandomConstraintSelect:
+        case setting::rigidbody::BodySelectStrategyChoice::RandomConstraintSelect:
             body_selector = std::make_unique<RandomConstraintSelect>(this);
             break;
-        case setting::rigidbody::SequentialSelect:
+        case setting::rigidbody::BodySelectStrategyChoice::SequentialSelect:
             body_selector = std::make_unique<SequentialSelect>(this);
             break;
         default: 
@@ -67,8 +67,6 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     generate_constraint_map();
     auto fitter = prepare_fitter(measurement_path);
-    // fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
-    // fitter.set_constraints(constraints);
     double best_chi2 = fitter->fit()->fval;
 
     if (setting::general::verbose) {

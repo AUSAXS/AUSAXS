@@ -11,10 +11,14 @@ namespace crystal {
         public: 
             CrystalScattering(const Grid& grid);
 
+            CrystalScattering(const std::string& input);
+
             SimpleDataset calculate() const;
 
         private:
             std::shared_ptr<MillerGenerationStrategy> miller_strategy;
+
+            void initialize();
 
             /**
              * @brief Convert the grid to individual points. 

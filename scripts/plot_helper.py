@@ -85,7 +85,7 @@ class Options:
             case "zlabel":
                 self.zlabel = " ".join(words[1:])
             case "legend":
-                self.legend = words[1]
+                self.legend = " ".join(words[1:])
         
         # axes
             case "xlimits":
