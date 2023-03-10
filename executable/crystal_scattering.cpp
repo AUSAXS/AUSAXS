@@ -7,7 +7,7 @@
 int main(int argc, char const *argv[]) {
     std::string crystal;
     CLI::App app{"Crystal Scattering"};
-    app.add_option("crystal", crystal, "File containing the crystal data.")->required();
+    app.add_option("input", crystal, "File containing the crystal data.")->required();
     app.add_option("--output,-o", setting::general::output, "Path to save the generated figures at.")->default_val("output/crystal/");
     CLI11_PARSE(app, argc, argv);
     setting::general::output += utility::stem(crystal) + "/";

@@ -52,23 +52,26 @@ def load_fit(fitdata, title: str):
 for f in files:
     # get the stem of f without the path or extension
     stem = os.path.splitext(os.path.basename(f))[0]
+    print("\tParsing file: " + stem)
 
     if "foxs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=3, usecols=[0, 3])
-        load_fit(fitdata, "FoXS")
+        load_fit(fitdata, stem.lower())
 
     elif "crysol".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 3])
-        load_fit(fitdata, "Crysol")
+        load_fit(fitdata, stem.lower())
 
     elif "pepsi".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 3])
-        load_fit(fitdata, "Pepsi")
+        load_fit(fitdata, stem.lower())
 
-    elif "waxs".lower() in stem.lower():
+    elif "waxsis".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments="#", usecols=[0, 1])
-        fitdata[:, 0] = fitdata[:, 0] / 10
-        load_fit(fitdata, "WAXSiS")
+        x = fitdata[:, 0]
+        y = np.interp(data[:, 0], x, fitdata[:, 1])
+        fitdata = np.vstack((data[:, 0], y)).T
+        load_fit(fitdata, stem.lower())
 
     elif "gromacs".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=0, comments=["@", "#", "&"], usecols=[0, 1])
@@ -76,11 +79,11 @@ for f in files:
         x = fitdata[:, 0]/10
         y = np.interp(data[:, 0], x, fitdata[:, 1])
         fitdata = np.vstack((data[:, 0], y)).T
-        load_fit(fitdata, "Gromacs")
+        load_fit(fitdata, stem.lower())
 
     elif "fit".lower() in stem.lower():
         fitdata = np.loadtxt(f, skiprows=1, usecols=[0, 1])
-        load_fit(fitdata, "Fit")
+        load_fit(fitdata, stem.lower())
     else:
         print(f"Unknown fit file: \"{f}\"")
 

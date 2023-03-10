@@ -79,7 +79,7 @@ crystal/%: build/executable/crystal_scattering
 
 # fix a pdb file
 data/%_fixed.pdb: data/%.pdb
-	@ $(pdbfixer) $< --replace-nonstandard --add-atoms=all --add-residues --output=$@
+	@ $(pdbfixer) $< --replace-nonstandard --add-atoms=all --add-residues --output=$@ --verbose
 
 # calculate the scattering from a pdb structure
 scatter/%: build/executable/scattering

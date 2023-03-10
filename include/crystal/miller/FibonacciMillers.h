@@ -15,6 +15,11 @@ namespace crystal {
 
         private:
             int h, k, l;
+            static inline double phi = (1 + sqrt(5))/2;
+
+            int estimate_n(double resolution) const;
+
+            std::vector<Miller> pick_directions(const std::vector<Miller>& basis) const;
 
             std::vector<Vector3<double>> generate_fibonacci_sphere(int n) const;
     };

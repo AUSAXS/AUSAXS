@@ -13,7 +13,7 @@ TEST_CASE("millers_generation") {
     // std::vector<Miller> millers = miller_strategy->generate();
 
     crystal::FibonacciMillers fib(10, 10, 10);
-    // std::vector<crystal::Miller> millers = fib.generate();
+    std::vector<crystal::Miller> millers = fib.generate();
     // fib.generate_fibonacci_sphere(100);
 }
 
