@@ -324,6 +324,12 @@ class Protein {
 		template<hist::detail::HistogramManagerType T>
 		void set_histogram_manager() {phm = hist::HistogramManagerFactory::create<T>(this);}
 
+		/** 
+		 * @brief Move the entire protein by a vector.
+		 * @param v the translation vector.
+		 */
+		void translate(const Vector3<double>& v);
+
 		std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
 		std::vector<Body> bodies;           // The constituent bodies
 		bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
@@ -332,10 +338,4 @@ class Protein {
 		std::shared_ptr<Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
 		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
-
-		/** 
-		 * @brief Move the entire protein by a vector.
-		 * @param v the translation vector.
-		 */
-		void translate(const Vector3<double>& v);
 };

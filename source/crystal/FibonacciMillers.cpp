@@ -1,6 +1,8 @@
 #include <crystal/miller/FibonacciMillers.h>
 
 #include <math.h>
+#include <iostream>
+#include <fstream>
 
 using namespace crystal;
 
@@ -12,86 +14,95 @@ std::vector<Miller> FibonacciMillers::generate() const {
 
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
+    int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
     for (const auto& base : bases) {
-        int multiplier = 0;
-        while (multiplier++ < 100000) { // hard limit to prevent infinite loop
-            if (base.h*multiplier > h || base.k*multiplier > k || base.l*multiplier > l) {break;}
-            millers.emplace_back(base.h*multiplier, base.k*multiplier, base.l*multiplier);
+        std::cout << "(" << base.h << " " << base.k << " " << base.l << ")" << std::endl;
+        int multiplier = 1;
+        while (multiplier++ < 10000) { // hard limit to prevent infinite loop
+            Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
+            if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
+            millers.emplace_back(miller);
         }
     }
 
     return millers;
 }
 
-#include <iostream>
-#include <fstream>
 std::vector<Miller> FibonacciMillers::pick_directions(const std::vector<Miller>& basis) const {
-    std::vector<Vector3<double>> normed(basis.size());
-    std::transform(basis.begin(), basis.end(), normed.begin(), [](const auto& miller) {return miller.normalize();});
+    std::vector<Vector3<double>> v = generate_fibonacci_sphere(200);
+    std::vector<Miller> bases = generate_independent_bases(5);
+    std::vector<Vector3<double>> normed(bases.size());
+    std::transform(bases.begin(), bases.end(), normed.begin(), [](const Miller& m) {return m.normalize();});
 
-    // calculate smallest distance between miller indices
-    double res = 1e10;
-    for (const auto& miller : normed) {
-        for (const auto& other : normed) {
-            if (miller == other) {continue;}
-            double distance = miller.distance(other);
-            if (distance < res) {
-                res = distance;
-            }
-        }
-    }
-
-    // sqrt(n)*res = 1
-    // n = 1/res^2
-
-    // generate a fibonacci sphere with roughly the same resolution as the smallest distance
-    auto fib = generate_fibonacci_sphere(1./(res*res));
-
-    // find the closest miller index for each point on the sphere
     std::vector<Miller> directions;
-    std::vector<Vector3<double>> v;
-    for (const auto& point : fib) {
-        double min_distance = 1e10;
-        unsigned int index = 0;
-        for (unsigned int i = 0; i < basis.size(); i++) {
-            auto norm = normed[i];
-            double distance = std::sqrt(std::pow(point.x() - norm.x(), 2) + std::pow(point.y() - norm.y(), 2) + std::pow(point.z() - norm.z(), 2));
+    std::vector<Vector3<double>> directions2;
+    for (const auto& point : v) {
+        double min_distance = 1000000;
+        unsigned int closest = 0;
+        for (unsigned int i = 0; i < normed.size(); i++) {
+            double distance = point.distance2(normed[i]);
             if (distance < min_distance) {
                 min_distance = distance;
-                index = i;
+                closest = i;
             }
         }
-        if (min_distance < res) {
-            directions.push_back(basis[index]);
-            v.push_back(normed[index]);
+        if (min_distance < 0.1) {
+            directions.push_back(bases[closest]);
+            directions2.push_back(normed[closest]);
         }
     }
 
-    {
-        std::ofstream file("fibonacci_sphere.py");
-        file << "import numpy as np" << std::endl;
-        file << "import matplotlib.pyplot as plt" << std::endl;
-        file << "fig = plt.figure()" << std::endl;
-        file << "x = np.array([";
-        for (const auto& point : v) {
-            file << point.x() << ", ";
-        }
-        file << "])" << std::endl;
-        file << "y = np.array([";
-        for (const auto& point : v) {
-            file << point.y() << ", ";
-        }
-        file << "])" << std::endl;
-        file << "z = np.array([";
-        for (const auto& point : v) {
-            file << point.z() << ", ";
-        }
-        file << "])" << std::endl;
-        file << "ax = fig.add_subplot(111, projection='3d')" << std::endl;
-        file << "ax.scatter(x, y, z)" << std::endl;
-        file << "plt.show()" << std::endl;
-        file.close();
-    }
+    std::cout << "Found " << directions.size() << " directions. Expected " << v.size() << "." << std::endl;
+
+    // {
+    //     std::ofstream file1("fs1.py");
+    //     file1 << "import numpy as np" << std::endl;
+    //     file1 << "import matplotlib.pyplot as plt" << std::endl;
+    //     file1 << "fig = plt.figure()" << std::endl;
+    //     file1 << "x = np.array([";
+    //     for (const auto& point : directions) {
+    //         file1 << point.h << ", ";
+    //     }
+    //     file1 << "])" << std::endl;
+    //     file1 << "y = np.array([";
+    //     for (const auto& point : directions) {
+    //         file1 << point.k << ", ";
+    //     }
+    //     file1 << "])" << std::endl;
+    //     file1 << "z = np.array([";
+    //     for (const auto& point : directions) {
+    //         file1 << point.l << ", ";
+    //     }
+    //     file1 << "])" << std::endl;
+    //     file1 << "ax = fig.add_subplot(111, projection='3d')" << std::endl;
+    //     file1 << "ax.scatter(x, y, z)" << std::endl;
+    //     file1 << "plt.show()" << std::endl;
+    //     file1.close();
+
+    //     std::ofstream file2("fs2.py");
+    //     file2 << "import numpy as np" << std::endl;
+    //     file2 << "import matplotlib.pyplot as plt" << std::endl;
+    //     file2 << "fig = plt.figure()" << std::endl;
+    //     file2 << "x = np.array([";
+    //     for (const auto& point : directions2) {
+    //         file2 << point.x() << ", ";
+    //     }
+    //     file2 << "])" << std::endl;
+    //     file2 << "y = np.array([";
+    //     for (const auto& point : directions2) {
+    //         file2 << point.y() << ", ";
+    //     }
+    //     file2 << "])" << std::endl;
+    //     file2 << "z = np.array([";
+    //     for (const auto& point : directions2) {
+    //         file2 << point.z() << ", ";
+    //     }
+    //     file2 << "])" << std::endl;
+    //     file2 << "ax = fig.add_subplot(111, projection='3d')" << std::endl;
+    //     file2 << "ax.scatter(x, y, z)" << std::endl;
+    //     file2 << "plt.show()" << std::endl;
+    //     file2.close();
+    // }
 
     return directions;
 }

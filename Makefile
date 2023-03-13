@@ -73,7 +73,7 @@ coverage: tests
 ###################################################################################
 
 crystal/%: build/executable/crystal_scattering
-	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid");\
+	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid" -or -name "$*.pdb");\
 	$< $${grid} ${options}
 	make plot/output/crystal/$*
 

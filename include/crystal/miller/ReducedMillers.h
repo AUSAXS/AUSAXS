@@ -11,7 +11,7 @@ namespace crystal {
             std::vector<Miller> generate() const override;
 
         protected:
-            std::vector<Miller> generate_independent_bases() const;
+            std::vector<Miller> generate_independent_bases(double limit = -1) const;
 
         private:
             int h, k, l;

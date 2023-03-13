@@ -1,5 +1,6 @@
 #include <crystal/io/CrystalReaderFactory.h>
 #include <crystal/io/GridReader.h>
+#include <crystal/io/PDBReader.h>
 #include <crystal/io/UnitCellReader.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
@@ -12,8 +13,8 @@ namespace crystal::io {
             return std::make_unique<UnitCellReader>();
         } else if (constants::filetypes::grid.validate(filename)) {
             return std::make_unique<GridReader>();
-        } else if (constants::filetypes::saxs_data.validate(filename)) {
-            throw except::io_error("crystal::io::CrystalReaderFactory::create: SAXS data files are not supported");
+        } else if (constants::filetypes::structure.validate(filename)) {
+            return std::make_unique<PDBReader>();
         } else {
             throw except::io_error("crystal::io::CrystalReaderFactory::create: Unknown file extension for file \"" + filename + "\"");
         }

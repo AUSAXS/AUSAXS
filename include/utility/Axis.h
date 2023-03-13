@@ -92,6 +92,11 @@ class Axis {
 		double width() const noexcept {return (max-min)/bins;}
 
 		/**
+		 * @brief Get the span of this Axis.
+		 */
+		double span() const noexcept {return max-min;}
+
+		/**
 		 * @brief Get the bin width.
 		 */
 		double step() const noexcept {return width();}

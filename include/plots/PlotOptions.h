@@ -45,6 +45,28 @@ struct style {
 };
 
 namespace plots {
+    struct option {
+        static inline std::string color = "color";
+        static inline std::string alpha = "alpha";
+        static inline std::string line_style = "linestyle";
+        static inline std::string marker_style = "markerstyle";
+        static inline std::string line_width = "linewidth";
+        static inline std::string marker_size = "markersize";
+        static inline std::string draw_line = "line";
+        static inline std::string draw_errors = "error";
+        static inline std::string draw_markers = "marker";
+        static inline std::string draw_bars = "bars";
+        static inline std::string title = "title";
+        static inline std::string xlabel = "xlabel";
+        static inline std::string ylabel = "ylabel";
+        static inline std::string zlabel = "zlabel";
+        static inline std::string logx = "logx";
+        static inline std::string logy = "logy";
+        static inline std::string xlimits = "xlim";
+        static inline std::string ylimits = "ylim";
+        static inline std::string legend = "legend";
+    };
+
     /**
      * @brief Defines the plot style used for a single plot.
      */
@@ -130,25 +152,25 @@ namespace plots {
             }
 
             const std::vector<std::shared_ptr<ISmartOption>> options = {
-                make_shared({"color", "colour", "c"}, color),
-                make_shared({"alpha"}, alpha),
-                make_shared({"linestyle", "line_style", "ls"}, line_style),
-                make_shared({"markerstyle", "marker_style", "ms"}, marker_style),
-                make_shared({"linewidth", "line_width", "lw"}, line_width),
-                make_shared({"markersize", "marker_size", "s"}, marker_size),
-                make_shared({"line", "lines"}, draw_line),
-                make_shared({"error", "errors"}, draw_errors),
-                make_shared({"marker", "markers", "point", "points"}, draw_markers),
-                make_shared({"bars", "bars"}, draw_bars),
-                make_shared({"title"}, title),
-                make_shared({"xlabel"}, xlabel),
-                make_shared({"ylabel"}, ylabel),
-                make_shared({"zlabel"}, zlabel),
-                make_shared({"logx", "log_x"}, logx),
-                make_shared({"logy", "log_y"}, logy),
-                make_shared({"xlim", "x_lim", "xlimits", "xlimit"}, xlimits),
-                make_shared({"ylim", "y_lim", "ylimits", "ylimit"}, ylimits),
-                make_shared({"legend"}, legend)
+                make_shared({option::color, "colour", "c"}, color),
+                make_shared({option::alpha}, alpha),
+                make_shared({option::line_style, "line_style", "ls"}, line_style),
+                make_shared({option::marker_style, "marker_style", "ms"}, marker_style),
+                make_shared({option::line_width, "line_width", "lw"}, line_width),
+                make_shared({option::marker_size, "marker_size", "s"}, marker_size),
+                make_shared({option::draw_line, "lines"}, draw_line),
+                make_shared({option::draw_errors, "errors"}, draw_errors),
+                make_shared({option::draw_markers, "markers", "point", "points"}, draw_markers),
+                make_shared({option::draw_bars}, draw_bars),
+                make_shared({option::title}, title),
+                make_shared({option::xlabel}, xlabel),
+                make_shared({option::ylabel}, ylabel),
+                make_shared({option::zlabel}, zlabel),
+                make_shared({option::logx, "log_x"}, logx),
+                make_shared({option::logy, "log_y"}, logy),
+                make_shared({option::xlimits, "x_lim", "xlimits", "xlimit"}, xlimits),
+                make_shared({option::ylimits, "y_lim", "ylimits", "ylimit"}, ylimits),
+                make_shared({option::legend}, legend)
             };
 
             void parse(std::string key, std::any val);

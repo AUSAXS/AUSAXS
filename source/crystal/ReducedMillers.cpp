@@ -28,8 +28,8 @@ std::vector<Miller> ReducedMillers::generate() const {
     return millers;
 }
 
-std::vector<Miller> ReducedMillers::generate_independent_bases() const {
-    double limit = setting::crystal::reduced::hkl_limit;
+std::vector<Miller> ReducedMillers::generate_independent_bases(double limit) const {
+    if (limit < 0) {limit = setting::crystal::reduced::hkl_limit;}
     double limit2 = limit*limit;
 
     std::vector<Miller> millers;
