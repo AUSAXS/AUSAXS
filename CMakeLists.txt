@@ -29,13 +29,6 @@ set(DLIB_NO_GUI_SUPPORT TRUE)
 FetchContent_MakeAvailable(dlib)
 
 FetchContent_Declare(
-	Catch2
-	GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-	GIT_TAG f4af9f69265d009a457aa99d1075cfba78652a66
-	GIT_PROGRESS TRUE
-)
-
-FetchContent_Declare(
 	CLI11
 	GIT_REPOSITORY https://github.com/CLIUtils/CLI11
 	GIT_TAG b9be5b9444772324459989177108a6a65b8b2769
@@ -53,7 +46,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/darren-harton/thread-pool
 )
 set(CMAKE_CXX_STANDARD 20)
-FetchContent_MakeAvailable(Catch2 CLI11 backward BSThreadPool)
+FetchContent_MakeAvailable(CLI11 backward BSThreadPool)
 
 include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
 
@@ -119,32 +112,7 @@ link_libraries(saxs)
 ############################################
 ##             Unit Testing               ##
 ############################################
-file(GLOB_RECURSE 
-	TEST_SRC
-	"test/*.h"
-	"test/*.cpp"
-)
-
-# make the tests available through cmake
-list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
-include(CTest)
-include(Catch)
-
-add_custom_target(tests)
-foreach(test ${TEST_SRC})
-	cmake_path(GET test STEM testname)
-	set(name "test_${testname}")
-	add_executable("${name}" ${test} ${ENABLE_DEBUG})
-	target_link_libraries("${name}" Catch2::Catch2WithMain)
-	set_target_properties("${name}" PROPERTIES 
-		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test"
-	)
-	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
-		add_backward("${name}")
-	endif()	
-	add_dependencies(tests "${name}")
-	catch_discover_tests("${name}" TEST_SPEC "~[slow] ~[broken]" WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/..")
-endforeach()
+add_subdirectory(test)
 
 ############################################
 ##          Other executables             ##

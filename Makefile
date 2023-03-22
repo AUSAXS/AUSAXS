@@ -307,8 +307,9 @@ memtest/%: $(shell find source/ -print) test/%.cpp
 
 tests: $(shell find source/ -print) $(shell find test/ -print)
 	@ make -C build tests -j${cmake_threads}
-	@ for test in $$(find build/test/*); do\
-		$${test} $(exclude_tags);\
+	@ mkdir -p build/reports
+	@ for test in $$(find build/test/bin/*); do\
+		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
 test/%: test/%.cpp

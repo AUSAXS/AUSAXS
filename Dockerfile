@@ -15,7 +15,3 @@ RUN echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers
 USER user
 WORKDIR /home/user
 ENV PATH="${PATH}:/home/user/.local/bin"
-
-### Build ###
-RUN make build
-RUN make tests

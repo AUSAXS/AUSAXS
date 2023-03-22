@@ -1,0 +1,30 @@
+name: Run tests
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.actor }}/saxs:latest
+      options: --user root
+      credentials:
+         username: ${{ github.actor }}
+         password: ${{ secrets.CR_PAT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Run tests
+        run: |
+          make build
+          make tests
+          
+      - name: Generate test report
+        uses: mikepenz/action-junit-report@v3
+        if: success() || failure()
+        with:
+          report_paths: 'build/test/reports/*.xml'
