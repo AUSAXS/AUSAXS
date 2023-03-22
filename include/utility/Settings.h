@@ -17,6 +17,7 @@ namespace setting {
         inline static bool verbose = true;                                          // Whether to print out extra information.
         inline static unsigned int threads = std::thread::hardware_concurrency();   // The number of threads to use for parallelization.
         inline static std::string output = "output/";                               // The output directory.
+        inline static bool keep_hydrogens = false;                                  // Whether to keep bound hydrogens when reading a structure.
 
         struct detail {
             inline static unsigned int job_size = 200; // The number of atoms to process in each job.

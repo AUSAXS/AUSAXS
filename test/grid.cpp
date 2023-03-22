@@ -496,9 +496,8 @@ TEST_CASE("correct_volume") {
 TEST_CASE("find_free_locs") {
     auto test_func = [] (setting::grid::PlacementStrategy ch) {
         Axis3D axes(-10, 10, -10, 10, -10, 10);
-        int width = 1;
         int radius = 3;
-        GridDebug grid(axes, width, radius, radius, ch, setting::grid::culling_strategy);
+        GridDebug grid(axes, radius, radius, ch, setting::grid::culling_strategy);
 
         vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
         grid.add(a);

@@ -32,8 +32,11 @@ int main(int argc, char const *argv[]) {
 
     setting::protein::use_effective_charge = false;
 
+    setting::general::keep_hydrogens = true;
     Protein protein(input);
-    protein.generate_new_hydration();
+    protein.clear_hydration();
+    protein.save("tmp/TEST.PDB");
+    // protein.generate_new_hydration();
     hist::ScatteringHistogram d = protein.get_histogram();
 
     // Distance plot

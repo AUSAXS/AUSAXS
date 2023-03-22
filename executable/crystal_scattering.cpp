@@ -3,6 +3,9 @@
 #include <crystal/CrystalScattering.h>
 #include <hydrate/GridReader.h>
 #include <plots/all.h>
+#include <math/SimpleLeastSquares.h>
+#include <math/CubicSpline.h>
+#include <fitter/FitReporter.h>
 
 int main(int argc, char const *argv[]) {
     std::string crystal;
@@ -18,14 +21,14 @@ int main(int argc, char const *argv[]) {
 
     setting::axes::qmin = 1e-4;
     setting::axes::bins = 1000;
-    setting::crystal::h = 100; setting::crystal::k = 100; setting::crystal::l = 100;
+    setting::crystal::h = 50; setting::crystal::k = 50; setting::crystal::l = 50;
     setting::crystal::mgc = setting::crystal::MillerGenerationChoice::All;
     setting::crystal::reduced::hkl_limit = 20;
     crystal::CrystalScattering cs(crystal);
     auto fourier = cs.calculate();
     fourier.limit_y(1e-4, 1e10);
-    fourier.scale_y(debye.y(0)/fourier.y(0));
 
+    fourier.scale_y(debye.y(0)/fourier.y(0));
     fourier.add_plot_options({{plots::option::color, style::color::black}, {plots::option::legend, "fourier"}});
     debye.add_plot_options(plots::option::draw_markers, {{plots::option::color, style::color::red}, {plots::option::legend, "debye"}});
     plots::PlotIntensity plot(fourier);

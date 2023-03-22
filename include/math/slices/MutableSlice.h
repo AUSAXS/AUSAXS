@@ -2,6 +2,50 @@
 
 #include <math/slices/Slice.h>
 
+#include <concepts>
+
+// define slice concepts
+// template<typename T>
+// concept ConstSliceConcept = std::derived_from<T, Slice<T>>;
+
+// template<typename T>
+// concept MutableSliceConcept = std::derived_from<T, MutableSlice<T>>;
+
+// template<ConstSliceConcept T>
+// struct ConstOps {
+// 	// double ops
+// 	T operator+(double rhs) const {
+// 		T result = *this;
+// 		for (unsigned int i = 0; i < result.size(); i++) {
+// 			result[i] += rhs;
+// 		}
+// 		return result;
+// 	}
+// 	T operator-(double rhs) const {return operator+(-rhs);}
+
+// 	T operator*(double rhs) const {
+// 		T result = *this;
+// 		for (unsigned int i = 0; i < result.size(); i++) {
+// 			result[i] *= rhs;
+// 		}
+// 		return result;
+// 	}
+// 	T operator/(double rhs) const {return operator*(1/rhs);}
+
+// 	// slice ops
+// 	template<ConstSliceConcept Q>
+// 	T& operator+=(const Q& rhs) {return *this = *this + rhs;}
+// };
+
+// template<MutableSliceConcept T>
+// struct MutableOps : public ConstOps<T> {
+// 	// double ops
+// 	T& operator+=(double rhs) {return *this = *this + rhs;}
+// 	T& operator-=(double rhs) {return *this = *this - rhs;}
+// 	T& operator*=(double rhs) {return *this = *this * rhs;}
+// 	T& operator/=(double rhs) {return *this = *this / rhs;}
+// };
+
 /**
  * @brief A mutable slice of a Matrix. 
  */
@@ -30,35 +74,21 @@ class MutableSlice : public Slice<T> {
 		 */
 		T& back() {return this->operator[](this->length-1);}
 
-		/**
-		 * @brief Mutable indexer in this Slice.
-		 * 		  Complexity: O(1)
-		 */
 		T& operator[](unsigned int i) {
 			#if (SAFE_MATH)
-                // if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
                 if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("MutableSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
 
-		/**
-		 * @brief Const indexer in this Slice.
-		 * 		  Complexity: O(1)
-		 */
 		const T& operator[](unsigned int i) const override {
 			#if (SAFE_MATH)
-                // if (__builtin_expect(i >= this->length, false)) {raise(SIGSEGV);}
                 if (__builtin_expect(i >= this->length, false)) {throw std::out_of_range("MutableSlice::operator[]: Index out of range.");}
             #endif
 			return data[this->start + i*this->step];
 		}
 
-		/**
-		 * @brief Assign a Vector to this Slice.
-		 * 		  Complexity: O(N)
-		 */
-		MutableSlice& operator=(const Vector<T>& v) {
+		MutableSlice<T>& operator=(const Vector<T>& v) {
 			#if (SAFE_MATH)
 				if (v.size() != this->length) {
 					throw std::invalid_argument("MutableSlice::operator=: Vector of size \"" + std::to_string(v.size()) + "\" does not fit in slice of size \"" + std::to_string(this->length) + "\".");
@@ -71,53 +101,47 @@ class MutableSlice : public Slice<T> {
 			return *this;
 		}
 
-		/**
-		 * @brief Subtract another Slice from this Slice.
-		 * 		  Complexity: O(N)
-		 */
 		template<typename Q>
-		MutableSlice& operator-=(const Slice<Q>& s) {
+		MutableSlice<T>& operator-=(const Slice<Q>& s) {
 			for (unsigned int i = 0; i < this->length; i++) {
 				operator[](i) -= s[i];
 			}
 			return *this;
 		}
 
-		/**
-		 * @brief Subtract a Vector from this Slice.
-		 * 		  Complexity: O(N)
-		 */
 		template<typename Q>
-		MutableSlice& operator-=(const Vector<Q>& v) {
+		MutableSlice<T>& operator-=(const Vector<Q>& v) {
 			for (unsigned int i = 0; i < this->length; i++) {
 				(*this)[i] -= v[i];
 			}
 			return *this;
 		}
 
-		/**
-		 * @brief Add another Slice to this Slice.
-		 * 		  Complexity: O(N)
-		 */
 		template<typename Q>
-		MutableSlice& operator+=(const Slice<Q>& s) {return operator+=(s.operator Vector<Q>());}
+		MutableSlice<T>& operator-=(double a) {
+			return operator+=(-a);
+		}
 
-		/**
-		 * @brief Add a Vector to this Slice.
-		 * 		  Complexity: O(N)
-		 */
 		template<typename Q>
-		MutableSlice& operator+=(const Vector<Q>& v) {
+		MutableSlice<T>& operator+=(const Slice<Q>& s) {return operator+=(s.operator Vector<Q>());}
+
+
+		template<typename Q>
+		MutableSlice<T>& operator+=(double a) {
+			for (unsigned int i = 0; i < this->length; i++) {
+				(*this)[i] += a;
+			}
+			return *this;
+		}
+
+		template<typename Q>
+		MutableSlice<T>& operator+=(const Vector<Q>& v) {
 			for (unsigned int i = 0; i < this->length; i++) {
 				(*this)[i] += v[i];
 			}
 			return *this;
 		}
 
-		/**
-		 * @brief Multiply this Slice by a scalar.
-		 * 		  Complexity: O(N)
-		 */
 		MutableSlice<T>& operator*=(double a) {
 			for (unsigned int i = 0; i < this->length; i++) {
 				(*this)[i] *= a;
@@ -125,10 +149,6 @@ class MutableSlice : public Slice<T> {
 			return *this;
 		}
 
-		/**
-		 * @brief Divide this Slice by a scalar.
-		 * 		  Complexity: O(N)
-		 */
 		MutableSlice<T>& operator/=(double a) {
 			for (unsigned int i = 0; i < this->length; i++) {
 				(*this)[i] /= a;
@@ -308,6 +328,14 @@ class Column : public MutableSlice<T> {
 
 			for (unsigned int i = 0; i < this->length; i++) {
 				this->operator[](i) = s[i];
+			}
+			return *this;
+		}
+
+		using MutableSlice<T>::operator+=;
+		Column<T>& operator+=(double a) {
+			for (unsigned int i = 0; i < this->length; i++) {
+				this->operator[](i) += a;
 			}
 			return *this;
 		}

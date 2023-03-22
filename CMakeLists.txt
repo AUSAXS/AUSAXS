@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_BUILD_TYPE RELEASE)
 
 project(SAXS VERSION 0.0)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
@@ -75,8 +75,14 @@ if (WIN32)
 
 # for linux we assume the users can figure out how to install missing packages by themselves
 elseif (UNIX)
+#	if (NOT BUILD_SHARED_LIBS)
+#		set(OPENSSL_USE_STATIC_LIBS TRUE)
+#		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#	endif()
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
+#	link_libraries(-static -static-libgcc -static-libstdc++)
+#	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 	set(CURL -static-libgcc -static-libstdc++ CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl -lgcov)
@@ -103,13 +109,12 @@ endif(DOXYGEN_FOUND)
 ############################################
 ##           Build library                ##
 ############################################
-file(GLOB_RECURSE HEADERS "include/*.h")
-file(GLOB_RECURSE SOURCES "source/*.cpp")
+file(GLOB_RECURSE HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
+file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 add_library(saxs ${HEADERS} ${SOURCES})
-target_include_directories (saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
 link_libraries(saxs)
-
 
 ############################################
 ##             Unit Testing               ##
