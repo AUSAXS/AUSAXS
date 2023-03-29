@@ -3,9 +3,6 @@
 #include <crystal/miller/ReducedMillers.h>
 #include <math/Vector3.h>
 
-#include <math.h>
-#include <iostream>
-
 namespace crystal {
     class FibonacciMillers : public ReducedMillers {
         public:

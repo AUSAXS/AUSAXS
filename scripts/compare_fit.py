@@ -5,6 +5,33 @@ import os
 from scipy.optimize import curve_fit
 import argparse
 
+# params = {
+#     'legend.fontsize': 14,
+#     'figure.figsize': (10, 8),
+#     'axes.labelsize': 14,
+#     'axes.titlesize':14,
+#     'xtick.labelsize':11,
+#     'ytick.labelsize':11,
+#     'lines.linewidth': 1,
+#     'lines.markersize': 1,
+#     'lines.markeredgewidth': 1, # capthick
+#     'errorbar.capsize': 1,
+# }
+
+# params = {
+#     'legend.fontsize': 28,
+#     'figure.figsize': (10, 8),
+#     'axes.labelsize': 28,
+#     'axes.titlesize': 28,
+#     'xtick.labelsize': 20,
+#     'ytick.labelsize': 20,
+#     'lines.linewidth': 3,
+#     'lines.markersize': 12,
+#     'lines.markeredgewidth': 1, # capthick
+#     'errorbar.capsize': 1,
+# }
+# plt.rcParams.update(params)
+
 parser = argparse.ArgumentParser(description="Compare fit files with dataset.")
 parser.add_argument("mfile",          help="The dataset file.")
 parser.add_argument("-o", "--output", help="The output path.")

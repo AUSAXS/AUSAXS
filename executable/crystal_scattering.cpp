@@ -6,6 +6,7 @@
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <fitter/FitReporter.h>
+#include <crystal/Settings.h>
 
 int main(int argc, char const *argv[]) {
     std::string crystal;
@@ -21,9 +22,9 @@ int main(int argc, char const *argv[]) {
 
     setting::axes::qmin = 1e-4;
     setting::axes::bins = 1000;
-    setting::crystal::h = 50; setting::crystal::k = 50; setting::crystal::l = 50;
+    setting::crystal::h = 1000; setting::crystal::k = 1000; setting::crystal::l = 1000;
     setting::crystal::mgc = setting::crystal::MillerGenerationChoice::All;
-    setting::crystal::reduced::hkl_limit = 20;
+    setting::crystal::max_q = 250;
     crystal::CrystalScattering cs(crystal);
     auto fourier = cs.calculate();
     fourier.limit_y(1e-4, 1e10);

@@ -1,5 +1,5 @@
 #include <crystal/miller/ReducedMillers.h>
-#include <utility/Settings.h>
+#include <crystal/Settings.h>
 
 #include <iostream>
 
@@ -29,7 +29,7 @@ std::vector<Miller> ReducedMillers::generate() const {
 }
 
 std::vector<Miller> ReducedMillers::generate_independent_bases(double limit) const {
-    if (limit < 0) {limit = setting::crystal::reduced::hkl_limit;}
+    if (limit < 0) {limit = setting::crystal::max_q;}
     double limit2 = limit*limit;
 
     std::vector<Miller> millers;

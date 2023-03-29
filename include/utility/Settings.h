@@ -82,17 +82,6 @@ namespace setting {
         };
     };
 
-    struct crystal {
-        enum class MillerGenerationChoice {All, Fibonacci, Reduced};
-        inline static MillerGenerationChoice mgc = MillerGenerationChoice::All; // The choice of Miller index generation algorithm.
-        inline static unsigned int h = 100;                                     // The maximum Miller index along the x direction.
-        inline static unsigned int k = 100;                                     // The maximum Miller index along the y direction.
-        inline static unsigned int l = 100;                                     // The maximum Miller index along the z direction.
-        struct reduced {
-            inline static double hkl_limit = 4; // The maximum Miller length to use in the Reduced algorithm. h^2 + k^2 + l^2 <= hkl_limit^2
-        };
-    };
-
     struct em {
         enum class CullingStrategyChoice {NoStrategy, CounterStrategy};
         inline static CullingStrategyChoice csc = CullingStrategyChoice::CounterStrategy; // The choice of culling algorithm. 

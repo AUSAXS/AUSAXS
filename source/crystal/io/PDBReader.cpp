@@ -5,11 +5,12 @@
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const std::string& input) const {
     Protein protein(input);
+    double expansion = 7;
+
     auto prot_atoms = protein.atoms();
-
-    double expansion = 5;
-
-    Axis3D axis;
+    if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input + "\".");}
+    auto position = prot_atoms[0].get_coordinates();
+    Axis3D axis({position.x(), position.x(), position.y(), position.y(), position.z(), position.z()});
     for (const auto& atom : prot_atoms) {
         auto position = atom.get_coordinates();
         if (position.x() < axis.x.min) {axis.x.min = position.x();}

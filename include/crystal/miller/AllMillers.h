@@ -1,6 +1,7 @@
 #pragma once
 
 #include <crystal/miller/MillerGenerationStrategy.h>
+#include <crystal/Settings.h>
 
 namespace crystal {
     class AllMillers : public MillerGenerationStrategy {
@@ -9,11 +10,13 @@ namespace crystal {
 
             std::vector<Miller> generate() const override {
                 std::vector<Miller> millers;
-                millers.reserve((h + 1)*(2*k + 1)*(2*l + 1));
                 for (int h = 0; h <= this->h; h++) {
                     for (int k = -this->k; k <= this->k; k++) {
                         for (int l = -this->l; l <= this->l; l++) {
-                            millers.push_back(Miller(h, k, l));
+                            Miller m(h, k, l);
+                            if (m.length() < setting::crystal::max_q) {
+                                millers.push_back(Miller(h, k, l));
+                            }
                         }
                     }
                 }
