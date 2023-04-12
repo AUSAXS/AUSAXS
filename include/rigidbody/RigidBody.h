@@ -40,9 +40,16 @@ namespace rigidbody {
 			/**
 			 * @brief Generate a set of simple constraints. 
 			 * 
-			 * This method will generate and add one constraint between each pair of connected bodies. 
+			 * This method will generate and add constraints between atoms that are close to each other in different bodies.
 			 */
-			void generate_simple_constraints();
+			void generate_simple_volume_constraints();
+
+			/**
+			 * @brief Generate a set of simple constraints. 
+			 * 
+			 * This method will generate and add a single constraint between the ends of each body.
+			 */
+			void generate_simple_linear_constraints();
 
 			/**
 			 * @brief Generate a map of constraints for each body.

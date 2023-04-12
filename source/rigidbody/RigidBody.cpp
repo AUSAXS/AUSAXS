@@ -2,6 +2,7 @@
 #include <rigidbody/RigidBody.h>
 #include <rigidbody/parameters/Parameters.h>
 #include <rigidbody/parameters/SimpleParameterGeneration.h>
+#include <rigidbody/parameters/RotationsOnly.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/selection/SequentialSelect.h>
@@ -43,6 +44,9 @@ void RigidBody::setup() {
         case setting::rigidbody::ParameterGenerationStrategyChoice::Simple:
             parameter_generator = std::make_unique<SimpleParameterGeneration>(setting::rigidbody::iterations, 5, M_PI/3);
             break;
+        case setting::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly:
+            parameter_generator = std::make_unique<RotationsOnly>(setting::rigidbody::iterations, 5, M_PI/3);
+            break;
         default: 
             throw except::unknown_argument("RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
     }
@@ -67,7 +71,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     generate_constraint_map();
     auto fitter = prepare_fitter(measurement_path);
-    double best_chi2 = fitter->fit()->fval;
+    double best_chi2 = fitter->fit_only();
 
     if (setting::general::verbose) {
         utility::print_info("\nStarting rigid body optimization.");
@@ -95,7 +99,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
 
         // update the body location in the fitter
         update_fitter(fitter);
-        double new_chi2 = fitter->fit()->fval;
+        double new_chi2 = fitter->fit_only();
 
         writer.write_frame(this);
 
@@ -121,10 +125,12 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
 
     save(setting::general::output + "optimized.pdb");
     update_fitter(fitter);
-    return fitter->fit();
+    auto fit = fitter->fit();
+    if (calibration != nullptr) {fit->add_parameter(calibration->get_parameter("c"));}
+    return fit;
 }
 
-void RigidBody::generate_simple_constraints() {
+void RigidBody::generate_simple_volume_constraints() {
     if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
     for (unsigned int ibody1 = 0; ibody1 < bodies.size(); ibody1++) {
         for (unsigned int ibody2 = ibody1+1; ibody2 < bodies.size(); ibody2++) {
@@ -161,6 +167,47 @@ void RigidBody::generate_simple_constraints() {
             if (setting::general::verbose) {
                 std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
             }
+        }
+    }
+    if (constraints.empty()) {
+        throw except::unexpected("RigidBody::generate_simple_constraints: No constraints were generated. This is probably a bug.");
+    }
+
+    generate_constraint_map();
+}
+
+void RigidBody::generate_simple_linear_constraints() {
+    if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
+    for (unsigned int ibody1 = 0; ibody1 < bodies.size()-1; ibody1++) {
+        unsigned int ibody2 = ibody1 + 1;
+
+        const Body& body1 = body(ibody1);
+        const Body& body2 = body(ibody2);
+
+        double min_dist = std::numeric_limits<double>::max();
+        int min_atom1 = -1, min_atom2 = -1;
+        for (unsigned int iatom1 = 0; iatom1 < body1.atoms().size(); iatom1++) {
+            const Atom& atom1 = body1.atoms(iatom1);
+            if (atom1.element != constants::symbols::carbon) {continue;}
+
+            for (unsigned int iatom2 = 0; iatom2 < body2.atoms().size(); iatom2++) {
+                const Atom& atom2 = body2.atoms(iatom2);
+                if (atom2.element != constants::symbols::carbon) {continue;}
+
+                double dist = atom1.distance(atom2);
+                if (dist > min_dist) {continue;}
+
+                min_dist = dist;
+                min_atom1 = iatom1;
+                min_atom2 = iatom2;
+            }
+        }
+
+        rigidbody::Constraint constraint(this, ibody1, ibody2, min_atom1, min_atom2);
+        add_constraint(std::move(constraint));
+
+        if (setting::general::verbose) {
+            std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
         }
     }
     if (constraints.empty()) {

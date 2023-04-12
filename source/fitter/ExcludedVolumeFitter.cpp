@@ -13,7 +13,7 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(std::string input, Protein& protein) 
     HydrationFitter hfit(input, protein.get_histogram());
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
-    this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.8, 1.2}}};
+    this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.5, 1.5}}};
 }
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
@@ -43,6 +43,26 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
 
     setting::general::verbose = true;
     return fitted;
+}
+
+double ExcludedVolumeFitter::fit_only() {
+    fit_type = mini::type::DLIB_GLOBAL;
+    setting::general::verbose = false;
+    std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
+    auto mini = mini::create_minimizer(fit_type, f, guess);
+    auto res = mini->minimize();
+
+    update_excluded_volume(res.get_parameter("d").value);
+    h.apply_water_scaling_factor(res.get_parameter("c").value);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
+
+    // we want to fit a*Im + b to Io
+    SimpleDataset fit_data(Im, data.y(), data.yerr());
+    if (I0 > 0) {fit_data.normalize(I0);}
+
+    SimpleLeastSquares fitter(fit_data);
+    return fitter.fit_only();
 }
 
 Fit::Plots ExcludedVolumeFitter::plot() {

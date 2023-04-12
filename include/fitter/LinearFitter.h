@@ -92,6 +92,8 @@ namespace fitter {
 			 */
 			[[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
 
+            [[nodiscard]] virtual double fit_only() override;
+
 			/**
 			 * @brief Make a plot of the fit. 
 			 * 

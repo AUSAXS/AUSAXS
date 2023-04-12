@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_BUILD_TYPE DEBUG)
 
 project(SAXS VERSION 0.0)
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")

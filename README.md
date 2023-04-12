@@ -1,6 +1,8 @@
 # Todo
+* 	[ ] Consider implementing a unit class to avoid unit conversion errors in functions
+* 	[ ] Consider implementing form factors for the most common atoms. This will also allow fitting the excluded volume to the MD simulations (probably), thus avoiding the background fitting parameter. 
 *	[ ] Matrix: Change vector of vectors constructor to be row-majority, and use the variadic constructor for columns instead
-*	[ ] Testing: Redo all tests such that they are more structured, with a single executable for each category. 
+*	[ ] Testing: Redo all tests such that they are more structured. Maybe have a separate file for each class. 
 *	[ ] BSThreadPool: Streamline download and build process. Currently it is all manual. 
 *	[ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
 *	[ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm

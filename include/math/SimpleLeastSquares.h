@@ -37,33 +37,35 @@ namespace fitter {
              *        There are no guarantees on the goodness-of-fit. Use the standard @a fit() instead for that. 
              * @return The fitted parameters (a, b) for the equation y = ax+b.
              */
-            std::pair<double, double> fit_params_only();
+            [[nodiscard]] std::pair<double, double> fit_params_only();
+
+            [[nodiscard]] virtual double fit_only() override;
 
             /**
              * @brief Perform a linear least-squares fit. 
              * @return A Fit object containing various information for the fit. 
              */
-            virtual std::shared_ptr<Fit> fit() override;
+            [[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
 
             /**
              * @brief Get a multiset containing the fitted curve of the last fit() call. 
              */
-            Fit::Plots plot() override;
+            [[nodiscard]] Fit::Plots plot() override;
 
             /**
              * @brief Get a dataset containing the residuals of the last fit() call. 
              */
-            SimpleDataset plot_residuals() override;
+            [[nodiscard]] SimpleDataset plot_residuals() override;
 
             /**
              * @brief Get the result of the last fit() call.
              */
-            virtual std::shared_ptr<Fit> get_fit() const override; 
+            [[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const override; 
 
             /**
              * @brief Get the number of degrees of freedom.
              */
-            unsigned int dof() const override;
+            [[nodiscard]] unsigned int dof() const override;
 
         private:
             const SimpleDataset data;

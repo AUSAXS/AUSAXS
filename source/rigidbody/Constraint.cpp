@@ -88,7 +88,7 @@ bool Constraint::operator==(const Constraint& constraint) const {
 }
 
 double rigidbody::Constraint::transform(double offset) {
-    return offset*offset*offset*offset;
+    return offset*offset*offset*offset*10;
 }
 
 const Atom& Constraint::get_atom1() const {

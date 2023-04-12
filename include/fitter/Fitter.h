@@ -17,7 +17,15 @@ namespace fitter {
         public:
             virtual ~Fitter() {}
 
+            /**
+             * @brief Perform a fit and return a fit object containing various information. 
+             */
             [[nodiscard]] virtual std::shared_ptr<Fit> fit() = 0;
+
+            /**
+             * @brief Perform a fit and return the minimum function value.
+             */
+            [[nodiscard]] virtual double fit_only() = 0;
 
             /**
              * @brief Make a plot of the fit. 

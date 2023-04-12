@@ -15,9 +15,9 @@ CrystalScattering::CrystalScattering(const std::string& input) {
     initialize();
     auto reader = io::CrystalReaderFactory::create(input);
     auto [bases, points] = reader->read(input);
-    std::cout << bases.x << std::endl;
-    std::cout << bases.y << std::endl;
-    std::cout << bases.z << std::endl;
+    // std::cout << bases.x << std::endl;
+    // std::cout << bases.y << std::endl;
+    // std::cout << bases.z << std::endl;
     Fval::set_points(std::move(points));
     Fval::set_basis(bases);
 }

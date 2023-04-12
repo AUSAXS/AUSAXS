@@ -11,16 +11,19 @@ ReducedMillers::ReducedMillers(unsigned int h, unsigned int k, unsigned int l) :
 
 std::vector<Miller> ReducedMillers::generate() const {
     std::vector<Miller> bases = generate_independent_bases();
+    std::cout << "Generated " << bases.size() << " independent bases" << std::endl;
     std::vector<Miller> millers;
 
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
-    int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
+    // int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
+    double q2 = setting::crystal::max_q*setting::crystal::max_q;
     for (const auto& base : bases) {
         int multiplier = 1;
         while (multiplier++ < 10000) { // hard limit to prevent infinite loop
             Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
-            if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
+            if (miller.length2() > q2) {break;}
+            // if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
             millers.emplace_back(miller);
         }
     }
@@ -29,7 +32,7 @@ std::vector<Miller> ReducedMillers::generate() const {
 }
 
 std::vector<Miller> ReducedMillers::generate_independent_bases(double limit) const {
-    if (limit < 0) {limit = setting::crystal::max_q;}
+    if (limit < 0) {limit = setting::crystal::reduced::basis_q;}
     double limit2 = limit*limit;
 
     std::vector<Miller> millers;

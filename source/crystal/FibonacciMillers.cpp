@@ -3,24 +3,27 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
+#include <crystal/Settings.h>
 
 using namespace crystal;
 
 FibonacciMillers::FibonacciMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
 
 std::vector<Miller> FibonacciMillers::generate() const {
-    std::vector<Miller> bases = pick_directions(generate_independent_bases());
+    std::vector<Miller> bases = pick_directions(generate_independent_bases(setting::crystal::reduced::basis_q));
     std::vector<Miller> millers;
 
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
-    int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
+    // int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
+    double q2 = setting::crystal::max_q*setting::crystal::max_q;
     for (const auto& base : bases) {
-        std::cout << "(" << base.h << " " << base.k << " " << base.l << ")" << std::endl;
+        // std::cout << "(" << base.h << " " << base.k << " " << base.l << ")" << std::endl;
         int multiplier = 1;
         while (multiplier++ < 10000) { // hard limit to prevent infinite loop
             Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
-            if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
+            if (miller.length2() > q2) {break;}
+            // if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
             millers.emplace_back(miller);
         }
     }
@@ -29,8 +32,12 @@ std::vector<Miller> FibonacciMillers::generate() const {
 }
 
 std::vector<Miller> FibonacciMillers::pick_directions(const std::vector<Miller>& basis) const {
+    auto copy = basis;
+    return pick_directions(std::move(copy));
+}
+
+std::vector<Miller> FibonacciMillers::pick_directions(std::vector<Miller>&& bases) const {
     std::vector<Vector3<double>> v = generate_fibonacci_sphere(200);
-    std::vector<Miller> bases = generate_independent_bases(5);
     std::vector<Vector3<double>> normed(bases.size());
     std::transform(bases.begin(), bases.end(), normed.begin(), [](const Miller& m) {return m.normalize();});
 
@@ -107,9 +114,10 @@ std::vector<Miller> FibonacciMillers::pick_directions(const std::vector<Miller>&
     return directions;
 }
 
-int FibonacciMillers::estimate_n(double resolution) const {
+int FibonacciMillers::estimate_n(double) const {
+    throw std::runtime_error("Not implemented");
     // return resolution/(2*M_PI)*phi;
-    return 1000;
+    // return 1000;
 }
 
 std::vector<Vector3<double>> FibonacciMillers::generate_fibonacci_sphere(int n) const {

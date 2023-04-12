@@ -22,9 +22,9 @@ int main(int argc, char const *argv[]) {
 
     setting::axes::qmin = 1e-4;
     setting::axes::bins = 1000;
-    setting::crystal::h = 1000; setting::crystal::k = 1000; setting::crystal::l = 1000;
+    setting::crystal::h = 100; setting::crystal::k = 100; setting::crystal::l = 100;
     setting::crystal::mgc = setting::crystal::MillerGenerationChoice::All;
-    setting::crystal::max_q = 250;
+    setting::crystal::max_q = 100;
     crystal::CrystalScattering cs(crystal);
     auto fourier = cs.calculate();
     fourier.limit_y(1e-4, 1e10);

@@ -67,7 +67,7 @@ namespace setting {
 
     struct rigidbody {
         enum class TransformationStrategyChoice {RigidTransform, SingleTransform};
-        enum class ParameterGenerationStrategyChoice {Simple};
+        enum class ParameterGenerationStrategyChoice {Simple, RotationsOnly};
         enum class BodySelectStrategyChoice {RandomSelect, RandomConstraintSelect, SequentialSelect};
 
         inline static TransformationStrategyChoice tsc = TransformationStrategyChoice::RigidTransform;
@@ -79,6 +79,7 @@ namespace setting {
 
         struct detail {
             inline static std::vector<int> constraints; // The residue ids to place a constraint at.
+            inline static std::string calibration_file; // The file to read constraints from.
         };
     };
 
@@ -211,6 +212,7 @@ namespace setting {
             make_shared({"rigidbody-iterations"}, setting::rigidbody::iterations),
             make_shared({"bond-distance"}, setting::rigidbody::bond_distance),
             make_shared({"constraints"}, setting::rigidbody::detail::constraints),
+            make_shared({"calibration-file"}, setting::rigidbody::detail::calibration_file),
 
             // em
             make_shared({"sample-frequency"}, setting::em::sample_frequency),

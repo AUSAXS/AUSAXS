@@ -72,7 +72,9 @@ namespace fitter {
              * 
              * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
              */
-            [[nodiscard]] std::shared_ptr<Fit> fit() override;
+            [[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
+
+            [[nodiscard]] virtual double fit_only() override;
 
             template<mini::type t>
             [[nodiscard]] std::shared_ptr<Fit> fit() {

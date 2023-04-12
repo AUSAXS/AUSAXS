@@ -27,6 +27,10 @@ void LinearFitter::model_setup(const hist::ScatteringHistogram& model, const Lim
     if (setting::em::simulation::noise) {data.simulate_noise();}
 }
 
+double LinearFitter::fit_only() {
+    return chi2({});
+}
+
 std::shared_ptr<Fit> LinearFitter::fit() {
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     std::vector<double> Im = splice(ym);
@@ -107,20 +111,15 @@ void LinearFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
 }
 
 double LinearFitter::chi2(const std::vector<double>&) {
-    throw except::invalid_operation("LinearFitter::chi2: Not implemented.");
-    // vector<double> ym = h.calc_debye_scattering_intensity().get("I");
-    // vector<double> Im = splice(ym);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
 
-    // // fit a, b
-    // SimpleLeastSquares fitter(Im, Io, sigma);
-    // auto[a, b] = fitter.fit_params_only();
+    // we want to fit a*Im + b to Io
+    SimpleDataset fit_data(Im, data.y(), data.yerr());
+    if (I0 > 0) {fit_data.normalize(I0);}
 
-    // // calculate chi2
-    // double chi = 0;
-    // for (size_t i = 0; i < qo.size(); i++) {
-    //     chi += pow((Io[i] - a*Im[i]-b)/sigma[i], 2);
-    // }
-    // return chi;
+    SimpleLeastSquares fitter(fit_data);
+    return fitter.fit_only();
 }
 
 void LinearFitter::setup(std::string file) {

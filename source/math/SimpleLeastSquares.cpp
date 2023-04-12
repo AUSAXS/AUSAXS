@@ -33,6 +33,11 @@ std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     return std::make_pair(a, b);
 }
 
+double SimpleLeastSquares::fit_only() {
+    fit_params_only();
+    return chi2({});
+}
+
 std::shared_ptr<Fit> SimpleLeastSquares::fit() {
     if (delta == 0) {fit_params_only();}
     double a_err2 = S/delta; // squared sigmas

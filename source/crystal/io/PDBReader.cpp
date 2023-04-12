@@ -2,10 +2,11 @@
 
 #include <data/Protein.h>
 #include <utility/Axis3D.h>
+#include <crystal/Settings.h>
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const std::string& input) const {
     Protein protein(input);
-    double expansion = 7;
+    double expansion = setting::crystal::grid_expansion;
 
     auto prot_atoms = protein.atoms();
     if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input + "\".");}

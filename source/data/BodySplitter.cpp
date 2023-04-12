@@ -12,10 +12,17 @@ Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
     std::vector<Atom>& atoms = body.atoms();
 
     // we define a boolean vector with one entry for each residue sequence id
-    std::vector<bool> split(atoms.back().resSeq, false);
+    int max_id = 0;
+    for (const auto& a : atoms) {max_id = std::max(max_id, a.resSeq);}
+    std::vector<bool> split_at(max_id, false);
 
     // we then mark the ids where we want to split as true
-    std::for_each(splits.begin(), splits.end(), [&split] (const int id) {split[id] = true;});
+    std::for_each(splits.begin(), splits.end(), [&split_at] (int id) 
+        {
+            if (id > split_at.size()) {throw except::parse_error("BodySplitter::split: Split index (" + std::to_string(id) + ") larger than highest residue sequence id (" + std::to_string(split_at.size()) + ").");}
+            split_at[id] = true;
+        }
+    );
 
     std::vector<Body> bodies(splits.size()+1);
     int index_body = 0; // current index in the bodies vector
@@ -27,12 +34,12 @@ Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
         int resSeq = std::max(atoms[i].resSeq, 0); // in some files resSeq starts negative
 
         // we can now in constant time look in our split vector to see if we should split at this atom
-        if (split[resSeq]) {
+        if (split_at[resSeq]) {
             end = atoms.begin() + i;        // define the end index
-            std::vector<Atom> a(begin, end);     // create a new vector of atoms based on the start and end iterators
+            std::vector<Atom> a(begin, end);// create a new vector of atoms based on the start and end iterators
             bodies[index_body++] = Body(a); // create a body from this vector
             begin = end;                    // change the start index for the next split
-            split[resSeq] = false;          // mark it as false so we won't split again on the next atom
+            split_at[resSeq] = false;       // mark it as false so we won't split again on the next atom
         }
     }
 

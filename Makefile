@@ -19,7 +19,9 @@ options :=
 # Plot a SAXS dataset along with any accompanying fits
 plot_fits/%: scripts/compare_fit.py
 	@ measurement=$$(find output/intensity_fitter/ -name "$*.dat"); \
-	python3 $< $${measurement}
+	for f in $${measurement}; do\
+		python3 $< $${f}; \
+	done
 
 plot_em/%: scripts/plot_fit.py
 	@ measurement=$$(find output/em_fitter/ -name "$*.RSR" -or -name "$*.dat"); \
@@ -79,6 +81,11 @@ crystal/%: build/executable/crystal_scattering
 	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid" -or -name "$*.pdb");\
 	$< $${grid} ${options}
 	make plot/output/crystal/$*
+
+crystal_compare/%: build/executable/crystal_comparison
+	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid" -or -name "$*.pdb");\
+	$< $${grid} ${options}
+	make plot/output/crystal_compare/$*
 
 # fix a pdb file
 data/%_fixed.pdb: data/%.pdb
@@ -175,8 +182,9 @@ optimize_radius/%: build/source/scripts/optimize_radius
 rigidbody/%: build/executable/rigidbody
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	echo "$< $${structure} $${measurement}";\
 	$< $${structure} $${measurement} ${options}
-	make plot/output
+	make plot/output/rigidbody/$*
 	make plot_fits/$*
 
 # perform a fit with crysol

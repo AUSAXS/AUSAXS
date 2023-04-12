@@ -37,6 +37,24 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     return fitted;
 }
 
+double HydrationFitter::fit_only() {
+    std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
+    auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
+    auto res = mini->minimize();
+
+    // apply c
+    h.apply_water_scaling_factor(res.get_parameter("c").value);
+    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> Im = splice(ym);
+
+    // we want to fit a*Im + b to Io
+    SimpleDataset fit_data(Im, data.y(), data.yerr());
+    if (I0 > 0) {fit_data.normalize(I0);}
+
+    SimpleLeastSquares fitter(fit_data);
+    return fitter.fit_only();
+}
+
 Fit::Plots HydrationFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot: Cannot plot before a fit has been made!");}
 
