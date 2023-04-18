@@ -25,17 +25,17 @@ namespace rigidbody {
 			/**
 			 * @brief Add a constraint to this rigid body. 
 			 */
-			void add_constraint(std::shared_ptr<rigidbody::Constraint> constraint);
+			// void add_constraint(std::shared_ptr<DistanceConstraint> constraint);
 			
 			/**
 			 * @brief Add a constraint to this rigid body. 
 			 */
-			void add_constraint(rigidbody::Constraint&& constraint);
+			// void add_constraint(DistanceConstraint&& constraint);
 
 			/**
 			 * @brief Add a constraint to this rigid body. 
 			 */
-			void add_constraint(unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+			// void add_constraint(unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
 			/**
 			 * @brief Generate a set of simple constraints. 
@@ -52,13 +52,6 @@ namespace rigidbody {
 			void generate_simple_linear_constraints();
 
 			/**
-			 * @brief Generate a map of constraints for each body.
-			 * 
-			 * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
-			 */
-            void generate_constraint_map();
-
-			/**
 			 * @brief Apply a calibration to this rigid body. 
 			 * 
 			 * This will fix the solvent scattering density to the fitted value.
@@ -70,16 +63,23 @@ namespace rigidbody {
 			 */
 			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
 
-			std::vector<std::shared_ptr<Constraint>> get_constraints() const;
-			std::shared_ptr<Constraint> get_constraint(unsigned int index) const;
+			// std::vector<std::shared_ptr<DistanceConstraint>> get_constraints() const;
+			// std::shared_ptr<DistanceConstraint> get_constraint(unsigned int index) const;
 
-			std::unordered_map<unsigned int, std::vector<std::shared_ptr<Constraint>>> constraint_map;
+			std::unordered_map<unsigned int, std::vector<std::shared_ptr<DistanceConstraint>>> constraint_map;
 		protected:
 			std::shared_ptr<fitter::Fit> calibration = nullptr;
 			std::unique_ptr<BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;
 			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
-			std::vector<std::shared_ptr<Constraint>> constraints;
+			// std::vector<std::shared_ptr<DistanceConstraint>> constraints;
+
+			/**
+			 * @brief Generate a map of constraints for each body.
+			 * 
+			 * This map allows us to quickly find all constraints that apply to a given body without having to iterate over all constraints.
+			 */
+            void generate_constraint_map();
 
 			/**
 			 * @brief Prepare the fitter for this rigidbody.

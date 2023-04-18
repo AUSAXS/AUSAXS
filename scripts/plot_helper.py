@@ -50,6 +50,8 @@ class Options:
 
         # other stuff
         self.dof = 0 # degrees of freedom for chi2 plots
+        self.stagger = 1 # factor to multiply the y values by
+        self.normalize = False
 
     def parse_option(self, line):
         words = line.split()
@@ -89,21 +91,28 @@ class Options:
         
         # axes
             case "xlimits":
-                if (words[1] == words[2]):
-                    return
-                self.xrange = [float(words[1]), float(words[2])]
+                self.xrange = [-0.1, 10]
+                # if (words[1] == words[2]):
+                #     return
+                # self.xrange = [float(words[1]), float(words[2])]
             case "ylimits":
-                if (words[1] == words[2]):
-                    return
-                self.yrange = [float(words[1]), float(words[2])]
+                self.yrange = [0.001, 7e4]
+                # if (words[1] == words[2]):
+                #     return
+                # self.yrange = [float(words[1]), float(words[2])]
             case "logx":
                 self.xlog = int(words[1])
             case "logy":
-                self.ylog = int(words[1])
+#                self.ylog = int(words[1])
+                self.ylog = True
 
         # other stuff
             case "dof": 
                 self.dof = int(words[1])
+            case "stagger":
+                self.stagger = float(words[1])
+            case "normalize": 
+                self.normalize = True
 
         # invalid option
             case _:
@@ -170,7 +179,26 @@ def read_dataset(file):
         l = [float(w) for w in words]
         data.append(l)
         continue
-    return Dataset(data, read_options(file))
+
+    options = read_options(file)
+
+    # normalize the data to start at 1
+    if options.normalize:
+        scaling = data[0][1]
+        if options.stagger != 1:
+            scaling /= options.stagger
+            options.stagger = 1
+
+        for i in range(len(data)):
+            data[i][1] /= scaling
+            data[i][2] /= scaling
+
+    if options.stagger != 1: 
+        for i in range(len(data)):
+            data[i][1] *= options.stagger
+            data[i][2] *= options.stagger
+
+    return Dataset(data, options)
 
 def read_hline(file):
     """Reads a horizontal line from a .plot file.

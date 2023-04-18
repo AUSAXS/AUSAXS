@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
+from plot_helper import read_dataset
 
 params = {
     'legend.fontsize': 14,
@@ -35,7 +36,13 @@ if (len(sys.argv) != 4):
     exit(1)
 
 data = np.loadtxt(sys.argv[1], skiprows=1)
-fit = np.loadtxt(sys.argv[2], skiprows=1, usecols=[0, 1])
+if sys.argv[2].endswith('.dat') or sys.argv[2].endswith('.fit'):
+    fit = np.loadtxt(sys.argv[2], skiprows=1, usecols=[0, 1])
+elif sys.argv[2].endswith('.plot'):
+    with open(sys.argv[1]) as f:
+        f.readline() # skip first line
+        fit = read_dataset(f).data
+
 dof = int(sys.argv[3])
 
 # calculate chi2

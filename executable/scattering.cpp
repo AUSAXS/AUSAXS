@@ -13,10 +13,10 @@
 int main(int argc, char const *argv[]) {
     CLI::App app{"Calculate the scattering from a pdb structure."};
 
-    std::string pdb, output, placement_strategy = "Radial";
+    std::string pdb, placement_strategy = "Radial";
     bool use_existing_hydration = false, remove_h = false;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
-    app.add_option("--output,-o", output, "Path to save the generated figures at.");
+    app.add_option("--output,-o", setting::general::output, "Path to save the generated figures at.")->default_val("output/scattering/");
     app.add_option("--reduce,-r", setting::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
     app.add_option("--grid_width,--gw", setting::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
     app.add_option("--bin_width,--bw", setting::axes::distance_bin_width, "Bin width for the distance histograms. Default: 1.");
@@ -33,6 +33,7 @@ int main(int argc, char const *argv[]) {
     //####################//
     //### PARSE INPUT ###//
     //####################//
+    setting::general::output += utility::stem(pdb) + "/";
 
     // validate input
     if (!constants::filetypes::structure.validate(pdb)) {
@@ -44,10 +45,6 @@ int main(int argc, char const *argv[]) {
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
 
-    if (output.empty()) {
-        output = "figures/scattering/" + utility::stem(pdb) + "/";
-    }
-
     //######################//
     //### ACTUAL PROGRAM ###//
     //######################//
@@ -56,8 +53,8 @@ int main(int argc, char const *argv[]) {
         protein.generate_new_hydration();
     }
     hist::ScatteringHistogram h = protein.get_histogram();
-    plots::PlotDistance::quick_plot(h, output + "p(r)." + setting::plot::format);
-    plots::PlotIntensity::quick_plot(h, output + "scattering." + setting::plot::format);
+    plots::PlotDistance::quick_plot(h, setting::general::output + "p(r)." + setting::plot::format);
+    plots::PlotIntensity::quick_plot(h, setting::general::output + "scattering." + setting::plot::format);
 
     std::cout << "I(" << h.q[0] << ") = " << h.p[0] << std::endl;
 

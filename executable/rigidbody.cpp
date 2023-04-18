@@ -16,6 +16,7 @@ int main(int argc, char const *argv[]) {
     setting::general::verbose = true;
 
     // setting::rigidbody::pgsc = setting::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly;
+    setting::axes::distance_bin_width = 0.1;
 
     CLI::App app{"Rigid-body optimization."};
     std::string pdb, mfile, placement_strategy, settings;
@@ -86,6 +87,10 @@ int main(int argc, char const *argv[]) {
         rigidbody.generate_new_hydration();
         fitter::HydrationFitter fitter(setting::rigidbody::detail::calibration_file, rigidbody.get_histogram());
         auto res = fitter.fit();
+        if (setting::general::verbose) {
+            std::cout << "Calibration results:" << std::endl;
+            fitter::FitReporter::report(res);
+        }
         rigidbody.apply_calibration(res);
         plots::PlotIntensityFit::quick_plot(res, setting::general::output + "calibration.png");
     } else {

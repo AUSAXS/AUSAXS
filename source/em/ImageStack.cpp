@@ -95,7 +95,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
 
     // Plot all evaluated points
-    if (setting::plot::em::additional_plots) {
+    if (setting::general::supplementary_plots) {
         { // Plot evaluated points around the minimum
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_landscape;
@@ -138,7 +138,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         }
 
         // Plot evaluated points near the minimum
-        if (setting::plot::em::additional_plots) {
+        if (setting::general::supplementary_plots) {
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
             double sigma = area.std();
@@ -176,7 +176,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     // Make 3D landscape plot
-    if (setting::plot::em::additional_plots && setting::em::hydrate) {
+    if (setting::general::supplementary_plots && setting::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
         for (unsigned int i = 0; i < this->evals.size(); i++) {

@@ -18,6 +18,7 @@ namespace setting {
         inline static unsigned int threads = std::thread::hardware_concurrency();   // The number of threads to use for parallelization.
         inline static std::string output = "output/";                               // The output directory.
         inline static bool keep_hydrogens = false;                                  // Whether to keep bound hydrogens when reading a structure.
+        inline static bool supplementary_plots = true;                              // Whether to generate supplementary plots when possible. 
 
         struct detail {
             inline static unsigned int job_size = 200; // The number of atoms to process in each job.
@@ -115,7 +116,6 @@ namespace setting {
             // Whether to plot the evaluated chi2 points. 
             // Produces 2 plots; one of the full landscape and another of the area near the minimum. 
             // The number of points is roughly determined by setting::em::evals
-            inline static bool additional_plots = true; 
             inline static bool landscape = true; 
         };
     };

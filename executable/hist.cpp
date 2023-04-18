@@ -12,6 +12,8 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a distance histogram and a scattering intensity plot for a given input data file."};
     app.prefix_command(false);
 
+    setting::grid::scaling = 2;
+
     std::string input, output, placement_strategy;
     app.add_option("input", input, "Path to the data file.")->required()->check(CLI::ExistingFile);
     app.add_option("output", output, "Path to save the hydrated file at.")->required();
@@ -36,7 +38,7 @@ int main(int argc, char const *argv[]) {
     Protein protein(input);
     protein.clear_hydration();
     protein.save("tmp/TEST.PDB");
-    // protein.generate_new_hydration();
+    protein.generate_new_hydration();
     hist::ScatteringHistogram d = protein.get_histogram();
 
     // Distance plot
@@ -48,5 +50,18 @@ int main(int argc, char const *argv[]) {
     // i_plot.save(output + "intensity." + setting::plot::format);
 
     std::cout << "Protein size: " << protein.atom_size() << std::endl;
+
+    double dmax = 0;
+    for (auto &atom1 : protein.atoms()) {
+        for (auto &atom2 : protein.atoms()) {
+            if (atom1 != atom2) {
+                double d = atom1.distance(atom2);
+                if (d > dmax) {
+                    dmax = d;
+                }
+            }
+        }
+    }
+    std::cout << "Maximum distance: " << dmax << std::endl;
     return 0;
 }

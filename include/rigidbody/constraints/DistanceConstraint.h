@@ -1,5 +1,6 @@
 #pragma once
 
+#include <rigidbody/constraints/Constraint.h>
 #include <data/Atom.h>
 #include <data/Body.h>
 
@@ -9,24 +10,17 @@
 class Protein;
 
 namespace rigidbody {
-    namespace detail {
-        struct AtomLoc {int body, atom;};
-    }
-
-
     /**
-     * @brief Constraint. 
-     * 
      * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
      * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 
      * constrained atoms. 
      */
-    class Constraint {
+    class DistanceConstraint : public Constraint {
         public: 
             /**
              * @brief Default constructor.
              */
-            Constraint() {}
+            DistanceConstraint() {}
 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -42,7 +36,7 @@ namespace rigidbody {
              * @param iatom1 The index of the first atom in the first body.
              * @param iatom2 The index of the second atom in the second body.
              */
-            Constraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+            DistanceConstraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -53,14 +47,14 @@ namespace rigidbody {
              * @param atom1 The first atom.
              * @param atom2 The second atom.
              */
-            Constraint(Protein* protein, const Atom& atom1, const Atom& atom2);
+            DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2);
 
             /**
              * @brief Evaluate this constraint for the current positions. 
              * 
              * @return The chi2 contribution of this constraint.
              */
-            double evaluate() const;
+            double evaluate() const override;
 
             /**
              * @brief Get the first atom of this constraint. 
@@ -97,7 +91,25 @@ namespace rigidbody {
              * 
              * @param constraint The constraint to be checked for equality. 
              */
-            bool operator==(const Constraint& constraint) const;
+            bool operator==(const DistanceConstraint& constraint) const;
+
+            /**
+             * @brief Generate a string representation of this constraint.
+             */
+            std::string print() const;
+
+            friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.print(); return os;}
+
+            unsigned int uid;       // Unique identifier for this constraint. 
+            double r_base;          // The normal distance between the two atoms. 
+            Protein* protein;       // The protein this constraint belongs to.
+            unsigned int ibody1;    // The index of the first body.
+            unsigned int ibody2;    // The index of the second body.
+            unsigned int iatom1;    // The index of the first atom.
+            unsigned int iatom2;    // The index of the second atom.
+
+        private: 
+            struct AtomLoc {int body, atom;};
 
             /**
              * @brief Transforms a distance into a proper constraint for least-squares fitting. 
@@ -107,26 +119,9 @@ namespace rigidbody {
             static double transform(double offset);
 
             /**
-             * @brief Generate a string representation of this constraint.
-             */
-            std::string print() const;
-
-            friend std::ostream& operator<<(std::ostream& os, const Constraint& constraint) {os << constraint.print(); return os;}
-
-            unsigned int uid;       // Unique identifier for this constraint. 
-            double r_base;          // The normal distance between the two atoms. 
-            Protein* protein;       // The protein this constraint belongs to.
-            unsigned int ibody1;    // The index of the first body.
-            unsigned int ibody2;    // The index of the second body.
-            unsigned int iatom1;    // The index of the first atom.
-            unsigned int iatom2;    // The index of the second atom.
-        private: 
-            static inline unsigned int uid_counter = 0; 
-
-            /**
              * @brief Find the bodies containing the argument atoms.
              *        This is linear in the total number of atoms. 
              */
-            std::pair<detail::AtomLoc, detail::AtomLoc> find_host_bodies(const Atom& atom1, const Atom& atom2) const;
+            std::pair<AtomLoc, AtomLoc> find_host_bodies(const Atom& atom1, const Atom& atom2) const;
     };
 }

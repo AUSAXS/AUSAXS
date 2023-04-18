@@ -16,6 +16,15 @@ params = {
     'ytick.labelsize':11
 }
 
+# params = {
+#     'legend.fontsize': 24,
+#     'figure.figsize': (10, 9),
+#     'axes.labelsize': 24,
+#     'axes.titlesize': 24,
+#     'xtick.labelsize': 18,
+#     'ytick.labelsize': 18
+# }
+
 match len(sys.argv):
     case 1: 
         if os.path.exists("figures"):

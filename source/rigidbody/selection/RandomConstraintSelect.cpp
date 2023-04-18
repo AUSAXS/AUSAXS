@@ -1,6 +1,8 @@
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/RigidBody.h>
 
+#include <utility>
+
 using namespace rigidbody;
 
 RandomConstraintSelect::RandomConstraintSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {

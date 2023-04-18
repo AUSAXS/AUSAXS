@@ -17,6 +17,7 @@ valgrind.txt
 *.plot
 *.xvg
 *.pdf
+*.png
 *.xml
 *.pdb
 *.ccp4
