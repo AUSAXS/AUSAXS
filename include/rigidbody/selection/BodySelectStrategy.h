@@ -1,6 +1,8 @@
 #pragma once
 
-#include <rigidbody/Constraint.h>
+#include <rigidbody/constraints/Constraint.h>
+
+#include <utility>
 
 namespace rigidbody {
     class RigidBody;

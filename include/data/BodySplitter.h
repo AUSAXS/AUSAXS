@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include <data/Protein.h>
-#include <rigidbody/Constraint.h>
+#include <rigidbody/constraints/Constraint.h>
 
 namespace rigidbody {
     struct BodySplitter {

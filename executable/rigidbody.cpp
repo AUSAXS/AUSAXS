@@ -9,6 +9,7 @@
 #include <data/BodySplitter.h>
 #include <fitter/FitReporter.h>
 #include <plots/all.h>
+#include <rigidbody/Settings.h>
 
 int main(int argc, char const *argv[]) { 
     setting::grid::scaling = 2;
@@ -60,9 +61,7 @@ int main(int argc, char const *argv[]) {
     if (placement_strategy == "Radial") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::RadialStrategy;}
     else if (placement_strategy == "Axes") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::AxesStrategy;}
     else if (placement_strategy == "Jan") {setting::grid::placement_strategy = setting::grid::PlacementStrategy::JanStrategy;}
-
     rigidbody::RigidBody rigidbody = rigidbody::BodySplitter::split(pdb, setting::rigidbody::detail::constraints);
-    rigidbody.generate_simple_linear_constraints();
 
     if (p_cal->count() != 0) {
         if (setting::rigidbody::detail::calibration_file.empty()) {

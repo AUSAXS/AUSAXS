@@ -1,6 +1,6 @@
-#include <Symbols.h>
 #include <rigidbody/RigidBody.h>
-#include <rigidbody/parameters/Parameters.h>
+
+#include <Symbols.h>
 #include <rigidbody/parameters/SimpleParameterGeneration.h>
 #include <rigidbody/parameters/RotationsOnly.h>
 #include <rigidbody/transform/RigidTransform.h>
@@ -8,17 +8,14 @@
 #include <rigidbody/selection/SequentialSelect.h>
 #include <rigidbody/selection/RandomSelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/ConstrainedFitter.h>
-#include <rigidbody/DistanceConstraint.h>
-#include <rigidbody/OverlapConstraint.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
+#include <rigidbody/Settings.h>
 #include <utility/Exceptions.h>
-#include <math/Matrix.h>
-#include <math/MatrixUtils.h>
 #include <io/XYZWriter.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotDistance.h>
-
-#include <sstream>
 
 using namespace rigidbody;
 
@@ -73,9 +70,7 @@ void RigidBody::setup() {
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
-    generate_constraint_map();
     auto fitter = prepare_fitter(measurement_path);
-
     double best_chi2 = fitter->fit_only();
 
     if (setting::general::supplementary_plots) {
@@ -99,7 +94,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     for (unsigned int i = 0; i < setting::rigidbody::iterations; i++) {
         // select a body to be modified this iteration
         auto [ibody, iconstraint] = body_selector->next();
-        std::shared_ptr<Constraint> constraint = constraint_map.at(ibody).at(iconstraint);
+        std::shared_ptr<DistanceConstraint> constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint);
         Parameter param = parameter_generator->next();
 
         Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
@@ -140,147 +135,23 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     return fit;
 }
 
-void RigidBody::generate_simple_volume_constraints() {
-    if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
-    for (unsigned int ibody1 = 0; ibody1 < bodies.size(); ibody1++) {
-        for (unsigned int ibody2 = ibody1+1; ibody2 < bodies.size(); ibody2++) {
-            const Body& body1 = body(ibody1);
-            const Body& body2 = body(ibody2);
-
-            double min_dist = std::numeric_limits<double>::max();
-            int min_atom1 = -1, min_atom2 = -1;
-            for (unsigned int iatom1 = 0; iatom1 < body1.atoms().size(); iatom1++) {
-                const Atom& atom1 = body1.atoms(iatom1);
-                if (atom1.element != constants::symbols::carbon) {continue;}
-
-                for (unsigned int iatom2 = 0; iatom2 < body2.atoms().size(); iatom2++) {
-                    const Atom& atom2 = body2.atoms(iatom2);
-                    if (atom2.element != constants::symbols::carbon) {continue;}
-
-                    double dist = atom1.distance(atom2);
-                    if (dist > min_dist) {continue;}
-
-                    min_dist = dist;
-                    min_atom1 = iatom1;
-                    min_atom2 = iatom2;
-                }
-            }
-
-            // no carbon atoms found
-            if (min_atom1 == -1 || min_atom2 == -1) {continue;}
-
-            // check if the bodies are close enough for a constraint to make sense
-            if (min_dist > setting::rigidbody::bond_distance) {continue;} 
-            rigidbody::DistanceConstraint constraint(this, ibody1, ibody2, min_atom1, min_atom2);
-            add_constraint(std::move(constraint));
-
-            if (setting::general::verbose) {
-                std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
-            }
-        }
-    }
-    if (constraints.empty()) {
-        throw except::unexpected("RigidBody::generate_simple_constraints: No constraints were generated. This is probably a bug.");
-    }
-
-    generate_constraint_map();
-}
-
-void RigidBody::generate_simple_linear_constraints() {
-    if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
-    for (unsigned int ibody1 = 0; ibody1 < bodies.size()-1; ibody1++) {
-        unsigned int ibody2 = ibody1 + 1;
-
-        const Body& body1 = body(ibody1);
-        const Body& body2 = body(ibody2);
-
-        double min_dist = std::numeric_limits<double>::max();
-        int min_atom1 = -1, min_atom2 = -1;
-        for (unsigned int iatom1 = 0; iatom1 < body1.atoms().size(); iatom1++) {
-            const Atom& atom1 = body1.atoms(iatom1);
-            if (atom1.element != constants::symbols::carbon) {continue;}
-
-            for (unsigned int iatom2 = 0; iatom2 < body2.atoms().size(); iatom2++) {
-                const Atom& atom2 = body2.atoms(iatom2);
-                if (atom2.element != constants::symbols::carbon) {continue;}
-
-                double dist = atom1.distance(atom2);
-                if (dist > min_dist) {continue;}
-
-                min_dist = dist;
-                min_atom1 = iatom1;
-                min_atom2 = iatom2;
-            }
-        }
-
-        rigidbody::DistanceConstraint constraint(this, ibody1, ibody2, min_atom1, min_atom2);
-        add_constraint(std::move(constraint));
-
-        if (setting::general::verbose) {
-            std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
-        }
-    }
-    if (constraints.empty()) {
-        throw except::unexpected("RigidBody::generate_simple_constraints: No constraints were generated. This is probably a bug.");
-    }
-
-    generate_constraint_map();
-}
-
-void RigidBody::add_constraint(std::shared_ptr<DistanceConstraint> constraint) {
-    constraints.push_back(constraint);
-}
-
-void RigidBody::add_constraint(DistanceConstraint&& constraint) {
-    constraints.push_back(std::make_shared<DistanceConstraint>(std::move(constraint)));
-}
-
-void RigidBody::add_constraint(unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) {
-    constraints.push_back(std::make_shared<DistanceConstraint>(this, ibody1, ibody2, iatom1, iatom2));
-}
-
-double RigidBody::chi2(fitter::HydrationFitter& fitter) const {
-    std::shared_ptr<Fit> result = fitter.fit();
-    return result->fval;
-}
-
-std::vector<std::shared_ptr<DistanceConstraint>> RigidBody::get_constraints() const {
-    return constraints;
-}
-
-std::shared_ptr<DistanceConstraint> RigidBody::get_constraint(unsigned int index) const {
-    return constraints.at(index);
-}
-
-void RigidBody::generate_constraint_map() {
-    if (constraint_map.size() == bodies.size()) {return;}
-
-    for (unsigned int i = 0; i < bodies.size(); i++) {
-        constraint_map[i] = std::vector<std::shared_ptr<DistanceConstraint>>();
-    }
-
-    for (const auto& constraint : get_constraints()) {
-        constraint_map.at(constraint->ibody1).push_back(constraint);
-        constraint_map.at(constraint->ibody2).push_back(constraint);
-    }
-}
-
 void RigidBody::apply_calibration(std::shared_ptr<fitter::Fit> calibration) {
     if (setting::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
     this->calibration = calibration;
 }
 
 std::shared_ptr<fitter::LinearFitter> RigidBody::prepare_fitter(std::string measurement_path) {
+    constraints = std::make_shared<ConstraintManager>(this);
     if (calibration == nullptr) {
         fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
-        fitter.set_constraints(constraints);
-        return std::make_shared<fitter::LinearFitter>(std::move(fitter));
+        fitter.set_constraint_manager(constraints);
+        return std::make_shared<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
     } else {
         auto histogram = get_histogram();
         histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
         fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, std::move(histogram));
-        fitter.set_constraints(constraints);
-        return std::make_shared<fitter::LinearFitter>(std::move(fitter));
+        fitter.set_constraint_manager(constraints);
+        return std::make_shared<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
     }
 }
 

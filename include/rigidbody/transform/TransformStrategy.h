@@ -1,7 +1,7 @@
 #pragma once
 
 #include <data/Protein.h>
-#include <rigidbody/Constraint.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 
 namespace rigidbody {
     class RigidBody;
@@ -33,7 +33,7 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) = 0;
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) = 0;
 
             /**
              * @brief Undo the previous transformation. 
@@ -44,11 +44,11 @@ namespace rigidbody {
             RigidBody* rigidbody;
 
             struct TransformGroup {
-                TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<Constraint> target, Vector3<double> pivot);
-                std::vector<Body*> bodies;          // The bodies to transform.
-                std::vector<unsigned int> indices;  // The indices of the bodies in the rigidbody.
-                std::shared_ptr<Constraint> target; // The constraint to transform along.
-                Vector3<double> pivot;              // The pivot point of the transformation.
+                TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot);
+                std::vector<Body*> bodies;                  // The bodies to transform.
+                std::vector<unsigned int> indices;          // The indices of the bodies in the rigidbody.
+                std::shared_ptr<DistanceConstraint> target; // The constraint to transform along.
+                Vector3<double> pivot;                      // The pivot point of the transformation.
             };
 
             struct BackupBody {

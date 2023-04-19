@@ -1,15 +1,15 @@
-#pragma once
-
-#include <rigidbody/constraints/generation/VolumeConstraints.h>
+#include <rigidbody/constraints/generation/VolumetricConstraints.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/Settings.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;
 
-std::shared_ptr<rigidbody::DistanceConstraint> VolumeConstraints::generate() const {
+std::vector<std::shared_ptr<DistanceConstraint>> VolumetricConstraints::generate() const {
     if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
-    
+    std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> constraints;
+
     auto& protein = *manager->protein;
     for (unsigned int ibody1 = 0; ibody1 < protein.bodies.size(); ibody1++) {
         for (unsigned int ibody2 = ibody1+1; ibody2 < protein.bodies.size(); ibody2++) {
@@ -40,18 +40,17 @@ std::shared_ptr<rigidbody::DistanceConstraint> VolumeConstraints::generate() con
 
             // check if the bodies are close enough for a constraint to make sense
             if (min_dist > setting::rigidbody::bond_distance) {continue;} 
-            rigidbody::DistanceConstraint constraint(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
-            manager->add_constraint(std::make_shared<DistanceConstraint>(std::move(constraint)));
 
+            constraints.emplace_back(std::make_shared<DistanceConstraint>(manager->protein, ibody1, ibody2, min_atom1, min_atom2));
             if (setting::general::verbose) {
                 std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
             }
         }
     }
 
-    if (manager->distance_constraints.empty()) {
+    if (constraints.empty()) {
         throw except::unexpected("rigidbody::constraints::generation::VolumeConstraints::generate: No constraints were generated. This is probably a bug.");
     }
 
-    generate_constraint_map();        
+    return constraints;
 }

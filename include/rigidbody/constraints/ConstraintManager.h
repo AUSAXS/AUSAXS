@@ -10,11 +10,6 @@ namespace rigidbody {
     class ConstraintManager {
         public:
             /**
-             * @brief Default constructor.
-             */
-            ConstraintManager() = default;
-
-            /**
              * @brief Construct a new Constraint Manager for a given protein.
              */
             ConstraintManager(Protein* protein);

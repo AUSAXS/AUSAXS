@@ -28,6 +28,7 @@ void LinearFitter::model_setup(const hist::ScatteringHistogram& model, const Lim
 }
 
 double LinearFitter::fit_only() {
+    std::cout << "LinearFitter::fit_only() called." << std::endl;
     return chi2({});
 }
 
@@ -111,6 +112,7 @@ void LinearFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
 }
 
 double LinearFitter::chi2(const std::vector<double>&) {
+    std::cout << "LinearFitter::chi2() called." << std::endl;
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
     std::vector<double> Im = splice(ym);
 

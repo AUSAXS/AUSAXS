@@ -1,8 +1,15 @@
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
+#include <data/Protein.h>
 
 using namespace rigidbody;
 
-ConstraintManager::ConstraintManager(Protein* protein) : protein(protein) {}
+ConstraintManager::ConstraintManager(Protein* protein) : protein(protein) {
+    overlap_constraint = std::make_shared<OverlapConstraint>(protein);
+    auto generator = factory::generate_constraints(this);
+    distance_constraints = generator->generate();
+    generate_constraint_map();
+}
 
 void ConstraintManager::add_constraint(std::shared_ptr<DistanceConstraint> constraint) {
     distance_constraints.push_back(std::move(constraint));
@@ -18,5 +25,19 @@ double ConstraintManager::evaluate() const {
         chi2 += constraint->evaluate();
     }
     chi2 += overlap_constraint->evaluate();
+    std::cout << "Overlap chi2: " << overlap_constraint->evaluate() << std::endl;
     return chi2;
+}
+
+void ConstraintManager::generate_constraint_map() {
+    if (distance_constraints_map.size() == protein->bodies.size()) {return;}
+
+    for (unsigned int i = 0; i < protein->bodies.size(); i++) {
+        distance_constraints_map[i] = std::vector<std::shared_ptr<DistanceConstraint>>();
+    }
+
+    for (const auto& constraint : distance_constraints) {
+        distance_constraints_map.at(constraint->ibody1).push_back(constraint);
+        distance_constraints_map.at(constraint->ibody2).push_back(constraint);
+    }
 }

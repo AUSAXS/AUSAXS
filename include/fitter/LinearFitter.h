@@ -88,10 +88,17 @@ namespace fitter {
 			/**
 			 * @brief Perform the fit.
 			 * 
+			 * ! This function does NOT use the chi2 method, and is therefore not compatible with constraints.
+			 * 
 			 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
 			 */
 			[[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
 
+			/**
+			 * @brief Perform the fit.
+			 * 
+			 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
+			 */
             [[nodiscard]] virtual double fit_only() override;
 
 			/**

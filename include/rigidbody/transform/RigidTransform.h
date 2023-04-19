@@ -34,13 +34,13 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) override;
+            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) override;
 
         protected:
             /**
              * @brief Get all bodies connected by constraints to the first body of the pivot. 
              *        If we have the four bodies A - B - C - D and pivot around the BC connection, this would return the group {AB}.
              */
-            TransformGroup get_connected(std::shared_ptr<Constraint> pivot);           
+            TransformGroup get_connected(std::shared_ptr<DistanceConstraint> pivot);
     };
 }

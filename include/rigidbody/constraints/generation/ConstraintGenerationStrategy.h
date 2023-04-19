@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 namespace rigidbody {
     class DistanceConstraint;
@@ -8,16 +9,13 @@ namespace rigidbody {
 
     class ConstraintGenerationStrategy {
         public:
-            /**
-             * @brief Default constructor.
-             */
-            ConstraintGenerationStrategy() = default;
+            ConstraintGenerationStrategy(const ConstraintManager* manager) : manager(manager) {}
 
             /**
              * @brief Generate a constraint.
              */
-            virtual std::shared_ptr<DistanceConstraint> generate() const = 0;
+            virtual std::vector<std::shared_ptr<DistanceConstraint>> generate() const = 0;
 
-            ConstraintManager* manager;
+            const ConstraintManager* manager;
     };
 }

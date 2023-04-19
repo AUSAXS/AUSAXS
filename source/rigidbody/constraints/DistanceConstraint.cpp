@@ -1,4 +1,5 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/Settings.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;

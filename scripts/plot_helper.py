@@ -91,7 +91,7 @@ class Options:
         
         # axes
             case "xlimits":
-                self.xrange = [-0.1, 10]
+                self.xrange = [-0.1, 5]
                 # if (words[1] == words[2]):
                 #     return
                 # self.xrange = [float(words[1]), float(words[2])]

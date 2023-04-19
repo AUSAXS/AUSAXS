@@ -9,7 +9,7 @@ RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbo
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<Constraint> constraint) {
+void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) {
     auto group = get_connected(constraint);
     backup(group);
 
@@ -28,14 +28,14 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, st
     }
 }
 
-TransformStrategy::TransformGroup RigidTransform::get_connected(std::shared_ptr<Constraint> pivot) {
+TransformStrategy::TransformGroup RigidTransform::get_connected(std::shared_ptr<DistanceConstraint> pivot) {
     std::function<void(unsigned int, std::unordered_set<unsigned int>&)> explore_branch = [&] (unsigned int ibody, std::unordered_set<unsigned int>& indices) {
         if (indices.contains(ibody)) {
             return;
         }
         indices.insert(ibody);
 
-        for (const auto& constraint : rigidbody->constraint_map[ibody]) {
+        for (const auto& constraint : rigidbody->constraints->distance_constraints_map[ibody]) {
             if (constraint->ibody1 == ibody) {
                 explore_branch(constraint->ibody2, indices);
             } else {

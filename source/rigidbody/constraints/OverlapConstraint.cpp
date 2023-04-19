@@ -5,6 +5,7 @@ using namespace rigidbody;
 
 OverlapConstraint::OverlapConstraint(Protein* protein) {
     this->protein = protein;
+    initialize();
 }
 
 double OverlapConstraint::evaluate() const {

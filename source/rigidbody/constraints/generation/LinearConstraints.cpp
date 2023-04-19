@@ -1,5 +1,3 @@
-#pragma once
-
 #include <rigidbody/constraints/generation/LinearConstraints.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
@@ -7,8 +5,9 @@
 
 using namespace rigidbody;
 
-std::shared_ptr<rigidbody::DistanceConstraint> LinearConstraints::generate() const {
+std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> LinearConstraints::generate() const {
     if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
+    std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> constraints;
 
     auto& protein = *manager->protein;
     for (unsigned int ibody1 = 0; ibody1 < protein.bodies.size()-1; ibody1++) {
@@ -36,17 +35,15 @@ std::shared_ptr<rigidbody::DistanceConstraint> LinearConstraints::generate() con
             }
         }
 
-        DistanceConstraint constraint(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
-        manager->add_constraint(std::make_shared<DistanceConstraint>(std::move(constraint)));
-
+        constraints.emplace_back(std::make_shared<DistanceConstraint>(manager->protein, ibody1, ibody2, min_atom1, min_atom2));
         if (setting::general::verbose) {
             std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
         }
     }
 
-    if (manager->distance_constraints.empty()) {
+    if (constraints.empty()) {
         throw except::unexpected("rigidbody::constraints::generation::LinearConstraints::generate: No constraints were generated. This is probably a bug.");
     }
 
-    manager->generate_constraint_map();
+    return constraints;
 }
