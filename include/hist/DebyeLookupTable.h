@@ -1,6 +1,5 @@
 #pragma once
 
-#include <utility/Settings.h>
 #include <utility/LookupTable.h>
 
 #include <functional>

@@ -1,6 +1,7 @@
 #include <plots/PlotImage.h>
 #include <em/Image.h>
 #include <utility/Utility.h>
+#include <plots/PlotSettings.h>
 
 plots::PlotImage::PlotImage(const em::Image& image) {
     plot(image);
@@ -34,7 +35,7 @@ void plots::PlotImage::plot(const em::Image& image) {
     h.add_plot_options("points", {{"xlabel", "Length [Å]"}, {"ylabel", "Length [Å]"}, {"zlabel", "Electron Density [Arb.]"}});
 
     std::string contours;
-    for (auto c : setting::plot::image::contour) {
+    for (auto c : settings::plots::contour.value) {
         contours += std::to_string(c) + " ";
     }
 

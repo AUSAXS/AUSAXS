@@ -23,7 +23,7 @@ namespace fitter {
              * 
              * @param input The path to the file containing the measured values. 
              */
-            HydrationFitter(std::string input) : LinearFitter(input) {}
+            HydrationFitter(std::string input);
 
             /**
              * @brief Constructor.
@@ -32,7 +32,7 @@ namespace fitter {
              * @param input The path to the file containing the measured values. 
              * @param h The histogram.
              */
-            HydrationFitter(std::string input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
+            HydrationFitter(std::string input, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Constructor.
@@ -41,7 +41,7 @@ namespace fitter {
              * @param input The path to the file containing the measured values. 
              * @param h The histogram.
              */
-            HydrationFitter(std::string input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
+            HydrationFitter(std::string input, hist::ScatteringHistogram&& h);
 
             /**
              * @brief Constructor.
@@ -50,7 +50,16 @@ namespace fitter {
              * @param data The measured data.
              * @param h The histogram.
              */
-            HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
+            HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h);
+
+            /**
+             * @brief Constructor.
+             * 
+             * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+             * 
+             * @param model The model histogram. 
+             */
+            HydrationFitter(const hist::ScatteringHistogram& model);
 
             /**
              * @brief Constructor.
@@ -60,7 +69,7 @@ namespace fitter {
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
              */
-            HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+            HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits);
 
             /**
              * @brief Destructor.

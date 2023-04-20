@@ -1,7 +1,6 @@
 #include <plots/PlotDistance.h>
 #include <plots/PlotDataset.h>
 #include <hist/DebyeLookupTable.h>
-#include <utility/Settings.h>
 #include <utility/Utility.h>
 
 #include <memory.h>

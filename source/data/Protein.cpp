@@ -3,6 +3,11 @@
 #include <io/File.h>
 #include <hist/Histogram.h>
 #include <fitter/HydrationFitter.h>
+#include <data/ProteinSettings.h>
+#include <hydrate/GridSettings.h>
+#include <hist/HistogramSettings.h>
+#include <utility/GeneralSettings.h>
+#include <fitter/FitSettings.h>
 
 #include <cassert>
 
@@ -70,7 +75,7 @@ void Protein::translate(const Vector3<double>& v) {
 
 SimpleDataset Protein::simulate_dataset(bool add_noise) {
     SimpleDataset data = get_histogram().calc_debye_scattering_intensity();
-    data.reduce(setting::fit::N, true);
+    data.reduce(settings::fit::N, true);
     data.simulate_errors();
     if (add_noise) {
         data.simulate_noise();
@@ -206,14 +211,14 @@ void Protein::generate_new_hydration() {
 }
 
 ScatteringHistogram Protein::get_histogram() {
-    if (!updated_charge && setting::protein::use_effective_charge) {
+    if (!updated_charge && settings::protein::use_effective_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
     return phm->calculate_all();
 }
 
 Histogram Protein::get_total_histogram() {
-    if (!updated_charge && setting::protein::use_effective_charge) {
+    if (!updated_charge && settings::protein::use_effective_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
     return phm->calculate();
@@ -246,12 +251,12 @@ unsigned int Protein::atom_size() const {
 }
 
 std::vector<double> Protein::calc_debye_scattering_intensity() {
-    if (!updated_charge && setting::protein::use_effective_charge) {
+    if (!updated_charge && settings::protein::use_effective_charge) {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
 
     std::vector<Atom> atoms = this->atoms();
-    const Axis& debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
+    const Axis& debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
     std::vector<double> Q = std::vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
@@ -289,7 +294,7 @@ void Protein::update_effective_charge(double scaling) {
     // number of atoms
     unsigned int N = size();
     double charge_per_atom = -displaced_charge/N;
-    if (setting::general::verbose) {
+    if (settings::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
         std::cout << "Added " << charge_per_atom << " electrons to each atom (N: " << N << ")." << std::endl;
     }
@@ -303,7 +308,7 @@ void Protein::update_effective_charge(double scaling) {
 }
 
 void Protein::center() {
-    if (!centered && setting::protein::center) {
+    if (!centered && settings::protein::center) {
         translate(-get_cm());
         centered = true;
     }
@@ -336,12 +341,12 @@ void Protein::generate_unit_cell() {
 
     // expand box by 10%
     for (auto& v : min) {
-        if (v < 0) {v *= (1 + setting::grid::scaling);} // if v is smaller than 0, multiply by 1+s
-        else {      v *= (1 - setting::grid::scaling);} //                    else multiply by 1-s
+        if (v < 0) {v *= (1 + settings::grid::scaling);} // if v is smaller than 0, multiply by 1+s
+        else {      v *= (1 - settings::grid::scaling);} //                    else multiply by 1-s
     }
     for (auto& v : max) {
-        if (v > 0) {v *= (1 + setting::grid::scaling);} // if v is larger than 0, multiply by 1+s
-        else {      v *= (1 - setting::grid::scaling);} //                   else multiply by 1-s
+        if (v > 0) {v *= (1 + settings::grid::scaling);} // if v is larger than 0, multiply by 1+s
+        else {      v *= (1 - settings::grid::scaling);} //                   else multiply by 1-s
     }
     auto cell_w = max - min;
     translate(-min);

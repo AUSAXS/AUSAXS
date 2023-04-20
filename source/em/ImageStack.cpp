@@ -1,13 +1,18 @@
 #include <em/ImageStack.h>
 #include <em/ProteinManager.h>
 #include <fitter/HydrationFitter.h>
+#include <em/EMSettings.h>
+#include <plots/PlotSettings.h>
+#include <utility/GeneralSettings.h>
+#include <data/ProteinSettings.h>
+#include <fitter/FitSettings.h>
 #include <plots/all.h>
 
 using namespace em;
 using namespace fitter;
 
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max)};
+    Limit lim = {from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -15,19 +20,19 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
 
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
     return fit_helper(fitter, param);
 }
 
 std::shared_ptr<EMFit> ImageStack::fit(std::string file) {
-    Limit lim = {from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max)};
+    Limit lim = {from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
 
 std::shared_ptr<EMFit> ImageStack::fit(std::string file, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return fit_helper(fitter, param);
 }
 
@@ -40,11 +45,11 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
-    mini::LimitedScan minimizer(f, param, setting::em::evals);
+    mini::LimitedScan minimizer(f, param, settings::fit::max_iterations);
     minimizer.set_limit(fitter->dof()*20);
     SimpleDataset chi2_landscape;
     {
-        auto l = minimizer.landscape(setting::em::evals);
+        auto l = minimizer.landscape(settings::fit::max_iterations);
         evals.append(l);
         chi2_landscape = l.as_dataset();
     }
@@ -59,7 +64,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     if (chi2_landscape.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;                    // first we determine the bounds of the area we want to sample
         if (chi2_landscape.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
-            double s = (param.bounds->max - param.bounds->min)/setting::em::evals;
+            double s = (param.bounds->max - param.bounds->min)/settings::fit::max_iterations;
             bounds = {min.x - s, min.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
@@ -68,9 +73,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
         // prepare a new minimizer with the new bounds
         utility::print_warning("Function is varying strongly. Sampling more points around the minimum.");
-        mini::LimitedScan mini2(f, mini::Parameter("cutoff", bounds), setting::em::evals/4);
+        mini::LimitedScan mini2(f, mini::Parameter("cutoff", bounds), settings::fit::max_iterations/4);
         {
-            auto l = mini2.landscape(setting::em::evals/2);
+            auto l = mini2.landscape(settings::fit::max_iterations/2);
             evals.append(l);
             chi2_landscape = l.as_dataset();
         }
@@ -95,7 +100,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
 
     // Plot all evaluated points
-    if (setting::general::supplementary_plots) {
+    if (settings::general::supplementary_plots) {
         { // Plot evaluated points around the minimum
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_landscape;
@@ -108,14 +113,14 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             chi2_copy.add_plot_options(style::draw::points);
             plot.plot(chi2_copy);
             plot.plot(p_min);
-            plot.save(setting::general::output + "chi2_evaluated_points_limited." + setting::plot::format);
+            plot.save(settings::general::output + "chi2_evaluated_points_limited." + settings::plots::format);
         }
 
         { // Plot all evaluated points
             auto l = evals.as_dataset();
             l.sort_x();
             l.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset::quick_plot(l, setting::general::output + "chi2_evaluated_points_full." + setting::plot::format);
+            plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full." + settings::plots::format);
         }
     }
 
@@ -125,9 +130,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum
     // we therefore want to sample the area near the minimum to get an average
     mini::Result res;
-    if (setting::em::hydrate) {
+    if (settings::em::hydrate) {
         // sample the area around the minimum
-        mini::MinimumExplorer explorer(f, param, setting::em::evals);
+        mini::MinimumExplorer explorer(f, param, settings::fit::max_iterations);
         res = explorer.minimize();
 
         SimpleDataset area;
@@ -138,7 +143,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         }
 
         // Plot evaluated points near the minimum
-        if (setting::general::supplementary_plots) {
+        if (settings::general::supplementary_plots) {
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
             double sigma = area.std();
@@ -164,7 +169,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             plot.plot(lm);
             plot.plot(lp);
             plot.plot(p_start);
-            plot.save(setting::general::output + "chi2_near_minimum." + setting::plot::format);
+            plot.save(settings::general::output + "chi2_near_minimum." + settings::plots::format);
         }
     } 
     
@@ -176,7 +181,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     // Make 3D landscape plot
-    if (setting::general::supplementary_plots && setting::em::hydrate) {
+    if (settings::general::supplementary_plots && settings::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
         for (unsigned int i = 0; i < this->evals.size(); i++) {
@@ -188,7 +193,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             }
         }
         l.add_plot_options({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "$\\chi^2$"}});
-        plots::PlotLandscape::quick_plot(l, setting::general::output + "chi2_landscape." + setting::plot::format);
+        plots::PlotLandscape::quick_plot(l, settings::general::output + "chi2_landscape." + settings::plots::format);
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
@@ -199,7 +204,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min.x);
-    if (setting::em::save_pdb) {get_protein_manager()->get_protein()->save(setting::general::output + "model.pdb");}
+    if (settings::em::save_pdb) {get_protein_manager()->get_protein()->save(settings::general::output + "model.pdb");}
     return emfit;
 }
 
@@ -207,7 +212,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
-    // double c = setting::em::concentration;                                // concentration
+    // double c = settings::em::concentration;                                // concentration
     // double m = protein->get_absolute_mass()*constants::unit::mg;          // mass
     // double DrhoV2 = std::pow(protein->get_relative_charge(), 2);          // charge
     // double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
@@ -215,9 +220,8 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // fitter.normalize_intensity(I0);
 
     // fit function
-    setting::protein::center = false;   // do not center the protein - this may cause issues
-    setting::grid::percent_water = 0.05;
-    if (setting::plot::em::landscape && setting::em::hydrate) {
+    settings::protein::center = false;   // do not center the protein - this may cause issues
+    if (settings::em::plot_landscapes && settings::em::hydrate) {
         std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN); 
     }
     
@@ -229,7 +233,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         auto p = get_protein_manager()->get_protein(params[0]);
 
         std::shared_ptr<Fit> fit;
-        if (setting::em::hydrate) {
+        if (settings::em::hydrate) {
             p->clear_grid();                // clear grid from previous iteration
             p->generate_new_hydration();    // generate a new hydration layer
 
@@ -247,7 +251,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         }
 
         double val = fit->fval;
-        if (setting::fit::verbose) {
+        if (settings::fit::verbose) {
             std::cout << "Step " << utility::print_element(counter++, 5) << ": Evaluated cutoff value " << utility::print_element(params[0], 12) << " with chi2 " << utility::print_element(val, 12) << std::flush << "\r";
         }
         return val;
@@ -256,38 +260,38 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 }
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::string file) {
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::string file) {
-    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
     return cutoff_scan(axis, file);
 }
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
     return cutoff_scan_helper(points, fitter);
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
     return cutoff_scan(axis, h);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
     return cutoff_scan_fit(axis, h);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::string file) {
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(points, fitter);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, from_level(setting::em::alpha_levels.min), from_level(setting::em::alpha_levels.max));
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
+    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }
 
@@ -301,7 +305,7 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<LinearFitter> fitter = setting::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
     return cutoff_scan_fit_helper(points, fitter);
 }
 
@@ -316,7 +320,7 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis&
 
     // fit
     double l = from_level(1);
-    Limit limit(setting::em::alpha_levels.min*l, setting::em::alpha_levels.max*l);
+    Limit limit(settings::em::alpha_levels.value.min*l, settings::em::alpha_levels.value.max*l);
     minimizer.clear_parameters();
     minimizer.add_parameter({"cutoff", limit.center(), limit});
     auto res = minimizer.minimize();
@@ -342,8 +346,8 @@ SimpleDataset ImageStack::get_fitted_water_factors_dataset() const {
 
 void ImageStack::update_charge_levels(Limit limit) const noexcept {
     std::vector<double> levels;
-    for (unsigned int i = 0; i < setting::em::charge_levels; i++) {
-        levels.push_back(limit.min + i*limit.span()/setting::em::charge_levels);
+    for (unsigned int i = 0; i < settings::em::charge_levels; i++) {
+        levels.push_back(limit.min + i*limit.span()/settings::em::charge_levels);
     }
     get_protein_manager()->set_charge_levels(levels);
 }

@@ -6,6 +6,7 @@
 #include <utility/Exceptions.h>
 #include <mini/all.h>
 #include <plots/all.h>
+#include <utility/GeneralSettings.h>
 
 using namespace fitter;
 
@@ -18,7 +19,7 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(std::string input, Protein& protein) 
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     fit_type = mini::type::DLIB_GLOBAL;
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess);
     auto res = mini->minimize();
@@ -41,13 +42,13 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     fitted->add_plots(*this);                                     // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
 
-    setting::general::verbose = true;
+    settings::general::verbose = true;
     return fitted;
 }
 
 double ExcludedVolumeFitter::fit_only() {
     fit_type = mini::type::DLIB_GLOBAL;
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess);
     auto res = mini->minimize();

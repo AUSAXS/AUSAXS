@@ -1,27 +1,24 @@
 #pragma once
 
 #include <hydrate/placement/PlacementStrategy.h>
+#include <utility/SmartOption.h>
 
-//! REFACTOR
-#include <utility/Settings.h>
-
-// namespace setting {
-//     namespace rigidbody {
-//         enum class ConstraintGenerationStrategyChoice {
-//             None,       // Do not generate constraints. Only those supplied by the user will be used.
-//             Linear,     // Generate a linear chain of constraints between bodies.
-//             Volumetric  // Generate constraints between bodies based on proximity. 
-//         };
-
-//         inline static ConstraintGenerationStrategyChoice csc = ConstraintGenerationStrategyChoice::Linear;
-//     }
-// }
+namespace settings {
+    namespace grid {
+        enum class PlacementStrategy {
+            AxesStrategy, 
+            RadialStrategy, 
+            JanStrategy
+        };
+        extern settings::detail::SmartOption<PlacementStrategy> placement_strategy;
+    }
+}
 
 namespace grid {
     namespace factory {
         /**
-         * @brief Prepare a placement class. 
+         * @brief Prepare a placement class.
          */
-        std::unique_ptr<PlacementStrategy> construct_placement_strategy(Grid* grid, setting::grid::PlacementStrategy choice = setting::grid::placement_strategy);
+        std::unique_ptr<PlacementStrategy> construct_placement_strategy(Grid* grid, settings::grid::PlacementStrategy choice = settings::grid::placement_strategy);
     }
 }

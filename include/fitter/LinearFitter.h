@@ -23,7 +23,7 @@ namespace fitter {
 			 * 
 			 * @param input The path to the file containing the measured values. 
 			 */
-			LinearFitter(std::string input) {setup(input);}
+			LinearFitter(std::string input);
 
 			/**
 			 * @brief Constructor.
@@ -33,7 +33,7 @@ namespace fitter {
 			 * @param input The path to the file containing the measured values. 
 			 * @param h The ScatteringHistogram to fit. 
 			 */
-			LinearFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
+			LinearFitter(std::string input, const hist::ScatteringHistogram& h);
 
 			/**
 			 * @brief Constructor.
@@ -43,21 +43,31 @@ namespace fitter {
 			 * @param input the path to the file containing the measured values. 
 			 * @param h The ScatteringHistogram to fit. 
 			 */
-			LinearFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+			LinearFitter(std::string input, hist::ScatteringHistogram&& h);
 
 			/**
 			 * @brief Constructor. 
 			 * 
 			 * Prepare a fit to the dataset.
 			 */
-			LinearFitter(const SimpleDataset& data) : data(data) {}
+			LinearFitter(const SimpleDataset& data);
 
 			/**
 			 * @brief Constructor. 
 			 * 
 			 * Prepare a fit of the histogram to the dataset. 
 			 */
-			LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
+			LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist);
+
+			/**
+			 * @brief Constructor.
+			 * 
+			 * Prepare a fit of the first histogram to the second. A series of data points is extracted from @a h2 and used to fit @a h1.
+			 * 
+			 * @param data The data histogram. 
+			 * @param model The model histogram. 
+			 */
+			LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model);
 
 			/**
 			 * @brief Constructor.
@@ -68,7 +78,16 @@ namespace fitter {
 			 * @param model The model histogram. 
 			 * @param limits The limits on the generated data points. 
 			 */
-			LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+			LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits);
+
+			/**
+			 * @brief Constructor.
+			 * 
+			 * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+			 * 
+			 * @param model The model histogram. 
+			 */
+			LinearFitter(const hist::ScatteringHistogram& model);
 
 			/**
 			 * @brief Constructor.
@@ -78,7 +97,7 @@ namespace fitter {
 			 * @param model The model histogram. 
 			 * @param limits The limits on the generated data points. 
 			 */
-			LinearFitter(const hist::ScatteringHistogram& model, const Limit& limits = Limit(setting::axes::qmin, setting::axes::qmax));
+			LinearFitter(const hist::ScatteringHistogram& model, const Limit& limits);
 
 			/**
 			 * @brief Destructor.

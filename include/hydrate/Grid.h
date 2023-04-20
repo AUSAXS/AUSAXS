@@ -8,7 +8,6 @@
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/culling/CullingStrategy.h>
 #include <hydrate/GridMember.h>
-#include <utility/Settings.h>
 #include <utility/Axis3D.h>
 #include <hydrate/GridObj.h>
 
@@ -22,26 +21,7 @@ class Grid {
 		 * 
 		 * @param base the base point for the grid.
 		 */
-		Grid(const Axis3D& axes) : Grid(axes, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
-
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param base the base point for the grid.
-		 * @param bins the number of bins in all dimensions. 
-		 * @param radius the radius of each atom.
-		 */
-		Grid(const Axis3D& axes, int radius) : Grid(axes, radius, radius, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
-
-		/**
-		 * @brief Constructor.
-		 * 
-		 * @param base the base point for the grid.
-		 * @param bins the number of bins in each dimension. 
-		 * @param ra the radius of each atom.
-		 * @param rh the radius of each water molecule.
-		 */
-		Grid(const Axis3D& axes, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
+		Grid(const Axis3D& axes);
 
 		/**
 		 * @brief Space-saving constructor. 
@@ -50,20 +30,7 @@ class Grid {
 		 * 
 		 * @param atoms The atoms to be stored in the Grid. 
 		 */
-		Grid(const std::vector<Atom>& atoms) : Grid(atoms, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
-
-		/**
-		 * @brief Space-saving constructor. 
-		 * 
-		 * Construct a new Grid with a volume only slightly larger than that spanned by the input vector. 
-		 * 
-		 * @param atoms The atoms to be stored in the Grid. 
-		 * @param width the distance between each point.
-		 * @param bins the number of bins in each dimension. 
-		 * @param ra the radius of each atom.
-		 * @param rh the radius of each water molecule.
-		 */
-		Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
+		Grid(const std::vector<Atom>& atoms);
 
 		/**
 		 * @brief Space-saving constructor. 
@@ -72,20 +39,7 @@ class Grid {
 		 * 
 		 * @param bodies The bodies to be stored in the Grid. 
 		 */
-		Grid(const std::vector<Body>& bodies) : Grid(bodies, setting::grid::width, setting::grid::ra, setting::grid::rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {}
-
-		/**
-		 * @brief Space-saving constructor. 
-		 * 
-		 * Construct a new Grid with a volume only slightly larger than that spanned by the input bodies. 
-		 * 
-		 * @param bodies The bodies to be stored in the Grid. 
-		 * @param width the distance between each point.
-		 * @param bins the number of bins in each dimension. 
-		 * @param ra the radius of each atom.
-		 * @param rh the radius of each water molecule.
-		 */
-		Grid(const std::vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps = setting::grid::placement_strategy, setting::grid::CullingStrategy cs = setting::grid::culling_strategy);
+		Grid(const std::vector<Body>& bodies);
 
 		/**
 		 * @brief Copy constructor. 
@@ -430,5 +384,5 @@ class Grid {
 		 */
 		void deflate_volume(const Vector3<int>& loc, bool is_water);
 
-		void setup(double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs);
+		void setup();
 };

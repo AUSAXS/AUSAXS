@@ -5,7 +5,9 @@
 #include <crystal/miller/FibonacciMillers.h>
 #include <crystal/miller/ReducedMillers.h>
 #include <crystal/io/CrystalReaderFactory.h>
-
+#include <crystal/CrystalSettings.h>
+#include <utility/GeneralSettings.h>
+#include <hist/HistogramSettings.h>
 #include <atomic>
 #include <thread>
 
@@ -28,17 +30,17 @@ CrystalScattering::CrystalScattering(const Grid& grid) {
 }
 
 void CrystalScattering::initialize() {
-    switch (setting::crystal::mgc) {
-        case setting::crystal::MillerGenerationChoice::All: {
-            miller_strategy = std::make_shared<AllMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
+    switch (settings::crystal::mgc) {
+        case settings::crystal::MillerGenerationChoice::All: {
+            miller_strategy = std::make_shared<AllMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
             break;
         }
-        case setting::crystal::MillerGenerationChoice::Fibonacci: {
-            miller_strategy = std::make_shared<FibonacciMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
+        case settings::crystal::MillerGenerationChoice::Fibonacci: {
+            miller_strategy = std::make_shared<FibonacciMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
             break;
         }
-        case setting::crystal::MillerGenerationChoice::Reduced: {
-            miller_strategy = std::make_shared<ReducedMillers>(setting::crystal::h, setting::crystal::k, setting::crystal::l);
+        case settings::crystal::MillerGenerationChoice::Reduced: {
+            miller_strategy = std::make_shared<ReducedMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
             break;
         }
 
@@ -69,7 +71,7 @@ SimpleDataset CrystalScattering::calculate() const {
 
     // start threads
     std::vector<std::thread> threads;
-    for (unsigned int i = 0; i < setting::general::threads; i++) {
+    for (unsigned int i = 0; i < settings::general::threads; i++) {
         threads.push_back(std::thread(dispatcher));
     }
 
@@ -82,9 +84,9 @@ SimpleDataset CrystalScattering::calculate() const {
     std::sort(fvals.begin(), fvals.end(), [] (const Fval& a, const Fval& b) {return a.qlength < b.qlength;});
 
     // prepare 100 equidistant logarithmic bins between 0 and 0.5
-    std::vector<double> bins(setting::axes::bins);
-    double logmin = std::log10(setting::axes::qmin);
-    double logmax = std::log10(setting::axes::qmax);
+    std::vector<double> bins(settings::axes::bins);
+    double logmin = std::log10(settings::axes::qmin);
+    double logmax = std::log10(settings::axes::qmax);
     double logstep = (logmax - logmin)/bins.size();
     for (unsigned int i = 0; i < bins.size(); i++) {
         bins[i] = std::pow(10, logmin + i*logstep);

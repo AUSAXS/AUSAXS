@@ -5,7 +5,6 @@
 #include <dataset/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
-#include <utility/Settings.h>
 #include <dataset/DatasetFactory.h>
 
 #include <vector>

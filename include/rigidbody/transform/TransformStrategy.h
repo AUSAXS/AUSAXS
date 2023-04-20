@@ -3,9 +3,8 @@
 #include <data/Protein.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 
+class RigidBody;
 namespace rigidbody {
-    class RigidBody;
-
     /**
      * @brief TransformStrategy. 
      * 

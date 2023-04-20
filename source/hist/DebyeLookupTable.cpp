@@ -1,4 +1,5 @@
 #include <hist/DebyeLookupTable.h>
+#include <hist/HistogramSettings.h>
 #include <utility/Utility.h>
 #include <utility/Axis.h>
 
@@ -15,7 +16,7 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
     if (is_default(q, d)) {
         // check if the default table has already been instantiated 
         if (default_table.is_empty()) {
-            double width = setting::axes::distance_bin_width;
+            double width = settings::axes::distance_bin_width;
             std::vector<double> _d(default_size/width, 0);
             for (unsigned int i = 1; i < _d.size(); i++) {
                 _d[i] = width*(i+0.5);
@@ -72,7 +73,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
     table.initialize(q, d);
     for (unsigned int i = 0; i < q.size(); i++) {
         for (unsigned int j = 0; j < d.size(); j++) {
-            double qd = q[i]*d[j];
+            double qd = q[i]*d[j];  
             double val;
             if (qd < tolerance) [[unlikely]] {
                 double qd2 = qd*qd;
@@ -87,8 +88,8 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
 
 bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vector<double>& d) {
     // check q
-    Axis axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
-    double width = setting::axes::distance_bin_width;
+    Axis axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+    double width = settings::axes::distance_bin_width;
 
     if (q.size() != axis.bins) {return false;}
     if (q[0] != axis.min) {return false;}

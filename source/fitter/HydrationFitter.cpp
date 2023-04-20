@@ -6,14 +6,21 @@
 #include <utility/Exceptions.h>
 #include <mini/all.h>
 #include <plots/all.h>
+#include <fitter/FitSettings.h>
+#include <hist/HistogramSettings.h>
 
 using namespace fitter;
 
+HydrationFitter::HydrationFitter(std::string input) : LinearFitter(input) {}
+HydrationFitter::HydrationFitter(std::string input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
+HydrationFitter::HydrationFitter(std::string input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
+HydrationFitter::HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
+HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model) : HydrationFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
+    auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
     auto res = mini->minimize();
 
     // apply c
@@ -39,7 +46,7 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
 
 double HydrationFitter::fit_only() {
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
-    auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
+    auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
     auto res = mini->minimize();
 
     // apply c

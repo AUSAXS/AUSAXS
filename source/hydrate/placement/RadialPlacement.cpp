@@ -1,7 +1,7 @@
 #include <Symbols.h>
 #include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/Grid.h>
-#include <utility/Settings.h>
+#include <hydrate/GridSettings.h>
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
     int rh = grid->get_radius_water(), ra = grid->get_radius_atoms();
@@ -189,6 +189,6 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
             }
         }
     }
-    if (score <= setting::grid::placement::min_score*rot_bins_1rh.size()) {return false;}
+    if (score <= settings::grid::detail::min_score*rot_bins_1rh.size()) {return false;}
     return true;
 }

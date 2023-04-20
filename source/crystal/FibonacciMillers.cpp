@@ -3,20 +3,20 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include <crystal/Settings.h>
+#include <crystal/CrystalSettings.h>
 
 using namespace crystal;
 
 FibonacciMillers::FibonacciMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
 
 std::vector<Miller> FibonacciMillers::generate() const {
-    std::vector<Miller> bases = pick_directions(generate_independent_bases(setting::crystal::reduced::basis_q));
+    std::vector<Miller> bases = pick_directions(generate_independent_bases(settings::crystal::reduced::basis_q));
     std::vector<Miller> millers;
 
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
     // int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
-    double q2 = setting::crystal::max_q*setting::crystal::max_q;
+    double q2 = settings::crystal::max_q*settings::crystal::max_q;
     for (const auto& base : bases) {
         // std::cout << "(" << base.h << " " << base.k << " " << base.l << ")" << std::endl;
         int multiplier = 1;

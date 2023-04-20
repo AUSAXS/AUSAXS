@@ -1,5 +1,7 @@
 #include <data/Protein.h>
 #include <hist/HistogramManagerMT.h>
+#include <hist/HistogramSettings.h>
+#include <utility/GeneralSettings.h>
 
 #include <BS_thread_pool.hpp>
 
@@ -17,8 +19,8 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     auto atoms = protein->atoms();
     auto waters = protein->waters();
 
-    double width = setting::axes::distance_bin_width;
-    Axis axes = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
+    double width = settings::axes::distance_bin_width;
+    Axis axes = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time
@@ -43,7 +45,7 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    BS::thread_pool pool(setting::general::threads);
+    BS::thread_pool pool(settings::general::threads);
     auto calc_pp = [&data_p, &axes, &atoms, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(axes.bins, 0);
         for (unsigned int i = imin; i < imax; i++) {
@@ -90,7 +92,7 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     //##############//
     // SUBMIT TASKS //
     //##############//
-    unsigned int job_size = setting::general::detail::job_size;
+    unsigned int job_size = settings::general::detail::job_size;
     BS::multi_future<std::vector<double>> pp;
     for (unsigned int i = 0; i < atoms.size(); i+=job_size) {
         pp.push_back(pool.submit(calc_pp, i, std::min(i+job_size, (unsigned int)atoms.size())));

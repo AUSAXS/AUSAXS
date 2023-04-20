@@ -2,17 +2,18 @@
 #include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
 #include <dataset/Dataset2D.h>
-#include <utility/Settings.h>
 #include <utility/Utility.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
+#include <hist/HistogramSettings.h>
+#include <utility/GeneralSettings.h>
 
 #include <vector>
 #include <string>
 #include <fstream>
 
 std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, unsigned int expected_cols) {
-    if (setting::general::verbose) {
+    if (settings::general::verbose) {
         utility::print_info("\nReading dataset from \"" + path + "\"");
     }
 
@@ -62,7 +63,7 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, uns
 
     // determine the most common number of columns, since that will likely be the data
     unsigned int mode = stats::mode(col_number);
-    if (setting::general::verbose) {
+    if (settings::general::verbose) {
         switch (mode) {
             case 2: 
                 std::cout << "\t2 columns detected. Assuming the format is [x | y]" << std::endl;
@@ -91,7 +92,7 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, uns
         std::vector<std::vector<double>> data_cols;
         for (unsigned int i = 0; i < row_data.size(); i++) {
             if (row_data[i].size() != mode) {continue;}     // skip rows with the wrong number of columns
-            if (count++ < setting::axes::skip) {continue;}  // skip the first few rows if requested
+            if (count++ < settings::axes::skip) {continue;}  // skip the first few rows if requested
             data_cols.push_back(std::move(row_data[i]));
         }
 
@@ -116,15 +117,15 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, uns
     }
 
     // skip the first few rows if requested
-    if (setting::axes::skip != 0 && setting::general::verbose) {
+    if (settings::axes::skip != 0 && settings::general::verbose) {
         std::cout << "\tSkipped " << count - dataset->size() << " data points from beginning of file." << std::endl;
     }
 
     // remove all rows outside the specified q-range
     unsigned int N = dataset->size();
-    dataset->limit_x(setting::axes::qmin, setting::axes::qmax);
-    if (N != dataset->size() && setting::general::verbose) {
-        std::cout << "\tRemoved " << N - dataset->size() << " data points outside specified q-range [" << setting::axes::qmin << ", " << setting::axes::qmax << "]." << std::endl;
+    dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
+    if (N != dataset->size() && settings::general::verbose) {
+        std::cout << "\tRemoved " << N - dataset->size() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
     }
 
     // verify that at least one row was read correctly
@@ -136,20 +137,20 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, uns
     bool found_unit = false;
     for (auto& s : header) {
         if (s.find("[nm]") != std::string::npos) {
-            if (setting::general::verbose) {std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;}
+            if (settings::general::verbose) {std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;}
             for (unsigned int i = 0; i < dataset->size(); i++) {
                 dataset->index(i, 0) /= 10;
             }
             found_unit = true;
             break;
         } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-            if (setting::general::verbose) {std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;}
+            if (settings::general::verbose) {std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;}
             found_unit = true;
             break;
         }
     }
     if (!found_unit) {
-        if (setting::general::verbose) {std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;}
+        if (settings::general::verbose) {std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;}
     }
 
     // check if the file is abnormally large
@@ -162,13 +163,13 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, uns
         // check if file has already been rebinned
         if (line.find("REBINNED") == std::string::npos) {
             // if not, suggest it to the user
-            if (setting::general::verbose) {
+            if (settings::general::verbose) {
                 std::cout << "\tFile contains more than 300 rows. Consider rebinning the data." << std::endl;
             }
         }
     }
 
-    if (setting::general::verbose) {
+    if (settings::general::verbose) {
         std::cout << "\tSuccessfully read " << dataset->size() << " data points from " << path << std::endl;
     }
     return dataset;

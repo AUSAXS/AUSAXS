@@ -1,5 +1,5 @@
 #include <hist/ScatteringHistogram.h>
-#include <utility/Settings.h>
+#include <hist/HistogramSettings.h>
 #include <utility/Constants.h>
 #include <utility/Axis.h>
 
@@ -21,7 +21,7 @@ void ScatteringHistogram::setup() {
     }    
 
     // prepare the q values for the intensity calculations
-    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
+    Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
     q = std::vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
@@ -57,7 +57,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity(const std::ve
 
 SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
-    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
+    Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
@@ -72,7 +72,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
 
 Histogram ScatteringHistogram::plot_guinier_approx() const {
     std::vector<double> Iq = calc_guinier_approx().col("logI");
-    return Histogram(Iq, Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax));
+    return Histogram(Iq, Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax));
 }
 
 double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
@@ -87,7 +87,7 @@ double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
 SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
-    Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
+    Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
         Iq[i] = std::exp(-pow(q[i], 2)*Rg2/3);

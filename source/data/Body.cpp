@@ -9,7 +9,7 @@
 #include <hydrate/Grid.h>
 #include <utility/Constants.h>
 #include <data/Body.h>
-#include <utility/Settings.h>
+#include <data/ProteinSettings.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 
@@ -28,7 +28,7 @@ Body::~Body() = default;
 void Body::save(std::string path) {file.write(path);}
 
 void Body::center() {
-    if (!centered && setting::protein::center) {
+    if (!centered && settings::protein::center) {
         translate(-get_cm());
         centered = true;
     }

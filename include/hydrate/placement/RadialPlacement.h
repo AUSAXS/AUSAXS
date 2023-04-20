@@ -2,7 +2,6 @@
 
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/Grid.h>
-#include <utility/Settings.h>
 
 namespace grid {
     /**

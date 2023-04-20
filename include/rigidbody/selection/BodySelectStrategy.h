@@ -4,9 +4,9 @@
 
 #include <utility>
 
-namespace rigidbody {
-    class RigidBody;
+class RigidBody;
 
+namespace rigidbody {
     /**
      * @brief \class ConstraintSelectStrategy. 
      * 

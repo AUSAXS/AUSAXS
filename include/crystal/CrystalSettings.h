@@ -1,6 +1,6 @@
 #pragma once
 
-namespace setting {
+namespace settings {
     struct crystal {
         enum class MillerGenerationChoice {All, Fibonacci, Reduced};
         inline static MillerGenerationChoice mgc = MillerGenerationChoice::All; // The choice of Miller index generation algorithm.

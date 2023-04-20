@@ -50,5 +50,5 @@ Grid GridReader::read(const std::string& filename) {
     // }
 
     // return grid;
-    return Grid({1, 1, 1, 1, 1, 1}, 1);
+    return Grid({1, 1, 1, 1, 1, 1});
 }

@@ -1,17 +1,10 @@
 #include <rigidbody/RigidBody.h>
 
 #include <Symbols.h>
-#include <rigidbody/parameters/SimpleParameterGeneration.h>
-#include <rigidbody/parameters/RotationsOnly.h>
-#include <rigidbody/transform/RigidTransform.h>
-#include <rigidbody/transform/SingleTransform.h>
-#include <rigidbody/selection/SequentialSelect.h>
-#include <rigidbody/selection/RandomSelect.h>
-#include <rigidbody/selection/RandomConstraintSelect.h>
-#include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/constraints/OverlapConstraint.h>
-#include <rigidbody/Settings.h>
+#include <rigidbody/transform/TransformFactory.h>
+#include <rigidbody/selection/BodySelectFactory.h>
+#include <rigidbody/parameters/ParameterGenerationFactory.h>
+#include <rigidbody/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 #include <io/XYZWriter.h>
 #include <plots/PlotIntensityFit.h>
@@ -28,63 +21,26 @@ RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
 }
 
 void RigidBody::setup() {
-    // Set body transformation strategy
-    switch (setting::rigidbody::tsc) {
-        case setting::rigidbody::TransformationStrategyChoice::RigidTransform:
-            transform = std::make_unique<RigidTransform>(this); 
-            break;
-        case setting::rigidbody::TransformationStrategyChoice::SingleTransform:
-            transform = std::make_unique<SingleTransform>(this);
-            break;
-        default: 
-            throw except::unknown_argument("RigidBody::RigidBody: Unkown TransformationStrategy.");
-    }
-
-    // Set parameter generation strategy
-    switch (setting::rigidbody::pgsc) {
-        case setting::rigidbody::ParameterGenerationStrategyChoice::Simple:
-            parameter_generator = std::make_unique<SimpleParameterGeneration>(setting::rigidbody::iterations, 5, M_PI/3);
-            break;
-        case setting::rigidbody::ParameterGenerationStrategyChoice::RotationsOnly:
-            parameter_generator = std::make_unique<RotationsOnly>(setting::rigidbody::iterations, 5, M_PI/3);
-            break;
-        default: 
-            throw except::unknown_argument("RigidBody::RigidBody: Unknown ParameterGenerationStrategy.");
-    }
-
-    // Set body selection strategy
-    switch (setting::rigidbody::bssc) {
-        case setting::rigidbody::BodySelectStrategyChoice::RandomSelect:
-            body_selector = std::make_unique<RandomSelect>(this);
-            break;
-        case setting::rigidbody::BodySelectStrategyChoice::RandomConstraintSelect:
-            body_selector = std::make_unique<RandomConstraintSelect>(this);
-            break;
-        case setting::rigidbody::BodySelectStrategyChoice::SequentialSelect:
-            body_selector = std::make_unique<SequentialSelect>(this);
-            break;
-        default: 
-            throw except::unknown_argument("RigidBody::RigidBody: Unknown BodySelectStrategy.");
-    }
+    constraints = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3, settings::rigidbody::culling_strategy);
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     auto fitter = prepare_fitter(measurement_path);
     double best_chi2 = fitter->fit_only();
-    plots::PlotDistance::quick_plot(get_histogram(), setting::general::output + "/hist/distance_0.png");
+    plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_0.png");
 
-    if (setting::general::supplementary_plots) {
-        plots::PlotIntensityFit::quick_plot(fitter->fit(), setting::general::output + "initial_curve.png");
+    if (settings::general::supplementary_plots) {
+        plots::PlotIntensityFit::quick_plot(fitter->fit(), settings::general::output + "initial_curve.png");
     }
 
-    if (setting::general::verbose) {
+    if (settings::general::verbose) {
         utility::print_info("\nStarting rigid body optimization.");
         std::cout << "\tInitial chi2: " << best_chi2 << std::endl;
     }
 
     Parameters params(this);
-    io::XYZWriter writer(setting::general::output + "trajectory.xyz");
+    io::XYZWriter writer(settings::general::output + "trajectory.xyz");
     writer.write_frame(this);
 
     // save the best configuration so we can restore it after each failed attempt
@@ -92,7 +48,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     std::shared_ptr<Grid> best_grid = std::make_shared<Grid>(*grid);
     std::vector<Water> best_waters = waters();
     unsigned int optimized_step = 0;
-    for (unsigned int i = 0; i < setting::rigidbody::iterations; i++) {
+    for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {
         // select a body to be modified this iteration
         auto [ibody, iconstraint] = body_selector->next();
         std::shared_ptr<DistanceConstraint> constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint);
@@ -112,7 +68,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
             *grid = *best_grid;         // restore the old grid
             waters() = best_waters;     // restore the old waters
 
-            if (i % 10 == 0 && setting::general::verbose) {
+            if (i % 10 == 0 && settings::general::verbose) {
                 std::cout << "\rIteration " << i << "          " << std::flush;
             }
         } else {
@@ -125,11 +81,11 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
             // params.update(body.uid, param);
             std::cout << "\rIteration " << i << std::endl;
             utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
-            // plots::PlotDistance::quick_plot(get_histogram(), setting::general::output + "/hist/distance_" + std::to_string(++optimized_step) + ".png");
+            // plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_" + std::to_string(++optimized_step) + ".png");
         }
     }
 
-    save(setting::general::output + "optimized.pdb");
+    save(settings::general::output + "optimized.pdb");
     update_fitter(fitter);
     auto fit = fitter->fit();
     if (calibration != nullptr) {fit->add_parameter(calibration->get_parameter("c"));}
@@ -137,7 +93,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
 }
 
 void RigidBody::apply_calibration(std::shared_ptr<fitter::Fit> calibration) {
-    if (setting::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
+    if (settings::general::verbose) {std::cout << "\tApplying calibration to rigid body." << std::endl;}
     this->calibration = calibration;
 }
 

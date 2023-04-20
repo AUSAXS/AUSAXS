@@ -7,38 +7,20 @@
 #include <data/Water.h>
 #include <hydrate/culling/CullingFactory.h>
 #include <hydrate/placement/PlacementFactory.h>
-#include <utility/Settings.h>
+#include <hydrate/GridSettings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
 #include <data/Protein.h>
 
 using namespace grid;
 
-Grid::Grid(const Axis3D& axes, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) : axes(axes) {
-    setup(axes.width(), ra, rh, ps, cs);
+Grid::Grid(const Axis3D& axes) : axes(axes) {
+    setup();
 }
 
-Grid::Grid(const std::vector<Atom>& atoms, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
-    // find the bounding box
-    Vector3<double> nmin, nmax; // new min & max
-    auto[min, max] = bounding_box(atoms);
+Grid::Grid(const std::vector<Atom>& atoms) : Grid({Body(atoms)}) {}
 
-    // expand bounding box by scaling factor
-    for (unsigned int i = 0; i < 3; i++) {
-        double expand = 0.5*(max[i] - min[i])*setting::grid::scaling;   // amount to expand in each direction
-        nmin[i] = min[i] - expand - setting::grid::width;               // ensure at least one additional bin is added
-        nmax[i] = max[i] + expand + setting::grid::width;               
-    }
-
-    // setup the rest of the class members
-    axes = Axis3D(nmin, nmax, setting::grid::width);
-    setup(width, ra, rh, ps, cs);
-
-    // finally add the atoms to the grid
-    add(atoms);
-}
-
-Grid::Grid(const std::vector<Body>& bodies, double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
+Grid::Grid(const std::vector<Body>& bodies) {
     Vector3<double> nmin, nmax; // new min & max
 
     // find the total bounding box containing all bodies
@@ -54,14 +36,14 @@ Grid::Grid(const std::vector<Body>& bodies, double width, double ra, double rh, 
 
     // expand bounding box by scaling factor
     for (unsigned int i = 0; i < 3; i++) {
-        double expand = 0.5*(max[i] - min[i])*setting::grid::scaling;   // amount to expand in each direction
-        nmin[i] = min[i] - expand - setting::grid::width;               // ensure at least one additional bin is added
-        nmax[i] = max[i] + expand + setting::grid::width;               
+        double expand = 0.5*(max[i] - min[i])*settings::grid::scaling;   // amount to expand in each direction
+        nmin[i] = min[i] - expand - settings::grid::width;               // ensure at least one additional bin is added
+        nmax[i] = max[i] + expand + settings::grid::width;               
     }
 
     // setup the rest of the class members
-    axes = Axis3D(nmin, nmax, setting::grid::width);
-    setup(width, ra, rh, ps, cs);
+    axes = Axis3D(nmin, nmax, settings::grid::width);
+    setup();
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
@@ -69,7 +51,7 @@ Grid::Grid(const std::vector<Body>& bodies, double width, double ra, double rh, 
     }
 }
 
-Grid::Grid(const Grid& grid) : Grid(grid.axes, grid.ra, grid.rh, setting::grid::placement_strategy, setting::grid::culling_strategy) {
+Grid::Grid(const Grid& grid) {
     *this = grid;
 }
 
@@ -77,9 +59,9 @@ Grid::Grid(Grid&& grid) noexcept {
     *this = std::move(grid);
 }
 
-void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStrategy ps, setting::grid::CullingStrategy cs) {
+void Grid::setup() {
     // check if the grid should be cubic
-    if (setting::grid::cubic) {
+    if (settings::grid::cubic) {
         double x_side = axes.x.max - axes.x.min;
         double y_side = axes.y.max - axes.y.min;
         double z_side = axes.z.max - axes.z.min;
@@ -112,13 +94,13 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
 
-    water_placer = grid::factory::construct_placement_strategy(this, ps);
-    water_culler = grid::factory::construct_culling_strategy(this, cs);
+    water_placer = grid::factory::construct_placement_strategy(this, settings::grid::placement_strategy);
+    water_culler = grid::factory::construct_culling_strategy(this, settings::grid::culling_strategy);
 }
 
 std::vector<Water> Grid::hydrate() {
     std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    water_culler->set_target_count(setting::grid::percent_water*a_members.size()); // target is 10% of atoms
+    water_culler->set_target_count(settings::grid::percent_water*a_members.size()); // target is 10% of atoms
     return water_culler->cull(placed_water);
 }
 

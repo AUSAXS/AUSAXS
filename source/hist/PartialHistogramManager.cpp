@@ -1,5 +1,6 @@
 #include <data/Protein.h>
 #include <hist/PartialHistogramManager.h>
+#include <hist/HistogramSettings.h>
 
 using namespace hist;
 
@@ -104,7 +105,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 }
 
 void PartialHistogramManager::calc_self_correlation(unsigned int index) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates current(protein->bodies[index]);
 
     // calculate internal distances between atoms
@@ -137,8 +138,8 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManager::initialize() {
-    double width = setting::axes::distance_bin_width;
-    Axis axis = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
+    double width = settings::axes::distance_bin_width;
+    Axis axis = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
@@ -155,7 +156,7 @@ void PartialHistogramManager::initialize() {
 }
 
 void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
 
     detail::CompactCoordinates& coords_n = coords_p[n];
     detail::CompactCoordinates& coords_m = coords_p[m];
@@ -176,7 +177,7 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
 }
 
 void PartialHistogramManager::calc_pp(unsigned int index) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates& coords_i = coords_p[index];
 
     // we do not want to calculate the self-correlation, so we have to skip entry 'index'
@@ -218,7 +219,7 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
 }
 
 void PartialHistogramManager::calc_hp(unsigned int index) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
     std::vector<double> p_hp(master.axis.bins, 0);
 
     detail::CompactCoordinates& coords = coords_p[index];
@@ -239,7 +240,7 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
 }
 
 void PartialHistogramManager::calc_hh() {
-    const double& width = setting::axes::distance_bin_width;
+    const double& width = settings::axes::distance_bin_width;
     std::vector<double> p_hh(master.axis.bins, 0);
 
     // calculate internal distances for the hydration layer

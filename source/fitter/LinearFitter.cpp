@@ -4,27 +4,34 @@
 #include <fitter/LinearFitter.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
-#include <utility/Settings.h>
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
+#include <hist/HistogramSettings.h>
 
 using namespace fitter;
 
+LinearFitter::LinearFitter(std::string input) {setup(input);}
+LinearFitter::LinearFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
+LinearFitter::LinearFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {}
+LinearFitter::LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
+LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model) : LinearFitter(data, model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
+LinearFitter::LinearFitter(const hist::ScatteringHistogram& model) : LinearFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
 LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
     model_setup(model, limits);
 }
-
 LinearFitter::LinearFitter(const hist::ScatteringHistogram& model, const Limit& limits) {
     model_setup(model, limits);
 }
 
 void LinearFitter::model_setup(const hist::ScatteringHistogram& model, const Limit& limits) {
-    data = model.calc_debye_scattering_intensity();
-    data.reduce(setting::fit::N, true);
-    data.limit_x(limits);
-    data.simulate_errors();
-    if (I0 > 0) {data.normalize(I0);}
-    if (setting::em::simulation::noise) {data.simulate_noise();}
+    throw except::not_implemented("LinearFitter::model_setup: Not implemented yet!");
+    // data = model.calc_debye_scattering_intensity();
+    // data.reduce(settings::fit::N, true);
+    // data.limit_x(limits);
+    // data.simulate_errors();
+    // if (I0 > 0) {data.normalize(I0);}
+    // if (settings::em::simulation::noise) {data.simulate_noise();}
 }
 
 double LinearFitter::fit_only() {

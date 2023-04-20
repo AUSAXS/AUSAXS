@@ -1,5 +1,5 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/Settings.h>
+#include <rigidbody/RigidBodySettings.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;
@@ -42,7 +42,7 @@ DistanceConstraint::DistanceConstraint(Protein* protein, const Atom& atom1, cons
 
     // set the base radius and perform a sanity check
     r_base = atom1.distance(atom2);
-    if (r_base > setting::rigidbody::bond_distance) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
+    if (r_base > settings::rigidbody::bond_distance) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
 }
 
 std::pair<rigidbody::DistanceConstraint::AtomLoc, rigidbody::DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const Atom& atom1, const Atom& atom2) const {

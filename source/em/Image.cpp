@@ -3,6 +3,7 @@
 
 #include <em/Image.h>
 #include <utility/Utility.h>
+#include <em/EMSettings.h>
 
 using namespace em;
 
@@ -28,10 +29,10 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
     double yscale = header->cella_y/M;
     double zscale = header->cella_z/header->nz;
 
-    unsigned int step = setting::em::sample_frequency;
+    unsigned int step = settings::em::sample_frequency;
     
     // define a weight function for more efficient switching. 
-    auto weight = setting::em::fixed_weights ? 
+    auto weight = settings::em::fixed_weights ? 
         [](float) {return 1.0f;} :      // fixed weights enabled - all voxels have the same weight of 1
         [] (float val) {return val;};   // fixed weights disabled - voxels have a weight equal to their density
     

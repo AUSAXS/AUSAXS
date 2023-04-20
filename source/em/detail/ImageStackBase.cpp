@@ -3,12 +3,14 @@
 #include <data/Protein.h>
 #include <em/detail/ProteinManagerFactory.h>
 #include <utility/Exceptions.h>
+#include <em/EMSettings.h>
+#include <hist/HistogramSettings.h>
 
 #include <fstream>
 
 em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
-    phm = setting::em::fixed_weights ? 
+    phm = settings::em::fixed_weights ? 
         em::ProteinManagerFactory::create<em::SimpleProteinManager>(this) : 
         em::ProteinManagerFactory::create<em::ProteinManager>(this);
 }
@@ -22,7 +24,7 @@ em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(st
     size_x = header->nx; size_y = header->ny; size_z = header->nz;
     read(input, get_byte_size());
 
-    phm = setting::em::fixed_weights ? 
+    phm = settings::em::fixed_weights ? 
         em::ProteinManagerFactory::create<em::SimpleProteinManager>(this) : 
         em::ProteinManagerFactory::create<em::ProteinManager>(this);
 }
@@ -132,7 +134,7 @@ void em::ImageStackBase::set_header(std::shared_ptr<ccp4::Header> header) {
 }
 
 Limit em::ImageStackBase::get_limits() const {
-    return Limit(setting::axes::qmin, setting::axes::qmax);
+    return Limit(settings::axes::qmin, settings::axes::qmax);
 }
 
 double em::ImageStackBase::mean() const {

@@ -9,7 +9,7 @@
 #include <data/Atom.h>
 #include <math/Vector3.h>
 #include <utility/Constants.h>
-#include <utility/Settings.h>
+#include <data/ProteinSettings.h>
 #include <utility/Utility.h>
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
@@ -40,7 +40,7 @@ Atom::Atom(int serial, string name, string altLoc, string resName, string chainI
         set_charge(charge);
 
         // check if we want to correct the hydrogen contribution to the charge
-        if (setting::protein::use_effective_charge) {
+        if (settings::protein::use_effective_charge) {
             // use a try-catch block to throw more sensible errors
             try {
                 effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
@@ -124,7 +124,7 @@ void Atom::parse_pdb(string s) {
         throw;
     }
 
-    if (setting::protein::use_effective_charge) {
+    if (settings::protein::use_effective_charge) {
         effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
         effective_charge = constants::charge::atomic.get(this->element);
@@ -205,7 +205,7 @@ string Atom::get_element() const {return element;}
 string Atom::get_recName() const {return recName;}
 
 double Atom::get_mass() const {
-    if (setting::protein::use_effective_charge) {
+    if (settings::protein::use_effective_charge) {
         // mass of this nucleus + mass of attached H atoms
         if (element.empty() || resName.empty() || name.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");

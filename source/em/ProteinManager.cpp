@@ -3,12 +3,13 @@
 #include <data/Protein.h>
 #include <utility/Utility.h>
 #include <em/detail/ImageStackBase.h>
+#include <em/EMSettings.h>
 
 #include <vector>
 
 em::ProteinManager::ProteinManager(const em::ImageStackBase* images) : images(images) {
     double max = images->from_level(5);
-    Axis axis(setting::em::charge_levels, 0, max);
+    Axis axis(settings::em::charge_levels, 0, max);
     set_charge_levels(axis.as_vector());
 }
 
@@ -21,7 +22,7 @@ std::vector<Atom> em::ProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
     const std::vector<Image>& imagestack = images->images();
-    unsigned int step = setting::em::sample_frequency;
+    unsigned int step = settings::em::sample_frequency;
     for (unsigned int i = 0; i < imagestack.size(); i += step) {
         std::list<Atom> im_atoms = imagestack[i].generate_atoms(cutoff);
         atoms.splice(atoms.end(), im_atoms); // move im_atoms to end of atoms

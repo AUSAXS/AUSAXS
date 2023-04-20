@@ -1,12 +1,13 @@
 #include <rigidbody/constraints/generation/LinearConstraints.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <utility/GeneralSettings.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;
 
 std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> LinearConstraints::generate() const {
-    if (setting::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
+    if (settings::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
     std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> constraints;
 
     auto& protein = *manager->protein;
@@ -36,7 +37,7 @@ std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> LinearConstraints::g
         }
 
         constraints.emplace_back(std::make_shared<DistanceConstraint>(manager->protein, ibody1, ibody2, min_atom1, min_atom2));
-        if (setting::general::verbose) {
+        if (settings::general::verbose) {
             std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
         }
     }

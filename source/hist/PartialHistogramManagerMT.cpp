@@ -1,5 +1,7 @@
 #include <data/Protein.h>
 #include <hist/PartialHistogramManagerMT.h>
+#include <utility/GeneralSettings.h>
+#include <hist/HistogramSettings.h>
 
 #include <mutex>
 #include <BS_thread_pool.hpp>
@@ -16,7 +18,7 @@ Histogram PartialHistogramManagerMT::calculate() {
     const std::vector<bool> externally_modified = statemanager.get_externally_modified_bodies();
     const std::vector<bool> internally_modified = statemanager.get_internally_modified_bodies();
 
-    pool = std::make_unique<BS::thread_pool>(setting::general::threads);
+    pool = std::make_unique<BS::thread_pool>(settings::general::threads);
     // check if the object has already been initialized
     if (master.p.size() == 0) [[unlikely]] {
         initialize(); 
@@ -107,7 +109,7 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
 }
 
 void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates current(protein->bodies[index]);
 
     // calculate internal distances between atoms
@@ -135,8 +137,8 @@ void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
 
     // submit jobs to the thread pool
     BS::multi_future<std::vector<double>> pp;
-    for (unsigned int i = 0; i < current.size; i += setting::general::detail::job_size) {
-        pp.push_back(pool->submit(calc_internal, i, std::min(i+setting::general::detail::job_size, current.size)));
+    for (unsigned int i = 0; i < current.size; i += settings::general::detail::job_size) {
+        pp.push_back(pool->submit(calc_internal, i, std::min(i+settings::general::detail::job_size, current.size)));
     }
     pp.push_back(pool->submit(calc_self));
     pool->wait_for_tasks();
@@ -164,8 +166,8 @@ void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManagerMT::initialize() {
-    double width = setting::axes::distance_bin_width;
-    Axis axis = Axis(setting::axes::max_distance/width, 0, setting::axes::max_distance); 
+    double width = settings::axes::distance_bin_width;
+    Axis axis = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
@@ -182,7 +184,7 @@ void PartialHistogramManagerMT::initialize() {
 }
 
 void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
 
     detail::CompactCoordinates& coords_n = coords_p[n];
     detail::CompactCoordinates& coords_m = coords_p[m];
@@ -203,8 +205,8 @@ void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
 
     // submit jobs to the thread pool
     BS::multi_future<std::vector<double>> pp;
-    for (unsigned int i = 0; i < coords_n.size; i += setting::general::detail::job_size) {
-        pp.push_back(pool->submit(calc_pp, i, std::min(i+setting::general::detail::job_size, coords_n.size)));
+    for (unsigned int i = 0; i < coords_n.size; i += settings::general::detail::job_size) {
+        pp.push_back(pool->submit(calc_pp, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
     }
     pool->wait_for_tasks();
 
@@ -222,7 +224,7 @@ void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
 }
 
 void PartialHistogramManagerMT::calc_pp(unsigned int index) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates& coords_i = coords_p[index];
 
     auto calc_pp = [&] (unsigned int imin, unsigned int imax, const detail::CompactCoordinates& coords_j) {
@@ -243,13 +245,13 @@ void PartialHistogramManagerMT::calc_pp(unsigned int index) {
     // submit jobs to the thread pool
     std::vector<BS::multi_future<std::vector<double>>> pp;
     for (unsigned int n = 0; n < index; n++) { // loop from (0, index
-        for (unsigned int i = 0; i < coords_i.size; i += setting::general::detail::job_size) {
-            pp[n].push_back(pool->submit(calc_pp, i, std::min(i+setting::general::detail::job_size, coords_i.size), coords_p[n]));
+        for (unsigned int i = 0; i < coords_i.size; i += settings::general::detail::job_size) {
+            pp[n].push_back(pool->submit(calc_pp, i, std::min(i+settings::general::detail::job_size, coords_i.size), coords_p[n]));
         }
     }
     for (unsigned int n = index+1; n < size; n++) { // loop from (0, index
-        for (unsigned int i = 0; i < coords_i.size; i += setting::general::detail::job_size) {
-            pp[n].push_back(pool->submit(calc_pp, i, std::min(i+setting::general::detail::job_size, coords_i.size), coords_p[n]));
+        for (unsigned int i = 0; i < coords_i.size; i += settings::general::detail::job_size) {
+            pp[n].push_back(pool->submit(calc_pp, i, std::min(i+settings::general::detail::job_size, coords_i.size), coords_p[n]));
         }
     }
     pool->wait_for_tasks();
@@ -276,7 +278,7 @@ void PartialHistogramManagerMT::calc_pp(unsigned int index) {
 }
 
 void PartialHistogramManagerMT::calc_hp(unsigned int index) {
-    double width = setting::axes::distance_bin_width;
+    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates& coords = coords_p[index];
 
     auto calc_hp = [&] (unsigned int imin, unsigned int imax) {
@@ -296,8 +298,8 @@ void PartialHistogramManagerMT::calc_hp(unsigned int index) {
 
     // submit jobs to the thread pool
     BS::multi_future<std::vector<double>> hp;
-    for (unsigned int i = 0; i < coords.size; i += setting::general::detail::job_size) {
-        hp.push_back(pool->submit(calc_hp, i, std::min(i+setting::general::detail::job_size, coords.size)));
+    for (unsigned int i = 0; i < coords.size; i += settings::general::detail::job_size) {
+        hp.push_back(pool->submit(calc_hp, i, std::min(i+settings::general::detail::job_size, coords.size)));
     }
     pool->wait_for_tasks();
 
@@ -315,7 +317,7 @@ void PartialHistogramManagerMT::calc_hp(unsigned int index) {
 }
 
 void PartialHistogramManagerMT::calc_hh() {
-    const double& width = setting::axes::distance_bin_width;
+    const double& width = settings::axes::distance_bin_width;
 
     // calculate internal distances for the hydration layer
     auto calc_hh = [&] (unsigned int imin, unsigned int imax) {
@@ -342,8 +344,8 @@ void PartialHistogramManagerMT::calc_hh() {
 
     // submit jobs to the thread pool
     BS::multi_future<std::vector<double>> hh;
-    for (unsigned int i = 0; i < protein->hydration_atoms.size(); i += setting::general::detail::job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min(i+setting::general::detail::job_size, (unsigned int) protein->hydration_atoms.size())));
+    for (unsigned int i = 0; i < protein->hydration_atoms.size(); i += settings::general::detail::job_size) {
+        hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, (unsigned int) protein->hydration_atoms.size())));
     }
     hh.push_back(pool->submit(calc_self));
     pool->wait_for_tasks();
