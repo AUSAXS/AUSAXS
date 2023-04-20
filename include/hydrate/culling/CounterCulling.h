@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hydrate/CullingStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 #include <hydrate/Grid.h>
 
 namespace grid {
@@ -10,7 +10,7 @@ namespace grid {
     class CounterCulling : public CullingStrategy {
         public:
             using CullingStrategy::CullingStrategy;
-            ~CounterCulling() override {}
+            ~CounterCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
             std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const override;

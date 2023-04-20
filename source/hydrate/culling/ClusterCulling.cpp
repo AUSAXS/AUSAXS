@@ -1,5 +1,5 @@
 #include <Symbols.h>
-#include <hydrate/ClusterCulling.h>
+#include <hydrate/culling/ClusterCulling.h>
 #include <hydrate/Grid.h>
 
 grid::ClusterCulling::ClusterCulling(Grid* grid) : grid(grid) {

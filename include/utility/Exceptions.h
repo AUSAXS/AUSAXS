@@ -53,4 +53,7 @@ namespace except {
 
     // Map error. Used when something is wrong with a map. Used for the constants. 
     struct map_error : public base {using base::base;};
+
+    // Not implemented. Used when a method is not implemented yet.
+    struct not_implemented : public base {using base::base;};
 }

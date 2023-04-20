@@ -72,6 +72,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     auto fitter = prepare_fitter(measurement_path);
     double best_chi2 = fitter->fit_only();
+    plots::PlotDistance::quick_plot(get_histogram(), setting::general::output + "/hist/distance_0.png");
 
     if (setting::general::supplementary_plots) {
         plots::PlotIntensityFit::quick_plot(fitter->fit(), setting::general::output + "initial_curve.png");
@@ -124,7 +125,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
             // params.update(body.uid, param);
             std::cout << "\rIteration " << i << std::endl;
             utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
-            plots::PlotDistance::quick_plot(get_histogram(), setting::general::output + "/hist/distance_" + std::to_string(++optimized_step) + ".png");
+            // plots::PlotDistance::quick_plot(get_histogram(), setting::general::output + "/hist/distance_" + std::to_string(++optimized_step) + ".png");
         }
     }
 

@@ -2,6 +2,7 @@
 
 #include <utility/Axis.h>
 #include <utility/Limit3D.h>
+#include <math/Vector3.h>
 
 /**
  * @brief A representation of a 3D coordinate system.

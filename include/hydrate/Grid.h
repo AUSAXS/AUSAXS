@@ -5,8 +5,8 @@
 
 #include <data/Atom.h>
 #include <data/Water.h>
-#include <hydrate/PlacementStrategy.h>
-#include <hydrate/CullingStrategy.h>
+#include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 #include <hydrate/GridMember.h>
 #include <utility/Settings.h>
 #include <utility/Axis3D.h>
@@ -339,6 +339,8 @@ class Grid {
 		 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 		 */
 		Body generate_excluded_volume() const;
+
+		std::vector<Atom> get_surface_atoms() const;
 
 		/**
 		 * @brief Get the contents of a single bin.

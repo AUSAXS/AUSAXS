@@ -9,7 +9,7 @@ namespace grid {
     class ClusterCulling {
         public:
             ClusterCulling(Grid* grid);
-            ~ClusterCulling() {}
+            ~ClusterCulling() = default;
 
             /**
              * @brief Remove atoms part of too small groups. 

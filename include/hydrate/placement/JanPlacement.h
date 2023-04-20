@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hydrate/PlacementStrategy.h>
+#include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/Grid.h>
 
 namespace grid {
@@ -14,7 +14,7 @@ namespace grid {
     class JanPlacement : public PlacementStrategy {
         public:
             using PlacementStrategy::PlacementStrategy; // inherit constructor
-            ~JanPlacement() override {}
+            ~JanPlacement() override = default;
 
             std::vector<GridMember<Water>> place() const override;
         };

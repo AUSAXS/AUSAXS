@@ -51,7 +51,12 @@ namespace hist {
              * @brief Reduce the view axis to show only the non-zero area. 
              *        Minimum size is 10 units.
              */
-            void shorten_axis();
+            void shorten_axis(unsigned int min_size = 10);
+
+            /**
+             * @brief Resize the number of bins in this histogram, keeping the width constant.
+             */
+            void resize(unsigned int bins);
 
             /**
              * @brief Automatically generate an axis containing all elements. 

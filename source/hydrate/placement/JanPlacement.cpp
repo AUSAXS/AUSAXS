@@ -1,4 +1,4 @@
-#include <hydrate/JanPlacement.h>
+#include <hydrate/placement/JanPlacement.h>
 #include <hydrate/Grid.h>
 
 std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {

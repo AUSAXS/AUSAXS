@@ -1,5 +1,5 @@
 #include <Symbols.h>
-#include <hydrate/RadialPlacement.h>
+#include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/Grid.h>
 #include <utility/Settings.h>
 

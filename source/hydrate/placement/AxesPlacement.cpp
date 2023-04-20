@@ -1,4 +1,4 @@
-#include <hydrate/AxesPlacement.h>
+#include <hydrate/placement/AxesPlacement.h>
 #include <hydrate/Grid.h>
 
 std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {

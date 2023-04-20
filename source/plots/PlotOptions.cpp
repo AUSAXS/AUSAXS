@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <typeindex>
 #include <initializer_list>
+#include <sstream>
 
 using namespace plots;
 

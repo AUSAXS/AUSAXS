@@ -11,23 +11,38 @@ OverlapConstraint::OverlapConstraint(Protein* protein) {
 double OverlapConstraint::evaluate() const {
     auto distances = protein->get_histogram();
     double chi2 = 0;
-    for (unsigned int i = 0; i < distances.size(); i++) {
-        chi2 += std::pow(distances[i] - target[i], 2);
+    for (unsigned int i = 0; i < target.size(); i++) {
+        chi2 += std::pow((distances[i] - target[i])*weights[i], 2);
     }
-    std::cout << "Overlap constraint: " << chi2 << std::endl;
+    // std::cout << "Overlap constraint: " << chi2 << std::endl;
     return chi2;
 }
 
 void OverlapConstraint::initialize() {
-    auto initial_distances = protein->get_histogram();
     auto weight = [](double r) {
-        return std::exp(-3*r);
+        return std::exp(-5*r);
     };
 
     // define the target distribution
-    target = hist::Histogram(initial_distances.axis);
-    auto axis = initial_distances.axis.as_vector();
-    for (unsigned int i = 0; i < axis.size(); i++) {
-        target[i] = weight(axis[i]) * initial_distances[i];
+    target = protein->get_total_histogram();
+    auto axis = target.axis.as_vector();
+    weights = hist::Histogram(axis);
+
+    // calculate the weights & determine how much of the histogram we have to use
+    for (unsigned int i = 0; i < axis.size(); ++i) {
+        weights[i] = weight(axis[i]);
+        if (weights[i] < 1e-3) {weights[i] = 0;}
+    }
+
+    unsigned int i = axis.size()-1;
+    for (; i > 0; i--) {
+        if (weights[i] != 0) {break;}
+    }
+
+    target.resize(i);
+    weights.resize(i);
+
+    if (setting::general::verbose) {
+        std::cout << "\tOverlap constraint initialized. The distance range [0, " << axis[i] << "]Å will be used for calculating the overlap penalty." << std::endl;
     }
 }

@@ -1,13 +1,13 @@
 #pragma once
 
-class Grid;
-
 #include <vector>
 
 #include <data/Water.h>
 #include <hydrate/GridMember.h>
 
-namespace grid {
+class Grid;
+
+namespace grid {    
     /**
      * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
      */
@@ -34,7 +34,7 @@ namespace grid {
              * @brief Set the desired number of water molecules after the culling. 
              * @param target_count The target number of water molecules. 
              */
-            void set_target_count(size_t target_count) {this->target_count = target_count;}
+            void set_target_count(unsigned int target_count) {this->target_count = target_count;}
 
         protected: 
             unsigned int target_count = 0; // The desired number of molecules after the culling.

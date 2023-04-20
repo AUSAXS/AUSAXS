@@ -30,6 +30,7 @@ namespace rigidbody {
         private: 
             Protein* protein;
             hist::Histogram target;
+            hist::Histogram weights;
 
             /**
              * @brief Initialize the target distribution.

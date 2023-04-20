@@ -1,4 +1,4 @@
-#include <hydrate/CounterCulling.h>
+#include <hydrate/culling/CounterCulling.h>
 #include <hydrate/Grid.h>
 
 std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hydrate/CounterCulling.h>
+#include <hydrate/culling/CounterCulling.h>
 #include <hydrate/Grid.h>
 
 #include <random>
@@ -12,7 +12,7 @@ namespace grid {
     class RandomCulling : public CounterCulling {
         public:
             using CounterCulling::CounterCulling;
-            ~RandomCulling() override {}
+            ~RandomCulling() override = default;
 
             // runs in O(n) where n is the number of water molecules
             std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const override {

@@ -38,7 +38,6 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
 }
 
 double HydrationFitter::fit_only() {
-    std::cout << "HydrationFitter::fit_only() called" << std::endl;
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, setting::em::evals);
     auto res = mini->minimize();
@@ -108,7 +107,6 @@ SimpleDataset HydrationFitter::plot_residuals() {
 }
 
 double HydrationFitter::chi2(const std::vector<double>& params) {
-    std::cout << "HydrationFitter::chi2() called" << std::endl;
     double c = params[0];
 
     // apply c

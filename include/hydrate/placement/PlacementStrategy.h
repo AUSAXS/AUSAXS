@@ -1,9 +1,9 @@
 #pragma once
 
-class Grid;
-
 #include <data/Water.h>
 #include <hydrate/GridMember.h>
+
+class Grid;
 
 namespace grid {
     /**

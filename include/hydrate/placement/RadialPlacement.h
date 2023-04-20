@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hydrate/PlacementStrategy.h>
+#include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/Grid.h>
 #include <utility/Settings.h>
 
@@ -15,10 +15,8 @@ namespace grid {
      */
     class RadialPlacement : public PlacementStrategy {
         public:
-            RadialPlacement(Grid* grid) : PlacementStrategy(grid) {
-                prepare_rotations();
-            }
-            ~RadialPlacement() override {}
+            RadialPlacement(Grid* grid) : PlacementStrategy(grid) {prepare_rotations();}
+            ~RadialPlacement() override = default;
 
             void prepare_rotations(int divisions = 8);
 

@@ -1,4 +1,4 @@
-#include <hydrate/OutlierCulling.h>
+#include <hydrate/culling/OutlierCulling.h>
 #include <hydrate/Grid.h>
 
 #include <utility>

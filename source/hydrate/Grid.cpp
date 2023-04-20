@@ -5,13 +5,8 @@
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/Water.h>
-#include <hydrate/AxesPlacement.h>
-#include <hydrate/RadialPlacement.h>
-#include <hydrate/JanPlacement.h>
-#include <hydrate/CounterCulling.h>
-#include <hydrate/OutlierCulling.h>
-#include <hydrate/RandomCulling.h>
-#include <hydrate/ClusterCulling.h>
+#include <hydrate/culling/CullingFactory.h>
+#include <hydrate/placement/PlacementFactory.h>
 #include <utility/Settings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
@@ -117,33 +112,8 @@ void Grid::setup(double width, double ra, double rh, setting::grid::PlacementStr
     this->set_radius_atoms(ra);
     this->set_radius_water(rh);
 
-    switch (ps) {
-        case setting::grid::PlacementStrategy::AxesStrategy: 
-            water_placer = std::make_unique<AxesPlacement>(this);
-            break;
-        case setting::grid::PlacementStrategy::RadialStrategy:
-            water_placer = std::make_unique<RadialPlacement>(this);
-            break;
-        case setting::grid::PlacementStrategy::JanStrategy: 
-            water_placer = std::make_unique<JanPlacement>(this);
-            break;
-        default: 
-            throw except::unknown_argument("Grid::Grid: Unkown PlacementStrategy");
-    }
-
-    switch (cs) {
-        case setting::grid::CullingStrategy::CounterStrategy: 
-            water_culler = std::make_unique<CounterCulling>(this);
-            break;
-        case setting::grid::CullingStrategy::OutlierStrategy: 
-            water_culler = std::make_unique<OutlierCulling>(this);
-            break;
-        case setting::grid::CullingStrategy::RandomStrategy:
-            water_culler = std::make_unique<RandomCulling>(this);
-            break;
-        default: 
-            throw except::unknown_argument("Grid::Grid: Unkown CullingStrategy");
-    }
+    water_placer = grid::factory::construct_placement_strategy(this, ps);
+    water_culler = grid::factory::construct_culling_strategy(this, cs);
 }
 
 std::vector<Water> Grid::hydrate() {
@@ -310,10 +280,12 @@ void Grid::expand_volume(GridMember<Water>& water) {
 }
 
 std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
-    expand_volume();
-    ClusterCulling culler(this);
-    auto to_remove = culler.remove_clusters(min);
-    remove(to_remove);
+    throw except::not_implemented("Grid::remove_disconnected_atoms: Not implemented!");
+    // expand_volume();
+    // ClusterCulling culler(this);
+    // auto to_remove = culler.remove_clusters(min);
+    // remove(to_remove);
+
     // auto to_remove_t = culler.remove_tendrils(10);
     // remove(to_remove_t);
 
@@ -330,7 +302,7 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     //     throw except::unexpected("Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
     // }
 
-    return to_remove;
+    // return to_remove;
 }
 
 std::vector<GridMember<Atom>> Grid::add(const Body* body) {
@@ -692,4 +664,8 @@ Body Grid::generate_excluded_volume() const {
 
 GridObj::DATATYPE Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
     return grid.index(i, j, k);
+}
+
+std::vector<Atom> Grid::get_surface_atoms() const {
+
 }

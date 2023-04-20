@@ -28,9 +28,14 @@ double Histogram::operator[](const int i) const {
     return p[i];
 }
 
-void Histogram::shorten_axis() {
-    int max_bin = 10; // minimum size is 10
-    for (int i = axis.bins-1; i >= 10; i--) {
+void Histogram::resize(unsigned int bins) {
+    p.resize(bins);
+    axis.resize(bins);
+}
+
+void Histogram::shorten_axis(unsigned int min_size) {
+    unsigned int max_bin = min_size;
+    for (unsigned int i = axis.bins-1; i >= min_size; --i) {
         if (p[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;

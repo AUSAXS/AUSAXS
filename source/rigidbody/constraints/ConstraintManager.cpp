@@ -25,7 +25,6 @@ double ConstraintManager::evaluate() const {
         chi2 += constraint->evaluate();
     }
     chi2 += overlap_constraint->evaluate();
-    std::cout << "Overlap chi2: " << overlap_constraint->evaluate() << std::endl;
     return chi2;
 }
 
