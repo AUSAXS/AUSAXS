@@ -1,5 +1,6 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Protein.h>
+#include <utility/GeneralSettings.h>
 
 using namespace rigidbody;
 
@@ -42,7 +43,7 @@ void OverlapConstraint::initialize() {
     target.resize(i);
     weights.resize(i);
 
-    if (setting::general::verbose) {
+    if (settings::general::verbose) {
         std::cout << "\tOverlap constraint initialized. The distance range [0, " << axis[i] << "]Å will be used for calculating the overlap penalty." << std::endl;
     }
 }

@@ -3,17 +3,8 @@
 #include <rigidbody/transform/SingleTransform.h>
 #include <utility/Exceptions.h>
 
-using namespace settings::rigidbody;
-using namespace settings::detail;
-
 // extend the settings namespace with a new option
-template<> std::string SmartOption<TransformationStrategyChoice>::get() const {return std::to_string(static_cast<int>(value));}
-template<> void SmartOption<TransformationStrategyChoice>::set(const std::vector<std::string>& val) {
-    value = static_cast<TransformationStrategyChoice>(std::stoi(val[0]));
-}
-
-SmartOption<TransformationStrategyChoice> culling_strategy(TransformationStrategyChoice::RigidTransform);
-std::unique_ptr<rigidbody::TransformStrategy> create_transform_strategy(RigidBody* body, TransformationStrategyChoice choice) {
+std::unique_ptr<rigidbody::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body, settings::rigidbody::TransformationStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::TransformationStrategyChoice::RigidTransform:
             return std::make_unique<rigidbody::RigidTransform>(body); 

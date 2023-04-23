@@ -1,10 +1,20 @@
 #include <hist/HistogramSettings.h>
+#include <utility/settings/SettingsIORegistry.h>
 
 namespace settings::axes {
-    settings::detail::SmartOption<unsigned int> max_distance(2000, "max-distance");
-    settings::detail::SmartOption<double> distance_bin_width(1, "distance-bin-width");
-    settings::detail::SmartOption<unsigned int> bins(1000, "bins");
-    settings::detail::SmartOption<double> qmin(1e-4, "qmin");
-    settings::detail::SmartOption<double> qmax(0.5, "qmax");
-    settings::detail::SmartOption<unsigned int> skip(0, "skip");
+    unsigned int max_distance = 2000;
+    double distance_bin_width = 1;
+    unsigned int bins = 1000;
+    double qmin = 1e-4;
+    double qmax = 0.5;
+    unsigned int skip = 0;
+
+    settings::io::SettingSection axes_settings("Axes", {
+        settings::io::create(max_distance, "max_distance"),
+        settings::io::create(distance_bin_width, "distance_bin_width"),
+        settings::io::create(bins, "bins"),
+        settings::io::create(qmin, "qmin"),
+        settings::io::create(qmax, "qmax"),
+        settings::io::create(skip, "skip")
+    });
 }

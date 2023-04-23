@@ -12,7 +12,7 @@ using namespace em;
 using namespace fitter;
 
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
-    Limit lim = {from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max)};
+    Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(h, param);
 }
@@ -25,7 +25,7 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini:
 }
 
 std::shared_ptr<EMFit> ImageStack::fit(std::string file) {
-    Limit lim = {from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max)};
+    Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
@@ -265,7 +265,7 @@ mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::string file) {
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::string file) {
-    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
     return cutoff_scan(axis, file);
 }
 
@@ -275,12 +275,12 @@ mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::Scatteri
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
     return cutoff_scan(axis, h);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
     return cutoff_scan_fit(axis, h);
 }
 
@@ -290,7 +290,7 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, from_level(settings::em::alpha_levels.value.min), from_level(settings::em::alpha_levels.value.max));
+    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }
@@ -320,7 +320,7 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis&
 
     // fit
     double l = from_level(1);
-    Limit limit(settings::em::alpha_levels.value.min*l, settings::em::alpha_levels.value.max*l);
+    Limit limit(settings::em::alpha_levels.min*l, settings::em::alpha_levels.max*l);
     minimizer.clear_parameters();
     minimizer.add_parameter({"cutoff", limit.center(), limit});
     auto res = minimizer.minimize();

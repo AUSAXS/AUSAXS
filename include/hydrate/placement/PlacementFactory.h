@@ -1,18 +1,7 @@
 #pragma once
 
 #include <hydrate/placement/PlacementStrategy.h>
-#include <utility/SmartOption.h>
-
-namespace settings {
-    namespace grid {
-        enum class PlacementStrategy {
-            AxesStrategy, 
-            RadialStrategy, 
-            JanStrategy
-        };
-        extern settings::detail::SmartOption<PlacementStrategy> placement_strategy;
-    }
-}
+#include <hydrate/GridSettings.h>
 
 namespace grid {
     namespace factory {

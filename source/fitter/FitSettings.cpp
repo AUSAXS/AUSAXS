@@ -1,7 +1,17 @@
 #include <fitter/FitSettings.h>
+#include <utility/settings/SettingsIORegistry.h>
 
 namespace settings::fit {
-    settings::detail::SmartOption<bool> verbose(false, "fit-verbose");
-    settings::detail::SmartOption<unsigned int> N(100, "N-points");
-    settings::detail::SmartOption<unsigned int> max_iterations(100, "max-iterations");
+    bool verbose = false;
+    unsigned int N = 100;
+    unsigned int max_iterations = 100;
+
+    namespace io {
+        settings::io::SettingSection general_settings("General", {
+            settings::io::create(verbose, "verbose"),
+            settings::io::create(N, "N"),
+            settings::io::create(max_iterations, "max_iterations")
+        });
+    }
+
 }

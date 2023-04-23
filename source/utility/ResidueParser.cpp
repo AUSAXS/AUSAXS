@@ -1,6 +1,6 @@
 #include <utility/ResidueParser.h>
 #include <utility/Curl.h>
-#include <utility/Settings.h>
+#include <utility/GeneralSettings.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
 
@@ -216,7 +216,7 @@ saxs::detail::ResidueMap& parser::residue::ResidueStorage::get(std::string name)
 }
 
 void parser::residue::ResidueStorage::initialize() {
-    std::string path = setting::general::residue_folder;
+    std::string path = settings::general::residue_folder;
     utility::create_directory(path);
     std::ifstream file(path + "master.dat");
     if (!file.is_open()) {
@@ -258,7 +258,7 @@ void parser::residue::ResidueStorage::initialize() {
 }
 
 void parser::residue::ResidueStorage::download_residue(std::string name) {
-    std::string path = setting::general::residue_folder;
+    std::string path = settings::general::residue_folder;
     std::regex regex("[A-Z0-9]{2,3}");
 
     if (std::regex_match(name, regex)) {
@@ -280,7 +280,7 @@ void parser::residue::ResidueStorage::download_residue(std::string name) {
 }
 
 void parser::residue::ResidueStorage::write_residue(std::string name) {
-    std::string path = setting::general::residue_folder;
+    std::string path = settings::general::residue_folder;
     utility::create_directory(path);
     std::ofstream file(path + "master.dat", std::ios::app); // open in append mode
     if (!file.is_open()) {throw except::io_error("ResidueStorage::write_residue: Could not open file: " + path + "master" + ".dat");}

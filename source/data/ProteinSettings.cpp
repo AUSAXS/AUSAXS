@@ -1,6 +1,14 @@
 #include <data/ProteinSettings.h>
+#include <utility/settings/SettingsIORegistry.h>
 
 namespace settings::protein {
-    settings::detail::SmartOption<bool> center(true, "center");
-    settings::detail::SmartOption<bool> use_effective_charge(true, "use_effective_charge");
+    bool center = true;
+    bool use_effective_charge = true;
+
+    namespace io {
+        settings::io::SettingSection protein_settings("Protein", {
+            settings::io::create(center, "center"),
+            settings::io::create(use_effective_charge, "use_effective_charge")
+        });
+    }
 }

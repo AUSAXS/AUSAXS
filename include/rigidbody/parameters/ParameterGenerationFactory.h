@@ -1,18 +1,7 @@
 #pragma once
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <utility/SmartOption.h>
-
-namespace settings {
-    namespace rigidbody {
-        enum class ParameterGenerationStrategyChoice {
-            Simple,         // Generate translation and rotation parameters. Their amplitudes decays linearly with the iteration number.
-            RotationsOnly   // Only generate rotation parameters. The amplitudes decays linearly with the iteration number.
-        };
-
-        extern settings::detail::SmartOption<ParameterGenerationStrategyChoice> parameter_generation_strategy;
-    }
-}
+#include <rigidbody/RigidBodySettings.h>
 
 namespace rigidbody {
     namespace factory {

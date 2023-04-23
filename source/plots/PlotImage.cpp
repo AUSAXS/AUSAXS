@@ -35,7 +35,7 @@ void plots::PlotImage::plot(const em::Image& image) {
     h.add_plot_options("points", {{"xlabel", "Length [Å]"}, {"ylabel", "Length [Å]"}, {"zlabel", "Electron Density [Arb.]"}});
 
     std::string contours;
-    for (auto c : settings::plots::contour.value) {
+    for (auto c : settings::plots::contour) {
         contours += std::to_string(c) + " ";
     }
 

@@ -4,17 +4,7 @@
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <utility/Exceptions.h>
 
-using namespace settings::rigidbody;
-using namespace settings::detail;
-
-// extend the settings namespace with a new option
-template<> std::string SmartOption<BodySelectStrategyChoice>::get() const {return std::to_string(static_cast<int>(value));}
-template<> void SmartOption<BodySelectStrategyChoice>::set(const std::vector<std::string>& val) {
-    value = static_cast<BodySelectStrategyChoice>(std::stoi(val[0]));
-}
-
-SmartOption<BodySelectStrategyChoice> culling_strategy(BodySelectStrategyChoice::RandomSelect);
-std::unique_ptr<rigidbody::BodySelectStrategy> create_selection_strategy(const RigidBody* body, BodySelectStrategyChoice choice) {
+std::unique_ptr<rigidbody::BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body, settings::rigidbody::BodySelectStrategyChoice choice) {
     switch (choice) {
         case settings::rigidbody::BodySelectStrategyChoice::RandomSelect:
             return std::make_unique<rigidbody::RandomSelect>(body);

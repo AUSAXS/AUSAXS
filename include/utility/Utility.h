@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 
+//! Split some of this functionality into the File class.
 namespace utility {
     /**
      * @brief Print an element with the given width.

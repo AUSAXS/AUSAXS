@@ -1,6 +1,14 @@
 #include <plots/PlotSettings.h>
+#include <utility/settings/SettingsIORegistry.h>
 
 namespace settings::plots {
-    settings::detail::SmartOption<std::string> format("png", "format");
-    settings::detail::SmartOption<std::vector<double>> contour({}, {"contours", "contour-levels"});
+    std::string format = "png";
+    std::vector<double> contour = {};
+
+    namespace io {
+        settings::io::SettingSection plot_settings("Plot", {
+            settings::io::create(format, "format"),
+            settings::io::create(contour, "contour")
+        });
+    }
 }

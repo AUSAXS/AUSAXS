@@ -4,16 +4,6 @@
 #include <hydrate/culling/RandomCulling.h>
 #include <utility/Exceptions.h>
 
-using namespace settings::grid;
-using namespace settings::detail;
-
-// extend the settings namespace with a new option
-template<> std::string SmartOption<CullingStrategy>::get() const {return std::to_string(static_cast<int>(value));}
-template<> void SmartOption<CullingStrategy>::set(const std::vector<std::string>& val) {
-    value = static_cast<CullingStrategy>(std::stoi(val[0]));
-}
-
-SmartOption<CullingStrategy> culling_strategy(CullingStrategy::CounterStrategy);
 std::unique_ptr<grid::CullingStrategy> grid::factory::construct_culling_strategy(Grid* grid, settings::grid::CullingStrategy choice) {
     switch (choice) {
         case settings::grid::CullingStrategy::CounterStrategy: 

@@ -5,10 +5,12 @@
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/RigidBodySettings.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <utility/Exceptions.h>
 #include <io/XYZWriter.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotDistance.h>
+#include <utility/GeneralSettings.h>
 
 using namespace rigidbody;
 
@@ -21,7 +23,9 @@ RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
 }
 
 void RigidBody::setup() {
-    constraints = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3, settings::rigidbody::culling_strategy);
+    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3, settings::rigidbody::parameter_generation_strategy);
+    body_selector = factory::create_selection_strategy(this, settings::rigidbody::body_select_strategy);
+    transform = factory::create_transform_strategy(this, settings::rigidbody::transform_strategy);
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {

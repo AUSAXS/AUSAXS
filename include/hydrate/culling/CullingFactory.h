@@ -1,15 +1,7 @@
 #pragma once
 
 #include <hydrate/culling/CullingStrategy.h>
-#include <utility/SmartOption.h>
-
-namespace settings {
-    namespace grid {
-        enum class CullingStrategy {CounterStrategy, OutlierStrategy, RandomStrategy};
-
-        extern settings::detail::SmartOption<CullingStrategy> culling_strategy;
-    }
-}
+#include <hydrate/GridSettings.h>
 
 namespace grid {
     namespace factory {

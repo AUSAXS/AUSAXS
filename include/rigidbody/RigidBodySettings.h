@@ -1,18 +1,43 @@
 #pragma once
 
-#include <utility/SmartOption.h>
-
 #include <vector>
 #include <string>
 
-namespace setting {
+namespace settings {
     namespace rigidbody {
-        extern settings::detail::SmartOption<unsigned int> iterations;   // The number of iterations to run the rigid body optimization for.
-        extern settings::detail::SmartOption<double> bond_distance;      // The maximum distance in Ångström between two atoms that allows for a constraint.
+        extern unsigned int iterations;   // The number of iterations to run the rigid body optimization for.
+        extern double bond_distance;      // The maximum distance in Ångström between two atoms that allows for a constraint.
 
         namespace detail {
-            extern settings::detail::SmartOption<std::vector<int>> constraints; // The residue ids to place a constraint at.
-            extern settings::detail::SmartOption<std::string> calibration_file; // The file to read constraints from.
+            extern std::vector<int> constraints; // The residue ids to place a constraint at.
+            extern std::string calibration_file; // The file to read constraints from.
         }
+
+        enum class TransformationStrategyChoice {
+            RigidTransform,     // Transform all bodies connected to one side of the constraint. 
+            SingleTransform,    // Transform only the body directly connected to one side of the constraint.
+            ForceTransform      // Rotations and translations are applied as forces, resulting in more natural conformations. 
+        };
+        extern TransformationStrategyChoice transform_strategy;
+
+        enum class BodySelectStrategyChoice {
+            RandomSelect,           // Select a random body, then a random constraint within that body. 
+            RandomConstraintSelect, // Select a random constraint. 
+            SequentialSelect        // Select the first constraint, then the second, etc.
+        };
+        extern BodySelectStrategyChoice body_select_strategy;
+
+        enum class ParameterGenerationStrategyChoice {
+            Simple,         // Generate translation and rotation parameters. Their amplitudes decays linearly with the iteration number.
+            RotationsOnly   // Only generate rotation parameters. The amplitudes decays linearly with the iteration number.
+        };
+        extern ParameterGenerationStrategyChoice parameter_generation_strategy;
+
+        enum class ConstraintGenerationStrategyChoice {
+            None,       // Do not generate constraints. Only those supplied by the user will be used.
+            Linear,     // Generate a linear chain of constraints between bodies.
+            Volumetric  // Generate constraints between bodies based on proximity. 
+        };
+        extern ConstraintGenerationStrategyChoice constraint_generation_strategy;
     }
 }

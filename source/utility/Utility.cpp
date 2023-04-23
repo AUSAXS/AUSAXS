@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <filesystem>
 
-#include <utility/Settings.h>
 #include <utility/ConsoleColor.h>
 
 bool utility::approx(double v1, double v2, double abs, double eps) {
