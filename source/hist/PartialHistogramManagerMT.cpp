@@ -1,7 +1,7 @@
 #include <data/Protein.h>
 #include <hist/PartialHistogramManagerMT.h>
-#include <utility/GeneralSettings.h>
-#include <hist/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
 
 #include <mutex>
 #include <BS_thread_pool.hpp>

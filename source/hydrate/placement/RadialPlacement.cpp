@@ -1,7 +1,7 @@
 #include <Symbols.h>
 #include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/Grid.h>
-#include <hydrate/GridSettings.h>
+#include <settings/GridSettings.h>
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
     int rh = grid->get_radius_water(), ra = grid->get_radius_atoms();

@@ -3,8 +3,8 @@
 #include <data/Protein.h>
 #include <em/detail/ProteinManagerFactory.h>
 #include <utility/Exceptions.h>
-#include <em/EMSettings.h>
-#include <hist/HistogramSettings.h>
+#include <settings/EMSettings.h>
+#include <settings/HistogramSettings.h>
 
 #include <fstream>
 

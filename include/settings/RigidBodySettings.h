@@ -1,0 +1,63 @@
+#pragma once
+
+#include <vector>
+#include <string>
+
+#include <settings/SettingRef.h>
+#include <settings/SettingsIORegistry.h>
+
+namespace settings {
+    namespace rigidbody {
+        extern unsigned int iterations;   // The number of iterations to run the rigid body optimization for.
+        extern double bond_distance;      // The maximum distance in Ångström between two atoms that allows for a constraint.
+
+        namespace detail {
+            extern std::vector<int> constraints; // The residue ids to place a constraint at.
+            extern std::string calibration_file; // The file to read constraints from.
+        }
+    }
+}
+
+namespace settings::rigidbody {
+    enum class TransformationStrategyChoice {
+        RigidTransform,     // Transform all bodies connected to one side of the constraint. 
+        SingleTransform,    // Transform only the body directly connected to one side of the constraint.
+        ForceTransform      // Rotations and translations are applied as forces, resulting in more natural conformations. 
+    };
+    extern TransformationStrategyChoice transform_strategy;
+}
+
+namespace settings::rigidbody {
+    enum class BodySelectStrategyChoice {
+        RandomSelect,           // Select a random body, then a random constraint within that body. 
+        RandomConstraintSelect, // Select a random constraint. 
+        SequentialSelect        // Select the first constraint, then the second, etc.
+    };
+    extern BodySelectStrategyChoice body_select_strategy;
+}
+
+namespace settings::rigidbody {
+    enum class ParameterGenerationStrategyChoice {
+        Simple,         // Generate translation and rotation parameters. Their amplitudes decays linearly with the iteration number.
+        RotationsOnly   // Only generate rotation parameters. The amplitudes decays linearly with the iteration number.
+    };
+    extern ParameterGenerationStrategyChoice parameter_generation_strategy;
+}
+
+namespace settings::rigidbody {
+    enum class ConstraintGenerationStrategyChoice {
+        None,       // Do not generate constraints. Only those supplied by the user will be used.
+        Linear,     // Generate a linear chain of constraints between bodies.
+        Volumetric  // Generate constraints between bodies based on proximity. 
+    };
+    extern ConstraintGenerationStrategyChoice constraint_generation_strategy;
+}
+
+// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::TransformationStrategyChoice>::get() const;
+// template<> void settings::io::detail::SettingRef<settings::rigidbody::TransformationStrategyChoice>::set(const std::vector<std::string>& val);
+// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ParameterGenerationStrategyChoice>::get() const;
+// template<> void settings::io::detail::SettingRef<settings::rigidbody::ParameterGenerationStrategyChoice>::set(const std::vector<std::string>& val);
+// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::BodySelectStrategyChoice>::get() const;
+// template<> void settings::io::detail::SettingRef<settings::rigidbody::BodySelectStrategyChoice>::set(const std::vector<std::string>& val);
+// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::get() const;
+// template<> void settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::set(const std::vector<std::string>& val);

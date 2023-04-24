@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hydrate/culling/CullingStrategy.h>
-#include <hydrate/GridSettings.h>
+#include <settings/GridSettings.h>
 
 namespace grid {
     namespace factory {

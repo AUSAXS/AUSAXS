@@ -1,5 +1,5 @@
-#include <plots/PlotSettings.h>
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/PlotSettings.h>
+#include <settings/SettingsIORegistry.h>
 
 namespace settings::plots {
     std::string format = "png";

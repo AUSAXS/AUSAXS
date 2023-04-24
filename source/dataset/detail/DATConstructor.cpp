@@ -5,8 +5,8 @@
 #include <utility/Utility.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
-#include <hist/HistogramSettings.h>
-#include <utility/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
 
 #include <vector>
 #include <string>

@@ -1,7 +1,7 @@
 #include <plots/PlotImage.h>
 #include <em/Image.h>
 #include <utility/Utility.h>
-#include <plots/PlotSettings.h>
+#include <settings/PlotSettings.h>
 
 plots::PlotImage::PlotImage(const em::Image& image) {
     plot(image);

@@ -3,7 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include <crystal/CrystalSettings.h>
+#include <settings/CrystalSettings.h>
 
 using namespace crystal;
 

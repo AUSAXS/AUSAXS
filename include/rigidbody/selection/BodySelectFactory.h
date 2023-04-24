@@ -1,7 +1,7 @@
 #pragma once
 
 #include <rigidbody/selection/BodySelectStrategy.h>
-#include <rigidbody/RigidBodySettings.h>
+#include <settings/RigidBodySettings.h>
 
 #include <memory>
 

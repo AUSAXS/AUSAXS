@@ -6,7 +6,7 @@
 #include <math/SimpleLeastSquares.h>
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
-#include <hist/HistogramSettings.h>
+#include <settings/HistogramSettings.h>
 
 using namespace fitter;
 

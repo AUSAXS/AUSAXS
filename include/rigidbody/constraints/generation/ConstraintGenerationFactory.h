@@ -1,7 +1,7 @@
 #pragma once
 
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
-#include <rigidbody/RigidBodySettings.h>
+#include <settings/RigidBodySettings.h>
 
 namespace rigidbody {
     namespace factory {

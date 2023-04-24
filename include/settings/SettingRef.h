@@ -19,17 +19,18 @@ namespace settings {
                  * @brief Set the setting value.
                  */
                 virtual void set(const std::vector<std::string>&) {
-                    throw std::runtime_error("settings::io::detail::ISettingRef::set() not implemented.");
+                    throw std::runtime_error("settings::io::detail::ISettingRef::set: not implemented for \"" + names[0] + "\".");
                 }
 
                 /**
                  * @brief Get the setting value as a string.
                  */
                 virtual std::string get() const {
-                    throw std::runtime_error("settings::io::detail::ISettingRef::get() not implemented.");
+                    throw std::runtime_error("settings::io::detail::ISettingRef::get: not implemented for \"" + names[0] + "\".");
                 }
 
                 std::vector<std::string> names; // The name of the setting.
+                inline static std::unordered_map<std::string, std::shared_ptr<ISettingRef>> stored_settings;
             };
 
             /**
@@ -52,7 +53,6 @@ namespace settings {
                 T& settingref; // A reference to the setting.
             };
 
-            extern std::unordered_map<std::string, std::shared_ptr<ISettingRef>> settings_storage;
         }
     }
 }

@@ -1,17 +1,15 @@
-// includes
+#include <data/Body.h>
+#include <data/Atom.h>
+#include <hydrate/Grid.h>
+#include <utility/Constants.h>
+#include <settings/ProteinSettings.h>
+#include <math/Matrix.h>
+#include <math/MatrixUtils.h>
+
 #include <vector>
 #include <map>
 #include <utility>
 #include <algorithm>
-
-// my own includes
-#include <data/Atom.h>
-#include <hydrate/Grid.h>
-#include <utility/Constants.h>
-#include <data/Body.h>
-#include <data/ProteinSettings.h>
-#include <math/Matrix.h>
-#include <math/MatrixUtils.h>
 
 Body::Body() {}
 

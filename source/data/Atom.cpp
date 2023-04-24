@@ -9,7 +9,7 @@
 #include <data/Atom.h>
 #include <math/Vector3.h>
 #include <utility/Constants.h>
-#include <data/ProteinSettings.h>
+#include <settings/ProteinSettings.h>
 #include <utility/Utility.h>
 
 using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;

@@ -4,13 +4,13 @@
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
-#include <rigidbody/RigidBodySettings.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <utility/Exceptions.h>
 #include <io/XYZWriter.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotDistance.h>
-#include <utility/GeneralSettings.h>
+#include <settings/RigidBodySettings.h>
+#include <settings/GeneralSettings.h>
 
 using namespace rigidbody;
 

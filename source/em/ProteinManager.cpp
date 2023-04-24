@@ -3,7 +3,7 @@
 #include <data/Protein.h>
 #include <utility/Utility.h>
 #include <em/detail/ImageStackBase.h>
-#include <em/EMSettings.h>
+#include <settings/EMSettings.h>
 
 #include <vector>
 

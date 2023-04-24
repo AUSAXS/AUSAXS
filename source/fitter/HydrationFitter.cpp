@@ -6,8 +6,8 @@
 #include <utility/Exceptions.h>
 #include <mini/all.h>
 #include <plots/all.h>
-#include <fitter/FitSettings.h>
-#include <hist/HistogramSettings.h>
+#include <settings/FitSettings.h>
+#include <settings/HistogramSettings.h>
 
 using namespace fitter;
 

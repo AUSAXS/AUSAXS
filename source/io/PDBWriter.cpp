@@ -6,7 +6,7 @@
 #include <data/Water.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
-#include <utility/GeneralSettings.h>
+#include <settings/GeneralSettings.h>
 
 #include <fstream>
 #include <algorithm>

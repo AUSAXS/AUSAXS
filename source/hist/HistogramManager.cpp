@@ -4,7 +4,7 @@
 #include <data/StateManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <hist/HistogramManager.h>
-#include <hist/HistogramSettings.h>
+#include <settings/HistogramSettings.h>
 
 using namespace hist;
 

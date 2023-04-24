@@ -3,13 +3,11 @@
 #include <io/File.h>
 #include <hist/Histogram.h>
 #include <fitter/HydrationFitter.h>
-#include <data/ProteinSettings.h>
-#include <hydrate/GridSettings.h>
-#include <hist/HistogramSettings.h>
-#include <utility/GeneralSettings.h>
-#include <fitter/FitSettings.h>
-
-#include <cassert>
+#include <settings/ProteinSettings.h>
+#include <settings/FitSettings.h>
+#include <settings/GridSettings.h>
+#include <settings/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
 
 using namespace hist;
 
@@ -157,7 +155,7 @@ std::vector<Atom> Protein::atoms() const {
             n++;
         }
     }
-    assert(n == N);
+    if (n != N) [[unlikely]] {throw except::size_error("Protein::atoms: incorrect number of atoms. This should never happen.");}
     return atoms;
 }
 

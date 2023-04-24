@@ -1,6 +1,6 @@
 #include <data/Protein.h>
 #include <hist/PartialHistogramManager.h>
-#include <hist/HistogramSettings.h>
+#include <settings/HistogramSettings.h>
 
 using namespace hist;
 

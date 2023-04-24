@@ -1,5 +1,5 @@
-#include <utility/settings/SettingsIO.h>
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/SettingsIO.h>
+#include <settings/SettingsIORegistry.h>
 #include <utility/Utility.h>
 #include <utility/Exceptions.h>
 
@@ -7,10 +7,10 @@
 #include <filesystem>
 
 void settings::detail::parse_option(const std::string& name, const std::vector<std::string>& value) {
-    if (io::detail::settings_storage.count(name) == 0) {
+    if (!settings::io::detail::ISettingRef::stored_settings.contains(name)) {
         throw std::runtime_error("Unknown option: \"" + name + "\".");
     }
-    io::detail::settings_storage[name]->set(value);
+    settings::io::detail::ISettingRef::stored_settings[name]->set(value);
 }
 
 bool settings::detail::is_comment_char(char c) {
@@ -48,7 +48,7 @@ void settings::write(const std::string& path) {
     if (!output.is_open()) {throw std::ios_base::failure("Settings::read: Could not open setup file.");}
 
     output << "### Auto-generated settings file ###\n";
-    for (const auto& section : io::detail::settings_sections) {
+    for (const auto& section : settings::io::SettingSection::sections) {
         output << "\n[" << section.name << "]\n";
         for (const auto& setting : section.settings) {
             output << setting->names.front() << " " << setting->get() << std::endl;

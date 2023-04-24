@@ -1,7 +1,7 @@
 #pragma once
 
 #include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/RigidBodySettings.h>
+#include <settings/RigidBodySettings.h>
 
 namespace rigidbody {
     namespace factory {

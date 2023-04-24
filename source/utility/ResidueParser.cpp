@@ -1,6 +1,6 @@
 #include <utility/ResidueParser.h>
 #include <utility/Curl.h>
-#include <utility/GeneralSettings.h>
+#include <settings/GeneralSettings.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
 

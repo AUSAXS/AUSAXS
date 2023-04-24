@@ -1,7 +1,7 @@
 #pragma once
 
 #include <crystal/miller/MillerGenerationStrategy.h>
-#include <crystal/CrystalSettings.h>
+#include <settings/CrystalSettings.h>
 
 namespace crystal {
     class AllMillers : public MillerGenerationStrategy {

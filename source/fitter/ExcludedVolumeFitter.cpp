@@ -6,7 +6,7 @@
 #include <utility/Exceptions.h>
 #include <mini/all.h>
 #include <plots/all.h>
-#include <utility/GeneralSettings.h>
+#include <settings/GeneralSettings.h>
 
 using namespace fitter;
 

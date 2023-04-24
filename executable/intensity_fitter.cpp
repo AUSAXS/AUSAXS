@@ -11,15 +11,11 @@
 #include <fitter/Fit.h>
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
-#include <utility/GeneralSettings.h>
-#include <hydrate/GridSettings.h>
-#include <data/ProteinSettings.h>
-#include <hist/HistogramSettings.h>
-#include <utility/settings/SettingsIO.h>
-#include <plots/PlotSettings.h>
+#include <settings/All.h>
 
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
+    std::cout << settings::rigidbody::bond_distance << std::endl;
 
     std::string pdb, mfile, settings, placement_strategy = "Radial";
     bool use_existing_hydration = false, fit_excluded_volume = false;

@@ -3,7 +3,7 @@
 
 #include <em/Image.h>
 #include <utility/Utility.h>
-#include <em/EMSettings.h>
+#include <settings/EMSettings.h>
 
 using namespace em;
 

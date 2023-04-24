@@ -5,9 +5,9 @@
 #include <crystal/miller/FibonacciMillers.h>
 #include <crystal/miller/ReducedMillers.h>
 #include <crystal/io/CrystalReaderFactory.h>
-#include <crystal/CrystalSettings.h>
-#include <utility/GeneralSettings.h>
-#include <hist/HistogramSettings.h>
+#include <settings/CrystalSettings.h>
+#include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
 #include <atomic>
 #include <thread>
 

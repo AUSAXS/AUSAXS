@@ -1,5 +1,6 @@
-#include <rigidbody/RigidBodySettings.h>
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/RigidBodySettings.h>
+#include <settings/SettingRef.h>
+#include <settings/SettingsIORegistry.h>
 
 namespace settings::rigidbody {
     unsigned int iterations = 1000;

@@ -1,5 +1,5 @@
-#include <hist/HistogramSettings.h>
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/HistogramSettings.h>
+#include <settings/SettingsIORegistry.h>
 
 namespace settings::axes {
     unsigned int max_distance = 2000;

@@ -1,19 +1,17 @@
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
-
-std::unordered_map<std::string, std::shared_ptr<settings::io::detail::ISettingRef>> settings::io::detail::settings_storage;
-std::vector<settings::io::SettingSection> settings::io::detail::settings_sections;
 
 settings::io::SettingSection::SettingSection(std::string_view name, std::initializer_list<std::shared_ptr<detail::ISettingRef>> settings) : name(name), settings(settings) {
     for (auto& setting : settings) {
         for (auto& name : setting->names) {
-            if (settings::io::detail::settings_storage.count(name) != 0) {
+            if (settings::io::detail::ISettingRef::stored_settings.contains(name)) {
                 throw std::runtime_error("Settings::add: Duplicate setting name: \"" + name + "\".");
             }
-            settings::io::detail::settings_storage[name] = std::move(setting);
+            settings::io::detail::ISettingRef::stored_settings[name] = std::move(setting);
         }
     }
 }
+
 
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}

@@ -1,5 +1,5 @@
-#include <em/EMSettings.h>
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/EMSettings.h>
+#include <settings/SettingsIORegistry.h>
 
 namespace settings::em {
     unsigned int sample_frequency = 1;

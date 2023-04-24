@@ -2,7 +2,7 @@
 
 #include <data/Protein.h>
 #include <utility/Axis3D.h>
-#include <crystal/CrystalSettings.h>
+#include <settings/CrystalSettings.h>
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const std::string& input) const {
     Protein protein(input);

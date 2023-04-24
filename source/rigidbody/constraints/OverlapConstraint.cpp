@@ -1,6 +1,6 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Protein.h>
-#include <utility/GeneralSettings.h>
+#include <settings/GeneralSettings.h>
 
 using namespace rigidbody;
 

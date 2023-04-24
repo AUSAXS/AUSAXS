@@ -1,5 +1,5 @@
-#include <utility/GeneralSettings.h>
-#include <utility/settings/SettingsIORegistry.h>
+#include <settings/GeneralSettings.h>
+#include <settings/SettingsIORegistry.h>
 
 #include <thread>
 

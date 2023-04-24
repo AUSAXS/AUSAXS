@@ -1,5 +1,5 @@
 #include <hist/ScatteringHistogram.h>
-#include <hist/HistogramSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Constants.h>
 #include <utility/Axis.h>
 

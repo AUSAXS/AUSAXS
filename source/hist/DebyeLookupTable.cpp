@@ -1,5 +1,5 @@
 #include <hist/DebyeLookupTable.h>
-#include <hist/HistogramSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Utility.h>
 #include <utility/Axis.h>
 

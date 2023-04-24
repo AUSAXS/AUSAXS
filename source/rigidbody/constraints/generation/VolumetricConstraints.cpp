@@ -1,8 +1,8 @@
 #include <rigidbody/constraints/generation/VolumetricConstraints.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <rigidbody/RigidBodySettings.h>
-#include <utility/GeneralSettings.h>
+#include <settings/RigidBodySettings.h>
+#include <settings/GeneralSettings.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;

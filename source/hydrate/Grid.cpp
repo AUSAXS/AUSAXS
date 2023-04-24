@@ -7,7 +7,7 @@
 #include <data/Water.h>
 #include <hydrate/culling/CullingFactory.h>
 #include <hydrate/placement/PlacementFactory.h>
-#include <hydrate/GridSettings.h>
+#include <settings/GridSettings.h>
 #include <math/Vector3.h>
 #include <utility/Utility.h>
 #include <data/Protein.h>
@@ -78,7 +78,7 @@ void Grid::setup() {
         }
 
         // update the number of bins to reflect the changed axes
-        axes.rebin(width);
+        axes.rebin(settings::grid::width);
     }
 
     // check if the grid is abnormally large
@@ -89,10 +89,10 @@ void Grid::setup() {
         utility::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
     }
 
-    this->width = width;
+    this->width = settings::grid::width;
     this->grid = GridObj(axes.x.bins, axes.y.bins, axes.z.bins);
-    this->set_radius_atoms(ra);
-    this->set_radius_water(rh);
+    this->set_radius_atoms(settings::grid::ra);
+    this->set_radius_water(settings::grid::rh);
 
     water_placer = grid::factory::construct_placement_strategy(this, settings::grid::placement_strategy);
     water_culler = grid::factory::construct_culling_strategy(this, settings::grid::culling_strategy);

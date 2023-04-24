@@ -5,7 +5,7 @@
 #include <data/Atom.h>
 #include <data/Water.h>
 #include <utility/Exceptions.h>
-#include <utility/GeneralSettings.h>
+#include <settings/GeneralSettings.h>
 #include <utility/Constants.h>
 
 #include <fstream>

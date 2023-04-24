@@ -1,11 +1,11 @@
 #include <em/ImageStack.h>
 #include <em/ProteinManager.h>
 #include <fitter/HydrationFitter.h>
-#include <em/EMSettings.h>
-#include <plots/PlotSettings.h>
-#include <utility/GeneralSettings.h>
-#include <data/ProteinSettings.h>
-#include <fitter/FitSettings.h>
+#include <settings/EMSettings.h>
+#include <settings/PlotSettings.h>
+#include <settings/GeneralSettings.h>
+#include <settings/ProteinSettings.h>
+#include <settings/FitSettings.h>
 #include <plots/all.h>
 
 using namespace em;
