@@ -9,7 +9,7 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::re
 
     std::string line;
     std::getline(file, line);
-    if (line != "# CRYSTAL") {throw except::io_error("GridReader::read: File " + filename + " is not a crystal file");}
+    if (line[0] != '#' || line.find("CRYSTAL") == std::string::npos) {throw except::io_error("GridReader::read: File \"" + filename + "\" is not a crystal file (missing header: \"# CRYSTAL\").");}
 
     std::getline(file, line);
     auto tokens = utility::split(line, ' ');

@@ -8,7 +8,7 @@ namespace constants {
         this->extensions = extensions;
     }
 
-    bool filetypes::detail::FileType::validate(std::string path) const {
+    bool filetypes::detail::FileType::validate(std::string_view path) const {
         path = utility::to_lowercase(path);
         for (auto ext : extensions) {
             if (path.size() >= ext.size() && path.substr(path.size() - ext.size()) == ext) {

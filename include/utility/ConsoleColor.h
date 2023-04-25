@@ -67,7 +67,7 @@ namespace console {
         };
     #endif
 
-    [[maybe_unused]] static void print(std::string message, color::color foreground) {
+    [[maybe_unused]] static void print(std::string_view message, color::color foreground) {
         #if defined(_WIN32)
             CONSOLE_SCREEN_BUFFER_INFO Info;
             HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -84,7 +84,7 @@ namespace console {
         #endif
     }
 
-    [[maybe_unused]] static void print(std::string message, color::color foreground, color::color background) {
+    [[maybe_unused]] static void print(std::string_view message, color::color foreground, color::color background) {
         #if defined(_WIN32)
             CONSOLE_SCREEN_BUFFER_INFO Info;
             HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);

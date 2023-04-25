@@ -50,55 +50,55 @@ namespace utility {
      * @brief Remove the extension from a filename. 
      *        This is just a simple wrapper around filesystem::path::replace_extension.
      */
-    std::string remove_extension(std::string path);
+    std::string remove_extension(std::string_view path);
 
     /**
      * @brief Create all parent directories of the path.
      */
-    void create_directory(const std::string& path);
+    void create_directory(std::string_view path);
 
     /**
      * @brief Append a string to the stem of a path. 
      *        Example: path = "dir/file.txt", s = "_raw" --> "dir/file_raw.txt"
      */
-    std::string stem_append(std::string path, std::string s);
+    std::string stem_append(std::string_view path, const std::string& s);
 
     /**
      * @brief Get the stem of a path.
      */
-    std::string stem(std::string path);
+    std::string stem(std::string_view path);
 
     /**
      * @brief Get the extension of a path.
      */
-    std::string extension(std::string path);
+    std::string extension(std::string_view path);
 
     /**
      * @brief Convert a string to lowercase.
      */
-    std::string to_lowercase(std::string s);
+    std::string to_lowercase(std::string_view s);
 
     /**
      * @brief Split a string at a given delimiter.
      *        Consecutive delimiters are treated as a single delimiter. 
      */
-    std::vector<std::string> split(std::string s, char delimiter);
+    std::vector<std::string> split(const std::string& s, char delimiter);
 
     /**
      * @brief Split a string at the given delimiters.
      *        Consecutive delimiters are treated as a single delimiter. 
      */
-    std::vector<std::string> split(std::string s, std::string delimiters);
+    std::vector<std::string> split(std::string_view s, std::string_view delimiters);
 
     /**
      * @brief Join a vector of strings into a single string. The separator will be inserted after each element except the last. 
      */
-    std::string join(std::vector<std::string> v, std::string separator);
+    std::string join(std::vector<std::string> v, std::string_view separator);
 
     /**
      * @brief Remove all occurrences of the characters in 'remove' from the string. 
      */
-    std::string remove_all(std::string s, std::string remove);
+    std::string remove_all(std::string_view s, std::string_view remove);
 
     /**
      * @brief Check if three values are equal.
@@ -108,18 +108,18 @@ namespace utility {
     /**
      * @brief Print a warning message. The text will be red in the terminal. 
      */
-    void print_warning(const std::string& text);
+    void print_warning(std::string_view text);
 
     /**
      * @brief Print a success message. The text will be green in the terminal. 
      */
-    void print_success(const std::string& text);
+    void print_success(std::string_view text);
 
     /**
      * @brief Print a info message. The text will be blue in the terminal. 
      *        Should only be used as a header for a info section. Use tabs to indent other text in the section. 
      */
-    void print_info(const std::string& text);
+    void print_info(std::string_view text);
 
     /**
      * @brief Get a unique identifier.

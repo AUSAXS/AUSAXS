@@ -91,20 +91,17 @@ class Options:
         
         # axes
             case "xlimits":
-                self.xrange = [-0.1, 5]
-                # if (words[1] == words[2]):
-                #     return
-                # self.xrange = [float(words[1]), float(words[2])]
+                if (words[1] == words[2]):
+                    return
+                self.xrange = [float(words[1]), float(words[2])]
             case "ylimits":
-                self.yrange = [0.001, 7e4]
-                # if (words[1] == words[2]):
-                #     return
-                # self.yrange = [float(words[1]), float(words[2])]
+                if (words[1] == words[2]):
+                    return
+                self.yrange = [float(words[1]), float(words[2])]
             case "logx":
                 self.xlog = int(words[1])
             case "logy":
-#                self.ylog = int(words[1])
-                self.ylog = True
+               self.ylog = int(words[1])
 
         # other stuff
             case "dof": 
@@ -425,6 +422,15 @@ def plot_file(file: str):
             match determine_type(line.rstrip()):
                 case PlotType.Dataset:
                     dataset: Dataset = read_dataset(f)
+                    if dataset.data.size == 0:
+                        if dataset.options.title != "":
+                            title = dataset.options.title
+                        elif dataset.options.legend != "":
+                            title = dataset.options.legend
+                        else:
+                            title = "(unnammed)"
+                        print(f"Skipping empty dataset \"{title}\"")
+                        continue
                     plot_dataset(dataset)
 
                 case PlotType.Hline:

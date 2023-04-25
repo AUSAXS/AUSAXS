@@ -24,7 +24,7 @@ namespace constants {
         namespace detail {
             struct FileType {
                 FileType(std::vector<std::string> extensions);
-                bool validate(std::string path) const;
+                bool validate(std::string_view path) const;
                 std::vector<std::string> extensions;
             };
         }

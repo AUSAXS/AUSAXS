@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <utility/Type.h>
 
 namespace settings {
     namespace io {
@@ -19,14 +20,14 @@ namespace settings {
                  * @brief Set the setting value.
                  */
                 virtual void set(const std::vector<std::string>&) {
-                    throw std::runtime_error("settings::io::detail::ISettingRef::set: not implemented for \"" + names[0] + "\".");
+                    throw std::runtime_error("settings::io::detail::ISettingRef::set: This should never happen.");
                 }
 
                 /**
                  * @brief Get the setting value as a string.
                  */
                 virtual std::string get() const {
-                    throw std::runtime_error("settings::io::detail::ISettingRef::get: not implemented for \"" + names[0] + "\".");
+                    throw std::runtime_error("settings::io::detail::ISettingRef::get: This should never happen.");
                 }
 
                 std::vector<std::string> names; // The name of the setting.
@@ -43,12 +44,16 @@ namespace settings {
                 /**
                  * @brief Set the setting value.
                  */
-                void set(const std::vector<std::string>& value) override;
+                void set(const std::vector<std::string>&) override {
+                    throw std::runtime_error("settings::io::detail::SettingRef::set: missing implementation for type \"" + type(settingref) + "\".");
+                }
 
                 /**
                  * @brief Get the setting value as a string.
                  */
-                std::string get() const override;
+                std::string get() const override {
+                    throw std::runtime_error("settings::io::detail::SettingRef::get: missing implementation for type \"" + type(settingref) + "\".");
+                }
 
                 T& settingref; // A reference to the setting.
             };

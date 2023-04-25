@@ -21,19 +21,19 @@ std::string utility::remove_spaces(std::string s) {
     return s;
 }
 
-void utility::print_warning(const std::string& text) {
+void utility::print_warning(std::string_view text) {
     console::print(text, console::color::red);
 }
 
-void utility::print_success(const std::string& text) {
+void utility::print_success(std::string_view text) {
     console::print(text, console::color::green);
 }
 
-void utility::print_info(const std::string& text) {
+void utility::print_info(std::string_view text) {
     console::print(text, console::color::lightblue);
 }
 
-void utility::create_directory(const std::string& path) {
+void utility::create_directory(std::string_view path) {
     std::filesystem::path p(path);
     if (p.has_parent_path()) {
         std::filesystem::create_directories(p.parent_path());
@@ -44,24 +44,24 @@ bool utility::equal(double a, double b, double c) {
     return a == b && b == c;
 }
 
-std::string utility::remove_extension(std::string path) {
+std::string utility::remove_extension(std::string_view path) {
     return std::filesystem::path(path).replace_extension("").string();
 }
 
-std::string utility::stem_append(std::string path, std::string s) {
+std::string utility::stem_append(std::string_view path, const std::string& s) {
     std::filesystem::path p(path);
     return p.parent_path().string() + "/" + p.stem().string() + s + p.extension().string();
 }
 
-std::string utility::extension(std::string path) {
+std::string utility::extension(std::string_view path) {
     return std::filesystem::path(path).extension().string();
 }
 
-std::string utility::stem(std::string path) {
+std::string utility::stem(std::string_view path) {
     return std::filesystem::path(path).stem().string();    
 }
 
-std::vector<std::string> utility::split(std::string str, char delimiter) {
+std::vector<std::string> utility::split(const std::string& str, char delimiter) {
     std::string token;
     std::stringstream ss(str);
     std::vector<std::string> tokens;
@@ -71,7 +71,7 @@ std::vector<std::string> utility::split(std::string str, char delimiter) {
     return tokens;
 }
 
-std::vector<std::string> utility::split(std::string str, std::string delimiters) {
+std::vector<std::string> utility::split(std::string_view str, std::string_view delimiters) {
     std::vector<std::string> tokens;
 
     auto is_delimiter = [&delimiters] (char c) {
@@ -93,7 +93,7 @@ std::vector<std::string> utility::split(std::string str, std::string delimiters)
         }
 
         // add token to vector
-        tokens.push_back(str.substr(start, i-start));
+        tokens.push_back(std::string(str.substr(start, i-start)));
         start = ++i;
 
         // skip consecutive delimiters
@@ -107,12 +107,12 @@ std::vector<std::string> utility::split(std::string str, std::string delimiters)
 
     // add last token to vector
     if (start < str.size()) {
-        tokens.push_back(str.substr(start));
+        tokens.push_back(std::string(str.substr(start)));
     }
     return tokens;
 }
 
-std::string utility::join(std::vector<std::string> v, std::string separator) {
+std::string utility::join(std::vector<std::string> v, std::string_view separator) {
     std::string s;
     for (unsigned int i = 0; i < v.size(); i++) {
         s += v[i];
@@ -123,7 +123,7 @@ std::string utility::join(std::vector<std::string> v, std::string separator) {
     return s;
 }
 
-std::string utility::remove_all(std::string s, std::string remove) {
+std::string utility::remove_all(std::string_view s, std::string_view remove) {
     std::string new_s;
     for (auto c : s) {
         if (remove.find(c) == std::string::npos) {
@@ -133,7 +133,7 @@ std::string utility::remove_all(std::string s, std::string remove) {
     return new_s;
 }
 
-std::string utility::to_lowercase(std::string s) {
+std::string utility::to_lowercase(std::string_view s) {
     std::string new_s;
     for (auto c : s) {
         new_s += std::tolower(c);
