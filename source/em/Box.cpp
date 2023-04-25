@@ -5,7 +5,7 @@
 #include <fstream>
 #include <numeric>
 
-using namespace crystal;
+using namespace em;
 
 void Box::save(std::string filename) const {
     std::ofstream output(filename);

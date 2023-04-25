@@ -1,7 +1,7 @@
 #include <em/detail/ImageStackBase.h>
 #include <Symbols.h>
 #include <data/Protein.h>
-#include <em/detail/ProteinManagerFactory.h>
+#include <em/manager/ProteinManagerFactory.h>
 #include <utility/Exceptions.h>
 #include <settings/EMSettings.h>
 #include <settings/HistogramSettings.h>
@@ -10,9 +10,7 @@
 
 em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
-    phm = settings::em::fixed_weights ? 
-        em::ProteinManagerFactory::create<em::SimpleProteinManager>(this) : 
-        em::ProteinManagerFactory::create<em::ProteinManager>(this);
+    phm = em::factory::create_manager(this);
 }
 
 em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()) {
@@ -23,10 +21,7 @@ em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(st
     input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
     size_x = header->nx; size_y = header->ny; size_z = header->nz;
     read(input, get_byte_size());
-
-    phm = settings::em::fixed_weights ? 
-        em::ProteinManagerFactory::create<em::SimpleProteinManager>(this) : 
-        em::ProteinManagerFactory::create<em::ProteinManager>(this);
+    phm = em::factory::create_manager(this);
 }
 
 em::ImageStackBase::~ImageStackBase() = default;
@@ -175,6 +170,6 @@ double em::ImageStackBase::rms() const {
     return rms;
 }
 
-std::shared_ptr<em::ProteinManager> em::ImageStackBase::get_protein_manager() const {
+std::shared_ptr<em::managers::ProteinManager> em::ImageStackBase::get_protein_manager() const {
     return phm;
 }

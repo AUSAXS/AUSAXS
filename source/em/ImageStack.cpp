@@ -1,5 +1,5 @@
 #include <em/ImageStack.h>
-#include <em/ProteinManager.h>
+#include <em/manager/ProteinManager.h>
 #include <fitter/HydrationFitter.h>
 #include <settings/EMSettings.h>
 #include <settings/PlotSettings.h>

@@ -4,17 +4,15 @@
 #include <string>
 #include <memory>
 
-#include <em/detail/ProteinManagerFactory.h>
+#include <em/manager/ProteinManager.h>
 #include <em/Datatypes.h>
 #include <em/Image.h>
 
 namespace em {
-    class ProteinManager;
+    class EMHistogramManager;
 
     /**
-     * @brief \class ImageStackBase
-     * 
-     * A representation of a stack of images. 
+     * @brief A representation of a stack of images. 
      */
     class ImageStackBase {
         public:
@@ -129,13 +127,7 @@ namespace em {
             /**
              * @brief Get the histogram manager.
              */
-            std::shared_ptr<em::ProteinManager> get_protein_manager() const;
-
-            /**
-             * @brief Set the histogram manager.
-             */
-            template<detail::ProteinManagerType T>
-            void set_protein_manager() {phm = em::ProteinManagerFactory::create<T>(this);}
+            std::shared_ptr<em::managers::ProteinManager> get_protein_manager() const;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
@@ -147,10 +139,10 @@ namespace em {
 
         private:
             std::string filename;
-            std::shared_ptr<ccp4::Header> header;       // The header of the map file. 
-            std::vector<Image> data;                    // The actual image data. 
-            unsigned int size_x, size_y, size_z;        // The number of pixels in each dimension.
-            std::shared_ptr<em::ProteinManager> phm;    // The histogram manager. Manages both the backing protein & its scattering curve. 
+            std::shared_ptr<ccp4::Header> header;        // The header of the map file. 
+            std::vector<Image> data;                     // The actual image data. 
+            unsigned int size_x, size_y, size_z;         // The number of pixels in each dimension.
+            std::shared_ptr<em::managers::ProteinManager> phm; // The histogram manager. Manages both the backing protein & its scattering curve. 
             
             void read(std::ifstream& istream, unsigned int byte_size);
 

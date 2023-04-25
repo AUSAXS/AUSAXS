@@ -1,4 +1,4 @@
-#include <em/ProteinManager.h>
+#include <em/manager/SmartProteinManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
 #include <utility/Utility.h>
@@ -7,18 +7,14 @@
 
 #include <vector>
 
-em::ProteinManager::ProteinManager(const em::ImageStackBase* images) : images(images) {
-    double max = images->from_level(5);
-    Axis axis(settings::em::charge_levels, 0, max);
-    set_charge_levels(axis.as_vector());
-}
+using namespace em::managers;
 
-hist::ScatteringHistogram em::ProteinManager::get_histogram(double cutoff) {
+hist::ScatteringHistogram SmartProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
     return protein->get_histogram();
 }
 
-std::vector<Atom> em::ProteinManager::generate_atoms(double cutoff) const {
+std::vector<Atom> SmartProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
     const std::vector<Image>& imagestack = images->images();
@@ -32,7 +28,7 @@ std::vector<Atom> em::ProteinManager::generate_atoms(double cutoff) const {
     return std::vector<Atom>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
 }
 
-std::unique_ptr<Protein> em::ProteinManager::generate_protein(double cutoff) const {
+std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) const {
     std::vector<Atom> atoms = generate_atoms(cutoff);
     std::vector<Body> bodies(charge_levels.size());
     std::vector<Atom> current_atoms(atoms.size());
@@ -73,7 +69,7 @@ std::unique_ptr<Protein> em::ProteinManager::generate_protein(double cutoff) con
 
             // increment the charge level
             if (charge_index+1 == charge_levels.size()) [[unlikely]] {
-                throw except::unexpected("em::ProteinManager::generate_protein: Reached end of charge levels list.");
+                throw except::unexpected("smartProteinManager::generate_protein: Reached end of charge levels list.");
             }
             charge = charge_levels[++charge_index];
         }
@@ -86,7 +82,7 @@ std::unique_ptr<Protein> em::ProteinManager::generate_protein(double cutoff) con
     return std::make_unique<Protein>(bodies);
 }
 
-void em::ProteinManager::update_protein(double cutoff) {
+void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->bodies.empty()) {
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
@@ -166,29 +162,17 @@ void em::ProteinManager::update_protein(double cutoff) {
     previous_cutoff = cutoff;
 }
 
-std::shared_ptr<Protein> em::ProteinManager::get_protein() const {
+std::shared_ptr<Protein> SmartProteinManager::get_protein() const {
     if (protein == nullptr) {throw except::nullptr_error("ProteinManager::get_protein: Protein has not been initialized yet.");}
     return protein;
 }
 
-std::shared_ptr<Protein> em::ProteinManager::get_protein(double cutoff) {
+std::shared_ptr<Protein> SmartProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
     return protein;
 }
 
-void em::ProteinManager::set_charge_levels(Axis levels) noexcept {
-    set_charge_levels(levels.as_vector());
-}
-
-void em::ProteinManager::set_charge_levels(std::vector<double> levels) noexcept {
-    // make sure the last bin can contain all atoms
-    if (std::abs(levels[levels.size()-1]) < 10000) {
-        levels.push_back(levels[0] < 0 ? -10000 : 10000);
-    } 
-    charge_levels = levels;
+void SmartProteinManager::set_charge_levels(std::vector<double> levels) noexcept {
+    ProteinManager::set_charge_levels(levels);
     protein = nullptr; // the protein must be generated anew to ensure the bodies remains in sync with the new levels
-}
-
-std::vector<double> em::ProteinManager::get_charge_levels() const noexcept {
-    return charge_levels;
 }
