@@ -4,6 +4,8 @@
 #include <utility/Exceptions.h>
 #include <dataset/PointSet.h>
 #include <utility/Limit.h>
+#include <io/File.h>
+#include <io/ExistingFile.h>
 
 /**
  * @brief A representation of a dataset. The set consists of fixed number of named columns, with a variable number of rows. 
@@ -43,7 +45,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Create a new dataset from a data file.
          */
-        Dataset(std::string path);
+        Dataset(const io::ExistingFile& path);
 
         /**
          * @brief Destructor.
@@ -53,12 +55,12 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Get a column based on its name. 
          */
-        [[nodiscard]] Column<double> col(std::string column);
+        [[nodiscard]] Column<double> col(const std::string& column);
 
         /**
          * @brief Get a column based on its name. 
          */
-        [[nodiscard]] const ConstColumn<double> col(std::string column) const;
+        [[nodiscard]] const ConstColumn<double> col(const std::string& column) const;
 
         /**
          * @brief Get a column based on its index.
@@ -83,7 +85,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Get the number of points in the dataset.
          */
-        [[nodiscard]] size_t size() const noexcept;
+        [[nodiscard]] unsigned int size() const noexcept;
 
         [[nodiscard]] bool empty() const noexcept;
 
@@ -93,12 +95,12 @@ class Dataset : public Matrix<double> {
          * @param path The path to the save location.
          * @param header The header for the file. 
          */
-        void save(std::string path, std::string header = "") const;
+        void save(const io::File& path, const std::string& header = "") const;
 
         /**
          * @brief Load a dataset from the specified file. 
          */
-        virtual void load(std::string path);
+        virtual void load(const io::ExistingFile& path);
 
         /**
          * @brief Set the column names. 
@@ -108,7 +110,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Set a column name. 
          */
-        void set_col_names(unsigned int i, std::string name);
+        void set_col_names(unsigned int i, const std::string& name);
 
         /**
          * @brief Get the column names. 

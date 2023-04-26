@@ -43,8 +43,8 @@ int main(int argc, char const *argv[]) {
     //### CUSTOM SECTION FOR SILICA PROJECT ###//
     //#########################################//
     settings::axes::qmin = 1e-4;
-    settings::axes::bins = 100;
-    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
+    settings::axes::bins = 400;
+    settings::crystal::h = 200; settings::crystal::k = 200; settings::crystal::l = 0;
     crystal::CrystalScattering cs1(crystal);
     auto fourier = cs1.calculate();
     fourier.limit_y(1e-4, 1e10);

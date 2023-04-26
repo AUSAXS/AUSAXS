@@ -19,7 +19,7 @@ Dataset::Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
     set_default_names();
 }
 
-Dataset::Dataset(std::string path) : Dataset() {
+Dataset::Dataset(const io::ExistingFile& path) : Dataset() {
     *this = std::move(*factory::DatasetFactory::construct(path));
     set_default_names();
 }
@@ -38,7 +38,7 @@ void Dataset::force_assign_matrix(const Matrix<double>&& m) {
     this->M = m.M;
 }
 
-std::size_t Dataset::size() const noexcept {
+unsigned int Dataset::size() const noexcept {
     return N;
 }
 
@@ -74,7 +74,7 @@ void Dataset::limit_y(const Limit& limits) {
 void Dataset::limit_x(double min, double max) {limit_x({min, max});}
 void Dataset::limit_y(double min, double max) {limit_y({min, max});}
 
-Column<double> Dataset::col(std::string column) {
+Column<double> Dataset::col(const std::string& column) {
     for (size_t i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
             return col(i);
@@ -83,7 +83,7 @@ Column<double> Dataset::col(std::string column) {
     throw except::invalid_operation("Dataset::col: Column \"" + column + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
 }
 
-const ConstColumn<double> Dataset::col(std::string column) const {
+const ConstColumn<double> Dataset::col(const std::string& column) const {
     for (size_t i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
             return col(i);
@@ -113,7 +113,7 @@ void Dataset::set_col_names(std::vector<std::string> names) {
     this->names = names;
 }
 
-void Dataset::set_col_names(unsigned int i, std::string name) {
+void Dataset::set_col_names(unsigned int i, const std::string& name) {
     names[i] = name;
 }
 
@@ -125,8 +125,8 @@ std::string Dataset::get_col_names(unsigned int i) {
     return names[i];
 }
 
-void Dataset::save(std::string path, std::string header) const {
-    utility::create_directory(path);
+void Dataset::save(const io::File& path, const std::string& header) const {
+    path.directory().create();
 
     // check if file was succesfully opened
     std::ofstream output(path);
@@ -154,7 +154,7 @@ void Dataset::save(std::string path, std::string header) const {
     output.close();
 }
 
-void Dataset::load(std::string path) {
+void Dataset::load(const io::ExistingFile& path) {
     auto data = factory::DatasetFactory::construct(path, M);
     if (data->M != M) {throw except::invalid_operation("Dataset::load: Number of columns does not match. (" + std::to_string(data->M) + " != " + std::to_string(M) + ")");}    
     *this = std::move(*data);

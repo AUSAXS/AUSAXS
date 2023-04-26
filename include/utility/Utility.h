@@ -47,36 +47,9 @@ namespace utility {
     std::string remove_quotation_marks(std::string s);
 
     /**
-     * @brief Remove the extension from a filename. 
-     *        This is just a simple wrapper around filesystem::path::replace_extension.
-     */
-    std::string remove_extension(std::string_view path);
-
-    /**
-     * @brief Create all parent directories of the path.
-     */
-    void create_directory(std::string_view path);
-
-    /**
-     * @brief Append a string to the stem of a path. 
-     *        Example: path = "dir/file.txt", s = "_raw" --> "dir/file_raw.txt"
-     */
-    std::string stem_append(std::string_view path, const std::string& s);
-
-    /**
-     * @brief Get the stem of a path.
-     */
-    std::string stem(std::string_view path);
-
-    /**
-     * @brief Get the extension of a path.
-     */
-    std::string extension(std::string_view path);
-
-    /**
      * @brief Convert a string to lowercase.
      */
-    std::string to_lowercase(std::string_view s);
+    std::string to_lowercase(const std::string& s);
 
     /**
      * @brief Split a string at a given delimiter.

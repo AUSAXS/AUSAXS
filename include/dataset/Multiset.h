@@ -24,8 +24,8 @@ class Multiset {
         const Dataset2D& operator[](unsigned int i) const;
         Dataset2D& operator[](unsigned int i);
 
-        const Dataset2D& get_data(std::string name) const;
-        Dataset2D& get_data(std::string name);
+        const Dataset2D& get_data(const std::string& name) const;
+        Dataset2D& get_data(const std::string& name);
 
         const Dataset2D& get_data(unsigned int i) const;
         Dataset2D& get_data(unsigned int i);
@@ -33,7 +33,7 @@ class Multiset {
         /**
          * @brief Get the number of Datasets contained in this Multiset. 
          */
-        size_t size() const;
+        unsigned int size() const;
 
         /**
          * @brief Check if this Multifram is empty.
@@ -64,7 +64,7 @@ class Multiset {
          * @brief Save this Multiset at the given location.
          *        All constituent Datasets will be saved in a folder with the specified name. 
          */
-        void save(std::string path) const;
+        void save(const io::File& path) const;
 
         /**
          * @brief Read-only iterator.
@@ -93,5 +93,5 @@ class Multiset {
         /**
          * @brief Read a saved Multiset.
          */
-        void read(std::string path);
+        void read(const io::ExistingFile& path);
 };

@@ -17,12 +17,12 @@ Dataset2D& Multiset::operator[](unsigned int i) {
     return data[i];
 }
 
-const Dataset2D& Multiset::get_data(std::string name) const {
+const Dataset2D& Multiset::get_data(const std::string& name) const {
     if (names.count(name) == 0) {throw except::unknown_argument("Multiset::get_data: No dataset named \"" + name + "\".");}
     return data[names.at(name)];
 }
 
-Dataset2D& Multiset::get_data(std::string name) {
+Dataset2D& Multiset::get_data(const std::string& name) {
     if (names.count(name) == 0) {throw except::unknown_argument("Multiset::get_data: No dataset named \"" + name + "\".");}
     return data[names.at(name)];
 }
@@ -35,7 +35,7 @@ Dataset2D& Multiset::get_data(unsigned int i) {
     return data[i];
 }
 
-size_t Multiset::size() const {
+unsigned int Multiset::size() const {
     return data.size();
 }
 
@@ -57,14 +57,14 @@ void Multiset::ylimits(const Limit& limit) noexcept {
     std::for_each(begin(), end(), [&limit] (Dataset2D& data) {data.limit_y(limit);});
 }
 
-void Multiset::save(std::string path) const {
+void Multiset::save(const io::File& path) const {
     for (unsigned int i = 0; i < size(); i++) {
         data[i].save(path + "/" + std::to_string(i) + ".txt");
     }
 }
 
 #include <iostream>
-void Multiset::read(std::string path) {
+void Multiset::read(const io::ExistingFile& path) {
     for (const auto& file : std::filesystem::recursive_directory_iterator(path)) { // loop over all files in the directory
         if (file.path().extension() == ".txt") {
             Dataset2D set(file.path().string());

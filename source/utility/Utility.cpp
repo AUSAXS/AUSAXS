@@ -33,32 +33,8 @@ void utility::print_info(std::string_view text) {
     console::print(text, console::color::lightblue);
 }
 
-void utility::create_directory(std::string_view path) {
-    std::filesystem::path p(path);
-    if (p.has_parent_path()) {
-        std::filesystem::create_directories(p.parent_path());
-    }
-}
-
 bool utility::equal(double a, double b, double c) {
     return a == b && b == c;
-}
-
-std::string utility::remove_extension(std::string_view path) {
-    return std::filesystem::path(path).replace_extension("").string();
-}
-
-std::string utility::stem_append(std::string_view path, const std::string& s) {
-    std::filesystem::path p(path);
-    return p.parent_path().string() + "/" + p.stem().string() + s + p.extension().string();
-}
-
-std::string utility::extension(std::string_view path) {
-    return std::filesystem::path(path).extension().string();
-}
-
-std::string utility::stem(std::string_view path) {
-    return std::filesystem::path(path).stem().string();    
 }
 
 std::vector<std::string> utility::split(const std::string& str, char delimiter) {
@@ -133,7 +109,7 @@ std::string utility::remove_all(std::string_view s, std::string_view remove) {
     return new_s;
 }
 
-std::string utility::to_lowercase(std::string_view s) {
+std::string utility::to_lowercase(const std::string& s) {
     std::string new_s;
     for (auto c : s) {
         new_s += std::tolower(c);

@@ -6,7 +6,7 @@
 
 #include <data/Atom.h>
 #include <hydrate/Grid.h>
-#include <io/File.h>
+#include <io/ProteinFile.h>
 #include <utility/Constants.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/StateManager.h>
@@ -182,7 +182,7 @@ class Body {
 		/**
 		 * @brief Get the File backing this object. 
 		 */
-		File& get_file();
+		ProteinFile& get_file();
 
 		/**
 		 * @brief Signal that this object has changed its external state.
@@ -201,7 +201,7 @@ class Body {
 		bool centered = false;                		// True if this object is centered, false otherwise
 		inline static unsigned int uid_counter = 0; // The unique counter. 
 	private:
-		File file;                            		// The file backing this body
+		ProteinFile file;                           // The file backing this body
 
 		// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
 		std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 

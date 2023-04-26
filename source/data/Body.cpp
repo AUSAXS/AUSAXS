@@ -153,4 +153,4 @@ Atom& Body::atoms(unsigned int index) {return file.protein_atoms[index];}
 
 const Atom& Body::atoms(unsigned int index) const {return file.protein_atoms[index];}
 
-File& Body::get_file() {return file;}
+ProteinFile& Body::get_file() {return file;}
