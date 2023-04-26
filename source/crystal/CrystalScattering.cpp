@@ -5,6 +5,7 @@
 #include <crystal/miller/FibonacciMillers.h>
 #include <crystal/miller/ReducedMillers.h>
 #include <crystal/io/CrystalReaderFactory.h>
+#include <crystal/miller/MillerGenerationFactory.h>
 #include <settings/CrystalSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
@@ -30,24 +31,7 @@ CrystalScattering::CrystalScattering(const Grid& grid) {
 }
 
 void CrystalScattering::initialize() {
-    switch (settings::crystal::mgc) {
-        case settings::crystal::MillerGenerationChoice::All: {
-            miller_strategy = std::make_shared<AllMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
-            break;
-        }
-        case settings::crystal::MillerGenerationChoice::Fibonacci: {
-            miller_strategy = std::make_shared<FibonacciMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
-            break;
-        }
-        case settings::crystal::MillerGenerationChoice::Reduced: {
-            miller_strategy = std::make_shared<ReducedMillers>(settings::crystal::h, settings::crystal::k, settings::crystal::l);
-            break;
-        }
-
-        default: {
-            throw except::unknown_argument("CrystalScattering::CrystalScattering: Unknown MillerGenerationStrategy.");
-        }
-    }
+    miller_strategy = factory::construct_miller_strategy();
 }
 
 SimpleDataset CrystalScattering::calculate() const {

@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmin = 1e-4;
     settings::axes::bins = 1000;
     settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
-    settings::crystal::mgc = settings::crystal::MillerGenerationChoice::All;
+    settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::All;
     settings::crystal::max_q = 100;
     // crystal::CrystalScattering cs(crystal);
     // auto fourier = cs.calculate();
@@ -39,25 +39,47 @@ int main(int argc, char const *argv[]) {
     // }
     // plot.save(settings::general::output + "comparison.png");
 
+    //#########################################//
+    //### CUSTOM SECTION FOR SILICA PROJECT ###//
+    //#########################################//
     settings::axes::qmin = 1e-4;
-    settings::axes::bins = 1000;
+    settings::axes::bins = 100;
     settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
-    settings::crystal::mgc = settings::crystal::MillerGenerationChoice::Reduced;
-    settings::crystal::max_q = 100;
-    crystal::CrystalScattering cs(crystal);
-    auto fourier = cs.calculate();
+    crystal::CrystalScattering cs1(crystal);
+    auto fourier = cs1.calculate();
     fourier.limit_y(1e-4, 1e10);
     fourier.limit_x(1e-2, 1);
-    fourier.add_plot_options({{plots::option::color, style::color::orange}, {plots::option::legend, "xy"}});
-    plots::PlotIntensity plot(fourier);
+    fourier.add_plot_options({{plots::option::legend, "xy"}});
+    plots::PlotIntensity plot(fourier, style::color::orange);
 
-    settings::crystal::l = 100;
-    settings::crystal::mgc = settings::crystal::MillerGenerationChoice::All;
-    auto fourier2 = cs.calculate();
-    fourier2.limit_y(1e-4, 1e10);
-    fourier2.limit_x(1e-2, 1);
-    fourier2.add_plot_options({{plots::option::color, style::color::blue}, {plots::option::legend, "xyz"}});
-    plot.plot(fourier2);
+    // settings::axes::qmin = 1e-4;
+    // settings::axes::bins = 100;
+    // settings::crystal::h = 100; settings::crystal::k = 0; settings::crystal::l = 10;
+    // crystal::CrystalScattering cs2(crystal);
+    // auto fourier2 = cs2.calculate();
+    // fourier2.limit_y(1e-4, 1e10);
+    // fourier2.limit_x(1e-2, 1);
+    // fourier2.add_plot_options({{plots::option::legend, "xz"}});
+    // plot.plot(fourier2, style::color::purple);
+
+    // settings::axes::qmin = 1e-4;
+    // settings::axes::bins = 100;
+    // settings::crystal::h = 0; settings::crystal::k = 100; settings::crystal::l = 10;
+    // crystal::CrystalScattering cs3(crystal);
+    // auto fourier3 = cs3.calculate();
+    // fourier3.limit_y(1e-4, 1e10);
+    // fourier3.limit_x(1e-2, 1);
+    // fourier3.add_plot_options({{plots::option::legend, "yz"}});
+    // plot.plot(fourier3, style::color::green);
+
+    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 10;
+    settings::axes::bins = 1000;
+    crystal::CrystalScattering cs4(crystal);
+    auto fourier4 = cs4.calculate();
+    fourier4.limit_y(1e-4, 1e10);
+    fourier4.limit_x(1e-2, 1);
+    fourier4.add_plot_options({{plots::option::legend, "xyz"}});
+    plot.plot(fourier4, style::color::blue);
     plot.save(settings::general::output + "comparison.png");
 
     return 0;

@@ -9,7 +9,7 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::re
 
     std::string line;
     std::getline(file, line);
-    if (line[0] != '#' || line.find("CRYSTAL") == std::string::npos) {throw except::io_error("GridReader::read: File \"" + filename + "\" is not a crystal file (missing header: \"# CRYSTAL\").");}
+    if (line.substr(0, 6) != "BASIS") {throw except::io_error("GridReader::read: File \"" + filename + "\" is not a crystal file (missing section: \"BASIS\").");}
 
     std::getline(file, line);
     auto tokens = utility::split(line, ' ');
@@ -22,6 +22,10 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::re
     std::getline(file, line);
     tokens = utility::split(line, ' ');
     Vector3 zaxis(std::stod(tokens[0]), std::stod(tokens[1]), std::stod(tokens[2]));
+
+    std::getline(file, line);
+    std::getline(file, line);
+    if (line.substr(0, 11) != "CRYSTALDATA") {throw except::io_error("GridReader::read: File \"" + filename + "\" is not a crystal file (missing section: \"CRYSTALDATA\").");}
 
     // sanity checks
     if (xaxis.y() != 0 || xaxis.z() != 0) {throw except::io_error("GridReader::read: Grid x-axis must be parallel to the x-axis");}

@@ -1,18 +1,26 @@
 #pragma once
 
 namespace settings {
-    struct crystal {
-        enum class MillerGenerationChoice {All, Fibonacci, Reduced};
-        inline static MillerGenerationChoice mgc = MillerGenerationChoice::All; // The choice of Miller index generation algorithm.
-        inline static unsigned int h = 100;                                     // The maximum Miller index along the x direction.
-        inline static unsigned int k = 100;                                     // The maximum Miller index along the y direction.
-        inline static unsigned int l = 100;                                     // The maximum Miller index along the z direction.
+    namespace crystal {
+        extern unsigned int h;        // The maximum Miller index along the x direction.
+        extern unsigned int k;        // The maximum Miller index along the y direction.
+        extern unsigned int l;        // The maximum Miller index along the z direction.
 
-        inline static double max_q = 1e6;                                       // The maximum length of the Miller indices. 
-        inline static double grid_expansion = 3;                                // The factor by which the grid is expanded when loading a pdb structure. 
+        extern double max_q;          // The maximum length of the Miller indices. 
+        extern double grid_expansion; // The factor by which the grid is expanded when loading a pdb structure. 
 
-        struct reduced {
-            inline static double basis_q = 3;                                   // The maximum q value for which the basis is generated.
+        namespace reduced {
+            extern double basis_q;    // The maximum q value for which the basis is generated.
         };
+    }
+}
+
+namespace settings::crystal {
+    // The choice of Miller index generation algorithm. See the documentation for the individual classes for more information.
+    enum class MillerGenerationChoice {
+        All, // Generates all miller indices within the specified range. 
+        Reduced, // Generates a subset of the miller indices within the specified range using a reduced basis.
+        Fibonacci // Similar to Reduced, but uses a Fibonacci sphere to make the basis more uniform. Experimental and not recommended for general usage.
     };
+    extern MillerGenerationChoice miller_generation_strategy;
 }

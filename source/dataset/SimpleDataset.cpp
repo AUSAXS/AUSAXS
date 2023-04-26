@@ -231,7 +231,29 @@ void SimpleDataset::push_back(const Point2D& point) noexcept {
 }
 
 void SimpleDataset::rebin() noexcept {
-    SimpleDataset data; // rebinned dataset
+    SimpleDataset newdata; // rebinned dataset
+
+    std::function<void(unsigned int, unsigned int&)> func;
+    if (std::accumulate(yerr().begin(), yerr().end(), 0.0) == 0) {
+        func = [&newdata, this] (unsigned int nfold, unsigned int& index) {
+            double wsum = 0, qsum = 0, folds = 0;
+            for (; (folds < nfold) && (index < size()); folds++) {
+                wsum += y(index);
+                qsum += x(index++);
+            }
+            newdata.push_back(qsum/folds, wsum/folds, 0);
+        };
+    } else {
+        func = [&newdata, this] (unsigned int nfold, unsigned int& index) {
+            double siginv = 0, wsum = 0, qsum = 0, folds = 0;
+            for (; (folds < nfold) && (index < size()); folds++) {
+                siginv += (std::pow(yerr(index), -2));
+                wsum += y(index)/(std::pow(yerr(index), 2));
+                qsum += x(index++);
+            }
+            newdata.push_back(qsum/folds, wsum/siginv, std::pow(siginv, -0.5));
+        };
+    }
 
     for (unsigned int i = 0; i < size(); i++) {
         // determine how many data points to fold into one
@@ -241,23 +263,10 @@ void SimpleDataset::rebin() noexcept {
         else if (0.03 < x(i)) {fold = 2;}
         else {fold = 1;}
 
-        // loop over each data point to be folded
-        double siginv = 0, sumw = 0, qsum = 0;
-        unsigned int ss = 0;
-        for (; (ss < fold) && (i < size()); ss++) {
-            siginv += (std::pow(yerr(i), -2));
-            sumw += y(i)/(std::pow(yerr(i), 2));
-            qsum += x(i);
-            i++;
-        }
-
-        // average their values into a single new one
-        double q = qsum/ss;
-        double I = sumw/siginv;
-        double Ierr = std::pow(siginv, -0.5);
-        data.push_back(q, I, Ierr);
+        // fold data points
+        func(fold, i);
     }
-    *this = std::move(data);
+    *this = std::move(newdata);
 }
 
 void SimpleDataset::load(std::string path) {

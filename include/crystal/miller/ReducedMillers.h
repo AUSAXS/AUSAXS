@@ -3,6 +3,19 @@
 #include <crystal/miller/MillerGenerationStrategy.h>
 
 namespace crystal {
+
+    /**
+     * @brief Generates a subset of the indices within the range specified by
+     *           settings::crystal::h
+     *           settings::crystal::k
+     *           settings::crystal::l
+     *        All independent basis vectors out to the length 
+     *           settings::crystal::reduced::basis_q
+     *        are generated. These basis vectors are then multiplied by a constant
+     *        to generate the full set of indices within the range specified by
+     *           settings::crystal::max_q
+     *        This is significantly faster than using the AllMillers strategy, but also loses some information.
+     */
     class ReducedMillers : public MillerGenerationStrategy {
         public:
             ReducedMillers();
