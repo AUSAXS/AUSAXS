@@ -6,7 +6,6 @@
 #include <hist/ScatteringHistogram.h>
 
 #include <memory>
-#include <string>
 
 namespace plots {
 	class PlotIntensity : public Plot {
@@ -54,12 +53,12 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const hist::ScatteringHistogram& h, std::string path);
+			static void quick_plot(const hist::ScatteringHistogram& h, const io::File& path);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const SimpleDataset& d, std::string path);
+			static void quick_plot(const SimpleDataset& d, const io::File& path);
 	};
 }

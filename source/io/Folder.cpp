@@ -1,4 +1,5 @@
 #include <io/Folder.h>
+#include <utility/Exceptions.h>
 
 #include <filesystem>
 
@@ -6,6 +7,9 @@ using namespace io;
 
 Folder::Folder(const std::string& path) : dir(path) {
     *this = path;
+    if (!std::filesystem::is_directory(dir)) {
+        throw except::invalid_argument("Folder::Folder: \"" + dir + "\" is not a directory.");
+    }
 }
 
 void Folder::operator=(const std::string& path) {
@@ -49,4 +53,12 @@ std::vector<std::string> Folder::directories() const {
 void Folder::create() const {
     if (exists()) {return;}
     std::filesystem::create_directories(dir);
+}
+
+std::string operator+(const char* str, const io::Folder& folder) {
+    return std::string(str) + folder.path();
+}
+
+std::string operator+(const io::Folder& folder, const char* str) {
+    return folder.path() + std::string(str);
 }

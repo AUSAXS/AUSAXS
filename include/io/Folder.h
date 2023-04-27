@@ -35,3 +35,6 @@ namespace io {
             std::string dir;
     };
 }
+
+std::string operator+(const char* str, const io::Folder& folder);
+std::string operator+(const io::Folder& folder, const char* str);

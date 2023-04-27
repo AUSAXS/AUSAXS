@@ -4,9 +4,6 @@
 #include <plots/PlotDataset.h>
 #include <dataset/Multiset.h>
 
-#include <memory>
-#include <string>
-
 namespace plots {
 	class PlotResolutionComparison : public Plot {
 		public:
@@ -15,7 +12,7 @@ namespace plots {
 			 * 
 			 * @param d The Multiset to be plotted. 
 			 */
-			PlotResolutionComparison(Multiset d);
+			PlotResolutionComparison(Multiset& d);
 
 			/**
 			 * @brief Destructor.
@@ -26,6 +23,6 @@ namespace plots {
 			 * @brief Plot and save the input dataset and the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(const Multiset& data, std::string path);
+			static void quick_plot(Multiset& data, const io::File& path);
 	};
 }

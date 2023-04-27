@@ -3,8 +3,16 @@
 
 #include <utility/Exceptions.h>
 #include <utility/ResidueMap.h>
+#include <utility/Utility.h>
 
 using namespace saxs::detail;
+
+saxs::detail::AtomKey::AtomKey(const std::string& name, const std::string& symbol) : name(utility::to_lowercase(name)), symbol(symbol) {}
+bool saxs::detail::AtomKey::operator==(const AtomKey& other) const {
+    return name == other.name;
+}
+
+unsigned int std::hash<saxs::detail::AtomKey>::operator()(const saxs::detail::AtomKey& k) const {return std::hash<std::string>()(k.name);}
 
 ResidueMap::ResidueMap() {}
 
@@ -34,7 +42,7 @@ void ResidueMap::insert(AtomKey key, int value) {
     update_average = true;
 }
 
-void ResidueMap::insert(std::string name, std::string symbol, int value) {
+void ResidueMap::insert(const std::string& name, const std::string& symbol, int value) {
     insert(AtomKey(name, symbol), value);
 }
 

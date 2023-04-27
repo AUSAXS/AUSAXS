@@ -1,9 +1,10 @@
 #pragma once
 
-#include <string>
-
 #include <utility/ResidueParser.h>
 #include <utility/SimpleMap.h>
+#include <io/ExistingFile.h>
+
+#include <string>
 
 /**
  * @brief Constexpr power function.
@@ -24,7 +25,7 @@ namespace constants {
         namespace detail {
             struct FileType {
                 FileType(std::vector<std::string> extensions);
-                bool validate(std::string_view path) const;
+                bool validate(const io::ExistingFile& path) const;
                 std::vector<std::string> extensions;
             };
         }

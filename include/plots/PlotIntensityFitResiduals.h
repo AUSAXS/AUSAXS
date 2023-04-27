@@ -6,13 +6,10 @@
 #include <fitter/LinearFitter.h>
 
 #include <memory>
-#include <string>
 
 namespace plots {
 	/**
-	 * @brief \class PlotIntensityFitResiduals
-	 * 
-	 * Plot the residuals of the fitted scattering curve. 
+	 * @brief Plot the residuals of the fitted scattering curve. 
 	 * Remember to set the correct ScatteringPlot with the optimized values in the fitter before using this class. 
 	 */
 	class PlotIntensityFitResiduals : public Plot {
@@ -47,7 +44,7 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, std::string path);
+			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
 			void plot(const SimpleDataset graph);

@@ -1,6 +1,6 @@
 #include <plots/PlotLandscape.h>
 
-plots::PlotLandscape::PlotLandscape(const mini::Landscape& data, std::string path) {
+plots::PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File& path) {
     ss << "PlotLandscape\n" 
         << data.to_string() 
         << "\n"
@@ -12,6 +12,6 @@ plots::PlotLandscape::PlotLandscape(const mini::Landscape& data, std::string pat
 
 plots::PlotLandscape::~PlotLandscape() = default;
 
-void plots::PlotLandscape::quick_plot(const mini::Landscape& data, std::string path) {
+void plots::PlotLandscape::quick_plot(const mini::Landscape& data, const io::File& path) {
     PlotLandscape plot(data, path);
 }

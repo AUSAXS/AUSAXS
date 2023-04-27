@@ -2,6 +2,8 @@
 
 #include <utility/Table.h>
 
+#include <unordered_map>
+
 namespace table {
     /**
      * @brief A generic representation of a lookup table. The class can be templated to use any data type as indices. 

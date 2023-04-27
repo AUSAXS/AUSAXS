@@ -71,7 +71,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         /**
          * @brief Load a dataset from the specified file. 
          */
-        virtual void load(std::string path) override;
+        virtual void load(const io::ExistingFile& path) override;
 
         /**
          * @brief Reduce the number of data points to the specified amount. 

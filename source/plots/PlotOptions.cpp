@@ -1,8 +1,9 @@
 #include <plots/PlotOptions.h>
 #include <utility/Exceptions.h>
 
-#include <algorithm>
 #include <typeindex>
+#include <numeric>
+#include <algorithm>
 #include <initializer_list>
 #include <sstream>
 
@@ -14,25 +15,25 @@ PlotOptions::PlotOptions() : draw_line(true) {}
 
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
-PlotOptions::PlotOptions(std::string style, std::map<std::string, std::any> options) {
+PlotOptions::PlotOptions(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
     set(options);
 }
 
-PlotOptions& PlotOptions::set(std::string style, std::map<std::string, std::any> options) {
+PlotOptions& PlotOptions::set(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
     set(options);
     return *this;
 }
 
-PlotOptions& PlotOptions::set(std::map<std::string, std::any> options) {
+PlotOptions& PlotOptions::set(std::unordered_map<std::string, std::any> options) {
     std::for_each(options.begin(), options.end(), [this] (const auto& opt) {parse(opt.first, opt.second);});
     return *this;
 }
 
-void PlotOptions::parse(std::string key, std::any val) {
+void PlotOptions::parse(const std::string& key, std::any val) {
     for (const auto& opt : options) {
         for (const auto& alias : opt->aliases) {
             if (alias == key) {
@@ -176,10 +177,10 @@ std::string PlotOptions::to_string() const {
 
 void Plottable::set_plot_options(const plots::PlotOptions& options) {this->options = options;}
 
-void Plottable::add_plot_options(std::map<std::string, std::any> options) {this->options.set(options);}
+void Plottable::add_plot_options(std::unordered_map<std::string, std::any> options) {this->options.set(options);}
 
-void Plottable::add_plot_options(std::string style, std::map<std::string, std::any> options) {this->options.set(style, options);}
+void Plottable::add_plot_options(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {this->options.set(style, options);}
 
-void Plottable::set_plot_color(std::string color) {this->options.color = color;}
+void Plottable::set_plot_color(const std::string& color) {this->options.color = color;}
 
 plots::PlotOptions Plottable::get_plot_options() const {return options;}

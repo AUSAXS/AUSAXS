@@ -1,12 +1,18 @@
 #include <io/File.h>
+#include <utility/Exceptions.h>
 
 #include <filesystem>
 #include <fstream>
 
 using namespace io;
 
+File::File(const char* path) : File(std::string(path)) {}
+
 File::File(const std::string& path) {
     *this = path;
+    if (!std::filesystem::is_regular_file(path)) {
+        throw except::invalid_argument("File::File: \"" + path + "\" is not a file.");
+    }
 }
 
 std::tuple<std::string, std::string, std::string> File::split(const std::string& path) {
@@ -37,6 +43,12 @@ void File::append(const std::string& name) noexcept {
     this->name += name;
 }
 
+io::File File::append(const std::string& name) const noexcept {
+    auto file = *this;
+    file.append(name);
+    return file;
+}
+
 Folder& File::directory() noexcept {return dir;}
 
 const Folder& File::directory() const noexcept {return dir;}
@@ -45,7 +57,7 @@ std::string& File::extension() noexcept {return ext;}
 
 const std::string& File::extension() const noexcept {return ext;}
 
-std::string File::stem(const std::string& path) {return name;}
+std::string File::stem() const noexcept {return name;}
 
 void File::create() const {
     if (!dir.exists()) {dir.create();}
@@ -54,10 +66,27 @@ void File::create() const {
 
 std::string File::path() const {return std::string(*this);}
 
+bool File::exists() const noexcept {
+    std::filesystem::exists(path());
+}
+
 std::string operator+(const char* str, const io::File& file) {
     return std::string(str) + std::string(file);
 }
 
-bool File::exists() const noexcept {
-    std::filesystem::exists(path());
+std::string operator+(const io::File& file, const char* str) {
+    return std::string(file) + std::string(str);
+}
+
+std::string operator+(const std::string& str, const io::File& file) {
+    return str + std::string(file);
+}
+
+std::string operator+(const io::File& file, const std::string& str) {
+    return std::string(file) + str;
+}
+
+std::ostream& File::operator<<(std::ostream& os, const io::File& file) {
+    os << file.path();
+    return os;
 }

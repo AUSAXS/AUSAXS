@@ -1,9 +1,4 @@
 #include <plots/PlotIntensityFitResiduals.h>
-#include <utility/Utility.h>
-
-#include <memory.h>
-#include <string.h>
-#include <vector>
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(fitter::LinearFitter& fitter) : Plot() {
     SimpleDataset graph = fitter.plot_residuals();
@@ -20,7 +15,7 @@ plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(const std::shared_pt
 
 plots::PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
 
-void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<fitter::Fit> fit, std::string path) {
+void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path) {
     PlotIntensityFitResiduals plot(fit);
     plot.save(path);
 }

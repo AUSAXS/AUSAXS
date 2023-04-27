@@ -1,8 +1,6 @@
 #include <fitter/FitReporter.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
 
-#include <string>
 #include <fstream>
 #include <iostream>
 
@@ -28,8 +26,8 @@ void FitReporter::report(const std::vector<T>& fits, std::vector<std::string> ti
 }
 
 template<FitType T>
-void FitReporter::save(const T& fit, std::string path) {
-    utility::create_directory(path);
+void FitReporter::save(const T& fit, const io::File& path) {
+    path.directory().create();
 
     std::ofstream out(path);
     if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
@@ -38,14 +36,14 @@ void FitReporter::save(const T& fit, std::string path) {
 }
 
 template<FitType T>
-void FitReporter::save(const std::shared_ptr<T> fit, std::string path) {
+void FitReporter::save(const std::shared_ptr<T> fit, const io::File& path) {
     save(*fit, path);
 }
 
 template<FitType T>
-void FitReporter::save(const std::vector<T>& fits, std::string path, std::vector<std::string> titles) {
+void FitReporter::save(const std::vector<T>& fits, const io::File& path, std::vector<std::string> titles) {
     if (!titles.empty() && titles.size() != fits.size()) {throw except::size_error("FitReporter::report: Size of fits and titles must be equal.");}
-    utility::create_directory(path);
+    path.directory().create();
 
     std::ofstream out(path);
     if (!out.is_open()) {throw except::io_error("FitReporter::save: Could not open file path \"" + path + "\".");}
@@ -80,13 +78,13 @@ std::function<std::string(std::string)> FitReporter::get_title_reporter(std::vec
 template void FitReporter::report(const Fit& fit);
 template void FitReporter::report(const std::shared_ptr<Fit> fit);
 template void FitReporter::report(const std::vector<Fit>& fits, std::vector<std::string> titles);
-template void FitReporter::save(const Fit& fit, std::string path);
-template void FitReporter::save(const std::shared_ptr<Fit> fit, std::string path);
-template void FitReporter::save(const std::vector<Fit>& fits, std::string path, std::vector<std::string> titles);
+template void FitReporter::save(const Fit& fit, const io::File& path);
+template void FitReporter::save(const std::shared_ptr<Fit> fit, const io::File& path);
+template void FitReporter::save(const std::vector<Fit>& fits, const io::File& path, std::vector<std::string> titles);
 
 template void FitReporter::report(const EMFit& fit);
 template void FitReporter::report(const std::shared_ptr<EMFit> fit);
 template void FitReporter::report(const std::vector<EMFit>& fits, std::vector<std::string> titles);
-template void FitReporter::save(const EMFit& fit, std::string path);
-template void FitReporter::save(const std::shared_ptr<EMFit> fit, std::string path);
-template void FitReporter::save(const std::vector<EMFit>& fits, std::string path, std::vector<std::string> titles);
+template void FitReporter::save(const EMFit& fit, const io::File& path);
+template void FitReporter::save(const std::shared_ptr<EMFit> fit, const io::File& path);
+template void FitReporter::save(const std::vector<EMFit>& fits, const io::File& path, std::vector<std::string> titles);

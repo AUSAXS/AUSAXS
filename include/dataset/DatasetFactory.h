@@ -1,9 +1,9 @@
 #pragma once
 
-#include <memory>
-
 #include <dataset/Dataset.h>
 #include <io/ExistingFile.h>
+
+#include <memory>
 
 namespace factory {
     /**

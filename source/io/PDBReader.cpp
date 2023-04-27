@@ -1,26 +1,27 @@
 #include <io/PDBReader.h>
 #include <io/Reader.h>
-#include <io/File.h>
+#include <io/ProteinFile.h>
 #include <data/Terminate.h>
 #include <data/Atom.h>
 #include <data/Water.h>
 #include <utility/Exceptions.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Constants.h>
+#include <utility/Console.h>
 
 #include <fstream>
 
-void PDBReader::read(std::string input_path) {
+void PDBReader::read(const io::ExistingFile& path) {
     if (settings::general::verbose) {
-        utility::print_info("\nReading PDB file from \"" + input_path + "\"");
+        console::print_info("\nReading PDB file from \"" + path + "\"");
     }
 
     // check if file was succesfully opened
-    std::ifstream input(input_path);
-    if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + input_path + "\"");}
+    std::ifstream input(path);
+    if (!input.is_open()) {throw except::io_error("PDBReader::read: Could not open file \"" + path + "\"");}
 
     std::string line; // placeholder for the current line
-    File& f = *file;
+    ProteinFile& f = *file;
     while(getline(input, line)) {
         std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {

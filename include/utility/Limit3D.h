@@ -3,9 +3,7 @@
 #include <utility/Limit.h>
 
 /**
- * @brief \class Limit3D
- * 
- * A representation of a 3-dimensional limited span of values. 
+ * @brief A representation of a 3-dimensional limited span of values. 
  */
 class Limit3D {
     public:

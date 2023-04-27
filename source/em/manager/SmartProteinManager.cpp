@@ -1,7 +1,7 @@
 #include <em/manager/SmartProteinManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
-#include <utility/Utility.h>
+#include <utility/Console.h>
 #include <em/detail/ImageStackBase.h>
 #include <settings/EMSettings.h>
 
@@ -34,7 +34,7 @@ std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) co
     std::vector<Atom> current_atoms(atoms.size());
 
     if (atoms.empty()) {
-        utility::print_warning("Warning in ProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
+        console::print_warning("Warning in ProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
         return std::make_unique<Protein>(bodies);
     }
 

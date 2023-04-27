@@ -3,6 +3,7 @@
 #include <dataset/SimpleDataset.h>
 #include <dataset/Dataset2D.h>
 #include <utility/Utility.h>
+#include <utility/Console.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
 #include <settings/HistogramSettings.h>
@@ -14,7 +15,7 @@
 
 std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, unsigned int expected_cols) {
     if (settings::general::verbose) {
-        utility::print_info("\nReading dataset from \"" + path + "\"");
+        console::print_info("\nReading dataset from \"" + path + "\"");
     }
 
     // check if file was succesfully opened

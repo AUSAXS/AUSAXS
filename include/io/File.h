@@ -2,11 +2,15 @@
 
 #include <io/Folder.h>
 #include <string>
+#include <ostream>
 
 namespace io {
     class File {
         public:
+            File(const char* path);
+
             File(const std::string& path);
+
             virtual ~File() = default;
 
             [[nodiscard]] std::string path() const;
@@ -26,9 +30,14 @@ namespace io {
             void append(const std::string& name) noexcept;
 
             /**
+             * @brief Append to the name of the file.
+             */
+            [[nodiscard]] File append(const std::string& name) const noexcept;
+
+            /**
              * @brief Get the stem of the file.
              */
-            [[nodiscard]] std::string stem(const std::string& path);
+            [[nodiscard]] std::string stem() const noexcept;
 
             /**
              * @brief Get the directory of the file.
@@ -72,4 +81,8 @@ namespace io {
     };
 }
 
+std::string operator+(const std::string& str, const io::File& file);
+std::string operator+(const io::File& file, const std::string& str);
 std::string operator+(const char* str, const io::File& file);
+std::string operator+(const io::File& file, const char* str);
+std::ostream& operator<<(std::ostream& os, const io::File& file);

@@ -7,6 +7,7 @@
 #include <data/Atom.h>
 #include <hydrate/Grid.h>
 #include <io/ProteinFile.h>
+#include <io/ExistingFile.h>
 #include <utility/Constants.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/StateManager.h>
@@ -26,7 +27,7 @@ class Body {
 		 * @param path path to the input file. 
 		 * @param signaller a signalling object to signal changes of state
 		 */
-		explicit Body(std::string path);
+		explicit Body(const io::ExistingFile& path);
 
 		/**
 		 * @brief Create a new collection of atoms (body) based on two vectors
@@ -50,7 +51,7 @@ class Body {
 		 * 
 		 * @param path path to the destination. 
 		 */
-		void save(std::string path);
+		void save(const io::File& path);
 
 		/**
 		 * @brief Get a reference to the constituent atoms.

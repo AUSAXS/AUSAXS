@@ -7,7 +7,7 @@
 
 using namespace rigidbody;
 
-Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
+Protein BodySplitter::split(const io::ExistingFile& input, std::vector<int> splits) {
     Body body(input);
     std::vector<Atom>& atoms = body.atoms();
 
@@ -17,7 +17,7 @@ Protein BodySplitter::split(const std::string& input, std::vector<int> splits) {
     std::vector<bool> split_at(max_id, false);
 
     // we then mark the ids where we want to split as true
-    std::for_each(splits.begin(), splits.end(), [&split_at] (int id) 
+    std::for_each(splits.begin(), splits.end(), [&split_at] (unsigned int id) 
         {
             if (id > split_at.size()) {throw except::parse_error("BodySplitter::split: Split index (" + std::to_string(id) + ") larger than highest residue sequence id (" + std::to_string(split_at.size()) + ").");}
             split_at[id] = true;

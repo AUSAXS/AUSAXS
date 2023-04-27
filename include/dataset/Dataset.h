@@ -1,10 +1,8 @@
 #pragma once
 
 #include <math/Matrix.h>
-#include <utility/Exceptions.h>
 #include <dataset/PointSet.h>
 #include <utility/Limit.h>
-#include <io/File.h>
 #include <io/ExistingFile.h>
 
 /**

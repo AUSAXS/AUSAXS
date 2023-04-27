@@ -3,7 +3,6 @@
 #include <dataset/detail/DatasetConstructor.h>
 #include <dataset/detail/DATConstructor.h>
 #include <dataset/detail/XVGConstructor.h>
-#include <utility/Utility.h>
 #include <utility/Constants.h>
 
 std::shared_ptr<Dataset> factory::DatasetFactory::construct(const io::ExistingFile& file, unsigned int expected_cols) {

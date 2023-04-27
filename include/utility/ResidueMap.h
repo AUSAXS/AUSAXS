@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility/Utility.h>
-
 #include <unordered_map>
 #include <string>
 
@@ -13,7 +11,7 @@ namespace saxs {
          *        so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca). 
          */
         struct AtomKey {
-            AtomKey(std::string name, std::string symbol) : name(utility::to_lowercase(name)), symbol(symbol) {}
+            AtomKey(const std::string& name, const std::string& symbol) : name(utility::to_lowercase(name)), symbol(symbol) {}
             std::string name;
             std::string symbol;
 
@@ -27,7 +25,7 @@ namespace saxs {
 namespace std {
     template <>
     struct hash<saxs::detail::AtomKey> {
-        std::size_t operator()(const saxs::detail::AtomKey& k) const {return std::hash<std::string>()(k.name);}
+        unsigned int operator()(const saxs::detail::AtomKey& k) const {return std::hash<std::string>()(k.name);}
     };
 }
 
@@ -65,7 +63,7 @@ namespace saxs {
                  * @param name The name of the atom.
                  * @param symbol The symbol of the atom.
                  */
-                double get(std::string name, std::string symbol) {return this->get(AtomKey(name, symbol));}
+                double get(const std::string& name, const std::string& symbol) {return this->get(AtomKey(name, symbol));}
 
                 /**
                  * @brief Insert a new element into the map. 
@@ -82,7 +80,7 @@ namespace saxs {
                  * @param symbol The symbol of the atom.
                  * @param value The number of bonds.
                  */
-                void insert(std::string name, std::string symbol, int value);
+                void insert(const std::string& name, const std::string& symbol, int value);
 
                 std::unordered_map<AtomKey, int>::const_iterator begin() const {return map.begin();}
                 std::unordered_map<AtomKey, int>::const_iterator end() const {return map.end();}

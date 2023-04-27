@@ -1,16 +1,14 @@
 #pragma once
 
-class File;
-
 #include <io/Reader.h>
 #include <data/Terminate.h>
 #include <data/Atom.h>
 #include <data/Water.h>
 
+class ProteinFile;
+
 /**
- * @brief \class PDBReader. 
- * 
- * This class handles reading of input PDB format data files. 
+ * @brief This class handles reading of input PDB format data files. 
  */
 class PDBReader : public Reader {
     public:
@@ -18,16 +16,17 @@ class PDBReader : public Reader {
          * @brief Constructor.
          * @param file Path to the input PDB format data file. 
          */
-        PDBReader(File* const file) : file(file) {}
+        PDBReader(ProteinFile* const file) : file(file) {}
 
         ~PDBReader() override = default;
 
         /**
          * @brief Read a PDB format data file.
-         * @param input_path Path to the input PDB format data file. 
+         * 
+         * @param path Path to the input PDB format data file. 
          */
-        void read(std::string input_path) override;
+        void read(const io::ExistingFile& path) override;
 
     private: 
-        File* const file; // The File backing this Reader. 
+        ProteinFile* const file; // The File backing this Reader. 
 };

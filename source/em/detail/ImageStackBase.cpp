@@ -13,7 +13,7 @@ em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(im
     phm = em::factory::create_manager(this);
 }
 
-em::ImageStackBase::ImageStackBase(std::string file) : filename(file), header(std::make_shared<ccp4::Header>()) {
+em::ImageStackBase::ImageStackBase(const io::ExistingFile& file) : filename(file), header(std::make_shared<ccp4::Header>()) {
     constants::filetypes::em_map.validate(file);
 
     std::ifstream input(file, std::ios::binary);

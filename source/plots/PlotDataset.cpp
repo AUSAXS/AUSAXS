@@ -1,10 +1,4 @@
 #include <plots/PlotDataset.h>
-#include <utility/Utility.h>
-#include <utility/Exceptions.h>
-
-#include <memory.h>
-#include <string.h>
-#include <vector>
 
 template<plots::DatasetType T>
 plots::PlotDataset::PlotDataset(const T& data) {
@@ -31,13 +25,13 @@ void plots::PlotDataset::plot(const T& data) {
 }
 
 template<plots::DatasetType T>
-void plots::PlotDataset::quick_plot(const T& data, std::string path) {
+void plots::PlotDataset::quick_plot(const T& data, const io::File& path) {
     PlotDataset plot(data);
     plot.save(path);
 }
 
-template void plots::PlotDataset::quick_plot(const Dataset2D& data, std::string path);
-template void plots::PlotDataset::quick_plot(const SimpleDataset& data, std::string path);
+template void plots::PlotDataset::quick_plot(const Dataset2D& data, const io::File& path);
+template void plots::PlotDataset::quick_plot(const SimpleDataset& data, const io::File& path);
 template plots::PlotDataset::PlotDataset(const Dataset2D& data);
 template plots::PlotDataset::PlotDataset(const SimpleDataset& data);
 template void plots::PlotDataset::plot(const Dataset2D& data);

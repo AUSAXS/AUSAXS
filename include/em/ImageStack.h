@@ -8,12 +8,11 @@
 #include <hist/ScatteringHistogram.h>
 #include <em/detail/ImageStackBase.h>
 #include <em/detail/ExtendedLandscape.h>
+#include <io/ExistingFile.h>
 
 namespace em {
     /**
-     * @brief \class ImageStack
-     * 
-     * Extends the ImageStackBase class with fitting functionalities. 
+     * @brief Extends the ImageStackBase class with fitting functionalities. 
      */
     class ImageStack : public ImageStackBase {
         public: 
@@ -25,14 +24,14 @@ namespace em {
              * @param file Path to the measurement file. 
              * @param param The cutoff parameter.
              */
-            std::shared_ptr<fitter::EMFit> fit(std::string file, mini::Parameter param);
+            std::shared_ptr<fitter::EMFit> fit(const io::ExistingFile& file, mini::Parameter param);
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
              * @param file Path to the measurement file. 
              */
-            std::shared_ptr<fitter::EMFit> fit(std::string file);
+            std::shared_ptr<fitter::EMFit> fit(const io::ExistingFile& file);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
@@ -77,7 +76,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            mini::Landscape cutoff_scan(const Axis& points, std::string file);
+            mini::Landscape cutoff_scan(const Axis& points, const io::ExistingFile& file);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -87,7 +86,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            mini::Landscape cutoff_scan(unsigned int points, std::string file);
+            mini::Landscape cutoff_scan(unsigned int points, const io::ExistingFile& file);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -146,7 +145,7 @@ namespace em {
             /**
              * @brief Update the cutoff sections that will be used.
              */
-            void update_charge_levels(Limit limit) const noexcept;
+            void update_charge_levels(const Limit& limit) const noexcept;
 
             /**
              * @brief Prepare the fitting function. 

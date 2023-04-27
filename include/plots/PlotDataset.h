@@ -4,7 +4,6 @@
 #include <dataset/Dataset.h>
 #include <dataset/Multiset.h>
 
-#include <memory>
 #include <concepts>
 
 namespace plots {
@@ -45,6 +44,6 @@ namespace plots {
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
 			template<DatasetType T>
-			static void quick_plot(const T& data, std::string path);
+			static void quick_plot(const T& data, const io::File& path);
 		};
 }

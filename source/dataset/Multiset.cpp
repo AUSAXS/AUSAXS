@@ -64,8 +64,8 @@ void Multiset::save(const io::File& path) const {
 }
 
 #include <iostream>
-void Multiset::read(const io::ExistingFile& path) {
-    for (const auto& file : std::filesystem::recursive_directory_iterator(path)) { // loop over all files in the directory
+void Multiset::read(const io::Folder& path) {
+    for (const auto& file : std::filesystem::recursive_directory_iterator(path.path())) { // loop over all files in the directory
         if (file.path().extension() == ".txt") {
             Dataset2D set(file.path().string());
             data.push_back(set);

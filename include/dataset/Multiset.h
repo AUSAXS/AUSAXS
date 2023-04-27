@@ -1,15 +1,16 @@
 #pragma once
 
+#include <dataset/Dataset2D.h>
+#include <io/ExistingFile.h>
+
 #include <vector>
 #include <string>
-
-#include <dataset/Dataset2D.h>
 
 class Multiset {
     public:
         Multiset() {}
 
-        Multiset(std::string path) {read(path);}
+        Multiset(const io::Folder& path) {read(path);}
 
         explicit Multiset(unsigned int size) : data(size) {}
 
@@ -87,11 +88,11 @@ class Multiset {
         std::vector<Dataset2D>::iterator end();
 
         std::vector<Dataset2D> data;
-        std::map<std::string, unsigned int> names;
+        std::unordered_map<std::string, unsigned int> names;
 
     private:
         /**
          * @brief Read a saved Multiset.
          */
-        void read(const io::ExistingFile& path);
+        void read(const io::Folder& path);
 };

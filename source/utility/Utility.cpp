@@ -1,8 +1,5 @@
 #include <utility/Utility.h>
-#include <algorithm>
-#include <filesystem>
-
-#include <utility/ConsoleColor.h>
+#include <utility/Console.h>
 
 bool utility::approx(double v1, double v2, double abs, double eps) {
     return std::abs(v1 - v2) <= std::max(abs, eps * std::max(std::abs(v1), std::abs(v2)));
@@ -21,18 +18,6 @@ std::string utility::remove_spaces(std::string s) {
     return s;
 }
 
-void utility::print_warning(std::string_view text) {
-    console::print(text, console::color::red);
-}
-
-void utility::print_success(std::string_view text) {
-    console::print(text, console::color::green);
-}
-
-void utility::print_info(std::string_view text) {
-    console::print(text, console::color::lightblue);
-}
-
 bool utility::equal(double a, double b, double c) {
     return a == b && b == c;
 }
@@ -47,7 +32,7 @@ std::vector<std::string> utility::split(const std::string& str, char delimiter) 
     return tokens;
 }
 
-std::vector<std::string> utility::split(std::string_view str, std::string_view delimiters) {
+std::vector<std::string> utility::split(const std::string& str, const std::string& delimiters) {
     std::vector<std::string> tokens;
 
     auto is_delimiter = [&delimiters] (char c) {
@@ -69,7 +54,7 @@ std::vector<std::string> utility::split(std::string_view str, std::string_view d
         }
 
         // add token to vector
-        tokens.push_back(std::string(str.substr(start, i-start)));
+        tokens.push_back(str.substr(start, i-start));
         start = ++i;
 
         // skip consecutive delimiters
@@ -83,12 +68,12 @@ std::vector<std::string> utility::split(std::string_view str, std::string_view d
 
     // add last token to vector
     if (start < str.size()) {
-        tokens.push_back(std::string(str.substr(start)));
+        tokens.push_back(str.substr(start));
     }
     return tokens;
 }
 
-std::string utility::join(std::vector<std::string> v, std::string_view separator) {
+std::string utility::join(std::vector<std::string> v, const std::string& separator) {
     std::string s;
     for (unsigned int i = 0; i < v.size(); i++) {
         s += v[i];
@@ -99,7 +84,7 @@ std::string utility::join(std::vector<std::string> v, std::string_view separator
     return s;
 }
 
-std::string utility::remove_all(std::string_view s, std::string_view remove) {
+std::string utility::remove_all(const std::string& s, const std::string& remove) {
     std::string new_s;
     for (auto c : s) {
         if (remove.find(c) == std::string::npos) {
@@ -122,7 +107,7 @@ std::string utility::uid() {
     return std::to_string(i++);
 }
 
-std::string utility::uid(std::string s) {return s + uid();}
+std::string utility::uid(const std::string& s) {return s + uid();}
 
 std::ostream& utility::detail::operator<<(std::ostream& os, const __dummy& obj) {
     os << obj.s;
@@ -143,7 +128,7 @@ utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) 
     // check how lossy the conversion was
     double d = std::stod(o);
     if (!approx(d, number, 1e-3)) {
-        print_warning("Fixed-width conversion of " + std::to_string(number) + " to " + o + " is lossy.");
+        console::print_warning("Fixed-width conversion of " + std::to_string(number) + " to " + o + " is lossy.");
     }
     
     return {o};

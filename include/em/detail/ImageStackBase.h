@@ -1,12 +1,13 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <memory>
-
 #include <em/manager/ProteinManager.h>
 #include <em/Datatypes.h>
 #include <em/Image.h>
+#include <io/ExistingFile.h>
+
+#include <vector>
+#include <string>
+#include <memory>
 
 namespace em {
     class EMHistogramManager;
@@ -21,7 +22,7 @@ namespace em {
              * 
              * @param file Path to the input EM data file. 
              */
-            ImageStackBase(std::string file);
+            ImageStackBase(const io::ExistingFile& file);
 
             /**
              * @brief Constructor.

@@ -3,9 +3,7 @@
 #include <data/Record.h>
 
 /**
- * @brief \class Terminate
- * 
- * A representation of a Terminate record. 
+ * @brief A representation of a Terminate record. 
  */
 class Terminate : public Record {
   public: 
@@ -26,7 +24,7 @@ class Terminate : public Record {
      * @param resSeq The residue sequence identifier. 
      * @param iCode iCode. 
      */
-    Terminate(int serial, std::string resName, std::string chainID, int resSeq, std::string iCode);
+    Terminate(int serial, const std::string& resName, const std::string& chainID, int resSeq, const std::string& iCode);
 
     /**
      * @brief Destructor.
@@ -43,7 +41,7 @@ class Terminate : public Record {
      * 
      * @param s the .pdb format terminate string.
      */
-    void parse_pdb(std::string s) override;
+    void parse_pdb(const std::string& s) override;
 
     /**
      * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.

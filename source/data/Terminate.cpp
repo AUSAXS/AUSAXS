@@ -1,13 +1,13 @@
-// includes
-#include <string>
-#include <iomanip>
-
+#include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <data/Terminate.h>
 
+#include <string>
+#include <iomanip>
+
 using std::left, std::right, std::setw;
 
-Terminate::Terminate(int serial, std::string resName, std::string chainID, int resSeq, std::string iCode) {
+Terminate::Terminate(int serial, const std::string& resName, const std::string& chainID, int resSeq, const std::string& iCode) {
     this->serial = serial;
     this->resName = resName;
     this->chainID = chainID;
@@ -17,7 +17,7 @@ Terminate::Terminate(int serial, std::string resName, std::string chainID, int r
 
 Record::RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 
-void Terminate::parse_pdb(const std::string s) {
+void Terminate::parse_pdb(const std::string& s) {
     if (s.size() < 28) {return;} // sometimes the terminate record consists only of "TER   "
 
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#TER
