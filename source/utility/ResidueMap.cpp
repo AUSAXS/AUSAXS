@@ -3,7 +3,7 @@
 
 #include <utility/Exceptions.h>
 #include <utility/ResidueMap.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 
 using namespace saxs::detail;
 

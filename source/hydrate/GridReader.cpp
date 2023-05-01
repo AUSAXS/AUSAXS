@@ -1,5 +1,5 @@
 #include <hydrate/GridReader.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 
 #include <fstream>

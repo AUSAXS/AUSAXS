@@ -3,7 +3,7 @@
 #include <dataset/SimpleDataset.h>
 #include <dataset/Dataset2D.h>
 #include <utility/Console.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
 #include <settings/GeneralSettings.h>

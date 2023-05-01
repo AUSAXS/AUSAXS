@@ -5,8 +5,8 @@
 #include <string>
 #include <iostream>
 
+#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
 
 namespace saxs {
     namespace detail {

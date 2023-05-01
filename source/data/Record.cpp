@@ -1,7 +1,7 @@
 #include <data/Record.h>
 
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 
 Record::RecordType Record::get_type(const std::string& s) {
     auto str = utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER

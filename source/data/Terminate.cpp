@@ -1,5 +1,5 @@
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 #include <data/Terminate.h>
 
 #include <string>

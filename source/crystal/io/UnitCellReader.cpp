@@ -1,5 +1,5 @@
 #include <crystal/io/UnitCellReader.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 
 #include <fstream>
 

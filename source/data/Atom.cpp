@@ -1,5 +1,6 @@
 #include <data/Atom.h>
 #include <utility/Constants.h>
+#include <utility/Utility.h>
 #include <settings/ProteinSettings.h>
 #include <utility/Console.h>
 

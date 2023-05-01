@@ -1,4 +1,5 @@
 #include <data/Header.h>
+#include <utility/StringUtils.h>
 
 Record::RecordType Header::get_type() const {return RecordType::HEADER;}
 

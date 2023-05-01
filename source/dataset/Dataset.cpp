@@ -4,7 +4,7 @@
 #include <math/CubicSpline.h>
 #include <dataset/Dataset.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 #include <dataset/DatasetFactory.h>
 
 #include <vector>

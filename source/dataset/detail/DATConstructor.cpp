@@ -2,7 +2,7 @@
 #include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
 #include <dataset/Dataset2D.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 #include <utility/Console.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>

@@ -1,7 +1,7 @@
 #include <settings/SettingsIO.h>
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 
 #include <fstream>
 #include <filesystem>
@@ -61,7 +61,7 @@ bool settings::discover(const ::io::Folder& path) {
     for (const auto& e : valid_names) {
         ::io::File file(path + "/" + e + ".txt");
         if (file.exists()) {
-            settings::read(path + e + ".txt");
+            settings::read(file);
             return true;
         }
     }
