@@ -16,12 +16,12 @@ unsigned int std::hash<saxs::detail::AtomKey>::operator()(const saxs::detail::At
 
 ResidueMap::ResidueMap() {}
 
-ResidueMap::ResidueMap(std::unordered_map<AtomKey, int> map) {
+ResidueMap::ResidueMap(const std::unordered_map<AtomKey, int>& map) {
     this->map = map;
     this->calculate_average();
 }
 
-double ResidueMap::get(AtomKey key) {
+double ResidueMap::get(const AtomKey& key) {
     // first check if the key is in the map
     if (map.contains(key)) {return map.at(key);}
 
@@ -37,7 +37,7 @@ double ResidueMap::get(AtomKey key) {
     }
 }
 
-void ResidueMap::insert(AtomKey key, int value) {
+void ResidueMap::insert(const AtomKey& key, int value) {
     map[key] = value;
     update_average = true;
 }

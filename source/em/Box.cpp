@@ -129,7 +129,7 @@ void Box::distances() const {
     // write to file
     std::ofstream file;
     file.open("distances.dat");
-    for (int i = 0; i < axes.bins; i++) {
+    for (unsigned int i = 0; i < axes.bins; i++) {
         file << i << " " << p_pp[i] << std::endl;
     }
 }

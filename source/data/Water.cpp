@@ -2,6 +2,7 @@
 
 Water::Water(const Atom&& a) noexcept : Atom(std::move(a)) {}
 Water::Water(const Atom& a) : Atom(a) {}
+Water::Water(const Water& w) = default;
 Water::~Water() = default;
 
 Record::RecordType Water::get_type() const {return RecordType::WATER;}

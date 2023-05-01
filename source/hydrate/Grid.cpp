@@ -649,5 +649,5 @@ GridObj::DATATYPE Grid::index(unsigned int i, unsigned int j, unsigned int k) co
 }
 
 std::vector<Atom> Grid::get_surface_atoms() const {
-
+    throw except::not_implemented("Grid::get_surface_atoms: Not implemented.");
 }

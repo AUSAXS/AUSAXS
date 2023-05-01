@@ -9,6 +9,7 @@ class Water : public Atom {
         using Atom::Atom; // inherit constructors from Atom
         Water(const Atom&& a) noexcept;
         Water(const Atom& a);
+        Water(const Water& w);
         ~Water() override;
 
         RecordType get_type() const override;

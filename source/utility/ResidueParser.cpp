@@ -3,7 +3,6 @@
 #include <settings/GeneralSettings.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
-#include <io/ExistingFile.h>
 #include <utility/Console.h>
 
 #include <regex>

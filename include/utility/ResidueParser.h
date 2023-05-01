@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility/ResidueMap.h>
+#include <io/ExistingFile.h>
 
 #include <vector>
 #include <string>

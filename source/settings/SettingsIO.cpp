@@ -1,7 +1,7 @@
 #include <settings/SettingsIO.h>
 #include <settings/SettingsIORegistry.h>
-#include <utility/Utility.h>
 #include <utility/Exceptions.h>
+#include <utility/Utility.h>
 
 #include <fstream>
 #include <filesystem>
@@ -25,7 +25,7 @@ bool settings::detail::is_comment_char(char c) {
     }
 }
 
-void settings::read(const std::string& path) {
+void settings::read(const ::io::ExistingFile& path) {
     std::ifstream input(path);
     if (!input.is_open()) {throw std::ios_base::failure("Settings::read: Could not open setup file.");}
 
@@ -42,8 +42,8 @@ void settings::read(const std::string& path) {
     }
 }
 
-void settings::write(const std::string& path) {
-    utility::create_directory(path);
+void settings::write(const ::io::File& path) {
+    path.directory().create();
     std::ofstream output(path);
     if (!output.is_open()) {throw std::ios_base::failure("Settings::read: Could not open setup file.");}
 
@@ -56,11 +56,11 @@ void settings::write(const std::string& path) {
     }
 }
 
-bool settings::discover(std::string path) {
+bool settings::discover(const ::io::Folder& path) {
     static std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
-    if (path.back() != '/') {path += "/";}
     for (const auto& e : valid_names) {
-        if (std::filesystem::exists(path + e + ".txt")) {
+        ::io::File file(path + "/" + e + ".txt");
+        if (file.exists()) {
             settings::read(path + e + ".txt");
             return true;
         }

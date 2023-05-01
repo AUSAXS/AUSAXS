@@ -5,7 +5,7 @@
 
 using namespace io;
 
-Folder::Folder(const std::string& path) : dir(path) {
+Folder::Folder(const std::string& path) {
     *this = path;
     if (!std::filesystem::is_directory(dir)) {
         throw except::invalid_argument("Folder::Folder: \"" + dir + "\" is not a directory.");
@@ -13,6 +13,7 @@ Folder::Folder(const std::string& path) : dir(path) {
 }
 
 void Folder::operator=(const std::string& path) {
+    if (path.empty()) {dir = "."; return;}
     bool slash_b = path.front() == '/';
     bool slash_f = path.back() == '/';
     if (slash_b && slash_f) {
@@ -61,4 +62,12 @@ std::string operator+(const char* str, const io::Folder& folder) {
 
 std::string operator+(const io::Folder& folder, const char* str) {
     return folder.path() + std::string(str);
+}
+
+std::string operator+(const std::string& str, const io::Folder& folder) {
+    return str + folder.path();
+}
+
+std::string operator+(const io::Folder& folder, const std::string& str) {
+    return folder.path() + "/" + str;
 }

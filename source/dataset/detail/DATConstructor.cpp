@@ -13,7 +13,7 @@
 #include <string>
 #include <fstream>
 
-std::shared_ptr<Dataset> detail::DATConstructor::construct(std::string path, unsigned int expected_cols) {
+std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFile& path, unsigned int expected_cols) {
     if (settings::general::verbose) {
         console::print_info("\nReading dataset from \"" + path + "\"");
     }

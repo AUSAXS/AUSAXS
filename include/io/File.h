@@ -7,6 +7,10 @@
 namespace io {
     class File {
         public:
+            File() = default;
+
+            File(const io::Folder& folder, std::string_view name, std::string_view extension);
+
             File(const char* path);
 
             File(const std::string& path);
@@ -78,6 +82,8 @@ namespace io {
             Folder dir;
             std::string name;
             std::string ext;
+
+            void validate() const;
     };
 }
 

@@ -4,7 +4,7 @@
 #include <utility/Axis3D.h>
 #include <settings/CrystalSettings.h>
 
-std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const std::string& input) const {
+std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
     Protein protein(input);
     double expansion = settings::crystal::grid_expansion;
 

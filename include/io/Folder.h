@@ -38,3 +38,5 @@ namespace io {
 
 std::string operator+(const char* str, const io::Folder& folder);
 std::string operator+(const io::Folder& folder, const char* str);
+std::string operator+(const std::string& str, const io::Folder& folder);
+std::string operator+(const io::Folder& folder, const std::string& str);

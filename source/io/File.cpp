@@ -6,13 +6,16 @@
 
 using namespace io;
 
+File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {
+    validate();
+}
+
 File::File(const char* path) : File(std::string(path)) {}
 
 File::File(const std::string& path) {
+    if (path.empty()) {return;}
     *this = path;
-    if (!std::filesystem::is_regular_file(path)) {
-        throw except::invalid_argument("File::File: \"" + path + "\" is not a file.");
-    }
+    validate();
 }
 
 std::tuple<std::string, std::string, std::string> File::split(const std::string& path) {
@@ -28,7 +31,7 @@ void File::operator=(const std::string& path) {
 }
 
 File::operator std::string() const {
-    return dir.path() + "/" + name + "." + ext;
+    return dir.path() + "/" + name + ext;
 }
 
 void File::replace_extension(const std::string& extension) noexcept {
@@ -67,7 +70,7 @@ void File::create() const {
 std::string File::path() const {return std::string(*this);}
 
 bool File::exists() const noexcept {
-    std::filesystem::exists(path());
+    return std::filesystem::exists(path());
 }
 
 std::string operator+(const char* str, const io::File& file) {
@@ -86,7 +89,13 @@ std::string operator+(const io::File& file, const std::string& str) {
     return std::string(file) + str;
 }
 
-std::ostream& File::operator<<(std::ostream& os, const io::File& file) {
+std::ostream& operator<<(std::ostream& os, const io::File& file) {
     os << file.path();
     return os;
+}
+
+void File::validate() const {
+    if (!std::filesystem::is_regular_file(path())) {
+        throw except::invalid_argument("File::File: \"" + path() + "\" is not a file.");
+    }
 }

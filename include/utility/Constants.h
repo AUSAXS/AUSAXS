@@ -30,11 +30,11 @@ namespace constants {
             };
         }
 
-        const detail::FileType structure =  {{"pdb",  "ent"}};
-        const detail::FileType saxs_data =  {{"dat",  "txt",  "rsr",  "xvg"}};
-        const detail::FileType em_map =     {{"map",  "ccp4", "mrc"}};
-        const detail::FileType unit_cell =  {{"cell", "uc"}};
-        const detail::FileType grid =       {{"grid"}};
+        const detail::FileType structure =  {{".pdb",  ".ent"}};
+        const detail::FileType saxs_data =  {{".dat",  ".txt",  ".rsr",  ".xvg"}};
+        const detail::FileType em_map =     {{".map",  ".ccp4", ".mrc"}};
+        const detail::FileType unit_cell =  {{".cell", ".uc"}};
+        const detail::FileType grid =       {{".grid"}};
     }
 
     /**

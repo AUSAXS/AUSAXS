@@ -5,14 +5,14 @@
 
 #include <memory>
 
-namespace crystal::io {
-    std::unique_ptr<CrystalReader> CrystalReaderFactory::create(const io::ExistingFile& filename) {
+namespace crystal::factory {
+    std::unique_ptr<crystal::io::CrystalReader> CrystalReaderFactory::create(const ::io::ExistingFile& filename) {
         if (constants::filetypes::unit_cell.validate(filename)) {
-            return std::make_unique<UnitCellReader>();
+            return std::make_unique<crystal::io::UnitCellReader>();
         } else if (constants::filetypes::grid.validate(filename)) {
-            return std::make_unique<GridReader>();
+            return std::make_unique<crystal::io::GridReader>();
         } else if (constants::filetypes::structure.validate(filename)) {
-            return std::make_unique<PDBReader>();
+            return std::make_unique<crystal::io::PDBReader>();
         } else {
             throw except::io_error("crystal::io::CrystalReaderFactory::create: Unknown file extension for file \"" + filename + "\"");
         }

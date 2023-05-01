@@ -18,6 +18,6 @@ namespace crystal::io {
      */
     struct UnitCellReader : public CrystalReader {
         ~UnitCellReader() override = default;
-        std::pair<Basis3D, std::vector<Vector3<double>>> read(const std::string& input) const override;
+        std::pair<Basis3D, std::vector<Vector3<double>>> read(const ::io::ExistingFile& input) const override;
     };
 }
