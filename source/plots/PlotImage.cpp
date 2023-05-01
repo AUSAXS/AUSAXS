@@ -1,6 +1,4 @@
 #include <plots/PlotImage.h>
-#include <em/Image.h>
-#include <utility/Utility.h>
 #include <settings/PlotSettings.h>
 
 plots::PlotImage::PlotImage(const em::Image& image) {
@@ -47,7 +45,7 @@ void plots::PlotImage::plot(const em::Image& image) {
         << std::endl;
 }
 
-void plots::PlotImage::quick_plot(const em::Image& image, std::string path) {
+void plots::PlotImage::quick_plot(const em::Image& image, const io::File& path) {
     plots::PlotImage p(image);
     p.save(path);
 }

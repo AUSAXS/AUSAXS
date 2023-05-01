@@ -1,20 +1,16 @@
-#include <map>
-#include <string>
-#include <vector>
+#include <data/Atom.h>
+#include <utility/Constants.h>
+#include <utility/Utility.h>
+#include <settings/ProteinSettings.h>
+#include <utility/Console.h>
+
 #include <utility>
 #include <iomanip>
 #include <iostream>
 
-#include <data/Record.h>
-#include <data/Atom.h>
-#include <math/Vector3.h>
-#include <utility/Constants.h>
-#include <settings/ProteinSettings.h>
-#include <utility/Utility.h>
+using std::vector, std::string, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
 
-using std::vector, std::string, std::cout, std::endl, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
-
-Atom::Atom(Vector3<double> v, double occupancy, string element, string resName, int serial) : uid(uid_counter++) {
+Atom::Atom(Vector3<double> v, double occupancy, const string& element, const string& resName, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(v);
     set_occupancy(occupancy);
@@ -24,8 +20,8 @@ Atom::Atom(Vector3<double> v, double occupancy, string element, string resName, 
     set_effective_charge(constants::charge::atomic.get(this->element));
 }
 
-Atom::Atom(int serial, string name, string altLoc, string resName, string chainID, int resSeq, string iCode, 
-    Vector3<double> coords, double occupancy, double tempFactor, string element, string charge) : uid(uid_counter++) {
+Atom::Atom(int serial, const string& name, const string& altLoc, const string& resName, const string& chainID, int resSeq, const string& iCode, 
+    Vector3<double> coords, double occupancy, double tempFactor, const string& element, const string& charge) : uid(uid_counter++) {
         set_serial(serial);
         set_name(name);
         set_altLoc(altLoc);
@@ -57,11 +53,11 @@ Atom::Atom(int serial, string name, string altLoc, string resName, string chainI
 
 Atom::Atom() : uid(uid_counter++) {}
 
-void Atom::parse_pdb(string s) {
-    s = utility::remove_all(s, "\n\r"); // remove any newline or carriage return
+void Atom::parse_pdb(const string& str) {
+    auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - s.size();
     if (pad_size < 0) {
-        utility::print_warning("Warning in Atom::parse_pdb: Line is longer than 80 characters. Truncating.");
+        console::print_warning("Warning in Atom::parse_pdb: Line is longer than 80 characters. Truncating.");
         std::cout << "\"" << s << "\"" << std::endl;
         s = s.substr(0, 80);
     } else {
@@ -120,7 +116,7 @@ void Atom::parse_pdb(string s) {
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         this->charge = charge;
     } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
-        utility::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
+        console::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         throw;
     }
 
@@ -156,7 +152,7 @@ string Atom::as_pdb() const {
         << "          "                                                      // 67 - 76
         << right << setw(2) << element                                       // 77 - 78
         << left << setw(2) << charge                                         // 79 - 80
-        << endl;
+        << std::endl;
     return ss.str();
 }
 
@@ -171,17 +167,17 @@ void Atom::set_y(double y) {coords.y() = y;}
 void Atom::set_z(double z) {coords.z() = z;}
 void Atom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
 void Atom::set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
-void Atom::set_altLoc(string altLoc) {this->altLoc = altLoc;}
+void Atom::set_altLoc(const string& altLoc) {this->altLoc = altLoc;}
 void Atom::set_serial(int serial) {this->serial = serial;}
 void Atom::set_resSeq(int resSeq) {this->resSeq = resSeq;}
 void Atom::set_effective_charge(double charge) {effective_charge = charge;}
-void Atom::set_chainID(string chainID) {this->chainID = chainID;}
-void Atom::set_iCode(string iCode) {this->iCode = iCode;}
-void Atom::set_charge(string charge) {this->charge = charge;}
-void Atom::set_resName(string resName) {this->resName = resName;}
-void Atom::set_name(string name) {this->name = name;}
+void Atom::set_chainID(const string& chainID) {this->chainID = chainID;}
+void Atom::set_iCode(const string& iCode) {this->iCode = iCode;}
+void Atom::set_charge(const string& charge) {this->charge = charge;}
+void Atom::set_resName(const string& resName) {this->resName = resName;}
+void Atom::set_name(const string& name) {this->name = name;}
 
-void Atom::set_element(string element) {
+void Atom::set_element(const string& element) {
     if (!constants::mass::atomic.contains(element)) [[unlikely]] { // check that the weight is defined
         throw except::invalid_argument("Atom::set_element: The weight of element " + element + " is not defined.");
     }

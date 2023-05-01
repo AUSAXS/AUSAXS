@@ -13,7 +13,7 @@
 
 Body::Body() {}
 
-Body::Body(std::string path) : uid(uid_counter++), file(path) {}
+Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {}
 
 Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {}
 
@@ -23,7 +23,7 @@ Body::Body(Body&& body) : uid(body.uid), file(std::move(body.file)) {}
 
 Body::~Body() = default;
 
-void Body::save(std::string path) {file.write(path);}
+void Body::save(const io::File& path) {file.write(path);}
 
 void Body::center() {
     if (!centered && settings::protein::center) {
@@ -153,4 +153,4 @@ Atom& Body::atoms(unsigned int index) {return file.protein_atoms[index];}
 
 const Atom& Body::atoms(unsigned int index) const {return file.protein_atoms[index];}
 
-File& Body::get_file() {return file;}
+ProteinFile& Body::get_file() {return file;}

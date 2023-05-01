@@ -1,0 +1,24 @@
+#include <dataset/PointSet.h>
+
+unsigned int detail::IPoint::dim() {return 0;}
+
+Point1D::Point1D() = default;
+Point1D::Point1D(double x) : x(x) {}
+Point1D::Point1D(double x, double xerr) : x(x), xerr(xerr) {}
+unsigned int Point1D::dim() {return 1;}
+bool Point1D::operator==(const Point1D& other) const {return x == other.x && xerr == other.xerr;}
+bool Point1D::operator!=(const Point1D& other) const {return !(*this == other);}
+
+Point2D::Point2D() = default;
+Point2D::Point2D(double x, double y) : Point1D(x), y(y) {}
+Point2D::Point2D(double x, double y, double yerr) : Point1D(x), y(y), yerr(yerr) {}
+Point2D::Point2D(double x, double y, double xerr, double yerr) : Point1D(x, xerr), y(y), yerr(yerr) {}
+unsigned int Point2D::dim() {return 2;}
+bool Point2D::operator==(const Point2D& other) const {return Point1D::operator==(other) && y == other.y && yerr == other.yerr;}
+bool Point2D::operator!=(const Point2D& other) const {return !(*this == other);}
+
+Point3D::Point3D() = default;
+Point3D::Point3D(double x, double y, double z) : Point2D(x, y), z(z) {}
+unsigned int Point3D::dim() {return 3;}
+bool Point3D::operator==(const Point3D& other) const {return Point2D::operator==(other) && z == other.z && zerr == other.zerr;}
+bool Point3D::operator!=(const Point3D& other) const {return !(*this == other);}

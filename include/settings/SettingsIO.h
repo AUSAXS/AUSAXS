@@ -1,5 +1,7 @@
 #pragma once
 
+#include <io/ExistingFile.h>
+
 #include <string>
 #include <vector>
 
@@ -12,16 +14,16 @@ namespace settings {
     /**
      * @brief Read the settings from a file.
      */
-    void read(const std::string& path);
+    void read(const ::io::ExistingFile& path);
 
     /**
      * @brief Write the settings to a file.
      */
-    void write(const std::string& path);
+    void write(const ::io::File& path);
 
     /**
      * @brief Check if a settings file exists in the given directory, and read it if so.
      * @return True if a settings file was found and read.
      */
-    bool discover(std::string path);
+    bool discover(const ::io::Folder& path);
 }

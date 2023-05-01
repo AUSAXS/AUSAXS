@@ -97,8 +97,7 @@ class Limit {
         /**
          * @brief Check if this Limit is empty (min == max == 0).
          */
-        [[nodiscard]] 
-        bool empty() const noexcept {return min == 0 && max == 0;}
+        [[nodiscard]] bool empty() const noexcept {return min == 0 && max == 0;}
 
         double min; // The minimum value of this limit. 
         double max; // The maximum value of this limit. 

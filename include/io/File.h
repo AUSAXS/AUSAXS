@@ -1,156 +1,94 @@
 #pragma once
 
+#include <io/Folder.h>
 #include <string>
-#include <vector>
+#include <ostream>
 
-#include <data/Record.h>
-#include <data/Terminate.h>
-#include <data/Header.h>
-#include <data/Footer.h>
-#include <data/Atom.h>
-#include <data/Water.h>
-#include <io/Reader.h>
-#include <io/Writer.h>
-#include <io/PDBWriter.h>
-#include <io/PDBReader.h>
+namespace io {
+    class File {
+        public:
+            File() = default;
 
-/**
- * @brief \class File
- * An abstract representation of an input file. Handles both reading and writing of files, and also stores the relevant file data. 
- */
-class File {
-    public:
-        /**
-         * @brief Default constructor.
-         */
-        File() {}
+            File(const io::Folder& folder, std::string_view name, std::string_view extension);
 
-        /**
-         * @brief Copy constructor.
-         */
-        File(const File& file);
+            File(const char* path);
 
-        /**
-         * @brief Move constructor.
-         */
-        File(File&& file) noexcept;
+            File(const std::string& path);
 
-        /**
-         * @brief Constructor. 
-         *        Construct a new File based on two vectors of atoms. 
-         * @param protein_atoms A vector containing the constituent atoms of the molecule. 
-         * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
-         */
-        File(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms);
+            virtual ~File() = default;
 
-        /**
-         * @brief Constructor. 
-         *        Construct a new File based on two vectors of atoms. 
-         * @param protein_atoms A vector containing the constituent atoms of the molecule. 
-         * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
-         * @param header The header of this file. 
-         * @param footer The footer of this file. 
-         * @param terminate The terminate of this file. 
-         */
-        File(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate);
+            [[nodiscard]] std::string path() const;
 
-        /**
-         * @brief Constructor.
-         *        Construct a new File based on a input molecular data file. 
-         * @param filename Path to the input file. 
-         */
-        File(std::string filename);
+            void operator=(const std::string& path);
 
-        /**
-         * @brief Destructor.
-         */
-        ~File();
+            [[nodiscard]] operator std::string() const;
 
-        /**
-         * @brief Update the contents of this file.
-         * @param patoms The new constituent atoms of the molecule. 
-         * @param hatoms The new hydration layer. 
-         */
-        void update(std::vector<Atom>& patoms, std::vector<Water>& hatoms);
+            /**
+             * @brief Replace the extension of the file.
+             */
+            void replace_extension(const std::string& extension) noexcept;
 
-        /**
-         * @brief Fill this object with data from a given input data file. 
-         * @param path Path to the input data file. 
-         */
-        void read(std::string path);
+            /**
+             * @brief Append to the name of the file.
+             */
+            void append(const std::string& name) noexcept;
 
-        /**
-         * @brief Write this file to disk. 
-         * @param path Path to where this object will be written. 
-         */
-        void write(std::string path);
+            /**
+             * @brief Append to the name of the file.
+             */
+            [[nodiscard]] File append(const std::string& name) const noexcept;
 
-        /**
-         * @brief Get the protein atoms contained in this File. 
-         */
-        const std::vector<Atom>& get_protein_atoms() const;
+            /**
+             * @brief Get the stem of the file.
+             */
+            [[nodiscard]] std::string stem() const noexcept;
 
-        /**
-         * @brief Get the hydration atoms contained in this File. 
-         */
-        const std::vector<Water> get_hydration_atoms() const;
+            /**
+             * @brief Get the directory of the file.
+             */
+            [[nodiscard]] Folder& directory() noexcept;
 
-        /** 
-         * @brief Add an Atom record to this file. 
-         * @param a The Atom record to be added.
-         */
-        void add(const Atom& a);
+            /**
+             * @brief Get the directory of the file.
+             */
+            [[nodiscard]] const Folder& directory() const noexcept;
 
-        /** 
-         * @brief Add a Hetatom record to this file. 
-         * @param w The Hetatom record to be added. 
-         */
-        void add(const Water& w);
+            /**
+             * @brief Get the extension of the file.
+             */
+            [[nodiscard]] std::string& extension() noexcept;
 
-        /**
-         * @brief Add a Terminate record to this file. 
-         * @param t The Terminate record to be added. 
-         */
-        void add(const Terminate& t);
+            /**
+             * @brief Get the extension of the file.
+             */
+            [[nodiscard]] const std::string& extension() const noexcept;
 
-        /**
-         * @brief Add a header or footer record to this file. 
-         * 
-         * @param type HEADER or FOOTER.
-         * @param s The text string to be added. 
-         */
-        void add(Record::RecordType type, std::string s);
+            /**
+             * @brief Create this empty file.
+             */
+            void create() const; 
 
-        /**
-         * @brief Internally updates the consistency of the currently stored data. This ensures this object is in a valid
-         *        state for printing. 
-         */
-        void refresh();
+            /**
+             * @brief Check if the file exists.
+             */
+            [[nodiscard]] bool exists() const noexcept;
 
-        File copy() const;
+            /**
+             * @brief Split a path into a directory, filename and extension.
+             */
+            static std::tuple<std::string, std::string, std::string> split(const std::string& path);
 
-        File& operator=(const File& rhs);
+        private:
+            Folder dir;
+            std::string name;
+            std::string ext;
 
-        File& operator=(File&& rhs);
+            void validate() const;
+    };
+}
 
-        Header header;
-        Footer footer;
-        Terminate terminate;
-        std::vector<Atom> protein_atoms;
-        std::vector<Water> hydration_atoms;
-
-    private:
-        std::unique_ptr<Reader> reader;
-        std::unique_ptr<Writer> writer;
-
-        /**
-         * @brief Construct a Reader appropriate for the file format deduced from the input data file. 
-         * @param path Path to the input data file. 
-         */
-        std::unique_ptr<Reader> construct_reader(std::string path);
-        /**
-         * @brief Construct a Writer appropriate for the file format deduced from the output save path.
-         * @param path Path to where this object will be written. 
-         */
-        std::unique_ptr<Writer> construct_writer(std::string path);
-};
+std::string operator+(const std::string& str, const io::File& file);
+std::string operator+(const io::File& file, const std::string& str);
+std::string operator+(const char* str, const io::File& file);
+std::string operator+(const io::File& file, const char* str);
+std::ostream& operator<<(std::ostream& os, const io::File& file);

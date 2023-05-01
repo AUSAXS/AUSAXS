@@ -1,4 +1,5 @@
 #include <utility/Constants.h>
+#include <utility/StringUtils.h>
 
 namespace constants {
     filetypes::detail::FileType::FileType(std::vector<std::string> extensions) {
@@ -8,10 +9,10 @@ namespace constants {
         this->extensions = extensions;
     }
 
-    bool filetypes::detail::FileType::validate(std::string_view path) const {
-        path = utility::to_lowercase(path);
+    bool filetypes::detail::FileType::validate(const io::ExistingFile& path) const {
+        std::string file_ext = utility::to_lowercase(path.extension()); 
         for (auto ext : extensions) {
-            if (path.size() >= ext.size() && path.substr(path.size() - ext.size()) == ext) {
+            if (file_ext == ext) {
                 return true;
             }
         }

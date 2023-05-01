@@ -1,49 +1,48 @@
 #pragma once
 
 #include <vector>
-#include <type_traits>
 
 namespace detail {
     struct IPoint {
-        static unsigned int dim() {return 0;}
+        static unsigned int dim();
     };
 }
 
 struct Point1D : detail::IPoint {
-    Point1D() {}
-    Point1D(double x) : x(x) {}
-    Point1D(double x, double xerr) : x(x), xerr(xerr) {}
+    Point1D();
+    Point1D(double x);
+    Point1D(double x, double xerr);
 
-    static unsigned int dim() {return 1;}
+    static unsigned int dim();
 
-    bool operator==(const Point1D& other) const {return x == other.x && xerr == other.xerr;}
-    bool operator!=(const Point1D& other) const {return !(*this == other);}
+    bool operator==(const Point1D& other) const;
+    bool operator!=(const Point1D& other) const;
 
     double x = 0, xerr = 0;
 };
 
 struct Point2D : Point1D {
-    Point2D() {}
-    Point2D(double x, double y) : Point1D(x), y(y) {}
-    Point2D(double x, double y, double yerr) : Point1D(x), y(y), yerr(yerr) {}
-    Point2D(double x, double y, double xerr, double yerr) : Point1D(x, xerr), y(y), yerr(yerr) {}
+    Point2D();
+    Point2D(double x, double y);
+    Point2D(double x, double y, double yerr);
+    Point2D(double x, double y, double xerr, double yerr);
 
-    static unsigned int dim() {return 2;}
+    static unsigned int dim();
 
-    bool operator==(const Point2D& other) const {return Point1D::operator==(other) && y == other.y && yerr == other.yerr;}
-    bool operator!=(const Point2D& other) const {return !(*this == other);}
+    bool operator==(const Point2D& other) const;
+    bool operator!=(const Point2D& other) const;
 
     double y = 0, yerr = 0;
 };
 
 struct Point3D : Point2D {
-    Point3D() {}
-    Point3D(double x, double y, double z) : Point2D(x, y), z(z) {}
+    Point3D();
+    Point3D(double x, double y, double z);
 
-    static unsigned int dim() {return 3;}
+    static unsigned int dim();
 
-    bool operator==(const Point3D& other) const {return Point2D::operator==(other) && z == other.z && zerr == other.zerr;}
-    bool operator!=(const Point3D& other) const {return !(*this == other);}
+    bool operator==(const Point3D& other) const;
+    bool operator!=(const Point3D& other) const;
 
     double z = 0, zerr = 0;
 };

@@ -1,19 +1,16 @@
 #pragma once
 
-#include <fitter/Fit.h>
 #include <plots/Plot.h>
+#include <fitter/Fit.h>
 #include <hist/ScatteringHistogram.h>
 #include <fitter/LinearFitter.h>
 
 #include <memory>
-#include <string>
 
 namespace plots {
 
 	/**
-	 * @brief \class PlotIntensityFit
-	 * 
-	 * Plot both the measured and fitted scattering curve. 
+	 * @brief Plot both the measured and fitted scattering curve. 
 	 * Remember to set the correct ScatteringPlot with the optimized values in the fitter before using this class. 
 	 */
 	class PlotIntensityFit : public Plot {
@@ -48,7 +45,7 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, std::string path);
+			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
 			void plot(const fitter::Fit::Plots& graphs);

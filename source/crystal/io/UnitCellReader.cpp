@@ -1,9 +1,9 @@
 #include <crystal/io/UnitCellReader.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 
 #include <fstream>
 
-std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::read(const std::string& filename) const {
+std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::read(const ::io::ExistingFile& filename) const {
     std::ifstream file(filename);
     if (!file.is_open()) {throw except::io_error("GridReader::read: Could not open file " + filename);}
 

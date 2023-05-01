@@ -6,6 +6,7 @@
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <utility/Exceptions.h>
+#include <utility/Console.h>
 #include <io/XYZWriter.h>
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotDistance.h>
@@ -39,7 +40,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     }
 
     if (settings::general::verbose) {
-        utility::print_info("\nStarting rigid body optimization.");
+        console::print_info("\nStarting rigid body optimization.");
         std::cout << "\tInitial chi2: " << best_chi2 << std::endl;
     }
 
@@ -84,7 +85,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
             best_chi2 = new_chi2;
             // params.update(body.uid, param);
             std::cout << "\rIteration " << i << std::endl;
-            utility::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
+            console::print_success("\tRigidBody::optimize: Accepted changes. New best chi2: " + std::to_string(new_chi2));
             // plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_" + std::to_string(++optimized_step) + ".png");
         }
     }

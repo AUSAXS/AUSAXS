@@ -2,7 +2,8 @@
 #include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
 #include <dataset/Dataset2D.h>
-#include <utility/Utility.h>
+#include <utility/Console.h>
+#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
 #include <settings/GeneralSettings.h>
@@ -12,9 +13,9 @@
 #include <string>
 #include <fstream>
 
-std::shared_ptr<Dataset> detail::XVGConstructor::construct(std::string path, unsigned int expected_cols) {
+std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFile& path, unsigned int expected_cols) {
     if (settings::general::verbose) {
-        utility::print_info("Loading dataset from \"" + path + "\"");
+        console::print_info("Loading dataset from \"" + path + "\"");
     }
 
     // check if file was succesfully opened
@@ -65,13 +66,13 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(std::string path, uns
     if (header.back().find("type") != std::string::npos) {
         std::string type = header.back().substr(6);
         if (mode == 2 && type != "xy") {
-            utility::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y].");
+            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y].");
         }
         if (mode == 3 && type != "xydy") {
-            utility::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy].");
+            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy].");
         }
         if (mode == 4 && type != "xydxdy") {
-            utility::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy | dx].");
+            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy | dx].");
         }
     }
 

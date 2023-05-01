@@ -1,5 +1,7 @@
 #pragma once
 
+#include <io/ExistingFile.h>
+
 #include <memory>
 #include <string>
 
@@ -16,6 +18,6 @@ namespace detail {
          * @param path The path to the file.
          * @param expected_cols The expected number of columns. Any additional columns will be ignored.
          */
-        virtual std::shared_ptr<Dataset> construct(std::string path, unsigned int expected_cols) = 0;
+        virtual std::shared_ptr<Dataset> construct(const io::ExistingFile& path, unsigned int expected_cols) = 0;
     };
 }

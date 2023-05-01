@@ -5,9 +5,7 @@
 
 namespace plots {
     /**
-     * @brief \class PlotImage
-     * 
-     * Plot a specific \class Image object. 
+     * @brief Plot a specific \class Image object. 
      */
     class PlotImage : public Plot {
         public:
@@ -34,7 +32,7 @@ namespace plots {
 			 * @brief Plot and save the input Image at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single Image. 
 			 */
-            static void quick_plot(const em::Image& image, std::string path);
+            static void quick_plot(const em::Image& image, const io::File& path);
 
         private:
             void plot(const em::Image& image);

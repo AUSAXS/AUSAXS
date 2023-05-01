@@ -1,6 +1,6 @@
 #include <data/Protein.h>
 #include <data/Body.h>
-#include <io/File.h>
+#include <io/ProteinFile.h>
 #include <hist/Histogram.h>
 #include <fitter/HydrationFitter.h>
 #include <settings/ProteinSettings.h>
@@ -81,7 +81,7 @@ SimpleDataset Protein::simulate_dataset(bool add_noise) {
     return data;
 }
 
-void Protein::save(std::string path) {
+void Protein::save(const io::File& path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {
         bodies[0].waters() = waters();
@@ -90,7 +90,7 @@ void Protein::save(std::string path) {
     }
 
     // otherwise we'll have to create a new file
-    File file(atoms(), waters());
+    ProteinFile file(atoms(), waters());
     file.write(path);
 }
 

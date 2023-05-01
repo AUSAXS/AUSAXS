@@ -1,9 +1,4 @@
 #include <plots/PlotIntensityFit.h>
-#include <utility/Utility.h>
-
-#include <memory.h>
-#include <string.h>
-#include <vector>
 
 plots::PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot() {
     auto graphs = fitter.plot();
@@ -20,7 +15,7 @@ plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<fitter::Fit> fit
 
 plots::PlotIntensityFit::~PlotIntensityFit() = default;
 
-void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit, std::string path) {
+void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path) {
     PlotIntensityFit plot(fit);
     plot.save(path);
 }

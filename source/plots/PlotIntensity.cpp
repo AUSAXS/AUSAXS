@@ -1,11 +1,4 @@
-#include <fitter/Fit.h>
 #include <plots/PlotIntensity.h>
-#include <utility/Exceptions.h>
-#include <utility/Utility.h>
-
-#include <memory.h>
-#include <string.h>
-#include <vector>
 
 plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, style::Color color) {
     plot(d, color);
@@ -73,12 +66,12 @@ void plots::PlotIntensity::plot_guinier_approx(const hist::ScatteringHistogram& 
         << std::endl;
 }
 
-void plots::PlotIntensity::quick_plot(const SimpleDataset& d, std::string path) {
+void plots::PlotIntensity::quick_plot(const SimpleDataset& d, const io::File& path) {
     PlotIntensity plot(d);
     plot.save(path);
 }
 
-void plots::PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, std::string path) {
+void plots::PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, const io::File& path) {
     PlotIntensity plot(h);
     plot.save(path);
 }

@@ -16,7 +16,7 @@ using namespace crystal;
 
 CrystalScattering::CrystalScattering(const std::string& input) {
     initialize();
-    auto reader = io::CrystalReaderFactory::create(input);
+    auto reader = factory::CrystalReaderFactory::create(input);
     auto [bases, points] = reader->read(input);
     // std::cout << bases.x << std::endl;
     // std::cout << bases.y << std::endl;

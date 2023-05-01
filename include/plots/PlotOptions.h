@@ -1,12 +1,12 @@
 #pragma once
 
+#include <utility/Limit.h>
+
 #include <vector>
 #include <string>
 #include <any>
-#include <map>
+#include <unordered_map>
 #include <memory>
-
-#include <utility/Axis.h>
 
 extern double inf;
 
@@ -80,24 +80,16 @@ namespace plots {
              * @param style Should be either "markers" or "line", depending on which style is required. 
              * @param options The remaining options. If both markers and lines are needed, set both to true here. 
              */
-            PlotOptions(style::DrawStyle style, std::map<std::string, std::any> options);
-
-            /**
-             * @brief Create a new set of plot settings. 
-             * 
-             * @param style Should be either "markers" or "line", depending on which style is required. 
-             * @param options The remaining options. If both markers and lines are needed, set both to true here. 
-             */
-            PlotOptions(style, std::map<std::string, std::any> options);
+            PlotOptions(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options);
 
             /**
              * @brief Copy constructor.
              */
             PlotOptions(const PlotOptions& opt);
 
-            PlotOptions& set(std::map<std::string, std::any> options);
+            PlotOptions& set(std::unordered_map<std::string, std::any> options);
 
-            PlotOptions& set(style::DrawStyle style, std::map<std::string, std::any> options = {});
+            PlotOptions& set(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options = {});
 
             PlotOptions& operator=(const PlotOptions& opt);
 
@@ -173,7 +165,7 @@ namespace plots {
                 make_shared({option::legend}, legend)
             };
 
-            void parse(std::string key, std::any val);
+            void parse(const std::string& key, std::any val);
     };    
 
     /**
@@ -189,18 +181,18 @@ namespace plots {
             /**
              * @brief Add plot options for this dataset.
              */
-            void add_plot_options(std::map<std::string, std::any> options);
+            void add_plot_options(std::unordered_map<std::string, std::any> options);
 
             /**
              * @brief Add plot options for this dataset, forcing the specified style. 
              *        Accepted styles: "line", "marker", "errors".
              */
-            void add_plot_options(std::string style, std::map<std::string, std::any> options = {});
+            void add_plot_options(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options = {});
 
             /**
              * @brief Set the plot color for this dataset. 
              */
-            void set_plot_color(std::string color);
+            void set_plot_color(const std::string& color);
         
             /**
              * @brief Get the current plot options.

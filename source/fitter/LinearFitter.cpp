@@ -24,7 +24,7 @@ LinearFitter::LinearFitter(const hist::ScatteringHistogram& model, const Limit& 
     model_setup(model, limits);
 }
 
-void LinearFitter::model_setup(const hist::ScatteringHistogram& model, const Limit& limits) {
+void LinearFitter::model_setup(const hist::ScatteringHistogram&, const Limit&) {
     throw except::not_implemented("LinearFitter::model_setup: Not implemented yet!");
     // data = model.calc_debye_scattering_intensity();
     // data.reduce(settings::fit::N, true);

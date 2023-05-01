@@ -6,12 +6,10 @@
 
 namespace table {
     /**
-     * @brief \class DebyeLookupTable
-     * 
-     * Specialized class for storing the sin(x)/x lookup table as required in the Debye equation. 
-     * The primary feature of this class is that it checks if a default table can be used for a given instance, and if so, 
-     * calculates and uses only a single table for multiple instances. The default table is static and can thus be used for
-     * later instances even should the first one be destroyed.
+     * @brief Specialized class for storing the sin(x)/x lookup table as required in the Debye equation. 
+     *        The primary feature of this class is that it checks if a default table can be used for a given instance, and if so, 
+     *        calculates and uses only a single table for multiple instances. The default table is static and can thus be used for
+     *        later instances even should the first one be destroyed.
      * 
      * If the default table cannot be used, this class works exactly like the standard \class LookupTable. 
      */

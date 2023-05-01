@@ -1,9 +1,8 @@
+#include <em/Image.h>
+#include <settings/EMSettings.h>
+
 #include <list>
 #include <vector>
-
-#include <em/Image.h>
-#include <utility/Utility.h>
-#include <settings/EMSettings.h>
 
 using namespace em;
 

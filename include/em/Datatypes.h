@@ -3,7 +3,6 @@
 #include <array>
 #include <string>
 #include <ostream>
-#include <cstddef>
 
 namespace em {
     namespace ccp4 {

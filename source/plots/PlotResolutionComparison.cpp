@@ -1,12 +1,11 @@
 #include <plots/PlotResolutionComparison.h>
-#include <utility/Utility.h>
 #include <utility/Exceptions.h>
 
 #include <memory.h>
 #include <string.h>
 #include <vector>
 
-plots::PlotResolutionComparison::PlotResolutionComparison(Multiset data) {
+plots::PlotResolutionComparison::PlotResolutionComparison(Multiset& data) {
     if (data.empty()) {throw except::size_error("PlotResolutionComparison::PlotResolutionComparison: The given Multiset is empty!");}
 
     // change colors & plot raw figure before we scale the y-values
@@ -23,7 +22,7 @@ plots::PlotResolutionComparison::PlotResolutionComparison(Multiset data) {
 
 plots::PlotResolutionComparison::~PlotResolutionComparison() = default;
 
-void plots::PlotResolutionComparison::quick_plot(const Multiset& data, std::string path) {
+void plots::PlotResolutionComparison::quick_plot(Multiset& data, const io::File& path) {
     plots::PlotResolutionComparison plot(data);
     plot.save(path);
 }

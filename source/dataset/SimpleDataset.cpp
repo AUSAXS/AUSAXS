@@ -2,7 +2,7 @@
 #include <math/Statistics.h>
 #include <dataset/SimpleDataset.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+#include <utility/Console.h>
 #include <dataset/DatasetFactory.h>
 
 #include <vector>
@@ -191,7 +191,7 @@ void SimpleDataset::simulate_noise() {
 
 void SimpleDataset::simulate_errors() {
     if (size() == 0) {
-        utility::print_warning("Warning in SimpleDataset::simulate_errors: Dataset is empty.");
+        console::print_warning("Warning in SimpleDataset::simulate_errors: Dataset is empty.");
         return;
     }
     double y0 = y(0);
@@ -211,7 +211,7 @@ Point2D SimpleDataset::get_point(unsigned int index) const {
 
 Point2D SimpleDataset::find_minimum() const {
     if (size() == 0) {
-        utility::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
+        console::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
         return Point2D(0, 0, 0);
     }
     
@@ -269,14 +269,14 @@ void SimpleDataset::rebin() noexcept {
     *this = std::move(newdata);
 }
 
-void SimpleDataset::load(std::string path) {
+void SimpleDataset::load(const io::ExistingFile& path) {
     Dataset::load(path);
     names = {"q", "I", "Ierr", "qerr"}; // set column names
 }
 
 void SimpleDataset::remove_consecutive_duplicates() {
     if (size() == 0) {
-        utility::print_warning("Warning in SimpleDataset::remove_consecutive_duplicates: Dataset is empty.");
+        console::print_warning("Warning in SimpleDataset::remove_consecutive_duplicates: Dataset is empty.");
         return;
     }
 

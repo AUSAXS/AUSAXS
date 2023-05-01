@@ -1,5 +1,5 @@
 #include <mini/dlibMinimizer.h>
-#include <utility/Utility.h>
+#include <utility/Console.h>
 
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
@@ -56,7 +56,7 @@ Result dlibMinimizer<algo>::minimize_override() {
         if (!parameters[i].has_bounds()) {
             bounds = false;
             if (i != 0) {
-                utility::print_warning("dlibMinimizer::minimize_override: Bounds supplied for some parameters, but not all. Disabling bounds.");
+                console::print_warning("dlibMinimizer::minimize_override: Bounds supplied for some parameters, but not all. Disabling bounds.");
             }
         } else {
             min(i) = parameters[i].bounds->min;
@@ -88,7 +88,7 @@ Result dlibMinimizer<algo>::minimize_override() {
             );
         }
     } else {
-        utility::print_warning("dlibMinimizer::minimize_override: No bounds supplied. Using unconstrained minimization.");
+        console::print_warning("dlibMinimizer::minimize_override: No bounds supplied. Using unconstrained minimization.");
         fmin = dlib::find_min_using_approximate_derivatives(
             dlib::bfgs_search_strategy(),
             dlib::objective_delta_stop_strategy(1e-7),

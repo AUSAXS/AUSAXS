@@ -44,7 +44,7 @@ void Histogram::shorten_axis(unsigned int min_size) {
 
     p.resize(max_bin);
     double width = axis.width();
-    axis = Axis{max_bin, 0, max_bin*width};
+    axis = Axis{int(max_bin), 0, max_bin*width};
 }
 
 void Histogram::generate_axis() {

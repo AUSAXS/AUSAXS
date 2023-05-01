@@ -1,5 +1,6 @@
 #include <hist/DebyeLookupTable.h>
 #include <settings/HistogramSettings.h>
+#include <utility/Console.h>
 #include <utility/Utility.h>
 #include <utility/Axis.h>
 
@@ -29,7 +30,7 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
         lookup_function = [] (double q, double d) {return default_table.lookup(q, d);};
         index_lookup_function = [] (int i, int j) {return default_table.lookup_index(i, j);};
     } else {
-        utility::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables. ");
+        console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables. ");
 
         // assign the lambda lookup function to a custom table lookup
         initialize(table, q, d);

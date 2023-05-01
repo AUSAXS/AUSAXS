@@ -3,17 +3,18 @@
 #include <settings/GeneralSettings.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
+#include <utility/Console.h>
 
 #include <regex>
 #include <filesystem>
 #include <fstream>
 
 //### ATOM ###//
-parser::residue::detail::Atom::Atom(std::string name, std::string altname, std::string symbol) : name(name), altname(altname), symbol(symbol) {
+parser::residue::detail::Atom::Atom(const std::string& name, const std::string& altname, const std::string& symbol) : name(name), altname(altname), symbol(symbol) {
     valency = constants::valence::atomic.get(symbol);
 }
                 
-parser::residue::detail::Atom::Atom(std::string name, int charge, std::string symbol) : name(name), symbol(symbol) {
+parser::residue::detail::Atom::Atom(const std::string& name, int charge, const std::string& symbol) : name(name), symbol(symbol) {
     // the goal of this whole class is to determine the total charge surrounding an atom
     // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
     // thus the number of hydrogen bonds is later used as the effective charge of the atom
@@ -22,7 +23,7 @@ parser::residue::detail::Atom::Atom(std::string name, int charge, std::string sy
     hydrogen_bonds = charge; // adding additional hydrogen bonds is directly translated to adding additional charge
 }
 
-void parser::residue::detail::Atom::add_bond(std::string symbol, unsigned int order) {
+void parser::residue::detail::Atom::add_bond(const std::string& symbol, unsigned int order) {
     if (symbol == "H") {
         hydrogen_bonds++;
     }
@@ -35,13 +36,13 @@ std::string parser::residue::detail::Atom::to_string() const {
 
 
 //### BOND ###//
-parser::residue::detail::Bond::Bond(std::string name1, std::string name2, unsigned int order) : name1(name1), name2(name2), order(order) {}
+parser::residue::detail::Bond::Bond(const std::string& name1, const std::string& name2, unsigned int order) : name1(name1), name2(name2), order(order) {}
 
 std::string parser::residue::detail::Bond::to_string() const {
     return "Bond " + name1 + (order == 1 ? " - " : " = ") + name2;
 }
 
-unsigned int parser::residue::detail::Bond::parse_order(std::string order) {
+unsigned int parser::residue::detail::Bond::parse_order(const std::string& order) {
     if (order == "SING") {return 1;}
     else if (order == "DOUB") {return 2;}
     else if (order == "TRIP") {return 3;}
@@ -50,18 +51,18 @@ unsigned int parser::residue::detail::Bond::parse_order(std::string order) {
 
 
 //### RESIDUE ###//
-parser::residue::detail::Residue::Residue(std::string name) : name(name) {}
+parser::residue::detail::Residue::Residue(const std::string& name) : name(name) {}
 
-parser::residue::detail::Residue::Residue(std::string name, std::vector<Atom> atoms, std::vector<Bond> bonds) : name(name), atoms(atoms) {
+parser::residue::detail::Residue::Residue(const std::string& name, std::vector<Atom> atoms, std::vector<Bond> bonds) : name(name), atoms(atoms) {
     apply_bond(bonds);
 }
 
-void parser::residue::detail::Residue::add_atom(std::string name, std::string altname, std::string symbol) {
+void parser::residue::detail::Residue::add_atom(const std::string& name, const std::string& altname, const std::string& symbol) {
     name_map.insert({name, atoms.size()});
     atoms.push_back(Atom(name, altname, symbol));
 }
 
-void parser::residue::detail::Residue::add_atom(std::string name, int charge, std::string symbol) {
+void parser::residue::detail::Residue::add_atom(const std::string& name, int charge, const std::string& symbol) {
     name_map.insert({name, atoms.size()});
     atoms.push_back(Atom(name, charge, symbol));
 }
@@ -104,11 +105,11 @@ saxs::detail::ResidueMap parser::residue::detail::Residue::to_map() const {
     return map;
 }
 
-parser::residue::detail::Residue parser::residue::detail::Residue::parse(std::string filename) {
+parser::residue::detail::Residue parser::residue::detail::Residue::parse(const io::ExistingFile& filename) {
     std::ifstream file(filename);
 
     std::string line;
-    Residue residue(utility::stem(filename));
+    Residue residue(filename.stem());
     bool found_atom_section = false, found_bond_section = false;
 
     // check if we are dealing with a single ion
@@ -203,13 +204,13 @@ parser::residue::ResidueStorage::ResidueStorage() {
     initialize();
 }
 
-void parser::residue::ResidueStorage::insert(std::string name, saxs::detail::ResidueMap residue) {
+void parser::residue::ResidueStorage::insert(const std::string& name, saxs::detail::ResidueMap residue) {
     data.emplace(name, residue);
 }
 
-saxs::detail::ResidueMap& parser::residue::ResidueStorage::get(std::string name) {
+saxs::detail::ResidueMap& parser::residue::ResidueStorage::get(const std::string& name) {
     if (data.find(name) == data.end()) {
-        utility::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
+        console::print_info("Unknown residue: \"" + name + "\". Attempting to download specification.");
         download_residue(name);
     }
     return data.at(name);
@@ -217,7 +218,7 @@ saxs::detail::ResidueMap& parser::residue::ResidueStorage::get(std::string name)
 
 void parser::residue::ResidueStorage::initialize() {
     std::string path = settings::general::residue_folder;
-    utility::create_directory(path);
+    io::Folder(path).create();
     std::ifstream file(path + "master.dat");
     if (!file.is_open()) {
         return;
@@ -257,7 +258,7 @@ void parser::residue::ResidueStorage::initialize() {
     }
 }
 
-void parser::residue::ResidueStorage::download_residue(std::string name) {
+void parser::residue::ResidueStorage::download_residue(const std::string& name) {
     std::string path = settings::general::residue_folder;
     std::regex regex("[A-Z0-9]{2,3}");
 
@@ -279,9 +280,9 @@ void parser::residue::ResidueStorage::download_residue(std::string name) {
     }
 }
 
-void parser::residue::ResidueStorage::write_residue(std::string name) {
+void parser::residue::ResidueStorage::write_residue(const std::string& name) {
     std::string path = settings::general::residue_folder;
-    utility::create_directory(path);
+    io::Folder(path).create();
     std::ofstream file(path + "master.dat", std::ios::app); // open in append mode
     if (!file.is_open()) {throw except::io_error("ResidueStorage::write_residue: Could not open file: " + path + "master" + ".dat");}
 

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <memory>
-
 #include <dataset/Dataset.h>
+#include <io/ExistingFile.h>
+
+#include <memory>
 
 namespace factory {
     /**
@@ -19,9 +20,9 @@ namespace factory {
          *        The return type depends on the @a expected_cols parameter. 
          *        If the file contains more columns than @a expected_cols, the extra columns will be ignored, and a warning will be printed.
          * 
-         * @param filename The path to the file.
+         * @param file The path to the file.
          * @param expected_cols The expected number of columns. Any additional columns will be ignored. If 0, all columns will be read.
          */
-        static std::shared_ptr<Dataset> construct(std::string filename, unsigned int expected_cols = 0);
+        static std::shared_ptr<Dataset> construct(const io::ExistingFile& file, unsigned int expected_cols = 0);
     };
 }

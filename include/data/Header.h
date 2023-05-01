@@ -8,9 +8,9 @@
 
 class Header : Record {
 public: 
-	Header() {}
+	Header() noexcept = default;
 
-	~Header() override {}
+	~Header() override = default;
 
 	/**
 	 * @brief Get the RecordType of this object.
@@ -21,7 +21,7 @@ public:
 	 * @brief Parse a .pdb format header string. This is equivalent to the add method.
 	 * @param s the .pdb format header string.
 	 */
-	void parse_pdb(std::string s) override;
+	void parse_pdb(const std::string& s) override;
 
 	/**
 	 * @brief Get the .pdb format representation of this Header. This is equivalent to the get method.
@@ -33,7 +33,7 @@ public:
 	 * @brief Add a header line to the internal storage of this Header. 
 	 * @param s the header line. 
 	 */
-	void add(const std::string s);
+	void add(const std::string& s);
 
 	/**
 	 * @brief Get the .pdb format representation of this Header.
@@ -44,12 +44,12 @@ public:
 	/**
 	 * @brief Remove all records of a given type. 
 	 */
-	void remove(std::string type);
+	void remove(const std::string& type);
 
 	/**
 	 * @brief Get the number of header lines.
 	 */
-	size_t size() const;
+	unsigned int size() const;
 
 private: 
 	std::vector<std::string> contents;

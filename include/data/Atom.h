@@ -1,11 +1,11 @@
 #pragma once
 
+#include <data/Record.h>
+#include <math/Vector3.h>
+
 #include <string>
 #include <vector>
 #include <memory>
-
-#include <data/Record.h>
-#include <math/Vector3.h>
 
 class Atom : public Record {
     public:
@@ -18,15 +18,15 @@ class Atom : public Record {
          * @param name the molecule (e.g. HOH).
          * @param serial the serial number of this atom.
          */
-        Atom(Vector3<double> v, double occupancy, std::string element, std::string name, int serial);
+        Atom(Vector3<double> v, double occupancy, const std::string& element, const std::string& name, int serial);
 
         /**
          * @brief Construct a new Atom object.
          * 
          * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
          */
-        Atom(int serial, std::string name, std::string altLoc, std::string resName, std::string chainID, int resSeq, std::string iCode, 
-            Vector3<double> coords, double occupancy, double tempFactor, std::string element, std::string charge);
+        Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, const std::string& chainID, int resSeq, 
+            const std::string& iCode, Vector3<double> coords, double occupancy, double tempFactor, const std::string& element, const std::string& charge);
 
         /**
          * @brief Default constructor.
@@ -43,7 +43,7 @@ class Atom : public Record {
         /**
          * @brief Set the properties of this Atom based on a .pdb format ATOM string. 
          */
-        void parse_pdb(std::string s) override;
+        void parse_pdb(const std::string& s) override;
 
         /**
          * @brief Create a .pdb format string representation of this Atom. 
@@ -103,13 +103,12 @@ class Atom : public Record {
          */
         void set_tempFactor(double tempFactor);
 
-
         /**
          * @brief Set the alternate location for this atom.
          * 
          * @param altLoc the alternate location, e.g. A.
          */
-        void set_altLoc(std::string altLoc);
+        void set_altLoc(const std::string& altLoc);
 
         /**
          * @brief Set the serial number for this atom.
@@ -137,42 +136,42 @@ class Atom : public Record {
          * 
          * @param chainID the chain ID, e.g. A.
          */
-        void set_chainID(std::string chainID);
+        void set_chainID(const std::string& chainID);
 
         /**
          * @brief Set the insertion code for this atom.
          * 
          * @param iCode the insertion code, e.g. A.
          */
-        void set_iCode(std::string iCode);
+        void set_iCode(const std::string& iCode);
 
         /**
          * @brief Set the charge for this atom.
          * 
          * @param charge the charge, e.g. +1.
          */
-        void set_charge(std::string charge);
+        void set_charge(const std::string& charge);
 
         /**
          * @brief Set the residue name for this atom.
          * 
          * @param resName the residue name, typically an amino acid such as LYS.
          */
-        void set_resName(std::string resName);
+        void set_resName(const std::string& resName);
 
         /**
          * @brief Specify the position of this atom within its residue.
          * 
          * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
          */
-        void set_name(std::string name);
+        void set_name(const std::string& name);
 
         /**
          * @brief Set the atomic element for this atom. Any spaces are removed. 
          * 
          * @param element the atomic element, e.g. He.
          */
-        void set_element(std::string element);
+        void set_element(const std::string& element);
 
     //*** getters ***//
         Vector3<double>& get_coordinates();

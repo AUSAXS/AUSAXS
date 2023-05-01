@@ -1,6 +1,6 @@
 #include <mini/detail/RegularLandscape.h>
 #include <utility/Exceptions.h>
-#include <utility/Utility.h>
+#include <utility/StringUtils.h>
 
 #include <fstream>
 

@@ -9,7 +9,7 @@
 #include <hydrate/placement/PlacementFactory.h>
 #include <settings/GridSettings.h>
 #include <math/Vector3.h>
-#include <utility/Utility.h>
+#include <utility/Console.h>
 #include <data/Protein.h>
 
 using namespace grid;
@@ -86,7 +86,7 @@ void Grid::setup() {
     if (total_bins > 32e9) {
         throw except::invalid_argument("Grid: Too many bins.");
     } else if (total_bins > 4e9) {
-        utility::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
+        console::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
     }
 
     this->width = settings::grid::width;
@@ -107,7 +107,7 @@ std::vector<Water> Grid::hydrate() {
 std::vector<GridMember<Water>> Grid::find_free_locs() {
     // a quick check to verify there are no water molecules already present
     if (w_members.size() != 0) {
-            utility::print_warning("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
+            console::print_warning("Warning in Grid::find_free_locs: Attempting to hydrate a grid which already contains water!");
     }
     expand_volume();
 
@@ -148,7 +148,7 @@ std::pair<Vector3<double>, Vector3<double>> Grid::bounding_box(const std::vector
 void Grid::set_radius_atoms(double radius) {
     unsigned int new_r = int(radius/width); // convert the radius to a "bin-radius"
     if (this->ra != 0 && this->ra != new_r) {
-        utility::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
+        console::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
     }
     this->ra = new_r;
 }
@@ -156,7 +156,7 @@ void Grid::set_radius_atoms(double radius) {
 void Grid::set_radius_water(double radius) {
     unsigned int new_r = int(radius/width); // convert the radius to a "bin-radius"
     if (this->rh != 0 && this->rh != new_r) {
-        utility::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
+        console::print_warning("Warning in Grid::set_radius: The radius is already set for this grid!");
     }
     this->rh = new_r;
 }
@@ -261,7 +261,7 @@ void Grid::expand_volume(GridMember<Water>& water) {
     }
 }
 
-std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
+std::vector<bool> Grid::remove_disconnected_atoms(unsigned int) {
     throw except::not_implemented("Grid::remove_disconnected_atoms: Not implemented!");
     // expand_volume();
     // ClusterCulling culler(this);
@@ -649,5 +649,5 @@ GridObj::DATATYPE Grid::index(unsigned int i, unsigned int j, unsigned int k) co
 }
 
 std::vector<Atom> Grid::get_surface_atoms() const {
-
+    throw except::not_implemented("Grid::get_surface_atoms: Not implemented.");
 }

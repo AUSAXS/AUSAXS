@@ -3,9 +3,6 @@
 #include <plots/Plot.h>
 #include <hist/Histogram.h>
 
-#include <memory>
-#include <string>
-
 namespace plots {
 	class PlotHistogram : public Plot {
 		public:
@@ -27,6 +24,6 @@ namespace plots {
 			 * @brief Plot and save the input dataset and the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a histogram. 
 			 */
-			static void quick_plot(const hist::Histogram& hist, std::string path);
+			static void quick_plot(const hist::Histogram& hist, const io::File& path);
 	};
 }

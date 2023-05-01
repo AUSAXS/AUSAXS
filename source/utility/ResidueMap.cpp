@@ -3,17 +3,25 @@
 
 #include <utility/Exceptions.h>
 #include <utility/ResidueMap.h>
+#include <utility/StringUtils.h>
 
 using namespace saxs::detail;
 
+saxs::detail::AtomKey::AtomKey(const std::string& name, const std::string& symbol) : name(utility::to_lowercase(name)), symbol(symbol) {}
+bool saxs::detail::AtomKey::operator==(const AtomKey& other) const {
+    return name == other.name;
+}
+
+unsigned int std::hash<saxs::detail::AtomKey>::operator()(const saxs::detail::AtomKey& k) const {return std::hash<std::string>()(k.name);}
+
 ResidueMap::ResidueMap() {}
 
-ResidueMap::ResidueMap(std::unordered_map<AtomKey, int> map) {
+ResidueMap::ResidueMap(const std::unordered_map<AtomKey, int>& map) {
     this->map = map;
     this->calculate_average();
 }
 
-double ResidueMap::get(AtomKey key) {
+double ResidueMap::get(const AtomKey& key) {
     // first check if the key is in the map
     if (map.contains(key)) {return map.at(key);}
 
@@ -29,12 +37,12 @@ double ResidueMap::get(AtomKey key) {
     }
 }
 
-void ResidueMap::insert(AtomKey key, int value) {
+void ResidueMap::insert(const AtomKey& key, int value) {
     map[key] = value;
     update_average = true;
 }
 
-void ResidueMap::insert(std::string name, std::string symbol, int value) {
+void ResidueMap::insert(const std::string& name, const std::string& symbol, int value) {
     insert(AtomKey(name, symbol), value);
 }
 

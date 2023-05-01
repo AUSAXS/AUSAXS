@@ -1,10 +1,11 @@
 #pragma once
 
+#include <utility/ResidueMap.h>
+#include <io/ExistingFile.h>
+
 #include <vector>
 #include <string>
-#include <map>
-
-#include <utility/ResidueMap.h>
+#include <unordered_map>
 
 namespace parser {
     namespace residue {
@@ -20,7 +21,7 @@ namespace parser {
                  * @param altname the alternate name of the atom.
                  * @param symbol the symbol of the atom.
                  */
-                Atom(std::string name, std::string altname, std::string symbol);
+                Atom(const std::string& name, const std::string& altname, const std::string& symbol);
 
                 /**
                  * @brief Constructor.
@@ -29,7 +30,7 @@ namespace parser {
                  * @param charge the charge of the atom.
                  * @param symbol the symbol of the atom.
                  */
-                Atom(std::string name, int charge, std::string symbol);
+                Atom(const std::string& name, int charge, const std::string& symbol);
 
                 /**
                  * @brief Add a bond from this atom to another.
@@ -37,7 +38,7 @@ namespace parser {
                  * @param symbol the symbol of the atom to which this atom is bonded.
                  * @param order the order of the bond.
                  */
-                void add_bond(std::string symbol, unsigned int order);
+                void add_bond(const std::string& symbol, unsigned int order);
                 
                 std::string to_string() const;
 
@@ -57,14 +58,14 @@ namespace parser {
                  * @param name2 the name of the second atom.
                  * @param order the order of the bond.
                  */
-                Bond(std::string name1, std::string name2, unsigned int order);
+                Bond(const std::string& name1, const std::string& name2, unsigned int order);
 
                 std::string to_string() const;
 
                 /**
                  * @brief Parse an order symbol.
                  */
-                static unsigned int parse_order(std::string order);
+                static unsigned int parse_order(const std::string& order);
 
                 std::string name1, name2;
                 unsigned int order;
@@ -78,7 +79,7 @@ namespace parser {
                     /**
                      * @brief Construct a new residue with the given name.
                      */
-                    Residue(std::string name);
+                    Residue(const std::string& name);
 
                     /**
                      * @brief Constructor.
@@ -87,7 +88,7 @@ namespace parser {
                      * @param atoms the atoms in the residue.
                      * @param bonds the bonds in the residue.
                      */
-                    Residue(std::string name, std::vector<Atom> atoms, std::vector<Bond> bonds);
+                    Residue(const std::string& name, std::vector<Atom> atoms, std::vector<Bond> bonds);
 
                     /**
                      * @brief Add an atom to the residue.
@@ -96,7 +97,7 @@ namespace parser {
                      * @param altname the alternate name of the atom.
                      * @param symbol the symbol of the atom.
                      */
-                    void add_atom(std::string name, std::string altname, std::string symbol);
+                    void add_atom(const std::string& name, const std::string& altname, const std::string& symbol);
 
                     /**
                      * @brief Add an atom to the residue.
@@ -105,7 +106,7 @@ namespace parser {
                      * @param charge the charge of the atom.
                      * @param symbol the symbol of the atom.
                      */
-                    void add_atom(std::string name, int charge, std::string symbol);
+                    void add_atom(const std::string& name, int charge, const std::string& symbol);
 
                     /**
                      * @brief Add a bond to the residue.
@@ -133,13 +134,13 @@ namespace parser {
                     /**
                      * @brief Parse a residue from a file.
                      */
-                    static Residue parse(std::string filename);
+                    static Residue parse(const io::ExistingFile& filename);
 
                     std::string to_string() const;
 
                 private: 
                     std::string name;
-                    std::map<std::string, int> name_map;
+                    std::unordered_map<std::string, int> name_map;
                     std::vector<Atom> atoms;        
             };
 
@@ -161,13 +162,13 @@ namespace parser {
                 /**
                  * @brief Get a residue from the storage. If the residue is not found, it will be downloaded. 
                  */
-                saxs::detail::ResidueMap& get(std::string name);
+                saxs::detail::ResidueMap& get(const std::string& name);
 
             private: 
                 /**
                  * @brief Insert a residue into the storage. 
                  */
-                void insert(std::string name, saxs::detail::ResidueMap residue);
+                void insert(const std::string& name, saxs::detail::ResidueMap residue);
 
                 /**
                  * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 
@@ -177,14 +178,14 @@ namespace parser {
                 /**
                  * @brief Download and load a residue from the web. 
                  */
-                void download_residue(std::string name);
+                void download_residue(const std::string& name);
 
                 /**
                  * @brief Write a residue to the auto-loaded file. 
                  */
-                void write_residue(std::string name);
+                void write_residue(const std::string& name);
 
-                std::map<std::string, saxs::detail::ResidueMap> data;
+                std::unordered_map<std::string, saxs::detail::ResidueMap> data;
         };
     }
 }

@@ -1,5 +1,4 @@
 #include <plots/PlotHistogram.h>
-#include <utility/Utility.h>
 
 plots::PlotHistogram::PlotHistogram(const hist::Histogram& h) {
     plot(h);
@@ -18,7 +17,7 @@ void plots::PlotHistogram::plot(const hist::Histogram& hist) {
         << std::endl;
 }
 
-void plots::PlotHistogram::quick_plot(const hist::Histogram& hist, std::string path) {
+void plots::PlotHistogram::quick_plot(const hist::Histogram& hist, const io::File& path) {
     plots::PlotHistogram plot(hist);
     plot.save(path);
 }

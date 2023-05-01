@@ -1,19 +1,13 @@
 #include <plots/PlotDistance.h>
 #include <plots/PlotDataset.h>
-#include <hist/DebyeLookupTable.h>
-#include <utility/Utility.h>
-
-#include <memory.h>
-#include <string.h>
-#include <vector>
 
 plots::PlotDistance::~PlotDistance() = default;
 
-plots::PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, std::string path) {
+plots::PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, const io::File& path) {
     quick_plot(d, path);
 }
 
-void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& d, std::string path) {
+void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& d, const io::File& path) {
     auto distances = d.axis.as_vector();
     SimpleDataset p(distances, d.p.data);
     SimpleDataset pp(distances, d.p_pp.p.data);

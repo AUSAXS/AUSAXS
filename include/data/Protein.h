@@ -10,6 +10,7 @@
 #include <hist/detail/HistogramManagerFactory.h>
 #include <dataset/SimpleDataset.h>
 #include <fitter/Fit.h>
+#include <io/File.h>
 
 /**
  * @brief A representation of a protein.
@@ -22,7 +23,7 @@ class Protein {
 		/**
 		 * @brief Default constructor. 
 		 */
-		Protein() noexcept {}
+		Protein() noexcept = default;
 
 		/**
 		 * @brief Copy constructor.
@@ -113,7 +114,7 @@ class Protein {
 		/** 
 		 * @brief Writes this body to disk.
 		 */
-		void save(std::string path);
+		void save(const io::File& path);
 
 		/** 
 		 * @brief Use an algorithm to generate a new hydration layer for this body. Note that the previous one will be deleted.

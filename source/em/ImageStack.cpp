@@ -6,6 +6,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/ProteinSettings.h>
 #include <settings/FitSettings.h>
+#include <utility/Console.h>
 #include <plots/all.h>
 
 using namespace em;
@@ -24,13 +25,13 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini:
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(std::string file) {
+std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(std::string file, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file, mini::Parameter param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return fit_helper(fitter, param);
@@ -72,7 +73,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         }
 
         // prepare a new minimizer with the new bounds
-        utility::print_warning("Function is varying strongly. Sampling more points around the minimum.");
+        console::print_warning("Function is varying strongly. Sampling more points around the minimum.");
         mini::LimitedScan mini2(f, mini::Parameter("cutoff", bounds), settings::fit::max_iterations/4);
         {
             auto l = mini2.landscape(settings::fit::max_iterations/2);
@@ -259,12 +260,12 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     return chi2;
 }
 
-mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::string file) {
+mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return cutoff_scan_helper(points, fitter);
 }
 
-mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::string file) {
+mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingFile& file) {
     Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
     return cutoff_scan(axis, file);
 }
@@ -344,7 +345,7 @@ SimpleDataset ImageStack::get_fitted_water_factors_dataset() const {
     return SimpleDataset(x, y, "Iteration", "Scaling factor");
 }
 
-void ImageStack::update_charge_levels(Limit limit) const noexcept {
+void ImageStack::update_charge_levels(const Limit& limit) const noexcept {
     std::vector<double> levels;
     for (unsigned int i = 0; i < settings::em::charge_levels; i++) {
         levels.push_back(limit.min + i*limit.span()/settings::em::charge_levels);

@@ -2,12 +2,13 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/GeneralSettings.h>
+#include <utility/Console.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;
 
 std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> LinearConstraints::generate() const {
-    if (settings::general::verbose) {utility::print_info("\tGenerating simple constraints for rigid body optimization.");}
+    if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}
     std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> constraints;
 
     auto& protein = *manager->protein;
