@@ -127,6 +127,11 @@ class Dataset : public Matrix<double> {
         void interpolate(unsigned int num);
 
         /**
+         * @brief Interpolate points to match the given x-values.
+         */
+        void interpolate(const std::vector<double>& newx);
+
+        /**
          * @brief Get the weighted rolling average of this dataset. 
          *        The weight is defined as 1/(2)^i, where i is the index distance from the middle.
          * 

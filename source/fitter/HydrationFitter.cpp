@@ -44,7 +44,7 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     return fitted;
 }
 
-double HydrationFitter::fit_only() {
+double HydrationFitter::fit_chi2_only() {
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
     auto res = mini->minimize();
@@ -59,7 +59,7 @@ double HydrationFitter::fit_only() {
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
-    return fitter.fit_only();
+    return fitter.fit_chi2_only();
 }
 
 Fit::Plots HydrationFitter::plot() {

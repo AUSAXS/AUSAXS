@@ -83,7 +83,7 @@ namespace fitter {
              */
             [[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
 
-            [[nodiscard]] virtual double fit_only() override;
+            [[nodiscard]] virtual double fit_chi2_only() override;
 
             template<mini::type t>
             [[nodiscard]] std::shared_ptr<Fit> fit() {

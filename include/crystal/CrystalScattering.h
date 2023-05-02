@@ -14,9 +14,15 @@ namespace crystal {
             CrystalScattering(const std::string& input);
 
             SimpleDataset calculate() const;
+    
+            SimpleDataset rotational_average(unsigned int n);
 
         private:
             std::shared_ptr<MillerGenerationStrategy> miller_strategy;
+
+            void random_rotation();
+
+            void rotate(const Vector3<double>& axis, double angle);
 
             void initialize();
 

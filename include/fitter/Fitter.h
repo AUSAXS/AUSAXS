@@ -25,7 +25,7 @@ namespace fitter {
             /**
              * @brief Perform a fit and return the minimum function value.
              */
-            [[nodiscard]] virtual double fit_only() = 0;
+            [[nodiscard]] virtual double fit_chi2_only() = 0;
 
             /**
              * @brief Make a plot of the fit. 

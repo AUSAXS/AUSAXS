@@ -9,8 +9,10 @@
 #include <settings/CrystalSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
+
 #include <atomic>
 #include <thread>
+#include <random>
 
 using namespace crystal;
 
@@ -23,6 +25,42 @@ CrystalScattering::CrystalScattering(const std::string& input) {
     // std::cout << bases.z << std::endl;
     Fval::set_points(std::move(points));
     Fval::set_basis(bases);
+}
+
+void CrystalScattering::random_rotation() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0, 1);
+    double theta = std::acos(2*dis(gen) - 1);
+    double phi = 2*M_PI*dis(gen);
+    double psi = 2*M_PI*dis(gen);
+    auto v = Vector3<double>(std::cos(theta)*std::cos(phi), std::sin(theta)*std::cos(phi), std::sin(phi));
+    rotate(v, psi);
+}
+
+void CrystalScattering::rotate(const Vector3<double>& axis, double angle) {
+    auto p = Fval::get_points();
+    for (auto& point : p) {
+        point.rotate(axis, angle);
+    }
+}
+
+SimpleDataset CrystalScattering::rotational_average(unsigned int n) {
+    std::vector<SimpleDataset> datasets;
+    for (unsigned int i = 0; i < n; i++) {
+        datasets.push_back(calculate());
+        random_rotation();
+    }
+
+    SimpleDataset result;
+    for (unsigned int i = 0; i < datasets[0].size(); i++) {
+        double sum = 0;
+        for (auto& dataset : datasets) {
+            sum += dataset.y(i);
+        }
+        result.push_back(datasets[0].x(i), sum/datasets.size());
+    }
+    return result;
 }
 
 CrystalScattering::CrystalScattering(const Grid& grid) {

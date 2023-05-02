@@ -32,7 +32,7 @@ namespace fitter {
              */
             [[nodiscard]] std::shared_ptr<Fit> fit() override;
 
-            [[nodiscard]] double fit_only() override;
+            [[nodiscard]] double fit_chi2_only() override;
 
             template<mini::type t>
             [[nodiscard]] std::shared_ptr<Fit> fit() {

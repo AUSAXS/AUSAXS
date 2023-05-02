@@ -194,6 +194,18 @@ void Dataset::interpolate(unsigned int n) {
     force_assign_matrix(std::move(interpolated));
 }
 
+void Dataset::interpolate(const std::vector<double>& newx) {
+    CubicSpline spline(x().to_vector(), y().to_vector());
+    Matrix interpolated(newx.size(), 2);
+    for (unsigned int i = 0; i < newx.size(); i++) {
+        double x = newx[i];
+        double y = spline.spline(x);
+        interpolated[i] = {x, y}; 
+    }
+    // force assign since we can only interpolate the x and y columns. 
+    force_assign_matrix(std::move(interpolated));
+}
+
 void Dataset::append(const Dataset& other) {
     if (M != other.M) {throw except::invalid_argument("Dataset::append: Number of columns does not match.");}
     unsigned int n = size();

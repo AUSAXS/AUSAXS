@@ -24,7 +24,6 @@ std::vector<Miller> ReducedMillers::generate() const {
             Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
             double q = crystal::Fval::Q(miller).norm();
             if (q > settings::crystal::max_q) {break;}
-            // if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
             millers.emplace_back(miller);
         }
     }

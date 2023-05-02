@@ -32,7 +32,7 @@ void RigidBody::setup() {
 std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
     generate_new_hydration();
     auto fitter = prepare_fitter(measurement_path);
-    double best_chi2 = fitter->fit_only();
+    double best_chi2 = fitter->fit_chi2_only();
     plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_0.png");
 
     if (settings::general::supplementary_plots) {
@@ -65,7 +65,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(std::string measurement_path) {
 
         // update the body location in the fitter
         update_fitter(fitter);
-        double new_chi2 = fitter->fit_only();
+        double new_chi2 = fitter->fit_chi2_only();
 
         // if the old configuration was better
         if (new_chi2 >= best_chi2) {

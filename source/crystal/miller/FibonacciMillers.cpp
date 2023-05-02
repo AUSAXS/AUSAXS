@@ -16,15 +16,12 @@ std::vector<Miller> FibonacciMillers::generate() const {
 
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
-    // int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
     for (const auto& base : bases) {
-        // std::cout << "(" << base.h << " " << base.k << " " << base.l << ")" << std::endl;
         int multiplier = 1;
         while (multiplier++ < 10000) { // hard limit to prevent infinite loop
             Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
             double q = crystal::Fval::Q(miller).norm();
             if (q > settings::crystal::max_q) {break;}
-            // if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
             millers.emplace_back(miller);
         }
     }
