@@ -89,13 +89,21 @@ std::string operator+(const io::File& file, const std::string& str) {
     return std::string(file) + str;
 }
 
+void File::validate() const {
+    auto p = std::filesystem::path(path());
+    if (!p.has_filename() || !p.has_extension()) {
+        throw except::invalid_argument("File::validate: \"" + path() + "\" is not a valid file path.");
+    }
+}
+
+std::istringstream &operator>>(std::istringstream& in, io::File& val) {
+    std::string v;
+    in >> v;
+    val = v;
+    return in;
+}
+
 std::ostream& operator<<(std::ostream& os, const io::File& file) {
     os << file.path();
     return os;
-}
-
-void File::validate() const {
-    if (!std::filesystem::is_regular_file(path())) {
-        throw except::invalid_argument("File::File: \"" + path() + "\" is not a file.");
-    }
 }

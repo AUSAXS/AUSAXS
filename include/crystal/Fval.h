@@ -21,6 +21,8 @@ namespace crystal {
 
             static Basis3D get_basis();
 
+            static Vector3<double> Q(const Miller& miller);
+
             double I() const;
 
             Miller hkl;
@@ -28,7 +30,6 @@ namespace crystal {
             Vector3<double> q;
             std::complex<double> fval;
         private: 
-            std::complex<double> i = std::complex<double>(0, 1);
             inline static std::vector<Vector3<double>> points;
             inline static Vector3<double> ap, bp, cp;
 
@@ -41,5 +42,7 @@ namespace crystal {
              * @brief Calculate the Q vector for the given Miller indices
              */
             Vector3<double> Q() const;
+
+            static void precompute_factors();
     };
 }

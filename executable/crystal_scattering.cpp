@@ -9,18 +9,18 @@
 #include <settings/All.h>
 
 int main(int argc, char const *argv[]) {
-    std::string crystal;
+    io::File crystal;
     CLI::App app{"Crystal Scattering"};
     app.add_option("input", crystal, "File containing the crystal data.")->required();
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/crystal/");
     CLI11_PARSE(app, argc, argv);
-    settings::general::output += utility::stem(crystal) + "/";
+    settings::general::output += crystal.stem() + "/";
 
     settings::axes::qmin = 1e-4;
     settings::axes::bins = 1000;
     settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
     settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::All;
-    settings::crystal::max_q = 100;
+    settings::crystal::max_q = 0.2;
     // crystal::CrystalScattering cs(crystal);
     // auto fourier = cs.calculate();
     // fourier.limit_y(1e-4, 1e10);
@@ -43,14 +43,17 @@ int main(int argc, char const *argv[]) {
     //### CUSTOM SECTION FOR SILICA PROJECT ###//
     //#########################################//
     settings::axes::qmin = 1e-4;
-    settings::axes::bins = 400;
-    settings::crystal::h = 200; settings::crystal::k = 200; settings::crystal::l = 0;
+    settings::axes::bins = 100;
+    settings::crystal::grid_expansion = 1;
+    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
+    settings::crystal::max_q = 0.2;
     crystal::CrystalScattering cs1(crystal);
     auto fourier = cs1.calculate();
     fourier.limit_y(1e-4, 1e10);
     fourier.limit_x(1e-2, 1);
     fourier.add_plot_options({{plots::option::legend, "xy"}});
     plots::PlotIntensity plot(fourier, style::color::orange);
+    plot.save(settings::general::output + "fourier.png");
 
     // settings::axes::qmin = 1e-4;
     // settings::axes::bins = 100;
@@ -73,6 +76,7 @@ int main(int argc, char const *argv[]) {
     // plot.plot(fourier3, style::color::green);
 
     settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 10;
+    settings::crystal::max_q = 100;
     settings::axes::bins = 1000;
     crystal::CrystalScattering cs4(crystal);
     auto fourier4 = cs4.calculate();

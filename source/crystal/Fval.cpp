@@ -34,14 +34,45 @@ double Fval::I() const {
     return std::norm(fval);
 }
 
+// #include <settings/CrystalSettings.h>
+// std::vector<std::complex<double>> x_factors;
+// std::vector<std::complex<double>> y_factors;
+// std::vector<std::complex<double>> z_factors;
+// std::vector<std::complex<double>> int_factors;
+// void Fval::precompute_factors() {
+//     x_factors.reserve(points.size());
+//     y_factors.reserve(points.size());
+//     z_factors.reserve(points.size());
+
+//     for (const Vector3<double>& point : points) {
+//         std::complex<double> x_factor = std::polar(1.0, -2*M_PI*ap.x()*point.x());
+//         std::complex<double> y_factor = std::polar(1.0, -2*M_PI*bp.y()*point.y());
+//         std::complex<double> z_factor = std::polar(1.0, -2*M_PI*cp.z()*point.z());
+
+//         x_factors.push_back(x_factor);
+//         y_factors.push_back(y_factor);
+//         z_factors.push_back(z_factor);
+//     }
+
+//     auto max = std::max({settings::crystal::h, settings::crystal::k, settings::crystal::l});
+//     int_factors.reserve(2*max+1);
+//     for (double i = -max; i <= max; ++i) {
+//         int_factors.push_back(std::polar(1.0, i));
+//     }
+// }
+
 std::complex<double> Fval::F() {
     std::complex<double> result = 0;
     for (const Vector3<double>& point : points) {
-        result += exp(-i*q.dot(point));
+        result += std::polar(1.0, -q.dot(point));
     }
     return result;
 }
 
 Vector3<double> Fval::Q() const {
-    return hkl.h*ap + hkl.k*bp + hkl.l*cp;
+    return Q(hkl);
+}
+
+Vector3<double> Fval::Q(const Miller& miller) {
+    return miller.h*ap + miller.k*bp + miller.l*cp;
 }

@@ -1,9 +1,10 @@
 #include <crystal/miller/FibonacciMillers.h>
+#include <crystal/Fval.h>
+#include <settings/CrystalSettings.h>
 
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include <settings/CrystalSettings.h>
 
 using namespace crystal;
 
@@ -16,13 +17,13 @@ std::vector<Miller> FibonacciMillers::generate() const {
     // now generate all millers indices
     // we can do this by multiplying the base pairs with integers
     // int abs_h = std::abs(h), abs_k = std::abs(k), abs_l = std::abs(l);
-    double q2 = settings::crystal::max_q*settings::crystal::max_q;
     for (const auto& base : bases) {
         // std::cout << "(" << base.h << " " << base.k << " " << base.l << ")" << std::endl;
         int multiplier = 1;
         while (multiplier++ < 10000) { // hard limit to prevent infinite loop
             Miller miller(base.h*multiplier, base.k*multiplier, base.l*multiplier);
-            if (miller.length2() > q2) {break;}
+            double q = crystal::Fval::Q(miller).norm();
+            if (q > settings::crystal::max_q) {break;}
             // if (std::abs(miller.h) > abs_h || std::abs(miller.k) > abs_k || std::abs(miller.l) > abs_l) {break;}
             millers.emplace_back(miller);
         }
