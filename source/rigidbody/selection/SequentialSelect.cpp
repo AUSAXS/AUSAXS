@@ -1,7 +1,7 @@
 #include <rigidbody/selection/SequentialSelect.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody;
+using namespace rigidbody::selection;
 
 SequentialSelect::SequentialSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
 

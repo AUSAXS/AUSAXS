@@ -3,7 +3,7 @@
 
 #include <utility>
 
-using namespace rigidbody;
+using namespace rigidbody::selection;
 
 RandomConstraintSelect::RandomConstraintSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
     unsigned int M = rigidbody->constraints->distance_constraints.size();

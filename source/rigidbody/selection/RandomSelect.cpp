@@ -1,7 +1,7 @@
 #include <rigidbody/selection/RandomSelect.h>
 #include <rigidbody/RigidBody.h>
 
-using namespace rigidbody;
+using namespace rigidbody::selection;
 
 RandomSelect::RandomSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {
     std::random_device random;

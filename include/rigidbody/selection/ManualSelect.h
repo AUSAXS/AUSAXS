@@ -2,24 +2,22 @@
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
-#include <random>
-
 namespace rigidbody {
     namespace selection {
         /**
-         * @brief Thread-safe body selection strategy. The next body is randomly selected.
+         * @brief Thread-safe body selection strategy. The next body is manually selected.
          */
-        class RandomSelect : public BodySelectStrategy {
+        class ManualSelect : public BodySelectStrategy {
             public: 
                 /**
                  * @brief Constructor.
                  */
-                RandomSelect(const RigidBody* rigidbody);
+                ManualSelect(const RigidBody* rigidbody);
 
                 /**
                  * @brief Destructor.
                  */
-                ~RandomSelect() override;
+                ~ManualSelect() override;
 
                 /**
                  * @brief Get the index of the next body to be transformed. 
@@ -27,8 +25,8 @@ namespace rigidbody {
                 std::pair<unsigned int, unsigned int> next() override;
 
             private:
-                std::mt19937 generator;                          // The random number generator. 
-                std::uniform_int_distribution<int> distribution; // The random number distribution. 
+                unsigned int ibody = 0; 		// The index of the body to be transformed. 
+                unsigned int iconstraint = 0; 	// The index of the constraint to be transformed.
         };
     }
 }
