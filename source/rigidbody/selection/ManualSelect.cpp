@@ -2,8 +2,8 @@
 
 using namespace rigidbody::selection;
 
-ManualSelect::ManualSelect(const RigidBody* rigidbody);
+ManualSelect::ManualSelect(const RigidBody* rigidbody) : BodySelectStrategy(rigidbody) {}
 
-ManualSelect::~ManualSelect() override;
+ManualSelect::~ManualSelect() = default;
 
-std::pair<unsigned int, unsigned int> ManualSelect::next() override;
+std::pair<unsigned int, unsigned int> ManualSelect::next() {}

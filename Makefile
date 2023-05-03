@@ -300,10 +300,9 @@ old_simulate/%:
 	rm $(*F).pdb.mtz;\
 	mv $(*F)_fmodel.ccp4 sim/$(*F)_$(res).ccp4;\
 
-stuff/%: build/executable/stuff data/%.pdb
-#	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4
-	@$< data/$*.pdb $$(find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
-
+stuff/%: build/executable/stuff
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	$< $${structure}
 
 ####################################################################################
 ###				TESTS						 ###

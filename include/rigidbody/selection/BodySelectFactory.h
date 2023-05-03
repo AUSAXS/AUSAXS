@@ -10,6 +10,6 @@ namespace rigidbody {
         /**
          * @brief Prepare a body selection strategy.
          */
-        std::unique_ptr<BodySelectStrategy> create_selection_strategy(const RigidBody*, settings::rigidbody::BodySelectStrategyChoice choice = settings::rigidbody::body_select_strategy);
+        std::unique_ptr<selection::BodySelectStrategy> create_selection_strategy(const RigidBody*, settings::rigidbody::BodySelectStrategyChoice choice = settings::rigidbody::body_select_strategy);
     }
 }

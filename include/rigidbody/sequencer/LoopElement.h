@@ -1,36 +1,41 @@
 #pragma once
 
 #include <rigidbody/sequencer/SequenceElement.h>
+#include <rigidbody/sequencer/ParameterElement.h>
+#include <rigidbody/sequencer/BodySelectElement.h>
+#include <rigidbody/sequencer/TransformElement.h>
+#include <settings/RigidBodySettings.h>
 
 #include <memory>
 #include <vector>
 
 namespace rigidbody {
     namespace sequencer {
-        class Loop {
+        class LoopElement {
             public:
-                Loop() = default;
-                virtual ~Loop() = default;
+                LoopElement(LoopElement* owner);
+                LoopElement(unsigned int iterations);
+                virtual ~LoopElement() = default;
 
-                void execute() {
-                    for (auto& element : elements) {
-                        element->execute();
-                    }
-                }
+                virtual void execute();
 
-                Loop& add(std::shared_ptr<SequenceElement> element) {
-                    elements.push_back(element);
-                    return *this;
-                }
+                LoopElement& loop(unsigned int repeats);
 
-                Loop& repeat(unsigned int iterations) {
-                    this->iterations = iterations;
-                    return *this;
-                }
+                ParameterElement& parameter_strategy(settings::rigidbody::ParameterGenerationStrategyChoice strategy);
 
-            private: 
-                std::vector<std::shared_ptr<SequenceElement>> elements;
+                BodySelectElement& body_select_strategy(settings::rigidbody::BodySelectStrategyChoice strategy);
+
+                TransformElement& transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy);
+
+                void run();
+
+            protected: 
+                LoopElement* owner;
                 unsigned int iterations = 1;
+                std::vector<std::unique_ptr<LoopElement>> inner_loops;
+                std::unique_ptr<ParameterElement> parameter_element;
+                std::unique_ptr<BodySelectElement> body_select_element;
+                std::unique_ptr<TransformElement> transform_element;
         };
     }
 }

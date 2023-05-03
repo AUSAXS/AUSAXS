@@ -1,18 +1,24 @@
 #pragma once
 
-#include <rigidbody/sequencer/SequenceElement.h>
 #include <settings/RigidBodySettings.h>
+#include <rigidbody/sequencer/LoopElementCallback.h>
+
+#include <iostream>
 
 namespace rigidbody {
     namespace sequencer {
-        class Parameters : public SequenceElement {
+        class LoopElement;
+        class ParameterElement : public LoopElementCallback {
             public:
-                Parameters() = default;
-                Parameters(settings::rigidbody::ParameterGenerationStrategyChoice strategy) : strategy(strategy) {}
-                virtual ~Parameters() = default;
-                void execute();
+                ParameterElement(LoopElement* owner) : LoopElementCallback(owner), strategy(settings::rigidbody::parameter_generation_strategy) {}
+                ParameterElement(LoopElement* owner, settings::rigidbody::ParameterGenerationStrategyChoice strategy) : LoopElementCallback(owner), strategy(strategy) {}
+                virtual ~ParameterElement() = default;
 
-            private: 
+                void apply() {
+                    std::cout << "ParameterElement::apply()" << std::endl;
+                }
+
+            private:
                 settings::rigidbody::ParameterGenerationStrategyChoice strategy;
         };
     }

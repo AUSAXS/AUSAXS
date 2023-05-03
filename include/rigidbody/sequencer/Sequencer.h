@@ -1,33 +1,26 @@
 #pragma once
 
 #include <rigidbody/sequencer/SequenceElement.h>
+#include <rigidbody/sequencer/LoopElement.h>
 
 #include <memory>
 #include <vector>
 
 namespace rigidbody {
     namespace sequencer {
-        class Sequencer {
+        class Sequencer : public LoopElement {
             public:
-                Sequencer() = default;
+                Sequencer() : LoopElement(1) {
+                    std::cout << "Sequencer::Sequencer()" << std::endl;
+                };
                 virtual ~Sequencer() = default;
 
-                Sequencer& add(std::shared_ptr<SequenceElement> element) {
-                    return *this;
+                void execute() override {
+                    std::cout << "Sequencer::execute()" << std::endl;
+                    for (auto& loop : inner_loops) {
+                        loop->execute();
+                    }
                 }
-
-                Sequencer& add(Loop loop) {
-                    return this->loop(loop);
-                }                
-
-                Sequencer& loop(Loop loop) {
-                    return *this;
-                }                
-
-                void execute();
-
-            private: 
-                std::vector<std::shared_ptr<SequenceElement>> elements;
         };
     }
 }
