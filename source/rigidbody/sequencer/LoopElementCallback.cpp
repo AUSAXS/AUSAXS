@@ -27,3 +27,7 @@ TransformElement& LoopElementCallback::transform_strategy(settings::rigidbody::T
 void LoopElementCallback::execute() {
     caller->execute();
 }
+
+LoopElement& LoopElementCallback::end() {
+    return caller->end();
+}

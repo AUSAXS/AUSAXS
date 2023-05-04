@@ -8,22 +8,28 @@
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
+#include <hist/detail/HistogramManagerFactory.h>
+#include <hist/HistogramManager.h>
 
 using namespace hist;
 
+void Protein::set_histogram_manager() {
+    phm = hist::factory::construct_histogram_manager(this);
+}
+
 Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
 Protein::Protein(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
 Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
@@ -31,17 +37,17 @@ Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std:
     for (unsigned int i = 0; i < protein_atoms.size(); i++) {
         bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
     }
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
 Protein::Protein(const Protein& protein) : hydration_atoms(protein.hydration_atoms), bodies(protein.bodies), updated_charge(protein.updated_charge), centered(protein.centered) {
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
 Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
@@ -50,7 +56,7 @@ Protein::Protein(std::string input) {
     bodies = {b1};
     waters() = std::move(bodies[0].waters());
     bodies[0].waters().clear();
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 
@@ -58,7 +64,7 @@ Protein::Protein(const std::vector<std::string>& input) {
     for (size_t i = 0; i < input.size(); i++) {
         bodies.push_back(Body(input[i]));
     }
-    phm = std::make_unique<PartialHistogramManagerMT>(this);
+    phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
 

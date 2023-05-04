@@ -1,27 +1,37 @@
 #pragma once
 
 #include <data/Protein.h>
-#include <rigidbody/constraints/Constraint.h>
-#include <rigidbody/selection/BodySelectStrategy.h>
-#include <rigidbody/transform/TransformStrategy.h>
-#include <rigidbody/parameters/ParameterGenerationStrategy.h>
-#include <rigidbody/constraints/ConstraintManager.h>
-#include <fitter/HydrationFitter.h>
 
 #include <memory>
-#include <unordered_map>
 
 namespace rigidbody {
+	namespace detail {
+		struct BestConf {
+			std::shared_ptr<Grid> grid;
+			std::vector<Water> waters;
+			double chi2;	
+		};
+
+	}
+
+	class ConstraintManager;
+	class selection::BodySelectStrategy;
+	class TransformStrategy;
+	class ParameterGenerationStrategy;
+	class fitter::Fit;
+	class fitter::LinearFitter;
 	class RigidBody : public Protein {
 		public:
 			RigidBody(Protein&& protein);
 
 			RigidBody(const Protein& protein);
 
+			virtual ~RigidBody();
+
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
 			 */
-			std::shared_ptr<fitter::Fit> optimize(std::string measurement_path);
+			std::shared_ptr<fitter::Fit> optimize(const std::string& measurement_path);
 
 			/**
 			 * @brief Apply a calibration to this rigid body. 
@@ -31,7 +41,7 @@ namespace rigidbody {
 			void apply_calibration(std::shared_ptr<fitter::Fit> calibration);
 
 			/**
-			 * @brief Update the fitter with the current rigid body parameters.
+			 * @brief Update the given fitter with the current rigid body parameters.
 			 */
 			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
 
@@ -41,15 +51,23 @@ namespace rigidbody {
 			std::unique_ptr<selection::BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;
 			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
+			std::shared_ptr<fitter::LinearFitter> fitter;
+
+			/**
+			 * @brief Perform an optimization step.
+			 * 
+			 * @return True if a better configuration was found, false otherwise.
+			 */
+			bool optimize_step(detail::BestConf& best);
 
 			/**
 			 * @brief Prepare the fitter for this rigidbody.
 			 */
-			std::shared_ptr<fitter::LinearFitter> prepare_fitter(std::string measurement_path); 
+			void prepare_fitter(const std::string& measurement_path); 
 
 			/**
 			 * @brief Small initialization function.
 			 */
-			void setup();
+			void initialize();
 	};
 }

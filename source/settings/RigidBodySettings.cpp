@@ -9,6 +9,7 @@ namespace settings::rigidbody {
     ParameterGenerationStrategyChoice parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
     BodySelectStrategyChoice body_select_strategy = BodySelectStrategyChoice::RandomSelect;
     ConstraintGenerationStrategyChoice constraint_generation_strategy = ConstraintGenerationStrategyChoice::Linear;
+    DecayStrategyChoice decay_strategy = DecayStrategyChoice::Linear;
 
     namespace detail {
         std::vector<int> constraints;

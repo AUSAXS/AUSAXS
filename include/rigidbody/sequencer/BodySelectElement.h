@@ -10,15 +10,12 @@ namespace rigidbody {
         class LoopElement;
         class BodySelectElement : public LoopElementCallback {
             public:
-                BodySelectElement(LoopElement* owner) : LoopElementCallback(owner), strategy(settings::rigidbody::body_select_strategy) {}
-                BodySelectElement(LoopElement* owner, settings::rigidbody::BodySelectStrategyChoice strategy) : LoopElementCallback(owner), strategy(strategy) {}
-                virtual ~BodySelectElement() = default;
+                BodySelectElement(LoopElement* owner);
+                BodySelectElement(LoopElement* owner, settings::rigidbody::BodySelectStrategyChoice strategy);
+                ~BodySelectElement();
 
-                void apply() {
-                    std::cout << "BodySelectElement::apply()" << std::endl;
-                }
+                void apply();
 
-            private:
                 settings::rigidbody::BodySelectStrategyChoice strategy;
         };
     }

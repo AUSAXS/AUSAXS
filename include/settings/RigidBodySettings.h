@@ -45,6 +45,14 @@ namespace settings::rigidbody {
 }
 
 namespace settings::rigidbody {
+    enum class DecayStrategyChoice {
+        Linear,
+        Exponential
+    };
+    extern DecayStrategyChoice decay_strategy;
+}
+
+namespace settings::rigidbody {
     enum class ConstraintGenerationStrategyChoice {
         None,       // Do not generate constraints. Only those supplied by the user will be used.
         Linear,     // Generate a linear chain of constraints between bodies.
@@ -52,12 +60,3 @@ namespace settings::rigidbody {
     };
     extern ConstraintGenerationStrategyChoice constraint_generation_strategy;
 }
-
-// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::TransformationStrategyChoice>::get() const;
-// template<> void settings::io::detail::SettingRef<settings::rigidbody::TransformationStrategyChoice>::set(const std::vector<std::string>& val);
-// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ParameterGenerationStrategyChoice>::get() const;
-// template<> void settings::io::detail::SettingRef<settings::rigidbody::ParameterGenerationStrategyChoice>::set(const std::vector<std::string>& val);
-// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::BodySelectStrategyChoice>::get() const;
-// template<> void settings::io::detail::SettingRef<settings::rigidbody::BodySelectStrategyChoice>::set(const std::vector<std::string>& val);
-// template<> std::string settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::get() const;
-// template<> void settings::io::detail::SettingRef<settings::rigidbody::ConstraintGenerationStrategyChoice>::set(const std::vector<std::string>& val);

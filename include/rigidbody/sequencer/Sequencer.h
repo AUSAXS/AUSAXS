@@ -1,26 +1,21 @@
 #pragma once
 
-#include <rigidbody/sequencer/SequenceElement.h>
 #include <rigidbody/sequencer/LoopElement.h>
+#include <data/Protein.h>
 
 #include <memory>
 #include <vector>
+#include <concepts>
 
 namespace rigidbody {
     namespace sequencer {
         class Sequencer : public LoopElement {
             public:
-                Sequencer() : LoopElement(1) {
-                    std::cout << "Sequencer::Sequencer()" << std::endl;
-                };
-                virtual ~Sequencer() = default;
+                template<typename T> requires std::is_same_v<std::decay_t<T>, Protein>
+                Sequencer(const io::ExistingFile& saxs, T&& Protein);
+                ~Sequencer();
 
-                void execute() override {
-                    std::cout << "Sequencer::execute()" << std::endl;
-                    for (auto& loop : inner_loops) {
-                        loop->execute();
-                    }
-                }
+                void execute() override;
         };
     }
 }

@@ -7,9 +7,7 @@
 
 namespace hist {
     /**
-     * @brief \class Histogram. 
-     * 
-     * A representation of a histogram. 
+     * @brief A representation of a histogram. 
      */
     class Histogram : public plots::Plottable {
         public:

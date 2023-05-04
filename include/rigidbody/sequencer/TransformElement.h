@@ -10,15 +10,12 @@ namespace rigidbody {
         class LoopElement;
         class TransformElement : public LoopElementCallback {
             public:
-                TransformElement(LoopElement* owner) : LoopElementCallback(owner), strategy(settings::rigidbody::transform_strategy) {}
-                TransformElement(LoopElement* owner, settings::rigidbody::TransformationStrategyChoice strategy) : LoopElementCallback(owner), strategy(strategy) {}
-                ~TransformElement() = default;
+                TransformElement(LoopElement* owner);
+                TransformElement(LoopElement* owner, settings::rigidbody::TransformationStrategyChoice strategy);
+                ~TransformElement();
 
-                void apply() {
-                    std::cout << "TransformElement::apply()" << std::endl;
-                }
+                void apply();
 
-            private:
                 settings::rigidbody::TransformationStrategyChoice strategy;
         };
     }

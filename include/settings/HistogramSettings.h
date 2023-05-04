@@ -8,5 +8,15 @@ namespace settings {
         extern double qmin;                // Lower limit on the used q-values
         extern double qmax;                // Upper limit on the used q-values
         extern unsigned int skip;          // The number of points to skip from the top of the scattering curve.
-    }
+    }   
+}
+
+namespace settings::hist {
+    enum class HistogramManagerChoice {
+        HistogramManager,           // A simple manager that recalculates the entire histogram every time.
+        HistogramManagerMT,         // A multithreaded implementation of the simple manager.
+        PartialHistogramManager,    // A smart manager that only recalculates the parts of the histogram that are needed.
+        PartialHistogramManagerMT   // A multithreaded implementation of the partial manager.
+    };
+    extern HistogramManagerChoice histogram_manager;
 }

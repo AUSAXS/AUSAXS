@@ -9,7 +9,6 @@ class Protein;
 #include <hist/detail/BodyTracker.h>
 
 #include <vector>
-#include <concepts>
 
 namespace hist {
 	/**
@@ -35,9 +34,4 @@ namespace hist {
 		protected:
 			Protein* protein;	// pointer to the parent Protein
     };
-
-	namespace detail {
-		template<typename T>
-        concept HistogramManagerType = std::derived_from<T, HistogramManager>;
-	}
 }

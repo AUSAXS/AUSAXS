@@ -36,10 +36,3 @@ namespace settings::grid {
     };
     extern CullingStrategy culling_strategy;
 }
-
-// template<> std::string settings::io::detail::SettingRef<Limit3D>::get() const;
-// template<> void settings::io::detail::SettingRef<Limit3D>::set(const std::vector<std::string>& val);
-// template<> std::string settings::io::detail::SettingRef<settings::grid::PlacementStrategy>::get() const;
-// template<> void settings::io::detail::SettingRef<settings::grid::PlacementStrategy>::set(const std::vector<std::string>& val);
-// template<> std::string settings::io::detail::SettingRef<settings::grid::CullingStrategy>::get() const;
-// template<> void settings::io::detail::SettingRef<settings::grid::CullingStrategy>::set(const std::vector<std::string>& val);

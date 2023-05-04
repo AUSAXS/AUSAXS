@@ -1,16 +1,15 @@
 #pragma once
 
+#include <data/Body.h>
+#include <data/Atom.h>
+#include <data/Water.h>
+
 #include <string>
 #include <vector>
 #include <memory>
 
-#include <data/Body.h>
-#include <data/Atom.h>
-#include <data/Water.h>
-#include <hist/detail/HistogramManagerFactory.h>
-#include <dataset/SimpleDataset.h>
-#include <fitter/Fit.h>
-#include <io/File.h>
+namespace fitter {class Fit;}
+namespace hist {class HistogramManager;}
 
 /**
  * @brief A representation of a protein.
@@ -314,16 +313,9 @@ class Protein {
 		void update_effective_charge(double scaling = 1);
 
 		/**
-		 * @brief Create and use a new histogram manager of type \a T.
-		 * 
-		 * @tparam T: Manager to create. Only the PartialHistogramManagerMT is intended for production. Options:
-		 *         - HistogramManager: A simple manager that recalculates the entire histogram every time.
-		 *         - HistogramManagerMT: A multithreaded implementation of the simple manager.
-		 *         - PartialHistogramManager: A smart manager that only recalculates the parts of the histogram that are needed.
-		 *         - PartialHistogramManagerMT: A multithreaded implementation of the partial manager.
+		 * @brief Create and use a new histogram manager.
 		 */
-		template<hist::detail::HistogramManagerType T>
-		void set_histogram_manager() {phm = hist::HistogramManagerFactory::create<T>(this);}
+		void set_histogram_manager();
 
 		/** 
 		 * @brief Move the entire protein by a vector.
