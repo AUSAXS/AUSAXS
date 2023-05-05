@@ -1,11 +1,11 @@
 #pragma once
 
-#include <data/Protein.h>
 #include <hist/ScatteringHistogram.h>
 #include <em/manager/ProteinManager.h>
 
 #include <vector>
 
+class Protein;
 namespace em::managers {
     /**
      * @brief A helper class for the ImageStack. 

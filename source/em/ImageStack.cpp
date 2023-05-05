@@ -1,6 +1,4 @@
 #include <em/ImageStack.h>
-#include <em/manager/ProteinManager.h>
-#include <fitter/HydrationFitter.h>
 #include <settings/EMSettings.h>
 #include <settings/PlotSettings.h>
 #include <settings/GeneralSettings.h>
@@ -8,6 +6,12 @@
 #include <settings/FitSettings.h>
 #include <utility/Console.h>
 #include <plots/all.h>
+#include <fitter/LinearFitter.h>
+#include <fitter/HydrationFitter.h>
+#include <mini/all.h>
+#include <em/detail/ExtendedLandscape.h>
+#include <em/manager/ProteinManager.h>
+#include <data/Protein.h>
 
 using namespace em;
 using namespace fitter;

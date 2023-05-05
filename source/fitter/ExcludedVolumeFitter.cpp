@@ -7,10 +7,11 @@
 #include <mini/all.h>
 #include <plots/all.h>
 #include <settings/GeneralSettings.h>
+#include <data/Protein.h>
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(std::string input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein) {
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein) {
     HydrationFitter hfit(input, protein.get_histogram());
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <fitter/Fit.h>
-#include <mini/all.h>
 #include <fitter/HydrationFitter.h>
-#include <hist/ScatteringHistogram.h>
-#include <data/Protein.h>
 
+class Protein;
+namespace io {class ExistingFile;}
 namespace fitter {
+    class Fit;
+
     /**
      * @brief Fit an intensity curve to a dataset. 
      * 
@@ -18,7 +18,7 @@ namespace fitter {
      */
     class ExcludedVolumeFitter : public HydrationFitter {
         public:
-            ExcludedVolumeFitter(std::string input, Protein& protein);
+            ExcludedVolumeFitter(const io::ExistingFile& saxs, Protein& protein);
 
             /**
              * @brief Destructor.

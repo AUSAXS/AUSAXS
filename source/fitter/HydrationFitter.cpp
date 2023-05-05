@@ -8,15 +8,23 @@
 #include <plots/all.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
+#include <io/ExistingFile.h>
 
 using namespace fitter;
 
-HydrationFitter::HydrationFitter(std::string input) : LinearFitter(input) {}
-HydrationFitter::HydrationFitter(std::string input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
-HydrationFitter::HydrationFitter(std::string input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
 HydrationFitter::HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model) : HydrationFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
+
+mini::type fit_type = mini::type::BFGS;
+void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
+std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
+    fit_type = algorithm;
+    return fit();
+}
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
@@ -186,8 +194,4 @@ SimpleDataset HydrationFitter::get_dataset() const {
 
 void HydrationFitter::set_guess(mini::Parameter guess) {
     this->guess = guess;
-}
-
-void HydrationFitter::set_algorithm(mini::type t) {
-    this->fit_type = t;
 }

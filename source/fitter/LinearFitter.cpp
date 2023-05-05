@@ -7,12 +7,14 @@
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 #include <settings/HistogramSettings.h>
+#include <mini/detail/FittedParameter.h>
+#include <dataset/Dataset2D.h>
 
 using namespace fitter;
 
-LinearFitter::LinearFitter(std::string input) {setup(input);}
-LinearFitter::LinearFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
-LinearFitter::LinearFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {}
 LinearFitter::LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
 LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model) : LinearFitter(data, model, Limit(settings::axes::qmin, settings::axes::qmax)) {}

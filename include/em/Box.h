@@ -6,6 +6,8 @@
 #include <vector>
 #include <string>
 
+namespace io {class File;}
+
 struct CoordinateSystem {
     CoordinateSystem() = default;
     CoordinateSystem(const Vector3<float>& origin, const Vector3<float>& x, const Vector3<float>& y, const Vector3<float>& z) : origin(origin), x(x), y(y), z(z) {}
@@ -25,9 +27,9 @@ namespace em {
     class Box {
         public: 
             Box() = default;
-            Box(Limit x, Limit y, Limit z) : x(x), y(y), z(z) {}
+            Box(const Limit& x, const Limit& y, const Limit& z) : x(x), y(y), z(z) {}
 
-            void save(std::string filename) const;
+            void save(const io::File& filename) const;
 
             void distances() const;
 

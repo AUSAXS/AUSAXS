@@ -1,10 +1,9 @@
 #pragma once
 
-#include <fitter/Fit.h>
-#include <mini/all.h>
 #include <fitter/LinearFitter.h>
-#include <hist/ScatteringHistogram.h>
 
+namespace mini {enum type;}
+namespace io {class ExistingFile;}
 namespace fitter {
     /**
      * @brief Fit an intensity curve to a dataset. 
@@ -23,7 +22,7 @@ namespace fitter {
              * 
              * @param input The path to the file containing the measured values. 
              */
-            HydrationFitter(std::string input);
+            HydrationFitter(const io::ExistingFile& input);
 
             /**
              * @brief Constructor.
@@ -32,7 +31,7 @@ namespace fitter {
              * @param input The path to the file containing the measured values. 
              * @param h The histogram.
              */
-            HydrationFitter(std::string input, const hist::ScatteringHistogram& h);
+            HydrationFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h);
 
             /**
              * @brief Constructor.
@@ -41,7 +40,7 @@ namespace fitter {
              * @param input The path to the file containing the measured values. 
              * @param h The histogram.
              */
-            HydrationFitter(std::string input, hist::ScatteringHistogram&& h);
+            HydrationFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h);
 
             /**
              * @brief Constructor.
@@ -85,11 +84,7 @@ namespace fitter {
 
             [[nodiscard]] virtual double fit_only() override;
 
-            template<mini::type t>
-            [[nodiscard]] std::shared_ptr<Fit> fit() {
-                fit_type = t;
-                return fit();
-            }
+            [[nodiscard]] std::shared_ptr<Fit> fit(const mini::type& algorithm);
 
             /**
              * @brief Make a plot of the fit. 
@@ -133,7 +128,7 @@ namespace fitter {
             /**
              * @brief Set the fitting algorithm to use.
              */
-            void set_algorithm(mini::type t);
+            void set_algorithm(const mini::type& t);
 
         protected:
             /**
@@ -143,6 +138,5 @@ namespace fitter {
 
         private: 
             mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
-            mini::type fit_type = mini::type::BFGS;    // The algorithm to use.
     };
 }

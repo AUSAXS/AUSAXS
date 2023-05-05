@@ -4,6 +4,7 @@
 #include <utility/Console.h>
 #include <em/detail/ImageStackBase.h>
 #include <settings/EMSettings.h>
+#include <em/Image.h>
 
 #include <vector>
 

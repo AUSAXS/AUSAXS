@@ -1,9 +1,8 @@
 #pragma once
 
-class Protein;
-
 #include <data/StateManager.h>
 
+class Protein;
 namespace hist {
     struct BodyTracker {
         BodyTracker(Protein* protein);

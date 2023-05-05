@@ -1,6 +1,12 @@
 #include <hist/detail/CompactCoordinates.h>
+#include <math/Vector3.h>
+#include <data/Atom.h>
+#include <data/Body.h>
 
 using namespace hist::detail;
+
+CompactCoordinates::Data::Data() {}
+CompactCoordinates::Data::Data(const Vector3<double>& v, float w) : x(v.x()), y(v.y()), z(v.z()), w(w) {}
 
 CompactCoordinates::CompactCoordinates(const Body& body) : size(body.atoms().size()), data(size) {
     for (unsigned int i = 0; i < size; i++) {

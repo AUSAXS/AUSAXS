@@ -3,9 +3,8 @@
 #include <string>
 #include <vector>
 
-#include <mini/detail/FittedParameter.h>
-
 namespace mini {
+    class FittedParameter;
     struct Result {
         /**
          * @brief Default constructor.
@@ -33,17 +32,17 @@ namespace mini {
         /**
          * @brief Get a parameter based on its name from this result.
          */
-        FittedParameter const& get_parameter(std::string name) const;
+        const FittedParameter& get_parameter(const std::string& name) const;
 
         /**
          * @brief Get a parameter based on its name from this result.
          */
-        FittedParameter& get_parameter(std::string name);
+        FittedParameter& get_parameter(const std::string& name);
 
         /**
          * @brief Get a parameter based on its index from this result.
          */
-        FittedParameter const& get_parameter(unsigned int index) const;
+        const FittedParameter& get_parameter(unsigned int index) const;
 
         /**
          * @brief Get a parameter based on its index from this result.
@@ -58,7 +57,7 @@ namespace mini {
         /**
          * @brief Get a parameter based on its index from this result.
          */
-        FittedParameter operator[](unsigned int index) const;
+        const FittedParameter& operator[](unsigned int index) const;
 
         /**
          * @brief Add a parameter to this result.
@@ -68,12 +67,12 @@ namespace mini {
         /**
          * @brief Get the number of parameters in this result.
          */
-        size_t size() const noexcept;
+        unsigned int size() const noexcept;
 
         /**
          * @brief Get the number of parameters in this result.
          */
-        size_t dim() const noexcept;
+        unsigned int dim() const noexcept;
 
         std::vector<FittedParameter> parameters; // The fitted parameters
         double fval;                             // The minimum function value

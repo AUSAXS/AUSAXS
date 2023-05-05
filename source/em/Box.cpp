@@ -1,13 +1,14 @@
 #include <em/Box.h>
 #include <utility/Exceptions.h>
 #include <utility/Axis.h>
+#include <io/File.h>
 
 #include <fstream>
 #include <numeric>
 
 using namespace em;
 
-void Box::save(std::string filename) const {
+void Box::save(const io::File& filename) const {
     std::ofstream output(filename);
     if (!output.is_open()) {throw except::io_error("Box::save: Could not open file \"" + filename + "\"");}
 

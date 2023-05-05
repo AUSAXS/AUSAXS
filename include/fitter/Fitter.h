@@ -1,18 +1,14 @@
 #pragma once
 
+#include <dataset/SimpleDataset.h>
+
 #include <string>
 #include <vector>
-#include <map>
-#include <iomanip>
-#include <iostream>
-#include <utility>
 #include <memory>
 
-#include <dataset/Multiset.h>
-#include <dataset/Dataset.h>
-#include <fitter/Fit.h>
-
 namespace fitter {
+    class Fit;
+
     class Fitter {
         public:
             virtual ~Fitter() {}

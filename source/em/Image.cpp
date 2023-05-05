@@ -1,8 +1,7 @@
 #include <em/Image.h>
 #include <settings/EMSettings.h>
-
-#include <list>
-#include <vector>
+#include <em/Datatypes.h>
+#include <data/Atom.h>
 
 using namespace em;
 
@@ -42,8 +41,7 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
                 continue;
             }
 
-            Vector3 coords{x*xscale, y*yscale, z*zscale};
-            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, weight(val), 0, "C", ""));
+            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, "C", ""));
         }
     }
 

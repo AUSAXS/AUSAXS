@@ -1,16 +1,19 @@
 #pragma once
 
-#include <em/manager/ProteinManager.h>
 #include <em/Datatypes.h>
-#include <em/Image.h>
-#include <io/ExistingFile.h>
+#include <hist/ScatteringHistogram.h>
 
 #include <vector>
 #include <string>
 #include <memory>
 
+class Protein;
+namespace io {class ExistingFile;}
+namespace fitter{class EMFit;}
 namespace em {
+    namespace managers {class ProteinManager;}
     class EMHistogramManager;
+    class Image;
 
     /**
      * @brief A representation of a stack of images. 

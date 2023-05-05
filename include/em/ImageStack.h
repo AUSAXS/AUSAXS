@@ -1,16 +1,11 @@
 #pragma once
 
-#include <memory>
-
-#include <mini/all.h>
-#include <fitter/Fit.h>
-#include <fitter/LinearFitter.h>
-#include <hist/ScatteringHistogram.h>
 #include <em/detail/ImageStackBase.h>
-#include <em/detail/ExtendedLandscape.h>
-#include <io/ExistingFile.h>
 
+namespace io {class ExistingFile;}
+namespace hist {class ScatteringHistogram;}
 namespace em {
+    namespace detail {class ExtendedLandscape;}
     /**
      * @brief Extends the ImageStackBase class with fitting functionalities. 
      */

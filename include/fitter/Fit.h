@@ -1,14 +1,15 @@
 #pragma once
 
+#include <mini/detail/Landscape.h>
+#include <mini/detail/Result.h>
+#include <dataset/SimpleDataset.h>
+
 #include <string>
 #include <vector>
 
-#include <dataset/Dataset.h>
-#include <dataset/Multiset.h>
-#include <mini/Utility.h>
-
 namespace fitter {
     class Fitter;
+
     class Fit : public mini::Result {
         public:
             struct Plots {

@@ -2,6 +2,7 @@
 #include <fitter/Fitter.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
+#include <mini/detail/FittedParameter.h>
 
 #include <sstream>
 
