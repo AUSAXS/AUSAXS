@@ -1,8 +1,8 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <hist/ScatteringHistogram.h>
 
+namespace hist {class ScatteringHistogram;}
 namespace plots {
 	/**
 	 * @brief \class PlotDistance.

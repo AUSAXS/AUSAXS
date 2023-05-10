@@ -1,11 +1,10 @@
 #pragma once
 
-#include <data/Water.h>
-#include <hydrate/GridMember.h>
-
-class Grid;
-
+class Water;
 namespace grid {
+    template<typename T> class GridMember;
+    class Grid;
+    
     /**
      * @brief This class defines the strategy used to place water molecules. See its subclasses for more information on how this is done. 
      */
@@ -15,12 +14,12 @@ namespace grid {
              * @brief Constructor. 
              * @param grid The Grid object to apply this Strategy to.
              */
-            PlacementStrategy(Grid* grid) {this->grid = grid;}
+            PlacementStrategy(Grid* grid);
 
             /**
              * @brief Destructor.
              */
-            virtual ~PlacementStrategy() {}
+            virtual ~PlacementStrategy();
 
             /**
              * @brief Place water molecules in the grid wherever possible.

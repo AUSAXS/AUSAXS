@@ -22,7 +22,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(std::string name, double value, Limit error) noexcept;
+        FittedParameter(const std::string& name, double value, const Limit& error) noexcept;
 
         /**
          * @brief Create a FittedParameter with symmetric errors.
@@ -31,7 +31,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Symmetrical errors of this parameter.
          */
-        FittedParameter(std::string name, double value, double error) noexcept;
+        FittedParameter(const std::string& name, double value, double error) noexcept;
 
         /**
          * @brief Create a FittedParameter from a Parameter with asymmetric errors.
@@ -40,7 +40,7 @@ namespace mini {
          * @param value Optimal value of this parameter.
          * @param error Asymmetrical errors of this parameter.
          */
-        FittedParameter(const Parameter& param, double value, Limit error) noexcept;
+        FittedParameter(const Parameter& param, double value, const Limit& error) noexcept;
 
         /**
          * @brief Create a FittedParameter from a Parameter with symmetric errors.

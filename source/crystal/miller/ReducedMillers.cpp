@@ -1,4 +1,5 @@
 #include <crystal/miller/ReducedMillers.h>
+#include <crystal/miller/Miller.h>
 #include <settings/CrystalSettings.h>
 
 #include <iostream>

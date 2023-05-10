@@ -1,8 +1,9 @@
 #include <crystal/io/PDBReader.h>
-
 #include <data/Protein.h>
 #include <utility/Axis3D.h>
+#include <utility/Basis3D.h>
 #include <settings/CrystalSettings.h>
+#include <io/ExistingFile.h>
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
     Protein protein(input);

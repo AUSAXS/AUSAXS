@@ -1,9 +1,10 @@
 #include <crystal/miller/FibonacciMillers.h>
+#include <crystal/miller/Miller.h>
+#include <settings/CrystalSettings.h>
 
 #include <math.h>
 #include <iostream>
 #include <fstream>
-#include <settings/CrystalSettings.h>
 
 using namespace crystal;
 

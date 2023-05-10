@@ -1,17 +1,18 @@
 #pragma once
 
+#include <utility/Concepts.h>
+#include <io/ProteinFile.h>
+
 #include <vector>
-#include <map>
 #include <memory>
 
-#include <data/Atom.h>
-#include <hydrate/Grid.h>
-#include <io/ProteinFile.h>
-#include <io/ExistingFile.h>
-#include <utility/Constants.h>
-#include <hist/ScatteringHistogram.h>
-#include <data/StateManager.h>
-
+class Atom;
+class Water;
+namespace grid {class Grid;}
+namespace io {class ExistingFile;}
+namespace signaller {class Signaller;}
+template<numeric T> class Matrix;
+template<numeric T> class Vector3;
 class Body {
 	public:
 		/**
@@ -163,7 +164,7 @@ class Body {
 		/**
 		 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
 		 */
-		void register_probe(std::shared_ptr<StateManager::BoundSignaller> signal);
+		void register_probe(std::shared_ptr<signaller::Signaller> signal);
 
 		/**
 		 * @brief Assign another body to this object. 
@@ -205,5 +206,7 @@ class Body {
 		ProteinFile file;                           // The file backing this body
 
 		// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-		std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
+		std::shared_ptr<signaller::Signaller> signal;
+
+		void initialize();
 };

@@ -1,6 +1,10 @@
 #include <io/ExistingFile.h>
 #include <utility/Exceptions.h>
 
+io::ExistingFile::ExistingFile() = default;
+
+io::ExistingFile::~ExistingFile() = default;
+
 io::ExistingFile::ExistingFile(const File& file) : File(file) {
     validate();
 }

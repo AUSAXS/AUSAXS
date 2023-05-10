@@ -2,8 +2,6 @@
 
 #include <rigidbody/selection/BodySelectStrategy.h>
 
-#include <random>
-
 namespace rigidbody {
 	namespace selection {
 		/**

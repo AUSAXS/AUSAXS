@@ -5,6 +5,10 @@
 
 using namespace io;
 
+Folder::Folder() = default;
+
+Folder::~Folder() = default;
+
 Folder::Folder(const std::string& path) {
     *this = path;
     if (!std::filesystem::is_directory(dir)) {

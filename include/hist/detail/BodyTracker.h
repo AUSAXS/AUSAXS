@@ -1,8 +1,7 @@
 #pragma once
 
-#include <data/StateManager.h>
-
 class Protein;
+class StateManager;
 namespace hist {
     struct BodyTracker {
         BodyTracker(Protein* protein);
@@ -25,7 +24,7 @@ namespace hist {
 
         StateManager& get_state_manager();
 
-        const unsigned int size;    // number of managed bodies
-        StateManager statemanager;  // a helper which keeps track of state changes in each body
+        const unsigned int size;                    // number of managed bodies
+        std::unique_ptr<StateManager> statemanager; // a helper which keeps track of state changes in each body
     };
 }

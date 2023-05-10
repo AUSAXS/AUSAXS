@@ -1,12 +1,14 @@
 #pragma once
 
-#include <fitter/Fit.h>
 #include <plots/Plot.h>
-#include <hist/ScatteringHistogram.h>
-#include <fitter/LinearFitter.h>
 
 #include <memory>
 
+namespace fitter {
+	class LinearFitter;
+	class Fit;
+}
+class SimpleDataset;
 namespace plots {
 	/**
 	 * @brief Plot the residuals of the fitted scattering curve. 
@@ -47,6 +49,6 @@ namespace plots {
 			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
-			void plot(const SimpleDataset graph);
+			void plot(const SimpleDataset& graph);
 	};
 }

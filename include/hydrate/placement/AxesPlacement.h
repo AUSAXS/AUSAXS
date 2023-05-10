@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hydrate/placement/PlacementStrategy.h>
-#include <hydrate/Grid.h>
 
 namespace grid {
     /**

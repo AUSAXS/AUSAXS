@@ -1,9 +1,6 @@
 #pragma once
 
 #include <io/Reader.h>
-#include <data/Terminate.h>
-#include <data/Atom.h>
-#include <data/Water.h>
 
 class ProteinFile;
 
@@ -16,9 +13,9 @@ class PDBReader : public Reader {
          * @brief Constructor.
          * @param file Path to the input PDB format data file. 
          */
-        PDBReader(ProteinFile* const file) : file(file) {}
+        PDBReader(ProteinFile* const file);
 
-        ~PDBReader() override = default;
+        ~PDBReader() override;
 
         /**
          * @brief Read a PDB format data file.

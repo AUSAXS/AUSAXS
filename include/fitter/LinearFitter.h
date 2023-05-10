@@ -1,9 +1,12 @@
 #pragma once
 
+#include <fitter/Fitter.h>
 #include <hist/ScatteringHistogram.h> //! Remove? Convert member variable to pointer type
 
 namespace io {class ExistingFile;}
 namespace fitter {
+	class FitPlots;
+
 	/**
 	 * @brief Fit an intensity curve to a dataset. 
 	 * 
@@ -124,7 +127,7 @@ namespace fitter {
 			 * 
 			 * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
 			 */
-			[[nodiscard]] virtual Fit::Plots plot() override;
+			[[nodiscard]] virtual FitPlots plot() override;
 
 			/**
 			 * @brief Make a residual plot of the fit.

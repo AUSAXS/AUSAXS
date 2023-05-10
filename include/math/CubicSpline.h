@@ -4,17 +4,15 @@
 #include <math/Vector.h>
 
 /**
- * @brief \class CubicSpline
- * 
- * Interpolate points using a cubic spline. 
- * Implementation based on some lecture notes from Aarhus University. 
+ * @brief Interpolate points using a cubic spline. 
+ *        Implementation based on some lecture notes from Aarhus University. 
  */
 class CubicSpline {
     public:
         CubicSpline(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {setup();}
         CubicSpline(const Vector<double>& x, const Vector<double>& y) : x(x), y(y) {setup();}
 
-        double spline(const double& z) const {
+        double spline(double z) const {
             int i = search(0, x.size(), z);
             return y[i] + b[i]*(z - x[i]) + c[i]*pow(z - x[i], 2) + d[i]*pow(z - x[i], 3);
         }

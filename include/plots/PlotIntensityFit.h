@@ -1,12 +1,13 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <fitter/Fit.h>
-#include <hist/ScatteringHistogram.h>
-#include <fitter/LinearFitter.h>
 
 #include <memory>
 
+namespace fitter {
+	class LinearFitter;
+	class Fit;
+}
 namespace plots {
 
 	/**

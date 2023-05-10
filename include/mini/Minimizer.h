@@ -1,8 +1,7 @@
 #pragma once
 
-#include <utility/Axis.h>
-#include <dataset/Dataset2D.h>
-#include <mini/Utility.h>
+#include <mini/detail/Landscape.h>
+#include <mini/detail/Result.h>
 
 #include <string>
 #include <vector>
@@ -10,6 +9,7 @@
 #include <functional>
 
 namespace mini {
+    class Parameter;
     enum class type {
         BFGS,
         DLIB_GLOBAL,

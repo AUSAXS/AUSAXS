@@ -5,7 +5,21 @@
 
 using namespace rigidbody;
 
-TransformStrategy::TransformGroup::TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot) 
+struct BackupBody {
+    BackupBody(const Body& body, unsigned int index) : body(body), index(index) {}
+    Body body;
+    unsigned int index;
+};
+
+struct TransformGroup {
+    TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot);
+    std::vector<Body*> bodies;                  // The bodies to transform.
+    std::vector<unsigned int> indices;          // The indices of the bodies in the rigidbody.
+    std::shared_ptr<DistanceConstraint> target; // The constraint to transform along.
+    Vector3<double> pivot;                      // The pivot point of the transformation.
+};
+
+TransformGroup::TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot) 
     : bodies(bodies), indices(indices), target(target), pivot(pivot) {}
 
 void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {

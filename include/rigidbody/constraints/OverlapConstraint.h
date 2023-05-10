@@ -4,7 +4,6 @@
 #include <hist/Histogram.h>
 
 class Protein;
-
 namespace rigidbody {
 
     /**

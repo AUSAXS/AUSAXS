@@ -1,11 +1,10 @@
 #pragma once
 
-#include <crystal/miller/Miller.h>
-
 #include <vector>
 
 namespace crystal {
+    class Miller;
     struct MillerGenerationStrategy {
-        virtual std::vector<Miller> generate() const = 0;
+        virtual std::vector<crystal::Miller> generate() const = 0;
     };
 }

@@ -6,6 +6,7 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <dataset/DatasetFactory.h>
+#include <dataset/SimpleDataset.h>
 
 #include <vector>
 #include <string>

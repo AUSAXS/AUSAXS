@@ -2,9 +2,14 @@
 #include <rigidbody/selection/RandomSelect.h>
 #include <rigidbody/selection/SequentialSelect.h>
 #include <rigidbody/selection/RandomConstraintSelect.h>
+#include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
-std::unique_ptr<rigidbody::selection::BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body, settings::rigidbody::BodySelectStrategyChoice choice) {
+std::unique_ptr<rigidbody::selection::BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body) {
+    return create_selection_strategy(body, settings::rigidbody::body_select_strategy);
+}
+
+std::unique_ptr<rigidbody::selection::BodySelectStrategy> rigidbody::factory::create_selection_strategy(const rigidbody::RigidBody* body, const settings::rigidbody::BodySelectStrategyChoice& choice) {
     switch (choice) {
         case settings::rigidbody::BodySelectStrategyChoice::RandomSelect:
             return std::make_unique<rigidbody::selection::RandomSelect>(body);

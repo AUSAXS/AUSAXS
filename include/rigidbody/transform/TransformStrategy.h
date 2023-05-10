@@ -1,8 +1,17 @@
 #pragma once
 
-#include <data/Protein.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <utility/Concepts.h>
 
+#include <vector>
+#include <memory>
+
+class Protein;
+class Body;
+class DistanceConstraint;
+class TransformGroup;
+class BackupBody;
+template<numeric T> class Vector3;
+template<numeric T> class Matrix;
 namespace rigidbody {
     class RigidBody;
     
@@ -42,20 +51,6 @@ namespace rigidbody {
 
         protected: 
             RigidBody* rigidbody;
-
-            struct TransformGroup {
-                TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot);
-                std::vector<Body*> bodies;                  // The bodies to transform.
-                std::vector<unsigned int> indices;          // The indices of the bodies in the rigidbody.
-                std::shared_ptr<DistanceConstraint> target; // The constraint to transform along.
-                Vector3<double> pivot;                      // The pivot point of the transformation.
-            };
-
-            struct BackupBody {
-                BackupBody(Body body, unsigned int index) : body(body), index(index) {}
-                Body body;
-                unsigned int index;
-            };
 
             std::vector<BackupBody> bodybackup;
 

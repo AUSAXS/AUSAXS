@@ -1,6 +1,8 @@
 #pragma once
 
-template<typename T> class Vector3;
+#include <utility/Concepts.h>
+
+template<numeric T> class Vector3;
 class Body;
 class Water;
 namespace hist {

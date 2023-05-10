@@ -1,11 +1,12 @@
 #pragma once
 
+#include <data/RecordType.h>
+
 #include <string>
 #include <unordered_map>
 
 class Record {
     public: 
-        enum class RecordType {HEADER, ATOM, WATER, TERMINATE, FOOTER, NOTYPE};
         virtual ~Record() = default;
         
         virtual void parse_pdb(const std::string& s) = 0;

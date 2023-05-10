@@ -150,7 +150,7 @@ class Matrix {
 
         std::string to_string() const;
 
-        size_t N, M;
+        unsigned int N, M;
         std::vector<Q> data;
         static constexpr double precision = 1e-9;
 
@@ -199,8 +199,8 @@ Vector<Q> operator*(const Matrix<Q>& A, const Vector<R>& v) {
     #endif
 
     Vector<Q> w(A.N);
-    for (size_t row = 0; row < A.N; ++row) {
-        for (size_t col = 0; col < A.M; ++col) {
+    for (unsigned int row = 0; row < A.N; ++row) {
+        for (unsigned int col = 0; col < A.M; ++col) {
             w[row] += v[col]*A[row][col];
         }
     }
@@ -216,9 +216,9 @@ Matrix<Q> operator*(const Matrix<Q>& A, const Matrix<R>& B) {
     #endif
 
     Matrix<Q> C(A.N, B.M);
-    for (size_t row = 0; row < C.N; row++) {
-        for (size_t col = 0; col < C.M; col++) {
-            for (size_t inner = 0; inner < A.M; inner++) {
+    for (unsigned int row = 0; row < C.N; row++) {
+        for (unsigned int col = 0; col < C.M; col++) {
+            for (unsigned int inner = 0; inner < A.M; inner++) {
                 C[row][col] += A[row][inner]*B[inner][col];
             }
         }

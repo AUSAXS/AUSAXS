@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility/Limit.h>
-
 #include <initializer_list>
 #include <vector>
 #include <string>
@@ -9,6 +7,7 @@
 /**
  * @brief A representation of an axis. 
  */
+class Limit;
 class Axis {
 	public:
 		/**

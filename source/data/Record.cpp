@@ -3,7 +3,7 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-Record::RecordType Record::get_type(const std::string& s) {
+RecordType Record::get_type(const std::string& s) {
     auto str = utility::remove_all(s, " \r"); // remove any space or carriage returns, since programs are inconsistent with the spacing after e.g. END or TER
     if (type_map.count(str) == 1) {
         return type_map.at(str);
@@ -17,7 +17,7 @@ Record::RecordType Record::get_type(const std::string& s) {
 //      All HEADERs will be combined into a single string. HEADERs must always be above the ATOM section.
 //      FOOTERs are treated identically to HEADERs, but must always be after the ATOM section.
 //      NOTYPEs are ignored. 
-const std::unordered_map<std::string, Record::RecordType> Record::type_map = {
+const std::unordered_map<std::string, RecordType> Record::type_map = {
     {"ATOM"  , RecordType::ATOM}, {"HETATM", RecordType::ATOM},
 
     {"TER"   , RecordType::TERMINATE}, 

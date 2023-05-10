@@ -1,8 +1,8 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <em/Image.h>
 
+namespace em {class Image;}
 namespace plots {
     /**
      * @brief Plot a specific \class Image object. 

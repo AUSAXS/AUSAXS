@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mini/detail/Landscape.h>
+#include <mini/detail/Evaluation.h>
 #include <math/Matrix.h>
 
 #include <string>

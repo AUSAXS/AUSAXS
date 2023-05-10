@@ -1,7 +1,7 @@
 #include <data/Footer.h>
 #include <utility/StringUtils.h>
 
-Record::RecordType Footer::get_type() const {return RecordType::FOOTER;}
+RecordType Footer::get_type() const {return RecordType::FOOTER;}
 
 void Footer::parse_pdb(const std::string& s) {add(s);}
 

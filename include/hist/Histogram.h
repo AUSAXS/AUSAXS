@@ -1,10 +1,10 @@
 #pragma once
 
-#include <dataset/SimpleDataset.h>
-#include <utility/Axis.h>
 #include <math/Vector.h>
+#include <utility/Axis.h>
 #include <plots/PlotOptions.h>
 
+class SimpleDataset;
 namespace hist {
     /**
      * @brief A representation of a histogram. 
@@ -45,6 +45,8 @@ namespace hist {
              */
             Histogram(const Axis& axis) noexcept;
 
+            virtual ~Histogram();
+
             /**
              * @brief Reduce the view axis to show only the non-zero area. 
              *        Minimum size is 10 units.
@@ -80,7 +82,7 @@ namespace hist {
             /**
              * @brief Get the size of this Histogram.
              */
-            [[nodiscard]] size_t size() const noexcept;
+            [[nodiscard]] unsigned int size() const noexcept;
 
             [[nodiscard]] virtual std::string to_string() const noexcept;
 

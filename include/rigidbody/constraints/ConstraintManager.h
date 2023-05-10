@@ -1,12 +1,11 @@
 #pragma once
 
-#include <rigidbody/constraints/DistanceConstraint.h>
-#include <rigidbody/constraints/OverlapConstraint.h>
-
 #include <vector>
 #include <memory>
 
 namespace rigidbody {
+    class OverlapConstraint;
+    class DistanceConstraint;
     class ConstraintManager {
         public:
             /**

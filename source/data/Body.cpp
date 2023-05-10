@@ -1,27 +1,44 @@
 #include <data/Body.h>
 #include <data/Atom.h>
+#include <data/Water.h>
+#include <data/state/UnboundSignaller.h>
 #include <hydrate/Grid.h>
 #include <utility/Constants.h>
 #include <settings/ProteinSettings.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
+#include <math/Vector3.h>
 
 #include <vector>
 #include <map>
 #include <utility>
 #include <algorithm>
 
-Body::Body() {}
+Body::Body() {
+    initialize();
+}
 
-Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {}
+Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {
+    initialize();
+}
 
-Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {}
+Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {
+    initialize();
+}
 
-Body::Body(const Body& body) : uid(body.uid), file(body.file) {}
+Body::Body(const Body& body) : uid(body.uid), file(body.file) {
+    initialize();
+}
 
-Body::Body(Body&& body) : uid(body.uid), file(std::move(body.file)) {}
+Body::Body(Body&& body) : uid(body.uid), file(std::move(body.file)) {
+    initialize();
+}
 
 Body::~Body() = default;
+
+void Body::initialize() {
+    signal = std::make_shared<signaller::UnboundSignaller>();
+}
 
 void Body::save(const io::File& path) {file.write(path);}
 
@@ -139,7 +156,7 @@ void Body::changed_external_state() const {signal->external_change();}
 
 void Body::changed_internal_state() const {signal->internal_change();}
 
-void Body::register_probe(std::shared_ptr<StateManager::BoundSignaller> signal) {this->signal = signal;}
+void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {this->signal = signal;}
 
 std::vector<Atom>& Body::atoms() {return file.protein_atoms;}
 

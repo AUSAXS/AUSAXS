@@ -9,6 +9,9 @@
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>
+#include <dataset/Dataset2D.h>
+#include <mini/detail/Parameter.h>
+#include <mini/Minimizer.h>
 
 using namespace fitter;
 
@@ -70,7 +73,7 @@ double HydrationFitter::fit_only() {
     return fitter.fit_only();
 }
 
-Fit::Plots HydrationFitter::plot() {
+FitPlots HydrationFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -88,7 +91,7 @@ Fit::Plots HydrationFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    Fit::Plots graphs;
+    FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.intensity = SimpleDataset(h.q, ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());

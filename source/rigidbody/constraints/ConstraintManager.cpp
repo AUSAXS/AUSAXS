@@ -1,5 +1,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Protein.h>
 
 using namespace rigidbody;

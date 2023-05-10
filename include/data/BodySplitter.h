@@ -1,11 +1,9 @@
 #pragma once
 
-#include <algorithm>
+#include <vector>
 
-#include <data/Protein.h>
-#include <rigidbody/constraints/Constraint.h>
-#include <io/ExistingFile.h>
-
+class Protein;
+namespace io {class ExistingFile;}
 namespace rigidbody {
     struct BodySplitter {
         /**

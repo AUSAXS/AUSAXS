@@ -1,15 +1,27 @@
 #pragma once
 
-#include <data/Body.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <utility/Concepts.h>
 
 #include <string>
 #include <vector>
 #include <memory>
 
+class SimpleDataset;
+class Body;
+class Water;
+class Atom;
+namespace io {
+	class File;
+	class ExistingFile;
+}
 namespace fitter {class Fit;}
-namespace hist {class HistogramManager;}
+namespace hist {
+	class ScatteringHistogram;
+	class HistogramManager;
+	class Histogram;
+}
+namespace grid {class Grid;}
+template<numeric T> class Vector3;
 
 /**
  * @brief A representation of a protein.
@@ -90,7 +102,7 @@ class Protein {
 		 * 
 		 * @param input Path to the input file. 
 		 */
-		explicit Protein(std::string input);
+		explicit Protein(const io::ExistingFile& input);
 
 		/**
 		 * @brief Get the distances between each atom.
@@ -187,12 +199,12 @@ class Protein {
 		/**
 		 * @brief Get the grid representation. 
 		 */
-		[[nodiscard]] std::shared_ptr<Grid> get_grid();
+		[[nodiscard]] std::shared_ptr<grid::Grid> get_grid();
 
 		/**
 		 * @brief Set the grid representation.
 		 */
-		void set_grid(const Grid&);
+		void set_grid(const grid::Grid&);
 
 		/**
 		 * @brief Clear the current grid.
@@ -248,7 +260,7 @@ class Protein {
 		/**
 		 * @brief Create a grid and fill it with the atoms of this protein. 
 		 */
-		std::shared_ptr<Grid> create_grid();
+		std::shared_ptr<grid::Grid> create_grid();
 
 		/**
 		 * @brief Calculate the Debye scattering intensity for this protein. Does not include hydration atoms. 
@@ -293,7 +305,7 @@ class Protein {
 		 * 
 		 * @param measurement Path to the measurement file to be fitted.
 		 */
-		[[nodiscard]] std::shared_ptr<fitter::Fit> fit(std::string measurement);
+		[[nodiscard]] std::shared_ptr<fitter::Fit> fit(const io::ExistingFile& measurement);
 
 		/**
 		 * @brief Get the histogram manager of this protein.
@@ -328,7 +340,7 @@ class Protein {
 		bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 		bool centered = false;              // True if this object is centered, false otherwise. 
 	private:
-		std::shared_ptr<Grid> grid = nullptr; // The grid representation of this body
+		std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
 		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 };

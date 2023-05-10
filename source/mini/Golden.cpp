@@ -1,5 +1,7 @@
 #include <Symbols.h>
 #include <mini/Golden.h>
+#include <mini/detail/Parameter.h>
+#include <mini/detail/FittedParameter.h>
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 

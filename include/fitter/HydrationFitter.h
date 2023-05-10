@@ -1,10 +1,13 @@
 #pragma once
 
 #include <fitter/LinearFitter.h>
+#include <mini/detail/Parameter.h>
 
-namespace mini {enum type;}
+namespace mini {enum class type;}
 namespace io {class ExistingFile;}
 namespace fitter {
+    class FitPlots;
+
     /**
      * @brief Fit an intensity curve to a dataset. 
      * 
@@ -91,7 +94,7 @@ namespace fitter {
              * 
              * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
              */
-            [[nodiscard]] Fit::Plots plot() override;
+            [[nodiscard]] FitPlots plot() override;
 
             /**
              * @brief Make a residual plot of the fit.

@@ -3,11 +3,11 @@
 
 using namespace mini;
 
-FittedParameter::FittedParameter(std::string name, double val, Limit error) noexcept : name(name), value(val), error(error) {}
+FittedParameter::FittedParameter(const std::string& name, double val, const Limit& error) noexcept : name(name), value(val), error(error) {}
 
-FittedParameter::FittedParameter(std::string name, double val, double error) noexcept: name(name), value(val), error({-error, +error}) {}
+FittedParameter::FittedParameter(const std::string& name, double val, double error) noexcept: name(name), value(val), error({-error, +error}) {}
 
-FittedParameter::FittedParameter(const Parameter& param, double val, Limit error) noexcept: name(param.name), value(val), error(error) {}
+FittedParameter::FittedParameter(const Parameter& param, double val, const Limit& error) noexcept: name(param.name), value(val), error(error) {}
 
 FittedParameter::FittedParameter(const Parameter& param, double val, double error) noexcept: name(param.name), value(val), error(-error, +error) {}
 

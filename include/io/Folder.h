@@ -6,11 +6,11 @@
 namespace io {
     class Folder {
         public:
-            Folder() = default;
+            Folder();
 
             Folder(const std::string& path);
 
-            virtual ~Folder() = default;
+            virtual ~Folder();
 
             [[nodiscard]] std::string path() const;
 

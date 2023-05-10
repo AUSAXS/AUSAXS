@@ -1,4 +1,5 @@
 #include <plots/PlotLandscape.h>
+#include <mini/detail/Landscape.h>
 
 plots::PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File& path) {
     ss << "PlotLandscape\n" 

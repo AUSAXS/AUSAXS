@@ -1,7 +1,7 @@
 #include <data/Header.h>
 #include <utility/StringUtils.h>
 
-Record::RecordType Header::get_type() const {return RecordType::HEADER;}
+RecordType Header::get_type() const {return RecordType::HEADER;}
 
 void Header::parse_pdb(const std::string& s) {add(s);}
 

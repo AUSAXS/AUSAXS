@@ -118,7 +118,7 @@ namespace stats {
      * @brief Calculate the mean of a vector.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double weighted_mean_error(ConstSlice<T> xerr) noexcept {
+    double weighted_mean_error(const ConstSlice<T>& xerr) noexcept {
         return detail::weighted_mean_error(xerr);
     }
 
@@ -126,7 +126,7 @@ namespace stats {
      * @brief Calculate the mean of a vector.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double weighted_mean_error(MutableSlice<T> xerr) noexcept {
+    double weighted_mean_error(const MutableSlice<T>& xerr) noexcept {
         return detail::weighted_mean_error(xerr);
     }
 
@@ -134,7 +134,7 @@ namespace stats {
      * @brief Calculate the weighted mean of a vector.
      */
     template<typename T, typename Q, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_arithmetic_v<Q>>>
-    double weighted_mean(std::vector<T> x, std::vector<Q> xerr) noexcept {
+    double weighted_mean(const std::vector<T>& x, const std::vector<Q>& xerr) noexcept {
         return detail::weighted_mean(x, xerr);
     }
 
@@ -142,7 +142,7 @@ namespace stats {
      * @brief Calculate the weighted mean of a Slice.
      */
     template<typename T, typename Q, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_arithmetic_v<Q>>>
-    double weighted_mean(ConstSlice<T> x, ConstSlice<Q> xerr) noexcept {
+    double weighted_mean(const ConstSlice<T>& x, const ConstSlice<Q>& xerr) noexcept {
         return detail::weighted_mean(x, xerr);
     }
 
@@ -150,7 +150,7 @@ namespace stats {
      * @brief Calculate the weighted mean of a Slice.
      */
     template<typename T, typename Q, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_arithmetic_v<Q>>>
-    double weighted_mean(MutableSlice<T> x, MutableSlice<Q> xerr) noexcept {
+    double weighted_mean(const MutableSlice<T>& x, const MutableSlice<Q>& xerr) noexcept {
         return detail::weighted_mean(x, xerr);
     }
 
@@ -158,7 +158,7 @@ namespace stats {
      * @brief Calculate the mean of a vector.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double mean(std::vector<T> v) noexcept {
+    double mean(const std::vector<T>& v) noexcept {
         return detail::mean(v);
     }
 
@@ -166,7 +166,7 @@ namespace stats {
      * @brief Calculate the mean of a Slice.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double mean(ConstSlice<T> s) noexcept {
+    double mean(const ConstSlice<T>& s) noexcept {
         return detail::mean(s);
     }
 
@@ -174,7 +174,7 @@ namespace stats {
      * @brief Calculate the mean of a Slice.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double mean(MutableSlice<T> s) noexcept {
+    double mean(const MutableSlice<T>& s) noexcept {
         return detail::mean(s);
     }
 
@@ -182,7 +182,7 @@ namespace stats {
      * @brief Calculate the mean of a list.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double mean(std::initializer_list<T> v) noexcept {
+    double mean(const std::initializer_list<T>& v) noexcept {
         return mean(std::vector<T>(v));
     }
 
@@ -190,7 +190,7 @@ namespace stats {
      * @brief Calculate the variance of a Slice.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double var(ConstSlice<T> s, unsigned int ddof = 1) noexcept {
+    double var(const ConstSlice<T>& s, unsigned int ddof = 1) noexcept {
         return detail::var(s, ddof);
     }
 
@@ -198,7 +198,7 @@ namespace stats {
      * @brief Calculate the variance of a Slice.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double var(MutableSlice<T> s, unsigned int ddof = 1) noexcept {
+    double var(const MutableSlice<T>& s, unsigned int ddof = 1) noexcept {
         return detail::var(s, ddof);
     }
 
@@ -206,7 +206,7 @@ namespace stats {
      * @brief Calculate the variance of a vector.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double var(std::vector<T> v, unsigned int ddof = 1) noexcept {
+    double var(const std::vector<T>& v, unsigned int ddof = 1) noexcept {
         return detail::var(v, ddof);
     }
 
@@ -214,7 +214,7 @@ namespace stats {
      * @brief Calculate the variance of a list.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double var(std::initializer_list<T> v, unsigned int ddof = 1) noexcept {
+    double var(const std::initializer_list<T>& v, unsigned int ddof = 1) noexcept {
         return var(std::vector<T>(v), ddof);
     }
 
@@ -222,7 +222,7 @@ namespace stats {
      * @brief Calculate the standard deviation of a Slice.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double std(ConstSlice<T> s, unsigned int ddof = 1) noexcept {
+    double std(const ConstSlice<T>& s, unsigned int ddof = 1) noexcept {
         return std::sqrt(var(s, ddof));
     }
 
@@ -230,7 +230,7 @@ namespace stats {
      * @brief Calculate the standard deviation of a Slice.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double std(MutableSlice<T> s, unsigned int ddof = 1) noexcept {
+    double std(const MutableSlice<T>& s, unsigned int ddof = 1) noexcept {
         return std::sqrt(var(s, ddof));
     }
 
@@ -238,7 +238,7 @@ namespace stats {
      * @brief Calculate the standard deviation of a vector.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double std(std::vector<T> v, unsigned int ddof = 1) noexcept {
+    double std(const std::vector<T>& v, unsigned int ddof = 1) noexcept {
         return std::sqrt(var(v, ddof));
     }
 
@@ -246,14 +246,14 @@ namespace stats {
      * @brief Combine a list of errors to a single error of the mean. 
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double std(std::initializer_list<T> v, unsigned int ddof = 1) noexcept {
+    double std(const std::initializer_list<T>& v, unsigned int ddof = 1) noexcept {
         return std(std::vector<T>(v), ddof);
     }
 
     template<typename T>
     struct Measurement {
         Measurement() {}
-        Measurement(std::vector<T> vals) : vals(vals) {}
+        Measurement(const std::vector<T>& vals) : vals(vals) {}
 
         double mean() const noexcept {return mean(vals);}
         double std() const noexcept {return std(vals);}

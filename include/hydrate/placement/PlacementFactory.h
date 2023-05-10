@@ -1,13 +1,19 @@
 #pragma once
 
 #include <hydrate/placement/PlacementStrategy.h>
-#include <settings/GridSettings.h>
+
+#include <memory>
 
 namespace grid {
     namespace factory {
         /**
          * @brief Prepare a placement class.
          */
-        std::unique_ptr<PlacementStrategy> construct_placement_strategy(Grid* grid, settings::grid::PlacementStrategy choice = settings::grid::placement_strategy);
+        std::unique_ptr<PlacementStrategy> construct_placement_strategy(Grid* grid);
+
+        /**
+         * @brief Prepare a placement class.
+         */
+        std::unique_ptr<PlacementStrategy> construct_placement_strategy(Grid* grid, const settings::grid::PlacementStrategy& choice);
     }
 }

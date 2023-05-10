@@ -1,4 +1,6 @@
 #include <io/XYZWriter.h>
+#include <data/Protein.h>
+#include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 

@@ -1,7 +1,10 @@
 #include <data/BodySplitter.h>
 #include <data/Body.h>
 #include <data/Atom.h>
+#include <data/Water.h>
+#include <data/Protein.h>
 #include <utility/Exceptions.h>
+#include <rigidbody/constraints/Constraint.h>
 
 #include <algorithm>
 

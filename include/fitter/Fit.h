@@ -2,6 +2,7 @@
 
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
+#include <fitter/FitPlots.h>
 #include <dataset/SimpleDataset.h>
 
 #include <string>
@@ -12,12 +13,6 @@ namespace fitter {
 
     class Fit : public mini::Result {
         public:
-            struct Plots {
-                SimpleDataset intensity;              // The full intensity line
-                SimpleDataset intensity_interpolated; // The intensity line interpolated at the data points. 
-                SimpleDataset data;                   // The data itself
-            };
-
             Fit() noexcept {}
 
             /**
@@ -55,7 +50,7 @@ namespace fitter {
             [[nodiscard]] virtual std::string to_string() const noexcept;
 
             mini::Landscape evaluated_points;
-            Plots figures;
+            FitPlots figures;
             SimpleDataset residuals;
             unsigned int dof;
     };

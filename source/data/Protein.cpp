@@ -1,6 +1,11 @@
 #include <data/Protein.h>
+#include <data/Water.h>
+#include <data/Atom.h>
 #include <data/Body.h>
+#include <data/state/BoundSignaller.h>
+#include <data/state/UnboundSignaller.h>
 #include <io/ProteinFile.h>
+#include <io/ExistingFile.h>
 #include <hist/Histogram.h>
 #include <fitter/HydrationFitter.h>
 #include <settings/ProteinSettings.h>
@@ -10,6 +15,8 @@
 #include <settings/GeneralSettings.h>
 #include <hist/detail/HistogramManagerFactory.h>
 #include <hist/HistogramManager.h>
+#include <utility/Constants.h>
+#include <hydrate/Grid.h>
 
 using namespace hist;
 
@@ -51,7 +58,7 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
     bind_body_signallers();
 }
 
-Protein::Protein(std::string input) {
+Protein::Protein(const io::ExistingFile& input) {
     Body b1(input);
     bodies = {b1};
     waters() = std::move(bodies[0].waters());
@@ -146,8 +153,8 @@ double Protein::get_volume_grid() {
     return grid->get_volume();
 }
 
-std::shared_ptr<Grid> Protein::create_grid() {
-    grid = std::make_shared<Grid>(bodies); 
+std::shared_ptr<grid::Grid> Protein::create_grid() {
+    grid = std::make_shared<grid::Grid>(bodies); 
     return grid;
 }
 
@@ -228,12 +235,12 @@ Histogram Protein::get_total_histogram() {
     return phm->calculate();
 }
 
-std::shared_ptr<Grid> Protein::get_grid() {
+std::shared_ptr<grid::Grid> Protein::get_grid() {
     return grid == nullptr ? create_grid() : grid;
 }
 
-void Protein::set_grid(const Grid& grid) {
-    this->grid = std::make_shared<Grid>(grid);
+void Protein::set_grid(const grid::Grid& grid) {
+    this->grid = std::make_shared<grid::Grid>(grid);
 }
 
 void Protein::clear_grid() {
@@ -330,7 +337,7 @@ void Protein::bind_body_signallers() {
     }
 }
 
-std::shared_ptr<fitter::Fit> Protein::fit(std::string measurement) {
+std::shared_ptr<fitter::Fit> Protein::fit(const io::ExistingFile& measurement) {
     hist::ScatteringHistogram h = get_histogram();
     fitter::HydrationFitter fitter(measurement, h);
     return fitter.fit();
@@ -369,7 +376,7 @@ void Protein::generate_unit_cell() {
         << " "
         << std::right << std::setw(10) << "1"      // 56 - 66
         << std::right << std::setw(4) << "P 1";    // 67 - 70
-    file.add(Record::RecordType::HEADER, ss.str());
+    file.add(RecordType::HEADER, ss.str());
 }
 
 void Protein::remove_disconnected_atoms(unsigned int min) {

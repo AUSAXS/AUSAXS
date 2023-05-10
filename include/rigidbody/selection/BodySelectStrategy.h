@@ -1,7 +1,5 @@
 #pragma once
 
-#include <rigidbody/constraints/Constraint.h>
-
 #include <utility>
 
 namespace rigidbody {

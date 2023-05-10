@@ -1,26 +1,9 @@
-#include <data/StateManager.h>
-
-#include <memory>
-#include <iostream>
-
-StateManager::BoundSignaller::BoundSignaller(unsigned int id, StateManager* const owner) : owner(owner), id(id) {}
-
-void StateManager::BoundSignaller::external_change() const {
-    owner->externally_modified(id);
-}
-
-void StateManager::BoundSignaller::internal_change() const {
-    owner->internally_modified(id);
-    owner->externally_modified(id);
-}
-
-void StateManager::UnboundSignaller::external_change() const {}
-
-void StateManager::UnboundSignaller::internal_change() const {}
+#include <data/state/StateManager.h>
+#include <data/state/BoundSignaller.h>
 
 StateManager::StateManager(unsigned int size) : size(size), _externally_modified(size, true), _internally_modified(size, true), _modified_hydration(true) {
     for (unsigned int i = 0; i < size; i++) {
-        probes.push_back(std::make_shared<BoundSignaller>(i, this));
+        probes.push_back(std::make_shared<signaller::BoundSignaller>(i, this));
     }
 }
 
@@ -50,7 +33,7 @@ void StateManager::reset() {
     _modified_hydration = false;
 }
 
-std::shared_ptr<StateManager::BoundSignaller> StateManager::get_probe(unsigned int i) {return probes[i];}
+std::shared_ptr<signaller::BoundSignaller> StateManager::get_probe(unsigned int i) {return probes[i];}
 
 std::vector<bool> StateManager::get_externally_modified_bodies() const {return _externally_modified;}
 

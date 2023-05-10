@@ -1,10 +1,10 @@
 #pragma once
 
-// includes
-#include <string>
-#include <vector>
 #include <data/Record.h>
 #include <utility/Utility.h>
+
+#include <string>
+#include <vector>
 
 class Footer : Record {
 public: 

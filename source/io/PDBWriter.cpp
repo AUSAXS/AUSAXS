@@ -11,6 +11,10 @@
 #include <fstream>
 #include <algorithm>
 
+PDBWriter::PDBWriter(ProteinFile* file) : file(file) {}
+
+PDBWriter::~PDBWriter() = default;
+
 void PDBWriter::write(const io::File& path) {
     path.directory().create();
 

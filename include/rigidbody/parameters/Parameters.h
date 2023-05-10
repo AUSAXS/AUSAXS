@@ -8,9 +8,7 @@
 class Protein;
 namespace rigidbody {
     /**
-     * @brief Parameter. 
-     * 
-     * A small structure for storing a single set of parameters. 
+     * @brief A small structure for storing a single set of parameters. 
      */
     struct Parameter {
         /**
@@ -43,9 +41,7 @@ namespace rigidbody {
     };
 
     /**
-     * @brief \struct Parameters.
-     * 
-     * A small structure for storing the current set of parameters. 
+     * @brief A small structure for storing the current set of parameters. 
      */
     struct Parameters {
         /**

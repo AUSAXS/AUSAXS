@@ -2,11 +2,11 @@
 
 #include <crystal/miller/Miller.h>
 #include <math/Vector3.h>
-#include <utility/Basis3D.h>
 
 #include <vector>
 #include <complex>
 
+class Basis3D;
 namespace crystal {
     class Fval {
         public: 

@@ -8,6 +8,7 @@
 
 namespace fitter {
     class Fit;
+    class FitPlots;
 
     class Fitter {
         public:
@@ -28,7 +29,7 @@ namespace fitter {
              * 
              * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
              */
-            [[nodiscard]] virtual Fit::Plots plot() = 0;
+            [[nodiscard]] virtual FitPlots plot() = 0;
 
             /**
              * @brief Make a residual plot of the fit.

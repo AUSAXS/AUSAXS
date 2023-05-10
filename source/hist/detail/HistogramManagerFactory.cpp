@@ -1,4 +1,5 @@
 #include <hist/detail/HistogramManagerFactory.h>
+#include <settings/HistogramSettings.h>
 #include <hist/HistogramManager.h>
 #include <hist/HistogramManagerMT.h>
 #include <hist/PartialHistogramManager.h>
@@ -7,7 +8,11 @@
 
 using namespace hist::factory;
 
-std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(Protein* protein, settings::hist::HistogramManagerChoice choice = settings::hist::histogram_manager) {
+std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(Protein* protein) {
+    return hist::factory::construct_histogram_manager(protein, settings::hist::histogram_manager);
+}
+
+std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(Protein* protein, const settings::hist::HistogramManagerChoice& choice) {
     switch (choice) {
         case settings::hist::HistogramManagerChoice::HistogramManager: 
             return std::make_unique<HistogramManager>(protein);

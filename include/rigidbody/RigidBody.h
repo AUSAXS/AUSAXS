@@ -4,10 +4,16 @@
 
 #include <memory>
 
+namespace grid {class Grid;}
+namespace selection {class BodySelectStrategy;}
+namespace fitter {
+	class Fit;
+	class LinearFitter;
+}
 namespace rigidbody {
 	namespace detail {
 		struct BestConf {
-			std::shared_ptr<Grid> grid;
+			std::shared_ptr<grid::Grid> grid;
 			std::vector<Water> waters;
 			double chi2;	
 		};
@@ -15,11 +21,8 @@ namespace rigidbody {
 	}
 
 	class ConstraintManager;
-	class selection::BodySelectStrategy;
 	class TransformStrategy;
 	class ParameterGenerationStrategy;
-	class fitter::Fit;
-	class fitter::LinearFitter;
 	class RigidBody : public Protein {
 		public:
 			RigidBody(Protein&& protein);

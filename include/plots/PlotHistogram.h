@@ -1,8 +1,8 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <hist/Histogram.h>
 
+namespace hist {class Histogram;}
 namespace plots {
 	class PlotHistogram : public Plot {
 		public:

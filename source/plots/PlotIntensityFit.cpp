@@ -1,4 +1,7 @@
 #include <plots/PlotIntensityFit.h>
+#include <fitter/Fit.h>
+#include <hist/ScatteringHistogram.h>
+#include <fitter/LinearFitter.h>
 
 plots::PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot() {
     auto graphs = fitter.plot();

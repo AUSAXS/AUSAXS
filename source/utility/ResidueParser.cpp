@@ -1,9 +1,11 @@
 #include <utility/ResidueParser.h>
 #include <utility/Curl.h>
-#include <settings/GeneralSettings.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
+#include <utility/ResidueMap.h>
+#include <settings/GeneralSettings.h>
+#include <io/ExistingFile.h>
 
 #include <regex>
 #include <filesystem>
@@ -204,7 +206,9 @@ parser::residue::ResidueStorage::ResidueStorage() {
     initialize();
 }
 
-void parser::residue::ResidueStorage::insert(const std::string& name, saxs::detail::ResidueMap residue) {
+parser::residue::ResidueStorage::~ResidueStorage() = default;
+
+void parser::residue::ResidueStorage::insert(const std::string& name, const saxs::detail::ResidueMap& residue) {
     data.emplace(name, residue);
 }
 

@@ -15,7 +15,7 @@ template<mini::type algo>
 dlibMinimizer<algo>::dlibMinimizer() = default;
 
 template<mini::type algo>
-dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, Parameter param) {
+dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, const Parameter& param) {
     auto f = [=] (std::vector<double> x) {
         return function(x[0]);
     };

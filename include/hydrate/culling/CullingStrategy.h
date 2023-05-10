@@ -2,12 +2,11 @@
 
 #include <vector>
 
-#include <data/Water.h>
-#include <hydrate/GridMember.h>
-
-class Grid;
-
+class Water;
 namespace grid {    
+    template<typename T> class GridMember;
+    class Grid;
+    
     /**
      * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
      */
@@ -17,12 +16,12 @@ namespace grid {
              * @brief Constructor.
              * @param grid The Grid object to apply this Strategy to.
              */
-            CullingStrategy(Grid* grid) : grid(grid) {}
+            CullingStrategy(Grid* grid);
 
             /**
              * @brief Destructor.
              */
-            virtual ~CullingStrategy() = default;
+            virtual ~CullingStrategy();
 
             /**
              * @brief Cull the water molecules.
@@ -34,7 +33,7 @@ namespace grid {
              * @brief Set the desired number of water molecules after the culling. 
              * @param target_count The target number of water molecules. 
              */
-            void set_target_count(unsigned int target_count) {this->target_count = target_count;}
+            void set_target_count(unsigned int target_count);
 
         protected: 
             unsigned int target_count = 0; // The desired number of molecules after the culling.

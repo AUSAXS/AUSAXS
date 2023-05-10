@@ -1,9 +1,8 @@
 #pragma once
 
-#include <io/ExistingFile.h>
-
 #include <string>
 
+namespace io {class ExistingFile;}
 /**
  * @brief Virtual super-class for all data file readers. 
  */

@@ -5,6 +5,9 @@
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/parameters/Parameters.h>
+#include <mini/detail/FittedParameter.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <io/XYZWriter.h>
@@ -12,6 +15,7 @@
 #include <plots/PlotDistance.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/GeneralSettings.h>
+#include <fitter/HydrationFitter.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/Fit.h>
 
@@ -28,9 +32,9 @@ RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
 }
 
 void RigidBody::initialize() {
-    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3, settings::rigidbody::parameter_generation_strategy);
-    body_selector = factory::create_selection_strategy(this, settings::rigidbody::body_select_strategy);
-    transform = factory::create_transform_strategy(this, settings::rigidbody::transform_strategy);
+    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3);
+    body_selector = factory::create_selection_strategy(this);
+    transform = factory::create_transform_strategy(this);
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_path) {
@@ -44,7 +48,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
 
     // save the best configuration in a simple struct
     detail::BestConf best {
-        .grid = std::make_shared<Grid>(*get_grid()),
+        .grid = std::make_shared<grid::Grid>(*get_grid()),
         .waters = waters(),
         .chi2 = fitter->fit_only()
     };
@@ -79,7 +83,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
 }
 
 bool RigidBody::optimize_step(detail::BestConf& best) {
-    std::shared_ptr<Grid> grid = get_grid();
+    std::shared_ptr<grid::Grid> grid = get_grid();
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
@@ -101,7 +105,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
         waters() = best.waters;     // restore the old waters
     } else {
         // accept the changes
-        best.grid = std::make_shared<Grid>(*grid);
+        best.grid = std::make_shared<grid::Grid>(*grid);
         best.waters = waters();
         best.chi2 = new_chi2;
     }

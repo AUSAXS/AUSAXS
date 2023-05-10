@@ -1,4 +1,6 @@
 #include <plots/PlotHistogram.h>
+#include <hist/Histogram.h>
+#include <dataset/SimpleDataset.h>
 
 plots::PlotHistogram::PlotHistogram(const hist::Histogram& h) {
     plot(h);

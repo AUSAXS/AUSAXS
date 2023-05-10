@@ -1,5 +1,6 @@
 #include <utility/Curl.h>
 #include <utility/Console.h>
+#include <io/File.h>
 
 void curl::download(const std::string& url, const io::File& path) {
     CURL *curl;

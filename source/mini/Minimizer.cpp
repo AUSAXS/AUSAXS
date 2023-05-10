@@ -1,4 +1,7 @@
 #include <mini/Minimizer.h>
+#include <mini/detail/Evaluation.h>
+#include <mini/detail/Parameter.h>
+#include <mini/detail/FittedParameter.h>
 #include <utility/Exceptions.h>
 
 #include <functional>

@@ -1,6 +1,7 @@
 #include <io/PDBReader.h>
 #include <io/Reader.h>
 #include <io/ProteinFile.h>
+#include <io/ExistingFile.h>
 #include <data/Terminate.h>
 #include <data/Atom.h>
 #include <data/Water.h>
@@ -10,6 +11,10 @@
 #include <utility/Console.h>
 
 #include <fstream>
+
+PDBReader::PDBReader(ProteinFile* const file) : file(file) {}
+
+PDBReader::~PDBReader() = default;
 
 void PDBReader::read(const io::ExistingFile& path) {
     if (settings::general::verbose) {
@@ -25,7 +30,7 @@ void PDBReader::read(const io::ExistingFile& path) {
     while(getline(input, line)) {
         std::string type = line.substr(0, std::min(6, int(line.size()))); // read the first 6 characters
         switch(Record::get_type(type)) {
-            case Record::RecordType::ATOM: {
+            case RecordType::ATOM: {
                 // first just parse it as an atom; we can reuse it anyway even if it is a water molecule
                 Atom atom;
                 atom.parse_pdb(line);
@@ -39,18 +44,18 @@ void PDBReader::read(const io::ExistingFile& path) {
                 if (atom.is_water()) {f.add(Water(std::move(atom)));} 
                 else {f.add(atom);}
                 break;
-            } case Record::RecordType::TERMINATE: {
+            } case RecordType::TERMINATE: {
                 Terminate term;
                 term.parse_pdb(line);
                 f.add(term);
                 break;
-            } case Record::RecordType::HEADER: {
-                f.add(Record::RecordType::HEADER, line);
+            } case RecordType::HEADER: {
+                f.add(RecordType::HEADER, line);
                 break;
-            } case Record::RecordType::FOOTER: {
-                f.add(Record::RecordType::FOOTER, line);
+            } case RecordType::FOOTER: {
+                f.add(RecordType::FOOTER, line);
                 break;
-            } case Record::RecordType::NOTYPE: {
+            } case RecordType::NOTYPE: {
                 break;
             } default: {
                 throw except::io_error("PDBReader::read: Malformed input file - unrecognized type \"" + type + "\".");

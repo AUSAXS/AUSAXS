@@ -6,9 +6,15 @@
 #include <crystal/miller/ReducedMillers.h>
 #include <crystal/io/CrystalReaderFactory.h>
 #include <crystal/miller/MillerGenerationFactory.h>
+#include <crystal/miller/MillerGenerationStrategy.h>
+#include <crystal/io/CrystalReader.h>
 #include <settings/CrystalSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
+#include <hydrate/Grid.h>
+#include <dataset/SimpleDataset.h>
+#include <utility/Basis3D.h>
+
 #include <atomic>
 #include <thread>
 
@@ -25,7 +31,7 @@ CrystalScattering::CrystalScattering(const std::string& input) {
     Fval::set_basis(bases);
 }
 
-CrystalScattering::CrystalScattering(const Grid& grid) {
+CrystalScattering::CrystalScattering(const grid::Grid& grid) {
     initialize();
     convert_grid(grid);
 }
@@ -95,7 +101,7 @@ SimpleDataset CrystalScattering::calculate() const {
     return data;
 }
 
-void CrystalScattering::convert_grid(const Grid& grid) const {
+void CrystalScattering::convert_grid(const grid::Grid& grid) const {
     auto axes = grid.get_axes();
     std::vector<Vector3<double>> points(axes.x.bins*axes.y.bins*axes.z.bins);
     unsigned int index = 0;

@@ -15,7 +15,7 @@ Terminate::Terminate(int serial, const std::string& resName, const std::string& 
     this->iCode = iCode;
 }
 
-Record::RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
+RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 
 void Terminate::parse_pdb(const std::string& s) {
     if (s.size() < 28) {return;} // sometimes the terminate record consists only of "TER   "

@@ -1,5 +1,6 @@
 #include <plots/PlotDistance.h>
 #include <plots/PlotDataset.h>
+#include <hist/ScatteringHistogram.h>
 
 plots::PlotDistance::~PlotDistance() = default;
 

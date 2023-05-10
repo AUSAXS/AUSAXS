@@ -1,12 +1,12 @@
 #pragma once
 
 #include <utility/ResidueMap.h>
-#include <io/ExistingFile.h>
 
 #include <vector>
 #include <string>
 #include <unordered_map>
 
+namespace io {class ExistingFile;}
 namespace parser {
     namespace residue {
         namespace detail {
@@ -159,6 +159,8 @@ namespace parser {
                  */
                 ResidueStorage();
 
+                ~ResidueStorage();
+
                 /**
                  * @brief Get a residue from the storage. If the residue is not found, it will be downloaded. 
                  */
@@ -168,7 +170,7 @@ namespace parser {
                 /**
                  * @brief Insert a residue into the storage. 
                  */
-                void insert(const std::string& name, saxs::detail::ResidueMap residue);
+                void insert(const std::string& name, const saxs::detail::ResidueMap& residue);
 
                 /**
                  * @brief Initialize this storage. All residue files present in the storage directory will be loaded. 

@@ -1,6 +1,7 @@
 #include <plots/Plot.h>
 #include <utility/Exceptions.h>
 #include <hist/Histogram.h>
+#include <io/File.h>
 
 #include <fstream>
 

@@ -1,8 +1,11 @@
 #pragma once
 
+#include <utility/Concepts.h>
 #include <utility/Axis.h>
-#include <utility/Limit3D.h>
-#include <math/Vector3.h>
+
+class Axis3D;
+class Limit3D;
+template<numeric T> class Vector3;
 
 /**
  * @brief A representation of a 3D coordinate system.

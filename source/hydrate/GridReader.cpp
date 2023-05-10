@@ -1,12 +1,14 @@
 #include <hydrate/GridReader.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
+#include <io/ExistingFile.h>
+#include <math/Vector3.h>
 
 #include <fstream>
 
 using namespace hydrate;
 
-Grid GridReader::read(const std::string& filename) {
+grid::Grid GridReader::read(const io::ExistingFile& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw except::io_error("GridReader::read(const std::string& filename): Could not open file " + filename);
@@ -50,5 +52,5 @@ Grid GridReader::read(const std::string& filename) {
     // }
 
     // return grid;
-    return Grid({1, 1, 1, 1, 1, 1});
+    return grid::Grid({1, 1, 1, 1, 1, 1});
 }

@@ -50,7 +50,7 @@ namespace fitter {
             /**
              * @brief Get a multiset containing the fitted curve of the last fit() call. 
              */
-            [[nodiscard]] Fit::Plots plot() override;
+            [[nodiscard]] FitPlots plot() override;
 
             /**
              * @brief Get a dataset containing the residuals of the last fit() call. 

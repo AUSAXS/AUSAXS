@@ -1,10 +1,14 @@
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/transform/RigidTransform.h>
 #include <rigidbody/transform/SingleTransform.h>
+#include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
-// extend the settings namespace with a new option
-std::unique_ptr<rigidbody::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body, settings::rigidbody::TransformationStrategyChoice choice) {
+std::unique_ptr<rigidbody::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body) {
+    return create_transform_strategy(body, settings::rigidbody::transform_strategy);
+}
+
+std::unique_ptr<rigidbody::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body, const settings::rigidbody::TransformationStrategyChoice& choice) {
     switch (choice) {
         case settings::rigidbody::TransformationStrategyChoice::RigidTransform:
             return std::make_unique<rigidbody::RigidTransform>(body); 

@@ -1,15 +1,14 @@
 #pragma once
 
-#include <hydrate/Grid.h>
-#include <crystal/miller/MillerGenerationStrategy.h>
-#include <dataset/SimpleDataset.h>
-
 #include <memory>
 
+namespace grid {class Grid;}
+class SimpleDataset;
 namespace crystal {
+    class MillerGenerationStrategy;
     class CrystalScattering {
         public: 
-            CrystalScattering(const Grid& grid);
+            CrystalScattering(const grid::Grid& grid);
 
             CrystalScattering(const std::string& input);
 
@@ -25,6 +24,6 @@ namespace crystal {
              * 
              * All non-filled voxels are discarded. 
              */
-            void convert_grid(const Grid& grid) const; 
+            void convert_grid(const grid::Grid& grid) const; 
     };
 }

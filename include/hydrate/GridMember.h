@@ -1,12 +1,13 @@
 #pragma once
 
+#include <math/Vector3.h>
+
 #include <vector>
 
+template<numeric T> class Vector3;
 namespace grid {
     /**
-     * @brief \class GridMember
-     * 
-     * This class is used internally in Grid for storing all information about a particular member atom. 
+     * @brief This class is used internally in Grid for storing all information about a particular member atom. 
      */
     template<typename T>
     struct GridMember {
@@ -30,7 +31,7 @@ namespace grid {
          * @param atom The atom itself. 
          * @param loc The grid location of the atom. 
          */
-        GridMember(T atom, Vector3<int> loc) : atom(atom), loc(std::move(loc)) {}
+        GridMember(const T& atom, Vector3<int> loc) : atom(atom), loc(std::move(loc)) {}
 
         // The atom itself
         T atom;

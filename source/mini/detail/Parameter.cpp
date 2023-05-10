@@ -1,11 +1,12 @@
 #include <mini/detail/Parameter.h>
 #include <mini/detail/FittedParameter.h>
+#include <utility/Limit.h>
 
 using namespace mini;
 
-Parameter::Parameter(std::string name, Limit bounds) noexcept: name(name), bounds(bounds) {}
+Parameter::Parameter(const std::string& name, const Limit& bounds) noexcept: name(name), bounds(bounds) {}
 
-Parameter::Parameter(std::string name, double guess, Limit bounds) noexcept: name(name), guess(guess), bounds(bounds) {}
+Parameter::Parameter(const std::string& name, double guess, const Limit& bounds) noexcept: name(name), guess(guess), bounds(bounds) {}
 
 Parameter::Parameter(const mini::FittedParameter& p) noexcept {
     *this = p;

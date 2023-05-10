@@ -1,14 +1,13 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
-#include <data/Atom.h>
-#include <data/Body.h>
 
 #include <memory>
 #include <iostream>
 
 class Protein;
-
+class Atom;
+class Body;
 namespace rigidbody {
     /**
      * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 

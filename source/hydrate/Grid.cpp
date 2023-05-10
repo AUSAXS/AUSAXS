@@ -1,12 +1,10 @@
-#include <vector>
-#include <map>
-
 #include <hydrate/Grid.h>
+#include <hydrate/culling/CullingFactory.h>
+#include <hydrate/placement/PlacementFactory.h>
+#include <hydrate/GridMember.h>
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/Water.h>
-#include <hydrate/culling/CullingFactory.h>
-#include <hydrate/placement/PlacementFactory.h>
 #include <settings/GridSettings.h>
 #include <math/Vector3.h>
 #include <utility/Console.h>
@@ -94,8 +92,8 @@ void Grid::setup() {
     this->set_radius_atoms(settings::grid::ra);
     this->set_radius_water(settings::grid::rh);
 
-    water_placer = grid::factory::construct_placement_strategy(this, settings::grid::placement_strategy);
-    water_culler = grid::factory::construct_culling_strategy(this, settings::grid::culling_strategy);
+    water_placer = grid::factory::construct_placement_strategy(this);
+    water_culler = grid::factory::construct_culling_strategy(this);
 }
 
 std::vector<Water> Grid::hydrate() {
@@ -287,6 +285,18 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int) {
     // return to_remove;
 }
 
+template <typename T, typename = std::enable_if_t<std::is_base_of<Atom, T>::value>>
+std::vector<GridMember<T>> Grid::add(const std::vector<T>& atoms) {
+    std::vector<GridMember<T>> v(atoms.size());
+    unsigned int index = 0;
+    for (const auto& a : atoms) {
+        v[index++] = add(a);
+    }
+    return v;
+}
+template std::vector<GridMember<Atom>> Grid::add<Atom>(const std::vector<Atom>&);
+template std::vector<GridMember<Water>> Grid::add<Water>(const std::vector<Water>&);
+
 std::vector<GridMember<Atom>> Grid::add(const Body* body) {
     return add(body->atoms());
 }
@@ -295,7 +305,7 @@ void Grid::remove(const Body* body) {
     remove(body->atoms());
 }
 
-GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
+const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     auto loc = to_bins(atom.coords);
     unsigned int x = loc.x(), y = loc.y(), z = loc.z();
 
@@ -315,7 +325,7 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
     return gm;
 }
 
-GridMember<Water> Grid::add(const Water& water, bool expand) {
+const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     auto loc = to_bins(water.coords);
     unsigned int x = loc.x(), y = loc.y(), z = loc.z(); 
 
@@ -644,10 +654,17 @@ Body Grid::generate_excluded_volume() const {
     return body;
 }
 
-GridObj::DATATYPE Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
+const GridObj::DATATYPE& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
     return grid.index(i, j, k);
 }
 
 std::vector<Atom> Grid::get_surface_atoms() const {
     throw except::not_implemented("Grid::get_surface_atoms: Not implemented.");
+}
+
+Vector3<double> Grid::to_xyz(int i, int j, int k) const {
+    double x = axes.x.min + width*i;
+    double y = axes.y.min + width*j;
+    double z = axes.z.min + width*k;
+    return {x, y, z};
 }

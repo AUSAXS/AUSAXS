@@ -1,10 +1,14 @@
 #pragma once
 
-#include <fitter/HydrationFitter.h>
-#include <rigidbody/constraints/ConstraintManager.h>
+#include <fitter/Fitter.h>
+
+#include <vector>
+#include <memory>
+#include <concepts>
 
 namespace rigidbody {
     class DistanceConstraint;
+    class ConstraintManager;
 }
 
 namespace fitter {

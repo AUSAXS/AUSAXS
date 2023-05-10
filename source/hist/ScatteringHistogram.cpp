@@ -10,6 +10,21 @@
 
 using namespace hist;
 
+ScatteringHistogram::ScatteringHistogram() = default;
+
+ScatteringHistogram::ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axis), p_pp(sh.p_pp), p_hh(sh.p_hh), p_hp(sh.p_hp) {
+    setup();
+}
+
+ScatteringHistogram::ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axis), p_pp(sh.p_pp), p_hh(sh.p_hh), p_hp(sh.p_hp) {
+    setup();
+}
+
+ScatteringHistogram::ScatteringHistogram(const std::vector<double>& p_pp, const std::vector<double>& p_hh, const std::vector<double>& p_hp, const std::vector<double>& p_tot, const Axis& axis)
+    : Histogram(p_tot, axis), p_pp(p_pp, axis), p_hh(p_hh, axis), p_hp(p_hp, axis) {setup();}
+
+ScatteringHistogram::~ScatteringHistogram() = default;
+
 void ScatteringHistogram::setup() {
     // calculate what distance each bin represents
     d = std::vector<double>(axis.bins, 0);

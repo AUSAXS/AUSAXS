@@ -1,9 +1,8 @@
 #pragma once
 
-#include <io/File.h>
-
 #include <string>
 
+namespace io {class File;}
 /**
  * @brief Virtual super-class for all data file writers. 
  */

@@ -1,4 +1,14 @@
 #include <io/ProteinFile.h>
+#include <io/ExistingFile.h>
+#include <io/PDBReader.h>
+#include <io/PDBWriter.h>
+#include <data/Record.h>
+#include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Water.h>
+#include <utility/Exceptions.h>
+
+ProteinFile::ProteinFile() = default;
 
 ProteinFile::ProteinFile(const ProteinFile& ProteinFile) : header(ProteinFile.header), footer(ProteinFile.footer), terminate(ProteinFile.terminate), 
     protein_atoms(ProteinFile.protein_atoms), hydration_atoms(ProteinFile.hydration_atoms) {}
@@ -11,7 +21,7 @@ ProteinFile::ProteinFile(const std::vector<Atom>& protein_atoms, const std::vect
 ProteinFile::ProteinFile(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms, const Header& header, const Footer& footer, const Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
-ProteinFile::ProteinFile(std::string ProteinFilename) {
+ProteinFile::ProteinFile(const io::ExistingFile& ProteinFilename) {
     reader = construct_reader(ProteinFilename);
     read(ProteinFilename);
 }
@@ -23,9 +33,9 @@ void ProteinFile::update(std::vector<Atom>& patoms, std::vector<Water>& hatoms) 
     hydration_atoms = hatoms;
 }
 
-void ProteinFile::read(std::string path) {reader->read(path);}
+void ProteinFile::read(const io::ExistingFile& path) {reader->read(path);}
 
-void ProteinFile::write(std::string path) {
+void ProteinFile::write(const io::File& path) {
     refresh();
     writer = construct_writer(path);
     writer->write(path);
@@ -48,10 +58,10 @@ void ProteinFile::add(const Terminate& ter) {
     // terminates.push_back(r);
 }
 
-void ProteinFile::add(Record::RecordType type, std::string s) {
-    if (type == Record::RecordType::HEADER) {
+void ProteinFile::add(const RecordType& type, const std::string& s) {
+    if (type == RecordType::HEADER) {
         header.add(s);
-    } else if (type == Record::RecordType::FOOTER) {
+    } else if (type == RecordType::FOOTER) {
         footer.add(s);
     } else {
         throw except::invalid_argument("ProteinFile::add: Type is not \"HEADER\" or \"FOOTER\"!");
@@ -90,7 +100,7 @@ void ProteinFile::refresh() {
     };
 
     for (auto& a : protein_atoms) {
-        if (!terminate_inserted && a.get_type() == Record::RecordType::WATER) {
+        if (!terminate_inserted && a.get_type() == RecordType::WATER) {
             insert_ter();
             resSeq++; // TER records always denotes the end of a sequence
             serial++;
@@ -113,22 +123,22 @@ void ProteinFile::refresh() {
     }
 }
 
-std::unique_ptr<Reader> ProteinFile::construct_reader(std::string path) {
-    if (path.find(".xml") != std::string::npos || path.find(".XML") != std::string::npos) { // .xml ProteinFile
+std::unique_ptr<Reader> ProteinFile::construct_reader(const io::ExistingFile& path) {
+    if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml ProteinFile
         throw except::invalid_argument("ProteinFile::construct_reader: .xml input ProteinFiles are not supported.");
-    } else if (path.find(".pdb") != std::string::npos || path.find(".PDB") != std::string::npos) { // .pdb ProteinFile
+    } else if (path.extension() == ".pdb" || path.extension() == ".PDB") { // .pdb ProteinFile
         return std::make_unique<PDBReader>(this);
-    } else if (path.find(".ent") != std::string::npos || path.find(".ENT") != std::string::npos) { // .ent ProteinFile
+    } else if (path.extension() == ".ent" || path.extension() == ".ENT") { // .ent ProteinFile
         return std::make_unique<PDBReader>(this);
     } else { // anything else - we cannot handle this
         throw except::invalid_argument("ProteinFile::construct_reader: Unsupported ProteinFile extension of input ProteinFile \"" + path + "\".");
     }
 }
 
-std::unique_ptr<Writer> ProteinFile::construct_writer(std::string path) {
-    if (path.find(".xml") != std::string::npos || path.find(".XML") != std::string::npos) { // .xml ProteinFile
+std::unique_ptr<Writer> ProteinFile::construct_writer(const io::File& path) {
+    if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml ProteinFile
         throw except::invalid_argument("ProteinFile::construct_writer: .xml input ProteinFiles are not supported.");
-    } else if (path.find(".pdb") != std::string::npos || path.find(".PDB") != std::string::npos) { // .pdb ProteinFile
+    } else if (path.extension() == ".pdb" || path.extension() == ".PDB") { // .pdb ProteinFile
         return std::make_unique<PDBWriter>(this);
     } else { // anything else - we cannot handle this
         throw except::invalid_argument("ProteinFile::construct_writer: Unsupported ProteinFile extension of input ProteinFile \"" + path + "\".");
