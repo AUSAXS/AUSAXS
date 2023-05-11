@@ -1,11 +1,11 @@
 #pragma once
 
 #include <rigidbody/RigidBody.h>
-#include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
 
 #include <memory>
 
+namespace io {class ExistingFile;}
 namespace rigidbody {
     class RigidBody;
     namespace sequencer {
@@ -17,9 +17,9 @@ namespace rigidbody {
 
                 void optimize_step();
 
-                void set_managers(settings::rigidbody::BodySelectStrategyChoice body_selector, 
-                                    settings::rigidbody::TransformationStrategyChoice transform,
-                                    settings::rigidbody::ParameterGenerationStrategyChoice parameters
+                void set_managers(const settings::rigidbody::BodySelectStrategyChoice& body_selector, 
+                                    const settings::rigidbody::TransformationStrategyChoice& transform,
+                                    const settings::rigidbody::ParameterGenerationStrategyChoice& parameters
                 );
 
             private:

@@ -1,6 +1,7 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
-#include <data/Protein.h>
 #include <settings/GeneralSettings.h>
+#include <data/Protein.h>
+#include <hist/ScatteringHistogram.h>
 
 using namespace rigidbody;
 

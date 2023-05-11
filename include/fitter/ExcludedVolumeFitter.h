@@ -6,6 +6,7 @@ class Protein;
 namespace io {class ExistingFile;}
 namespace fitter {
     class Fit;
+    class FitPlots;
 
     /**
      * @brief Fit an intensity curve to a dataset. 
@@ -45,7 +46,7 @@ namespace fitter {
              * 
              * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
              */
-            [[nodiscard]] Fit::Plots plot() override;
+            [[nodiscard]] FitPlots plot() override;
 
             /**
              * @brief Make a residual plot of the fit.
@@ -80,9 +81,9 @@ namespace fitter {
             void set_guess(std::vector<mini::Parameter> guess);
 
         private: 
-            std::vector<mini::Parameter> guess;      // The guess values for the parameters.
-            Protein& protein;                        // The protein being fitted.
-            mini::type fit_type = mini::type::BFGS;  // The algorithm to use.
+            std::vector<mini::Parameter> guess; // The guess values for the parameters.
+            Protein& protein;                   // The protein being fitted.
+            mini::type fit_type;                // The algorithm to use.
 
             void update_excluded_volume(double d);
 

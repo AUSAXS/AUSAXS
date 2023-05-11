@@ -1,5 +1,13 @@
 #include <rigidbody/transform/RigidTransform.h>
+#include <rigidbody/transform/TransformGroup.h>
+#include <rigidbody/transform/BackupBody.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/RigidBody.h>
+#include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
+#include <data/Atom.h>
+#include <data/Body.h>
 
 #include <unordered_set>
 
@@ -28,7 +36,7 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, st
     }
 }
 
-TransformStrategy::TransformGroup RigidTransform::get_connected(std::shared_ptr<DistanceConstraint> pivot) {
+TransformGroup RigidTransform::get_connected(std::shared_ptr<DistanceConstraint> pivot) {
     std::function<void(unsigned int, std::unordered_set<unsigned int>&)> explore_branch = [&] (unsigned int ibody, std::unordered_set<unsigned int>& indices) {
         if (indices.contains(ibody)) {
             return;

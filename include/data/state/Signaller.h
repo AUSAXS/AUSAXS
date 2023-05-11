@@ -6,7 +6,9 @@ namespace signaller {
      */
     class Signaller {
         public: 
-            Signaller() {}
+            Signaller() = default;
+
+            virtual ~Signaller() = default;
 
             /**
              * @brief Signal that the external state (i.e. position, rotation) of this object has changed. 

@@ -7,7 +7,7 @@ namespace rigidbody::parameters::decay {
         public:
             ExponentialDecay(unsigned int max_iterations);
             ExponentialDecay(double decay_rate);
-            ~ExponentialDecay() = default;
+            ~ExponentialDecay();
 
             double get_factor() override;
 

@@ -7,6 +7,7 @@
 namespace fitter {
 	class LinearFitter;
 	class Fit;
+	class FitPlots;
 }
 namespace plots {
 
@@ -49,6 +50,6 @@ namespace plots {
 			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
-			void plot(const fitter::Fit::Plots& graphs);
+			void plot(const fitter::FitPlots& graphs);
 	};
 }

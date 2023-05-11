@@ -1,5 +1,8 @@
 #include <rigidbody/selection/RandomConstraintSelect.h>
+#include <rigidbody/constraints/ConstraintManager.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/RigidBody.h>
+#include <utility/Exceptions.h>
 
 #include <utility>
 

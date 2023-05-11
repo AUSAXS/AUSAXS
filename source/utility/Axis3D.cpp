@@ -1,5 +1,7 @@
 #include <utility/Axis3D.h>
 #include <utility/Exceptions.h>
+#include <utility/Limit3D.h>
+#include <math/Vector3.h>
 
 Axis3D::Axis3D() noexcept {}
 

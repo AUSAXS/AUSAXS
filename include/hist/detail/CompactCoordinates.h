@@ -2,6 +2,8 @@
 
 #include <utility/Concepts.h>
 
+#include <vector>
+
 template<numeric T> class Vector3;
 class Body;
 class Water;

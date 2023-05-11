@@ -6,9 +6,9 @@
 #include <data/Body.h>
 #include <data/Water.h>
 #include <settings/GridSettings.h>
-#include <math/Vector3.h>
 #include <utility/Console.h>
 #include <data/Protein.h>
+#include <io/ExistingFile.h>
 
 using namespace grid;
 

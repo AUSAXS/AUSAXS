@@ -8,6 +8,8 @@ namespace em {
         public: 
             ObjectBounds3D(unsigned int size_x, unsigned int size_y, unsigned int size_z);
 
+            ~ObjectBounds3D();
+
             ObjectBounds2D& operator[](unsigned int z);
 
             const ObjectBounds2D& operator[](unsigned int z) const;

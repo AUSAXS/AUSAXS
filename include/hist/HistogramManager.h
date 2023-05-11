@@ -16,6 +16,8 @@ namespace hist {
 		public:
 			HistogramManager(Protein* protein); 
 
+			HistogramManager(const HistogramManager& hm); 
+
 			virtual ~HistogramManager();
 
 			/**

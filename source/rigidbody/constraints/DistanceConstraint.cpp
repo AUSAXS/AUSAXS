@@ -1,6 +1,9 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <settings/RigidBodySettings.h>
+#include <utility/Constants.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h>
 
 using namespace rigidbody;
 

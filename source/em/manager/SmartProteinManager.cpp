@@ -1,10 +1,13 @@
 #include <em/manager/SmartProteinManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Body.h>
 #include <utility/Console.h>
 #include <em/detail/ImageStackBase.h>
 #include <settings/EMSettings.h>
 #include <em/Image.h>
+#include <data/Water.h>
 
 #include <vector>
 

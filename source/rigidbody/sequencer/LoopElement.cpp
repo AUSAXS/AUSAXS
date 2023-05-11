@@ -22,6 +22,16 @@ LoopElement::LoopElement(LoopElement* owner) :
     transform_element(std::make_unique<TransformElement>(this)) 
 {}
 
+LoopElement::LoopElement(LoopElement* owner, unsigned int repeats) : 
+    owner(owner),
+    iterations(repeats),
+    parameter_element(std::make_unique<ParameterElement>(this)), 
+    body_select_element(std::make_unique<BodySelectElement>(this)), 
+    transform_element(std::make_unique<TransformElement>(this)) 
+{}
+
+LoopElement::~LoopElement() = default;
+
 void LoopElement::execute() {
     std::cout << "LoopElement::execute()" << std::endl;
     parameter_element->apply();
@@ -43,7 +53,7 @@ void LoopElement::execute() {
 LoopElement& LoopElement::loop(unsigned int repeats) {
     std::cout << "LoopElement::loop(" << repeats << ")" << std::endl;
     is_root = false;
-    LoopElement& ref = *inner_loops.emplace_back(std::make_unique<LoopElement>(repeats));
+    LoopElement& ref = *inner_loops.emplace_back(std::make_unique<LoopElement>(owner, repeats));
     ref.body_select_element->strategy = body_select_element->strategy;
     ref.parameter_element->strategy = parameter_element->strategy;
     ref.transform_element->strategy = transform_element->strategy;

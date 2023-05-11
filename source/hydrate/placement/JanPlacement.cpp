@@ -1,4 +1,5 @@
 #include <hydrate/placement/JanPlacement.h>
+#include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
 #include <data/Water.h>
 

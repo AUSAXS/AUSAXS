@@ -1,7 +1,11 @@
 #include <plots/PlotIntensityFit.h>
-#include <fitter/Fit.h>
+#include <plots/PlotOptions.h>
 #include <hist/ScatteringHistogram.h>
+#include <fitter/Fit.h>
 #include <fitter/LinearFitter.h>
+#include <fitter/FitPlots.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 plots::PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot() {
     auto graphs = fitter.plot();
@@ -23,7 +27,7 @@ void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit,
     plot.save(path);
 }
 
-void plots::PlotIntensityFit::plot(const fitter::Fit::Plots& graphs) {
+void plots::PlotIntensityFit::plot(const fitter::FitPlots& graphs) {
     PlotOptions options_data, options_interpolated, options_intensity;
     options_data.set("errors", {{"color", style::color::orange}, {"title", "Fit"}, {"xlabel", "$q$ [$\\AA^{-1}$]"}, {"ylabel", "$I$ [arb]"}, {"logy", true}, {"logx", true}});
     options_interpolated.set("markers", {{"color", style::color::black}});

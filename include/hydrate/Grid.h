@@ -2,6 +2,7 @@
 
 #include <hydrate/GridObj.h>
 #include <utility/Axis3D.h>
+#include <math/Vector3.h>
 
 #include <list>
 #include <vector>

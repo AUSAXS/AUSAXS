@@ -1,8 +1,8 @@
-#include <settings/GridSettings.h>
 #include <hydrate/culling/CullingFactory.h>
 #include <hydrate/culling/CounterCulling.h>
 #include <hydrate/culling/OutlierCulling.h>
 #include <hydrate/culling/RandomCulling.h>
+#include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 
 std::unique_ptr<grid::CullingStrategy> grid::factory::construct_culling_strategy(Grid* grid) {

@@ -7,6 +7,8 @@ using namespace em;
 
 ObjectBounds2D::ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bounds(size_x, Limit(0, size_y)), N(size_x), M(size_y) {}
 
+ObjectBounds2D::~ObjectBounds2D() = default;
+
 Limit& ObjectBounds2D::operator[](unsigned int x) {return bounds[x];}
 
 const Limit& ObjectBounds2D::operator[](unsigned int x) const {return bounds[x];}

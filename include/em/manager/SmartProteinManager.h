@@ -6,6 +6,7 @@
 #include <vector>
 
 class Protein;
+class Atom;
 namespace em::managers {
     /**
      * @brief A helper class for the ImageStack. 

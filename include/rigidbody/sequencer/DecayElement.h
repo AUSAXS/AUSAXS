@@ -5,12 +5,12 @@
 
 namespace rigidbody {
     namespace sequencer {
-        class LoopElement;
+        class ParameterElement;
         class DecayElement : public ParameterElementCallback {
             public:
-                DecayElement(LoopElement* owner);
-                DecayElement(LoopElement* owner, settings::rigidbody::DecayStrategyChoice strategy);
-                ~DecayElement();
+                DecayElement(rigidbody::sequencer::ParameterElement* owner);
+                DecayElement(rigidbody::sequencer::ParameterElement* owner, const settings::rigidbody::DecayStrategyChoice& strategy);
+                ~DecayElement() override;
 
                 void apply();
 

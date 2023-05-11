@@ -1,9 +1,10 @@
-#include <settings/GridSettings.h>
 #include <hydrate/placement/PlacementFactory.h>
 #include <hydrate/placement/JanPlacement.h>
 #include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/placement/AxesPlacement.h>
+#include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
+#include <math/Vector3.h>
 
 std::unique_ptr<grid::PlacementStrategy> grid::factory::construct_placement_strategy(Grid* grid) {
     return grid::factory::construct_placement_strategy(grid, settings::grid::placement_strategy);

@@ -33,7 +33,7 @@ void StateManager::reset() {
     _modified_hydration = false;
 }
 
-std::shared_ptr<signaller::BoundSignaller> StateManager::get_probe(unsigned int i) {return probes[i];}
+std::shared_ptr<signaller::Signaller> StateManager::get_probe(unsigned int i) {return probes[i];}
 
 std::vector<bool> StateManager::get_externally_modified_bodies() const {return _externally_modified;}
 

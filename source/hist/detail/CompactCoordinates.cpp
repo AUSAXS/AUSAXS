@@ -1,6 +1,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <math/Vector3.h>
 #include <data/Atom.h>
+#include <data/Water.h>
 #include <data/Body.h>
 
 using namespace hist::detail;

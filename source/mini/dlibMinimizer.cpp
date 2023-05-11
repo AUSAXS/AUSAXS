@@ -1,4 +1,7 @@
 #include <mini/dlibMinimizer.h>
+#include <mini/detail/Parameter.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 #include <utility/Console.h>
 
 #include <dlib/optimization.h>

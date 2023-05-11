@@ -1,26 +1,15 @@
 #include <rigidbody/transform/TransformStrategy.h>
 #include <rigidbody/RigidBody.h>
+#include <rigidbody/transform/BackupBody.h>
+#include <rigidbody/transform/TransformGroup.h>
 
 #include <vector>
 
 using namespace rigidbody;
 
-struct BackupBody {
-    BackupBody(const Body& body, unsigned int index) : body(body), index(index) {}
-    Body body;
-    unsigned int index;
-};
+TransformStrategy::TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
 
-struct TransformGroup {
-    TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot);
-    std::vector<Body*> bodies;                  // The bodies to transform.
-    std::vector<unsigned int> indices;          // The indices of the bodies in the rigidbody.
-    std::shared_ptr<DistanceConstraint> target; // The constraint to transform along.
-    Vector3<double> pivot;                      // The pivot point of the transformation.
-};
-
-TransformGroup::TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot) 
-    : bodies(bodies), indices(indices), target(target), pivot(pivot) {}
+TransformStrategy::~TransformStrategy() = default;
 
 void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
     std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(-group.pivot);});

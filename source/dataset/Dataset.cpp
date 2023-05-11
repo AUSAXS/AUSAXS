@@ -7,6 +7,8 @@
 #include <utility/StringUtils.h>
 #include <dataset/DatasetFactory.h>
 #include <dataset/SimpleDataset.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 #include <vector>
 #include <string>

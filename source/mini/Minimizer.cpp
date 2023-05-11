@@ -8,6 +8,10 @@
 
 using namespace mini;
 
+Minimizer::Minimizer() = default;
+
+Minimizer::~Minimizer() = default;
+
 Minimizer::Minimizer(double(&f)(std::vector<double>)) {
     set_function(f);
 }

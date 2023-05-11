@@ -2,6 +2,7 @@
 
 #include <rigidbody/transform/TransformStrategy.h>
 
+namespace settings::rigidbody {enum class TransformationStrategyChoice;}
 namespace rigidbody {
     namespace factory {
         /**

@@ -2,10 +2,7 @@
 
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 
-namespace settings::rigidbody {
-    enum class ConstraintGenerationStrategyChoice;
-}
-
+namespace settings::rigidbody {enum class ConstraintGenerationStrategyChoice;}
 namespace rigidbody {
     namespace factory {
         /**

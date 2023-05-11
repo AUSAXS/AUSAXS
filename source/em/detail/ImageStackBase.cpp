@@ -1,10 +1,16 @@
 #include <em/detail/ImageStackBase.h>
-#include <Symbols.h>
-#include <data/Protein.h>
 #include <em/manager/ProteinManagerFactory.h>
-#include <utility/Exceptions.h>
+#include <em/ObjectBounds3D.h>
+#include <em/Image.h>
+#include <data/Protein.h>
+#include <fitter/Fit.h>
+#include <mini/detail/FittedParameter.h>
 #include <settings/EMSettings.h>
 #include <settings/HistogramSettings.h>
+#include <utility/Exceptions.h>
+#include <utility/Constants.h>
+#include <mini/detail/Evaluation.h>
+#include <Symbols.h>
 
 #include <fstream>
 
@@ -140,7 +146,7 @@ double em::ImageStackBase::mean() const {
     return sum/size_z;
 }
 
-ObjectBounds3D em::ImageStackBase::minimum_volume(double cutoff) {
+em::ObjectBounds3D em::ImageStackBase::minimum_volume(double cutoff) {
     ObjectBounds3D bounds(size_x, size_y, size_z);
     for (unsigned int z = 0; z < size_z; z++) {
         bounds[z] = image(z).setup_bounds(cutoff);

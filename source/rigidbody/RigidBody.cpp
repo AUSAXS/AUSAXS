@@ -1,6 +1,4 @@
 #include <rigidbody/RigidBody.h>
-
-#include <Symbols.h>
 #include <rigidbody/transform/TransformFactory.h>
 #include <rigidbody/selection/BodySelectFactory.h>
 #include <rigidbody/parameters/ParameterGenerationFactory.h>
@@ -8,6 +6,7 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/parameters/Parameters.h>
 #include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <io/XYZWriter.h>
@@ -18,6 +17,14 @@
 #include <fitter/HydrationFitter.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/Fit.h>
+#include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
+#include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
+#include <data/Atom.h>
+#include <data/Water.h>
+#include <data/Body.h>
+#include <Symbols.h>
 
 using namespace rigidbody;
 
@@ -32,9 +39,9 @@ RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
 }
 
 void RigidBody::initialize() {
-    parameter_generator = factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3);
-    body_selector = factory::create_selection_strategy(this);
-    transform = factory::create_transform_strategy(this);
+    parameter_generator = std::move(factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3));
+    body_selector = std::move(factory::create_selection_strategy(this));
+    transform = std::move(factory::create_transform_strategy(this));
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_path) {
@@ -103,11 +110,13 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
         transform->undo();          // undo the body transforms
         *grid = *best.grid;         // restore the old grid
         waters() = best.waters;     // restore the old waters
+        return false;
     } else {
         // accept the changes
         best.grid = std::make_shared<grid::Grid>(*grid);
         best.waters = waters();
         best.chi2 = new_chi2;
+        return true;
     }
 }
 

@@ -4,7 +4,7 @@
 #include <memory>
 
 namespace signaller {
-	class BoundSignaller;
+	class Signaller;
 }
 
 /**
@@ -53,7 +53,7 @@ class StateManager {
 		/**
 		 * @brief Get a pointer to the @a ith probe so it can be dispatched to other classes.
 		 */
-		std::shared_ptr<signaller::BoundSignaller> get_probe(unsigned int i);
+		std::shared_ptr<signaller::Signaller> get_probe(unsigned int i);
 
 		/**
 		 * @brief Get a boolean vector which denotes if the state of a given body was changed. 
@@ -82,5 +82,5 @@ class StateManager {
 		std::vector<bool> _externally_modified;
 		std::vector<bool> _internally_modified;
 		bool _modified_hydration;
-		std::vector<std::shared_ptr<signaller::BoundSignaller>> probes;
+		std::vector<std::shared_ptr<signaller::Signaller>> probes;
 };

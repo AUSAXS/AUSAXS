@@ -9,7 +9,9 @@ namespace signaller {
      */
     class UnboundSignaller : public Signaller {
         public: 
-            UnboundSignaller() {}
+            UnboundSignaller();
+
+            ~UnboundSignaller() override;
 
             /**
              * @brief Does nothing.

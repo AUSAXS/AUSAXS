@@ -1,5 +1,9 @@
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h>
+#include <data/Water.h>
 #include <hist/PartialHistogramManager.h>
+#include <data/state/StateManager.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
@@ -7,14 +11,14 @@ using namespace hist;
 PartialHistogramManager::PartialHistogramManager(Protein* protein)
     : HistogramManager(protein), coords_p(size), partials_pp(size, std::vector<detail::PartialHistogram>(size)), partials_hp(size) 
     {
-        for (unsigned int i = 0; i < size; i++) {protein->bodies[i].register_probe(statemanager.get_probe(i));}
+        for (unsigned int i = 0; i < size; i++) {protein->bodies[i].register_probe(statemanager->get_probe(i));}
     }
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 
 Histogram PartialHistogramManager::calculate() {
-    const std::vector<bool> externally_modified = statemanager.get_externally_modified_bodies();
-    const std::vector<bool> internally_modified = statemanager.get_internally_modified_bodies();
+    const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
+    const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
     // check if the object has already been initialized
     if (master.p.size() == 0) [[unlikely]] {
@@ -35,7 +39,7 @@ Histogram PartialHistogramManager::calculate() {
     }
 
     // check if the hydration layer was modified
-    if (statemanager.get_modified_hydration()) {
+    if (statemanager->get_modified_hydration()) {
         coords_h = detail::CompactCoordinates(protein->hydration_atoms); // if so, first update the compact coordinate representation
         calc_hh(); // then update the partial histogram
 

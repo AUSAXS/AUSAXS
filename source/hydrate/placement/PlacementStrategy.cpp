@@ -1,4 +1,6 @@
 #include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/GridMember.h>
+#include <data/Water.h>
 
 using namespace grid;
 

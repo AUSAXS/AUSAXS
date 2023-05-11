@@ -1,5 +1,6 @@
 #include <rigidbody/parameters/Parameters.h>
 #include <data/Protein.h>
+#include <data/Body.h>
 
 #include <vector>
 

@@ -1,5 +1,7 @@
 #include <rigidbody/selection/RandomSelect.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/RigidBody.h>
+#include <utility/Exceptions.h>
 
 using namespace rigidbody::selection;
 

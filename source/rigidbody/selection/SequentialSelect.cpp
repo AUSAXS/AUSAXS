@@ -1,4 +1,5 @@
 #include <rigidbody/selection/SequentialSelect.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 #include <rigidbody/RigidBody.h>
 
 using namespace rigidbody::selection;

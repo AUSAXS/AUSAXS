@@ -1,7 +1,8 @@
 #include <data/Atom.h>
+#include <data/Water.h>
 #include <data/Body.h>
 #include <data/Protein.h>
-#include <data/StateManager.h>
+#include <data/state/StateManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <hist/HistogramManager.h>
 #include <settings/HistogramSettings.h>
@@ -9,6 +10,8 @@
 using namespace hist;
 
 HistogramManager::HistogramManager(Protein* protein) : BodyTracker(protein), protein(protein) {}
+
+HistogramManager::HistogramManager(const HistogramManager& hm) : BodyTracker(hm.protein), protein(hm.protein) {}
 
 HistogramManager::~HistogramManager() = default;
 

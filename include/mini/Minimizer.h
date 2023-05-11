@@ -27,7 +27,7 @@ namespace mini {
             /**
              * @brief Default constructor.
              */
-            Minimizer() {}
+            Minimizer();
 
             /**
              * @brief Constructor.
@@ -46,7 +46,7 @@ namespace mini {
             /**
              * @brief Destructor.
              */
-            virtual ~Minimizer() = default;
+            virtual ~Minimizer();
 
             /**
              * @brief Set the function to be minimized.

@@ -3,6 +3,8 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h>
 
 using namespace rigidbody;
 

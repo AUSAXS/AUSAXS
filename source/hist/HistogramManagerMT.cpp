@@ -1,4 +1,6 @@
 #include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Water.h>
 #include <hist/HistogramManagerMT.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>

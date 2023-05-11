@@ -1,7 +1,11 @@
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h> 
+#include <data/Water.h>
 #include <hist/PartialHistogramManagerMT.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
+#include <data/state/StateManager.h>
 
 #include <mutex>
 #include <BS_thread_pool.hpp>
@@ -15,8 +19,8 @@ PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& ph
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
 Histogram PartialHistogramManagerMT::calculate() {
-    const std::vector<bool> externally_modified = statemanager.get_externally_modified_bodies();
-    const std::vector<bool> internally_modified = statemanager.get_internally_modified_bodies();
+    const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
+    const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
     pool = std::make_unique<BS::thread_pool>(settings::general::threads);
     // check if the object has already been initialized
@@ -39,7 +43,7 @@ Histogram PartialHistogramManagerMT::calculate() {
     }
 
     // check if the hydration layer was modified
-    if (statemanager.get_modified_hydration()) {
+    if (statemanager->get_modified_hydration()) {
         coords_h = detail::CompactCoordinates(protein->hydration_atoms); // if so, first update the compact coordinate representation
         calc_hh(); // then update the partial histogram
 

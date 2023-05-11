@@ -2,6 +2,9 @@
 
 #include <io/Writer.h>
 
+#include <vector>
+#include <string>
+
 class ProteinFile;
 /**
  * @brief This class handles writing a File object into a PDB format data file.

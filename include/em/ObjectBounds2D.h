@@ -11,6 +11,8 @@ namespace em {
         public:
             ObjectBounds2D(unsigned int size_x, unsigned int size_y);
 
+            ~ObjectBounds2D();
+
             Limit& operator[](unsigned int x);
 
             const Limit& operator[](unsigned int x) const;

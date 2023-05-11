@@ -3,6 +3,7 @@
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
+#include <data/Atom.h>
 
 #include <iomanip>
 

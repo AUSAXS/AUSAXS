@@ -10,6 +10,8 @@ ExponentialDecay::ExponentialDecay(unsigned int max_iterations) {
 
 ExponentialDecay::ExponentialDecay(double decay_rate) : decay_rate(decay_rate) {}
 
+ExponentialDecay::~ExponentialDecay() = default;
+
 double ExponentialDecay::get_factor() {
     return std::exp(-decay_rate*draws++);
 }

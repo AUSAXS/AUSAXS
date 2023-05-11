@@ -1,5 +1,6 @@
 #include <utility/Constants.h>
 #include <utility/StringUtils.h>
+#include <io/ExistingFile.h>
 
 namespace constants {
     filetypes::detail::FileType::FileType(std::vector<std::string> extensions) {

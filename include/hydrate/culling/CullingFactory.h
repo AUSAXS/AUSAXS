@@ -4,6 +4,7 @@
 
 #include <memory>
 
+namespace settings::grid {enum class CullingStrategy;}
 namespace grid {
     namespace factory {
         /**

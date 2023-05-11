@@ -11,6 +11,8 @@ namespace signaller {
         public: 
             BoundSignaller(unsigned int id, StateManager* const owner);
 
+            ~BoundSignaller() override;
+
             /**
              * @brief Signal that the external state (i.e. position, rotation) of this object has changed. 
              */

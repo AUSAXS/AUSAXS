@@ -5,7 +5,6 @@
 #include <memory>
 
 namespace grid {class Grid;}
-namespace selection {class BodySelectStrategy;}
 namespace fitter {
 	class Fit;
 	class LinearFitter;
@@ -20,6 +19,7 @@ namespace rigidbody {
 
 	}
 
+	namespace selection {class BodySelectStrategy;}
 	class ConstraintManager;
 	class TransformStrategy;
 	class ParameterGenerationStrategy;
@@ -51,7 +51,7 @@ namespace rigidbody {
 			std::shared_ptr<ConstraintManager> constraints;
 		protected:
 			std::shared_ptr<fitter::Fit> calibration = nullptr;
-			std::unique_ptr<selection::BodySelectStrategy> body_selector;
+			std::unique_ptr<rigidbody::selection::BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;
 			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
 			std::shared_ptr<fitter::LinearFitter> fitter;

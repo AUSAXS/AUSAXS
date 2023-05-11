@@ -6,11 +6,7 @@
 #include <memory>
 #include <concepts>
 
-namespace rigidbody {
-    class DistanceConstraint;
-    class ConstraintManager;
-}
-
+namespace rigidbody {class ConstraintManager;}
 namespace fitter {
     template<typename C>
     concept fitter_t = std::is_base_of_v<Fitter, C>;

@@ -11,6 +11,7 @@ class Protein;
 namespace io {class ExistingFile;}
 namespace fitter{class EMFit;}
 namespace em {
+    class ObjectBounds3D;
     namespace managers {class ProteinManager;}
     class EMHistogramManager;
     class Image;
@@ -111,7 +112,7 @@ namespace em {
              */
             double mean() const;
 
-            ObjectBounds3D minimum_volume(double cutoff);
+            em::ObjectBounds3D minimum_volume(double cutoff);
 
             /**
              * @brief Get the cutoff corresponding to a PyMOL level. This is just the number of sigmas of the root-mean-square deviation.

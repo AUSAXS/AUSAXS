@@ -17,6 +17,9 @@
 #include <hist/HistogramManager.h>
 #include <utility/Constants.h>
 #include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
+#include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 
 using namespace hist;
 

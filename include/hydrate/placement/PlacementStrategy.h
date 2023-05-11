@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 class Water;
 namespace grid {
     template<typename T> class GridMember;

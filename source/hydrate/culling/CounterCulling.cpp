@@ -1,6 +1,7 @@
 #include <hydrate/culling/CounterCulling.h>
 #include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
+#include <data/Water.h>
 
 #include <cmath>
 

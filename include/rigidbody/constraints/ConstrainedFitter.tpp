@@ -1,4 +1,5 @@
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 
 template<fitter::fitter_t T>
 double fitter::ConstrainedFitter<T>::chi2(const std::vector<double>& params) {

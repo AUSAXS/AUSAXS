@@ -7,7 +7,7 @@ namespace rigidbody::parameters::decay {
         public:
             LinearDecay(unsigned int max_iterations);
             LinearDecay(double decay_rate);
-            ~LinearDecay() = default;
+            ~LinearDecay();
 
             double get_factor() override;
 

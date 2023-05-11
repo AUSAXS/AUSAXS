@@ -8,6 +8,7 @@ namespace rigidbody {
         class ParameterElementCallback : public LoopElementCallback {
             public:
                 ParameterElementCallback(ParameterElement* caller);
+                virtual ~ParameterElementCallback() override;
 
                 ParameterElement& amplitude(double amplitude);
 

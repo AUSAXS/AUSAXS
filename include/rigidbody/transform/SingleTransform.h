@@ -5,8 +5,8 @@
 namespace rigidbody {
     class SingleTransform : public TransformStrategy {
         public:
-            SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
-            ~SingleTransform() = default;
+            SingleTransform(RigidBody* rigidbody);
+            ~SingleTransform() override;
 
             /**
              * @brief Apply a transformation to the rigidbody.

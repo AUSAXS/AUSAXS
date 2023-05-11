@@ -29,7 +29,7 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) override;
+            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<rigidbody::DistanceConstraint> constraint) override;
 
         protected:
             /**

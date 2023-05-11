@@ -8,6 +8,8 @@ using namespace rigidbody::sequencer;
 
 LoopElementCallback::LoopElementCallback(LoopElement* caller) : caller(caller) {}
 
+LoopElementCallback::~LoopElementCallback() = default;
+
 LoopElement& LoopElementCallback::loop(unsigned int repeats) {
     return caller->loop(repeats);
 }

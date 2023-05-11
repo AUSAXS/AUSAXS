@@ -3,6 +3,7 @@
 #include <utility/Exceptions.h>
 #include <utility/Utility.h>
 #include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 #include <sstream>
 

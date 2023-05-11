@@ -1,7 +1,9 @@
 #include <plots/PlotIntensityFitResiduals.h>
-#include <fitter/Fit.h>
 #include <hist/ScatteringHistogram.h>
+#include <fitter/Fit.h>
 #include <fitter/LinearFitter.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(fitter::LinearFitter& fitter) : Plot() {
     SimpleDataset graph = fitter.plot_residuals();

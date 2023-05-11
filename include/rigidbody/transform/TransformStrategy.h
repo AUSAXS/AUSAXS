@@ -7,12 +7,12 @@
 
 class Protein;
 class Body;
-class DistanceConstraint;
 class TransformGroup;
 class BackupBody;
 template<numeric T> class Vector3;
 template<numeric T> class Matrix;
 namespace rigidbody {
+    class DistanceConstraint;
     class RigidBody;
     
     /**
@@ -26,12 +26,12 @@ namespace rigidbody {
             /**
              * @brief Construtor. 
              */
-            TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
+            TransformStrategy(RigidBody* rigidbody);
 
             /**
              * @brief Destructor.
              */
-            virtual ~TransformStrategy() = default;
+            virtual ~TransformStrategy();
 
             /**
              * @brief Apply a transformation to a body. 
@@ -42,7 +42,7 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) = 0;
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<rigidbody::DistanceConstraint> constraint) = 0;
 
             /**
              * @brief Undo the previous transformation. 

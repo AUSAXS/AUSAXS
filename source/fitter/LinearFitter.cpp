@@ -5,6 +5,7 @@
 #include <utility/Exceptions.h>
 #include <settings/HistogramSettings.h>
 #include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 #include <dataset/Dataset2D.h>
 #include <fitter/FitPlots.h>
 

@@ -1,8 +1,13 @@
 #include <hydrate/GridReader.h>
+#include <hydrate/GridMember.h>
+#include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <io/ExistingFile.h>
 #include <math/Vector3.h>
+#include <data/Atom.h>
+#include <data/Water.h>
 
 #include <fstream>
 

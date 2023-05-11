@@ -22,6 +22,8 @@ namespace rigidbody {
                  */
                 LoopElementCallback(LoopElement* caller);
 
+                virtual ~LoopElementCallback();
+
                 /**
                  * @brief Create a nested loop.
                  */

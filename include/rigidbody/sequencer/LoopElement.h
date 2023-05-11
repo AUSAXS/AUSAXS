@@ -7,10 +7,11 @@
 
 namespace rigidbody {
     class RigidBody;
-    class ParameterElement;
-    class BodySelectElement;
-    class TransformElement;
     namespace sequencer {
+        class ParameterElement;
+        class BodySelectElement;
+        class TransformElement;
+
         /**
          * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
          */
@@ -18,7 +19,8 @@ namespace rigidbody {
             public:
                 LoopElement();
                 LoopElement(LoopElement* owner);
-                virtual ~LoopElement() = default;
+                LoopElement(LoopElement* owner, unsigned int repeats);
+                virtual ~LoopElement();
 
                 virtual void execute();
 

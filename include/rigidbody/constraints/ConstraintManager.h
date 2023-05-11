@@ -2,7 +2,9 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
+class Protein;
 namespace rigidbody {
     class OverlapConstraint;
     class DistanceConstraint;

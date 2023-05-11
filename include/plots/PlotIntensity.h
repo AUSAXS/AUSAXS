@@ -1,6 +1,7 @@
 #pragma once
 
 #include <plots/Plot.h>
+#include <plots/Styles.h>
 
 #include <memory>
 
@@ -9,6 +10,7 @@ namespace fitter {
 	class Fitter;
 	class Fit;
 }
+class SimpleDataset;
 namespace plots {
 	class PlotIntensity : public Plot {
 		public:

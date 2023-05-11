@@ -8,6 +8,8 @@ LinearDecay::LinearDecay(unsigned int max_iterations) {
 
 LinearDecay::LinearDecay(double decay_rate) : decay_rate(decay_rate) {}
 
+LinearDecay::~LinearDecay() = default;
+
 double LinearDecay::get_factor() {
     return 1.0 - decay_rate*draws++;
 }

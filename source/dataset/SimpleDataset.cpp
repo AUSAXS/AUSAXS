@@ -4,6 +4,8 @@
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <dataset/DatasetFactory.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 #include <vector>
 #include <string>

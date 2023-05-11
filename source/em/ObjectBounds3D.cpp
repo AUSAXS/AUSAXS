@@ -1,11 +1,14 @@
 #include <em/ObjectBounds3D.h>
 #include <em/ObjectBounds2D.h>
+#include <utility/Limit.h>
 
 #include <numeric>
 
 using namespace em;
 
 ObjectBounds3D::ObjectBounds3D(unsigned int size_x, unsigned int size_y, unsigned int size_z) : bounds(size_z, ObjectBounds2D(size_x, size_y)), size_x(size_x), size_y(size_y), size_z(size_z) {}
+
+ObjectBounds3D::~ObjectBounds3D() = default;
 
 ObjectBounds2D& ObjectBounds3D::operator[](unsigned int z) {return bounds[z];}
 
