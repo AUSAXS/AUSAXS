@@ -195,6 +195,6 @@ SimpleDataset HydrationFitter::get_dataset() const {
     return data;
 }
 
-void HydrationFitter::set_guess(mini::Parameter guess) {
+void HydrationFitter::set_guess(const mini::Parameter& guess) {
     this->guess = guess;
 }

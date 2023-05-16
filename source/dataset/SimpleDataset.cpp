@@ -47,7 +47,7 @@ SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::
     options.ylabel = ylabel;
 }
 
-SimpleDataset::SimpleDataset(std::string path) : SimpleDataset() {
+SimpleDataset::SimpleDataset(const io::ExistingFile& path) : SimpleDataset() {
     auto data = factory::DatasetFactory::construct(path, 3);
     *this = std::move(*data);
 }

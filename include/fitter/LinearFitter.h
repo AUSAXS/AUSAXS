@@ -182,7 +182,7 @@ namespace fitter {
 			 * 
 			 * @param file measured values to compare the model against.
 			 */
-			void setup(std::string file);
+			void setup(const io::ExistingFile& file);
 
 			/**
 			 * @brief Splice values from the model to fit the evaluation points defined by the q values of the input file. 

@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <utility/Settings.h>
+#include <settings/All.h>
 #include <dataset/Dataset.h>
+#include <dataset/Dataset2D.h>
+#include <data/Protein.h>
 #include <em/ImageStack.h>
 #include <plots/all.h>
 
@@ -217,7 +219,7 @@ TEST_CASE("plots") {
 }
 
 TEST_CASE("rebin", "[manual]") {
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     SimpleDataset data("data/SHOC2/SHOC2.dat");
     SimpleDataset data_unbinned = data;
     data.rebin();
@@ -235,7 +237,7 @@ TEST_CASE("rebin", "[manual]") {
 }
 
 TEST_CASE("sim_err", "[manual]") {
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     Dataset2D data1("test/files/2epe.dat");
     Dataset2D data2 = data1;
 
@@ -265,7 +267,7 @@ TEST_CASE("sim_noise", "[manual]") {
 }
 
 TEST_CASE("io") {
-    setting::general::verbose = false;
+    settings::general::verbose = false;
 
     SECTION("read") {
         Dataset2D data("test/files/2epe.dat");

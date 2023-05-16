@@ -126,7 +126,7 @@ namespace fitter {
             /**
              * @brief Set the guess value for the hydration scaling factor @a c.
              */
-            void set_guess(mini::Parameter guess);
+            void set_guess(const mini::Parameter& guess);
 
             /**
              * @brief Set the fitting algorithm to use.

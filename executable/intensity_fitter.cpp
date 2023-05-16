@@ -1,9 +1,5 @@
 #include <CLI/CLI.hpp>
 
-#include <vector>
-#include <string>
-#include <iostream>
-
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <fitter/HydrationFitter.h>
@@ -13,6 +9,15 @@
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <utility/Constants.h>
+
+#include <data/Water.h>
+#include <mini/detail/Evaluation.h>
+#include <mini/detail/FittedParameter.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
 
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};

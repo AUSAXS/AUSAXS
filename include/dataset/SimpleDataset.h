@@ -49,7 +49,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         /**
          * @brief Construct a new dataset from an input file.
          */
-        SimpleDataset(std::string path);
+        SimpleDataset(const io::ExistingFile& path);
 
         /**
          * @brief Destructor.

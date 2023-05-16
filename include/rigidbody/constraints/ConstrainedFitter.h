@@ -29,6 +29,8 @@ namespace fitter {
              */
             void set_constraint_manager(std::shared_ptr<rigidbody::ConstraintManager> constraints);
 
+            std::shared_ptr<rigidbody::ConstraintManager> get_constraint_manager(); 
+
         private: 
             std::shared_ptr<rigidbody::ConstraintManager> constraints;
     };

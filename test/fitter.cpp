@@ -7,22 +7,24 @@
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
 #include <utility/Utility.h>
-#include <utility/Settings.h>
+#include <settings/All.h>
 #include <hist/Histogram.h>
+#include <data/Protein.h>
 #include <fitter/ExcludedVolumeFitter.h>
+#include <mini/detail/FittedParameter.h>
 
 TEST_CASE("consistency_check", "[slow],[manual]") {
     unsigned int repeats = 100;
 
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 2;
     // setting::axes::qmax = 0.4;
 
     // prepare measured data
     Protein protein("data/A2M/native.pdb");
     SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
-    data.reduce(setting::fit::N, true);
-    data.limit_x(Limit(setting::axes::qmin, setting::axes::qmax));
+    data.reduce(settings::fit::N, true);
+    data.limit_x(Limit(settings::axes::qmin, settings::axes::qmax));
     data.simulate_errors();
 
     // prepare fit data
@@ -41,7 +43,7 @@ TEST_CASE("consistency_check", "[slow],[manual]") {
 }
 
 TEST_CASE("excluded_volume") {
-    setting::protein::use_effective_charge = true;
+    settings::protein::use_effective_charge = true;
 
     SECTION("simple") {
         std::string mfile = "test/files/2epe.dat";

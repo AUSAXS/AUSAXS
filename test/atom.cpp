@@ -4,11 +4,11 @@
 
 #include <data/Atom.h>
 #include <data/Water.h>
-#include <utility/Settings.h>
+#include <settings/All.h>
 #include <utility/Constants.h>
 
 TEST_CASE("constructors") {
-    setting::protein::use_effective_charge = false;
+    settings::protein::use_effective_charge = false;
 
     SECTION("atom") {
         // "element", "resName", and "name" are used for some internal logic, and must have reasonable values. "" can also be used. 
@@ -27,7 +27,7 @@ TEST_CASE("constructors") {
         CHECK(a1.tempFactor == 3.5);
         CHECK(a1.element == "He");
         CHECK(a1.charge == "2-");
-        CHECK(a1.get_type() == Record::RecordType::ATOM);
+        CHECK(a1.get_type() == RecordType::ATOM);
         CHECK(a1.is_water() == false);
 
         CHECK(a2.serial == 3);
@@ -42,7 +42,7 @@ TEST_CASE("constructors") {
         CHECK(a2.tempFactor == -1);
         CHECK(a2.element == "He");
         CHECK(a2.charge == "");
-        CHECK(a2.get_type() == Record::RecordType::ATOM);
+        CHECK(a2.get_type() == RecordType::ATOM);
         CHECK(a2.is_water() == false);
     }
 
@@ -60,7 +60,7 @@ TEST_CASE("constructors") {
         CHECK(w1.tempFactor == 0);
         CHECK(w1.element == "O");
         CHECK(w1.charge == "");
-        CHECK(w1.get_type() == Record::RecordType::WATER);
+        CHECK(w1.get_type() == RecordType::WATER);
         CHECK(w1.is_water() == true);
     }
 }
@@ -103,7 +103,7 @@ TEST_CASE("setters_getters") {
 }
 
 TEST_CASE("use_effective_charge") {
-    setting::protein::use_effective_charge = true;
+    settings::protein::use_effective_charge = true;
     Atom a(15, "O", "altLoc", "LYS", "chainID", 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, "O", "0+");
 
     auto res = constants::charge::atomic.get("O") + constants::hydrogen_atoms::residues.get("LYS").get("O", "O");
@@ -112,7 +112,7 @@ TEST_CASE("use_effective_charge") {
     CHECK(a.get_effective_charge() == res+1.5);
 
     CHECK(a.get_mass() == constants::mass::atomic.get("O") + constants::hydrogen_atoms::residues.get("LYS").get("O", "O"));
-    setting::protein::use_effective_charge = false;
+    settings::protein::use_effective_charge = false;
     CHECK(a.get_mass() == constants::mass::atomic.get("O"));
 }
 

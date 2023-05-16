@@ -1,13 +1,13 @@
 #pragma once
 
 #include <dataset/SimpleDataset.h>
+#include <fitter/Fit.h>
 
 #include <string>
 #include <vector>
 #include <memory>
 
 namespace fitter {
-    class Fit;
     class FitPlots;
 
     class Fitter {

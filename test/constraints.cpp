@@ -1,12 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/Constraint.h>
-#include <rigidbody/ConstrainedFitter.h>
+#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/RigidBody.h>
-#include <data/BodySplitter.h>
 #include <rigidbody/transform/RigidTransform.h>
+#include <fitter/HydrationFitter.h>
+#include <data/BodySplitter.h>
 #include <data/Atom.h>
+#include <data/Body.h>
+#include <settings/All.h>
 
 using namespace rigidbody;
 
@@ -30,12 +33,12 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "constructor") {
     SECTION("Invalid constraints") {
-        REQUIRE_THROWS(Constraint(&protein, a1, a2)); // same body
-        REQUIRE_THROWS(Constraint(&protein, a6, a8)); // non-C
+        REQUIRE_THROWS(DistanceConstraint(&protein, a1, a2)); // same body
+        REQUIRE_THROWS(DistanceConstraint(&protein, a6, a8)); // non-C
     }
 
     SECTION("Check construction") {
-        Constraint c(&protein, a1, a3);
+        DistanceConstraint c(&protein, a1, a3);
 
         REQUIRE(c.iatom1 == 0);
         REQUIRE(c.iatom2 == 0);
@@ -45,13 +48,13 @@ TEST_CASE_METHOD(fixture, "constructor") {
 }
 
 TEST_CASE_METHOD(fixture, "affects_fitter") {
-    setting::general::verbose = false;
-    fitter::ConstrainedFitter<HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
+    settings::general::verbose = false;
+    fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
     double chi2 = fitter.fit()->fval;
 
-    std::shared_ptr<Constraint> constraint = std::make_shared<Constraint>(&protein, a1, a3);
+    std::shared_ptr<DistanceConstraint> constraint = std::make_shared<DistanceConstraint>(&protein, a1, a3);
     protein.body(0).translate(Vector3<double>(1, 0, 0));
-    fitter.add_constraint(constraint);
+    fitter.get_constraint_manager()->add_constraint(constraint);
     double chi2c = fitter.fit()->fval;
 
     CHECK(constraint->evaluate() > 0);
@@ -60,7 +63,7 @@ TEST_CASE_METHOD(fixture, "affects_fitter") {
 
 TEST_CASE("simple_constraint_generation") {
     SECTION("simple") {
-        int distance = setting::rigidbody::bond_distance;
+        int distance = settings::rigidbody::bond_distance;
         Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, "C", "C", 1);
         Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, "C", "C", 1);
         Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, "C", "C", 1);
@@ -72,16 +75,12 @@ TEST_CASE("simple_constraint_generation") {
         Body b4 = Body(std::vector<Atom>{a4});
         std::vector<Body> ap = {b1, b2, b3, b4};
         RigidBody rigidbody(ap);
-        rigidbody.generate_simple_constraints();
-        REQUIRE(rigidbody.get_constraints().size() == 3);
+        REQUIRE(rigidbody.constraints->distance_constraints.size() == 3);
     }
 
     SECTION("real data") {
         RigidBody rigidbody = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
-        rigidbody.generate_simple_constraints();
 
-        REQUIRE(rigidbody.get_constraints().size() == 2);
-        std::cout << rigidbody.get_constraint(0) << std::endl;
-        std::cout << rigidbody.get_constraint(1) << std::endl;
+        REQUIRE(rigidbody.constraints->distance_constraints.size() == 2);
     }
 }

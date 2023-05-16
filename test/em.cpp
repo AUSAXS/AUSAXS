@@ -4,13 +4,21 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <map>
 
+#include <em/Image.h>
 #include <em/ImageStack.h>
+#include <em/ObjectBounds3D.h>
 #include <plots/all.h>
 #include <fitter/FitReporter.h>
 #include <dataset/Multiset.h>
 #include <utility/Utility.h>
-#include <utility/Settings.h>
+#include <utility/Console.h>
+#include <data/Protein.h>
+#include <data/Atom.h>
+#include <mini/detail/FittedParameter.h>
+#include <io/ExistingFile.h>
+#include <settings/All.h>
 
 using std::vector;
 
@@ -226,9 +234,9 @@ TEST_CASE("extract_image", "[manual]") {
 }
 
 TEST_CASE("test_model", "[slow],[manual]") {
-    setting::axes::qmax = 0.4;
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    settings::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
     Protein protein("test/A2M_native/native.pdb");
     auto res = image.fit(protein.get_histogram());
@@ -253,9 +261,9 @@ TEST_CASE("test_model", "[slow],[manual]") {
 }
 
 TEST_CASE("generate_contour", "[files],[slow],[manual]") {
-    setting::axes::qmax = 0.4;
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    settings::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
     Protein protein("data/A2M_native/native.pdb");
     hist::ScatteringHistogram hist = protein.get_histogram();
@@ -281,13 +289,13 @@ TEST_CASE("check_fit", "[files],[manual],[slow]") {
     std::string path = std::filesystem::path(mfile).parent_path().string();
     if (std::filesystem::exists(path + "/settings.txt")) {
         std::cout << "Using discovered settings file at " << path << "/settings.txt" << std::endl;
-        setting::read(path + "/settings.txt");
+        settings::read(path + "/settings.txt");
     }
 
-    setting::em::sample_frequency = 2;
-    setting::protein::use_effective_charge = false;
-    setting::fit::verbose = true;
-    setting::em::hydrate = true;
+    settings::em::sample_frequency = 2;
+    settings::protein::use_effective_charge = false;
+    settings::fit::verbose = true;
+    settings::em::hydrate = true;
     em::ImageStack map(mapfile);
 
     auto[r, s] = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
@@ -304,11 +312,11 @@ TEST_CASE("check_fit", "[files],[manual],[slow]") {
 }
 
 TEST_CASE("check_bound_savings", "[manual],[slow]") {
-    setting::axes::qmax = 0.4;
-    setting::protein::use_effective_charge = false;
+    settings::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
     em::ImageStack image("sim/native_10.ccp4");
 
-    ObjectBounds3D bounds = image.minimum_volume(1);
+    em::ObjectBounds3D bounds = image.minimum_volume(1);
     std::cout << "Cutoff = 1: Using " << bounds.bounded_volume() << " of " << bounds.total_volume() << " voxels." << std::endl;
 
     bounds = image.minimum_volume(2);
@@ -324,15 +332,15 @@ TEST_CASE("check_bound_savings", "[manual],[slow]") {
 TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
     unsigned int repeats = 50;
 
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
-    setting::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 1;
+    settings::axes::qmax = 0.4;
 
     // prepare measured data
     Protein protein("data/A2M_native/native.pdb");
     SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
-    data.reduce(setting::fit::N, true);
-    data.limit_x(Limit(setting::axes::qmin, setting::axes::qmax));
+    data.reduce(settings::fit::N, true);
+    data.limit_x(Limit(settings::axes::qmin, settings::axes::qmax));
     data.simulate_errors();
 
     // prepare fit data
@@ -349,20 +357,20 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
         REQUIRE(base.size() == data.size());
         for (unsigned int i = 0; i < base.size(); i++) {
             if (base.x(i) != data.x(i)) {
-                utility::print_warning("Error: x values are not equal.");
+                console::print_warning("Error: x values are not equal.");
                 REQUIRE(base.x(i) == data.x(i));
             }
 
             if (base.y(i) != data.y(i)) {
-                utility::print_warning("Error: y values are not equal.");
+                console::print_warning("Error: y values are not equal.");
                 REQUIRE(base.y(i) == data.y(i));
             }
         }
     };
 
     SECTION("check_equality_no_noise") {
-        setting::em::sample_frequency = 2;
-        setting::em::simulation::noise = false;
+        settings::em::sample_frequency = 2;
+        settings::em::simulation::noise = false;
         for (unsigned int i = 0; i < repeats; i++) {
             auto landscape = image.cutoff_scan({10, 0, 6}, hist).as_dataset();
             contours.push_back(landscape);
@@ -371,7 +379,7 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
     }
 
     SECTION("with_noise") {
-        setting::em::simulation::noise = true;
+        settings::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
             auto[r, s] = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
             auto fit = r.evaluated_points.as_dataset();
@@ -424,23 +432,23 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
 }
 
 TEST_CASE("plot_images", "[files],[manual],[slow]") {
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
-    setting::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 1;
+    settings::axes::qmax = 0.4;
 
-    std::string file = "test/files/A2M_2020_Q4.ccp4";
-    setting::plot::image::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
+    io::ExistingFile file = "test/files/A2M_2020_Q4.ccp4";
+    settings::plots::contour = {-100, -8, -6, -4, -3, -2, -1, 0, 1, 2, 3, 4, 6, 8, 10, 13, 16, 19, 22, 25};
     em::ImageStack image(file);
     for (unsigned int i = 0; i < image.size(); i++) {
         plots::PlotImage plot(image.image(i));
         // plot.plot_atoms(-1);
-        plot.save("figures/test/em/images/" + utility::stem(file) + "/" + std::to_string(i) + ".png");
+        plot.save("figures/test/em/images/" + file.stem() + "/" + std::to_string(i) + ".png");
     }
 }
 
 TEST_CASE("get_histogram", "[manual]") {
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 1;
 
     std::string file = "test/files/A2M_2020_Q4.ccp4";
     em::ImageStack image(file);
@@ -449,9 +457,9 @@ TEST_CASE("get_histogram", "[manual]") {
 }
 
 TEST_CASE("voxelplot", "[manual]") {
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
-    setting::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 1;
+    settings::axes::qmax = 0.4;
     em::ImageStack image("test/files/A2M_2020_Q4.ccp4");
 
     CHECK(image.image(95).count_voxels(15) == 32);
@@ -477,9 +485,9 @@ TEST_CASE("voxelplot", "[manual]") {
 }
 
 TEST_CASE("voxelcount", "[manual]") {
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 1;
-    setting::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 1;
+    settings::axes::qmax = 0.4;
     em::ImageStack image("data/emd_24889/emd_24889.map");
 
     Dataset2D data;
@@ -493,9 +501,9 @@ TEST_CASE("voxelcount", "[manual]") {
 }
 
 TEST_CASE("instability", "[files],[manual]") {
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
-    setting::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 2;
+    settings::axes::qmax = 0.4;
     em::ImageStack image("data/emd_12747/emd_12747.map");
 
     SimpleDataset data;
@@ -533,9 +541,9 @@ TEST_CASE("plot_pdb_as_points", "[files],[manual]") {
 }
 
 TEST_CASE("check_simulated_errors", "[files],[manual],[broken]") {
-    setting::axes::qmax = 0.4;
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    settings::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 2;
 
     em::ImageStack image("sim/native_10.ccp4");
     auto hist = image.get_histogram(2);
@@ -554,7 +562,7 @@ TEST_CASE("minimum_area") {
         Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
         em::Image image(data);
 
-        ObjectBounds2D bounds = image.setup_bounds(1);
+        em::ObjectBounds2D bounds = image.setup_bounds(1);
         REQUIRE(bounds.size() == 6);
         CHECK(bounds[0].min == 1);
         CHECK(bounds[0].max == 4);
@@ -590,7 +598,7 @@ TEST_CASE("minimum_area") {
         em::Image image2(data2);
 
         // cutoff = 1
-        ObjectBounds2D bounds = image2.setup_bounds(1);
+        em::ObjectBounds2D bounds = image2.setup_bounds(1);
         REQUIRE(bounds.size() == 6);
         CHECK(bounds[0].min == 1);
         CHECK(bounds[0].max == 5);
@@ -642,7 +650,7 @@ TEST_CASE("minimum_area") {
         Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
         em::Image image(data);
 
-        ObjectBounds2D bounds = image.setup_bounds(1);
+        em::ObjectBounds2D bounds = image.setup_bounds(1);
         CHECK(bounds.total_area() == 6*6);
         CHECK(bounds.bounded_area() == (4 + 3 + 3 + 4 + 3 + 5));
 
@@ -655,7 +663,7 @@ TEST_CASE("minimum_area") {
         Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
         em::ImageStack images({data, data2});
         
-        ObjectBounds3D bounds = images.minimum_volume(1);
+        em::ObjectBounds3D bounds = images.minimum_volume(1);
         CHECK(bounds.total_volume() == 2*6*6);
         CHECK(bounds.bounded_volume() == ((4 + 3 + 3 + 4 + 3 + 5) + (5 + 4 + 4 + 5 + 4 + 6)));
 
@@ -666,7 +674,7 @@ TEST_CASE("minimum_area") {
 
 TEST_CASE("em_weights") {
     SECTION("fixed") {
-        setting::em::fixed_weights = true;
+        settings::em::fixed_weights = true;
         Matrix data = Matrix<float>{{0, 1, 3, 5, 1, 0}, {0, 3, 5, 5, 0, 0}, {0, 0, 1, 3, 3, 0}, {0, 3, 0, 5, 1, 0}, {0, 1, 3, 5, 0, 0}, {0, 1, 0, 3, 1, 5}};
         Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
         em::ImageStack images({data, data2});
@@ -679,7 +687,7 @@ TEST_CASE("em_weights") {
         for (const auto& atom : protein->atoms()) {
             REQUIRE(atom.get_occupancy() == 1);
         }
-        setting::em::fixed_weights = false;
+        settings::em::fixed_weights = false;
     }
     
     SECTION("dynamic") {

@@ -1,21 +1,27 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <utility/Constants.h>
+#include <utility/Console.h>
+#include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
+#include <data/Protein.h>
+#include <data/state/StateManager.h>
+#include <data/BodySplitter.h>
+#include <settings/All.h>
+
+#include <data/Atom.h>
+#include <data/Body.h>
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <iostream>
 
-#include <utility/Constants.h>
-#include <hydrate/Grid.h>
-#include <data/Protein.h>
-#include <data/StateManager.h>
-#include <data/BodySplitter.h>
-
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
 TEST_CASE("translate") {
-    setting::protein::use_effective_charge = false;
+    settings::protein::use_effective_charge = false;
     vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                       Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
                       Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
@@ -165,7 +171,7 @@ TEST_CASE("mass") {
 
     CHECK_THAT(body.absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C"), 1e-6));
     CHECK_THAT(body.molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C")*constants::Avogadro, 1e-6));
-    utility::print_warning("Check definition of molar mass.");
+    console::print_warning("Check definition of molar mass.");
 }
 
 TEST_CASE("equality") {
@@ -182,7 +188,7 @@ TEST_CASE("equality") {
 TEST_CASE("grid") {
     SECTION("single") {
         Body b({Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)});
-        Grid g(Axis3D(-2, 2, -2, 2, -2, 2), 1);
+        grid::Grid g(Axis3D(-2, 2, -2, 2, -2, 2, 1));
 
         g.add(&b);
         REQUIRE(g.a_members.size() == 2);
@@ -194,13 +200,15 @@ TEST_CASE("grid") {
     }
 
     SECTION("multiple") {
+        settings::grid::ra = 1;
+        settings::grid::rh = 1;
         vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
         vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
         Body b1(a1), b2(a2), b3(a3), b4(a4);
         vector<Body> bodies = {b1, b2, b3, b4};
-        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5), 1, 1);
+        grid::Grid grid(Axis3D(-5, 5, -5, 5, -5, 5, 1));
 
         grid.add(&b1);
         grid.add(&b2);
@@ -284,7 +292,7 @@ TEST_CASE("grid") {
         vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
         Body b1(a1), b2(a2), b3(a3), b4(a4);
         vector<Body> bodies = {b1, b2, b3, b4};
-        Grid grid(Axis3D(-5, 5, -5, 5, -5, 5), 1, 1);
+        grid::Grid grid(Axis3D(-5, 5, -5, 5, -5, 5, 1));
 
         grid.add(&b1);
         grid.add(&b2);
@@ -316,7 +324,7 @@ TEST_CASE("grid") {
 }
 
 TEST_CASE("split_body", "[body],[files]") {
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     vector<int> splits = {9, 99};
     Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
 

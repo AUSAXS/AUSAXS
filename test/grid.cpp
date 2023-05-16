@@ -7,15 +7,18 @@
 
 #include <data/Body.h>
 #include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Water.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
 #include <settings/All.h>
 #include <math/Vector3.h>
  
 using std::vector;
+using namespace grid;
 
 // Debug class to expose the volume variable
-class GridDebug : public Grid {
+class GridDebug : public grid::Grid {
     using Grid::Grid;
     public: 
         auto unexpanded_volume() {return volume;}

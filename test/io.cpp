@@ -1,14 +1,18 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Body.h>
+#include <data/Record.h>
+#include <utility/Console.h>
+#include <settings/All.h>
+
 #include <vector>
 #include <string>
 #include <fstream>
 #include <filesystem>
 #include <iostream>
-
-#include <data/Protein.h>
-#include <utility/Utility.h>
 
 using std::cout, std::endl, std::vector;
 
@@ -27,39 +31,39 @@ bool compare_files(std::string p1, std::string p2) {
         getline(f2, l2);
         if (l1.empty()) {
             if (l2.empty()) {return true;} // if both lines are empty, we're at the end of both files
-            if (Record::get_type(l2.substr(0, 6)) == Record::RecordType::TERMINATE) {return true;} // we allow a single terminate of difference
-            utility::print_warning("File ended prematurely.");
+            if (Record::get_type(l2.substr(0, 6)) == RecordType::TERMINATE) {return true;} // we allow a single terminate of difference
+            console::print_warning("File ended prematurely.");
             return false;
         }
 
-        Record::RecordType type1 = Record::get_type(l1.substr(0, 6)); 
-        Record::RecordType type2 = Record::get_type(l2.substr(0, 6)); 
+        RecordType type1 = Record::get_type(l1.substr(0, 6)); 
+        RecordType type2 = Record::get_type(l2.substr(0, 6)); 
         if (type1 != type2) {
-            utility::print_warning("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal in line " + std::to_string(i) + ".");
+            console::print_warning("The types " + l1.substr(0, 6) + " and " + l2.substr(0, 6) + " are not equal in line " + std::to_string(i) + ".");
             return false;
         }
 
         // since a value of 5.90 is converted to 5.9 in the new file, we must manually compare entries where this can happen
-        if (type1 == Record::RecordType::ATOM) { 
+        if (type1 == RecordType::ATOM) { 
             a1.parse_pdb(l1);
             a2.parse_pdb(l2);
 
             // equality of atoms is based on their unique ID which is generated at object creation. Thus this will never be equal with this approach.
             // instead we must compare their contents. 
             if (!a1.equals_content(a2)) {
-                utility::print_warning("File atom comparison failed for \"" + p1 + "\" on lines");
+                console::print_warning("File atom comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
         }
 
         // sometimes nothing is written after TER in the pdb files
-        else if (type1 == Record::RecordType::TERMINATE) {continue;}
+        else if (type1 == RecordType::TERMINATE) {continue;}
 
         // otherwise we just compare the lines themselves
         else {
             if (l1 != l2) {
-                utility::print_warning("File line comparison failed for \"" + p1 + "\" on lines");
+                console::print_warning("File line comparison failed for \"" + p1 + "\" on lines");
                 cout << l1 << "|\n" << l2 << "|" << endl;
                 return false;
             }
@@ -69,7 +73,7 @@ bool compare_files(std::string p1, std::string p2) {
 }
 
 TEST_CASE("body_file") {
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "REMARK ONE" << endl;
     pdb_file << "REMARK TWO" << endl;
@@ -103,7 +107,7 @@ TEST_CASE("body_file") {
 }
 
 TEST_CASE("pdb_input") {
-    setting::general::verbose = false;
+    settings::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
     pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;
@@ -176,8 +180,8 @@ TEST_CASE("xml input", "[broken]") {
  *        This is probably one of the strongest tests we can make for i/o
  */
 TEST_CASE("real_data", "[files],[broken]") {
-    setting::general::verbose = false;
-    setting::protein::use_effective_charge = false;
+    settings::general::verbose = false;
+    settings::protein::use_effective_charge = false;
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
         if (file.path().extension() != ".pdb") {
             continue;
@@ -189,7 +193,7 @@ TEST_CASE("real_data", "[files],[broken]") {
         }
 
         cout << "Testing " << file.path().stem() << endl;
-        std::string filename = "temp/io/" + utility::stem(file.path().string()) + ".pdb";
+        std::string filename = "temp/io/" + console::stem(file.path().string()) + ".pdb";
         Protein protein(file.path().string());
         protein.save(filename);
         bool success = compare_files(file.path().string(), filename);

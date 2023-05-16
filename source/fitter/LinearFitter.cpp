@@ -133,7 +133,7 @@ double LinearFitter::chi2(const std::vector<double>&) {
     return fitter.fit_only();
 }
 
-void LinearFitter::setup(std::string file) {
+void LinearFitter::setup(const io::ExistingFile& file) {
     data = SimpleDataset(file); // read observed values from input file
 }
 

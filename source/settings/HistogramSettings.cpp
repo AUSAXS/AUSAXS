@@ -19,4 +19,4 @@ namespace settings::axes {
     });
 }
 
-settings::hist::HistogramManagerChoice histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;
+settings::hist::HistogramManagerChoice settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;

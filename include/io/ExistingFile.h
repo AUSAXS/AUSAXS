@@ -9,6 +9,7 @@ namespace io {
             ExistingFile(const File& file);
             ExistingFile(File&& file);
             ExistingFile(const std::string& path);
+            ExistingFile(const char* path);
             virtual ~ExistingFile();
 
             ExistingFile& operator=(const std::string& path);

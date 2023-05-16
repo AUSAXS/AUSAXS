@@ -17,6 +17,8 @@ io::ExistingFile::ExistingFile(const std::string& path) : File(path) {
     validate();
 }
 
+io::ExistingFile::ExistingFile(const char* path) : ExistingFile(std::string(path)) {}
+
 io::ExistingFile& io::ExistingFile::operator=(const std::string& path) {
     validate();
     File::operator=(path);
