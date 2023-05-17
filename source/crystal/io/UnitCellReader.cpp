@@ -1,5 +1,6 @@
 #include <crystal/io/UnitCellReader.h>
 #include <utility/StringUtils.h>
+#include <settings/HistogramSettings.h>
 
 #include <fstream>
 
@@ -32,6 +33,12 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::re
     if (yaxis.x() != 0 || yaxis.z() != 0) {throw except::io_error("GridReader::read: Grid y-axis must be parallel to the y-axis");}
     if (zaxis.x() != 0 || zaxis.y() != 0) {throw except::io_error("GridReader::read: Grid z-axis must be parallel to the z-axis");}
     if (xaxis.norm() == 0 || yaxis.norm() == 0 || zaxis.norm() == 0) {throw except::io_error("GridReader::read: Grid axes cannot be zero");}
+
+    // calculate the distance between the edges of the box
+    double distance = std::sqrt(std::pow(xaxis.x(), 2) + std::pow(yaxis.y(), 2) + std::pow(zaxis.z(), 2));
+    if (distance > settings::axes::max_distance) {
+        throw except::io_error("PDBReader::read: The distance between the edges of the box is " + std::to_string(distance) + " Å, which is larger than the maximum allowed distance of " + std::to_string(settings::axes::max_distance) + " Å.");
+    }
 
     std::getline(file, line); // skip empty line
     std::vector<Vector3<double>> voxels;

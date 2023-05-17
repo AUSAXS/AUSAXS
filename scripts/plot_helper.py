@@ -57,6 +57,9 @@ class Options:
         words = line.split()
         if len(words) < 2:
             return
+        
+        if words[0].startswith("#"):
+            return
 
         # visuals
         match (words[0]): 

@@ -6,7 +6,7 @@
 namespace settings::general {
     constexpr const char* const residue_folder = "temp/residues/";
     bool verbose = true;
-    unsigned int threads = std::thread::hardware_concurrency();
+    unsigned int threads = std::thread::hardware_concurrency()-1;
     std::string output = "output/";
     bool keep_hydrogens = false;
     bool supplementary_plots = true;

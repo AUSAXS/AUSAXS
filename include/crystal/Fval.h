@@ -7,6 +7,7 @@
 #include <vector>
 #include <complex>
 
+class Protein;
 namespace crystal {
     class Fval {
         public: 
@@ -25,6 +26,8 @@ namespace crystal {
 
             double I() const;
 
+            static Protein as_protein();
+            
             Miller hkl;
             double qlength;
             Vector3<double> q;
