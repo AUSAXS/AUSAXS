@@ -50,7 +50,7 @@ int main(int argc, char const *argv[]) {
     fourier.add_plot_options({{plots::option::legend, "xyz"}});
 
     plots::PlotIntensity plot(fourierxy, style::color::orange);
-    plot.plot(fourierxy, style::color::blue);
+    plot.plot(fourier, style::color::blue);
     plot.save(settings::general::output + "xy_xyz_comparison.png");
     plots::PlotIntensity::quick_plot(fourierxy, settings::general::output + "fourierxy.png");
     plots::PlotIntensity::quick_plot(fourier, settings::general::output + "fourier.png");
