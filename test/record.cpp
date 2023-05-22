@@ -6,11 +6,11 @@
 #include <data/Header.h>
 
 TEST_CASE("record") {
-    CHECK(Record::get_type("ATOM") == Record::RecordType::ATOM);
-    CHECK(Record::get_type("HETATM") == Record::RecordType::ATOM);
-    CHECK(Record::get_type("TER") == Record::RecordType::TERMINATE);
-    CHECK(Record::get_type("HEADER") == Record::RecordType::HEADER);
-    CHECK(Record::get_type("CONECT") == Record::RecordType::FOOTER);
+    CHECK(Record::get_type("ATOM") == RecordType::ATOM);
+    CHECK(Record::get_type("HETATM") == RecordType::ATOM);
+    CHECK(Record::get_type("TER") == RecordType::TERMINATE);
+    CHECK(Record::get_type("HEADER") == RecordType::HEADER);
+    CHECK(Record::get_type("CONECT") == RecordType::FOOTER);
 }
 
 
@@ -21,7 +21,7 @@ TEST_CASE("terminate") {
     CHECK(t1.chainID == "A");
     CHECK(t1.resSeq == 2);
     CHECK(t1.iCode == "B");
-    CHECK(t1.get_type() == Record::RecordType::TERMINATE);
+    CHECK(t1.get_type() == RecordType::TERMINATE);
 
     Terminate t2(3, "ARG", "C", 4, "D");
     std::string t2_str = t2.as_pdb();
@@ -39,7 +39,7 @@ TEST_CASE("terminate") {
 
 TEST_CASE("footer") {
     Footer f1;
-    CHECK(f1.get_type() == Record::RecordType::FOOTER);
+    CHECK(f1.get_type() == RecordType::FOOTER);
 
     f1.add("CONECT test1");
     CHECK(f1.get() == "CONECT test1\n");
@@ -56,7 +56,7 @@ TEST_CASE("footer") {
 
 TEST_CASE("header") {
     Header f1;
-    CHECK(f1.get_type() == Record::RecordType::HEADER);
+    CHECK(f1.get_type() == RecordType::HEADER);
 
     f1.add("HEADER test1");
     CHECK(f1.get() == "HEADER test1\n");

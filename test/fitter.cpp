@@ -10,6 +10,9 @@
 #include <settings/All.h>
 #include <hist/Histogram.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Water.h>
+#include <em/detail/ExtendedLandscape.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <mini/detail/FittedParameter.h>
 

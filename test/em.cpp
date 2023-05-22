@@ -15,8 +15,10 @@
 #include <utility/Utility.h>
 #include <utility/Console.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Water.h>
 #include <data/Atom.h>
-#include <mini/detail/FittedParameter.h>
+#include <em/detail/ExtendedLandscape.h>
 #include <io/ExistingFile.h>
 #include <settings/All.h>
 

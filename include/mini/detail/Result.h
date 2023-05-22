@@ -3,8 +3,9 @@
 #include <string>
 #include <vector>
 
+#include <mini/detail/FittedParameter.h> // No forward declaration since the primary function of this class is to forward this object to the user
+
 namespace mini {
-    class FittedParameter;
     struct Result {
         /**
          * @brief Default constructor.

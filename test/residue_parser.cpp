@@ -6,7 +6,6 @@
 #include <string>
 
 #include <utility/Constants.h>
-#include <utility/Settings.h>
 
 /**
  * @brief The old version of the Constants.h file. This is used for testing the new version.

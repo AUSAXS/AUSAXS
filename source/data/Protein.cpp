@@ -78,6 +78,8 @@ Protein::Protein(const std::vector<std::string>& input) {
     bind_body_signallers();
 }
 
+Protein::~Protein() = default;
+
 void Protein::translate(const Vector3<double>& v) {
     for (auto& body : bodies) {
         body.translate(v);

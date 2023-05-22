@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Protein.h>
-#include <data/Atom.h>
+#include <data/Water.h>
 #include <data/Body.h>
 #include <data/Record.h>
 #include <utility/Console.h>
@@ -158,7 +158,7 @@ TEST_CASE("xml input", "[broken]") {
     protein->save("temp2.xml");
     protein = new Protein("temp2.xml");
     const vector<Water>& atoms = protein->waters();
-    const Atom a = atoms[0];
+    const Water a = atoms[0];
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
     // we now compare the loaded values with the expected.
@@ -193,7 +193,7 @@ TEST_CASE("real_data", "[files],[broken]") {
         }
 
         cout << "Testing " << file.path().stem() << endl;
-        std::string filename = "temp/io/" + console::stem(file.path().string()) + ".pdb";
+        std::string filename = "temp/io/" + file.path().stem().string() + ".pdb";
         Protein protein(file.path().string());
         protein.save(filename);
         bool success = compare_files(file.path().string(), filename);

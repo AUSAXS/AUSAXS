@@ -5,6 +5,9 @@
 #include <dataset/Dataset.h>
 #include <dataset/Dataset2D.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Water.h>
+#include <data/Atom.h>
 #include <em/ImageStack.h>
 #include <plots/all.h>
 

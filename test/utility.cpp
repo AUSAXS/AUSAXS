@@ -3,6 +3,7 @@
 #include <plots/PlotOptions.h>
 #include <plots/PlotDataset.h>
 #include <utility/Utility.h>
+#include <utility/StringUtils.h>
 #include <plots/all.h>
 
 TEST_CASE("plots", "[manual]") {

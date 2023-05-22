@@ -11,6 +11,8 @@
 #include <data/Water.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
+#include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/culling/CullingStrategy.h>
 #include <settings/All.h>
 #include <math/Vector3.h>
  

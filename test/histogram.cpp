@@ -4,7 +4,7 @@
 #include <utility/Utility.h>
 #include <hist/ScatteringHistogram.h>
 #include <data/Protein.h>
-#include <data/Atom.h>
+#include <data/Body.h>
 #include <data/Water.h>
 #include <plots/PlotIntensity.h>
 

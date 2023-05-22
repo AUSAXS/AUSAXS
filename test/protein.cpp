@@ -7,20 +7,24 @@
 #include <iostream>
 
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Water.h>
 #include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
 #include <utility/Constants.h>
 #include <utility/Utility.h>
 #include <fitter/LinearFitter.h>
 #include <hist/HistogramManagerMT.h>
 #include <hist/PartialHistogramManagerMT.h>
+#include <settings/All.h>
 #include <plots/all.h>
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
 TEST_CASE("simulate_dataset") {
-    setting::axes::qmax = 0.4;
-    setting::protein::use_effective_charge = false;
-    setting::em::sample_frequency = 2;
+    settings::axes::qmax = 0.4;
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 2;
     Protein protein("test/files/2epe.pdb");
     SimpleDataset data = protein.simulate_dataset();
 
@@ -81,10 +85,10 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 }
 
 TEST_CASE("histogram") {
-    setting::axes::distance_bin_width = 1;
+    settings::axes::distance_bin_width = 1;
 
     SECTION("multiple bodies, simple") {
-        setting::protein::use_effective_charge = true;
+        settings::protein::use_effective_charge = true;
         // make the protein
         vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
@@ -130,7 +134,7 @@ TEST_CASE("histogram") {
     }
 
     SECTION("multiple bodies, real input") {
-        setting::protein::use_effective_charge = true;
+        settings::protein::use_effective_charge = true;
         Body body("data/lysozyme/2epe.pdb");
         body.center();
         
@@ -196,7 +200,7 @@ TEST_CASE("histogram") {
     }
 
     SECTION("equivalent to old approach") {
-        setting::protein::use_effective_charge = false;
+        settings::protein::use_effective_charge = false;
         vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                               Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                               Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
@@ -204,13 +208,13 @@ TEST_CASE("histogram") {
 
         // new auto-scaling approach
         Protein protein1(atoms);
-        Grid grid1(atoms);
+        grid::Grid grid1(atoms);
         protein1.set_grid(grid1);
 
         // old approach
         Protein protein2(atoms);
-        Axis3D axes(setting::grid::axes, setting::grid::width);
-        Grid grid2(axes, setting::grid::width); 
+        Axis3D axes(settings::grid::axes, settings::grid::width);
+        grid::Grid grid2(axes); 
         grid2.add(atoms);
         protein2.set_grid(grid2);
 
@@ -234,7 +238,7 @@ TEST_CASE("histogram") {
 }
 
 TEST_CASE("distance_histograms") {
-    setting::protein::use_effective_charge = false;
+    settings::protein::use_effective_charge = false;
 
     SECTION("analytical") {
         SECTION("atoms only") {
@@ -362,7 +366,7 @@ TEST_CASE("distance_histograms") {
     }
 
     SECTION("real data") {
-        setting::protein::use_effective_charge = true;
+        settings::protein::use_effective_charge = true;
                 
         // create the atom, and perform a sanity check on our extracted list
         Protein protein("test/files/2epe.pdb");

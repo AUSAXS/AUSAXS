@@ -104,6 +104,8 @@ class Protein {
 		 */
 		explicit Protein(const io::ExistingFile& input);
 
+		~Protein();
+
 		/**
 		 * @brief Get the distances between each atom.
 		 */

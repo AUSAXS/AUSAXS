@@ -20,6 +20,12 @@
 using namespace em;
 using namespace fitter;
 
+ImageStack::ImageStack(const io::ExistingFile& file) : ImageStackBase(file) {}
+
+ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images) {}
+
+ImageStack::~ImageStack() = default;
+
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);

@@ -4,7 +4,6 @@
 
 #include <vector>
 
-template<numeric T> class Vector3;
 namespace grid {
     /**
      * @brief This class is used internally in Grid for storing all information about a particular member atom. 
@@ -32,6 +31,8 @@ namespace grid {
          * @param loc The grid location of the atom. 
          */
         GridMember(const T& atom, Vector3<int> loc) : atom(atom), loc(std::move(loc)) {}
+
+        ~GridMember() = default;
 
         // The atom itself
         T atom;

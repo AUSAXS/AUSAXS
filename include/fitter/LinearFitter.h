@@ -5,7 +5,6 @@
 
 namespace io {class ExistingFile;}
 namespace fitter {
-	class FitPlots;
 
 	/**
 	 * @brief Fit an intensity curve to a dataset. 

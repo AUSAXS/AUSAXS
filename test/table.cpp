@@ -4,6 +4,7 @@
 #include <hist/DebyeLookupTable.h>
 #include <utility/Axis.h>
 #include <data/Atom.h>
+#include <settings/All.h>
 
 using std::vector;
 
@@ -16,7 +17,7 @@ namespace std {
 }
 
 TEST_CASE("lookup_tables") {
-    setting::axes::qmax = 1.001;
+    settings::axes::qmax = 1.001;
     SECTION("integer table") {
         vector<unsigned int> rows = {1, 2, 3};
         vector<unsigned int> cols = {1, 2, 3};
@@ -83,17 +84,17 @@ TEST_CASE("lookup_tables") {
 }
 
 TEST_CASE("debye_lookup_table") {
-    setting::axes::qmax = 1.001;
+    settings::axes::qmax = 1.001;
     SECTION("default_table") {
         table::DebyeLookupTable::reset();
-        double width = setting::axes::distance_bin_width;
+        double width = settings::axes::distance_bin_width;
         vector<double> d(200/width, 0);
         for (unsigned int i = 1; i < d.size(); i++) {
             d[i] = width*(i+0.5);
         }
 
         // prepare the q values for the intensity calculations
-        Axis debye_axis = Axis(setting::axes::bins, setting::axes::qmin, setting::axes::qmax);
+        Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
         vector<double> q(debye_axis.bins);
         double debye_width = debye_axis.width();
         for (unsigned int i = 0; i < debye_axis.bins; i++) {

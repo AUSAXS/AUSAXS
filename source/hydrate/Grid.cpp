@@ -57,6 +57,8 @@ Grid::Grid(Grid&& grid) noexcept {
     *this = std::move(grid);
 }
 
+Grid::~Grid() = default;
+
 void Grid::setup() {
     // check if the grid should be cubic
     if (settings::grid::cubic) {
@@ -320,9 +322,9 @@ const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     GridMember gm(atom, loc);
     grid.index(x, y, z) = GridObj::A_CENTER;
     if (expand) {expand_volume(gm);}
-    a_members.push_back(gm);
+    a_members.push_back(std::move(gm));
 
-    return gm;
+    return a_members.back();
 }
 
 const GridMember<Water>& Grid::add(const Water& water, bool expand) {
@@ -338,9 +340,9 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     GridMember gm(water, loc);
     grid.index(x, y, z) = GridObj::H_CENTER;
     if (expand) {expand_volume(gm);}
-    w_members.push_back(gm);
+    w_members.push_back(std::move(gm));
 
-    return gm;
+    return w_members.back();
 }
 
 void Grid::remove(std::vector<bool>& to_remove) {
@@ -607,7 +609,7 @@ bool Grid::operator==(const Grid& rhs) const {
     return true;
 }
 
-void Grid::save(std::string path) const {
+void Grid::save(const io::File& path) const {
     std::vector<Atom> atoms;
     std::vector<Water> waters;
     unsigned int c = 0;

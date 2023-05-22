@@ -1,10 +1,19 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/StateManager.h>
+#include <data/state/StateManager.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Water.h>
 #include <em/ImageStack.h>
-#include <em/ProteinManager.h>
+#include <em/Image.h>
+#include <em/manager/ProteinManagerFactory.h>
+#include <em/manager/ProteinManager.h>
+#include <data/state/Signaller.h>
+#include <data/state/BoundSignaller.h>
+#include <data/state/UnboundSignaller.h>
+#include <hist/HistogramManager.h>
+#include <settings/All.h>
 
 #include <iostream>
 
@@ -48,8 +57,8 @@ TEST_CASE("protein_manager") {
 
     manager.reset();
     CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
-    shared_ptr<StateManager::BoundSignaller> probe0 = phm->get_probe(0);
-    shared_ptr<StateManager::BoundSignaller> probe2 = phm->get_probe(2);
+    shared_ptr<signaller::Signaller> probe0 = phm->get_probe(0);
+    shared_ptr<signaller::Signaller> probe2 = phm->get_probe(2);
     probe0->external_change();
     probe2->external_change();
     CHECK(manager.get_externally_modified_bodies() == vector{true, false, true, false, false});
@@ -78,9 +87,9 @@ TEST_CASE("protein_manager") {
 }
 
 TEST_CASE("em_partial_histogram_manager") {
-    setting::protein::use_effective_charge = false;
+    settings::protein::use_effective_charge = false;
 
-    auto compare = [] (std::shared_ptr<em::ProteinManager> manager1, std::shared_ptr<em::ProteinManager> manager2, double cutoff) {
+    auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
         hist::ScatteringHistogram h1 = manager1->get_histogram(cutoff);
         hist::ScatteringHistogram h2 = manager2->get_histogram(cutoff);
 
@@ -109,7 +118,8 @@ TEST_CASE("em_partial_histogram_manager") {
         em::Image image(data, header, 0);
         em::ImageStack images({image});
 
-        auto manager = em::ProteinManagerFactory::create<em::ProteinManager>(&images);
+        settings::em::fixed_weights = false;
+        auto manager = em::factory::create_manager(&images);
         manager->set_charge_levels({2, 4, 6, 8});
         std::shared_ptr<Protein> protein = manager->get_protein(0);
 
@@ -138,8 +148,10 @@ TEST_CASE("em_partial_histogram_manager") {
             em::Image image(data, header, 0);
             em::ImageStack images({image});
 
-            std::shared_ptr<em::ProteinManager> manager1 = em::ProteinManagerFactory::create<em::ProteinManager>(&images);
-            std::shared_ptr<em::ProteinManager> manager2 = em::ProteinManagerFactory::create<em::SimpleProteinManager>(&images);
+            settings::em::fixed_weights = false;
+            std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
+            settings::em::fixed_weights = true;
+            std::shared_ptr<em::managers::ProteinManager> manager2 = em::factory::create_manager(&images);
             manager1->set_charge_levels({2, 4, 6, 8});
 
             // try an arbitrary cutoff level
@@ -160,10 +172,11 @@ TEST_CASE("em_partial_histogram_manager") {
 
         SECTION("real example") {
             em::ImageStack images("data/maptest.ccp4");
-            images.set_protein_manager<em::ProteinManager>();
-            auto manager1 = images.get_protein_manager();
-            images.set_protein_manager<em::SimpleProteinManager>();
-            auto manager2 = images.get_protein_manager();
+
+            settings::em::fixed_weights = false;
+            std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
+            settings::em::fixed_weights = true;
+            std::shared_ptr<em::managers::ProteinManager> manager2 = em::factory::create_manager(&images);
 
             REQUIRE(compare(manager1, manager2, 4));
             REQUIRE(compare(manager1, manager2, 3));
@@ -175,12 +188,13 @@ TEST_CASE("em_partial_histogram_manager") {
     }
 
     SECTION("comparison with standard approach") {
-        setting::em::sample_frequency = 2;
+        settings::em::sample_frequency = 2;
         em::ImageStack images("data/emd_12752/emd_12752.map");
-        images.set_protein_manager<em::ProteinManager>();
-        auto manager1 = images.get_protein_manager();
-        images.set_protein_manager<em::SimpleProteinManager>();
-        auto manager2 = images.get_protein_manager();
+
+        settings::em::fixed_weights = false;
+        std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
+        settings::em::fixed_weights = true;
+        std::shared_ptr<em::managers::ProteinManager> manager2 = em::factory::create_manager(&images);
 
         REQUIRE(compare(manager1, manager2, 0.04));
         REQUIRE(compare(manager1, manager2, 0.03));

@@ -3,6 +3,7 @@
 #include <hydrate/GridObj.h>
 #include <utility/Axis3D.h>
 #include <math/Vector3.h>
+#include <io/File.h>
 
 #include <list>
 #include <vector>
@@ -11,6 +12,7 @@
 class Body;
 class Atom;
 class Water;
+namespace io{class File;}
 namespace grid {
 	template<typename T> class GridMember;
 	class PlacementStrategy;
@@ -51,6 +53,8 @@ namespace grid {
 			 * @brief Move constructor. 
 			 */
 			Grid(Grid&& grid) noexcept;
+
+			~Grid();
 
 			/** 
 			 * @brief Add a vector of atoms to the grid. 
@@ -276,7 +280,7 @@ namespace grid {
 			 * @brief Save this Grid as a PDB file.
 			 * 		  Complexity: O(n) in the number of bins.
 			 */
-			void save(std::string path) const;
+			void save(const io::File& path) const;
 
 			/**
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.

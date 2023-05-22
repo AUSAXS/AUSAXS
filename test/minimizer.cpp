@@ -3,6 +3,8 @@
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
 
+#include <mini/detail/Parameter.h>
+
 #include <mini/all.h>
 #include <plots/all.h>
 

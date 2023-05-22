@@ -19,7 +19,21 @@ namespace em {
      */
     class ImageStack : public ImageStackBase {
         public: 
-            using ImageStackBase::ImageStackBase;
+            /**
+             * @brief Constructor.
+             * 
+             * @param file Path to the input EM data file. 
+             */
+            ImageStack(const io::ExistingFile& file);
+
+            /**
+             * @brief Constructor.
+             * 
+             * @param images The images for this stack.
+             */
+            ImageStack(const std::vector<Image>& images);
+
+            ~ImageStack() override;
 
             /**
              * @brief Fit the cutoff value with the input experimental data file. 

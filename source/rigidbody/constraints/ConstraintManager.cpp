@@ -17,6 +17,7 @@ ConstraintManager::ConstraintManager(Protein* protein) : protein(protein) {
 
 void ConstraintManager::add_constraint(std::shared_ptr<DistanceConstraint> constraint) {
     distance_constraints.push_back(std::move(constraint));
+    generate_constraint_map();
 }
 
 void ConstraintManager::add_constraint(std::shared_ptr<OverlapConstraint> constraint) {

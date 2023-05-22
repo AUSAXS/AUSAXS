@@ -4,9 +4,9 @@
 
 #include <dataset/SimpleDataset.h>
 #include <plots/PlotOptions.h>
+#include <mini/detail/Evaluation.h> // No forward declaration since the primary function of this class is to forward this object to the user
 
 namespace mini {
-    class Evaluation;
     class Landscape : public plots::Plottable {
         public: 
             /**
@@ -16,7 +16,7 @@ namespace mini {
 
             Landscape(unsigned int size) : evals(size) {}
 
-            Landscape(std::vector<Evaluation> evals);
+            Landscape(const std::vector<Evaluation>& evals);
 
             /**
              * @brief Convert this landscape to a SimpleDataset. 
@@ -25,8 +25,8 @@ namespace mini {
              */
             SimpleDataset as_dataset() const;
 
-            void append(std::vector<Evaluation> evals);
-            void append(Landscape evals);
+            void append(const std::vector<Evaluation>& evals);
+            void append(const Landscape& evals);
 
             std::string to_string() const;
 

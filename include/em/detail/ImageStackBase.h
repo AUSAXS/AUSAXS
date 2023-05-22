@@ -38,7 +38,7 @@ namespace em {
             /**
              * @brief Destructor.
              */
-            ~ImageStackBase();
+            virtual ~ImageStackBase();
 
             /**
              * @brief Get a specific Image stored in this object. 
