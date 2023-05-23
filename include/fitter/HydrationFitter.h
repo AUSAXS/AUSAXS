@@ -3,7 +3,6 @@
 #include <fitter/LinearFitter.h>
 #include <mini/detail/Parameter.h>
 
-namespace mini {enum class type;}
 namespace io {class ExistingFile;}
 namespace fitter {
     class FitPlots;
@@ -133,6 +132,7 @@ namespace fitter {
              */
             void set_algorithm(const mini::type& t);
 
+            mini::type fit_type = mini::type::BFGS;
         protected:
             /**
              * @brief Calculate chi2 for a given choice of parameters @a params.

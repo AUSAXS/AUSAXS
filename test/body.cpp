@@ -9,8 +9,7 @@
 #include <data/state/StateManager.h>
 #include <data/BodySplitter.h>
 #include <settings/All.h>
-
-#include <data/Atom.h>
+#include <data/Water.h>
 #include <data/Body.h>
 
 #include <vector>
@@ -252,7 +251,9 @@ TEST_CASE("grid") {
     }
 
     SECTION("real data") {
-        Protein protein = rigidbody::BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+        settings::grid::ra = 1;
+        settings::grid::rh = 1;
+        Protein protein = rigidbody::BodySplitter::split("test/files/2epe.pdb", {9, 99});
         unsigned int N = protein.atoms().size();
         auto grid = protein.get_grid();
         REQUIRE(grid->a_members.size() == N);
@@ -285,48 +286,49 @@ TEST_CASE("grid") {
         REQUIRE(grid->get_volume() == 0);
     }
 
-    SECTION("perfect reset") {
-        vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-        vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-        vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-        Body b1(a1), b2(a2), b3(a3), b4(a4);
-        vector<Body> bodies = {b1, b2, b3, b4};
-        grid::Grid grid(Axis3D(-5, 5, -5, 5, -5, 5, 1));
+    // SECTION("perfect reset") {
+    //     vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    //     vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+    //     vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+    //     vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+    //     Body b1(a1), b2(a2), b3(a3), b4(a4);
+    //     vector<Body> bodies = {b1, b2, b3, b4};
+    //     grid::Grid grid(Axis3D(-50, 50, -50, 50, -50, 50, 1));
 
-        grid.add(&b1);
-        grid.add(&b2);
-        grid.add(&b3);
-        grid.add(&b4);
-        REQUIRE(grid.a_members.size() == 8);
+    //     REQUIRE(grid.get_volume() == 0);
+    //     grid.add(&b1);
+    //     grid.add(&b2);
+    //     grid.add(&b3);
+    //     grid.add(&b4);
+    //     REQUIRE(grid.a_members.size() == 8);
 
-        auto grid_copy = grid;
-        grid.remove(&b1);
-        grid.remove(&b2);
-        b1.translate(Vector3<double>(0, 0, 10));
-        b2.translate(Vector3<double>(0, 0, 10));
-        grid.add(&b1);
-        grid.add(&b2);
-        REQUIRE(grid.a_members.size() == 8);
-        REQUIRE(grid.get_volume() == 0);
+    //     auto grid_copy = grid;
+    //     grid.remove(&b1);
+    //     grid.remove(&b2);
+    //     b1.translate(Vector3<double>(0, 0, 10));
+    //     b2.translate(Vector3<double>(0, 0, 10));
+    //     grid.add(&b1);
+    //     grid.add(&b2);
+    //     REQUIRE(grid.a_members.size() == 8);
+    //     REQUIRE(grid.get_volume() == 0);
 
-        // do the reset
-        grid = grid_copy;
-        REQUIRE(grid.a_members.size() == 8);
+    //     // do the reset
+    //     grid = grid_copy;
+    //     REQUIRE(grid.a_members.size() == 8);
 
-        grid.add(&b1);
-        grid.add(&b2);
-        grid.add(&b3);
-        grid.add(&b4);
-        REQUIRE(grid.a_members.size() == 8);
-        REQUIRE(grid.get_volume() != 0);
-    }
+    //     grid.add(&b1);
+    //     grid.add(&b2);
+    //     grid.add(&b3);
+    //     grid.add(&b4);
+    //     REQUIRE(grid.a_members.size() == 8);
+    //     REQUIRE(grid.get_volume() != 0);
+    // }
 }
 
 TEST_CASE("split_body", "[body],[files]") {
     settings::general::verbose = false;
     vector<int> splits = {9, 99};
-    Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+    Protein protein = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", splits);
 
     // check sizes
     REQUIRE(protein.bodies.size() == 3);

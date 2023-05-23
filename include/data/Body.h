@@ -33,7 +33,12 @@ class Body {
 		/**
 		 * @brief Create a new collection of atoms (body) based on two vectors
 		 */
-		explicit Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
+		explicit Body(const std::vector<Atom>& protein_atoms);
+
+		/**
+		 * @brief Create a new collection of atoms (body) based on two vectors
+		 */
+		Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms);
 
 		/**
 		 * @brief Copy constructor. 

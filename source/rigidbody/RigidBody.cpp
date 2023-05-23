@@ -28,6 +28,10 @@
 
 using namespace rigidbody;
 
+rigidbody::detail::BestConf::BestConf() = default;
+rigidbody::detail::BestConf::BestConf(std::shared_ptr<grid::Grid> grid, std::vector<Water> waters, double chi2) noexcept : grid(std::move(grid)), waters(std::move(waters)), chi2(chi2) {}
+rigidbody::detail::BestConf::~BestConf() = default;
+
 RigidBody::~RigidBody() = default;
 
 RigidBody::RigidBody(Protein&& protein) : Protein(std::move(protein)) {
@@ -54,11 +58,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
     }
 
     // save the best configuration in a simple struct
-    detail::BestConf best {
-        .grid = std::make_shared<grid::Grid>(*get_grid()),
-        .waters = waters(),
-        .chi2 = fitter->fit_only()
-    };
+    detail::BestConf best(std::make_shared<grid::Grid>(*get_grid()), waters(), fitter->fit_only());
 
     if (settings::general::verbose) {
         console::print_info("\nStarting rigid body optimization.");
@@ -94,7 +94,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
-    std::shared_ptr<DistanceConstraint> constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint);
+    DistanceConstraint& constraint = *constraints->distance_constraints_map.at(ibody).at(iconstraint);
     Parameter param = parameter_generator->next();
 
     Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
@@ -130,13 +130,13 @@ void RigidBody::prepare_fitter(const std::string& measurement_path) {
     if (calibration == nullptr) {
         fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
         fitter.set_constraint_manager(constraints);
-        this->fitter = std::make_shared<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
+        this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
     } else {
         auto histogram = get_histogram();
         histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
         fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, std::move(histogram));
         fitter.set_constraint_manager(constraints);
-        this->fitter = std::make_shared<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
+        this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
     }
 }
 

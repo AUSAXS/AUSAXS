@@ -13,9 +13,9 @@
 
 using namespace rigidbody;
 
-std::vector<std::shared_ptr<DistanceConstraint>> VolumetricConstraints::generate() const {
+std::vector<DistanceConstraint> VolumetricConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}
-    std::vector<std::shared_ptr<rigidbody::DistanceConstraint>> constraints;
+    std::vector<rigidbody::DistanceConstraint> constraints;
 
     auto& protein = *manager->protein;
     for (unsigned int ibody1 = 0; ibody1 < protein.bodies.size(); ibody1++) {
@@ -48,7 +48,7 @@ std::vector<std::shared_ptr<DistanceConstraint>> VolumetricConstraints::generate
             // check if the bodies are close enough for a constraint to make sense
             if (min_dist > settings::rigidbody::bond_distance) {continue;} 
 
-            constraints.emplace_back(std::make_shared<DistanceConstraint>(manager->protein, ibody1, ibody2, min_atom1, min_atom2));
+            constraints.emplace_back(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
             if (settings::general::verbose) {
                 std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.atoms(min_atom1).name << " and " << body2.atoms(min_atom2).name << std::endl;
             }

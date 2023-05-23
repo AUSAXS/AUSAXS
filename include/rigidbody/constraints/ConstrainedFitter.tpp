@@ -12,6 +12,6 @@ void fitter::ConstrainedFitter<T>::set_constraint_manager(std::shared_ptr<rigidb
 }
 
 template<fitter::fitter_t T>
-std::shared_ptr<rigidbody::ConstraintManager> fitter::ConstrainedFitter<T>::get_constraint_manager() {
-    return constraints;
-} 
+rigidbody::ConstraintManager* fitter::ConstrainedFitter<T>::get_constraint_manager() {
+    return this->constraints.get();
+}

@@ -7,7 +7,7 @@
 #include <rigidbody/transform/RigidTransform.h>
 #include <fitter/HydrationFitter.h>
 #include <data/BodySplitter.h>
-#include <data/Atom.h>
+#include <data/Water.h>
 #include <data/Body.h>
 #include <settings/All.h>
 
@@ -52,13 +52,13 @@ TEST_CASE_METHOD(fixture, "affects_fitter") {
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
     double chi2 = fitter.fit()->fval;
 
-    std::shared_ptr<DistanceConstraint> constraint = std::make_shared<DistanceConstraint>(&protein, a1, a3);
+    DistanceConstraint constraint(&protein, a1, a3);
     protein.body(0).translate(Vector3<double>(1, 0, 0));
-    fitter.get_constraint_manager()->add_constraint(constraint);
+    fitter.get_constraint_manager()->add_constraint(std::move(constraint));
     double chi2c = fitter.fit()->fval;
 
-    CHECK(constraint->evaluate() > 0);
-    REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint->evaluate(), 0.1));
+    CHECK(constraint.evaluate() > 0);
+    REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint.evaluate(), 0.1));
 }
 
 TEST_CASE("simple_constraint_generation") {

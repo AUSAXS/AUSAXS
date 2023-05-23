@@ -69,6 +69,7 @@ Result dlibMinimizer<algo>::minimize_override() {
 
     double fmin;
     auto fwrapper = [this](dlib::matrix<double, 0, 1> x) {return this->function(std::vector<double>(x.begin(), x.end()));};
+    std::cout << "\t\tDEBUG" << std::endl;
     if (bounds) {
         if (algo == mini::type::DLIB_GLOBAL) {
             auto eval = dlib::find_min_global(
@@ -100,11 +101,13 @@ Result dlibMinimizer<algo>::minimize_override() {
             -1
         );
     }
+    std::cout << "\t\tDEBUG" << std::endl;
 
     Result res;
     res.fval = fmin;
     res.fevals = fevals;
     res.status = 0;
+    std::cout << "\t\tDEBUG" << std::endl;
     for (unsigned int i = 0; i < parameters.size(); i++) {
         FittedParameter param;
         param.name = parameters[i].name;

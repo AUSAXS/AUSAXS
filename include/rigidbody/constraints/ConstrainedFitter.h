@@ -1,12 +1,12 @@
 #pragma once
 
 #include <fitter/Fitter.h>
+#include <rigidbody/constraints/ConstraintManager.h>
 
 #include <vector>
 #include <memory>
 #include <concepts>
 
-namespace rigidbody {class ConstraintManager;}
 namespace fitter {
     template<typename C>
     concept fitter_t = std::is_base_of_v<Fitter, C>;
@@ -29,10 +29,10 @@ namespace fitter {
              */
             void set_constraint_manager(std::shared_ptr<rigidbody::ConstraintManager> constraints);
 
-            std::shared_ptr<rigidbody::ConstraintManager> get_constraint_manager(); 
+            rigidbody::ConstraintManager* get_constraint_manager(); 
 
         private: 
-            std::shared_ptr<rigidbody::ConstraintManager> constraints;
+            std::shared_ptr<rigidbody::ConstraintManager> constraints = std::make_unique<rigidbody::ConstraintManager>();
     };
 }
 

@@ -11,6 +11,7 @@ OverlapConstraint::OverlapConstraint(Protein* protein) {
 }
 
 double OverlapConstraint::evaluate() const {
+    if (target.size() == 0) [[unlikely]] {return 0;}
     auto distances = protein->get_histogram();
     double chi2 = 0;
     for (unsigned int i = 0; i < target.size(); i++) {

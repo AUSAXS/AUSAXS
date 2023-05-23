@@ -1,29 +1,44 @@
 #pragma once
 
+#include <rigidbody/constraints/DistanceConstraint.h>
+#include <rigidbody/constraints/OverlapConstraint.h>
+
 #include <vector>
 #include <memory>
 #include <unordered_map>
 
 class Protein;
 namespace rigidbody {
-    class OverlapConstraint;
-    class DistanceConstraint;
     class ConstraintManager {
         public:
+            ConstraintManager();
+
             /**
              * @brief Construct a new Constraint Manager for a given protein.
              */
             ConstraintManager(Protein* protein);
 
-            /**
-             * @brief Add a constraint to this manager.
-             */
-            void add_constraint(std::shared_ptr<DistanceConstraint> constraint);
+            ~ConstraintManager();
 
-            /**
-             * @brief Add a constraint to this manager.
-             */
-            void add_constraint(std::shared_ptr<OverlapConstraint> constraint);
+            // /**
+            //  * @brief Add a constraint to this manager.
+            //  */
+            // template<typename T, typename = std::enable_if_t<std::is_same_v<T, DistanceConstraint>>>
+            // void add_constraint(T&& constraint) {
+            //     distance_constraints.push_back(std::forward(constraint));
+            //     generate_constraint_map();
+            // }
+
+            template<typename T, typename = std::enable_if_t<std::is_base_of_v<T, Constraint>>>
+            void add_constraint(T&& constraint);
+
+            // /**
+            //  * @brief Add a constraint to this manager.
+            //  */
+            // template<typename T, typename = std::enable_if_t<std::is_same_v<T, OverlapConstraint>>>
+            // void add_constraint(T&& constraint) {
+            //     overlap_constraint = std::forward(constraint);
+            // }
 
             /**
              * @brief Evaluate all constraints.
@@ -33,9 +48,9 @@ namespace rigidbody {
             double evaluate() const;
 
             Protein* protein;
-            std::shared_ptr<OverlapConstraint> overlap_constraint;                  // The overlap constraint
-            std::vector<std::shared_ptr<DistanceConstraint>> distance_constraints;  // All distance constraints
-			std::unordered_map<unsigned int, std::vector<std::shared_ptr<DistanceConstraint>>> distance_constraints_map; // Maps a body index to all its constraints
+            OverlapConstraint overlap_constraint;                                                        // The overlap constraint
+            std::vector<DistanceConstraint> distance_constraints;                                        // All distance constraints
+			std::unordered_map<unsigned int, std::vector<DistanceConstraint*>> distance_constraints_map; // Maps a body index to all its constraints
 
         private:
             /**

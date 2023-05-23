@@ -28,11 +28,7 @@ void RigidBodyManager::initialize() {
     rigidbody->generate_new_hydration();
 
     // save the best configuration in a simple struct
-    best = detail::BestConf {
-        .grid = std::make_shared<grid::Grid>(*rigidbody->get_grid()),
-        .waters = waters(),
-        .chi2 = fitter->fit_only()
-    };
+    best = detail::BestConf(std::make_shared<grid::Grid>(*rigidbody->get_grid()), waters(), fitter->fit_only());
 }
 
 void RigidBodyManager::optimize_step() {

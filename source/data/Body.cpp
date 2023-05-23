@@ -26,6 +26,8 @@ Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hyd
     initialize();
 }
 
+Body::Body(const std::vector<Atom>& protein_atoms) : Body(protein_atoms, std::vector<Water>()) {}
+
 Body::Body(const Body& body) : uid(body.uid), file(body.file) {
     initialize();
 }

@@ -22,7 +22,6 @@ HydrationFitter::HydrationFitter(const SimpleDataset& data, const hist::Scatteri
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model) : HydrationFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
 
-mini::type fit_type = mini::type::BFGS;
 void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
 std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
     fit_type = algorithm;
@@ -32,7 +31,9 @@ std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
 std::shared_ptr<Fit> HydrationFitter::fit() {
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
+    std::cout << "\tDEBUG" << std::endl;
     auto res = mini->minimize();
+    std::cout << "\tDEBUG" << std::endl;
 
     // apply c
     h.apply_water_scaling_factor(res.get_parameter("c").value);
@@ -125,6 +126,7 @@ SimpleDataset HydrationFitter::plot_residuals() {
 }
 
 double HydrationFitter::chi2(const std::vector<double>& params) {
+    std::cout << "CHI2 START" << std::endl;
     double c = params[0];
 
     // apply c
@@ -146,6 +148,7 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
         chi += v*v;
     }
 
+    std::cout << "CHI2 END" << std::endl;
     return chi;
 }
 

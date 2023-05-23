@@ -12,6 +12,9 @@ namespace fitter {
 namespace rigidbody {
 	namespace detail {
 		struct BestConf {
+			BestConf();
+			BestConf(std::shared_ptr<grid::Grid> grid, std::vector<Water> waters, double chi2) noexcept;
+			~BestConf();
 			std::shared_ptr<grid::Grid> grid;
 			std::vector<Water> waters;
 			double chi2;	

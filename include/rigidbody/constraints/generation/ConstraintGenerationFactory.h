@@ -8,11 +8,11 @@ namespace rigidbody {
         /**
          * @brief Prepare a constraint generator. 
          */
-        std::shared_ptr<ConstraintGenerationStrategy> generate_constraints(const ConstraintManager* manager);
+        std::unique_ptr<ConstraintGenerationStrategy> generate_constraints(const ConstraintManager* manager);
 
         /**
          * @brief Prepare a constraint generator. 
          */
-        std::shared_ptr<ConstraintGenerationStrategy> generate_constraints(const ConstraintManager* manager, const settings::rigidbody::ConstraintGenerationStrategyChoice& choice);
+        std::unique_ptr<ConstraintGenerationStrategy> generate_constraints(const ConstraintManager* manager, const settings::rigidbody::ConstraintGenerationStrategyChoice& choice);
     }
 }

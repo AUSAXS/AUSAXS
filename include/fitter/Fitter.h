@@ -2,6 +2,7 @@
 
 #include <dataset/SimpleDataset.h>
 #include <fitter/Fit.h>
+#include <mini/Minimizer.h>
 
 #include <string>
 #include <vector>

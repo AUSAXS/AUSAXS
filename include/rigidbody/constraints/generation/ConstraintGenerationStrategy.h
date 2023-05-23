@@ -14,7 +14,7 @@ namespace rigidbody {
             /**
              * @brief Generate a constraint.
              */
-            virtual std::vector<std::shared_ptr<DistanceConstraint>> generate() const = 0;
+            virtual std::vector<DistanceConstraint> generate() const = 0;
 
             const ConstraintManager* manager;
     };

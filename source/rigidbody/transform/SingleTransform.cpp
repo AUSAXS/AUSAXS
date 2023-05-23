@@ -10,8 +10,8 @@ SingleTransform::SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigid
 
 SingleTransform::~SingleTransform() = default;
 
-void SingleTransform::apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) {
-    TransformGroup group({&constraint->get_body1()}, {constraint->ibody1}, constraint, constraint->get_atom1().coords);
+void SingleTransform::apply(const Matrix<double>& M, const Vector3<double>& t, rigidbody::DistanceConstraint& constraint) {
+    TransformGroup group({&constraint.get_body1()}, {constraint.ibody1}, constraint, constraint.get_atom1().coords);
     backup(group);
     rotate(M, group);
     translate(t, group);

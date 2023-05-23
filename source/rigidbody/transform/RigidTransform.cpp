@@ -17,7 +17,7 @@ RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbo
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) {
+void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
 
@@ -36,7 +36,7 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, st
     }
 }
 
-TransformGroup RigidTransform::get_connected(std::shared_ptr<DistanceConstraint> pivot) {
+TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
     std::function<void(unsigned int, std::unordered_set<unsigned int>&)> explore_branch = [&] (unsigned int ibody, std::unordered_set<unsigned int>& indices) {
         if (indices.contains(ibody)) {
             return;
@@ -54,18 +54,18 @@ TransformGroup RigidTransform::get_connected(std::shared_ptr<DistanceConstraint>
     };
 
     // explore all branches
-    std::unordered_set<unsigned int> _path1({pivot->ibody2});
-    std::unordered_set<unsigned int> _path2({pivot->ibody1});
-    explore_branch(pivot->ibody1, _path1);
-    explore_branch(pivot->ibody2, _path2);
-    _path1.erase(pivot->ibody2);
-    _path2.erase(pivot->ibody1);
+    std::unordered_set<unsigned int> _path1({pivot.ibody2});
+    std::unordered_set<unsigned int> _path2({pivot.ibody1});
+    explore_branch(pivot.ibody1, _path1);
+    explore_branch(pivot.ibody2, _path2);
+    _path1.erase(pivot.ibody2);
+    _path2.erase(pivot.ibody1);
     std::vector<unsigned int> path1(_path1.begin(), _path1.end());
     std::vector<unsigned int> path2(_path2.begin(), _path2.end());
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
-        return TransformGroup({&rigidbody->bodies[pivot->ibody1]}, {pivot->ibody1}, pivot, pivot->get_atom1().coords);
+        return TransformGroup({&rigidbody->bodies[pivot.ibody1]}, {pivot.ibody1}, pivot, pivot.get_atom1().coords);
     }
 
     // create a vector of pointers to the bodies in the paths
@@ -91,8 +91,8 @@ TransformGroup RigidTransform::get_connected(std::shared_ptr<DistanceConstraint>
 
     // return the path with the least atoms, since that will be the cheapest to transform
     if (N1 < N2) {
-        return TransformGroup(bodies1, path1, pivot, pivot->get_atom1().coords);
+        return TransformGroup(bodies1, path1, pivot, pivot.get_atom1().coords);
     } else {
-        return TransformGroup(bodies2, path2, pivot, pivot->get_atom2().coords);
+        return TransformGroup(bodies2, path2, pivot, pivot.get_atom2().coords);
     }
 }
