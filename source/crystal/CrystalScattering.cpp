@@ -117,6 +117,7 @@ SimpleDataset CrystalScattering::calculate() const {
     // bin the data
     SimpleDataset data;
     unsigned int bin_index = 0;
+    while (bin_index < fvals.size() && fvals[bin_index].qlength < bins[0]) {bin_index++;} // skip all values below the first bin
     for (unsigned int i = 0; i < bins.size()-1; i++) {
         double qmin = bins[i];
         double qmax = bins[i+1];
