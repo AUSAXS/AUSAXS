@@ -6,16 +6,13 @@
 
 using namespace io;
 
-File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {
-    validate();
-}
+File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
 
 File::File(const char* path) : File(std::string(path)) {}
 
 File::File(const std::string& path) {
     if (path.empty()) {return;}
     *this = path;
-    validate();
 }
 
 std::tuple<std::string, std::string, std::string> File::split(const std::string& path) {
@@ -92,10 +89,4 @@ std::string operator+(const io::File& file, const std::string& str) {
 std::ostream& operator<<(std::ostream& os, const io::File& file) {
     os << file.path();
     return os;
-}
-
-void File::validate() const {
-    if (!std::filesystem::is_regular_file(path())) {
-        throw except::invalid_argument("File::File: \"" + path() + "\" is not a file.");
-    }
 }

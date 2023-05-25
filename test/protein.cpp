@@ -26,8 +26,8 @@ TEST_CASE("simulate_dataset") {
     settings::protein::use_effective_charge = false;
     settings::em::sample_frequency = 2;
     Protein protein("test/files/2epe.pdb");
-    SimpleDataset data = protein.simulate_dataset();
 
+    SimpleDataset data = protein.simulate_dataset();
     fitter::LinearFitter fitter(data, protein.get_histogram());
     auto res = fitter.fit();
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
@@ -86,9 +86,9 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 
 TEST_CASE("histogram") {
     settings::axes::distance_bin_width = 1;
+    settings::protein::use_effective_charge = false;
 
     SECTION("multiple bodies, simple") {
-        settings::protein::use_effective_charge = true;
         // make the protein
         vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
@@ -134,8 +134,7 @@ TEST_CASE("histogram") {
     }
 
     SECTION("multiple bodies, real input") {
-        settings::protein::use_effective_charge = true;
-        Body body("data/lysozyme/2epe.pdb");
+        Body body("test/files/2epe.pdb");
         body.center();
         
         // We iterate through the protein data from the body, and split it into multiple pieces of size 100.  
@@ -200,7 +199,6 @@ TEST_CASE("histogram") {
     }
 
     SECTION("equivalent to old approach") {
-        settings::protein::use_effective_charge = false;
         vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
                               Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
                               Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
@@ -423,6 +421,8 @@ TEST_CASE("get_volume") {
 }
 
 TEST_CASE("update_effective_charge") {
+    settings::protein::use_effective_charge = false;
+
     // make the protein
     vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
     vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
@@ -469,29 +469,30 @@ TEST_CASE_METHOD(fixture, "protein_bind_body_signallers") {
     settings::general::verbose = false;
 
     SECTION("at construction") {
-        auto bodies = protein.get_bodies();
+        auto& bodies = protein.get_bodies();
         REQUIRE(bodies.size() == 4);
         auto manager = protein.get_histogram_manager()->get_state_manager();
-        for (int i = 0; i < bodies.size(); ++i) {
-            CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies.at(i).get_signaller()) != nullptr);
-            // CHECK(manager.get_probe(i) == bodies[i].get_signaller());
+        for (unsigned int i = 0; i < bodies.size(); ++i) {
+            CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
+            CHECK(manager->get_probe(i) == bodies[i].get_signaller());
         }
 
-        // manager.reset();
-        // for (int i=0; i<4; i++) {
-        //     bodies[i].changed_external_state();
-        //     CHECK(manager.is_externally_modified(i));
-        // }
+        manager->reset();
+        for (unsigned int i = 0; i < bodies.size(); ++i) {
+            bodies[i].changed_external_state();
+            CHECK(manager->is_externally_modified(i));
+        }
     }
 
-    // SECTION("after construction") {
-    //     auto bodies = protein.bodies;
-    //     REQUIRE(bodies.size() == 4);
-    //     protein.get_histogram_manager() = hist::factory::construct_histogram_manager(&protein);
-    //     auto manager = protein.get_histogram_manager()->get_state_manager();
-    //     for (int i=0; i<4; i++) {CHECK(manager.get_probe(i) != bodies[i].get_signaller());}
+    SECTION("after construction") {
+        auto& bodies = protein.get_bodies();
+        REQUIRE(bodies.size() == 4);
+        protein.set_histogram_manager(hist::factory::construct_histogram_manager(&protein));
+        auto manager = protein.get_histogram_manager()->get_state_manager();
 
-    //     protein.bind_body_signallers();
-    //     for (int i=0; i<4; i++) {CHECK(manager.get_probe(i) == bodies[i].get_signaller());}
-    // }
+        for (unsigned int i = 0; i < bodies.size(); ++i) {
+            CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies[i].get_signaller()) != nullptr);
+            CHECK(manager->get_probe(i) == bodies[i].get_signaller());
+        }
+    }
 }

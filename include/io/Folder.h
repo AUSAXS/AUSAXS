@@ -16,6 +16,8 @@ namespace io {
 
             [[nodiscard]] bool exists() const noexcept;
 
+            [[nodiscard]] Folder& operator+(const std::string& str) noexcept;
+
             [[nodiscard]] Folder& operator+(const Folder& folder) noexcept;
 
             void operator=(const std::string& path);
@@ -37,6 +39,4 @@ namespace io {
 }
 
 std::string operator+(const char* str, const io::Folder& folder);
-std::string operator+(const io::Folder& folder, const char* str);
 std::string operator+(const std::string& str, const io::Folder& folder);
-std::string operator+(const io::Folder& folder, const std::string& str);

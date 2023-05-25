@@ -23,9 +23,9 @@ namespace hist {
          */
         void signal_modified_hydration_layer();
 
-        const StateManager& get_state_manager() const;
+        const StateManager* get_state_manager() const;
 
-        StateManager& get_state_manager();
+        StateManager* get_state_manager();
 
         const unsigned int size;                    // number of managed bodies
         std::unique_ptr<StateManager> statemanager; // a helper which keeps track of state changes in each body

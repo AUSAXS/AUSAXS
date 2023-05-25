@@ -17,10 +17,10 @@ void BodyTracker::signal_modified_hydration_layer() {
     statemanager->modified_hydration_layer();
 }
 
-const StateManager& BodyTracker::get_state_manager() const {
-    return *statemanager;
+const StateManager* BodyTracker::get_state_manager() const {
+    return statemanager.get();
 }
 
-StateManager& BodyTracker::get_state_manager() {
-    return *statemanager;
+StateManager* BodyTracker::get_state_manager() {
+    return statemanager.get();
 }

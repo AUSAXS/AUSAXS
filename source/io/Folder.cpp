@@ -11,29 +11,25 @@ Folder::~Folder() = default;
 
 Folder::Folder(const std::string& path) {
     *this = path;
-    if (!std::filesystem::is_directory(dir)) {
-        throw except::invalid_argument("Folder::Folder: \"" + dir + "\" is not a directory.");
-    }
 }
 
 void Folder::operator=(const std::string& path) {
     if (path.empty()) {dir = "."; return;}
-    bool slash_b = path.front() == '/';
-    bool slash_f = path.back() == '/';
-    if (slash_b && slash_f) {
-        dir = path.substr(1, path.size() - 2);
-    } else if (slash_b) {
-        dir = path.substr(1);
-    } else if (slash_f) {
+    if (path.back() == '/') {
         dir = path.substr(0, path.size() - 1);
     } else {
         dir = path;
     }
 }
 
-Folder& Folder::operator+(const Folder& folder) noexcept {
-    dir += "/" + folder.dir;
+Folder& Folder::operator+(const std::string& str) noexcept {
+    auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
+    dir += s.front() == '/' ? s : "/" + s;
     return *this;
+}
+
+Folder& Folder::operator+(const Folder& folder) noexcept {
+    return *this + std::string(folder);
 }
 
 Folder::operator std::string() const {return dir;}
@@ -46,13 +42,11 @@ bool Folder::exists() const noexcept {
 }
 
 std::vector<std::string> Folder::files() const {
-    std::vector<std::string> files;
-    return files;
+    throw except::not_implemented("io::Folder::files");
 }
 
 std::vector<std::string> Folder::directories() const {
-    std::vector<std::string> directories;
-    return directories;
+    throw except::not_implemented("io::Folder::directories");
 }
 
 void Folder::create() const {
@@ -61,17 +55,11 @@ void Folder::create() const {
 }
 
 std::string operator+(const char* str, const io::Folder& folder) {
-    return std::string(str) + folder.path();
-}
-
-std::string operator+(const io::Folder& folder, const char* str) {
-    return folder.path() + std::string(str);
+    return std::string(str) + folder;
 }
 
 std::string operator+(const std::string& str, const io::Folder& folder) {
-    return str + folder.path();
-}
-
-std::string operator+(const io::Folder& folder, const std::string& str) {
-    return folder.path() + "/" + str;
+    auto s = str.back() == '/' ? str.substr(0, str.size() - 1) : str;
+    if (folder.path().front() == '/') {return std::string(s) + folder.path();}
+    else {return std::string(s) + "/" + folder.path();}
 }

@@ -158,17 +158,11 @@ void Body::changed_external_state() const {signal->external_change();}
 
 void Body::changed_internal_state() const {signal->internal_change();}
 
-#include <data/state/BoundSignaller.h>
 std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
-    if (std::dynamic_pointer_cast<signaller::BoundSignaller>(signal) == nullptr) {std::cout << "Body::get_signaller: Returning a BoundSignaller." << std::endl;}
-    else {std::cout << "Body::get:signaller: Returning a non-BoundSignaller." << std::endl;}
-    
     return signal;
 }
 
 void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
-    // if (std::dynamic_pointer_cast<signaller::BoundSignaller>(signal) == nullptr) {std::cout << "Body::register_probe1: Probe is not a BoundSignaller." << std::endl;}
-    // else {std::cout << "Body::register_probe1: Probe is a BoundSignaller." << std::endl;}
     this->signal = signal;
 }
 

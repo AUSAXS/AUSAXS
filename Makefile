@@ -310,6 +310,7 @@ stuff/%: build/executable/stuff
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 memtest/%: $(shell find source/ -print) test/%.cpp	
+	@ make -C build "test_$*" -j${cmake_threads}
 	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
 tests: $(shell find source/ -print) $(shell find test/ -print)

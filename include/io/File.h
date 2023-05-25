@@ -83,8 +83,6 @@ namespace io {
             Folder dir;
             std::string name;
             std::string ext;
-
-            void validate() const;
     };
 }
 

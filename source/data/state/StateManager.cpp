@@ -3,7 +3,6 @@
 
 #include <iostream>
 StateManager::StateManager(unsigned int size) : size(size), _externally_modified(size, true), _internally_modified(size, true), _modified_hydration(true) {
-    std::cout << "Initialized StateManager with size " << size << std::endl;
     for (unsigned int i = 0; i < size; i++) {
         probes.push_back(std::make_shared<signaller::BoundSignaller>(i, this));
     }
@@ -18,7 +17,6 @@ void StateManager::internally_modified_all() {
 }
 
 void StateManager::externally_modified(const int i) {
-    std::cout << "Externally modified " << i << " / " << _externally_modified.size() << std::endl;
     _externally_modified[i] = true;
 }
 

@@ -19,6 +19,7 @@ PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& ph
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
 Histogram PartialHistogramManagerMT::calculate() {
+    // if (statemanager == nullptr) {throw except::unexpected("PartialHistogramManagerMT::calculate: statemanager is null");}
     const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
@@ -27,7 +28,6 @@ Histogram PartialHistogramManagerMT::calculate() {
     if (master.p.size() == 0) [[unlikely]] {
         initialize(); 
     }
-
     
     // if not, we must first check if the coordinates have been changed in any of the bodies
     else {
@@ -71,7 +71,7 @@ Histogram PartialHistogramManagerMT::calculate() {
             }
         }
     }
-    statemanager.reset();
+    statemanager->reset();
     return Histogram(master.p, master.axis);
 }
 

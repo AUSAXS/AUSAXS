@@ -109,20 +109,20 @@ class Protein {
 		/**
 		 * @brief Get the distances between each atom.
 		 */
-		[[nodiscard]] hist::ScatteringHistogram get_histogram();
+		[[nodiscard]] hist::ScatteringHistogram get_histogram() const;
 
 		/**
 		 * @brief Get the total distance histogram only. 
 		 *        This is a slightly faster alternative to get_histogram() when only the total histogram is needed. 
 		 */
-		[[nodiscard]] hist::Histogram get_total_histogram();
+		[[nodiscard]] hist::Histogram get_total_histogram() const;
 
 		/**
 		 * @brief Simulate a SAXS dataset based on this protein.
 		 * 
 		 * @param add_noise Whether to add noise to the simulated dataset.
 		 */
-		[[nodiscard]] SimpleDataset simulate_dataset(bool add_noise = true);
+		[[nodiscard]] SimpleDataset simulate_dataset(bool add_noise = true) const;
 
 		/** 
 		 * @brief Writes this body to disk.
@@ -146,7 +146,7 @@ class Protein {
 		 * 
 		 * @return The volume in Å^3.
 		 */
-		[[nodiscard]] double get_volume_grid();
+		[[nodiscard]] double get_volume_grid() const;
 
 		/**
 		 * @brief Calculate the volume of this protein based on the number of C-alpha atoms
@@ -185,18 +185,18 @@ class Protein {
 		/**
 		 * @brief Get the relative charge density. 
 		 */
-		[[nodiscard]] double get_relative_charge_density();
+		[[nodiscard]] double get_relative_charge_density() const;
 
 		/**
 		 * @brief Get the relative mass density.
 		 */
-		[[nodiscard]] double get_relative_mass_density();
+		[[nodiscard]] double get_relative_mass_density() const;
 
 		/**
 		 * @brief Get the relative charge.
 		 *        This is the total charge subtracted by the total charge of water of the same volume. 
 		 */
-		[[nodiscard]] double get_relative_charge();
+		[[nodiscard]] double get_relative_charge() const;
 
 		/**
 		 * @brief Get the grid representation. 
@@ -281,7 +281,7 @@ class Protein {
 		 *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
 		 *        create a ScatteringHistogram and call its equivalent method instead. 
 		 */
-		[[nodiscard]] std::vector<double> calc_debye_scattering_intensity();
+		[[nodiscard]] std::vector<double> calc_debye_scattering_intensity() const;
 
 		/**
 		 * @brief Get the number of constituent bodies. 
@@ -314,12 +314,17 @@ class Protein {
 		 * 
 		 * @param measurement Path to the measurement file to be fitted.
 		 */
-		[[nodiscard]] std::shared_ptr<fitter::Fit> fit(const io::ExistingFile& measurement);
+		[[nodiscard]] std::shared_ptr<fitter::Fit> fit(const io::ExistingFile& measurement) const;
 
 		/**
 		 * @brief Get the histogram manager of this protein.
 		 */
 		[[nodiscard]] std::shared_ptr<hist::HistogramManager> get_histogram_manager() const;
+
+		/**
+		 * @brief Set the histogram manager of this protein.
+		 */
+		void set_histogram_manager(std::unique_ptr<hist::HistogramManager> manager);
 
 		/**
 		 * @brief Signal that the hydration layer has been modified.
@@ -350,4 +355,6 @@ class Protein {
 		std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
 		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+
+		void initialize();
 };

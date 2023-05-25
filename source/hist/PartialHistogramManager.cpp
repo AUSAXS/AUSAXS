@@ -8,11 +8,7 @@
 
 using namespace hist;
 
-PartialHistogramManager::PartialHistogramManager(Protein* protein)
-    : HistogramManager(protein), coords_p(size), partials_pp(size, std::vector<detail::PartialHistogram>(size)), partials_hp(size) 
-    {
-        // for (unsigned int i = 0; i < size; i++) {protein->get_body(i).register_probe(statemanager->get_probe(i));}
-    }
+PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramManager(protein), coords_p(size), partials_pp(size, std::vector<detail::PartialHistogram>(size)), partials_hp(size) {}
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 

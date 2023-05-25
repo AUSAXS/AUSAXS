@@ -24,37 +24,31 @@
 using namespace hist;
 
 Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     for (unsigned int i = 0; i < protein_atoms.size(); i++) {
         bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
     }
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(const Protein& protein) : hydration_atoms(protein.hydration_atoms), bodies(protein.bodies), updated_charge(protein.updated_charge), centered(protein.centered) {
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(const io::ExistingFile& input) {
@@ -62,19 +56,25 @@ Protein::Protein(const io::ExistingFile& input) {
     bodies = {b1};
     this->get_waters() = std::move(bodies[0].get_waters());
     bodies[0].get_waters().clear();
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::Protein(const std::vector<std::string>& input) {
     for (size_t i = 0; i < input.size(); i++) {
         bodies.push_back(Body(input[i]));
     }
-    phm = hist::factory::construct_histogram_manager(this);
-    bind_body_signallers();
+    initialize();
 }
 
 Protein::~Protein() = default;
+
+void Protein::initialize() {
+    set_histogram_manager(hist::factory::construct_histogram_manager(this));
+    create_grid();
+    if (settings::protein::use_effective_charge) {
+        update_effective_charge();
+    }
+}
 
 void Protein::translate(const Vector3<double>& v) {
     for (auto& body : bodies) {
@@ -85,7 +85,7 @@ void Protein::translate(const Vector3<double>& v) {
     }
 }
 
-SimpleDataset Protein::simulate_dataset(bool add_noise) {
+SimpleDataset Protein::simulate_dataset(bool add_noise) const {
     SimpleDataset data = get_histogram().calc_debye_scattering_intensity();
     data.reduce(settings::fit::N, true);
     data.simulate_errors();
@@ -128,29 +128,28 @@ double Protein::total_effective_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_effective_charge();});
 }
 
-double Protein::get_relative_charge() {
+double Protein::get_relative_charge() const {
     double V = get_volume_grid();
     double Z_protein = total_atomic_charge();
     double Z_water = constants::charge::density::water*V;
     return Z_protein - Z_water;
 }
 
-double Protein::get_relative_charge_density() {
+double Protein::get_relative_charge_density() const {
     double V = get_volume_grid();
     double Z_protein = total_atomic_charge();
     double Z_water = constants::charge::density::water*V;
     return (Z_protein - Z_water)/V;
 }
 
-double Protein::get_relative_mass_density() {
+double Protein::get_relative_mass_density() const {
     double V = get_volume_grid();
     double m_protein = absolute_mass();
     double m_water = constants::mass::density::water*V;
     return (m_protein - m_water)/V;
 }
 
-double Protein::get_volume_grid() {
-    if (grid == nullptr) {create_grid();}
+double Protein::get_volume_grid() const {
     return grid->get_volume();
 }
 
@@ -222,17 +221,11 @@ void Protein::generate_new_hydration() {
     get_waters() = grid->hydrate();
 }
 
-ScatteringHistogram Protein::get_histogram() {
-    if (!updated_charge && settings::protein::use_effective_charge) {
-        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
-    }
+ScatteringHistogram Protein::get_histogram() const {
     return phm->calculate_all();
 }
 
-Histogram Protein::get_total_histogram() {
-    if (!updated_charge && settings::protein::use_effective_charge) {
-        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
-    }
+Histogram Protein::get_total_histogram() const {
     return phm->calculate();
 }
 
@@ -262,11 +255,7 @@ unsigned int Protein::atom_size() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0, [] (unsigned int sum, const Body& body) {return sum + body.get_atoms().size();});
 }
 
-std::vector<double> Protein::calc_debye_scattering_intensity() {
-    if (!updated_charge && settings::protein::use_effective_charge) {
-        update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
-    }
-
+std::vector<double> Protein::calc_debye_scattering_intensity() const {
     std::vector<Atom> atoms = get_atoms();
     const Axis& debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
     std::vector<double> Q = std::vector<double>(debye_axis.bins);
@@ -334,19 +323,22 @@ void Protein::signal_modified_hydration_layer() const {
 void Protein::bind_body_signallers() {
     if (phm == nullptr) [[unlikely]] {throw except::unexpected("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
     for (unsigned int i = 0; i < bodies.size(); i++) {
-        // if (std::dynamic_pointer_cast<signaller::BoundSignaller>(phm->get_probe(i)) == nullptr) {std::cout << "Protein::bind_body_signallers: Probe " << i << " is not a BoundSignaller." << std::endl;}
-        // else {std::cout << "Protein::bind_body_signallers: Probe " << i << " is a BoundSignaller." << std::endl;}
         bodies[i].register_probe(phm->get_probe(i));
     }
 }
 
-std::shared_ptr<fitter::Fit> Protein::fit(const io::ExistingFile& measurement) {
+std::shared_ptr<fitter::Fit> Protein::fit(const io::ExistingFile& measurement) const {
     hist::ScatteringHistogram h = get_histogram();
     fitter::HydrationFitter fitter(measurement, h);
     return fitter.fit();
 }
 
 std::shared_ptr<HistogramManager> Protein::get_histogram_manager() const {return phm;}
+
+void Protein::set_histogram_manager(std::unique_ptr<hist::HistogramManager> manager) {
+    phm = std::move(manager);
+    bind_body_signallers();
+}
 
 void Protein::generate_unit_cell() {
     if (grid == nullptr) {create_grid();}
