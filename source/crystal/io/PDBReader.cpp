@@ -12,7 +12,7 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(co
     Protein protein(input);
     double expansion = settings::crystal::grid_expansion;
 
-    auto prot_atoms = protein.atoms();
+    auto prot_atoms = protein.get_atoms();
     if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input + "\".");}
     auto position = prot_atoms[0].get_coordinates();
     Axis3D axis({position.x(), position.x(), position.y(), position.y(), position.z(), position.z()});

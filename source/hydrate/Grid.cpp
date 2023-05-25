@@ -24,7 +24,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
     // find the total bounding box containing all bodies
     Vector3 min{0, 0, 0}, max{0, 0, 0};
     for (const Body& body : bodies) {
-        auto[cmin, cmax] = bounding_box(body.atoms());
+        auto[cmin, cmax] = bounding_box(body.get_atoms());
 
         for (unsigned int i = 0; i < 3; i++) {
             if (cmin[i] < min[i]) {min[i] = cmin[i];}
@@ -45,7 +45,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
-        add(body.atoms());
+        add(body.get_atoms());
     }
 }
 
@@ -300,11 +300,11 @@ template std::vector<GridMember<Atom>> Grid::add<Atom>(const std::vector<Atom>&)
 template std::vector<GridMember<Water>> Grid::add<Water>(const std::vector<Water>&);
 
 std::vector<GridMember<Atom>> Grid::add(const Body* body) {
-    return add(body->atoms());
+    return add(body->get_atoms());
 }
 
 void Grid::remove(const Body* body) {
-    remove(body->atoms());
+    remove(body->get_atoms());
 }
 
 const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
@@ -645,7 +645,7 @@ Body Grid::generate_excluded_volume() const {
                 switch (grid.index(i, j, k)) {
                     case GridObj::A_AREA:
                     case GridObj::A_CENTER: 
-                        body.atoms().push_back(Water::create_new_water(to_xyz(i, j, k)));
+                        body.get_atoms().push_back(Water::create_new_water(to_xyz(i, j, k)));
                         break;
                     default: 
                         break;

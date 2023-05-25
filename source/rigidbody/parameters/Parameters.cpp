@@ -10,10 +10,10 @@ Parameter::Parameter() : dx(0, 0, 0), alpha(0), beta(0), gamma(0) {}
 
 Parameter::Parameter(const Vector3<double>& dx, double alpha, double beta, double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
 
-Parameters::Parameters(const Protein* protein) : params(protein->bodies.size()) {
-    const std::vector<Body>& bodies = protein->bodies;
+Parameters::Parameters(const Protein* protein) : params(protein->body_size()) {
+    const std::vector<Body>& bodies = protein->get_bodies();
     for (unsigned int i = 0; i < params.size(); i++) {
-        id_to_index[bodies[i].uid] = i;
+        id_to_index[bodies[i].get_id()] = i;
     }
 }
 

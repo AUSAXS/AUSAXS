@@ -20,25 +20,10 @@ namespace rigidbody {
 
             ~ConstraintManager();
 
-            // /**
-            //  * @brief Add a constraint to this manager.
-            //  */
-            // template<typename T, typename = std::enable_if_t<std::is_same_v<T, DistanceConstraint>>>
-            // void add_constraint(T&& constraint) {
-            //     distance_constraints.push_back(std::forward(constraint));
-            //     generate_constraint_map();
-            // }
-
-            template<typename T, typename = std::enable_if_t<std::is_base_of_v<T, Constraint>>>
-            void add_constraint(T&& constraint);
-
-            // /**
-            //  * @brief Add a constraint to this manager.
-            //  */
-            // template<typename T, typename = std::enable_if_t<std::is_same_v<T, OverlapConstraint>>>
-            // void add_constraint(T&& constraint) {
-            //     overlap_constraint = std::forward(constraint);
-            // }
+            void add_constraint(OverlapConstraint&& constraint);
+            void add_constraint(const OverlapConstraint& constraint);
+            void add_constraint(DistanceConstraint&& constraint);
+            void add_constraint(const DistanceConstraint& constraint);
 
             /**
              * @brief Evaluate all constraints.

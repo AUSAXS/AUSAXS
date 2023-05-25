@@ -6,6 +6,11 @@ UnboundSignaller::UnboundSignaller() = default;
 
 UnboundSignaller::~UnboundSignaller() = default;
 
-void UnboundSignaller::external_change() const {}
+#include <iostream>
+void UnboundSignaller::external_change() const {
+    std::cout << "UNBOUNDSIGNALLER: External change" << std::endl;
+}
 
-void UnboundSignaller::internal_change() const {}
+void UnboundSignaller::internal_change() const {
+    std::cout << "UNBOUNDSIGNALLER: Internal change" << std::endl;
+}

@@ -65,16 +65,16 @@ TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
 
     // if the paths are the same length, we just return the pivot as the only body in the group
     if (path1.size() == path2.size() && path1 == path2) {
-        return TransformGroup({&rigidbody->bodies[pivot.ibody1]}, {pivot.ibody1}, pivot, pivot.get_atom1().coords);
+        return TransformGroup({&rigidbody->get_body(pivot.ibody1)}, {pivot.ibody1}, pivot, pivot.get_atom1().coords);
     }
 
     // create a vector of pointers to the bodies in the paths
     std::vector<Body*> bodies1, bodies2;
     for (const auto& ibody : path1) {
-        bodies1.push_back(&rigidbody->bodies[ibody]);
+        bodies1.push_back(&rigidbody->get_body(ibody));
     }
     for (const auto& ibody : path2) {
-        bodies2.push_back(&rigidbody->bodies[ibody]);
+        bodies2.push_back(&rigidbody->get_body(ibody));
     }
 
     // check if the system is overconstrained
@@ -83,10 +83,10 @@ TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
     }
 
     unsigned int N1 = std::accumulate(path1.begin(), path1.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
-        return sum + rigidbody->body(ibody).atoms().size();
+        return sum + rigidbody->get_body(ibody).atom_size();
     });
     unsigned int N2 = std::accumulate(path2.begin(), path2.end(), 0, [&] (unsigned int sum, unsigned int ibody) {
-        return sum + rigidbody->body(ibody).atoms().size();
+        return sum + rigidbody->get_body(ibody).atom_size();
     });
 
     // return the path with the least atoms, since that will be the cheapest to transform

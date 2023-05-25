@@ -15,3 +15,7 @@ void BoundSignaller::internal_change() const {
     owner->internally_modified(id);
     owner->externally_modified(id);
 }
+
+unsigned int BoundSignaller::get_id() const {
+    return id;
+}

@@ -116,11 +116,11 @@ void Body::update_effective_charge(double charge) {
 }
 
 double Body::total_atomic_charge() const {
-    return std::accumulate(atoms().begin(), atoms().end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
 }
 
 double Body::total_effective_charge() const {
-    return std::accumulate(atoms().begin(), atoms().end(), 0.0, [](double sum, const Atom& a) { return sum + a.get_effective_charge(); });
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [](double sum, const Atom& a) { return sum + a.get_effective_charge(); });
 }
 
 double Body::molar_mass() const {
@@ -158,18 +158,34 @@ void Body::changed_external_state() const {signal->external_change();}
 
 void Body::changed_internal_state() const {signal->internal_change();}
 
-void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {this->signal = signal;}
+#include <data/state/BoundSignaller.h>
+std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
+    if (std::dynamic_pointer_cast<signaller::BoundSignaller>(signal) == nullptr) {std::cout << "Body::get_signaller: Returning a BoundSignaller." << std::endl;}
+    else {std::cout << "Body::get:signaller: Returning a non-BoundSignaller." << std::endl;}
+    
+    return signal;
+}
 
-std::vector<Atom>& Body::atoms() {return file.protein_atoms;}
+void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
+    // if (std::dynamic_pointer_cast<signaller::BoundSignaller>(signal) == nullptr) {std::cout << "Body::register_probe1: Probe is not a BoundSignaller." << std::endl;}
+    // else {std::cout << "Body::register_probe1: Probe is a BoundSignaller." << std::endl;}
+    this->signal = signal;
+}
 
-std::vector<Water>& Body::waters() {return file.hydration_atoms;}
+std::vector<Atom>& Body::get_atoms() {return file.protein_atoms;}
 
-const std::vector<Atom>& Body::atoms() const {return file.protein_atoms;}
+std::vector<Water>& Body::get_waters() {return file.hydration_atoms;}
 
-const std::vector<Water>& Body::waters() const {return file.hydration_atoms;}
+const std::vector<Atom>& Body::get_atoms() const {return file.protein_atoms;}
 
-Atom& Body::atoms(unsigned int index) {return file.protein_atoms[index];}
+const std::vector<Water>& Body::get_waters() const {return file.hydration_atoms;}
 
-const Atom& Body::atoms(unsigned int index) const {return file.protein_atoms[index];}
+Atom& Body::get_atom(unsigned int index) {return file.protein_atoms[index];}
+
+const Atom& Body::get_atom(unsigned int index) const {return file.protein_atoms[index];}
 
 ProteinFile& Body::get_file() {return file;}
+
+unsigned int Body::get_id() const {return uid;}
+
+unsigned int Body::atom_size() const {return file.protein_atoms.size();}

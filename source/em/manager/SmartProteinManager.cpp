@@ -87,7 +87,7 @@ std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) co
 }
 
 void SmartProteinManager::update_protein(double cutoff) {
-    if (protein == nullptr || protein->bodies.empty()) {
+    if (protein == nullptr || protein->atom_size() == 0) {
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
 
@@ -126,15 +126,15 @@ void SmartProteinManager::update_protein(double cutoff) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], previous_cutoff)) {
                 // if so, we replace it with the new contents
-                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+                protein->get_body(charge_index) = new_protein->get_body(charge_index);
             } else {
                 // if we have the same number of atoms as earlier, nothing has changed
-                if (new_protein->bodies[charge_index].atoms().size() == protein->bodies[charge_index].atoms().size()) {
+                if (new_protein->get_body(charge_index).get_atoms().size() == protein->get_body(charge_index).get_atoms().size()) {
                     break;
                 }
 
                 // otherwise we replace it and stop iterating
-                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+                protein->get_body(charge_index) = new_protein->get_body(charge_index);
                 break;
             }
         }
@@ -153,10 +153,10 @@ void SmartProteinManager::update_protein(double cutoff) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], cutoff)) {
                 // if so, we replace it with the new contents
-                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+                protein->get_body(charge_index) = new_protein->get_body(charge_index);
             } else {
                 // otherwise we replace it and stop iterating
-                protein->bodies[charge_index] = new_protein->bodies[charge_index];
+                protein->get_body(charge_index) = new_protein->get_body(charge_index);
                 break;
             }
         }

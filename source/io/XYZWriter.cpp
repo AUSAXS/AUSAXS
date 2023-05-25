@@ -22,7 +22,7 @@ io::XYZWriter::~XYZWriter() {
 
 void io::XYZWriter::write_frame(const Protein* protein) {
     static unsigned int frame = 0;
-    auto atoms = protein->atoms();
+    auto atoms = protein->get_atoms();
     file << " " << atoms.size() << std::endl;
     file << " Frame " << frame++ << std::endl;
     for (const auto& atom : atoms) {

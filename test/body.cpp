@@ -29,19 +29,19 @@ TEST_CASE("translate") {
 
     SECTION("translate") {
         body.translate(Vector3<double>{1, 1, 1});
-        CHECK(body.atoms(0).coords == Vector3<double>{0, 0, 0});
-        CHECK(body.atoms(1).coords == Vector3<double>{0, 2, 0});
-        CHECK(body.atoms(2).coords == Vector3<double>{2, 0, 0});
-        CHECK(body.atoms(3).coords == Vector3<double>{2, 2, 0});
+        CHECK(body.get_atom(0).coords == Vector3<double>{0, 0, 0});
+        CHECK(body.get_atom(1).coords == Vector3<double>{0, 2, 0});
+        CHECK(body.get_atom(2).coords == Vector3<double>{2, 0, 0});
+        CHECK(body.get_atom(3).coords == Vector3<double>{2, 2, 0});
     }
 
     SECTION("trivial center") {
         body.translate(Vector3<double>{-1, -1, -1});
         body.center();
-        CHECK(body.atoms(0).coords == Vector3<double>{-1, -1, -1});
-        CHECK(body.atoms(1).coords == Vector3<double>{-1,  1, -1});
-        CHECK(body.atoms(2).coords == Vector3<double>{ 1, -1, -1});
-        CHECK(body.atoms(3).coords == Vector3<double>{ 1,  1, -1});
+        CHECK(body.get_atom(0).coords == Vector3<double>{-1, -1, -1});
+        CHECK(body.get_atom(1).coords == Vector3<double>{-1,  1, -1});
+        CHECK(body.get_atom(2).coords == Vector3<double>{ 1, -1, -1});
+        CHECK(body.get_atom(3).coords == Vector3<double>{ 1,  1, -1});
     }
 
     SECTION("non-trivial center") {
@@ -54,20 +54,20 @@ TEST_CASE("translate") {
 
         // make checks in a roundabout fashion for better failure messages
         auto res = Vector3<double>{-1, -1-shift, 0};
-        if (body.atoms(0).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.atoms(0).coords == res);}
+        if (body.get_atom(0).coords.equals(res, 1e-3)) {CHECK(true);}
+        else {CHECK(body.get_atom(0).coords == res);}
 
         res = Vector3<double>{-1, 1-shift, 0};
-        if (body.atoms(1).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.atoms(1).coords == res);}
+        if (body.get_atom(1).coords.equals(res, 1e-3)) {CHECK(true);}
+        else {CHECK(body.get_atom(1).coords == res);}
 
         res = Vector3<double>{1, -1-shift, 0};
-        if (body.atoms(2).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.atoms(2).coords == res);}
+        if (body.get_atom(2).coords.equals(res, 1e-3)) {CHECK(true);}
+        else {CHECK(body.get_atom(2).coords == res);}
 
         res = Vector3<double>{1, 1-shift, 0};
-        if (body.atoms(3).coords.equals(res, 1e-3)) {CHECK(true);}
-        else {CHECK(body.atoms(3).coords == res);}
+        if (body.get_atom(3).coords.equals(res, 1e-3)) {CHECK(true);}
+        else {CHECK(body.get_atom(3).coords == res);}
     }
 }
 
@@ -81,27 +81,27 @@ TEST_CASE("rotate") {
         SECTION("axis") {
             Vector3<double> axis = {0, 1, 0};
             body.rotate(axis, M_PI_2);
-            CHECK(Vector3<double>({0, 0, -1}) == body.atoms(0).coords); 
-            CHECK(Vector3<double>({0, 1, 0}) == body.atoms(1).coords); 
-            CHECK(Vector3<double>({1, 0, 0}) == body.atoms(2).coords); 
+            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coords); 
+            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coords); 
+            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coords); 
 
             axis = {1, 1, 1};
             body.rotate(axis, M_PI/4);
-            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.atoms(0).coords); 
-            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}) == body.atoms(1).coords); 
-            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}) == body.atoms(2).coords); 
+            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}) == body.get_atom(0).coords); 
+            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}) == body.get_atom(1).coords); 
+            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coords); 
         }
 
         SECTION("euler") {
             body.rotate(0, M_PI_2, 0);
-            CHECK(Vector3<double>({0, 0, -1}) == body.atoms(0).coords); 
-            CHECK(Vector3<double>({0, 1, 0}) == body.atoms(1).coords); 
-            CHECK(Vector3<double>({1, 0, 0}) == body.atoms(2).coords); 
+            CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coords); 
+            CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coords); 
+            CHECK(Vector3<double>({1, 0, 0}) == body.get_atom(2).coords); 
 
             body.rotate(0.5612026, 0.3158423, 0.5612026);
-            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.atoms(0).coords, 1e-3));
-            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}).equals(body.atoms(1).coords, 1e-3));
-            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}).equals(body.atoms(2).coords, 1e-3));
+            CHECK(Vector3<double>({-0.5058793634, 0.3106172175, -0.8047378541}).equals(body.get_atom(0).coords, 1e-3));
+            CHECK(Vector3<double>({-0.3106172175, 0.8047378541, 0.5058793634}).equals(body.get_atom(1).coords, 1e-3));
+            CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coords, 1e-3));
         }
     }
 
@@ -114,10 +114,10 @@ TEST_CASE("rotate") {
 
         Vector3<double> axis = {0.5, 2, 1};
         body.rotate(axis, 1.8);
-        REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.atoms(0).coords); 
-        REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.atoms(1).coords); 
-        REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.atoms(2).coords); 
-        REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.atoms(3).coords); 
+        REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.get_atom(0).coords); 
+        REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coords); 
+        REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.get_atom(2).coords); 
+        REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.get_atom(3).coords); 
     }
 }
 
@@ -148,12 +148,12 @@ TEST_CASE("charge") {
     Body body(a, {});
 
     SECTION("effective charge") {
-        double c0 = body.atoms(0).get_effective_charge();    
+        double c0 = body.get_atom(0).get_effective_charge();    
         double charge1 = body.total_effective_charge();
         body.update_effective_charge(1.5);
         double charge2 = body.total_effective_charge();
         CHECK(charge2 == charge1+12);
-        CHECK(body.atoms(0).get_effective_charge() == c0+1.5);
+        CHECK(body.get_atom(0).get_effective_charge() == c0+1.5);
     }
 
     SECTION("atomic charge") {
@@ -254,34 +254,34 @@ TEST_CASE("grid") {
         settings::grid::ra = 1;
         settings::grid::rh = 1;
         Protein protein = rigidbody::BodySplitter::split("test/files/2epe.pdb", {9, 99});
-        unsigned int N = protein.atoms().size();
+        unsigned int N = protein.get_atoms().size();
         auto grid = protein.get_grid();
         REQUIRE(grid->a_members.size() == N);
         REQUIRE(grid->get_volume() != 0);
 
         unsigned int vol = grid->get_volume();
-        grid->remove(&protein.bodies[0]);
-        grid->add(&protein.bodies[0]);
+        grid->remove(&protein.get_body(0));
+        grid->add(&protein.get_body(0));
         REQUIRE(grid->get_volume() == vol);
-        grid->remove(&protein.bodies[0]);
+        grid->remove(&protein.get_body(0));
         grid->force_expand_volume();
-        REQUIRE(grid->a_members.size() == N - protein.bodies[0].atoms().size());
+        REQUIRE(grid->a_members.size() == N - protein.get_body(0).get_atoms().size());
         REQUIRE(grid->get_volume() != 0);
 
         vol = grid->get_volume();
-        grid->remove(&protein.bodies[1]);
-        grid->add(&protein.bodies[1]);
+        grid->remove(&protein.get_body(1));
+        grid->add(&protein.get_body(1));
         REQUIRE(grid->get_volume() == vol);
-        grid->remove(&protein.bodies[1]);        
+        grid->remove(&protein.get_body(1));        
         grid->force_expand_volume();
-        REQUIRE(grid->a_members.size() == N - protein.bodies[0].atoms().size() - protein.bodies[1].atoms().size());
+        REQUIRE(grid->a_members.size() == N - protein.get_body(0).get_atoms().size() - protein.get_body(1).get_atoms().size());
         REQUIRE(grid->get_volume() != 0);
 
         vol = grid->get_volume();
-        grid->remove(&protein.bodies[2]);
-        grid->add(&protein.bodies[2]);
+        grid->remove(&protein.get_body(2));
+        grid->add(&protein.get_body(2));
         REQUIRE(grid->get_volume() == vol);
-        grid->remove(&protein.bodies[2]);
+        grid->remove(&protein.get_body(2));
         REQUIRE(grid->a_members.size() == 0);
         REQUIRE(grid->get_volume() == 0);
     }
@@ -331,18 +331,18 @@ TEST_CASE("split_body", "[body],[files]") {
     Protein protein = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", splits);
 
     // check sizes
-    REQUIRE(protein.bodies.size() == 3);
-    Body &b1 = protein.bodies[0], &b2 = protein.bodies[1], &b3 = protein.bodies[2];
+    REQUIRE(protein.body_size() == 3);
+    Body &b1 = protein.get_body(0), &b2 = protein.get_body(1), &b3 = protein.get_body(2);
 
-    REQUIRE(b1.atoms().size() == 136);
-    REQUIRE(b2.atoms().size() == 812-136);
-    REQUIRE(b3.atoms().size() == 1606-812);
+    REQUIRE(b1.get_atoms().size() == 136);
+    REQUIRE(b2.get_atoms().size() == 812-136);
+    REQUIRE(b3.get_atoms().size() == 1606-812);
 
     // check start and end resseq
-    CHECK(b1.atoms().back().resSeq == 8);
-    CHECK(b2.atoms(0).resSeq == 9);
-    CHECK(b2.atoms().back().resSeq == 98);
-    CHECK(b3.atoms(0).resSeq == 99);
+    CHECK(b1.get_atoms().back().resSeq == 8);
+    CHECK(b2.get_atom(0).resSeq == 9);
+    CHECK(b2.get_atoms().back().resSeq == 98);
+    CHECK(b3.get_atom(0).resSeq == 99);
 }
 
 TEST_CASE("copy") {
@@ -354,30 +354,30 @@ TEST_CASE("copy") {
 
     SECTION("copy constructor") {
         Body b(b1);
-        REQUIRE(b.atoms().size() == 2);
-        REQUIRE(b.atoms(0) == a1[0]);
-        REQUIRE(b.atoms(1) == a1[1]);
+        REQUIRE(b.get_atoms().size() == 2);
+        REQUIRE(b.get_atom(0) == a1[0]);
+        REQUIRE(b.get_atom(1) == a1[1]);
 
         // check that they are backed by separate files
-        b.atoms(0) = a2[0];
-        REQUIRE(b1.atoms(0) == a1[0]);
+        b.get_atom(0) = a2[0];
+        REQUIRE(b1.get_atom(0) == a1[0]);
     }
 
     SECTION("move constructor") {
         Body b5 = std::move(b1);
-        REQUIRE(b5.atoms().size() == 2);
-        REQUIRE(b5.atoms(0) == a1[0]);
-        REQUIRE(b5.atoms(1) == a1[1]);
+        REQUIRE(b5.get_atoms().size() == 2);
+        REQUIRE(b5.get_atom(0) == a1[0]);
+        REQUIRE(b5.get_atom(1) == a1[1]);
     }
 
     SECTION("assignment") {
         b1 = b3;
-        REQUIRE(b1.atoms().size() == 2);
-        REQUIRE(b1.atoms(0) == a3[0]);
-        REQUIRE(b1.atoms(1) == a3[1]);
+        REQUIRE(b1.get_atoms().size() == 2);
+        REQUIRE(b1.get_atom(0) == a3[0]);
+        REQUIRE(b1.get_atom(1) == a3[1]);
 
-        b1.atoms(0) = a1[0];
-        REQUIRE(b3.atoms(0) == a3[0]);
+        b1.get_atom(0) = a1[0];
+        REQUIRE(b3.get_atom(0) == a3[0]);
 
         // assignment with temporary bodies
         b1 = Body();
@@ -385,9 +385,9 @@ TEST_CASE("copy") {
             Body b5(a1);
             b1 = b5;
         }
-        REQUIRE(b1.atoms().size() == 2);
-        REQUIRE(b1.atoms(0) == a1[0]);
-        REQUIRE(b1.atoms(1) == a1[1]);
+        REQUIRE(b1.get_atoms().size() == 2);
+        REQUIRE(b1.get_atom(0) == a1[0]);
+        REQUIRE(b1.get_atom(1) == a1[1]);
     }
 }
 
@@ -401,10 +401,40 @@ TEST_CASE("io") {
     body.save("temp/body_io.pdb");
     Body body2("temp/body_io.pdb");
 
-    CHECK(body.atoms().size() == body2.atoms().size());
-    for (unsigned int i = 0; i < body.atoms().size(); i++) {
-        CHECK(body.atoms(i).as_pdb() == body2.atoms(i).as_pdb());
+    CHECK(body.get_atoms().size() == body2.get_atoms().size());
+    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
+        CHECK(body.get_atom(i).as_pdb() == body2.get_atom(i).as_pdb());
     }
 
     remove("temp/body_io.pdb");
+}
+
+struct fixture {
+    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
+    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
+    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
+    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
+    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
+    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
+    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
+    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
+
+    Body b1 = Body(std::vector<Atom>{a1, a2});
+    Body b2 = Body(std::vector<Atom>{a3, a4});
+    Body b3 = Body(std::vector<Atom>{a5, a6});
+    Body b4 = Body(std::vector<Atom>{a7, a8});
+    std::vector<Body> ap = {b1, b2, b3, b4};
+    Protein protein = Protein(ap);
+};
+
+#include <hist/HistogramManager.h>
+TEST_CASE_METHOD(fixture, "Body_translate") {
+    settings::general::verbose = false;
+
+    auto manager = protein.get_histogram_manager()->get_state_manager();
+    manager.reset();
+    protein.get_body(0).translate(Vector3<double>(10, 0, 0));
+    CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
+    CHECK(protein.get_body(0).get_atom(1).coords == Vector3<double>(9, 1, -1));
+    CHECK(manager.get_externally_modified_bodies()[0] == true);
 }

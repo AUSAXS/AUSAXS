@@ -23,8 +23,13 @@ namespace signaller {
              */
             virtual void internal_change() const;
 
+            /**
+             * @brief Get the id of this signaller. 
+             */
+            unsigned int get_id() const;
+
         private: 
             StateManager* const owner;
-            int id;
+            unsigned int id;
     };
 }

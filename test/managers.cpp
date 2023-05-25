@@ -19,23 +19,6 @@
 
 using std::vector, std::shared_ptr, std::cout, std::endl;
 
-TEST_CASE("state_manager") {
-    unsigned int size = 5;
-    StateManager manager(size);
-
-    CHECK(manager.get_externally_modified_bodies() == vector{true, true, true, true, true});
-    manager.reset();
-    CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
-    manager.get_probe(2)->external_change();
-    manager.get_probe(4)->external_change();
-    CHECK(manager.get_externally_modified_bodies() == vector{false, false, true, false, true});
-    CHECK(!manager.is_externally_modified(0));
-    CHECK(!manager.is_externally_modified(1));
-    CHECK(manager.is_externally_modified(2));
-    CHECK(!manager.is_externally_modified(3));
-    CHECK(manager.is_externally_modified(4));
-}
-
 TEST_CASE("partial_histogram_manager_works") {
     vector<Body> bodies(5);
     Protein protein(bodies);

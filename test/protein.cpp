@@ -57,7 +57,7 @@ TEST_CASE("compare_debye_real") {
     Protein protein("test/files/2epe.pdb");
     protein.clear_hydration();
 
-    std::cout << "hydration atoms: " << protein.hydration_atoms.size() << std::endl; 
+    std::cout << "hydration atoms: " << protein.get_waters().size() << std::endl; 
 
     vector<double> I_dumb = protein.calc_debye_scattering_intensity();
     vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
@@ -110,8 +110,8 @@ TEST_CASE("histogram") {
             ws[i] = Water::create_new_water(Vector3<double>(i, i, i));
         }
 
-        many.waters() = ws;
-        one.waters() = ws;
+        many.get_waters() = ws;
+        one.get_waters() = ws;
 
         // we now have a protein consisting of three bodies with the exact same contents as a single body.
         // the idea is now to compare the ScatteringHistogram output from their distance calculations, since it
@@ -142,8 +142,8 @@ TEST_CASE("histogram") {
         vector<vector<Atom>> patoms; // vector containing the pieces we split it into
         vector<Atom> p_current(100); // vector containing the current piece
         unsigned int index = 0;      // current index in p_current
-        for (unsigned int i = 0; i < body.atoms().size(); i++) {
-            p_current[index] = body.atoms(i);
+        for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
+            p_current[index] = body.get_atom(i);
             index++;
             if (index == 100) { // if index is 100, reset to 0
                 patoms.push_back(p_current);
@@ -159,8 +159,8 @@ TEST_CASE("histogram") {
 
         // create the atom, and perform a sanity check on our extracted list
         Protein protein(patoms, {});
-        vector<Atom> protein_atoms = protein.atoms();
-        vector<Atom> body_atoms = body.atoms();
+        vector<Atom> protein_atoms = protein.get_atoms();
+        vector<Atom> body_atoms = body.get_atoms();
 
         // sizes must be equal. this also serves as a separate consistency check on the body generation. 
         if (protein_atoms.size() != body_atoms.size()) {
@@ -252,16 +252,16 @@ TEST_CASE("distance_histograms") {
 
             // set the weights to 1 so we can analytically determine the result
             // waters
-            for (auto& atom : protein.hydration_atoms) {
+            for (auto& atom : protein.get_waters()) {
                 atom.set_effective_charge(1);
             }
             // atoms
-            for (auto& body : protein.bodies) {
-                for (auto& atom : body.atoms()) {
+            for (auto& body : protein.get_bodies()) {
+                for (auto& atom : body.get_atoms()) {
                     atom.set_effective_charge(1);
                 }
             }
-            protein.updated_charge = true;
+            // protein.updated_charge = true; //! safe to remove?
 
             // calculation: 8 identical points. 
             //      each point has:
@@ -299,10 +299,10 @@ TEST_CASE("distance_histograms") {
             Protein protein(a, w);
 
             // set the weights to 1 so we can analytically determine the result
-            for (auto& atom : protein.hydration_atoms) {
+            for (auto& atom : protein.get_waters()) {
                 atom.set_effective_charge(1);
             }
-            protein.updated_charge = true;
+            // protein.updated_charge = true; //! Safe to remove?
             const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
 
             { // hm
@@ -334,16 +334,16 @@ TEST_CASE("distance_histograms") {
 
             // set the weights to 1 so we can analytically determine the result
             // waters
-            for (auto& atom : protein.hydration_atoms) {
+            for (auto& atom : protein.get_waters()) {
                 atom.set_effective_charge(1);
             }
             // atoms
-            for (auto& body : protein.bodies) {
-                for (auto& atom : body.atoms()) {
+            for (auto& body : protein.get_bodies()) {
+                for (auto& atom : body.get_atoms()) {
                     atom.set_effective_charge(1);
                 }
             }
-            protein.updated_charge = true;
+            // protein.updated_charge = true; //! Safe to remove?
             const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
 
             { // hm
@@ -441,4 +441,57 @@ TEST_CASE("update_effective_charge") {
 
     protein.update_effective_charge(0);
     REQUIRE(charge == protein.total_effective_charge());
+}
+
+struct fixture {
+    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
+    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
+    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
+    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
+    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
+    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
+    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
+    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
+
+    Body b1 = Body(std::vector<Atom>{a1, a2});
+    Body b2 = Body(std::vector<Atom>{a3, a4});
+    Body b3 = Body(std::vector<Atom>{a5, a6});
+    Body b4 = Body(std::vector<Atom>{a7, a8});
+    std::vector<Body> ap = {b1, b2, b3, b4};
+    Protein protein = Protein(ap);
+};
+
+#include <hist/HistogramManager.h>
+#include <data/state/StateManager.h>
+#include <data/state/BoundSignaller.h>
+#include <hist/detail/HistogramManagerFactory.h>
+TEST_CASE_METHOD(fixture, "protein_bind_body_signallers") {
+    settings::general::verbose = false;
+
+    SECTION("at construction") {
+        auto bodies = protein.get_bodies();
+        REQUIRE(bodies.size() == 4);
+        auto manager = protein.get_histogram_manager()->get_state_manager();
+        for (int i = 0; i < bodies.size(); ++i) {
+            CHECK(std::dynamic_pointer_cast<signaller::BoundSignaller>(bodies.at(i).get_signaller()) != nullptr);
+            // CHECK(manager.get_probe(i) == bodies[i].get_signaller());
+        }
+
+        // manager.reset();
+        // for (int i=0; i<4; i++) {
+        //     bodies[i].changed_external_state();
+        //     CHECK(manager.is_externally_modified(i));
+        // }
+    }
+
+    // SECTION("after construction") {
+    //     auto bodies = protein.bodies;
+    //     REQUIRE(bodies.size() == 4);
+    //     protein.get_histogram_manager() = hist::factory::construct_histogram_manager(&protein);
+    //     auto manager = protein.get_histogram_manager()->get_state_manager();
+    //     for (int i=0; i<4; i++) {CHECK(manager.get_probe(i) != bodies[i].get_signaller());}
+
+    //     protein.bind_body_signallers();
+    //     for (int i=0; i<4; i++) {CHECK(manager.get_probe(i) == bodies[i].get_signaller());}
+    // }
 }

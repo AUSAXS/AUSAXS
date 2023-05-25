@@ -23,10 +23,6 @@
 
 using namespace hist;
 
-void Protein::set_histogram_manager() {
-    phm = hist::factory::construct_histogram_manager(this);
-}
-
 Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
     phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
@@ -64,8 +60,8 @@ Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein
 Protein::Protein(const io::ExistingFile& input) {
     Body b1(input);
     bodies = {b1};
-    waters() = std::move(bodies[0].waters());
-    bodies[0].waters().clear();
+    this->get_waters() = std::move(bodies[0].get_waters());
+    bodies[0].get_waters().clear();
     phm = hist::factory::construct_histogram_manager(this);
     bind_body_signallers();
 }
@@ -84,7 +80,7 @@ void Protein::translate(const Vector3<double>& v) {
     for (auto& body : bodies) {
         body.translate(v);
     }
-    for (auto& hetatom : waters()) {
+    for (auto& hetatom : get_waters()) {
         hetatom.translate(v);
     }
 }
@@ -102,13 +98,13 @@ SimpleDataset Protein::simulate_dataset(bool add_noise) {
 void Protein::save(const io::File& path) {
     // if there's only a single body, just save that instead
     if (bodies.size() == 1) {
-        bodies[0].waters() = waters();
+        bodies[0].get_waters() = get_waters();
         bodies[0].save(path);
         return;
     }
 
     // otherwise we'll have to create a new file
-    ProteinFile file(atoms(), waters());
+    ProteinFile file(get_atoms(), get_waters());
     file.write(path);
 }
 
@@ -163,12 +159,12 @@ std::shared_ptr<grid::Grid> Protein::create_grid() {
     return grid;
 }
 
-std::vector<Atom> Protein::atoms() const {
-    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.atoms().size();});
+std::vector<Atom> Protein::get_atoms() const {
+    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.get_atoms().size();});
     std::vector<Atom> atoms(N);
     int n = 0; // current index
     for (const auto& body : bodies) {
-        for (const auto& a : body.atoms()) {
+        for (const auto& a : body.get_atoms()) {
             atoms[n] = a;
             n++;
         }
@@ -184,14 +180,14 @@ Vector3<double> Protein::get_cm() const {
     // iterate through all constituent bodies
     for (const auto& body : bodies) {
         // iterate through their protein atoms
-        for (const auto& a : body.atoms()) {
+        for (const auto& a : body.get_atoms()) {
             double m = a.get_mass();
             M += m;
             cm += a.coords*m;
         }
 
         // iterate through their hydration atoms
-        for (const auto& a : body.waters()) {
+        for (const auto& a : body.get_waters()) {
             double m = a.get_mass();
             M += m;
             cm += a.coords*m;
@@ -199,7 +195,7 @@ Vector3<double> Protein::get_cm() const {
     }
 
     // iterate through any generated hydration atoms
-    for (const auto& a : waters()) {
+    for (const auto& a : get_waters()) {
         double m = a.get_mass();
         M += m;
         cm += a.coords*m;
@@ -208,13 +204,13 @@ Vector3<double> Protein::get_cm() const {
     return cm/M;
 }
 
-std::vector<Water>& Protein::waters() {return hydration_atoms;}
+std::vector<Water>& Protein::get_waters() {return hydration_atoms;}
 
-const std::vector<Water>& Protein::waters() const {return hydration_atoms;}
+const std::vector<Water>& Protein::get_waters() const {return hydration_atoms;}
 
 void Protein::generate_new_hydration() {
     // delete the old hydration layer
-    waters() = std::vector<Water>();
+    get_waters() = std::vector<Water>();
     signal_modified_hydration_layer();
 
     // move protein to center of mass
@@ -223,7 +219,7 @@ void Protein::generate_new_hydration() {
     // create the grid and hydrate it
     if (grid == nullptr) {create_grid();}
     else {grid->clear_waters();}
-    waters() = grid->hydrate();
+    get_waters() = grid->hydrate();
 }
 
 ScatteringHistogram Protein::get_histogram() {
@@ -263,7 +259,7 @@ unsigned int Protein::body_size() const {
 }
 
 unsigned int Protein::atom_size() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (unsigned int sum, const Body& body) {return sum + body.atoms().size();});
+    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (unsigned int sum, const Body& body) {return sum + body.get_atoms().size();});
 }
 
 std::vector<double> Protein::calc_debye_scattering_intensity() {
@@ -271,7 +267,7 @@ std::vector<double> Protein::calc_debye_scattering_intensity() {
         update_effective_charge(); // update the effective charge of all proteins. We have to do this since it affects the weights. 
     }
 
-    std::vector<Atom> atoms = this->atoms();
+    std::vector<Atom> atoms = get_atoms();
     const Axis& debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
     std::vector<double> Q = std::vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
@@ -308,7 +304,7 @@ void Protein::update_effective_charge(double scaling) {
     previous_charge += displaced_charge;
 
     // number of atoms
-    unsigned int N = size();
+    unsigned int N = atom_size();
     double charge_per_atom = -displaced_charge/N;
     if (settings::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
@@ -338,6 +334,8 @@ void Protein::signal_modified_hydration_layer() const {
 void Protein::bind_body_signallers() {
     if (phm == nullptr) [[unlikely]] {throw except::unexpected("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
     for (unsigned int i = 0; i < bodies.size(); i++) {
+        // if (std::dynamic_pointer_cast<signaller::BoundSignaller>(phm->get_probe(i)) == nullptr) {std::cout << "Protein::bind_body_signallers: Probe " << i << " is not a BoundSignaller." << std::endl;}
+        // else {std::cout << "Protein::bind_body_signallers: Probe " << i << " is a BoundSignaller." << std::endl;}
         bodies[i].register_probe(phm->get_probe(i));
     }
 }
@@ -389,17 +387,17 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
     auto to_remove = grid->remove_disconnected_atoms(min);
 
     // sanity check
-    if (to_remove.size() != atoms().size()) {
+    if (to_remove.size() != get_atoms().size()) {
         throw except::unexpected("Protein::remove_disconnected_atoms: "
-        "The number of atoms to remove (" + std::to_string(to_remove.size()) + ") does not match the number of protein atoms (" + std::to_string(atoms().size()) + ").");
+        "The number of atoms to remove (" + std::to_string(to_remove.size()) + ") does not match the number of protein atoms (" + std::to_string(get_atoms().size()) + ").");
     }
 
     // remove the atoms from the protein bodies
     unsigned int index = 0;
     for (auto& body : bodies) {
         unsigned int removed = 0;
-        std::vector<Atom> new_atoms(body.atoms().size());
-        std::vector<Atom>& atoms = body.atoms();
+        std::vector<Atom> new_atoms(body.get_atoms().size());
+        std::vector<Atom>& atoms = body.get_atoms();
         for (unsigned int i = 0; i < atoms.size(); i++) {
             if (to_remove[index + i]) {
                 removed++;
@@ -408,9 +406,13 @@ void Protein::remove_disconnected_atoms(unsigned int min) {
             }
         }
         new_atoms.resize(atoms.size() - removed);
-        body.atoms() = std::move(new_atoms);
+        body.get_atoms() = std::move(new_atoms);
     }
 }
 
-Body& Protein::body(unsigned int index) {return bodies[index];}
-const Body& Protein::body(unsigned int index) const {return bodies[index];}
+Body& Protein::get_body(unsigned int index) {return bodies[index];}
+const Body& Protein::get_body(unsigned int index) const {return bodies[index];}
+
+std::vector<Body>& Protein::get_bodies() {return bodies;}
+
+const std::vector<Body>& Protein::get_bodies() const {return bodies;}

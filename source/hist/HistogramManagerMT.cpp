@@ -18,8 +18,8 @@ Histogram HistogramManagerMT::calculate() {
 }
 
 ScatteringHistogram HistogramManagerMT::calculate_all() {
-    auto atoms = protein->atoms();
-    auto waters = protein->waters();
+    auto atoms = protein->get_atoms();
+    auto waters = protein->get_waters();
 
     double width = settings::axes::distance_bin_width;
     Axis axes = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 

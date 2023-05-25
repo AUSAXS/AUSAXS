@@ -233,31 +233,43 @@ class Protein {
 		 * @brief Get a reference to the body at the given index. 
 		 * 		  Complexity: O(1)
 		 */
-		[[nodiscard]] Body& body(unsigned int index);
+		[[nodiscard]] Body& get_body(unsigned int index);
 
 		/**
 		 * @brief Get a reference to the body at the given index. 
 		 * 		  Complexity: O(1)
 		 */
-		[[nodiscard]] const Body& body(unsigned int index) const;
+		[[nodiscard]] const Body& get_body(unsigned int index) const;
+
+		/**
+		 * @brief Get a reference to the bodies of this protein. 
+		 *        Complexity: O(1)
+		 */
+		[[nodiscard]] std::vector<Body>& get_bodies();
+
+		/**
+		 * @brief Get a reference to the bodies of this protein. 
+		 *        Complexity: O(1)
+		 */
+		[[nodiscard]] const std::vector<Body>& get_bodies() const;
 
 		/**
 		 * @brief Get a copy of all constituent atoms from the underlying bodies.
 		 *        Complexity: O(n)
 		 */
-		[[nodiscard]] std::vector<Atom> atoms() const;
+		[[nodiscard]] std::vector<Atom> get_atoms() const;
 
 		/**
 		 * @brief Get a reference to the water molecules of this protein. 
 		 *        Complexity: O(1)
 		 */
-		[[nodiscard]] std::vector<Water>& waters();
+		[[nodiscard]] std::vector<Water>& get_waters();
 
 		/**
 		 * @brief Get a reference to the water molecules of this protein. 
 		 *        Complexity: O(1)
 		 */
-		[[nodiscard]] const std::vector<Water>& waters() const;
+		[[nodiscard]] const std::vector<Water>& get_waters() const;
 
 		/**
 		 * @brief Create a grid and fill it with the atoms of this protein. 
@@ -280,11 +292,6 @@ class Protein {
 		 * @brief Get the total number of constituent atoms, excluding hydration. 
 		 */
 		[[nodiscard]] unsigned int atom_size() const;
-
-		/**
-		 * @brief Get the total number of constituent atoms, excluding hydration. Equivalent to \a body_size. 
-		 */    
-		[[nodiscard]] unsigned int size() const {return atom_size();}
 
 		/**
 		 * @brief Bind the signaller objects in each body to the histogram manager. 
@@ -326,22 +333,20 @@ class Protein {
 		 */
 		void update_effective_charge(double scaling = 1);
 
-		/**
-		 * @brief Create and use a new histogram manager.
-		 */
-		void set_histogram_manager();
-
 		/** 
 		 * @brief Move the entire protein by a vector.
 		 * @param v the translation vector.
 		 */
 		void translate(const Vector3<double>& v);
 
+		Protein& operator=(const Protein& other) = delete;
+
+	private:
 		std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
 		std::vector<Body> bodies;           // The constituent bodies
 		bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 		bool centered = false;              // True if this object is centered, false otherwise. 
-	private:
+
 		std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
 		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms

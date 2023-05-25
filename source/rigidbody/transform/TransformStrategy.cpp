@@ -23,7 +23,7 @@ void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& grou
 
 void TransformStrategy::undo() {
     for (auto& body : bodybackup) {
-        rigidbody->bodies[body.index] = std::move(body.body);
+        rigidbody->get_body(body.index) = std::move(body.body);
     }
     bodybackup.clear();
 }

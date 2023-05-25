@@ -56,6 +56,11 @@ class StateManager {
 		std::shared_ptr<signaller::Signaller> get_probe(unsigned int i);
 
 		/**
+		 * @brief Get a pointer to all probes.
+		 */
+		std::vector<std::shared_ptr<signaller::Signaller>> get_probes();
+
+		/**
 		 * @brief Get a boolean vector which denotes if the state of a given body was changed. 
 		 */
 		std::vector<bool> get_externally_modified_bodies() const;

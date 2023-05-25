@@ -12,7 +12,7 @@ using namespace rigidbody;
 
 Protein BodySplitter::split(const io::ExistingFile& input, std::vector<int> splits) {
     Body body(input);
-    std::vector<Atom>& atoms = body.atoms();
+    std::vector<Atom>& atoms = body.get_atoms();
 
     // we define a boolean vector with one entry for each residue sequence id
     int max_id = 0;
