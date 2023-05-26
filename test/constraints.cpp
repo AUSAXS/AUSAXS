@@ -53,7 +53,7 @@ TEST_CASE_METHOD(fixture, "affects_fitter") {
     double chi2 = fitter.fit()->fval;
 
     DistanceConstraint constraint(&protein, a1, a3);
-    protein.body(0).translate(Vector3<double>(1, 0, 0));
+    protein.get_body(0).translate(Vector3<double>(1, 0, 0));
     fitter.get_constraint_manager()->add_constraint(std::move(constraint));
     double chi2c = fitter.fit()->fval;
 

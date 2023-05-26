@@ -428,13 +428,13 @@ struct fixture {
 };
 
 #include <hist/HistogramManager.h>
-TEST_CASE_METHOD(fixture, "Body_translate") {
+TEST_CASE_METHOD(fixture, "body_translate") {
     settings::general::verbose = false;
 
     auto manager = protein.get_histogram_manager()->get_state_manager();
-    manager.reset();
+    manager->reset();
     protein.get_body(0).translate(Vector3<double>(10, 0, 0));
     CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
     CHECK(protein.get_body(0).get_atom(1).coords == Vector3<double>(9, 1, -1));
-    CHECK(manager.get_externally_modified_bodies()[0] == true);
+    CHECK(manager->get_externally_modified_bodies()[0] == true);
 }

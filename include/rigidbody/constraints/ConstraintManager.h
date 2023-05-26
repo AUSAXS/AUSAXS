@@ -32,7 +32,7 @@ namespace rigidbody {
              */
             double evaluate() const;
 
-            Protein* protein;
+            Protein* protein = nullptr;
             OverlapConstraint overlap_constraint;                                                        // The overlap constraint
             std::vector<DistanceConstraint> distance_constraints;                                        // All distance constraints
 			std::unordered_map<unsigned int, std::vector<DistanceConstraint*>> distance_constraints_map; // Maps a body index to all its constraints

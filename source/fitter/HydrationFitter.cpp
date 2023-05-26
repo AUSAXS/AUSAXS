@@ -29,7 +29,6 @@ std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
 }
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
-    std::cout << "HYDRATIONFITTER FIT() START" << std::endl;
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess, settings::fit::max_iterations);
     auto res = mini->minimize();
@@ -51,8 +50,6 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     fitted->add_fit(ab_fit);                                      // add the a,b inner fit
     fitted->add_plots(*this);                                     // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
-
-    std::cout << "HYDRATIONFITTER FIT() END" << std::endl;
     return fitted;
 }
 
