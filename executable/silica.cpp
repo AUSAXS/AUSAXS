@@ -25,12 +25,12 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmax = 0.5;
     settings::axes::bins = 100;
     settings::crystal::grid_expansion = 1;
-    settings::crystal::h = 200; settings::crystal::k = 200; settings::crystal::l = 0;
-    settings::crystal::max_q = 0.5;
+    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
+    settings::crystal::max_q = 0.2;
     settings::protein::use_effective_charge = false;
     settings::axes::max_distance = 14000;
-    settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::Reduced;
-    settings::crystal::reduced::basis_q = 5;
+    // settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::Reduced;
+    // settings::crystal::reduced::basis_q = 5;
 
     //###############################################//
     //###               fourier plot              ###//
@@ -41,6 +41,7 @@ int main(int argc, char const *argv[]) {
     fourierxy.limit_y(1e-4, std::numeric_limits<double>::max());
     // fourierxy.limit_x(1e-2, 1);
     fourierxy.add_plot_options({{plots::option::legend, "xy"}});
+    plots::PlotIntensity::quick_plot(fourierxy, settings::general::output + "fourierxy.png");
 
     // complete box
     // settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 10;
@@ -48,14 +49,13 @@ int main(int argc, char const *argv[]) {
     // settings::axes::bins = 1000;
     // crystal::CrystalScattering cs2(crystal);
     // auto fourier = cs2.calculate();
-    // fourier.limit_y(1e-4, 1e10);
-    // fourier.limit_x(1e-2, 1);
+    // fourier.limit_y(1e-4, std::numeric_limits<double>::max());
+    // // fourier.limit_x(1e-2, 1);
     // fourier.add_plot_options({{plots::option::legend, "xyz"}});
 
     // plots::PlotIntensity plot(fourierxy, style::color::orange);
     // plot.plot(fourier, style::color::blue);
     // plot.save(settings::general::output + "xy_xyz_comparison.png");
-    plots::PlotIntensity::quick_plot(fourierxy, settings::general::output + "fourierxy.png");
     // plots::PlotIntensity::quick_plot(fourier, settings::general::output + "fourier.png");
 
     //###############################################//
