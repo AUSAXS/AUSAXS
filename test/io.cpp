@@ -120,7 +120,7 @@ TEST_CASE("pdb_input") {
     Protein* protein = new Protein("temp/io/temp.pdb");
     protein->save("temp/io/temp2.pdb");
     protein = new Protein("temp/io/temp2.pdb");
-    vector<Atom> atoms = protein->atoms();
+    vector<Atom> atoms = protein->get_atoms();
     Atom a = atoms[0];
 
     if (atoms.size() == 0) {
@@ -157,7 +157,7 @@ TEST_CASE("xml input", "[broken]") {
     Protein* protein = new Protein("temp.xml");
     protein->save("temp2.xml");
     protein = new Protein("temp2.xml");
-    const vector<Water>& atoms = protein->waters();
+    const vector<Water>& atoms = protein->get_waters();
     const Water a = atoms[0];
 
     // the idea is that we have now loaded the hardcoded strings above, saved them, and loaded them again. 
@@ -208,15 +208,19 @@ TEST_CASE("protein_io") {
     Protein protein("test/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
     Protein protein2("temp/io/temp.pdb");
+    auto atoms1 = protein.get_atoms();
+    auto atoms2 = protein2.get_atoms();
 
-    REQUIRE(protein.atoms().size() == protein2.atoms().size());
-    for (unsigned int i = 0; i < protein.atoms().size(); i++) {
-        REQUIRE(protein.atoms()[i].equals_content(protein2.atoms()[i]));
+    REQUIRE(atoms1.size() == atoms2.size());
+    for (unsigned int i = 0; i < atoms1.size(); i++) {
+        REQUIRE(atoms1[i].equals_content(atoms2[i]));
     }
 
-    REQUIRE(protein.waters().size() == protein2.waters().size());
-    for (unsigned int i = 0; i < protein.waters().size(); i++) {
-        REQUIRE(protein.waters()[i].equals_content(protein2.waters()[i]));
+    auto waters1 = protein.get_waters();
+    auto waters2 = protein2.get_waters();
+    REQUIRE(waters1.size() == waters2.size());
+    for (unsigned int i = 0; i < waters1.size(); i++) {
+        REQUIRE(waters1[i].equals_content(waters2[i]));
     }
 
     remove("temp/io/temp.pdb");
@@ -255,18 +259,18 @@ TEST_CASE("write_into_multiple_files") {
 
     // first file
     Protein protein2("temp/io/temp_1.pdb");
-    REQUIRE(protein2.bodies[0].atoms().size() == 100000);
-    REQUIRE(protein2.bodies[0].atoms().back().serial == 99999);
+    REQUIRE(protein2.get_body(0).atom_size() == 100000);
+    REQUIRE(protein2.get_body(0).get_atoms().back().serial == 99999);
 
     Protein protein3("temp/io/temp_2.pdb");
-    REQUIRE(protein3.bodies[0].atoms().size() == 1000);
+    REQUIRE(protein3.get_body(0).atom_size() == 1000);
     for (int i = 0; i < 1000; i++) {
-        REQUIRE(protein3.bodies[0].atoms()[i].serial == i);
+        REQUIRE(protein3.get_body(0).get_atom(i).serial == i);
     }
-    REQUIRE(protein3.bodies[0].get_file().terminate.serial == 1000);
-    REQUIRE(protein3.waters().size() == 100);
+    REQUIRE(protein3.get_body(0).get_file().terminate.serial == 1000);
+    REQUIRE(protein3.water_size() == 100);
     for (int i = 0; i < 100; i++) {
-        REQUIRE(protein3.waters()[i].serial == i+1001);
+        REQUIRE(protein3.get_water(i).serial == i+1001);
     }
 }
 

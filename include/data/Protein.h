@@ -272,6 +272,18 @@ class Protein {
 		[[nodiscard]] const std::vector<Water>& get_waters() const;
 
 		/**
+		 * @brief Get a reference to the specified water molecule.
+		 *        Complexity: O(1)
+		 */
+		[[nodiscard]] Water& get_waters(unsigned int i);
+
+		/**
+		 * @brief Get a reference to the specified water molecule.
+		 *        Complexity: O(1)
+		 */
+		[[nodiscard]] const Water& get_water(unsigned int i) const;
+
+		/**
 		 * @brief Create a grid and fill it with the atoms of this protein. 
 		 */
 		std::shared_ptr<grid::Grid> create_grid();
@@ -292,6 +304,11 @@ class Protein {
 		 * @brief Get the total number of constituent atoms, excluding hydration. 
 		 */
 		[[nodiscard]] unsigned int atom_size() const;
+
+		/**
+		 * @brief Get the total number of water molecules.
+		 */
+		[[nodiscard]] unsigned int water_size() const;
 
 		/**
 		 * @brief Bind the signaller objects in each body to the histogram manager. 

@@ -255,6 +255,14 @@ unsigned int Protein::atom_size() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0, [] (unsigned int sum, const Body& body) {return sum + body.get_atoms().size();});
 }
 
+unsigned int Protein::water_size() const {
+    return hydration_atoms.size();
+}
+
+Water& Protein::get_waters(unsigned int i) {return hydration_atoms[i];}
+
+const Water& Protein::get_water(unsigned int i) const {return hydration_atoms[i];}
+
 std::vector<double> Protein::calc_debye_scattering_intensity() const {
     std::vector<Atom> atoms = get_atoms();
     const Axis& debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);

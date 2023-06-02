@@ -685,8 +685,8 @@ TEST_CASE("em_weights") {
         images.set_header(header);
         
         auto protein = images.get_protein(1);
-        REQUIRE(protein->atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
-        for (const auto& atom : protein->atoms()) {
+        REQUIRE(protein->get_atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
+        for (const auto& atom : protein->get_atoms()) {
             REQUIRE(atom.get_occupancy() == 1);
         }
         settings::em::fixed_weights = false;
@@ -701,9 +701,9 @@ TEST_CASE("em_weights") {
         images.set_header(header);
 
         auto protein = images.get_protein(1);
-        REQUIRE(protein->atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
+        REQUIRE(protein->get_atoms().size() == 4+3+3+3+3+4 + 5+4+3+3+4+6);
         std::map<float, unsigned int> counts = {{1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}};
-        for (const auto& atom : protein->atoms()) {
+        for (const auto& atom : protein->get_atoms()) {
             counts[atom.get_occupancy()]++;
         }
         REQUIRE(counts.at(1) == 2+0+1+1+1+2 + 2+1+2+1+3+2);

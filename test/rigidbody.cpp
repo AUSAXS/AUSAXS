@@ -96,7 +96,7 @@ TEST_CASE("body_selectors") {
     for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
         for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
             for (unsigned int k = j; k < 5; k++) {
-                manager->add_constraint(std::make_shared<rigidbody::DistanceConstraint>(&rigidbody, i, j, 0, 0));
+                manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, i, j, 0, 0));
             }
         }
     }
@@ -191,10 +191,10 @@ TEST_CASE("transforms") {
     RigidBody rigidbody({atoms, {}});
     auto manager = rigidbody.constraints;
 
-    manager->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 0, 1, 0, 0)); // 0
-    manager->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 1, 2, 0, 0)); // 1
-    manager->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 2, 3, 0, 0)); // 2
-    manager->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 3, 4, 0, 0)); // 3
+    manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
+    manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
+    manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
+    manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
 
     SECTION("Single") {
     }
@@ -220,21 +220,21 @@ TEST_CASE("transforms") {
                 TestRigidTransform transform(&rigidbody);
 
                 // 0 - 1 - 2 - 3 - 4            //
-                auto group = transform.get_connected(rigidbody.constraints->distance_constraints[0]);
-                REQUIRE(group.indices.size() == 1);
-                CHECK(group.indices[0] == 0);
+                auto group1 = transform.get_connected(rigidbody.constraints->distance_constraints[0]);
+                REQUIRE(group1.indices.size() == 1);
+                CHECK(group1.indices[0] == 0);
 
-                group = transform.get_connected(rigidbody.constraints->distance_constraints[1]);
-                REQUIRE(group.indices.size() == 2);
-                CHECK(vector_contains(group.indices, {0, 1}));
+                auto group2 = transform.get_connected(rigidbody.constraints->distance_constraints[1]);
+                REQUIRE(group2.indices.size() == 2);
+                CHECK(vector_contains(group2.indices, {0, 1}));
 
-                group = transform.get_connected(rigidbody.constraints->distance_constraints[2]);
-                REQUIRE(group.indices.size() == 2);
-                CHECK(vector_contains(group.indices, {3, 4}));
+                auto group3 = transform.get_connected(rigidbody.constraints->distance_constraints[2]);
+                REQUIRE(group3.indices.size() == 2);
+                CHECK(vector_contains(group3.indices, {3, 4}));
 
-                group = transform.get_connected(rigidbody.constraints->distance_constraints[3]);
-                REQUIRE(group.indices.size() == 1);
-                CHECK(group.indices[0] == 4);
+                auto group4 = transform.get_connected(rigidbody.constraints->distance_constraints[3]);
+                REQUIRE(group4.indices.size() == 1);
+                CHECK(group4.indices[0] == 4);
             }
 
             SECTION("complex") {
@@ -244,13 +244,13 @@ TEST_CASE("transforms") {
                 atoms = {b0, b1, b2, b3, b4, b5, b6, b7};
                 RigidBody rigidbody2({atoms, {}});
 
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 0, 1, 0, 0)); // 0
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 1, 2, 0, 0)); // 1
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 2, 3, 0, 0)); // 2
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 3, 4, 0, 0)); // 3
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 3, 5, 0, 0)); // 4
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 5, 6, 0, 0)); // 5
-                rigidbody2.constraints->add_constraint(std::make_unique<rigidbody::DistanceConstraint>(&rigidbody, 3, 7, 0, 0)); // 6
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 5, 0, 0)); // 4
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 5, 6, 0, 0)); // 5
+                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 7, 0, 0)); // 6
 
                 //             5 - 6            //
                 //             |                //
@@ -259,33 +259,33 @@ TEST_CASE("transforms") {
                 //             7                //
 
                 TestRigidTransform transform(&rigidbody2);
-                auto group = transform.get_connected(rigidbody2.constraints->distance_constraints[0]);
-                REQUIRE(group.indices.size() == 1);
-                CHECK(group.indices[0] == 0);
+                auto group1 = transform.get_connected(rigidbody2.constraints->distance_constraints[0]);
+                REQUIRE(group1.indices.size() == 1);
+                CHECK(group1.indices[0] == 0);
 
-                group = transform.get_connected(rigidbody2.constraints->distance_constraints[1]);
-                REQUIRE(group.indices.size() == 2);
-                CHECK(vector_contains(group.indices, {0, 1}));
+                auto group2 = transform.get_connected(rigidbody2.constraints->distance_constraints[1]);
+                REQUIRE(group2.indices.size() == 2);
+                CHECK(vector_contains(group2.indices, {0, 1}));
 
-                group = transform.get_connected(rigidbody2.constraints->distance_constraints[2]);
-                REQUIRE(group.indices.size() == 3);
-                CHECK(vector_contains(group.indices, {0, 1, 2}));
+                auto group3 = transform.get_connected(rigidbody2.constraints->distance_constraints[2]);
+                REQUIRE(group3.indices.size() == 3);
+                CHECK(vector_contains(group3.indices, {0, 1, 2}));
 
-                group = transform.get_connected(rigidbody2.constraints->distance_constraints[3]);
-                REQUIRE(group.indices.size() == 1);
-                CHECK(group.indices[0] == 4);
+                auto group4 = transform.get_connected(rigidbody2.constraints->distance_constraints[3]);
+                REQUIRE(group4.indices.size() == 1);
+                CHECK(group4.indices[0] == 4);
 
-                group = transform.get_connected(rigidbody2.constraints->distance_constraints[4]);
-                REQUIRE(group.indices.size() == 2);
-                CHECK(vector_contains(group.indices, {5, 6}));
+                auto group5 = transform.get_connected(rigidbody2.constraints->distance_constraints[4]);
+                REQUIRE(group5.indices.size() == 2);
+                CHECK(vector_contains(group5.indices, {5, 6}));
 
-                group = transform.get_connected(rigidbody2.constraints->distance_constraints[5]);
-                REQUIRE(group.indices.size() == 1);
-                CHECK(group.indices[0] == 6);
+                auto group6 = transform.get_connected(rigidbody2.constraints->distance_constraints[5]);
+                REQUIRE(group6.indices.size() == 1);
+                CHECK(group6.indices[0] == 6);
 
-                group = transform.get_connected(rigidbody2.constraints->distance_constraints[6]);
-                REQUIRE(group.indices.size() == 1);
-                CHECK(group.indices[0] == 7);
+                auto group7 = transform.get_connected(rigidbody2.constraints->distance_constraints[6]);
+                REQUIRE(group7.indices.size() == 1);
+                CHECK(group7.indices[0] == 7);
             }
         }
     }
@@ -300,7 +300,7 @@ TEST_CASE("iteration_step") {
         fitter::HydrationFitter fitter("test/files/2epe.dat", protein.get_histogram());
         auto chi2 = fitter.fit()->fval;
 
-        Body&                       body = protein.bodies.at(0);
+        Body&                       body = protein.get_body(0);
         std::shared_ptr<grid::Grid> grid = protein.get_grid();
         Body                        old_body(body);
         grid::Grid                  old_grid = *protein.get_grid();
@@ -343,8 +343,8 @@ TEST_CASE("iteration_step") {
         REQUIRE(*grid == old_grid);
 
         // check that the atoms are the same
-        auto atoms = protein.atoms();
-        auto oldatoms = old_protein.atoms();
+        auto atoms = protein.get_atoms();
+        auto oldatoms = old_protein.get_atoms();
         REQUIRE(atoms.size() == oldatoms.size());
         for (unsigned int i = 0; i < atoms.size(); i++) {
             if (atoms.at(i).coords != oldatoms.at(i).coords) {
@@ -415,8 +415,8 @@ TEST_CASE("iteration_step") {
         CHECK_THAT(chi2, Catch::Matchers::WithinRel(_chi2));    // chi2 should be the same
 
         // check that the waters are the same
-        auto newwaters = protein.waters();
-        auto oldwaters = old_protein.waters();
+        auto newwaters = protein.get_waters();
+        auto oldwaters = old_protein.get_waters();
         REQUIRE(newwaters.size() == oldwaters.size());
         for (unsigned int i = 0; i < newwaters.size(); i++) {
             if (newwaters.at(i).coords != oldwaters.at(i).coords) {
@@ -460,7 +460,7 @@ TEST_CASE("iteration_step") {
         std::vector<Body> ap = {b1, b2, b3, b4};
         Protein protein(ap);
         grid::Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 1));
-        grid.add(protein.atoms());
+        grid.add(protein.get_atoms());
         protein.set_grid(grid);
 
         validate_single_step(protein);
@@ -468,7 +468,7 @@ TEST_CASE("iteration_step") {
 
     SECTION("real data") {
         Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
-        REQUIRE(protein.bodies.size() == 3);
+        REQUIRE(protein.body_size() == 3);
         validate_single_step(protein);
     }
 }

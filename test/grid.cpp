@@ -65,7 +65,7 @@ TEST_CASE("constructors") {
         Grid grid(bodies);
         CHECK(grid.a_members.size() == 3);
         CHECK(grid.w_members.empty());
-        CHECK(grid.get_atoms() == bodies[0].atoms());
+        CHECK(grid.get_atoms() == bodies[0].get_atoms());
         CHECK(grid.get_volume() != 0);
         CHECK(grid.get_radius_atoms() == settings::grid::ra);
         CHECK(grid.get_radius_water() == settings::grid::rh);
@@ -345,11 +345,11 @@ TEST_CASE("hydrate", "[grid],[files]") {
     SECTION("consistency") {
         Protein protein("data/LAR1-2/LAR1-2.pdb");
         protein.generate_new_hydration();
-        auto h1 = protein.waters();
-        auto a1 = protein.atoms();
+        auto h1 = protein.get_waters();
+        auto a1 = protein.get_atoms();
         protein.generate_new_hydration();
-        auto h2 = protein.waters();
-        auto a2 = protein.atoms();
+        auto h2 = protein.get_waters();
+        auto a2 = protein.get_atoms();
 
         // check that the hydration generation is deterministic
         for (unsigned int i = 0; i < h1.size(); i++) {

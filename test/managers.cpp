@@ -23,12 +23,12 @@ TEST_CASE("partial_histogram_manager_works") {
     vector<Body> bodies(5);
     Protein protein(bodies);
     shared_ptr<hist::HistogramManager> phm = protein.get_histogram_manager();
-    StateManager& manager = phm->get_state_manager();
+    auto manager = phm->get_state_manager();
 
-    manager.reset();
+    manager->reset();
     phm->get_probe(0)->external_change();
     phm->get_probe(2)->external_change();
-    CHECK(manager.get_externally_modified_bodies() == vector{true, false, true, false, false});
+    CHECK(manager->get_externally_modified_bodies() == vector{true, false, true, false, false});
 }
 
 TEST_CASE("protein_manager") {
@@ -36,37 +36,37 @@ TEST_CASE("protein_manager") {
     Protein protein(bodies);
 
     shared_ptr<hist::HistogramManager> phm = protein.get_histogram_manager();
-    StateManager& manager = phm->get_state_manager();
+    auto manager = phm->get_state_manager();
 
-    manager.reset();
-    CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
+    manager->reset();
+    CHECK(manager->get_externally_modified_bodies() == vector{false, false, false, false, false});
     shared_ptr<signaller::Signaller> probe0 = phm->get_probe(0);
     shared_ptr<signaller::Signaller> probe2 = phm->get_probe(2);
     probe0->external_change();
     probe2->external_change();
-    CHECK(manager.get_externally_modified_bodies() == vector{true, false, true, false, false});
+    CHECK(manager->get_externally_modified_bodies() == vector{true, false, true, false, false});
 
-    manager.reset();
-    CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
+    manager->reset();
+    CHECK(manager->get_externally_modified_bodies() == vector{false, false, false, false, false});
     Body body;
     body.register_probe(probe0);
     body.changed_external_state();
-    CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, false});
+    CHECK(manager->get_externally_modified_bodies() == vector{true, false, false, false, false});
 
-    manager.reset();
-    CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
+    manager->reset();
+    CHECK(manager->get_externally_modified_bodies() == vector{false, false, false, false, false});
     protein.bind_body_signallers();
-    protein.bodies[0].changed_external_state();
-    protein.bodies[2].changed_external_state();
-    CHECK(manager.get_externally_modified_bodies() == vector{true, false, true, false, false});
+    protein.get_body(0).changed_external_state();
+    protein.get_body(2).changed_external_state();
+    CHECK(manager->get_externally_modified_bodies() == vector{true, false, true, false, false});
 
-    manager.reset();
-    CHECK(manager.get_externally_modified_bodies() == vector{false, false, false, false, false});
-    protein.bodies[0] = Body();
-    protein.bodies[4] = Body();
-    protein.bodies[0].changed_external_state();
-    protein.bodies[4].changed_external_state();
-    CHECK(manager.get_externally_modified_bodies() == vector{true, false, false, false, true});
+    manager->reset();
+    CHECK(manager->get_externally_modified_bodies() == vector{false, false, false, false, false});
+    protein.get_body(0) = Body();
+    protein.get_body(4) = Body();
+    protein.get_body(0).changed_external_state();
+    protein.get_body(4).changed_external_state();
+    CHECK(manager->get_externally_modified_bodies() == vector{true, false, false, false, true});
 }
 
 TEST_CASE("em_partial_histogram_manager") {
@@ -107,19 +107,19 @@ TEST_CASE("em_partial_histogram_manager") {
         std::shared_ptr<Protein> protein = manager->get_protein(0);
 
         REQUIRE(protein->body_size() == 5);
-        CHECK(protein->bodies[0].atoms().size() == 3);
-        CHECK(protein->bodies[1].atoms().size() == 4);
-        CHECK(protein->bodies[2].atoms().size() == 4);
-        CHECK(protein->bodies[3].atoms().size() == 1);
-        CHECK(protein->bodies[4].atoms().size() == 0);
+        CHECK(protein->get_body(0).atom_size() == 3);
+        CHECK(protein->get_body(1).atom_size() == 4);
+        CHECK(protein->get_body(2).atom_size() == 4);
+        CHECK(protein->get_body(3).atom_size() == 1);
+        CHECK(protein->get_body(4).atom_size() == 0);
 
         protein = manager->get_protein(3);
         REQUIRE(protein->body_size() == 5);
-        CHECK(protein->bodies[0].atoms().size() == 0);
-        CHECK(protein->bodies[1].atoms().size() == 2);
-        CHECK(protein->bodies[2].atoms().size() == 4);
-        CHECK(protein->bodies[3].atoms().size() == 1);
-        CHECK(protein->bodies[4].atoms().size() == 0);
+        CHECK(protein->get_body(0).atom_size() == 0);
+        CHECK(protein->get_body(1).atom_size() == 2);
+        CHECK(protein->get_body(2).atom_size() == 4);
+        CHECK(protein->get_body(3).atom_size() == 1);
+        CHECK(protein->get_body(4).atom_size() == 0);
     }
 
     SECTION("comparison with standard approach") {
