@@ -25,8 +25,8 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmax = 0.5;
     settings::axes::bins = 100;
     settings::crystal::grid_expansion = 1;
-    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
-    settings::crystal::max_q = 0.2;
+    settings::crystal::h = 10000; settings::crystal::k = 10000; settings::crystal::l = 0;
+    settings::crystal::max_q = 0.5;
     settings::protein::use_effective_charge = false;
     settings::axes::max_distance = 14000;
     // settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::Reduced;

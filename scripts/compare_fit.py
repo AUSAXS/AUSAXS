@@ -5,6 +5,22 @@ import os
 from scipy.optimize import curve_fit
 import argparse
 
+elinewidth = 2
+params = {
+    'legend.fontsize': 20,
+    'figure.figsize': (10, 8),
+    'axes.labelsize': 20,
+    'axes.titlesize':20,
+    'xtick.labelsize':14,
+    'ytick.labelsize':14,
+    'lines.linewidth': 2,
+    'lines.markersize': 3,
+    'lines.markeredgewidth': 1, # capthick
+    'errorbar.capsize': 2,
+}
+
+
+# elinewidth = 0.5
 # params = {
 #     'legend.fontsize': 14,
 #     'figure.figsize': (10, 8),
@@ -19,18 +35,18 @@ import argparse
 # }
 
 # params = {
-#     'legend.fontsize': 28,
+#     'legend.fontsize': 24,
 #     'figure.figsize': (10, 8),
-#     'axes.labelsize': 28,
-#     'axes.titlesize': 28,
-#     'xtick.labelsize': 20,
-#     'ytick.labelsize': 20,
+#     'axes.labelsize': 24,
+#     'axes.titlesize': 24,
+#     'xtick.labelsize': 18,
+#     'ytick.labelsize': 18,
 #     'lines.linewidth': 3,
 #     'lines.markersize': 12,
 #     'lines.markeredgewidth': 1, # capthick
 #     'errorbar.capsize': 1,
 # }
-# plt.rcParams.update(params)
+plt.rcParams.update(params)
 
 parser = argparse.ArgumentParser(description="Compare fit files with dataset.")
 parser.add_argument("mfile",          help="The dataset file.")
@@ -116,19 +132,19 @@ for f in files:
 
 # plot the data
 fig, ax = plt.subplots(figsize=(10, 6))
-ax.errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0, ms=1, capsize=1, elinewidth=0.5, capthick=0.5)
+plt.errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', elinewidth=elinewidth, zorder=0)
 for f, l in zip(fits, labels):
-    ax.plot(f[:, 0], f[:, 1], label=l, lw=1)
+    plt.plot(f[:, 0], f[:, 1], label=l)
 
-ax.set_xlabel("q")
-ax.set_ylabel("I(q)")
-ax.set_title(os.path.basename(mfile.split('.')[0]))
-ax.legend()
-ax.semilogy()
-fig.savefig(folder + '/log.png')
+plt.xlabel("q [$Å^{-1}$]")
+plt.ylabel("Intensity [arb]")
+plt.title(os.path.basename(mfile.split('.')[0]))
+plt.legend()
+plt.semilogy()
+fig.savefig(folder + '/log.png', bbox_inches='tight')
 
-ax.semilogx()
-fig.savefig(folder + '/loglog.png')
+plt.semilogx()
+fig.savefig(folder + '/loglog.png', bbox_inches='tight')
 
 ax.set_xlim(0.1, 0.5)
-fig.savefig(folder + '/loglog_short.png')
+fig.savefig(folder + '/loglog_short.png', bbox_inches='tight')
