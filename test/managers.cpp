@@ -104,7 +104,9 @@ TEST_CASE("em_partial_histogram_manager") {
         settings::em::fixed_weights = false;
         auto manager = em::factory::create_manager(&images);
         manager->set_charge_levels({2, 4, 6, 8});
+        std::cout << "DEBUG" << header << std::endl;
         std::shared_ptr<Protein> protein = manager->get_protein(0);
+        std::cout << "DEBUG" << header << std::endl;
 
         REQUIRE(protein->body_size() == 5);
         CHECK(protein->get_body(0).atom_size() == 3);

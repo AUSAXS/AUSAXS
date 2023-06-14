@@ -126,3 +126,7 @@ const ObjectBounds2D& Image::setup_bounds(double cutoff) {
 
     return bounds;
 }
+
+bool Image::operator==(const Image& other) const {
+    return data == other.data && N == other.N && M == other.M && z == other.z;
+}

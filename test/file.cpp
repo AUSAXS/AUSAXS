@@ -6,7 +6,7 @@
 #include <string>
 #include <filesystem>
 
-TEST_CASE("file_constructor") {
+TEST_CASE("File::File") {
     SECTION("simple") {
         io::File file("test");
         CHECK(file.path() == "./test");
@@ -29,7 +29,7 @@ TEST_CASE("file_constructor") {
     }
 }
 
-TEST_CASE("file_exists") {
+TEST_CASE("File::exists") {
     SECTION("false") {
         io::File file("fake");
         CHECK(file.exists() == false);
@@ -44,25 +44,25 @@ TEST_CASE("file_exists") {
     }
 }
 
-TEST_CASE("file_append") {
+TEST_CASE("File::append") {
     io::File file("test/file.txt");
     file.append("_2");
     CHECK(file.path() == "test/file_2.txt");
 }
 
-TEST_CASE("file_stem") {
+TEST_CASE("File::stem") {
     io::File file("test/file.txt");
     CHECK(file.stem() == "file");
 }
 
-TEST_CASE("file_split") {
+TEST_CASE("File::split") {
     auto [dir, name, ext] = io::File::split("test/file.txt");
     CHECK(dir == "test");
     CHECK(name == "file");
     CHECK(ext == ".txt");
 }
 
-TEST_CASE("file_create") {
+TEST_CASE("File::create") {
     std::string path = "temp/dummy.txt";
     io::File file(path);
     file.create();

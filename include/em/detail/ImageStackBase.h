@@ -2,6 +2,7 @@
 
 #include <em/Datatypes.h>
 #include <hist/ScatteringHistogram.h>
+#include <em/Image.h>
 
 #include <vector>
 #include <string>
@@ -14,7 +15,6 @@ namespace em {
     class ObjectBounds3D;
     namespace managers {class ProteinManager;}
     class EMHistogramManager;
-    class Image;
 
     /**
      * @brief A representation of a stack of images. 

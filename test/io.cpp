@@ -108,6 +108,7 @@ TEST_CASE("body_file") {
 
 TEST_CASE("pdb_input") {
     settings::general::verbose = false;
+    settings::grid::scaling = 2;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
     pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;

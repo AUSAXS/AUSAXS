@@ -83,6 +83,8 @@ namespace em {
              */
             double squared_sum() const;
 
+            bool operator==(const Image& other) const;
+
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
         private:

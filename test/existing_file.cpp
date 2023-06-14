@@ -3,7 +3,7 @@
 
 #include <io/ExistingFile.h>
 
-TEST_CASE("existing_file_constructor") {
+TEST_CASE("ExistingFile::ExistingFile") {
     SECTION("non-existing") {
         CHECK_THROWS(io::ExistingFile("fake"));
         CHECK_THROWS(io::ExistingFile("fake/file.txt"));

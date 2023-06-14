@@ -54,6 +54,7 @@ hist::ScatteringHistogram em::ImageStackBase::get_histogram(const std::shared_pt
 }
 
 std::shared_ptr<Protein> em::ImageStackBase::get_protein(double cutoff) const {
+    std::cout << "phm is " << (phm == nullptr ? "null" : "not null") << std::endl;
     return phm->get_protein(cutoff);
 }
 

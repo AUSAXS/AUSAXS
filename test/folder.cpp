@@ -5,7 +5,7 @@
 
 #include <filesystem>
 
-TEST_CASE("folder_constructor") {
+TEST_CASE("Folder::Folder") {
     SECTION("empty") {
         io::Folder folder("");
         CHECK(folder.path() == ".");
@@ -32,7 +32,7 @@ TEST_CASE("folder_constructor") {
     }
 }
 
-TEST_CASE("folder_exists") {
+TEST_CASE("Folder::exists") {
     SECTION("false") {
         io::Folder folder("fake");
         CHECK(folder.exists() == false);
@@ -50,7 +50,7 @@ TEST_CASE("folder_exists") {
     }
 }
 
-TEST_CASE("folder_create") {
+TEST_CASE("Folder::create") {
     SECTION("simple") {
         std::string path = "dummy";
         io::Folder folder(path);
@@ -68,7 +68,7 @@ TEST_CASE("folder_create") {
     }
 }
 
-TEST_CASE("folder_operator+") {
+TEST_CASE("Folder::operator+") {
     SECTION("chars before") {
         SECTION("without slash") {
             io::Folder folder("test");
