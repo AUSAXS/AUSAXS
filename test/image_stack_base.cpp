@@ -3,20 +3,39 @@
 
 #include <em/detail/ImageStackBase.h>
 #include <em/manager/ProteinManager.h>
+#include <hist/ScatteringHistogram.h>
 
 #include <fstream>
 
-Matrix<float> dummy_data = {
+Matrix<float> dummy_image_stack = {
     {1, 2, 3},    {4, 5, 6},    {7, 8, 9},
     {10, 11, 12}, {13, 14, 15}, {16, 17, 18},
     {19, 20, 21}, {22, 23, 24}, {25, 26, 27}
 };
 
+Matrix<float> dummy_image1 = {
+    {1, 2, 3},
+    {4, 5, 6},
+    {7, 8, 9}
+};
+
+Matrix<float> dummy_image2 = {
+    {10, 11, 12},
+    {13, 14, 15},
+    {16, 17, 18}
+};
+
+Matrix<float> dummy_image3 = {
+    {19, 20, 21},
+    {22, 23, 24},
+    {25, 26, 27}
+};
+
 struct fixture {
     fixture() {
-        for (int i = 0; i < 10; ++i) {
-            images.emplace_back(dummy_data);
-        }
+        images.emplace_back(dummy_image1);
+        images.emplace_back(dummy_image2);
+        images.emplace_back(dummy_image3);
     }
 
     std::vector<em::Image> images;
@@ -26,7 +45,7 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
     SECTION("std::vector<Image>&") {
         std::vector<em::Image> images;
         for (int i = 0; i < 10; ++i) {
-            images.emplace_back(dummy_data);
+            images.emplace_back(dummy_image1);
         }
         em::ImageStackBase isb(images);
         REQUIRE(isb.size() == 10);
@@ -54,15 +73,9 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::Image") {
         // make one of the images special so we can compare it later
-        em::Image special = em::Image({
-            {5, 2, 3},    {4, 5, 6},    {7, 8, 9},
-            {10, 11, 12}, {13, 14, 15}, {16, 17, 18},
-            {19, 20, 21}, {22, 23, 24}, {25, 26, 27}
-        });
-        images[5] = special;
-
+        images[1] = dummy_image3;
         em::ImageStackBase isb(images);
-        REQUIRE(isb.image(5) == special);
+        REQUIRE(isb.image(5) == dummy_image3);
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
@@ -75,9 +88,9 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     REQUIRE(isb.get_histogram(5) == isb.get_protein_manager()->get_histogram(5));
 }
 
-TEST_CASE("ImageStackBase::count_voxels") {
+TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
     SECTION("single image") {
-        em::ImageStackBase isb({dummy_data});
+        em::ImageStackBase isb(images);
         REQUIRE(isb.count_voxels(0) == 27);
         REQUIRE(isb.count_voxels(10) == 17);
         REQUIRE(isb.count_voxels(20) == 7);
@@ -86,11 +99,50 @@ TEST_CASE("ImageStackBase::count_voxels") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_protein") {
-
+    em::ImageStackBase isb(images);
+    REQUIRE(isb.get_protein(5) == isb.get_protein_manager()->get_protein(5));
 }
-TEST_CASE("ImageStackBase::get_header") {}
-TEST_CASE("ImageStackBase::set_header") {}
-TEST_CASE("ImageStackBase::size") {}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::get_header") {
+    SECTION("no header") {
+        em::ImageStackBase isb(images);
+        REQUIRE(isb.get_header() == nullptr);
+    }
+
+    SECTION("with header") {
+        io::ExistingFile file("test/files/A2M_2020_Q4.ccp4");
+        em::ImageStackBase isb(file);
+        REQUIRE(isb.get_header() != nullptr);
+    }
+}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
+    auto header = std::make_shared<em::ccp4::Header>();
+    header->nx = 10;
+    header->ny = 10;
+    header->nz = 10;
+    header->mode = 2;
+    header->mapc = 3;
+    header->mapr = 2;
+    header->maps = 1;
+
+    em::ImageStackBase isb(images);
+    isb.set_header(header);
+    REQUIRE(isb.get_header() == header);
+}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
+    SECTION("single image") {
+        em::ImageStackBase isb({dummy_image1});
+        REQUIRE(isb.size() == 1);
+    }
+
+    SECTION("multiple images") {
+        em::ImageStackBase isb(images);
+        REQUIRE(isb.size() == 3);
+    }
+}
+
 TEST_CASE("ImageStackBase::save") {}
 TEST_CASE("ImageStackBase::get_limits") {}
 TEST_CASE("ImageStackBase::mean") {}

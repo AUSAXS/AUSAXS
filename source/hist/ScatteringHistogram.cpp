@@ -117,3 +117,5 @@ std::string ScatteringHistogram::to_string() const noexcept {
 
 ScatteringHistogram& ScatteringHistogram::operator=(const ScatteringHistogram& h) = default;
 ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) = default;
+
+bool ScatteringHistogram::operator==(const ScatteringHistogram& h) const = default;

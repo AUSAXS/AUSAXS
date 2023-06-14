@@ -16,15 +16,6 @@ params = {
     'ytick.labelsize':11
 }
 
-# params = {
-#     'legend.fontsize': 24,
-#     'figure.figsize': (10, 9),
-#     'axes.labelsize': 24,
-#     'axes.titlesize': 24,
-#     'xtick.labelsize': 18,
-#     'ytick.labelsize': 18
-# }
-
 match len(sys.argv):
     case 1: 
         if os.path.exists("figures"):
@@ -55,6 +46,15 @@ match len(sys.argv):
                 'axes.titlesize': 28,
                 'xtick.labelsize': 20,
                 'ytick.labelsize': 20
+            }
+        elif sys.argv[2] == "--medium":
+            params = {
+                'legend.fontsize': 24,
+                'figure.figsize': (10, 8),
+                'axes.labelsize': 24,
+                'axes.titlesize': 24,
+                'xtick.labelsize': 18,
+                'ytick.labelsize': 18
             }
             
     case _:

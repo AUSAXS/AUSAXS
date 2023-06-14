@@ -93,6 +93,8 @@ namespace hist {
 			 */
 			ScatteringHistogram& operator=(ScatteringHistogram&& h);
 
+			bool operator==(const ScatteringHistogram& h) const;
+
             [[nodiscard]] std::string to_string() const noexcept override;
 
 			Histogram p_pp, p_hh, p_hp; // binned distances
