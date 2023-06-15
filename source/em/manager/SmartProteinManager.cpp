@@ -21,7 +21,7 @@ hist::ScatteringHistogram SmartProteinManager::get_histogram(double cutoff) {
 std::vector<Atom> SmartProteinManager::generate_atoms(double cutoff) const {
     // we use a list since we will have to append quite a few other lists to it
     std::list<Atom> atoms;
-    const std::vector<Image>& imagestack = images->images();
+    const auto& imagestack = images->images();
     unsigned int step = settings::em::sample_frequency;
     for (unsigned int i = 0; i < imagestack.size(); i += step) {
         std::list<Atom> im_atoms = imagestack[i].generate_atoms(cutoff);
@@ -38,12 +38,12 @@ std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) co
     std::vector<Atom> current_atoms(atoms.size());
 
     if (atoms.empty()) {
-        console::print_warning("Warning in ProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
+        console::print_warning("Warning in SmartProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
         return std::make_unique<Protein>(bodies);
     }
 
     if (charge_levels.empty()) {
-        throw except::out_of_bounds("ProteinManager::generate_protein: charge_levels is empty.");
+        throw except::out_of_bounds("SmartProteinManager::generate_protein: charge_levels is empty.");
     }
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
@@ -73,7 +73,7 @@ std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) co
 
             // increment the charge level
             if (charge_index+1 == charge_levels.size()) [[unlikely]] {
-                throw except::unexpected("smartProteinManager::generate_protein: Reached end of charge levels list.");
+                throw except::unexpected("SmartProteinManager::generate_protein: Reached end of charge levels list.");
             }
             charge = charge_levels[++charge_index];
         }
@@ -101,7 +101,7 @@ void SmartProteinManager::update_protein(double cutoff) {
 
     // sanity check
     if (charge_levels.empty()) {
-        throw except::unexpected("ProteinManager::update_protein: charge_levels is empty.");
+        throw except::unexpected("SmartProteinManager::update_protein: charge_levels is empty.");
     }
 
     std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
@@ -167,7 +167,7 @@ void SmartProteinManager::update_protein(double cutoff) {
 }
 
 std::shared_ptr<Protein> SmartProteinManager::get_protein() const {
-    if (protein == nullptr) {throw except::nullptr_error("ProteinManager::get_protein: Protein has not been initialized yet.");}
+    if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
     return protein;
 }
 

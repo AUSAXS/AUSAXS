@@ -10,7 +10,6 @@ namespace settings::grid {
     double width = 1;
     double scaling = 0.25;
     bool cubic = false;
-    Limit3D axes = Limit3D(-250, 250, -250, 250, -250, 250);
     PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy;
     CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;
 
@@ -27,7 +26,6 @@ namespace settings::grid {
             settings::io::create(width, "width"),
             settings::io::create(scaling, "scaling"),
             settings::io::create(cubic, "cubic"),
-            settings::io::create(axes, "axes"),
             settings::io::create(detail::min_score, "detail.min_score")
         });
     }

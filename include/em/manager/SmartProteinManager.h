@@ -44,7 +44,6 @@ namespace em::managers {
             virtual void set_charge_levels(std::vector<double> levels) noexcept;
 
         protected:
-            const em::ImageStackBase* images; 
             std::shared_ptr<Protein> protein;
 
             /**
@@ -58,7 +57,6 @@ namespace em::managers {
             virtual void update_protein(double cutoff);
 
         private:
-            std::vector<double> charge_levels;
             double previous_cutoff = 0;
 
             /**

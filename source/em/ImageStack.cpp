@@ -4,6 +4,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/ProteinSettings.h>
 #include <settings/FitSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Console.h>
 #include <plots/all.h>
 #include <fitter/LinearFitter.h>
@@ -35,7 +36,8 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
 
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, limit) : std::make_shared<LinearFitter>(h, limit);
     return fit_helper(fitter, param);
 }
 
@@ -290,7 +292,8 @@ mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingF
 }
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, limit) : std::make_shared<LinearFitter>(h, limit);
     return cutoff_scan_helper(points, fitter);
 }
 
@@ -325,7 +328,8 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, limit) : std::make_shared<LinearFitter>(h, limit);
     return cutoff_scan_fit_helper(points, fitter);
 }
 

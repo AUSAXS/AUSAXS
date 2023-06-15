@@ -27,8 +27,8 @@ Grid::Grid(const std::vector<Body>& bodies) {
         auto[cmin, cmax] = bounding_box(body.get_atoms());
 
         for (unsigned int i = 0; i < 3; i++) {
-            if (cmin[i] < min[i]) {min[i] = cmin[i];}
-            if (cmax[i] > max[i]) {max[i] = cmax[i];}
+            if (cmin[i] < min[i]) {min[i] = std::floor(cmin[i]);}
+            if (cmax[i] > max[i]) {max[i] = std::ceil(cmax[i]);}
         }
     }
 

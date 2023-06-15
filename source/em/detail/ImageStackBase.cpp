@@ -16,6 +16,10 @@
 
 em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
+    for (unsigned int z = 0; z < size_z; ++z) {
+        if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
+        image(z).set_z(z);
+    }
     phm = em::factory::create_manager(this);
 }
 
@@ -54,7 +58,6 @@ hist::ScatteringHistogram em::ImageStackBase::get_histogram(const std::shared_pt
 }
 
 std::shared_ptr<Protein> em::ImageStackBase::get_protein(double cutoff) const {
-    std::cout << "phm is " << (phm == nullptr ? "null" : "not null") << std::endl;
     return phm->get_protein(cutoff);
 }
 
@@ -82,7 +85,7 @@ void em::ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
             case 1: return size_x;
             case 2: return size_y;
             case 3: return size_z;
-            default: throw except::invalid_argument("ImageStack::read: Invalid axis");
+            default: throw except::invalid_argument("ImageStackBase::read: Invalid axis");
         }
     };
 
@@ -108,7 +111,7 @@ void em::ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
         }
     }
     // check that we have read the correct number of bytes
-    if (istream.peek() != EOF) {throw except::io_error("ImageStack::read: File is larger than expected.");}
+    if (istream.peek() != EOF) {throw except::io_error("ImageStackBase::read: File is larger than expected.");}
 
     // set z values
     for (unsigned int z = 0; z < size_z; z++) {
@@ -133,10 +136,6 @@ void em::ImageStackBase::set_header(std::shared_ptr<ccp4::Header> header) {
     for (auto& image : data) {
         image.set_header(header);
     }
-}
-
-Limit em::ImageStackBase::get_limits() const {
-    return Limit(settings::axes::qmin, settings::axes::qmax);
 }
 
 double em::ImageStackBase::mean() const {
@@ -169,12 +168,11 @@ double em::ImageStackBase::to_level(double cutoff) const {
 }
 
 double em::ImageStackBase::rms() const {
-    static double rms = 0; // only initialized once
-    if (rms == 0) {
+    if (_rms == 0) {
         double sum = std::accumulate(data.begin(), data.end(), 0.0, [] (double sum, const Image& image) {return sum + image.squared_sum();});
-        rms = std::sqrt(sum/(size_x*size_y*size_z));
+        _rms = std::sqrt(sum/(size_x*size_y*size_z));
     }
-    return rms;
+    return _rms;
 }
 
 std::shared_ptr<em::managers::ProteinManager> em::ImageStackBase::get_protein_manager() const {

@@ -45,6 +45,11 @@ namespace em {
             void set_z(unsigned int z);
 
             /**
+             * @brief Get the z location of this object. 
+             */
+            unsigned int get_z() const;
+
+            /**
              * @brief Get the mean density. 
              */
             double mean() const;
@@ -85,12 +90,17 @@ namespace em {
 
             bool operator==(const Image& other) const;
 
+            /**
+             * @brief Get a string representation of this object. 
+             */
+            std::string to_string() const;
+
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
         private:
             std::shared_ptr<ccp4::Header> header;
             Matrix<float> data; // The actual data storage. 
-            unsigned int z; // The z-index of this image in the ImageStack. 
+            unsigned int z = 0; // The z-index of this image in the ImageStack. 
             ObjectBounds2D bounds;
     };
 }

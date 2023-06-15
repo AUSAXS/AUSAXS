@@ -11,9 +11,9 @@ Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), boun
 
 Image::Image(const Matrix<float>& data, std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
 
-void Image::set_z(unsigned int z) {
-    this->z = z;
-}
+void Image::set_z(unsigned int z) {this->z = z;}
+
+unsigned int Image::get_z() const {return z;}
 
 float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
@@ -26,7 +26,6 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
     double xscale = header->cella_x/N;
     double yscale = header->cella_y/M;
     double zscale = header->cella_z/header->nz;
-
     unsigned int step = settings::em::sample_frequency;
     
     // define a weight function for more efficient switching. 
@@ -40,17 +39,23 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
             if (val < cutoff) {
                 continue;
             }
-
             atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, "C", ""));
         }
     }
-
     return atoms;
 }
 
 unsigned int Image::count_voxels(double cutoff) const {
-    std::list<Atom> l = generate_atoms(cutoff);
-    return l.size();
+    unsigned int count = 0;
+    unsigned int step = settings::em::sample_frequency;
+    for (unsigned int x = 0; x < N; x += step) {
+        for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
+            if (index(x, y) >= cutoff) {
+                count++;
+            }
+        }
+    }
+    return count;
 }
 
 double Image::squared_sum() const {
@@ -130,3 +135,5 @@ const ObjectBounds2D& Image::setup_bounds(double cutoff) {
 bool Image::operator==(const Image& other) const {
     return data == other.data && N == other.N && M == other.M && z == other.z;
 }
+
+std::string Image::to_string() const {return data.to_string();}

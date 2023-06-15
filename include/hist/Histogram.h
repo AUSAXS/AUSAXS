@@ -92,6 +92,7 @@ namespace hist {
             Histogram& operator-=(const Histogram& rhs);
             double& operator[](const int i);
             double operator[](const int i) const;
+            bool operator==(const Histogram& rhs) const;
 
             Vector<double> p;   // The bin values. 
             Axis axis;          // The axis spanned by this histogram. 

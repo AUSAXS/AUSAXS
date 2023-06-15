@@ -25,6 +25,8 @@ namespace em {
 
             unsigned int total_area() const;
 
+            bool operator==(const ObjectBounds2D& other) const;
+
         private:
             std::vector<Limit> bounds;
             unsigned int N, M;

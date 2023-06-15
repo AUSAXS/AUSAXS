@@ -1,9 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <em/detail/ImageStackBase.h>
 #include <em/manager/ProteinManager.h>
 #include <hist/ScatteringHistogram.h>
+#include <em/ObjectBounds3D.h>
+#include <data/Protein.h>
+#include <settings/All.h>
 
 #include <fstream>
 
@@ -36,6 +41,9 @@ struct fixture {
         images.emplace_back(dummy_image1);
         images.emplace_back(dummy_image2);
         images.emplace_back(dummy_image3);
+        images[0].set_z(0);
+        images[1].set_z(1);
+        images[2].set_z(2);
     }
 
     std::vector<em::Image> images;
@@ -71,11 +79,11 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
     }
 }
 
-TEST_CASE_METHOD(fixture, "ImageStackBase::Image") {
-        // make one of the images special so we can compare it later
-        images[1] = dummy_image3;
-        em::ImageStackBase isb(images);
-        REQUIRE(isb.image(5) == dummy_image3);
+TEST_CASE_METHOD(fixture, "ImageStackBase::image") {
+    em::ImageStackBase isb(images);
+    REQUIRE(isb.image(0) == images[0]);
+    REQUIRE(isb.image(1) == images[1]);
+    REQUIRE(isb.image(2) == images[2]);
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
@@ -84,7 +92,12 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
+    settings::protein::use_effective_charge = false;
     em::ImageStackBase isb(images);
+    auto header = std::make_shared<em::ccp4::Header>();
+    header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
+    header->nx = 3; header->ny = 3; header->nz = 3;
+    isb.set_header(header);
     REQUIRE(isb.get_histogram(5) == isb.get_protein_manager()->get_histogram(5));
 }
 
@@ -92,14 +105,18 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
     SECTION("single image") {
         em::ImageStackBase isb(images);
         REQUIRE(isb.count_voxels(0) == 27);
-        REQUIRE(isb.count_voxels(10) == 17);
-        REQUIRE(isb.count_voxels(20) == 7);
+        REQUIRE(isb.count_voxels(10) == 18);
+        REQUIRE(isb.count_voxels(20) == 8);
         REQUIRE(isb.count_voxels(30) == 0);
     }
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_protein") {
     em::ImageStackBase isb(images);
+    auto header = std::make_shared<em::ccp4::Header>();
+    header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
+    header->nx = 3; header->ny = 3; header->nz = 3;
+    isb.set_header(header);
     REQUIRE(isb.get_protein(5) == isb.get_protein_manager()->get_protein(5));
 }
 
@@ -143,15 +160,76 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
     }
 }
 
-TEST_CASE("ImageStackBase::save") {}
-TEST_CASE("ImageStackBase::get_limits") {}
-TEST_CASE("ImageStackBase::mean") {}
-TEST_CASE("ImageStackBase::minimum_volume") {}
-TEST_CASE("ImageStackBase::from_level") {}
-TEST_CASE("ImageStackBase::to_level") {}
-TEST_CASE("ImageStackBase::rms") {}
-TEST_CASE("ImageStackBase::get_protein_manager") {}
-TEST_CASE("ImageStackBase::set_minimum_bounds") {}
+TEST_CASE_METHOD(fixture, "ImageStackBase::save") {
+    io::File file("test/temp/ImageStackBase.save.pdb");
+    em::ImageStackBase isb(images);
+    auto header = std::make_shared<em::ccp4::Header>();
+    header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
+    header->nx = 3; header->ny = 3; header->nz = 3;
+    isb.set_header(header);
+    isb.save(5, file);
+    REQUIRE(file.exists());
+}
+
+TEST_CASE("ImageStackBase::mean") {
+    SECTION("single image") {
+        em::ImageStackBase isb({dummy_image1});
+        REQUIRE(isb.mean() == 5);
+    }
+
+    SECTION("multiple images") {
+        em::ImageStackBase isb({dummy_image1, dummy_image2, dummy_image3});
+        REQUIRE(isb.mean() == 14);
+    }
+}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::minimum_volume") {
+    em::ImageStackBase isb(images);
+
+    auto val = GENERATE(1, 5, 9);
+    auto vol = isb.minimum_volume(val);
+    REQUIRE(vol.size() == 3);
+    REQUIRE(vol[0] == isb.image(0).setup_bounds(val));
+    REQUIRE(vol[1] == isb.image(1).setup_bounds(val));
+    REQUIRE(vol[2] == isb.image(2).setup_bounds(val));
+}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::from_level") {
+    em::ImageStackBase isb(images);
+    auto sigma = GENERATE(0.5, 1, 1.5, 2);
+    REQUIRE(isb.from_level(sigma) == isb.rms()*sigma);
+}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::to_level") {
+    em::ImageStackBase isb(images);
+    auto sigma = GENERATE(0.5, 1, 1.5, 2);
+    REQUIRE(isb.to_level(sigma) == sigma/isb.rms());
+}
+
+TEST_CASE("ImageStackBase::rms") {
+    SECTION("single image") {
+        em::ImageStackBase isb({dummy_image1});
+        REQUIRE_THAT(isb.rms(), Catch::Matchers::WithinAbs(5.62731434, 1e-3));
+    }
+
+    SECTION("multiple images") {
+        em::ImageStackBase isb({dummy_image1, dummy_image2, dummy_image3});
+        REQUIRE_THAT(isb.rms(), Catch::Matchers::WithinAbs(16.0208198, 1e-3));
+    }
+}
+
+TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
+    em::ImageStackBase isb(images);
+
+    auto bound = GENERATE(1, 5, 9);
+    isb.set_minimum_bounds(bound);
+    for (auto i = 0; i < isb.size(); ++i) {
+        auto b = isb.image(i).get_bounds();
+        for (auto j = b[i].min; j < b[i].max; ++j) {
+            REQUIRE(bound <= isb.image(i).index(i, j));
+        }
+    }
+}
 
 TEST_CASE("ImageStackBase::read") {
     // test that the header is read correctly

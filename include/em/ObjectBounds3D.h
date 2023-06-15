@@ -18,6 +18,8 @@ namespace em {
 
             unsigned int bounded_volume() const;
 
+            unsigned int size() const;
+
         private:
             std::vector<ObjectBounds2D> bounds;
             unsigned int size_x, size_y, size_z;

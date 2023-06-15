@@ -17,3 +17,5 @@ const ObjectBounds2D& ObjectBounds3D::operator[](unsigned int z) const {return b
 unsigned int ObjectBounds3D::total_volume() const {return size_x*size_y*size_z;}
 
 unsigned int ObjectBounds3D::bounded_volume() const {return std::accumulate(bounds.begin(), bounds.end(), 0, [] (unsigned int volume, const ObjectBounds2D& bound) {return volume += bound.bounded_area();});}
+
+unsigned int ObjectBounds3D::size() const {return bounds.size();}

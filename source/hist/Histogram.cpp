@@ -98,3 +98,7 @@ unsigned int Histogram::size() const noexcept {return p.size();}
 SimpleDataset Histogram::as_dataset() const {
     return SimpleDataset(axis.as_vector(), std::vector<double>(p.begin(), p.end()));
 }
+
+bool Histogram::operator==(const Histogram& rhs) const {
+    return p == rhs.p && axis == rhs.axis;
+}
