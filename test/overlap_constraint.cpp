@@ -24,6 +24,34 @@ struct fixture {
     Body b3 = Body(std::vector<Atom>{a5, a6});
     Body b4 = Body(std::vector<Atom>{a7, a8});
     std::vector<Body> ap = {b1, b2, b3, b4};
-    Protein protein = Protein(ap);
 };
 
+// We cannot directly test the constructor, only its effects on the evaluate() function.
+// TEST_CASE_METHOD(fixture, "OverlapConstraint::OverlapConstraint") {
+//     SECTION("Protein*") {
+//         OverlapConstraint oc(&protein);
+//         REQUIRE(oc.evaluate() == 0);
+//     }
+// }
+
+TEST_CASE_METHOD(fixture, "OverlapConstraint::evaluate") {
+    settings::protein::use_effective_charge = false;
+    settings::axes::distance_bin_width = 0.1;
+    Protein protein(ap);
+    SECTION("initializes to 0") {
+        OverlapConstraint oc(&protein);
+        REQUIRE(oc.evaluate() == 0);
+    }
+
+    SECTION("returns non-zero when moved closer") {
+        OverlapConstraint oc(&protein);
+        REQUIRE(oc.evaluate() == 0);
+        
+        protein.get_body(0).translate(Vector3<double>(2, 2, 1.5));
+        REQUIRE(oc.evaluate() > 0);
+
+        protein.get_body(0).translate(Vector3<double>(-2, -2, -1.5));
+        REQUIRE(oc.evaluate() == 0);
+    }
+    settings::axes::distance_bin_width = 1;
+}

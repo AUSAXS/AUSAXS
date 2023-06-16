@@ -11,8 +11,6 @@ class Protein;
 namespace rigidbody {
     class ConstraintManager {
         public:
-            ConstraintManager();
-
             /**
              * @brief Construct a new Constraint Manager for a given protein.
              */

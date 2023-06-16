@@ -8,8 +8,6 @@
 
 using namespace rigidbody;
 
-ConstraintManager::ConstraintManager() = default;
-
 ConstraintManager::ConstraintManager(Protein* protein) : protein(protein), overlap_constraint(protein) {
     auto generator = factory::generate_constraints(this);
     distance_constraints = generator->generate();

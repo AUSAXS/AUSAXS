@@ -15,6 +15,7 @@ namespace fitter {
      * @brief Fit an intensity curve to a dataset. 
      * 
      * Extends a fitter with the ability to add constraints to the optimization.
+     * Note that the constraint manager must manually be set with the set_constraint_manager method.
      */
     template<fitter_t T>
     class ConstrainedFitter : public T {
@@ -32,7 +33,7 @@ namespace fitter {
             rigidbody::ConstraintManager* get_constraint_manager(); 
 
         private: 
-            std::shared_ptr<rigidbody::ConstraintManager> constraints = std::make_unique<rigidbody::ConstraintManager>();
+            std::shared_ptr<rigidbody::ConstraintManager> constraints = nullptr;
     };
 }
 
