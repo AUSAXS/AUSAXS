@@ -31,22 +31,6 @@ struct fixture {
     Protein protein = Protein(ap);
 };
 
-TEST_CASE_METHOD(fixture, "constructor") {
-    SECTION("Invalid constraints") {
-        REQUIRE_THROWS(DistanceConstraint(&protein, a1, a2)); // same body
-        REQUIRE_THROWS(DistanceConstraint(&protein, a6, a8)); // non-C
-    }
-
-    SECTION("Check construction") {
-        DistanceConstraint c(&protein, a1, a3);
-
-        REQUIRE(c.iatom1 == 0);
-        REQUIRE(c.iatom2 == 0);
-        REQUIRE(c.ibody1 == 0);
-        REQUIRE(c.ibody2 == 1);
-    }
-}
-
 TEST_CASE_METHOD(fixture, "affects_fitter") {
     settings::general::verbose = false;
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());

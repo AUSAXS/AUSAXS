@@ -9,10 +9,7 @@ namespace rigidbody {
      */
     class Constraint {
         public: 
-            /**
-             * @brief Default constructor.
-             */
-            Constraint() {}
+            virtual ~Constraint() = default;
 
             /**
              * @brief Evaluate this constraint. This method is called by the optimizer in each step to evaluate the chi2 contribution of this constraint.

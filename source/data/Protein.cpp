@@ -23,19 +23,22 @@
 
 using namespace hist;
 
-Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
-    initialize();
-}
-
 Protein::Protein(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
     initialize();
 }
 
+Protein::Protein(const std::vector<Body>& bodies) : Protein(bodies, std::vector<Water>()) {}
+Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms), bodies(bodies) {
+    initialize();
+}
+
+Protein::Protein(const std::vector<Atom>& protein_atoms) : Protein(protein_atoms, std::vector<Water>()) {}
 Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
     initialize();
 }
 
+Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms) : Protein(protein_atoms, std::vector<Water>()) {}
 Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
     for (unsigned int i = 0; i < protein_atoms.size(); i++) {
         bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
@@ -44,10 +47,6 @@ Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std:
 }
 
 Protein::Protein(const Protein& protein) : hydration_atoms(protein.hydration_atoms), bodies(protein.bodies), updated_charge(protein.updated_charge), centered(protein.centered) {
-    initialize();
-}
-
-Protein::Protein(Protein&& protein) noexcept : hydration_atoms(std::move(protein.hydration_atoms)), bodies(std::move(protein.bodies)), updated_charge(protein.updated_charge), centered(protein.centered) {
     initialize();
 }
 

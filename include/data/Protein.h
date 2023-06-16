@@ -42,67 +42,53 @@ class Protein {
 		Protein(const Protein& protein);
 
 		/**
-		 * @brief Move constructor.
-		 */
-		Protein(Protein&& protein) noexcept;
-
-		/**
-		 * @brief Constructor.
-		 * 
-		 * Create a new protein based on a set of bodies.
-		 * 
-		 * @param bodies The constituent bodies of this protein. 
-		 * @param hydration_atoms The hydration layer. 
-		 */
-		Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms = {});
-
-		/**
-		 * @brief Constructor.
-		 * 
-		 * Create a new protein based on a set of bodies.
+		 * @brief Create a new protein based on a set of bodies.
 		 * 
 		 * @param bodies The constituent bodies of this protein. 
 		 */
 		explicit Protein(std::vector<Body>&& bodies);
 
 		/**
-		 * @brief Constructor.
-		 * 
-		 * Create a new protein based on a set of atoms. 
-		 * This will only create a single constituent body. 
-		 * 
-		 * @param protein_atoms The constituent atoms of this protein. 
-		 * @param hydration_atoms The hydration layer. 
-		 */
-		Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
-
-		/**
-		 * @brief Constructor. 
-		 * 
-		 * Create a new protein based on a set of atom vectors. Each vector defines a constituent body. 
-		 * 
-		 * @param protein_atoms The constituent atoms of each body. 
-		 * @param hydration_atoms The hydration layer. 
-		 */
-		Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
-
-		/**
-		 * @brief Constructor. 
-		 * 
-		 * Create a new protein based on a list of input file paths. 
+		 * @brief Create a new protein based on a list of input file paths. 
 		 * 
 		 * @param input A list of paths to the input files. File extensions can be mixed. 
 		 */
 		explicit Protein(const std::vector<std::string>& input);
 
 		/**
-		 * @brief Constructor.
-		 * 
-		 * Create a new protein based on a single input file path. 
+		 * @brief Create a new protein based on a single input file path. 
 		 * 
 		 * @param input Path to the input file. 
 		 */
 		explicit Protein(const io::ExistingFile& input);
+
+		/**
+		 * @brief Create a new protein based on a set of bodies.
+		 * 
+		 * @param bodies The constituent bodies of this protein. 
+		 * @param hydration_atoms The hydration layer. 
+		 */
+		Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydration_atoms);
+		Protein(const std::vector<Body>& bodies);
+
+		/**
+		 * @brief Create a new protein based on a set of atoms. 
+		 * This will only create a single constituent body. 
+		 * 
+		 * @param protein_atoms The constituent atoms of this protein. 
+		 * @param hydration_atoms The hydration layer. 
+		 */
+		Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms);
+		Protein(const std::vector<Atom>& protein_atoms);
+
+		/**
+		 * @brief Create a new protein based on a set of atom vectors. Each vector defines a constituent body. 
+		 * 
+		 * @param protein_atoms The constituent atoms of each body. 
+		 * @param hydration_atoms The hydration layer. 
+		 */
+		Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms);
+		Protein(const std::vector<std::vector<Atom>>& protein_atoms);
 
 		~Protein();
 

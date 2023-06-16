@@ -19,6 +19,8 @@ namespace rigidbody {
 
             OverlapConstraint(Protein* protein);
 
+            virtual ~OverlapConstraint() override = default;
+
             /**
              * @brief Evaluate this constraint for the current positions. 
              * 

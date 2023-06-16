@@ -17,11 +17,6 @@ namespace rigidbody {
     class DistanceConstraint : public Constraint {
         public: 
             /**
-             * @brief Default constructor.
-             */
-            DistanceConstraint() {}
-
-            /**
              * @brief Create a new constraint between a pair of atoms.
              * 
              * We use indexes since the bodies and atoms may change during the optimization.
@@ -47,6 +42,8 @@ namespace rigidbody {
              * @param atom2 The second atom.
              */
             DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2);
+
+            virtual ~DistanceConstraint() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 
@@ -99,7 +96,6 @@ namespace rigidbody {
 
             friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.print(); return os;}
 
-            unsigned int uid;       // Unique identifier for this constraint. 
             double r_base;          // The normal distance between the two atoms. 
             Protein* protein;       // The protein this constraint belongs to.
             unsigned int ibody1;    // The index of the first body.
