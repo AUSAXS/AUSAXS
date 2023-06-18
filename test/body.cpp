@@ -11,6 +11,7 @@
 #include <settings/All.h>
 #include <data/Water.h>
 #include <data/Body.h>
+#include <hist/HistogramManager.h>
 
 #include <vector>
 #include <string>
@@ -19,22 +20,132 @@
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
-TEST_CASE("translate") {
-    settings::protein::use_effective_charge = false;
-    vector<Atom> a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                      Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
-                      Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
-                      Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    Body body(a, {});
+struct fixture {
+    vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
+                      Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0"),
+                      Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
+                      Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")
+    };
+    Body body = Body(a, {});
+};
 
-    SECTION("translate") {
-        body.translate(Vector3<double>{1, 1, 1});
-        CHECK(body.get_atom(0).coords == Vector3<double>{0, 0, 0});
-        CHECK(body.get_atom(1).coords == Vector3<double>{0, 2, 0});
-        CHECK(body.get_atom(2).coords == Vector3<double>{2, 0, 0});
-        CHECK(body.get_atom(3).coords == Vector3<double>{2, 2, 0});
+struct multiple_fixture {
+    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
+    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
+    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
+    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
+    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
+    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
+    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
+    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
+
+    Body b1 = Body(std::vector<Atom>{a1, a2});
+    Body b2 = Body(std::vector<Atom>{a3, a4});
+    Body b3 = Body(std::vector<Atom>{a5, a6});
+    Body b4 = Body(std::vector<Atom>{a7, a8});
+    std::vector<Body> ap = {b1, b2, b3, b4};
+    Protein protein = Protein(ap);
+};
+
+TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
+    SECTION("ExistingFile&") {}
+
+    SECTION("vector<Atom>&") {}
+
+    SECTION("vector<Atom>&, vector<Water>&") {}
+
+    SECTION("Body&") {
+        Body b(b1);
+        REQUIRE(b.get_atoms().size() == 2);
+        REQUIRE(b.get_atom(0) == a1);
+        REQUIRE(b.get_atom(1) == a2);
+
+        // check that they are backed by separate files
+        b.get_atom(0) = a3;
+        REQUIRE(b1.get_atom(0) == a1);
     }
 
+    SECTION("Body&&") {
+        Body b5 = std::move(b1);
+        REQUIRE(b5.get_atoms().size() == 2);
+        REQUIRE(b5.get_atom(0) == a1);
+        REQUIRE(b5.get_atom(1) == a2);
+    }
+
+    CHECK(false);
+}
+
+TEST_CASE("Body::save") {
+    vector<Atom> a = {Atom(1, "C"  , "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
+                      Atom(3, "O"  , "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "O", "0"),   Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
+                      Atom(5, "N"  , "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "N", "0"),   Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
+                      Atom(7, "OXT", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "O", "0"),    Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
+    Body body(a, {});
+
+    body.save("temp/body_io.pdb");
+    Body body2("temp/body_io.pdb");
+
+    CHECK(body.get_atoms().size() == body2.get_atoms().size());
+    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
+        CHECK(body.get_atom(i).as_pdb() == body2.get_atom(i).as_pdb());
+    }
+
+    remove("temp/body_io.pdb");
+}
+
+TEST_CASE("Body::get_atoms") {
+    CHECK(false);
+}
+
+TEST_CASE("Body::get_atom") {
+    CHECK(false);
+}
+
+TEST_CASE("Body::get_waters") {
+    CHECK(false);
+}
+
+TEST_CASE_METHOD(fixture, "Body::get_cm") {
+    Vector3<double> cm = body.get_cm();
+    REQUIRE(cm == Vector3<double>({0, 0, 0}));
+}
+
+TEST_CASE("Body::get_volume_acids") {
+    CHECK(false);
+}
+
+TEST_CASE("Body::get_volume_calpha") {
+    CHECK(false);
+}
+
+TEST_CASE_METHOD(fixture, "Body::get_volume") {
+    REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
+}
+
+
+TEST_CASE_METHOD(fixture, "Body::molar_mass") {
+    CHECK_THAT(body.molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C")*constants::Avogadro, 1e-6));
+    console::print_warning("Check definition of molar mass.");
+}
+
+TEST_CASE_METHOD(fixture, "Body::absolute_mass") {
+    CHECK_THAT(body.absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C"), 1e-6));
+}
+
+TEST_CASE_METHOD(fixture, "Body::total_atomic_charge") {
+    CHECK(body.total_atomic_charge() == 8*6);
+}
+
+TEST_CASE_METHOD(fixture, "Body::total_effective_charge") {
+    double c0 = body.get_atom(0).get_effective_charge();    
+    double charge1 = body.total_effective_charge();
+    body.update_effective_charge(1.5);
+    double charge2 = body.total_effective_charge();
+    CHECK(charge2 == charge1+12);
+    CHECK(body.get_atom(0).get_effective_charge() == c0+1.5);
+}
+
+TEST_CASE_METHOD(fixture, "Body::center") {
     SECTION("trivial center") {
         body.translate(Vector3<double>{-1, -1, -1});
         body.center();
@@ -45,9 +156,9 @@ TEST_CASE("translate") {
     }
 
     SECTION("non-trivial center") {
-        a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "O", "O", 1),
+        auto a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "O", "O", 1),
              Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "O", "O", 1)};
-        body = Body(a, {});
+        auto body = Body(a, {});
 
         body.center();
         double shift = 0.142402;
@@ -71,14 +182,36 @@ TEST_CASE("translate") {
     }
 }
 
-TEST_CASE("rotate") {
-    SECTION("simple rotations") {
-        vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), 
-                        Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), 
-                        Atom(Vector3<double>(0, 0, 1), 1, "C", "C", 1)};
-        Body body(a, {});
+TEST_CASE_METHOD(fixture, "Body::translate") {
+    SECTION("basic translation") {
+        body.translate(Vector3<double>{1, 1, 1});
+        CHECK(body.get_atom(0).coords == Vector3<double>{0, 0, 0});
+        CHECK(body.get_atom(1).coords == Vector3<double>{0, 2, 0});
+        CHECK(body.get_atom(2).coords == Vector3<double>{2, 0, 0});
+        CHECK(body.get_atom(3).coords == Vector3<double>{2, 2, 0});
+    }
 
-        SECTION("axis") {
+    SECTION("informs manager") {
+        auto protein = Protein({body});
+        auto manager = protein.get_histogram_manager()->get_state_manager();
+        manager->reset();
+        protein.get_body(0).translate(Vector3<double>(10, 0, 0));
+        CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
+        CHECK(protein.get_body(0).get_atom(1).coords == Vector3<double>(9, 1, -1));
+        CHECK(manager->get_externally_modified_bodies()[0] == true);
+    }
+}
+
+TEST_CASE("Body::rotate") {
+    SECTION("Matrix<double>&") {}
+
+    SECTION("Vector3<double>&, double") {
+        SECTION("simple") {
+            vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), 
+                            Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), 
+                            Atom(Vector3<double>(0, 0, 1), 1, "C", "C", 1)};
+            Body body(a, {});
+
             Vector3<double> axis = {0, 1, 0};
             body.rotate(axis, M_PI_2);
             CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coords); 
@@ -92,7 +225,29 @@ TEST_CASE("rotate") {
             CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}) == body.get_atom(2).coords); 
         }
 
-        SECTION("euler") {
+        SECTION("complex") {
+            vector<Atom> a = {Atom(Vector3<double>(0, 2, 1), 1, "C", "C", 1), 
+                            Atom(Vector3<double>(5, 1, 3), 1, "C", "C", 1), 
+                            Atom(Vector3<double>(6, 1, 4), 1, "C", "C", 1),
+                            Atom(Vector3<double>(3, 7, 2), 1, "C", "C", 1)};
+            Body body(a, {});
+
+            Vector3<double> axis = {0.5, 2, 1};
+            body.rotate(axis, 1.8);
+            REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.get_atom(0).coords); 
+            REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coords); 
+            REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.get_atom(2).coords); 
+            REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.get_atom(3).coords); 
+        }
+    }
+
+    SECTION("double, double, double, ") {
+        SECTION("simple") {
+            vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), 
+                            Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), 
+                            Atom(Vector3<double>(0, 0, 1), 1, "C", "C", 1)};
+            Body body(a, {});
+
             body.rotate(0, M_PI_2, 0);
             CHECK(Vector3<double>({0, 0, -1}) == body.get_atom(0).coords); 
             CHECK(Vector3<double>({0, 1, 0}) == body.get_atom(1).coords); 
@@ -104,84 +259,74 @@ TEST_CASE("rotate") {
             CHECK(Vector3<double>({0.8047378541, 0.5058793634, -0.3106172175}).equals(body.get_atom(2).coords, 1e-3));
         }
     }
+}
 
-    SECTION("complex rotations") {
-        vector<Atom> a = {Atom(Vector3<double>(0, 2, 1), 1, "C", "C", 1), 
-                        Atom(Vector3<double>(5, 1, 3), 1, "C", "C", 1), 
-                        Atom(Vector3<double>(6, 1, 4), 1, "C", "C", 1),
-                        Atom(Vector3<double>(3, 7, 2), 1, "C", "C", 1)};
-        Body body(a, {});
+TEST_CASE("Body::register_probe") {
+    CHECK(false);
+}
 
-        Vector3<double> axis = {0.5, 2, 1};
-        body.rotate(axis, 1.8);
-        REQUIRE(Vector3<double>({0.5843819499, 1.6706126346, 1.3665837559}) == body.get_atom(0).coords); 
-        REQUIRE(Vector3<double>({1.8656722055, 4.7666664324, -2.9661689675}) == body.get_atom(1).coords); 
-        REQUIRE(Vector3<double>({2.6638285975, 5.6804357476, -3.692785794}) == body.get_atom(2).coords); 
-        REQUIRE(Vector3<double>({0.0886646879, 7.4409765368, 2.5737145825}) == body.get_atom(3).coords); 
+TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
+    b1 = b3;
+    REQUIRE(b1.get_atoms().size() == 2);
+    REQUIRE(b1.get_atom(0) == a5);
+    REQUIRE(b1.get_atom(1) == a6);
+
+    b1.get_atom(0) = a1;
+    REQUIRE(b3.get_atom(0) == a5);
+
+    // assignment with temporary bodies
+    b1 = Body();
+    {
+        Body b5({a1, a2});
+        b1 = b5;
     }
+    REQUIRE(b1.get_atoms().size() == 2);
+    REQUIRE(b1.get_atom(0) == a1);
+    REQUIRE(b1.get_atom(1) == a2);
+
+    CHECK(false);
 }
 
-TEST_CASE("get_cm") {
-    vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
-                        Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
-                        Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
-                        Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
-    Body body(a, {});
-    Vector3<double> cm = body.get_cm();
-    REQUIRE(cm == Vector3<double>({0, 0, 0}));
-}
-
-TEST_CASE("get_volume") {
-    vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
-                        Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
-                        Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
-                        Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
-    Body body(a, {});
-    REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
-}
-
-TEST_CASE("charge") {
-    vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
-                        Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    Body body(a, {});
-
-    SECTION("effective charge") {
-        double c0 = body.get_atom(0).get_effective_charge();    
-        double charge1 = body.total_effective_charge();
-        body.update_effective_charge(1.5);
-        double charge2 = body.total_effective_charge();
-        CHECK(charge2 == charge1+12);
-        CHECK(body.get_atom(0).get_effective_charge() == c0+1.5);
-    }
-
-    SECTION("atomic charge") {
-        CHECK(body.total_atomic_charge() == 8*6);
-    }
-}
-
-TEST_CASE("mass") {
-    vector<Atom> a = {Atom(Vector3<double>(  -1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1),
-                        Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
-                        Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    Body body(a, {});
-
-    CHECK_THAT(body.absolute_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C"), 1e-6));
-    CHECK_THAT(body.molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C")*constants::Avogadro, 1e-6));
-    console::print_warning("Check definition of molar mass.");
-}
-
-TEST_CASE("equality") {
-    vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> a2 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+TEST_CASE("Body::operator==") {
+    std::vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    std::vector<Atom> a2 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
     Body b1(a1);
     Body b2(a2);
 
     CHECK(!(b1 == b2)); // even though they have the same contents, body equality is defined exclusively by a uid
     Body b2c = b2;
     CHECK(b2 == b2c);
+}
+
+TEST_CASE("Body::get_file") {
+    CHECK(false);
+}
+
+TEST_CASE_METHOD(fixture, "Body::state") {
+    auto protein = Protein({body});
+    auto manager = protein.get_histogram_manager()->get_state_manager();
+    manager->reset();
+
+    SECTION("Body::changed_external_state") {
+        protein.get_body(0).changed_external_state();
+        CHECK(manager->get_externally_modified_bodies()[0] == true);
+    }
+
+    SECTION("Body::changed_internal_state") {
+        protein.get_body(0).changed_internal_state();
+        CHECK(manager->get_internally_modified_bodies()[0] == true);
+    }
+}
+
+TEST_CASE_METHOD(fixture, "Body::get_id") {
+    unsigned int id = body.get_id();
+    Body b2;
+    CHECK(id+1 == b2.get_id());
+}
+
+TEST_CASE_METHOD(fixture, "Body::atom_size") {
+    CHECK(body.atom_size() == 8);
+    CHECK(Body().atom_size() == 0);
 }
 
 TEST_CASE("grid") {
@@ -323,118 +468,4 @@ TEST_CASE("grid") {
     //     REQUIRE(grid.a_members.size() == 8);
     //     REQUIRE(grid.get_volume() != 0);
     // }
-}
-
-TEST_CASE("split_body", "[body],[files]") {
-    settings::general::verbose = false;
-    vector<int> splits = {9, 99};
-    Protein protein = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", splits);
-
-    // check sizes
-    REQUIRE(protein.body_size() == 3);
-    Body &b1 = protein.get_body(0), &b2 = protein.get_body(1), &b3 = protein.get_body(2);
-
-    REQUIRE(b1.get_atoms().size() == 136);
-    REQUIRE(b2.get_atoms().size() == 812-136);
-    REQUIRE(b3.get_atoms().size() == 1606-812);
-
-    // check start and end resseq
-    CHECK(b1.get_atoms().back().resSeq == 8);
-    CHECK(b2.get_atom(0).resSeq == 9);
-    CHECK(b2.get_atoms().back().resSeq == 98);
-    CHECK(b3.get_atom(0).resSeq == 99);
-}
-
-TEST_CASE("copy") {
-    vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    Body b1(a1), b2(a2), b3(a3), b4(a4);
-
-    SECTION("copy constructor") {
-        Body b(b1);
-        REQUIRE(b.get_atoms().size() == 2);
-        REQUIRE(b.get_atom(0) == a1[0]);
-        REQUIRE(b.get_atom(1) == a1[1]);
-
-        // check that they are backed by separate files
-        b.get_atom(0) = a2[0];
-        REQUIRE(b1.get_atom(0) == a1[0]);
-    }
-
-    SECTION("move constructor") {
-        Body b5 = std::move(b1);
-        REQUIRE(b5.get_atoms().size() == 2);
-        REQUIRE(b5.get_atom(0) == a1[0]);
-        REQUIRE(b5.get_atom(1) == a1[1]);
-    }
-
-    SECTION("assignment") {
-        b1 = b3;
-        REQUIRE(b1.get_atoms().size() == 2);
-        REQUIRE(b1.get_atom(0) == a3[0]);
-        REQUIRE(b1.get_atom(1) == a3[1]);
-
-        b1.get_atom(0) = a1[0];
-        REQUIRE(b3.get_atom(0) == a3[0]);
-
-        // assignment with temporary bodies
-        b1 = Body();
-        {
-            Body b5(a1);
-            b1 = b5;
-        }
-        REQUIRE(b1.get_atoms().size() == 2);
-        REQUIRE(b1.get_atom(0) == a1[0]);
-        REQUIRE(b1.get_atom(1) == a1[1]);
-    }
-}
-
-TEST_CASE("io") {
-    vector<Atom> a = {Atom(1, "C"  , "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"),  Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),
-                      Atom(3, "O"  , "", "LYS", "", 1, "", Vector3<double>(1, -1, -1), 1, 0, "O", "0"),   Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, -1), 1, 0, "C", "0"),
-                      Atom(5, "N"  , "", "LYS", "", 1, "", Vector3<double>(-1, -1, 1), 1, 0, "N", "0"),   Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, 1), 1, 0, "C", "0"),
-                      Atom(7, "OXT", "", "LYS", "", 1, "", Vector3<double>(1, -1, 1), 1, 0, "O", "0"),    Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>(1, 1, 1), 1, 0, "C", "0")};
-    Body body(a, {});
-
-    body.save("temp/body_io.pdb");
-    Body body2("temp/body_io.pdb");
-
-    CHECK(body.get_atoms().size() == body2.get_atoms().size());
-    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
-        CHECK(body.get_atom(i).as_pdb() == body2.get_atom(i).as_pdb());
-    }
-
-    remove("temp/body_io.pdb");
-}
-
-struct fixture {
-    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
-    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
-    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
-    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
-    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
-    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
-    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
-    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
-
-    Body b1 = Body(std::vector<Atom>{a1, a2});
-    Body b2 = Body(std::vector<Atom>{a3, a4});
-    Body b3 = Body(std::vector<Atom>{a5, a6});
-    Body b4 = Body(std::vector<Atom>{a7, a8});
-    std::vector<Body> ap = {b1, b2, b3, b4};
-    Protein protein = Protein(ap);
-};
-
-#include <hist/HistogramManager.h>
-TEST_CASE_METHOD(fixture, "body_translate") {
-    settings::general::verbose = false;
-
-    auto manager = protein.get_histogram_manager()->get_state_manager();
-    manager->reset();
-    protein.get_body(0).translate(Vector3<double>(10, 0, 0));
-    CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
-    CHECK(protein.get_body(0).get_atom(1).coords == Vector3<double>(9, 1, -1));
-    CHECK(manager->get_externally_modified_bodies()[0] == true);
 }

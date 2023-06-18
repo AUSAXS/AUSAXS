@@ -56,6 +56,11 @@ class StateManager {
 		std::shared_ptr<signaller::Signaller> get_probe(unsigned int i);
 
 		/**
+		 * @brief Set the @a ith probe.
+		 */
+		void set_probe(unsigned int i, std::shared_ptr<signaller::Signaller> probe);
+
+		/**
 		 * @brief Get a pointer to all probes.
 		 */
 		std::vector<std::shared_ptr<signaller::Signaller>> get_probes();

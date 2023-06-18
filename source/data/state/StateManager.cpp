@@ -34,6 +34,8 @@ void StateManager::reset() {
     _modified_hydration = false;
 }
 
+void StateManager::set_probe(unsigned int i, std::shared_ptr<signaller::Signaller> probe) {probes[i] = probe;}
+
 std::shared_ptr<signaller::Signaller> StateManager::get_probe(unsigned int i) {return probes[i];}
 
 std::vector<std::shared_ptr<signaller::Signaller>> StateManager::get_probes() {return probes;}

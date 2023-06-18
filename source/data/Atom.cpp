@@ -206,7 +206,7 @@ double Atom::get_mass() const {
         if (element.empty() || resName.empty() || name.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
         }
-        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::atomic.get("H");
     } else {
         if (element.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
