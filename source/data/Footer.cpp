@@ -1,6 +1,10 @@
 #include <data/Footer.h>
 #include <utility/StringUtils.h>
 
+Footer::Footer() noexcept = default;
+
+Footer::~Footer() = default;
+
 RecordType Footer::get_type() const {return RecordType::FOOTER;}
 
 void Footer::parse_pdb(const std::string& s) {add(s);}

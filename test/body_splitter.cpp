@@ -1,6 +1,15 @@
-TEST_CASE("split_body", "[body],[files]") {
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+#include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h>
+#include <data/BodySplitter.h>
+#include <settings/All.h>
+
+TEST_CASE("BodySplitter::split") {
     settings::general::verbose = false;
-    vector<int> splits = {9, 99};
+    std::vector<int> splits = {9, 99};
     Protein protein = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", splits);
 
     // check sizes

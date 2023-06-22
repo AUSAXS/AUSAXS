@@ -1,6 +1,10 @@
 #include <data/Header.h>
 #include <utility/StringUtils.h>
 
+Header::Header() noexcept = default;
+
+Header::~Header() = default;
+
 RecordType Header::get_type() const {return RecordType::HEADER;}
 
 void Header::parse_pdb(const std::string& s) {add(s);}

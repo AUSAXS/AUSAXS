@@ -38,6 +38,8 @@ struct multiple_fixture {
     Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
     Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
     Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
+    Water w1 = Water(Vector3<double>(0, 1, 2), 1, "H", "H", 1);
+    Water w2 = Water(Vector3<double>(3, 4, 5), 1, "H", "H", 1);
 
     Body b1 = Body(std::vector<Atom>{a1, a2});
     Body b2 = Body(std::vector<Atom>{a3, a4});
@@ -48,31 +50,46 @@ struct multiple_fixture {
 };
 
 TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
-    SECTION("ExistingFile&") {}
+    SECTION("ExistingFile&") {
+        io::ExistingFile ef("test/files/2epe.pdb");
+        Body b(ef);
+        REQUIRE(b.get_atoms().size() == 260);
+    }
 
-    SECTION("vector<Atom>&") {}
+    SECTION("vector<Atom>&") {
+        Body b(std::vector<Atom>{a1, a2});
+        REQUIRE(b.get_atoms().size() == 2);
+        CHECK(b.get_atom(0) == a1);
+        CHECK(b.get_atom(1) == a2);
+    }
 
-    SECTION("vector<Atom>&, vector<Water>&") {}
+    SECTION("vector<Atom>&, vector<Water>&") {
+        Body b(std::vector<Atom>{a1, a2}, std::vector<Water>{w1, w2});
+        REQUIRE(b.get_atoms().size() == 2);
+        CHECK(b.get_atom(0) == a1);
+        CHECK(b.get_atom(1) == a2);
+        REQUIRE(b.get_waters().size() == 2);
+        CHECK(b.get_waters()[0] == w1);
+        CHECK(b.get_waters()[1] == w2);
+    }
 
     SECTION("Body&") {
         Body b(b1);
         REQUIRE(b.get_atoms().size() == 2);
-        REQUIRE(b.get_atom(0) == a1);
-        REQUIRE(b.get_atom(1) == a2);
+        CHECK(b.get_atom(0) == a1);
+        CHECK(b.get_atom(1) == a2);
 
         // check that they are backed by separate files
         b.get_atom(0) = a3;
-        REQUIRE(b1.get_atom(0) == a1);
+        CHECK(b1.get_atom(0) == a1);
     }
 
     SECTION("Body&&") {
         Body b5 = std::move(b1);
         REQUIRE(b5.get_atoms().size() == 2);
-        REQUIRE(b5.get_atom(0) == a1);
-        REQUIRE(b5.get_atom(1) == a2);
+        CHECK(b5.get_atom(0) == a1);
+        CHECK(b5.get_atom(1) == a2);
     }
-
-    CHECK(false);
 }
 
 TEST_CASE("Body::save") {
@@ -93,16 +110,21 @@ TEST_CASE("Body::save") {
     remove("temp/body_io.pdb");
 }
 
-TEST_CASE("Body::get_atoms") {
-    CHECK(false);
+TEST_CASE_METHOD(fixture, "Body::get_atoms") {
+    CHECK(body.get_atoms() == a);
 }
 
-TEST_CASE("Body::get_atom") {
-    CHECK(false);
+TEST_CASE_METHOD(fixture, "Body::get_atom") {
+    REQUIRE(body.get_atoms().size() == a.size());
+    for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
+        CHECK(body.get_atom(i) == a[i]);
+    }
 }
 
-TEST_CASE("Body::get_waters") {
-    CHECK(false);
+TEST_CASE_METHOD(multiple_fixture, "Body::get_waters") {
+    auto waters = std::vector<Water>{w1, w2};
+    Body body(std::vector<Atom>{a1, a2}, waters);
+    REQUIRE(body.get_waters() == waters);
 }
 
 TEST_CASE_METHOD(fixture, "Body::get_cm") {

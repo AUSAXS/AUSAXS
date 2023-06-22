@@ -21,7 +21,50 @@
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
-TEST_CASE("simulate_dataset") {
+#pragma once
+
+#include <utility/Concepts.h>
+
+#include <string>
+#include <vector>
+#include <memory>
+
+struct fixture {
+    Atom a1 = Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0");
+    Atom a2 = Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "0");
+    Atom a3 = Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0");
+    Atom a4 = Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "0");
+    Atom a5 = Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0");
+    Atom a6 = Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "0");
+    Atom a7 = Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0");
+    Atom a8 = Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "0");
+    
+    Water w1 = Water(1, "O", "", "HOH", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "O", "0");
+    Water w2 = Water(2, "O", "", "HOH", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "O", "0");    
+
+    vector<Atom> b1 = {a1, a2};
+    vector<Atom> b2 = {a3, a4};
+    vector<Atom> b3 = {a5, a6};
+    vector<Atom> b4 = {a7, a8};
+    vector<Body> bodies = {Body(b1), Body(b2), Body(b3), Body(b4)};
+    Protein protein = Protein(bodies, {});
+};
+
+TEST_CASE("Protein::Protein") {
+    SECTION("Protein&") {}
+    SECTION("vector<Body>&&") {}
+    SECTION("vector<string>&") {}
+    SECTION("ExistingFile&") {}
+    SECTION("vector<Body>&, vector<Water>&") {}
+    SECTION("vector<Body>&") {}
+    SECTION("vector<Atom>&, vector<Water>&") {}
+    SECTION("vector<Atom>&") {}
+    SECTION("vector<vector<Atom>>&, vector<Water>&") {}
+    SECTION("vector<vector<Atom>>&") {}
+    CHECK(false);
+}
+
+TEST_CASE("Protein::simulate_dataset") {
     settings::axes::qmax = 0.4;
     settings::protein::use_effective_charge = false;
     settings::em::sample_frequency = 2;
@@ -33,6 +76,183 @@ TEST_CASE("simulate_dataset") {
     REQUIRE_THAT(res->fval/res->dof, Catch::Matchers::WithinAbs(1., 0.5));
     plots::PlotIntensityFit plot1(res);
     plot1.save("figures/test/protein/check_chi2_1.png");
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_cm") {
+    Vector3<double> cm = protein.get_cm();
+    REQUIRE(cm == Vector3<double>{0, 0, 0});
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_volume_acids") {
+    REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
+}
+
+TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
+    settings::protein::use_effective_charge = false;
+
+    double charge = protein.total_atomic_charge();
+    double effective_charge = protein.total_effective_charge();
+    REQUIRE(charge == effective_charge);
+
+    protein.update_effective_charge(0.5);
+    effective_charge = protein.total_effective_charge();
+    REQUIRE(charge != effective_charge);
+
+    protein.update_effective_charge(0);
+    REQUIRE(charge == protein.total_effective_charge());
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
+    REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate());
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_total_histogram") {
+    REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
+}
+
+TEST_CASE("Protein::save") {
+    Protein protein("test/files/2epe.pdb");
+    protein.save("test/temp/protein_save_2epe.pdb");
+    Protein protein2("test/temp/protein_save_2epe.pdb");
+    auto atoms1 = protein.get_atoms();
+    auto atoms2 = protein2.get_atoms();
+    REQUIRE(atoms1.size() == atoms2.size());
+    for (size_t i = 0; i < atoms1.size(); ++i) {
+        REQUIRE(atoms1[i].equals_content(atoms2[i]));
+    }
+}
+
+TEST_CASE("Protein::generate_new_hydration") {
+    Protein protein("test/files/2epe.pdb");
+    protein.generate_new_hydration();
+    REQUIRE(protein.water_size() == 0);
+    protein.generate_new_hydration();
+    REQUIRE(protein.water_size() != 0);
+}
+
+TEST_CASE("Protein::get_volume_grid") {
+    Protein protein("test/files/2epe.pdb");
+    REQUIRE(protein.get_volume_grid() == protein.get_grid()->get_volume());
+}
+
+TEST_CASE("Protein::get_volume_calpha") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::molar_mass") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::absolute_mass") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::total_atomic_charge") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::total_effective_charge") {
+    Protein protein("test/files/2epe.pdb");
+    double sum = 0;
+    for (auto& atom : protein.get_atoms()) {
+        sum += atom.get_effective_charge();
+    }
+    REQUIRE(protein.total_atomic_charge() == sum);
+}
+
+TEST_CASE("Protein::get_relative_charge_density") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::get_relative_mass_density") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::get_relative_charge") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::get_grid") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::set_grid") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::clear_grid") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::clear_hydration") {
+    CHECK(false);
+}
+
+TEST_CASE("Protein::bind") {
+    CHECK(false);
+}
+
+TEST_CASE_METHOD(fixture, "Protein::center") {
+    Vector3<double> cm = protein.get_cm();
+    REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
+
+    protein.translate(Vector3<double>{1, 1, 1});
+    REQUIRE(protein.get_cm() == Vector3<double>{1, 1, 1});
+    
+    protein.center();
+    REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_body") {
+    REQUIRE(protein.get_body(0) == protein.get_bodies()[0]);
+    REQUIRE(protein.get_body(1) == protein.get_bodies()[1]);
+    REQUIRE(protein.get_body(2) == protein.get_bodies()[2]);
+    REQUIRE(protein.get_body(3) == protein.get_bodies()[3]);
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_bodies") {
+    REQUIRE(protein.get_bodies() == bodies);
+}
+
+TEST_CASE_METHOD(fixture, "Protein::get_atoms") {
+    REQUIRE(protein.get_atoms() == vector<Atom>{a1, a2, a3, a4, a5, a6, a7, a8});
+}
+
+TEST_CASE("Protein::get_waters") {
+
+}
+
+TEST_CASE("Protein::get_water") {}
+
+TEST_CASE("Protein::create_grid") {}
+
+TEST_CASE("Protein::calc_debye_scattering_intensity") {}
+
+TEST_CASE("Protein::body_size") {}
+
+TEST_CASE("Protein::atom_size") {}
+
+TEST_CASE("Protein::water_size") {}
+
+TEST_CASE("Protein::bind_body_signallers") {}
+
+TEST_CASE("Protein::generate_unit_cell") {}
+
+TEST_CASE("Protein::remove_disconnected_atoms") {}
+
+TEST_CASE("Protein::fit") {}
+
+TEST_CASE("Protein::get_histogram_manager") {}
+
+TEST_CASE("Protein::set_histogram_manager") {}
+
+TEST_CASE("Protein::signal_modified_hydration_layer") {}
+
+TEST_CASE("Protein::translate") {
+    Protein protein("test/files/2epe.pdb");
+    Vector3<double> cm = protein.get_cm();
+    protein.translate(Vector3<double>{1, 1, 1});
+    REQUIRE(protein.get_cm() == cm + Vector3<double>{1, 1, 1});
 }
 
 TEST_CASE("compare_debye") {
@@ -259,7 +479,6 @@ TEST_CASE("distance_histograms") {
                     atom.set_effective_charge(1);
                 }
             }
-            // protein.updated_charge = true; //! safe to remove?
 
             // calculation: 8 identical points. 
             //      each point has:
@@ -300,7 +519,6 @@ TEST_CASE("distance_histograms") {
             for (auto& atom : protein.get_waters()) {
                 atom.set_effective_charge(1);
             }
-            // protein.updated_charge = true; //! Safe to remove?
             const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
 
             { // hm
@@ -341,7 +559,6 @@ TEST_CASE("distance_histograms") {
                     atom.set_effective_charge(1);
                 }
             }
-            // protein.updated_charge = true; //! Safe to remove?
             const vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
 
             { // hm
@@ -395,71 +612,23 @@ TEST_CASE("distance_histograms") {
     }
 }
 
-TEST_CASE("get_cm") {
-    // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
-    vector<vector<Atom>> ap = {b1, b2, b3, b4};
-    Protein protein(ap, {});
+// struct fixture {
+//     Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
+//     Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
+//     Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
+//     Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
+//     Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
+//     Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
+//     Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
+//     Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
 
-    Vector3<double> cm = protein.get_cm();
-    REQUIRE(cm == Vector3<double>{0, 0, 0});
-}
-
-TEST_CASE("get_volume") {
-    // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double> (1, 1,  1), 1, 0, "C", "0")};
-    vector<vector<Atom>> ap = {b1, b2, b3, b4};
-    Protein protein(ap, {});
-
-    REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
-}
-
-TEST_CASE("update_effective_charge") {
-    settings::protein::use_effective_charge = false;
-
-    // make the protein
-    vector<Atom> b1 = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b2 = {Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0"), Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1, -1), 1, 0, "C", "0")};
-    vector<Atom> b3 = {Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0")};
-    vector<Atom> b4 = {Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
-    vector<vector<Atom>> ap = {b1, b2, b3, b4};
-    Protein protein(ap, {});
-
-    double charge = protein.total_atomic_charge();
-    double effective_charge = protein.total_effective_charge();
-    REQUIRE(charge == effective_charge);
-
-    protein.update_effective_charge(0.5);
-    effective_charge = protein.total_effective_charge();
-    REQUIRE(charge != effective_charge);
-
-    protein.update_effective_charge(0);
-    REQUIRE(charge == protein.total_effective_charge());
-}
-
-struct fixture {
-    Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
-    Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
-    Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);
-    Atom a4 = Atom(Vector3<double>(-1,  1,  1), 1, "C", "C", 1);
-    Atom a5 = Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1);
-    Atom a6 = Atom(Vector3<double>( 1,  1, -1), 1, "C", "C", 1);
-    Atom a7 = Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1);
-    Atom a8 = Atom(Vector3<double>( 1,  1,  1), 1, "He", "He", 1);
-
-    Body b1 = Body(std::vector<Atom>{a1, a2});
-    Body b2 = Body(std::vector<Atom>{a3, a4});
-    Body b3 = Body(std::vector<Atom>{a5, a6});
-    Body b4 = Body(std::vector<Atom>{a7, a8});
-    std::vector<Body> ap = {b1, b2, b3, b4};
-    Protein protein = Protein(ap);
-};
+//     Body b1 = Body(std::vector<Atom>{a1, a2});
+//     Body b2 = Body(std::vector<Atom>{a3, a4});
+//     Body b3 = Body(std::vector<Atom>{a5, a6});
+//     Body b4 = Body(std::vector<Atom>{a7, a8});
+//     std::vector<Body> ap = {b1, b2, b3, b4};
+//     Protein protein = Protein(ap);
+// };
 
 #include <hist/HistogramManager.h>
 #include <data/state/StateManager.h>
