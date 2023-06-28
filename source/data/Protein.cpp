@@ -261,7 +261,7 @@ const Water& Protein::get_water(unsigned int i) const {return hydration_atoms[i]
 
 std::vector<double> Protein::calc_debye_scattering_intensity() const {
     std::vector<Atom> atoms = get_atoms();
-    const Axis& debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     std::vector<double> Q = std::vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {

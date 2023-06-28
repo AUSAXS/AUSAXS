@@ -15,6 +15,8 @@ class Record {
 
         static RecordType get_type(const std::string& s);
 
+        bool operator==(const Record& rhs) const = default;
+
     private:
         // Maps PDB types to a Record. Effectively determines how they are treated by the code.
         static const std::unordered_map<std::string, RecordType> type_map;

@@ -83,7 +83,7 @@ CoordinateSystem Box::spanning_coordinate_system() const {
 void Box::distances() const {
     // generous sizes - 2000Å should be enough for just about any structure
     double width = 1;
-    Axis axes = Axis(0, 5000, 5000/width); 
+    Axis axes(0, 5000, 5000/width); 
     std::vector<double> p_pp(axes.bins, 0);
 
     // create a more compact representation of the coordinates
@@ -125,7 +125,7 @@ void Box::distances() const {
     }
 
     p_pp.resize(max_bin);
-    axes = Axis{max_bin, 0, max_bin*width}; 
+    axes = Axis(0, max_bin*width, max_bin); 
 
     // write to file
     std::ofstream file;

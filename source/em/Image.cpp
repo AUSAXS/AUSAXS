@@ -70,7 +70,7 @@ double Image::squared_sum() const {
 
 hist::Histogram2D Image::as_hist() const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::as_hist: Header must be initialized to use this method.");}
-    hist::Histogram2D hist(Axis(header->nx, 0, header->cella_x), Axis(header->ny, 0, header->cella_y));
+    hist::Histogram2D hist(Axis(0, header->cella_x, header->nx), Axis(0, header->cella_y, header->ny));
 
     for (unsigned int x = 0; x < N; x++) {
         for (unsigned int y = 0; y < M; y++) {

@@ -94,7 +94,7 @@ TEST_CASE("debye_lookup_table") {
         }
 
         // prepare the q values for the intensity calculations
-        Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+        Axis debye_axis = Axis::temp(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
         vector<double> q(debye_axis.bins);
         double debye_width = debye_axis.width();
         for (unsigned int i = 0; i < debye_axis.bins; i++) {

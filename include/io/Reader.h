@@ -14,4 +14,6 @@ class Reader {
          * @brief Read the data stored in a file. 
          */
         virtual void read(const io::ExistingFile&) = 0;
+
+        bool operator==(const Reader& rhs) const = default;
 };

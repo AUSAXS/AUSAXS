@@ -22,7 +22,7 @@ ScatteringHistogram HistogramManager::calculate_all() {
     auto waters = protein->get_waters();
 
     double width = settings::axes::distance_bin_width;
-    Axis axes = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
+    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
     std::vector<double> p_pp(axes.bins, 0);
     std::vector<double> p_hh(axes.bins, 0);
     std::vector<double> p_hp(axes.bins, 0);
@@ -105,7 +105,7 @@ ScatteringHistogram HistogramManager::calculate_all() {
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    axes = Axis{max_bin, 0, max_bin*width}; 
+    axes = Axis(0, max_bin*width, max_bin); 
 
     // calculate p_tot    
     for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}

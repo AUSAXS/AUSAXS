@@ -7,7 +7,7 @@ Axis::Axis() noexcept : bins(0), min(0), max(0) {}
 
 Axis::Axis(const Limit& limits, int bins) noexcept : bins(bins), min(limits.min), max(limits.max) {}
 
-Axis::Axis(int bins, double xmin, double xmax) noexcept : bins(bins), min(xmin), max(xmax)  {}
+Axis::Axis(double xmin, double xmax, int bins) noexcept : bins(bins), min(xmin), max(xmax)  {}
 
 Axis& Axis::operator=(std::initializer_list<double> list) noexcept {
     std::vector<double> d = list;

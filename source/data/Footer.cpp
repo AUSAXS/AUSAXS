@@ -28,3 +28,5 @@ void Footer::remove(const std::string& type) {
 std::string Footer::get() const {return utility::join(contents, "\n") + (size() == 0 ? "" : "\n");}
 
 unsigned int Footer::size() const {return contents.size();}
+
+bool Footer::operator==(const Footer& rhs) const = default;

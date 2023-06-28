@@ -287,7 +287,7 @@ mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFi
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingFile& file) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan(axis, file);
 }
 
@@ -298,12 +298,12 @@ mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::Scatteri
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan(axis, h);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan_fit(axis, h);
 }
 
@@ -313,7 +313,7 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const io::ExistingFile& file) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }

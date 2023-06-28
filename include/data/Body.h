@@ -92,12 +92,12 @@ class Body {
 		/**
 		 * @brief Calculate the volume of this body based on its constituent amino acids
 		 */
-		double get_volume_acids() const;
+		[[deprecated]] double get_volume_acids() const;
 
 		/**
 		 * @brief Calculate the volume of this body based on the number of C-alpha atoms
 		 */
-		double get_volume_calpha() const;
+		[[deprecated]] double get_volume_calpha() const;
 
 		// /**
 		//  * @brief Generate a PDB file at @p path showing the filled grid volume.

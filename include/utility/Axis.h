@@ -4,10 +4,12 @@
 #include <vector>
 #include <string>
 
-/**
- * @brief A representation of an axis. 
- */
 class Limit;
+
+/**
+ * @brief A representation of a one-dimensional axis. 
+ * 		  The left and right limits are inclusive.
+ */
 class Axis {
 	public:
 		/**
@@ -30,11 +32,11 @@ class Axis {
 		 * 
 		 * Construct a new axis based on explicit minimum and maximum values, along with the number of bins. 
 		 * 
-		 * @param bins The number of equidistant bins. 
 		 * @param xmin The minimum value spanned by this axis. 
 		 * @param xmax The maximum value spanned by this axis. 
+		 * @param bins The number of equidistant bins. 
 		 */
-		Axis(int bins, double xmin, double xmax) noexcept;
+		Axis(double xmin, double xmax, int bins) noexcept;
 
 		/**
 		 * @brief List initializer. 

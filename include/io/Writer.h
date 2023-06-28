@@ -14,4 +14,6 @@ class Writer {
          * @brief Write the contents of the backing File to a given path. 
          */
         virtual void write(const io::File&) = 0;
+
+        bool operator==(const Writer& rhs) const = default;
 };

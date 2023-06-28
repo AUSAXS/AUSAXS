@@ -187,7 +187,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::minimum_volume") {
 
     auto val = GENERATE(1, 5, 9);
     auto vol = isb.minimum_volume(val);
-    REQUIRE(vol.size() == 3);
+    REQUIRE(vol.size_x() == 3);
     REQUIRE(vol[0] == isb.image(0).setup_bounds(val));
     REQUIRE(vol[1] == isb.image(1).setup_bounds(val));
     REQUIRE(vol[2] == isb.image(2).setup_bounds(val));

@@ -51,6 +51,8 @@ class Footer : Record {
 		 */
 		unsigned int size() const;
 
+		bool operator==(const Footer& rhs) const;
+
 	private: 
 		std::vector<std::string> contents;
 };

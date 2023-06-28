@@ -36,7 +36,7 @@ void ScatteringHistogram::setup() {
     }    
 
     // prepare the q values for the intensity calculations
-    Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     q = std::vector<double>(debye_axis.bins);
     double debye_width = debye_axis.width();
     for (unsigned int i = 0; i < debye_axis.bins; i++) {
@@ -53,7 +53,7 @@ void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
 
 Histogram ScatteringHistogram::plot_debye_scattering() const {
     SimpleDataset data = calc_debye_scattering_intensity();
-    return Histogram(data.y(), Axis(q.size(), q[0], q.back()));
+    return Histogram(data.y(), Axis(q[0], q.back(), q.size()));
 }
 
 SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity(const std::vector<double>& q) const {
@@ -72,7 +72,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity(const std::ve
 
 SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
     // calculate the Debye scattering intensity
-    Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
@@ -87,7 +87,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
 
 Histogram ScatteringHistogram::plot_guinier_approx() const {
     std::vector<double> Iq = calc_guinier_approx().col("logI");
-    return Histogram(Iq, Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax));
+    return Histogram(Iq, Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins));
 }
 
 double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
@@ -102,7 +102,7 @@ double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
 SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     double Rg2 = calc_guinier_gyration_ratio_squared();
 
-    Axis debye_axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int i = 0; i < debye_axis.bins; i++) { // iterate through all q values
         Iq[i] = std::exp(-pow(q[i], 2)*Rg2/3);

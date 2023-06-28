@@ -82,3 +82,5 @@ std::string Terminate::as_pdb() const {
 }
 
 void Terminate::set_serial(const int serial) {this->serial = serial;}
+
+bool Terminate::operator==(const Terminate& rhs) const = default;

@@ -53,7 +53,8 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
     SECTION("ExistingFile&") {
         io::ExistingFile ef("test/files/2epe.pdb");
         Body b(ef);
-        REQUIRE(b.get_atoms().size() == 260);
+        REQUIRE(b.atom_size() == 1001);
+        REQUIRE(b.get_waters().size() == 48);
     }
 
     SECTION("vector<Atom>&") {
@@ -132,18 +133,9 @@ TEST_CASE_METHOD(fixture, "Body::get_cm") {
     REQUIRE(cm == Vector3<double>({0, 0, 0}));
 }
 
-TEST_CASE("Body::get_volume_acids") {
-    CHECK(false);
-}
-
-TEST_CASE("Body::get_volume_calpha") {
-    CHECK(false);
-}
-
-TEST_CASE_METHOD(fixture, "Body::get_volume") {
-    REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
-}
-
+// TEST_CASE_METHOD(fixture, "Body::get_volume") {
+//     REQUIRE(body.get_volume_acids() == constants::volume::amino_acids.get("LYS"));
+// }
 
 TEST_CASE_METHOD(fixture, "Body::molar_mass") {
     CHECK_THAT(body.molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::atomic.get("C")*constants::Avogadro, 1e-6));
@@ -168,6 +160,7 @@ TEST_CASE_METHOD(fixture, "Body::total_effective_charge") {
 }
 
 TEST_CASE_METHOD(fixture, "Body::center") {
+    settings::protein::use_effective_charge = false;
     SECTION("trivial center") {
         body.translate(Vector3<double>{-1, -1, -1});
         body.center();
@@ -283,8 +276,12 @@ TEST_CASE("Body::rotate") {
     }
 }
 
+#include <data/state/BoundSignaller.h>
 TEST_CASE("Body::register_probe") {
-    CHECK(false);
+    Body body = Body({Atom(Vector3<double>(0, 0, 0), 1, "C", "C", 1)}, {});
+    auto probe = std::make_shared<signaller::BoundSignaller>(1, nullptr);
+    body.register_probe(probe);
+    REQUIRE(probe == body.get_signaller());
 }
 
 TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
@@ -305,8 +302,6 @@ TEST_CASE_METHOD(multiple_fixture, "Body::operator=") {
     REQUIRE(b1.get_atoms().size() == 2);
     REQUIRE(b1.get_atom(0) == a1);
     REQUIRE(b1.get_atom(1) == a2);
-
-    CHECK(false);
 }
 
 TEST_CASE("Body::operator==") {
@@ -321,7 +316,8 @@ TEST_CASE("Body::operator==") {
 }
 
 TEST_CASE("Body::get_file") {
-    CHECK(false);
+    Body b1, b2;
+    CHECK(b1.get_file() != b2.get_file());
 }
 
 TEST_CASE_METHOD(fixture, "Body::state") {
@@ -342,7 +338,7 @@ TEST_CASE_METHOD(fixture, "Body::state") {
 
 TEST_CASE_METHOD(fixture, "Body::get_id") {
     unsigned int id = body.get_id();
-    Body b2;
+    Body b2(a);
     CHECK(id+1 == b2.get_id());
 }
 

@@ -139,7 +139,7 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
  */
 void PartialHistogramManager::initialize() {
     double width = settings::axes::distance_bin_width;
-    Axis axis = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
+    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/width); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 

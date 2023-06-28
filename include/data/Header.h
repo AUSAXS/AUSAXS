@@ -51,6 +51,8 @@ class Header : Record {
 		 */
 		unsigned int size() const;
 
+		bool operator==(const Header& rhs) const;
+
 	private: 
 		std::vector<std::string> contents;
 };

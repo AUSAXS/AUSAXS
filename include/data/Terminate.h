@@ -58,4 +58,6 @@ class Terminate : public Record {
 		 * @brief Set the serial of this record.
 		 */
 		void set_serial(int serial);
+
+		bool operator==(const Terminate& rhs) const;
 };
