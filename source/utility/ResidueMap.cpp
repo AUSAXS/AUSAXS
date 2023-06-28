@@ -14,7 +14,7 @@ bool saxs::detail::AtomKey::operator==(const AtomKey& other) const {
 
 unsigned int std::hash<saxs::detail::AtomKey>::operator()(const saxs::detail::AtomKey& k) const {return std::hash<std::string>()(k.name);}
 
-ResidueMap::ResidueMap() {}
+ResidueMap::ResidueMap() = default;
 
 ResidueMap::ResidueMap(const std::unordered_map<AtomKey, int>& map) {
     this->map = map;
@@ -58,3 +58,5 @@ void ResidueMap::calculate_average() {
         average[key] /= counts[key];
     }
 }
+
+const std::unordered_map<AtomKey, int>& ResidueMap::get_map() const {return map;}

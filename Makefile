@@ -326,7 +326,7 @@ tests: $(shell find source/ -print) $(shell find test/ -print)
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%: test/%.cpp
+test/%:
 	@ make -C build "test_$*" -j${cmake_threads}
 	build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 

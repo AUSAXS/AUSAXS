@@ -80,13 +80,15 @@ namespace saxs {
                  */
                 void insert(const std::string& name, const std::string& symbol, int value);
 
+                const std::unordered_map<AtomKey, int>& get_map() const;
+
                 std::unordered_map<AtomKey, int>::const_iterator begin() const {return map.begin();}
                 std::unordered_map<AtomKey, int>::const_iterator end() const {return map.end();}
                 std::unordered_map<AtomKey, int>::iterator begin() {return map.begin();}
                 std::unordered_map<AtomKey, int>::iterator end() {return map.end();}
 
             private: 
-                std::unordered_map<AtomKey, int> map;      // the actual map data
+                std::unordered_map<AtomKey, int> map;               // the actual map data
                 std::unordered_map<std::string, double> average;    // the average number of bonds for each element in this residue.
                 bool update_average = false;                        // whether the average needs to be updated
                 
