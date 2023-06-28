@@ -10,18 +10,22 @@ namespace em {
 
             ~ObjectBounds3D();
 
-            ObjectBounds2D& operator[](unsigned int z);
+            [[nodiscard]] ObjectBounds2D& operator[](unsigned int z);
 
-            const ObjectBounds2D& operator[](unsigned int z) const;
+            [[nodiscard]] const ObjectBounds2D& operator[](unsigned int z) const;
 
-            unsigned int total_volume() const;
+            [[nodiscard]] unsigned int total_volume() const;
 
-            unsigned int bounded_volume() const;
+            [[nodiscard]] unsigned int bounded_volume() const;
 
-            unsigned int size() const;
+            [[nodiscard]] unsigned int size_x() const;
+
+            [[nodiscard]] unsigned int size_y() const;
+
+            [[nodiscard]] unsigned int size_z() const;
 
         private:
             std::vector<ObjectBounds2D> bounds;
-            unsigned int size_x, size_y, size_z;
+            unsigned int _size_x, _size_y, _size_z;
     };
 }

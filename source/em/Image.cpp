@@ -114,17 +114,15 @@ const ObjectBounds2D& Image::get_bounds() const {
 
 const ObjectBounds2D& Image::setup_bounds(double cutoff) {
     for (unsigned int x = 0; x < N; x++) {
-        bounds[x].min = 0;
-        bounds[x].max = 0;
+        bounds.set_bounds(x, 0, 0);
         bool min_set = false;
         for (unsigned int y = 0; y < M; y++) {
             if (index(x, y) < cutoff) {continue;}
             if (!min_set) {
-                bounds[x].min = y; // update min val to this index
-                bounds[x].max = y; // also set max in case this is the only entry
+                bounds.set_bounds(x, y, y); // update min val to this index, and also set max in case this is the only entry
                 min_set = true;
             } else {
-                bounds[x].max = y;
+                bounds.set_max(x, y);
             }
         }
     }

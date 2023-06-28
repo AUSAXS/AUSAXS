@@ -135,6 +135,10 @@ class ProteinFile {
 
         ProteinFile& operator=(ProteinFile&& rhs);
 
+        bool operator==(const ProteinFile& rhs) const;
+
+        bool equals_content(const ProteinFile& rhs) const;
+
         Header header;
         Footer footer;
         Terminate terminate;

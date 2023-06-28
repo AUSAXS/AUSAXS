@@ -187,6 +187,11 @@ class Body {
 		bool operator==(const Body& rhs) const;
 
 		/**
+		 * @brief Check if the content of this object is equal to another, disregarding their unique ID. 
+		 */
+		bool equals_content(const Body& rhs) const;
+
+		/**
 		 * @brief Get the File backing this object. 
 		 */
 		ProteinFile& get_file();

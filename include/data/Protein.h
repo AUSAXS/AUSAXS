@@ -81,15 +81,6 @@ class Protein {
 		Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms);
 		Protein(const std::vector<Atom>& protein_atoms);
 
-		/**
-		 * @brief Create a new protein based on a set of atom vectors. Each vector defines a constituent body. 
-		 * 
-		 * @param protein_atoms The constituent atoms of each body. 
-		 * @param hydration_atoms The hydration layer. 
-		 */
-		Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms);
-		Protein(const std::vector<std::vector<Atom>>& protein_atoms);
-
 		~Protein();
 
 		/**
@@ -139,7 +130,7 @@ class Protein {
 		 * 
 		 * @return The volume in Å^3.
 		 */
-		[[nodiscard]] double get_volume_calpha() const;
+		// [[nodiscard]] double get_volume_calpha() const;
 
 		/** 
 		 * @brief Calculate the center-mass coordinates.
@@ -203,12 +194,6 @@ class Protein {
 		 * @brief Remove all waters.
 		 */
 		void clear_hydration();
-
-		/**
-		 * @brief Create a binding point between two bodies.
-		 *        This binding will be a constraint for rigid-body optimization. 
-		 */
-		void bind();
 
 		/**
 		 * @brief Center this protein on origo. 
@@ -304,13 +289,13 @@ class Protein {
 		/**
 		 * @brief Generate a new CRYST1 record for this protein. 
 		 */
-		void generate_unit_cell();
+		[[deprecated]] void generate_unit_cell();
 
 		/**
 		 * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
 		 *        This is useful for removing "floating" atoms from e.g. EM map data.
 		 */
-		void remove_disconnected_atoms(unsigned int min = 10);
+		[[deprecated]] void remove_disconnected_atoms(unsigned int min = 10);
 
 		/**
 		 * @brief Fit a measurement to this protein.
@@ -348,6 +333,10 @@ class Protein {
 		void translate(const Vector3<double>& v);
 
 		Protein& operator=(const Protein& other) = delete;
+
+		bool operator==(const Protein& other) const;
+
+		bool equals_content(const Protein& other) const;
 
 	private:
 		std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer

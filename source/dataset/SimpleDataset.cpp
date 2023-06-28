@@ -323,3 +323,5 @@ void SimpleDataset::sort_x() {
     }
     this->assign_matrix(std::move(newdata));
 }
+
+bool SimpleDataset::operator==(const SimpleDataset& other) const = default;

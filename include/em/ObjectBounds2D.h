@@ -13,19 +13,57 @@ namespace em {
 
             ~ObjectBounds2D();
 
-            Limit& operator[](unsigned int x);
+            /**
+             * @brief Set the minimum bound of the xth row.
+             */
+            void set_min(unsigned int x, unsigned int min);
 
-            const Limit& operator[](unsigned int x) const;
+            /**
+             * @brief Set the maximum bound of the xth row.
+             */
+            void set_max(unsigned int x, unsigned int max);
 
-            unsigned int size() const;
+            /**
+             * @brief Set the bounds of the xth row. 
+             */
+            void set_bounds(unsigned int x, const Limit& limit);
 
-            bool empty() const;
+            /**
+             * @brief Set the bounds of the xth row. 
+             */
+            void set_bounds(unsigned int x, unsigned int min, unsigned int max);
 
-            unsigned int bounded_area() const;
+            /**
+             * @brief Get the bounds of the xth row. 
+             */
+            [[nodiscard]] const Limit& operator[](unsigned int x) const;
 
-            unsigned int total_area() const;
+            /**
+             * @brief Get the size in the x-dimension. 
+             */
+            [[nodiscard]] unsigned int size_x() const;
 
-            bool operator==(const ObjectBounds2D& other) const;
+            /**
+             * @brief Get the size in the y-dimension. 
+             */
+            [[nodiscard]] unsigned int size_y() const;
+
+            /**
+             * @brief Returns true if no bounds have been set. 
+             */
+            [[nodiscard]] bool empty() const;
+
+            /**
+             * @brief Get the total bounded area.
+             */
+            [[nodiscard]] unsigned int bounded_area() const;
+
+            /**
+             * @brief Get the total area.
+             */
+            [[nodiscard]] unsigned int total_area() const;
+
+            [[nodiscard]] bool operator==(const ObjectBounds2D& other) const;
 
         private:
             std::vector<Limit> bounds;

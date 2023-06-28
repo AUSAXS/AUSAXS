@@ -30,6 +30,8 @@ namespace mini {
 
             std::string to_string() const;
 
+            bool operator==(const Landscape& other) const;
+
             std::vector<Evaluation> evals;
     };    
 }

@@ -190,6 +190,7 @@ int Atom::get_serial() const {return serial;}
 int Atom::get_resSeq() const {return resSeq;}
 double Atom::get_occupancy() const {return occupancy;}
 double Atom::get_tempFactor() const {return tempFactor;}
+double Atom::get_absolute_charge() const {return Z();}
 double Atom::get_effective_charge() const {return effective_charge;}
 string Atom::get_altLoc() const {return altLoc;}
 string Atom::get_chainID() const {return chainID;}

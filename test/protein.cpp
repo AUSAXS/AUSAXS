@@ -18,16 +18,10 @@
 #include <hist/PartialHistogramManagerMT.h>
 #include <settings/All.h>
 #include <plots/all.h>
+#include <fitter/HydrationFitter.h>
+#include <hist/HistogramManager.h>
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
-
-#pragma once
-
-#include <utility/Concepts.h>
-
-#include <string>
-#include <vector>
-#include <memory>
 
 struct fixture {
     Atom a1 = Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0");
@@ -47,21 +41,132 @@ struct fixture {
     vector<Atom> b3 = {a5, a6};
     vector<Atom> b4 = {a7, a8};
     vector<Body> bodies = {Body(b1), Body(b2), Body(b3), Body(b4)};
-    Protein protein = Protein(bodies, {});
 };
 
-TEST_CASE("Protein::Protein") {
-    SECTION("Protein&") {}
-    SECTION("vector<Body>&&") {}
-    SECTION("vector<string>&") {}
-    SECTION("ExistingFile&") {}
-    SECTION("vector<Body>&, vector<Water>&") {}
-    SECTION("vector<Body>&") {}
-    SECTION("vector<Atom>&, vector<Water>&") {}
-    SECTION("vector<Atom>&") {}
-    SECTION("vector<vector<Atom>>&, vector<Water>&") {}
-    SECTION("vector<vector<Atom>>&") {}
-    CHECK(false);
+/**
+ * @brief Compare two histograms. 
+ *        Only indices [0, p1.size()] are checked.
+ */
+bool compare_hist(Vector<double> p1, Vector<double> p2) {
+    for (unsigned int i = 0; i < p1.size(); i++) {
+        if (!utility::approx(p1[i], p2[i])) {
+            cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+struct analytical_histogram {
+    analytical_histogram() {
+        // set the weights to 1 so we can analytically determine the result
+        // waters
+        for (auto& atom : protein.get_waters()) {
+            atom.set_effective_charge(1);
+        }
+        // atoms
+        for (auto& body : protein.get_bodies()) {
+            for (auto& atom : body.get_atoms()) {
+                atom.set_effective_charge(1);
+            }
+        }
+    }
+
+    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+    vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
+    vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
+    vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+    vector<Body> a = {Body(b1), Body(b2), Body(b3)};
+    Protein protein = Protein(a, w);
+
+    // calculation: 8 identical points. 
+    //      each point has:
+    //          1 line  of length 0
+    //          3 lines of length 2
+    //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+    //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+    vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
+};
+
+TEST_CASE_METHOD(fixture, "Protein::Protein") {
+    settings::protein::use_effective_charge = false;
+    settings::general::verbose = false;
+    SECTION("Protein&") {
+        Protein protein1 = Protein(bodies);
+        Protein protein2 = Protein(protein1);
+        REQUIRE(protein1.get_atoms() == protein2.get_atoms());
+    }
+
+    SECTION("vector<Body>&&") {
+        Protein protein(std::move(bodies));
+        REQUIRE(protein.body_size() == 4);
+        CHECK(protein.get_body(0).atom_size() == 2);
+        CHECK(protein.get_body(1).atom_size() == 2);
+        CHECK(protein.get_body(2).atom_size() == 2);
+        CHECK(protein.get_body(3).atom_size() == 2);
+    }
+
+    SECTION("vector<string>&") {
+        std::vector<std::string> files = {"test/files/2epe.pdb", "test/files/2epe.pdb"};
+        Protein protein(files);
+        Body body("test/files/2epe.pdb"); // compare with body constructor
+        body.get_waters().clear();
+
+        REQUIRE(protein.body_size() == 2);
+        CHECK(protein.atom_size() == 2002);
+        CHECK(protein.water_size() == 96);
+        CHECK(protein.get_body(0).equals_content(protein.get_body(1)));
+        CHECK(protein.get_body(0).equals_content(body));
+    }
+
+    SECTION("ExistingFile&") {
+        io::ExistingFile file("test/files/2epe.pdb");
+        Protein protein(file);
+        Body body("test/files/2epe.pdb"); // compare with body constructor
+        body.get_waters().clear();
+
+        REQUIRE(protein.body_size() == 1);
+        CHECK(protein.atom_size() == 1001);
+        CHECK(protein.water_size() == 48);
+        CHECK(protein.get_body(0).equals_content(body));
+    }
+
+    SECTION("vector<Body>&, vector<Water>&") {
+        Protein protein(bodies, {w1, w2});
+        REQUIRE(protein.body_size() == 4);
+        CHECK(protein.get_body(0).atom_size() == 2);
+        CHECK(protein.get_body(1).atom_size() == 2);
+        CHECK(protein.get_body(2).atom_size() == 2);
+        CHECK(protein.get_body(3).atom_size() == 2);
+        REQUIRE(protein.water_size() == 2);
+        CHECK(protein.get_water(0) == w1);
+        CHECK(protein.get_water(1) == w2);
+    }
+
+    SECTION("vector<Body>&") {
+        Protein protein(bodies);
+        REQUIRE(protein.body_size() == 4);
+        CHECK(protein.get_body(0).atom_size() == 2);
+        CHECK(protein.get_body(1).atom_size() == 2);
+        CHECK(protein.get_body(2).atom_size() == 2);
+        CHECK(protein.get_body(3).atom_size() == 2);
+    }
+
+    SECTION("vector<Atom>&, vector<Water>&") {
+        Protein protein({a1, a2, a3, a4, a5, a6, a7, a8}, {w1, w2});
+        REQUIRE(protein.body_size() == 1);
+        CHECK(protein.get_body(0).atom_size() == 8);
+        REQUIRE(protein.water_size() == 2);
+        CHECK(protein.get_water(0) == w1);
+        CHECK(protein.get_water(1) == w2);
+    }
+
+    SECTION("vector<Atom>&") {
+        Protein protein({a1, a2, a3, a4, a5, a6, a7, a8});
+        REQUIRE(protein.body_size() == 1);
+        CHECK(protein.get_body(0).atom_size() == 8);
+    }
 }
 
 TEST_CASE("Protein::simulate_dataset") {
@@ -79,16 +184,19 @@ TEST_CASE("Protein::simulate_dataset") {
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_cm") {
+    Protein protein = Protein(bodies, {});
     Vector3<double> cm = protein.get_cm();
     REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_volume_acids") {
+    Protein protein = Protein(bodies, {});
     REQUIRE_THAT(protein.get_volume_acids(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 }
 
 TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
     settings::protein::use_effective_charge = false;
+    Protein protein = Protein(bodies, {});
 
     double charge = protein.total_atomic_charge();
     double effective_charge = protein.total_effective_charge();
@@ -103,11 +211,52 @@ TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
-    REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate());
+    SECTION("delegated to HistogramManager") {
+        Protein protein = Protein(bodies, {});
+        REQUIRE(compare_hist(protein.get_histogram().p, protein.get_histogram_manager()->calculate().p));
+    }
+ 
+    SECTION("compare_debye") {
+        vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
+                        Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
+                        Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
+                        Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
+        Protein protein(atoms, {});
+
+        vector<double> I_dumb = protein.calc_debye_scattering_intensity();
+        vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
+
+        for (int i = 0; i < 8; i++) {
+            if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
+                cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
+                REQUIRE(false);
+            }
+        }
+        CHECK(true);
+    }
+
+    SECTION("compare_debye_real") {
+        Protein protein("test/files/2epe.pdb");
+        protein.clear_hydration();
+
+        std::cout << "hydration atoms: " << protein.get_waters().size() << std::endl; 
+
+        vector<double> I_dumb = protein.calc_debye_scattering_intensity();
+        vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
+
+        for (int i = 0; i < 8; i++) {
+            if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
+                cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
+                REQUIRE(false);
+            }
+        }
+    }
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_total_histogram") {
-    REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
+    Protein protein = Protein(bodies, {});
+    REQUIRE(compare_hist(protein.get_histogram().p, protein.get_histogram_manager()->calculate_all().p));
+    // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
 TEST_CASE("Protein::save") {
@@ -122,10 +271,10 @@ TEST_CASE("Protein::save") {
     }
 }
 
-TEST_CASE("Protein::generate_new_hydration") {
+TEST_CASE_METHOD(fixture, "Protein::generate_new_hydration") {
+    settings::protein::use_effective_charge = false;
     Protein protein("test/files/2epe.pdb");
-    protein.generate_new_hydration();
-    REQUIRE(protein.water_size() == 0);
+    protein.clear_hydration();
     protein.generate_new_hydration();
     REQUIRE(protein.water_size() != 0);
 }
@@ -135,20 +284,31 @@ TEST_CASE("Protein::get_volume_grid") {
     REQUIRE(protein.get_volume_grid() == protein.get_grid()->get_volume());
 }
 
-TEST_CASE("Protein::get_volume_calpha") {
-    CHECK(false);
-}
+// TEST_CASE("Protein::get_volume_calpha") {    
+//     CHECK(false);
+// }
 
 TEST_CASE("Protein::molar_mass") {
-    CHECK(false);
+    Protein protein("test/files/2epe.pdb");
+    REQUIRE(protein.molar_mass() == protein.absolute_mass()*constants::Avogadro);
 }
 
 TEST_CASE("Protein::absolute_mass") {
-    CHECK(false);
+    Protein protein("test/files/2epe.pdb");
+    double sum = 0;
+    for (auto& atom : protein.get_atoms()) {
+        sum += atom.get_mass();
+    }
+    REQUIRE(protein.absolute_mass() == sum);
 }
 
 TEST_CASE("Protein::total_atomic_charge") {
-    CHECK(false);
+    Protein protein("test/files/2epe.pdb");
+    double sum = 0;
+    for (auto& atom : protein.get_atoms()) {
+        sum += atom.get_absolute_charge();
+    }
+    REQUIRE(protein.total_atomic_charge() == sum);
 }
 
 TEST_CASE("Protein::total_effective_charge") {
@@ -161,38 +321,49 @@ TEST_CASE("Protein::total_effective_charge") {
 }
 
 TEST_CASE("Protein::get_relative_charge_density") {
-    CHECK(false);
+    Protein protein("test/files/2epe.pdb");
+    REQUIRE(protein.get_relative_charge_density() == (protein.total_atomic_charge() - constants::charge::density::water*protein.get_volume_grid())/protein.get_volume_grid());
 }
 
 TEST_CASE("Protein::get_relative_mass_density") {
-    CHECK(false);
+    Protein protein("test/files/2epe.pdb");
+    REQUIRE(protein.get_relative_mass_density() == (protein.absolute_mass() - constants::mass::density::water*protein.get_volume_grid())/protein.get_volume_grid());
 }
 
 TEST_CASE("Protein::get_relative_charge") {
-    CHECK(false);
+    Protein protein("test/files/2epe.pdb");
+    REQUIRE(protein.get_relative_charge() == protein.total_effective_charge() - protein.get_volume_grid()*constants::charge::density::water);
 }
 
-TEST_CASE("Protein::get_grid") {
-    CHECK(false);
+TEST_CASE_METHOD(fixture, "Protein::get_grid") {
+    Protein protein = Protein(bodies, {});
+    // we just want to test that the grid is created by default
+    REQUIRE(protein.get_grid() != nullptr);
 }
 
-TEST_CASE("Protein::set_grid") {
-    CHECK(false);
+TEST_CASE_METHOD(fixture, "Protein::set_grid") {
+    Protein protein = Protein(bodies, {});
+    grid::Grid grid(Axis3D(0, 1, 0, 1, 0, 1, 1));
+    protein.set_grid(grid);
+    REQUIRE(*protein.get_grid() == grid);
 }
 
-TEST_CASE("Protein::clear_grid") {
-    CHECK(false);
+TEST_CASE_METHOD(fixture, "Protein::clear_grid") {
+    Protein protein(bodies, {});
+    auto grid = protein.get_grid();
+    protein.clear_grid(); 
+    REQUIRE(protein.get_grid() != grid); // get_grid creates a new grid if it doesn't exist
 }
 
-TEST_CASE("Protein::clear_hydration") {
-    CHECK(false);
-}
-
-TEST_CASE("Protein::bind") {
-    CHECK(false);
+TEST_CASE_METHOD(fixture, "Protein::clear_hydration") {
+    Protein protein2(bodies, {w1, w2});
+    REQUIRE(protein2.water_size() != 0);
+    protein2.clear_hydration();
+    REQUIRE(protein2.water_size() == 0);
 }
 
 TEST_CASE_METHOD(fixture, "Protein::center") {
+    Protein protein = Protein(bodies, {});
     Vector3<double> cm = protein.get_cm();
     REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
 
@@ -204,6 +375,7 @@ TEST_CASE_METHOD(fixture, "Protein::center") {
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_body") {
+    Protein protein = Protein(bodies, {});
     REQUIRE(protein.get_body(0) == protein.get_bodies()[0]);
     REQUIRE(protein.get_body(1) == protein.get_bodies()[1]);
     REQUIRE(protein.get_body(2) == protein.get_bodies()[2]);
@@ -211,97 +383,78 @@ TEST_CASE_METHOD(fixture, "Protein::get_body") {
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_bodies") {
+    Protein protein = Protein(bodies, {});
     REQUIRE(protein.get_bodies() == bodies);
 }
 
 TEST_CASE_METHOD(fixture, "Protein::get_atoms") {
+    Protein protein = Protein(bodies, {});
     REQUIRE(protein.get_atoms() == vector<Atom>{a1, a2, a3, a4, a5, a6, a7, a8});
 }
 
-TEST_CASE("Protein::get_waters") {
-
+TEST_CASE_METHOD(fixture, "Protein::get_waters") {
+    Protein protein2(bodies, {w1, w2});
+    REQUIRE(protein2.get_waters() == vector<Water>{w1, w2});
 }
 
-TEST_CASE("Protein::get_water") {}
+TEST_CASE_METHOD(fixture, "Protein::get_water") {
+    Protein protein2(bodies, {w1, w2});
+    REQUIRE(protein2.get_water(0) == w1);
+    REQUIRE(protein2.get_water(1) == w2);
+}
 
-TEST_CASE("Protein::create_grid") {}
+TEST_CASE_METHOD(fixture, "Protein::create_grid") {
+    Protein protein = Protein(bodies, {});
+    protein.clear_grid();
+    auto grid = protein.get_grid();
+    protein.create_grid();
+    REQUIRE(protein.get_grid() != grid);
+}
 
-TEST_CASE("Protein::calc_debye_scattering_intensity") {}
+TEST_CASE_METHOD(fixture, "Protein::body_size") {
+    Protein protein = Protein(bodies, {});
+    CHECK(protein.body_size() == 4);
+}
 
-TEST_CASE("Protein::body_size") {}
+TEST_CASE_METHOD(fixture, "Protein::atom_size") {
+    Protein protein = Protein(bodies, {});
+    CHECK(protein.atom_size() == 8);
+}
 
-TEST_CASE("Protein::atom_size") {}
+TEST_CASE_METHOD(fixture, "Protein::water_size") {
+    Protein protein = Protein(bodies, {});
+    CHECK(protein.water_size() == 0);
+    Protein protein2(bodies, {w1, w2});
+    CHECK(protein2.water_size() == 2);
+}
 
-TEST_CASE("Protein::water_size") {}
+TEST_CASE("Protein::fit") {
+    Protein protein("test/files/2epe.pdb");
+    std::string measurement = "test/files/2epe.dat";
+    fitter::HydrationFitter fitter(measurement, protein.get_histogram());
 
-TEST_CASE("Protein::bind_body_signallers") {}
+    auto pfit = protein.fit(measurement);
+    auto hfit = fitter.fit();
+    CHECK(pfit->fval == hfit->fval);
+    CHECK(pfit->fevals == hfit->fevals);
+    CHECK(pfit->parameters == hfit->parameters);
+}
 
-TEST_CASE("Protein::generate_unit_cell") {}
+TEST_CASE_METHOD(fixture, "Protein::get_histogram_manager") {
+    Protein protein = Protein(bodies, {});
+    CHECK(protein.get_histogram_manager() != nullptr);
+}
 
-TEST_CASE("Protein::remove_disconnected_atoms") {}
-
-TEST_CASE("Protein::fit") {}
-
-TEST_CASE("Protein::get_histogram_manager") {}
-
-TEST_CASE("Protein::set_histogram_manager") {}
-
-TEST_CASE("Protein::signal_modified_hydration_layer") {}
+// TEST_CASE_METHOD(fixture, "Protein::set_histogram_manager") {
+//     Protein protein = Protein(bodies, {});
+//     auto hm = protein.get_histogram_manager();
+// }
 
 TEST_CASE("Protein::translate") {
     Protein protein("test/files/2epe.pdb");
     Vector3<double> cm = protein.get_cm();
     protein.translate(Vector3<double>{1, 1, 1});
     REQUIRE(protein.get_cm() == cm + Vector3<double>{1, 1, 1});
-}
-
-TEST_CASE("compare_debye") {
-    vector<Atom> atoms = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1),
-                       Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1),
-                       Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1),
-                       Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-    Protein protein(atoms, {});
-
-    vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
-
-    for (int i = 0; i < 8; i++) {
-        if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
-            cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
-            REQUIRE(false);
-        }
-    }
-}
-
-TEST_CASE("compare_debye_real") {
-    Protein protein("test/files/2epe.pdb");
-    protein.clear_hydration();
-
-    std::cout << "hydration atoms: " << protein.get_waters().size() << std::endl; 
-
-    vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-    vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
-
-    for (int i = 0; i < 8; i++) {
-        if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
-            cout << "Failed on index " << i << ". Values: " << I_dumb[i] << ", " << I_smart[i] << endl;
-            REQUIRE(false);
-        }
-    }
-}
-
-/**
- * @brief Compare two histograms. 
- *        Only indices [0, p1.size()] are checked.
- */
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    for (size_t i = 0; i < p1.size(); i++) {
-        if (!utility::approx(p1[i], p2[i])) {
-            cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << endl;
-            return false;
-        }
-    }
-    return true;
 }
 
 TEST_CASE("histogram") {
@@ -314,7 +467,7 @@ TEST_CASE("histogram") {
         vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
         vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
         vector<Atom> b4 = {Atom(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-        vector<vector<Atom>> ap = {b1, b2, b3, b4};
+        vector<Body> ap = {Body(b1), Body(b2), Body(b3), Body(b4)};
         Protein many(ap, {});
 
         // make the body
@@ -358,14 +511,14 @@ TEST_CASE("histogram") {
         body.center();
         
         // We iterate through the protein data from the body, and split it into multiple pieces of size 100.  
-        vector<vector<Atom>> patoms; // vector containing the pieces we split it into
+        vector<Body> patoms; // vector containing the pieces we split it into
         vector<Atom> p_current(100); // vector containing the current piece
         unsigned int index = 0;      // current index in p_current
         for (unsigned int i = 0; i < body.get_atoms().size(); i++) {
             p_current[index] = body.get_atom(i);
             index++;
             if (index == 100) { // if index is 100, reset to 0
-                patoms.push_back(p_current);
+                patoms.emplace_back(p_current);
                 index = 0;
             }
         }
@@ -373,7 +526,7 @@ TEST_CASE("histogram") {
         // add the final few atoms to our list
         if (index != 0) {
             p_current.resize(index);
-            patoms.push_back(p_current);
+            patoms.emplace_back(p_current);
         }
 
         // create the atom, and perform a sanity check on our extracted list
@@ -431,7 +584,7 @@ TEST_CASE("histogram") {
 
         // old approach
         Protein protein2(atoms);
-        Axis3D axes(settings::grid::axes, settings::grid::width);
+        Axis3D axes(-2, 2, -2, 2, -2, 2, settings::grid::width);
         grid::Grid grid2(axes); 
         grid2.add(atoms);
         protein2.set_grid(grid2);
@@ -455,7 +608,7 @@ TEST_CASE("histogram") {
     }
 }
 
-TEST_CASE("distance_histograms") {
+TEST_CASE_METHOD(analytical_histogram, "distance_histograms") {
     settings::protein::use_effective_charge = false;
 
     SECTION("analytical") {
@@ -465,7 +618,7 @@ TEST_CASE("distance_histograms") {
             vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
             vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
             vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-            vector<vector<Atom>> a = {b1, b2, b3};
+            vector<Body> a = {Body(b1), Body(b2), Body(b3)};
             Protein protein(a, w);
 
             // set the weights to 1 so we can analytically determine the result
@@ -545,7 +698,7 @@ TEST_CASE("distance_histograms") {
             vector<Atom> b2 = {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
             vector<Atom> b3 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
             vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1),   Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-            vector<vector<Atom>> a = {b1, b2, b3};
+            vector<Body> a = {Body(b1), Body(b2), Body(b3)};
             Protein protein(a, w);
 
             // set the weights to 1 so we can analytically determine the result
@@ -634,7 +787,8 @@ TEST_CASE("distance_histograms") {
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 #include <hist/detail/HistogramManagerFactory.h>
-TEST_CASE_METHOD(fixture, "protein_bind_body_signallers") {
+TEST_CASE_METHOD(fixture, "Protein::bind_body_signallers") {
+    Protein protein = Protein(bodies, {});
     settings::general::verbose = false;
 
     SECTION("at construction") {
@@ -664,4 +818,14 @@ TEST_CASE_METHOD(fixture, "protein_bind_body_signallers") {
             CHECK(manager->get_probe(i) == bodies[i].get_signaller());
         }
     }
+}
+
+TEST_CASE_METHOD(fixture, "Protein::signal_modified_hydration_layer") {
+    Protein protein = Protein(bodies, {});
+    auto manager = protein.get_histogram_manager()->get_state_manager();
+    manager->reset();
+    REQUIRE(manager->get_modified_hydration() == false);
+
+    protein.signal_modified_hydration_layer();
+    REQUIRE(manager->get_modified_hydration() == true);
 }

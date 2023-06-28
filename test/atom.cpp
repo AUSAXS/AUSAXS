@@ -277,12 +277,14 @@ TEST_CASE("Atom::Z") {
         Atom a1;
         a1.set_element("H");
         CHECK(a1.Z() == 1);
+        CHECK(a1.get_absolute_charge() == a1.Z())
     }
 
     SECTION("C") {
         Atom a1;
         a1.set_element("C");
         CHECK(a1.Z() == 6);
+        CHECK(a1.get_absolute_charge() == a1.Z())
     }
 }
 

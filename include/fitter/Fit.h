@@ -44,6 +44,8 @@ namespace fitter {
              */
             void add_plots(Fitter& fitter);
 
+            bool operator==(const Fit& other) const;
+
             /**
              * @brief Get a string representation of this object. 
              */

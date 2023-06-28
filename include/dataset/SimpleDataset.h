@@ -83,6 +83,8 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          */
         void operator=(const Matrix<double>&& other);
 
+        bool operator==(const SimpleDataset& other) const;
+
         /**
          * @brief Get the spanned x-range. 
          */

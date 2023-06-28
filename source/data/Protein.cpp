@@ -34,15 +34,7 @@ Protein::Protein(const std::vector<Body>& bodies, const std::vector<Water>& hydr
 
 Protein::Protein(const std::vector<Atom>& protein_atoms) : Protein(protein_atoms, std::vector<Water>()) {}
 Protein::Protein(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    bodies = {Body(protein_atoms, this->hydration_atoms)}; // 'this' keyword is necessary, otherwise the objects are bound to the argument instead of the member
-    initialize();
-}
-
-Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms) : Protein(protein_atoms, std::vector<Water>()) {}
-Protein::Protein(const std::vector<std::vector<Atom>>& protein_atoms, const std::vector<Water>& hydration_atoms) : hydration_atoms(hydration_atoms) {
-    for (unsigned int i = 0; i < protein_atoms.size(); i++) {
-        bodies.push_back(Body(protein_atoms[i], std::vector<Water>(0)));
-    }
+    bodies = {Body(protein_atoms, this->hydration_atoms)};
     initialize();
 }
 
@@ -59,9 +51,14 @@ Protein::Protein(const io::ExistingFile& input) {
 }
 
 Protein::Protein(const std::vector<std::string>& input) {
-    for (size_t i = 0; i < input.size(); i++) {
-        bodies.push_back(Body(input[i]));
+    std::vector<Water> waters;
+    for (const std::string& str : input) {
+        bodies.emplace_back(str);
+        std::vector<Water>& bodyWaters = bodies.back().get_waters();
+        waters.insert(waters.end(), bodyWaters.begin(), bodyWaters.end());
+        bodyWaters.clear();
     }
+    this->get_waters() = std::move(waters);
     initialize();
 }
 
@@ -415,3 +412,13 @@ const Body& Protein::get_body(unsigned int index) const {return bodies[index];}
 std::vector<Body>& Protein::get_bodies() {return bodies;}
 
 const std::vector<Body>& Protein::get_bodies() const {return bodies;}
+
+bool Protein::operator==(const Protein& other) const = default;
+
+bool Protein::equals_content(const Protein& other) const {
+    if (body_size() != body_size()) {return false;}
+    for (unsigned int i = 0; i < body_size(); i++) {
+        if (get_body(i).equals_content(other.get_body(i))) {return false;}
+    }
+    return true;
+}

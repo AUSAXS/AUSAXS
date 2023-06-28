@@ -123,6 +123,16 @@ void ProteinFile::refresh() {
     }
 }
 
+bool ProteinFile::operator==(const ProteinFile& rhs) const = default;
+
+bool ProteinFile::equals_content(const ProteinFile& rhs) const {
+    if (protein_atoms.size() != rhs.protein_atoms.size()) {return false;}
+    if (hydration_atoms.size() != rhs.hydration_atoms.size()) {return false;}
+    for (unsigned int i = 0; i < protein_atoms.size(); i++) {if (!protein_atoms[i].equals_content(rhs.protein_atoms[i])) {return false;}}
+    for (unsigned int i = 0; i < hydration_atoms.size(); i++) {if (!hydration_atoms[i].equals_content(rhs.hydration_atoms[i])) {return false;}}
+    return true;    
+}
+
 std::unique_ptr<Reader> ProteinFile::construct_reader(const io::ExistingFile& path) {
     if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml ProteinFile
         throw except::invalid_argument("ProteinFile::construct_reader: .xml input ProteinFiles are not supported.");

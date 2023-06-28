@@ -34,3 +34,5 @@ std::string mini::Landscape::to_string() const {
     }
     return s;
 }
+
+bool mini::Landscape::operator==(const Landscape& other) const = default;

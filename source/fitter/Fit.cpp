@@ -34,6 +34,8 @@ void Fit::add_fit(std::shared_ptr<Fit> fit) noexcept {
     }
 }
 
+bool Fit::operator==(const Fit& other) const = default;
+
 std::string Fit::to_string() const noexcept {
     std::stringstream ss;
     ss <<   "+----------------------------------------------------------+"

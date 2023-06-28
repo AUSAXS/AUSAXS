@@ -154,6 +154,10 @@ bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
 
+bool Body::equals_content(const Body& rhs) const {
+    return file.equals_content(rhs.file);
+}
+
 void Body::changed_external_state() const {signal->external_change();}
 
 void Body::changed_internal_state() const {signal->internal_change();}

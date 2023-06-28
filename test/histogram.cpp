@@ -16,7 +16,7 @@ TEST_CASE("check_scaling_factor") {
     vector<Atom> b2 =   {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
     vector<Atom> b3 =   {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),   Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
     vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-    vector<vector<Atom>> a = {b1, b2, b3};
+    vector<Body> a = {Body(b1), Body(b2), Body(b3)};
     Protein protein(a, w);
 
     hist::ScatteringHistogram hist = protein.get_histogram();
