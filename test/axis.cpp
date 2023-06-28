@@ -68,10 +68,33 @@ TEST_CASE("Axis::step") {
     CHECK(axis.step() == 3);
 }
 
-TEST_CASE("Axis::resize") {}
+TEST_CASE("Axis::resize") {
+    Axis axis(1, 10, 3);
+    axis.resize(2);
+    CHECK(axis.width() == 3);
+    CHECK(axis.span() == 6);
+    CHECK(axis.max == 7);
+}
 
-TEST_CASE("Axis::as_vector") {}
+TEST_CASE("Axis::as_vector") {
+    Axis axis(1, 10, 3);
+    std::vector<double> vec = axis.as_vector();
+    CHECK(vec.size() == 3);
+    CHECK(vec[0] == 1);
+    CHECK(vec[1] == 4);
+    CHECK(vec[2] == 7);
+}
 
-TEST_CASE("Axis::empty") {}
+TEST_CASE("Axis::empty") {
+    Axis axis;
+    CHECK(axis.empty());
 
-TEST_CASE("Axis::limits") {}
+    axis = Axis(1, 10, 3);
+    CHECK_FALSE(axis.empty());
+}
+
+TEST_CASE("Axis::limits") {
+    Axis axis(1, 10, 3);
+    CHECK(axis.limits().min == 1);
+    CHECK(axis.limits().max == 10);
+}

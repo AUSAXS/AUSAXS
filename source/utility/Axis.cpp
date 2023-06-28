@@ -37,8 +37,9 @@ double Axis::span() const noexcept {return max-min;}
 double Axis::step() const noexcept {return width();}
 
 void Axis::resize(unsigned int bins) noexcept {
+    auto w = width();
     this->bins = bins;
-    this->max = min + bins*width();
+    this->max = min + bins*w;
 }
 
 std::vector<double> Axis::as_vector() const noexcept {

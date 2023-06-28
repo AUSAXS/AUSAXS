@@ -79,6 +79,10 @@ class Axis {
 		 */
 		double step() const noexcept;
 
+		/**
+		 * @brief Resize this Axis to a new number of bins.
+		 * 		  The maximum value is adjusted to keep the bin width constant.
+		 */
 		void resize(unsigned int bins) noexcept;
 
 		/**
