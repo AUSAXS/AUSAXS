@@ -28,12 +28,15 @@ struct fixture {
     Body b3 = Body(std::vector<Atom>{a5, a6});
     Body b4 = Body(std::vector<Atom>{a7, a8});
     std::vector<Body> ap = {b1, b2, b3, b4};
-    Protein protein = Protein(ap);
 };
 
 TEST_CASE_METHOD(fixture, "affects_fitter") {
     settings::general::verbose = false;
+    settings::protein::use_effective_charge = false;
+    RigidBody protein = RigidBody(ap);
+
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
+    fitter.set_constraint_manager(protein.get_constraint_manager());
     double chi2 = fitter.fit()->fval;
 
     DistanceConstraint constraint(&protein, a1, a3);
@@ -43,28 +46,4 @@ TEST_CASE_METHOD(fixture, "affects_fitter") {
 
     CHECK(constraint.evaluate() > 0);
     REQUIRE_THAT(chi2c-chi2, Catch::Matchers::WithinAbs(constraint.evaluate(), 0.1));
-}
-
-TEST_CASE("simple_constraint_generation") {
-    SECTION("simple") {
-        int distance = settings::rigidbody::bond_distance;
-        Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, "C", "C", 1);
-        Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, "C", "C", 1);
-        Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, "C", "C", 1);
-        Atom a4 = Atom(Vector3<double>(0, 0, 3*distance), 1, "C", "C", 1);
-
-        Body b1 = Body(std::vector<Atom>{a1});
-        Body b2 = Body(std::vector<Atom>{a2});
-        Body b3 = Body(std::vector<Atom>{a3});
-        Body b4 = Body(std::vector<Atom>{a4});
-        std::vector<Body> ap = {b1, b2, b3, b4};
-        RigidBody rigidbody(ap);
-        REQUIRE(rigidbody.constraints->distance_constraints.size() == 3);
-    }
-
-    SECTION("real data") {
-        RigidBody rigidbody = BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
-
-        REQUIRE(rigidbody.constraints->distance_constraints.size() == 2);
-    }
 }

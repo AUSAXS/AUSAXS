@@ -27,7 +27,7 @@ using namespace rigidbody;
 TEST_CASE("can_reuse_fitter", "[files]") {
     settings::general::verbose = false;
     Protein protein_2epe("test/files/2epe.pdb");
-    Protein protein_LAR12("data/LAR1-2/LAR1-2.pdb");
+    Protein protein_LAR12("test/files/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
     protein_LAR12.generate_new_hydration();
 
@@ -76,10 +76,10 @@ TEST_CASE("can_repeat_fit") {
 TEST_CASE("rigidbody_opt", "[manual]") {
     settings::general::verbose = false;
     std::vector<int> splits = {9, 99};
-    Protein protein(BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits));
+    Protein protein(BodySplitter::split("test/files/LAR1-2.pdb", splits));
     protein.generate_new_hydration();
 
-    fitter::HydrationFitter fitter("data/LAR1-2/LAR1-2.dat", protein.get_histogram());
+    fitter::HydrationFitter fitter("test/files/LAR1-2.dat", protein.get_histogram());
     fitter.fit()->fval;
 }
 
@@ -88,9 +88,9 @@ TEST_CASE("body_selectors") {
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    std::vector<std::vector<Atom>> atoms = {b1, b2, b3, b4};
+    std::vector<Body> atoms = {Body(b1), Body(b2), Body(b3), Body(b4)};
     RigidBody rigidbody({atoms, {}});
-    auto manager = rigidbody.constraints;
+    auto manager = rigidbody.get_constraint_manager();
 
     // add a varying number of constraints to each body
     for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
@@ -113,7 +113,7 @@ TEST_CASE("body_selectors") {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
-            if (iconstraint >= rigidbody.constraints->distance_constraints_map.at(ibody).size()) {
+            if (iconstraint >= rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).size()) {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
@@ -123,7 +123,7 @@ TEST_CASE("body_selectors") {
         for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
             // calculate how many times each body was selected
             double sum = 0;
-            for (unsigned int j = 0; j < rigidbody.constraints->distance_constraints_map.at(i).size(); j++) {
+            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
                 sum += count[i][j];
             }
 
@@ -131,8 +131,8 @@ TEST_CASE("body_selectors") {
             REQUIRE(sum > iterations*0.2);
 
             // check that the constraints were randomly selected
-            for (unsigned int j = i; j < rigidbody.constraints->distance_constraints_map.at(i).size(); j++) {
-                REQUIRE(count[i][j] > 0.7*sum/rigidbody.constraints->distance_constraints_map.at(i).size());
+            for (unsigned int j = i; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
+                REQUIRE(count[i][j] > 0.7*sum/rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size());
             }
         }
     }
@@ -143,7 +143,7 @@ TEST_CASE("body_selectors") {
 
         // check that the constraints are selected sequentially
         for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
-            for (unsigned int j = 0; j < rigidbody.constraints->distance_constraints_map.at(i).size(); j++) {
+            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints_map.at(i).size(); j++) {
                 auto[ibody, iconstraint] = strat->next();
                 REQUIRE(ibody == i);
                 REQUIRE(iconstraint == j);
@@ -168,14 +168,14 @@ TEST_CASE("body_selectors") {
                 std::cout << "Strategy selected a body outside the allowed range. Number: " << ibody << std::endl;
                 REQUIRE(false);
             } 
-            if (iconstraint >= rigidbody.constraints->distance_constraints_map.at(ibody).size()) {
+            if (iconstraint >= rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).size()) {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
             count[iconstraint]++;
         }
 
-        for (unsigned int i = 0; i < rigidbody.constraints->distance_constraints.size(); i++) {
+        for (unsigned int i = 0; i < rigidbody.get_constraint_manager()->distance_constraints.size(); i++) {
             REQUIRE(count[i] > 0.8*iterations/rigidbody.body_size());
         }
     }
@@ -187,9 +187,9 @@ TEST_CASE("transforms") {
     std::vector<Atom> b2 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
     std::vector<Atom> b3 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
     std::vector<Atom> b4 = {Atom(Vector3<double>( 0,  0,  0), 1, "C", "C", 1), Atom(Vector3<double>( 0, 0,  2), 1, "C", "C", 1)};
-    std::vector<std::vector<Atom>> atoms = {b0, b1, b2, b3, b4};
+    std::vector<Body> atoms = {Body(b0), Body(b1), Body(b2), Body(b3), Body(b4)};
     RigidBody rigidbody({atoms, {}});
-    auto manager = rigidbody.constraints;
+    auto manager = rigidbody.get_constraint_manager();
 
     manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
     manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
@@ -220,19 +220,19 @@ TEST_CASE("transforms") {
                 TestRigidTransform transform(&rigidbody);
 
                 // 0 - 1 - 2 - 3 - 4            //
-                auto group1 = transform.get_connected(rigidbody.constraints->distance_constraints[0]);
+                auto group1 = transform.get_connected(rigidbody.get_constraint_manager()->distance_constraints[0]);
                 REQUIRE(group1.indices.size() == 1);
                 CHECK(group1.indices[0] == 0);
 
-                auto group2 = transform.get_connected(rigidbody.constraints->distance_constraints[1]);
+                auto group2 = transform.get_connected(rigidbody.get_constraint_manager()->distance_constraints[1]);
                 REQUIRE(group2.indices.size() == 2);
                 CHECK(vector_contains(group2.indices, {0, 1}));
 
-                auto group3 = transform.get_connected(rigidbody.constraints->distance_constraints[2]);
+                auto group3 = transform.get_connected(rigidbody.get_constraint_manager()->distance_constraints[2]);
                 REQUIRE(group3.indices.size() == 2);
                 CHECK(vector_contains(group3.indices, {3, 4}));
 
-                auto group4 = transform.get_connected(rigidbody.constraints->distance_constraints[3]);
+                auto group4 = transform.get_connected(rigidbody.get_constraint_manager()->distance_constraints[3]);
                 REQUIRE(group4.indices.size() == 1);
                 CHECK(group4.indices[0] == 4);
             }
@@ -241,16 +241,16 @@ TEST_CASE("transforms") {
                 std::vector<Atom> b5 = {Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), Atom(Vector3<double>(0, 2, 0), 1, "C", "C", 1)};
                 std::vector<Atom> b6 = {Atom(Vector3<double>(0, 3, 0), 1, "C", "C", 1), Atom(Vector3<double>(0, 4, 0), 1, "C", "C", 1)};
                 std::vector<Atom> b7 = {Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), Atom(Vector3<double>(2, 0, 0), 1, "C", "C", 1)};
-                atoms = {b0, b1, b2, b3, b4, b5, b6, b7};
+                atoms = {Body(b0), Body(b1), Body(b2), Body(b3), Body(b4), Body(b5), Body(b6), Body(b7)};
                 RigidBody rigidbody2({atoms, {}});
 
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 5, 0, 0)); // 4
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 5, 6, 0, 0)); // 5
-                rigidbody2.constraints->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 7, 0, 0)); // 6
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 5, 0, 0)); // 4
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 5, 6, 0, 0)); // 5
+                rigidbody2.get_constraint_manager()->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 7, 0, 0)); // 6
 
                 //             5 - 6            //
                 //             |                //
@@ -259,31 +259,31 @@ TEST_CASE("transforms") {
                 //             7                //
 
                 TestRigidTransform transform(&rigidbody2);
-                auto group1 = transform.get_connected(rigidbody2.constraints->distance_constraints[0]);
+                auto group1 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[0]);
                 REQUIRE(group1.indices.size() == 1);
                 CHECK(group1.indices[0] == 0);
 
-                auto group2 = transform.get_connected(rigidbody2.constraints->distance_constraints[1]);
+                auto group2 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[1]);
                 REQUIRE(group2.indices.size() == 2);
                 CHECK(vector_contains(group2.indices, {0, 1}));
 
-                auto group3 = transform.get_connected(rigidbody2.constraints->distance_constraints[2]);
+                auto group3 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[2]);
                 REQUIRE(group3.indices.size() == 3);
                 CHECK(vector_contains(group3.indices, {0, 1, 2}));
 
-                auto group4 = transform.get_connected(rigidbody2.constraints->distance_constraints[3]);
+                auto group4 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[3]);
                 REQUIRE(group4.indices.size() == 1);
                 CHECK(group4.indices[0] == 4);
 
-                auto group5 = transform.get_connected(rigidbody2.constraints->distance_constraints[4]);
+                auto group5 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[4]);
                 REQUIRE(group5.indices.size() == 2);
                 CHECK(vector_contains(group5.indices, {5, 6}));
 
-                auto group6 = transform.get_connected(rigidbody2.constraints->distance_constraints[5]);
+                auto group6 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[5]);
                 REQUIRE(group6.indices.size() == 1);
                 CHECK(group6.indices[0] == 6);
 
-                auto group7 = transform.get_connected(rigidbody2.constraints->distance_constraints[6]);
+                auto group7 = transform.get_connected(rigidbody2.get_constraint_manager()->distance_constraints[6]);
                 REQUIRE(group7.indices.size() == 1);
                 CHECK(group7.indices[0] == 7);
             }
@@ -486,9 +486,9 @@ TEST_CASE("can_find_optimal_conformation") {
     RigidBodyTest body = BodySplitter::split("test/files/LAR1-2.pdb", {2, 9, 99, 194});
 
     SECTION("test 1") {
-        body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.constraints->distance_constraints[0]);
-        body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.constraints->distance_constraints[1]);
-        body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.constraints->distance_constraints[2]);
+        body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
+        body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
+        body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
         auto hist = body.get_histogram().calc_debye_scattering_intensity();
         hist.reduce(100);
         hist.simulate_errors();
@@ -502,9 +502,9 @@ TEST_CASE("can_find_optimal_conformation") {
     }
 
     SECTION("test 2") {
-        body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {0, 0, 0}, body.constraints->distance_constraints[0]);
-        body.transform->apply(matrix::rotation_matrix({1, 0, 1}, M_PI_2), {0, 0, 0}, body.constraints->distance_constraints[1]);
-        body.transform->apply(matrix::rotation_matrix({0, 1, 1}, M_PI_2), {0, 0, 0}, body.constraints->distance_constraints[2]);
+        body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
+        body.transform->apply(matrix::rotation_matrix({1, 0, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
+        body.transform->apply(matrix::rotation_matrix({0, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
         auto hist = body.get_histogram().calc_debye_scattering_intensity();
         hist.reduce(100);
         hist.simulate_errors();
@@ -518,9 +518,9 @@ TEST_CASE("can_find_optimal_conformation") {
     }
 
     SECTION("test 3") {
-        body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {10, 0, 0}, body.constraints->distance_constraints[0]);
-        body.transform->apply(matrix::rotation_matrix({1, 0, 1}, 0), {0, 10, 0},      body.constraints->distance_constraints[1]);
-        body.transform->apply(matrix::rotation_matrix({0, 1, 1}, 0), {0, 0, 10},      body.constraints->distance_constraints[2]);
+        body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {10, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
+        body.transform->apply(matrix::rotation_matrix({1, 0, 1}, 0), {0, 10, 0},      body.get_constraint_manager()->distance_constraints[1]);
+        body.transform->apply(matrix::rotation_matrix({0, 1, 1}, 0), {0, 0, 10},      body.get_constraint_manager()->distance_constraints[2]);
         auto hist = body.get_histogram().calc_debye_scattering_intensity();
         hist.reduce(100);
         hist.simulate_errors();

@@ -51,8 +51,13 @@ namespace rigidbody {
 			 */
 			void update_fitter(std::shared_ptr<fitter::LinearFitter> fitter);
 
-			std::shared_ptr<ConstraintManager> constraints;
+			/**
+			 * @brief Get the constraint manager for this rigid body.
+			 */
+			std::shared_ptr<ConstraintManager> get_constraint_manager() const;
+
 		protected:
+			std::shared_ptr<ConstraintManager> constraints = nullptr;
 			std::shared_ptr<fitter::Fit> calibration = nullptr;
 			std::unique_ptr<rigidbody::selection::BodySelectStrategy> body_selector;
 			std::unique_ptr<TransformStrategy> transform;

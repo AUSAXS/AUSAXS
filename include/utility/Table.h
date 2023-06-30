@@ -27,7 +27,7 @@ namespace table {
              * @param i The row index.
              * @param j The column index. 
              */
-            const double& index(unsigned int i, unsigned int j) const {return data.at(M*i + j);}
+            const double& index(unsigned int i, unsigned int j) const {return data[M*i + j];}
 
             /**
              * @brief Read-write access to the given table index.  
@@ -35,7 +35,7 @@ namespace table {
              * @param i The row index.
              * @param j The column index. 
              */
-            double& index(unsigned int i, unsigned int j) {return data.at(M*i + j);}
+            double& index(unsigned int i, unsigned int j) {return data[M*i + j];}
 
             unsigned int N, M;
             std::vector<double> data;

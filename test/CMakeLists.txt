@@ -2,6 +2,16 @@ set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE TEST)
 
+# Reset the compile options for the test files
+set(CMAKE_CXX_FLAGS "")
+
+# Set the desired compile options for the test files
+set(CMAKE_CXX_FLAGS_TEST
+    "-Os -Wpedantic -Wall -Wextra"
+    CACHE STRING "Flags used by the C++ compiler during test builds."
+    FORCE
+)
+
 include(FetchContent)
 FetchContent_Declare(
 	Catch2
@@ -29,6 +39,7 @@ foreach(test ${TEST_SRC})
 	target_link_libraries("${name}" Catch2::Catch2WithMain)
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/bin"
+		COMPILE_FLAGS "${CMAKE_CXX_FLAGS_TEST}"
 	)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		add_backward("${name}")

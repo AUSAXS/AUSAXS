@@ -46,6 +46,7 @@ void RigidBody::initialize() {
     parameter_generator = std::move(factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3));
     body_selector = std::move(factory::create_selection_strategy(this));
     transform = std::move(factory::create_transform_strategy(this));
+    constraints = std::make_shared<ConstraintManager>(this);
 }
 
 std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_path) {
@@ -126,7 +127,7 @@ void RigidBody::apply_calibration(std::shared_ptr<fitter::Fit> calibration) {
 }
 
 void RigidBody::prepare_fitter(const std::string& measurement_path) {
-    constraints = std::make_shared<ConstraintManager>(this);
+    // constraints = std::make_shared<ConstraintManager>(this);
     if (calibration == nullptr) {
         fitter::ConstrainedFitter<fitter::HydrationFitter> fitter(measurement_path, get_histogram());
         fitter.set_constraint_manager(constraints);
@@ -148,4 +149,12 @@ void RigidBody::update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
         histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
         fitter->set_scattering_hist(std::move(histogram));
     }
+}
+
+std::shared_ptr<ConstraintManager> RigidBody::get_constraint_manager() const {
+    #ifdef DEBUG
+        if (constraints == nullptr) {throw except::nullptr_error("RigidBody::get_constraints: Constraint manager not initialized.");}
+    #endif
+
+    return constraints;
 }

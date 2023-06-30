@@ -20,6 +20,7 @@
 #include <hydrate/GridMember.h>
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/culling/CullingStrategy.h>
+#include <Symbols.h>
 
 using namespace hist;
 
@@ -320,12 +321,16 @@ void Protein::center() {
 }
 
 void Protein::signal_modified_hydration_layer() const {
-    if (phm == nullptr) [[unlikely]] {throw except::unexpected("Protein::signal_modified_hydration_layer: Somehow the histogram manager has not been initialized.");}
+    #if DEBUG
+        if (phm == nullptr) [[unlikely]] {throw except::nullptr_error("Protein::signal_modified_hydration_layer: Somehow the histogram manager has not been initialized.");}
+    #endif
     phm->signal_modified_hydration_layer();
 }
 
 void Protein::bind_body_signallers() {
-    if (phm == nullptr) [[unlikely]] {throw except::unexpected("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
+    #if DEBUG
+        if (phm == nullptr) [[unlikely]] {throw except::nullptr_error("Protein::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
+    #endif
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(phm->get_probe(i));
     }

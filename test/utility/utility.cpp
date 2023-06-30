@@ -104,7 +104,7 @@ TEST_CASE("plotoptions") {
     }
 }
 
-TEST_CASE("limits") {
+TEST_CASE("limits") {  
     Limit lim1(0, 1);
     Limit lim2(-5, 15.5);
 

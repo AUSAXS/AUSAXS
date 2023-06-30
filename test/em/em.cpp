@@ -67,7 +67,7 @@ TEST_CASE("generate_contour", "[files],[slow],[manual]") {
     Protein protein("data/A2M_native/native.pdb");
     hist::ScatteringHistogram hist = protein.get_histogram();
 
-    auto[r, s] = image.cutoff_scan_fit({1000, 1, 2}, hist);
+    auto[r, s] = image.cutoff_scan_fit({1, 2, 1000}, hist);
     auto fit = r.evaluated_points.as_dataset();
     auto scan = s.as_dataset();
     fit.add_plot_options("markers", {{"color", style::color::orange}});
@@ -97,7 +97,7 @@ TEST_CASE("check_fit", "[files],[manual],[slow]") {
     settings::em::hydrate = true;
     em::ImageStack map(mapfile);
 
-    auto[r, s] = map.cutoff_scan_fit({1000, 0.025, 0.03}, mfile);
+    auto[r, s] = map.cutoff_scan_fit({0.025, 0.03, 1000}, mfile);
     auto fit = r.evaluated_points.as_dataset();
     auto scan = s.as_dataset();
     fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
@@ -180,7 +180,7 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
     SECTION("with_noise") {
         settings::em::simulation::noise = true;
         for (unsigned int i = 0; i < repeats; i++) {
-            auto[r, s] = image.cutoff_scan_fit({100, 1.5, 4.5}, hist);
+            auto[r, s] = image.cutoff_scan_fit({1.5, 4.5, 100}, hist);
             auto fit = r.evaluated_points.as_dataset();
             optvals.push_back({fit.x(fit.size()-1), fit.y(fit.size()-1)});
 

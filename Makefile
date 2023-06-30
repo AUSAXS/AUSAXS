@@ -13,6 +13,7 @@ options :=
 
 
 .SECONDARY:
+.SECONDEXPANSION:
 #################################################################################
 ###				PYTHON PLOTS				      ###
 #################################################################################
@@ -309,29 +310,29 @@ stuff/%: build/executable/stuff
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-memtest/%: $(shell find source/ -print) test/%.cpp	
+memtest/%: $$(shell find test/ -name "%.cpp")	
 	@ make -C build "test_$*" -j${cmake_threads}
 	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
-debug_tests: $(shell find source/ -print) $(shell find test/ -print)
+debug_tests: $$(shell find source/ -print) $(shell find test/ -print)
 	@ make -C build tests -j${cmake_threads}
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags);\
 	done
 
-tests: $(shell find source/ -print) $(shell find test/ -print)
+tests: $$(shell find source/ -print) $$(shell find test/ -print)
 	@ make -C build tests -j${cmake_threads}
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%:
+test/%: $$(shell find test/ -name "%.cpp")
 	@ make -C build "test_$*" -j${cmake_threads}
 	build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
-build/test/%: $(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
+build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
 	@ cmake --build build --target $* -j${cmake_threads}
 
 

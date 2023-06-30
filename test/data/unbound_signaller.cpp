@@ -13,8 +13,8 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "UnboundSignaller::external_change") {
     SECTION("calls StateManager::externally_modified") {
-        auto bs0 = std::make_shared<signaller::UnboundSignaller>(0, &sm);
-        auto bs2 = std::make_shared<signaller::UnboundSignaller>(2, &sm);
+        auto bs0 = std::make_shared<signaller::UnboundSignaller>();
+        auto bs2 = std::make_shared<signaller::UnboundSignaller>();
         sm.set_probe(0, bs0);
         sm.set_probe(2, bs2);
 
@@ -30,8 +30,8 @@ TEST_CASE_METHOD(fixture, "UnboundSignaller::external_change") {
 
 TEST_CASE_METHOD(fixture, "UnboundSignaller::internal_change") {
     SECTION("calls StateManager::internally_modified") {
-        auto bs0 = std::make_shared<signaller::UnboundSignaller>(0, &sm);
-        auto bs2 = std::make_shared<signaller::UnboundSignaller>(2, &sm);
+        auto bs0 = std::make_shared<signaller::UnboundSignaller>();
+        auto bs2 = std::make_shared<signaller::UnboundSignaller>();
         sm.set_probe(0, bs0);
         sm.set_probe(2, bs2);
 

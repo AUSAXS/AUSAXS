@@ -43,7 +43,7 @@ TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
         }
         indices.insert(ibody);
 
-        for (const auto& constraint : rigidbody->constraints->distance_constraints_map[ibody]) {
+        for (const auto& constraint : rigidbody->get_constraint_manager()->distance_constraints_map[ibody]) {
             if (constraint->ibody1 == ibody) {
                 explore_branch(constraint->ibody2, indices);
             } else {

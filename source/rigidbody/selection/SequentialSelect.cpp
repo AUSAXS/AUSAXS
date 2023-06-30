@@ -9,8 +9,8 @@ SequentialSelect::SequentialSelect(const RigidBody* rigidbody) : BodySelectStrat
 SequentialSelect::~SequentialSelect() = default;
 
 std::pair<unsigned int, unsigned int> SequentialSelect::next() {
-    unsigned int N = rigidbody->constraints->distance_constraints_map.size();
-    unsigned int M = rigidbody->constraints->distance_constraints_map.at(ibody).size();
+    unsigned int N = rigidbody->get_constraint_manager()->distance_constraints_map.size();
+    unsigned int M = rigidbody->get_constraint_manager()->distance_constraints_map.at(ibody).size();
 
     if (iconstraint == M) {
         ibody = (ibody + 1) % N;

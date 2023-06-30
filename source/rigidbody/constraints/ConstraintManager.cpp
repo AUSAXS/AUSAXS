@@ -45,9 +45,9 @@ double ConstraintManager::evaluate() const {
 }
 
 void ConstraintManager::generate_constraint_map() {
-    std::cout << "Generating constraint map" << std::endl;
-    if (protein == nullptr) {throw except::unexpected("ConstraintManager::generate_constraint_map: Protein is not set.");}
-    std::cout << "\tBody size: " << protein->body_size() << std::endl;
+    // std::cout << "Generating constraint map" << std::endl;
+    // if (protein == nullptr) {throw except::unexpected("ConstraintManager::generate_constraint_map: Protein is not set.");}
+    // std::cout << "\tBody size: " << protein->body_size() << std::endl;
     if (distance_constraints_map.size() == protein->body_size()) {return;}
 
     for (unsigned int i = 0; i < protein->body_size(); i++) {
@@ -58,5 +58,5 @@ void ConstraintManager::generate_constraint_map() {
         distance_constraints_map.at(constraint.ibody1).push_back(&constraint);
         distance_constraints_map.at(constraint.ibody2).push_back(&constraint);
     }
-    std::cout << "Done generating constraint map" << std::endl;
+    // std::cout << "Done generating constraint map" << std::endl;
 }
