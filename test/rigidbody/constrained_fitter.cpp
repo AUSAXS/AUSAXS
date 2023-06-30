@@ -1,14 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/ConstrainedFitter.h>
-#include <rigidbody/RigidBody.h>
-#include <rigidbody/transform/RigidTransform.h>
 #include <fitter/HydrationFitter.h>
-#include <data/BodySplitter.h>
-#include <data/Water.h>
+#include <rigidbody/RigidBody.h>
 #include <data/Body.h>
+#include <data/Atom.h>
 #include <settings/All.h>
 
 using namespace rigidbody;
@@ -30,10 +27,21 @@ struct fixture {
     std::vector<Body> ap = {b1, b2, b3, b4};
 };
 
-TEST_CASE_METHOD(fixture, "affects_fitter") {
+TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
     settings::general::verbose = false;
     settings::protein::use_effective_charge = false;
-    RigidBody protein = RigidBody(ap);
+    RigidBody protein(ap);
+
+    fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
+    CHECK(fitter.get_constraint_manager() == nullptr);
+    fitter.set_constraint_manager(protein.get_constraint_manager());
+    CHECK(*fitter.get_constraint_manager() == *protein.get_constraint_manager());
+}
+
+TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
+    settings::general::verbose = false;
+    settings::protein::use_effective_charge = false;
+    RigidBody protein(ap);
 
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
     fitter.set_constraint_manager(protein.get_constraint_manager());

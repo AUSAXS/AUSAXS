@@ -1,14 +1,10 @@
 #include <rigidbody/parameters/Parameters.h>
 #include <data/Protein.h>
 #include <data/Body.h>
-
-#include <vector>
+#include <utility/Exceptions.h>
+#include <Symbols.h>
 
 using namespace rigidbody;
-
-Parameter::Parameter() : dx(0, 0, 0), alpha(0), beta(0), gamma(0) {}
-
-Parameter::Parameter(const Vector3<double>& dx, double alpha, double beta, double gamma) : dx(dx), alpha(alpha), beta(beta), gamma(gamma) {}
 
 Parameters::Parameters(const Protein* protein) : params(protein->body_size()) {
     const std::vector<Body>& bodies = protein->get_bodies();
@@ -18,6 +14,10 @@ Parameters::Parameters(const Protein* protein) : params(protein->body_size()) {
 }
 
 void Parameters::update(unsigned int uid, const Parameter& param) {
+    #ifdef DEBUG
+        if (id_to_index.find(uid) == id_to_index.end()) {throw except::out_of_bounds("Parameters::update: Body uid \"" + std::to_string(uid) + "\" not found");}
+    #endif
+
     params[id_to_index[uid]] = param;
 }
 
@@ -30,5 +30,5 @@ const Parameter Parameters::get(unsigned int uid) {
 }
 
 std::string Parameter::to_string() const {
-    return "translation: " + dx.to_string() + ", angles: (" + std::to_string(alpha) + ", " + std::to_string(beta) + ", " + std::to_string(gamma) + ")"; 
+    return "translation: " + dr.to_string() + ", angles: (" + std::to_string(alpha) + ", " + std::to_string(beta) + ", " + std::to_string(gamma) + ")"; 
 }

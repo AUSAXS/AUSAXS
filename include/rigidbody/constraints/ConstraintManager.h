@@ -30,6 +30,8 @@ namespace rigidbody {
              */
             double evaluate() const;
 
+            bool operator==(const ConstraintManager& other) const;
+
             Protein* protein = nullptr;
             OverlapConstraint overlap_constraint;                                                        // The overlap constraint
             std::vector<DistanceConstraint> distance_constraints;                                        // All distance constraints

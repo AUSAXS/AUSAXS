@@ -99,7 +99,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
     Parameter param = parameter_generator->next();
 
     Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);
-    transform->apply(R, param.dx, constraint);
+    transform->apply(R, param.dr, constraint);
     generate_new_hydration(); 
 
     // update the body location in the fitter

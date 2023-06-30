@@ -8,8 +8,6 @@ ExponentialDecay::ExponentialDecay(unsigned int max_iterations) {
     set_characteristic_time(max_iterations/2);
 }
 
-ExponentialDecay::ExponentialDecay(double decay_rate) : decay_rate(decay_rate) {}
-
 ExponentialDecay::~ExponentialDecay() = default;
 
 double ExponentialDecay::get_factor() {

@@ -19,6 +19,6 @@ namespace rigidbody::parameters::decay {
             virtual void set_characteristic_time(unsigned int iterations) = 0;
 
         protected:
-            unsigned int draws;
+            unsigned int draws = 0;
     };
 }

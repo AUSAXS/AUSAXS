@@ -6,8 +6,6 @@ LinearDecay::LinearDecay(unsigned int max_iterations) {
     set_characteristic_time(max_iterations/2);
 }
 
-LinearDecay::LinearDecay(double decay_rate) : decay_rate(decay_rate) {}
-
 LinearDecay::~LinearDecay() = default;
 
 double LinearDecay::get_factor() {
@@ -15,5 +13,5 @@ double LinearDecay::get_factor() {
 }
 
 void LinearDecay::set_characteristic_time(unsigned int iterations) {
-    decay_rate = iterations/2.0;
+    decay_rate = 0.5/iterations;
 }

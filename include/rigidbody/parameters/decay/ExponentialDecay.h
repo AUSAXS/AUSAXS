@@ -6,7 +6,6 @@ namespace rigidbody::parameters::decay {
     class ExponentialDecay : public DecayStrategy {
         public:
             ExponentialDecay(unsigned int max_iterations);
-            ExponentialDecay(double decay_rate);
             ~ExponentialDecay();
 
             double get_factor() override;

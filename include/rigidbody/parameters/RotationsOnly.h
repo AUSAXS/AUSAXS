@@ -23,11 +23,11 @@ namespace rigidbody {
              */
             ~RotationsOnly() override;
 
+        private: 
             std::tuple<double, double, double> get_rotation() override;
 
             Vector3<double> get_translation() override;
 
-        private: 
             double scale() const;
     };
 }

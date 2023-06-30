@@ -60,3 +60,5 @@ void ConstraintManager::generate_constraint_map() {
     }
     // std::cout << "Done generating constraint map" << std::endl;
 }
+
+bool ConstraintManager::operator==(const ConstraintManager& other) const = default;
