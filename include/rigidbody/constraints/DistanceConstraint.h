@@ -92,9 +92,9 @@ namespace rigidbody {
             /**
              * @brief Generate a string representation of this constraint.
              */
-            std::string print() const;
+            std::string to_string() const;
 
-            friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.print(); return os;}
+            friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.to_string(); return os;}
 
             double r_base;          // The normal distance between the two atoms. 
             Protein* protein;       // The protein this constraint belongs to.

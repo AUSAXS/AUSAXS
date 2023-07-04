@@ -239,3 +239,12 @@ void Matrix<Q>::compatibility_check_M(unsigned int M) const {
         }
     #endif
 }
+
+template<numeric Q>
+Matrix<Q> Matrix<Q>::identity(unsigned int dim) {
+    Matrix A(dim, dim);
+    for (unsigned int i = 0; i < dim; ++i) {
+        A[i][i] = 1;
+    }
+    return A;
+}

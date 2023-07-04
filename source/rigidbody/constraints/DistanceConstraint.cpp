@@ -24,7 +24,11 @@ DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, un
 
     // set the base radius and perform a sanity check
     r_base = atom1.distance(atom2);
-    if (r_base > 4) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
+    if (r_base > 4) {throw except::invalid_argument(
+        "Constraint::Constraint: The atoms being constrained are too far apart!\n"
+        "Atom 1: " + atom1.name + " in body " + std::to_string(ibody1) + " at " + atom1.get_coordinates().to_string() + "\n"
+        "Atom 2: " + atom2.name + " in body " + std::to_string(ibody2) + " at " + atom2.get_coordinates().to_string() + "\n"
+    );}
 }
 
 DistanceConstraint::DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
@@ -115,7 +119,7 @@ Body& DistanceConstraint::get_body2() {
     return protein->get_body(ibody2);
 }
 
-std::string DistanceConstraint::print() const {
+std::string DistanceConstraint::to_string() const {
     std::stringstream ss;
     ss << "Constraint between (" << protein->get_body(ibody1).get_atom(iatom1).serial << ", " << protein->get_body(ibody1).get_atom(iatom1).name << ") and "
                              "(" << protein->get_body(ibody2).get_atom(iatom2).serial << ", " << protein->get_body(ibody2).get_atom(iatom2).name << ")";

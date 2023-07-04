@@ -37,12 +37,16 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, Di
 }
 
 TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
+    // explore the graph of bodies connected to 'ibody'
     std::function<void(unsigned int, std::unordered_set<unsigned int>&)> explore_branch = [&] (unsigned int ibody, std::unordered_set<unsigned int>& indices) {
+        // if we've already explored this branch, return
         if (indices.contains(ibody)) {
             return;
         }
+        // otherwise, add this body to the list of explored bodies
         indices.insert(ibody);
 
+        // explore all bodies connected to this body
         for (const auto& constraint : rigidbody->get_constraint_manager()->distance_constraints_map[ibody]) {
             if (constraint->ibody1 == ibody) {
                 explore_branch(constraint->ibody2, indices);
@@ -91,8 +95,8 @@ TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
 
     // return the path with the least atoms, since that will be the cheapest to transform
     if (N1 < N2) {
-        return TransformGroup(bodies1, path1, pivot, pivot.get_atom1().coords);
+        return TransformGroup(bodies1, path1, pivot, pivot.get_atom2().coords);
     } else {
-        return TransformGroup(bodies2, path2, pivot, pivot.get_atom2().coords);
+        return TransformGroup(bodies2, path2, pivot, pivot.get_atom1().coords);
     }
 }

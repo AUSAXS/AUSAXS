@@ -5,6 +5,7 @@
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <data/Atom.h>
+#include <Symbols.h>
 
 using namespace rigidbody;
 
@@ -45,10 +46,9 @@ double ConstraintManager::evaluate() const {
 }
 
 void ConstraintManager::generate_constraint_map() {
-    // std::cout << "Generating constraint map" << std::endl;
-    // if (protein == nullptr) {throw except::unexpected("ConstraintManager::generate_constraint_map: Protein is not set.");}
-    // std::cout << "\tBody size: " << protein->body_size() << std::endl;
-    if (distance_constraints_map.size() == protein->body_size()) {return;}
+    #ifdef DEBUG
+        if (protein == nullptr) [[unlikely]] {throw except::nullptr_error("ConstraintManager::generate_constraint_map: Protein is not set.");}
+    #endif
 
     for (unsigned int i = 0; i < protein->body_size(); i++) {
         distance_constraints_map[i] = std::vector<DistanceConstraint*>();
@@ -58,7 +58,6 @@ void ConstraintManager::generate_constraint_map() {
         distance_constraints_map.at(constraint.ibody1).push_back(&constraint);
         distance_constraints_map.at(constraint.ibody2).push_back(&constraint);
     }
-    // std::cout << "Done generating constraint map" << std::endl;
 }
 
 bool ConstraintManager::operator==(const ConstraintManager& other) const = default;
