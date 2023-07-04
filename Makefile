@@ -310,17 +310,19 @@ stuff/%: build/executable/stuff
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-memtest/%: $$(shell find test/ -name "%.cpp")	
+test_files = $(addprefix test/ -name "*.cpp", $(shell find test/ -printf "%P "))
+
+memtest/%: $$(shell find test/ -name "%.cpp")
 	@ make -C build "test_$*" -j${cmake_threads}
 	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
-debug_tests: $$(shell find source/ -print) $(shell find test/ -print)
+debug_tests: $(source) $(test_files)
 	@ make -C build tests -j${cmake_threads}
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags);\
 	done
 
-tests: $$(shell find source/ -print) $$(shell find test/ -print)
+tests: $(source_files) $(test_files)
 	@ make -C build tests -j${cmake_threads}
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
