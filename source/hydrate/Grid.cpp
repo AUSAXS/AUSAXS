@@ -317,7 +317,7 @@ const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
         throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
-    if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;}
+    if (grid.index(x, y, z) != GridObj::A_AREA) {volume++;}
 
     GridMember gm(atom, loc);
     grid.index(x, y, z) = GridObj::A_CENTER;
@@ -422,7 +422,7 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     // and fill it with the uids that should be removed
     std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& atom) {removed[atom.uid] = true;});
 
-    size_t index = 0; // current index in removed_atoms
+    unsigned int index = 0; // current index in removed_atoms
     std::vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
     auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
@@ -433,9 +433,9 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     };
 
     // we save the sizes so we can make a sanity check after the removal    
-    size_t prev_size = a_members.size();
+    unsigned int prev_size = a_members.size();
     a_members.remove_if(predicate);
-    size_t cur_size = a_members.size();
+    unsigned int cur_size = a_members.size();
 
     // sanity check
     if (prev_size - cur_size != atoms.size()) [[unlikely]] {

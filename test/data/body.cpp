@@ -448,42 +448,4 @@ TEST_CASE("grid") {
         REQUIRE(grid->a_members.size() == 0);
         REQUIRE(grid->get_volume() == 0);
     }
-
-    // SECTION("perfect reset") {
-    //     vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    //     vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    //     vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    //     vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    //     Body b1(a1), b2(a2), b3(a3), b4(a4);
-    //     vector<Body> bodies = {b1, b2, b3, b4};
-    //     grid::Grid grid(Axis3D(-50, 50, -50, 50, -50, 50, 1));
-
-    //     REQUIRE(grid.get_volume() == 0);
-    //     grid.add(&b1);
-    //     grid.add(&b2);
-    //     grid.add(&b3);
-    //     grid.add(&b4);
-    //     REQUIRE(grid.a_members.size() == 8);
-
-    //     auto grid_copy = grid;
-    //     grid.remove(&b1);
-    //     grid.remove(&b2);
-    //     b1.translate(Vector3<double>(0, 0, 10));
-    //     b2.translate(Vector3<double>(0, 0, 10));
-    //     grid.add(&b1);
-    //     grid.add(&b2);
-    //     REQUIRE(grid.a_members.size() == 8);
-    //     REQUIRE(grid.get_volume() == 0);
-
-    //     // do the reset
-    //     grid = grid_copy;
-    //     REQUIRE(grid.a_members.size() == 8);
-
-    //     grid.add(&b1);
-    //     grid.add(&b2);
-    //     grid.add(&b3);
-    //     grid.add(&b4);
-    //     REQUIRE(grid.a_members.size() == 8);
-    //     REQUIRE(grid.get_volume() != 0);
-    // }
 }

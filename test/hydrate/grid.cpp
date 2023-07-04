@@ -313,7 +313,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
     SECTION("reversible") {
         SECTION("LAR1-2") {
             // get the grid before hydrating it
-            Protein protein("data/LAR1-2/LAR1-2.pdb");
+            Protein protein("test/files/LAR1-2.pdb");
             protein.clear_hydration();
             auto g1 = *protein.get_grid();
 
@@ -343,7 +343,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
 
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
-        Protein protein("data/LAR1-2/LAR1-2.pdb");
+        Protein protein("test/files/LAR1-2.pdb");
         protein.generate_new_hydration();
         auto h1 = protein.get_waters();
         auto a1 = protein.get_atoms();

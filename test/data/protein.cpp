@@ -273,10 +273,28 @@ TEST_CASE("Protein::save") {
 
 TEST_CASE_METHOD(fixture, "Protein::generate_new_hydration") {
     settings::protein::use_effective_charge = false;
-    Protein protein("test/files/2epe.pdb");
-    protein.clear_hydration();
-    protein.generate_new_hydration();
-    REQUIRE(protein.water_size() != 0);
+    settings::general::verbose = false;
+
+    SECTION("generates new waters") {
+        Protein protein(bodies);
+        protein.generate_new_hydration();
+        REQUIRE(protein.water_size() != 0);
+    }
+
+    // we want to check that the hydration shells are consistent for fitting purposes
+    SECTION("consistent hydration generation") {
+        Protein protein("test/files/2epe.pdb");
+        fitter::LinearFitter fitter("test/files/2epe.dat", protein.get_histogram());
+
+        protein.generate_new_hydration();
+        double chi2 = fitter.fit()->fval;
+
+        for (int i = 0; i < 10; i++) {
+            protein.generate_new_hydration();
+            double _chi2 = fitter.fit()->fval;
+            REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
+        }
+    }
 }
 
 TEST_CASE("Protein::get_volume_grid") {

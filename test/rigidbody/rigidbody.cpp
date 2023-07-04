@@ -24,7 +24,13 @@
 
 using namespace rigidbody;
 
-TEST_CASE("can_reuse_fitter", "[files]") {
+TEST_CASE("RigidBody::optimize") {}
+TEST_CASE("RigidBody::apply_calibration") {}
+TEST_CASE("RigidBody::update_fitter") {}
+TEST_CASE("RigidBody::get_constraint_manager") {}
+
+// test that we can consistently fit the same protein
+TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
     settings::general::verbose = false;
     Protein protein_2epe("test/files/2epe.pdb");
     Protein protein_LAR12("test/files/LAR1-2.pdb");
@@ -58,32 +64,8 @@ TEST_CASE("can_reuse_fitter", "[files]") {
     }
 }
 
-TEST_CASE("can_repeat_fit") {
-    settings::general::verbose = false;
-    Protein protein("test/files/2epe.pdb");
-    fitter::LinearFitter fitter("test/files/2epe.dat", protein.get_histogram());
-
-    protein.generate_new_hydration();
-    double chi2 = fitter.fit()->fval;
-
-    for (int i = 0; i < 10; i++) {
-        protein.generate_new_hydration();
-        double _chi2 = fitter.fit()->fval;
-        REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
-    }
-}
-
-TEST_CASE("rigidbody_opt", "[manual]") {
-    settings::general::verbose = false;
-    std::vector<int> splits = {9, 99};
-    Protein protein(BodySplitter::split("test/files/LAR1-2.pdb", splits));
-    protein.generate_new_hydration();
-
-    fitter::HydrationFitter fitter("test/files/LAR1-2.dat", protein.get_histogram());
-    fitter.fit()->fval;
-}
-
-TEST_CASE("iteration_step") {
+// manually check the method of rigidbody::RigidBody::optimize
+TEST_CASE("RigidBody_iteration_step") {
     settings::general::verbose = false;
     auto validate_single_step = [] (Protein& protein) {
         protein.generate_new_hydration();
@@ -131,7 +113,7 @@ TEST_CASE("iteration_step") {
                 }
             }
         }
-        REQUIRE(true); // this is just to increment the successful tests counter
+        SUCCEED();
         REQUIRE(*grid == old_grid);
 
         // check that the atoms are the same
@@ -146,7 +128,7 @@ TEST_CASE("iteration_step") {
                 REQUIRE(atoms.at(i).coords == oldatoms.at(i).coords);
             }
         }
-        REQUIRE(true);
+        SUCCEED();
 
         // check that the grid water members are the same
         auto wm = grid->w_members;
@@ -162,7 +144,7 @@ TEST_CASE("iteration_step") {
             wm_it++;
             oldwm_it++;
         }
-        REQUIRE(true);
+        SUCCEED();
 
         // check that the grid atom members are the same
         auto am = grid->a_members;
@@ -178,7 +160,7 @@ TEST_CASE("iteration_step") {
             am_it++;
             oldam_it++;
         }
-        REQUIRE(true);
+        SUCCEED();
 
         // check that there's no water in the grid after a call to clear_hydration
         protein.clear_hydration();
@@ -196,7 +178,7 @@ TEST_CASE("iteration_step") {
                 }
             }
         }
-        REQUIRE(true);
+        SUCCEED();
 
         //################################################//
         //### check that the protein has been reverted ###//
@@ -218,7 +200,7 @@ TEST_CASE("iteration_step") {
                 REQUIRE(oldwaters.at(i).coords == newwaters.at(i).coords);
             }
         }
-        REQUIRE(true);
+        SUCCEED();
 
         // check that the grid is the same
         for (unsigned int i = 0; i < axes.x.bins; i++) {
@@ -231,7 +213,7 @@ TEST_CASE("iteration_step") {
                 }
             }
         }
-        REQUIRE(true);
+        SUCCEED();
         REQUIRE(*grid == old_grid);
     };
 
