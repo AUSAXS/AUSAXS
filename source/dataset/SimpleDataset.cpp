@@ -313,15 +313,4 @@ double SimpleDataset::weighted_mean_error() const {
     return stats::weighted_mean_error(yerr());
 }
 
-void SimpleDataset::sort_x() {
-    Matrix<double> newdata(N, M);
-    std::vector<unsigned int> indices(N);
-    std::iota(indices.begin(), indices.end(), 0);
-    std::sort(indices.begin(), indices.end(), [this] (unsigned int i, unsigned int j) {return x(i) < x(j);});
-    for (unsigned int i = 0; i < N; i++) {
-        newdata.row(i) = this->row(indices[i]);
-    }
-    this->assign_matrix(std::move(newdata));
-}
-
 bool SimpleDataset::operator==(const SimpleDataset& other) const = default;

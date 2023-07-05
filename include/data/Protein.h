@@ -138,14 +138,14 @@ class Protein {
 		[[nodiscard]] Vector3<double> get_cm() const;
 
 		/**
-		 * @brief Calculate the molar mass of this protein in Daltons.
+		 * @brief Calculate the atomic molar mass of this protein in Daltons.
+		 * 		  Note that this is just the sum of the molar mass of all atoms.
 		 */
 		[[nodiscard]] double molar_mass() const;
 
 		/**
-		 * @brief Get the absolute mass.
-		 * 
-		 * @return The mass in kg.
+		 * @brief Get the absolute atomic mass of this entire protein. 
+		 * 		  Note that this is just the sum of the mass of all atoms.  
 		 */
 		[[nodiscard]] double absolute_mass() const;
 

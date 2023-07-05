@@ -39,6 +39,6 @@ bool Limit::operator==(const Limit& rhs) const noexcept {return min == rhs.min &
 
 bool Limit::operator!=(const Limit& rhs) const noexcept {return !operator==(rhs);}
 
-std::string Limit::to_string(const std::string& prepend) const noexcept {return prepend + "(" + std::to_string(min) + ", " + std::to_string(max) + ")";}
+std::string Limit::to_string(const std::string& prepend) const noexcept {return prepend + std::to_string(min) + " " + std::to_string(max);}
 
 bool Limit::empty() const noexcept {return min == 0 && max == 0;}

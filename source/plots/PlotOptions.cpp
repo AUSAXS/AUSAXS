@@ -46,7 +46,7 @@ void PlotOptions::parse(const std::string& key, std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<Limit>::parse(const std::any val) {
+void PlotOptions::SmartOption<Limit>::parse(const std::any& val) {
     // handle actual Limit case: Limit(1.5, 2.5)
     if (std::type_index{typeid(Limit)} == val.type()) {
         value = std::any_cast<Limit>(val);
@@ -71,7 +71,7 @@ void PlotOptions::SmartOption<Limit>::parse(const std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<std::string>::parse(const std::any val) {
+void PlotOptions::SmartOption<std::string>::parse(const std::any& val) {
     if (std::type_index{typeid(const char*)} == val.type()) {
         value = std::string(std::any_cast<const char*>(val));
     } else if (std::type_index{typeid(std::string)} == val.type()) {
@@ -88,7 +88,7 @@ void PlotOptions::SmartOption<std::string>::parse(const std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<bool>::parse(const std::any val) {
+void PlotOptions::SmartOption<bool>::parse(const std::any& val) {
     if (std::type_index{typeid(bool)} == val.type()) {
         value = std::any_cast<bool>(val);
     } else {
@@ -97,7 +97,7 @@ void PlotOptions::SmartOption<bool>::parse(const std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<int>::parse(const std::any val) {
+void PlotOptions::SmartOption<int>::parse(const std::any& val) {
     if (std::type_index{typeid(int)} == val.type()) {
         value = std::any_cast<int>(val);
     } else {
@@ -106,7 +106,7 @@ void PlotOptions::SmartOption<int>::parse(const std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<unsigned int>::parse(const std::any val) {
+void PlotOptions::SmartOption<unsigned int>::parse(const std::any& val) {
     if (std::type_index{typeid(unsigned int)} == val.type()) {
         value = std::any_cast<unsigned int>(val);
     } else if (std::type_index{typeid(int)} == val.type()) {
@@ -119,7 +119,7 @@ void PlotOptions::SmartOption<unsigned int>::parse(const std::any val) {
 }
 
 template<>
-void PlotOptions::SmartOption<double>::parse(const std::any val) {
+void PlotOptions::SmartOption<double>::parse(const std::any& val) {
     if (std::type_index{typeid(double)} == val.type()) {
         value = std::any_cast<double>(val);
     } else if (std::type_index{typeid(int)} == val.type()) {
@@ -143,6 +143,7 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     logy = opt.logy;
     title = opt.title; 
     xlabel = opt.xlabel; 
+    x2label = opt.x2label;
     ylabel = opt.ylabel; 
     zlabel = opt.zlabel;
     draw_bars = opt.draw_bars;
@@ -167,6 +168,7 @@ std::string PlotOptions::to_string() const {
         << "logy "           << logy << "\n"
         << "title "          << title << "\n"
         << "xlabel "         << xlabel << "\n"
+        << "x2label "        << x2label << "\n"
         << "ylabel "         << ylabel << "\n"
         << "zlabel "         << zlabel << "\n"
         << "legend "         << legend << "\n"

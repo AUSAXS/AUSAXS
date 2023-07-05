@@ -117,6 +117,7 @@ namespace constants {
 
         namespace density {
             constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3; // u/Å^3
+            constexpr double protein = 1.35*SI::mass::u/SI::volume::A3; // u/Å^3
         }
     }
 

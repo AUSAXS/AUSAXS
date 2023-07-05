@@ -21,6 +21,7 @@
 #include <em/detail/ExtendedLandscape.h>
 #include <io/ExistingFile.h>
 #include <settings/All.h>
+#include <utility/Constants.h>
 
 using std::vector;
 
@@ -293,13 +294,32 @@ TEST_CASE("voxelcount", "[manual]") {
     em::ImageStack image("data/emd_24889/emd_24889.map");
 
     Dataset2D data;
-    Axis range(1000, 0, 15);
+    Axis range(image.from_level(0.5), image.from_level(7), 100);
     for (const double& val : range.as_vector()) {
         data.push_back({val, double(image.count_voxels(val))});
     }
 
     data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}});
-    plots::PlotDataset::quick_plot(data, "figures/test/em/voxel_count.png"); 
+    plots::PlotDataset::quick_plot(data, "temp/em/voxel_count.png"); 
+}
+
+TEST_CASE("mass_cutoff_plot", "[manual]") {
+    settings::protein::use_effective_charge = false;
+    settings::em::sample_frequency = 1;
+    settings::axes::qmax = 0.4;
+    em::ImageStack image("data/emd_24889/emd_24889.map");
+
+    Dataset2D data;
+    Axis range(image.from_level(0.5), image.from_level(7), 100);
+    for (const double& val : range.as_vector()) {
+        auto protein = image.get_protein(val);
+        protein->generate_new_hydration();
+        data.push_back({val, protein->get_volume_grid()*constants::mass::density::protein});
+        // data.push_back({val, image.get_protein(val)->get_volume_grid()*constants::mass::density::protein});
+    }
+
+    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "mass"}});
+    plots::PlotDataset::quick_plot(data, "temp/em/mass_cutoff.png"); 
 }
 
 TEST_CASE("instability", "[files],[manual]") {
@@ -309,7 +329,7 @@ TEST_CASE("instability", "[files],[manual]") {
     em::ImageStack image("data/emd_12747/emd_12747.map");
 
     SimpleDataset data;
-    Axis range(100, image.from_level(0.5), image.from_level(7));
+    Axis range(image.from_level(0.5), image.from_level(7), 100);
     unsigned int prev = image.count_voxels(range.min);
     for (unsigned int i = 1; i < range.bins; i++) {
         double cutoff = range.min + i * range.step();

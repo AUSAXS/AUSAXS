@@ -567,7 +567,8 @@ Vector3<int> Grid::to_bins(const Vector3<double>& v) const {
 
 double Grid::get_volume() {
     expand_volume();
-    return pow(width, 3)*volume;
+    // std::cout << "\nVolume of grid with " << a_members.size() << " atoms and " << w_members.size() << " waters: " << volume << " A^3\n";
+    return std::pow(width, 3)*volume;
 }
 
 Grid& Grid::operator=(const Grid& rhs) {

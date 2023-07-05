@@ -1,6 +1,9 @@
 #pragma once
 
+#include <math/Vector3.h>
+
 #include <memory>
+#include <vector>
 
 namespace grid {class Grid;}
 class SimpleDataset;

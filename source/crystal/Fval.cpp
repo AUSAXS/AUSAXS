@@ -2,6 +2,7 @@
 #include <utility/Basis3D.h>
 #include <Symbols.h>
 #include <data/Protein.h>
+#include <data/Atom.h>
 
 #include <cmath>
 

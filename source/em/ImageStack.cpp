@@ -17,6 +17,7 @@
 #include <fitter/Fit.h>
 #include <utility/Limit.h>
 #include <utility/Utility.h>
+#include <utility/Constants.h>
 
 using namespace em;
 using namespace fitter;
@@ -121,9 +122,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     param.guess = min.x;
     param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
 
-    // Plot all evaluated points
     if (settings::general::supplementary_plots) {
-        { // Plot evaluated points around the minimum
+        // plot evaluated points around the minimum
+        { 
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_landscape;
             p_min.push_back(min.x, min.y);
@@ -138,11 +139,25 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             plot.save(settings::general::output + "chi2_evaluated_points_limited." + settings::plots::format);
         }
 
-        { // Plot all evaluated points
+        // plot all evaluated points
+        { 
             auto l = evals.as_dataset();
-            l.sort_x();
+            l.sort_x();            
             l.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
             plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full." + settings::plots::format);
+
+            // plot with mass axis
+            if (settings::em::mass_axis) {
+                Dataset mass_cutoff(0, 2);
+                for (auto& eval : this->evals) {
+                    mass_cutoff.push_back({eval.cutoff, eval.mass});
+                }
+                mass_cutoff.sort_x();
+                mass_cutoff.interpolate(l.x());
+                l.x() = mass_cutoff.y();
+                l.add_plot_options(style::draw::points, {{"xlabel", "mass"}, {"ylabel", "$\\chi^2$"}});
+                plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);
+            }
         }
     }
 
@@ -249,7 +264,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     
      // fitter is captured by value to guarantee its lifetime will be the same as the lambda
      // 'this' is ok since prepare_function is private and thus only used within the class itself
-    std::function<double(std::vector<double>)> chi2 = [this, fitter] (std::vector<double> params) {
+    std::function<double(std::vector<double>)> chi2 = [this, fitter] (const std::vector<double>& params) {
         static unsigned int counter = 0;
         static double last_c = 5;
         auto p = get_protein_manager()->get_protein(params[0]);
@@ -263,10 +278,11 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
-            fit = fitter->fit();                                                            // do the fit
-            water_factors.push_back(fit->get_parameter("c"));                               // record c value
-            last_c = fit->get_parameter("c").value;                                         // update c for next iteration
-            evals.push_back(detail::ExtendedLandscape(params[0], fit->evaluated_points));   // record evaluated points
+            auto mass = p->get_volume_grid()*constants::mass::density::protein;                             // essentially free to calculate, so we always do it
+            fit = fitter->fit();                                                                            // do the fit
+            water_factors.push_back(fit->get_parameter("c"));                                               // record c value
+            last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
+            evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         } else {
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
@@ -280,6 +296,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     }; 
     return chi2;
 }
+
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);

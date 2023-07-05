@@ -59,7 +59,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
     }
 
     // save the best configuration in a simple struct
-    detail::BestConf best(std::make_shared<grid::Grid>(*get_grid()), get_waters(), fitter->fit_only());
+    detail::BestConf best(std::make_shared<grid::Grid>(*get_grid()), get_waters(), fitter->fit_chi2_only());
 
     if (settings::general::verbose) {
         console::print_info("\nStarting rigid body optimization.");
@@ -104,7 +104,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
 
     // update the body location in the fitter
     update_fitter(fitter);
-    double new_chi2 = fitter->fit_only();
+    double new_chi2 = fitter->fit_chi2_only();
 
     // if the old configuration was better
     if (new_chi2 >= best.chi2) {

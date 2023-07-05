@@ -141,6 +141,7 @@ class Dataset : public Matrix<double> {
 
         /**
          * @brief Interpolate points to match the given x-values.
+         *        All data but the x and y columns will be discarded.
          */
         void interpolate(const std::vector<double>& newx);
 
@@ -184,6 +185,11 @@ class Dataset : public Matrix<double> {
          *        Complexity: O(n)
          */
         void limit_y(double min, double max);
+
+        /**
+         * @brief Sort this dataset by the x-values. 
+         */
+        void sort_x();
 
         /**
          * @brief Get the string representation of this object.

@@ -97,13 +97,21 @@ class Slice {
 		 */
 		const T& back() const {
 			#if SAFE_MATH
-				if (size() == 0) {
-					throw std::out_of_range("Error in Slice::back(): Slice is empty.");
-				}
+				if (size() == 0) {throw std::out_of_range("Error in Slice::back(): Slice is empty.");}
 			#endif
 			return (*this)[length-1];
 		}
 
+		/**
+		 * @brief Get the final element in this Slice.
+		 */
+		const T& first() const {
+			#if SAFE_MATH
+				if (size() == 0) {throw std::out_of_range("Error in Slice::first(): Slice is empty.");}
+			#endif
+			return (*this)[0];
+		}
+    
         /**
          * @brief Get a string representation of this Slice. 
          */

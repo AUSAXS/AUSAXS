@@ -8,6 +8,7 @@
 #include <settings/EMSettings.h>
 #include <em/Image.h>
 #include <data/Water.h>
+#include <Symbols.h>
 
 #include <vector>
 
@@ -126,15 +127,15 @@ void SmartProteinManager::update_protein(double cutoff) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], previous_cutoff)) {
                 // if so, we replace it with the new contents
-                protein->get_body(charge_index) = new_protein->get_body(charge_index);
+                protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
             } else {
                 // if we have the same number of atoms as earlier, nothing has changed
-                if (new_protein->get_body(charge_index).get_atoms().size() == protein->get_body(charge_index).get_atoms().size()) {
+                if (new_protein->get_body(charge_index).atom_size() == protein->get_body(charge_index).atom_size()) {
                     break;
                 }
 
                 // otherwise we replace it and stop iterating
-                protein->get_body(charge_index) = new_protein->get_body(charge_index);
+                protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
                 break;
             }
         }
@@ -153,10 +154,10 @@ void SmartProteinManager::update_protein(double cutoff) {
             // check if the current bin is inside the range
             if (compare_func(charge_levels[charge_index], cutoff)) {
                 // if so, we replace it with the new contents
-                protein->get_body(charge_index) = new_protein->get_body(charge_index);
+                protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
             } else {
                 // otherwise we replace it and stop iterating
-                protein->get_body(charge_index) = new_protein->get_body(charge_index);
+                protein->get_body(charge_index) = std::move(new_protein->get_body(charge_index));
                 break;
             }
         }
@@ -167,7 +168,9 @@ void SmartProteinManager::update_protein(double cutoff) {
 }
 
 std::shared_ptr<Protein> SmartProteinManager::get_protein() const {
-    if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
+    #ifdef DEBUG
+        if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
+    #endif
     return protein;
 }
 

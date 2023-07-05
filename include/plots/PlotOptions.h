@@ -13,25 +13,33 @@ extern double inf;
 
 namespace plots {
     struct option {
+        // style
         static inline std::string color = "color";
         static inline std::string alpha = "alpha";
         static inline std::string line_style = "linestyle";
         static inline std::string marker_style = "markerstyle";
         static inline std::string line_width = "linewidth";
         static inline std::string marker_size = "markersize";
+
+        // draw options
         static inline std::string draw_line = "line";
         static inline std::string draw_errors = "error";
         static inline std::string draw_markers = "marker";
         static inline std::string draw_bars = "bars";
+
+        // labels
         static inline std::string title = "title";
         static inline std::string xlabel = "xlabel";
         static inline std::string ylabel = "ylabel";
         static inline std::string zlabel = "zlabel";
+        static inline std::string x2label = "x2label";
+        static inline std::string legend = "legend";
+
+        // axis settings
         static inline std::string logx = "logx";
         static inline std::string logy = "logy";
         static inline std::string xlimits = "xlim";
         static inline std::string ylimits = "ylim";
-        static inline std::string legend = "legend";
     };
 
     /**
@@ -79,28 +87,29 @@ namespace plots {
             Limit xlimits;                          // Limits on the x-axis
 
             // cosmetic
-            std::string title = "";         // Title
-            std::string xlabel = "x";        // Label for the x-axis
-            std::string ylabel = "y";        // Label for the y-axis
-            std::string zlabel = "z";        // Label for the z-axis
-            std::string legend = "";        // Legend entry
+            std::string title = "";                 // Title
+            std::string xlabel = "x";               // Label for the x-axis
+            std::string x2label = "";               // Label for the secondary x-axis
+            std::string ylabel = "y";               // Label for the y-axis
+            std::string zlabel = "z";               // Label for the z-axis
+            std::string legend = "";                // Legend entry
 
         private: 
             struct ISmartOption {
-                ISmartOption(std::vector<std::string> aliases) : aliases(aliases) {}
+                ISmartOption(const std::vector<std::string>& aliases) : aliases(aliases) {}
                 virtual ~ISmartOption() = default;
 
-                virtual void parse(const std::any val) = 0;
+                virtual void parse(const std::any& val) = 0;
 
                 std::vector<std::string> aliases;
             };
 
             template<typename T>
             struct SmartOption : ISmartOption {
-                SmartOption(std::vector<std::string> aliases, T& value) : ISmartOption(aliases), value(value) {}
+                SmartOption(const std::vector<std::string>& aliases, T& value) : ISmartOption(aliases), value(value) {}
                 ~SmartOption() override = default;
 
-                void parse(const std::any val) override;
+                void parse(const std::any& val) override;
 
                 T& value;
             };

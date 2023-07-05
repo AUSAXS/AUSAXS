@@ -197,9 +197,4 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          * @brief Removes consecutive duplicate values.
          */
         void remove_consecutive_duplicates();
-
-        /**
-         * @brief Sort this dataset by the x-values. 
-         */
-        void sort_x();
 };
