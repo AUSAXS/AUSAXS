@@ -1,5 +1,6 @@
 #include <crystal/Fval.h>
 #include <Symbols.h>
+#include <data/Protein.h>
 
 #include <cmath>
 
@@ -32,6 +33,14 @@ Basis3D Fval::get_basis() {
 
 double Fval::I() const {
     return std::norm(fval);
+}
+
+Protein Fval::as_protein() {
+    std::vector<Atom> atoms(points.size());
+    for (unsigned int i = 0; i < points.size(); i++) {
+        atoms[i] = Atom(points[i], 1, "H", "LYS", i);
+    } 
+    return Protein(atoms);
 }
 
 // #include <settings/CrystalSettings.h>

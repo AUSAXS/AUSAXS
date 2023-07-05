@@ -7,9 +7,10 @@ using namespace io;
 
 Folder::Folder(const std::string& path) {
     *this = path;
-    if (!std::filesystem::is_directory(dir)) {
-        throw except::invalid_argument("Folder::Folder: \"" + dir + "\" is not a directory.");
-    }
+    if (!path.empty() && path.back() != '/') {dir += "/";}
+    // if (!std::filesystem::is_directory(dir)) {
+    //     throw except::invalid_argument("Folder::Folder: \"" + dir + "\" is not a directory.");
+    // }
 }
 
 void Folder::operator=(const std::string& path) {

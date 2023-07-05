@@ -323,7 +323,10 @@ class Protein {
 		 *         - PartialHistogramManagerMT: A multithreaded implementation of the partial manager.
 		 */
 		template<hist::detail::HistogramManagerType T>
-		void set_histogram_manager() {phm = hist::HistogramManagerFactory::create<T>(this);}
+		void set_histogram_manager() {
+			phm = hist::HistogramManagerFactory::create<T>(this);
+			bind_body_signallers();
+		}
 
 		/** 
 		 * @brief Move the entire protein by a vector.

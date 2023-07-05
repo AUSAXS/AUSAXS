@@ -9,10 +9,13 @@
 #include <settings/CrystalSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
+#include <io/ExistingFile.h>
 
 #include <atomic>
 #include <thread>
 #include <random>
+#include <fstream>
+#include <csignal>
 
 using namespace crystal;
 
@@ -72,24 +75,87 @@ void CrystalScattering::initialize() {
     miller_strategy = factory::construct_miller_strategy();
 }
 
+std::mutex checkpointMutex;
+void CrystalScattering::save_checkpoint(unsigned int stop, const std::vector<Fval>& fvals) {
+    std::lock_guard<std::mutex> lock(checkpointMutex); // Lock the mutex
+    ::io::File file(settings::general::output + "temp/checkpoint.dat"); 
+    file.create();
+
+    std::ofstream checkpoint_file(file, std::ios::binary);
+    if (!checkpoint_file.is_open()) {throw except::io_error("CrystalScattering::save_checkpoint: Could not open checkpoint file.");}
+
+    // we need to know the current number of calculated points
+    checkpoint_file.write(reinterpret_cast<const char*>(&stop), sizeof(stop));
+
+    // we also save the total size of the fvals vector so we can make a simple consistency check when loading
+    unsigned int fvals_size = fvals.size();
+    checkpoint_file.write(reinterpret_cast<const char*>(&fvals_size), sizeof(fvals_size));
+
+    // finally we write the first 'stop' elements of the fvals vector
+    checkpoint_file.write(reinterpret_cast<const char*>(fvals.data()), stop*sizeof(Fval));
+    checkpoint_file.close();
+}
+
+unsigned int CrystalScattering::load_checkpoint(std::vector<Fval>& fvals) {
+    ::io::File file(settings::general::output + "temp/checkpoint.dat"); 
+
+    std::ifstream checkpoint_file(file, std::ios::binary);
+    if (!checkpoint_file.is_open()) {
+        if (settings::general::verbose) {std::cout << "Could not load any points from checkpoint file.";}
+        return 0;
+    }
+
+    // first we read the number of saved points
+    unsigned int stop = 0;
+    checkpoint_file.read(reinterpret_cast<char*>(&stop), sizeof(stop));
+    if (stop > fvals.size()) {throw except::unexpected("CrystalScattering::load_checkpoint: incompatible checkpoint file. Did you change the settings?.");}
+
+    // then we read the previous size of the fvals vector
+    unsigned int fvals_size = 0;
+    checkpoint_file.read(reinterpret_cast<char*>(&fvals_size), sizeof(fvals_size));
+    if (fvals_size != fvals.size()) {throw except::unexpected("CrystalScattering::load_checkpoint: incompatible checkpoint file. Did you change the settings?.");}
+
+    // finally we read the first 'stop' elements of the fvals vector
+    checkpoint_file.read(reinterpret_cast<char*>(fvals.data()), stop*sizeof(Fval));
+    checkpoint_file.close();
+
+    if (settings::general::verbose) {std::cout << "Loaded " << stop << " points from checkpoint file." << std::endl;}
+    return stop;
+}
+
+bool interrupt_signal = false;
+void handleInterruptSignal(int signal) {
+    std::cout << "Interrupt signal received. Finishing current calculations and writing a checkpoint before exiting." << std::endl;
+    if (signal == SIGINT) {interrupt_signal = true;}
+}
+
 SimpleDataset CrystalScattering::calculate() const {
     if (Fval::get_points().empty()) {throw except::invalid_argument("CrystalScattering::calculate: No points were set.");}
     if (Fval::get_basis().x.x() == 0 || Fval::get_basis().y.y() == 0 || Fval::get_basis().z.z() == 0) {throw except::invalid_argument("CrystalScattering::calculate: No basis was set.");}
     auto millers = miller_strategy->generate();
 
     std::vector<Fval> fvals(millers.size());
-    std::atomic<unsigned int> index = 0;
+    std::atomic<unsigned int> index = load_checkpoint(fvals);
+
+    std::cout << std::endl;
     auto dispatcher = [&] () {
         while (true) {
             unsigned int start = index.fetch_add(1000);
             unsigned int end = std::min<unsigned int>(start + 1000, millers.size());
-            if (start >= millers.size()) {break;}
+            if (start >= millers.size() || interrupt_signal) {
+                index = std::max(index.load(), end);
+                break;
+            }
+
             std::cout << start << "/" << millers.size() << "          \r" << std::flush;
             for (unsigned int i = start; i < end; i++) {
                 fvals[i] = Fval(millers[i].h, millers[i].k, millers[i].l);
             }
         }
     };
+
+    // register the interrupt signal handler. we need this to ensure that the checkpoint file is saved properly before the program exits
+    std::signal(SIGINT, handleInterruptSignal);
 
     // start threads
     std::vector<std::thread> threads;
@@ -101,6 +167,11 @@ SimpleDataset CrystalScattering::calculate() const {
     for (auto& thread : threads) {
         thread.join();
     }
+
+    // save final checkpoint
+    save_checkpoint(index, fvals);
+    std::signal(SIGINT, SIG_DFL); // reset the interrupt signal handler
+    if (interrupt_signal) {raise(SIGINT);} // raise the interrupt signal again to ensure that the program exits
 
     // sort fvals by q
     std::sort(fvals.begin(), fvals.end(), [] (const Fval& a, const Fval& b) {return a.qlength < b.qlength;});
@@ -117,6 +188,7 @@ SimpleDataset CrystalScattering::calculate() const {
     // bin the data
     SimpleDataset data;
     unsigned int bin_index = 0;
+    while (bin_index < fvals.size() && fvals[bin_index].qlength < bins[0]) {bin_index++;} // skip all values below the first bin
     for (unsigned int i = 0; i < bins.size()-1; i++) {
         double qmin = bins[i];
         double qmax = bins[i+1];

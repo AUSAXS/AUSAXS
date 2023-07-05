@@ -53,7 +53,8 @@ void Dataset::limit_x(const Limit& limits) {
     Matrix<double> limited(0, M); 
     for (unsigned int i = 0; i < size(); i++) {
         double val = x(i);
-        if (val < limits.min || limits.max < val) {continue;}
+        if (val < limits.min) {continue;}
+        else if (limits.max < val) {break;}
         limited.push_back(row(i));
     }
     assign_matrix(std::move(limited));

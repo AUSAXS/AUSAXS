@@ -16,41 +16,41 @@ int main(int argc, char const *argv[]) {
     CLI11_PARSE(app, argc, argv);
     settings::general::output += crystal.stem() + "/";
 
-    settings::axes::qmin = 1e-4;
-    settings::axes::bins = 100;
-    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
-    settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::All;
-    settings::crystal::grid_expansion = 3;
-    settings::crystal::max_q = 0.5;
-    crystal::CrystalScattering cs(crystal);
-    auto fourier = cs.rotational_average(100);
-    fourier.limit_y(1e-4, 1e10);
-    fourier.limit_x(1e-2, 1);
-    fourier.add_plot_options({{plots::option::color, style::color::black}, {plots::option::legend, "fourier"}});
-    plots::PlotIntensity plot(fourier);
+    // settings::axes::qmin = 1e-4;
+    // settings::axes::bins = 100;
+    // settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 0;
+    // settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::All;
+    // settings::crystal::grid_expansion = 3;
+    // settings::crystal::max_q = 0.5;
+    // crystal::CrystalScattering cs(crystal);
+    // auto fourier = cs.rotational_average(100);
+    // fourier.limit_y(1e-4, 1e10);
+    // fourier.limit_x(1e-2, 1);
+    // fourier.add_plot_options({{plots::option::color, style::color::black}, {plots::option::legend, "fourier"}});
+    // plots::PlotIntensity plot(fourier);
 
-    // check if the input is a structure file (e.g. pdb). if so, we also calculate the scattering with the Debye method.
-    if (constants::filetypes::structure.validate(crystal)) {
-        settings::protein::use_effective_charge = false;
-        Protein protein(crystal);
-        auto debye = protein.get_histogram().calc_debye_scattering_intensity();
+    // // check if the input is a structure file (e.g. pdb). if so, we also calculate the scattering with the Debye method.
+    // if (constants::filetypes::structure.validate(crystal)) {
+    //     settings::protein::use_effective_charge = false;
+    //     Protein protein(crystal);
+    //     auto debye = protein.get_histogram().calc_debye_scattering_intensity();
 
-        // fit the debye function to the fourier function
-        fourier.interpolate(debye.x());
-        fitter::SimpleLeastSquares fitter(debye.y(), fourier.y());
-        auto res = fitter.fit();
-        debye.y() = debye.y()*res->get_parameter("a") + res->get_parameter("b");
-        fitter::FitReporter::report(res);
-        debye.scale_y(fourier.y(0)/debye.y(0));
-        debye.add_plot_options(plots::option::draw_markers, {{plots::option::color, style::color::red}, {plots::option::legend, "debye"}});
-        plot.plot(debye, style::color::red);
-    }
-    plot.save(settings::general::output + "comparison.png");
+    //     // fit the debye function to the fourier function
+    //     fourier.interpolate(debye.x());
+    //     fitter::SimpleLeastSquares fitter(debye.y(), fourier.y());
+    //     auto res = fitter.fit();
+    //     debye.y() = debye.y()*res->get_parameter("a") + res->get_parameter("b");
+    //     fitter::FitReporter::report(res);
+    //     debye.scale_y(fourier.y(0)/debye.y(0));
+    //     debye.add_plot_options(plots::option::draw_markers, {{plots::option::color, style::color::red}, {plots::option::legend, "debye"}});
+    //     plot.plot(debye, style::color::red);
+    // }
+    // plot.save(settings::general::output + "comparison.png");
 
     //#########################################//
     //### CUSTOM SECTION FOR SILICA PROJECT ###//
     //#########################################//
-    if (false) {
+    if (true) {
         settings::axes::qmin = 1e-4;
         settings::axes::bins = 100;
         settings::crystal::grid_expansion = 1;
