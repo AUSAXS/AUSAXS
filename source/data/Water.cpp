@@ -5,7 +5,7 @@ Water::Water(const Atom& a) : Atom(a) {}
 Water::Water(const Water& w) = default;
 Water::~Water() = default;
 
-Record::RecordType Water::get_type() const {return RecordType::WATER;}
+RecordType Water::get_type() const {return RecordType::WATER;}
 
 std::string Water::get_recName() const {return "HETATM";}
 

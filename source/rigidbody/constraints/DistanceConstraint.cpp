@@ -1,15 +1,18 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <settings/RigidBodySettings.h>
+#include <utility/Constants.h>
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h>
 
 using namespace rigidbody;
 
 DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
     : protein(protein), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) {
-    const Body& body1 = protein->body(ibody1);
-    const Body& body2 = protein->body(ibody2);
-    const Atom& atom1 = body1.atoms(iatom1);
-    const Atom& atom2 = body2.atoms(iatom2);
+    const Body& body1 = protein->get_body(ibody1);
+    const Body& body2 = protein->get_body(ibody2);
+    const Atom& atom1 = body1.get_atom(iatom1);
+    const Atom& atom2 = body2.get_atom(iatom2);
 
     // we only want to allow constraints between the backbone C-alpha structure
     if (atom1.element != constants::symbols::carbon || atom2.element != constants::symbols::carbon) {
@@ -17,11 +20,15 @@ DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, un
     }
 
     // constraints within the same body doesn't make sense
-    if (body1.uid == body2.uid) {throw except::invalid_argument("Constraint::Constraint: Cannot create a constraint between atoms in the same body!");}
+    if (body1.get_id() == body2.get_id()) {throw except::invalid_argument("Constraint::Constraint: Cannot create a constraint between atoms in the same body!");}
 
     // set the base radius and perform a sanity check
     r_base = atom1.distance(atom2);
-    if (r_base > 4) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
+    if (r_base > 4) {throw except::invalid_argument(
+        "Constraint::Constraint: The atoms being constrained are too far apart!\n"
+        "Atom 1: " + atom1.name + " in body " + std::to_string(ibody1) + " at " + atom1.get_coordinates().to_string() + "\n"
+        "Atom 2: " + atom2.name + " in body " + std::to_string(ibody2) + " at " + atom2.get_coordinates().to_string() + "\n"
+    );}
 }
 
 DistanceConstraint::DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
@@ -48,14 +55,14 @@ DistanceConstraint::DistanceConstraint(Protein* protein, const Atom& atom1, cons
 std::pair<rigidbody::DistanceConstraint::AtomLoc, rigidbody::DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const Atom& atom1, const Atom& atom2) const {
     int ibody1 = -1, ibody2 = -1;
     int iatom1 = -1, iatom2 = -1;
-    for (unsigned int ibody = 0; ibody < protein->bodies.size(); ibody++) {
-        const Body& body = protein->body(ibody);
-        for (unsigned int iatom = 0; iatom < body.atoms().size(); iatom++) {
-            if (atom1 == body.atoms(iatom)) {
+    for (unsigned int ibody = 0; ibody < protein->body_size(); ibody++) {
+        const Body& body = protein->get_body(ibody);
+        for (unsigned int iatom = 0; iatom < body.get_atoms().size(); iatom++) {
+            if (atom1 == body.get_atom(iatom)) {
                 ibody1 = ibody;
                 iatom1 = iatom;
                 break; // a1 and a2 *must* be from different bodies, so we break
-            } else if (atom2 == body.atoms(iatom)) {
+            } else if (atom2 == body.get_atom(iatom)) {
                 ibody2 = ibody;
                 iatom2 = iatom;
                 break; // same
@@ -72,8 +79,8 @@ std::pair<rigidbody::DistanceConstraint::AtomLoc, rigidbody::DistanceConstraint:
 }
 
 double DistanceConstraint::evaluate() const {
-    const Atom& atom1 = protein->body(ibody1).atoms(iatom1);
-    const Atom& atom2 = protein->body(ibody2).atoms(iatom2);
+    const Atom& atom1 = protein->get_body(ibody1).get_atom(iatom1);
+    const Atom& atom2 = protein->get_body(ibody2).get_atom(iatom2);
     return transform(r_base - atom1.distance(atom2));
 }
 
@@ -89,32 +96,32 @@ double rigidbody::DistanceConstraint::transform(double offset) {
 }
 
 const Atom& DistanceConstraint::get_atom1() const {
-    return protein->body(ibody1).atoms(iatom1);
+    return protein->get_body(ibody1).get_atom(iatom1);
 }
 
 const Atom& DistanceConstraint::get_atom2() const {
-    return protein->body(ibody2).atoms(iatom2);
+    return protein->get_body(ibody2).get_atom(iatom2);
 }
 
 const Body& DistanceConstraint::get_body1() const {
-    return protein->body(ibody1);
+    return protein->get_body(ibody1);
 }
 
 const Body& DistanceConstraint::get_body2() const {
-    return protein->body(ibody2);
+    return protein->get_body(ibody2);
 }
 
 Body& DistanceConstraint::get_body1() {
-    return protein->body(ibody1);
+    return protein->get_body(ibody1);
 }
 
 Body& DistanceConstraint::get_body2() {
-    return protein->body(ibody2);
+    return protein->get_body(ibody2);
 }
 
-std::string DistanceConstraint::print() const {
+std::string DistanceConstraint::to_string() const {
     std::stringstream ss;
-    ss << "Constraint between (" << protein->body(ibody1).atoms(iatom1).serial << ", " << protein->body(ibody1).atoms(iatom1).name << ") and "
-                             "(" << protein->body(ibody2).atoms(iatom2).serial << ", " << protein->body(ibody2).atoms(iatom2).name << ")";
+    ss << "Constraint between (" << protein->get_body(ibody1).get_atom(iatom1).serial << ", " << protein->get_body(ibody1).get_atom(iatom1).name << ") and "
+                             "(" << protein->get_body(ibody2).get_atom(iatom2).serial << ", " << protein->get_body(ibody2).get_atom(iatom2).name << ")";
     return ss.str();
 }

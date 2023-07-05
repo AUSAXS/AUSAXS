@@ -172,8 +172,8 @@ Q& Matrix<Q>::operator()(unsigned int i, unsigned int j) {
 template<numeric Q>
 const Q& Matrix<Q>::index(unsigned int i, unsigned int j) const {
     #if (SAFE_MATH)
-        if (i >= N) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Row index out of range.");}
-        if (j >= M) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Column index out of range.");}
+        if (i >= N) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Row index out of range. (" + std::to_string(i) + " >= " + std::to_string(N) + ")");}
+        if (j >= M) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Column index out of range. (" + std::to_string(j) + " >= " + std::to_string(M) + ")");}
     #endif
     return data[M*i + j];
 }
@@ -181,8 +181,8 @@ const Q& Matrix<Q>::index(unsigned int i, unsigned int j) const {
 template<numeric Q>
 Q& Matrix<Q>::index(unsigned int i, unsigned int j) {
     #if (SAFE_MATH)
-        if (i >= N) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Row index out of range.");}
-        if (j >= M) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Column index out of range.");}
+        if (i >= N) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Row index out of range. (" + std::to_string(i) + " >= " + std::to_string(N) + ")");}
+        if (j >= M) [[unlikely]] {throw except::out_of_bounds("Matrix::index: Column index out of range. (" + std::to_string(j) + " >= " + std::to_string(M) + ")");}
     #endif
     return data[M*i + j];
 }
@@ -238,4 +238,13 @@ void Matrix<Q>::compatibility_check_M(unsigned int M) const {
             throw except::invalid_argument("Matrix::compatibility_check: Matrix dimensions do not match (got: M = " + std::to_string(N) + ", expected " + std::to_string(this->N) + ")");
         }
     #endif
+}
+
+template<numeric Q>
+Matrix<Q> Matrix<Q>::identity(unsigned int dim) {
+    Matrix A(dim, dim);
+    for (unsigned int i = 0; i < dim; ++i) {
+        A[i][i] = 1;
+    }
+    return A;
 }

@@ -13,7 +13,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Default constructor. 
          */
-        Dataset() {}
+        Dataset();
 
         /**
          * @brief Matrix constructor.
@@ -23,17 +23,17 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(std::vector<std::string> col_names) : Matrix(0, col_names.size()), names(col_names) {}
+        Dataset(const std::vector<std::string>& col_names) : Matrix(0, col_names.size()), names(col_names) {}
 
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(std::vector<std::vector<double>> cols, std::vector<std::string> col_names) : Matrix(cols), names(col_names) {}
+        Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names) : Matrix(cols), names(col_names) {}
 
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(std::vector<std::vector<double>> cols);
+        Dataset(const std::vector<std::vector<double>>& cols);
 
         /**
          * @brief Create a new dataset with the specified dimensions. 
@@ -48,7 +48,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Destructor.
          */
-        virtual ~Dataset() = default;
+        virtual ~Dataset();
 
         /**
          * @brief Get a column based on its name. 
@@ -85,6 +85,19 @@ class Dataset : public Matrix<double> {
          */
         [[nodiscard]] unsigned int size() const noexcept;
 
+        /**
+         * @brief Get the number of rows in the dataset.
+         */
+        [[nodiscard]] unsigned int size_rows() const noexcept;
+
+        /**
+         * @brief Get the number of columns in the dataset.
+         */
+        [[nodiscard]] unsigned int size_cols() const noexcept;
+
+        /**
+         * @brief Check if the dataset is empty.
+         */
         [[nodiscard]] bool empty() const noexcept;
 
         /**
@@ -103,7 +116,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Set the column names. 
          */
-        void set_col_names(std::vector<std::string> names);
+        void set_col_names(const std::vector<std::string>& names);
 
         /**
          * @brief Set a column name. 

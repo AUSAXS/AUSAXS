@@ -1,12 +1,11 @@
 #pragma once
 
 #include <io/Writer.h>
-#include <data/Terminate.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+
+#include <vector>
+#include <string>
 
 class ProteinFile;
-
 /**
  * @brief This class handles writing a File object into a PDB format data file.
  */
@@ -16,9 +15,9 @@ class PDBWriter : public Writer {
          * @brief Constructor. 
          * @param file Path to where the backing File object will be saved. 
          */
-        PDBWriter(ProteinFile* file) : file(file) {}
+        PDBWriter(ProteinFile* file);
 
-        ~PDBWriter() override = default;
+        ~PDBWriter() override;
 
         /**
          * @brief Write the backing File to disk. If the size of the protein is greater than 100 000, multiple files will be written.

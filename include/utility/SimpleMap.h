@@ -18,7 +18,7 @@ namespace saxs {
             /**
              * @brief Create a new empty SimpleMap.
              */
-            SimpleMap() {}
+            SimpleMap() = default;
 
             /**
              * @brief Create a new SimpleMap from a std::map.
@@ -46,6 +46,10 @@ namespace saxs {
             void insert(const std::string& key, V val) {
                 std::string k2 = utility::to_lowercase(key);
                 data.emplace(k2, val);
+            }
+
+            const std::unordered_map<std::string, V>& get_map() const {
+                return data;
             }
 
             /**

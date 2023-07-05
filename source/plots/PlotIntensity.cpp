@@ -1,4 +1,10 @@
 #include <plots/PlotIntensity.h>
+#include <fitter/Fit.h>
+#include <fitter/Fitter.h>
+#include <hist/ScatteringHistogram.h>
+#include <mini/detail/Evaluation.h>
+#include <mini/detail/FittedParameter.h>
+#include <dataset/SimpleDataset.h>
 
 plots::PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, style::Color color) {
     plot(d, color);

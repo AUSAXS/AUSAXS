@@ -7,10 +7,12 @@
 #include <mini/all.h>
 #include <plots/all.h>
 #include <settings/GeneralSettings.h>
+#include <data/Protein.h>
+#include <fitter/FitPlots.h>
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(std::string input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein) {
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein), fit_type(mini::type::BFGS) {
     HydrationFitter hfit(input, protein.get_histogram());
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
@@ -66,7 +68,7 @@ double ExcludedVolumeFitter::fit_chi2_only() {
     return fitter.fit_chi2_only();
 }
 
-Fit::Plots ExcludedVolumeFitter::plot() {
+FitPlots ExcludedVolumeFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("ExcludedVolumeFitter::plot: Cannot plot before a fit has been made!");}
     update_excluded_volume(fitted->get_parameter("d").value);
     return HydrationFitter::plot();

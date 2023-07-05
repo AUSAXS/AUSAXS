@@ -1,13 +1,14 @@
 #pragma once
 
+#include <utility/Concepts.h>
+#include <rigidbody/parameters/Parameter.h>
+
 #include <tuple>
-#include <random>
 #include <atomic>
+#include <random>
 
-#include <math/Vector3.h>
-#include <rigidbody/parameters/Parameters.h>
-
-namespace rigidbody {
+template<numeric T> class Vector3;
+namespace rigidbody {    
     /**
      * @brief Thread-safe superclass for parameter generation strategies.
      */

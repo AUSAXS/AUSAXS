@@ -1,8 +1,13 @@
 #include <Symbols.h>
 #include <hydrate/culling/ClusterCulling.h>
+#include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
+#include <math/Vector3.h>
+#include <data/Water.h>
 
-grid::ClusterCulling::ClusterCulling(Grid* grid) : grid(grid) {
+#include <cmath>
+
+grid::ClusterCulling::ClusterCulling(grid::Grid* grid) : grid(grid) {
     prepare_rotations();
 }
 

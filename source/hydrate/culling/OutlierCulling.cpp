@@ -1,5 +1,8 @@
 #include <hydrate/culling/OutlierCulling.h>
+#include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
+#include <math/Vector3.h>
+#include <data/Water.h>
 
 #include <utility>
 

@@ -1,4 +1,5 @@
 #include <crystal/Fval.h>
+#include <utility/Basis3D.h>
 #include <Symbols.h>
 #include <data/Protein.h>
 

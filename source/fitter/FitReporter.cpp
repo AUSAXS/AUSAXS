@@ -1,5 +1,7 @@
 #include <fitter/FitReporter.h>
 #include <utility/Exceptions.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 #include <fstream>
 #include <iostream>

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <fitter/Fit.h>
 #include <fitter/Fitter.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/ScatteringHistogram.h> //! Remove? Convert member variable to pointer type
 
+namespace io {class ExistingFile;}
 namespace fitter {
+
 	/**
 	 * @brief Fit an intensity curve to a dataset. 
 	 * 
@@ -23,7 +24,7 @@ namespace fitter {
 			 * 
 			 * @param input The path to the file containing the measured values. 
 			 */
-			LinearFitter(std::string input);
+			LinearFitter(const io::ExistingFile& input);
 
 			/**
 			 * @brief Constructor.
@@ -33,7 +34,7 @@ namespace fitter {
 			 * @param input The path to the file containing the measured values. 
 			 * @param h The ScatteringHistogram to fit. 
 			 */
-			LinearFitter(std::string input, const hist::ScatteringHistogram& h);
+			LinearFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h);
 
 			/**
 			 * @brief Constructor.
@@ -43,7 +44,7 @@ namespace fitter {
 			 * @param input the path to the file containing the measured values. 
 			 * @param h The ScatteringHistogram to fit. 
 			 */
-			LinearFitter(std::string input, hist::ScatteringHistogram&& h);
+			LinearFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h);
 
 			/**
 			 * @brief Constructor. 
@@ -125,7 +126,7 @@ namespace fitter {
 			 * 
 			 * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
 			 */
-			[[nodiscard]] virtual Fit::Plots plot() override;
+			[[nodiscard]] virtual FitPlots plot() override;
 
 			/**
 			 * @brief Make a residual plot of the fit.
@@ -180,7 +181,7 @@ namespace fitter {
 			 * 
 			 * @param file measured values to compare the model against.
 			 */
-			void setup(std::string file);
+			void setup(const io::ExistingFile& file);
 
 			/**
 			 * @brief Splice values from the model to fit the evaluation points defined by the q values of the input file. 

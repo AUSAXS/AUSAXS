@@ -2,8 +2,9 @@
 
 #include <hydrate/Grid.h>
 
+namespace io {class ExistingFile;}
 namespace hydrate {
     struct GridReader {
-        static Grid read(const std::string& filename);
+        static grid::Grid read(const io::ExistingFile& filename);
     };
 }

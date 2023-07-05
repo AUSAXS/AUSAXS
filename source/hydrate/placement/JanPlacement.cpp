@@ -1,5 +1,7 @@
 #include <hydrate/placement/JanPlacement.h>
+#include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
+#include <data/Water.h>
 
 std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <fitter/HydrationFitter.h>
+#include <fitter/Fitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 
-namespace rigidbody {
-    class DistanceConstraint;
-}
+#include <vector>
+#include <memory>
+#include <concepts>
 
 namespace fitter {
     template<typename C>
@@ -15,6 +15,7 @@ namespace fitter {
      * @brief Fit an intensity curve to a dataset. 
      * 
      * Extends a fitter with the ability to add constraints to the optimization.
+     * Note that the constraint manager must manually be set with the set_constraint_manager method.
      */
     template<fitter_t T>
     class ConstrainedFitter : public T {
@@ -29,8 +30,10 @@ namespace fitter {
              */
             void set_constraint_manager(std::shared_ptr<rigidbody::ConstraintManager> constraints);
 
+            rigidbody::ConstraintManager* get_constraint_manager(); 
+
         private: 
-            std::shared_ptr<rigidbody::ConstraintManager> constraints;
+            std::shared_ptr<rigidbody::ConstraintManager> constraints = nullptr;
     };
 }
 

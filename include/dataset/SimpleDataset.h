@@ -49,7 +49,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         /**
          * @brief Construct a new dataset from an input file.
          */
-        SimpleDataset(std::string path);
+        SimpleDataset(const io::ExistingFile& path);
 
         /**
          * @brief Destructor.
@@ -82,6 +82,8 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          * @brief Assign a Matrix to this dataset.
          */
         void operator=(const Matrix<double>&& other);
+
+        bool operator==(const SimpleDataset& other) const;
 
         /**
          * @brief Get the spanned x-range. 

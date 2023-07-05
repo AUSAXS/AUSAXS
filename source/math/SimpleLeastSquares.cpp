@@ -1,14 +1,11 @@
-#include <vector>
-#include <string>
-#include <cmath>
-#include <utility>
-#include <memory>
-
+#include <math/SimpleLeastSquares.h>
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
-#include <math/SimpleLeastSquares.h>
+#include <fitter/FitPlots.h>
 #include <utility/Exceptions.h>
 #include <mini/Utility.h>
+
+#include <cmath>
 
 using namespace fitter;
 
@@ -68,19 +65,16 @@ double SimpleLeastSquares::chi2(const std::vector<double>&) {
     return chi;
 }
 
-Fit::Plots SimpleLeastSquares::plot() {
+FitPlots SimpleLeastSquares::plot() {
     throw except::unexpected("SimpleLeastSquares::plot: Not implemented yet. ");
-    return Fit::Plots();
 }
 
 SimpleDataset SimpleLeastSquares::plot_residuals() {
     throw except::unexpected("SimpleLeastSquares::plot_residuals: Not implemented yet. ");
-    return SimpleDataset();
 }
 
 unsigned int SimpleLeastSquares::dof() const {return data.size() - 2;}
 
 std::shared_ptr<Fit> SimpleLeastSquares::get_fit() const {
     throw except::unexpected("SimpleLeastSquares::get_fit: Not implemented yet. ");
-    return nullptr;
 }

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <utility/Limit.h>
+
 #include <string>
 #include <vector>
 #include <optional>
-
-#include <utility/Limit.h>
 
 namespace mini {
     struct FittedParameter;
@@ -22,7 +22,16 @@ namespace mini {
          * @param guess The guess value.
          * @param bounds The bounds. 
          */
-        Parameter(std::string name, double guess = 0, Limit bounds = {0, 0}) noexcept;
+        Parameter(const std::string& name, double guess = 0) noexcept;
+
+        /**
+         * @brief Create a Parameter with a guess value and bounds.
+         * 
+         * @param name The name of the parameter.
+         * @param guess The guess value.
+         * @param bounds The bounds. 
+         */
+        Parameter(const std::string& name, double guess, const Limit& bounds) noexcept;
 
         /**
          * @brief Create a Parameter without a guess value.
@@ -30,12 +39,14 @@ namespace mini {
          * @param name The name of the parameter.
          * @param bounds The bounds.
          */
-        Parameter(std::string name, Limit bounds) noexcept;
+        Parameter(const std::string& name, const Limit& bounds) noexcept;
 
         /**
          * @brief Create a Parameter from a FittedParameter.
          */
         Parameter(const mini::FittedParameter& p) noexcept;
+
+        ~Parameter();
 
         /**
          * @brief Check if this parameter is bounded.

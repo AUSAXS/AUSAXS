@@ -1,4 +1,8 @@
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
+#include <rigidbody/parameters/Parameters.h>
+#include <math/Vector3.h>
+
+#include <random>
 
 using namespace rigidbody;
 

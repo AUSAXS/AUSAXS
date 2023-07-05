@@ -6,15 +6,17 @@
 namespace io {
     class Folder {
         public:
-            Folder() = default;
+            Folder();
 
             Folder(const std::string& path);
 
-            virtual ~Folder() = default;
+            virtual ~Folder();
 
             [[nodiscard]] std::string path() const;
 
             [[nodiscard]] bool exists() const noexcept;
+
+            [[nodiscard]] Folder& operator+(const std::string& str) noexcept;
 
             [[nodiscard]] Folder& operator+(const Folder& folder) noexcept;
 
@@ -37,6 +39,4 @@ namespace io {
 }
 
 std::string operator+(const char* str, const io::Folder& folder);
-std::string operator+(const io::Folder& folder, const char* str);
 std::string operator+(const std::string& str, const io::Folder& folder);
-std::string operator+(const io::Folder& folder, const std::string& str);

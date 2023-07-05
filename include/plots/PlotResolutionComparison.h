@@ -1,9 +1,8 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <plots/PlotDataset.h>
-#include <dataset/Multiset.h>
 
+class Multiset;
 namespace plots {
 	class PlotResolutionComparison : public Plot {
 		public:

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <crystal/miller/MillerGenerationStrategy.h>
-#include <settings/CrystalSettings.h>
 
 namespace crystal {
     /**
@@ -16,10 +15,9 @@ namespace crystal {
      */
     class AllMillers : public MillerGenerationStrategy {
         public: 
-            AllMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
+            AllMillers(unsigned int h, unsigned int k, unsigned int l);
 
             std::vector<Miller> generate() const override;
-
         private: 
             int h, k, l;
     };

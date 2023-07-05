@@ -1,5 +1,9 @@
 #include <crystal/io/CrystalReaderFactory.h>
 #include <crystal/io/PDBReader.h>
+#include <crystal/io/CrystalReader.h>
+#include <crystal/io/GridReader.h>
+#include <crystal/io/UnitCellReader.h>
+#include <io/ExistingFile.h>
 #include <utility/Constants.h>
 #include <utility/Exceptions.h>
 

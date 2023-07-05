@@ -1,10 +1,10 @@
 #pragma once
 
 #include <fitter/Fit.h>
-#include <io/ExistingFile.h>
 
 #include <string>
 
+namespace io {class File;}
 namespace fitter {
     class FitReporter {
         public:

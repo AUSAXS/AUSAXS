@@ -1,12 +1,14 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <fitter/Fit.h>
-#include <hist/ScatteringHistogram.h>
-#include <fitter/LinearFitter.h>
 
 #include <memory>
 
+namespace fitter {
+	class LinearFitter;
+	class Fit;
+	class FitPlots;
+}
 namespace plots {
 
 	/**
@@ -48,6 +50,6 @@ namespace plots {
 			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
-			void plot(const fitter::Fit::Plots& graphs);
+			void plot(const fitter::FitPlots& graphs);
 	};
 }

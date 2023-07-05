@@ -5,7 +5,9 @@
 
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
+class Protein;
 namespace rigidbody {
     class ConstraintManager {
         public:
@@ -14,15 +16,12 @@ namespace rigidbody {
              */
             ConstraintManager(Protein* protein);
 
-            /**
-             * @brief Add a constraint to this manager.
-             */
-            void add_constraint(std::shared_ptr<DistanceConstraint> constraint);
+            ~ConstraintManager();
 
-            /**
-             * @brief Add a constraint to this manager.
-             */
-            void add_constraint(std::shared_ptr<OverlapConstraint> constraint);
+            void add_constraint(OverlapConstraint&& constraint);
+            void add_constraint(const OverlapConstraint& constraint);
+            void add_constraint(DistanceConstraint&& constraint);
+            void add_constraint(const DistanceConstraint& constraint);
 
             /**
              * @brief Evaluate all constraints.
@@ -31,10 +30,12 @@ namespace rigidbody {
              */
             double evaluate() const;
 
-            Protein* protein;
-            std::shared_ptr<OverlapConstraint> overlap_constraint;                  // The overlap constraint
-            std::vector<std::shared_ptr<DistanceConstraint>> distance_constraints;  // All distance constraints
-			std::unordered_map<unsigned int, std::vector<std::shared_ptr<DistanceConstraint>>> distance_constraints_map; // Maps a body index to all its constraints
+            bool operator==(const ConstraintManager& other) const;
+
+            Protein* protein = nullptr;
+            OverlapConstraint overlap_constraint;                                                        // The overlap constraint
+            std::vector<DistanceConstraint> distance_constraints;                                        // All distance constraints
+			std::unordered_map<unsigned int, std::vector<DistanceConstraint*>> distance_constraints_map; // Maps a body index to all its constraints
 
         private:
             /**

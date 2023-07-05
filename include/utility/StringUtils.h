@@ -11,6 +11,7 @@ namespace utility {
 
     /**
      * @brief Remove quotation marks from both ends of a string. 
+     *        If the string is not enclosed in quotation marks, it is returned unchanged.
      */
     std::string remove_quotation_marks(std::string s);
 

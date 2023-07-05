@@ -1,6 +1,7 @@
 #pragma once
 
 #include <io/Folder.h>
+
 #include <string>
 #include <ostream>
 
@@ -82,8 +83,6 @@ namespace io {
             Folder dir;
             std::string name;
             std::string ext;
-
-            void validate() const;
     };
 }
 

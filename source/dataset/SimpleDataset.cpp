@@ -4,6 +4,8 @@
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <dataset/DatasetFactory.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 #include <vector>
 #include <string>
@@ -45,7 +47,7 @@ SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::
     options.ylabel = ylabel;
 }
 
-SimpleDataset::SimpleDataset(std::string path) : SimpleDataset() {
+SimpleDataset::SimpleDataset(const io::ExistingFile& path) : SimpleDataset() {
     auto data = factory::DatasetFactory::construct(path, 3);
     *this = std::move(*data);
 }
@@ -321,3 +323,5 @@ void SimpleDataset::sort_x() {
     }
     this->assign_matrix(std::move(newdata));
 }
+
+bool SimpleDataset::operator==(const SimpleDataset& other) const = default;

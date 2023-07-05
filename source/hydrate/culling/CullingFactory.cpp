@@ -2,9 +2,14 @@
 #include <hydrate/culling/CounterCulling.h>
 #include <hydrate/culling/OutlierCulling.h>
 #include <hydrate/culling/RandomCulling.h>
+#include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 
-std::unique_ptr<grid::CullingStrategy> grid::factory::construct_culling_strategy(Grid* grid, settings::grid::CullingStrategy choice) {
+std::unique_ptr<grid::CullingStrategy> grid::factory::construct_culling_strategy(Grid* grid) {
+    return grid::factory::construct_culling_strategy(grid, settings::grid::culling_strategy);
+}
+
+std::unique_ptr<grid::CullingStrategy> grid::factory::construct_culling_strategy(Grid* grid, const settings::grid::CullingStrategy& choice) {
     switch (choice) {
         case settings::grid::CullingStrategy::CounterStrategy: 
             return std::make_unique<CounterCulling>(grid);

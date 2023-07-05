@@ -1,7 +1,11 @@
 #include <data/Header.h>
 #include <utility/StringUtils.h>
 
-Record::RecordType Header::get_type() const {return RecordType::HEADER;}
+Header::Header() noexcept = default;
+
+Header::~Header() = default;
+
+RecordType Header::get_type() const {return RecordType::HEADER;}
 
 void Header::parse_pdb(const std::string& s) {add(s);}
 
@@ -24,3 +28,5 @@ void Header::remove(const std::string& type) {
 }
 
 unsigned int Header::size() const {return contents.size();}
+
+bool Header::operator==(const Header& rhs) const = default;

@@ -1,9 +1,18 @@
 #pragma once
 
-#include <data/Protein.h>
-#include <rigidbody/constraints/DistanceConstraint.h>
+#include <utility/Concepts.h>
 
+#include <vector>
+#include <memory>
+
+class Protein;
+class Body;
+class TransformGroup;
+class BackupBody;
+template<numeric T> class Vector3;
+template<numeric T> class Matrix;
 namespace rigidbody {
+    class DistanceConstraint;
     class RigidBody;
     
     /**
@@ -17,12 +26,12 @@ namespace rigidbody {
             /**
              * @brief Construtor. 
              */
-            TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
+            TransformStrategy(RigidBody* rigidbody);
 
             /**
              * @brief Destructor.
              */
-            virtual ~TransformStrategy() = default;
+            virtual ~TransformStrategy();
 
             /**
              * @brief Apply a transformation to a body. 
@@ -33,7 +42,7 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) = 0;
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, rigidbody::DistanceConstraint& constraint) = 0;
 
             /**
              * @brief Undo the previous transformation. 
@@ -42,20 +51,6 @@ namespace rigidbody {
 
         protected: 
             RigidBody* rigidbody;
-
-            struct TransformGroup {
-                TransformGroup(std::vector<Body*> bodies, std::vector<unsigned int> indices, std::shared_ptr<DistanceConstraint> target, Vector3<double> pivot);
-                std::vector<Body*> bodies;                  // The bodies to transform.
-                std::vector<unsigned int> indices;          // The indices of the bodies in the rigidbody.
-                std::shared_ptr<DistanceConstraint> target; // The constraint to transform along.
-                Vector3<double> pivot;                      // The pivot point of the transformation.
-            };
-
-            struct BackupBody {
-                BackupBody(Body body, unsigned int index) : body(body), index(index) {}
-                Body body;
-                unsigned int index;
-            };
 
             std::vector<BackupBody> bodybackup;
 

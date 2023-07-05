@@ -1,13 +1,14 @@
 #pragma once
 
-#include <utility/Limit.h>
-
 #include <initializer_list>
 #include <vector>
 #include <string>
 
+class Limit;
+
 /**
- * @brief A representation of an axis. 
+ * @brief A representation of a one-dimensional axis. 
+ * 		  The left and right limits are inclusive.
  */
 class Axis {
 	public:
@@ -31,11 +32,11 @@ class Axis {
 		 * 
 		 * Construct a new axis based on explicit minimum and maximum values, along with the number of bins. 
 		 * 
-		 * @param bins The number of equidistant bins. 
 		 * @param xmin The minimum value spanned by this axis. 
 		 * @param xmax The maximum value spanned by this axis. 
+		 * @param bins The number of equidistant bins. 
 		 */
-		Axis(int bins, double xmin, double xmax) noexcept;
+		Axis(double xmin, double xmax, int bins) noexcept;
 
 		/**
 		 * @brief List initializer. 
@@ -78,6 +79,10 @@ class Axis {
 		 */
 		double step() const noexcept;
 
+		/**
+		 * @brief Resize this Axis to a new number of bins.
+		 * 		  The maximum value is adjusted to keep the bin width constant.
+		 */
 		void resize(unsigned int bins) noexcept;
 
 		/**

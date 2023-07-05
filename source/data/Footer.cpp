@@ -1,7 +1,11 @@
 #include <data/Footer.h>
 #include <utility/StringUtils.h>
 
-Record::RecordType Footer::get_type() const {return RecordType::FOOTER;}
+Footer::Footer() noexcept = default;
+
+Footer::~Footer() = default;
+
+RecordType Footer::get_type() const {return RecordType::FOOTER;}
 
 void Footer::parse_pdb(const std::string& s) {add(s);}
 
@@ -24,3 +28,5 @@ void Footer::remove(const std::string& type) {
 std::string Footer::get() const {return utility::join(contents, "\n") + (size() == 0 ? "" : "\n");}
 
 unsigned int Footer::size() const {return contents.size();}
+
+bool Footer::operator==(const Footer& rhs) const = default;

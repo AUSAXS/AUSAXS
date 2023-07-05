@@ -44,7 +44,7 @@ namespace hist {
 			 * @brief Get a signalling object for signalling a change of state. 
 			 *        Each body is supposed to hold one of these, and trigger it when they change state. 
 			 */
-			std::shared_ptr<StateManager::BoundSignaller> get_probe(unsigned int i);
+			std::shared_ptr<signaller::Signaller> get_probe(unsigned int i);
 
 			/**
 			 * @brief Signal that the hydration layer was modified. 

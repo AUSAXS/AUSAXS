@@ -98,7 +98,7 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFil
         }
 
         // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
-        if (mode != expected_cols) {
+        if (expected_cols != 0 && mode != expected_cols) {
             // shorten the data to the expected number of columns
             for (unsigned int i = 0; i < data_cols.size(); i++) {
                 std::vector<double> row(expected_cols);
@@ -107,11 +107,12 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFil
                 }
                 data_cols[i] = std::move(row);
             }
+            mode = expected_cols; // update mode to the number of columns we actually have
         }
 
         // add the data to the dataset
         // dataset = std::make_shared<Dataset>(std::move(data_cols));
-        dataset = std::make_shared<Dataset>(0, expected_cols);
+        dataset = std::make_shared<Dataset>(0, mode);
         for (unsigned int i = 0; i < data_cols.size(); i++) {
             dataset->push_back(data_cols[i]);
         }

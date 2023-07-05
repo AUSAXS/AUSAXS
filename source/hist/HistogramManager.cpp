@@ -1,7 +1,8 @@
 #include <data/Atom.h>
+#include <data/Water.h>
 #include <data/Body.h>
 #include <data/Protein.h>
-#include <data/StateManager.h>
+#include <data/state/StateManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <hist/HistogramManager.h>
 #include <settings/HistogramSettings.h>
@@ -10,16 +11,18 @@ using namespace hist;
 
 HistogramManager::HistogramManager(Protein* protein) : BodyTracker(protein), protein(protein) {}
 
+HistogramManager::HistogramManager(const HistogramManager& hm) : BodyTracker(hm.protein), protein(hm.protein) {}
+
 HistogramManager::~HistogramManager() = default;
 
 Histogram HistogramManager::calculate() {return calculate_all().p;}
 
 ScatteringHistogram HistogramManager::calculate_all() {
-    auto atoms = protein->atoms();
-    auto waters = protein->waters();
+    auto atoms = protein->get_atoms();
+    auto waters = protein->get_waters();
 
     double width = settings::axes::distance_bin_width;
-    Axis axes = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
+    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
     std::vector<double> p_pp(axes.bins, 0);
     std::vector<double> p_hh(axes.bins, 0);
     std::vector<double> p_hp(axes.bins, 0);
@@ -102,7 +105,7 @@ ScatteringHistogram HistogramManager::calculate_all() {
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    axes = Axis{max_bin, 0, max_bin*width}; 
+    axes = Axis(0, max_bin*width, max_bin); 
 
     // calculate p_tot    
     for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}

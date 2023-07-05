@@ -18,3 +18,5 @@ namespace settings::axes {
         settings::io::create(skip, "skip")
     });
 }
+
+settings::hist::HistogramManagerChoice settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;

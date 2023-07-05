@@ -1,7 +1,8 @@
 #pragma once
 
-#include <math/Vector3.h>
+#include <utility/Concepts.h>
 
+template<numeric T> class Vector3;
 namespace crystal {
     /**
      * @brief A struct to represent a Miller index. 

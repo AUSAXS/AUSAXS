@@ -1,5 +1,11 @@
 #include <crystal/miller/AllMillers.h>
+#include <crystal/miller/Miller.h>
+#include <settings/CrystalSettings.h>
 #include <crystal/Fval.h>
+
+using namespace crystal;
+
+AllMillers::AllMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
 
 std::vector<crystal::Miller> crystal::AllMillers::generate() const {
     std::vector<Miller> millers;

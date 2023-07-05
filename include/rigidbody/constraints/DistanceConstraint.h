@@ -1,14 +1,13 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
-#include <data/Atom.h>
-#include <data/Body.h>
 
 #include <memory>
 #include <iostream>
 
 class Protein;
-
+class Atom;
+class Body;
 namespace rigidbody {
     /**
      * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
@@ -17,11 +16,6 @@ namespace rigidbody {
      */
     class DistanceConstraint : public Constraint {
         public: 
-            /**
-             * @brief Default constructor.
-             */
-            DistanceConstraint() {}
-
             /**
              * @brief Create a new constraint between a pair of atoms.
              * 
@@ -48,6 +42,8 @@ namespace rigidbody {
              * @param atom2 The second atom.
              */
             DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2);
+
+            virtual ~DistanceConstraint() override = default;
 
             /**
              * @brief Evaluate this constraint for the current positions. 
@@ -96,11 +92,10 @@ namespace rigidbody {
             /**
              * @brief Generate a string representation of this constraint.
              */
-            std::string print() const;
+            std::string to_string() const;
 
-            friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.print(); return os;}
+            friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.to_string(); return os;}
 
-            unsigned int uid;       // Unique identifier for this constraint. 
             double r_base;          // The normal distance between the two atoms. 
             Protein* protein;       // The protein this constraint belongs to.
             unsigned int ibody1;    // The index of the first body.

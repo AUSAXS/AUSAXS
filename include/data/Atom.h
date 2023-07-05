@@ -173,21 +173,87 @@ class Atom : public Record {
          */
         void set_element(const std::string& element);
 
-    //*** getters ***//
+        /**
+         * @brief Get the coordinates of this Atom.
+         */
         Vector3<double>& get_coordinates();
+
+        /**
+         * @brief Get the coordinates of this Atom.
+         */
         const Vector3<double>& get_coordinates() const;
+
+        /**
+         * @brief Get the serial of this Atom.
+         */
         int get_serial() const;
+
+        /**
+         * @brief Get the residue sequence number of this Atom.
+         */
         int get_resSeq() const;
+
+        /**
+         * @brief Get the occupancy of this Atom.
+         */
         double get_occupancy() const;
+
+        /**
+         * @brief Get the temperature factor of this Atom.
+         */
         double get_tempFactor() const;
+
+        /**
+         * @brief Get the effective charge of this Atom. 
+         *        The effective charge is the sum of the absolute charge and the number of bound hydrogens.
+         *        Note that this charge can be modified during runtime.
+         */
         double get_effective_charge() const;
+
+        /**
+         * @brief Get the absolute charge of this Atom. The absolute charge is just the Z value of the atom. (Equivalent to Atom::Z)
+         */
+        double get_absolute_charge() const;
+
+        /**
+         * @brief Get the alternate location of this Atom.
+         */
         std::string get_altLoc() const;
+
+        /**
+         * @brief Get the chain ID of this Atom.
+         */
         std::string get_chainID() const;
+
+        /**
+         * @brief Get the insertion code of this Atom.
+         */
         std::string get_iCode() const;
+
+        /**
+         * @brief Get the string representation of the charge of this Atom.
+         */
         std::string get_charge() const;
+
+        /**
+         * @brief Get the residue name of this Atom.
+         */
         std::string get_resName() const;
+
+        /**
+         * @brief Get the name of this Atom.
+         */
         std::string get_name() const;
+
+        /**
+         * @brief Get the atomic element of this Atom.
+         */
         std::string get_element() const;
+
+        /**
+         * @brief Get the record name of this Atom. 
+         *        This is the first 6 characters of the line in the PDB file.
+         */
         virtual std::string get_recName() const;
 
         /**

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <plots/Plot.h>
-#include <mini/detail/Landscape.h>
 
+namespace mini {class Landscape;}
 namespace plots {
     /**
      * @brief Plot a landscape.

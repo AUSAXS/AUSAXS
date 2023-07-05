@@ -1,16 +1,31 @@
 #include <em/ImageStack.h>
-#include <em/manager/ProteinManager.h>
-#include <fitter/HydrationFitter.h>
 #include <settings/EMSettings.h>
 #include <settings/PlotSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/ProteinSettings.h>
 #include <settings/FitSettings.h>
+#include <settings/HistogramSettings.h>
 #include <utility/Console.h>
 #include <plots/all.h>
+#include <fitter/LinearFitter.h>
+#include <fitter/HydrationFitter.h>
+#include <mini/all.h>
+#include <mini/detail/Parameter.h>
+#include <em/detail/ExtendedLandscape.h>
+#include <em/manager/ProteinManager.h>
+#include <data/Protein.h>
+#include <fitter/Fit.h>
+#include <utility/Limit.h>
+#include <utility/Utility.h>
 
 using namespace em;
 using namespace fitter;
+
+ImageStack::ImageStack(const io::ExistingFile& file) : ImageStackBase(file) {}
+
+ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images) {}
+
+ImageStack::~ImageStack() = default;
 
 std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
@@ -18,10 +33,11 @@ std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h) {
     return fit(h, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit(const hist::ScatteringHistogram& h, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(h);} // ensure parameter bounds are present
 
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, limit) : std::make_shared<LinearFitter>(h, limit);
     return fit_helper(fitter, param);
 }
 
@@ -31,13 +47,18 @@ std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file) {
     return fit(file, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file, mini::Parameter param) {
+std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
     return fit_helper(fitter, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitter, mini::Parameter param) {
+std::shared_ptr<fitter::EMFit> ImageStack::fit_helper(std::shared_ptr<fitter::LinearFitter> fitter) {
+    auto p = mini::Parameter();
+    return fit_helper(fitter, p);
+}
+
+std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitter, mini::Parameter& param) {
     update_charge_levels(*param.bounds);
     set_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
@@ -266,32 +287,33 @@ mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFi
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingFile& file) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan(axis, file);
 }
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, limit) : std::make_shared<LinearFitter>(h, limit);
     return cutoff_scan_helper(points, fitter);
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan(axis, h);
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan_fit(axis, h);
 }
 
-std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::string file) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(points, fitter);
 }
 
-std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::string file) {
-    Axis axis(points, from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max));
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const io::ExistingFile& file) {
+    Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
     return cutoff_scan_fit_helper(axis, fitter);
 }
@@ -306,7 +328,8 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h) {
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, get_limits()) : std::make_shared<LinearFitter>(h, get_limits());
+    auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
+    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(h, limit) : std::make_shared<LinearFitter>(h, limit);
     return cutoff_scan_fit_helper(points, fitter);
 }
 

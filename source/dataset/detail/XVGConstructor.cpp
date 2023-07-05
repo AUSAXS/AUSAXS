@@ -63,7 +63,7 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
     unsigned int mode = stats::mode(col_number);
 
     // sanity check: comparing the detected number of columns with the header
-    if (header.back().find("type") != std::string::npos) {
+    if (!header.empty() && header.back().find("type") != std::string::npos) {
         std::string type = header.back().substr(6);
         if (mode == 2 && type != "xy") {
             console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y].");
@@ -78,7 +78,7 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
 
     // check that we have at least the expected number of columns
     if (expected_cols != 0 && mode < expected_cols) {
-        throw except::io_error("DATConstructor::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
+        throw except::io_error("XVGConstructor::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
     }
 
     // copy the data to the dataset
@@ -94,7 +94,7 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
         }
 
         // having too many columns is not a problem, but we should inform the user and then ignore the extra columns
-        if (mode != expected_cols) {
+        if (expected_cols != 0 && mode != expected_cols) {
             // shorten the data to the expected number of columns
             for (unsigned int i = 0; i < data_cols.size(); i++) {
                 std::vector<double> row(expected_cols);
@@ -103,11 +103,12 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
                 }
                 data_cols[i] = std::move(row);
             }
+            mode = expected_cols;
         }
 
         // add the data to the dataset
         // dataset = std::make_shared<Dataset>(std::move(data_cols));
-        dataset = std::make_shared<Dataset>(0, expected_cols);
+        dataset = std::make_shared<Dataset>(0, mode);
         for (unsigned int i = 0; i < data_cols.size(); i++) {
             dataset->push_back(data_cols[i]);
         }
@@ -120,7 +121,7 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
 
     // verify that at least one row was read correctly
     if (dataset->empty()) {
-        throw except::io_error("DATConstructor::construct: No data could be read from the file.");
+        throw except::io_error("XVGConstructor::construct: No data could be read from the file.");
     }
 
     // unit conversion

@@ -1,18 +1,22 @@
-#include <iostream>
-#include <fstream>
-
 #include <fitter/LinearFitter.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 #include <settings/HistogramSettings.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
+#include <dataset/Dataset2D.h>
+#include <fitter/FitPlots.h>
+
+#include <iostream>
+#include <fstream>
 
 using namespace fitter;
 
-LinearFitter::LinearFitter(std::string input) {setup(input);}
-LinearFitter::LinearFitter(std::string input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
-LinearFitter::LinearFitter(std::string input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
 LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {}
 LinearFitter::LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
 LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model) : LinearFitter(data, model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
@@ -58,7 +62,7 @@ void LinearFitter::normalize_intensity(double new_I0) {
     I0 = new_I0;
 }
 
-Fit::Plots LinearFitter::plot() {
+FitPlots LinearFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("IntensityFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -78,7 +82,7 @@ Fit::Plots LinearFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    Fit::Plots graphs;
+    FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.intensity = SimpleDataset(h.q, ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
@@ -129,7 +133,7 @@ double LinearFitter::chi2(const std::vector<double>&) {
     return fitter.fit_chi2_only();
 }
 
-void LinearFitter::setup(std::string file) {
+void LinearFitter::setup(const io::ExistingFile& file) {
     data = SimpleDataset(file); // read observed values from input file
 }
 

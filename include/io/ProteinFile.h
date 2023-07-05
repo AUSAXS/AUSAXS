@@ -3,16 +3,19 @@
 #include <string>
 #include <vector>
 
-#include <data/Record.h>
 #include <data/Terminate.h>
 #include <data/Header.h>
 #include <data/Footer.h>
-#include <data/Atom.h>
-#include <data/Water.h>
-#include <io/Reader.h>
-#include <io/Writer.h>
-#include <io/PDBWriter.h>
-#include <io/PDBReader.h>
+
+class Atom;
+class Water;
+class Reader;
+class Writer;
+enum class RecordType;
+namespace io {
+    class File;
+    class ExistingFile;
+}
 
 /**
  * @brief An abstract representation of an input ProteinFile. Handles both reading and writing of ProteinFiles, and also stores the relevant ProteinFile data. 
@@ -22,7 +25,7 @@ class ProteinFile {
         /**
          * @brief Default constructor.
          */
-        ProteinFile() {}
+        ProteinFile();
 
         /**
          * @brief Copy constructor.
@@ -58,7 +61,7 @@ class ProteinFile {
          *        Construct a new ProteinFile based on a input molecular data ProteinFile. 
          * @param ProteinFilename Path to the input ProteinFile. 
          */
-        ProteinFile(std::string ProteinFilename);
+        ProteinFile(const io::ExistingFile& ProteinFilename);
 
         /**
          * @brief Destructor.
@@ -76,13 +79,13 @@ class ProteinFile {
          * @brief Fill this object with data from a given input data ProteinFile. 
          * @param path Path to the input data ProteinFile. 
          */
-        void read(std::string path);
+        void read(const io::ExistingFile& path);
 
         /**
          * @brief Write this ProteinFile to disk. 
          * @param path Path to where this object will be written. 
          */
-        void write(std::string path);
+        void write(const io::File& path);
 
         /**
          * @brief Get the protein atoms contained in this ProteinFile. 
@@ -118,7 +121,7 @@ class ProteinFile {
          * @param type HEADER or FOOTER.
          * @param s The text string to be added. 
          */
-        void add(Record::RecordType type, std::string s);
+        void add(const RecordType& type, const std::string& s);
 
         /**
          * @brief Internally updates the consistency of the currently stored data. This ensures this object is in a valid
@@ -131,6 +134,10 @@ class ProteinFile {
         ProteinFile& operator=(const ProteinFile& rhs);
 
         ProteinFile& operator=(ProteinFile&& rhs);
+
+        bool operator==(const ProteinFile& rhs) const;
+
+        bool equals_content(const ProteinFile& rhs) const;
 
         Header header;
         Footer footer;
@@ -146,10 +153,10 @@ class ProteinFile {
          * @brief Construct a Reader appropriate for the ProteinFile format deduced from the input data ProteinFile. 
          * @param path Path to the input data ProteinFile. 
          */
-        std::unique_ptr<Reader> construct_reader(std::string path);
+        std::unique_ptr<Reader> construct_reader(const io::ExistingFile& path);
         /**
          * @brief Construct a Writer appropriate for the ProteinFile format deduced from the output save path.
          * @param path Path to where this object will be written. 
          */
-        std::unique_ptr<Writer> construct_writer(std::string path);
+        std::unique_ptr<Writer> construct_writer(const io::File& path);
 };

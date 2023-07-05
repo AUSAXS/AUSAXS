@@ -156,7 +156,7 @@ string Atom::as_pdb() const {
     return ss.str();
 }
 
-Record::RecordType Atom::get_type() const {return RecordType::ATOM;}
+RecordType Atom::get_type() const {return RecordType::ATOM;}
 
 double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
 void Atom::translate(Vector3<double> v) {coords += v;}
@@ -190,6 +190,7 @@ int Atom::get_serial() const {return serial;}
 int Atom::get_resSeq() const {return resSeq;}
 double Atom::get_occupancy() const {return occupancy;}
 double Atom::get_tempFactor() const {return tempFactor;}
+double Atom::get_absolute_charge() const {return Z();}
 double Atom::get_effective_charge() const {return effective_charge;}
 string Atom::get_altLoc() const {return altLoc;}
 string Atom::get_chainID() const {return chainID;}
@@ -206,7 +207,7 @@ double Atom::get_mass() const {
         if (element.empty() || resName.empty() || name.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
         }
-        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::atomic.get("H");
     } else {
         if (element.empty()) [[unlikely]] {
             throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");

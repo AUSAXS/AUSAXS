@@ -1,9 +1,5 @@
 #include <CLI/CLI.hpp>
 
-#include <vector>
-#include <string>
-#include <iostream>
-
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <fitter/HydrationFitter.h>
@@ -13,6 +9,15 @@
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <utility/Constants.h>
+
+#include <data/Water.h>
+#include <mini/detail/Evaluation.h>
+#include <mini/detail/FittedParameter.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
 
 int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
@@ -35,7 +40,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used. Default: true.");
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used. Default: false.");
-    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted. Default: true.");
+    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted. Default: false.");
     CLI11_PARSE(app, argc, argv);
 
     //###################//
@@ -80,7 +85,7 @@ int main(int argc, char const *argv[]) {
     //### ACTUAL PROGRAM ###//
     //######################//
     Protein protein(pdb);
-    if (!use_existing_hydration || protein.hydration_atoms.empty()) {
+    if (!use_existing_hydration || protein.water_size() == 0) {
         protein.generate_new_hydration();
     }
     // hist::ScatteringHistogram h = protein.get_histogram();

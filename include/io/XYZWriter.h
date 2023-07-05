@@ -1,10 +1,9 @@
 #pragma once
 
-#include <data/Protein.h>
-#include <io/File.h>
-
 #include <fstream>
 
+class Protein;
+namespace io {class File;}
 namespace io {
     /**
      * @brief This class can write .xyz trajectory files.

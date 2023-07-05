@@ -10,6 +10,8 @@
 #include <fitter/FitReporter.h>
 #include <plots/all.h>
 #include <settings/All.h>
+#include <io/File.h>
+#include <fitter/HydrationFitter.h>
 
 int main(int argc, char const *argv[]) { 
     settings::grid::scaling = 2;
@@ -20,7 +22,8 @@ int main(int argc, char const *argv[]) {
     settings::axes::distance_bin_width = 0.1;
 
     CLI::App app{"Rigid-body optimization."};
-    std::string pdb, mfile, placement_strategy, settings;
+    io::File pdb, mfile, settings;
+    std::string placement_strategy;
     std::vector<unsigned int> constraints;
     app.add_option("input_s", pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", mfile, "Path to the measuremed data.")->required()->check(CLI::ExistingFile);
@@ -42,7 +45,7 @@ int main(int argc, char const *argv[]) {
     //###################//
     //### PARSE INPUT ###//
     //###################//
-    settings::general::output += utility::stem(mfile) + "/";
+    settings::general::output += mfile.stem() + "/";
 
     // if a settings file was provided
     if (p_settings->count() != 0) {

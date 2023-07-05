@@ -1,4 +1,7 @@
 #include <hydrate/GridObj.h>
+#include <math/Vector3.h>
+
+using namespace grid;
 
 GridObj::GridObj(unsigned int x, unsigned int y, unsigned int z) : xdim(x), ydim(y), zdim(z), grid(x, std::vector<std::vector<DATATYPE>>(y, std::vector<DATATYPE>(z, EMPTY))) {}
 

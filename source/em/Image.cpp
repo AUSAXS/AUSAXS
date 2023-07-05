@@ -1,8 +1,7 @@
 #include <em/Image.h>
 #include <settings/EMSettings.h>
-
-#include <list>
-#include <vector>
+#include <em/Datatypes.h>
+#include <data/Atom.h>
 
 using namespace em;
 
@@ -12,9 +11,9 @@ Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), boun
 
 Image::Image(const Matrix<float>& data, std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
 
-void Image::set_z(unsigned int z) {
-    this->z = z;
-}
+void Image::set_z(unsigned int z) {this->z = z;}
+
+unsigned int Image::get_z() const {return z;}
 
 float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
@@ -27,7 +26,6 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
     double xscale = header->cella_x/N;
     double yscale = header->cella_y/M;
     double zscale = header->cella_z/header->nz;
-
     unsigned int step = settings::em::sample_frequency;
     
     // define a weight function for more efficient switching. 
@@ -41,18 +39,23 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
             if (val < cutoff) {
                 continue;
             }
-
-            Vector3 coords{x*xscale, y*yscale, z*zscale};
-            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", coords, weight(val), 0, "C", ""));
+            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, "C", ""));
         }
     }
-
     return atoms;
 }
 
 unsigned int Image::count_voxels(double cutoff) const {
-    std::list<Atom> l = generate_atoms(cutoff);
-    return l.size();
+    unsigned int count = 0;
+    unsigned int step = settings::em::sample_frequency;
+    for (unsigned int x = 0; x < N; x += step) {
+        for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
+            if (index(x, y) >= cutoff) {
+                count++;
+            }
+        }
+    }
+    return count;
 }
 
 double Image::squared_sum() const {
@@ -67,7 +70,7 @@ double Image::squared_sum() const {
 
 hist::Histogram2D Image::as_hist() const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::as_hist: Header must be initialized to use this method.");}
-    hist::Histogram2D hist(Axis(header->nx, 0, header->cella_x), Axis(header->ny, 0, header->cella_y));
+    hist::Histogram2D hist(Axis(0, header->cella_x, header->nx), Axis(0, header->cella_y, header->ny));
 
     for (unsigned int x = 0; x < N; x++) {
         for (unsigned int y = 0; y < M; y++) {
@@ -111,20 +114,24 @@ const ObjectBounds2D& Image::get_bounds() const {
 
 const ObjectBounds2D& Image::setup_bounds(double cutoff) {
     for (unsigned int x = 0; x < N; x++) {
-        bounds[x].min = 0;
-        bounds[x].max = 0;
+        bounds.set_bounds(x, 0, 0);
         bool min_set = false;
         for (unsigned int y = 0; y < M; y++) {
             if (index(x, y) < cutoff) {continue;}
             if (!min_set) {
-                bounds[x].min = y; // update min val to this index
-                bounds[x].max = y; // also set max in case this is the only entry
+                bounds.set_bounds(x, y, y); // update min val to this index, and also set max in case this is the only entry
                 min_set = true;
             } else {
-                bounds[x].max = y;
+                bounds.set_max(x, y);
             }
         }
     }
 
     return bounds;
 }
+
+bool Image::operator==(const Image& other) const {
+    return data == other.data && N == other.N && M == other.M && z == other.z;
+}
+
+std::string Image::to_string() const {return data.to_string();}

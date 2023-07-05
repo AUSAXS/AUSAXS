@@ -1,4 +1,7 @@
 #include <rigidbody/parameters/RotationsOnly.h>
+#include <math/Vector3.h>
+
+#include <random>
 
 using namespace rigidbody;
 

@@ -1,9 +1,7 @@
 #include <plots/PlotResolutionComparison.h>
+#include <plots/PlotDataset.h>
+#include <dataset/Multiset.h>
 #include <utility/Exceptions.h>
-
-#include <memory.h>
-#include <string.h>
-#include <vector>
 
 plots::PlotResolutionComparison::PlotResolutionComparison(Multiset& data) {
     if (data.empty()) {throw except::size_error("PlotResolutionComparison::PlotResolutionComparison: The given Multiset is empty!");}

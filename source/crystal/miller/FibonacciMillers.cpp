@@ -1,4 +1,5 @@
 #include <crystal/miller/FibonacciMillers.h>
+#include <crystal/miller/Miller.h>
 #include <crystal/Fval.h>
 #include <settings/CrystalSettings.h>
 

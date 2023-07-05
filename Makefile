@@ -13,6 +13,7 @@ options :=
 
 
 .SECONDARY:
+.SECONDEXPANSION:
 #################################################################################
 ###				PYTHON PLOTS				      ###
 #################################################################################
@@ -306,32 +307,40 @@ old_simulate/%:
 	rm $(*F).pdb.mtz;\
 	mv $(*F)_fmodel.ccp4 sim/$(*F)_$(res).ccp4;\
 
-stuff/%: build/executable/stuff data/%.pdb
-#	@$< data/$*.pdb sim/native_20.ccp4 sim/native_21.ccp4 sim/native_22.ccp4 sim/native_23.ccp4
-	@$< data/$*.pdb $$(find sim/ -name "$**" -printf "%p\n" | sort | awk '{printf("%s ", $$0)}')
-
+stuff/%: build/executable/stuff
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	$< $${structure}
 
 ####################################################################################
 ###				TESTS						 ###
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-memtest/%: $(shell find source/ -print) test/%.cpp	
-	valgrind --track-origins=yes --log-file="valgrind.txt" build/test [$(*F)] ${tags}
+test_files = $(addprefix test/ -name "*.cpp", $(shell find test/ -printf "%P "))
 
-tests: $(shell find source/ -print) $(shell find test/ -print)
+memtest/%: $$(shell find test/ -name "%.cpp")
+	@ make -C build "test_$*" -j${cmake_threads}
+	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
+
+debug_tests: $(source) $(test_files)
 	@ make -C build tests -j${cmake_threads}
-	@ mkdir -p build/reports
-	@ for test in $$(find build/test/bin/*); do\
+	@ for test in $$(find build/test/bin/test_*); do\
+		$${test} $(exclude_tags);\
+	done
+
+tests: $(source_files) $(test_files)
+	@ make -C build tests -j${cmake_threads}
+	@ mkdir -p build/test/reports
+	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%: test/%.cpp
+test/%: $$(shell find test/ -name "%.cpp")
 	@ make -C build "test_$*" -j${cmake_threads}
 	build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
-build/test/%: $(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
+build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
 	@ cmake --build build --target $* -j${cmake_threads}
 
 

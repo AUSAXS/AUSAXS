@@ -1,7 +1,11 @@
 #include <data/Protein.h>
+#include <data/Body.h>
+#include <data/Atom.h> 
+#include <data/Water.h>
 #include <hist/PartialHistogramManagerMT.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
+#include <data/state/StateManager.h>
 
 #include <mutex>
 #include <BS_thread_pool.hpp>
@@ -15,15 +19,15 @@ PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& ph
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
 Histogram PartialHistogramManagerMT::calculate() {
-    const std::vector<bool> externally_modified = statemanager.get_externally_modified_bodies();
-    const std::vector<bool> internally_modified = statemanager.get_internally_modified_bodies();
+    // if (statemanager == nullptr) {throw except::unexpected("PartialHistogramManagerMT::calculate: statemanager is null");}
+    const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
+    const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
     pool = std::make_unique<BS::thread_pool>(settings::general::threads);
     // check if the object has already been initialized
     if (master.p.size() == 0) [[unlikely]] {
         initialize(); 
     }
-
     
     // if not, we must first check if the coordinates have been changed in any of the bodies
     else {
@@ -33,14 +37,14 @@ Histogram PartialHistogramManagerMT::calculate() {
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                coords_p[i] = detail::CompactCoordinates(protein->bodies[i]);
+                coords_p[i] = detail::CompactCoordinates(protein->get_body(i));
             }
         }
     }
 
     // check if the hydration layer was modified
-    if (statemanager.get_modified_hydration()) {
-        coords_h = detail::CompactCoordinates(protein->hydration_atoms); // if so, first update the compact coordinate representation
+    if (statemanager->get_modified_hydration()) {
+        coords_h = detail::CompactCoordinates(protein->get_waters()); // if so, first update the compact coordinate representation
         calc_hh(); // then update the partial histogram
 
         // iterate through the lower triangle
@@ -67,7 +71,7 @@ Histogram PartialHistogramManagerMT::calculate() {
             }
         }
     }
-    statemanager.reset();
+    statemanager->reset();
     return Histogram(master.p, master.axis);
 }
 
@@ -110,7 +114,7 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
 
 void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
     double width = settings::axes::distance_bin_width;
-    detail::CompactCoordinates current(protein->bodies[index]);
+    detail::CompactCoordinates current(protein->get_body(index));
 
     // calculate internal distances between atoms
     auto calc_internal = [&] (unsigned int imin, unsigned int imax) {
@@ -167,7 +171,7 @@ void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
  */
 void PartialHistogramManagerMT::initialize() {
     double width = settings::axes::distance_bin_width;
-    Axis axis = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
+    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/width); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
@@ -323,7 +327,7 @@ void PartialHistogramManagerMT::calc_hh() {
     auto calc_hh = [&] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_hh(master.axis.bins, 0);
         for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = i+1; j < protein->hydration_atoms.size(); j++) {
+            for (unsigned int j = i+1; j < protein->get_waters().size(); j++) {
                 float weight = coords_h.data[i].w*coords_h.data[j].w;
                 float dx = coords_h.data[i].x - coords_h.data[j].x;
                 float dy = coords_h.data[i].y - coords_h.data[j].y;
@@ -338,14 +342,14 @@ void PartialHistogramManagerMT::calc_hh() {
     // calculate self correlation
     auto calc_self = [&] () {
         std::vector<double> p_hh(master.axis.bins, 0);
-        for (unsigned int i = 0; i < protein->hydration_atoms.size(); i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
+        for (unsigned int i = 0; i < protein->get_waters().size(); i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
         return p_hh;
     };
 
     // submit jobs to the thread pool
     BS::multi_future<std::vector<double>> hh;
-    for (unsigned int i = 0; i < protein->hydration_atoms.size(); i += settings::general::detail::job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, (unsigned int) protein->hydration_atoms.size())));
+    for (unsigned int i = 0; i < protein->get_waters().size(); i += settings::general::detail::job_size) {
+        hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, (unsigned int) protein->get_waters().size())));
     }
     hh.push_back(pool->submit(calc_self));
     pool->wait_for_tasks();

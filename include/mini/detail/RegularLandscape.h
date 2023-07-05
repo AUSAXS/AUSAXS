@@ -1,20 +1,22 @@
 #pragma once
 
-#include <string>
-
 #include <mini/detail/Landscape.h>
+#include <mini/detail/Evaluation.h>
 #include <math/Matrix.h>
 
+#include <string>
+
+namespace io {class ExistingFile;}
 namespace mini {
     struct RegularLandscape : Landscape {
-        RegularLandscape(Landscape l);
+        RegularLandscape(const Landscape& l);
 
         /**
          * @brief Construct a Landscape from a saved file. 
          * 
          * @param file Path to the file. 
          */
-        RegularLandscape(std::string file);
+        RegularLandscape(const io::ExistingFile& file);
 
         /**
          * @brief Flip the x and y axes. 

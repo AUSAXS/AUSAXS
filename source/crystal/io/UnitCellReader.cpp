@@ -1,5 +1,8 @@
 #include <crystal/io/UnitCellReader.h>
 #include <utility/StringUtils.h>
+#include <io/ExistingFile.h>
+#include <math/Vector3.h>
+#include <utility/Basis3D.h>
 #include <settings/HistogramSettings.h>
 
 #include <fstream>

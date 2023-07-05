@@ -1,16 +1,12 @@
 #pragma once
 
-// forwards declaration
-class Protein;
-
-#include <data/StateManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <hist/Histogram.h>
 #include <hist/detail/BodyTracker.h>
 
 #include <vector>
-#include <concepts>
 
+class Protein;
 namespace hist {
 	/**
 	 * @brief A histogram manager which calculates the distance histogram in a slow but simple way. 
@@ -19,6 +15,8 @@ namespace hist {
 	class HistogramManager : public hist::BodyTracker {
 		public:
 			HistogramManager(Protein* protein); 
+
+			HistogramManager(const HistogramManager& hm); 
 
 			virtual ~HistogramManager();
 
@@ -35,9 +33,4 @@ namespace hist {
 		protected:
 			Protein* protein;	// pointer to the parent Protein
     };
-
-	namespace detail {
-		template<typename T>
-        concept HistogramManagerType = std::derived_from<T, HistogramManager>;
-	}
 }

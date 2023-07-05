@@ -1,4 +1,9 @@
 #include <plots/PlotIntensityFitResiduals.h>
+#include <hist/ScatteringHistogram.h>
+#include <fitter/Fit.h>
+#include <fitter/LinearFitter.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 plots::PlotIntensityFitResiduals::PlotIntensityFitResiduals(fitter::LinearFitter& fitter) : Plot() {
     SimpleDataset graph = fitter.plot_residuals();
@@ -20,7 +25,7 @@ void plots::PlotIntensityFitResiduals::quick_plot(const std::shared_ptr<fitter::
     plot.save(path);
 }
 
-void plots::PlotIntensityFitResiduals::plot(const SimpleDataset graph) {
+void plots::PlotIntensityFitResiduals::plot(const SimpleDataset& graph) {
     PlotOptions options("markers", {{"color", style::color::orange}, {"title", "Residuals"}, {"xlabel", "$q$ [$\\AA^{-1}$]"}, {"ylabel", "Residual"}, {"logx", true}});
     PlotOptions line("line", {{"color", style::color::black}});
 

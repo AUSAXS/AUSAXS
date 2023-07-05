@@ -1,8 +1,6 @@
 #pragma once
 
 #include <data/Atom.h>
-#include <data/Record.h>
-#include <math/Vector3.h>
 
 class Water : public Atom {
     public:

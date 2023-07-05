@@ -2,9 +2,10 @@
 
 #include <utility/ResidueParser.h>
 #include <utility/SimpleMap.h>
-#include <io/ExistingFile.h>
 
 #include <string>
+
+namespace io {class ExistingFile;}
 
 /**
  * @brief Constexpr power function.

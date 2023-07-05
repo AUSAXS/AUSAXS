@@ -1,12 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <utility>
-
 #include <hist/Histogram.h>
 #include <hist/DebyeLookupTable.h>
 #include <dataset/SimpleDataset.h>
+
+#include <vector>
+#include <string>
+#include <utility>
 
 namespace hist {
 	class ScatteringHistogram : public Histogram {
@@ -14,24 +14,21 @@ namespace hist {
 			/**
 			 * @brief Default constructor.
 			 */
-			ScatteringHistogram() {}
+			ScatteringHistogram();
 
 			/**
 			 * @brief Move constructor.
 			 */
-			ScatteringHistogram(const ScatteringHistogram&& sh) noexcept : Histogram(sh.p, sh.axis), p_pp(sh.p_pp), p_hh(sh.p_hh), p_hp(sh.p_hp) {
-				setup();
-			}
+			ScatteringHistogram(const ScatteringHistogram&& sh) noexcept;
 
 			/**
 			 * @brief Copy constructor. 
 			 */
-			ScatteringHistogram(const ScatteringHistogram& sh) : Histogram(sh.p, sh.axis), p_pp(sh.p_pp), p_hh(sh.p_hh), p_hp(sh.p_hp) {
-				setup();
-			}
+			ScatteringHistogram(const ScatteringHistogram& sh);
 
-			ScatteringHistogram(const std::vector<double>& p_pp, const std::vector<double>& p_hh, const std::vector<double>& p_hp, const std::vector<double>& p_tot, const Axis& axis)
-				: Histogram(p_tot, axis), p_pp(p_pp, axis), p_hh(p_hh, axis), p_hp(p_hp, axis) {setup();}
+			ScatteringHistogram(const std::vector<double>& p_pp, const std::vector<double>& p_hh, const std::vector<double>& p_hp, const std::vector<double>& p_tot, const Axis& axis);
+
+			~ScatteringHistogram() override;
 
 			/**
 			 * @brief Applies the scaling factor @a k to the contribution from the water molecules to this histogram. 
@@ -95,6 +92,8 @@ namespace hist {
 			 * @brief Assign another ScatteringHistogram to this object.
 			 */
 			ScatteringHistogram& operator=(ScatteringHistogram&& h);
+
+			bool operator==(const ScatteringHistogram& h) const;
 
             [[nodiscard]] std::string to_string() const noexcept override;
 

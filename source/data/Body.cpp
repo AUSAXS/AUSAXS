@@ -1,27 +1,46 @@
 #include <data/Body.h>
 #include <data/Atom.h>
+#include <data/Water.h>
+#include <data/state/UnboundSignaller.h>
 #include <hydrate/Grid.h>
 #include <utility/Constants.h>
 #include <settings/ProteinSettings.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
+#include <math/Vector3.h>
 
 #include <vector>
 #include <map>
 #include <utility>
 #include <algorithm>
 
-Body::Body() {}
+Body::Body() {
+    initialize();
+}
 
-Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {}
+Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {
+    initialize();
+}
 
-Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {}
+Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {
+    initialize();
+}
 
-Body::Body(const Body& body) : uid(body.uid), file(body.file) {}
+Body::Body(const std::vector<Atom>& protein_atoms) : Body(protein_atoms, std::vector<Water>()) {}
 
-Body::Body(Body&& body) : uid(body.uid), file(std::move(body.file)) {}
+Body::Body(const Body& body) : uid(body.uid), file(body.file) {
+    initialize();
+}
+
+Body::Body(Body&& body) : uid(body.uid), file(std::move(body.file)) {
+    initialize();
+}
 
 Body::~Body() = default;
+
+void Body::initialize() {
+    signal = std::make_shared<signaller::UnboundSignaller>();
+}
 
 void Body::save(const io::File& path) {file.write(path);}
 
@@ -97,11 +116,11 @@ void Body::update_effective_charge(double charge) {
 }
 
 double Body::total_atomic_charge() const {
-    return std::accumulate(atoms().begin(), atoms().end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
 }
 
 double Body::total_effective_charge() const {
-    return std::accumulate(atoms().begin(), atoms().end(), 0.0, [](double sum, const Atom& a) { return sum + a.get_effective_charge(); });
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [](double sum, const Atom& a) { return sum + a.get_effective_charge(); });
 }
 
 double Body::molar_mass() const {
@@ -135,22 +154,36 @@ bool Body::operator==(const Body& rhs) const {
     return uid == rhs.uid;
 }
 
+bool Body::equals_content(const Body& rhs) const {
+    return file.equals_content(rhs.file);
+}
+
 void Body::changed_external_state() const {signal->external_change();}
 
 void Body::changed_internal_state() const {signal->internal_change();}
 
-void Body::register_probe(std::shared_ptr<StateManager::BoundSignaller> signal) {this->signal = signal;}
+std::shared_ptr<signaller::Signaller> Body::get_signaller() const {
+    return signal;
+}
 
-std::vector<Atom>& Body::atoms() {return file.protein_atoms;}
+void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
+    this->signal = signal;
+}
 
-std::vector<Water>& Body::waters() {return file.hydration_atoms;}
+std::vector<Atom>& Body::get_atoms() {return file.protein_atoms;}
 
-const std::vector<Atom>& Body::atoms() const {return file.protein_atoms;}
+std::vector<Water>& Body::get_waters() {return file.hydration_atoms;}
 
-const std::vector<Water>& Body::waters() const {return file.hydration_atoms;}
+const std::vector<Atom>& Body::get_atoms() const {return file.protein_atoms;}
 
-Atom& Body::atoms(unsigned int index) {return file.protein_atoms[index];}
+const std::vector<Water>& Body::get_waters() const {return file.hydration_atoms;}
 
-const Atom& Body::atoms(unsigned int index) const {return file.protein_atoms[index];}
+Atom& Body::get_atom(unsigned int index) {return file.protein_atoms[index];}
+
+const Atom& Body::get_atom(unsigned int index) const {return file.protein_atoms[index];}
 
 ProteinFile& Body::get_file() {return file;}
+
+unsigned int Body::get_id() const {return uid;}
+
+unsigned int Body::atom_size() const {return file.protein_atoms.size();}

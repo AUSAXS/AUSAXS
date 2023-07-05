@@ -1,16 +1,14 @@
-#include <vector>
-#include <map>
-
 #include <hydrate/Grid.h>
+#include <hydrate/culling/CullingFactory.h>
+#include <hydrate/placement/PlacementFactory.h>
+#include <hydrate/GridMember.h>
 #include <data/Atom.h>
 #include <data/Body.h>
 #include <data/Water.h>
-#include <hydrate/culling/CullingFactory.h>
-#include <hydrate/placement/PlacementFactory.h>
 #include <settings/GridSettings.h>
-#include <math/Vector3.h>
 #include <utility/Console.h>
 #include <data/Protein.h>
+#include <io/ExistingFile.h>
 
 using namespace grid;
 
@@ -26,11 +24,11 @@ Grid::Grid(const std::vector<Body>& bodies) {
     // find the total bounding box containing all bodies
     Vector3 min{0, 0, 0}, max{0, 0, 0};
     for (const Body& body : bodies) {
-        auto[cmin, cmax] = bounding_box(body.atoms());
+        auto[cmin, cmax] = bounding_box(body.get_atoms());
 
         for (unsigned int i = 0; i < 3; i++) {
-            if (cmin[i] < min[i]) {min[i] = cmin[i];}
-            if (cmax[i] > max[i]) {max[i] = cmax[i];}
+            if (cmin[i] < min[i]) {min[i] = std::floor(cmin[i]);}
+            if (cmax[i] > max[i]) {max[i] = std::ceil(cmax[i]);}
         }
     }
 
@@ -47,7 +45,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
 
     // finally add all atoms to the grid
     for (const Body& body : bodies) {
-        add(body.atoms());
+        add(body.get_atoms());
     }
 }
 
@@ -58,6 +56,8 @@ Grid::Grid(const Grid& grid) {
 Grid::Grid(Grid&& grid) noexcept {
     *this = std::move(grid);
 }
+
+Grid::~Grid() = default;
 
 void Grid::setup() {
     // check if the grid should be cubic
@@ -94,8 +94,8 @@ void Grid::setup() {
     this->set_radius_atoms(settings::grid::ra);
     this->set_radius_water(settings::grid::rh);
 
-    water_placer = grid::factory::construct_placement_strategy(this, settings::grid::placement_strategy);
-    water_culler = grid::factory::construct_culling_strategy(this, settings::grid::culling_strategy);
+    water_placer = grid::factory::construct_placement_strategy(this);
+    water_culler = grid::factory::construct_culling_strategy(this);
 }
 
 std::vector<Water> Grid::hydrate() {
@@ -287,15 +287,27 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int) {
     // return to_remove;
 }
 
+template <typename T, typename = std::enable_if_t<std::is_base_of<Atom, T>::value>>
+std::vector<GridMember<T>> Grid::add(const std::vector<T>& atoms) {
+    std::vector<GridMember<T>> v(atoms.size());
+    unsigned int index = 0;
+    for (const auto& a : atoms) {
+        v[index++] = add(a);
+    }
+    return v;
+}
+template std::vector<GridMember<Atom>> Grid::add<Atom>(const std::vector<Atom>&);
+template std::vector<GridMember<Water>> Grid::add<Water>(const std::vector<Water>&);
+
 std::vector<GridMember<Atom>> Grid::add(const Body* body) {
-    return add(body->atoms());
+    return add(body->get_atoms());
 }
 
 void Grid::remove(const Body* body) {
-    remove(body->atoms());
+    remove(body->get_atoms());
 }
 
-GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
+const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     auto loc = to_bins(atom.coords);
     unsigned int x = loc.x(), y = loc.y(), z = loc.z();
 
@@ -305,17 +317,17 @@ GridMember<Atom> Grid::add(const Atom& atom, bool expand) {
         throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
     }
 
-    if (grid.index(x, y, z) == GridObj::EMPTY) {volume++;}
+    if (grid.index(x, y, z) != GridObj::A_AREA) {volume++;}
 
     GridMember gm(atom, loc);
     grid.index(x, y, z) = GridObj::A_CENTER;
     if (expand) {expand_volume(gm);}
-    a_members.push_back(gm);
+    a_members.push_back(std::move(gm));
 
-    return gm;
+    return a_members.back();
 }
 
-GridMember<Water> Grid::add(const Water& water, bool expand) {
+const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     auto loc = to_bins(water.coords);
     unsigned int x = loc.x(), y = loc.y(), z = loc.z(); 
 
@@ -328,9 +340,9 @@ GridMember<Water> Grid::add(const Water& water, bool expand) {
     GridMember gm(water, loc);
     grid.index(x, y, z) = GridObj::H_CENTER;
     if (expand) {expand_volume(gm);}
-    w_members.push_back(gm);
+    w_members.push_back(std::move(gm));
 
-    return gm;
+    return w_members.back();
 }
 
 void Grid::remove(std::vector<bool>& to_remove) {
@@ -410,7 +422,7 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     // and fill it with the uids that should be removed
     std::for_each(atoms.begin(), atoms.end(), [&removed] (const Atom& atom) {removed[atom.uid] = true;});
 
-    size_t index = 0; // current index in removed_atoms
+    unsigned int index = 0; // current index in removed_atoms
     std::vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
     auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
         if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
@@ -421,9 +433,9 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     };
 
     // we save the sizes so we can make a sanity check after the removal    
-    size_t prev_size = a_members.size();
+    unsigned int prev_size = a_members.size();
     a_members.remove_if(predicate);
-    size_t cur_size = a_members.size();
+    unsigned int cur_size = a_members.size();
 
     // sanity check
     if (prev_size - cur_size != atoms.size()) [[unlikely]] {
@@ -597,7 +609,7 @@ bool Grid::operator==(const Grid& rhs) const {
     return true;
 }
 
-void Grid::save(std::string path) const {
+void Grid::save(const io::File& path) const {
     std::vector<Atom> atoms;
     std::vector<Water> waters;
     unsigned int c = 0;
@@ -633,7 +645,7 @@ Body Grid::generate_excluded_volume() const {
                 switch (grid.index(i, j, k)) {
                     case GridObj::A_AREA:
                     case GridObj::A_CENTER: 
-                        body.atoms().push_back(Water::create_new_water(to_xyz(i, j, k)));
+                        body.get_atoms().push_back(Water::create_new_water(to_xyz(i, j, k)));
                         break;
                     default: 
                         break;
@@ -644,10 +656,17 @@ Body Grid::generate_excluded_volume() const {
     return body;
 }
 
-GridObj::DATATYPE Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
+const GridObj::DATATYPE& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
     return grid.index(i, j, k);
 }
 
 std::vector<Atom> Grid::get_surface_atoms() const {
     throw except::not_implemented("Grid::get_surface_atoms: Not implemented.");
+}
+
+Vector3<double> Grid::to_xyz(int i, int j, int k) const {
+    double x = axes.x.min + width*i;
+    double y = axes.y.min + width*j;
+    double z = axes.z.min + width*k;
+    return {x, y, z};
 }

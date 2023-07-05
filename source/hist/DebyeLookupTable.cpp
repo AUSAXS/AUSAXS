@@ -4,6 +4,8 @@
 #include <utility/Utility.h>
 #include <utility/Axis.h>
 
+#include <cmath>
+
 using namespace table;
 
 DebyeLookupTable::DebyeLookupTable() {}
@@ -80,7 +82,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
                 double qd2 = qd*qd;
                 val = 1 - qd2/6 + qd2*qd2/120;
             } else {
-                val = sin(qd)/qd;
+                val = std::sin(qd)/qd;
             }
             table.assign_index(i, j, val);
         }
@@ -89,7 +91,7 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
 
 bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vector<double>& d) {
     // check q
-    Axis axis = Axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+    Axis axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     double width = settings::axes::distance_bin_width;
 
     if (q.size() != axis.bins) {return false;}

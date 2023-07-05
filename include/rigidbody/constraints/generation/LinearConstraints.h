@@ -10,6 +10,6 @@ namespace rigidbody {
             /**
              * @brief Generate a constraint.
              */
-            std::vector<std::shared_ptr<DistanceConstraint>> generate() const override;
+            std::vector<DistanceConstraint> generate() const override;
     };
 }

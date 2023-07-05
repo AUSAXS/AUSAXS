@@ -4,7 +4,6 @@
 #include <hist/Histogram.h>
 
 class Protein;
-
 namespace rigidbody {
 
     /**
@@ -16,9 +15,11 @@ namespace rigidbody {
      */
     class OverlapConstraint : public Constraint {
         public:
-            OverlapConstraint() = default;
+            OverlapConstraint();
 
             OverlapConstraint(Protein* protein);
+
+            virtual ~OverlapConstraint() override;
 
             /**
              * @brief Evaluate this constraint for the current positions. 
@@ -26,6 +27,11 @@ namespace rigidbody {
              * @return The chi2 contribution of this constraint.
              */
             double evaluate() const override;
+
+            bool operator==(const OverlapConstraint& other) const;
+
+        protected:
+            static double weight(double r);
 
         private: 
             Protein* protein;

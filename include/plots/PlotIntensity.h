@@ -1,12 +1,16 @@
 #pragma once
 
-#include <fitter/Fit.h>
-#include <fitter/Fitter.h>
 #include <plots/Plot.h>
-#include <hist/ScatteringHistogram.h>
+#include <plots/Styles.h>
 
 #include <memory>
 
+namespace hist {class ScatteringHistogram;}
+namespace fitter {
+	class Fitter;
+	class Fit;
+}
+class SimpleDataset;
 namespace plots {
 	class PlotIntensity : public Plot {
 		public:

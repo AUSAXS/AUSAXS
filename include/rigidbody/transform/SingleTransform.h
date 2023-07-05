@@ -3,13 +3,18 @@
 #include <rigidbody/transform/TransformStrategy.h>
 
 namespace rigidbody {
+    /**
+     * @brief Transforms only a single body. 
+     *        The body to the left of the constraint (body1) is transformed.
+     */
     class SingleTransform : public TransformStrategy {
         public:
-            SingleTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
-            ~SingleTransform() = default;
+            SingleTransform(RigidBody* rigidbody);
+            ~SingleTransform() override;
 
             /**
-             * @brief Apply a transformation to the rigidbody.
+             * @brief Apply a transformation to the rigidbody. 
+             * The body to the left of the constraint (body1) is transformed, with atom2 from the right body as the pivot point.
              * 
              * The most recent transformation can be undone by calling undo().
              * 
@@ -17,6 +22,6 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            void apply(const Matrix<double>& M, const Vector3<double>& t, std::shared_ptr<DistanceConstraint> constraint) override;
+            void apply(const Matrix<double>& M, const Vector3<double>& t, DistanceConstraint& constraint) override;
     };
 }

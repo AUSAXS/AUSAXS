@@ -1,57 +1,16 @@
 #pragma once
 
+#include <math/Matrix.h>
+#include <hist/Histogram2D.h>
+#include <em/ObjectBounds2D.h>
+
 #include <vector>
 #include <list>
 
-#include <em/Datatypes.h>
-#include <data/Protein.h>
-#include <hydrate/Grid.h>
-#include <hist/ScatteringHistogram.h>
-#include <math/Matrix.h>
-#include <hist/Histogram2D.h>
-
-/**
- * @brief Describes the bounds of some object contained within a 2D matrix. 
- */
-class ObjectBounds2D {
-    public:
-        ObjectBounds2D(unsigned int size_x, unsigned int size_y) : bounds(size_x, Limit(0, size_y)), N(size_x), M(size_y) {}
-
-        Limit& operator[](unsigned int x) {return bounds[x];}
-
-        const Limit& operator[](unsigned int x) const {return bounds[x];}
-
-        unsigned int size() const {return bounds.size();}
-
-        bool empty() const {return bounds.empty();}
-
-        unsigned int bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0, [] (unsigned int area, const Limit& limit) {return area += limit.max+1 - limit.min;});}
-
-        unsigned int total_area() const {return N*M;}
-
-    private:
-        std::vector<Limit> bounds;
-        unsigned int N, M;
-};
-
-class ObjectBounds3D {
-    public: 
-        ObjectBounds3D(unsigned int size_x, unsigned int size_y, unsigned int size_z) : bounds(size_z, ObjectBounds2D(size_x, size_y)), size_x(size_x), size_y(size_y), size_z(size_z) {}
-
-        ObjectBounds2D& operator[](unsigned int z) {return bounds[z];}
-
-        const ObjectBounds2D& operator[](unsigned int z) const {return bounds[z];}
-
-        unsigned int total_volume() const {return size_x*size_y*size_z;}
-
-        unsigned int bounded_volume() const {return std::accumulate(bounds.begin(), bounds.end(), 0, [] (unsigned int volume, const ObjectBounds2D& bound) {return volume += bound.bounded_area();});}
-
-    private:
-        std::vector<ObjectBounds2D> bounds;
-        unsigned int size_x, size_y, size_z;
-};
-
+class Atom;
 namespace em {
+    namespace ccp4 {class Header;}
+
     /**
      * @brief Supporting class for ImageStack. This is not meant to be instantiated elsewhere. 
      */
@@ -84,6 +43,11 @@ namespace em {
              * @brief Set the z location of this object. 
              */
             void set_z(unsigned int z);
+
+            /**
+             * @brief Get the z location of this object. 
+             */
+            unsigned int get_z() const;
 
             /**
              * @brief Get the mean density. 
@@ -124,12 +88,19 @@ namespace em {
              */
             double squared_sum() const;
 
+            bool operator==(const Image& other) const;
+
+            /**
+             * @brief Get a string representation of this object. 
+             */
+            std::string to_string() const;
+
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
         private:
             std::shared_ptr<ccp4::Header> header;
             Matrix<float> data; // The actual data storage. 
-            unsigned int z; // The z-index of this image in the ImageStack. 
+            unsigned int z = 0; // The z-index of this image in the ImageStack. 
             ObjectBounds2D bounds;
     };
 }

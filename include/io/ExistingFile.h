@@ -5,11 +5,12 @@
 namespace io {
     class ExistingFile : public File {
         public:
-            ExistingFile() = default;
+            ExistingFile();
             ExistingFile(const File& file);
             ExistingFile(File&& file);
             ExistingFile(const std::string& path);
-            virtual ~ExistingFile() = default;
+            ExistingFile(const char* path);
+            virtual ~ExistingFile();
 
             ExistingFile& operator=(const std::string& path);
 

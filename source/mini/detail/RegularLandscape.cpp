@@ -1,6 +1,7 @@
 #include <mini/detail/RegularLandscape.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
+#include <io/ExistingFile.h>
 
 #include <fstream>
 
@@ -59,7 +60,7 @@ void RegularLandscape::save(std::string filename) const {
     file.close();
 }
 
-RegularLandscape::RegularLandscape(std::string file) {
+RegularLandscape::RegularLandscape(const io::ExistingFile& file) {
     load(file);
 }
 

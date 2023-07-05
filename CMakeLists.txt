@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE DEBUG)
 
 project(SAXS VERSION 0.0)
-add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
+add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
 add_compile_options(
 	-Ofast -fno-finite-math-only# --coverage
 	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"

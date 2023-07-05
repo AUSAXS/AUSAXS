@@ -1,9 +1,12 @@
 #pragma once
 
-#include <math/Vector3.h>
-#include <data/Body.h>
-#include <data/Water.h>
+#include <utility/Concepts.h>
 
+#include <vector>
+
+template<numeric T> class Vector3;
+class Body;
+class Water;
 namespace hist {
     namespace detail {
         /**
@@ -13,8 +16,8 @@ namespace hist {
          */
         struct CompactCoordinates {
             struct Data {
-                Data() {}
-                Data(const Vector3<double>& v, float w) : x(v.x()), y(v.y()), z(v.z()), w(w) {}
+                Data();
+                Data(const Vector3<double>& v, float w);
                 float x, y, z, w;
             };
 

@@ -1,5 +1,8 @@
 #include <hydrate/placement/AxesPlacement.h>
 #include <hydrate/Grid.h>
+#include <hydrate/GridMember.h>
+#include <data/Water.h>
+#include <math/Vector3.h>
 
 std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance

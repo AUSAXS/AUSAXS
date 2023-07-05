@@ -1,4 +1,6 @@
 #include <data/Protein.h>
+#include <data/Atom.h>
+#include <data/Water.h>
 #include <hist/HistogramManagerMT.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
@@ -16,11 +18,11 @@ Histogram HistogramManagerMT::calculate() {
 }
 
 ScatteringHistogram HistogramManagerMT::calculate_all() {
-    auto atoms = protein->atoms();
-    auto waters = protein->waters();
+    auto atoms = protein->get_atoms();
+    auto waters = protein->get_waters();
 
     double width = settings::axes::distance_bin_width;
-    Axis axes = Axis(settings::axes::max_distance/width, 0, settings::axes::max_distance); 
+    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time
@@ -146,7 +148,7 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     p_pp.resize(max_bin);
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
-    axes = Axis{max_bin, 0, max_bin*width}; 
+    axes = Axis(0, max_bin*width, max_bin); 
 
     // calculate p_tot    
     std::vector<double> p_tot(max_bin, 0);

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <initializer_list>
-
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector.h>
 #include <utility/Concepts.h>
 #include <utility/Exceptions.h>
+
+#include <initializer_list>
 
 template<numeric T> 
 class Vector3 {
@@ -19,7 +19,7 @@ class Vector3 {
 		/**
 		 * @brief List constructor.
 		 */
-		Vector3(const std::initializer_list<T> l) {
+		Vector3(const std::initializer_list<T>& l) {
 			*this = l;
 		}
 

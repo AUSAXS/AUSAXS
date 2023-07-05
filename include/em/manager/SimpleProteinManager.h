@@ -9,6 +9,7 @@ namespace em::managers {
 
             ~SimpleProteinManager() override = default;
 
+        protected:
             void update_protein(double cutoff) override;
     };
 }

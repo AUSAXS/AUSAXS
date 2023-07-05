@@ -1,4 +1,6 @@
 #include <plots/PlotDataset.h>
+#include <dataset/Dataset.h>
+#include <dataset/Multiset.h>
 
 template<plots::DatasetType T>
 plots::PlotDataset::PlotDataset(const T& data) {

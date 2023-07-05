@@ -17,7 +17,7 @@ class Limit {
         /**
          * @brief Default constructor.
          */
-        Limit() noexcept : min(0), max(0) {}
+        Limit() noexcept;
 
         /**
          * @brief Constructor. 
@@ -25,62 +25,49 @@ class Limit {
          * @param min Minimum value of the limit. 
          * @param max Maximum value of the limit. 
          */
-        Limit(double min, double max) noexcept : min(min), max(max) {}
+        Limit(double min, double max) noexcept;
 
         /**
          * @brief Get the interval spanned by this limit. 
          */
-        double span() const noexcept {return max-min;}
+        double span() const noexcept;
 
         /**
          * @brief Get the center of this limit.
          */
-        double center() const noexcept {return min + span()/2;}
+        double center() const noexcept;
 
         /**
          * @brief Merge two limits, returning their combined span.
          */
-        void merge(const Limit& other) noexcept {
-            min = std::min(min, other.min);
-            max = std::max(max, other.max);
-        }
+        void merge(const Limit& other) noexcept;
 
         /**
          * @brief Expand the limit by the specified percentage. 
          *        Both ends of the limit will be grow by the specified percentage. 
          */
-        void expand(double percent) noexcept {
-            double span = this->span();
-            min -= span*percent;
-            max += span*percent;
-        } 
+        void expand(double percent) noexcept;
 
 
-        Limit& operator-=(double c) noexcept {
-            min-=c;
-            max-=c;
-            return *this;
-        }
-        Limit operator-(double c) const noexcept {return Limit(*this)-=c;}
+        Limit& operator-=(double c) noexcept;
 
-        Limit& operator+=(double c) noexcept {
-            min+=c;
-            max+=c;
-            return *this;
-        }
-        Limit operator+(double c) const noexcept {return Limit(*this)+=c;}
+        Limit operator-(double c) const noexcept;
+
+        Limit& operator+=(double c) noexcept;
+
+        Limit operator+(double c) const noexcept;
 
         /**
          * @brief Equality operator. Check if this Limit is equal to another.
          */
-        bool operator==(const Limit& rhs) const noexcept {return min == rhs.min && max == rhs.max;}
+        bool operator==(const Limit& rhs) const noexcept;
 
         /**
          * @brief Inequality operator.
          * 
          * Check if this object is different from another. 
          */
-        bool operator!=(const Limit& rhs) const noexcept {return !operator==(rhs);}
+        bool operator!=(const Limit& rhs) const noexcept;
 
         /**
          * @brief Stream output operator. 
@@ -92,12 +79,12 @@ class Limit {
         /**
          * @brief Get a string representation of this object. 
          */
-        std::string to_string(std::string prepend = "") const noexcept {return prepend + "(" + std::to_string(min) + ", " + std::to_string(max) + ")";}
+        std::string to_string(const std::string& prepend = "") const noexcept;
 
         /**
          * @brief Check if this Limit is empty (min == max == 0).
          */
-        [[nodiscard]] bool empty() const noexcept {return min == 0 && max == 0;}
+        [[nodiscard]] bool empty() const noexcept;
 
         double min; // The minimum value of this limit. 
         double max; // The maximum value of this limit. 

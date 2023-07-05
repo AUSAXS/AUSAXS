@@ -1,7 +1,6 @@
 #pragma once
 
 #include <mini/Minimizer.h>
-
 #include <concepts>
 
 namespace mini {
@@ -14,7 +13,7 @@ namespace mini {
 
             dlibMinimizer(std::function<double(std::vector<double>)> function, std::vector<Parameter> param = {});
 
-            dlibMinimizer(std::function<double(double)> function, Parameter param = Parameter());
+            dlibMinimizer(std::function<double(double)> function, const Parameter& param = Parameter());
 
             ~dlibMinimizer() override;
 

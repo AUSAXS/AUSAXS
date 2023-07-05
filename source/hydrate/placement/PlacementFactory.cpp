@@ -2,9 +2,15 @@
 #include <hydrate/placement/JanPlacement.h>
 #include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/placement/AxesPlacement.h>
+#include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
+#include <math/Vector3.h>
 
-std::unique_ptr<grid::PlacementStrategy> grid::factory::construct_placement_strategy(Grid* grid, settings::grid::PlacementStrategy choice) {
+std::unique_ptr<grid::PlacementStrategy> grid::factory::construct_placement_strategy(Grid* grid) {
+    return grid::factory::construct_placement_strategy(grid, settings::grid::placement_strategy);
+}
+
+std::unique_ptr<grid::PlacementStrategy> grid::factory::construct_placement_strategy(Grid* grid, const settings::grid::PlacementStrategy& choice) {
     switch (choice) {
         case settings::grid::PlacementStrategy::AxesStrategy: 
             return std::make_unique<AxesPlacement>(grid);

@@ -1,17 +1,18 @@
 #pragma once
 
+#include <utility/Concepts.h>
+#include <io/ProteinFile.h>
+
 #include <vector>
-#include <map>
 #include <memory>
 
-#include <data/Atom.h>
-#include <hydrate/Grid.h>
-#include <io/ProteinFile.h>
-#include <io/ExistingFile.h>
-#include <utility/Constants.h>
-#include <hist/ScatteringHistogram.h>
-#include <data/StateManager.h>
-
+class Atom;
+class Water;
+namespace grid {class Grid;}
+namespace io {class ExistingFile;}
+namespace signaller {class Signaller;}
+template<numeric T> class Matrix;
+template<numeric T> class Vector3;
 class Body {
 	public:
 		/**
@@ -32,7 +33,12 @@ class Body {
 		/**
 		 * @brief Create a new collection of atoms (body) based on two vectors
 		 */
-		explicit Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms = {});
+		explicit Body(const std::vector<Atom>& protein_atoms);
+
+		/**
+		 * @brief Create a new collection of atoms (body) based on two vectors
+		 */
+		Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms);
 
 		/**
 		 * @brief Copy constructor. 
@@ -56,26 +62,26 @@ class Body {
 		/**
 		 * @brief Get a reference to the constituent atoms.
 		 */
-		std::vector<Atom>& atoms();
+		std::vector<Atom>& get_atoms();
 
 		/**
 		 * @brief Get a reference to the constituent atoms.
 		 */
-		const std::vector<Atom>& atoms() const;
+		const std::vector<Atom>& get_atoms() const;
 
 		/**
 		 * @brief Get a reference to the hydration atoms.
 		 */
-		std::vector<Water>& waters();
+		std::vector<Water>& get_waters();
 
 		/**
 		 * @brief Get a reference to the hydration atoms.
 		 */
-		const std::vector<Water>& waters() const;
+		const std::vector<Water>& get_waters() const;
 	
-		Atom& atoms(unsigned int index);
+		Atom& get_atom(unsigned int index);
 
-		const Atom& atoms(unsigned int index) const;
+		const Atom& get_atom(unsigned int index) const;
 
 		/** 
 		 * @brief Calculate the center-mass coordinates for the body.
@@ -86,12 +92,12 @@ class Body {
 		/**
 		 * @brief Calculate the volume of this body based on its constituent amino acids
 		 */
-		double get_volume_acids() const;
+		[[deprecated]] double get_volume_acids() const;
 
 		/**
 		 * @brief Calculate the volume of this body based on the number of C-alpha atoms
 		 */
-		double get_volume_calpha() const;
+		[[deprecated]] double get_volume_calpha() const;
 
 		// /**
 		//  * @brief Generate a PDB file at @p path showing the filled grid volume.
@@ -163,7 +169,7 @@ class Body {
 		/**
 		 * @brief Register a probe (listener) to this object, which will be notified of state changes. 
 		 */
-		void register_probe(std::shared_ptr<StateManager::BoundSignaller> signal);
+		void register_probe(std::shared_ptr<signaller::Signaller> signal);
 
 		/**
 		 * @brief Assign another body to this object. 
@@ -179,6 +185,11 @@ class Body {
 		 * @brief Check if this object is equal to another. 
 		 */
 		bool operator==(const Body& rhs) const;
+
+		/**
+		 * @brief Check if the content of this object is equal to another, disregarding their unique ID. 
+		 */
+		bool equals_content(const Body& rhs) const;
 
 		/**
 		 * @brief Get the File backing this object. 
@@ -197,13 +208,24 @@ class Body {
 		 */
 		void changed_internal_state() const;
 
+		std::shared_ptr<signaller::Signaller> get_signaller() const;
+
+		[[nodiscard]] unsigned int get_id() const;
+
+		/**
+		 * @brief Get the total number of constituent atoms, excluding hydration. 
+		 */
+		[[nodiscard]] unsigned int atom_size() const;
+
+	private:
 		unsigned int uid;                     		// A unique identifier for this body
 		bool updated_charge = false;          		// True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 		bool centered = false;                		// True if this object is centered, false otherwise
 		inline static unsigned int uid_counter = 0; // The unique counter. 
-	private:
 		ProteinFile file;                           // The file backing this body
 
 		// The signalling object to signal a change of state. The default doesn't do anything, and must be overriden by a proper Signaller object.  
-		std::shared_ptr<StateManager::Signaller> signal = std::make_shared<StateManager::UnboundSignaller>(); 
+		std::shared_ptr<signaller::Signaller> signal;
+
+		void initialize();
 };

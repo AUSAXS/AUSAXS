@@ -2,11 +2,14 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <data/Atom.h>
+#include <data/Body.h>
+#include <data/Water.h>
 #include <data/Protein.h>
 #include <data/BodySplitter.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <rigidbody/RigidBody.h>
+#include <dataset/SimpleDataset.h>
 
 using std::vector;
 
@@ -84,7 +87,7 @@ TEST_CASE("debug", "[manual]") {
         b1 = old_body;
     }
 
-    for (const auto& e : b1.atoms()) {
+    for (const auto& e : b1.get_atoms()) {
         std::cout << e.as_pdb() << std::endl;
     }
 }
@@ -96,12 +99,12 @@ TEST_CASE("debug2", "[manual]") {
                        Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"),  Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")};
 
     vector<Water> w = {};
-    std::shared_ptr<File> f1 = std::make_shared<File>(a1, w);
-    std::shared_ptr<File> f2 = std::make_shared<File>(a2, w);
+    std::shared_ptr<ProteinFile> f1 = std::make_shared<ProteinFile>(a1, w);
+    std::shared_ptr<ProteinFile> f2 = std::make_shared<ProteinFile>(a2, w);
     // vector<Atom>& atoms = f1->protein_atoms;
 
     {
-        std::shared_ptr<File> old = std::make_shared<File>(a1, w);
+        std::shared_ptr<ProteinFile> old = std::make_shared<ProteinFile>(a1, w);
         f1 = old;
     }
 
@@ -118,8 +121,8 @@ TEST_CASE("file_assign", "[manual]") {
 
     vector<Water> waters;
 
-    std::shared_ptr<File> file2 = std::make_shared<File>();
-    std::shared_ptr<File> file1 = std::make_shared<File>(atoms, waters);
+    std::shared_ptr<ProteinFile> file2 = std::make_shared<ProteinFile>();
+    std::shared_ptr<ProteinFile> file1 = std::make_shared<ProteinFile>(atoms, waters);
 
     // MEMORY CORRUPT
     // vector<Atom>& file2a = file2->protein_atoms;

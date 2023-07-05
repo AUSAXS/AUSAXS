@@ -3,13 +3,17 @@
 
 using namespace mini;
 
-Parameter::Parameter(std::string name, Limit bounds) noexcept: name(name), bounds(bounds) {}
+Parameter::Parameter(const std::string& name, const Limit& bounds) noexcept: name(name), bounds(bounds) {}
 
-Parameter::Parameter(std::string name, double guess, Limit bounds) noexcept: name(name), guess(guess), bounds(bounds) {}
+Parameter::Parameter(const std::string& name, double guess) noexcept: Parameter(name, guess, {0, 0}) {}
+
+Parameter::Parameter(const std::string& name, double guess, const Limit& bounds) noexcept: name(name), guess(guess), bounds(bounds) {}
 
 Parameter::Parameter(const mini::FittedParameter& p) noexcept {
     *this = p;
 }
+
+Parameter::~Parameter() = default;
 
 bool Parameter::has_bounds() const noexcept {
     return bounds.has_value();

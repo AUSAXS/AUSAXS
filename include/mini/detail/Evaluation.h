@@ -11,6 +11,8 @@ namespace mini {
 
         std::string to_string() const;
 
+        bool operator==(const Evaluation& other) const = default;
+
         std::vector<double> vals;
         double fval = 0;
     };

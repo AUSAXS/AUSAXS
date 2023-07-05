@@ -1,11 +1,10 @@
 #pragma once
 
-namespace BS {class thread_pool;}
-
 #include <hist/PartialHistogramManager.h>
 
 #include <memory>
 
+namespace BS {class thread_pool;}
 namespace hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator.

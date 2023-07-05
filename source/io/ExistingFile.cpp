@@ -1,6 +1,10 @@
 #include <io/ExistingFile.h>
 #include <utility/Exceptions.h>
 
+io::ExistingFile::ExistingFile() = default;
+
+io::ExistingFile::~ExistingFile() = default;
+
 io::ExistingFile::ExistingFile(const File& file) : File(file) {
     validate();
 }
@@ -12,6 +16,8 @@ io::ExistingFile::ExistingFile(File&& file) : File(std::move(file)) {
 io::ExistingFile::ExistingFile(const std::string& path) : File(path) {
     validate();
 }
+
+io::ExistingFile::ExistingFile(const char* path) : ExistingFile(std::string(path)) {}
 
 io::ExistingFile& io::ExistingFile::operator=(const std::string& path) {
     validate();

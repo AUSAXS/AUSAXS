@@ -1,4 +1,7 @@
 #include <mini/dlibMinimizer.h>
+#include <mini/detail/Parameter.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 #include <utility/Console.h>
 
 #include <dlib/optimization.h>
@@ -15,7 +18,7 @@ template<mini::type algo>
 dlibMinimizer<algo>::dlibMinimizer() = default;
 
 template<mini::type algo>
-dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, Parameter param) {
+dlibMinimizer<algo>::dlibMinimizer(std::function<double(double)> function, const Parameter& param) {
     auto f = [=] (std::vector<double> x) {
         return function(x[0]);
     };

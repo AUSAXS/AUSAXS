@@ -1,7 +1,5 @@
 #pragma once
 
-#include <random>
-
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 
 namespace rigidbody {

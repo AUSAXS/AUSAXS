@@ -8,15 +8,25 @@
 #include <plots/all.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
+#include <io/ExistingFile.h>
+#include <dataset/Dataset2D.h>
+#include <mini/detail/Parameter.h>
+#include <mini/Minimizer.h>
 
 using namespace fitter;
 
-HydrationFitter::HydrationFitter(std::string input) : LinearFitter(input) {}
-HydrationFitter::HydrationFitter(std::string input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
-HydrationFitter::HydrationFitter(std::string input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
 HydrationFitter::HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model) : HydrationFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
 HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
+
+void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
+std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
+    fit_type = algorithm;
+    return fit();
+}
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
     std::function<double(std::vector<double>)> f = std::bind(&HydrationFitter::chi2, this, std::placeholders::_1);
@@ -40,7 +50,6 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     fitted->add_fit(ab_fit);                                      // add the a,b inner fit
     fitted->add_plots(*this);                                     // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
-
     return fitted;
 }
 
@@ -62,7 +71,7 @@ double HydrationFitter::fit_chi2_only() {
     return fitter.fit_chi2_only();
 }
 
-Fit::Plots HydrationFitter::plot() {
+FitPlots HydrationFitter::plot() {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::plot: Cannot plot before a fit has been made!");}
 
     double a = fitted->get_parameter("a").value;
@@ -80,7 +89,7 @@ Fit::Plots HydrationFitter::plot() {
     std::transform(ym.begin(), ym.end(), ym_scaled.begin(), [&a, &b] (double I) {return I*a+b;});
 
     // prepare the TGraphs
-    Fit::Plots graphs;
+    FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
     graphs.intensity = SimpleDataset(h.q, ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
@@ -184,10 +193,6 @@ SimpleDataset HydrationFitter::get_dataset() const {
     return data;
 }
 
-void HydrationFitter::set_guess(mini::Parameter guess) {
+void HydrationFitter::set_guess(const mini::Parameter& guess) {
     this->guess = guess;
-}
-
-void HydrationFitter::set_algorithm(mini::type t) {
-    this->fit_type = t;
 }

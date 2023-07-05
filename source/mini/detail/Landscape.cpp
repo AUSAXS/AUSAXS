@@ -1,4 +1,11 @@
 #include <mini/detail/Landscape.h>
+#include <mini/detail/Evaluation.h>
+
+mini::Landscape::Landscape(const std::vector<Evaluation>& evals) : evals(std::move(evals)) {}
+
+void mini::Landscape::append(const std::vector<Evaluation>& evals) {this->evals.insert(this->evals.end(), evals.begin(), evals.end());}
+
+void mini::Landscape::append(const Landscape& evals) {append(evals.evals);}
 
 SimpleDataset mini::Landscape::as_dataset() const {
     if (evals.empty()) {throw except::bad_order("Landscape::as_dataset: Cannot get evaluated points before a minimization call has been made.");}
@@ -27,3 +34,5 @@ std::string mini::Landscape::to_string() const {
     }
     return s;
 }
+
+bool mini::Landscape::operator==(const Landscape& other) const = default;

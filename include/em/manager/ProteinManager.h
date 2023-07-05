@@ -51,8 +51,6 @@ namespace em {
 
             protected:
                 const em::ImageStackBase* images; 
-
-            private:
                 std::vector<double> charge_levels;
         };
     }

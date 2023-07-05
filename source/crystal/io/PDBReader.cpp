@@ -1,15 +1,19 @@
 #include <crystal/io/PDBReader.h>
-
 #include <data/Protein.h>
 #include <utility/Axis3D.h>
+#include <utility/Basis3D.h>
 #include <settings/CrystalSettings.h>
 #include <settings/HistogramSettings.h>
+#include <io/ExistingFile.h>
+#include <data/Atom.h>
+#include <data/Water.h>
+#include <data/Body.h>
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
     Protein protein(input);
     double expansion = settings::crystal::grid_expansion;
 
-    auto prot_atoms = protein.atoms();
+    auto prot_atoms = protein.get_atoms();
     if (prot_atoms.empty()) {throw except::invalid_argument("PDBReader::read: No atoms were found in file \"" + input + "\".");}
     auto position = prot_atoms[0].get_coordinates();
     Axis3D axis({position.x(), position.x(), position.y(), position.y(), position.z(), position.z()});

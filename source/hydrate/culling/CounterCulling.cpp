@@ -1,5 +1,9 @@
 #include <hydrate/culling/CounterCulling.h>
+#include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
+#include <data/Water.h>
+
+#include <cmath>
 
 std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {

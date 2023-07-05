@@ -1,6 +1,8 @@
 #include <hist/Histogram.h>
+#include <dataset/SimpleDataset.h>
 
 #include <algorithm>
+#include <sstream>
 
 using namespace hist;
 
@@ -9,6 +11,8 @@ Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {}
 Histogram::Histogram(const Vector<double>& p, const Axis& axis) noexcept : p(p), axis(axis) {}
 
 Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
+
+Histogram::~Histogram() = default;
 
 Histogram& Histogram::operator+=(const Histogram& rhs) {
     p += rhs.p;
@@ -44,7 +48,7 @@ void Histogram::shorten_axis(unsigned int min_size) {
 
     p.resize(max_bin);
     double width = axis.width();
-    axis = Axis{int(max_bin), 0, max_bin*width};
+    axis = Axis(0, max_bin*width, int(max_bin));
 }
 
 void Histogram::generate_axis() {
@@ -89,8 +93,12 @@ std::string Histogram::to_string() const noexcept {
     return ss.str();
 }
 
-size_t Histogram::size() const noexcept {return p.size();}
+unsigned int Histogram::size() const noexcept {return p.size();}
 
 SimpleDataset Histogram::as_dataset() const {
     return SimpleDataset(axis.as_vector(), std::vector<double>(p.begin(), p.end()));
+}
+
+bool Histogram::operator==(const Histogram& rhs) const {
+    return p == rhs.p && axis == rhs.axis;
 }

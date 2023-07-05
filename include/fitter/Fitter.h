@@ -1,18 +1,16 @@
 #pragma once
 
+#include <dataset/SimpleDataset.h>
+#include <fitter/Fit.h>
+#include <mini/Minimizer.h>
+
 #include <string>
 #include <vector>
-#include <map>
-#include <iomanip>
-#include <iostream>
-#include <utility>
 #include <memory>
 
-#include <dataset/Multiset.h>
-#include <dataset/Dataset.h>
-#include <fitter/Fit.h>
-
 namespace fitter {
+    class FitPlots;
+
     class Fitter {
         public:
             virtual ~Fitter() {}
@@ -32,7 +30,7 @@ namespace fitter {
              * 
              * @return A vector of TGraphs {Interpolated points, Optimal line, Measured points with uncertainties}
              */
-            [[nodiscard]] virtual Fit::Plots plot() = 0;
+            [[nodiscard]] virtual FitPlots plot() = 0;
 
             /**
              * @brief Make a residual plot of the fit.

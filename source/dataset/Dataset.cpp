@@ -6,16 +6,21 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <dataset/DatasetFactory.h>
+#include <dataset/SimpleDataset.h>
+#include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 
 #include <vector>
 #include <string>
 #include <fstream>
 
+Dataset::Dataset() = default;
+
 Dataset::Dataset(unsigned int rows, unsigned int cols) : Matrix(rows, cols) {
     set_default_names();
 }
 
-Dataset::Dataset(std::vector<std::vector<double>> cols) : Matrix(cols) {
+Dataset::Dataset(const std::vector<std::vector<double>>& cols) : Matrix(cols) {
     set_default_names();
 }
 
@@ -23,6 +28,8 @@ Dataset::Dataset(const io::ExistingFile& path) : Dataset() {
     *this = std::move(*factory::DatasetFactory::construct(path));
     set_default_names();
 }
+
+Dataset::~Dataset() = default;
 
 void Dataset::assign_matrix(const Matrix<double>&& m) {
     if (m.M != M) {
@@ -109,7 +116,7 @@ const ConstRow<double> Dataset::row(unsigned int index) const {
     return Matrix::row(index);
 }
 
-void Dataset::set_col_names(std::vector<std::string> names) {
+void Dataset::set_col_names(const std::vector<std::string>& names) {
     if (names.size() != M) {throw except::invalid_operation("Dataset::set_col_names: Number of names does not match number of columns. (" + std::to_string(names.size()) + " != " + std::to_string(M) + ")");}
     this->names = names;
 }

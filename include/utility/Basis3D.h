@@ -4,6 +4,6 @@
 
 struct Basis3D {
     Basis3D() = default;
-    Basis3D(Vector3<double> x, Vector3<double> y, Vector3<double> z) : x(x), y(y), z(z) {}
+    Basis3D(const Vector3<double>& x, const Vector3<double>& y, const Vector3<double>& z) : x(x), y(y), z(z) {}
     Vector3<double> x, y, z;
 };

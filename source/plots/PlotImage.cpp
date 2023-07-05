@@ -1,5 +1,8 @@
 #include <plots/PlotImage.h>
 #include <settings/PlotSettings.h>
+#include <em/Image.h>
+#include <dataset/SimpleDataset.h>
+#include <data/Atom.h>
 
 plots::PlotImage::PlotImage(const em::Image& image) {
     plot(image);
