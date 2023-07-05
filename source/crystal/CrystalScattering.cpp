@@ -61,7 +61,7 @@ SimpleDataset CrystalScattering::rotational_average(unsigned int n) {
     }
 
     SimpleDataset result;
-    for (unsigned int i = 0; i < datasets[0].size(); i++) {
+    for (unsigned int i = 0; i < datasets[0].size_rows(); i++) {
         double sum = 0;
         for (auto& dataset : datasets) {
             sum += dataset.y(i);

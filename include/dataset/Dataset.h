@@ -109,11 +109,6 @@ class Dataset : public Matrix<double> {
         void save(const io::File& path, const std::string& header = "") const;
 
         /**
-         * @brief Load a dataset from the specified file. 
-         */
-        virtual void load(const io::ExistingFile& path);
-
-        /**
          * @brief Set the column names. 
          */
         void set_col_names(const std::vector<std::string>& names);
@@ -232,6 +227,11 @@ class Dataset : public Matrix<double> {
         void set_default_names();
 
     protected:
+        /**
+         * @brief Load a dataset from the specified file. 
+         */
+        virtual void load(const io::ExistingFile& path);
+
         /**
          * @brief Assign a matrix to this Dataset.
          *        The compatibility of the matrix is checked.

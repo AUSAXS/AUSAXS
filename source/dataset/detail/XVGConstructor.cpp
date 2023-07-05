@@ -116,7 +116,7 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
 
     // skip the first few rows if requested
     if (settings::axes::skip != 0 && settings::general::verbose) {
-        std::cout << "\tSkipped " << count - dataset->size() << " data points from beginning of file." << std::endl;
+        std::cout << "\tSkipped " << count - dataset->size_rows() << " data points from beginning of file." << std::endl;
     }
 
     // verify that at least one row was read correctly
@@ -126,19 +126,19 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
 
     // unit conversion
     if (settings::general::verbose) {std::cout << "\tAssuming q is given in units of [nm]." << std::endl;}
-    for (unsigned int i = 0; i < dataset->size(); i++) {
+    for (unsigned int i = 0; i < dataset->size_rows(); i++) {
         dataset->index(i, 0) /= 10;
     }
     
     // remove all rows outside the specified q-range
-    unsigned int N = dataset->size();
+    unsigned int N = dataset->size_rows();
     dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
-    if (N != dataset->size() && settings::general::verbose) {
-        std::cout << "\tRemoved " << N - dataset->size() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
+    if (N != dataset->size_rows() && settings::general::verbose) {
+        std::cout << "\tRemoved " << N - dataset->size_rows() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
     }
 
     // check if the file is abnormally large
-    if (dataset->size() > 300) {
+    if (dataset->size_rows() > 300) {
         // reread first line
         input.clear();
         input.seekg(0, input.beg);
@@ -154,7 +154,7 @@ std::shared_ptr<Dataset> detail::XVGConstructor::construct(const io::ExistingFil
     }
 
     if (settings::general::verbose) {
-        std::cout << "\tSuccessfully read " << dataset->size() << " data points from " << path << std::endl;
+        std::cout << "\tSuccessfully read " << dataset->size_rows() << " data points from " << path << std::endl;
     }
     return dataset;
 }

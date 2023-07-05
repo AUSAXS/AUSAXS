@@ -54,6 +54,26 @@ class Slice {
 		 */
 		unsigned int size() const noexcept {return length;}
 
+        template<typename Q>
+        bool operator==(const Slice<Q>& rhs) const {
+            #if SAFE_MATH
+                if (size() != rhs.size()) {
+                    throw std::invalid_argument("ConstSlice::operator==: Slice of size \"" + std::to_string(rhs.size()) + "\" does not fit in slice of size \"" + std::to_string(size()) + "\".");
+                }
+            #endif
+
+            bool equal = true;
+            for (unsigned int i = 0; i < size(); i++) {
+                equal = equal && (*this)[i] == rhs[i];
+            }
+            return equal;
+        }
+
+        template<typename Q>
+        bool operator!=(const Slice<Q>& rhs) const {
+            return !((*this) == rhs);
+        }
+
         /**
          * @brief Cast this Slice into a Vector. 
 		 * 		  Complexity: O(N)
@@ -97,7 +117,7 @@ class Slice {
 		 */
 		const T& back() const {
 			#if SAFE_MATH
-				if (size() == 0) {throw std::out_of_range("Error in Slice::back(): Slice is empty.");}
+				if (size() == 0) {throw std::out_of_range("Slice::back(): Slice is empty.");}
 			#endif
 			return (*this)[length-1];
 		}
@@ -107,7 +127,7 @@ class Slice {
 		 */
 		const T& first() const {
 			#if SAFE_MATH
-				if (size() == 0) {throw std::out_of_range("Error in Slice::first(): Slice is empty.");}
+				if (size() == 0) {throw std::out_of_range("Slice::first(): Slice is empty.");}
 			#endif
 			return (*this)[0];
 		}
@@ -125,26 +145,3 @@ class Slice {
         const unsigned int N, M;
         unsigned int start, step, length;
 };
-
-template <class C>
-concept SliceType = requires(C c) {
-    []<typename X>(Slice<X>&){}(c);
-};
-
-template<SliceType T, SliceType Q>
-bool operator==(const T& lhs, const Q& rhs) {
-	if (lhs.size() != rhs.size()) {
-		throw std::invalid_argument("ConstSlice::operator==: Slice of size \"" + std::to_string(rhs.size()) + "\" does not fit in slice of size \"" + std::to_string(lhs.size()) + "\".");
-	}
-
-	bool equal = true;
-    for (unsigned int i = 0; i < lhs.size(); i++) {
-        equal = equal && lhs[i] == rhs[i];
-    }
-    return equal;
-}
-
-template<SliceType T, SliceType Q>
-bool operator!=(const T& lhs, const Q& rhs) {
-    return !(lhs == rhs);
-}

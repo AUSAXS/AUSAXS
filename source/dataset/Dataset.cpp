@@ -45,12 +45,8 @@ void Dataset::force_assign_matrix(const Matrix<double>&& m) {
     this->M = m.M;
 }
 
-unsigned int Dataset::size() const noexcept {
-    return N;
-}
-
 bool Dataset::empty() const noexcept {
-    return size() == 0;
+    return data.empty();
 }
 
 void Dataset::limit_x(const Limit& limits) {
@@ -244,4 +240,16 @@ std::string Dataset::to_string() const {
         ss << "\n";
     }
     return ss.str();
+}
+
+unsigned int Dataset::size() const noexcept {
+    return size_rows();
+}
+
+unsigned int Dataset::size_rows() const noexcept {
+    return N;
+}
+
+unsigned int Dataset::size_cols() const noexcept {
+    return M;
 }

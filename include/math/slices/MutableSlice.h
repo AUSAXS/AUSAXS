@@ -74,7 +74,7 @@ class MutableSlice : public Slice<T> {
 		 */
 		T& back() {
 			#if SAFE_MATH
-				if (this->size() == 0) [[unlikely]] {throw std::out_of_range("Error in MutableSlice::back(): Slice is empty.");}
+				if (this->size() == 0) [[unlikely]] {throw std::out_of_range("MutableSlice::back(): Slice is empty.");}
 			#endif
 
 			return (*this)[this->length-1];
@@ -85,7 +85,7 @@ class MutableSlice : public Slice<T> {
 		 */
 		T& front() {
 			#if SAFE_MATH
-				if (this->size() == 0) [[unlikely]] {throw std::out_of_range("Error in MutableSlice::front(): Slice is empty.");}
+				if (this->size() == 0) [[unlikely]] {throw std::out_of_range("MutableSlice::front(): Slice is empty.");}
 			#endif
 
 			return (*this)[0];
@@ -113,7 +113,7 @@ class MutableSlice : public Slice<T> {
 			#endif
 
 			for (unsigned int i = 0; i < this->length; i++) {
-				operator[](i) = v[i];
+				(*this)[i] = v[i];
 			}
 			return *this;
 		}
@@ -121,7 +121,7 @@ class MutableSlice : public Slice<T> {
 		template<typename Q>
 		MutableSlice<T>& operator-=(const Slice<Q>& s) {
 			for (unsigned int i = 0; i < this->length; i++) {
-				operator[](i) -= s[i];
+				(*this)[i] -= s[i];
 			}
 			return *this;
 		}
@@ -291,7 +291,7 @@ class Row : public MutableSlice<T> {
             #endif
 
 			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) = s[i];
+				(*this)[i] = s[i];
 			}
 			return *this;
 		}
@@ -306,7 +306,7 @@ class Row : public MutableSlice<T> {
             #endif
 
 			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) = s[i];
+				(*this)[i] = s[i];
 			}
 			return *this;
 		}
@@ -340,7 +340,7 @@ class Column : public MutableSlice<T> {
             #endif
 
 			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) = s[i];
+				(*this)[i] = s[i];
 			}
 			return *this;
 		}
@@ -355,7 +355,7 @@ class Column : public MutableSlice<T> {
             #endif
 
 			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) = s[i];
+				(*this)[i] = s[i];
 			}
 			return *this;
 		}
@@ -363,7 +363,7 @@ class Column : public MutableSlice<T> {
 		using MutableSlice<T>::operator+=;
 		Column<T>& operator+=(double a) {
 			for (unsigned int i = 0; i < this->length; i++) {
-				this->operator[](i) += a;
+				(*this)[i] += a;
 			}
 			return *this;
 		}

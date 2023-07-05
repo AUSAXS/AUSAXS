@@ -84,9 +84,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
     chi2_landscape.limit_y(0, min.y*5);  // focus on the area near the minimum
-    if (chi2_landscape.size() < 10) {    // if we have too few points after imposing the limit, we must sample some more
+    if (chi2_landscape.size_rows() < 10) {    // if we have too few points after imposing the limit, we must sample some more
         Limit bounds;                    // first we determine the bounds of the area we want to sample
-        if (chi2_landscape.size() < 3) { // if we only have one or two points, sample the area between the neighbouring points
+        if (chi2_landscape.size_rows() < 3) { // if we only have one or two points, sample the area between the neighbouring points
             double s = (param.bounds->max - param.bounds->min)/settings::fit::max_iterations;
             bounds = {min.x - s, min.x + s};
         }
@@ -106,7 +106,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         min = chi2_landscape.find_minimum();
         chi2_landscape.limit_y(0, min.y*5);
 
-        if (chi2_landscape.size() < 10) {
+        if (chi2_landscape.size_rows() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
         }
     }
