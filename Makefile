@@ -78,6 +78,12 @@ coverage: tests
 gmx/%: build/executable/gmx
 	$< $*
 
+silica/%: build/executable/silica
+	@ tomo=$$(find data/ -name "$*.uc");\
+	$< $${tomo} ${options}
+	make plot/output/silica/$*
+#	valgrind --track-origins=yes --log-file="valgrind.txt" $< $${tomo} ${options}
+
 crystal/%: build/executable/crystal_scattering
 	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid" -or -name "$*.pdb");\
 	$< $${grid} ${options}

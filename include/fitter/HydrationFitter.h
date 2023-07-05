@@ -84,7 +84,7 @@ namespace fitter {
              */
             [[nodiscard]] virtual std::shared_ptr<Fit> fit() override;
 
-            [[nodiscard]] virtual double fit_only() override;
+            [[nodiscard]] virtual double fit_chi2_only() override;
 
             [[nodiscard]] std::shared_ptr<Fit> fit(const mini::type& algorithm);
 

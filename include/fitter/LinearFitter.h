@@ -119,7 +119,7 @@ namespace fitter {
 			 * 
 			 * @return A Fit object containing various information about the fit. Note that the fitted scaling parameter is a = c/M*r_e^2 and b = background
 			 */
-            [[nodiscard]] virtual double fit_only() override;
+            [[nodiscard]] virtual double fit_chi2_only() override;
 
 			/**
 			 * @brief Make a plot of the fit. 

@@ -48,7 +48,7 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     return fitted;
 }
 
-double ExcludedVolumeFitter::fit_only() {
+double ExcludedVolumeFitter::fit_chi2_only() {
     fit_type = mini::type::DLIB_GLOBAL;
     settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
@@ -65,7 +65,7 @@ double ExcludedVolumeFitter::fit_only() {
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
-    return fitter.fit_only();
+    return fitter.fit_chi2_only();
 }
 
 FitPlots ExcludedVolumeFitter::plot() {

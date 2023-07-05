@@ -3,6 +3,7 @@
 #include <utility/Axis3D.h>
 #include <utility/Basis3D.h>
 #include <settings/CrystalSettings.h>
+#include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>
 #include <data/Atom.h>
 #include <data/Water.h>
@@ -24,6 +25,12 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(co
         if (position.y() > axis.y.max) {axis.y.max = position.y();}
         if (position.z() < axis.z.min) {axis.z.min = position.z();}
         if (position.z() > axis.z.max) {axis.z.max = position.z();}
+    }
+
+    // quick check to see if the box is too large
+    double distance = std::sqrt(std::pow(axis.x.span(), 2) + std::pow(axis.y.span(), 2) + std::pow(axis.z.span(), 2));
+    if (distance > settings::axes::max_distance) {
+        throw except::io_error("PDBReader::read: The distance between the edges of the box is " + std::to_string(distance) + " Å, which is larger than the maximum allowed distance of " + std::to_string(settings::axes::max_distance) + " Å.");
     }
 
     // center the protein in the middle of the box

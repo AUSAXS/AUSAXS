@@ -7,14 +7,15 @@
 #include <math/CubicSpline.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
+#include <io/ExistingFile.h>
 
 int main(int argc, char const *argv[]) {
-    std::string crystal;
+    io::ExistingFile crystal;
     CLI::App app{"Crystal Scattering"};
     app.add_option("input", crystal, "File containing the crystal data.")->required();
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/crystal_compare/");
     CLI11_PARSE(app, argc, argv);
-    settings::general::output += utility::stem(crystal) + "/";
+    settings::general::output += crystal.stem() + "/";
 
     settings::protein::use_effective_charge = false;
     Protein protein(crystal);
@@ -44,7 +45,7 @@ int main(int argc, char const *argv[]) {
     // debye.save(settings::general::output + "debye.dat");
 
     // compare with fibonnaci
-    settings::crystal::mgc = settings::crystal::MillerGenerationChoice::Reduced;
+    settings::crystal::miller_generation_strategy = settings::crystal::MillerGenerationChoice::Reduced;
     settings::crystal::max_q = 100;
     std::vector<std::vector<double>> lsqs(11, std::vector<double>(20, 0));
     for (unsigned int i = 3; i < 11; i++) {

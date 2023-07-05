@@ -60,7 +60,8 @@ void Dataset::limit_x(const Limit& limits) {
     Matrix<double> limited(0, M); 
     for (unsigned int i = 0; i < size(); i++) {
         double val = x(i);
-        if (val < limits.min || limits.max < val) {continue;}
+        if (val < limits.min) {continue;}
+        else if (limits.max < val) {break;}
         limited.push_back(row(i));
     }
     assign_matrix(std::move(limited));
@@ -196,6 +197,18 @@ void Dataset::interpolate(unsigned int n) {
             double y_new = spline.spline(x_new);
             interpolated[i*(n+1) + j + 1] = {x_new, y_new};
         }
+    }
+    // force assign since we can only interpolate the x and y columns. 
+    force_assign_matrix(std::move(interpolated));
+}
+
+void Dataset::interpolate(const std::vector<double>& newx) {
+    CubicSpline spline(x().to_vector(), y().to_vector());
+    Matrix interpolated(newx.size(), 2);
+    for (unsigned int i = 0; i < newx.size(); i++) {
+        double x = newx[i];
+        double y = spline.spline(x);
+        interpolated[i] = {x, y}; 
     }
     // force assign since we can only interpolate the x and y columns. 
     force_assign_matrix(std::move(interpolated));

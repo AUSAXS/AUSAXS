@@ -91,3 +91,4 @@ std::string operator+(const io::File& file, const std::string& str);
 std::string operator+(const char* str, const io::File& file);
 std::string operator+(const io::File& file, const char* str);
 std::ostream& operator<<(std::ostream& os, const io::File& file);
+std::istringstream &operator>>(std::istringstream& in, io::File& val);

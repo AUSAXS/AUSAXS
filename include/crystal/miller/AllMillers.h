@@ -18,7 +18,6 @@ namespace crystal {
             AllMillers(unsigned int h, unsigned int k, unsigned int l);
 
             std::vector<Miller> generate() const override;
-            
         private: 
             int h, k, l;
     };

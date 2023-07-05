@@ -38,7 +38,7 @@ void LinearFitter::model_setup(const hist::ScatteringHistogram&, const Limit&) {
     // if (settings::em::simulation::noise) {data.simulate_noise();}
 }
 
-double LinearFitter::fit_only() {
+double LinearFitter::fit_chi2_only() {
     return chi2({});
 }
 
@@ -130,7 +130,7 @@ double LinearFitter::chi2(const std::vector<double>&) {
     if (I0 > 0) {fit_data.normalize(I0);}
 
     SimpleLeastSquares fitter(fit_data);
-    return fitter.fit_only();
+    return fitter.fit_chi2_only();
 }
 
 void LinearFitter::setup(const io::ExistingFile& file) {

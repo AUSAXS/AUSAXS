@@ -219,6 +219,17 @@ MutableSlice<T> operator+(MutableSlice<T> left, const Vector<Q>& right) {return 
 template<typename T, typename Q>
 MutableSlice<T> operator-(MutableSlice<T> left, const Vector<Q>& right) {return left -= right;}
 
+// Add a constant to each element of this Slice. 
+template<typename T>
+MutableSlice<T> operator+(MutableSlice<T> left, double right) {
+	for (auto& e : left) {e += right;}
+	return left;
+}
+
+// Subtract a constant to each element of this Slice. 
+template<typename T>
+MutableSlice<T> operator-(MutableSlice<T> left, double right) {return left + -right;}
+
 // Multiply each element of this Slice with a constant. 
 template<typename T>
 MutableSlice<T> operator*(MutableSlice<T> left, double right) {return left *= right;}

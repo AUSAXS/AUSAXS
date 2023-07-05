@@ -9,13 +9,17 @@
 
 using namespace fitter;
 
+SimpleLeastSquares::SimpleLeastSquares(const std::vector<double> data, const std::vector<double> model) : data(data, model, std::vector<double>(data.size(), 1)) {}
+
+SimpleLeastSquares::SimpleLeastSquares(const std::vector<double> data, const std::vector<double> model, const std::vector<double> errors) : data(data, model, errors) {}
+
 SimpleLeastSquares::SimpleLeastSquares(const SimpleDataset& data) : data(data) {}
 
 SimpleLeastSquares::SimpleLeastSquares(SimpleDataset&& data) : data(std::move(data)) {}
 
 std::pair<double, double> SimpleLeastSquares::fit_params_only() {
     S = 0, Sx = 0, Sy = 0, Sxx = 0, Sxy = 0;
-    for (size_t i = 0; i < data.size(); i++) {
+    for (unsigned i = 0; i < data.size(); ++i) {
         double sig2 = pow(data.yerr(i), 2);
         S += 1./sig2;
         Sx += data.x(i)/sig2;
@@ -24,13 +28,13 @@ std::pair<double, double> SimpleLeastSquares::fit_params_only() {
         Sxy += data.x(i)*data.y(i)/sig2;
     }
 
-    delta = S*Sxx - pow(Sx, 2);
+    delta = S*Sxx - Sx*Sx;
     a = (S*Sxy - Sx*Sy)/delta;
     b = (Sxx*Sy - Sx*Sxy)/delta;
     return std::make_pair(a, b);
 }
 
-double SimpleLeastSquares::fit_only() {
+double SimpleLeastSquares::fit_chi2_only() {
     fit_params_only();
     return chi2({});
 }

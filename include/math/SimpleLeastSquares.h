@@ -14,16 +14,22 @@ namespace fitter {
     class SimpleLeastSquares : public Fitter {
         public:
             /**
-             * @brief Copy constructor.
-             * 
-             * Prepare a linear least-squares fit for the given dataset. 
+             * @brief Prepare a linear least-squares fit for the given dataset. 
+             */
+            SimpleLeastSquares(const std::vector<double> data, const std::vector<double> model);
+
+            /**
+             * @brief Prepare a linear least-squares fit for the given dataset. 
+             */
+            SimpleLeastSquares(const std::vector<double> data, const std::vector<double> model, const std::vector<double> errors);
+
+            /**
+             * @brief Prepare a linear least-squares fit for the given dataset. 
              */
             SimpleLeastSquares(const SimpleDataset& data);
 
             /**
-             * @brief Move constructor.
-             * 
-             * Prepare a linear least-squares fit for the given dataset. 
+             * @brief Prepare a linear least-squares fit for the given dataset. 
              */
             SimpleLeastSquares(SimpleDataset&& data);
 
@@ -39,7 +45,7 @@ namespace fitter {
              */
             [[nodiscard]] std::pair<double, double> fit_params_only();
 
-            [[nodiscard]] virtual double fit_only() override;
+            [[nodiscard]] virtual double fit_chi2_only() override;
 
             /**
              * @brief Perform a linear least-squares fit. 
