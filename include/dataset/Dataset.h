@@ -53,7 +53,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Get a column based on its name. 
          */
-        [[nodiscard]] Column<double> col(const std::string& column);
+        [[nodiscard]] MutableColumn<double> col(const std::string& column);
 
         /**
          * @brief Get a column based on its name. 
@@ -63,7 +63,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Get a column based on its index.
          */
-        [[nodiscard]] Column<double> col(unsigned int index);
+        [[nodiscard]] MutableColumn<double> col(unsigned int index);
 
         /**
          * @brief Get a column based on its index.
@@ -73,7 +73,7 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Get a row based on its index.
          */
-        [[nodiscard]] Row<double> row(unsigned int index);
+        [[nodiscard]] MutableRow<double> row(unsigned int index);
 
         /**
          * @brief Get a row based on its index.
@@ -199,7 +199,7 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] const ConstColumn<double> x() const {return col(0);}
 
         // Get the first column.
-        [[nodiscard]] Column<double> x() {return col(0);}
+        [[nodiscard]] MutableColumn<double> x() {return col(0);}
 
         // Get the ith value in the first column.
         [[nodiscard]] const double& x(unsigned int i) const {return index(i, 0);}
@@ -211,7 +211,7 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] const ConstColumn<double> y() const {return col(1);}
 
         // Get the ith value in the second column.
-        [[nodiscard]] Column<double> y() {return col(1);}
+        [[nodiscard]] MutableColumn<double> y() {return col(1);}
 
         // Get the ith value in the second column.
         [[nodiscard]] const double& y(unsigned int i) const {return index(i, 1);}

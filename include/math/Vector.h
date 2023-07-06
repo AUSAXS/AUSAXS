@@ -144,16 +144,16 @@ class Vector {
         /**
          * @brief Get the size of this Vector.
          */
-        size_t size() const;
+        unsigned int size() const;
 
         /**
          * @brief Get the dimension of this Vector.
          */
-        size_t dim() const;
+        unsigned int dim() const;
 
         void resize(unsigned int size);
 
-        size_t N;
+        unsigned int N;
         std::vector<T> data;
 
     protected:

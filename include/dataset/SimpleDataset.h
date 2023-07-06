@@ -60,7 +60,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         [[nodiscard]] const ConstColumn<double> yerr() const {return col(2);}
 
         // Get the third column.
-        [[nodiscard]] Column<double> yerr() {return col(2);}
+        [[nodiscard]] MutableColumn<double> yerr() {return col(2);}
 
         // Get the ith value in the third column.
         [[nodiscard]] const double& yerr(unsigned int i) const {return index(i, 2);}

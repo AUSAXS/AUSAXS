@@ -1,7 +1,6 @@
 #pragma once
 
-#include <math/slices/ConstSlice.h>
-#include <math/slices/MutableSlice.h>
+#include <math/slices/Slice.h>
 
 #include <vector>
 #include <algorithm>
@@ -123,14 +122,6 @@ namespace stats {
     }
 
     /**
-     * @brief Calculate the mean of a vector.
-     */
-    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double weighted_mean_error(const MutableSlice<T>& xerr) noexcept {
-        return detail::weighted_mean_error(xerr);
-    }
-
-    /**
      * @brief Calculate the weighted mean of a vector.
      */
     template<typename T, typename Q, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_arithmetic_v<Q>>>
@@ -143,14 +134,6 @@ namespace stats {
      */
     template<typename T, typename Q, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_arithmetic_v<Q>>>
     double weighted_mean(const ConstSlice<T>& x, const ConstSlice<Q>& xerr) noexcept {
-        return detail::weighted_mean(x, xerr);
-    }
-
-    /**
-     * @brief Calculate the weighted mean of a Slice.
-     */
-    template<typename T, typename Q, typename = std::enable_if_t<std::is_arithmetic_v<T> && std::is_arithmetic_v<Q>>>
-    double weighted_mean(const MutableSlice<T>& x, const MutableSlice<Q>& xerr) noexcept {
         return detail::weighted_mean(x, xerr);
     }
 
@@ -171,14 +154,6 @@ namespace stats {
     }
 
     /**
-     * @brief Calculate the mean of a Slice.
-     */
-    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double mean(const MutableSlice<T>& s) noexcept {
-        return detail::mean(s);
-    }
-
-    /**
      * @brief Calculate the mean of a list.
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -191,14 +166,6 @@ namespace stats {
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     double var(const ConstSlice<T>& s, unsigned int ddof = 1) noexcept {
-        return detail::var(s, ddof);
-    }
-
-    /**
-     * @brief Calculate the variance of a Slice.
-     */
-    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double var(const MutableSlice<T>& s, unsigned int ddof = 1) noexcept {
         return detail::var(s, ddof);
     }
 
@@ -223,14 +190,6 @@ namespace stats {
      */
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     double std(const ConstSlice<T>& s, unsigned int ddof = 1) noexcept {
-        return std::sqrt(var(s, ddof));
-    }
-
-    /**
-     * @brief Calculate the standard deviation of a Slice.
-     */
-    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    double std(const MutableSlice<T>& s, unsigned int ddof = 1) noexcept {
         return std::sqrt(var(s, ddof));
     }
 

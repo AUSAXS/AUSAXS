@@ -6,8 +6,7 @@
 
 #include <Symbols.h>
 #include <utility/Concepts.h>
-#include <math/slices/ConstSlice.h>
-#include <math/slices/MutableSlice.h>
+#include <math/slices/Slice.h>
 #include <utility/Exceptions.h>
 #include <math/Vector.h>
 
@@ -37,7 +36,7 @@ class Matrix {
         /**
          * @brief Construct a Matrix based on a list of row vectors. The vectors must be of the same size.
          */
-        Matrix(std::vector<std::vector<Q>> v);
+        Matrix(const std::vector<std::vector<Q>>& v);
 
         /**
          * @brief Construct a Matrix based on a vector.
@@ -62,7 +61,7 @@ class Matrix {
         /**
          * @brief Add a new row at the end of the matrix.
          */
-        void push_back(std::vector<double> r);
+        void push_back(const std::vector<double>& r);
 
         /**
          * @brief Get the identity matrix of a given dimension. 
@@ -94,19 +93,19 @@ class Matrix {
         const ConstRow<Q> operator[](unsigned int i) const;
 
         // Read-write indexer
-        Row<Q> operator[](unsigned int i);
+        MutableRow<Q> operator[](unsigned int i);
 
         // Read-only column indexer
         const ConstColumn<Q> col(unsigned int j) const;
 
         // Read-write column indexer
-        Column<Q> col(unsigned int j);
+        MutableColumn<Q> col(unsigned int j);
 
         // Read-only row indexer
         const ConstRow<Q> row(unsigned int i) const;
 
         // Read-write row indexer
-        Row<Q> row(unsigned int i);
+        MutableRow<Q> row(unsigned int i);
 
         // Approximate equality operator
         template<numeric R>

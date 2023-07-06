@@ -78,8 +78,8 @@ void Dataset::limit_y(const Limit& limits) {
 void Dataset::limit_x(double min, double max) {limit_x({min, max});}
 void Dataset::limit_y(double min, double max) {limit_y({min, max});}
 
-Column<double> Dataset::col(const std::string& column) {
-    for (size_t i = 0; i < names.size(); ++i) {
+MutableColumn<double> Dataset::col(const std::string& column) {
+    for (unsigned int i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
             return col(i);
         }
@@ -88,7 +88,7 @@ Column<double> Dataset::col(const std::string& column) {
 }
 
 const ConstColumn<double> Dataset::col(const std::string& column) const {
-    for (size_t i = 0; i < names.size(); ++i) {
+    for (unsigned int i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
             return col(i);
         }
@@ -96,7 +96,7 @@ const ConstColumn<double> Dataset::col(const std::string& column) const {
     throw except::invalid_operation("Dataset::col: Column \"" + column + "\" not found. Available columns: " + utility::join(names, "\n"));
 }
 
-Column<double> Dataset::col(unsigned int index) {
+MutableColumn<double> Dataset::col(unsigned int index) {
     return Matrix::col(index);
 }
 
@@ -104,7 +104,7 @@ const ConstColumn<double> Dataset::col(unsigned int index) const {
     return Matrix::col(index);
 }
 
-Row<double> Dataset::row(unsigned int index) {
+MutableRow<double> Dataset::row(unsigned int index) {
     return Matrix::row(index);
 }
 
@@ -179,7 +179,7 @@ Dataset Dataset::rolling_average(unsigned int window_size) const {
 }
 
 void Dataset::interpolate(unsigned int n) {
-    CubicSpline spline(x().to_vector(), y().to_vector());
+    CubicSpline spline(x(), y());
     Matrix interpolated(size()*(n+1)-n-1, 2);
     for (unsigned int i = 0; i < size()-1; i++) {
         double x = this->x(i);
@@ -199,7 +199,7 @@ void Dataset::interpolate(unsigned int n) {
 }
 
 void Dataset::interpolate(const std::vector<double>& newx) {
-    CubicSpline spline(x().to_vector(), y().to_vector());
+    CubicSpline spline(x(), y());
     Matrix interpolated(newx.size(), 2);
     for (unsigned int i = 0; i < newx.size(); i++) {
         double x = newx[i];

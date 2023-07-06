@@ -71,10 +71,10 @@ class Dataset2D : public SimpleDataset {
         void scale_errors(double factor) override;
 
         // Get the fourth column.
-        [[nodiscard]] const ConstColumn<double> xerr() const {return ConstColumn<double>(data, N, M, 3);}
+        [[nodiscard]] const ConstColumn<double> xerr() const {return col(3);}
 
         // Get the fourth column.
-        [[nodiscard]] Column<double> xerr() {return Column<double>(data, N, M, 3);}
+        [[nodiscard]] MutableColumn<double> xerr() {return col(3);}
 
         // Get the ith value in the fourth column.
         [[nodiscard]] const double& xerr(unsigned int i) const {return index(i, 3);}

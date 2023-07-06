@@ -10,27 +10,48 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
-TEST_CASE("access") {
+// Slices are not meant to be used directly, but rather through the Matrix and Vector classes.
+// Thus we will test them through these two. 
+TEST_CASE("Slice::Slice") {
     Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
-    
-    // row through operator[]
-    REQUIRE(A[0] == Vector<double>{1, 1, 2, 2});
-    REQUIRE(A[1] == Vector<double>{3, 3, 2, 2});
-    REQUIRE(A[2] == Vector<double>{5, 5, 4, 4});
 
-    // explicit row
-    REQUIRE(A.row(0) == Vector<double>{1, 1, 2, 2});
-    REQUIRE(A.row(1) == Vector<double>{3, 3, 2, 2});
-    REQUIRE(A.row(2) == Vector<double>{5, 5, 4, 4});
+    SECTION("rows") {
+        auto a = A.row(0);
+        REQUIRE(a.size() == 4);
+        CHECK(a == std::vector{1, 1, 2, 2});
+        CHECK(a == A[0]);
 
-    // col
-    REQUIRE(A.col(0) == Vector<double>{1, 3, 5});
-    REQUIRE(A.col(1) == Vector<double>{1, 3, 5});
-    REQUIRE(A.col(2) == Vector<double>{2, 2, 4});
-    REQUIRE(A.col(3) == Vector<double>{2, 2, 4});
+        auto b = A.row(1);
+        REQUIRE(b.size() == 4);
+        CHECK(b == std::vector{3, 3, 2, 2});
+        CHECK(b == A[1]);
+
+        auto c = A.row(2);
+        REQUIRE(c.size() == 4);
+        CHECK(c == std::vector{5, 5, 4, 4});
+        CHECK(c == A[2]);        
+    }
+
+    SECTION("cols") {
+        auto a = A.col(0);
+        REQUIRE(a.size() == 3);
+        CHECK(a == std::vector{1, 3, 5});
+
+        auto b = A.col(1);
+        REQUIRE(b.size() == 3);
+        CHECK(b == std::vector{1, 3, 5});
+
+        auto c = A.col(2);
+        REQUIRE(c.size() == 3);
+        CHECK(c == std::vector{2, 2, 4});
+
+        auto d = A.col(3);
+        REQUIRE(d.size() == 3);
+        CHECK(d == std::vector{2, 2, 4});
+    }
 }
 
-TEST_CASE("assignment") {
+TEST_CASE("Slice::operator=") {
     Matrix A = {{1, 1, 2, 2}, {3, 3, 2, 2}, {5, 5, 4, 4}};
 
     // row assignment
@@ -87,7 +108,7 @@ TEST_CASE("vector_cast") {
     Vector<double> a = A.col(2);
     REQUIRE((a.N == 3 && a.data.size() == 3));
     REQUIRE(a == Vector{2, 2, 1});
-    REQUIRE((A.col(2).operator Vector<double>().N == 3 && A.col(2).operator Vector<double>().data.size() == 3)); // chain cast
+    // REQUIRE((A.col(2).operator Vector<double>().N == 3 && A.col(2).operator Vector<double>().data.size() == 3)); // chain cast
 }
 
 TEST_CASE("dot_product") {

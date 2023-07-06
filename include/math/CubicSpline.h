@@ -10,7 +10,6 @@
 class CubicSpline {
     public:
         CubicSpline(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {setup();}
-        CubicSpline(const Vector<double>& x, const Vector<double>& y) : x(x), y(y) {setup();}
 
         double spline(double z) const {
             int i = search(0, x.size(), z);

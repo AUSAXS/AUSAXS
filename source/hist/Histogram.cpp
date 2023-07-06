@@ -75,7 +75,7 @@ Limit Histogram::span_positive() const noexcept {
     }
 
     Limit limits(p[0], p[0]);
-    for (double val : p) {
+    for (const double val : p) {
         if (0 < val) {
             limits.min = std::min(val, limits.min);
         }

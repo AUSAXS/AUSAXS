@@ -27,7 +27,7 @@ Matrix<Q>::Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size(
 }
 
 template<numeric Q>
-Matrix<Q>::Matrix(std::vector<std::vector<Q>> v) : N(v[0].size()), M(v.size()), data(N*M) {
+Matrix<Q>::Matrix(const std::vector<std::vector<Q>>& v) : N(v[0].size()), M(v.size()), data(N*M) {
     for (unsigned int col = 0; col < M; col++) {
         if (v[col].size() != N) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
         for (unsigned int row = 0; row < N; row++) {
@@ -49,7 +49,7 @@ template<numeric Q>
 Matrix<Q>::~Matrix() = default;
 
 template<numeric Q>
-void Matrix<Q>::push_back(std::vector<double> r) {
+void Matrix<Q>::push_back(const std::vector<double>& r) {
     compatibility_check_M(r.size());
     extend(1);
     row(N-1) = r;
@@ -108,13 +108,13 @@ void Matrix<Q>::resize(int n, int m) {
 }
 
 template<numeric Q> const ConstRow<Q> Matrix<Q>::operator[](unsigned int i) const {return row(i);}
-template<numeric Q> Row<Q> Matrix<Q>::operator[](unsigned int i) {return row(i);}
+template<numeric Q> MutableRow<Q> Matrix<Q>::operator[](unsigned int i) {return row(i);}
 
 template<numeric Q> const ConstColumn<Q> Matrix<Q>::col(unsigned int j) const {return ConstColumn<Q>(data, N, M, j);}
-template<numeric Q> Column<Q> Matrix<Q>::col(unsigned int j) {return Column<Q>(data, N, M, j);}
+template<numeric Q> MutableColumn<Q> Matrix<Q>::col(unsigned int j) {return MutableColumn<Q>(data, N, M, j);}
 
 template<numeric Q> const ConstRow<Q> Matrix<Q>::row(unsigned int i) const {return ConstRow<Q>(data, N, M, i);}
-template<numeric Q> Row<Q> Matrix<Q>::row(unsigned int i) {return Row<Q>(data, N, M, i);}
+template<numeric Q> MutableRow<Q> Matrix<Q>::row(unsigned int i) {return MutableRow<Q>(data, N, M, i);}
 
 template<numeric Q> template<numeric R>
 bool Matrix<Q>::operator==(const Matrix<R>& A) const {
@@ -139,7 +139,7 @@ double Matrix<Q>::det() const {
 template<numeric Q>
 Matrix<Q> Matrix<Q>::copy() const {
     Matrix A(N, M);
-    A.data.assign(data.begin(), data.end());
+    A.data.assign(begin(), end());
     return A;
 }
 
@@ -188,10 +188,10 @@ Q& Matrix<Q>::index(unsigned int i, unsigned int j) {
 }
 
 template<numeric Q>
-const typename std::vector<Q>::const_iterator Matrix<Q>::begin() const {return data.begin();}
+const typename std::vector<Q>::const_iterator Matrix<Q>::begin() const {return data.cbegin();}
 
 template<numeric Q>
-const typename std::vector<Q>::const_iterator Matrix<Q>::end() const {return data.end();}
+const typename std::vector<Q>::const_iterator Matrix<Q>::end() const {return data.cend();}
 
 template<numeric Q>
 typename std::vector<Q>::iterator Matrix<Q>::begin() {return data.begin();}

@@ -121,10 +121,10 @@ std::string Vector<T>::to_string(std::string message) const {
 }
 
 template<numeric T>
-const typename std::vector<T>::const_iterator Vector<T>::begin() const {return data.begin();}
+const typename std::vector<T>::const_iterator Vector<T>::begin() const {return data.cbegin();}
 
 template<numeric T>
-const typename std::vector<T>::const_iterator Vector<T>::end() const {return data.end();}
+const typename std::vector<T>::const_iterator Vector<T>::end() const {return data.cend();}
 
 template<numeric T>
 typename std::vector<T>::iterator Vector<T>::begin() {return data.begin();}
@@ -136,10 +136,10 @@ template<numeric T>
 void Vector<T>::push_back(T val) {data.push_back(val); N++;}
 
 template<numeric T>
-size_t Vector<T>::size() const {return N;}
+unsigned Vector<T>::size() const {return N;}
 
 template<numeric T>
-size_t Vector<T>::dim() const {return size();}
+unsigned Vector<T>::dim() const {return size();}
 
 template<numeric T>
 void Vector<T>::resize(unsigned int size) {
