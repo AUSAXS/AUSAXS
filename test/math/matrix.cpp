@@ -10,6 +10,80 @@
 #include <math/Vector.h>
 #include <math/Vector3.h>
 
+TEST_CASE("Matrix::matrix") {
+    SECTION("default") {
+        Matrix<double> A;
+        CHECK(A.N == 0);
+        CHECK(A.M == 0);
+        CHECK(A.data.empty());
+    }
+
+    SECTION("Matrix&&") {
+        Matrix<double> A({{1, 2}, {3, 4}});
+        Matrix<double> B(std::move(A));
+        CHECK(B.N == 2);
+        CHECK(B.M == 2);
+        CHECK(B.row(0) == std::vector{1, 2});
+        CHECK(B.row(1) == std::vector{3, 4});
+    }
+
+    SECTION("Matrix&") {
+        Matrix<double> A({{1, 2}, {3, 4}});
+        Matrix<double> B(A);
+        CHECK(B == A);
+    }
+
+    SECTION("initializer_list<initializer_list>") {
+        Matrix<double> A({{1, 2}, {3, 4}, {5, 6}});
+        CHECK(A.N == 3);
+        CHECK(A.M == 2);
+        CHECK(A.row(0) == std::vector{1, 2});
+        CHECK(A.row(1) == std::vector{3, 4});
+        CHECK(A.row(2) == std::vector{5, 6});
+    }
+
+    SECTION("vector<vector>") {
+        Matrix<double> A({{1, 2}, {3, 4}, {5, 6}});
+        CHECK(A.N == 3);
+        CHECK(A.M == 2);
+        CHECK(A.row(0) == std::vector{1, 2});
+        CHECK(A.row(1) == std::vector{3, 4});
+        CHECK(A.row(2) == std::vector{5, 6});
+    }
+
+    // SECTION("variadic column-majority") {
+    //     Matrix<double> A(3, 2, 1, 2, 3, 4, 5, 6);
+    //     CHECK(A.N == 1);
+    //     CHECK(A.M == 8);
+    //     CHECK(A.row(0) == std::vector{3, 2, 1, 2, 3, 4, 5, 6});
+
+    //     Matrix<double> B({1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10, 11, 12});
+    //     CHECK(B.N == 3);
+    //     CHECK(B.M == 4);
+    //     CHECK(B.row(0) == std::vector{1, 4, 7, 10});
+    //     CHECK(B.row(1) == std::vector{2, 5, 8, 11});
+    //     CHECK(B.row(2) == std::vector{3, 6, 9, 12});
+    // }
+
+    SECTION("Vector") {
+        Matrix<double> A(Vector<double>{1, 2, 3});
+        CHECK(A.N == 3);
+        CHECK(A.M == 1);
+        CHECK(A.row(0) == std::vector{1});
+        CHECK(A.row(1) == std::vector{2});
+        CHECK(A.row(2) == std::vector{3});
+    }
+
+    SECTION("unsigned int, unsigned int") {
+        Matrix<double> A(3, 2);
+        CHECK(A.N == 3);
+        CHECK(A.M == 2);
+        CHECK(A.row(0) == std::vector{0, 0});
+        CHECK(A.row(1) == std::vector{0, 0});
+        CHECK(A.row(2) == std::vector{0, 0});
+    }
+}
+
 TEST_CASE("basic operations") {
     Matrix<double> A({{1, 2}, {3, 4}});
     Matrix<double> B({{5, 6}, {7, 8}});

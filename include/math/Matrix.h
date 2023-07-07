@@ -46,7 +46,7 @@ class Matrix {
         /**
          * @brief Construct an empty Matrix of a given size. 
          */
-        Matrix(int n, int m);
+        Matrix(unsigned int n, unsigned int m);
 
         /**
          * @brief Default constructor.

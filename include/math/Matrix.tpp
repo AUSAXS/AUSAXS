@@ -40,7 +40,7 @@ template<numeric Q>
 Matrix<Q>::Matrix(const Vector<Q>& v) : N(v.N), M(1), data(v.data) {}
 
 template<numeric Q>
-Matrix<Q>::Matrix(int n, int m) : N(n), M(m), data(N*M) {} 
+Matrix<Q>::Matrix(unsigned int n, unsigned int m) : N(n), M(m), data(N*M) {} 
 
 template<numeric Q>
 Matrix<Q>::Matrix() : N(0), M(0), data(0) {}
