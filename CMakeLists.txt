@@ -102,12 +102,24 @@ endif(DOXYGEN_FOUND)
 ############################################
 ##           Build library                ##
 ############################################
-file(GLOB_RECURSE HEADERS "${CMAKE_SOURCE_DIR}/include/*.h")
-file(GLOB_RECURSE SOURCES "${CMAKE_SOURCE_DIR}/source/*.cpp")
-add_library(saxs ${HEADERS} ${SOURCES})
+file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
+file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
+
+add_library(objlib OBJECT ${SOURCE_FILES})
+set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
+
+add_library(saxs_static STATIC $<TARGET_OBJECTS:objlib>)
+add_library(saxs SHARED $<TARGET_OBJECTS:objlib>)
+set_target_properties(saxs_static PROPERTIES OUTPUT_NAME saxs_static)
+set_target_properties(saxs PROPERTIES OUTPUT_NAME saxs)
+
+target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${CURL})
 target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
-link_libraries(saxs)
+target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${CURL})
+link_libraries(saxs_static)
 
 ############################################
 ##             Unit Testing               ##

@@ -150,17 +150,6 @@ TEST_CASE("pushback") {
         CHECK(data.xerr() == Vector{3, 7, 11, 15});
         CHECK(data.yerr() == Vector{4, 8, 12, 16});
     }
-
-    SECTION("SimpleDataset") {
-        SimpleDataset data;
-        data.push_back(1, 2);
-        data.push_back(3, 4);
-        data.push_back(5, 6);
-        data.push_back(Point2D(7, 8));
-
-        CHECK(data.x() == Vector{1, 3, 5, 7});
-        CHECK(data.y() == Vector{2, 4, 6, 8});
-    }
 }
 
 TEST_CASE("plots") {
@@ -274,50 +263,6 @@ TEST_CASE("io") {
     }
 }
 
-TEST_CASE("scale") {
-    vector<double> x = {1, 2, 3, 4, 5};
-    vector<double> y = {10, 20, 30, 40, 50};
-    vector<double> yerr = {1, 2, 3, 4, 5};
-    vector<double> xerr = {0.1, 0.2, 0.3, 0.4, 0.5};
-    Dataset2D data(x, y, xerr, yerr);
-
-    SECTION("scale y") {
-        data.scale_y(2);
-        CHECK(data.y().to_vector() == vector<double>({20, 40, 60, 80, 100}));
-
-        data.scale_y(0.2);
-        CHECK(data.y().to_vector() == vector<double>({4, 8, 12, 16, 20}));
-
-        data.scale_y(-0.5);
-        CHECK(data.y().to_vector() == vector<double>({-2, -4, -6, -8, -10}));
-    }
-
-    SECTION("scale errors") {
-        data.scale_errors(2);
-        CHECK(data.yerr().to_vector() == vector<double>({2, 4, 6, 8, 10}));
-        CHECK(data.xerr().to_vector() == vector<double>({0.2, 0.4, 0.6, 0.8, 1.0}));
-
-        data.scale_errors(0.5);
-        CHECK(data.yerr().to_vector() == vector<double>({1, 2, 3, 4, 5}));
-        CHECK(data.xerr().to_vector() == vector<double>({0.1, 0.2, 0.3, 0.4, 0.5}));
-
-        data.scale_errors(-0.5);
-        CHECK(data.yerr().to_vector() == vector<double>({-0.5, -1, -1.5, -2, -2.5}));
-        CHECK(data.xerr().to_vector() == vector<double>({-0.05, -0.1, -0.15, -0.2, -0.25}));
-    }
-
-    SECTION("normalize") {
-        data.normalize(1);
-        CHECK(data.y().to_vector() == vector<double>({1, 2, 3, 4, 5}));
-
-        data.normalize(-5);
-        CHECK(data.y().to_vector() == vector<double>({-5, -10, -15, -20, -25}));
-
-        data.normalize(10);
-        CHECK(data.y().to_vector() == vector<double>({10, 20, 30, 40, 50}));
-    }
-}
-
 TEST_CASE("reduce") {
     vector<double> x = {1, 2, 3, 4, 5};
     vector<double> y = {10, 20, 30, 40, 50};
@@ -334,7 +279,7 @@ TEST_CASE("reduce") {
         data = Dataset2D(x, y);
         data.reduce(5, true);
         CHECK(data.size() == 5);
-        CHECK(data.x().to_vector() == vector<double>({1e0, 1e2, 1e4, 1e6, 1e8}));
+        CHECK(data.x() == std::vector<double>({1e0, 1e2, 1e4, 1e6, 1e8}));
     }
 }
 

@@ -236,7 +236,6 @@ class MutableSlice : public Slice<T, std::vector<T>&> {
 template<numeric T>
 class ConstRow : public ConstSlice<T> {
     public:
-        using ConstSlice<T>::ConstSlice;
         /**
          * @brief Constructor. 
          * 
@@ -246,12 +245,12 @@ class ConstRow : public ConstSlice<T> {
          * @param row The row index of this ConstRow.
          */
         ConstRow(const std::vector<T>& data, unsigned int, unsigned int M, unsigned int row) : ConstSlice<T>(data, row*M, 1, M) {}
+        using ConstSlice<T>::ConstSlice;
 };
 
 template<numeric T>
 class ConstColumn : public ConstSlice<T> {
     public:
-        using ConstSlice<T>::ConstSlice;
         /**
          * @brief Constructor. 
          * 
@@ -261,12 +260,12 @@ class ConstColumn : public ConstSlice<T> {
          * @param length The total number of elements this Slice can access. 
          */
         ConstColumn(const std::vector<T>& data, unsigned int N, unsigned int M, unsigned int col) : ConstSlice<T>(data, col, M, N) {}
+        using ConstSlice<T>::ConstSlice;
 };
 
 template<numeric T>
 class MutableRow : public MutableSlice<T> {
     public:
-        using MutableSlice<T>::MutableSlice;
         /**
          * @brief Constructor. 
          * 
@@ -276,6 +275,7 @@ class MutableRow : public MutableSlice<T> {
          * @param row The row index of this ConstRow.
          */
         MutableRow(std::vector<T>& data, unsigned int, unsigned int M, unsigned int row) : MutableSlice<T>(data, row*M, 1, M) {}
+        using MutableSlice<T>::MutableSlice;
 
         // We have to explicitly define this to avoid ambiguity
         MutableRow& operator=(const MutableRow& rhs) {MutableSlice<T>::operator=(rhs); return *this;}
@@ -285,7 +285,6 @@ class MutableRow : public MutableSlice<T> {
 template<numeric T>
 class MutableColumn : public MutableSlice<T> {
     public:
-        using MutableSlice<T>::MutableSlice;
         /**
          * @brief Constructor. 
          * 
@@ -295,6 +294,7 @@ class MutableColumn : public MutableSlice<T> {
          * @param length The total number of elements this Slice can access. 
          */
         MutableColumn(std::vector<T>& data, unsigned int N, unsigned int M, unsigned int col) : MutableSlice<T>(data, col, M, N) {}
+        using MutableSlice<T>::MutableSlice;
 
         // We have to explicitly define this to avoid ambiguity
         MutableColumn& operator=(const MutableColumn& rhs) {MutableSlice<T>::operator=(rhs); return *this;}

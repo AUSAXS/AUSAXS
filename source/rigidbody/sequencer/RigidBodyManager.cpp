@@ -15,6 +15,8 @@
 
 using namespace rigidbody::sequencer;
 
+std::unique_ptr<RigidBodyManager> rigidbody::sequencer::rigidbody;
+
 template<typename T> requires std::is_same_v<std::decay_t<T>, Protein>
 RigidBodyManager::RigidBodyManager(const io::ExistingFile& saxs, T&& rigidbody) : RigidBody(std::forward<T>(rigidbody)) {
     prepare_fitter(saxs);

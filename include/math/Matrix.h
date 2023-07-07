@@ -34,9 +34,9 @@ class Matrix {
         Matrix(std::initializer_list<std::initializer_list<Q>> l);
 
         /**
-         * @brief Construct a Matrix based on a list of row vectors. The vectors must be of the same size.
+         * @brief Construct a Matrix based on a list of column vectors. The vectors must be of the same size.
          */
-        Matrix(const std::vector<std::vector<Q>>& v);
+        Matrix(const std::vector<std::vector<Q>>& cols);
 
         /**
          * @brief Construct a Matrix based on a vector.

@@ -26,6 +26,6 @@ namespace rigidbody {
                 rigidbody::detail::BestConf best;
                 void initialize();
         };
-        std::unique_ptr<RigidBodyManager> rigidbody;
+        extern std::unique_ptr<RigidBodyManager> rigidbody;
     }
 }

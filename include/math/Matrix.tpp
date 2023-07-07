@@ -27,11 +27,11 @@ Matrix<Q>::Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size(
 }
 
 template<numeric Q>
-Matrix<Q>::Matrix(const std::vector<std::vector<Q>>& v) : N(v[0].size()), M(v.size()), data(N*M) {
+Matrix<Q>::Matrix(const std::vector<std::vector<Q>>& cols) : N(cols[0].size()), M(cols.size()), data(N*M) {
     for (unsigned int col = 0; col < M; col++) {
-        if (v[col].size() != N) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
+        if (cols[col].size() != N) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
         for (unsigned int row = 0; row < N; row++) {
-            index(row, col) = v[col][row];
+            index(row, col) = cols[col][row];
         }
     }
 }

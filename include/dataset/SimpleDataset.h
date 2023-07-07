@@ -74,7 +74,10 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         virtual void load(const io::ExistingFile& path) override;
 
         /**
-         * @brief Reduce the number of data points to the specified amount. 
+         * @brief Reduce the number of rows to the specified amount by uniformly removing points in x-space.
+         * 
+         * @param target The target number of points.
+         * @param log If true, the points will be removed uniformly on a logarithmic scale.
          */
         void reduce(unsigned int target, bool log = false);
 
@@ -82,7 +85,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          * @brief Assign a Matrix to this dataset.
          */
         void operator=(const Matrix<double>&& other);
-
+        
         bool operator==(const SimpleDataset& other) const;
 
         /**
