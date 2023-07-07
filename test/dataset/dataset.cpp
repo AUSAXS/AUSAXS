@@ -243,14 +243,16 @@ TEST_CASE("Dataset::rolling_average") {
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::append") {
-    dataset.append(dataset);
+    auto d2 = dataset;
+    dataset.append(d2);
     REQUIRE(dataset.size() == 18);
     for (unsigned int i = 0; i < 9; ++i) {
         CHECK(dataset.x(i) == dataset.x(i+9));
         CHECK(dataset.y(i) == dataset.y(i+9));
     }
 
-    dataset.append(dataset);
+    d2 = dataset;
+    dataset.append(d2);
     REQUIRE(dataset.size() == 36);
     for (unsigned int i = 0; i < 18; ++i) {
         CHECK(dataset.x(i) == dataset.x(i+18));

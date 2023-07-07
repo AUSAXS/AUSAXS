@@ -151,7 +151,8 @@ class Dataset : public Matrix<double> {
         Dataset rolling_average(unsigned int window) const;
 
         /**
-         * @brief Append another dataset to this one.
+         * @brief Append another dataset with the same number of rows to this one.
+         *        Note that you cannot append a datasaet to itself.
          */
         void append(const Dataset& other);
 

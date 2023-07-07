@@ -211,6 +211,7 @@ void Dataset::interpolate(const std::vector<double>& newx) {
 }
 
 void Dataset::append(const Dataset& other) {
+    if (this == &other) {throw except::invalid_argument("Dataset::append: Cannot append to itself.");}
     if (M != other.M) {throw except::invalid_argument("Dataset::append: Number of columns does not match.");}
     unsigned int n = size();
     extend(other.size());
