@@ -141,7 +141,6 @@ TEST_CASE("assignment") {
 
     A = C;
     B = C;
-    C = Matrix<double>{{0, 0}, {0, 0}};
     REQUIRE(A == Matrix{{2, 3}, {3, 4}});
     REQUIRE(B == Matrix{{2, 3}, {3, 4}});
 

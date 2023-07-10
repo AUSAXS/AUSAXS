@@ -70,7 +70,6 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
     io::XYZWriter trajectory(settings::general::output + "trajectory.xyz");
     trajectory.write_frame(this);
 
-    unsigned int optimized_step = 0;
     for (unsigned int i = 0; i < settings::rigidbody::iterations; i++) {
         if (optimize_step(best)) [[unlikely]] {
             trajectory.write_frame(this);

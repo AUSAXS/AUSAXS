@@ -19,36 +19,34 @@ TEST_CASE("DATConstructor::construct") {
             "0.2 2 20\n"
             "0.3 3 30\n";
 
-        {
-            std::ofstream file(test_file);
-            file << test_file_contents;
-            file.close();
+        std::ofstream file(test_file);
+        file << test_file_contents;
+        file.close();
 
-            // default M
-            auto data = detail::DATConstructor().construct(test_file, 0);
-            REQUIRE(data->M == 3);
-            CHECK(data->col(0) == Vector<double>({0.1, 0.2, 0.3}));
-            CHECK(data->col(1) == Vector<double>({1, 2, 3}));
-            CHECK(data->col(2) == Vector<double>({10, 20, 30}));
+        // default M
+        auto data = detail::DATConstructor().construct(test_file, 0);
+        REQUIRE(data->M == 3);
+        CHECK(data->col(0) == Vector<double>({0.1, 0.2, 0.3}));
+        CHECK(data->col(1) == Vector<double>({1, 2, 3}));
+        CHECK(data->col(2) == Vector<double>({10, 20, 30}));
 
-            // M = 1
-            auto data1 = detail::DATConstructor().construct(test_file, 1);
-            REQUIRE(data1->M == 1);
-            CHECK(data1->col(0) == Vector<double>({0.1, 0.2, 0.3}));
+        // M = 1
+        auto data1 = detail::DATConstructor().construct(test_file, 1);
+        REQUIRE(data1->M == 1);
+        CHECK(data1->col(0) == Vector<double>({0.1, 0.2, 0.3}));
 
-            // M = 2
-            auto data2 = detail::DATConstructor().construct(test_file, 2);
-            REQUIRE(data2->M == 2);
-            CHECK(data2->col(0) == Vector<double>({0.1, 0.2, 0.3}));
-            CHECK(data2->col(1) == Vector<double>({1, 2, 3}));
+        // M = 2
+        auto data2 = detail::DATConstructor().construct(test_file, 2);
+        REQUIRE(data2->M == 2);
+        CHECK(data2->col(0) == Vector<double>({0.1, 0.2, 0.3}));
+        CHECK(data2->col(1) == Vector<double>({1, 2, 3}));
 
-            // M = 3
-            auto data3 = detail::DATConstructor().construct(test_file, 3);
-            REQUIRE(data3->M == 3);
-            CHECK(data3->col(0) == Vector<double>({0.1, 0.2, 0.3}));
-            CHECK(data3->col(1) == Vector<double>({1, 2, 3}));
-            CHECK(data3->col(2) == Vector<double>({10, 20, 30}));
-        }
+        // M = 3
+        auto data3 = detail::DATConstructor().construct(test_file, 3);
+        REQUIRE(data3->M == 3);
+        CHECK(data3->col(0) == Vector<double>({0.1, 0.2, 0.3}));
+        CHECK(data3->col(1) == Vector<double>({1, 2, 3}));
+        CHECK(data3->col(2) == Vector<double>({10, 20, 30}));
     }
 
     SECTION("weird contents") {

@@ -5,10 +5,9 @@
 void curl::download(const std::string& url, const io::File& path) {
     CURL *curl;
     CURLcode res = CURLE_FAILED_INIT;
-    FILE *fp;
     curl = curl_easy_init();
     if (curl) {
-        fp = fopen(path.path().c_str(), "wb");
+        FILE* fp = fopen(path.path().c_str(), "wb");
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
         res = curl_easy_perform(curl);

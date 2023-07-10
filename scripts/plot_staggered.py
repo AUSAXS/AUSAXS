@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-from scipy.optimize import curve_fit
 import argparse
 
 params = {
@@ -97,14 +96,14 @@ for i in range(len(data)):
     chi2 = np.sum((data[i].y - avg.y)**2 / data[i].dy**2)
     chi2s.append(chi2)
 
-    # plot the fit in an upper subplot, and the residuals in a lower subplot 
+    # plot the fit in an upper subplot, and the residuals in a lower subplot
     fig, ax = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
     ax[0].errorbar(data[i].x, data[i].y, yerr=data[i].dy, c="k", label="data")
     ax[0].plot(avg.x, avg.y, c="r", label="average")
     ax[0].set_ylabel("Intensity [arb]")
     ax[0].set_xscale("log")
     ax[0].set_yscale("log")
-    ax[0].legend()    
+    ax[0].legend()
 
     # plot the residuals
     ax[1].axhline(0, c="k", lw=0.5)
@@ -172,7 +171,7 @@ plt.savefig(os.path.join(folder, "autocorrelation.png"))
 #     plt.figure(mainfig.number)
 #     plt.plot(data[:, 0], data[:, 1], c="k", alpha=0.1)
 #     if (i == 2): 
-#         plt.plot(data[:, 0], data[:, 1], label=stem.lower(), c="r", alpha=0.5)        
+#         plt.plot(data[:, 0], data[:, 1], label=stem.lower(), c="r", alpha=0.5)
 
 #     plt.figure(subfig.number)
 #     plt.plot(data[:, 0], data[:, 1], label=stem.lower(), alpha=0.5)
@@ -188,7 +187,7 @@ plt.savefig(os.path.join(folder, "autocorrelation.png"))
 #         plt.savefig(os.path.join(folder, f"loglog_{counter}.png"))
 #         plt.close(subfig)
 #         subfig = plt.figure()
-        
+
 #         plt.figure(skipfig.number)
 #         plt.plot(data[:, 0], data[:, 1], label=stem.lower(), alpha=0.5)
 

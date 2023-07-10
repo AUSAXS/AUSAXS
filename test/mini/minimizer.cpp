@@ -11,8 +11,8 @@
 using std::vector;
 
 struct TestFunction {
-    TestFunction(std::function<double(std::vector<double>)> function, std::vector<Limit> bounds, std::vector<double> min) : function(function), bounds(bounds), min(min) {}
-    TestFunction(std::function<double(std::vector<double>)> function, Limit bounds, double min) : TestFunction(function, vector{bounds}, vector{min}) {}
+    TestFunction(std::function<double(std::vector<double>)> function, const std::vector<Limit>& bounds, const std::vector<double>& min) : function(function), bounds(bounds), min(min) {}
+    TestFunction(std::function<double(std::vector<double>)> function, const Limit& bounds, double min) : TestFunction(function, vector{bounds}, vector{min}) {}
 
     std::vector<double> get_center() const {
         std::vector<double> v;

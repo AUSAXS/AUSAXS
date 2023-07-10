@@ -47,6 +47,7 @@ class Options:
         self.yrange = []
         self.xlog = False
         self.ylog = False
+        self.xshift = 0
 
         # other stuff
         self.dof = 0 # degrees of freedom for chi2 plots
@@ -105,6 +106,8 @@ class Options:
                 self.xlog = int(words[1])
             case "logy":
                self.ylog = int(words[1])
+            case "xshift":
+                self.xshift = float(words[1])
 
         # other stuff
             case "dof": 
@@ -278,6 +281,9 @@ def plot_dataset(d: Dataset):
     # divide by degrees of freedom if present. Easy fix to support reduced chi2 landscapes.
     if d.options.dof != 0:
         d.data[:,1] = d.data[:,1]/d.options.dof
+
+    if d.options.xshift != 0:
+        d.data[:,0] += d.options.xshift
 
     if d.options.drawerror:
         if (d.data.shape[1] < 3):
