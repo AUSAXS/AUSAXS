@@ -31,7 +31,7 @@ Dataset::Dataset(const io::ExistingFile& path) : Dataset() {
 
 Dataset::~Dataset() = default;
 
-void Dataset::assign_matrix(const Matrix<double>&& m) {
+void Dataset::assign_matrix(Matrix<double>&& m) {
     if (m.M != M) {
         throw except::invalid_operation("Dataset::operator=: Matrix has wrong number of columns. "
         "Expected " + std::to_string(M) + ", but got " + std::to_string(m.M));
@@ -39,7 +39,7 @@ void Dataset::assign_matrix(const Matrix<double>&& m) {
     force_assign_matrix(std::move(m));
 }
 
-void Dataset::force_assign_matrix(const Matrix<double>&& m) {
+void Dataset::force_assign_matrix(Matrix<double>&& m) {
     this->data = std::move(m.data);
     this->N = m.N;
     this->M = m.M;
@@ -254,3 +254,5 @@ unsigned int Dataset::size_rows() const noexcept {
 unsigned int Dataset::size_cols() const noexcept {
     return M;
 }
+
+bool Dataset::operator==(const Dataset& other) const = default;

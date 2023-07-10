@@ -69,6 +69,7 @@ class Matrix {
         static Matrix<Q> identity(unsigned int dim);
 
         Matrix<Q>& operator=(const Matrix<Q>& A);
+        Matrix<Q>& operator=(Matrix<Q>&& A);
         Matrix<Q> operator-() const;
         Matrix<Q>& operator*=(double a);
         Matrix<Q>& operator/=(double a);
@@ -110,10 +111,6 @@ class Matrix {
         // Approximate equality operator
         template<numeric R>
         bool operator==(const Matrix<R>& A) const;
-
-        // Approximate inequality operator
-        template<numeric R>
-        bool operator!=(const Matrix<R>& A) const;
 
         /**
          * @brief Get the determinant of this Matrix.

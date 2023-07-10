@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <iostream>
 
 namespace detail {
     struct IPoint {
@@ -20,6 +21,7 @@ struct Point1D : detail::IPoint {
 
     double x = 0, xerr = 0;
 };
+std::ostream& operator<<(std::ostream& os, const Point1D& p);
 
 struct Point2D : Point1D {
     Point2D();
@@ -34,6 +36,7 @@ struct Point2D : Point1D {
 
     double y = 0, yerr = 0;
 };
+std::ostream& operator<<(std::ostream& os, const Point2D& p);
 
 struct Point3D : Point2D {
     Point3D();
@@ -46,6 +49,7 @@ struct Point3D : Point2D {
 
     double z = 0, zerr = 0;
 };
+std::ostream& operator<<(std::ostream& os, const Point3D& p);
 
 /**
  * @brief A representation of a set of points.

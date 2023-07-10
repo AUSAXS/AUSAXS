@@ -192,6 +192,8 @@ class Dataset : public Matrix<double> {
          */
         [[nodiscard]] std::string to_string() const;
 
+        [[nodiscard]] bool operator==(const Dataset& other) const;
+
     //#####################//
     //### Alias methods ###//
     //#####################//
@@ -237,11 +239,11 @@ class Dataset : public Matrix<double> {
          * @brief Assign a matrix to this Dataset.
          *        The compatibility of the matrix is checked.
          */
-        void assign_matrix(const Matrix<double>&& m);
+        void assign_matrix(Matrix<double>&& m);
 
         /**
          * @brief Forcibly assign a matrix to this Dataset.
          *        The compatibility of the matrix is not checked. 
          */
-        void force_assign_matrix(const Matrix<double>&& m);
+        void force_assign_matrix(Matrix<double>&& m);
 };

@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <initializer_list>
+#include <iostream>
 
 template<numeric T, container_type Container> 
 class Slice {
@@ -45,11 +46,11 @@ class Slice {
 		}
 
 		/**
-		 * @brief Get the final element in this Slice.
+		 * @brief Get the first element in this Slice.
 		 */
-		const T& first() const {
+		const T& front() const {
 			#if SAFE_MATH
-				if (size() == 0) {throw std::out_of_range("Slice::first(): Slice is empty.");}
+				if (size() == 0) {throw std::out_of_range("Slice::front(): Slice is empty.");}
 			#endif
 			return (*this)[0];
 		}
@@ -128,6 +129,17 @@ class Slice {
             return v;
         }
 
+        std::string to_string() const {
+            std::stringstream s; s << "( ";
+            for (unsigned int i = 0; i < size(); i++) {
+                s << std::setprecision(8) << (*this)[i] << " ";
+            }
+            s << ")";
+            return s.str();
+        }
+
+        friend std::ostream& operator<<(std::ostream& os, const Slice<T, Container>& v) {os << v.to_string(); return os;}
+
         SliceIterator<const T> begin() const {return SliceIterator<const T>(&data[offset], step);}
         SliceIterator<const T> end() const {return SliceIterator<const T>(&data[offset + length*step], step);}
 
@@ -147,19 +159,10 @@ class Slice {
 };
 
 template<numeric T>
-class ConstSlice : public Slice<T, const std::vector<T>&> {
-        using Slice<T, const std::vector<T>&>::Slice;
-};
-
-template<numeric T>
 class MutableSlice : public Slice<T, std::vector<T>&> {
     using data_type = std::vector<T>&;
     public:
         using Slice<T, data_type>::Slice;
-
-        operator ConstSlice<T>() const {
-            return ConstSlice<T>(this->data, this->offset, this->step, this->length);
-        }
 
         /**
          * @brief Mutable indexer in this Slice.
@@ -219,18 +222,27 @@ class MutableSlice : public Slice<T, std::vector<T>&> {
         using Slice<T, data_type>::back;
 
 		/**
-		 * @brief Get the final element in this Slice.
+		 * @brief Get the first element in this Slice.
 		 */
-		T& first() {
+		T& front() {
 			#if SAFE_MATH
-				if (this->size() == 0) {throw std::out_of_range("MutableSlice::first(): Slice is empty.");}
+				if (this->size() == 0) {throw std::out_of_range("MutableSlice::front(): Slice is empty.");}
 			#endif
 			return (*this)[0];
 		}
-        using Slice<T, data_type>::first;
+        using Slice<T, data_type>::front;
 
         SliceIterator<T> begin() {return SliceIterator<T>(&this->data[this->offset], this->step);}
         SliceIterator<T> end() {return SliceIterator<T>(&this->data[this->offset + this->length*this->step], this->step);}
+};
+
+template<numeric T>
+class ConstSlice : public Slice<T, const std::vector<T>&> {
+    using data_type = const std::vector<T>&;
+    public:
+        using Slice<T, data_type>::Slice;
+        ConstSlice(MutableSlice<T>&& rhs) : Slice<T, data_type>(std::move(rhs.data), rhs.offset, rhs.step, rhs.length) {}
+        ConstSlice(const MutableSlice<T>& rhs) : Slice<T, data_type>(rhs.data, rhs.offset, rhs.step, rhs.length) {}
 };
 
 template<numeric T>

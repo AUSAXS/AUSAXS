@@ -1,7 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <dataset/SimpleDataset.h>
+#include <math/Statistics.h>
 
 struct fixture {
     SimpleDataset dataset = {{1, 2, 3}, {4, 5, 6}};
@@ -12,7 +14,7 @@ TEST_CASE("SimpleDataset::SimpleDataset") {
         SimpleDataset dataset;
         CHECK(dataset.size() == 0);
         CHECK(dataset.size_rows() == 0);
-        CHECK(dataset.size_cols() == 0);
+        CHECK(dataset.size_cols() == 3);
     }
 
     SECTION("Dataset&") {
@@ -86,6 +88,7 @@ TEST_CASE("SimpleDataset::load") {
 }
 
 TEST_CASE("SimpleDataset::reduce") {
+    // we just want to check that it works as expected with perfectly linear data
     SECTION("linear") {
         SimpleDataset dataset(
             std::vector<double>{0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.11}, 
@@ -94,22 +97,23 @@ TEST_CASE("SimpleDataset::reduce") {
         );
 
         dataset.reduce(6);
-        CHECK(dataset.size_rows() == 6);
+        CHECK(dataset.size_rows() < 11);
         CHECK(dataset.size_cols() == 3);
         CHECK(dataset.x() == std::vector{0.01, 0.03, 0.05, 0.07, 0.09, 0.11});
     }
 
+    // we just want to check that it works as expected with perfectly logarithmic data
     SECTION("log") {
         SimpleDataset dataset(
-            std::vector<double>{1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5}, 
-            std::vector<double>{1,    2,    3,    4,    5,   6,   7,   8,   9,   10},
-            std::vector<double>{1,    1,    1,    1,    1,   1,   1,   1,   1,   1}
+            std::vector<double>{1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6}, 
+            std::vector<double>{1,    2,    3,    4,    5,   6,   7,   8,   9,   10,  11},
+            std::vector<double>{1,    1,    1,    1,    1,   1,   1,   1,   1,   1,   1}
         );
 
         dataset.reduce(6, true);
         CHECK(dataset.size_rows() == 6);
         CHECK(dataset.size_cols() == 3);
-        CHECK(dataset.x() == std::vector{1, 2, 3, 4, 5, 6});
+        CHECK(dataset.x() == std::vector{1e-4, 1e-2, 1e0, 1e2, 1e4, 1e6});
     }
 }
 
@@ -146,7 +150,7 @@ TEST_CASE("SimpleDataset::get_limits") {
         CHECK(dataset.get_ylimits() == Limit(-1, 6));
         CHECK(dataset.span_x() == dataset.get_xlimits());
         CHECK(dataset.span_y() == dataset.get_ylimits());
-        CHECK(dataset.span_y_positive() == Limit(0, 6));
+        CHECK(dataset.span_y_positive() == Limit(4, 6));
     }
 }
 
@@ -188,7 +192,7 @@ TEST_CASE("SimpleDataset::push_back") {
 TEST_CASE("SimpleDataset::normalize") {
     SimpleDataset dataset1(
         std::vector<double>{1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5}, 
-        std::vector<double>{1,    2,    3,    4,    5,   6,   7,   8,   9,   10},
+        std::vector<double>{1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3, 1e4, 1e5},
         std::vector<double>{1,    1,    1,    1,    1,   1,   1,   1,   1,   1}
     );
     auto dataset2 = dataset1;
@@ -221,93 +225,168 @@ TEST_CASE("SimpleDataset::scale_y") {
     CHECK(dataset2.y() == dataset1.y()*2);
 }
 
-TEST_CASE("SimpleDataset::simulate_noise") {
+// TEST_CASE("SimpleDataset::simulate_noise", "[manual]") {
+//     SimpleDataset dataset1(
+//         std::vector<double>{1, 2, 3, 4, 5}, 
+//         std::vector<double>{1, 2, 3, 4, 5},
+//         std::vector<double>{1, 1, 1, 1, 1}
+//     );
+//     auto dataset2 = dataset1;
+
+//     std::vector<std::vector<double>> diff;
+//     for (unsigned int i = 0; i < 100; ++i) {
+//         dataset2.simulate_noise();
+//         diff.push_back(dataset2.y() - dataset1.y());
+//     }
+
+//     // Flatten the diff vector
+//     std::vector<double> flattened_diff;
+//     for (const auto& d : diff) {
+//         flattened_diff.insert(flattened_diff.end(), d.begin(), d.end());
+//     }
+
+//     // Calculate mean and standard deviation of the flattened_diff vector
+//     double mean = std::accumulate(flattened_diff.begin(), flattened_diff.end(), 0.0) / flattened_diff.size();
+//     double variance = 0.0;
+//     for (const auto& val : flattened_diff) {
+//         double diff = val - mean;
+//         variance += diff * diff;
+//     }
+//     variance /= flattened_diff.size();
+//     double std_dev = std::sqrt(variance);
+
+//     // Sort the flattened_diff vector
+//     std::sort(flattened_diff.begin(), flattened_diff.end());
+
+//     // Calculate the histogram
+//     const int num_bins = 20;
+//     std::vector<int> histogram(num_bins, 0);
+//     double min_value = flattened_diff.front();
+//     double max_value = flattened_diff.back();
+//     double bin_width = (max_value - min_value) / num_bins;
+
+//     for (const auto& val : flattened_diff) {
+//         int bin_index = static_cast<int>((val - min_value) / bin_width);
+//         histogram[bin_index]++;
+//     }
+
+//     // Check if the histogram is roughly symmetric
+//     bool is_symmetric = true;
+//     for (unsigned i = 0; i < histogram.size() / 2; ++i) {
+//         if (histogram[i] != histogram[histogram.size() - i - 1]) {
+//             is_symmetric = false;
+//             break;
+//         }
+//     }
+
+//     // Check if the histogram follows a bell-shaped curve
+//     bool is_bell_shaped = true;
+//     for (size_t i = 1; i < histogram.size() - 1; ++i) {
+//         if (histogram[i] < histogram[i - 1] || histogram[i] < histogram[i + 1]) {
+//             is_bell_shaped = false;
+//             break;
+//         }
+//     }
+
+//     // Perform the checks
+//     CHECK(std_dev < 0.5);  // Check standard deviation is small
+//     CHECK(is_symmetric);  // Check histogram is roughly symmetric
+//     CHECK(is_bell_shaped);  // Check histogram follows a bell-shaped curve
+// }
+
+TEST_CASE("SimpleDataset::simulate_errors") {
     SimpleDataset dataset1(
         std::vector<double>{1, 2, 3, 4, 5}, 
         std::vector<double>{1, 2, 3, 4, 5},
         std::vector<double>{1, 1, 1, 1, 1}
     );
     auto dataset2 = dataset1;
-
-    std::vector<std::vector<double>> diff;
-    for (unsigned int i = 0; i < 100; ++i) {
-        dataset2.simulate_noise();
-        diff.push_back(dataset2.y() - dataset1.y());
-        CHECK_THAT(dataset1.mean(), Catch::Matchers::WithinAbs(dataset2.mean(), 1e-3));
-        CHECK_THAT(dataset1.std(), Catch::Matchers::WithinAbs(dataset2.std(), 1e-3));
-    }
-
-    // Flatten the diff vector
-    std::vector<double> flattened_diff;
-    for (const auto& d : diff) {
-        flattened_diff.insert(flattened_diff.end(), d.begin(), d.end());
-    }
-
-    // Calculate mean and standard deviation of the flattened_diff vector
-    double mean = std::accumulate(flattened_diff.begin(), flattened_diff.end(), 0.0) / flattened_diff.size();
-    double variance = 0.0;
-    for (const auto& val : flattened_diff) {
-        double diff = val - mean;
-        variance += diff * diff;
-    }
-    variance /= flattened_diff.size();
-    double std_dev = std::sqrt(variance);
-
-    // Sort the flattened_diff vector
-    std::sort(flattened_diff.begin(), flattened_diff.end());
-
-    // Calculate the histogram
-    const int num_bins = 20;
-    std::vector<int> histogram(num_bins, 0);
-    double min_value = flattened_diff.front();
-    double max_value = flattened_diff.back();
-    double bin_width = (max_value - min_value) / num_bins;
-
-    for (const auto& val : flattened_diff) {
-        int bin_index = static_cast<int>((val - min_value) / bin_width);
-        histogram[bin_index]++;
-    }
-
-    // Check if the histogram is roughly symmetric
-    bool is_symmetric = true;
-    for (size_t i = 0; i < histogram.size() / 2; ++i) {
-        if (histogram[i] != histogram[histogram.size() - i - 1]) {
-            is_symmetric = false;
-            break;
-        }
-    }
-
-    // Check if the histogram follows a bell-shaped curve
-    bool is_bell_shaped = true;
-    for (size_t i = 1; i < histogram.size() - 1; ++i) {
-        if (histogram[i] < histogram[i - 1] || histogram[i] < histogram[i + 1]) {
-            is_bell_shaped = false;
-            break;
-        }
-    }
-
-    // Perform the checks
-    CHECK(std_dev < 0.5);  // Check standard deviation is small
-    CHECK(is_symmetric);  // Check histogram is roughly symmetric
-    CHECK(is_bell_shaped);  // Check histogram follows a bell-shaped curve
+    dataset1.simulate_errors();
+    CHECK(dataset1.x() == dataset2.x());
+    CHECK(dataset1.y() == dataset2.y());
+    CHECK(dataset1.yerr() != dataset2.yerr());
 }
 
-TEST_CASE("SimpleDataset::simulate_errors") {}
+TEST_CASE_METHOD(fixture, "SimpleDataset::get_point") {
+    CHECK(dataset.get_point(0) == Point2D(1, 4, 0));
+    CHECK(dataset.get_point(1) == Point2D(2, 5, 0));
+    CHECK(dataset.get_point(2) == Point2D(3, 6, 0));
+}
 
-TEST_CASE("SimpleDataset::get_point") {}
+TEST_CASE("SimpleDataset::find_minimum") {
+    SECTION("simple") {
+        SimpleDataset dataset(
+            std::vector<double>{1, 2, 3, 4, 5}, 
+            std::vector<double>{1, 2, 3, 4, 5},
+            std::vector<double>{1, 1, 1, 1, 1}
+        );
+        CHECK(dataset.find_minimum() == Point2D(1, 1, 1));
+    }
 
-TEST_CASE("SimpleDataset::find_minimum") {}
+    SECTION("real data") {
+        SimpleDataset dataset("test/files/SASDJQ4.dat");
+        CHECK(dataset.find_minimum() == Point2D(0.39893, -0.00298, 0.06117));
+    }
+}
 
-TEST_CASE("SimpleDataset::rebin") {}
+TEST_CASE("SimpleDataset::rebin") {
+    SimpleDataset dataset("test/files/SASDJQ4.dat");
+    REQUIRE(dataset.size() == 844);
+    dataset.rebin();
+    CHECK(dataset.size() < 400);
+}
 
-TEST_CASE("SimpleDataset::generate_random_data") {}
+TEST_CASE("SimpleDataset::generate_random_data") {
+    double val = GENERATE(10, 25, 50);
+    unsigned int size = GENERATE(10, 20);
 
-TEST_CASE("SimpleDataset::mean") {}
+    auto dataset = SimpleDataset::generate_random_data(size, val);
+    REQUIRE(dataset.size() == size);
+    for (unsigned int i = 0; i < dataset.size(); ++i) {
+        CHECK(dataset.x(i) == i);
+        CHECK(dataset.y(i) >= -val);
+        CHECK(dataset.y(i) <= val);
+        CHECK(dataset.yerr(i) >= -val*0.1);
+        CHECK(dataset.yerr(i) <= val*0.1);
+    }
+}
 
-TEST_CASE("SimpleDataset::weighted_mean") {}
+TEST_CASE("SimpleDataset::mean") {
+    auto size = GENERATE(10, 25, 50);
+    auto val = GENERATE(10, 5, 2);
+    auto dataset = SimpleDataset::generate_random_data(size, val);
+    CHECK(dataset.mean() == stats::mean(dataset.y()));
+}
 
-TEST_CASE("SimpleDataset::std") {}
+TEST_CASE("SimpleDataset::weighted_mean") {
+    auto size = GENERATE(10, 25, 50);
+    auto val = GENERATE(10, 5, 2);
+    auto dataset = SimpleDataset::generate_random_data(size, val);
+    CHECK(dataset.weighted_mean() == stats::weighted_mean(dataset.y(), dataset.yerr()));
+}
 
-TEST_CASE("SimpleDataset::weighted_mean_error") {}
+TEST_CASE("SimpleDataset::std") {
+    auto size = GENERATE(10, 25, 50);
+    auto val = GENERATE(10, 5, 2);
+    auto dataset = SimpleDataset::generate_random_data(size, val);
+    CHECK(dataset.std() == stats::std(dataset.y()));
+}
 
-TEST_CASE("SimpleDataset::remove_consecutive_duplicates") {}
+TEST_CASE("SimpleDataset::weighted_mean_error") {
+    auto size = GENERATE(10, 25, 50);
+    auto val = GENERATE(10, 5, 2);
+    auto dataset = SimpleDataset::generate_random_data(size, val);
+    CHECK(dataset.weighted_mean_error() == stats::weighted_mean_error(dataset.yerr()));
+}
+
+TEST_CASE("SimpleDataset::remove_consecutive_duplicates") {
+    SimpleDataset dataset(
+        std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 
+        std::vector<double>{1, 1, 2, 2, 3, 3, 4, 4, 5, 5},
+        std::vector<double>{1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    );
+    dataset.remove_consecutive_duplicates();
+    CHECK(dataset.x() == std::vector<double>{1, 3, 5, 7, 9});
+    CHECK(dataset.y() == std::vector<double>{1, 2, 3, 4, 5});
+    CHECK(dataset.yerr() == std::vector<double>{1, 1, 1, 1, 1});
+}

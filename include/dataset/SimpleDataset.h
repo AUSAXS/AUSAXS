@@ -84,7 +84,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         /**
          * @brief Assign a Matrix to this dataset.
          */
-        void operator=(const Matrix<double>&& other);
+        void operator=(Matrix<double>&& other);
         
         bool operator==(const SimpleDataset& other) const;
 
@@ -170,13 +170,29 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         /**
          * @brief Generate a randomized dataset.
          * 
+         * x-values will span from 0 to size-1.
+         * y-values will be generated in the range [min, max]. 
+         * yerr-values will be generated in the range 0.1[min, max].
+         * 
          * @param size Size of the dataset.
          * @param min Minimum generated value.
          * @param max Maxium generated value. 
          */
-        static SimpleDataset generate_random_data(unsigned int size, double min = 0, double max = 1);
+        static SimpleDataset generate_random_data(unsigned int size, double min, double max);
 
-                /**
+        /**
+         * @brief Generate a randomized dataset.
+         * 
+         * x-values will span from 0 to size-1.
+         * y-values will be generated in the range [-value, value]. 
+         * yerr-values will be generated in the range 0.1[-value value].
+         * 
+         * @param size Size of the dataset.
+         * @param val Maximum and minimum bound on the generated values. 
+         */
+        static SimpleDataset generate_random_data(unsigned int size, double val);
+
+        /**
          * @brief Get the mean of the y values.
          */
         [[nodiscard]] double mean() const;
@@ -197,7 +213,7 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         [[nodiscard]] double weighted_mean_error() const;
 
         /**
-         * @brief Removes consecutive duplicate values.
+         * @brief Removes consecutive duplicate y-values.
          */
         void remove_consecutive_duplicates();
 };

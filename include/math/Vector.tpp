@@ -110,8 +110,7 @@ Vector<T> Vector<T>::copy() const {
 }
 
 template<numeric T>
-std::string Vector<T>::to_string(std::string message) const {
-    if (message != "") {std::cout << message << std::endl;}
+std::string Vector<T>::to_string() const {
     std::stringstream s; s << "( ";
     for (const auto& e : data) {
         s << std::setprecision(8) << e << " ";

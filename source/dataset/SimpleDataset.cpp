@@ -57,37 +57,40 @@ void SimpleDataset::reduce(unsigned int target, bool log) {
     Matrix<double> reduced(0, M);
 
     if (log) {
-        double start = std::log10(x(0)); 
+        double start = std::log10(x().front()); 
         double end = std::log10(x().back());
-        double width = (end - start)/target;
+        double width = (end - start)/(target-1);
 
         reduced.push_back(row(0));
         unsigned int j = 1;
-        for (unsigned int i = 0; i < size(); i++) {
+        for (unsigned int i = 1; i < size(); i++) {
             double val = std::log10(x(i));
-            if (start + j*width < val) { // find the first x-value higher than our next sampling point
+
+            // find the first x-value higher than our next sampling point
+            if (start + j*width <= val) { 
                 reduced.push_back(row(i));
                 j++;
             }
-            while (start + j*width < val) { // it may be necessary to skip a few sampled points, especially at the beginning
+            
+            // it may be necessary to skip a few sampled points, especially at the beginning            
+            while (start + j*width < val) { 
                 j++;
             }
         }
     } else {
-        int ratio = std::floor(size()/target);
+        unsigned int j = 0;
+        double ratio = double(size())/target;
         for (unsigned int i = 0; i < size(); i++) {
-            if (i % ratio == 0) {
+            if (i >= j*ratio) {
                 reduced.push_back(row(i));
+                j++;
             }
         }
     }
-
     *this = std::move(reduced);
-    options.draw_line = false;
-    options.draw_markers = true;
 }
 
-void SimpleDataset::operator=(const Matrix<double>&& other) {
+void SimpleDataset::operator=(Matrix<double>&& other) {
     if (other.M != M) {throw except::invalid_operation("SimpleDataset::operator=: Matrix has wrong number of columns.");}
     this->data = std::move(other.data);
     this->N = other.N;
@@ -141,6 +144,10 @@ Limit SimpleDataset::span_y_positive() const noexcept {
         limits.max = std::max(val, limits.max);
     }
     return limits;
+}
+
+SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double val) {
+    return generate_random_data(size, -val, val);
 }
 
 SimpleDataset SimpleDataset::generate_random_data(unsigned int size, double min, double max) {
@@ -313,4 +320,6 @@ double SimpleDataset::weighted_mean_error() const {
     return stats::weighted_mean_error(yerr());
 }
 
-bool SimpleDataset::operator==(const SimpleDataset& other) const = default;
+bool SimpleDataset::operator==(const SimpleDataset& other) const {
+    return Dataset::operator==(other);
+}

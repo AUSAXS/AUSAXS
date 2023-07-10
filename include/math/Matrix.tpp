@@ -75,6 +75,13 @@ Matrix<Q>& Matrix<Q>::operator=(const Matrix<Q>& A) {
 }
 
 template<numeric Q>
+Matrix<Q>& Matrix<Q>::operator=(Matrix<Q>&& A) {
+    N = A.N; M = A.M;
+    data = std::move(A.data);
+    return *this;
+}
+
+template<numeric Q>
 Matrix<Q> Matrix<Q>::operator-() const {
     Matrix<Q> A(N, M);
     std::transform(begin(), end(), A.begin(), std::negate<Q>());
@@ -122,9 +129,6 @@ bool Matrix<Q>::operator==(const Matrix<R>& A) const {
     Matrix<Q> diff = *this - A; // difference matrix
     return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, Q x) {return sum + abs(x);}) < precision;
 }
-
-template<numeric Q> template<numeric R>
-bool Matrix<Q>::operator!=(const Matrix<R>& A) const {return !operator==(A);}
 
 template<numeric Q>
 double Matrix<Q>::det() const {

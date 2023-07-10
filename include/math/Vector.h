@@ -124,7 +124,7 @@ class Vector {
         /**
          * @brief Get a string representation of this Vector.
          */
-        std::string to_string(std::string message = "") const;
+        std::string to_string() const;
 
         // Read-only iterator
 		const typename std::vector<T>::const_iterator begin() const;
