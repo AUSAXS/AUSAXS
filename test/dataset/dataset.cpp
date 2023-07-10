@@ -358,3 +358,13 @@ TEST_CASE_METHOD(fixture, "Dataset::x") {
 TEST_CASE_METHOD(fixture, "Dataset::y") {
     CHECK(dataset.y() == dataset.col(1));
 }
+
+TEST_CASE("Dataset::sort_x") {
+    std::vector<double> x = {1, 0, 4, 3, 2};
+    std::vector<double> y = {10, 0, 40, 30, 20};
+    Dataset data({x, y});
+
+    data.sort_x();
+    CHECK(data.x() == std::vector<double>({0, 1, 2, 3, 4}));
+    CHECK(data.y() == std::vector<double>({0, 10, 20, 30, 40}));
+}
