@@ -5,8 +5,8 @@
 
 using namespace em::detail::header;
 
-MapHeader::MapHeader(HeaderData&& data) {
-    this->data = std::make_unique<HeaderData>(std::move(data));
+MapHeader::MapHeader(std::unique_ptr<HeaderData> data) {
+    this->data = std::move(data);
 }
 
 MapHeader::~MapHeader() = default;
@@ -18,7 +18,8 @@ unsigned int MapHeader::get_byte_size() const {
     return byte_sizes.at(get_data_type());
 }
 
-HeaderData* MapHeader::get_data() const noexcept {return data.get();}
+HeaderData* MapHeader::get_data() const noexcept {
+    return data.get();}
 
 void MapHeader::set_data(std::unique_ptr<HeaderData> data) {this->data = std::move(data);}
 

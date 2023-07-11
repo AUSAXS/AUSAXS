@@ -33,14 +33,15 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     constants::filetypes::em_map.validate(file);
     header = em::detail::factory::create_header(file);
 
+    std::ifstream input(file, std::ios::binary);
+    if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
+    input.read(reinterpret_cast<char*>(header->get_data()), header->get_header_size());
+
     auto map_axes = header->get_axes();
     size_x = map_axes.x.bins;
     size_y = map_axes.y.bins;
     size_z = map_axes.z.bins;
 
-    std::ifstream input(file, std::ios::binary);
-    if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
-    input.read(reinterpret_cast<char*>(header.get()), header->get_header_size());
     read(input);
     phm = factory::create_manager(this);
 }
@@ -78,7 +79,7 @@ unsigned int ImageStackBase::count_voxels(double cutoff) const {
 
 template<numeric T>
 float read_helper(std::ifstream& istream, unsigned int readsize) {
-    static T value;
+    T value;
     istream.read(reinterpret_cast<char*>(&value), readsize);
     return value;
 }
@@ -131,7 +132,7 @@ void ImageStackBase::read(std::ifstream& istream) {
         for (i[1] = 0; i[1] < ym; i[1]++) {
             for (i[0] = 0; i[0] < xm; i[0]++) {
                 index(x, y, z) = readfunc(istream, header->get_byte_size());
-                istream.read(reinterpret_cast<char*>(&index(x, y, z)), header->get_byte_size());
+                // istream.read(reinterpret_cast<char*>(&index(x, y, z)), header->get_byte_size());
             }
         }
     }

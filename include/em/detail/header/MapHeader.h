@@ -11,7 +11,7 @@ namespace em::detail::header {
     struct HeaderData;
     class MapHeader {
         public:
-            MapHeader(HeaderData&& data);
+            MapHeader(std::unique_ptr<HeaderData> data);
 
             virtual ~MapHeader();
 
@@ -58,7 +58,7 @@ namespace em::detail::header {
             void set_data(std::unique_ptr<HeaderData> data);
 
         private: 
-            std::unique_ptr<HeaderData> data;
+            std::unique_ptr<HeaderData> data = nullptr;
     };
     std::ostream& operator<<(std::ostream& os, const MapHeader& h);
 }

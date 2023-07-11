@@ -10,8 +10,8 @@ namespace em::detail::header {
      *        It assumes the endian of the data is the same as the system. 
      */
     struct MRCData : public HeaderData {
-        MRCData() = default;
-        ~MRCData() = default;
+        MRCData();
+        ~MRCData();
 
         //! members CANNOT be reordered!
         int nx;             // Number of points along x-axis.

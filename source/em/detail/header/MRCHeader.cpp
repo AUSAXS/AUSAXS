@@ -8,8 +8,8 @@
 
 using namespace em::detail::header;
 
-MRCHeader::MRCHeader() : MapHeader(MRCData()) {}
-MRCHeader::MRCHeader(MRCData&& data) : MapHeader(std::move(data)) {}
+MRCHeader::MRCHeader() : MapHeader(std::make_unique<MRCData>()) {}
+MRCHeader::MRCHeader(MRCData&& data) : MapHeader(std::make_unique<MRCData>(std::move(data))) {}
 MRCHeader::~MRCHeader() = default;
 
 bool MRCHeader::is_mrc(const io::ExistingFile& file) {

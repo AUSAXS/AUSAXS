@@ -8,7 +8,7 @@
 
 using namespace em::detail::header;
 
-RECHeader::RECHeader() : MapHeader(RECData()) {}
+RECHeader::RECHeader() : MapHeader(std::make_unique<RECData>()) {}
 RECHeader::~RECHeader() = default;
 
 bool RECHeader::is_rec(const io::ExistingFile& file) {
@@ -105,10 +105,10 @@ bool RECHeader::flags_enabled() const noexcept {
 
 bool RECHeader::flag_signed_bytes() const noexcept {
     auto& p = cast_data();
-    return (p.imodflags & 1) == 1;
+    return (p.imodflags & 1);
 }
 
 bool RECHeader::flag_four_bit_vals() const noexcept {
     auto& p = cast_data();
-    return (p.imodflags & 16) == 2;
+    return (p.imodflags & 16);
 }
