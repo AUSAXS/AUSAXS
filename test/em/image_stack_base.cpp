@@ -3,6 +3,8 @@
 #include <catch2/generators/catch_generators.hpp>
 
 #include <em/detail/ImageStackBase.h>
+#include <em/detail/header/data/MRCData.h>
+#include <em/detail/header/MRCHeader.h>
 #include <em/manager/ProteinManager.h>
 #include <hist/ScatteringHistogram.h>
 #include <em/ObjectBounds3D.h>
@@ -65,7 +67,7 @@ TEST_CASE("ImageStackBase::ImageStackBase") {
         em::ImageStackBase isb(file);
         REQUIRE(isb.size() == 154);
 
-        auto header = isb.get_header();
+        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
         REQUIRE(header->nx == 154);
         REQUIRE(header->ny == 154);
         REQUIRE(header->nz == 154);
@@ -93,10 +95,9 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     settings::protein::use_effective_charge = false;
     em::ImageStackBase isb(images);
-    auto header = std::make_shared<em::ccp4::Header>();
+    auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
     header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
     header->nx = 3; header->ny = 3; header->nz = 3;
-    isb.set_header(header);
     REQUIRE(isb.get_histogram(5) == isb.get_protein_manager()->get_histogram(5));
 }
 
@@ -112,10 +113,9 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_protein") {
     em::ImageStackBase isb(images);
-    auto header = std::make_shared<em::ccp4::Header>();
+        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
     header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
     header->nx = 3; header->ny = 3; header->nz = 3;
-    isb.set_header(header);
     REQUIRE(isb.get_protein(5) == isb.get_protein_manager()->get_protein(5));
 }
 
@@ -133,18 +133,19 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_header") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
-    auto header = std::make_shared<em::ccp4::Header>();
-    header->nx = 10;
-    header->ny = 10;
-    header->nz = 10;
-    header->mode = 2;
-    header->mapc = 3;
-    header->mapr = 2;
-    header->maps = 1;
+    em::detail::header::MRCData header_data;
+    header_data.nx = 10;
+    header_data.ny = 10;
+    header_data.nz = 10;
+    header_data.mode = 2;
+    header_data.mapc = 3;
+    header_data.mapr = 2;
+    header_data.maps = 1;
+    std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
 
     em::ImageStackBase isb(images);
-    isb.set_header(header);
-    REQUIRE(isb.get_header() == header);
+    isb.set_header(std::move(header));
+    REQUIRE(isb.get_header() == header.get());
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
@@ -162,10 +163,13 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
 TEST_CASE_METHOD(fixture, "ImageStackBase::save") {
     io::File file("test/temp/ImageStackBase.save.pdb");
     em::ImageStackBase isb(images);
-    auto header = std::make_shared<em::ccp4::Header>();
-    header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
-    header->nx = 3; header->ny = 3; header->nz = 3;
-    isb.set_header(header);
+
+    em::detail::header::MRCData header_data;
+    header_data.cella_x = 1; header_data.cella_y = 1; header_data.cella_z = 1;
+    header_data.nx = 3; header_data.ny = 3; header_data.nz = 3;
+    std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
+
+    isb.set_header(std::move(header));
     isb.save(5, file);
     REQUIRE(file.exists());
 }
@@ -236,7 +240,7 @@ TEST_CASE("ImageStackBase::read") {
         std::string file = "test/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
-        auto header = isb.get_header();
+        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
         REQUIRE(header->nx == 154);
         REQUIRE(header->ny == 154);
         REQUIRE(header->nz == 154);
@@ -251,7 +255,7 @@ TEST_CASE("ImageStackBase::read") {
         std::string file = "test/files/A2M_2020_Q4.ccp4";
         em::ImageStackBase isb(file);
 
-        auto header = isb.get_header();
+        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
         header->nx = 3;
         header->ny = 3;
         header->nz = 3;
@@ -268,7 +272,7 @@ TEST_CASE("ImageStackBase::read") {
             };
 
             std::ofstream output("test/files/test.ccp4", std::ios::binary);
-            output.write(reinterpret_cast<char*>(header.get()), sizeof(*header));
+            output.write(reinterpret_cast<char*>(header), sizeof(*header));
             for (auto& m : data) {
                 for (auto& v : m) {
                     output.write(reinterpret_cast<char*>(&v), sizeof(v));

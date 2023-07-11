@@ -1,13 +1,12 @@
 # Todo
 * 	[ ] Consider implementing a unit class to avoid unit conversion errors in functions
+* 	[ ] Redo the storage of Image to be a single 3D vector owned by the ImageStack. 
 * 	[ ] Consider implementing form factors for the most common atoms. This will also allow fitting the excluded volume to the MD simulations (probably), thus avoiding the background fitting parameter. 
 *	[ ] Matrix: Change vector of vectors constructor to be row-majority, and use the variadic constructor for columns instead
-*	[ ] Testing: Redo all tests such that they are more structured. Maybe have a separate file for each class. 
 *	[ ] BSThreadPool: Streamline download and build process. Currently it is all manual. 
 *	[ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
 *	[ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
 *	[ ] Protein: Figure out how getMass should work in without effective charge enabled
-*	[ ] EM: Figure out why the test partial_histogram_manager::comparison with standard approach doesn't work with data/A2M/A2M_ma.ccp4. Probably something to do with assumed negative staining?
 *	[ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
 *	[ ] gentag alt for de andre filer
 *	[ ] General: Consistency check of DrhoM

@@ -21,10 +21,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-file(GLOB_RECURSE 
-	TEST_SRC
-	"*.cpp"
-)
+file(GLOB_RECURSE TEST_SRC "*.cpp")
 
 # make the tests available through cmake
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)

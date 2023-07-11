@@ -1,15 +1,16 @@
 #include <em/Image.h>
+#include <em/detail/header/MapHeader.h>
 #include <settings/EMSettings.h>
-#include <em/Datatypes.h>
 #include <data/Atom.h>
+#include <utility/Axis3D.h>
 
 using namespace em;
 
-Image::Image(std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(header->nx), M(header->ny), header(header), data(N, M), z(layer), bounds(N, M) {}
+Image::Image(em::detail::header::MapHeader* header, unsigned int layer) : N(header->get_axes().x.bins), M(header->get_axes().y.bins), header(header), data(N, M), z(layer), bounds(N, M) {}
 
 Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), bounds(N, M) {}
 
-Image::Image(const Matrix<float>& data, std::shared_ptr<ccp4::Header> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
+Image::Image(const Matrix<float>& data, em::detail::header::MapHeader* header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
 
 void Image::set_z(unsigned int z) {this->z = z;}
 
@@ -21,11 +22,12 @@ float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 std::list<Atom> Image::generate_atoms(double cutoff) const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
     std::list<Atom> atoms;
+    auto map_axes = header->get_axes();
 
     // loop through all pixels in this image
-    double xscale = header->cella_x/N;
-    double yscale = header->cella_y/M;
-    double zscale = header->cella_z/header->nz;
+    double xscale = map_axes.x.width();
+    double yscale = map_axes.y.width();
+    double zscale = map_axes.z.width();
     unsigned int step = settings::em::sample_frequency;
     
     // define a weight function for more efficient switching. 
@@ -70,7 +72,8 @@ double Image::squared_sum() const {
 
 hist::Histogram2D Image::as_hist() const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::as_hist: Header must be initialized to use this method.");}
-    hist::Histogram2D hist(Axis(0, header->cella_x, header->nx), Axis(0, header->cella_y, header->ny));
+    auto map_axes = header->get_axes();
+    hist::Histogram2D hist(map_axes.x, map_axes.y);
 
     for (unsigned int x = 0; x < N; x++) {
         for (unsigned int y = 0; y < M; y++) {
@@ -104,7 +107,7 @@ Limit Image::limits() const {
     return Limit(min, max);
 }
 
-void Image::set_header(std::shared_ptr<ccp4::Header> header) {
+void Image::set_header(em::detail::header::MapHeader* header) {
     this->header = header;
 }
 

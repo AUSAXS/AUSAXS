@@ -1,4 +1,6 @@
 #include <em/detail/ImageStackBase.h>
+#include <em/detail/header/data/DummyData.h>
+#include <em/detail/header/HeaderFactory.h>
 #include <em/manager/ProteinManagerFactory.h>
 #include <em/ObjectBounds3D.h>
 #include <em/Image.h>
@@ -9,72 +11,93 @@
 #include <settings/HistogramSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/Constants.h>
+#include <utility/Axis3D.h>
 #include <mini/detail/Evaluation.h>
 #include <Symbols.h>
 
 #include <fstream>
+#include <cstdint>
 
-em::ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
+using namespace em;
+
+ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
     data = images;
     for (unsigned int z = 0; z < size_z; ++z) {
         if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
         image(z).set_z(z);
     }
-    phm = em::factory::create_manager(this);
+    phm = factory::create_manager(this);
 }
 
-em::ImageStackBase::ImageStackBase(const io::ExistingFile& file) : filename(file), header(std::make_shared<ccp4::Header>()) {
+ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     constants::filetypes::em_map.validate(file);
+    header = em::detail::factory::create_header(file);
+
+    auto map_axes = header->get_axes();
+    size_x = map_axes.x.bins;
+    size_y = map_axes.y.bins;
+    size_z = map_axes.z.bins;
 
     std::ifstream input(file, std::ios::binary);
     if (!input.is_open()) {throw except::io_error("ImageStackBase::ImageStackBase: Could not open file \"" + file + "\"");}
-    input.read(reinterpret_cast<char*>(header.get()), sizeof(*header));
-    size_x = header->nx; size_y = header->ny; size_z = header->nz;
-    read(input, get_byte_size());
-    phm = em::factory::create_manager(this);
+    input.read(reinterpret_cast<char*>(header.get()), header->get_header_size());
+    read(input);
+    phm = factory::create_manager(this);
 }
 
-em::ImageStackBase::~ImageStackBase() = default;
+ImageStackBase::~ImageStackBase() = default;
 
-void em::ImageStackBase::save(double cutoff, std::string path) const {
+void ImageStackBase::save(double cutoff, std::string path) const {
     std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
     protein->save(path);
 }
 
-em::Image& em::ImageStackBase::image(unsigned int layer) {return data[layer];}
+Image& ImageStackBase::image(unsigned int layer) {return data[layer];}
 
-const em::Image& em::ImageStackBase::image(unsigned int layer) const {return data[layer];}
+const Image& ImageStackBase::image(unsigned int layer) const {return data[layer];}
 
-unsigned int em::ImageStackBase::size() const {return size_z;}
+unsigned int ImageStackBase::size() const {return size_z;}
 
-const std::vector<em::Image>& em::ImageStackBase::images() const {return data;}
+const std::vector<Image>& ImageStackBase::images() const {return data;}
 
-hist::ScatteringHistogram em::ImageStackBase::get_histogram(double cutoff) const {
+hist::ScatteringHistogram ImageStackBase::get_histogram(double cutoff) const {
     return phm->get_histogram(cutoff);
 }
 
-hist::ScatteringHistogram em::ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
+hist::ScatteringHistogram ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
-std::shared_ptr<Protein> em::ImageStackBase::get_protein(double cutoff) const {
+std::shared_ptr<Protein> ImageStackBase::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 
-unsigned int em::ImageStackBase::count_voxels(double cutoff) const {
+unsigned int ImageStackBase::count_voxels(double cutoff) const {
     return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (double sum, const Image& im) {return sum + im.count_voxels(cutoff);});
 }
 
-unsigned int em::ImageStackBase::get_byte_size() const {
-    return header->get_byte_size();
+template<numeric T>
+float read_helper(std::ifstream& istream, unsigned int readsize) {
+    static T value;
+    istream.read(reinterpret_cast<char*>(&value), readsize);
+    return value;
 }
 
-void em::ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
-    data = std::vector<Image>(size_z, Image(header));
+std::function<float(std::ifstream&, unsigned int)> get_read_function(em::detail::header::DataType data_type) {
+    switch (data_type) {
+        case em::detail::header::DataType::int8: return read_helper<int8_t>;
+        case em::detail::header::DataType::int16: return read_helper<int16_t>;
+        case em::detail::header::DataType::uint8: return read_helper<uint8_t>;
+        case em::detail::header::DataType::uint16: return read_helper<uint16_t>;
+        case em::detail::header::DataType::float16: return read_helper<float>;
+        case em::detail::header::DataType::float32: return read_helper<float>;
+        default: throw except::invalid_argument("ImageStackBase::get_read_function: Invalid data type");
+    }
+}
 
-    int col = header->mapc; // column axis
-    int row = header->mapr; // row axis
-    int sec = header->maps; // section axis
+void ImageStackBase::read(std::ifstream& istream) {
+    data = std::vector<Image>(size_z, Image(header.get()));
+    auto[col, row, sec] = header->get_axis_order();
 
     // the data is stored in the order of column, row, section
     // we have to convert this format to (x, y, z)
@@ -98,15 +121,17 @@ void em::ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
     std::array<unsigned int, 3> i = {0, 0, 0};
 
     // define a permutated reference to each index 
-    unsigned int &x = i[header->mapc-1];
-    unsigned int &y = i[header->mapr-1];
-    unsigned int &z = i[header->maps-1];
+    unsigned int &x = i[col-1];
+    unsigned int &y = i[row-1];
+    unsigned int &z = i[sec-1];
 
     // do the actual reading. Note that the default order is 123, so we have to iterate over z first, then y, then x
+    auto readfunc = get_read_function(header->get_data_type());
     for (i[2] = 0; i[2] < zm; i[2]++) {
         for (i[1] = 0; i[1] < ym; i[1]++) {
             for (i[0] = 0; i[0] < xm; i[0]++) {
-                istream.read(reinterpret_cast<char*>(&index(x, y, z)), byte_size);
+                index(x, y, z) = readfunc(istream, header->get_byte_size());
+                istream.read(reinterpret_cast<char*>(&index(x, y, z)), header->get_byte_size());
             }
         }
     }
@@ -119,26 +144,26 @@ void em::ImageStackBase::read(std::ifstream& istream, unsigned int byte_size) {
     }
 }
 
-float& em::ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {
+float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {
     return data[layer].index(x, y);
 }
 
-float em::ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) const {
+float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) const {
     return data[layer].index(x, y);
 }
 
-std::shared_ptr<em::ccp4::Header> em::ImageStackBase::get_header() const {
-    return header;
+em::detail::header::MapHeader* ImageStackBase::get_header() const {
+    return header.get();
 }
 
-void em::ImageStackBase::set_header(std::shared_ptr<ccp4::Header> header) {
-    this->header = header;
+void ImageStackBase::set_header(std::unique_ptr<em::detail::header::MapHeader> header) {
+    this->header = std::move(header);
     for (auto& image : data) {
-        image.set_header(header);
+        image.set_header(this->header.get());
     }
 }
 
-double em::ImageStackBase::mean() const {
+double ImageStackBase::mean() const {
     double sum = 0;
     for (unsigned int z = 0; z < size_z; z++) {
         sum += image(z).mean();
@@ -146,7 +171,7 @@ double em::ImageStackBase::mean() const {
     return sum/size_z;
 }
 
-em::ObjectBounds3D em::ImageStackBase::minimum_volume(double cutoff) {
+ObjectBounds3D ImageStackBase::minimum_volume(double cutoff) {
     ObjectBounds3D bounds(size_x, size_y, size_z);
     for (unsigned int z = 0; z < size_z; z++) {
         bounds[z] = image(z).setup_bounds(cutoff);
@@ -155,19 +180,19 @@ em::ObjectBounds3D em::ImageStackBase::minimum_volume(double cutoff) {
     return bounds;
 }
 
-void em::ImageStackBase::set_minimum_bounds(double min_val) {
+void ImageStackBase::set_minimum_bounds(double min_val) {
     std::for_each(data.begin(), data.end(), [&min_val] (Image& image) {image.setup_bounds(min_val);});
 }
 
-double em::ImageStackBase::from_level(double sigma) const {
+double ImageStackBase::from_level(double sigma) const {
     return sigma*rms();
 }
 
-double em::ImageStackBase::to_level(double cutoff) const {
+double ImageStackBase::to_level(double cutoff) const {
     return cutoff/rms();
 }
 
-double em::ImageStackBase::rms() const {
+double ImageStackBase::rms() const {
     if (_rms == 0) {
         double sum = std::accumulate(data.begin(), data.end(), 0.0, [] (double sum, const Image& image) {return sum + image.squared_sum();});
         _rms = std::sqrt(sum/(size_x*size_y*size_z));
@@ -175,6 +200,6 @@ double em::ImageStackBase::rms() const {
     return _rms;
 }
 
-std::shared_ptr<em::managers::ProteinManager> em::ImageStackBase::get_protein_manager() const {
-    return phm;
+managers::ProteinManager* ImageStackBase::get_protein_manager() const {
+    return phm.get();
 }

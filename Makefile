@@ -75,21 +75,25 @@ coverage: tests
 ###				EXECUTABLES					###
 ###################################################################################
 
-gmx/%: build/executable/gmx
+gmx/%: build/bin/gmx
 	$< $*
 
-silica/%: build/executable/silica
+casein/%: build/bin/casein
+	@ tomo=$$(find data/ -name "$*.mrc");\
+	$< $${tomo} ${options}
+
+silica/%: build/bin/silica
 	@ tomo=$$(find data/ -name "$*.uc");\
 	$< $${tomo} ${options}
 	make plot/output/silica/$*
 #	valgrind --track-origins=yes --log-file="valgrind.txt" $< $${tomo} ${options}
 
-crystal/%: build/executable/crystal_scattering
+crystal/%: build/bin/crystal_scattering
 	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid" -or -name "$*.pdb");\
 	$< $${grid} ${options}
 	make plot/output/crystal/$*
 
-crystal_compare/%: build/executable/crystal_comparison
+crystal_compare/%: build/bin/crystal_comparison
 	@ grid=$$(find data/ -name "$*.uc" -or -name "$*.grid" -or -name "$*.pdb");\
 	$< $${grid} ${options}
 	make plot/output/crystal_compare/$*
@@ -99,13 +103,13 @@ data/%_fixed.pdb: data/%.pdb
 	@ $(pdbfixer) $< --replace-nonstandard --add-atoms=all --add-residues --output=$@ --verbose
 
 # calculate the scattering from a pdb structure
-scatter/%: build/executable/scattering
+scatter/%: build/bin/scattering
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure} ${options}
 	make plot/output/scattering/$*
 
 # hydrate a structure and show it in pymol
-hydrate/%: build/executable/new_hydration
+hydrate/%: build/bin/new_hydration
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure} output/$*.pdb ${options}
 	$(pymol) output/$*.pdb -d "hide all; show spheres, hetatm; color orange, hetatm"
@@ -135,22 +139,22 @@ simview/%:
 	$(pymol) $${structure} $${emmap} -d "isomesh mesh, $*_$(res), 1"
 
 # calculate the histogram for a given structure
-hist/%: build/executable/hist
+hist/%: build/bin/hist
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure} output/hist/$*/ ${options}
 	make plot/output/hist/$*/
 
 # flip the axes of an EM map
 order := ""
-rotate/%: build/executable/rotate_map
+rotate/%: build/bin/rotate_map
 	$< data/$* ${order}
 
 # main executable. primarily used for debugging purposes
-main/%: build/executable/main
+main/%: build/bin/main
 	$< $*
 
 # Inspect the header of an EM map
-inspect/%: build/executable/inspect_map
+inspect/%: build/bin/inspect_map
 	@ emmaps=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
 	for emmap in $${emmaps}; do\
 		echo "Opening " $${emmap} " ...";\
@@ -160,7 +164,7 @@ inspect/%: build/executable/inspect_map
 
 # Fit an EM map to a SAXS measurement file.  
 # The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement.
-em_fit/%: build/executable/em_fitter
+em_fit/%: build/bin/em_fitter
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	emmaps=$$(cat $${folder}/maps.txt); \
@@ -175,7 +179,7 @@ em_fit/%: build/executable/em_fitter
 
 # Fit both an EM map and a PDB file to a SAXS measurement. 
 # The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement. 
-em/%: build/executable/em
+em/%: build/bin/em
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	emmap=$$(find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
@@ -186,7 +190,7 @@ optimize_radius/%: build/source/scripts/optimize_radius
 
 # Perform a rigid-body optimization of the input structure. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
-rigidbody/%: build/executable/rigidbody
+rigidbody/%: build/bin/rigidbody
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	echo "$< $${structure} $${measurement}";\
@@ -215,7 +219,7 @@ pepsi/%:
 
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 
-intensity_fit/%: build/executable/intensity_fitter
+intensity_fit/%: build/bin/intensity_fitter
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat" -or -name "$*.xvg"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
@@ -229,7 +233,7 @@ intensity_fit/%: build/executable/intensity_fitter
 
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
-consistency/%: build/executable/consistency
+consistency/%: build/bin/consistency
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	emmap=$$(find $${folder}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
@@ -243,7 +247,7 @@ consistency/%: build/executable/consistency
 # Check the consistency of the program. 
 # The wildcard should be the name of both a measurement file and an associated PDB structure file. 
 # A simulated EM map must be available. The resolution can be specified with the "res" argument. 
-fit_consistency/%: build/executable/fit_consistency
+fit_consistency/%: build/bin/fit_consistency
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
@@ -254,13 +258,13 @@ fit_consistency/%: build/executable/fit_consistency
 # The wildcard should be the name of a PDB structure file. 
 # A simulated EM map must be present available with the given resolution. 
 # A measurement will be simulated from the PDB structure, and fitted to the EM map. 
-fit_consistency2/%: build/executable/fit_consistency2
+fit_consistency2/%: build/bin/fit_consistency2
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
 	echo "$< $${emmap} $${structure}"; \
 	$< $${emmap} $${structure}
 
-map_consistency/%: build/executable/em_pdb_fitter
+map_consistency/%: build/bin/em_pdb_fitter
 	@ map=$$(find data -name "$*.ccp4" -or -name "$*.map" -or -name "$*.mrc"); \
 	folder=$$(dirname $${map}); \
 	pdb=$$(find $${folder} -name "*.ent"); \
@@ -269,13 +273,13 @@ map_consistency/%: build/executable/em_pdb_fitter
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 
-rebin/%: build/executable/rebin
+rebin/%: build/bin/rebin
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$< $${measurement}
 
 # Calculate a unit cell and write it to the file as a CRYST1 record. 
 # The wildcard should be the name of a PDB structure file. 
-unit_cell/%: build/executable/unit_cell
+unit_cell/%: build/bin/unit_cell
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure}
 
@@ -293,7 +297,7 @@ simulate/%:
 #	@ structure=$(shell find data/ -name "$*.pdb"); \
 #	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center
 
-simfit/%: build/executable/fit_consistency
+simfit/%: build/bin/fit_consistency
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	$(simprog) $${structure} sim/$*_$(res).mrc res=$(res) het center; \
@@ -307,7 +311,7 @@ old_simulate/%:
 	rm $(*F).pdb.mtz;\
 	mv $(*F)_fmodel.ccp4 sim/$(*F)_$(res).ccp4;\
 
-stuff/%: build/executable/stuff
+stuff/%: build/bin/stuff
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure}
 
@@ -360,13 +364,13 @@ winbuild:
 	@ mkdir -p winbuild;
 	@ cd winbuild; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-mingw.cmake -DBUILD_SHARED_LIBS=OFF ../ 
 
-winbuild/executable/%: $(source) $(include) executable/%.cpp
+winbuild/bin/%: $(source) $(include) executable/%.cpp
 	@ cmake --build winbuild/ --target $(*F) -j${cmake_threads}
 
 winbuild/%: $(source) $(include)
 	@ cmake --build winbuild/ --target $(*F) -j${cmake_threads} 
 
-build/executable/%: $(source) $(include) executable/%.cpp
+build/bin/%: $(source) $(include) executable/%.cpp
 	@ cmake --build build/ --target $(*F) -j${cmake_threads} 
 
 build/%: $(source) $(include)

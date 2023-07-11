@@ -127,7 +127,7 @@ template<numeric Q> template<numeric R>
 bool Matrix<Q>::operator==(const Matrix<R>& A) const {
     compatibility_check(A);
     Matrix<Q> diff = *this - A; // difference matrix
-    return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, Q x) {return sum + abs(x);}) < precision;
+    return std::accumulate(diff.begin(), diff.end(), 0.0, [] (double sum, Q x) {return sum + std::abs(x);}) < precision;
 }
 
 template<numeric Q>

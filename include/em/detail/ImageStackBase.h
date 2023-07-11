@@ -1,7 +1,7 @@
 #pragma once
 
-#include <em/Datatypes.h>
 #include <hist/ScatteringHistogram.h>
+#include <em/detail/header/MapHeader.h>
 #include <em/Image.h>
 
 #include <vector>
@@ -77,12 +77,12 @@ namespace em {
             /**
              * @brief Get the header of the input file. 
              */
-            std::shared_ptr<ccp4::Header> get_header() const;
+            detail::header::MapHeader* get_header() const;
 
             /**
              * @brief Set the header. 
              */
-            void set_header(std::shared_ptr<ccp4::Header> header);
+            void set_header(std::unique_ptr<detail::header::MapHeader> header);
 
             /**
              * @brief Get the number of images stored in this object.
@@ -127,7 +127,7 @@ namespace em {
             /**
              * @brief Get the histogram manager.
              */
-            std::shared_ptr<em::managers::ProteinManager> get_protein_manager() const;
+            em::managers::ProteinManager* get_protein_manager() const;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
@@ -138,19 +138,13 @@ namespace em {
             void set_minimum_bounds(double min_val);
 
         private:
-            std::string filename;
-            std::shared_ptr<ccp4::Header> header;        // The header of the map file. 
-            std::vector<Image> data;                     // The actual image data. 
-            unsigned int size_x, size_y, size_z;         // The number of pixels in each dimension.
-            std::shared_ptr<em::managers::ProteinManager> phm; // The histogram manager. Manages both the backing protein & its scattering curve. 
-            mutable double _rms = 0;                     // The root-mean-square of the map.
+            std::unique_ptr<detail::header::MapHeader> header;  // The header of the input file.
+            std::unique_ptr<em::managers::ProteinManager> phm;  // The histogram manager. Manages both the backing protein & its scattering curve. 
+            std::vector<Image> data;                            // The actual image data. 
+            unsigned int size_x, size_y, size_z;                // The number of pixels in each dimension.
+            mutable double _rms = 0;                            // The root-mean-square of the map.
             
-            void read(std::ifstream& istream, unsigned int byte_size);
-
-            /**
-             * @brief Get the data byte size of the CCP file. 
-             */
-            unsigned int get_byte_size() const;
+            void read(std::ifstream& istream);
 
             float& index(unsigned int x, unsigned int y, unsigned int z);
 

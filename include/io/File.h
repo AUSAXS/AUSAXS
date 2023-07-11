@@ -55,7 +55,7 @@ namespace io {
             [[nodiscard]] const Folder& directory() const noexcept;
 
             /**
-             * @brief Get the extension of the file.
+             * @brief Get the extension of the file, including the dot.
              */
             [[nodiscard]] std::string& extension() noexcept;
 

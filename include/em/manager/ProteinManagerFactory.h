@@ -4,8 +4,6 @@
 
 #include <memory>
 
-namespace em {
-    namespace factory {
-        std::unique_ptr<em::managers::ProteinManager> create_manager(const ImageStackBase* images);
-    }
+namespace em::factory {
+    std::unique_ptr<em::managers::ProteinManager> create_manager(const ImageStackBase* images);
 }
