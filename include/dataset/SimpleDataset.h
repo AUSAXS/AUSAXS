@@ -17,6 +17,21 @@ class SimpleDataset : public Dataset, public plots::Plottable {
 
     public: 
         /**
+         * @brief Construct a new empty dataset.
+         */
+        SimpleDataset() noexcept;
+
+        /**
+         * @brief Copy constructor.
+         */
+        SimpleDataset(const SimpleDataset& d);
+
+        /**
+         * @brief Move constructor.
+         */
+        SimpleDataset(SimpleDataset&& d);
+
+        /**
          * @brief Convert a Dataset to a SimpleDataset.
          */
         SimpleDataset(const Dataset& d);
@@ -25,11 +40,6 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          * @brief Construct a new empty dataset with the given number of rows. 
          */
         SimpleDataset(unsigned int rows) noexcept;
-
-        /**
-         * @brief Construct a new empty dataset.
-         */
-        SimpleDataset() noexcept;
 
         /**
          * @brief Construct a new dataset based on the given vectors. 
@@ -216,4 +226,8 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          * @brief Removes consecutive duplicate y-values.
          */
         void remove_consecutive_duplicates();
+
+        using Dataset::operator=;
+        SimpleDataset& operator=(const SimpleDataset& other);
+        SimpleDataset& operator=(SimpleDataset&& other) noexcept;
 };

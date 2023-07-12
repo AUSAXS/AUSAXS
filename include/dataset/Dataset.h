@@ -16,19 +16,29 @@ class Dataset : public Matrix<double> {
         Dataset();
 
         /**
+         * @brief Copy constructor.
+         */
+        Dataset(const Dataset& d);
+
+        /**
+         * @brief Move constructor.
+         */
+        Dataset(Dataset&& d);
+
+        /**
          * @brief Matrix constructor.
          */
-        Dataset(Matrix&& m) : Matrix(std::move(m)) {}
+        Dataset(Matrix&& m);
 
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(const std::vector<std::string>& col_names) : Matrix(0, col_names.size()), names(col_names) {}
+        Dataset(const std::vector<std::string>& col_names);
 
         /**
          * @brief Create a new dataset with the given columns.
          */
-        Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names) : Matrix(cols), names(col_names) {}
+        Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names);
 
         /**
          * @brief Create a new dataset with the given columns.
@@ -132,13 +142,18 @@ class Dataset : public Matrix<double> {
          * @brief Interpolate @a num points between each pair of points in the dataset.
          *        All data but the x and y columns will be discarded.
          */
-        void interpolate(unsigned int num);
+        [[nodiscard]] Dataset interpolate(unsigned int num) const;
 
         /**
          * @brief Interpolate points to match the given x-values.
          *        All data but the x and y columns will be discarded.
          */
-        void interpolate(const std::vector<double>& newx);
+        [[nodiscard]] Dataset interpolate(const std::vector<double>& newx) const;
+
+        /**
+         * @brief Get the interpolated y-value for the given x-value.
+         */
+        [[nodiscard]] double interpolate_y(double x) const;
 
         /**
          * @brief Get the weighted rolling average of this dataset. 
@@ -148,7 +163,7 @@ class Dataset : public Matrix<double> {
          * 
          * @return A new (x, y) dataset with the rolling average. 
          */
-        Dataset rolling_average(unsigned int window) const;
+        [[nodiscard]] Dataset rolling_average(unsigned int window) const;
 
         /**
          * @brief Append another dataset with the same number of rows to this one.
@@ -193,6 +208,10 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] std::string to_string() const;
 
         [[nodiscard]] bool operator==(const Dataset& other) const;
+
+        Dataset& operator=(const Dataset& other);
+
+        Dataset& operator=(Dataset&& other);
 
     //#####################//
     //### Alias methods ###//

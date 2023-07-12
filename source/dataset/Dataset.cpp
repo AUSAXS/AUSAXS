@@ -16,6 +16,16 @@
 
 Dataset::Dataset() = default;
 
+Dataset::Dataset(const Dataset& d) = default;
+
+Dataset::Dataset(Dataset&& d) = default;
+
+Dataset::Dataset(Matrix&& m) : Matrix(std::move(m)) {}
+
+Dataset::Dataset(const std::vector<std::string>& col_names) : Matrix(0, col_names.size()), names(col_names) {}
+
+Dataset::Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names) : Matrix(cols), names(col_names) {}
+
 Dataset::Dataset(unsigned int rows, unsigned int cols) : Matrix(rows, cols) {
     set_default_names();
 }
@@ -178,7 +188,7 @@ Dataset Dataset::rolling_average(unsigned int window_size) const {
     return result;
 }
 
-void Dataset::interpolate(unsigned int n) {
+Dataset Dataset::interpolate(unsigned int n) const {
     CubicSpline spline(x(), y());
     Matrix interpolated(size()*(n+1)-n-1, 2);
     for (unsigned int i = 0; i < size()-1; i++) {
@@ -194,11 +204,10 @@ void Dataset::interpolate(unsigned int n) {
             interpolated[i*(n+1) + j + 1] = {x_new, y_new};
         }
     }
-    // force assign since we can only interpolate the x and y columns. 
-    force_assign_matrix(std::move(interpolated));
+    return interpolated;
 }
 
-void Dataset::interpolate(const std::vector<double>& newx) {
+Dataset Dataset::interpolate(const std::vector<double>& newx) const {
     CubicSpline spline(x(), y());
     Matrix interpolated(newx.size(), 2);
     for (unsigned int i = 0; i < newx.size(); i++) {
@@ -206,8 +215,12 @@ void Dataset::interpolate(const std::vector<double>& newx) {
         double y = spline.spline(x);
         interpolated[i] = {x, y}; 
     }
-    // force assign since we can only interpolate the x and y columns. 
-    force_assign_matrix(std::move(interpolated));
+    return interpolated;
+}
+
+double Dataset::interpolate_y(double x) const {
+    CubicSpline spline(this->x(), y());
+    return spline.spline(x);
 }
 
 void Dataset::append(const Dataset& other) {
@@ -256,3 +269,5 @@ unsigned int Dataset::size_cols() const noexcept {
 }
 
 bool Dataset::operator==(const Dataset& other) const = default;
+Dataset& Dataset::operator=(const Dataset& other) = default;
+Dataset& Dataset::operator=(Dataset&& other) = default;

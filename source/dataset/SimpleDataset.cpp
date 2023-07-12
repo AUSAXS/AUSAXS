@@ -12,6 +12,12 @@
 #include <fstream>
 #include <random>
 
+SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
+
+SimpleDataset::SimpleDataset(const SimpleDataset& d) = default;
+
+SimpleDataset::SimpleDataset(SimpleDataset&& d) = default;
+
 SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     if (d.M <= 1) {
         throw except::invalid_argument("SimpleDataset::SimpleDataset: Dataset must have at least two columns.");
@@ -27,8 +33,6 @@ SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
 SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
 
 SimpleDataset::SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
-
-SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
 
 SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
     if (x.size() != y.size() || x.size() != yerr.size()) {
@@ -320,6 +324,6 @@ double SimpleDataset::weighted_mean_error() const {
     return stats::weighted_mean_error(yerr());
 }
 
-bool SimpleDataset::operator==(const SimpleDataset& other) const {
-    return Dataset::operator==(other);
-}
+bool SimpleDataset::operator==(const SimpleDataset& other) const = default;
+SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
+SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;

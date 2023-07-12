@@ -67,7 +67,6 @@ Protein::~Protein() = default;
 
 void Protein::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this));
-    create_grid();
     if (settings::protein::use_effective_charge) {
         update_effective_charge();
     }
@@ -147,10 +146,11 @@ double Protein::get_relative_mass_density() const {
 }
 
 double Protein::get_volume_grid() const {
+    if (grid == nullptr) {create_grid();}
     return grid->get_volume();
 }
 
-std::shared_ptr<grid::Grid> Protein::create_grid() {
+std::shared_ptr<grid::Grid> Protein::create_grid() const {
     grid = std::make_shared<grid::Grid>(bodies); 
     return grid;
 }

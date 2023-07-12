@@ -257,7 +257,7 @@ class Protein {
 		/**
 		 * @brief Create a grid and fill it with the atoms of this protein. 
 		 */
-		std::shared_ptr<grid::Grid> create_grid();
+		std::shared_ptr<grid::Grid> create_grid() const;
 
 		/**
 		 * @brief Calculate the Debye scattering intensity for this protein. Does not include hydration atoms. 
@@ -344,7 +344,8 @@ class Protein {
 		bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 		bool centered = false;              // True if this object is centered, false otherwise. 
 
-		std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
+		// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
+		mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
 		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
 

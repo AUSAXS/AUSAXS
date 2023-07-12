@@ -115,7 +115,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
     SimpleDataset avg = chi2_landscape.rolling_average(7);  // impose a moving average filter 
-    avg.interpolate(5);                                     // interpolate more points
+    avg = avg.interpolate(5);                               // interpolate more points
 
     min = avg.find_minimum();
     double spacing = avg.x(1)-avg.x(0); 
@@ -153,7 +153,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                     mass_cutoff.push_back({eval.cutoff, eval.mass});
                 }
                 mass_cutoff.sort_x();
-                mass_cutoff.interpolate(l.x());
+                mass_cutoff = mass_cutoff.interpolate(l.x());
                 l.x() = mass_cutoff.y();
                 l.add_plot_options(style::draw::points, {{"xlabel", "mass"}, {"ylabel", "$\\chi^2$"}});
                 plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);

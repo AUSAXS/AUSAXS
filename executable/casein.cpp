@@ -4,6 +4,7 @@
 
 #include <plots/all.h>
 #include <em/ImageStack.h>
+#include <data/Protein.h>
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
@@ -41,5 +42,6 @@ int main(int argc, char const *argv[]) {
     }
 
     em::ImageStack map(mapfile);
-    map.save(0, settings::general::output + "test.pdb");
+    auto protein = map.get_protein(10);
+    plots::PlotIntensity(protein->get_histogram(), settings::general::output + "intensity.png");
 }

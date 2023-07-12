@@ -79,7 +79,7 @@ gmx/%: build/bin/gmx
 	$< $*
 
 casein/%: build/bin/casein
-	@ tomo=$$(find data/ -name "$*.mrc");\
+	@ tomo=$$(find data/ -name "$*.rec");\
 	$< $${tomo} ${options}
 
 silica/%: build/bin/silica
@@ -155,7 +155,7 @@ main/%: build/bin/main
 
 # Inspect the header of an EM map
 inspect/%: build/bin/inspect_map
-	@ emmaps=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
+	@ emmaps=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc" -or -name "$*.rec"); \
 	for emmap in $${emmaps}; do\
 		echo "Opening " $${emmap} " ...";\
 		sleep 1;\

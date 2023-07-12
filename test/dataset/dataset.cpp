@@ -21,6 +21,27 @@ TEST_CASE("Dataset::Dataset") {
         CHECK(dataset.size_cols() == 0);
     }
 
+    SECTION("Dataset&") {
+        std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}};
+        std::vector<std::string> col_names = {"a", "b"};
+        Dataset dataset(cols, col_names);
+        Dataset dataset2(dataset);
+        CHECK(dataset == dataset2);
+    }
+
+    SECTION("Dataset&&") {
+        std::vector<std::vector<double>> cols = {{1, 2, 3}, {4, 5, 6}};
+        std::vector<std::string> col_names = {"a", "b"};
+        Dataset dataset(cols, col_names);
+        Dataset dataset2(std::move(dataset));
+        REQUIRE(dataset2.size() == 3);
+        REQUIRE(dataset2.size_rows() == 3);
+        REQUIRE(dataset2.size_cols() == 2);
+        CHECK(dataset2.get_col_names() == col_names);
+        CHECK(dataset2.col("a") == Vector<double>{1, 2, 3});
+        CHECK(dataset2.col("b") == Vector<double>{4, 5, 6});
+    }
+
     SECTION("Matrix&&") {
         Matrix<double> m(2, 2);
         Dataset dataset(std::move(m));
@@ -128,7 +149,7 @@ TEST_CASE("Dataset::interpolate") {
             std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
         });
 
-        data.interpolate(1);
+        data = data.interpolate(1);
         REQUIRE(data.size() == 18);
         CHECK_THAT(data.x(0), Catch::Matchers::WithinAbs(1, 1e-6));
         CHECK_THAT(data.y(0), Catch::Matchers::WithinAbs(1, 1e-6));
@@ -157,9 +178,37 @@ TEST_CASE("Dataset::interpolate") {
         }
 
         Dataset data({x, y});
-        data.interpolate(5);
+        data = data.interpolate(5);
         for (unsigned int i = 0; i < data.size(); i++) {
             CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(sin(data.x(i)), 1e-3));
+        }
+    }
+
+    SECTION("vector interpolation") {
+        std::vector<double> x1, y1, x2;
+        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+            x1.push_back(xx);
+            y1.push_back(sin(xx));
+            x2.push_back(xx + 0.025);
+        }
+
+        Dataset data1({x1, y1});
+        auto data2 = data1.interpolate(x2);
+        for (unsigned int i = 0; i < data2.size(); i++) {
+            CHECK_THAT(data2.y(i), Catch::Matchers::WithinAbs(sin(data2.x(i)), 1e-3));
+        }
+    }
+
+    SECTION("single values") {
+        std::vector<double> x1, y1;
+        for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+            x1.push_back(xx);
+            y1.push_back(sin(xx));
+        }
+
+        Dataset data1({x1, y1});
+        for (unsigned int i = 0; i < data1.size(); i++) {
+            CHECK_THAT(data1.interpolate_y(data1.x(i)+0.025), Catch::Matchers::WithinAbs(sin(data1.x(i)+0.025), 1e-3));
         }
     }
 }

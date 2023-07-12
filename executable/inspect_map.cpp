@@ -1,8 +1,5 @@
-#include <em/Datatypes.h>
-#include <utility/Exceptions.h>
 #include <em/ImageStack.h>
 
-#include <fstream>
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
