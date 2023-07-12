@@ -183,7 +183,33 @@ TEST_CASE("bounding_box") {
     }
 }
 
-TEST_CASE("volume_expansion") {
+TEST_CASE("Grid::get_volume") {
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    settings::grid::width = 1e-1;
+    Grid grid(axes);
+
+    std::vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+    grid.add(a);
+    grid.expand_volume();
+    GridObj &g = grid.grid;
+
+    unsigned int count = 0;
+    axes = grid.get_axes();
+    for (unsigned int i = 0; i < axes.x.bins; i++) {
+        for (unsigned int j = 0; j < axes.y.bins; j++) {
+            for (unsigned int k = 0; k < axes.z.bins; k++) {
+                if (g.index(i, j, k) != GridObj::EMPTY) {
+                    count++;
+                }
+            }
+        }
+    }
+
+    REQUIRE(count != 0);
+    CHECK(grid.get_volume() == count*std::pow(settings::grid::width, 3));
+}
+
+TEST_CASE("Grid::expand_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     settings::grid::ra = 3;

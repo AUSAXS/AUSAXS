@@ -34,6 +34,7 @@ class Options:
         self.drawline = True
         self.drawmarker = False
         self.drawerror = False
+        self.zorder = 0
 
         # labels
         self.title = ""
@@ -52,7 +53,7 @@ class Options:
         # other stuff
         self.dof = 0 # degrees of freedom for chi2 plots
         self.stagger = 1 # factor to multiply the y values by
-        self.normalize = False
+        self.normalize = 0
 
     def parse_option(self, line):
         words = line.split()
@@ -80,6 +81,8 @@ class Options:
                 self.drawmarker = int(words[1])
             case "draw_errors":
                 self.drawerror = int(words[1])
+            case "zorder":
+                self.zorder = int(words[1])
 
         # labels
             case "title":
@@ -115,7 +118,7 @@ class Options:
             case "stagger":
                 self.stagger = float(words[1])
             case "normalize": 
-                self.normalize = True
+                self.normalize = float(words[1])
 
         # invalid option
             case _:
@@ -186,8 +189,8 @@ def read_dataset(file):
     options = read_options(file)
 
     # normalize the data to start at 1
-    if options.normalize:
-        scaling = data[0][1]
+    if options.normalize != 0:
+        scaling = data[0][1]/options.normalize
         if options.stagger != 1:
             scaling /= options.stagger
             options.stagger = 1
@@ -305,7 +308,8 @@ def plot_dataset(d: Dataset):
             linestyle="none",
             marker=d.options.markerstyle, 
             markersize=d.options.markersize, 
-            label=d.options.legend
+            label=d.options.legend,
+            zorder=d.options.zorder
         )
 
     if d.options.drawline:
@@ -313,7 +317,8 @@ def plot_dataset(d: Dataset):
             color=d.options.color, 
             linestyle=d.options.linestyle, 
             linewidth=d.options.linewidth, 
-            label=d.options.legend
+            label=d.options.legend,
+            zorder=d.options.zorder
         )
 
     global first_plot

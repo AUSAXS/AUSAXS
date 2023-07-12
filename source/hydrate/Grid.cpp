@@ -76,10 +76,9 @@ void Grid::setup() {
             axes.x = axes.z;
             axes.y = axes.z;
         }
-
-        // update the number of bins to reflect the changed axes
-        axes.rebin(settings::grid::width);
     }
+    // make sure we have the correct number of bins
+    axes.rebin(settings::grid::width);
 
     // check if the grid is abnormally large
     long long int total_bins = (long long) axes.x.bins*axes.y.bins*axes.z.bins;

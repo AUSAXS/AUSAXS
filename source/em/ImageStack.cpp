@@ -155,7 +155,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 mass_cutoff.sort_x();
                 mass_cutoff = mass_cutoff.interpolate(l.x());
                 l.x() = mass_cutoff.y();
-                l.add_plot_options(style::draw::points, {{"xlabel", "mass"}, {"ylabel", "$\\chi^2$"}});
+                l.add_plot_options(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}});
                 plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);
             }
         }
@@ -278,7 +278,9 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
             fitter->set_scattering_hist(p->get_histogram());
 
-            auto mass = p->get_volume_grid()*constants::mass::density::protein;                             // essentially free to calculate, so we always do it
+            auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
+                *constants::mass::density::protein                                                          
+                /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa
             fit = fitter->fit();                                                                            // do the fit
             water_factors.push_back(fit->get_parameter("c"));                                               // record c value
             last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
@@ -290,7 +292,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
         double val = fit->fval;
         if (settings::fit::verbose) {
-            std::cout << "Step " << utility::print_element(counter++, 5) << ": Evaluated cutoff value " << utility::print_element(params[0], 12) << " with chi2 " << utility::print_element(val, 12) << std::flush << "\r";
+            std::cout << "Step " << utility::print_element(counter++, 4) << ": Evaluated cutoff value " << utility::print_element(params[0], 8) << " with chi2 " << utility::print_element(val, 8) << std::flush << "\r";
         }
         return val;
     }; 
