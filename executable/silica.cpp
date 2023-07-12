@@ -46,18 +46,18 @@ int main(int argc, char const *argv[]) {
     plots::PlotIntensity::quick_plot(fourierxy, settings::general::output + "fourierxy.png");
 
     // complete box
-    settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 10;
-    settings::crystal::max_q = 100;
-    settings::axes::bins = 1000;
-    crystal::CrystalScattering cs2(crystal);
-    auto fourier = cs2.calculate();
-    fourier.limit_y(1e-4, std::numeric_limits<double>::max());
-    fourier.add_plot_options({{plots::option::legend, "xyz"}});
+    // settings::crystal::h = 100; settings::crystal::k = 100; settings::crystal::l = 10;
+    // settings::crystal::max_q = 100;
+    // settings::axes::bins = 1000;
+    // crystal::CrystalScattering cs2(crystal);
+    // auto fourier = cs2.calculate();
+    // fourier.limit_y(1e-4, std::numeric_limits<double>::max());
+    // fourier.add_plot_options({{plots::option::legend, "xyz"}});
 
-    plots::PlotIntensity plot(fourierxy, style::color::orange);
-    plot.plot(fourier, style::color::blue);
-    plot.save(settings::general::output + "xy_xyz_comparison.png");
-    plots::PlotIntensity::quick_plot(fourier, settings::general::output + "fourier.png");
+    // plots::PlotIntensity plot(fourierxy, style::color::orange);
+    // plot.plot(fourier, style::color::blue);
+    // plot.save(settings::general::output + "xy_xyz_comparison.png");
+    // plots::PlotIntensity::quick_plot(fourier, settings::general::output + "fourier.png");
 
     //###############################################//
     //###               histogram                 ###//
@@ -69,101 +69,67 @@ int main(int argc, char const *argv[]) {
     auto hist_dataset = hist.as_dataset();
     hist_dataset.add_plot_options({{"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}});
     plots::PlotDataset::quick_plot(hist_dataset, settings::general::output + "distances.png");
-    hist_dataset.limit_x({0, 300});
-    plots::PlotDataset::quick_plot(hist_dataset, settings::general::output + "distances_limited.png");
     plots::PlotIntensity::quick_plot(debye, settings::general::output + "debye.png");
 
     // comparison plot
     debye.add_plot_options({{"color", style::color::red}});
-    plots::PlotIntensity intensity_compare(fourierxy);
-    intensity_compare.plot(debye, style::color::red);
-    intensity_compare.save(settings::general::output + "debye_comparison.png");
+    plots::PlotIntensity(fourierxy)
+        .plot(debye, style::color::red)
+        .save(settings::general::output + "debye_comparison.png");
 
-    // cut histogram if hmin exists
+    // single-particle analysis
     if (std::filesystem::exists(settings::general::output + "hmin.txt")) {
+        std::cout << "hmin.txt found, performing single-particle analysis" << std::endl;
+
         std::ifstream input(settings::general::output + "hmin.txt");
         if (!input.is_open()) {throw except::io_error("Could not open file " + settings::general::output + "hmin.txt");}
         std::string line;
         std::getline(input, line);
-        unsigned int min = std::stoi(line);
+        unsigned int x0 = std::stoi(line);
         std::getline(input, line);
-        unsigned int max = std::stoi(line);
+        unsigned int xmax = std::stoi(line);
+        hist_dataset.limit_x(0, xmax);
 
-        std::vector<double> xc, yc;
-        unsigned int i = 0;
-        while (hist.d[i] < min) {i++;}
-        while (hist.d[i] < max) {
-            xc.push_back(hist.d[i]);
-            yc.push_back(hist.p[i++]);
+        double y0 = hist_dataset.interpolate_y(x0);
+
+        // model is y = a*x²
+        // this is constrained at the location 'x0' to the value 'y0', such that y0 = a*x0² => a = y0/x0²
+        double a = y0 / (x0 * x0);
+        auto f = [a] (double x) {return a*x*x;};
+
+        // plot model on top of histogram
+        auto model_dataset = hist_dataset;
+        for (unsigned int i = 0; i < model_dataset.size(); i++) {
+            model_dataset.y(i) = f(model_dataset.x(i));
         }
 
-        auto model = [] (double x, double x0, double a) {
-            return a*std::pow(x-x0, 2);
-        };
+        model_dataset.add_plot_options({{"color", style::color::red}});
+        plots::PlotDataset(hist_dataset)
+            .plot(model_dataset)
+            .save(settings::general::output + "subtracted_curve.png");
 
-        auto chi2 = [&xc, &yc, &model] (std::vector<double> p) {
-            double chi2 = 0;
-            for (unsigned int i = 0; i < xc.size(); i++) {
-                chi2 += std::pow(yc[i] - model(xc[i], p[0], p[1]), 2)/std::max(yc[i], 1.0);
-            }
-            return chi2;
-        };
-
-        auto mini = mini::dlibMinimizer<mini::type::DLIB_GLOBAL>(chi2, {
-            mini::Parameter("x0", {-30, xc.front()+30}), 
-            mini::Parameter("b", {1, 20000})
-        });
-        mini.set_max_evals(1000);
-        auto res = mini.minimize();
-
-        SimpleDataset fit;
-        {
-            std::vector<double> y(xc.size());
-            for (unsigned int i = 0; i < xc.size(); i++) {
-                y[i] = model(xc[i], res[0], res[1]);
-            }
-            fit = SimpleDataset(xc, y);
-            fit.add_plot_options({{"color", style::color::red}});
+        // subtract model from histogram
+        auto subtracted_hist = hist_dataset;
+        for (unsigned int i = 0; i < subtracted_hist.size(); i++) {
+            subtracted_hist.y(i) = std::max(subtracted_hist.y(i) - f(subtracted_hist.x(i)), 0.);
         }
-        SimpleDataset fit_extrapolated;
-        {
-            std::vector<double> xn, yn;
-            unsigned int i = 0;
-            while (hist.d[i] <= min) {
-                xn.push_back(hist.d[i]);
-                double temp = hist.d[i] < res[0] ? 0 : model(hist.d[i], res[0], res[1]);
-                yn.push_back(temp);
-                i++;
-            }
-            fit_extrapolated = SimpleDataset(xn, yn);
-            fit_extrapolated.add_plot_options({{"color", style::color::red}, {"linestyle", style::line::dashed}});
-        }
-        auto hist_dataset = hist.as_dataset();
-        hist_dataset.limit_x(0, 2*max);
-        hist_dataset.add_plot_options({{"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}});
-        plots::PlotDataset plot(hist_dataset);
-        plot.plot(fit);
-        plot.plot(fit_extrapolated);
-        plot.save(settings::general::output + "fit.png");
-        std::cout << "Fit vals: " << res[0] << ", " << res[1] << std::endl;
+        unsigned int imax = 0;
+        while (subtracted_hist.x(imax) < x0) {imax++;}
+        subtracted_hist.limit_x({0, subtracted_hist.x(imax)});
 
-        i = 0;
-        std::vector<double> yn;
-        while (hist.d[i] < min) {
-            double temp = hist.d[i] < res[0] ? 0 : model(hist.d[i], res[0], res[1]);
-            yn.push_back(hist.p[i] - temp);
-            i++;
-        }
-    
-        Axis new_axis(yn.size(), 0, hist.d[i]);
-        std::vector<double> empty(yn.size(), 0);
-        hist::ScatteringHistogram new_hist(yn, empty, empty, yn, new_axis);
+        Axis new_axis(0, subtracted_hist.x(imax), subtracted_hist.size());
+        std::vector<double> empty(subtracted_hist.size(), 0);
+        hist::ScatteringHistogram new_hist(subtracted_hist.y(), empty, empty, subtracted_hist.y(), new_axis);
         auto new_hist_dataset = new_hist.as_dataset();
         new_hist_dataset.add_plot_options({{"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}});
         plots::PlotDataset::quick_plot(new_hist_dataset, settings::general::output + "distances_single.png");
 
         auto new_intensity = new_hist.calc_debye_scattering_intensity();
         plots::PlotIntensity::quick_plot(new_intensity, settings::general::output + "intensity_single.png");
+    } else {
+        std::cout << "No hmin.txt file found, skipping single-particle analysis." << std::endl;
+        hist_dataset.limit_x({0, 300});
+        plots::PlotDataset::quick_plot(hist_dataset, settings::general::output + "distances_limited.png");
     }
 
     return 0;

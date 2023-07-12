@@ -320,7 +320,7 @@ stuff/%: build/bin/stuff
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-test_files = $(addprefix test/ -name "*.cpp", $(shell find test/ -printf "%P "))
+test_files = $(addprefix test/, $(shell find test/ -name "*.cpp" -printf "%P "))
 
 memtest/%: $$(shell find test/ -name "%.cpp")
 	@ make -C build "test_$*" -j${cmake_threads}
@@ -331,6 +331,9 @@ debug_tests: $(source) $(test_files)
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags);\
 	done
+
+debug:
+	echo $(test_files)
 
 tests: $(source_files) $(test_files)
 	@ make -C build tests -j${cmake_threads}

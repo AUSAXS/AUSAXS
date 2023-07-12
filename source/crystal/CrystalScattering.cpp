@@ -129,9 +129,14 @@ unsigned int CrystalScattering::load_checkpoint(std::vector<Fval>& fvals) {
 }
 
 bool interrupt_signal = false;
-void handleInterruptSignal(int signal) {
-    std::cout << "Interrupt signal received. Finishing current calculations and writing a checkpoint before exiting." << std::endl;
+void interrupt_handler(int signal) {
+    std::cout << "Interrupt signal received. Finishing current calculations and writing a checkpoint before exiting. \nInterrupt again to exit immediately and lose current progress." << std::endl;
+    std::signal(SIGINT, SIG_DFL);
     if (signal == SIGINT) {interrupt_signal = true;}
+}
+
+void interrupt_handler_save(int) {
+    std::cout << "Program cannot be interrupted while writing a checkpoint file. Please wait." << std::endl;
 }
 
 SimpleDataset CrystalScattering::calculate() const {
@@ -142,13 +147,12 @@ SimpleDataset CrystalScattering::calculate() const {
     std::vector<Fval> fvals(millers.size());
     std::atomic<unsigned int> index = load_checkpoint(fvals);
 
-    std::cout << std::endl;
     auto dispatcher = [&] () {
         while (true) {
             unsigned int start = index.fetch_add(1000);
             unsigned int end = std::min<unsigned int>(start + 1000, millers.size());
             if (start >= millers.size() || interrupt_signal) {
-                index = std::max(index.load(), end);
+                index = std::min(index.load(), end);
                 break;
             }
 
@@ -159,24 +163,28 @@ SimpleDataset CrystalScattering::calculate() const {
         }
     };
 
-    // register the interrupt signal handler. we need this to ensure that the checkpoint file is saved properly before the program exits
-    std::signal(SIGINT, handleInterruptSignal);
+    // if the checkpoint file does not contain all points, we need to calculate the remaining points
+    if (index < millers.size()) {
+        // register the interrupt signal handler. we need this to ensure that the checkpoint file is saved properly before the program exits
+        std::signal(SIGINT, interrupt_handler);
 
-    // start threads
-    std::vector<std::thread> threads;
-    for (unsigned int i = 0; i < settings::general::threads; i++) {
-        threads.push_back(std::thread(dispatcher));
+        // start threads
+        std::vector<std::thread> threads;
+        for (unsigned int i = 0; i < settings::general::threads; i++) {
+            threads.push_back(std::thread(dispatcher));
+        }
+
+        // wait for threads to finish
+        for (auto& thread : threads) {
+            thread.join();
+        }
+
+        // save final checkpoint
+        std::signal(SIGINT, interrupt_handler_save);
+        save_checkpoint(index, fvals);
+        std::signal(SIGINT, SIG_DFL); // reset the interrupt signal handler
+        if (interrupt_signal) {raise(SIGINT);} // raise the interrupt signal again to ensure that the program exits
     }
-
-    // wait for threads to finish
-    for (auto& thread : threads) {
-        thread.join();
-    }
-
-    // save final checkpoint
-    save_checkpoint(index, fvals);
-    std::signal(SIGINT, SIG_DFL); // reset the interrupt signal handler
-    if (interrupt_signal) {raise(SIGINT);} // raise the interrupt signal again to ensure that the program exits
 
     // sort fvals by q
     std::sort(fvals.begin(), fvals.end(), [] (const Fval& a, const Fval& b) {return a.qlength < b.qlength;});
