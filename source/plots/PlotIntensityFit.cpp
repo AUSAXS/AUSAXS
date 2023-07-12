@@ -7,27 +7,29 @@
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 
-plots::PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot() {
+using namespace plots;
+
+PlotIntensityFit::PlotIntensityFit(fitter::LinearFitter& fitter) : Plot() {
     auto graphs = fitter.plot();
     plot(graphs);
 }
 
-plots::PlotIntensityFit::PlotIntensityFit(const fitter::Fit& fit) : Plot() {
+PlotIntensityFit::PlotIntensityFit(const fitter::Fit& fit) : Plot() {
     plot(fit.figures);
 }
 
-plots::PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<fitter::Fit> fit) : Plot() {
+PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<fitter::Fit> fit) : Plot() {
     plot(fit->figures);
 }
 
-plots::PlotIntensityFit::~PlotIntensityFit() = default;
+PlotIntensityFit::~PlotIntensityFit() = default;
 
-void plots::PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path) {
+void PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path) {
     PlotIntensityFit plot(fit);
     plot.save(path);
 }
 
-void plots::PlotIntensityFit::plot(const fitter::FitPlots& graphs) {
+void PlotIntensityFit::plot(const fitter::FitPlots& graphs) {
     PlotOptions options_data, options_interpolated, options_intensity;
     options_data.set("errors", {{"color", style::color::orange}, {"title", "Fit"}, {"xlabel", "$q$ [$\\AA^{-1}$]"}, {"ylabel", "$I$ [arb]"}, {"logy", true}, {"logx", true}});
     options_interpolated.set("markers", {{"color", style::color::black}});

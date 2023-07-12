@@ -2,7 +2,9 @@
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Evaluation.h>
 
-plots::PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File& path) {
+using namespace plots;
+
+PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File& path) {
     ss << "PlotLandscape\n" 
         << data.to_string() 
         << "\n"
@@ -12,8 +14,8 @@ plots::PlotLandscape::PlotLandscape(const mini::Landscape& data, const io::File&
     save(path);
 }
 
-plots::PlotLandscape::~PlotLandscape() = default;
+PlotLandscape::~PlotLandscape() = default;
 
-void plots::PlotLandscape::quick_plot(const mini::Landscape& data, const io::File& path) {
+void PlotLandscape::quick_plot(const mini::Landscape& data, const io::File& path) {
     PlotLandscape plot(data, path);
 }

@@ -26,7 +26,7 @@ namespace plots {
              * 
              * @param cutoff The cutoff value of the electron density. 
              */
-            void plot_atoms(const em::Image& image, double cutoff);
+            PlotImage& plot_atoms(const em::Image& image, double cutoff);
 
 			/**
 			 * @brief Plot and save the input Image at the specified location. 

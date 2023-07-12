@@ -2,13 +2,15 @@
 #include <hist/Histogram.h>
 #include <dataset/SimpleDataset.h>
 
-plots::PlotHistogram::PlotHistogram(const hist::Histogram& h) {
+using namespace plots;
+
+PlotHistogram::PlotHistogram(const hist::Histogram& h) {
     plot(h);
 }
 
-plots::PlotHistogram::~PlotHistogram() = default;
+PlotHistogram::~PlotHistogram() = default;
 
-void plots::PlotHistogram::plot(const hist::Histogram& hist) {
+PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist) {
     PlotOptions options;
     SimpleDataset p(hist.p.data, hist.axis.as_vector());
 
@@ -17,9 +19,10 @@ void plots::PlotHistogram::plot(const hist::Histogram& hist) {
         << "\n"
         << p.get_plot_options().to_string()
         << std::endl;
+    return *this;
 }
 
-void plots::PlotHistogram::quick_plot(const hist::Histogram& hist, const io::File& path) {
-    plots::PlotHistogram plot(hist);
+void PlotHistogram::quick_plot(const hist::Histogram& hist, const io::File& path) {
+    PlotHistogram plot(hist);
     plot.save(path);
 }

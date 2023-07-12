@@ -4,13 +4,15 @@
 #include <dataset/SimpleDataset.h>
 #include <data/Atom.h>
 
-plots::PlotImage::PlotImage(const em::Image& image) {
+using namespace plots;
+
+PlotImage::PlotImage(const em::Image& image) {
     plot(image);
 }
 
-plots::PlotImage::~PlotImage() = default;
+PlotImage::~PlotImage() = default;
 
-void plots::PlotImage::plot_atoms(const em::Image& image, double cutoff) {
+PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
     const std::list<Atom>& atoms = image.generate_atoms(cutoff);
     std::vector<double> x;
     std::vector<double> y;
@@ -29,9 +31,10 @@ void plots::PlotImage::plot_atoms(const em::Image& image, double cutoff) {
         << "\n"
         << p.get_plot_options().to_string()
         << std::endl;
+    return *this;
 }
 
-void plots::PlotImage::plot(const em::Image& image) {
+void PlotImage::plot(const em::Image& image) {
     hist::Histogram2D h = image.as_hist();
     h.add_plot_options("points", {{"xlabel", "Length [Å]"}, {"ylabel", "Length [Å]"}, {"zlabel", "Electron Density [Arb.]"}});
 
@@ -48,7 +51,7 @@ void plots::PlotImage::plot(const em::Image& image) {
         << std::endl;
 }
 
-void plots::PlotImage::quick_plot(const em::Image& image, const io::File& path) {
-    plots::PlotImage p(image);
+void PlotImage::quick_plot(const em::Image& image, const io::File& path) {
+    PlotImage p(image);
     p.save(path);
 }

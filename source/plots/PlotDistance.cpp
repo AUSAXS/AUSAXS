@@ -2,13 +2,15 @@
 #include <plots/PlotDataset.h>
 #include <hist/ScatteringHistogram.h>
 
-plots::PlotDistance::~PlotDistance() = default;
+using namespace plots;
 
-plots::PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, const io::File& path) {
+PlotDistance::~PlotDistance() = default;
+
+PlotDistance::PlotDistance(const hist::ScatteringHistogram& d, const io::File& path) {
     quick_plot(d, path);
 }
 
-void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& d, const io::File& path) {
+void PlotDistance::quick_plot(const hist::ScatteringHistogram& d, const io::File& path) {
     auto distances = d.axis.as_vector();
     SimpleDataset p(distances, d.p.data);
     SimpleDataset pp(distances, d.p_pp.p.data);
@@ -20,7 +22,7 @@ void plots::PlotDistance::quick_plot(const hist::ScatteringHistogram& d, const i
     ph.add_plot_options("lines", {{"color", style::color::green}, {"legend", "atom-water"}});
     hh.add_plot_options("lines", {{"color", style::color::blue}, {"legend", "water-water"}});
 
-    plots::PlotDataset plot;
+    PlotDataset plot;
     plot.plot(p);
     plot.plot(pp);
     plot.plot(ph);

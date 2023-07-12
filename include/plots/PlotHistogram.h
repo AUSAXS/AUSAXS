@@ -18,7 +18,7 @@ namespace plots {
 			 */
 			~PlotHistogram() override;
 
-			void plot(const hist::Histogram& hist);
+			PlotHistogram& plot(const hist::Histogram& hist);
 
 			/**
 			 * @brief Plot and save the input dataset and the specified location. 

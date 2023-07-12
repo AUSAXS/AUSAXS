@@ -37,7 +37,7 @@ namespace plots {
 			 * @brief Plot an additional Dataset. 
 			 */
 			template<DatasetType T> 
-			void plot(const T& data);
+			PlotDataset& plot(const T& data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

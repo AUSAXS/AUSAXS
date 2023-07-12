@@ -36,22 +36,22 @@ namespace plots {
 			/**
 			 * @brief Plot a scattering histogram.
 			 */
-			void plot(const hist::ScatteringHistogram& data, style::Color color = style::color::black);
+			PlotIntensity& plot(const hist::ScatteringHistogram& data, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot an additional data set as points. 
 			 */
-			void plot(const SimpleDataset& data, style::Color color = style::color::black);
+			PlotIntensity& plot(const SimpleDataset& data, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			void plot(const std::shared_ptr<fitter::Fit> fit, style::Color color = style::color::black);
+			PlotIntensity& plot(const std::shared_ptr<fitter::Fit> fit, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
 			 */
-			void plot_guinier_approx(const hist::ScatteringHistogram& data);
+			PlotIntensity& plot_guinier_approx(const hist::ScatteringHistogram& data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
