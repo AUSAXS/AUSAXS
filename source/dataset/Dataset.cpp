@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
 
 Dataset::Dataset() = default;
 
@@ -244,7 +245,6 @@ void Dataset::sort_x() {
     this->assign_matrix(std::move(newdata));
 }
 
-#include <sstream>
 std::string Dataset::to_string() const {
     std::stringstream ss;
     for (unsigned int i = 0; i < size(); i++) {
@@ -254,6 +254,35 @@ std::string Dataset::to_string() const {
         ss << "\n";
     }
     return ss.str();
+}
+
+std::vector<double> Dataset::find_minima(double min_spacing = 0, double prominence = 0) const {
+    std::vector<double> minima;
+    double yprev = y(0);
+    double diff_prev = 0;
+    double prominence_prev = 0;
+
+    for (unsigned int i = 1; i < size()-1; ++i) {
+        double yi = y(i);
+        double ynext = y(i+1);
+        double diff_next = ynext - yi;
+
+        if (yi < yprev && yi < ynext) {
+            double diff_current = yi - yprev;
+            double prominence_next = yi - ynext;
+
+            if (diff_current > min_spacing && diff_current > diff_prev && diff_current > ynext &&
+                prominence_next > prominence && prominence_next > prominence_prev) {
+                minima.push_back(x(i));
+            }
+        }
+
+        yprev = yi;
+        diff_prev = diff_next;
+        prominence_prev = yi - ynext;
+    }
+
+    return minima;
 }
 
 unsigned int Dataset::size() const noexcept {

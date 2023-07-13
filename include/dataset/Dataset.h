@@ -166,6 +166,11 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] Dataset rolling_average(unsigned int window) const;
 
         /**
+         * @brief Find the x-positions of minima in the dataset.
+         */
+        std::vector<double> find_minima(double min_spacing = 0, double prominence = 0) const;
+
+        /**
          * @brief Append another dataset with the same number of rows to this one.
          *        Note that you cannot append a datasaet to itself.
          */
