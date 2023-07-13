@@ -1,58 +1,15 @@
-/**
-MIT License
-
-Copyright (c) 2019 Clayder Gonzalez
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-**/
-
 #pragma once
 
 #include <vector>
 
 namespace math {
-    namespace detail {
-        constexpr double eps = 1e-16;
-
-        /**
-        * @brief Find peaks in a signal.
-        * 
-        * @param data Input data to find peaks in.
-        * @param includeEndpoints If true the endpoints will be included as possible extrema. Otherwise they will not be included.
-        * @param extrema true if maxima are desired, false if minima are desired.
-        * 
-        * @return Indices of peaks in the data.
-        */
-        std::vector<unsigned int> find_peaks(std::vector<double> data, bool includeEndpoints, bool extrema);
-    }
-
     /**
-    * @brief Find minima in a dataset.
-    * 
-    * @return Indices of peaks in the data.
-    */
-    std::vector<unsigned int> find_minima(const std::vector<double>& data);
-
-    /**
-    * @brief Find maxima in a dataset.
-    * 
-    * @return Indices of peaks in the data.
-    */
-    std::vector<unsigned int> find_maxima(const std::vector<double>& data);
+     * @brief Find the indices of minima in the dataset.
+     * 
+     * @param x The x values of the dataset.
+     * @param y The y values of the dataset.
+     * @param min_spacing The minimum spacing between minima.
+     * @param prominence The minimum prominence of a minima. This is the estimated depth of the minima. 
+     */
+    std::vector<unsigned int> find_minima(const std::vector<double>& x, std::vector<double> y, unsigned int min_spacing, double min_prominence);
 }

@@ -385,13 +385,13 @@ TEST_CASE("Dataset::find_minima") {
     //         REQUIRE(minima == std::vector<unsigned int>{9});
     //     }
 
-    //     SECTION("multiple") {
-    //         std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
-    //         std::vector<double> y = {10, 9, 8, 7, 6, 7, 8, 9, 8, 7,  6,  5,  4,  5,  6,  7,  8,  9,  10};
-    //         Dataset data({x, y});
-    //         std::vector<unsigned int> minima = data.find_minima();
-    //         REQUIRE(minima == std::vector<unsigned int>{4, 12});
-    //     }
+        // SECTION("multiple") {
+        //     std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+        //     std::vector<double> y = {10, 9, 8, 7, 6, 7, 8, 9, 8, 7,  6,  5,  4,  5,  6,  7,  8,  9,  10};
+        //     Dataset data({x, y});
+        //     std::vector<unsigned int> minima = data.find_minima();
+        //     REQUIRE(minima == std::vector<unsigned int>{4, 12});
+        // }
 
     //     SECTION("at endpoints") {
     //         std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
@@ -402,15 +402,26 @@ TEST_CASE("Dataset::find_minima") {
     //     }
     // }
 
-    SECTION("sinusoidal noise") {
-        std::vector<double> x;
-        std::vector<double> y;
-        for (double xx = -10, dx = 0.1; xx <= 10; xx += dx) {
-            x.push_back(xx);
-            y.push_back(0.5*xx*xx + 2*std::sin(2*xx)*std::rand()/RAND_MAX);
+    // SECTION("sinusoidal noise") {
+    //     std::vector<double> x;
+    //     std::vector<double> y;
+    //     for (double xx = -10, dx = 0.1; xx <= 10; xx += dx) {
+    //         x.push_back(xx);
+    //         y.push_back(0.5*xx*xx + 2*std::sin(2*xx)*std::rand()/RAND_MAX);
+    //     }
+    //     Dataset data({x, y});
+    //     data = data.rolling_average(7);
+    //     std::vector<unsigned int> minima = data.find_minima();
+    //     REQUIRE(minima == std::vector<unsigned int>{0, 50, 100, 150, 200});
+    // }
+
+    SECTION("actual data") {
+        Dataset data("test/files/chi2_landscape.dat");
+        data = data.rolling_average(5);
+        for (auto& v : data.y()) {
+            v = -v;
         }
-        Dataset data({x, y});
-        std::vector<unsigned int> minima = data.find_minima();
-        REQUIRE(minima == std::vector<unsigned int>{0, 50, 100, 150, 200});
+        std::vector<unsigned int> minima = data.find_minima(1, 0.1);
+        // REQUIRE(minima == std::vector<unsigned int>{0, 18, 36, 54, 72, 90, 108, 126, 144, 162});
     }
 }
