@@ -322,7 +322,7 @@ tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 test_files = $(addprefix test/, $(shell find test/ -wholename "*.cpp" -printf "%P "))
 
-memtest/%: $$(shell find test/ -wholename "%.cpp")
+memtest/%: $$(shell find test/ -name "%.cpp")
 	@ make -C build "test_$*" -j${cmake_threads}
 	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
@@ -342,7 +342,7 @@ tests: $(source_files) $(test_files)
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%: $$(shell find test/ -wholename "%.cpp")
+test/%: $$(shell find test/ -name "%.cpp")
 	@ make -C build "test_$*" -j${cmake_threads}
 	build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 

@@ -26,17 +26,33 @@ SOFTWARE.
 
 #include <vector>
 
-namespace peak_finder {
-    constexpr double eps = 1e-16;
+namespace math {
+    namespace detail {
+        constexpr double eps = 1e-16;
 
-   /**
-    * @brief Find peaks in a signal.
-    * 
-    * @param x0 Input data to find peaks in.
-    * @param includeEndpoints If true the endpoints will be included as possible extrema. Otherwise they will not be included.
-    * @param extrema 1 if maxima are desired, -1 if minima are desired.
+        /**
+        * @brief Find peaks in a signal.
+        * 
+        * @param data Input data to find peaks in.
+        * @param includeEndpoints If true the endpoints will be included as possible extrema. Otherwise they will not be included.
+        * @param extrema true if maxima are desired, false if minima are desired.
+        * 
+        * @return Indices of peaks in the data.
+        */
+        std::vector<unsigned int> find_peaks(std::vector<double> data, bool includeEndpoints, bool extrema);
+    }
+
+    /**
+    * @brief Find minima in a dataset.
     * 
     * @return Indices of peaks in the data.
     */
-    std::vector<unsigned int> find_peaks(std::vector<double> data, bool includeEndpoints = true, double extrema = 1);
+    std::vector<unsigned int> find_minima(const std::vector<double>& data);
+
+    /**
+    * @brief Find maxima in a dataset.
+    * 
+    * @return Indices of peaks in the data.
+    */
+    std::vector<unsigned int> find_maxima(const std::vector<double>& data);
 }

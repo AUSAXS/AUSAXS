@@ -86,7 +86,7 @@ namespace constants {
 
         namespace volume {
             constexpr double A3 = 1e-30; // Ångström^3
-            constexpr double cm3 = 1e-9;
+            constexpr double cm3 = 1e-6;
         }
     }
 

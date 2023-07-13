@@ -368,3 +368,49 @@ TEST_CASE("Dataset::sort_x") {
     CHECK(data.x() == std::vector<double>({0, 1, 2, 3, 4}));
     CHECK(data.y() == std::vector<double>({0, 10, 20, 30, 40}));
 }
+
+TEST_CASE("Dataset::find_minima") {
+    // SECTION("empty") {
+    //     Dataset data;
+    //     std::vector<unsigned int> minima = data.find_minima();
+    //     REQUIRE(minima.empty());
+    // }
+
+    // SECTION("simple") {
+    //     SECTION("single") {
+    //         std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+    //         std::vector<double> y = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10};
+    //         Dataset data({x, y});
+    //         std::vector<unsigned int> minima = data.find_minima();
+    //         REQUIRE(minima == std::vector<unsigned int>{9});
+    //     }
+
+    //     SECTION("multiple") {
+    //         std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+    //         std::vector<double> y = {10, 9, 8, 7, 6, 7, 8, 9, 8, 7,  6,  5,  4,  5,  6,  7,  8,  9,  10};
+    //         Dataset data({x, y});
+    //         std::vector<unsigned int> minima = data.find_minima();
+    //         REQUIRE(minima == std::vector<unsigned int>{4, 12});
+    //     }
+
+    //     SECTION("at endpoints") {
+    //         std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    //         std::vector<double> y = {1, 2, 3, 4, 5, 4, 3, 2, 1};
+    //         Dataset data({x, y});
+    //         std::vector<unsigned int> minima = data.find_minima();
+    //         REQUIRE(minima == std::vector<unsigned int>{0, 8});
+    //     }
+    // }
+
+    SECTION("sinusoidal noise") {
+        std::vector<double> x;
+        std::vector<double> y;
+        for (double xx = -10, dx = 0.1; xx <= 10; xx += dx) {
+            x.push_back(xx);
+            y.push_back(0.5*xx*xx + 2*std::sin(2*xx)*std::rand()/RAND_MAX);
+        }
+        Dataset data({x, y});
+        std::vector<unsigned int> minima = data.find_minima();
+        REQUIRE(minima == std::vector<unsigned int>{0, 50, 100, 150, 200});
+    }
+}

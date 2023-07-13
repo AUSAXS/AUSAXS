@@ -79,18 +79,29 @@ void scalarProduct(double scalar, std::vector<double> in, std::vector<double>& o
 		out[i] = scalar * in[i];
 }
 
-std::vector<unsigned int> peak_finder::find_peaks(std::vector<double> x0, bool includeEndpoints, double extrema) {
+std::vector<unsigned int> math::find_minima(const std::vector<double>& data) {
+	return math::detail::find_peaks(data, true, false);
+}
+
+std::vector<unsigned int> math::find_maxima(const std::vector<double>& data) {
+	return math::detail::find_peaks(data, true, true);
+}
+
+std::vector<unsigned int> math::detail::find_peaks(std::vector<double> x0, bool includeEndpoints, bool maxima) {
+	if (x0.size() < 3) return std::vector<unsigned int>();
+
 	int minIdx = distance(x0.begin(), min_element(x0.begin(), x0.end()));
 	int maxIdx = distance(x0.begin(), max_element(x0.begin(), x0.end()));
 
 	double sel = (x0[maxIdx]-x0[minIdx])/4.0;
 	int len0 = x0.size();
 
+	int extrema = maxima? 1 : -1;
 	scalarProduct(extrema, x0, x0);
 
 	std::vector<double> dx;
 	diff(x0, dx);
-	replace(dx.begin(), dx.end(), 0.0, -peak_finder::eps);
+	replace(dx.begin(), dx.end(), 0.0, -math::detail::eps);
 	std::vector<double> dx0(dx.begin(), dx.end()-1);
 	std::vector<double> dx0_1(dx.begin()+1, dx.end());
 	std::vector<double> dx0_2;

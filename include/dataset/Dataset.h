@@ -166,9 +166,12 @@ class Dataset : public Matrix<double> {
         [[nodiscard]] Dataset rolling_average(unsigned int window) const;
 
         /**
-         * @brief Find the x-positions of minima in the dataset.
+         * @brief Find the indices of minima in the dataset.
+         * 
+         * @param min_spacing The minimum spacing between minima.
+         * @param prominence The minimum prominence of a minima. This is the estimated depth of the minima. 
          */
-        std::vector<double> find_minima(double min_spacing = 0, double prominence = 0) const;
+        std::vector<unsigned int> find_minima(double min_spacing = 0, double prominence = 0) const;
 
         /**
          * @brief Append another dataset with the same number of rows to this one.
