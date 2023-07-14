@@ -11,5 +11,9 @@ namespace math {
      * @param min_spacing The minimum spacing between minima.
      * @param prominence The minimum prominence of a minima. This is the estimated depth of the minima. 
      */
-    std::vector<unsigned int> find_minima(const std::vector<double>& x, std::vector<double> y, unsigned int min_spacing, double min_prominence);
+    std::vector<unsigned int> find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence);
+
+    namespace detail {
+        inline static double min_slope = 1; // each point must be at least this much higher (in percent) than the previous point to be considered part of the bounds of a minima
+    }
 }

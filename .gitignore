@@ -12,6 +12,7 @@ perf.*
 CMakeFiles
 lib
 valgrind.txt
+callgrind.*
 *log
 
 *.plot

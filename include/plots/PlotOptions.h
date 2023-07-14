@@ -26,6 +26,8 @@ namespace plots {
         static inline std::string draw_errors = "error";
         static inline std::string draw_markers = "marker";
         static inline std::string draw_bars = "bars";
+        static inline std::string draw_fill = "fill";
+        static inline std::string zorder = "zorder";
 
         // labels
         static inline std::string title = "title";
@@ -75,7 +77,7 @@ namespace plots {
             double alpha = 1;                       // Opacity
             std::string marker_style = ".";         // Marker style
             style::LineStyle line_style = "-";      // Line style
-            unsigned int line_width = 1;            // Line width
+            double line_width = 1;                  // Line width
             double marker_size = 5;                 // Marker size
             bool draw_line = true;                  // Draw a line through the points
             bool draw_errors = false;               // Draw error bars if possible
@@ -85,6 +87,7 @@ namespace plots {
             bool logy = false;                      // Log scale for the y-axis. Only valid if use_existing_axes is false. 
             Limit ylimits;                          // Limits on the y-axis
             Limit xlimits;                          // Limits on the x-axis
+            int zorder;                             // Z-order for the plot. Higher zorder plots are drawn on top of lower zorder plots.
 
             // cosmetic
             std::string title = "";                 // Title
@@ -138,7 +141,8 @@ namespace plots {
                 make_shared({option::logy, "log_y"}, logy),
                 make_shared({option::xlimits, "x_lim", "xlimits", "xlimit"}, xlimits),
                 make_shared({option::ylimits, "y_lim", "ylimits", "ylimit"}, ylimits),
-                make_shared({option::legend}, legend)
+                make_shared({option::legend}, legend),
+                make_shared({option::zorder}, zorder)
             };
 
             void parse(const std::string& key, std::any val);

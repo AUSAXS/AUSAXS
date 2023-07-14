@@ -158,6 +158,15 @@ class Slice {
         }
 };
 
+template<typename T, container_type Container>
+std::vector<T> operator-(const Slice<T, Container>& lhs) {
+    std::vector<T> result(lhs.size());
+    for (unsigned int i = 0; i < lhs.size(); i++) {
+        result[i] = -lhs[i];
+    }
+    return result;
+}
+
 template<numeric T>
 class MutableSlice : public Slice<T, std::vector<T>&> {
     using data_type = std::vector<T>&;

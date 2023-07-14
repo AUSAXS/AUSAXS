@@ -150,6 +150,7 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     ylimits = opt.ylimits;
     xlimits = opt.xlimits;
     legend = opt.legend;
+    zorder = opt.zorder;
     return *this;
 }
 
@@ -173,7 +174,8 @@ std::string PlotOptions::to_string() const {
         << "zlabel "         << zlabel << "\n"
         << "legend "         << legend << "\n"
         << "ylimits "        << ylimits.min << " " << ylimits.max << "\n"
-        << "xlimits "        << xlimits.min << " " << xlimits.max << std::endl;
+        << "xlimits "        << xlimits.min << " " << xlimits.max << "\n"
+        << "zorder "         << zorder << std::endl;
     return ss.str();
 }
 

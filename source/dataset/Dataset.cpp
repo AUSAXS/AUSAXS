@@ -261,6 +261,10 @@ std::vector<unsigned int> Dataset::find_minima(double min_spacing, double min_pr
     return math::find_minima(x(), y(), min_spacing, min_prominence);
 }
 
+std::vector<unsigned int> Dataset::find_maxima(double min_spacing, double prominence) const {
+    return math::find_minima(x(), -y(), min_spacing, prominence);
+}
+
 unsigned int Dataset::size() const noexcept {
     return size_rows();
 }
