@@ -5,10 +5,13 @@
 
 #include <algorithm>
 
-#define DEBUG_PLOT true
-#define DEBUG_OUTPUT true
+/*
+    Alternative idea:
+        Connect all local maxima with a line. This is essentially what we're doing now anyway, except we're doing it in a more complicated roundabout way.
+*/
 
-// define DEBUG_PRINT(x) to print x to the console if DEBUG_OUTPUT is true
+#define DEBUG_PLOT false
+#define DEBUG_OUTPUT false
 #define DEBUG_PRINT(x) if (DEBUG_OUTPUT) {std::cout << x << std::endl;}
 
 std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {
@@ -16,7 +19,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     if (x.size() < 3) {return {};}
 	unsigned int size = x.size();
 
-	#ifdef DEBUG_PLOT
+	#if DEBUG_PLOT
 		plots::PlotDataset plot;
 		{
 			SimpleDataset data(x, y);
@@ -192,10 +195,10 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
             // check for intersections
             {
                 auto[a, b] = bounds_eq(bounds);
-                auto fx = [&](double x) {return a*x + b;};
+                auto fx = [&] (double x) {return a*x + b;};
 
                 // check for intersection from the left
-                for (unsigned int i = index-1; bounds.min < i; --i) {
+                for (int i = index-1; bounds.min < i; --i) {
                     if (fx(x[i]) < y[i]) {
                         bounds.min = i;
                         break;
@@ -203,7 +206,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                 }
 
                 // check for intersection from the right
-                for (unsigned int i = index+1; i < bounds.max; ++i) {
+                for (int i = index+1; i < bounds.max; ++i) {
                     if (fx(x[i]) < y[i]) {
                         bounds.max = i;
                         break;
@@ -213,7 +216,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 
             DEBUG_PRINT("\tBounds: (" + std::to_string(x[bounds.min]) + ", " + std::to_string(x[bounds.max]) + ")");
             local_minima_bounds.push_back(std::move(bounds));
-			#ifdef DEBUG_PLOT
+			#if DEBUG_PLOT
                 for (unsigned int i = 0; i < local_minima.size(); i++) {
                     Limit& bound = local_minima_bounds[i];
                     unsigned int index = local_minima[i];
@@ -277,7 +280,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
         }
     }
 
-    #ifdef DEBUG_OUTPUT
+    #if DEBUG_OUTPUT
         std::cout << "\nAfter merging bounds " << local_minima.size() << " local minima are left." << std::endl;
         for (auto bound : local_minima_bounds) {
             std::cout << "\tBounds: (" << x[bound.min] << ", " << x[bound.max] << ")" << std::endl;
@@ -330,7 +333,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                     // recalculate prominence
                     double new_prominence = calc_prominence(new_bounds, x[new_minima], y[new_minima]);
 
-                    #ifdef DEBUG_OUTPUT
+                    #if DEBUG_OUTPUT
                         std::cout << "\t\tNew bounds: (" << new_bounds.min << ", " << new_bounds.max << ")" << std::endl;
                         std::cout << "\t\tNew prominence is " << new_prominence << std::endl;
                         std::cout << "\t\tOld prominence is " << prominences[i-1] << std::endl;
@@ -375,7 +378,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                     // recalculate prominence
                     double new_prominence = calc_prominence(new_bounds, x[new_minima], y[new_minima]);
                     
-                    #ifdef DEBUG_OUTPUT
+                    #if DEBUG_OUTPUT
                         std::cout << "\t\tNew bounds: (" << x[new_bounds.min] << ", " << x[new_bounds.max] << ")" << std::endl;
                         std::cout << "\t\tNew prominence is " << new_prominence << std::endl;
                         std::cout << "\t\tOld prominence is " << prominences[i+1] << std::endl;
@@ -405,13 +408,13 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
         local_minima_bounds = std::move(filtered_bounds);
     }
 
-    #ifdef DEBUG_OUTPUT
+    #if DEBUG_OUTPUT
         std::cout << "\nAfter filtering prominences " << local_minima.size() << " local minima are left." << std::endl;
         for (int i : local_minima) {
             std::cout << "\t(" << x[i] << ", " << y[i] << ")" << std::endl;
         }
     #endif
-    #ifdef DEBUG_PLOT
+    #if DEBUG_PLOT
         for (unsigned int i = 0; i < local_minima.size(); i++) {
             Limit& bound = local_minima_bounds[i];
             unsigned int index = local_minima[i];

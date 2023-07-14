@@ -10,6 +10,7 @@ namespace plots {
 	template<typename C>
 	concept DatasetType = std::is_base_of_v<Dataset, C> || std::is_base_of_v<Multiset, C>;
 
+	class PlotOptions;
 	class PlotDataset : public Plot {
 		public:
 			/**
@@ -38,6 +39,16 @@ namespace plots {
 			 */
 			template<DatasetType T> 
 			PlotDataset& plot(const T& data);
+
+			/**
+			 * @brief Plot a vertical line at the specified x coordinate.
+			 */
+			PlotDataset& vline(double x, const PlotOptions& options);
+
+			/**
+			 * @brief Plot a horizontal line at the specified y coordinate.
+			 */
+			PlotDataset& hline(double y, const PlotOptions& options);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

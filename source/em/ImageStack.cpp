@@ -78,17 +78,17 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     chi2_landscape.sort_x();
-    auto min = chi2_landscape.find_minimum();
+    auto min_abs = chi2_landscape.find_minimum();
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    chi2_landscape.limit_y(0, min.y*5);  // focus on the area near the minimum
-    if (chi2_landscape.size_rows() < 10) {    // if we have too few points after imposing the limit, we must sample some more
-        Limit bounds;                    // first we determine the bounds of the area we want to sample
-        if (chi2_landscape.size_rows() < 3) { // if we only have one or two points, sample the area between the neighbouring points
+    chi2_landscape.limit_y(0, min_abs.y*5);     // focus on the area near the absolute minimum
+    if (chi2_landscape.size_rows() < 10) {      // if we have too few points after imposing the limit, we must sample some more
+        Limit bounds;                           // first we determine the bounds of the area we want to sample
+        if (chi2_landscape.size_rows() < 3) {   // if we only have one or two points, sample the area between the neighbouring points
             double s = (param.bounds->max - param.bounds->min)/settings::fit::max_iterations;
-            bounds = {min.x - s, min.x + s};
+            bounds = {min_abs.x - s, min_abs.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
             bounds = chi2_landscape.span_x();
@@ -103,8 +103,8 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             chi2_landscape = l.as_dataset();
         }
         chi2_landscape.sort_x();
-        min = chi2_landscape.find_minimum();
-        chi2_landscape.limit_y(0, min.y*5);
+        min_abs = chi2_landscape.find_minimum();
+        chi2_landscape.limit_y(0, min_abs.y*5);
 
         if (chi2_landscape.size_rows() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
@@ -116,18 +116,38 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     SimpleDataset avg = chi2_landscape.rolling_average(7);  // impose a moving average filter 
     avg = avg.interpolate(5);                               // interpolate more points
-
-    min = avg.find_minimum();
     double spacing = avg.x(1)-avg.x(0); 
-    param.guess = min.x;
-    param.bounds = Limit(min.x-3*spacing, min.x+3*spacing); // uncertainty is 3*spacing between points
+    auto minima = avg.find_minima(3, 0.1);
+    min_abs = avg.find_minimum();
+
+    // remove minima that are too far away from the absolute minimum
+    {
+        std::vector<unsigned int> to_keep;
+        for (auto m : minima) {
+            if (avg.y(m) < min_abs.y*2) {to_keep.push_back(m);}
+        }
+        minima = std::move(to_keep);
+    }
+    
+    // update our parameter since we interpolated more points
+    param.guess = min_abs.x;
+    param.bounds = Limit(min_abs.x-3*spacing, min_abs.x+3*spacing); // uncertainty is 3*spacing between points
+
+    // save .pdb structures of the other minima
+    if (settings::em::save_pdb && 1 < minima.size()) {
+        unsigned int enumerate = 0;
+        for (auto m : minima) {
+            if (avg.x(m) == min_abs.x) {continue;}
+            get_protein_manager()->get_protein(avg.x(m))->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
+        }
+    }
 
     if (settings::general::supplementary_plots) {
         // plot evaluated points around the minimum
         { 
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_landscape;
-            p_min.push_back(min.x, min.y);
+            for (auto m : minima) {p_min.push_back(avg.x(m), avg.y(m));}
             p_min.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
             // prepare rest of the plot
@@ -154,9 +174,22 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 }
                 mass_cutoff.sort_x();
                 mass_cutoff = mass_cutoff.interpolate(l.x());
+
+                // interpolate the minimum values
+                std::vector<double> minima_mass;
+                for (auto m : minima) {minima_mass.push_back(mass_cutoff.interpolate_y(avg.x(m)));}
+
+                // create chi2 / mass dataset
                 l.x() = mass_cutoff.y();
                 l.add_plot_options(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}});
-                plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);
+
+                // make the plot
+                plots::PlotDataset plot;
+                plot.plot(l);
+                for (auto m : minima_mass) {
+                    plot.vline(m, plots::PlotOptions(style::draw::line, {{"ls", style::line::dashed}, {"color", style::color::red}}));
+                }
+                plot.save(settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);
             }
         }
     }
@@ -196,7 +229,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
             // plot the starting point in blue
             SimpleDataset p_start;
-            p_start.push_back(min.x, min.y);
+            p_start.push_back(min_abs.x, min_abs.y);
             p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
             // do the actual plotting
@@ -234,13 +267,13 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
-    min = evals.as_dataset().find_minimum();
-    f({min.x});
+    min_abs = evals.as_dataset().find_minimum();
+    f({min_abs.x});
 
     std::shared_ptr<fitter::EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
-    emfit->level = to_level(min.x);
+    emfit->level = to_level(min_abs.x);
     if (settings::em::save_pdb) {get_protein_manager()->get_protein()->save(settings::general::output + "model.pdb");}
     return emfit;
 }

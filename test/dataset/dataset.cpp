@@ -373,56 +373,57 @@ TEST_CASE("Dataset::sort_x") {
 
 std::string generate_SASDJG5_dataset();
 TEST_CASE("Dataset::find_minima") {
-    // SECTION("empty") {
-    //     Dataset data;
-    //     std::vector<unsigned int> minima = data.find_minima();
-    //     REQUIRE(minima.empty());
-    // }
+    SECTION("empty") {
+        Dataset data;
+        std::vector<unsigned int> minima = data.find_minima();
+        REQUIRE(minima.empty());
+    }
 
-    // SECTION("simple") {
-    //     SECTION("single") {
-    //         std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
-    //         std::vector<double> y = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10};
-    //         Dataset data({x, y});
-    //         std::vector<unsigned int> minima = data.find_minima();
-    //         REQUIRE(minima == std::vector<unsigned int>{9});
-    //     }
+    SECTION("simple") {
+        SECTION("single") {
+            std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+            std::vector<double> y = {10, 9, 8, 7, 6, 5, 4, 3, 2, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10};
+            Dataset data({x, y});
+            std::vector<unsigned int> minima = data.find_minima();
+            REQUIRE(minima == std::vector<unsigned int>{9});
+        }
 
-        // SECTION("multiple") {
-        //     std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
-        //     std::vector<double> y = {10, 9, 8, 7, 6, 7, 8, 9, 8, 7,  6,  5,  4,  5,  6,  7,  8,  9,  10};
-        //     Dataset data({x, y});
-        //     std::vector<unsigned int> minima = data.find_minima();
-        //     REQUIRE(minima == std::vector<unsigned int>{4, 12});
-        // }
+        SECTION("multiple") {
+            std::vector<double> x = {1,  2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+            std::vector<double> y = {10, 9, 8, 7, 6, 7, 8, 9, 8, 7,  6,  5,  4,  5,  6,  7,  8,  9,  10};
+            Dataset data({x, y});
+            std::vector<unsigned int> minima = data.find_minima();
+            REQUIRE(minima == std::vector<unsigned int>{4, 12});
+        }
 
-    //     SECTION("at endpoints") {
-    //         std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    //         std::vector<double> y = {1, 2, 3, 4, 5, 4, 3, 2, 1};
-    //         Dataset data({x, y});
-    //         std::vector<unsigned int> minima = data.find_minima();
-    //         REQUIRE(minima == std::vector<unsigned int>{0, 8});
-    //     }
-    // }
+        SECTION("at endpoints") {
+            std::vector<double> x = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+            std::vector<double> y = {1, 2, 3, 4, 5, 4, 3, 2, 1};
+            Dataset data({x, y});
+            std::vector<unsigned int> minima = data.find_minima();
+            REQUIRE(minima == std::vector<unsigned int>{0, 8});
+        }
+    }
 
-    // SECTION("sinusoidal noise") {
-    //     for (unsigned int i = 0; i < 10; i++) {
-    //         std::vector<double> x;
-    //         std::vector<double> y;
-    //         for (double xx = -10, dx = 0.1; xx <= 10; xx += dx) {
-    //             x.push_back(xx);
-    //             y.push_back(0.5*xx*xx + 2*std::sin(2*xx)*std::rand()/RAND_MAX);
-    //         }
-    //         Dataset data({x, y});
-    //         data = data.rolling_average(7);
-    //         std::vector<unsigned int> minima = data.find_minima(1, 0.05);
-    //         REQUIRE(minima.size() < 5);
-    //         for (unsigned int i = 0; i < minima.size()-1; i++) {
-    //             CHECK(-2 < x[minima[i]]);
-    //             CHECK(x[minima[i]] < 2);
-    //         }
-    //     }
-    // }
+    SECTION("sinusoidal noise") {
+        for (unsigned int i = 0; i < 10; i++) {
+            std::vector<double> x;
+            std::vector<double> y;
+            for (double xx = -10, dx = 0.1; xx <= 10; xx += dx) {
+                x.push_back(xx);
+                y.push_back(0.5*xx*xx + 2*std::sin(2*xx)*std::rand()/RAND_MAX);
+            }
+            Dataset data({x, y});
+
+            data = data.rolling_average(7);
+            std::vector<unsigned int> minima = data.find_minima(1, 0.05);
+            REQUIRE(minima.size() < 5);
+            for (unsigned int i = 0; i < minima.size()-1; i++) {
+                CHECK(-2 < x[minima[i]]);
+                CHECK(x[minima[i]] < 2);
+            }
+        }
+    }
 
     SECTION("actual data") {
         auto file = generate_SASDJG5_dataset();
@@ -458,13 +459,36 @@ TEST_CASE("Dataset::find_minima") {
         REQUIRE(minima.size() == 2);
         CHECK(minima[0] == 4);
         CHECK(minima[1] == 41);
+    }
+}
 
-    //     SECTION("find_maxima") {
-    //         auto maxima = data.find_maxima();
-    //         REQUIRE(2 <= maxima.size());
-    //         CHECK(maxima[0] == 9);
-    //         CHECK(maxima[1] == 19);
-    //     }
+TEST_CASE("Dataset::find_maxima") {
+    SECTION("actual data") {
+        auto file = generate_SASDJG5_dataset();
+        Dataset data(file);
+        data = data.rolling_average(5);
+
+        // find all maxima
+        auto minima = data.find_maxima();
+        REQUIRE(minima.size() == 5);
+        CHECK(minima[0] == 0);
+        CHECK(minima[1] == 27);
+        CHECK(minima[2] == 45);
+        CHECK(minima[3] == 62);
+        CHECK(minima[4] == 80);
+
+        // remove one by increasing the prominence
+        minima = data.find_maxima(1, 0.05);
+        REQUIRE(minima.size() == 3);
+        CHECK(minima[0] == 27);
+        CHECK(minima[1] == 62);
+        CHECK(minima[2] == 80);
+
+        // remove all but 2 by using a large prominence
+        minima = data.find_maxima(1, 0.8);
+        REQUIRE(minima.size() == 2);
+        CHECK(minima[0] == 27);
+        CHECK(minima[1] == 80);
     }
 }
 

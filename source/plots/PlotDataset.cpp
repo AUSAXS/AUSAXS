@@ -1,4 +1,5 @@
 #include <plots/PlotDataset.h>
+#include <plots/PlotOptions.h>
 #include <dataset/Dataset.h>
 #include <dataset/Multiset.h>
 
@@ -18,6 +19,22 @@ PlotDataset::PlotDataset(const Multiset& data) {
 }
 
 PlotDataset::~PlotDataset() = default;
+
+PlotDataset& PlotDataset::vline(double x, const PlotOptions& options) {
+    ss << "PlotVline\n" 
+        << "  " << x << "\n"
+        << options.to_string() 
+        << std::endl;
+    return *this;
+}
+
+PlotDataset& PlotDataset::hline(double y, const PlotOptions& options) {
+    ss << "PlotHline\n" 
+        << "  " << y << "\n"
+        << options.to_string() 
+        << std::endl;
+    return *this;
+}
 
 template<plots::DatasetType T>
 PlotDataset& PlotDataset::plot(const T& data) {
