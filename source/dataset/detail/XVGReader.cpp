@@ -1,34 +1,35 @@
-#include <dataset/detail/DATConstructor.h>
+#include <dataset/detail/XVGReader.h>
 #include <dataset/Dataset.h>
 #include <dataset/SimpleDataset.h>
 #include <dataset/Dataset2D.h>
-#include <utility/StringUtils.h>
 #include <utility/Console.h>
+#include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 #include <math/Statistics.h>
-#include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
+#include <settings/HistogramSettings.h>
 
 #include <vector>
 #include <string>
 #include <fstream>
 
-std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFile& path, unsigned int expected_cols) {
+std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& path, unsigned int expected_cols) {
     if (settings::general::verbose) {
-        console::print_info("\nReading dataset from \"" + path + "\"");
+        console::print_info("Loading dataset from \"" + path + "\"");
     }
 
     // check if file was succesfully opened
     std::ifstream input(path);
-    if (!input.is_open()) {throw std::ios_base::failure("DATConstructor::construct: Could not open file \"" + path + "\"");}
+    if (!input.is_open()) {throw std::ios_base::failure("Dataset::load: Could not open file \"" + path + "\"");}
 
     std::string line;
     std::vector<std::string> header;
     std::vector<std::vector<double>> row_data;
     std::vector<unsigned int> col_number;
     while(getline(input, line)) {
-        // skip empty lines
-        if (line.empty()) {continue;}
+        if (line.empty()) {continue;}                           // skip empty lines
+        if (line[0] == '#') {continue;}                         // skip comments
+        if (line[0] == '@') {header.push_back(line); continue;} // save header lines
 
         // remove leading whitespace
         std::vector<std::string> tokens = utility::split(line, " ,\t\n\r"); // spaces, commas, and tabs can be used as separators
@@ -48,10 +49,7 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFil
                 skip = true;
             }
         }
-        if (skip) {
-            header.push_back(line);
-            continue;
-        }
+        if (skip) {continue;}
 
         // add values to dataset
         std::vector<double> vals(tokens.size());
@@ -62,31 +60,29 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFil
         col_number.push_back(vals.size());
     }
 
-    // determine the most common number of columns, since that will likely be the data
     unsigned int mode = stats::mode(col_number);
-    if (settings::general::verbose) {
-        switch (mode) {
-            case 2: 
-                std::cout << "\t2 columns detected. Assuming the format is [x | y]" << std::endl;
-                break;
-            case 3:
-                std::cout << "\t3 columns detected. Assuming the format is [x | y | yerr]" << std::endl;
-                break;
-            case 4:
-                std::cout << "\t4 columns detected. Assuming the format is [x | y | yerr | xerr]" << std::endl;
-                break;
-            default:
-                throw except::io_error("DATConstructor::construct: File has an unsupported number of columns (" + std::to_string(mode) + ").");
+
+    // sanity check: comparing the detected number of columns with the header
+    if (!header.empty() && header.back().find("type") != std::string::npos) {
+        std::string type = header.back().substr(6);
+        if (mode == 2 && type != "xy") {
+            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y].");
+        }
+        if (mode == 3 && type != "xydy") {
+            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy].");
+        }
+        if (mode == 4 && type != "xydxdy") {
+            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy | dx].");
         }
     }
 
     // check that we have at least the expected number of columns
     if (expected_cols != 0 && mode < expected_cols) {
-        throw except::io_error("DATConstructor::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
+        throw except::io_error("XVGReader::construct: File has too few columns. Expected" + std::to_string(expected_cols) + " but found " + std::to_string(mode) + ".");
     }
 
     // copy the data to the dataset
-    std::shared_ptr<Dataset> dataset;
+    std::unique_ptr<Dataset> dataset;
     unsigned int count = 0;
     {
         // first copy all rows with the most common number of columns to a temporary vector
@@ -107,12 +103,12 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFil
                 }
                 data_cols[i] = std::move(row);
             }
-            mode = expected_cols; // update mode to the number of columns we actually have
+            mode = expected_cols;
         }
 
         // add the data to the dataset
         // dataset = std::make_shared<Dataset>(std::move(data_cols));
-        dataset = std::make_shared<Dataset>(0, mode);
+        dataset = std::make_unique<Dataset>(0, mode);
         for (unsigned int i = 0; i < data_cols.size(); i++) {
             dataset->push_back(data_cols[i]);
         }
@@ -123,36 +119,22 @@ std::shared_ptr<Dataset> detail::DATConstructor::construct(const io::ExistingFil
         std::cout << "\tSkipped " << count - dataset->size_rows() << " data points from beginning of file." << std::endl;
     }
 
+    // verify that at least one row was read correctly
+    if (dataset->empty()) {
+        throw except::io_error("XVGReader::construct: No data could be read from the file.");
+    }
+
+    // unit conversion
+    if (settings::general::verbose) {std::cout << "\tAssuming q is given in units of [nm]." << std::endl;}
+    for (unsigned int i = 0; i < dataset->size_rows(); i++) {
+        dataset->index(i, 0) /= 10;
+    }
+    
     // remove all rows outside the specified q-range
     unsigned int N = dataset->size_rows();
     dataset->limit_x(settings::axes::qmin, settings::axes::qmax);
     if (N != dataset->size_rows() && settings::general::verbose) {
         std::cout << "\tRemoved " << N - dataset->size_rows() << " data points outside specified q-range [" << settings::axes::qmin << ", " << settings::axes::qmax << "]." << std::endl;
-    }
-
-    // verify that at least one row was read correctly
-    if (dataset->empty()) {
-        throw except::io_error("DATConstructor::construct: No data could be read from the file.");
-    }
-
-    // scan the headers for units. must be either [Å] or [nm]
-    bool found_unit = false;
-    for (auto& s : header) {
-        if (s.find("[nm]") != std::string::npos) {
-            if (settings::general::verbose) {std::cout << "\tUnit [nm] detected. Scaling all q values by 1/10." << std::endl;}
-            for (unsigned int i = 0; i < dataset->size_rows(); i++) {
-                dataset->index(i, 0) /= 10;
-            }
-            found_unit = true;
-            break;
-        } else if ((s.find("[Å]") != std::string::npos) || (s.find("[AA]") != std::string::npos)) {
-            if (settings::general::verbose) {std::cout << "\tUnit [Å] detected. No scaling necessary." << std::endl;}
-            found_unit = true;
-            break;
-        }
-    }
-    if (!found_unit) {
-        if (settings::general::verbose) {std::cout << "\tNo unit detected. Assuming [Å]." << std::endl;}
     }
 
     // check if the file is abnormally large

@@ -1,17 +1,17 @@
 #include <dataset/DatasetFactory.h>
 
-#include <dataset/detail/DatasetConstructor.h>
-#include <dataset/detail/DATConstructor.h>
-#include <dataset/detail/XVGConstructor.h>
+#include <dataset/detail/DatasetReader.h>
+#include <dataset/detail/DATReader.h>
+#include <dataset/detail/XVGReader.h>
 #include <utility/Constants.h>
 
-std::shared_ptr<Dataset> factory::DatasetFactory::construct(const io::ExistingFile& file, unsigned int expected_cols) {
-    std::unique_ptr<detail::DatasetConstructor> constructor;
+std::unique_ptr<Dataset> factory::DatasetFactory::construct(const io::ExistingFile& file, unsigned int expected_cols) {
+    std::unique_ptr<detail::DatasetReader> constructor;
     auto ext = utility::to_lowercase(file.extension());
-    if (ext == ".dat" || ext == ".txt" || ext == ".rsr") {
-        constructor = std::make_unique<detail::DATConstructor>();
-    } else if (ext == ".xvg") {
-        constructor = std::make_unique<detail::XVGConstructor>();
+    if (detail::DATReader::extensions.contains(ext)) {
+        constructor = std::make_unique<detail::DATReader>();
+    } else if (detail::XVGReader::extensions.contains(ext)) {
+        constructor = std::make_unique<detail::XVGReader>();
     } else {
         throw except::invalid_operation("factory::create: Unknown file extension \"" + ext + "\".");
     }

@@ -19,6 +19,8 @@
 #include <utility/Utility.h>
 #include <utility/Constants.h>
 
+#include <fstream>
+
 using namespace em;
 using namespace fitter;
 
@@ -136,10 +138,14 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     // save .pdb structures of the other minima
     if (settings::em::save_pdb && 1 < minima.size()) {
         unsigned int enumerate = 0;
+        std::string info;
         for (auto m : minima) {
             if (avg.x(m) == min_abs.x) {continue;}
             get_protein_manager()->get_protein(avg.x(m))->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
+            info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(avg.x(m))) + " " + std::to_string(avg.y(m)) + "\n";
         }
+        std::ofstream out(settings::general::output + "models/info.txt");
+        out << info;
     }
 
     if (settings::general::supplementary_plots) {

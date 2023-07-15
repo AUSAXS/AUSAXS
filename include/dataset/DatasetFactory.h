@@ -23,6 +23,6 @@ namespace factory {
          * @param file The path to the file.
          * @param expected_cols The expected number of columns. Any additional columns will be ignored. If 0, all columns will be read.
          */
-        static std::shared_ptr<Dataset> construct(const io::ExistingFile& file, unsigned int expected_cols = 0);
+        static std::unique_ptr<Dataset> construct(const io::ExistingFile& file, unsigned int expected_cols = 0);
     };
 }
