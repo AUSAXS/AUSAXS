@@ -31,20 +31,20 @@ namespace em::managers {
             /**
              * @brief Get the Protein backing this object. 
              */
-            std::shared_ptr<Protein> get_protein() const override;
+            Protein* get_protein() const override;
 
             /**
              * @brief Get the Protein generated from a given cutoff.
              */
-            std::shared_ptr<Protein> get_protein(double cutoff) override;
+            Protein* get_protein(double cutoff) override;
 
             /**
              * @brief Set the charge levels.
              */
-            virtual void set_charge_levels(std::vector<double> levels) noexcept;
+            virtual void set_charge_levels(const std::vector<double>& levels) noexcept;
 
         protected:
-            std::shared_ptr<Protein> protein;
+            std::unique_ptr<Protein> protein;
 
             /**
              * @brief Generate the atmos for a given cutoff.

@@ -1,10 +1,12 @@
 #pragma once
 
+#include <utility/Type.h>
+#include <utility/UtilityFwd.h>
+
 #include <vector>
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <utility/Type.h>
 
 namespace settings {
     namespace io {
@@ -19,16 +21,12 @@ namespace settings {
                 /**
                  * @brief Set the setting value.
                  */
-                virtual void set(const std::vector<std::string>&) {
-                    throw std::runtime_error("settings::io::detail::ISettingRef::set: This should never happen.");
-                }
+                virtual void set(const std::vector<std::string>&) = 0;
 
                 /**
                  * @brief Get the setting value as a string.
                  */
-                virtual std::string get() const {
-                    throw std::runtime_error("settings::io::detail::ISettingRef::get: This should never happen.");
-                }
+                virtual std::string get() const = 0;
 
                 std::vector<std::string> names; // The name of the setting.
                 inline static std::unordered_map<std::string, std::shared_ptr<ISettingRef>> stored_settings;
@@ -61,3 +59,24 @@ namespace settings {
         }
     }
 }
+
+
+template<> std::string settings::io::detail::SettingRef<std::string>::get() const;
+template<> std::string settings::io::detail::SettingRef<double>::get() const;
+template<> std::string settings::io::detail::SettingRef<int>::get() const;
+template<> std::string settings::io::detail::SettingRef<unsigned int>::get() const;
+template<> std::string settings::io::detail::SettingRef<bool>::get() const;
+template<> std::string settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
+template<> std::string settings::io::detail::SettingRef<std::vector<double>>::get() const;
+template<> std::string settings::io::detail::SettingRef<std::vector<int>>::get() const;
+template<> std::string settings::io::detail::SettingRef<Limit>::get() const;
+
+template<> void settings::io::detail::SettingRef<std::string>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<int>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str);
+template<> void settings::io::detail::SettingRef<Limit>::set(const std::vector<std::string>& str);

@@ -7,7 +7,7 @@
 #include <data/Body.h>
 
 void em::managers::SimpleProteinManager::update_protein(double cutoff) {
-    protein = std::make_shared<Protein>(generate_atoms(cutoff));
+    protein = std::make_unique<Protein>(generate_atoms(cutoff));
     // throw except::disabled("em::managers::SimpleProteinManager::update_protein: This function is disabled and will be removed.");
     // protein->set_histogram_manager<hist::HistogramManagerMT>();
 }

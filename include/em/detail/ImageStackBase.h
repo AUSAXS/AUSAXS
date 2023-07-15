@@ -72,7 +72,7 @@ namespace em {
             /**
              * @brief Get the protein generated with the chosen cutoff value.
              */
-            std::shared_ptr<Protein> get_protein(double cutoff) const;
+            Protein* get_protein(double cutoff) const;
 
             /**
              * @brief Get the header of the input file. 

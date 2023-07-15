@@ -25,21 +25,3 @@ namespace settings {
         }
     }
 }
-
-// template<> std::string settings::io::detail::SettingRef<std::string>::get() const;
-// template<> std::string settings::io::detail::SettingRef<double>::get() const;
-// template<> std::string settings::io::detail::SettingRef<int>::get() const;
-// template<> std::string settings::io::detail::SettingRef<unsigned int>::get() const;
-// template<> std::string settings::io::detail::SettingRef<bool>::get() const;
-// template<> std::string settings::io::detail::SettingRef<std::vector<std::string>>::get() const;
-// template<> std::string settings::io::detail::SettingRef<std::vector<double>>::get() const;
-// template<> std::string settings::io::detail::SettingRef<std::vector<int>>::get() const;
-
-// template<> void settings::io::detail::SettingRef<std::string>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<bool>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<double>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<int>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<unsigned int>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<std::vector<std::string>>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<std::vector<double>>::set(const std::vector<std::string>& str);
-// template<> void settings::io::detail::SettingRef<std::vector<int>>::set(const std::vector<std::string>& str);

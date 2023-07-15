@@ -146,13 +146,21 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         // plot evaluated points around the minimum
         { 
             // plot the minimum in blue
-            SimpleDataset p_min, chi2_copy = chi2_landscape;
-            for (auto m : minima) {p_min.push_back(avg.x(m), avg.y(m));}
+            SimpleDataset p_min, chi2_copy = chi2_landscape, avg_copy = avg;
+            for (auto m : minima) {p_min.push_back(to_level(avg.x(m)), avg.y(m));}
             p_min.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
+            // convert cutoff to std levels
+            for (unsigned int i = 0; i < chi2_copy.size(); ++i) {
+                chi2_copy.x(i) = to_level(chi2_copy.x(i));
+            }
+            for (unsigned int i = 0; i < avg_copy.size(); ++i) {
+                avg_copy.x(i) = to_level(avg_copy.x(i));
+            }
+
             // prepare rest of the plot
-            avg.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset plot(avg);
+            avg_copy.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}});
+            plots::PlotDataset plot(avg_copy);
             chi2_copy.add_plot_options(style::draw::points);
             plot.plot(chi2_copy);
             plot.plot(p_min);
@@ -163,8 +171,14 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         { 
             auto l = evals.as_dataset();
             l.sort_x();            
-            l.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset::quick_plot(l, settings::general::output + "chi2_evaluated_points_full." + settings::plots::format);
+            l.add_plot_options(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}});
+            {
+                auto l_copy = l;
+                for (unsigned int i = 0; i < l_copy.size(); ++i) {
+                    l_copy.x(i) = to_level(l_copy.x(i));
+                }
+                plots::PlotDataset::quick_plot(l_copy, settings::general::output + "chi2_evaluated_points_full." + settings::plots::format);
+            }
 
             // plot with mass axis
             if (settings::em::mass_axis) {
@@ -319,8 +333,12 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
             evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         } else {
+            auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
+                *constants::mass::density::protein                                                          
+                /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
+            evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         }
 
         double val = fit->fval;

@@ -49,7 +49,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
 ImageStackBase::~ImageStackBase() = default;
 
 void ImageStackBase::save(double cutoff, std::string path) const {
-    std::shared_ptr<Protein> protein = phm->get_protein(cutoff);
+    auto protein = phm->get_protein(cutoff);
     protein->save(path);
 }
 
@@ -69,7 +69,7 @@ hist::ScatteringHistogram ImageStackBase::get_histogram(const std::shared_ptr<fi
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
-std::shared_ptr<Protein> ImageStackBase::get_protein(double cutoff) const {
+Protein* ImageStackBase::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 

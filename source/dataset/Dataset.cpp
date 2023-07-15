@@ -191,7 +191,7 @@ Dataset Dataset::rolling_average(unsigned int window_size) const {
 }
 
 Dataset Dataset::interpolate(unsigned int n) const {
-    CubicSpline spline(x(), y());
+    math::CubicSpline spline(x(), y());
     Matrix interpolated(size()*(n+1)-n-1, 2);
     for (unsigned int i = 0; i < size()-1; i++) {
         double x = this->x(i);
@@ -210,7 +210,7 @@ Dataset Dataset::interpolate(unsigned int n) const {
 }
 
 Dataset Dataset::interpolate(const std::vector<double>& newx) const {
-    CubicSpline spline(x(), y());
+    math::CubicSpline spline(x(), y());
     Matrix interpolated(newx.size(), 2);
     for (unsigned int i = 0; i < newx.size(); i++) {
         double x = newx[i];
@@ -221,7 +221,7 @@ Dataset Dataset::interpolate(const std::vector<double>& newx) const {
 }
 
 double Dataset::interpolate_y(double x) const {
-    CubicSpline spline(this->x(), y());
+    math::CubicSpline spline(this->x(), y());
     return spline.spline(x);
 }
 

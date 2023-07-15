@@ -28,7 +28,7 @@ void PDBWriter::write(const io::File& path) {
     }
     else {
         for (unsigned int i = 0; i < content.size(); i++) {
-            auto nfile = path.append("_" + std::to_string(i+1));
+            auto nfile = path.append("_part" + std::to_string(i+1));
             if (settings::general::verbose) {std::cout << "Output written to file " + nfile << std::endl;}
             std::ofstream output(nfile);
             if (!output.is_open()) {throw std::ios_base::failure("PDBWriter::write: Could not open file \"" + path + "\"");}

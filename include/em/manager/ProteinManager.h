@@ -27,12 +27,12 @@ namespace em {
                 /**
                  * @brief Get the Protein backing this object. 
                  */
-                virtual std::shared_ptr<Protein> get_protein() const = 0;
+                virtual Protein* get_protein() const = 0;
 
                 /**
                  * @brief Get the Protein generated from a given cutoff.
                  */
-                virtual std::shared_ptr<Protein> get_protein(double cutoff) = 0;
+                virtual Protein* get_protein(double cutoff) = 0;
 
                 /**
                  * @brief Get the histogram for a given cutoff.

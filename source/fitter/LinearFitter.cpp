@@ -139,7 +139,7 @@ void LinearFitter::setup(const io::ExistingFile& file) {
 
 std::vector<double> LinearFitter::splice(const std::vector<double>& ym) const {
     std::vector<double> Im(data.size()); // spliced model values
-    CubicSpline s(h.q, ym);
+    math::CubicSpline s(h.q, ym);
     for (size_t i = 0; i < data.size(); ++i) {
         Im[i] = s.spline(data.x(i));
     }

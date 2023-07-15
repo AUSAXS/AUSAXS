@@ -167,19 +167,19 @@ void SmartProteinManager::update_protein(double cutoff) {
     previous_cutoff = cutoff;
 }
 
-std::shared_ptr<Protein> SmartProteinManager::get_protein() const {
+Protein* SmartProteinManager::get_protein() const {
     #ifdef DEBUG
         if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
     #endif
-    return protein;
+    return protein.get();
 }
 
-std::shared_ptr<Protein> SmartProteinManager::get_protein(double cutoff) {
+Protein* SmartProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
-    return protein;
+    return protein.get();
 }
 
-void SmartProteinManager::set_charge_levels(std::vector<double> levels) noexcept {
+void SmartProteinManager::set_charge_levels(const std::vector<double>& levels) noexcept {
     ProteinManager::set_charge_levels(levels);
     protein = nullptr; // the protein must be generated anew to ensure the bodies remains in sync with the new levels
 }

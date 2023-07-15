@@ -156,7 +156,7 @@ double HydrationFitter::get_intercept() {
 
     h.apply_water_scaling_factor(c);
     std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    CubicSpline s(h.q, ym);
+    math::CubicSpline s(h.q, ym);
     return a*s.spline(0) + b;
 }
 

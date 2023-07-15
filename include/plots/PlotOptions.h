@@ -87,7 +87,7 @@ namespace plots {
             bool logy = false;                      // Log scale for the y-axis. Only valid if use_existing_axes is false. 
             Limit ylimits;                          // Limits on the y-axis
             Limit xlimits;                          // Limits on the x-axis
-            int zorder;                             // Z-order for the plot. Higher zorder plots are drawn on top of lower zorder plots.
+            int zorder = 0;                         // Z-order for the plot. Higher zorder plots are drawn on top of lower zorder plots.
 
             // cosmetic
             std::string title = "";                 // Title
