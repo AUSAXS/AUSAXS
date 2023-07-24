@@ -4,7 +4,7 @@
 #include <math/CubicSpline.h>
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
-#include <mini/all.h>
+#include <mini/All.h>
 #include <plots/all.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>

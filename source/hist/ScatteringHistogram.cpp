@@ -120,3 +120,52 @@ ScatteringHistogram& ScatteringHistogram::operator=(ScatteringHistogram&& h) = d
 bool ScatteringHistogram::operator==(const ScatteringHistogram& h) const {
     return Histogram::operator==(h) && p_pp == h.p_pp && p_hh == h.p_hh && p_hp == h.p_hp;
 }
+
+ScatteringHistogram& ScatteringHistogram::operator+=(const ScatteringHistogram& rhs) {
+    Histogram::operator+=(rhs);
+    p_pp += rhs.p_pp;
+    p_hh += rhs.p_hh;
+    p_hp += rhs.p_hp;
+    return *this;
+}
+
+ScatteringHistogram& ScatteringHistogram::operator-=(const ScatteringHistogram& rhs) {
+    Histogram::operator-=(rhs);
+    p_pp -= rhs.p_pp;
+    p_hh -= rhs.p_hh;
+    p_hp -= rhs.p_hp;
+    return *this;
+}
+
+ScatteringHistogram& ScatteringHistogram::operator*=(double rhs) {
+    Histogram::operator*=(rhs);
+    p_pp *= rhs;
+    p_hh *= rhs;
+    p_hp *= rhs;
+    return *this;
+}
+
+ScatteringHistogram hist::operator+(const ScatteringHistogram& lhs, const ScatteringHistogram& rhs) {
+    ScatteringHistogram result(lhs);
+    result += rhs;
+    return result;
+}
+
+ScatteringHistogram hist::operator-(const ScatteringHistogram& lhs, const ScatteringHistogram& rhs) {
+    ScatteringHistogram result(lhs);
+    result -= rhs;
+    return result;
+}
+
+ScatteringHistogram hist::operator*(const ScatteringHistogram& lhs, double rhs) {
+    ScatteringHistogram result(lhs);
+    result *= rhs;
+    return result;
+}
+
+void ScatteringHistogram::extend_axis(double qmax) {
+    Histogram::extend_axis(qmax);
+    p_pp.extend_axis(qmax);
+    p_hh.extend_axis(qmax);
+    p_hp.extend_axis(qmax);
+}

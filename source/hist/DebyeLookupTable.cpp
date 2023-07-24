@@ -91,8 +91,8 @@ void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std:
 
 bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vector<double>& d) {
     // check q
-    Axis axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
-    double width = settings::axes::distance_bin_width;
+    static Axis axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
+    static double width = settings::axes::distance_bin_width;
 
     if (q.size() != axis.bins) {return false;}
     if (q[0] != axis.min) {return false;}

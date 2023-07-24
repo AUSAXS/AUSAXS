@@ -14,21 +14,32 @@ Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
 
 Histogram::~Histogram() = default;
 
-Histogram& Histogram::operator+=(const Histogram& rhs) {
-    p += rhs.p;
-    return *this;
+Histogram& Histogram::operator+=(const Histogram& rhs) {p += rhs.p; return *this;}
+Histogram hist::operator+(const Histogram& lhs, const Histogram& rhs) {
+    Histogram result(lhs);
+    result += rhs;
+    return result;
 }
 
-Histogram& Histogram::operator-=(const Histogram& rhs) {
-    p -= rhs.p;
-    return *this;
+Histogram& Histogram::operator-=(const Histogram& rhs) {p -= rhs.p; return *this;}
+Histogram hist::operator-(const Histogram& lhs, const Histogram& rhs) {
+    Histogram result(lhs);
+    result -= rhs;
+    return result;
 }
 
-double& Histogram::operator[](const int i) {
+Histogram& Histogram::operator*=(double rhs) {p *= rhs; return *this;}
+Histogram hist::operator*(const Histogram& lhs, double rhs) {
+    Histogram result(lhs);
+    result *= rhs;
+    return result;
+}
+
+double& Histogram::operator[](int i) {
     return p[i];
 }
 
-double Histogram::operator[](const int i) const {
+double Histogram::operator[](int i) const {
     return p[i];
 }
 
@@ -49,6 +60,13 @@ void Histogram::shorten_axis(unsigned int min_size) {
     p.resize(max_bin);
     double width = axis.width();
     axis = Axis(0, max_bin*width, int(max_bin));
+}
+
+void Histogram::extend_axis(double qmax) {
+    double width = axis.width();
+    unsigned int bins = int(qmax/width);
+    p.resize(bins);
+    axis = Axis(0, bins*width, bins);
 }
 
 void Histogram::generate_axis() {

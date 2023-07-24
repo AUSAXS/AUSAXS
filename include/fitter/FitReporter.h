@@ -24,6 +24,9 @@ namespace fitter {
             static void save(const std::shared_ptr<T> fit, const io::File& path);
 
             template<FitType T>
+            static void save(const std::shared_ptr<T> fit, const io::File& path, const std::string& header);
+
+            template<FitType T>
             static void save(const std::vector<T>& fits, const io::File& path, const std::vector<std::string>& titles = {});
 
     private:

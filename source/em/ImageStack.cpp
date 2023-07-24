@@ -9,7 +9,7 @@
 #include <plots/all.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/HydrationFitter.h>
-#include <mini/all.h>
+#include <mini/All.h>
 #include <mini/detail/Parameter.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
@@ -339,6 +339,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
             evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         } else {
+            p->clear_grid();                // clear grid from previous iteration
             auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
                 *constants::mass::density::protein                                                          
                 /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa

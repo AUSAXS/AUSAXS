@@ -14,11 +14,10 @@ int main(int argc, char const *argv[]) {
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
     settings::fit::verbose = true;
-    settings::em::alpha_levels = {0.01, 10};
-
-    CLI::App app{"Fit an EM map to a SAXS measurement."};
+    settings::em::alpha_levels = {0.05, 5};
 
     io::ExistingFile mfile, mapfile, settings;
+    CLI::App app{"Fit an EM map to a SAXS measurement."};
     app.add_option("input-map", mapfile, "Path to the EM map.")->required()->check(CLI::ExistingFile);
     app.add_option("input-exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
@@ -65,9 +64,12 @@ int main(int argc, char const *argv[]) {
 
     // Fit the measurements to the EM density map.
     auto res = map.fit(mfile);
-    std::cout << "DOF: " << res->dof << std::endl;
+
+    std::string cmd_line;
+    for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
+
     fitter::FitReporter::report(res);
-    fitter::FitReporter::save(res, settings::general::output + "report.txt");
+    fitter::FitReporter::save(res, settings::general::output + "report.txt", cmd_line);
 
     res->figures.data.save(settings::general::output + mfile.stem() + ".dat");
     res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");

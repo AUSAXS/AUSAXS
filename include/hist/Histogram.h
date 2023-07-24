@@ -14,7 +14,7 @@ namespace hist {
             /**
              * @brief Default constructor.
              */
-            Histogram() noexcept {}
+            Histogram() noexcept = default;
 
             /**
              * @brief Constructor. 
@@ -54,6 +54,11 @@ namespace hist {
             void shorten_axis(unsigned int min_size = 10);
 
             /**
+             * @brief Extend the view axis to the given maximum value. 
+             */
+            void extend_axis(double qmax);
+
+            /**
              * @brief Resize the number of bins in this histogram, keeping the width constant.
              */
             void resize(unsigned int bins);
@@ -90,11 +95,16 @@ namespace hist {
 
             Histogram& operator+=(const Histogram& rhs);
             Histogram& operator-=(const Histogram& rhs);
-            double& operator[](const int i);
-            double operator[](const int i) const;
+            Histogram& operator*=(double rhs);
+            double& operator[](int i);
+            double operator[](int i) const;
             bool operator==(const Histogram& rhs) const;
 
             Vector<double> p;   // The bin values. 
             Axis axis;          // The axis spanned by this histogram. 
     };
+
+    Histogram operator*(const Histogram& lhs, double rhs);
+    Histogram operator-(const Histogram& lhs, const Histogram& rhs);
+    Histogram operator+(const Histogram& lhs, const Histogram& rhs);
 }

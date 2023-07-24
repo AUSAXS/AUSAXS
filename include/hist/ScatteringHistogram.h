@@ -93,7 +93,16 @@ namespace hist {
 			 */
 			ScatteringHistogram& operator=(ScatteringHistogram&& h);
 
+			ScatteringHistogram& operator+=(const ScatteringHistogram& rhs);
+			ScatteringHistogram& operator-=(const ScatteringHistogram& rhs);
+			ScatteringHistogram& operator*=(double rhs);
+
 			bool operator==(const ScatteringHistogram& h) const;
+
+			/**
+			 * @brief Extend the view axis to the given maximum value.
+			 */
+			void extend_axis(double qmax);
 
             [[nodiscard]] std::string to_string() const noexcept override;
 
@@ -113,4 +122,8 @@ namespace hist {
 
 			void setup();
 	};
+
+	ScatteringHistogram operator+(const ScatteringHistogram& lhs, const ScatteringHistogram& rhs);
+	ScatteringHistogram operator-(const ScatteringHistogram& lhs, const ScatteringHistogram& rhs);
+	ScatteringHistogram operator*(const ScatteringHistogram& lhs, double rhs);
 }

@@ -78,6 +78,21 @@ coverage: tests
 gmx/%: build/bin/gmx
 	$< $*
 
+gregers_debug1: build/bin/gregers
+	$< data/SASDDD3/SASDDD3.dat data/emd_0560/emd_0560.map data/emd_25044/emd_25044.map data/emd_24889/emd_24889.map 1.87 0.26 1.24
+
+gregers_debug2: build/bin/gregers
+	$< data/SHOC2/SHOC2.dat data/emd_0560/emd_0560.map data/emd_25044/emd_25044.map data/emd_24889/emd_24889.map 1.87 0.26 1.24
+
+gregers_debug3: build/bin/gregers
+	$< data/SASDJG5/SASDJG5.dat data/emd_0560/emd_0560.map data/emd_25044/emd_25044.map data/emd_24889/emd_24889.map 1.87 0.26 1.24
+
+gregers: build/bin/gregers
+	$< data/gregers/full2-coot/full2-coot.dat data/gregers/full2-coot/full2-coot.mrc data/gregers/igefcr_major2/igefcr_major2.mrc data/gregers/igefcr_minor2/igefcr_minor2.mrc 2.51 0.84 1.34
+
+gregers_fw: build/bin/gregers
+	$< data/gregers/full2-coot/full2-coot.dat data/gregers/full2-coot/full2-coot.mrc data/gregers/igefcr_major2/igefcr_major2.mrc data/gregers/igefcr_minor2/igefcr_minor2.mrc 2.51 1.85 2.09
+
 casein/%: build/bin/casein
 	@ tomo=$$(find data/ -name "$*.rec");\
 	$< $${tomo} ${options}
