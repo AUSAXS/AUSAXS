@@ -71,7 +71,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
     mini::LimitedScan minimizer(f, param, settings::fit::max_iterations);
-    minimizer.set_limit(fitter->dof()*20);
+    minimizer.set_limit(10, true);
     SimpleDataset chi2_landscape;
     {
         auto l = minimizer.landscape(settings::fit::max_iterations);
@@ -119,7 +119,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     SimpleDataset avg = chi2_landscape.rolling_average(7);  // impose a moving average filter 
     avg = avg.interpolate(5);                               // interpolate more points
     double spacing = avg.x(1)-avg.x(0); 
-    auto minima = avg.find_minima(3, 0.1);
+    auto minima = avg.find_minima(0.1*avg.size(), 0.1);     // find all minima. they should be fairly spaced out (10% seems reasonable?)
     min_abs = avg.find_minimum();
 
     // remove minima that are too far away from the absolute minimum
@@ -141,7 +141,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         std::string info;
         for (auto m : minima) {
             if (avg.x(m) == min_abs.x) {continue;}
-            get_protein_manager()->get_protein(avg.x(m))->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
+            auto temp_protein = get_protein_manager()->get_protein(avg.x(m));
+            temp_protein->generate_new_hydration();
+            temp_protein->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
             info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(avg.x(m))) + " " + std::to_string(avg.y(m)) + "\n";
         }
         std::ofstream out(settings::general::output + "models/info.txt");

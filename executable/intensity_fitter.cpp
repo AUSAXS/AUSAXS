@@ -20,27 +20,26 @@
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
-    CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
-    std::cout << settings::rigidbody::bond_distance << std::endl;
-
     std::string s_pdb, s_mfile, s_settings, placement_strategy = "Radial";    
     bool use_existing_hydration = false, fit_excluded_volume = false;
+
+    CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", s_mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/intensity_fitter/");
-    app.add_option("--reduce,-r", settings::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.");
-    app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström (default: 1). Lower widths increase the precision.");
-    app.add_option("--bin_width,--bw", settings::axes::distance_bin_width, "Bin width for the distance histograms. Default: 1.");
-    app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.");
-    app.add_option("--radius_a,--ra", settings::grid::ra, "Radius of the protein atoms.");
-    app.add_option("--radius_h,--rh", settings::grid::rh, "Radius of the hydration atoms.");
-    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.");
-    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.");
+    app.add_option("--reduce,-r", settings::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::percent_water);
+    app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width);
+    app.add_option("--bin_width,--bw", settings::axes::distance_bin_width, "Bin width for the distance histograms.")->default_val(settings::axes::distance_bin_width);
+    app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.")->default_val(placement_strategy);
+    app.add_option("--radius_a,--ra", settings::grid::ra, "Radius of the protein atoms.")->default_val(settings::grid::ra);
+    app.add_option("--radius_h,--rh", settings::grid::rh, "Radius of the hydration atoms.")->default_val(settings::grid::rh);
+    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin);
+    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile);
-    app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered. Default: true.");
-    app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used. Default: true.");
-    app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used. Default: false.");
-    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted. Default: false.");
+    app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered.")->default_val(settings::protein::center);
+    app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::protein::use_effective_charge);
+    app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration);
+    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume);
     CLI11_PARSE(app, argc, argv);
 
     //###################//
@@ -49,15 +48,12 @@ int main(int argc, char const *argv[]) {
     io::ExistingFile pdb(s_pdb), mfile(s_mfile), settings(s_settings);
     settings::general::output += mfile.stem() + "/";
 
-    std::cout << s_mfile << std::endl;
-    std::cout << mfile << ": " << mfile.stem() << std::endl;
-
     // if a settings file was provided
     if (p_settings->count() != 0) {
         settings::read(settings);        // read it
         CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
     } else {                            // otherwise check if there is a settings file in the same directory
-        if (settings::discover(std::filesystem::path(mfile).parent_path().string())) {
+        if (settings::discover(mfile.directory())) {
             CLI11_PARSE(app, argc, argv);
         }
     }

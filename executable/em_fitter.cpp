@@ -14,7 +14,7 @@ int main(int argc, char const *argv[]) {
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
     settings::fit::verbose = true;
-    settings::em::alpha_levels = {0.05, 5};
+    settings::em::alpha_levels = {1, 10};
 
     io::ExistingFile mfile, mapfile, settings;
     CLI::App app{"Fit an EM map to a SAXS measurement."};
@@ -27,6 +27,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance.");
     app.add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
     app.add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
+    app.add_option("--max-iterations", settings::fit::max_iterations, "Maximum number of iterations to perform. This is only approximate.");
     app.add_flag("--mass-axis,!--no-mass-axis", settings::em::mass_axis, "Whether to use a mass axis in place of the threshold axis.");
     app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Whether to hydrate the protein before fitting.");
     app.add_flag("--fixed-weight,!--no-fixed-weight", settings::em::fixed_weights, "Whether to use a fixed weight for the fit.");
