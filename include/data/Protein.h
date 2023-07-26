@@ -341,8 +341,10 @@ class Protein {
 	private:
 		std::vector<Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
 		std::vector<Body> bodies;           // The constituent bodies
-		bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
-		bool centered = false;              // True if this object is centered, false otherwise. 
+
+		// the following two variables are only necessary to ensure copying cannot repeat the same work
+		bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise.
+		bool centered = false;              // True if this object has been centered, false otherwise. 
 
 		// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 		mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body

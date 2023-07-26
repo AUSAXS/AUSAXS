@@ -67,7 +67,11 @@ Protein::~Protein() = default;
 
 void Protein::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this));
-    if (settings::protein::use_effective_charge) {
+    if (!centered && settings::protein::center) {
+        center();
+    }
+
+    if (!updated_charge && settings::protein::use_effective_charge) {
         update_effective_charge();
     }
 }
@@ -209,9 +213,6 @@ void Protein::generate_new_hydration() {
     get_waters() = std::vector<Water>();
     signal_modified_hydration_layer();
 
-    // move protein to center of mass
-    center();
-
     // create the grid and hydrate it
     if (grid == nullptr) {create_grid();}
     else {grid->clear_waters();}
@@ -314,10 +315,8 @@ void Protein::update_effective_charge(double scaling) {
 }
 
 void Protein::center() {
-    if (!centered && settings::protein::center) {
-        translate(-get_cm());
-        centered = true;
-    }
+    translate(-get_cm());
+    centered = true;
 }
 
 void Protein::signal_modified_hydration_layer() const {
