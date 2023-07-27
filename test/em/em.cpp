@@ -294,13 +294,13 @@ TEST_CASE("voxelcount", "[manual]") {
     em::ImageStack image("data/emd_24889/emd_24889.map");
 
     Dataset2D data;
-    Axis range(image.from_level(0.5), image.from_level(7), 100);
+    Axis range(image.from_level(1), image.from_level(20), 1000);
     for (const double& val : range.as_vector()) {
         data.push_back({val, double(image.count_voxels(val))});
     }
 
     data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}});
-    plots::PlotDataset::quick_plot(data, "temp/em/voxel_count.png"); 
+    plots::PlotDataset::quick_plot(data, "temp/test/em/voxel_count.png"); 
 }
 
 TEST_CASE("mass_cutoff_plot", "[manual]") {

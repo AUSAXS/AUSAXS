@@ -192,6 +192,13 @@ em_fit/%: build/bin/em_fitter
 		make plot/output/em_fitter/$*; \
 	done
 
+em_bench/%: build/bin/em_bench
+	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	map=$$(head -n 1 $${folder}/maps.txt); \
+	path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
+	$< $${path} $${measurement} ${options}; \
+
 # Fit both an EM map and a PDB file to a SAXS measurement. 
 # The wildcard should be the name of a measurement file. All EM maps in the same folder will then be fitted to the measurement. 
 em/%: build/bin/em
@@ -232,14 +239,16 @@ pepsi/%:
 	@ mv temp/pepsi/pepsi.fit output/intensity_fitter/$*/pepsi.fit
 
 foxs/%:
+	@ rm -rf temp/foxs
 	@ mkdir -p temp/foxs/
 	@ cd temp/foxs; \
 	measurement=$$(find ../../data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
-	cp $${structure} temp/foxs; \
-	cp $${measurement} temp/foxs; \
+	cp $${structure} .; \
+	cp $${measurement} .; \
 	foxs $$(basename "$${structure}") $$(basename "$${measurement}")
+	@ mv temp/foxs/*.fit output/intensity_fitter/$*/foxs.fit
 
 # Perform a fit of a structure file to a measurement. 
 # All structure files in the same location as the measurement will be fitted. 

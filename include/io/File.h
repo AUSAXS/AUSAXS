@@ -27,12 +27,12 @@ namespace io {
             /**
              * @brief Replace the extension of the file.
              */
-            void replace_extension(const std::string& extension) noexcept;
+            File& replace_extension(const std::string& extension) noexcept;
 
             /**
              * @brief Append to the name of the file.
              */
-            void append(const std::string& name) noexcept;
+            File& append(const std::string& name) noexcept;
 
             /**
              * @brief Append to the name of the file.

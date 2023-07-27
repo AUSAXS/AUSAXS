@@ -67,13 +67,8 @@ Protein::~Protein() = default;
 
 void Protein::initialize() {
     set_histogram_manager(hist::factory::construct_histogram_manager(this));
-    if (!centered && settings::protein::center) {
-        center();
-    }
-
-    if (!updated_charge && settings::protein::use_effective_charge) {
-        update_effective_charge();
-    }
+    if (!centered && settings::protein::center) {center();} // Centering *must* happen before generating the grid in 'update_effective_charge'!
+    if (!updated_charge && settings::protein::use_effective_charge) {update_effective_charge();}
 }
 
 void Protein::translate(const Vector3<double>& v) {

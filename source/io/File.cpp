@@ -31,16 +31,18 @@ File::operator std::string() const {
     return dir.path() + "/" + name + ext;
 }
 
-void File::replace_extension(const std::string& extension) noexcept {
+File& File::replace_extension(const std::string& extension) noexcept {
     if (extension.front() == '.') {
         ext = extension.substr(1);
     } else {
         ext = extension;
     }
+    return *this;
 }
 
-void File::append(const std::string& name) noexcept {
+File& File::append(const std::string& name) noexcept {
     this->name += name;
+    return *this;
 }
 
 io::File File::append(const std::string& name) const noexcept {

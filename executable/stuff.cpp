@@ -1,5 +1,6 @@
 #include <CLI/CLI.hpp>
 
+#include <em/ImageStack.h>
 #include <data/Body.h>
 #include <data/Protein.h>
 #include <rigidbody/RigidBody.h>
@@ -21,30 +22,59 @@
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/ProteinSettings.h>
+#include <fitter/HydrationFitter.h>
 
 #include <cassert>
 
 int main(int argc, char const *argv[]) {
-    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
     settings::protein::use_effective_charge = false;
+    io::ExistingFile mapfile(argv[1]);
+    io::ExistingFile mfile(argv[2]);
+    em::ImageStack images(mapfile);
 
-        int distance = settings::rigidbody::bond_distance;
-        Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, "C", "C", 1);
-        Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, "C", "C", 1);
-        Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, "C", "C", 1);
-        Atom a4 = Atom(Vector3<double>(0, 0, 3*distance), 1, "C", "C", 1);
-
-        Body b1 = Body(std::vector<Atom>{a1});
-        Body b2 = Body(std::vector<Atom>{a2});
-        Body b3 = Body(std::vector<Atom>{a3});
-        Body b4 = Body(std::vector<Atom>{a4});
-        std::vector<Body> ap = {b1, b2, b3, b4};
-        rigidbody::RigidBody rigidbody(ap);
-        assert(rigidbody.get_constraint_manager()->distance_constraints.size() == 3);
-
-        rigidbody::RigidBody rigidbody2 = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
-        assert(rigidbody2.get_constraint_manager()->distance_constraints.size() == 2);
+    settings::em::alpha_levels = {14, 15};
+    settings::fit::max_iterations = 100;
+    Axis axis(settings::em::alpha_levels, settings::fit::max_iterations);
+    fitter::HydrationFitter fitter(mfile);
+    unsigned int c = 0;
+    for (auto& level : axis.as_vector()) {
+        auto protein = images.get_protein(level);
+        protein->generate_new_hydration();
+        fitter.set_scattering_hist(protein->get_histogram());
+        auto res = fitter.fit();
+        std::cout << "Step " << ++c << ": Evaluated cutoff value " << level << " with chi2 " << res->fval << std::endl;
+    }
 }
+
+// int main(int argc, char const *argv[]) {
+//     settings::protein::use_effective_charge = false;
+//     io::ExistingFile file(argv[1]);
+//     Protein protein(file);
+//     protein.clear_hydration();
+//     protein.save(file.append("_dehydrated"));
+// }
+
+// int main(int argc, char const *argv[]) {
+//     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
+//     settings::protein::use_effective_charge = false;
+
+//         int distance = settings::rigidbody::bond_distance;
+//         Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, "C", "C", 1);
+//         Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, "C", "C", 1);
+//         Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, "C", "C", 1);
+//         Atom a4 = Atom(Vector3<double>(0, 0, 3*distance), 1, "C", "C", 1);
+
+//         Body b1 = Body(std::vector<Atom>{a1});
+//         Body b2 = Body(std::vector<Atom>{a2});
+//         Body b3 = Body(std::vector<Atom>{a3});
+//         Body b4 = Body(std::vector<Atom>{a4});
+//         std::vector<Body> ap = {b1, b2, b3, b4};
+//         rigidbody::RigidBody rigidbody(ap);
+//         assert(rigidbody.get_constraint_manager()->distance_constraints.size() == 3);
+
+//         rigidbody::RigidBody rigidbody2 = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", {9, 99});
+//         assert(rigidbody2.get_constraint_manager()->distance_constraints.size() == 2);
+// }
 
 // int main(int argc, char const *argv[]) {
 //     settings::grid::scaling = 2;
