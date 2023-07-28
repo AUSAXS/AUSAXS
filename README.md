@@ -1,3 +1,33 @@
+![title header](title.png)
+
+# Main features
+- **Simple foundation**: We strive to use only simple methods and techniques, making as few assumptions as possible. By implementing the methods in modern C++ with efficiency in mind, we have managed to achieve some of the best performance available.
+- **Rigidbody optimization**: Perform self-consistent and customizable rigidbody optimizations, generating a new hydration shell for each step. Optional calibration with scattering curves predicted by molecular dynamics simulations can limit the number of free parameters to just 2, dramatically reducing the capability of overfitting.   
+- **Validation of electron microscopy maps**: Validate EM maps using experimental SAXS data. 
+- **Fitting of high-resolution models to SAXS curves**: Fit atomic structure files using experimental SAXS data. 
+
+# Installation
+## Compile from source
+The software can easily be compiled from source with only a few steps.
+
+### Linux
+1. Make sure you have the prerequisites installed  
+`apt-get install cmake make g++`
+
+2. Clone this repository  
+`git clone https://github.com/klytje/SAXS.git`.
+
+3. Run the build command  
+`make build`
+
+4. Compile your choice of executable  
+`make intensity_fitter`
+
+## Download precompiled binaries
+Precompiled binaries are available **here**. 
+
+# Design philosophy
+
 # Todo
 * 	[ ] Consider implementing a unit class to avoid unit conversion errors in functions
 * 	[ ] Redo the storage of Image to be a single 3D vector owned by the ImageStack. 
