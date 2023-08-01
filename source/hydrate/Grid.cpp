@@ -260,30 +260,31 @@ void Grid::expand_volume(GridMember<Water>& water) {
     }
 }
 
-std::vector<bool> Grid::remove_disconnected_atoms(unsigned int) {
-    throw except::not_implemented("Grid::remove_disconnected_atoms: Not implemented!");
-    // expand_volume();
-    // ClusterCulling culler(this);
-    // auto to_remove = culler.remove_clusters(min);
-    // remove(to_remove);
+#include <hydrate/culling/ClusterCulling.h>
+std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
+    // throw except::not_implemented("Grid::remove_disconnected_atoms: Not implemented!");
+    expand_volume();
+    ClusterCulling culler(this);
+    auto to_remove = culler.remove_clusters(min);
+    remove(to_remove);
 
-    // auto to_remove_t = culler.remove_tendrils(10);
-    // remove(to_remove_t);
+    auto to_remove_t = culler.remove_tendrils(10);
+    remove(to_remove_t);
 
-    // // combine the two vectors
-    // unsigned int index = 0;
-    // for (unsigned int i = 0; i < to_remove.size(); i++) {
-    //     if (!to_remove[i]) {
-    //         to_remove[i] = to_remove_t[index++];
-    //     }
-    // }
+    // combine the two vectors
+    unsigned int index = 0;
+    for (unsigned int i = 0; i < to_remove.size(); i++) {
+        if (!to_remove[i]) {
+            to_remove[i] = to_remove_t[index++];
+        }
+    }
 
-    // // sanity check
-    // if (index != to_remove_t.size()) {
-    //     throw except::unexpected("Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
-    // }
+    // sanity check
+    if (index != to_remove_t.size()) {
+        throw except::unexpected("Grid::remove_disconnected_atoms: Index mismatch! Index is (" + std::to_string(index) + ") but the size of the vector is (" + std::to_string(to_remove_t.size()) + ")!");
+    }
 
-    // return to_remove;
+    return to_remove;
 }
 
 template <typename T, typename = std::enable_if_t<std::is_base_of<Atom, T>::value>>

@@ -6,7 +6,7 @@
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
-#include <plots/all.h>
+#include <plots/All.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/HydrationFitter.h>
 #include <mini/All.h>
@@ -71,7 +71,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
     mini::LimitedScan minimizer(f, param, settings::fit::max_iterations);
-    minimizer.set_limit(10, true);
+    minimizer.set_limit(5, true);
     SimpleDataset chi2_landscape;
     {
         auto l = minimizer.landscape(settings::fit::max_iterations);
@@ -223,6 +223,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     // we therefore want to sample the area near the minimum to get an average
     mini::Result res;
     if (settings::em::hydrate) {
+        // reset evaluated points
+        this->evals.clear();
+
         // sample the area around the minimum
         mini::MinimumExplorer explorer(f, param, settings::fit::max_iterations);
         res = explorer.minimize();
@@ -240,15 +243,6 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             double mu = area.mean();
             double sigma = area.std();
 
-            // plot horizontal lines at the mean and mean +/- sigma
-            auto xspan = area.span_x();
-            SimpleDataset l({xspan.min, xspan.max}, {mu, mu});
-            SimpleDataset lp({xspan.min, xspan.max}, {mu+sigma, mu+sigma});
-            SimpleDataset lm({xspan.min, xspan.max}, {mu-sigma, mu-sigma});
-            l.add_plot_options(style::draw::line, {{"color", style::color::red}});
-            lp.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
-            lm.add_plot_options(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}});
-
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min_abs.x, min_abs.y);
@@ -256,12 +250,37 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
             // do the actual plotting
             area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset plot(area);
-            plot.plot(l);
-            plot.plot(lm);
-            plot.plot(lp);
-            plot.plot(p_start);
-            plot.save(settings::general::output + "chi2_near_minimum." + settings::plots::format);
+            plots::PlotDataset(area)
+                .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
+                .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
+                .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
+                .plot(p_start)
+            .save(settings::general::output + "chi2_near_minimum." + settings::plots::format);
+
+            // make mass version
+            if (settings::em::mass_axis) {
+                Dataset mass_cutoff(0, 2);
+                // skip the first few points since they are used for calibration
+                for (unsigned int i = this->evals.size() - area.size(); i < this->evals.size(); ++i) {
+                    mass_cutoff.push_back({this->evals[i].cutoff, this->evals[i].mass});
+                }
+                mass_cutoff.sort_x();
+
+                // create chi2 / mass dataset
+                area.x() = mass_cutoff.y();
+                area.add_plot_options(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}});
+
+                // interpolate start point
+                p_start.x(0) = mass_cutoff.interpolate_y(p_start.x(0));
+
+                // make the plot
+                plots::PlotDataset(area)
+                    .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
+                    .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
+                    .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
+                    .plot(p_start)
+                .save(settings::general::output + "chi2_near_minimum_mass." + settings::plots::format);
+            }
         }
     } 
     
@@ -323,6 +342,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         static unsigned int counter = 0;
         static double last_c = 5;
         auto p = get_protein_manager()->get_protein(params[0]);
+        // p->remove_disconnected_atoms();
 
         std::shared_ptr<Fit> fit;
         if (settings::em::hydrate) {

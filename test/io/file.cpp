@@ -5,6 +5,7 @@
 
 #include <string>
 #include <filesystem>
+#include <fstream>
 
 TEST_CASE("File::File") {
     SECTION("simple") {
@@ -63,9 +64,32 @@ TEST_CASE("File::split") {
 }
 
 TEST_CASE("File::create") {
+    SECTION("empty") {
+        std::string path = "temp/dummy.txt";
+        io::File file(path);
+        file.create();
+        CHECK(file.exists());
+        file.remove();
+    }
+
+    SECTION("with contents") {
+        std::string path = "temp/dummy.txt";
+        io::File file(path);
+        file.create("test");
+        CHECK(file.exists());
+        std::ifstream f(path);
+        std::string contents;
+        f >> contents;
+        CHECK(contents == "test");
+        file.remove();
+    }
+}
+
+TEST_CASE("File::remove") {
     std::string path = "temp/dummy.txt";
     io::File file(path);
     file.create();
-    CHECK(file.exists());
-    std::filesystem::remove(path);
+    CHECK(file.exists() == true);
+    file.remove();
+    CHECK(file.exists() == false);
 }

@@ -295,7 +295,7 @@ class Protein {
 		 * @brief Count the number of atoms in each cluster, and remove those with less than \a min atoms.
 		 *        This is useful for removing "floating" atoms from e.g. EM map data.
 		 */
-		[[deprecated]] void remove_disconnected_atoms(unsigned int min = 10);
+		[[deprecated]] void remove_disconnected_atoms(double min_percent = 0.05);
 
 		/**
 		 * @brief Fit a measurement to this protein.

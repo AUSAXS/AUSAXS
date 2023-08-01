@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <plots/all.h>
+#include <plots/All.h>
 #include <em/ImageStack.h>
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
@@ -22,22 +22,21 @@ int main(int argc, char const *argv[]) {
     app.add_option("input-exp", mfile, "Path to the SAXS measurement.")->required()->check(CLI::ExistingFile);
     auto p_settings = app.add_option("-s,--settings", settings, "Path to the settings file.")->check(CLI::ExistingFile);
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/em_fitter/");
+    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from measurement file.");
     app.add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance.");
     app.add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
     app.add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     app.add_option("--max-iterations", settings::fit::max_iterations, "Maximum number of iterations to perform. This is only approximate.");
-    app.add_flag("--mass-axis,!--no-mass-axis", settings::em::mass_axis, "Whether to use a mass axis in place of the threshold axis.");
     app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Whether to hydrate the protein before fitting.");
     app.add_flag("--fixed-weight,!--no-fixed-weight", settings::em::fixed_weights, "Whether to use a fixed weight for the fit.");
+    app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Whether to print the progress of the fit to the console.");
     CLI11_PARSE(app, argc, argv);
 
     //###################//
     //### PARSE INPUT ###//
     //###################//
-    settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
-
     // if a settings file was provided
     if (p_settings->count() != 0) {
         settings::read(settings);        // read it
@@ -47,6 +46,8 @@ int main(int argc, char const *argv[]) {
             CLI11_PARSE(app, argc, argv);
         }
     }
+    if (!settings::general::output.empty() && settings::general::output.back() != '/') {settings::general::output += "/";}
+    settings::general::output += mfile.stem() + "/" + mapfile.stem() + "/";
 
     // validate input
     if (!constants::filetypes::em_map.validate(mapfile)) {

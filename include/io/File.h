@@ -65,9 +65,14 @@ namespace io {
             [[nodiscard]] const std::string& extension() const noexcept;
 
             /**
-             * @brief Create this empty file.
+             * @brief Create this file with the given contents.
              */
-            void create() const; 
+            void create(const std::string& contents = "") const; 
+
+            /**
+             * @brief Remove this file.
+             */
+            void remove() const;
 
             /**
              * @brief Check if the file exists.

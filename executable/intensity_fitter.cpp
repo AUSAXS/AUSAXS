@@ -5,7 +5,7 @@
 #include <fitter/HydrationFitter.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/Fit.h>
-#include <plots/all.h>
+#include <plots/All.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>

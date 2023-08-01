@@ -207,6 +207,14 @@ em/%: build/bin/em
 	emmap=$$(find data/ -name "*$*.map" -or -name "*$*.ccp4"); \
 	$< $${emmap} $${structure} $${measurement}
 
+em_fit_simulated/%: build/bin/em_simulate_saxs build/bin/em_fitter
+	@ map=$$(find data -name "$*.ccp4" -or -name "$*.map" -or -name "$*.mrc"); \
+	folder=$$(dirname $${map}); \
+	pdb=$$(find $${folder} -name "*.ent"); \
+	build/bin/em_simulate_saxs $${map} $${pdb}; \
+	build/bin/em_fitter $${map} $${folder}/simulated_SAXS.dat --levelmax 15 --max-iterations 150 ${options}
+	make plot/output/em_fitter/simulated_SAXS/$*
+
 optimize_radius/%: build/source/scripts/optimize_radius
 	$< data/$*.pdb output/
 
@@ -296,13 +304,6 @@ fit_consistency2/%: build/bin/fit_consistency2
 	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
 	echo "$< $${emmap} $${structure}"; \
 	$< $${emmap} $${structure}
-
-map_consistency/%: build/bin/em_pdb_fitter
-	@ map=$$(find data -name "$*.ccp4" -or -name "$*.map" -or -name "$*.mrc"); \
-	folder=$$(dirname $${map}); \
-	pdb=$$(find $${folder} -name "*.ent"); \
-	$< $${map} $${pdb} $${options}
-	make plot/output/em_pdb_fitter/$*
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

@@ -61,9 +61,16 @@ const std::string& File::extension() const noexcept {return ext;}
 
 std::string File::stem() const noexcept {return name;}
 
-void File::create() const {
+void File::create(const std::string& contents) const {
     if (!dir.exists()) {dir.create();}
     std::ofstream file(*this);
+
+    if (!file.is_open()) {throw except::io_error("File::create: Could not create file " + path());}
+    file << contents;
+}
+
+void File::remove() const {
+    if (exists()) {std::filesystem::remove(path());}
 }
 
 std::string File::path() const {return std::string(*this);}

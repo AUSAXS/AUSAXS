@@ -5,7 +5,7 @@
 #include <hist/ScatteringHistogram.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
-#include <plots/all.h>
+#include <plots/All.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>

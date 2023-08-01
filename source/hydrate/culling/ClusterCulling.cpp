@@ -245,6 +245,10 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
         throw except::unexpected("CounterClusterCulling::cull: Group sizes (" + std::to_string(sum) + ") do not add up to total number of atoms (" + std::to_string(grid->a_members.size()) + ").");
     }
 
+    if (sum == remove_count) {
+        return std::vector<bool>(grid->a_members.size(), false);
+    }
+
     // mark atoms for removal
     std::cout << remove_count << " atoms will be removed (small clusters). " << std::endl;
     std::vector<bool> atoms_to_remove(grid->a_members.size(), false); // atom indices to remove

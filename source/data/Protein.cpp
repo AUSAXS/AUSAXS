@@ -84,9 +84,7 @@ SimpleDataset Protein::simulate_dataset(bool add_noise) const {
     SimpleDataset data = get_histogram().calc_debye_scattering_intensity();
     data.reduce(settings::fit::N, true);
     data.simulate_errors();
-    if (add_noise) {
-        data.simulate_noise();
-    }
+    if (add_noise) {data.simulate_noise();}
     return data;
 }
 
@@ -377,8 +375,9 @@ void Protein::generate_unit_cell() {
     file.add(RecordType::HEADER, ss.str());
 }
 
-void Protein::remove_disconnected_atoms(unsigned int min) {
+void Protein::remove_disconnected_atoms(double min_percent) {
     if (grid == nullptr) {create_grid();}
+    int min = min_percent*atom_size();
     auto to_remove = grid->remove_disconnected_atoms(min);
 
     // sanity check
