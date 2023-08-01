@@ -42,7 +42,7 @@ int main(int argc, char const *argv[]) {
         settings::read(settings);        // read it
         CLI11_PARSE(app, argc, argv);   // re-parse the command line arguments so they take priority
     } else {                            // otherwise check if there is a settings file in the same directory
-        if (settings::discover(std::filesystem::path(mfile).parent_path().string())) {
+        if (settings::discover(mfile.directory())) {
             CLI11_PARSE(app, argc, argv);
         }
     }

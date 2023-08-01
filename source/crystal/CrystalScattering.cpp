@@ -21,6 +21,7 @@
 #include <random>
 #include <fstream>
 #include <csignal>
+#include <mutex>
 
 using namespace crystal;
 

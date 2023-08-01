@@ -17,7 +17,7 @@ File::File(const std::string& path) {
 
 std::tuple<std::string, std::string, std::string> File::split(const std::string& path) {
     auto p = std::filesystem::path(path);
-    return std::make_tuple(p.parent_path(), p.stem(), p.extension());
+    return std::make_tuple(p.parent_path().string(), p.stem().string(), p.extension().string());
 }
 
 void File::operator=(const std::string& path) {

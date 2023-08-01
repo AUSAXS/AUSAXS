@@ -6,7 +6,7 @@ import os
 from plot_helper import *
 
 # handle command line arguments
-help = "Usage: plot <folder>"
+help = "Usage: plot <folder>\nPlots all .plot files in the given folder and subfolders."
 params = {
     'legend.fontsize': 14,
     'figure.figsize': (10, 8),
@@ -18,8 +18,8 @@ params = {
 
 match len(sys.argv):
     case 1: 
-        if os.path.exists("figures"):
-            folder = "figures"
+        if os.path.exists("output"):
+            folder = "output"
         else: 
             print(help)
             exit(0)
@@ -65,8 +65,24 @@ plt.rcParams.update(params)
 
 if folder == "":
     folder = sys.argv[1]
+
 for currentpath, folders, files in os.walk(folder):
+    fit_file = ""
+    dat_file = ""
+    report_file = ""
     for file in files:
-        if file.endswith(".plot"):
-            print("Plotting file: " + file)
-            plot_file(os.path.join(currentpath, file))
+        extension = file.split(".")[-1]
+        match extension:
+            case "fit":
+                fit_file = os.path.join(currentpath, file)
+            case "dat":
+                dat_file = os.path.join(currentpath, file)
+            case "plot":
+                print("Plotting file: " + file)
+                plot_file(os.path.join(currentpath, file))
+        
+        if file == "report.txt":
+            report_file = os.path.join(currentpath, file)
+    
+    if fit_file != "" and dat_file != "" and report_file != "":
+        plot_intensity_fit(dat_file, fit_file, report_file)

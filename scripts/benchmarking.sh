@@ -2,16 +2,16 @@
 
 warmup=3
 iterations=10
-pdb="data/SHOC2/SHOC2_dehydrated.pdb"
-dat="data/SHOC2/SHOC2.dat"
+pdb="data/A2M_native/A2M_native.pdb"
+dat="data/A2M_native/A2M_native.RSR"
 hyperfine_cmd="hyperfine --warmup $warmup --runs $iterations"
 
 crysol_bench() {
-    eval "$hyperfine_cmd --command-name crysol --export-json temp/benchmarks/crysol.json 'crysol $dat $pdb --prefix=temp/crysol/out --constant --implicit-hydrogen 1'"
+    eval "$hyperfine_cmd --command-name crysol --export-json test/benchmarks/crysol.json 'crysol $dat $pdb --prefix=temp/crysol/out --constant --implicit-hydrogen 1'"
 }
 
 pepsi_bench() {
-    eval "$hyperfine_cmd --command-name pepsi --export-json temp/benchmarks/pepsi.json '~/tools/Pepsi-SAXS/Pepsi-SAXS $pdb $dat -o temp/pepsi/pepsi.fit'"
+    eval "$hyperfine_cmd --command-name pepsi --export-json test/benchmarks/pepsi.json '~/tools/Pepsi-SAXS/Pepsi-SAXS $pdb $dat -o temp/pepsi/pepsi.fit'"
 }
 
 foxs_bench() {
@@ -20,15 +20,15 @@ foxs_bench() {
     pdb_filename=$(basename "$pdb")
     dat_filename=$(basename "$dat")
     cd "temp/foxs"
-    eval "$hyperfine_cmd --command-name foxs --export-json ../benchmarks/foxs.json 'foxs $pdb_filename $dat_filename'"
+    eval "$hyperfine_cmd --command-name foxs --export-json ../../test/benchmarks/foxs.json 'foxs $pdb_filename $dat_filename'"
 }
 
 ausaxs_bench() {
-    eval "$hyperfine_cmd --command-name ausaxs --export-json temp/benchmarks/ausaxs.json 'build/bin/intensity_fitter $pdb $dat --output temp/ausaxs/'"
+    eval "$hyperfine_cmd --command-name ausaxs --export-json test/benchmarks/ausaxs.json 'build/bin/intensity_fitter $pdb $dat --output temp/ausaxs/'"
 }
 
 ausaxs_bench_st() {
-    eval "$hyperfine_cmd --command-name ausaxs-st --export-json temp/benchmarks/ausaxs_st.json 'build/bin/intensity_fitter $pdb $dat -t 1 --output temp/ausaxs/'"
+    eval "$hyperfine_cmd --command-name ausaxs-st --export-json test/benchmarks/ausaxs_st.json 'build/bin/intensity_fitter $pdb $dat -t 1 --output temp/ausaxs/'"
 }
 
 hyperfine_serial_cmd="hyperfine --warmup 0 --runs 5"
@@ -47,11 +47,11 @@ crysol_serial_cmd() {
 
 crysol_serial_bench() {
     export -f crysol_serial_cmd
-    eval "$hyperfine_serial_cmd --command-name crysol-serial --show-output --export-json temp/benchmarks/crysol_serial.json --shell=bash 'crysol_serial_cmd'"
+    eval "$hyperfine_serial_cmd --command-name crysol-serial --show-output --export-json test/benchmarks/crysol_serial.json --shell=bash 'crysol_serial_cmd'"
 }
 
 ausaxs_serial_bench() {
-    eval "$hyperfine_serial_cmd --command-name ausaxs --export-json temp/benchmarks/ausaxs_serial.json --show-output 'build/bin/em_bench $map $mapdat --levelmin $min --levelmax $max --max-iterations $steps'"
+    eval "$hyperfine_serial_cmd --command-name ausaxs --export-json test/benchmarks/ausaxs_serial.json --show-output 'build/bin/em_bench $map $mapdat --levelmin $min --levelmax $max --max-iterations $steps'"
 }
 
 "$@"

@@ -484,3 +484,51 @@ def plot_file(file: str):
     # os.remove(file)
 
     return
+
+def plot_intensity_fit(data_file, fit_file, report_file):
+    """Plots an intensity fit."""
+    data = np.loadtxt(data_file, skiprows=1)
+    fit = np.loadtxt(fit_file, skiprows=1, usecols=[0, 1])
+
+    # calculate dof
+    dof = 1
+    if report_file != "":
+        # find dof in report
+        with open(report_file, "r") as f:
+            par_section = False
+            for line in f:
+                if "PAR" in line:
+                    par_section = True
+                if par_section:
+                    if "+----" in line:
+                        break
+                    dof += 1
+
+    # calculate chi2
+    def chi2(ymodel):
+        return np.sum(((data[:, 1] - ymodel) / data[:, 2]) ** 2)
+
+    chi2r = chi2(fit[:, 1]) / (len(data[:, 1]) - dof)
+
+    # plot the data in loglog and with residuals underneath
+
+    fig, ax = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+    ax[0].errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0)
+    ax[0].plot(fit[:, 0], fit[:, 1], label=r"$\chi^2_{red} = " + f"{chi2r:.3f}$", color='red')
+    ax[0].set_ylabel("I(q)")
+    ax[0].legend()
+    ax[0].semilogy()
+    ax[0].set_title(os.path.basename(data_file.split('.')[0]))
+
+    ax[1].axhline(0, color='k', lw=0.5)
+    ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.')
+    ax[1].set_xlabel("q")
+    ax[1].set_ylabel("Residuals")
+
+    fig.savefig(os.path.dirname(data_file) + '/log.png', dpi=300)
+    print("Plotted log.png")
+
+    ax[0].semilogx()
+    fig.savefig(os.path.dirname(data_file) + '/loglog.png', dpi=300)
+    print("Plotted loglog.png")
+    return

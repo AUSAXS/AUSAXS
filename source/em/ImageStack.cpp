@@ -292,7 +292,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     // Make 3D landscape plot
-    if (settings::general::supplementary_plots && settings::em::hydrate) {
+    if (settings::em::plot_landscapes && settings::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
         for (unsigned int i = 0; i < this->evals.size(); i++) {

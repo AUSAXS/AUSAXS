@@ -6,13 +6,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE RELEASE)
 
 project(SAXS VERSION 0.0)
+#set(fprofile "-fprofile-generate=${CMAKE_BINARY_DIR}/profiling")
+#set(fprofile "-fprofile-use=${CMAKE_BINARY_DIR}/profiling" "-fprofile-correction")
+set(fprofile "")
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
 add_compile_options(
-	-Ofast -fno-finite-math-only# --coverage
+	-Ofast ${fprofile} -fno-finite-math-only -pipe #--coverage
 	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
-	"$<$<CONFIG:RELEASE>:-flto;-march=native>"
+	"$<$<CONFIG:RELEASE>:-flto;-march=x86-64>"#-march=native>"
 )
-
+add_link_options(-lgcov --coverage)
+# serial make (-j 1) is important to not confuse the pgo generator
 
 ############################################
 ##            Dependencies                ##
@@ -102,21 +106,32 @@ endif(DOXYGEN_FOUND)
 ############################################
 ##           Build library                ##
 ############################################
+
+### SINGLE-COMPILED OBJECT LIBRARY APPROACH ###
 file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 
-add_library(objlib OBJECT ${SOURCE_FILES})
-set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
+#add_library(objlib OBJECT ${SOURCE_FILES})
+#set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
 
-add_library(saxs_static STATIC $<TARGET_OBJECTS:objlib>)
-add_library(saxs SHARED $<TARGET_OBJECTS:objlib>)
-set_target_properties(saxs_static PROPERTIES OUTPUT_NAME saxs_static)
-set_target_properties(saxs PROPERTIES OUTPUT_NAME saxs)
+#add_library(saxs_static STATIC $<TARGET_OBJECTS:objlib>)
+#add_library(saxs SHARED $<TARGET_OBJECTS:objlib>)
+#set_target_properties(saxs_static PROPERTIES OUTPUT_NAME saxs_static)
+#set_target_properties(saxs PROPERTIES OUTPUT_NAME saxs)
 
-target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+#target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+#target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+#target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+#target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${CURL})
+#target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
+#target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${CURL})
+#link_libraries(saxs_static)
+
+### DOUBLE-COMPILED STATIC & SHARED LIBARY APPROACH - SUPPORTS PROFILING ###
+add_library(saxs_static STATIC ${SOURCE_FILES})
+add_library(saxs SHARED ${SOURCE_FILES})
 target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${CURL})
 target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
 target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${CURL})
 link_libraries(saxs_static)
