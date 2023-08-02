@@ -77,12 +77,23 @@ TEST_CASE("Axis::resize") {
 }
 
 TEST_CASE("Axis::as_vector") {
-    Axis axis(1, 10, 3);
-    std::vector<double> vec = axis.as_vector();
-    CHECK(vec.size() == 3);
-    CHECK(vec[0] == 1);
-    CHECK(vec[1] == 4);
-    CHECK(vec[2] == 7);
+    SECTION("use_center_values = false") {
+        Axis axis(1, 10, 3);
+        std::vector<double> vec = axis.as_vector();
+        CHECK(vec.size() == 3);
+        CHECK(vec[0] == 1);
+        CHECK(vec[1] == 4);
+        CHECK(vec[2] == 7);
+    }
+
+    SECTION("use_center_values = true") {
+        Axis axis(1, 10, 3);
+        std::vector<double> vec = axis.as_vector(true);
+        CHECK(vec.size() == 3);
+        CHECK(vec[0] == 2.5);
+        CHECK(vec[1] == 5.5);
+        CHECK(vec[2] == 8.5);
+    }
 }
 
 TEST_CASE("Axis::empty") {

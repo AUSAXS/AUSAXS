@@ -30,12 +30,12 @@ class GridDebug : public grid::Grid {
         static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
 };
 
-TEST_CASE("constructors") {
+TEST_CASE("Grid::Grid") {
     settings::grid::width = 1;
     settings::grid::ra = 3;
     settings::grid::rh = 3;
 
-    SECTION("Grid(const Axis3D& axes)") {
+    SECTION("Axis3D&") {
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
         Grid grid(axes);
         CHECK(grid.a_members.empty());
@@ -48,7 +48,7 @@ TEST_CASE("constructors") {
         CHECK(grid.get_axes() == axes);
     }
 
-    SECTION("Grid(const std::vector<Atom>& atoms)") {
+    SECTION("vector<Atom>&") {
         std::vector<Atom> atoms = {Atom({0, 0, 0}, 0, "C", "", 0), Atom({1, 1, 1}, 0, "C", "", 0), Atom({2, 2, 2}, 0, "C", "", 0)};
         Grid grid(atoms);
         CHECK(grid.a_members.size() == 3);
@@ -60,7 +60,7 @@ TEST_CASE("constructors") {
         CHECK(grid.get_width() == settings::grid::width);
     }
 
-    SECTION("Grid(const std::vector<Body>& bodies)") {
+    SECTION("std::vector<Body>&") {
         std::vector<Body> bodies = {Body({Atom({0, 0, 0}, 0, "C", "", 0), Atom({1, 1, 1}, 0, "C", "", 0), Atom({2, 2, 2}, 0, "C", "", 0)})};
         Grid grid(bodies);
         CHECK(grid.a_members.size() == 3);
@@ -142,15 +142,15 @@ TEST_CASE("generation") {
 
 TEST_CASE("GridMember") {
     grid::GridMember<Atom> a(Atom({0.1, 0.2, 0.3}, 0, "C", "", 0), {1, 2, 3});
-    auto b = a;
 
+    auto b = a;
     CHECK(b == a);
 
     auto c(std::move(b));
     CHECK(c == a);
 }
 
-TEST_CASE("bounding_box") {
+TEST_CASE("Grid::bounding_box") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     GridDebug grid(axes);
@@ -305,7 +305,7 @@ TEST_CASE("volume") {
     REQUIRE(grid.unexpanded_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
 }
 
-TEST_CASE("hydrate", "[grid],[files]") {
+TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
 
     // check that all the expected hydration sites are found
@@ -384,7 +384,7 @@ TEST_CASE("hydrate", "[grid],[files]") {
     }
 }
 
-TEST_CASE("width") {
+TEST_CASE("Grid: using different widths") {
     auto test_width_basics = [] (settings::grid::PlacementStrategy strategy) {
         settings::grid::placement_strategy = strategy;
         settings::grid::width = 0.1;
@@ -465,7 +465,7 @@ TEST_CASE("width") {
     }
 }
 
-TEST_CASE("add_remove") {
+TEST_CASE("Grid: add and remove") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     settings::grid::ra = 3;
@@ -582,7 +582,7 @@ TEST_CASE("add_remove") {
     }
 }
 
-TEST_CASE("correct_volume") {
+TEST_CASE("Grid: correct_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     settings::grid::ra = 10;
@@ -622,7 +622,7 @@ TEST_CASE("correct_volume") {
     REQUIRE(grid.unexpanded_volume() == 0);
 }
 
-TEST_CASE("find_free_locs") {
+TEST_CASE("Grid::find_free_locs") {
     auto test_func = [] (settings::grid::PlacementStrategy ch) {
         settings::grid::placement_strategy = ch;
         settings::grid::width = 1;
@@ -661,7 +661,7 @@ TEST_CASE("find_free_locs") {
 }
 
 // Test that expansion and deflation completely cancels each other. 
-TEST_CASE("volume_deflation") {
+TEST_CASE("Grid::deflate_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     settings::grid::ra = 3;
@@ -691,7 +691,7 @@ TEST_CASE("volume_deflation") {
     }
 }
 
-TEST_CASE("cubic_grid") {
+TEST_CASE("Grid: cubic_grid") {
     settings::grid::cubic = true;
     settings::grid::width = 1;
     settings::grid::ra = 3;
@@ -730,33 +730,35 @@ TEST_CASE("cubic_grid") {
     settings::grid::cubic = false;
 }
 
-TEST_CASE("copy") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid1(axes);
-    grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
-    grid1.hydrate();
+TEST_CASE("Grid::operator=") {
+    SECTION("copy") {
+        Axis3D axes(-10, 10, -10, 10, -10, 10);
+        Grid grid1(axes);
+        grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
+        grid1.hydrate();
 
-    Grid grid2 = grid1;
-    REQUIRE(grid2 == grid1);
+        Grid grid2 = grid1;
+        REQUIRE(grid2 == grid1);
 
-    Grid grid3(axes);
-    grid3 = grid1;
-    REQUIRE(grid3 == grid1);
-}
+        Grid grid3(axes);
+        grid3 = grid1;
+        REQUIRE(grid3 == grid1);
+    }
 
-TEST_CASE("move") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid1(axes);
-    grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
-    grid1.hydrate();
+    SECTION("move") {
+        Axis3D axes(-10, 10, -10, 10, -10, 10);
+        Grid grid1(axes);
+        grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
+        grid1.hydrate();
 
-    Grid gridcopy = grid1;
-    Grid grid2 = std::move(grid1);
-    REQUIRE(grid2 == gridcopy);
+        Grid gridcopy = grid1;
+        Grid grid2 = std::move(grid1);
+        REQUIRE(grid2 == gridcopy);
 
-    Grid grid3(axes);
-    grid3 = std::move(grid2);
-    REQUIRE(grid3 == gridcopy);
+        Grid grid3(axes);
+        grid3 = std::move(grid2);
+        REQUIRE(grid3 == gridcopy);
+    }
 }
 
 TEST_CASE("hydration") {

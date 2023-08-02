@@ -16,11 +16,6 @@ namespace table {
     class DebyeLookupTable {
         public: 
             /**
-             * @brief Default constructor. 
-             */
-            DebyeLookupTable();
-
-            /**
              * @brief Constructor. 
              * 
              * @param q The scattering vector to generate lookup values for. 
@@ -29,37 +24,34 @@ namespace table {
             DebyeLookupTable(const std::vector<double>& q, const std::vector<double>& d);
 
             /**
-             * @brief Initialize this class for the given input. 
-             * 
-             * @param q The scattering vector to generate lookup values for. 
-             * @param d The distance histogram to generate lookup values for. 
-             */
-            void initialize(const std::vector<double>& q, const std::vector<double>& d);
-
-            /**
              * @brief Look up a value in the table based on @a q and @a d values. This is an amortized constant-time operation. 
              */
-            double lookup(double q, double d) const;
+            [[nodiscard]] double lookup(double q, double d) const;
 
             /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 
              */
-            double lookup(unsigned int q_index, unsigned int d_index) const;
+            [[nodiscard]] double lookup(unsigned int q_index, unsigned int d_index) const;
 
             /**
-             * @brief Look up a value in the table based on indices. This is a constant-time operation. 
+             * @brief Get the size of the table in the q-direction. 
              */
-            double lookup(int q_index, int d_index) const;
+            [[nodiscard]] unsigned int size_q() const;
+
+            /**
+             * @brief Get the size of the table in the d-direction. 
+             */
+            [[nodiscard]] unsigned int size_d() const;
 
             /**
              * @brief Check if this instance uses the default table. 
              */
-            bool uses_default_table() const;
+            [[nodiscard]] bool uses_default_table() const;
 
             /**
              * @brief Reset the default table. 
              */
-            static void reset();
+            static void reset_default_table();
 
         private: 
             std::function<double(double, double)> lookup_function;      // The lookup function when providing q and d values. 
@@ -68,6 +60,14 @@ namespace table {
             inline static LookupTable<double, double> default_table;    // The shared default table. 
             inline static int default_size = 1000;                      // The size of the default table in Ångström. 
             inline static double tolerance = 1e-6;                      // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
+
+            /**
+             * @brief Initialize this class for the given input. 
+             * 
+             * @param q The scattering vector to generate lookup values for. 
+             * @param d The distance histogram to generate lookup values for. 
+             */
+            void initialize(const std::vector<double>& q, const std::vector<double>& d);
 
             /**
              * @brief Initialize a given table based on the input vectors.  
@@ -84,6 +84,6 @@ namespace table {
              * @param q The scattering vector.
              * @param d The histogram bins.
              */
-            static bool is_default(const std::vector<double>& q, const std::vector<double>& d);
+            [[nodiscard]] static bool is_default(const std::vector<double>& q, const std::vector<double>& d);
     };
 }

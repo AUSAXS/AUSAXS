@@ -1,55 +1,191 @@
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <utility/Utility.h>
-#include <hist/ScatteringHistogram.h>
-#include <data/Protein.h>
-#include <data/Body.h>
-#include <data/Water.h>
-#include <plots/PlotIntensity.h>
+#include <hist/Histogram.h>
+#include <dataset/SimpleDataset.h>
 
-using std::vector;
-
-TEST_CASE("check_scaling_factor") {
-    // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-    vector<Atom> b1 =   {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b2 =   {Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1),   Atom(Vector3<double>(1, 1, -1), 1, "C", "C", 1)};
-    vector<Atom> b3 =   {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1),   Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-    vector<Water> w = {Water(Vector3<double>(1, -1, 1), 1, "C", "C", 1), Water(Vector3<double>(1, 1, 1), 1, "C", "C", 1)};
-    vector<Body> a = {Body(b1), Body(b2), Body(b3)};
-    Protein protein(a, w);
-
-    hist::ScatteringHistogram hist = protein.get_histogram();
-    vector<double> p_pp = hist.p_pp.p;
-    vector<double> p_hp = hist.p_hp.p;
-    vector<double> p_hh = hist.p_hh.p;
-
-    hist.apply_water_scaling_factor(2);
-    for (size_t i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + 4*p_hh[i], Catch::Matchers::WithinRel(hist.p[i]));
+TEST_CASE("Histogram::Histogram") {
+    SECTION("default") {
+        hist::Histogram hist;
+        CHECK(hist.size() == 0);
+        CHECK(hist.limits() == Limit{0, 0});
     }
 
-    hist.apply_water_scaling_factor(3);
-    for (size_t i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + 3*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist.p[i]));
+    SECTION("Vector<double>") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        hist::Histogram hist(data);
+        CHECK(hist.size() == 5);
+        CHECK(hist.limits() == Limit{1, 5});
     }
 
-    hist.reset_water_scaling_factor();
-    for (size_t i = 0; i < p_pp.size(); i++) {
-        REQUIRE_THAT(p_pp[i] + p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist.p[i]));
+    SECTION("Vector<double>, Axis") {
+        std::vector<double> data{1, 2, 3, 4, 5};
+        Axis axis(1, 10, 1);
+        hist::Histogram hist(data, axis);
+        CHECK(hist.size() == 5);
+        CHECK(hist.limits() == Limit{1, 10});
+    }
+
+    SECTION("Axis") {
+        Axis axis(1, 10, 1);
+        hist::Histogram hist(axis);
+        CHECK(hist.size() == 10);
+        CHECK(hist.limits() == Limit{1, 10});
     }
 }
 
-// TEST_CASE("utility", "[histogram]") {
-//     string s = "   hello   ";
-//     CHECK(remove_spaces(s) == "hello");
+TEST_CASE("Histogram::shorten_axis") {
+    SECTION("empty") {
+        hist::Histogram hist;
+        hist.shorten_axis();
+        CHECK(hist.size() == 0);
+        CHECK(hist.limits() == Limit{0, 0});
+    }
 
-    // s = "hello   ";
-    // CHECK(remove_spaces(s) == "hello");
+    SECTION("more than 10 elements") {
+        std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 0, 0, 0, 0, 0, 0, 0};
+        hist::Histogram hist(data);
+        hist.shorten_axis();
+        CHECK(hist.size() == 10);
+        CHECK(hist.limits() == Limit{1, 11});
+    }
 
-    // s = "   hello";
-    // CHECK(remove_spaces(s) == "hello");
+    SECTION("less than 10 elements") {
+        std::vector<double> data = {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0};
+        hist::Histogram hist(data);
+        hist.shorten_axis();
+        CHECK(hist.size() == 10);
+        CHECK(hist.limits() == Limit{1, 6});
+    }
+}
 
-    // s = "   k    ";
-    // CHECK(remove_spaces(s) == "k");
-// }
+TEST_CASE("Histogram::extend_axis") {}
+
+TEST_CASE("Histogram::resize") {
+    hist::Histogram hist;
+    hist.resize(10);
+    CHECK(hist.size() == 10);
+    CHECK(hist.p.size() == 10);
+}
+
+TEST_CASE("Histogram::generate_axis") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    hist.generate_axis();
+    CHECK(hist.axis.limits() == Limit{1, 5});
+}
+
+TEST_CASE("Histogram::set_axis") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    hist.set_axis(Axis(1, 10, 1));
+    CHECK(hist.axis.limits() == Limit{1, 10});
+}
+
+TEST_CASE("Histogram::limits") {
+    SECTION("empty") {
+        hist::Histogram hist;
+        CHECK(hist.limits() == Limit{0, 0});
+    }
+
+    SECTION("non-empty") {
+        std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
+        hist::Histogram hist(data);
+        CHECK(hist.limits() == Limit{-1, 5});
+    }
+}
+
+TEST_CASE("Histogram::limits_positive") {
+    SECTION("empty") {
+        hist::Histogram hist;
+        CHECK(hist.limits_positive() == Limit{0, 0});
+    }
+
+    SECTION("non-empty") {
+        std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
+        hist::Histogram hist(data);
+        CHECK(hist.limits_positive() == Limit{0, 5});
+    }
+}
+
+TEST_CASE("Histogram::size") {
+    SECTION("empty") {
+        hist::Histogram hist;
+        CHECK(hist.size() == 0);
+    }
+
+    SECTION("non-empty") {
+        std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
+        hist::Histogram hist(data);
+        CHECK(hist.size() == data.size());
+    }
+}
+
+TEST_CASE("Histogram::as_dataset") {
+    SECTION("empty") {
+        hist::Histogram hist;
+        auto dataset = hist.as_dataset();
+        CHECK(dataset.size() == 0);
+    }
+
+    SECTION("non-empty") {
+        std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
+        hist::Histogram hist(data);
+        auto dataset = hist.as_dataset();
+        CHECK(dataset.size() == data.size());
+        CHECK(dataset.x() == data);
+        CHECK(dataset.y() == hist.p);
+    }
+}
+
+TEST_CASE("Histogram::operator+=") {
+    std::vector<double> data1{1, 2, 3, 4, 5};
+    std::vector<double> data2{1, 2, 3, 4, 5};
+    hist::Histogram hist1(data1);
+    hist::Histogram hist2(data2);
+    hist1 += hist2;
+    CHECK(hist1.size() == 5);
+    CHECK(hist1.limits() == Limit{1, 5});
+    CHECK(hist1.p == Vector{2, 4, 6, 8, 10});
+}
+
+TEST_CASE("Histogram::operator-=") {
+    std::vector<double> data1{1, 2, 3, 4, 5};
+    std::vector<double> data2{1, 2, 3, 4, 5};
+    hist::Histogram hist1(data1);
+    hist::Histogram hist2(data2);
+    hist1 -= hist2;
+    CHECK(hist1.size() == 5);
+    CHECK(hist1.limits() == Limit{1, 5});
+    CHECK(hist1.p == Vector{0, 0, 0, 0, 0});
+}
+
+TEST_CASE("Histogram::operator*=") {
+    std::vector<double> data1{1, 2, 3, 4, 5};
+    hist::Histogram hist1(data1);
+    hist1 *= 2;
+    CHECK(hist1.size() == 5);
+    CHECK(hist1.limits() == Limit{1, 5});
+    CHECK(hist1.p == Vector{2, 4, 6, 8, 10});
+}
+
+TEST_CASE("Histogram::operator[]") {
+    std::vector<double> data{1, 2, 3, 4, 5};
+    hist::Histogram hist(data);
+    CHECK(hist[0] == 1);
+    CHECK(hist[1] == 2);
+    CHECK(hist[2] == 3);
+    CHECK(hist[3] == 4);
+    CHECK(hist[4] == 5);
+}
+
+TEST_CASE("Histogram::operator==") {
+    std::vector<double> data1{1, 2, 3, 4, 5};
+    std::vector<double> data2{1, 2, 3, 4, 5};
+    hist::Histogram hist1(data1);
+    hist::Histogram hist2(data2);
+    CHECK(hist1 == hist2);
+
+    std::vector<double> data3{1, 2, 3, 4, 6};
+    hist::Histogram hist3(data3);
+    CHECK(hist2 != hist3);
+}

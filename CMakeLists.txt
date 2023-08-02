@@ -1,22 +1,29 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+#set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_BUILD_TYPE DEBUG)
 
 project(SAXS VERSION 0.0)
 #set(fprofile "-fprofile-generate=${CMAKE_BINARY_DIR}/profiling")
 #set(fprofile "-fprofile-use=${CMAKE_BINARY_DIR}/profiling" "-fprofile-correction")
+#add_link_options(-lgcov --coverage)
 set(fprofile "")
-add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
+
+add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1;_USE_MATH_DEFINES>")#;_GLIBCXX_DEBUG>")
 add_compile_options(
-	-Ofast ${fprofile} -fno-finite-math-only -pipe #--coverage
-	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra>"
-	"$<$<CONFIG:RELEASE>:-flto;-march=x86-64>"#-march=native>"
+	-Ofast ${fprofile} -fno-finite-math-only -pipe
+	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
+	"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"
 )
-add_link_options(-lgcov --coverage)
-# serial make (-j 1) is important to not confuse the pgo generator
+#add_link_options(
+#	"$<$<CONFIG:DEBUG>:--coverage>"
+#)
 
 ############################################
 ##            Dependencies                ##
@@ -107,17 +114,23 @@ endif(DOXYGEN_FOUND)
 ##           Build library                ##
 ############################################
 
-### SINGLE-COMPILED OBJECT LIBRARY APPROACH ###
 file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 
+### SINGLE-COMPILED OBJECT LIBRARY APPROACH ###
 #add_library(objlib OBJECT ${SOURCE_FILES})
 #set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
 
 #add_library(saxs_static STATIC $<TARGET_OBJECTS:objlib>)
 #add_library(saxs SHARED $<TARGET_OBJECTS:objlib>)
-#set_target_properties(saxs_static PROPERTIES OUTPUT_NAME saxs_static)
-#set_target_properties(saxs PROPERTIES OUTPUT_NAME saxs)
+#set_target_properties(saxs_static PROPERTIES 
+#	OUTPUT_NAME saxs_static
+#	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+#)
+#set_target_properties(saxs 
+#	PROPERTIES OUTPUT_NAME saxs
+#	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+#)
 
 #target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 #target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")

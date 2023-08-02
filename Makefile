@@ -188,7 +188,6 @@ em_fit/%: build/bin/em_fitter
 		echo "Fitting " $${path} "..."; \
 		sleep 1; \
 		$< $${path} $${measurement} ${options}; \
-		make plot_em/$*; \
 		make plot/output/em_fitter/$*; \
 	done
 
@@ -354,7 +353,7 @@ stuff/%: build/bin/stuff
 ####################################################################################
 tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
-test_files = $(addprefix test/, $(shell find test/ -wholename "*.cpp" -printf "%P "))
+test_files = $(addprefix test/, $(shell find test/ -name "*.cpp" -printf "%P "))
 
 memtest/%: $$(shell find tests/ -name "$*.cpp" 2>/dev/null)
 	@ make -C build "test_$*" -j${cmake_threads}
@@ -373,7 +372,7 @@ tests: $(source) $(test_files)
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%: $$(shell find test/ -name "$*.cpp" 2>/dev/null) $(source)
+test/%: $$(shell find test/ -wholename "$*.cpp" 2>/dev/null) $(source)
 	@ make -C build "test_$*" -j${cmake_threads}
 	build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
@@ -390,7 +389,7 @@ build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) buil
 .PHONY: build winbuild
 build: 
 	@ mkdir -p build; 
-	@ cd build; cmake ../ $(ARGS)
+	@ cd build; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-gcc.cmake ../ $(ARGS)
 
 buildstatic: 
 	@ mkdir -p build; 

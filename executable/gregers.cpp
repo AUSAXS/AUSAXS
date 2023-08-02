@@ -1,6 +1,6 @@
 #include <CLI/CLI.hpp>
 
-#include <plots/all.h>
+#include <plots/All.h>
 #include <em/ImageStack.h>
 #include <data/Protein.h>
 #include <utility/Utility.h>

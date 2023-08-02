@@ -42,11 +42,12 @@ void Axis::resize(unsigned int bins) noexcept {
     this->max = min + bins*w;
 }
 
-std::vector<double> Axis::as_vector() const noexcept {
+std::vector<double> Axis::as_vector(bool use_center_values) const noexcept {
     std::vector<double> v(bins);
     double w = width();
-    for (unsigned int i = 0; i < bins; i++) {
-        v[i] = min + i*w;
+    double new_min = use_center_values ? min - 0.5*w : min;
+    for (unsigned int i = 0; i < bins; ++i) {
+        v[i] = new_min + i*w;
     }
     return v;
 }

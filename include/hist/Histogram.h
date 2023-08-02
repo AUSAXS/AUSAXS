@@ -34,7 +34,7 @@ namespace hist {
              * @param p The bin values. 
              * @param axis The axis they span. 
              */
-            Histogram(const Vector<double>& p, const Axis& axis) noexcept;
+            Histogram(const Vector<double>& p, const Axis& axis);
 
             /**
              * @brief Constructor.
@@ -56,7 +56,7 @@ namespace hist {
             /**
              * @brief Extend the view axis to the given maximum value. 
              */
-            void extend_axis(double qmax);
+            // void extend_axis(double qmax);
 
             /**
              * @brief Resize the number of bins in this histogram, keeping the width constant.
@@ -76,13 +76,13 @@ namespace hist {
             /**
              * @brief Get the spanned range of this histogram. 
              */
-            [[nodiscard]] Limit span() const noexcept;
+            [[nodiscard]] Limit limits() const noexcept;
 
             /**
              * @brief Get the positive spanned range of this histogram.
              *        This can be useful for setting log ranges. 
              */
-            [[nodiscard]] Limit span_positive() const noexcept;
+            [[nodiscard]] Limit limits_positive() const noexcept;
 
             /**
              * @brief Get the size of this Histogram.

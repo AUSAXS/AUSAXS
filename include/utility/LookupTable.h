@@ -14,7 +14,7 @@ namespace table {
             /**
              * @brief Default constructor.
              */
-            LookupTable() {}
+            LookupTable() = default;
 
             /**
              * @brief Constructor.
@@ -61,7 +61,8 @@ namespace table {
              * @param i The integer row index.
              * @param j The integer column index.
              */
-            double lookup_index(int i, int j) const {return index(i, j);}
+            double lookup_index(unsigned int i, unsigned int j) const {
+                return index(i, j);}
 
             /**
              * @brief Lookup a given index in the table. 
@@ -69,7 +70,13 @@ namespace table {
              * @param row The row element index.
              * @param col The column element index.
              */
-            double lookup(const T row, const Q col) const {return index(Tmap.at(row), Qmap.at(col));}
+            double lookup(const T row, const Q col) const {
+                #ifdef DEBUG
+                    if (!Tmap.contains(row) || !Qmap.contains(col)) {
+                        throw std::out_of_range("LookupTable::lookup: Index out of range.");
+                    }
+                #endif
+                return index(Tmap.at(row), Qmap.at(col));}
 
             /**
              * @brief Assign to a given integer index in the table. 
@@ -79,7 +86,7 @@ namespace table {
              * @param j The integer column index.
              * @param val The value to store at this location. 
              */
-            void assign_index(int i, int j, double val) {index(i, j) = val;}
+            void assign_index(unsigned int i, unsigned int j, double val) {index(i, j) = val;}
 
             /**
              * @brief Assign to a given index in the table. 
@@ -88,7 +95,13 @@ namespace table {
              * @param col The column element index.
              * @param val The value to store at this location. 
              */
-            void assign(const T row, const Q col, double val) {index(Tmap.at(row), Qmap.at(col)) = val;}
+            void assign(const T row, const Q col, double val) {
+                #ifdef DEBUG
+                    if (!Tmap.contains(row) || !Qmap.contains(col)) {
+                        throw std::out_of_range("LookupTable::assign: Index out of range.");
+                    }
+                #endif
+                index(Tmap.at(row), Qmap.at(col)) = val;}
 
         private:
             std::unordered_map<T, unsigned int> Tmap; // A map from row element indices to actual indices.

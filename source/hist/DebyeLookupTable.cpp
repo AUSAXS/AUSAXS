@@ -8,8 +8,6 @@
 
 using namespace table;
 
-DebyeLookupTable::DebyeLookupTable() {}
-
 DebyeLookupTable::DebyeLookupTable(const std::vector<double>& q, const std::vector<double>& d) {
     initialize(q, d);
 }
@@ -52,13 +50,6 @@ double DebyeLookupTable::lookup(double q, double d) const {
  * @brief Look up a value in the table based on indices. This is a constant-time operation. 
  */
 double DebyeLookupTable::lookup(unsigned int q_index, unsigned int d_index) const {
-    return index_lookup_function(q_index, d_index);
-}
-
-/**
- * @brief Look up a value in the table based on indices. This is a constant-time operation. 
- */
-double DebyeLookupTable::lookup(int q_index, int d_index) const {
     return index_lookup_function(q_index, d_index);
 }
 
@@ -108,6 +99,14 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
     return true;
 }
 
-void DebyeLookupTable::reset() {
+void DebyeLookupTable::reset_default_table() {
     default_table = LookupTable<double, double>();
+}
+
+unsigned int DebyeLookupTable::size_q() const {
+    return table.N;
+}
+
+unsigned int DebyeLookupTable::size_d() const {
+    return table.M;
 }

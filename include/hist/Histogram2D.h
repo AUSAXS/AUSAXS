@@ -7,11 +7,11 @@
 namespace hist {
     class Histogram2D : public Matrix<double>, public plots::Plottable {
         public: 
-            Histogram2D() {}
+            Histogram2D() = default;
 
             Histogram2D(unsigned int size_x, unsigned int size_y) : Matrix(size_x, size_y) {}
 
-            Histogram2D(Axis x_axis, Axis y_axis) : Matrix(x_axis.bins, y_axis.bins), x_axis(x_axis), y_axis(y_axis) {}
+            Histogram2D(const Axis& x_axis, const Axis& y_axis) : Matrix(x_axis.bins, y_axis.bins), x_axis(x_axis), y_axis(y_axis) {}
 
             std::string to_string() const;
 

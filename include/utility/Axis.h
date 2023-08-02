@@ -88,7 +88,7 @@ class Axis {
 		/**
 		 * @brief Get a vector representation of this Axis.
 		 */
-		std::vector<double> as_vector() const noexcept;
+		std::vector<double> as_vector(bool use_center_values = false) const noexcept;
 
 		/**
 		 * @brief Check if this Axis is empty.

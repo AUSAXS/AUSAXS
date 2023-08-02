@@ -8,7 +8,11 @@ using namespace hist;
 
 Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {}
 
-Histogram::Histogram(const Vector<double>& p, const Axis& axis) noexcept : p(p), axis(axis) {}
+Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {
+    #ifdef DEBUG
+        if (p.size() != axis.bins) {throw std::invalid_argument("Histogram: Vector and Axis must have the same number of bins.");}
+    #endif
+}
 
 Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
 
@@ -62,16 +66,16 @@ void Histogram::shorten_axis(unsigned int min_size) {
     axis = Axis(0, max_bin*width, int(max_bin));
 }
 
-void Histogram::extend_axis(double qmax) {
-    double width = axis.width();
-    unsigned int bins = int(qmax/width);
-    p.resize(bins);
-    axis = Axis(0, bins*width, bins);
-}
+// void Histogram::extend_axis(double qmax) {
+//     double width = axis.width();
+//     unsigned int bins = int(qmax/width);
+//     p.resize(bins);
+//     axis = Axis(0, bins*width, bins);
+// }
 
 void Histogram::generate_axis() {
-    Limit limits = span();
-    axis.min = limits.min; axis.max = limits.max;
+    Limit lim = limits();
+    axis.min = lim.min; axis.max = lim.max;
     axis.bins = p.size() == 0 ? 100 : p.size();
 }
 
@@ -79,7 +83,7 @@ void Histogram::set_axis(const Axis& axis) noexcept {
     this->axis = axis;
 }
 
-Limit Histogram::span() const noexcept {
+Limit Histogram::limits() const noexcept {
     if (axis.empty()) {
         auto[min, max] = std::minmax_element(p.begin(), p.end());
         return Limit(*min, *max);
@@ -87,7 +91,7 @@ Limit Histogram::span() const noexcept {
     return axis.limits();
 }
 
-Limit Histogram::span_positive() const noexcept {
+Limit Histogram::limits_positive() const noexcept {
     if (size() == 0) {
         return Limit(0, 0);
     }

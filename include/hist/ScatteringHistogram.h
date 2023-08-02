@@ -76,6 +76,7 @@ namespace hist {
 
 			/**
 			 * @brief Calculate the intensity based on the Debye scattering equation for a specific set of scattering vectors.
+			 * 		  Note that this recalculates the sin(qd)/qd values for the given q values, and is thus significantly slower than the version without arguments. 
 			 * 
 			 * @param q The scattering vectors to calculate the intensity for. 
 			 * 
@@ -83,16 +84,8 @@ namespace hist {
 			 */
 			[[nodiscard]] SimpleDataset calc_debye_scattering_intensity(const std::vector<double>& q) const;
 
-			/**
-			 * @brief Assign another ScatteringHistogram to this object.
-			 */
 			ScatteringHistogram& operator=(const ScatteringHistogram& h);
-
-			/**
-			 * @brief Assign another ScatteringHistogram to this object.
-			 */
 			ScatteringHistogram& operator=(ScatteringHistogram&& h);
-
 			ScatteringHistogram& operator+=(const ScatteringHistogram& rhs);
 			ScatteringHistogram& operator-=(const ScatteringHistogram& rhs);
 			ScatteringHistogram& operator*=(double rhs);
@@ -102,7 +95,7 @@ namespace hist {
 			/**
 			 * @brief Extend the view axis to the given maximum value.
 			 */
-			void extend_axis(double qmax);
+			// void extend_axis(double qmax);
 
             [[nodiscard]] std::string to_string() const noexcept override;
 
@@ -111,7 +104,7 @@ namespace hist {
 			std::vector<double> q; // The q values used as the x-axis.
 
 		private:
-			table::DebyeLookupTable sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.
+			std::unique_ptr<table::DebyeLookupTable> sinqd_table; // Lookup-table for sin(qd)/qd values for the scattering histograms.
 
 			/**
 			 * @brief Calculate the guinier approximation of the scattering intensity. 

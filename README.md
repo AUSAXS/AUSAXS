@@ -33,16 +33,15 @@ Precompiled binaries are available **here**.
 * 	[ ] Redo the storage of Image to be a single 3D vector owned by the ImageStack. 
 * 	[ ] Consider implementing form factors for the most common atoms. This will also allow fitting the excluded volume to the MD simulations (probably), thus avoiding the background fitting parameter. 
 *	[ ] Matrix: Change vector of vectors constructor to be row-majority, and use the variadic constructor for columns instead
-*	[ ] BSThreadPool: Streamline download and build process. Currently it is all manual. 
-*	[ ] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
+*	[x] BSThreadPool: Streamline download and build process. Currently it is all manual. 
+*	[x] DebyeLookupTable: Non-default tables seems to be broken. Disable default tables to debug. 
 *	[ ] EM: R factors http://pd.chem.ucl.ac.uk/pdnn/refine1/rfacs.htm
 *	[ ] Protein: Figure out how getMass should work in without effective charge enabled
 *	[ ] Slice: Change storage to be Matrix<T>* such that it is always kept up to date. Currently Slices are invalidated when Matrix data is changed (like with extend). 
-*	[ ] gentag alt for de andre filer
 *	[ ] General: Consistency check of DrhoM
 *	[ ] IO: Support multiple terminate statements
 *	[ ] Memory test all other executables.
-* 	[ ] Axis3D: Remove either (int, int, int, int, int, int, int) or (int, int, int, int, int, int, double) constructor - having both is error-prone
+* 	[x] Axis3D: Remove either (int, int, int, int, int, int, int) or (int, int, int, int, int, int, double) constructor - having both is error-prone
 
 # Stuff to consider
 ## RigidBody
