@@ -17,7 +17,7 @@ namespace std {
 TEST_CASE("DebyeLookupTable::DebyeLookupTable") {
     SECTION("vector<double>&, vector<double>&") {
         std::vector<double> d = {1, 2, 3, 4, 5};
-        std::vector<double> q = {1, 2, 3, 4, 5};
+        std::vector<double> q = {1, 2, 3, 4, 5, 6};
         table::DebyeLookupTable table(d, q);
         CHECK(table.size_d() == d.size());
         CHECK(table.size_q() == q.size());
@@ -46,7 +46,7 @@ TEST_CASE("DebyeLookupTable::lookup") {
         CHECK(table.lookup(2u, 2u) == func(q[2], d[2]));
         CHECK(table.lookup(3u, 3u) == func(q[3], d[3]));
         CHECK(table.lookup(4u, 4u) == func(q[4], d[4]));
-        CHECK(table.lookup(2u, 5u) == func(q[2], d[5]));
+        CHECK(table.lookup(2u, 0u) == func(q[2], d[0]));
         CHECK(table.lookup(4u, 3u) == func(q[4], d[3]));
     }
 }

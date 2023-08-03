@@ -5,8 +5,8 @@
 
 #include <mini/detail/Parameter.h>
 
-#include <mini/all.h>
-#include <plots/all.h>
+#include <mini/All.h>
+#include <plots/All.h>
 
 using std::vector;
 

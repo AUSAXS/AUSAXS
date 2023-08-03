@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 #set(CMAKE_CXX_COMPILER "/usr/bin/g++")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE DEBUG)
 
@@ -33,16 +33,28 @@ include(FetchContent)
 FetchContent_Declare(
 	dlib
 	GIT_REPOSITORY https://github.com/davisking/dlib
-	GIT_TAG v19.18
+	GIT_TAG v19.24.2
 	GIT_PROGRESS TRUE
 )
-set(DLIB_NO_GUI_SUPPORT TRUE)
+
+SET(DLIB_NO_GUI_SUPPORT TRUE)
+SET(DLIB_JPEG_SUPPORT ${DLIB_JPEG_SUPPORT_STR} OFF)
+SET(DLIB_LINK_WITH_SQLITE3 ${DLIB_LINK_WITH_SQLITE3_STR} OFF)
+SET(DLIB_USE_BLAS ${DLIB_USE_BLAS_STR} OFF)
+SET(DLIB_USE_LAPACK ${DLIB_USE_LAPACK_STR} OFF)
+SET(DLIB_USE_CUDA ${DLIB_USE_CUDA_STR} OFF)
+SET(DLIB_PNG_SUPPORT ${DLIB_PNG_SUPPORT_STR} OFF)
+SET(DLIB_GIF_SUPPORT ${DLIB_GIF_SUPPORT_STR} OFF)
+SET(DLIB_USE_FFTW ${DLIB_USE_FFTW_STR} OFF)
+SET(DLIB_USE_MKL_FFT ${DLIB_USE_MKL_FFT_STR} OFF)
+
+set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
 FetchContent_MakeAvailable(dlib)
 
 FetchContent_Declare(
 	CLI11
 	GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-	GIT_TAG b9be5b9444772324459989177108a6a65b8b2769
+	GIT_TAG 792d89286788acac125e0487f8dbde88035f7422
 	GIT_PROGRESS TRUE
 )
 
@@ -56,14 +68,13 @@ FetchContent_Declare(
 	BSThreadPool
 	GIT_REPOSITORY https://github.com/darren-harton/thread-pool
 )
-set(CMAKE_CXX_STANDARD 20)
-FetchContent_MakeAvailable(CLI11 backward BSThreadPool)
 
+set(CMAKE_CXX_STANDARD 20) # continue with C++20
+FetchContent_MakeAvailable(CLI11 BSThreadPool)
+if (CMAKE_BUILD_TYPE MATCHES DEBUG)
+    FetchContent_MakeAvailable(backward)
+endif()
 include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
-
-# we cannot debug without debug symbols
-set(ENABLE_DEBUG $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
-
 
 ############################################
 ##           Find and link CURL           ##
@@ -84,10 +95,10 @@ elseif (UNIX)
 #		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 #	endif()
 	find_package(CURL REQUIRED)
-	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
+	find_package(OpenSSL COMPONENTS SSL REQUIRED)
 #	link_libraries(-static -static-libgcc -static-libstdc++)
 #	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
-	set(CURL -static-libgcc -static-libstdc++ CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
+	set(CURL -static-libgcc -static-libstdc++ CURL::libcurl OpenSSL::SSL)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl -lgcov)
 	endif()

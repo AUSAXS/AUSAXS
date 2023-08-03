@@ -2,8 +2,12 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/ScatteringHistogram.h>
+#include <data/Atom.h>
+#include <data/Water.h>
+#include <data/Body.h>
+#include <data/Protein.h>
 
-ScatteringHistogram generate_random(unsigned int size) {
+hist::ScatteringHistogram generate_random(unsigned int size) {
     std::vector<double> p_pp(size), p_hp(size), p_hh(size), p(size);
     for (unsigned int i = 0; i < size; ++i) {
         p_pp[i] = rand() % 100;
@@ -12,7 +16,7 @@ ScatteringHistogram generate_random(unsigned int size) {
         p[i] = p_pp[i] + p_hp[i] + p_hh[i];
     }
     Axis axis(1, 10, 1);
-    return ScatteringHistogram(p_pp, p_hp, p_hh, p, axis);
+    return hist::ScatteringHistogram(p_pp, p_hp, p_hh, p, axis);
 }
 
 TEST_CASE("ScatteringHistogram::ScatteringHistogram") {

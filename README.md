@@ -12,7 +12,7 @@ The software can easily be compiled from source with only a few steps.
 
 ### Linux
 1. Make sure you have the prerequisites installed  
-`apt-get install cmake make g++`
+`apt-get install cmake make g++ libcurl4-openssl-dev`
 
 2. Clone this repository  
 `git clone https://github.com/klytje/SAXS.git`.

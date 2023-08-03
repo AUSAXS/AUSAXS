@@ -373,8 +373,8 @@ tests: $(source) $(test_files)
 	done
 
 test/%: $$(shell find test/ -wholename "$*.cpp" 2>/dev/null) $(source)
-	@ make -C build "test_$*" -j${cmake_threads}
-	build/test/bin/test_$* ~[slow] ~[broken] ${tags}
+	@ make -C build "test_$(basename $(notdir $*))" -j${cmake_threads}
+	build/test/bin/test_$(basename $(notdir $*)) ~[slow] ~[broken] ${tags}
 
 test/%.cpp:
 

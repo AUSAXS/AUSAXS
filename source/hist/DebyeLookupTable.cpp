@@ -1,8 +1,9 @@
 #include <hist/DebyeLookupTable.h>
-#include <settings/HistogramSettings.h>
 #include <utility/Console.h>
 #include <utility/Utility.h>
 #include <utility/Axis.h>
+#include <settings/HistogramSettings.h>
+#include <settings/GeneralSettings.h>
 
 #include <cmath>
 
@@ -19,7 +20,7 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
         if (default_table.is_empty()) {
             double width = settings::axes::distance_bin_width;
             std::vector<double> _d(default_size/width, 0);
-            for (unsigned int i = 1; i < _d.size(); i++) {
+            for (unsigned int i = 1; i < _d.size(); ++i) {
                 _d[i] = width*(i+0.5);
             }
 
@@ -28,14 +29,14 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
 
         // assign the lambda lookup function to a default table lookup
         lookup_function = [] (double q, double d) {return default_table.lookup(q, d);};
-        index_lookup_function = [] (int i, int j) {return default_table.lookup_index(i, j);};
+        index_lookup_function = [] (unsigned int i, unsigned int j) {return default_table.lookup_index(i, j);};
     } else {
-        console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables. ");
+        if (settings::general::verbose) {console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables. ");}
 
         // assign the lambda lookup function to a custom table lookup
         initialize(table, q, d);
         lookup_function = [this] (double q, double d) {return table.lookup(q, d);};
-        index_lookup_function = [this] (int i, int j) {return table.lookup_index(i, j);};
+        index_lookup_function = [this] (unsigned int i, unsigned int j) {return table.lookup_index(i, j);};
     }
 }
 
@@ -65,8 +66,8 @@ bool DebyeLookupTable::uses_default_table() const {
 
 void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std::vector<double>& q, const std::vector<double>& d) {
     table.initialize(q, d);
-    for (unsigned int i = 0; i < q.size(); i++) {
-        for (unsigned int j = 0; j < d.size(); j++) {
+    for (unsigned int i = 0; i < q.size(); ++i) {
+        for (unsigned int j = 0; j < d.size(); ++j) {
             double qd = q[i]*d[j];  
             double val;
             if (qd < tolerance) [[unlikely]] {

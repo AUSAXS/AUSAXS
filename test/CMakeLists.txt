@@ -32,7 +32,7 @@ add_custom_target(tests)
 foreach(test ${TEST_SRC})
 	cmake_path(GET test STEM testname)
 	set(name "test_${testname}")
-	add_executable("${name}" ${test} ${ENABLE_DEBUG})
+	add_executable("${name}" ${test} $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
 	target_link_libraries("${name}" Catch2::Catch2WithMain)
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/bin"
