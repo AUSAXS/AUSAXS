@@ -142,13 +142,6 @@ void ImageStackBase::read(std::ifstream& istream) {
     for (unsigned int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
-
-    // update grid widths to reflect map width
-    auto axes = header->get_axes();
-    double xwidth = axes.x.width();
-    double ywidth = axes.y.width();
-    double zwidth = axes.z.width();
-    settings::grid::width = std::min({xwidth, ywidth, zwidth});
 }
 
 float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {

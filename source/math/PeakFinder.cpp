@@ -352,7 +352,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                     // if the previous bound was not kept
                     if (prominences[i-1] < min_prominence) {
                         // check if the new prominence is large enough
-                        if (min_prominence < prominences[i-1]) {
+                        if (min_prominence < new_prominence) {
                             filtered_minima.push_back(local_minima[i-1]);
                             filtered_bounds.push_back(local_minima_bounds[i-1]);
                         }

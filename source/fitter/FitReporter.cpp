@@ -70,11 +70,11 @@ void FitReporter::save(const std::vector<T>& fits, const io::File& path, const s
 }
 
 std::function<std::string(std::string)> FitReporter::get_title_reporter(const std::vector<std::string>& titles) {
-    std::function<std::string(std::string)> title_reporter;
+    std::function<std::string(const std::string&)> title_reporter;
     if (titles.empty()) {
-        title_reporter = [] (std::string) {return "";};
+        title_reporter = [] (const std::string&) {return "";};
     } else {
-        title_reporter = [] (std::string title) {
+        title_reporter = [] (const std::string& title) {
             std::string output;
             output += "\n+----------------------------------------------------------+";
 

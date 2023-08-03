@@ -86,7 +86,7 @@ plt.savefig(os.path.join(folder, "all.png"))
 ###                     SINGLE                       ###
 ########################################################
 chi2s = []
-for i in range(len(data)):
+for i, _ in enumerate(data):
     # calculate the autocorrelation with the other datasets
     autocorr = []
     for j in range(i, len(data)):
@@ -170,7 +170,7 @@ plt.savefig(os.path.join(folder, "autocorrelation.png"))
 #     # plot the data
 #     plt.figure(mainfig.number)
 #     plt.plot(data[:, 0], data[:, 1], c="k", alpha=0.1)
-#     if (i == 2): 
+#     if (i == 2):
 #         plt.plot(data[:, 0], data[:, 1], label=stem.lower(), c="r", alpha=0.5)
 
 #     plt.figure(subfig.number)

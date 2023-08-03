@@ -335,9 +335,9 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     if (settings::em::plot_landscapes && settings::em::hydrate) {
         std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN); 
     }
-    
-     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
-     // 'this' is ok since prepare_function is private and thus only used within the class itself
+
+    // fitter is captured by value to guarantee its lifetime will be the same as the lambda
+    // 'this' is ok since prepare_function is private and thus only used within the class itself
     std::function<double(std::vector<double>)> chi2 = [this, fitter] (const std::vector<double>& params) {
         static unsigned int counter = 0;
         static double last_c = 5;
@@ -361,7 +361,8 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
             evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         } else {
-            p->clear_grid();                // clear grid from previous iteration
+            p->clear_grid();                                                                                // clear grid from previous iteration
+            std::cout << "\nVolume: " << p->get_volume_grid() << std::endl;
             auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
                 *constants::mass::density::protein                                                          
                 /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa

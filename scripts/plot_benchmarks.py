@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
 atoms = [1001, 1004, 1481, 2955, 4734, 7729, 9488, 11745, 12340, 16640, 43655]
 pepsi_saxs = [17, 18, 17, 45, 69, 115, 228, 98, 425, 181, 2247]

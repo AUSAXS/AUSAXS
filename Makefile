@@ -188,7 +188,7 @@ em_fit/%: build/bin/em_fitter
 		echo "Fitting " $${path} "..."; \
 		sleep 1; \
 		$< $${path} $${measurement} ${options}; \
-		make plot/output/em_fitter/$*; \
+		make plot/output/em_fitter/$*/$$(basename $$(notdir $${measurement})); \
 	done
 
 em_bench/%: build/bin/em_bench
