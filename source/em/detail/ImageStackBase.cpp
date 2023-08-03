@@ -13,7 +13,7 @@
 #include <utility/Constants.h>
 #include <utility/Axis3D.h>
 #include <mini/detail/Evaluation.h>
-#include <Symbols.h>
+#include <settings/GridSettings.h>
 
 #include <fstream>
 #include <cstdint>
@@ -132,7 +132,6 @@ void ImageStackBase::read(std::ifstream& istream) {
         for (i[1] = 0; i[1] < ym; i[1]++) {
             for (i[0] = 0; i[0] < xm; i[0]++) {
                 index(x, y, z) = readfunc(istream, header->get_byte_size());
-                // istream.read(reinterpret_cast<char*>(&index(x, y, z)), header->get_byte_size());
             }
         }
     }
@@ -143,6 +142,13 @@ void ImageStackBase::read(std::ifstream& istream) {
     for (unsigned int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
+
+    // update grid widths to reflect map width
+    auto axes = header->get_axes();
+    double xwidth = axes.x.width();
+    double ywidth = axes.y.width();
+    double zwidth = axes.z.width();
+    settings::grid::width = std::min({xwidth, ywidth, zwidth});
 }
 
 float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {

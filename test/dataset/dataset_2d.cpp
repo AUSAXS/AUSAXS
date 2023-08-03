@@ -215,14 +215,43 @@ TEST_CASE("basics") {
 
 
 TEST_CASE("Dataset2D::pushback") {
-    Dataset2D data;
-    data.push_back(1, 2, 3, 4);
-    data.push_back(5, 6, 7, 8);
-    data.push_back(9, 10, 11, 12);
-    data.push_back(Point2D(13, 14, 15, 16));        
+    SECTION("various") {
+        Dataset2D data;
+        data.push_back(1, 2, 3, 4);
+        data.push_back(5, 6, 7, 8);
+        data.push_back(9, 10, 11, 12);
+        data.push_back(Point2D(13, 14, 15, 16));        
 
-    CHECK(data.x() == Vector{1, 5, 9, 13});
-    CHECK(data.y() == Vector{2, 6, 10, 14});
-    CHECK(data.xerr() == Vector{3, 7, 11, 15});
-    CHECK(data.yerr() == Vector{4, 8, 12, 16});
+        CHECK(data.x() == Vector{1, 5, 9, 13});
+        CHECK(data.y() == Vector{2, 6, 10, 14});
+        CHECK(data.xerr() == Vector{3, 7, 11, 15});
+        CHECK(data.yerr() == Vector{4, 8, 12, 16});
+    }
+
+    SECTION("Point2D") {
+        Point2D p0(0, 4);
+        Point2D p1(1, 2);
+        Point2D p2(3, 4);
+        Point2D p3(5, 6);
+        Point2D p4(7, 8);
+        Point2D p5(9, 10);
+
+        Dataset2D data;
+        data.push_back(p0);
+        data.push_back(p1);
+        data.push_back(p2);
+        data.push_back(p3);
+        data.push_back(p4);
+        data.push_back(p5);
+
+        CHECK(data.size() == 6);
+        CHECK(data.x() == std::vector<double>({0, 1, 3, 5, 7, 9}));
+        CHECK(data.y() == std::vector<double>({4, 2, 4, 6, 8, 10}));
+
+        CHECK(data.get_point(0) == p0);
+        CHECK(data.get_point(1) == p1);
+        CHECK(data.get_point(2) == p2);
+
+        CHECK(data.find_minimum() == p1);
+    }
 }

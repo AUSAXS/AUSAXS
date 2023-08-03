@@ -8,19 +8,19 @@
 
 class Multiset {
     public:
-        Multiset() {}
+        [[deprecated]] Multiset() = default;
 
-        Multiset(const io::Folder& path) {read(path);}
+        [[deprecated]] Multiset(const io::Folder& path) {read(path);}
 
-        explicit Multiset(unsigned int size) : data(size) {}
+        [[deprecated]] explicit Multiset(unsigned int size) : data(size) {}
 
-        explicit Multiset(const std::vector<Dataset2D>& data);
+        [[deprecated]] explicit Multiset(const std::vector<Dataset2D>& data);
 
-        explicit Multiset(const std::vector<SimpleDataset>& data);
+        [[deprecated]] explicit Multiset(const std::vector<SimpleDataset>& data);
 
-        explicit Multiset(const Dataset2D& data);
+        [[deprecated]] explicit Multiset(const Dataset2D& data);
 
-        Multiset(const Dataset2D& data1, const Dataset2D& data2);
+        [[deprecated]] Multiset(const Dataset2D& data1, const Dataset2D& data2);
 
         const Dataset2D& operator[](unsigned int i) const;
         Dataset2D& operator[](unsigned int i);
