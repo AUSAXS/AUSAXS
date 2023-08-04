@@ -142,6 +142,14 @@ void ImageStackBase::read(std::ifstream& istream) {
     for (unsigned int z = 0; z < size_z; z++) {
         image(z).set_z(z);
     }
+
+    // update dummy volumes so they can cover the map interior
+    auto axes = header->get_axes();
+    double xwidth = axes.x.width();
+    double ywidth = axes.y.width();
+    double zwidth = axes.z.width();
+    double minwidth = std::min({xwidth, ywidth, zwidth})*settings::em::sample_frequency;
+    settings::grid::ra = std::sqrt(2*std::pow(minwidth, 2))/2 + settings::grid::width;
 }
 
 float& ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) {

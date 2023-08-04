@@ -6,7 +6,6 @@ namespace settings::grid {
     double percent_water = 0.1;
     double ra = 2.4;
     double rh = 1.5;
-    double ra_effective = 2.4;
     double width = 1;
     double scaling = 0.25;
     bool cubic = false;
@@ -22,7 +21,6 @@ namespace settings::grid {
             settings::io::create(percent_water, "percent_water"),
             settings::io::create(ra, "ra"),
             settings::io::create(rh, "rh"),
-            settings::io::create(ra_effective, "ra_effective"),
             settings::io::create(width, "width"),
             settings::io::create(scaling, "scaling"),
             settings::io::create(cubic, "cubic"),

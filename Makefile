@@ -186,9 +186,9 @@ em_fit/%: build/bin/em_fitter
 	for map in $${emmaps}; do\
 		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 		echo "Fitting " $${path} "..."; \
-		sleep 1; \
 		$< $${path} $${measurement} ${options}; \
-		make plot/output/em_fitter/$*/$$(basename $$(notdir $${measurement})); \
+		make plot/output/em_fitter/$*/$$(basename "$${measurement}" .dat); \
+		sleep 1; \
 	done
 
 em_bench/%: build/bin/em_bench

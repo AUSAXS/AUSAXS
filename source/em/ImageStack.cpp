@@ -1,20 +1,15 @@
 #include <em/ImageStack.h>
-#include <settings/EMSettings.h>
-#include <settings/PlotSettings.h>
-#include <settings/GeneralSettings.h>
-#include <settings/ProteinSettings.h>
-#include <settings/FitSettings.h>
-#include <settings/HistogramSettings.h>
-#include <utility/Console.h>
+#include <settings/All.h>
 #include <plots/All.h>
+#include <mini/All.h>
+#include <fitter/Fit.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/HydrationFitter.h>
-#include <mini/All.h>
 #include <mini/detail/Parameter.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
 #include <data/Protein.h>
-#include <fitter/Fit.h>
+#include <utility/Console.h>
 #include <utility/Limit.h>
 #include <utility/Utility.h>
 #include <utility/Constants.h>
@@ -142,7 +137,10 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         for (auto m : minima) {
             if (avg.x(m) == min_abs.x) {continue;}
             auto temp_protein = get_protein_manager()->get_protein(avg.x(m));
-            temp_protein->generate_new_hydration();
+            if (settings::em::hydrate) {
+                temp_protein->clear_grid();
+                temp_protein->generate_new_hydration();
+            }
             temp_protein->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
             info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(avg.x(m))) + " " + std::to_string(avg.y(m)) + "\n";
         }
@@ -315,7 +313,13 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min_abs.x);
-    if (settings::em::save_pdb) {get_protein_manager()->get_protein()->save(settings::general::output + "model.pdb");}
+    if (settings::em::save_pdb) {
+        auto temp_protein = get_protein_manager()->get_protein(min_abs.x);
+        if (settings::em::hydrate) {
+            temp_protein->clear_grid();
+            temp_protein->generate_new_hydration();
+        }
+        temp_protein->save(settings::general::output + "model.pdb");}
     return emfit;
 }
 
