@@ -8,71 +8,121 @@
 #include <data/state/StateManager.h>
 
 #include <mutex>
+#include <list>
 #include <BS_thread_pool.hpp>
 
 using namespace hist;
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(Protein* protein) : PartialHistogramManager(protein) {}
+std::vector<BS::multi_future<std::vector<double>>> futures_self_corr;
+std::vector<BS::multi_future<std::vector<double>>> futures_pp;
+std::vector<BS::multi_future<std::vector<double>>> futures_hp;
+BS::multi_future<std::vector<double>> futures_hh;
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm) {}
+PartialHistogramManagerMT::PartialHistogramManagerMT(Protein* protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {
+    futures_self_corr = std::vector<BS::multi_future<std::vector<double>>>(size);
+    futures_pp = std::vector<BS::multi_future<std::vector<double>>>(size*size);
+    futures_hp = std::vector<BS::multi_future<std::vector<double>>>(size);
+    futures_hh = BS::multi_future<std::vector<double>>();
+}
+
+PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {
+    futures_self_corr = std::vector<BS::multi_future<std::vector<double>>>(size);
+    futures_pp = std::vector<BS::multi_future<std::vector<double>>>(size*size);
+    futures_hp = std::vector<BS::multi_future<std::vector<double>>>(size);
+    futures_hh = BS::multi_future<std::vector<double>>();
+}
 
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
 Histogram PartialHistogramManagerMT::calculate() {
-    // if (statemanager == nullptr) {throw except::unexpected("PartialHistogramManagerMT::calculate: statemanager is null");}
     const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
+    const bool hydration_modified = statemanager->get_modified_hydration();
 
-    pool = std::make_unique<BS::thread_pool>(settings::general::threads);
     // check if the object has already been initialized
     if (master.p.size() == 0) [[unlikely]] {
         initialize(); 
     }
-    
-    // if not, we must first check if the coordinates have been changed in any of the bodies
+
+    // if not, we must first check if the atom coordinates have been changed in any of the bodies
     else {
-        for (unsigned int i = 0; i < size; i++) {
+        for (unsigned int i = 0; i < size; ++i) {
+
+            // if the internal state was modified, we have to recalculate the self-correlation
             if (internally_modified[i]) {
-                // if the internal state was modified, we have to recalculate the self-correlation
                 calc_self_correlation(i);
-            } else if (externally_modified[i]) {
-                // if the external state was modified, we have to update the coordinate representations
-                coords_p[i] = detail::CompactCoordinates(protein->get_body(i));
+            }
+
+            // if the external state was modified, we have to update the coordinate representations for later calculations
+            else if (externally_modified[i]) {
+                pool->push_task(&PartialHistogramManagerMT::update_compact_representation_body, this, i);
+            }
+        }
+
+        // merge the partial results from each thread and add it to the master histogram
+        for (unsigned int i = 0; i < size; ++i) {
+            if (internally_modified[i]) {
+                pool->push_task(&PartialHistogramManagerMT::combine_self_correlation, this, i);
             }
         }
     }
+
+    // small efficiency improvement: if the hydration layer was modified, we can update the compact representations in parallel with the self-correlation
+    if (hydration_modified) {
+        pool->push_task(&PartialHistogramManagerMT::update_compact_representation_water, this);
+    }
+    pool->wait_for_tasks(); // ensure the compact representations have been updated before continuing
 
     // check if the hydration layer was modified
-    if (statemanager->get_modified_hydration()) {
-        coords_h = detail::CompactCoordinates(protein->get_waters()); // if so, first update the compact coordinate representation
-        calc_hh(); // then update the partial histogram
+    if (hydration_modified) {
+        calc_hh();
+    }
 
-        // iterate through the lower triangle
-        for (unsigned int i = 0; i < size; i++) {
-            for (unsigned int j = 0; j < i; j++) {
+    // iterate through the lower triangle and check if either of each pair of bodies was modified
+    for (unsigned int i = 0; i < size; ++i) {
+        for (unsigned int j = 0; j < i; ++j) {
+            if (externally_modified[i] || externally_modified[j]) {
+                // one of the bodies was modified, so we recalculate its partial histogram
+                calc_pp(i, j);
+            }
+        }
+
+        // we also have to remember to update the partial histograms with the hydration layer
+        if (externally_modified[i] || hydration_modified) {
+            calc_hp(i);
+        }
+    }
+
+    // merge the partial results from each thread and add it to the master histogram
+    {
+        if (hydration_modified) {
+            pool->push_task(&PartialHistogramManagerMT::combine_hh, this);
+        }
+
+        for (unsigned int i = 0; i < size; ++i) {
+            for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
-                    calc_pp(i, j);
+                    pool->push_task(&PartialHistogramManagerMT::combine_pp, this, i, j);
                 }
             }
-            calc_hp(i); // we then update its partial histograms
+
+            if (externally_modified[i] || hydration_modified) {
+                pool->push_task(&PartialHistogramManagerMT::combine_hp, this, i);
+            }
         }
     }
 
-    // if the hydration layer was not modified
-    else {
-        for (unsigned int i = 0; i < size; i++) {
-            for (unsigned int j = 0; j < i; j++) {
-                if (externally_modified[i] || externally_modified[j]) { // if either of the two bodies were modified
-                    calc_pp(i, j); // recalculate their partial histogram
-                }
-            }
-            if (externally_modified[i]) { // if a body was modified
-                calc_hp(i); // update its partial histogram with the hydration layer
-            }
-        }
-    }
     statemanager->reset();
+    pool->wait_for_tasks();
     return Histogram(master.p, master.axis);
+}
+
+void PartialHistogramManagerMT::update_compact_representation_body(unsigned int index) {
+    coords_p[index] = std::move(detail::CompactCoordinates(protein->get_body(index)));
+}
+
+void PartialHistogramManagerMT::update_compact_representation_water() {
+    coords_h = std::move(detail::CompactCoordinates(protein->get_waters()));
 }
 
 ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
@@ -84,8 +134,8 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
     std::vector<double> p_pp = master.base.p;
     std::vector<double> p_hp(total.axis.bins, 0);
     // iterate through all partial histograms in the upper triangle
-    for (unsigned int i = 0; i < size; i++) {
-        for (unsigned int j = 0; j < i; j++) {
+    for (unsigned int i = 0; i < size; ++i) {
+        for (unsigned int j = 0; j < i; ++j) {
             detail::PartialHistogram& current = partials_pp[i][j];
 
             // iterate through each entry in the partial histogram
@@ -96,7 +146,7 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
     }
 
     // iterate through all partial hydration-protein histograms
-    for (unsigned int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < size; ++i) {
         detail::PartialHistogram& current = partials_hp[i];
 
         // iterate through each entry in the partial histogram
@@ -112,15 +162,44 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
     return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axis);
 }
 
-void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
+/**
+ * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
+ */
+void PartialHistogramManagerMT::initialize() {
     double width = settings::axes::distance_bin_width;
-    detail::CompactCoordinates current(protein->get_body(index));
+    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/width); 
+    std::vector<double> p_base(axis.bins, 0);
+    master = detail::MasterHistogram(p_base, axis);
+
+    // std::vector<BS::multi_future<std::vector<double>>> futures(size);
+    partials_hh = detail::PartialHistogram(axis);
+    for (unsigned int i = 0; i < size; ++i) {
+        partials_hp[i] = detail::PartialHistogram(axis);
+        partials_pp[i][i] = detail::PartialHistogram(axis);
+        // futures[i] = std::move(calc_self_correlation(i));
+        calc_self_correlation(i);
+
+        for (unsigned int j = 0; j < i; j++) {
+            partials_pp[i][j] = detail::PartialHistogram(axis);
+        }
+    }
+
+    for (unsigned int i = 0; i < size; ++i) {
+        pool->push_task(&PartialHistogramManagerMT::combine_self_correlation, this, i);
+    }
+}
+
+void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
+    update_compact_representation_body(index);
 
     // calculate internal distances between atoms
-    auto calc_internal = [&] (unsigned int imin, unsigned int imax) {
+    static auto calc_internal = [this] (unsigned int index, unsigned int imin, unsigned int imax) {
+        double width = settings::axes::distance_bin_width;
+        detail::CompactCoordinates& current = coords_p[index];
+
         std::vector<double> p_pp(master.axis.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = i+1; j < current.size; j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = i+1; j < current.size; ++j) {
                 float weight = current.data[i].w*current.data[j].w;
                 float dx = current.data[i].x - current.data[j].x;
                 float dy = current.data[i].y - current.data[j].y;
@@ -133,69 +212,30 @@ void PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
     };
 
     // calculate self correlation
-    auto calc_self = [&] () {
+    static auto calc_self = [this] (unsigned int index) {
+        detail::CompactCoordinates& current = coords_p[index];
         std::vector<double> p_pp(master.axis.bins, 0);
-        for (unsigned int i = 0; i < current.size; i++) {p_pp[0] += current.data[i].w*current.data[i].w;}
+        for (unsigned int i = 0; i < current.size; ++i) {
+            p_pp[0] += current.data[i].w*current.data[i].w;
+        }
         return p_pp;
     };
 
-    // submit jobs to the thread pool
-    BS::multi_future<std::vector<double>> pp;
-    for (unsigned int i = 0; i < current.size; i += settings::general::detail::job_size) {
-        pp.push_back(pool->submit(calc_internal, i, std::min(i+settings::general::detail::job_size, current.size)));
+    for (unsigned int i = 0; i < size; i += settings::general::detail::job_size) {
+        futures_self_corr[index].push_back(pool->submit(calc_internal, index, i, std::min(i+settings::general::detail::job_size, size)));
     }
-    pp.push_back(pool->submit(calc_self));
-    pool->wait_for_tasks();
-
-    // combine the results
-    std::vector<double> p_pp(master.axis.bins, 0);
-    for (auto& temp : pp.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; i++) {
-            p_pp[i] += temp[i];
-        }
-    }
-
-    // store the coordinates for later
-    coords_p[index] = std::move(current);
-
-    // update the master histogram
-    master.base -= partials_pp[index][index];
-    master -= partials_pp[index][index];
-    partials_pp[index][index].p = std::move(p_pp);
-    master += partials_pp[index][index];
-    master.base += partials_pp[index][index];
-}
-
-/**
- * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
- */
-void PartialHistogramManagerMT::initialize() {
-    double width = settings::axes::distance_bin_width;
-    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/width); 
-    std::vector<double> p_base(axis.bins, 0);
-    master = detail::MasterHistogram(p_base, axis);
-
-    partials_hh = detail::PartialHistogram(axis);
-    for (unsigned int n = 0; n < size; n++) {
-        partials_hp[n] = detail::PartialHistogram(axis);
-        partials_pp[n][n] = detail::PartialHistogram(axis);
-        calc_self_correlation(n);
-
-        for (unsigned int k = 0; k < n; k++) {
-            partials_pp[n][k] = detail::PartialHistogram(axis);
-        }
-    }
+    futures_self_corr[index].push_back(pool->submit(calc_self, index));
 }
 
 void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
-    double width = settings::axes::distance_bin_width;
+    static auto calc_pp = [this] (unsigned int n, unsigned int m, unsigned int imin, unsigned int imax) {
+        double width = settings::axes::distance_bin_width;
+        detail::CompactCoordinates& coords_n = coords_p[n];
+        detail::CompactCoordinates& coords_m = coords_p[m];
 
-    detail::CompactCoordinates& coords_n = coords_p[n];
-    detail::CompactCoordinates& coords_m = coords_p[m];
-    auto calc_pp = [&] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(master.axis.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = 0; j < coords_m.size; j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = 0; j < coords_m.size; ++j) {
                 float weight = coords_n.data[i].w*coords_m.data[j].w;
                 float dx = coords_n.data[i].x - coords_m.data[j].x;
                 float dy = coords_n.data[i].y - coords_m.data[j].y;
@@ -207,88 +247,20 @@ void PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
         return p_pp;
     };
 
-    // submit jobs to the thread pool
-    BS::multi_future<std::vector<double>> pp;
+    detail::CompactCoordinates& coords_n = coords_p[n];
     for (unsigned int i = 0; i < coords_n.size; i += settings::general::detail::job_size) {
-        pp.push_back(pool->submit(calc_pp, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
+        futures_pp[n + size*m].push_back(pool->submit(calc_pp, n, m, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
     }
-    pool->wait_for_tasks();
-
-    // combine the results
-    std::vector<double> p_pp(master.axis.bins, 0);
-    for (auto& temp : pp.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; i++) {
-            p_pp[i] += temp[i];
-        }
-    }
-
-    master -= partials_pp[n][m];
-    partials_pp[n][m].p = std::move(p_pp);
-    master += partials_pp[n][m];
-}
-
-void PartialHistogramManagerMT::calc_pp(unsigned int index) {
-    double width = settings::axes::distance_bin_width;
-    detail::CompactCoordinates& coords_i = coords_p[index];
-
-    auto calc_pp = [&] (unsigned int imin, unsigned int imax, const detail::CompactCoordinates& coords_j) {
-        std::vector<double> p_pp(master.axis.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = 0; j < coords_j.size; j++) {
-                float weight = coords_i.data[i].w*coords_j.data[j].w;
-                float dx = coords_i.data[i].x - coords_j.data[j].x;
-                float dy = coords_i.data[i].y - coords_j.data[j].y;
-                float dz = coords_i.data[i].z - coords_j.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp[dist/width] += 2*weight;
-            }
-        }
-        return p_pp;
-    };
-
-    // submit jobs to the thread pool
-    std::vector<BS::multi_future<std::vector<double>>> pp;
-    for (unsigned int n = 0; n < index; n++) { // loop from (0, index
-        for (unsigned int i = 0; i < coords_i.size; i += settings::general::detail::job_size) {
-            pp[n].push_back(pool->submit(calc_pp, i, std::min(i+settings::general::detail::job_size, coords_i.size), coords_p[n]));
-        }
-    }
-    for (unsigned int n = index+1; n < size; n++) { // loop from (0, index
-        for (unsigned int i = 0; i < coords_i.size; i += settings::general::detail::job_size) {
-            pp[n].push_back(pool->submit(calc_pp, i, std::min(i+settings::general::detail::job_size, coords_i.size), coords_p[n]));
-        }
-    }
-    pool->wait_for_tasks();
-
-    // combine the results
-    std::mutex mutex;
-    auto combine = [&] (unsigned int n) {
-        std::vector<double> p_pp(master.axis.bins, 0);
-        for (auto& temp : pp[n].get()) {
-            for (unsigned int i = 0; i < master.axis.bins; i++) {
-                p_pp[i] += temp[i];
-            }
-        }
-        mutex.lock();
-        master -= partials_pp[index][n];
-        partials_pp[index][n].p = std::move(p_pp);
-        master += partials_pp[index][n];
-        mutex.unlock();
-    };
-    pool->wait_for_tasks();
-
-    for (unsigned int n = 0; n < index; n++) {pool->push_task(combine, n);}
-    for (unsigned int n = index+1; n < size; n++) {pool->push_task(combine, n);}
 }
 
 void PartialHistogramManagerMT::calc_hp(unsigned int index) {
-    double width = settings::axes::distance_bin_width;
-    detail::CompactCoordinates& coords = coords_p[index];
+    static auto calc_hp = [this] (unsigned int index, unsigned int imin, unsigned int imax) {
+        double width = settings::axes::distance_bin_width;
+        detail::CompactCoordinates& coords = coords_p[index];
 
-    auto calc_hp = [&] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_hp(master.axis.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = 0; j < coords_h.size; j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = 0; j < coords_h.size; ++j) {
                 float weight = coords.data[i].w*coords_h.data[j].w;
                 float dx = coords.data[i].x - coords_h.data[j].x;
                 float dy = coords.data[i].y - coords_h.data[j].y;
@@ -300,34 +272,20 @@ void PartialHistogramManagerMT::calc_hp(unsigned int index) {
         return p_hp;
     };
 
-    // submit jobs to the thread pool
-    BS::multi_future<std::vector<double>> hp;
+    detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.size; i += settings::general::detail::job_size) {
-        hp.push_back(pool->submit(calc_hp, i, std::min(i+settings::general::detail::job_size, coords.size)));
+        futures_hp[index].push_back(pool->submit(calc_hp, index, i, std::min(i+settings::general::detail::job_size, coords.size)));
     }
-    pool->wait_for_tasks();
-
-    // combine the results
-    std::vector<double> p_hp(master.axis.bins, 0);
-    for (auto& temp : hp.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; i++) {
-            p_hp[i] += temp[i];
-        }
-    }
-
-    master -= partials_hp[index]; // subtract the previous hydration histogram
-    partials_hp[index].p = std::move(p_hp);
-    master += partials_hp[index]; // add the new hydration histogram
 }
 
 void PartialHistogramManagerMT::calc_hh() {
-    const double& width = settings::axes::distance_bin_width;
-
     // calculate internal distances for the hydration layer
-    auto calc_hh = [&] (unsigned int imin, unsigned int imax) {
+    static auto calc_hh = [this] (unsigned int imin, unsigned int imax) {
+        double width = settings::axes::distance_bin_width;
+
         std::vector<double> p_hh(master.axis.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = i+1; j < protein->get_waters().size(); j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = i+1; j < protein->get_waters().size(); ++j) {
                 float weight = coords_h.data[i].w*coords_h.data[j].w;
                 float dx = coords_h.data[i].x - coords_h.data[j].x;
                 float dy = coords_h.data[i].y - coords_h.data[j].y;
@@ -340,29 +298,92 @@ void PartialHistogramManagerMT::calc_hh() {
     };
 
     // calculate self correlation
-    auto calc_self = [&] () {
+    static auto calc_self = [this] () {
         std::vector<double> p_hh(master.axis.bins, 0);
-        for (unsigned int i = 0; i < protein->get_waters().size(); i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
+        for (unsigned int i = 0; i < protein->get_waters().size(); ++i) {
+            p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;
+        }
         return p_hh;
     };
 
-    // submit jobs to the thread pool
-    BS::multi_future<std::vector<double>> hh;
-    for (unsigned int i = 0; i < protein->get_waters().size(); i += settings::general::detail::job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, (unsigned int) protein->get_waters().size())));
+    for (unsigned int i = 0; i < coords_h.size; i += settings::general::detail::job_size) {
+        futures_hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, coords_h.size)));
     }
-    hh.push_back(pool->submit(calc_self));
-    pool->wait_for_tasks();
+    futures_hh.push_back(pool->submit(calc_self));
+}
 
-    // combine the results
-    std::vector<double> p_hh(master.axis.bins, 0);
-    for (auto& temp : hh.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; i++) {
-            p_hh[i] += temp[i];
+void PartialHistogramManagerMT::combine_self_correlation(unsigned int index) {
+    std::vector<double> p_pp(master.axis.bins, 0);
+
+    // iterate through all partial results. Each partial result is from a different thread calculation
+    for (auto& temp : futures_self_corr[index].get()) {
+        for (unsigned int i = 0; i < master.axis.bins; ++i) {
+            p_pp[i] += temp[i]; // add to p_pp
         }
     }
 
+    // update the master histogram
+    master_hist_mutex.lock();
+    master.base -= partials_pp[index][index];
+    master -= partials_pp[index][index];
+    partials_pp[index][index].p = std::move(p_pp);
+    master += partials_pp[index][index];
+    master_hist_mutex.unlock();
+}
+
+void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m) {
+    std::vector<double> p_pp(master.axis.bins, 0);
+
+    // iterate through all partial results. Each partial result is from a different thread calculation
+    for (auto& temp : futures_pp[n+m*size].get()) {
+        for (unsigned int i = 0; i < master.axis.bins; ++i) {
+            p_pp[i] += temp[i]; // add partial result to p_pp
+        }
+    }
+    futures_pp[n+m*size] = BS::multi_future<std::vector<double>>();
+
+    // update the master histogram
+    master_hist_mutex.lock();
+    master -= partials_pp[n][m];
+    partials_pp[n][m].p = std::move(p_pp);
+    master += partials_pp[n][m];
+    master_hist_mutex.unlock();
+}
+
+void PartialHistogramManagerMT::combine_hp(unsigned int index) {
+    std::vector<double> p_hp(master.axis.bins, 0);
+
+    // iterate through all partial results. Each partial result is from a different thread calculation
+    for (auto& temp : futures_hp[index].get()) {
+        for (unsigned int i = 0; i < master.axis.bins; ++i) {
+            p_hp[i] += temp[i]; // add partial result to p_hp
+        }
+    }
+    futures_hp[index] = BS::multi_future<std::vector<double>>();
+
+    // update the master histogram
+    master_hist_mutex.lock();
+    master -= partials_hp[index]; // subtract the previous hydration histogram
+    partials_hp[index].p = std::move(p_hp);
+    master += partials_hp[index]; // add the new hydration histogram
+    master_hist_mutex.unlock();
+}
+
+void PartialHistogramManagerMT::combine_hh() {
+    std::vector<double> p_hh(master.axis.bins, 0);
+
+    // iterate through all partial results. Each partial result is from a different thread calculation
+    for (auto& temp : futures_hh.get()) {
+        for (unsigned int i = 0; i < master.axis.bins; ++i) {
+            p_hh[i] += temp[i]; // add partial result to p_hh
+        }
+    }
+    futures_hh = BS::multi_future<std::vector<double>>();
+
+    // update the master histogram
+    master_hist_mutex.lock();
     master -= partials_hh; // subtract the previous hydration histogram
     partials_hh.p = std::move(p_hh);
     master += partials_hh; // add the new hydration histogram
+    master_hist_mutex.unlock();
 }

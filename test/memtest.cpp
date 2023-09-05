@@ -13,6 +13,18 @@
 
 using std::vector;
 
+TEST_CASE("interpolate_outside_range") {
+    std::vector<double> x1, y1;
+    for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
+        x1.push_back(xx);
+        y1.push_back(sin(xx));
+    }
+
+    Dataset data1({x1, y1});
+    data1.interpolate_y(-1);
+    data1.interpolate_y(3*M_PI);
+}
+
 /**
  * @brief These tests are meant to be run with valgrind to help identify memory issues. 
  *        I'll expand it as I encounter more leaks/bugs with the software. 

@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <plots/all.h>
+#include <plots/All.h>
 #include <em/ImageStack.h>
 #include <data/Protein.h>
 #include <utility/Utility.h>

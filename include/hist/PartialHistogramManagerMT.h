@@ -4,7 +4,10 @@
 
 #include <memory>
 
-namespace BS {class thread_pool;}
+namespace BS {
+	class thread_pool;
+	template<typename T> class multi_future;
+}
 namespace hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator.
@@ -29,6 +32,7 @@ namespace hist {
 
 		private:
 			std::unique_ptr<BS::thread_pool> pool;
+			std::mutex master_hist_mutex;
 
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
@@ -38,27 +42,49 @@ namespace hist {
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a index and all others. 
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_pp(unsigned int index);
+			// void calc_pp(unsigned int index);
+
+			/**
+			 * @brief Calculate the self-correlation of a body.
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
+			 */
+			void calc_self_correlation(unsigned int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
 			void calc_pp(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
 			void calc_hp(unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
+			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
 			void calc_hh();
 
+			void combine_self_correlation(unsigned int index);
+			void combine_pp(unsigned int n, unsigned int m);
+			void combine_hp(unsigned int index);
+			void combine_hh();
+
 			/**
-			 * @brief Calculate the self-correlation of a body. 
+			 * @brief Update the compact representation of the coordinates of body @a index.
+			 * 
+			 * @param index The index of the body to update.
 			 */
-			void calc_self_correlation(unsigned int index);
+			void update_compact_representation_body(unsigned int index);
+
+			/**
+			 * @brief Update the compact representation of the coordinates of the hydration layer.
+			 */
+			void update_compact_representation_water();
 	};
 }
