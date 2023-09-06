@@ -1,8 +1,8 @@
+#include <hist/PartialHistogramManagerMTFF.h>
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <data/Atom.h> 
 #include <data/Water.h>
-#include <hist/PartialHistogramManagerMTFF.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
@@ -13,21 +13,35 @@
 
 using namespace hist;
 
-std::vector<BS::multi_future<std::vector<double>>> futures_self_corr;
-std::vector<BS::multi_future<std::vector<double>>> futures_pp;
-std::vector<BS::multi_future<std::vector<double>>> futures_hp;
-BS::multi_future<std::vector<double>> futures_hh;
-
-PartialHistogramManagerMTFF::PartialHistogramManagerMTFF(Protein* protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {
-    futures_self_corr = std::vector<BS::multi_future<std::vector<double>>>(size);
-    futures_pp = std::vector<BS::multi_future<std::vector<double>>>(size*size);
-    futures_hp = std::vector<BS::multi_future<std::vector<double>>>(size);
-    futures_hh = BS::multi_future<std::vector<double>>();
-}
+PartialHistogramManagerMTFF::PartialHistogramManagerMTFF(Protein* protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 
 PartialHistogramManagerMTFF::~PartialHistogramManagerMTFF() = default;
 
 Histogram PartialHistogramManagerMTFF::calculate() {
+    std::vector<char> type(protein->atom_size());
+    {
+        unsigned int counter = 0;
+        for (const auto& body : protein->get_bodies()) {
+            for (const auto& atom : body.get_atoms()) {
+                std::string element = atom.get_element();
+                if (element == "H") {type[counter++] = 'H';}
+                else if (element == "C") {type[counter++] = 'C';}
+                else if (element == "N") {type[counter++] = 'N';}
+                else if (element == "O") {type[counter++] = 'O';}
+                else if (element == "S") {type[counter++] = 'S';}
+                else {type[counter++] = 'X';}
+            }
+        }
+    }
+
+    std::vector<BS::multi_future<std::vector<double>>> futures_self_corr;
+    std::vector<BS::multi_future<std::vector<double>>> futures_pp;
+    std::vector<BS::multi_future<std::vector<double>>> futures_hp;
+    BS::multi_future<std::vector<double>> futures_hh;
+    futures_self_corr.reserve(size);
+    futures_pp.reserve(size*(size-1)/2);
+    futures_hp.reserve(size);
+
     const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
     const bool hydration_modified = statemanager->get_modified_hydration();
@@ -43,7 +57,7 @@ Histogram PartialHistogramManagerMTFF::calculate() {
 
             // if the internal state was modified, we have to recalculate the self-correlation
             if (internally_modified[i]) {
-                calc_self_correlation(i);
+                futures_self_corr.push_back(calc_self_correlation(i));
             }
 
             // if the external state was modified, we have to update the coordinate representations for later calculations
@@ -53,9 +67,10 @@ Histogram PartialHistogramManagerMTFF::calculate() {
         }
 
         // merge the partial results from each thread and add it to the master histogram
+        unsigned int counter = 0;
         for (unsigned int i = 0; i < size; ++i) {
             if (internally_modified[i]) {
-                pool->push_task(&PartialHistogramManagerMTFF::combine_self_correlation, this, i);
+                pool->push_task(&PartialHistogramManagerMTFF::combine_self_correlation, this, i, std::ref(futures_self_corr[counter++]));
             }
         }
     }
@@ -68,7 +83,7 @@ Histogram PartialHistogramManagerMTFF::calculate() {
 
     // check if the hydration layer was modified
     if (hydration_modified) {
-        calc_hh();
+        futures_hh = calc_hh();
     }
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
@@ -76,31 +91,32 @@ Histogram PartialHistogramManagerMTFF::calculate() {
         for (unsigned int j = 0; j < i; ++j) {
             if (externally_modified[i] || externally_modified[j]) {
                 // one of the bodies was modified, so we recalculate its partial histogram
-                calc_pp(i, j);
+                futures_pp.push_back(calc_pp(i, j));
             }
         }
 
         // we also have to remember to update the partial histograms with the hydration layer
         if (externally_modified[i] || hydration_modified) {
-            calc_hp(i);
+            futures_hp.push_back(calc_hp(i));
         }
     }
 
     // merge the partial results from each thread and add it to the master histogram
     {
         if (hydration_modified) {
-            pool->push_task(&PartialHistogramManagerMTFF::combine_hh, this);
+            pool->push_task(&PartialHistogramManagerMTFF::combine_hh, this, std::ref(futures_hh));
         }
 
+        unsigned int counter_pp = 0, counter_hp = 0;
         for (unsigned int i = 0; i < size; ++i) {
             for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
-                    pool->push_task(&PartialHistogramManagerMTFF::combine_pp, this, i, j);
+                    pool->push_task(&PartialHistogramManagerMTFF::combine_pp, this, i, j, std::ref(futures_pp[counter_pp++]));
                 }
             }
 
             if (externally_modified[i] || hydration_modified) {
-                pool->push_task(&PartialHistogramManagerMTFF::combine_hp, this, i);
+                pool->push_task(&PartialHistogramManagerMTFF::combine_hp, this, i, std::ref(futures_hp[counter_hp++]));
             }
         }
     }
@@ -164,13 +180,13 @@ void PartialHistogramManagerMTFF::initialize() {
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
-    // std::vector<BS::multi_future<std::vector<double>>> futures(size);
+    static std::vector<BS::multi_future<std::vector<double>>> futures;
+    futures = std::vector<BS::multi_future<std::vector<double>>>(size);
     partials_hh = detail::PartialHistogram(axis);
     for (unsigned int i = 0; i < size; ++i) {
         partials_hp[i] = detail::PartialHistogram(axis);
         partials_pp[i][i] = detail::PartialHistogram(axis);
-        // futures[i] = std::move(calc_self_correlation(i));
-        calc_self_correlation(i);
+        futures[i] = calc_self_correlation(i);
 
         for (unsigned int j = 0; j < i; j++) {
             partials_pp[i][j] = detail::PartialHistogram(axis);
@@ -178,11 +194,11 @@ void PartialHistogramManagerMTFF::initialize() {
     }
 
     for (unsigned int i = 0; i < size; ++i) {
-        pool->push_task(&PartialHistogramManagerMTFF::combine_self_correlation, this, i);
+        pool->push_task(&PartialHistogramManagerMTFF::combine_self_correlation, this, i, std::ref(futures[i]));
     }
 }
 
-void PartialHistogramManagerMTFF::calc_self_correlation(unsigned int index) {
+BS::multi_future<std::vector<double>> PartialHistogramManagerMTFF::calc_self_correlation(unsigned int index) {
     update_compact_representation_body(index);
 
     // calculate internal distances between atoms
@@ -214,13 +230,15 @@ void PartialHistogramManagerMTFF::calc_self_correlation(unsigned int index) {
         return p_pp;
     };
 
+    BS::multi_future<std::vector<double>> futures_self_corr;
     for (unsigned int i = 0; i < size; i += settings::general::detail::job_size) {
-        futures_self_corr[index].push_back(pool->submit(calc_internal, index, i, std::min(i+settings::general::detail::job_size, size)));
+        futures_self_corr.push_back(pool->submit(calc_internal, index, i, std::min(i+settings::general::detail::job_size, size)));
     }
-    futures_self_corr[index].push_back(pool->submit(calc_self, index));
+    futures_self_corr.push_back(pool->submit(calc_self, index));
+    return futures_self_corr;
 }
 
-void PartialHistogramManagerMTFF::calc_pp(unsigned int n, unsigned int m) {
+BS::multi_future<std::vector<double>> PartialHistogramManagerMTFF::calc_pp(unsigned int n, unsigned int m) {
     static auto calc_pp = [this] (unsigned int n, unsigned int m, unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
         detail::CompactCoordinates& coords_n = coords_p[n];
@@ -240,13 +258,15 @@ void PartialHistogramManagerMTFF::calc_pp(unsigned int n, unsigned int m) {
         return p_pp;
     };
 
+    BS::multi_future<std::vector<double>> futures_pp;
     detail::CompactCoordinates& coords_n = coords_p[n];
     for (unsigned int i = 0; i < coords_n.size; i += settings::general::detail::job_size) {
-        futures_pp[n + size*m].push_back(pool->submit(calc_pp, n, m, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
+        futures_pp.push_back(pool->submit(calc_pp, n, m, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
     }
+    return futures_pp;
 }
 
-void PartialHistogramManagerMTFF::calc_hp(unsigned int index) {
+BS::multi_future<std::vector<double>> PartialHistogramManagerMTFF::calc_hp(unsigned int index) {
     static auto calc_hp = [this] (unsigned int index, unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
         detail::CompactCoordinates& coords = coords_p[index];
@@ -265,13 +285,15 @@ void PartialHistogramManagerMTFF::calc_hp(unsigned int index) {
         return p_hp;
     };
 
+    BS::multi_future<std::vector<double>> futures_hp;
     detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.size; i += settings::general::detail::job_size) {
-        futures_hp[index].push_back(pool->submit(calc_hp, index, i, std::min(i+settings::general::detail::job_size, coords.size)));
+        futures_hp.push_back(pool->submit(calc_hp, index, i, std::min(i+settings::general::detail::job_size, coords.size)));
     }
+    return futures_hp;
 }
 
-void PartialHistogramManagerMTFF::calc_hh() {
+BS::multi_future<std::vector<double>> PartialHistogramManagerMTFF::calc_hh() {
     // calculate internal distances for the hydration layer
     static auto calc_hh = [this] (unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
@@ -299,17 +321,19 @@ void PartialHistogramManagerMTFF::calc_hh() {
         return p_hh;
     };
 
+    BS::multi_future<std::vector<double>> futures_hh;
     for (unsigned int i = 0; i < coords_h.size; i += settings::general::detail::job_size) {
         futures_hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, coords_h.size)));
     }
     futures_hh.push_back(pool->submit(calc_self));
+    return futures_hh;
 }
 
-void PartialHistogramManagerMTFF::combine_self_correlation(unsigned int index) {
+void PartialHistogramManagerMTFF::combine_self_correlation(unsigned int index, BS::multi_future<std::vector<double>>& futures) {
     std::vector<double> p_pp(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures_self_corr[index].get()) {
+    for (auto& temp : futures.get()) {
         for (unsigned int i = 0; i < master.axis.bins; ++i) {
             p_pp[i] += temp[i]; // add to p_pp
         }
@@ -324,16 +348,15 @@ void PartialHistogramManagerMTFF::combine_self_correlation(unsigned int index) {
     master_hist_mutex.unlock();
 }
 
-void PartialHistogramManagerMTFF::combine_pp(unsigned int n, unsigned int m) {
+void PartialHistogramManagerMTFF::combine_pp(unsigned int n, unsigned int m, BS::multi_future<std::vector<double>>& futures) {
     std::vector<double> p_pp(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures_pp[n+m*size].get()) {
+    for (auto& temp : futures.get()) {
         for (unsigned int i = 0; i < master.axis.bins; ++i) {
             p_pp[i] += temp[i]; // add partial result to p_pp
         }
     }
-    futures_pp[n+m*size] = BS::multi_future<std::vector<double>>();
 
     // update the master histogram
     master_hist_mutex.lock();
@@ -343,16 +366,15 @@ void PartialHistogramManagerMTFF::combine_pp(unsigned int n, unsigned int m) {
     master_hist_mutex.unlock();
 }
 
-void PartialHistogramManagerMTFF::combine_hp(unsigned int index) {
+void PartialHistogramManagerMTFF::combine_hp(unsigned int index, BS::multi_future<std::vector<double>>& futures) {
     std::vector<double> p_hp(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures_hp[index].get()) {
+    for (auto& temp : futures.get()) {
         for (unsigned int i = 0; i < master.axis.bins; ++i) {
             p_hp[i] += temp[i]; // add partial result to p_hp
         }
     }
-    futures_hp[index] = BS::multi_future<std::vector<double>>();
 
     // update the master histogram
     master_hist_mutex.lock();
@@ -362,16 +384,15 @@ void PartialHistogramManagerMTFF::combine_hp(unsigned int index) {
     master_hist_mutex.unlock();
 }
 
-void PartialHistogramManagerMTFF::combine_hh() {
+void PartialHistogramManagerMTFF::combine_hh(BS::multi_future<std::vector<double>>& futures) {
     std::vector<double> p_hh(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures_hh.get()) {
+    for (auto& temp : futures.get()) {
         for (unsigned int i = 0; i < master.axis.bins; ++i) {
             p_hh[i] += temp[i]; // add partial result to p_hh
         }
     }
-    futures_hh = BS::multi_future<std::vector<double>>();
 
     // update the master histogram
     master_hist_mutex.lock();

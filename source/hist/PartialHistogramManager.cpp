@@ -1,14 +1,14 @@
+#include <hist/PartialHistogramManager.h>
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <data/Atom.h>
 #include <data/Water.h>
-#include <hist/PartialHistogramManager.h>
 #include <data/state/StateManager.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
 
-PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramManager(protein), coords_p(size), partials_pp(size, std::vector<detail::PartialHistogram>(size)), partials_hp(size) {}
+PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramManager(protein), coords_p(size), partials_pp(size, size), partials_hp(size) {}
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 
@@ -78,7 +78,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < size; i++) {
         for (unsigned int j = 0; j < i; j++) {
-            detail::PartialHistogram& current = partials_pp[i][j];
+            detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram
             for (unsigned int k = 0; k < total.axis.bins; k++) {
@@ -89,7 +89,7 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
 
     // iterate through all partial hydration-protein histograms
     for (unsigned int i = 0; i < size; i++) {
-        detail::PartialHistogram& current = partials_hp[i];
+        detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
         for (unsigned int k = 0; k < total.axis.bins; k++) {
@@ -127,11 +127,11 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
     // store the coordinates for later
     coords_p[index] = std::move(current);
 
-    master.base -= partials_pp[index][index];
-    master -= partials_pp[index][index];
-    partials_pp[index][index].p = std::move(p_pp);
-    master += partials_pp[index][index];
-    master.base += partials_pp[index][index];
+    master.base -= partials_pp.index(index, index);
+    master -= partials_pp.index(index, index);
+    partials_pp.index(index, index).p = std::move(p_pp);
+    master += partials_pp.index(index, index);
+    master.base += partials_pp.index(index, index);
 }
 
 /**
@@ -145,12 +145,12 @@ void PartialHistogramManager::initialize() {
 
     partials_hh = detail::PartialHistogram(axis);
     for (unsigned int n = 0; n < size; n++) {
-        partials_hp[n] = detail::PartialHistogram(axis);
-        partials_pp[n][n] = detail::PartialHistogram(axis);
+        partials_hp.index(n) = detail::PartialHistogram(axis);
+        partials_pp.index(n, n) = detail::PartialHistogram(axis);
         calc_self_correlation(n);
 
         for (unsigned int k = 0; k < n; k++) {
-            partials_pp[n][k] = detail::PartialHistogram(axis);
+            partials_pp.index(n, k) = detail::PartialHistogram(axis);
         }
     }
 }
@@ -171,9 +171,9 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
             p_pp[dist/width] += 2*weight;
         }
     }
-    master -= partials_pp[n][m];
-    partials_pp[n][m].p = std::move(p_pp);
-    master += partials_pp[n][m];
+    master -= partials_pp.index(n, m);
+    partials_pp.index(n, m).p = std::move(p_pp);
+    master += partials_pp.index(n, m);
 }
 
 void PartialHistogramManager::calc_pp(unsigned int index) {
@@ -194,9 +194,9 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
                 p_pp[dist/width] += 2*weight;
             }
         }
-        master -= partials_pp[index][n];
-        partials_pp[index][n].p = std::move(p_pp);
-        master += partials_pp[index][n];
+        master -= partials_pp.index(index, n);
+        partials_pp.index(index, n).p = std::move(p_pp);
+        master += partials_pp.index(index, n);
     }
 
     for (unsigned int n = index+1; n < size; n++) { // loop from (index, size]
@@ -212,9 +212,9 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
                 p_pp[dist/width] += 2*weight;
             }
         }
-        master -= partials_pp[index][n];
-        partials_pp[index][n].p = std::move(p_pp);
-        master += partials_pp[index][n];
+        master -= partials_pp.index(index, n);
+        partials_pp.index(index, n).p = std::move(p_pp);
+        master += partials_pp.index(index, n);
     }
 }
 
@@ -234,9 +234,9 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
         }
     }
 
-    master -= partials_hp[index]; // subtract the previous hydration histogram
-    partials_hp[index].p = std::move(p_hp);
-    master += partials_hp[index]; // add the new hydration histogram
+    master -= partials_hp.index(index); // subtract the previous hydration histogram
+    partials_hp.index(index).p = std::move(p_hp);
+    master += partials_hp.index(index); // add the new hydration histogram
 }
 
 void PartialHistogramManager::calc_hh() {

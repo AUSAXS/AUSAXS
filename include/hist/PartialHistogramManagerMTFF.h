@@ -6,7 +6,7 @@
 
 namespace BS {
 	class thread_pool;
-	template<typename T> class multi_future;
+	template <typename T> class multi_future;
 }
 namespace hist {
 	/**
@@ -31,6 +31,9 @@ namespace hist {
 		private:
 			std::unique_ptr<BS::thread_pool> pool;
 			std::mutex master_hist_mutex;
+			std::vector<std::vector<detail::PartialHistogram>> partials_pp;
+			std::vector<detail::HydrationHistogram> partials_hp;
+			detail::HydrationHistogram partials_hh;
 
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
@@ -48,30 +51,33 @@ namespace hist {
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_self_correlation(unsigned int index);
+			BS::multi_future<std::vector<double>> calc_self_correlation(unsigned int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_pp(unsigned int n, unsigned int m);
+			BS::multi_future<std::vector<double>> calc_pp(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_hp(unsigned int index);
+			BS::multi_future<std::vector<double>> calc_hp(unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_hh();
+			BS::multi_future<std::vector<double>> calc_hh();
 
-			void combine_self_correlation(unsigned int index);
-			void combine_pp(unsigned int n, unsigned int m);
-			void combine_hp(unsigned int index);
-			void combine_hh();
+			void combine_self_correlation(unsigned int index, BS::multi_future<std::vector<double>>& futures);
+
+			void combine_pp(unsigned int n, unsigned int m, BS::multi_future<std::vector<double>>& futures);
+
+			void combine_hp(unsigned int index, BS::multi_future<std::vector<double>>& futures);
+
+			void combine_hh(BS::multi_future<std::vector<double>>& futures);
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.

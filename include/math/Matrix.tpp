@@ -150,8 +150,8 @@ Matrix<Q> Matrix<Q>::copy() const {
 template<numeric Q>
 Matrix<Q> Matrix<Q>::T() const {
     Matrix A(M, N);
-    for (size_t row = 0; row < A.N; ++row) {
-        for (size_t col = 0; col < A.M; ++col) {
+    for (unsigned int row = 0; row < A.N; ++row) {
+        for (unsigned int col = 0; col < A.M; ++col) {
             A[row][col] = index(col, row);
         }
     }

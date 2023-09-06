@@ -1,8 +1,8 @@
+#include <hist/PartialHistogramManagerMT.h>
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <data/Atom.h> 
 #include <data/Water.h>
-#include <hist/PartialHistogramManagerMT.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
@@ -131,7 +131,7 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < size; ++i) {
         for (unsigned int j = 0; j < i; ++j) {
-            detail::PartialHistogram& current = partials_pp[i][j];
+            detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram
             for (unsigned int k = 0; k < total.axis.bins; k++) {
@@ -142,7 +142,7 @@ ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
 
     // iterate through all partial hydration-protein histograms
     for (unsigned int i = 0; i < size; ++i) {
-        detail::PartialHistogram& current = partials_hp[i];
+        detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
         for (unsigned int k = 0; k < total.axis.bins; k++) {
@@ -170,12 +170,12 @@ void PartialHistogramManagerMT::initialize() {
     futures = std::vector<BS::multi_future<std::vector<double>>>(size);
     partials_hh = detail::PartialHistogram(axis);
     for (unsigned int i = 0; i < size; ++i) {
-        partials_hp[i] = detail::PartialHistogram(axis);
-        partials_pp[i][i] = detail::PartialHistogram(axis);
+        partials_hp.index(i) = detail::PartialHistogram(axis);
+        partials_pp.index(i, i) = detail::PartialHistogram(axis);
         futures[i] = calc_self_correlation(i);
 
         for (unsigned int j = 0; j < i; j++) {
-            partials_pp[i][j] = detail::PartialHistogram(axis);
+            partials_pp.index(i, j) = detail::PartialHistogram(axis);
         }
     }
 
@@ -327,10 +327,10 @@ void PartialHistogramManagerMT::combine_self_correlation(unsigned int index, BS:
 
     // update the master histogram
     master_hist_mutex.lock();
-    master.base -= partials_pp[index][index];
-    master -= partials_pp[index][index];
-    partials_pp[index][index].p = std::move(p_pp);
-    master += partials_pp[index][index];
+    master.base -= partials_pp.index(index, index);
+    master -= partials_pp.index(index, index);
+    partials_pp.index(index, index).p = std::move(p_pp);
+    master += partials_pp.index(index, index);
     master_hist_mutex.unlock();
 }
 
@@ -346,9 +346,9 @@ void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m, BS::m
 
     // update the master histogram
     master_hist_mutex.lock();
-    master -= partials_pp[n][m];
-    partials_pp[n][m].p = std::move(p_pp);
-    master += partials_pp[n][m];
+    master -= partials_pp.index(n, m);
+    partials_pp.index(n, m).p = std::move(p_pp);
+    master += partials_pp.index(n, m);
     master_hist_mutex.unlock();
 }
 
@@ -364,9 +364,9 @@ void PartialHistogramManagerMT::combine_hp(unsigned int index, BS::multi_future<
 
     // update the master histogram
     master_hist_mutex.lock();
-    master -= partials_hp[index]; // subtract the previous hydration histogram
-    partials_hp[index].p = std::move(p_hp);
-    master += partials_hp[index]; // add the new hydration histogram
+    master -= partials_hp.index(index); // subtract the previous hydration histogram
+    partials_hp.index(index).p = std::move(p_hp);
+    master += partials_hp.index(index); // add the new hydration histogram
     master_hist_mutex.unlock();
 }
 

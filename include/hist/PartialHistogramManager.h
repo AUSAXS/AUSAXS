@@ -3,6 +3,8 @@
 #include <hist/HistogramManager.h>
 #include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <utility/Container1D.h>
+#include <utility/Container2D.h>
 
 namespace hist {
 	/**
@@ -61,10 +63,10 @@ namespace hist {
 			detail::CompactCoordinates coords_h;                // a compact representation of the hydration data
 
 			// histogram data
-			detail::MasterHistogram master;                       			// the current total histogram
-			std::vector<std::vector<detail::PartialHistogram>> partials_pp; // the partial histograms
-			std::vector<detail::HydrationHistogram> partials_hp;       		// the partial hydration-atom histograms
-			detail::HydrationHistogram partials_hh;               			// the partial histogram for the hydration layer
+			detail::MasterHistogram master;                       	// the current total histogram
+			Container2D<detail::PartialHistogram> partials_pp; 		// the partial histograms
+			Container1D<detail::HydrationHistogram> partials_hp;	// the partial hydration-atom histograms
+			detail::HydrationHistogram partials_hh;               	// the partial histogram for the hydration layer
 
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
