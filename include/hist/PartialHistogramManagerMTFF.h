@@ -6,18 +6,17 @@
 
 namespace BS {
 	class thread_pool;
+	template<typename T> class multi_future;
 }
 namespace hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator.
 	 */
-	class PartialHistogramManagerMT : public PartialHistogramManager {
+	class PartialHistogramManagerMTFF : public PartialHistogramManager {
 		public:
-			PartialHistogramManagerMT(Protein* protein);
+			PartialHistogramManagerMTFF(Protein* protein);
 
-			PartialHistogramManagerMT(PartialHistogramManager&);
-
-			~PartialHistogramManagerMT() override;
+			~PartialHistogramManagerMTFF() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

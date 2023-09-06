@@ -22,6 +22,7 @@
 int main(int argc, char const *argv[]) {
     std::string s_pdb, s_mfile, s_settings, placement_strategy = "Radial";    
     bool use_existing_hydration = false, fit_excluded_volume = false;
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT; // smaller overhead
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);

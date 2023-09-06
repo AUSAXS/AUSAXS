@@ -35,7 +35,7 @@ void ScatteringHistogram::setup() {
 }
 
 void ScatteringHistogram::apply_water_scaling_factor(const double& k) {
-    double k2 = pow(k, 2);
+    double k2 = std::pow(k, 2);
     for (unsigned int i = 0; i < axis.bins; ++i) {p[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];} // p = p_tot, inherited from Histogram
 }
 
@@ -53,7 +53,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity(const std::ve
             if (qd < 1e-6) {Iq[i] += 1;}
             else {Iq[i] += p[j]*std::sin(qd)/qd;}
         }
-        Iq[i] *= exp(-q[i]*q[i]); // form factor
+        Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }
     return SimpleDataset(q, Iq, "q", "I");
 }
@@ -68,7 +68,7 @@ SimpleDataset ScatteringHistogram::calc_debye_scattering_intensity() const {
         for (unsigned int j = 0; j < p.size(); j++) { // iterate through the distance histogram
             Iq[i] += p[j]*sinqd_table->lookup(i, j);
         }
-        Iq[i] *= exp(-q[i]*q[i]); // form factor
+        Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }
     return SimpleDataset(q, Iq, "q", "I");
 }
@@ -81,7 +81,7 @@ Histogram ScatteringHistogram::plot_guinier_approx() const {
 double ScatteringHistogram::calc_guinier_gyration_ratio_squared() const {
     double num = 0, denom = 0;
     for (unsigned int i = 0; i < p.size(); ++i) {
-        num += p[i]*pow(d[i], 2);
+        num += p[i]*std::pow(d[i], 2);
         denom += 2*p[i];
     }
     return num/denom;
@@ -93,7 +93,7 @@ SimpleDataset ScatteringHistogram::calc_guinier_approx() const {
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
-        Iq[i] = std::exp(-pow(q[i], 2)*Rg2/3);
+        Iq[i] = std::exp(-std::pow(q[i], 2)*Rg2/3);
     }
 
     return SimpleDataset(q, Iq, "q", "I");

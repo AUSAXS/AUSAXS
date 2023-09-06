@@ -1,9 +1,9 @@
 #!/bin/bash
 
 warmup=3
-iterations=10
-pdb="data/A2M_native/A2M_native.pdb"
-dat="data/A2M_native/A2M_native.RSR"
+iterations=100
+pdb="data/SASDJG5/SASDJG5.pdb"
+dat="data/SASDJG5/SASDJG5.dat"
 hyperfine_cmd="hyperfine --warmup $warmup --runs $iterations"
 
 crysol_bench() {
@@ -34,8 +34,8 @@ ausaxs_bench_st() {
 hyperfine_serial_cmd="hyperfine --warmup 0 --runs 5"
 export map="data/emd_24889/emd_24889.map"
 export mapdat="data/SASDJG5/SASDJG5.dat"
-export min=17
-export max=18
+export min=4
+export max=5
 export steps=100
 export step_size=$(bc -l <<< "($max - $min) / $steps")
 crysol_serial_cmd() {
