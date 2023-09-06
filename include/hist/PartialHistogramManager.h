@@ -1,8 +1,8 @@
 #pragma once
 
 #include <hist/HistogramManager.h>
-#include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <hist/detail/MasterHistogram.h>
 #include <utility/Container1D.h>
 #include <utility/Container2D.h>
 
@@ -42,28 +42,10 @@ namespace hist {
 			 */
 			virtual ScatteringHistogram calculate_all() override;
 
-			/**
-			 * @brief Get a signalling object for signalling a change of state. 
-			 *        Each body is supposed to hold one of these, and trigger it when they change state. 
-			 */
-			std::shared_ptr<signaller::Signaller> get_probe(unsigned int i);
-
-			/**
-			 * @brief Signal that the hydration layer was modified. 
-			 *        This is supposed to be used only by the Protein class, which has direct access to this object. Thus a signalling object is unnecessary. 
-			 */
-			void signal_modified_hydration_layer();
-
-			const StateManager& get_state_manager() const;
-
-			StateManager& get_state_manager();
-
 		protected:
-			std::vector<detail::CompactCoordinates> coords_p;   // a compact representation of the relevant data from the managed bodies
-			detail::CompactCoordinates coords_h;                // a compact representation of the hydration data
-
-			// histogram data
-			detail::MasterHistogram master;                       	// the current total histogram
+			detail::MasterHistogram master;                       	// the current total histogram		
+			std::vector<detail::CompactCoordinates> coords_p;   	// a compact representation of the relevant data from the managed bodies
+			detail::CompactCoordinates coords_h;                	// a compact representation of the hydration data
 			Container2D<detail::PartialHistogram> partials_pp; 		// the partial histograms
 			Container1D<detail::HydrationHistogram> partials_hp;	// the partial hydration-atom histograms
 			detail::HydrationHistogram partials_hh;               	// the partial histogram for the hydration layer
