@@ -1,6 +1,11 @@
 #pragma once
 
-#include <hist/PartialHistogramManager.h>
+#include <hist/HistogramManager.h>
+#include <hist/detail/MasterHistogram.h>
+#include <hist/detail/CompactCoordinatesFF.h>
+#include <utility/Container1D.h>
+#include <utility/Container2D.h>
+#include <utility/Container3D.h>
 
 #include <memory>
 
@@ -12,7 +17,7 @@ namespace hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator.
 	 */
-	class PartialHistogramManagerMTFF : public PartialHistogramManager {
+	class PartialHistogramManagerMTFF : public HistogramManager {
 		public:
 			PartialHistogramManagerMTFF(Protein* protein);
 
@@ -31,9 +36,12 @@ namespace hist {
 		private:
 			std::unique_ptr<BS::thread_pool> pool;
 			std::mutex master_hist_mutex;
-			std::vector<std::vector<detail::PartialHistogram>> partials_pp;
-			std::vector<detail::HydrationHistogram> partials_hp;
-			detail::HydrationHistogram partials_hh;
+
+			std::vector<detail::CompactCoordinatesFF> coords_p;
+			detail::CompactCoordinatesFF coords_h;
+			Container3D<detail::PartialHistogram> partials_pp;		// x: form factor index, y: body index, z: body index 
+			Container2D<detail::HydrationHistogram> partials_hp; 	// x: form factor index, y: body index
+			Container1D<detail::HydrationHistogram> partials_hh;	// x: form factor index
 
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 

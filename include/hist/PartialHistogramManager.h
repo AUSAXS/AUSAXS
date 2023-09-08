@@ -43,7 +43,7 @@ namespace hist {
 			virtual ScatteringHistogram calculate_all() override;
 
 		protected:
-			detail::MasterHistogram master;                       	// the current total histogram		
+			detail::MasterHistogram master;                       	// the current total histogram
 			std::vector<detail::CompactCoordinates> coords_p;   	// a compact representation of the relevant data from the managed bodies
 			detail::CompactCoordinates coords_h;                	// a compact representation of the hydration data
 			Container2D<detail::PartialHistogram> partials_pp; 		// the partial histograms

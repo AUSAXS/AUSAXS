@@ -13,7 +13,8 @@
 
 using namespace hist;
 
-PartialHistogramManagerMTFF::PartialHistogramManagerMTFF(Protein* protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
+PartialHistogramManagerMTFF::PartialHistogramManagerMTFF(Protein* protein) 
+    :  HistogramManager(protein), coords_p(size), partials_pp(size, size), partials_hp(size), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 
 PartialHistogramManagerMTFF::~PartialHistogramManagerMTFF() = default;
 
