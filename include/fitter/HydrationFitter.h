@@ -18,8 +18,6 @@ namespace fitter {
     class HydrationFitter : public LinearFitter {
         public: 
             /**
-             * @brief Constructor.
-             * 
              * Prepare a fit of the measured values in @a input to a model to be defined later. 
              * 
              * @param input The path to the file containing the measured values. 
@@ -27,40 +25,20 @@ namespace fitter {
             HydrationFitter(const io::ExistingFile& input);
 
             /**
-             * @brief Constructor.
-             *        Prepare a fit of the histogram to the measured values. 
+             * Prepare a fit of the histogram to the measured values. 
              * 
              * @param input The path to the file containing the measured values. 
              * @param h The histogram.
              */
-            HydrationFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h);
+            HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
-             * @brief Constructor.
-             *        Prepare a fit of the histogram to the measured values. 
-             * 
-             * @param input The path to the file containing the measured values. 
-             * @param h The histogram.
-             */
-            HydrationFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h);
-
-            /**
-             * @brief Constructor.
-             *        Prepare a fit of the histogram to the measured data. 
+             * Prepare a fit of the histogram to the measured data. 
              * 
              * @param data The measured data.
              * @param h The histogram.
              */
-            HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h);
-
-            /**
-             * @brief Constructor.
-             * 
-             * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
-             * 
-             * @param model The model histogram. 
-             */
-            HydrationFitter(const hist::ScatteringHistogram& model);
+            HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Constructor.
@@ -70,7 +48,7 @@ namespace fitter {
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
              */
-            HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits);
+            HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits = Limit(settings::axes::qmin, settings::axes::qmax));
 
             /**
              * @brief Destructor.
@@ -141,5 +119,7 @@ namespace fitter {
 
         private: 
             mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
+
+            hist::CompositeDistanceHistogram* cast_h() const;
     };
 }

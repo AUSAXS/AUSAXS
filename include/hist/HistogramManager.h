@@ -1,13 +1,15 @@
 #pragma once
 
-#include <hist/ScatteringHistogram.h>
-#include <hist/Histogram.h>
 #include <hist/detail/BodyTracker.h>
 
 #include <vector>
+#include <memory>
 
 class Protein;
 namespace hist {
+	class DistanceHistogram;
+	class CompositeDistanceHistogram;
+
 	/**
 	 * @brief A histogram manager which calculates the distance histogram in a slow but simple way. 
 	 * 		  This class is only intended for testing and inheritance. Use the PartialHistogramManagerMT class for production. 
@@ -23,12 +25,12 @@ namespace hist {
 			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */
-			virtual Histogram calculate();
+			virtual std::unique_ptr<DistanceHistogram> calculate();
 
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			virtual ScatteringHistogram calculate_all();
+			virtual std::unique_ptr<CompositeDistanceHistogram> calculate_all();
 
 		protected:
 			Protein* protein;	// pointer to the parent Protein

@@ -16,7 +16,8 @@ namespace io {
 }
 namespace fitter {class Fit;}
 namespace hist {
-	class ScatteringHistogram;
+	class DistanceHistogram;
+	class DistanceHistogramMultiple;
 	class HistogramManager;
 	class Histogram;
 }
@@ -86,13 +87,13 @@ class Protein {
 		/**
 		 * @brief Get the distances between each atom.
 		 */
-		[[nodiscard]] hist::ScatteringHistogram get_histogram() const;
+		[[nodiscard]] std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram() const;
 
 		/**
 		 * @brief Get the total distance histogram only. 
 		 *        This is a slightly faster alternative to get_histogram() when only the total histogram is needed. 
 		 */
-		[[nodiscard]] hist::Histogram get_total_histogram() const;
+		[[nodiscard]] std::unique_ptr<hist::DistanceHistogram> get_total_histogram() const;
 
 		/**
 		 * @brief Simulate a SAXS dataset based on this protein.
@@ -349,7 +350,7 @@ class Protein {
 		// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 		mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
-		std::shared_ptr<hist::ScatteringHistogram> histogram = nullptr; // An object representing the distances between atoms
+		std::shared_ptr<hist::CompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
 
 		void initialize();
 };

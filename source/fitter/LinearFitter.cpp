@@ -1,7 +1,8 @@
 #include <fitter/LinearFitter.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/DistanceHistogram.h>
+#include <hist/Histogram.h>
 #include <utility/Exceptions.h>
 #include <settings/HistogramSettings.h>
 #include <mini/detail/FittedParameter.h>
@@ -15,20 +16,17 @@
 using namespace fitter;
 
 LinearFitter::LinearFitter(const io::ExistingFile& input) {setup(input);}
-LinearFitter::LinearFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h) : h(h) {setup(input);}
-LinearFitter::LinearFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h) : h(std::move(h)) {setup(input);}
+LinearFitter::LinearFitter(const io::ExistingFile& input, std::unique_ptr<hist::DistanceHistogram> h) : h(std::move(h)) {setup(input);}
 LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {}
-LinearFitter::LinearFitter(const SimpleDataset& data, const hist::ScatteringHistogram& hist) : data(data), h(hist) {}
-LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model) : LinearFitter(data, model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
-LinearFitter::LinearFitter(const hist::ScatteringHistogram& model) : LinearFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
-LinearFitter::LinearFitter(const hist::ScatteringHistogram& data, const hist::ScatteringHistogram& model, const Limit& limits) : h(data) {
-    model_setup(model, limits);
+LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> h) : data(data), h(std::move(h)) {}
+LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits) : h(std::move(data)) {
+    model_setup(std::move(model), limits);
 }
-LinearFitter::LinearFitter(const hist::ScatteringHistogram& model, const Limit& limits) {
-    model_setup(model, limits);
+LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits) {
+    model_setup(std::move(model), limits);
 }
 
-void LinearFitter::model_setup(const hist::ScatteringHistogram&, const Limit&) {
+void LinearFitter::model_setup(std::unique_ptr<hist::DistanceHistogram>, const Limit&) {
     throw except::not_implemented("LinearFitter::model_setup: Not implemented yet!");
     // data = model.calc_debye_scattering_intensity();
     // data.reduce(settings::fit::N, true);
@@ -43,7 +41,7 @@ double LinearFitter::fit_chi2_only() {
 }
 
 std::shared_ptr<Fit> LinearFitter::fit() {
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -68,7 +66,7 @@ FitPlots LinearFitter::plot() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // if we have a I0, we need to rescale the data
@@ -84,7 +82,7 @@ FitPlots LinearFitter::plot() {
     // prepare the TGraphs
     FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h.q, ym_scaled);
+    graphs.intensity = SimpleDataset(h->get_axis_vector(), ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
 
     auto lim = graphs.data.get_xlimits();
@@ -99,7 +97,7 @@ SimpleDataset LinearFitter::plot_residuals() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -113,16 +111,12 @@ SimpleDataset LinearFitter::plot_residuals() {
     return Dataset2D(data.x(), residuals, xerr, data.yerr());
 }
 
-void LinearFitter::set_scattering_hist(hist::ScatteringHistogram&& h) {
+void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> h) {
     this->h = std::move(h);
 }
 
-void LinearFitter::set_scattering_hist(const hist::ScatteringHistogram& h) {
-    this->h = h;
-}
-
 double LinearFitter::chi2(const std::vector<double>&) {
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -139,7 +133,7 @@ void LinearFitter::setup(const io::ExistingFile& file) {
 
 std::vector<double> LinearFitter::splice(const std::vector<double>& ym) const {
     std::vector<double> Im(data.size()); // spliced model values
-    math::CubicSpline s(h.q, ym);
+    math::CubicSpline s(h->get_axis_vector(), ym);
     for (size_t i = 0; i < data.size(); ++i) {
         Im[i] = s.spline(data.x(i));
     }

@@ -4,6 +4,8 @@
 #include <dataset/PointSet.h>
 #include <dataset/Dataset.h>
 
+namespace hist {class Histogram;}
+
 /**
  * @brief A simple dataset is a collection of points of the form x | y | yerr. 
  */
@@ -20,6 +22,10 @@ class SimpleDataset : public Dataset, public plots::Plottable {
          * @brief Construct a new empty dataset.
          */
         SimpleDataset() noexcept;
+
+        SimpleDataset(const hist::Histogram& h);
+
+        SimpleDataset(hist::Histogram&& h);
 
         /**
          * @brief Copy constructor.

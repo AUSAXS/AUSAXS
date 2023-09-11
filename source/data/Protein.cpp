@@ -15,6 +15,7 @@
 #include <settings/GeneralSettings.h>
 #include <hist/detail/HistogramManagerFactory.h>
 #include <hist/HistogramManager.h>
+#include <hist/DistanceHistogram.h>
 #include <utility/Constants.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
@@ -81,7 +82,7 @@ void Protein::translate(const Vector3<double>& v) {
 }
 
 SimpleDataset Protein::simulate_dataset(bool add_noise) const {
-    SimpleDataset data = get_histogram().calc_debye_scattering_intensity();
+    SimpleDataset data = get_histogram().debye_transform();
     data.reduce(settings::fit::N, true);
     data.simulate_errors();
     if (add_noise) {data.simulate_noise();}
@@ -212,11 +213,11 @@ void Protein::generate_new_hydration() {
     get_waters() = grid->hydrate();
 }
 
-ScatteringHistogram Protein::get_histogram() const {
+std::unique_ptr<hist::CompositeDistanceHistogram> Protein::get_histogram() const {
     return phm->calculate_all();
 }
 
-Histogram Protein::get_total_histogram() const {
+std::unique_ptr<hist::DistanceHistogram> Protein::get_total_histogram() const {
     return phm->calculate();
 }
 
@@ -329,8 +330,7 @@ void Protein::bind_body_signallers() {
 }
 
 std::shared_ptr<fitter::Fit> Protein::fit(const io::ExistingFile& measurement) const {
-    hist::ScatteringHistogram h = get_histogram();
-    fitter::HydrationFitter fitter(measurement, h);
+    fitter::HydrationFitter fitter(measurement, std::make_unique<hist::DistanceHistogramMultiple>(get_histogram()));
     return fitter.fit();
 }
 

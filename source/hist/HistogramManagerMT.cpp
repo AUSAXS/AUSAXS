@@ -1,4 +1,5 @@
 #include <hist/HistogramManagerMT.h>
+#include <hist/DistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
@@ -14,11 +15,11 @@ HistogramManagerMT::HistogramManagerMT(HistogramManager& hm) : HistogramManager(
 
 HistogramManagerMT::~HistogramManagerMT() = default;
 
-Histogram HistogramManagerMT::calculate() {
-    return calculate_all().p;
+std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {
+    return calculate_all();
 }
 
-ScatteringHistogram HistogramManagerMT::calculate_all() {
+std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() {
     auto atoms = protein->get_atoms();
     auto waters = protein->get_waters();
 
@@ -36,13 +37,13 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     BS::thread_pool pool(settings::general::threads);
     auto calc_pp = [&data_p, &axes, &atoms, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(axes.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = i+1; j < atoms.size(); j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = i+1; j < atoms.size(); ++j) {
                 float weight = data_p.data[i].w*data_p.data[j].w;
                 float dx = data_p.data[i].x - data_p.data[j].x;
                 float dy = data_p.data[i].y - data_p.data[j].y;
                 float dz = data_p.data[i].z - data_p.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp[dist/width] += 2*weight;
             }
         }
@@ -50,13 +51,13 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     };
     auto calc_hh = [&data_h, &axes, &waters, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_hh(axes.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = i+1; j < waters.size(); j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = i+1; j < waters.size(); ++j) {
                 float weight = data_h.data[i].w*data_h.data[j].w;
                 float dx = data_h.data[i].x - data_h.data[j].x;
                 float dy = data_h.data[i].y - data_h.data[j].y;
                 float dz = data_h.data[i].z - data_h.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hh[dist/width] += 2*weight;
             }
         }
@@ -64,13 +65,13 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     };
     auto calc_hp = [&data_h, &data_p, &axes, &waters, &atoms, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_hp(axes.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
-            for (unsigned int j = 0; j < atoms.size(); j++) {
+        for (unsigned int i = imin; i < imax; ++i) {
+            for (unsigned int j = 0; j < atoms.size(); ++j) {
                 float weight = data_h.data[i].w*data_p.data[j].w;
                 float dx = data_h.data[i].x - data_p.data[j].x;
                 float dy = data_h.data[i].y - data_p.data[j].y;
                 float dz = data_h.data[i].z - data_p.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hp[dist/width] += 2*weight;
             }
         }
@@ -114,8 +115,8 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    for (unsigned int i = 0; i < atoms.size(); i++) {p_pp[0] += std::pow(data_p.data[i].w, 2);}
-    for (unsigned int i = 0; i < waters.size(); i++) {p_hh[0] += std::pow(data_h.data[i].w, 2);}
+    for (unsigned int i = 0; i < atoms.size(); ++i) {p_pp[0] += std::pow(data_p.data[i].w, 2);}
+    for (unsigned int i = 0; i < waters.size(); ++i) {p_hh[0] += std::pow(data_h.data[i].w, 2);}
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10
@@ -132,7 +133,7 @@ ScatteringHistogram HistogramManagerMT::calculate_all() {
 
     // calculate p_tot    
     std::vector<double> p_tot(max_bin, 0);
-    for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
+    for (unsigned int i = 0; i < max_bin; ++i) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
 
-    return ScatteringHistogram(p_pp, p_hh, p_hp, p_tot, axes);
+    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hh), std::move(p_hp), std::move(p_tot), axes);
 }

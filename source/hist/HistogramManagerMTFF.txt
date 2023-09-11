@@ -1,4 +1,5 @@
 #include <hist/HistogramManagerMTFF.h>
+#include <hist/DistanceHistogram.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/detail/FormFactorType.h>
 #include <data/Protein.h>
@@ -18,11 +19,9 @@ HistogramManagerMTFF::HistogramManagerMTFF(HistogramManager& hm) : HistogramMana
 
 HistogramManagerMTFF::~HistogramManagerMTFF() = default;
 
-std::vector<Histogram> HistogramManagerMTFF::calculate() {
-    return calculate_all().p;
-}
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFF::calculate() {return calculate_all();}
 
-std::vector<ScatteringHistogram> HistogramManagerMTFF::calculate_all() {
+std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all() {
     auto atoms = protein->get_atoms();
     auto waters = protein->get_waters();
 
@@ -155,7 +154,7 @@ std::vector<ScatteringHistogram> HistogramManagerMTFF::calculate_all() {
 
     // calculate p_tot    
     std::vector<double> p_tot(max_bin, 0);
-    for (int i = 0; i < max_bin; i++) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
+    for (unsigned int i = 0; i < max_bin; ++i) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
 
-    return ScatteringHistogram(p_pp, p_hh, p_hp, p_tot, axes);
+    return std::make_unique<CompositeDistanceHistogramFF>(p_pp, p_hh, p_hp, p_tot, axes);
 }

@@ -2,7 +2,7 @@
 #include <fitter/Fit.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/DistanceHistogram.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>
@@ -16,16 +16,18 @@
 using namespace fitter;
 
 HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
-HydrationFitter::HydrationFitter(const io::ExistingFile& input, const hist::ScatteringHistogram& h) : LinearFitter(input, h) {}
-HydrationFitter::HydrationFitter(const io::ExistingFile& input, hist::ScatteringHistogram&& h) : LinearFitter(input, h) {}
-HydrationFitter::HydrationFitter(const SimpleDataset& data, const hist::ScatteringHistogram& h) : LinearFitter(data, h) {}
-HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model) : HydrationFitter(model, Limit(settings::axes::qmin, settings::axes::qmax)) {}
-HydrationFitter::HydrationFitter(const hist::ScatteringHistogram& model, const Limit& limits) : LinearFitter(model, limits) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {}
+HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::CompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {}
+HydrationFitter::HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits) : LinearFitter(std::move(model), limits) {}
 
 void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
 std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
     fit_type = algorithm;
     return fit();
+}
+
+hist::CompositeDistanceHistogram* HydrationFitter::cast_h() const {
+    return static_cast<hist::CompositeDistanceHistogram*>(h.get());
 }
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
@@ -34,8 +36,8 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
     auto res = mini->minimize();
 
     // apply c
-    h.apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -59,8 +61,8 @@ double HydrationFitter::fit_chi2_only() {
     auto res = mini->minimize();
 
     // apply c
-    h.apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -78,8 +80,8 @@ FitPlots HydrationFitter::plot() {
     double b = fitted->get_parameter("b").value;
     double c = fitted->get_parameter("c").value;
 
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(c);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
@@ -91,7 +93,7 @@ FitPlots HydrationFitter::plot() {
     // prepare the TGraphs
     FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h.q, ym_scaled);
+    graphs.intensity = SimpleDataset(h->get_axis_vector(), ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
 
     auto lim = graphs.data.get_xlimits();
@@ -107,8 +109,8 @@ SimpleDataset HydrationFitter::plot_residuals() {
     double b = fitted->get_parameter("b").value;
     double c = fitted->get_parameter("c").value;
 
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(c);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -126,8 +128,8 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
     double c = params[0];
 
     // apply c
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(c);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -154,9 +156,9 @@ double HydrationFitter::get_intercept() {
     double b = fitted->get_parameter("b").value;
     double c = fitted->get_parameter("c").value;
 
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
-    math::CubicSpline s(h.q, ym);
+    cast_h()->apply_water_scaling_factor(c);
+    std::vector<double> ym = h->debye_transform().p;
+    math::CubicSpline s(h->get_axis_vector(), ym);
     return a*s.spline(0) + b;
 }
 
@@ -167,8 +169,8 @@ SimpleDataset HydrationFitter::get_model_dataset() {
     double b = fitted->get_parameter("b").value;
     double c = fitted->get_parameter("c").value;
 
-    h.apply_water_scaling_factor(c);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(c);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
     std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
 
@@ -182,8 +184,8 @@ SimpleDataset HydrationFitter::get_model_dataset(const std::vector<double>& q) {
     double b = fitted->get_parameter("b").value;
     double c = fitted->get_parameter("c").value;
 
-    h.apply_water_scaling_factor(c);
-    SimpleDataset model = h.calc_debye_scattering_intensity(q);
+    cast_h()->apply_water_scaling_factor(c);
+    SimpleDataset model = h->debye_transform(q);
     auto y = model.y();
     std::transform(y.begin(), y.end(), y.begin(), [&a, &b] (double I) {return I*a+b;});
     return model;
