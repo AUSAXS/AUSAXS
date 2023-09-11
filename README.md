@@ -1,4 +1,5 @@
-![title header](title.png)
+![title_light](../media/title_light.png?raw=true#gh-light-mode-only)
+![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
 
 # Main features
 - **Simple foundation**: We strive to use only simple methods and techniques, making as few assumptions as possible. By implementing the methods in modern C++ with efficiency in mind, we have managed to achieve some of the best performance available.
