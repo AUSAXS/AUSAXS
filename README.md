@@ -1,4 +1,4 @@
-![title_light](../media/title_light.png?raw=true#gh-light-mode-only)
+![title_light](../media/title_dark.png?raw=true#gh-light-mode-only)
 ![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
 
 # Main features
