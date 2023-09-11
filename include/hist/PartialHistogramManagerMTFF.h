@@ -37,6 +37,7 @@ namespace hist {
 			std::unique_ptr<BS::thread_pool> pool;
 			std::mutex master_hist_mutex;
 
+			detail::MasterHistogram master;                       	// the current total histogram
 			std::vector<detail::CompactCoordinatesFF> coords_p;
 			detail::CompactCoordinatesFF coords_h;
 			Container3D<detail::PartialHistogram> partials_pp;		// x: form factor index, y: body index, z: body index 

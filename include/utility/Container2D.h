@@ -15,6 +15,7 @@ class Container2D {
     public:
         Container2D() : N(0), M(0), data(0) {}
         Container2D(unsigned int width, unsigned int height) : N(width), M(height), data(width*height) {}
+        Container2D(unsigned int width, unsigned int height, const T& value) : N(width), M(height), data(width*height, value) {}
 
         T& operator()(unsigned int i, unsigned int j) {
             #if (SAFE_MATH)
@@ -36,6 +37,12 @@ class Container2D {
 
         T& index(unsigned int i, unsigned int j) {return operator()(i, j);}
         const T& index(unsigned int i, unsigned int j) const {return operator()(i, j);}
+
+        const typename std::vector<T>::const_iterator begin() const {return data.begin();}
+        const typename std::vector<T>::const_iterator end() const {return data.begin();}
+
+        typename std::vector<T>::iterator begin() {return data.begin();}
+        typename std::vector<T>::iterator end() {return data.begin();}
 
         unsigned int N, M;
 

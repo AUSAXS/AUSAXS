@@ -113,11 +113,11 @@ Histogram PartialHistogramManagerMT::calculate() {
 }
 
 void PartialHistogramManagerMT::update_compact_representation_body(unsigned int index) {
-    coords_p[index] = std::move(detail::CompactCoordinates(protein->get_body(index)));
+    coords_p[index] = detail::CompactCoordinates(protein->get_body(index));
 }
 
 void PartialHistogramManagerMT::update_compact_representation_water() {
-    coords_h = std::move(detail::CompactCoordinates(protein->get_waters()));
+    coords_h = detail::CompactCoordinates(protein->get_waters());
 }
 
 ScatteringHistogram PartialHistogramManagerMT::calculate_all() {
@@ -319,10 +319,8 @@ void PartialHistogramManagerMT::combine_self_correlation(unsigned int index, BS:
     std::vector<double> p_pp(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; ++i) {
-            p_pp[i] += temp[i]; // add to p_pp
-        }
+    for (auto& tmp : futures.get()) {
+        std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
 
     // update the master histogram
@@ -338,10 +336,8 @@ void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m, BS::m
     std::vector<double> p_pp(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; ++i) {
-            p_pp[i] += temp[i]; // add partial result to p_pp
-        }
+    for (auto& tmp : futures.get()) {
+        std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
 
     // update the master histogram
@@ -356,10 +352,8 @@ void PartialHistogramManagerMT::combine_hp(unsigned int index, BS::multi_future<
     std::vector<double> p_hp(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; ++i) {
-            p_hp[i] += temp[i]; // add partial result to p_hp
-        }
+    for (auto& tmp : futures.get()) {
+        std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<double>());
     }
 
     // update the master histogram
@@ -374,10 +368,8 @@ void PartialHistogramManagerMT::combine_hh(BS::multi_future<std::vector<double>>
     std::vector<double> p_hh(master.axis.bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& temp : futures.get()) {
-        for (unsigned int i = 0; i < master.axis.bins; ++i) {
-            p_hh[i] += temp[i]; // add partial result to p_hh
-        }
+    for (auto& tmp : futures.get()) {
+        std::transform(p_hh.begin(), p_hh.end(), tmp.begin(), p_hh.begin(), std::plus<double>());
     }
 
     // update the master histogram

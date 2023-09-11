@@ -8,13 +8,15 @@
 /**
  * @brief Representation of a 1D container. 
  * 
- * This is just a convenience class supporting only indexing.
+ * This is just a convenience class supporting only indexing. 
+ * Technically this is redundant since it is just a simpler std::vector, but it is used for consistency with the other two containers.
  */
 template <typename T>
 class Container1D {
     public:
         Container1D() : N(0), data(0) {}
         Container1D(unsigned int size) : N(size), data(size) {}
+        Container1D(unsigned int size, const T& value) : N(size), data(size, value) {}
 
         T& operator()(unsigned int i) {
             #if (SAFE_MATH)
@@ -36,6 +38,12 @@ class Container1D {
 
         T& index(unsigned int i) {return operator()(i);}
         const T& index(unsigned int i) const {return operator()(i);}
+
+        const typename std::vector<T>::const_iterator begin() const {return data.begin();}
+        const typename std::vector<T>::const_iterator end() const {return data.begin();}
+
+        typename std::vector<T>::iterator begin() {return data.begin();}
+        typename std::vector<T>::iterator end() {return data.begin();}
 
         unsigned int N;
 

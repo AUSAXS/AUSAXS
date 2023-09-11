@@ -1,4 +1,5 @@
 #include <hist/PartialHistogramManagerMTFF.h>
+#include <hist/detail/FormFactorType.h>
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <data/Atom.h> 
@@ -14,27 +15,11 @@
 using namespace hist;
 
 PartialHistogramManagerMTFF::PartialHistogramManagerMTFF(Protein* protein) 
-    :  HistogramManager(protein), coords_p(size), partials_pp(size, size), partials_hp(size), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
+    :  HistogramManager(protein), coords_p(size), partials_pp(size, size, size), partials_hp(size, size), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 
 PartialHistogramManagerMTFF::~PartialHistogramManagerMTFF() = default;
 
 Histogram PartialHistogramManagerMTFF::calculate() {
-    std::vector<char> type(protein->atom_size());
-    {
-        unsigned int counter = 0;
-        for (const auto& body : protein->get_bodies()) {
-            for (const auto& atom : body.get_atoms()) {
-                std::string element = atom.get_element();
-                if (element == "H") {type[counter++] = 'H';}
-                else if (element == "C") {type[counter++] = 'C';}
-                else if (element == "N") {type[counter++] = 'N';}
-                else if (element == "O") {type[counter++] = 'O';}
-                else if (element == "S") {type[counter++] = 'S';}
-                else {type[counter++] = 'X';}
-            }
-        }
-    }
-
     std::vector<BS::multi_future<std::vector<double>>> futures_self_corr;
     std::vector<BS::multi_future<std::vector<double>>> futures_pp;
     std::vector<BS::multi_future<std::vector<double>>> futures_hp;
@@ -128,11 +113,11 @@ Histogram PartialHistogramManagerMTFF::calculate() {
 }
 
 void PartialHistogramManagerMTFF::update_compact_representation_body(unsigned int index) {
-    coords_p[index] = std::move(detail::CompactCoordinates(protein->get_body(index)));
+    coords_p[index] = std::move(detail::CompactCoordinatesFF(protein->get_body(index)));
 }
 
 void PartialHistogramManagerMTFF::update_compact_representation_water() {
-    coords_h = std::move(detail::CompactCoordinates(protein->get_waters()));
+    coords_h = std::move(detail::CompactCoordinatesFF(protein->get_waters()));
 }
 
 ScatteringHistogram PartialHistogramManagerMTFF::calculate_all() {
@@ -140,33 +125,47 @@ ScatteringHistogram PartialHistogramManagerMTFF::calculate_all() {
     total.shorten_axis();
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    std::vector<double> p_hh = partials_hh.p;
     std::vector<double> p_pp = master.base.p;
     std::vector<double> p_hp(total.axis.bins, 0);
-    // iterate through all partial histograms in the upper triangle
-    for (unsigned int i = 0; i < size; ++i) {
-        for (unsigned int j = 0; j < i; ++j) {
-            detail::PartialHistogram& current = partials_pp[i][j];
+    std::vector<double> p_hh(total.axis.bins, 0);
 
-            // iterate through each entry in the partial histogram
-            for (unsigned int k = 0; k < total.axis.bins; k++) {
-                p_pp[k] += current.p[k]; // add to p_pp
+    // pp: iterate through all partial histograms in the upper triangle
+    for (unsigned int ff = 0; ff < hist::detail::get_form_factor_count(); ++ff) {
+        for (unsigned int i = 0; i < size; ++i) {
+            for (unsigned int j = 0; j < i; ++j) {
+                detail::PartialHistogram& current = partials_pp.index(ff, i, j);
+
+                // iterate through each entry in the partial histogram
+                for (unsigned int k = 0; k < total.axis.bins; ++k) {
+                    p_pp[k] += current.p[k]; // add to p_pp
+                }
             }
         }
     }
 
-    // iterate through all partial hydration-protein histograms
-    for (unsigned int i = 0; i < size; ++i) {
-        detail::PartialHistogram& current = partials_hp[i];
+    // hp: iterate through all partial hydration-protein histograms
+    for (unsigned int ff = 0; ff < hist::detail::get_form_factor_count(); ++ff) {
+        for (unsigned int i = 0; i < size; ++i) {
+            detail::PartialHistogram& current = partials_hp.index(ff, i);
+
+            // iterate through each entry in the partial histogram
+            for (unsigned int k = 0; k < total.axis.bins; ++k) {
+                p_hp[k] += current.p[k]; // add to p_hp
+            }
+        }
+    }
+
+    // hh: iterate through all form factor histograms
+    for (unsigned int ff = 0; ff < hist::detail::get_form_factor_count(); ++ff) {
+        detail::PartialHistogram& current = partials_hh.index(ff);
 
         // iterate through each entry in the partial histogram
         for (unsigned int k = 0; k < total.axis.bins; k++) {
-            p_hp[k] += current.p[k]; // add to p_pp
+            p_hh[k] += current.p[k]; // add to p_hh
         }
     }
 
     // p_hp is already resized
-    p_hh.resize(total.axis.bins);
     p_pp.resize(total.axis.bins);
 
     return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axis);
@@ -183,14 +182,16 @@ void PartialHistogramManagerMTFF::initialize() {
 
     static std::vector<BS::multi_future<std::vector<double>>> futures;
     futures = std::vector<BS::multi_future<std::vector<double>>>(size);
-    partials_hh = detail::PartialHistogram(axis);
-    for (unsigned int i = 0; i < size; ++i) {
-        partials_hp[i] = detail::PartialHistogram(axis);
-        partials_pp[i][i] = detail::PartialHistogram(axis);
-        futures[i] = calc_self_correlation(i);
+    for (unsigned int ff = 0; ff < hist::detail::get_form_factor_count(); ++ff) {
+        partials_hh.index(ff) = detail::PartialHistogram(axis);
+        for (unsigned int i = 0; i < size; ++i) {
+            partials_hp.index(ff, i) = detail::PartialHistogram(axis);
+            partials_pp.index(ff, i, i) = detail::PartialHistogram(axis);
+            futures[i] = calc_self_correlation(i);
 
-        for (unsigned int j = 0; j < i; j++) {
-            partials_pp[i][j] = detail::PartialHistogram(axis);
+            for (unsigned int j = 0; j < i; j++) {
+                partials_pp.index(ff, i, j) = detail::PartialHistogram(axis);
+            }
         }
     }
 
