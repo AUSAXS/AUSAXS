@@ -2,7 +2,9 @@
 #include <fitter/Fit.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
+#include <hist/Histogram.h>
 #include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>
@@ -15,9 +17,11 @@
 
 using namespace fitter;
 
+HydrationFitter::HydrationFitter(HydrationFitter&& other) : LinearFitter(std::move(other)), guess(std::move(other.guess)) {}
 HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
 HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {}
 HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::CompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {}
+HydrationFitter::HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model) : HydrationFitter(std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}
 HydrationFitter::HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits) : LinearFitter(std::move(model), limits) {}
 
 void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
@@ -93,7 +97,7 @@ FitPlots HydrationFitter::plot() {
     // prepare the TGraphs
     FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h->get_axis_vector(), ym_scaled);
+    graphs.intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
 
     auto lim = graphs.data.get_xlimits();
@@ -158,7 +162,7 @@ double HydrationFitter::get_intercept() {
 
     cast_h()->apply_water_scaling_factor(c);
     std::vector<double> ym = h->debye_transform().p;
-    math::CubicSpline s(h->get_axis_vector(), ym);
+    math::CubicSpline s(h->get_q_axis(), ym);
     return a*s.spline(0) + b;
 }
 

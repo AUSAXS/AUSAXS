@@ -1,17 +1,20 @@
 #pragma once
 
 #include <utility/Axis.h>
+#include <hist/Histogram.h>
 
 #include <vector>
 #include <memory>
 
+namespace table {class DebyeLookupTable;}
 namespace dataset {class SimpleDataset;}
 namespace hist {
-    /**
-     * @brief A class containing a single distance histogram.
-     */
     class CompositeDistanceHistogram;
-    class DistanceHistogram {
+
+    /**
+     * @brief A DistanceHistogram is just a (x, count(x)) histogram.
+     */
+    class DistanceHistogram : public Histogram {
         public: 
             DistanceHistogram() = default;
 
@@ -22,68 +25,25 @@ namespace hist {
              */
             DistanceHistogram(CompositeDistanceHistogram&& cdh);
 
-            ~DistanceHistogram() = default;
+            virtual ~DistanceHistogram() override;
 
             virtual Histogram debye_transform() const;
 
             virtual Histogram debye_transform(const std::vector<double>& q) const;
 
-            std::vector<double>& get_total_histogram();
+            Vector<double>& get_total_histogram();
 
-            std::vector<double> get_axis_vector() const;
+            const std::vector<double>& get_d_axis() const;
 
-            Axis& get_axis();
+            const std::vector<double>& get_q_axis() const;
 
-        private:
-            std::vector<double> p_tot;
-            Axis axis;
-    };
-
-    /**
-     * @brief A class containing multiple partial distance histograms.
-     */
-    class CompositeDistanceHistogram : public DistanceHistogram {
-        public: 
-            CompositeDistanceHistogram() = default;
-
-            CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hh, std::vector<double>&& p_hp, std::vector<double>&& p_tot, const Axis& axis);
-
-            ~CompositeDistanceHistogram() = default;
-
-            Histogram debye_transform() const override;
-
-            Histogram debye_transform(const std::vector<double>& q) const override;
-
-            std::vector<double>& get_pp_histogram();
-
-            std::vector<double>& get_hh_histogram();
-
-            std::vector<double>& get_hp_histogram();            
-
-            void apply_water_scaling_factor(double k);
+            const Axis& get_axis() const;
 
         private:
-            std::vector<double> p_pp;
-            std::vector<double> p_hp;
-            std::vector<double> p_hh;
-    };
+			std::unique_ptr<table::DebyeLookupTable> sinqd_table;   // Lookup-table for sin(qd)/qd values for the scattering histograms.
+            std::vector<double> d_axis;                             // the distance axis
+            std::vector<double> q_axis;                             // the q axis
 
-    /**
-     * @brief A class containing multiple partial distance histograms for multiple form factors. 
-     */
-    class CompositeDistanceHistogramFF : public DistanceHistogram {
-        public: 
-            CompositeDistanceHistogramFF() = default;
-
-            ~CompositeDistanceHistogramFF() = default;
-
-            Histogram debye_transform() const override;
-
-            Histogram debye_transform(const std::vector<double>& q) const override;
-
-            void apply_water_scaling_factor(double k);
-
-        private:
-            std::vector<CompositeDistanceHistogram> cdhs;
+            void initialize();
     };
 }

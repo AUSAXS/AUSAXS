@@ -1,16 +1,17 @@
 #pragma once
 
-#include <hist/ScatteringHistogram.h>
 #include <em/detail/header/MapHeader.h>
 #include <em/Image.h>
+
+#include <hist/HistFwd.h>
+#include <data/DataFwd.h>
+#include <fitter/FitterFwd.h>
 
 #include <vector>
 #include <string>
 #include <memory>
 
-class Protein;
 namespace io {class ExistingFile;}
-namespace fitter{class EMFit;}
 namespace em {
     class ObjectBounds3D;
     namespace managers {class ProteinManager;}
@@ -57,7 +58,7 @@ namespace em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            hist::ScatteringHistogram get_histogram(double cutoff) const;
+            std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(double cutoff) const;
 
             /**
              * @brief Count the number of voxels for a given cutoff.
@@ -67,7 +68,7 @@ namespace em {
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            hist::ScatteringHistogram get_histogram(const std::shared_ptr<fitter::EMFit> res) const;
+            std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFit> res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.

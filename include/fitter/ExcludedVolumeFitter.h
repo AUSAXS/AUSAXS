@@ -2,8 +2,9 @@
 
 #include <fitter/HydrationFitter.h>
 
-class Protein;
-namespace io {class ExistingFile;}
+#include <io/IOFwd.h>
+#include <data/DataFwd.h>
+
 namespace fitter {
     class Fit;
     class FitPlots;

@@ -24,6 +24,8 @@
 #include <data/Atom.h>
 #include <data/Water.h>
 #include <data/Body.h>
+#include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <Symbols.h>
 
 using namespace rigidbody;
@@ -133,7 +135,7 @@ void RigidBody::prepare_fitter(const std::string& measurement_path) {
         this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::HydrationFitter>>(std::move(fitter));
     } else {
         auto histogram = get_histogram();
-        histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
+        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
         fitter::ConstrainedFitter<fitter::LinearFitter> fitter(measurement_path, std::move(histogram));
         fitter.set_constraint_manager(constraints);
         this->fitter = std::make_unique<fitter::ConstrainedFitter<fitter::LinearFitter>>(std::move(fitter));
@@ -145,7 +147,7 @@ void RigidBody::update_fitter(std::shared_ptr<fitter::LinearFitter> fitter) {
         fitter->set_scattering_hist(get_histogram());
     } else {
         auto histogram = get_histogram();
-        histogram.apply_water_scaling_factor(calibration->get_parameter("c"));
+        histogram->apply_water_scaling_factor(calibration->get_parameter("c"));
         fitter->set_scattering_hist(std::move(histogram));
     }
 }

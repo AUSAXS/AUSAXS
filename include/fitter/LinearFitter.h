@@ -1,8 +1,8 @@
 #pragma once
 
 #include <fitter/Fitter.h>
-#include <utility/Limit.h>
 
+class Limit;
 namespace hist {
 	class DistanceHistogram;
 	class CompositeDistanceHistogram;
@@ -21,6 +21,8 @@ namespace fitter {
 	 */
 	class LinearFitter : public Fitter {
 		public: 
+            LinearFitter(LinearFitter&& other);
+
 			/**
 			 * Prepare a fit of the measured values in @a input to a model to be defined later. 
 			 * 
@@ -51,9 +53,24 @@ namespace fitter {
 			 * 
 			 * @param data The data histogram. 
 			 * @param model The model histogram. 
+			 */
+			LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model);
+
+			/**
+			 * Prepare a fit of the first histogram to the second. A series of data points is extracted from @a h2 and used to fit @a h1.
+			 * 
+			 * @param data The data histogram. 
+			 * @param model The model histogram. 
 			 * @param limits The limits on the generated data points. 
 			 */
-			LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits = Limit(settings::axes::qmin, settings::axes::qmax));
+			LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits);
+
+			/**
+			 * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+			 * 
+			 * @param model The model histogram. 
+			 */
+			LinearFitter(std::unique_ptr<hist::DistanceHistogram> model);
 
 			/**
 			 * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
@@ -61,7 +78,7 @@ namespace fitter {
 			 * @param model The model histogram. 
 			 * @param limits The limits on the generated data points. 
 			 */
-			LinearFitter(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits = Limit(settings::axes::qmin, settings::axes::qmax));
+			LinearFitter(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits);
 
 			/**
 			 * @brief Destructor.

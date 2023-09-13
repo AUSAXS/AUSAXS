@@ -1,5 +1,5 @@
 #include <em/manager/SmartProteinManager.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
 #include <data/Body.h>
@@ -14,7 +14,7 @@
 
 using namespace em::managers;
 
-hist::ScatteringHistogram SmartProteinManager::get_histogram(double cutoff) {
+std::unique_ptr<hist::CompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
     return protein->get_histogram();
 }

@@ -1,14 +1,15 @@
 #include <plots/PlotIntensity.h>
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
 #include <dataset/SimpleDataset.h>
 
 using namespace plots;
 
-PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, style::Color color) {
+PlotIntensity::PlotIntensity(const hist::DistanceHistogram* const d, style::Color color) {
     plot(d, color);
 }
 
@@ -36,8 +37,8 @@ PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, style::Color color
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Color color) {
-    PlotOptions options(data.get_plot_options());
+PlotIntensity& PlotIntensity::plot(const hist::DistanceHistogram* const data, style::Color color) {
+    PlotOptions options;
     options.color = color;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
@@ -45,7 +46,7 @@ PlotIntensity& PlotIntensity::plot(const hist::ScatteringHistogram& data, style:
     options.logy = true;
 
     ss << "PlotDataset\n"
-       << data.to_string()
+       << data->to_string()
        << "\n"
        << options.to_string()
        << std::endl;
@@ -56,25 +57,27 @@ PlotIntensity& PlotIntensity::plot(const std::shared_ptr<fitter::Fit> fit, style
     return plot(fit->figures.intensity, color);
 }
 
-PlotIntensity& PlotIntensity::plot_guinier_approx(const hist::ScatteringHistogram& data) {
-    PlotOptions options = data.get_plot_options();
+PlotIntensity& PlotIntensity::plot_guinier_approx(const hist::CompositeDistanceHistogram* const data) {
+    PlotOptions options;
     options.legend = "Guinier approx";
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
     options.logx = true;
     options.logy = true;
 
-    auto guinier = data.plot_guinier_approx();
-    ss << "Guinier\n"
-       << guinier.to_string()
-       << "\n"
-       << options.to_string()
-       << std::endl;
+    throw except::not_implemented("PlotIntensity::plot_guinier_approx: Not implemented yet!");
 
-    ss << "Gyration_ratio\n"
-        << sqrt(data.calc_guinier_gyration_ratio_squared())
-        << std::endl;
-    return *this;
+    // auto guinier = data->plot_guinier_approx();
+    // ss << "Guinier\n"
+    //    << guinier.to_string()
+    //    << "\n"
+    //    << options.to_string()
+    //    << std::endl;
+
+    // ss << "Gyration_ratio\n"
+    //     << sqrt(data->calc_guinier_gyration_ratio_squared())
+    //     << std::endl;
+    // return *this;
 }
 
 void PlotIntensity::quick_plot(const SimpleDataset& d, const io::File& path) {
@@ -82,7 +85,7 @@ void PlotIntensity::quick_plot(const SimpleDataset& d, const io::File& path) {
     plot.save(path);
 }
 
-void PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, const io::File& path) {
+void PlotIntensity::quick_plot(const hist::DistanceHistogram* const h, const io::File& path) {
     PlotIntensity plot(h);
     plot.save(path);
 }

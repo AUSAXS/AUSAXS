@@ -26,12 +26,12 @@ namespace hist {
 			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */
-			Histogram calculate() override;
+			std::unique_ptr<DistanceHistogram>  calculate() override;
 
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			ScatteringHistogram calculate_all() override;
+			std::unique_ptr<CompositeDistanceHistogram>  calculate_all() override;
 
 		private:
 			std::unique_ptr<BS::thread_pool> pool;

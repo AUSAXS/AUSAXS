@@ -1,19 +1,19 @@
 #include <CLI/CLI.hpp>
 
 #include <data/Body.h>
+#include <data/Water.h>
 #include <data/Protein.h>
 #include <fitter/HydrationFitter.h>
 #include <fitter/ExcludedVolumeFitter.h>
+#include <fitter/FitReporter.h>
 #include <fitter/Fit.h>
 #include <plots/All.h>
-#include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
 #include <utility/Constants.h>
-
-#include <data/Water.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
+#include <hist/CompositeDistanceHistogram.h>
 
 #include <vector>
 #include <string>

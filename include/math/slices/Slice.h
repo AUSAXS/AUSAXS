@@ -113,6 +113,7 @@ class Slice {
             return result;
         }
 
+        // Convert to a std::vector. This is a O(n) operation.
         operator std::vector<T>() const {
             std::vector<T> v(size());
             for (unsigned int i = 0; i < size(); i++) {
@@ -121,6 +122,7 @@ class Slice {
             return v;
         }
 
+        // Convert to a Vector. This is a O(n) operation.
         operator Vector<T>() const {
             Vector<T> v(size());
             for (unsigned int i = 0; i < size(); i++) {

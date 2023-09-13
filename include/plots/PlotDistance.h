@@ -2,7 +2,8 @@
 
 #include <plots/Plot.h>
 
-namespace hist {class ScatteringHistogram;}
+#include <hist/HistFwd.h>
+
 namespace plots {
 	/**
 	 * @brief \class PlotDistance.
@@ -17,7 +18,7 @@ namespace plots {
 			 * @param data The ScatteringHistogram which will be plotted. 
 			 * @param path The path to the folder where the plot will be saved. 
 			 */
-			PlotDistance(const hist::ScatteringHistogram& data, const io::File& path);
+			PlotDistance(const hist::CompositeDistanceHistogram* const data, const io::File& path);
 
 			/**
 			 * @brief Destructor. 
@@ -28,6 +29,6 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(const hist::ScatteringHistogram& data, const io::File& path);
+			static void quick_plot(const hist::CompositeDistanceHistogram* const data, const io::File& path);
 	};
 }

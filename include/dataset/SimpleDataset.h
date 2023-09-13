@@ -25,8 +25,6 @@ class SimpleDataset : public Dataset, public plots::Plottable {
 
         SimpleDataset(const hist::Histogram& h);
 
-        SimpleDataset(hist::Histogram&& h);
-
         /**
          * @brief Copy constructor.
          */
@@ -48,19 +46,25 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         SimpleDataset(unsigned int rows) noexcept;
 
         /**
-         * @brief Construct a new dataset based on the given vectors. 
+         * @brief Construct a new dataset from two vectors.
+         * 
+         * Complexity: O(N + M)
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr);
+        SimpleDataset(const std::vector<double>& x, const std::vector<double>& y);
 
         /**
-         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         * @brief Construct a new dataset from three vectors.
+         * 
+         * Complexity: O(N + M + P)
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y);
+        SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
 
         /**
-         * @brief Construct a new dataset based on the given vectors. The errors will be initialized to 0. 
+         * @brief Construct a new named dataset from two vectors.
+         * 
+         * Complexity: O(N + M)
          */
-        SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel);
+        SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel);
 
         /**
          * @brief Construct a new dataset from an input file.
@@ -236,4 +240,8 @@ class SimpleDataset : public Dataset, public plots::Plottable {
         using Dataset::operator=;
         SimpleDataset& operator=(const SimpleDataset& other);
         SimpleDataset& operator=(SimpleDataset&& other) noexcept;
+
+    private:
+        void initialize(const std::vector<double>& x, const std::vector<double>& y);
+        void initialize(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr);
 };

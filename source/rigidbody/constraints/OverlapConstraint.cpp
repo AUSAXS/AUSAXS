@@ -1,6 +1,6 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Protein.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
@@ -18,7 +18,7 @@ OverlapConstraint::~OverlapConstraint() = default;
 
 double OverlapConstraint::evaluate() const {
     if (target.size() == 0) [[unlikely]] {return 0;}
-    auto distances = protein->get_histogram();
+    auto distances = protein->get_histogram()->get_d_axis();
     double chi2 = 0;
     for (unsigned int i = 0; i < target.size(); i++) {
         chi2 += std::pow((distances[i] - target[i])*weights[i], 2);
@@ -33,7 +33,7 @@ double OverlapConstraint::weight(double r) {
 
 void OverlapConstraint::initialize() {
     // define the target distribution
-    target = protein->get_total_histogram();
+    target = protein->get_total_histogram()->p;
     auto axis = target.axis.as_vector();
     weights = hist::Histogram(axis);
 

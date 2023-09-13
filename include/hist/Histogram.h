@@ -39,6 +39,16 @@ namespace hist {
             /**
              * @brief Constructor.
              * 
+             * Construct a new histogram based on a list of bin values and the axis it spans. 
+             * 
+             * @param p The bin values. 
+             * @param axis The axis they span. 
+             */
+            Histogram(std::vector<double>&& p_tot, const Axis& axis);
+
+            /**
+             * @brief Constructor.
+             * 
              * Construct a new empty histogram. 
              * 
              * @param axis The axis range. 

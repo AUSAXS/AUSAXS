@@ -2,16 +2,12 @@
 
 #include <em/detail/ImageStackBase.h>
 
-namespace io {class ExistingFile;}
-namespace hist {class ScatteringHistogram;}
-namespace mini {
-    class Parameter;
-    class FittedParameter;
-    class Landscape;
-}
-namespace fitter {
-    class LinearFitter;
-}
+#include <hist/HistFwd.h>
+#include <mini/MiniFwd.h>
+#include <fitter/FitterFwd.h>
+#include <io/IOFwd.h>
+#include <dataset/DatasetFwd.h>
+
 namespace em {
     namespace detail {class ExtendedLandscape;}
     /**
@@ -56,14 +52,14 @@ namespace em {
              * @param h The histogram to fit to.  
              * @param param The cutoff parameter.
              */
-            std::shared_ptr<fitter::EMFit> fit(const hist::ScatteringHistogram& h, mini::Parameter& param);
+            std::shared_ptr<fitter::EMFit> fit(std::unique_ptr<hist::CompositeDistanceHistogram> h, mini::Parameter& param);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<fitter::EMFit> fit(const hist::ScatteringHistogram& h);
+            std::shared_ptr<fitter::EMFit> fit(std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -73,7 +69,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            mini::Landscape cutoff_scan(const Axis& points, const hist::ScatteringHistogram& h);
+            mini::Landscape cutoff_scan(const Axis& points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -83,7 +79,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            mini::Landscape cutoff_scan(unsigned int points, const hist::ScatteringHistogram& h);
+            mini::Landscape cutoff_scan(unsigned int points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -113,7 +109,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, const hist::ScatteringHistogram& h);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -123,7 +119,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, const hist::ScatteringHistogram& h);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 

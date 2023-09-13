@@ -17,6 +17,8 @@ namespace fitter {
      */
     class HydrationFitter : public LinearFitter {
         public: 
+            HydrationFitter(HydrationFitter&& other);
+
             /**
              * Prepare a fit of the measured values in @a input to a model to be defined later. 
              * 
@@ -48,7 +50,17 @@ namespace fitter {
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
              */
-            HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits = Limit(settings::axes::qmin, settings::axes::qmax));
+            HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model);
+
+            /**
+             * @brief Constructor.
+             * 
+             * Prepare a fit to the histogram. A series of data points is extracted from it and used as the data points of the model. 
+             * 
+             * @param model The model histogram. 
+             * @param limits The limits on the generated data points. 
+             */
+            HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits);
 
             /**
              * @brief Destructor.
@@ -117,9 +129,14 @@ namespace fitter {
              */
             [[nodiscard]] virtual double chi2(const std::vector<double>& params) override;
 
+            /**
+             * @brief Cast the histogram to a CompositeDistanceHistogram.
+             * 
+             * @return This is always safe since the constructor of this class guarantees that the histogram is a CompositeDistanceHistogram.
+             */
+            hist::CompositeDistanceHistogram* cast_h() const;
+
         private: 
             mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
-
-            hist::CompositeDistanceHistogram* cast_h() const;
     };
 }

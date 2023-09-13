@@ -1,5 +1,6 @@
 #include <hist/HistogramManagerMT.h>
 #include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
@@ -15,9 +16,7 @@ HistogramManagerMT::HistogramManagerMT(HistogramManager& hm) : HistogramManager(
 
 HistogramManagerMT::~HistogramManagerMT() = default;
 
-std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {
-    return calculate_all();
-}
+std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {return calculate_all();}
 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() {
     auto atoms = protein->get_atoms();

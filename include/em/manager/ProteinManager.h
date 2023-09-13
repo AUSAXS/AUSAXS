@@ -1,8 +1,10 @@
 #pragma once
 
-#include <hist/ScatteringHistogram.h>
+#include <memory>
+#include <vector>
 
 class Protein;
+namespace hist {class CompositeDistanceHistogram;}
 namespace em {
     class ImageStackBase;
 
@@ -37,7 +39,7 @@ namespace em {
                 /**
                  * @brief Get the histogram for a given cutoff.
                  */
-                virtual hist::ScatteringHistogram get_histogram(double cutoff) = 0;
+                virtual std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(double cutoff) = 0;
 
                 /**
                  * @brief Set the charge levels.

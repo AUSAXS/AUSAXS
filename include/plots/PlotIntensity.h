@@ -3,14 +3,12 @@
 #include <plots/Plot.h>
 #include <plots/Styles.h>
 
+#include <hist/HistFwd.h>
+#include <fitter/FitterFwd.h>
+#include <dataset/DatasetFwd.h>
+
 #include <memory>
 
-namespace hist {class ScatteringHistogram;}
-namespace fitter {
-	class Fitter;
-	class Fit;
-}
-class SimpleDataset;
 namespace plots {
 	class PlotIntensity : public Plot {
 		public:
@@ -19,7 +17,7 @@ namespace plots {
 			 * 
 			 * @param d The ScatteringHistogram to be plotted. 
 			 */
-			PlotIntensity(const hist::ScatteringHistogram& d, style::Color color = style::color::black);
+			PlotIntensity(const hist::DistanceHistogram* const d, style::Color color = style::color::black);
 
 			/**
 			 * @brief Constructor.
@@ -36,7 +34,7 @@ namespace plots {
 			/**
 			 * @brief Plot a scattering histogram.
 			 */
-			PlotIntensity& plot(const hist::ScatteringHistogram& data, style::Color color = style::color::black);
+			PlotIntensity& plot(const hist::DistanceHistogram* const data, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot an additional data set as points. 
@@ -51,13 +49,13 @@ namespace plots {
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
 			 */
-			PlotIntensity& plot_guinier_approx(const hist::ScatteringHistogram& data);
+			PlotIntensity& plot_guinier_approx(const hist::CompositeDistanceHistogram* const data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const hist::ScatteringHistogram& h, const io::File& path);
+			static void quick_plot(const hist::DistanceHistogram* const h, const io::File& path);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

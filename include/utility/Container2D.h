@@ -19,16 +19,16 @@ class Container2D {
 
         T& operator()(unsigned int i, unsigned int j) {
             #if (SAFE_MATH)
-                if (i < 0 || i >= N || j < 0 || j >= M) {
+                if (i >= N || j >= M) {
                     throw except::out_of_bounds("Container2D::operator: Index out of bounds");
                 }
             #endif
             return data[j + M*i];
         }
 
-        const T& operator()(unsigned int i, unsigned int y) const {
+        const T& operator()(unsigned int i, unsigned int j) const {
             #if (SAFE_MATH)
-                if (i < 0 || i >= N || j < 0 || j >= M) {
+                if (i >= N || j >= M) {
                     throw except::out_of_bounds("Container2D::operator: Index out of bounds");
                 }
             #endif

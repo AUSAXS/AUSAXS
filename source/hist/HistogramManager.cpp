@@ -5,6 +5,7 @@
 #include <data/state/StateManager.h>
 #include <hist/HistogramManager.h>
 #include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;

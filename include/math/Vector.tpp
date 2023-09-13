@@ -60,7 +60,7 @@ Vector<T>& Vector<T>::operator*=(const Vector<Q>& v) {
 
 template<numeric T>
 Vector<T>::operator std::vector<T>() {
-    return data;
+    return std::move(data);
 }
 
 template<numeric T>

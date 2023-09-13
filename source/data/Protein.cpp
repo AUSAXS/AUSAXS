@@ -16,6 +16,7 @@
 #include <hist/detail/HistogramManagerFactory.h>
 #include <hist/HistogramManager.h>
 #include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <utility/Constants.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
@@ -82,7 +83,7 @@ void Protein::translate(const Vector3<double>& v) {
 }
 
 SimpleDataset Protein::simulate_dataset(bool add_noise) const {
-    SimpleDataset data = get_histogram().debye_transform();
+    SimpleDataset data = get_histogram()->debye_transform();
     data.reduce(settings::fit::N, true);
     data.simulate_errors();
     if (add_noise) {data.simulate_noise();}
@@ -330,7 +331,7 @@ void Protein::bind_body_signallers() {
 }
 
 std::shared_ptr<fitter::Fit> Protein::fit(const io::ExistingFile& measurement) const {
-    fitter::HydrationFitter fitter(measurement, std::make_unique<hist::DistanceHistogramMultiple>(get_histogram()));
+    fitter::HydrationFitter fitter(measurement, get_histogram());
     return fitter.fit();
 }
 

@@ -1,63 +1,63 @@
 #include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
+#include <hist/DebyeLookupTable.h>
+#include <settings/HistogramSettings.h>
 
 using namespace hist;
 
-DistanceHistogram::DistanceHistogram(std::vector<double>&& p_tot, const Axis& axis) : p_tot(std::move(p_tot)), axis(axis) {}
+DistanceHistogram::DistanceHistogram(std::vector<double>&& p_tot, const Axis& axis) : Histogram(std::move(p_tot), axis) {
+    initialize();
+}
 
-DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : p_tot(std::move(cdh.get_total_histogram())), axis(cdh.get_axis()) {}
+DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : Histogram(std::move(cdh.get_total_histogram()), cdh.get_axis()) {
+    initialize();
+}
+
+DistanceHistogram::~DistanceHistogram() = default;
+
+void DistanceHistogram::initialize() {
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
+    q_axis = debye_axis.as_vector();
+    d_axis = axis.as_vector();
+    d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
+
+    sinqd_table = std::make_unique<table::DebyeLookupTable>(q_axis, d_axis);
+}
 
 Histogram DistanceHistogram::debye_transform() const {
+    // calculate the Debye scattering intensity
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
+
+    // calculate the scattering intensity based on the Debye equation
+    std::vector<double> Iq(debye_axis.bins, 0);
+    for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
+        for (unsigned int j = 0; j < p.size(); j++) { // iterate through the distance histogram
+            Iq[i] += p[j]*sinqd_table->lookup(i, j);
+        }
+        Iq[i] *= std::exp(-q_axis[i]*q_axis[i]); // form factor
+    }
+    return Histogram(Iq, debye_axis);
+}
+
+Histogram DistanceHistogram::debye_transform(const std::vector<double>& q) const {
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
         for (unsigned int j = 0; j < p.size(); ++j) { // iterate through the distance histogram
-            double qd = q[i]*d[j];
+            double qd = q[i]*d_axis[j];
             if (qd < 1e-6) {Iq[i] += 1;}
             else {Iq[i] += p[j]*std::sin(qd)/qd;}
         }
         Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }
-    return Histogram(q, Iq);
+    return Histogram(Iq, Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins));
 }
 
-Histogram DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    return Histogram();
-}
+Vector<double>& DistanceHistogram::get_total_histogram() {return p;}
 
-std::vector<double>& DistanceHistogram::get_total_histogram() {return p_tot;}
+const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
-std::vector<double> DistanceHistogram::get_axis_vector() const {return axis.as_vector();}
+const Axis& DistanceHistogram::get_axis() const {return axis;}
 
-Axis& DistanceHistogram::get_axis() {return axis;}
-
-CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hh, std::vector<double>&& p_hp, std::vector<double>&& p_tot, const Axis& axis) 
-    : DistanceHistogram(std::move(p_tot), axis), p_pp(std::move(p_pp)), p_hh(std::move(p_hh)), p_hp(std::move(p_hp)) {}
-
-Histogram CompositeDistanceHistogram::debye_transform() const {
-    return Histogram();
-}
-
-Histogram CompositeDistanceHistogram::debye_transform(const std::vector<double>& q) const {
-    return Histogram();
-}
-
-std::vector<double>& CompositeDistanceHistogram::get_pp_histogram() {return p_pp;}
-
-std::vector<double>& CompositeDistanceHistogram::get_hh_histogram() {return p_hh;}
-
-std::vector<double>& CompositeDistanceHistogram::get_hp_histogram() {return p_hp;}
-
-void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
-    double k2 = std::pow(k, 2);
-    std::vector<double>& p_tot = get_total_histogram();
-    for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_pp[i] + k*p_hp[i] + k2*p_hh[i];} // p = p_tot, inherited from Histogram
-}
-
-Histogram CompositeDistanceHistogramFF::debye_transform() const {
-    return Histogram();
-}
-
-Histogram CompositeDistanceHistogramFF::debye_transform(const std::vector<double>& q) const {
-    return Histogram();
-}
+const std::vector<double>& DistanceHistogram::get_q_axis() const {return q_axis;}

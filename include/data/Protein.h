@@ -17,7 +17,7 @@ namespace io {
 namespace fitter {class Fit;}
 namespace hist {
 	class DistanceHistogram;
-	class DistanceHistogramMultiple;
+	class CompositeDistanceHistogram;
 	class HistogramManager;
 	class Histogram;
 }

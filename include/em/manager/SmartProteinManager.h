@@ -1,12 +1,12 @@
 #pragma once
 
-#include <hist/ScatteringHistogram.h>
 #include <em/manager/ProteinManager.h>
 
 #include <vector>
 
 class Protein;
 class Atom;
+namespace hist {class CompositeDistanceHistogram;}
 namespace em::managers {
     /**
      * @brief A helper class for the ImageStack. 
@@ -26,7 +26,7 @@ namespace em::managers {
             /**
              * @brief Get the histogram for a given cutoff.
              */
-            hist::ScatteringHistogram get_histogram(double cutoff);
+            std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(double cutoff);
 
             /**
              * @brief Get the Protein backing this object. 

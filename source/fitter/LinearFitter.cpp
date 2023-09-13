@@ -15,13 +15,16 @@
 
 using namespace fitter;
 
+LinearFitter::LinearFitter(LinearFitter&& other) : fitted(std::move(other.fitted)), data(std::move(other.data)), I0(other.I0), h(std::move(other.h)) {}
 LinearFitter::LinearFitter(const io::ExistingFile& input) {setup(input);}
 LinearFitter::LinearFitter(const io::ExistingFile& input, std::unique_ptr<hist::DistanceHistogram> h) : h(std::move(h)) {setup(input);}
 LinearFitter::LinearFitter(const SimpleDataset& data) : data(data) {}
 LinearFitter::LinearFitter(const SimpleDataset& data, std::unique_ptr<hist::DistanceHistogram> h) : data(data), h(std::move(h)) {}
+LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model) : LinearFitter(std::move(data), std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}
 LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> data, std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits) : h(std::move(data)) {
     model_setup(std::move(model), limits);
 }
+LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> model) : LinearFitter(std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}
 LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits) {
     model_setup(std::move(model), limits);
 }
@@ -82,7 +85,7 @@ FitPlots LinearFitter::plot() {
     // prepare the TGraphs
     FitPlots graphs;
     graphs.intensity_interpolated = SimpleDataset(data.x(), I_scaled);
-    graphs.intensity = SimpleDataset(h->get_axis_vector(), ym_scaled);
+    graphs.intensity = SimpleDataset(h->get_q_axis(), ym_scaled);
     graphs.data = SimpleDataset(data.x(), data.y(), data.yerr());
 
     auto lim = graphs.data.get_xlimits();
@@ -133,8 +136,8 @@ void LinearFitter::setup(const io::ExistingFile& file) {
 
 std::vector<double> LinearFitter::splice(const std::vector<double>& ym) const {
     std::vector<double> Im(data.size()); // spliced model values
-    math::CubicSpline s(h->get_axis_vector(), ym);
-    for (size_t i = 0; i < data.size(); ++i) {
+    math::CubicSpline s(h->get_q_axis(), ym);
+    for (unsigned int i = 0; i < data.size(); ++i) {
         Im[i] = s.spline(data.x(i));
     }
     return Im;

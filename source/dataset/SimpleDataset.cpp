@@ -6,6 +6,7 @@
 #include <dataset/DatasetFactory.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
+#include <hist/Histogram.h>
 
 #include <vector>
 #include <string>
@@ -30,30 +31,48 @@ SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     }
 }
 
-SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
+SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(std::cref(h.p.data), h.axis.as_vector()) {}
 
-SimpleDataset::SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(x.size()) {initialize(x, y, yerr);}
 
-SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) : SimpleDataset(x.size()) {
-    if (x.size() != y.size() || x.size() != yerr.size()) {
-        throw except::size_error("SimpleDataset::SimpleDataset: x, y, and yerr must have the same size (" + std::to_string(x.size()) + ", " + std::to_string(y.size()) + ", " + std::to_string(yerr.size()) + ".");
-    }
-    for (unsigned int i = 0; i < x.size(); i++) {
-        row(i) = {x[i], y[i], yerr[i]};
-    }
-}
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(x.size()) {initialize(x, y);}
 
-SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y) : SimpleDataset(x, y, std::vector<double>(y.size())) {}
-
-SimpleDataset::SimpleDataset(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset({x, y, std::vector<double>(y.size())}) {
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) : SimpleDataset(x.size()) {
+    initialize(x, y);
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
     options.xlabel = xlabel;
     options.ylabel = ylabel;
 }
 
+SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}
+
+SimpleDataset::SimpleDataset(unsigned int rows) noexcept : Dataset(rows, 3) {}
+
 SimpleDataset::SimpleDataset(const io::ExistingFile& path) : SimpleDataset() {
     auto data = factory::DatasetFactory::construct(path, 3);
     *this = std::move(*data);
+}
+
+void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<double>& y) {
+    #if DEBUG
+        if (x.size() != y.size()) {
+            throw except::size_error("SimpleDataset::SimpleDataset: x and y must have the same size (" + std::to_string(x.size()) + ", " + std::to_string(y.size()) + ").");
+        }
+    #endif
+    for (unsigned int i = 0; i < x.size(); i++) {
+        row(i) = {x[i], y[i], 0};
+    }
+}
+
+void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) {
+    #if DEBUG
+        if (x.size() != y.size() || x.size() != yerr.size()) {
+            throw except::size_error("SimpleDataset::SimpleDataset: x, y, and yerr must have the same size (" + std::to_string(x.size()) + ", " + std::to_string(y.size()) + ", " + std::to_string(yerr.size()) + ".");
+        }
+    #endif
+    for (unsigned int i = 0; i < x.size(); i++) {
+        row(i) = {x[i], y[i], yerr[i]};
+    }
 }
 
 void SimpleDataset::reduce(unsigned int target, bool log) {

@@ -21,6 +21,8 @@ namespace fitter {
     class ConstrainedFitter : public T {
         public: 
             using T::T;
+            ConstrainedFitter(ConstrainedFitter<T>&& other);
+
             [[nodiscard]] double chi2(const std::vector<double>& params) override;
 
             /**

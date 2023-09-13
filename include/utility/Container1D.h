@@ -20,7 +20,7 @@ class Container1D {
 
         T& operator()(unsigned int i) {
             #if (SAFE_MATH)
-                if (i < 0 || i >= N) {
+                if (i >= N) {
                     throw except::out_of_bounds("Container1D::operator: Index out of bounds");
                 }
             #endif
@@ -29,7 +29,7 @@ class Container1D {
 
         const T& operator()(unsigned int i) const {
             #if (SAFE_MATH)
-                if (i < 0 || i >= N) {
+                if (i >= N) {
                     throw except::out_of_bounds("Container1D::operator: Index out of bounds");
                 }
             #endif

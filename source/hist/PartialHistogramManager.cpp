@@ -1,4 +1,6 @@
 #include <hist/PartialHistogramManager.h>
+#include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <data/Protein.h>
 #include <data/Body.h>
 #include <data/Atom.h>
@@ -12,7 +14,7 @@ PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramMa
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 
-Histogram PartialHistogramManager::calculate() {
+std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
     const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
@@ -64,24 +66,25 @@ Histogram PartialHistogramManager::calculate() {
         }
     }
     statemanager.reset();
-    return Histogram(master.p, master.axis);
+    return std::make_unique<DistanceHistogram>(master.p.copy(), master.axis);
 }
 
-ScatteringHistogram PartialHistogramManager::calculate_all() {
-    Histogram total = calculate();
-    total.shorten_axis();
+std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_all() {
+    auto total = calculate();
+    total->shorten_axis();
+    unsigned int bins = total->get_axis().bins;
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     std::vector<double> p_hh = partials_hh.p;
     std::vector<double> p_pp = master.base.p;
-    std::vector<double> p_hp(total.axis.bins, 0);
+    std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < size; i++) {
         for (unsigned int j = 0; j < i; j++) {
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram
-            for (unsigned int k = 0; k < total.axis.bins; k++) {
+            for (unsigned int k = 0; k < bins; k++) {
                 p_pp[k] += current.p[k]; // add to p_pp
             }
         }
@@ -92,16 +95,16 @@ ScatteringHistogram PartialHistogramManager::calculate_all() {
         detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
-        for (unsigned int k = 0; k < total.axis.bins; k++) {
+        for (unsigned int k = 0; k < bins; k++) {
             p_hp[k] += current.p[k]; // add to p_pp
         }
     }
 
     // p_hp is already resized
-    p_hh.resize(total.axis.bins);
-    p_pp.resize(total.axis.bins);
+    p_hh.resize(bins);
+    p_pp.resize(bins);
 
-    return ScatteringHistogram(p_pp, p_hh, p_hp, std::move(total.p), total.axis);
+    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hh), std::move(p_hp), std::move(total->p), total->get_axis());
 }
 
 void PartialHistogramManager::calc_self_correlation(unsigned int index) {

@@ -2,7 +2,8 @@
 #include <fitter/Fit.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/Histogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>
@@ -27,8 +28,8 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     auto res = mini->minimize();
 
     update_excluded_volume(res.get_parameter("d").value);
-    h.apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -56,8 +57,8 @@ double ExcludedVolumeFitter::fit_chi2_only() {
     auto res = mini->minimize();
 
     update_excluded_volume(res.get_parameter("d").value);
-    h.apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h.calc_debye_scattering_intensity().col("I");
+    cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
+    std::vector<double> ym = h->debye_transform().p;
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io

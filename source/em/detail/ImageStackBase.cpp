@@ -7,13 +7,15 @@
 #include <data/Protein.h>
 #include <fitter/Fit.h>
 #include <mini/detail/FittedParameter.h>
+#include <mini/detail/Evaluation.h>
 #include <settings/EMSettings.h>
 #include <settings/HistogramSettings.h>
+#include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 #include <utility/Constants.h>
 #include <utility/Axis3D.h>
-#include <mini/detail/Evaluation.h>
-#include <settings/GridSettings.h>
+#include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogram.h>
 
 #include <fstream>
 #include <cstdint>
@@ -61,11 +63,11 @@ unsigned int ImageStackBase::size() const {return size_z;}
 
 const std::vector<Image>& ImageStackBase::images() const {return data;}
 
-hist::ScatteringHistogram ImageStackBase::get_histogram(double cutoff) const {
+std::unique_ptr<hist::CompositeDistanceHistogram> ImageStackBase::get_histogram(double cutoff) const {
     return phm->get_histogram(cutoff);
 }
 
-hist::ScatteringHistogram ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
+std::unique_ptr<hist::CompositeDistanceHistogram> ImageStackBase::get_histogram(const std::shared_ptr<fitter::EMFit> res) const {
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
