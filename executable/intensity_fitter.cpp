@@ -20,7 +20,7 @@
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
-    std::string s_pdb, s_mfile, s_settings, placement_strategy = "Radial";    
+    std::string s_pdb, s_mfile, s_settings, placement_strategy = "Radial";
     bool use_existing_hydration = false, fit_excluded_volume = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT; // smaller overhead
 

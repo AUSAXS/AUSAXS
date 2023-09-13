@@ -13,6 +13,7 @@
 #include <map>
 #include <utility>
 #include <algorithm>
+#include <numeric>
 
 Body::Body() {
     initialize();

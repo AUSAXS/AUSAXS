@@ -4,6 +4,7 @@
 
 #include <limits>
 #include <list>
+#include <numeric>
 
 using namespace mini;
 

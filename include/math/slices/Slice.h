@@ -8,6 +8,9 @@
 #include <vector>
 #include <initializer_list>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <cmath>
 
 template<numeric T, container_type Container> 
 class Slice {

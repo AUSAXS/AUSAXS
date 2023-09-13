@@ -11,6 +11,7 @@
 #include <Symbols.h>
 
 #include <vector>
+#include <functional>
 
 using namespace em::managers;
 

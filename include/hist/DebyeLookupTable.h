@@ -58,7 +58,6 @@ namespace table {
             std::function<double(unsigned int, unsigned int)> index_lookup_function;    // The lookup function when providing indices in the table. 
             LookupTable<double, double> table;                                          // The specialized table for this specific instance. 
             inline static LookupTable<double, double> default_table;                    // The shared default table. 
-            inline static int default_size = 1000;                                      // The size of the default table in Ångström. 
             inline static double tolerance = 1e-6;                                      // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
 
             /**

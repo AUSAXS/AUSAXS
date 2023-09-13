@@ -10,6 +10,8 @@
 #include <data/Body.h>
 
 #include <unordered_set>
+#include <functional>
+#include <numeric>
 
 using namespace rigidbody;
 

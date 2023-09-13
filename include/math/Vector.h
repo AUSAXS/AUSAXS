@@ -71,7 +71,7 @@ class Vector {
         template<numeric Q>
         Vector<T>& operator*=(const Vector<Q>& v);
 
-        // Conversion to std::vector. This is a O(1) operation.
+        // Conversion to std::vector. This is a O(N) operation.
         operator std::vector<T>();
 
         // Read-only indexing, w[i]

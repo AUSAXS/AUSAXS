@@ -17,9 +17,8 @@ DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : Histogr
 DistanceHistogram::~DistanceHistogram() = default;
 
 void DistanceHistogram::initialize() {
-    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
-    q_axis = debye_axis.as_vector();
-    d_axis = axis.as_vector();
+    q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+    d_axis = axis.as_vector(true);
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
 
     sinqd_table = std::make_unique<table::DebyeLookupTable>(q_axis, d_axis);
@@ -32,7 +31,7 @@ Histogram DistanceHistogram::debye_transform() const {
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
-        for (unsigned int j = 0; j < p.size(); j++) { // iterate through the distance histogram
+        for (unsigned int j = 0; j < p.size(); ++j) { // iterate through the distance histogram
             Iq[i] += p[j]*sinqd_table->lookup(i, j);
         }
         Iq[i] *= std::exp(-q_axis[i]*q_axis[i]); // form factor

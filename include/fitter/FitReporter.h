@@ -3,6 +3,7 @@
 #include <fitter/Fit.h>
 
 #include <string>
+#include <functional>
 
 namespace io {class File;}
 namespace fitter {

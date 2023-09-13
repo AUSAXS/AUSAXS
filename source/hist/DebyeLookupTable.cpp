@@ -13,17 +13,31 @@ DebyeLookupTable::DebyeLookupTable(const std::vector<double>& q, const std::vect
     initialize(q, d);
 }
 
+void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std::vector<double>& q, const std::vector<double>& d) {
+    table.initialize(q, d);
+    for (unsigned int i = 0; i < q.size(); ++i) {
+        for (unsigned int j = 0; j < d.size(); ++j) {
+            double qd = q[i]*d[j];  
+            double val;
+            if (qd < tolerance) [[unlikely]] {
+                double qd2 = qd*qd;
+                val = 1 - qd2/6 + qd2*qd2/120;
+            } else {
+                val = std::sin(qd)/qd;
+            }
+            table.assign_index(i, j, val);
+        }
+    }
+}
+
 void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vector<double>& d) {
     // check if the default table can be used
     if (is_default(q, d)) {
         // check if the default table has already been instantiated 
         if (default_table.is_empty()) {
             double width = settings::axes::distance_bin_width;
-            std::vector<double> _d(default_size/width, 0);
-            for (unsigned int i = 1; i < _d.size(); ++i) {
-                _d[i] = width*(i+0.5);
-            }
-
+            std::vector<double>_d = Axis(0, settings::axes::max_distance, settings::axes::max_distance/width).as_vector(true);
+            _d[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
             initialize(default_table, q, _d); // note we pass _d and not d
         }
 
@@ -64,38 +78,74 @@ bool DebyeLookupTable::uses_default_table() const {
     return false;
 }
 
-void DebyeLookupTable::initialize(LookupTable<double, double>& table, const std::vector<double>& q, const std::vector<double>& d) {
-    table.initialize(q, d);
-    for (unsigned int i = 0; i < q.size(); ++i) {
-        for (unsigned int j = 0; j < d.size(); ++j) {
-            double qd = q[i]*d[j];  
-            double val;
-            if (qd < tolerance) [[unlikely]] {
-                double qd2 = qd*qd;
-                val = 1 - qd2/6 + qd2*qd2/120;
-            } else {
-                val = std::sin(qd)/qd;
-            }
-            table.assign_index(i, j, val);
-        }
-    }
-}
-
+#define NOT_DEFAULT_MSG false
+#if NOT_DEFAULT_MSG
+    #include <iostream>
+#endif
 bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vector<double>& d) {
     // check q
     static Axis axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     static double width = settings::axes::distance_bin_width;
 
-    if (q.size() != axis.bins) {return false;}
-    if (q[0] != axis.min) {return false;}
-    if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) {return false;}
-    if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) {return false;}
+    if (q.size() != axis.bins) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "q.size() != axis.bins" << std::endl;
+        #endif
+        return false;
+    }
 
-    // check d
-    if (d.empty()) {return false;} // check if empty
-    if (d.back() > default_size) {return false;} // check if too large for default table
-    if (!utility::approx(d[2]-d[1], width)) {return false;} // check first width (d[1]-d[0] may be different from the default width)
-    if (!utility::approx(d[3]-d[2], width)) {return false;} // check second width
+    if (q[0] != axis.min) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "q[0] != axis.min" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "q[1] != axis.min + (axis.max-axis.min)/axis.bins" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins" << std::endl;
+        #endif        
+        return false;
+    }
+
+    // check empty
+    if (d.empty()) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "d.empty()" << std::endl;
+        #endif
+        return false;
+    }
+
+    // check if too large for default table
+    if (d.back() > settings::axes::max_distance) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "d.back() > default_size" << std::endl;
+        #endif
+        return false;
+    }
+    
+    // check first width (d[1]-d[0] may be different from the default width)
+    if (!utility::approx(d[2]-d[1], width)) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "!utility::approx(d[2]-d[1], width)" << std::endl;
+        #endif
+        return false;
+    }
+    
+    // check second width
+    if (!utility::approx(d[3]-d[2], width)) {
+        #if NOT_DEFAULT_MSG
+            std::cout << "!utility::approx(d[3]-d[2], width)" << std::endl;
+        #endif
+        return false;
+    }
 
     return true;
 }

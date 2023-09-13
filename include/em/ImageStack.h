@@ -8,6 +8,8 @@
 #include <io/IOFwd.h>
 #include <dataset/DatasetFwd.h>
 
+#include <functional>
+
 namespace em {
     namespace detail {class ExtendedLandscape;}
     /**

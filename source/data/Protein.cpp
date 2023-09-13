@@ -24,6 +24,8 @@
 #include <hydrate/culling/CullingStrategy.h>
 #include <Symbols.h>
 
+#include <numeric>
+
 using namespace hist;
 
 Protein::Protein(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {

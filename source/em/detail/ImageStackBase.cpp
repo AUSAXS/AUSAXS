@@ -19,6 +19,8 @@
 
 #include <fstream>
 #include <cstdint>
+#include <numeric>
+#include <functional>
 
 using namespace em;
 

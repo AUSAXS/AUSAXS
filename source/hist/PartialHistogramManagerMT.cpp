@@ -137,7 +137,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram
-            for (unsigned int k = 0; k < bins; k++) {
+            for (unsigned int k = 0; k < bins; ++k) {
                 p_pp[k] += current.p[k]; // add to p_pp
             }
         }
@@ -148,7 +148,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
         detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
-        for (unsigned int k = 0; k < bins; k++) {
+        for (unsigned int k = 0; k < bins; ++k) {
             p_hp[k] += current.p[k]; // add to p_pp
         }
     }
