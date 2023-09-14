@@ -159,4 +159,12 @@ namespace constants {
         extern std::string nitrogen;
         extern std::string oxygen;
     }
+
+    namespace form_factor {
+        constexpr double hydrogen = 1.0;
+        constexpr double carbon = 6.646;
+        constexpr double nitrogen = 5.105;
+        constexpr double oxygen = 4.255;
+        constexpr double other = 1.0;
+    }
 }

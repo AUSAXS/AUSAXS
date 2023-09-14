@@ -87,28 +87,28 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
     static Axis axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     static double width = settings::axes::distance_bin_width;
 
-    if (q.size() != axis.bins) {
+    if (q.size() != axis.bins) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "q.size() != axis.bins" << std::endl;
         #endif
         return false;
     }
 
-    if (q[0] != axis.min) {
+    if (q[0] != axis.min) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "q[0] != axis.min" << std::endl;
         #endif
         return false;
     }
 
-    if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) {
+    if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "q[1] != axis.min + (axis.max-axis.min)/axis.bins" << std::endl;
         #endif
         return false;
     }
 
-    if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) {
+    if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins" << std::endl;
         #endif        
@@ -116,7 +116,7 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
     }
 
     // check empty
-    if (d.empty()) {
+    if (d.empty()) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "d.empty()" << std::endl;
         #endif
@@ -124,7 +124,7 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
     }
 
     // check if too large for default table
-    if (d.back() > settings::axes::max_distance) {
+    if (d.back() > settings::axes::max_distance) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "d.back() > default_size" << std::endl;
         #endif
@@ -132,7 +132,7 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
     }
     
     // check first width (d[1]-d[0] may be different from the default width)
-    if (!utility::approx(d[2]-d[1], width)) {
+    if (!utility::approx(d[2]-d[1], width)) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "!utility::approx(d[2]-d[1], width)" << std::endl;
         #endif
@@ -140,7 +140,7 @@ bool DebyeLookupTable::is_default(const std::vector<double>& q, const std::vecto
     }
     
     // check second width
-    if (!utility::approx(d[3]-d[2], width)) {
+    if (!utility::approx(d[3]-d[2], width)) [[unlikely]] {
         #if NOT_DEFAULT_MSG
             std::cout << "!utility::approx(d[3]-d[2], width)" << std::endl;
         #endif

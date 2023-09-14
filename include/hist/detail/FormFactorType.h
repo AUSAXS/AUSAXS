@@ -22,4 +22,6 @@ namespace hist::detail::ff {
      * @brief Get the form factor type of an element from the Atom class. 
      */
     form_factor_t get_type(std::string_view element);
+
+    constexpr double get_form_factor(form_factor_t ff_type1, form_factor_t ff_type2, double q);
 }

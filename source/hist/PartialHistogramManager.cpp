@@ -104,7 +104,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
     p_hh.resize(bins);
     p_pp.resize(bins);
 
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hh), std::move(p_hp), std::move(total->p), total->get_axis());
+    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->p), total->get_axis());
 }
 
 void PartialHistogramManager::calc_self_correlation(unsigned int index) {

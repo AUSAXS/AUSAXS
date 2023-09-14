@@ -26,7 +26,7 @@ class Container3D {
             return data[k + L*(j + M*i)];
         }
 
-        const T& operator()(unsigned int i, unsigned int y, unsigned int z) const {
+        const T& operator()(unsigned int i, unsigned int y, unsigned int k) const {
             #if (SAFE_MATH)
                 if (i >= N || j >= M || k >= L) {
                     throw except::out_of_bounds("Container3D::operator: Index out of bounds");

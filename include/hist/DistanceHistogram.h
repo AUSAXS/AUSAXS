@@ -39,8 +39,10 @@ namespace hist {
 
             const Axis& get_axis() const;
 
-        private:
+        protected:
 			std::unique_ptr<table::DebyeLookupTable> sinqd_table;   // Lookup-table for sin(qd)/qd values for the scattering histograms.
+
+        private:
             std::vector<double> d_axis;                             // the distance axis
             std::vector<double> q_axis;                             // the q axis
 

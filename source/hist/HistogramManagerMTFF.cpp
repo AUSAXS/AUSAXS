@@ -1,5 +1,5 @@
 #include <hist/HistogramManagerMTFF.h>
-#include <hist/DistanceHistogram.h>
+#include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/detail/FormFactorType.h>
 #include <data/Protein.h>
@@ -147,14 +147,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
             break;
         }
     }
-    p_pp.resize(max_bin);
-    p_hh.resize(max_bin);
-    p_hp.resize(max_bin);
     axes = Axis(0, max_bin*width, max_bin); 
-
-    // calculate p_tot    
-    std::vector<double> p_tot(max_bin, 0);
-    for (unsigned int i = 0; i < max_bin; ++i) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
-
-    return std::make_unique<CompositeDistanceHistogramFF>(p_pp, p_hh, p_hp, p_tot, axes);
+    return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p_tot), axes);
 }

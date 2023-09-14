@@ -14,9 +14,9 @@ namespace hist {
         public: 
             CompositeDistanceHistogram() = default;
 
-            CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hh, std::vector<double>&& p_hp, std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hp, std::vector<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis);
 
-            ~CompositeDistanceHistogram() override;
+            virtual ~CompositeDistanceHistogram() override;
 
             const std::vector<double>& get_pp_histogram() const;
             const std::vector<double>& get_hh_histogram() const;

@@ -3,6 +3,8 @@
 #include <hist/HistogramManager.h>
 
 namespace hist {
+	class CompositeDistanceHistogram;
+
 	/**
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.

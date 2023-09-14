@@ -157,7 +157,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     p_hh.resize(bins);
     p_pp.resize(bins);
 
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hh), std::move(p_hp), std::move(total->p), total->get_axis());
+    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->p), total->get_axis());
 }
 
 /**
