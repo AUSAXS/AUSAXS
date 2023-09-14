@@ -3,7 +3,9 @@
 
 #include <cmath>
 
-hist::detail::ff::form_factor_t hist::detail::ff::get_type(std::string_view element) {
+using namespace hist::detail::ff;
+
+form_factor_t hist::detail::ff::get_type(std::string_view element) {
     if (element == "H") {
         return form_factor_t::HYDROGEN;
     } else if (element == "C") {
@@ -21,8 +23,8 @@ constexpr unsigned int hist::detail::ff::get_count() {
     return static_cast<unsigned int>(form_factor_t::COUNT);
 }
 
-constexpr double hist::detail::ff::get_form_factor(form_factor_t ff_type1, form_factor_t ff_type2, double q) {
-    auto get_ff_val = [](form_factor_t ff_type) {
+EvalFormFactor::EvalFormFactor(form_factor_t ff1, form_factor_t ff2) {
+    auto get_sigma = [](form_factor_t ff_type) {
         switch (ff_type) {
             case form_factor_t::HYDROGEN:
                 return constants::form_factor::hydrogen;
@@ -35,9 +37,16 @@ constexpr double hist::detail::ff::get_form_factor(form_factor_t ff_type1, form_
             case form_factor_t::OTHER:
                 return constants::form_factor::other;
             default:
-                throw std::runtime_error("Invalid form factor type.");
+                throw std::runtime_error("EvalFormFactor::EvalFormFactor: Invalid form factor type.");
         }
     };
-    double factor = get_ff_val(ff_type1)*get_ff_val(ff_type2)/3;
+    factor = get_sigma(ff1)*get_sigma(ff2)/3;
+}
+
+double EvalFormFactor::operator()(double q) const {
     return std::exp(-factor*q*q);
+}
+
+constexpr EvalFormFactor hist::detail::ff::get_form_factor(int ff_type1, int ff_type2) {
+    return EvalFormFactor(static_cast<form_factor_t>(ff_type1), static_cast<form_factor_t>(ff_type2));
 }
