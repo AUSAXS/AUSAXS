@@ -1,7 +1,7 @@
 #include <hist/HistogramManagerMTFF.h>
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/detail/CompactCoordinatesFF.h>
-#include <hist/detail/FormFactorType.h>
+#include <hist/detail/FormFactor.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
 #include <data/Water.h>
@@ -38,7 +38,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     //########################//
     BS::thread_pool pool(settings::general::threads);
     auto calc_pp = [&data_p, &axes, &atoms, &width] (unsigned int imin, unsigned int imax) {
-        Container3D<double> p_pp(detail::ff::get_count(), detail::ff::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+        Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; i++) {
             for (unsigned int j = i+1; j < atoms.size(); j++) {
                 float weight = data_p.data[i].w*data_p.data[j].w;
@@ -53,7 +53,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     };
 
     auto calc_hp = [&data_h, &data_p, &axes, &waters, &atoms, &width] (unsigned int imin, unsigned int imax) {
-        Container2D<double> p_hp(detail::ff::get_count(), axes.bins, 0); // ff_type, distance
+        Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0); // ff_type, distance
         for (unsigned int i = imin; i < imax; i++) {
             for (unsigned int j = 0; j < atoms.size(); j++) {
                 float weight = data_h.data[i].w*data_p.data[j].w;
@@ -103,12 +103,12 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     //#################//
     // COLLECT RESULTS //
     //#################//
-    Container3D<double> p_pp(detail::ff::get_count(), detail::ff::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+    Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
     for (const auto& tmp : pp.get()) {
         std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
 
-    Container2D<double> p_hp(axes.bins, 0);
+    Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0);
     for (const auto& tmp : hp.get()) {
         std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<double>());
     }
@@ -130,8 +130,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
 
     std::vector<double> p_tot(axes.bins, 0);
     for (unsigned int i = 0; i < axes.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < detail::ff::get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < detail::ff::get_count(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
                 p_tot[i] += p_pp.index(ff1, ff2, i);
             }
             p_tot[i] += p_hp.index(ff1, i);

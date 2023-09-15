@@ -6,12 +6,12 @@
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <utility/Exceptions.h>
-#include <mini/All.h>
 #include <plots/All.h>
 #include <settings/FitSettings.h>
 #include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>
 #include <dataset/Dataset2D.h>
+#include <mini/All.h>
 #include <mini/detail/Parameter.h>
 #include <mini/Minimizer.h>
 

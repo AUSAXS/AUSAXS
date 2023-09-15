@@ -1,6 +1,5 @@
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotOptions.h>
-#include <hist/ScatteringHistogram.h>
 #include <fitter/Fit.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/FitPlots.h>

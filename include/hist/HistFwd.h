@@ -6,4 +6,9 @@ namespace hist {
     class CompositeDistanceHistogram;
     class CompositeDistanceHistogramFF;
     class Histogram;
+
+    /**
+     * @brief A ScatteringHistogram is just a (q, I(q)) histogram. 
+     */    
+    using ScatteringHistogram = Histogram;
 }

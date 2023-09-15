@@ -2,6 +2,7 @@
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
 #include <hist/DebyeLookupTable.h>
+#include <dataset/SimpleDataset.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
@@ -24,7 +25,8 @@ void DistanceHistogram::initialize() {
     sinqd_table = std::make_unique<table::DebyeLookupTable>(q_axis, d_axis);
 }
 
-Histogram DistanceHistogram::debye_transform() const {
+ScatteringHistogram DistanceHistogram::debye_transform() const {
+    std::cout << "DISTANCEHISTOGRAM TRANSFORM" << std::endl;
     // calculate the Debye scattering intensity
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
 
@@ -36,10 +38,10 @@ Histogram DistanceHistogram::debye_transform() const {
         }
         Iq[i] *= std::exp(-q_axis[i]*q_axis[i]); // form factor
     }
-    return Histogram(Iq, debye_axis);
+    return ScatteringHistogram(Iq, debye_axis);
 }
 
-Histogram DistanceHistogram::debye_transform(const std::vector<double>& q) const {
+SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(q.size(), 0);
     for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
@@ -50,7 +52,7 @@ Histogram DistanceHistogram::debye_transform(const std::vector<double>& q) const
         }
         Iq[i] *= std::exp(-q[i]*q[i]); // form factor
     }
-    return Histogram(Iq, Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins));
+    return SimpleDataset(q, Iq);
 }
 
 Vector<double>& DistanceHistogram::get_total_histogram() {return p;}

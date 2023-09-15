@@ -1,15 +1,16 @@
 #include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/Fit.h>
+#include <fitter/FitPlots.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <hist/Histogram.h>
+#include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>
 #include <settings/GeneralSettings.h>
 #include <data/Protein.h>
-#include <fitter/FitPlots.h>
 
 using namespace fitter;
 

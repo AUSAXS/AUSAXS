@@ -1,4 +1,5 @@
 #include <fitter/LinearFitter.h>
+#include <fitter/FitPlots.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
 #include <hist/DistanceHistogram.h>
@@ -8,7 +9,6 @@
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 #include <dataset/Dataset2D.h>
-#include <fitter/FitPlots.h>
 
 #include <iostream>
 #include <fstream>

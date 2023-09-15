@@ -8,8 +8,6 @@
 #include <vector>
 
 namespace hist {
-    class Histogram;
-
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
@@ -21,9 +19,9 @@ namespace hist {
 
             ~CompositeDistanceHistogramFF() override;
 
-            Histogram debye_transform() const override;
+            ScatteringHistogram debye_transform() const override;
 
-            Histogram debye_transform(const std::vector<double>& q) const override;
+            SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
             void apply_water_scaling_factor(double k);
 

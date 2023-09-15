@@ -1,5 +1,4 @@
 #include <plots/PlotIntensityFitResiduals.h>
-#include <hist/ScatteringHistogram.h>
 #include <fitter/Fit.h>
 #include <fitter/LinearFitter.h>
 #include <mini/detail/FittedParameter.h>

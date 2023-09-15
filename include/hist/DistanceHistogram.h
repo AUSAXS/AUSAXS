@@ -2,6 +2,7 @@
 
 #include <utility/Axis.h>
 #include <hist/Histogram.h>
+#include <hist/HistFwd.h>
 
 #include <vector>
 #include <memory>
@@ -9,8 +10,6 @@
 namespace table {class DebyeLookupTable;}
 namespace dataset {class SimpleDataset;}
 namespace hist {
-    class CompositeDistanceHistogram;
-
     /**
      * @brief A DistanceHistogram is just a (x, count(x)) histogram.
      */
@@ -27,9 +26,9 @@ namespace hist {
 
             virtual ~DistanceHistogram() override;
 
-            virtual Histogram debye_transform() const;
+            virtual ScatteringHistogram debye_transform() const;
 
-            virtual Histogram debye_transform(const std::vector<double>& q) const;
+            virtual SimpleDataset debye_transform(const std::vector<double>& q) const;
 
             Vector<double>& get_total_histogram();
 

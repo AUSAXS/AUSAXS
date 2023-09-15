@@ -21,7 +21,7 @@ class Container1D {
         T& operator()(unsigned int i) {
             #if (SAFE_MATH)
                 if (i >= N) {
-                    throw except::out_of_bounds("Container1D::operator: Index out of bounds");
+                    throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                 }
             #endif
             return data[i];
@@ -30,7 +30,7 @@ class Container1D {
         const T& operator()(unsigned int i) const {
             #if (SAFE_MATH)
                 if (i >= N) {
-                    throw except::out_of_bounds("Container1D::operator: Index out of bounds");
+                    throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                 }
             #endif
             return data[i];

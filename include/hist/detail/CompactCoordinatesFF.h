@@ -17,7 +17,7 @@ namespace hist::detail {
     struct CompactCoordinatesFF {
         struct Data {
             Data();
-            Data(const Vector3<double>& v, float w, hist::detail::ff::form_factor_t ff_type);
+            Data(const Vector3<double>& v, float w, hist::detail::form_factor_t ff_type);
             float x, y, z, w; 
             unsigned int ff_type;
         };

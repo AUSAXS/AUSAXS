@@ -20,9 +20,8 @@
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
-    std::string s_pdb, s_mfile, s_settings, placement_strategy = "Radial";
+    std::string s_pdb, s_mfile, s_settings, placement_strategy = "radial", histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
     bool use_existing_hydration = false, fit_excluded_volume = false;
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT; // smaller overhead
 
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
@@ -38,6 +37,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile);
+    app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.");
     app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered.")->default_val(settings::protein::center);
     app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::protein::use_effective_charge);
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration);
@@ -77,10 +77,10 @@ int main(int argc, char const *argv[]) {
         throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
     }
 
-    // parse strategy
-    if (placement_strategy == "Radial") {settings::grid::placement_strategy = settings::grid::PlacementStrategy::RadialStrategy;}
-    else if (placement_strategy == "Axes") {settings::grid::placement_strategy = settings::grid::PlacementStrategy::AxesStrategy;}
-    else if (placement_strategy == "Jan") {settings::grid::placement_strategy = settings::grid::PlacementStrategy::JanStrategy;}
+    settings::detail::parse_option("placement_strategy", {placement_strategy});
+    settings::detail::parse_option("histogram_manager", {histogram_manager});
+
+    // std::cout << "Using histogram manager " << static_cast<int>(settings::hist::histogram_manager) << std::endl;
 
     //######################//
     //### ACTUAL PROGRAM ###//
