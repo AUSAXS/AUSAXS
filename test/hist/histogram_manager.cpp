@@ -10,6 +10,8 @@
 #include <hist/HistogramManagerMT.h>
 #include <hist/PartialHistogramManager.h>
 #include <hist/PartialHistogramManagerMT.h>
+#include <hist/CompositeDistanceHistogramFF.h>
+#include <io/ExistingFile.h>
 #include <settings/ProteinSettings.h>
 
 struct analytical_histogram {
@@ -71,20 +73,20 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm.p));
+                auto hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->p));
             }
             { // hm_mt
-                hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt.p));
+                auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->p));
             }
             { // phm
-                hist::ScatteringHistogram phm = protein.get_histogram();
-                REQUIRE(compare_hist(p_exp, phm.p));
+                auto phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm->p));
             }
             { // phm_mt
-                hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, phm_mt.p));
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->p));
             }
         }
 
@@ -99,20 +101,20 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm.p));
+                auto hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->p));
             }
             { // hm_mt
-                hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt.p));
+                auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->p));
             }
             { // phm
-                hist::ScatteringHistogram phm = protein.get_histogram();
-                REQUIRE(compare_hist(p_exp, phm.p));
+                auto phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm->p));
             }
             { // phm_mt
-                hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, phm_mt.p));
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->p));
             }
         }
 
@@ -127,20 +129,20 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm.p));
+                auto hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->p));
             }
             { // hm_mt
-                hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt.p));
+                auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->p));
             }
             { // phm
-                hist::ScatteringHistogram phm = protein.get_histogram();
-                REQUIRE(compare_hist(p_exp, phm.p));
+                auto phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm->p));
             }
             { // phm_mt
-                hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, phm_mt.p));
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->p));
             }
         }
     }
@@ -152,27 +154,27 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
         Protein protein("test/files/2epe.pdb");
         protein.generate_new_hydration();
 
-        auto p_exp = protein.get_histogram().p;
+        auto p_exp = protein.get_histogram()->p;
 
         { // hm
-            hist::ScatteringHistogram hm = hist::HistogramManager(&protein).calculate_all();
-            REQUIRE(p_exp.size() == hm.p.size());
-            REQUIRE(compare_hist(p_exp, hm.p));
+            auto hm = hist::HistogramManager(&protein).calculate_all();
+            REQUIRE(p_exp.size() == hm->p.size());
+            REQUIRE(compare_hist(p_exp, hm->p));
         }
         { // hm_mt
-            hist::ScatteringHistogram hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-            REQUIRE(p_exp.size() == hm_mt.p.size());
-            REQUIRE(compare_hist(p_exp, hm_mt.p));
+            auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+            REQUIRE(p_exp.size() == hm_mt->p.size());
+            REQUIRE(compare_hist(p_exp, hm_mt->p));
         }
         { // phm
-            hist::ScatteringHistogram phm = hist::PartialHistogramManager(&protein).calculate_all();
-            REQUIRE(p_exp.size() == phm.p.size());
-            REQUIRE(compare_hist(p_exp, phm.p));
+            auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+            REQUIRE(p_exp.size() == phm->p.size());
+            REQUIRE(compare_hist(p_exp, phm->p));
         }
         { // phm_mt
-            hist::ScatteringHistogram phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-            REQUIRE(p_exp.size() == phm_mt.p.size());
-            REQUIRE(compare_hist(p_exp, phm_mt.p));
+            auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+            REQUIRE(p_exp.size() == phm_mt->p.size());
+            REQUIRE(compare_hist(p_exp, phm_mt->p));
         }
     }
 }
@@ -182,20 +184,20 @@ TEST_CASE("PartialHistogramManager::get_probe") {
     auto phm = hist::PartialHistogramManager(&protein);
     auto sm = phm.get_state_manager();
 
-    // check the signalling object is correct    
-    CHECK(&phm.get_probe(0) == &sm.get_probe(0)); 
+    // check the signalling object is correct
+    CHECK(phm.get_probe(0) == sm->get_probe(0)); 
 
     // check that it links to the state manager
-    sm.reset();
+    sm->reset();
     phm.get_probe(0)->external_change();
-    CHECK(sm.is_externally_modified(0));
+    CHECK(sm->is_externally_modified(0));
 }
 
 TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     Protein protein("test/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager(&protein);
     auto sm = phm.get_state_manager();
-    sm.reset();
+    sm->reset();
     phm.signal_modified_hydration_layer();
-    CHECK(sm.get_modified_hydration());
+    CHECK(sm->get_modified_hydration());
 }
