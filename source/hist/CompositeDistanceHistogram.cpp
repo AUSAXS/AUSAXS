@@ -3,16 +3,15 @@
 
 using namespace hist;
 
-CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hh, std::vector<double>&& p_hp, std::vector<double>&& p_tot, const Axis& axis) 
+CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hp, std::vector<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis) 
     : DistanceHistogram(std::move(p_tot), axis), p_pp(std::move(p_pp)), p_hp(std::move(p_hp)), p_hh(std::move(p_hh)) {}
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 
-// std::vector<double>& CompositeDistanceHistogram::get_pp_histogram() {return p_pp;}
-// std::vector<double>& CompositeDistanceHistogram::get_hh_histogram() {return p_hh;}
-// std::vector<double>& CompositeDistanceHistogram::get_hp_histogram() {return p_hp;}
 const std::vector<double>& CompositeDistanceHistogram::get_pp_histogram() const {return p_pp;}
+
 const std::vector<double>& CompositeDistanceHistogram::get_hh_histogram() const {return p_hh;}
+
 const std::vector<double>& CompositeDistanceHistogram::get_hp_histogram() const {return p_hp;}
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {

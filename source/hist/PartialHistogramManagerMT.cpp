@@ -30,8 +30,8 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
     futures_pp.reserve(size*(size-1)/2);
     futures_hp.reserve(size);
 
-    const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
-    const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
+    const std::vector<bool>& externally_modified = statemanager->get_externally_modified_bodies();
+    const std::vector<bool>& internally_modified = statemanager->get_internally_modified_bodies();
     const bool hydration_modified = statemanager->get_modified_hydration();
 
     // check if the object has already been initialized
@@ -133,7 +133,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < size; ++i) {
-        for (unsigned int j = 0; j < i; ++j) {
+        for (unsigned int j = 0; j <= i; ++j) {
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram
@@ -164,8 +164,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManagerMT::initialize() {
-    double width = settings::axes::distance_bin_width;
-    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/width); 
+    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
@@ -177,7 +176,7 @@ void PartialHistogramManagerMT::initialize() {
         partials_pp.index(i, i) = detail::PartialHistogram(axis);
         futures[i] = calc_self_correlation(i);
 
-        for (unsigned int j = 0; j < i; j++) {
+        for (unsigned int j = 0; j < i; ++j) {
             partials_pp.index(i, j) = detail::PartialHistogram(axis);
         }
     }
@@ -191,18 +190,17 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
     update_compact_representation_body(index);
 
     // calculate internal distances between atoms
-    static auto calc_internal = [this] (unsigned int index, unsigned int imin, unsigned int imax) {
+    static auto calc_internal = [] (const detail::CompactCoordinates& coords, unsigned int pp_size, unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
-        detail::CompactCoordinates& current = coords_p[index];
 
-        std::vector<double> p_pp(master.axis.bins, 0);
+        std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = i+1; j < current.size; ++j) {
-                float weight = current.data[i].w*current.data[j].w;
-                float dx = current.data[i].x - current.data[j].x;
-                float dy = current.data[i].y - current.data[j].y;
-                float dz = current.data[i].z - current.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+            for (unsigned int j = i+1; j < coords.size; ++j) {
+                float weight = coords.data[i].w*coords.data[j].w;
+                float dx = coords.data[i].x - coords.data[j].x;
+                float dy = coords.data[i].y - coords.data[j].y;
+                float dz = coords.data[i].z - coords.data[j].z;
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp[dist/width] += 2*weight;
             }
         }
@@ -210,37 +208,34 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
     };
 
     // calculate self correlation
-    static auto calc_self = [this] (unsigned int index) {
-        detail::CompactCoordinates& current = coords_p[index];
-        std::vector<double> p_pp(master.axis.bins, 0);
-        for (unsigned int i = 0; i < current.size; ++i) {
-            p_pp[0] += current.data[i].w*current.data[i].w;
+    static auto calc_self = [] (const detail::CompactCoordinates& coords, unsigned int pp_size) {
+        std::vector<double> p_pp(pp_size, 0);
+        for (unsigned int i = 0; i < coords.size; ++i) {
+            p_pp[0] += coords.data[i].w*coords.data[i].w;
         }
         return p_pp;
     };
 
     BS::multi_future<std::vector<double>> futures_self_corr;
     for (unsigned int i = 0; i < size; i += settings::general::detail::job_size) {
-        futures_self_corr.push_back(pool->submit(calc_internal, index, i, std::min(i+settings::general::detail::job_size, size)));
+        futures_self_corr.push_back(pool->submit(calc_internal, std::cref(coords_p[index]), master.axis.bins, i, std::min(i+settings::general::detail::job_size, size)));
     }
-    futures_self_corr.push_back(pool->submit(calc_self, index));
+    futures_self_corr.push_back(pool->submit(calc_self, std::cref(coords_p[index]), master.axis.bins));
     return futures_self_corr;
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
-    static auto calc_pp = [this] (unsigned int n, unsigned int m, unsigned int imin, unsigned int imax) {
+    static auto calc_pp = [] (const detail::CompactCoordinates& coords_n, const detail::CompactCoordinates& coords_m, unsigned int pp_size, unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
-        detail::CompactCoordinates& coords_n = coords_p[n];
-        detail::CompactCoordinates& coords_m = coords_p[m];
 
-        std::vector<double> p_pp(master.axis.bins, 0);
+        std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < coords_m.size; ++j) {
                 float weight = coords_n.data[i].w*coords_m.data[j].w;
                 float dx = coords_n.data[i].x - coords_m.data[j].x;
                 float dy = coords_n.data[i].y - coords_m.data[j].y;
                 float dz = coords_n.data[i].z - coords_m.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp[dist/width] += 2*weight;
             }
         }
@@ -250,24 +245,23 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
     BS::multi_future<std::vector<double>> futures_pp;
     detail::CompactCoordinates& coords_n = coords_p[n];
     for (unsigned int i = 0; i < coords_n.size; i += settings::general::detail::job_size) {
-        futures_pp.push_back(pool->submit(calc_pp, n, m, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
+        futures_pp.push_back(pool->submit(calc_pp, std::cref(coords_p[n]), std::cref(coords_p[m]), master.axis.bins, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
     }
     return futures_pp;
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigned int index) {
-    static auto calc_hp = [this] (unsigned int index, unsigned int imin, unsigned int imax) {
+    static auto calc_hp = [] (const detail::CompactCoordinates& coords_i, const detail::CompactCoordinates& coords_h, unsigned int hp_size, unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
-        detail::CompactCoordinates& coords = coords_p[index];
 
-        std::vector<double> p_hp(master.axis.bins, 0);
+        std::vector<double> p_hp(hp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < coords_h.size; ++j) {
-                float weight = coords.data[i].w*coords_h.data[j].w;
-                float dx = coords.data[i].x - coords_h.data[j].x;
-                float dy = coords.data[i].y - coords_h.data[j].y;
-                float dz = coords.data[i].z - coords_h.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float weight = coords_i.data[i].w*coords_h.data[j].w;
+                float dx = coords_i.data[i].x - coords_h.data[j].x;
+                float dy = coords_i.data[i].y - coords_h.data[j].y;
+                float dz = coords_i.data[i].z - coords_h.data[j].z;
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hp[dist/width] += 2*weight;
             }
         }
@@ -277,24 +271,24 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
     BS::multi_future<std::vector<double>> futures_hp;
     detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.size; i += settings::general::detail::job_size) {
-        futures_hp.push_back(pool->submit(calc_hp, index, i, std::min(i+settings::general::detail::job_size, coords.size)));
+        futures_hp.push_back(pool->submit(calc_hp, std::cref(coords_p[index]), std::cref(coords_h), master.axis.bins, i, std::min(i+settings::general::detail::job_size, coords.size)));
     }
     return futures_hp;
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
     // calculate internal distances for the hydration layer
-    static auto calc_hh = [this] (unsigned int imin, unsigned int imax) {
+    static auto calc_hh = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size, unsigned int imin, unsigned int imax) {
         double width = settings::axes::distance_bin_width;
 
-        std::vector<double> p_hh(master.axis.bins, 0);
+        std::vector<double> p_hh(hh_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = i+1; j < protein->get_waters().size(); ++j) {
+            for (unsigned int j = i+1; j < coords_h.size; ++j) {
                 float weight = coords_h.data[i].w*coords_h.data[j].w;
                 float dx = coords_h.data[i].x - coords_h.data[j].x;
                 float dy = coords_h.data[i].y - coords_h.data[j].y;
                 float dz = coords_h.data[i].z - coords_h.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hh[dist/width] += 2*weight;
             }
         }
@@ -302,9 +296,9 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
     };
 
     // calculate self correlation
-    static auto calc_self = [this] () {
-        std::vector<double> p_hh(master.axis.bins, 0);
-        for (unsigned int i = 0; i < protein->get_waters().size(); ++i) {
+    static auto calc_self = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size) {
+        std::vector<double> p_hh(hh_size, 0);
+        for (unsigned int i = 0; i < coords_h.size; ++i) {
             p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;
         }
         return p_hh;
@@ -312,9 +306,9 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
 
     BS::multi_future<std::vector<double>> futures_hh;
     for (unsigned int i = 0; i < coords_h.size; i += settings::general::detail::job_size) {
-        futures_hh.push_back(pool->submit(calc_hh, i, std::min(i+settings::general::detail::job_size, coords_h.size)));
+        futures_hh.push_back(pool->submit(calc_hh, std::cref(coords_h), master.axis.bins, i, std::min(i+settings::general::detail::job_size, coords_h.size)));
     }
-    futures_hh.push_back(pool->submit(calc_self));
+    futures_hh.push_back(pool->submit(calc_self, std::cref(coords_h), master.axis.bins));
     return futures_hh;
 }
 
@@ -326,9 +320,10 @@ void PartialHistogramManagerMT::combine_self_correlation(unsigned int index, BS:
         std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
 
+    std::cout << "combine_self_correlation[" << index << "]" << std::endl;
+
     // update the master histogram
     master_hist_mutex.lock();
-    master.base -= partials_pp.index(index, index);
     master -= partials_pp.index(index, index);
     partials_pp.index(index, index).p = std::move(p_pp);
     master += partials_pp.index(index, index);
@@ -342,6 +337,8 @@ void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m, BS::m
     for (auto& tmp : futures.get()) {
         std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
+
+    std::cout << "combine_pp[" << n << ", " << m << "]" << std::endl;
 
     // update the master histogram
     master_hist_mutex.lock();

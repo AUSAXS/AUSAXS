@@ -40,9 +40,9 @@ std::shared_ptr<signaller::Signaller> StateManager::get_probe(unsigned int i) {r
 
 std::vector<std::shared_ptr<signaller::Signaller>> StateManager::get_probes() {return probes;}
 
-std::vector<bool> StateManager::get_externally_modified_bodies() const {return _externally_modified;}
+const std::vector<bool>& StateManager::get_externally_modified_bodies() const {return _externally_modified;}
 
-std::vector<bool> StateManager::get_internally_modified_bodies() const {return _internally_modified;}
+const std::vector<bool>& StateManager::get_internally_modified_bodies() const {return _internally_modified;}
 
 bool StateManager::is_externally_modified(unsigned int i) {return _externally_modified[i];}
 

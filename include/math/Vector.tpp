@@ -19,6 +19,13 @@ Vector<T>& Vector<T>::operator=(const Vector<T>& v) {
 }
 
 template<numeric T>
+Vector<T>& Vector<T>::operator=(Vector<T>&& v) {
+    N = v.N;
+    data = std::move(v.data);
+    return *this;
+}
+
+template<numeric T>
 Vector<T>& Vector<T>::operator=(std::initializer_list<T> l) {
     N = l.size();
     data.assign(l);

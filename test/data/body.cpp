@@ -30,6 +30,11 @@ struct fixture {
 };
 
 struct multiple_fixture {
+    multiple_fixture() {
+        settings::protein::use_effective_charge = false;
+        settings::protein::center = false;
+    }
+
     Atom a1 = Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1);
     Atom a2 = Atom(Vector3<double>(-1,  1, -1), 1, "C", "C", 1);
     Atom a3 = Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1);

@@ -33,6 +33,11 @@ class Vector {
         Vector(const std::vector<T>& v) : N(v.size()), data(v) {}
 
         /**
+         * @brief Construct a vector based on a std::vector. 
+         */
+        Vector(std::vector<T>&& v) : N(v.size()), data(std::move(v)) {}
+
+        /**
          * @brief Construct an empty vector of a given size. 
          */
         Vector(unsigned int n) : N(n), data(n) {}
@@ -49,6 +54,9 @@ class Vector {
 
         // Assignment operator, w = v
         Vector<T>& operator=(const Vector<T>& v);
+
+        // Assignment operator, w = v
+        Vector<T>& operator=(Vector<T>&& v);
 
         // Initializer list assignment operator
         Vector<T>& operator=(std::initializer_list<T> l);

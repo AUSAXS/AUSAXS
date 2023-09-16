@@ -68,9 +68,9 @@ class StateManager {
 		/**
 		 * @brief Get a boolean vector which denotes if the state of a given body was changed. 
 		 */
-		std::vector<bool> get_externally_modified_bodies() const;
+		const std::vector<bool>& get_externally_modified_bodies() const;
 
-		std::vector<bool> get_internally_modified_bodies() const;
+		const std::vector<bool>& get_internally_modified_bodies() const;
 
 		/**
 		 * @brief Check if a given body has been marked as modified.

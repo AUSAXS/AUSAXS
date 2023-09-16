@@ -26,7 +26,6 @@ void DistanceHistogram::initialize() {
 }
 
 ScatteringHistogram DistanceHistogram::debye_transform() const {
-    std::cout << "DISTANCEHISTOGRAM TRANSFORM" << std::endl;
     // calculate the Debye scattering intensity
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
 

@@ -118,7 +118,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     for (unsigned int i = 0; i < waters.size(); ++i) {p_hh[0] += std::pow(data_h.data[i].w, 2);}
 
     // downsize our axes to only the relevant area
-    int max_bin = 10; // minimum size is 10
+    unsigned int max_bin = 10; // minimum size is 10
     for (int i = axes.bins-1; i >= 10; i--) {
         if (p_pp[i] != 0 || p_hh[i] != 0 || p_hp[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)

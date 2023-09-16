@@ -15,7 +15,6 @@ CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(Container3D<double>&&
 CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
 ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
-    std::cout << "COMPOSITEDISTANCEHISTOGRAMFF TRANSFORM" << std::endl;
     static Container2D<hist::detail::PrecalculatedFormFactorProduct> ff_table = hist::detail::PrecalculatedFormFactorProduct::generate_table();
 
     // calculate the Debye scattering intensity

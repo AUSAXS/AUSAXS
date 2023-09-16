@@ -3,6 +3,7 @@
 
 #include <hist/DebyeLookupTable.h>
 #include <utility/Axis.h>
+#include <utility/Utility.h>
 #include <data/Atom.h>
 #include <settings/All.h>
 
@@ -18,7 +19,7 @@ TEST_CASE("DebyeLookupTable::DebyeLookupTable") {
     SECTION("vector<double>&, vector<double>&") {
         std::vector<double> d = {1, 2, 3, 4, 5};
         std::vector<double> q = {1, 2, 3, 4, 5, 6};
-        table::DebyeLookupTable table(d, q);
+        table::DebyeLookupTable table(q, d);
         CHECK(table.size_d() == d.size());
         CHECK(table.size_q() == q.size());
     }
@@ -27,7 +28,7 @@ TEST_CASE("DebyeLookupTable::DebyeLookupTable") {
 TEST_CASE("DebyeLookupTable::lookup") {
     std::vector<double> d = {20, 10, 30, 15, 10};
     std::vector<double> q = {0.01, 0.05, 0.1, 0.25, 0.5};
-    table::DebyeLookupTable table(d, q);
+    table::DebyeLookupTable table(q, d);
 
     auto func = [&] (double q, double d) {return std::sin(q*d)/(q*d);};
 
@@ -53,16 +54,16 @@ TEST_CASE("DebyeLookupTable::lookup") {
 
 TEST_CASE("DebyeLookupTable::uses_default_table") {
     SECTION("default table") {
-        Axis axis(settings::axes::bins, settings::axes::qmin, settings::axes::qmax);
+        Axis axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
         std::vector<double> q = axis.as_vector();
         std::vector<double> d = {1, 2, 3, 4, 5};
-        table::DebyeLookupTable table(d, q);
+        table::DebyeLookupTable table(q, d);
         CHECK(table.uses_default_table());
     }
     SECTION("non-default table") {
         std::vector<double> d = {1, 2, 3, 4, 5};
         std::vector<double> q = {1, 2, 3, 4, 5};
-        table::DebyeLookupTable table(d, q);
+        table::DebyeLookupTable table(q, d);
         CHECK(!table.uses_default_table());
     }
 }
@@ -72,7 +73,7 @@ TEST_CASE("DebyeLookupTable::size") {
     SECTION("(5, 5)") {
         std::vector<double> d = {1, 2, 3, 4, 5};
         std::vector<double> q = {1, 2, 3, 4, 5};
-        table::DebyeLookupTable table(d, q);
+        table::DebyeLookupTable table(q, d);
         CHECK(table.size_d() == d.size());
         CHECK(table.size_q() == q.size());
     }
@@ -80,7 +81,7 @@ TEST_CASE("DebyeLookupTable::size") {
     SECTION("(5, 7)") {
         std::vector<double> d = {1, 2, 3, 4, 5};
         std::vector<double> q = {1, 2, 3, 4, 5, 6, 7};
-        table::DebyeLookupTable table(d, q);
+        table::DebyeLookupTable table(q, d);
         CHECK(table.size_d() == d.size());
         CHECK(table.size_q() == q.size());
     }
@@ -88,7 +89,7 @@ TEST_CASE("DebyeLookupTable::size") {
     SECTION("empty") {
         std::vector<double> d = {};
         std::vector<double> q = {};
-        table::DebyeLookupTable table(d, q);
+        table::DebyeLookupTable table(q, d);
         CHECK(table.size_d() == d.size());
         CHECK(table.size_q() == q.size());
     }
@@ -105,23 +106,17 @@ TEST_CASE("DebyeLookupTable: correct values") {
         }
 
         // prepare the q values for the intensity calculations
-        Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
-        std::vector<double> q(debye_axis.bins);
-        double debye_width = debye_axis.width();
-        for (unsigned int i = 0; i < debye_axis.bins; i++) {
-            q[i] = debye_axis.min + i*debye_width;
-        }
-
+        auto q = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
         table::DebyeLookupTable table(q, d);
         REQUIRE(table.uses_default_table());
 
-        CHECK(table.lookup(q[0], d[1]) == sin(q[0]*d[1])/(q[0]*d[1]));
-        CHECK(table.lookup(q[1], d[1]) == sin(q[1]*d[1])/(q[1]*d[1]));
-        CHECK(table.lookup(q[2], d[1]) == sin(q[2]*d[1])/(q[2]*d[1]));
+        CHECK(utility::approx(table.lookup(q[0], d[1]), std::sin(q[0]*d[1])/(q[0]*d[1])));
+        CHECK(utility::approx(table.lookup(q[1], d[1]), std::sin(q[1]*d[1])/(q[1]*d[1])));
+        CHECK(utility::approx(table.lookup(q[2], d[1]), std::sin(q[2]*d[1])/(q[2]*d[1])));
 
         CHECK(table.lookup(0u, 0u) == 1);
-        CHECK(table.lookup(0u, 1u) == sin(q[0]*d[1])/(q[0]*d[1]));
-        CHECK(table.lookup(2u, 1u) == sin(q[2]*d[1])/(q[2]*d[1]));
+        CHECK(utility::approx(table.lookup(0u, 1u), std::sin(q[0]*d[1])/(q[0]*d[1])));
+        CHECK(utility::approx(table.lookup(2u, 1u), std::sin(q[2]*d[1])/(q[2]*d[1])));
     }
 
     SECTION("non_default") {
@@ -130,13 +125,13 @@ TEST_CASE("DebyeLookupTable: correct values") {
         table::DebyeLookupTable table(q, d);
         REQUIRE(!table.uses_default_table());
 
-        CHECK(table.lookup(q[0], d[1]) == sin(q[0]*d[1])/(q[0]*d[1]));
-        CHECK(table.lookup(q[1], d[1]) == sin(q[1]*d[1])/(q[1]*d[1]));
-        CHECK(table.lookup(q[2], d[1]) == sin(q[2]*d[1])/(q[2]*d[1]));
+        CHECK(utility::approx(table.lookup(q[0], d[1]), std::sin(q[0]*d[1])/(q[0]*d[1])));
+        CHECK(utility::approx(table.lookup(q[1], d[1]), std::sin(q[1]*d[1])/(q[1]*d[1])));
+        CHECK(utility::approx(table.lookup(q[2], d[1]), std::sin(q[2]*d[1])/(q[2]*d[1])));
 
         CHECK(table.lookup(0u, 0u) == 1);
-        CHECK(table.lookup(0u, 1u) == sin(q[0]*d[1])/(q[0]*d[1]));
-        CHECK(table.lookup(2u, 1u) == sin(q[2]*d[1])/(q[2]*d[1]));
+        CHECK(utility::approx(table.lookup(0u, 1u), std::sin(q[0]*d[1])/(q[0]*d[1])));
+        CHECK(utility::approx(table.lookup(2u, 1u), std::sin(q[2]*d[1])/(q[2]*d[1])));
     }
     settings::axes::qmax = 0.5;
 }

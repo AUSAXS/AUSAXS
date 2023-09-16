@@ -233,19 +233,101 @@ bool Atom::operator==(const Atom& rhs) const {
     return uid == rhs.uid;
 }
 
+#define FAILURE_MSG false
+#if FAILURE_MSG
+    #include <iostream>
+#endif
 bool Atom::equals_content(const Atom& rhs) const {
-    if (name != rhs.name) {return false;}
-    if (altLoc != rhs.altLoc) {return false;}
-    if (resName != rhs.resName) {return false;}
-    if (chainID != rhs.chainID) {return false;}
-    if (iCode != rhs.iCode) {return false;}
-    if (element != rhs.element) {return false;}
-    if (charge != rhs.charge) {return false;}
-    if (occupancy != rhs.occupancy) {return false;}
-    if (tempFactor != rhs.tempFactor) {return false;}
-    if (serial != rhs.serial) {return false;}
-    if (resSeq != rhs.resSeq) {return false;}
-    if (coords != rhs.coords) {return false;}
-    if (effective_charge != rhs.effective_charge) {return false;}
+    if (coords != rhs.coords) {
+        #if FAILURE_MSG
+            std::cout << "coords (" << coords.x() << ", " << coords.y() << ", " << coords.z() << ") != rhs.coords (" << rhs.coords.x() << ", " << rhs.coords.y() << ", " << rhs.coords.z() << ")" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (name != rhs.name) {
+        #if FAILURE_MSG
+            std::cout << "name != rhs.name" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (altLoc != rhs.altLoc) {
+        #if FAILURE_MSG
+            std::cout << "altLoc != rhs.altLoc" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (resName != rhs.resName) {
+        #if FAILURE_MSG
+            std::cout << "resName != rhs.resName" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (chainID != rhs.chainID) {
+        #if FAILURE_MSG
+            std::cout << "chainID != rhs.chainID" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (iCode != rhs.iCode) {
+        #if FAILURE_MSG
+            std::cout << "iCode != rhs.iCode" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (element != rhs.element) {
+        #if FAILURE_MSG
+            std::cout << "element != rhs.element" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (charge != rhs.charge) {
+        #if FAILURE_MSG
+            std::cout << "charge != rhs.charge" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (occupancy != rhs.occupancy) {
+        #if FAILURE_MSG
+            std::cout << "occupancy != rhs.occupancy" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (tempFactor != rhs.tempFactor) {
+        #if FAILURE_MSG
+            std::cout << "tempFactor != rhs.tempFactor" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (serial != rhs.serial) {
+        #if FAILURE_MSG
+            std::cout << "serial != rhs.serial" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (resSeq != rhs.resSeq) {
+        #if FAILURE_MSG
+            std::cout << "resSeq != rhs.resSeq" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (effective_charge != rhs.effective_charge) {
+        #if FAILURE_MSG
+            std::cout << "effective_charge != rhs.effective_charge" << std::endl;
+        #endif
+        return false;
+    }
+
     return true;
 }

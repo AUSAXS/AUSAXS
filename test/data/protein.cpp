@@ -17,10 +17,16 @@
 #include <settings/All.h>
 #include <fitter/HydrationFitter.h>
 #include <hist/HistogramManager.h>
+#include <hist/CompositeDistanceHistogram.h>
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
 struct fixture {
+    fixture() {
+        settings::protein::center = false;
+        settings::protein::use_effective_charge = false;
+    }
+
     Atom a1 = Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0");
     Atom a2 = Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "0");
     Atom a3 = Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0");
@@ -178,7 +184,7 @@ TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
 TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
     SECTION("delegated to HistogramManager") {
         Protein protein = Protein(bodies, {});
-        REQUIRE(compare_hist(protein.get_histogram().p, protein.get_histogram_manager()->calculate().p));
+        REQUIRE(compare_hist(protein.get_histogram()->p, protein.get_histogram_manager()->calculate()->p));
     }
  
     SECTION("compare_debye") {
@@ -189,7 +195,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
         Protein protein(atoms, {});
 
         vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-        vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
+        vector<double> I_smart = protein.get_histogram()->debye_transform().p;
 
         for (int i = 0; i < 8; i++) {
             if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
@@ -207,7 +213,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
         std::cout << "hydration atoms: " << protein.get_waters().size() << std::endl; 
 
         vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-        vector<double> I_smart = protein.get_histogram().calc_debye_scattering_intensity().col("I");
+        vector<double> I_smart = protein.get_histogram()->debye_transform().p;
 
         for (int i = 0; i < 8; i++) {
             if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
@@ -220,7 +226,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
 
 TEST_CASE_METHOD(fixture, "Protein::get_total_histogram") {
     Protein protein = Protein(bodies, {});
-    REQUIRE(compare_hist(protein.get_histogram().p, protein.get_histogram_manager()->calculate_all().p));
+    REQUIRE(compare_hist(protein.get_histogram()->p, protein.get_histogram_manager()->calculate_all()->p));
     // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
@@ -472,12 +478,12 @@ TEST_CASE("histogram") {
         // we now have a protein consisting of three bodies with the exact same contents as a single body.
         // the idea is now to compare the ScatteringHistogram output from their distance calculations, since it
         // is far easier to do for the single body. 
-        hist::ScatteringHistogram d_m = many.get_histogram();
-        hist::ScatteringHistogram d_o = one.get_histogram();
+        auto d_m = many.get_histogram();
+        auto d_o = one.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p_m = d_m.p;
-        const vector<double>& p_o = d_o.p;
+        const vector<double>& p_m = d_m->p;
+        const vector<double>& p_o = d_o->p;
 
         // compare each entry
         for (size_t i = 0; i < p_o.size(); i++) {
@@ -537,12 +543,12 @@ TEST_CASE("histogram") {
         protein.generate_new_hydration();
 
         // generate the distance histograms
-        hist::ScatteringHistogram d_p = protein.get_histogram();
-        hist::ScatteringHistogram d_b = hist::HistogramManager(&protein).calculate_all();
+        auto d_p = protein.get_histogram();
+        auto d_b = hist::HistogramManager(&protein).calculate_all();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p = d_p.p;
-        const vector<double>& b_tot = d_b.p;
+        const vector<double>& p = d_p->p;
+        const vector<double>& b_tot = d_b->p;
 
         // compare each entry
         for (unsigned int i = 0; i < b_tot.size(); i++) {
@@ -573,12 +579,12 @@ TEST_CASE("histogram") {
         protein2.set_grid(grid2);
 
         // generate the distance histograms
-        hist::ScatteringHistogram h1 = protein1.get_histogram();
-        hist::ScatteringHistogram h2 = protein2.get_histogram();
+        auto h1 = protein1.get_histogram();
+        auto h2 = protein2.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p1 = h1.p;
-        const vector<double>& p2 = h2.p;
+        const vector<double>& p1 = h1->p;
+        const vector<double>& p2 = h2->p;
 
         // compare each entry
         for (size_t i = 0; i < p1.size(); i++) {

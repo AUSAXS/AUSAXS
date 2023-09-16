@@ -80,7 +80,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
     std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < size; i++) {
-        for (unsigned int j = 0; j < i; j++) {
+        for (unsigned int j = 0; j <= i; j++) {
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram

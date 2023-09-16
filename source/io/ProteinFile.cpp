@@ -125,11 +125,43 @@ void ProteinFile::refresh() {
 
 bool ProteinFile::operator==(const ProteinFile& rhs) const = default;
 
+#define FAILURE_MSG false
+#if FAILURE_MSG
+    #include <iostream>
+#endif
 bool ProteinFile::equals_content(const ProteinFile& rhs) const {
-    if (protein_atoms.size() != rhs.protein_atoms.size()) {return false;}
-    if (hydration_atoms.size() != rhs.hydration_atoms.size()) {return false;}
-    for (unsigned int i = 0; i < protein_atoms.size(); i++) {if (!protein_atoms[i].equals_content(rhs.protein_atoms[i])) {return false;}}
-    for (unsigned int i = 0; i < hydration_atoms.size(); i++) {if (!hydration_atoms[i].equals_content(rhs.hydration_atoms[i])) {return false;}}
+    if (protein_atoms.size() != rhs.protein_atoms.size()) {
+        #if FAILURE_MSG
+            std::cout << "protein_atoms.size() != rhs.protein_atoms.size()" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (hydration_atoms.size() != rhs.hydration_atoms.size()) {
+        #if FAILURE_MSG
+            std::cout << "hydration_atoms.size() != rhs.hydration_atoms.size()" << std::endl;
+        #endif
+        return false;
+    }
+
+    for (unsigned int i = 0; i < protein_atoms.size(); i++) {
+        if (!protein_atoms[i].equals_content(rhs.protein_atoms[i])) {
+            #if FAILURE_MSG
+                std::cout << "!protein_atoms[" << i << "].equals_content(rhs.protein_atoms[" << i << "])" << std::endl;
+            #endif
+            return false;
+        }
+    }
+
+    for (unsigned int i = 0; i < hydration_atoms.size(); i++) {
+        if (!hydration_atoms[i].equals_content(rhs.hydration_atoms[i])) {
+            #if FAILURE_MSG
+                std::cout << "!hydration_atoms[" << i << "].equals_content(rhs.hydration_atoms[" << i << "])" << std::endl;
+            #endif
+            return false;
+        }
+    }
+
     return true;    
 }
 
