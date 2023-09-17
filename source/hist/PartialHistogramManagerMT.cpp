@@ -26,9 +26,9 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
     std::vector<BS::multi_future<std::vector<double>>> futures_pp;
     std::vector<BS::multi_future<std::vector<double>>> futures_hp;
     BS::multi_future<std::vector<double>> futures_hh;
-    futures_self_corr.reserve(size);
-    futures_pp.reserve(size*(size-1)/2);
-    futures_hp.reserve(size);
+    futures_self_corr.reserve(body_size);
+    futures_pp.reserve(body_size*(body_size-1)/2);
+    futures_hp.reserve(body_size);
 
     const std::vector<bool>& externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool>& internally_modified = statemanager->get_internally_modified_bodies();
@@ -41,7 +41,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
 
     // if not, we must first check if the atom coordinates have been changed in any of the bodies
     else {
-        for (unsigned int i = 0; i < size; ++i) {
+        for (unsigned int i = 0; i < body_size; ++i) {
 
             // if the internal state was modified, we have to recalculate the self-correlation
             if (internally_modified[i]) {
@@ -56,7 +56,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
 
         // merge the partial results from each thread and add it to the master histogram
         unsigned int counter = 0;
-        for (unsigned int i = 0; i < size; ++i) {
+        for (unsigned int i = 0; i < body_size; ++i) {
             if (internally_modified[i]) {
                 pool->push_task(&PartialHistogramManagerMT::combine_self_correlation, this, i, std::ref(futures_self_corr[counter++]));
             }
@@ -75,7 +75,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
     }
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
-    for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int i = 0; i < body_size; ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             if (externally_modified[i] || externally_modified[j]) {
                 // one of the bodies was modified, so we recalculate its partial histogram
@@ -96,7 +96,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
         }
 
         unsigned int counter_pp = 0, counter_hp = 0;
-        for (unsigned int i = 0; i < size; ++i) {
+        for (unsigned int i = 0; i < body_size; ++i) {
             for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
                     pool->push_task(&PartialHistogramManagerMT::combine_pp, this, i, j, std::ref(futures_pp[counter_pp++]));
@@ -132,7 +132,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     std::vector<double> p_pp = master.base.p;
     std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
-    for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int i = 0; i < body_size; ++i) {
         for (unsigned int j = 0; j <= i; ++j) {
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
@@ -144,7 +144,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     }
 
     // iterate through all partial hydration-protein histograms
-    for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int i = 0; i < body_size; ++i) {
         detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
@@ -169,9 +169,9 @@ void PartialHistogramManagerMT::initialize() {
     master = detail::MasterHistogram(p_base, axis);
 
     static std::vector<BS::multi_future<std::vector<double>>> futures;
-    futures = std::vector<BS::multi_future<std::vector<double>>>(size);
+    futures = std::vector<BS::multi_future<std::vector<double>>>(body_size);
     partials_hh = detail::PartialHistogram(axis);
-    for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int i = 0; i < body_size; ++i) {
         partials_hp.index(i) = detail::PartialHistogram(axis);
         partials_pp.index(i, i) = detail::PartialHistogram(axis);
         futures[i] = calc_self_correlation(i);
@@ -181,7 +181,7 @@ void PartialHistogramManagerMT::initialize() {
         }
     }
 
-    for (unsigned int i = 0; i < size; ++i) {
+    for (unsigned int i = 0; i < body_size; ++i) {
         pool->push_task(&PartialHistogramManagerMT::combine_self_correlation, this, i, std::ref(futures[i]));
     }
 }
@@ -217,8 +217,9 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
     };
 
     BS::multi_future<std::vector<double>> futures_self_corr;
-    for (unsigned int i = 0; i < size; i += settings::general::detail::job_size) {
-        futures_self_corr.push_back(pool->submit(calc_internal, std::cref(coords_p[index]), master.axis.bins, i, std::min(i+settings::general::detail::job_size, size)));
+    unsigned int atom_size = protein->atom_size();
+    for (unsigned int i = 0; i < atom_size; i += settings::general::detail::job_size) {
+        futures_self_corr.push_back(pool->submit(calc_internal, std::cref(coords_p[index]), master.axis.bins, i, std::min(i+settings::general::detail::job_size, atom_size)));
     }
     futures_self_corr.push_back(pool->submit(calc_self, std::cref(coords_p[index]), master.axis.bins));
     return futures_self_corr;
@@ -320,8 +321,6 @@ void PartialHistogramManagerMT::combine_self_correlation(unsigned int index, BS:
         std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
 
-    std::cout << "combine_self_correlation[" << index << "]" << std::endl;
-
     // update the master histogram
     master_hist_mutex.lock();
     master -= partials_pp.index(index, index);
@@ -337,8 +336,6 @@ void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m, BS::m
     for (auto& tmp : futures.get()) {
         std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
     }
-
-    std::cout << "combine_pp[" << n << ", " << m << "]" << std::endl;
 
     // update the master histogram
     master_hist_mutex.lock();

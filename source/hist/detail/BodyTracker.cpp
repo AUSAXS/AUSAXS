@@ -7,7 +7,7 @@
 
 using namespace hist;
 
-BodyTracker::BodyTracker(Protein* protein) : size(protein->body_size()), statemanager(std::make_unique<StateManager>(size)) {}
+BodyTracker::BodyTracker(Protein* protein) : body_size(protein->body_size()), statemanager(std::make_unique<StateManager>(body_size)) {}
 
 BodyTracker::~BodyTracker() = default;
 

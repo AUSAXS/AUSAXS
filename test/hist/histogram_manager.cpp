@@ -53,10 +53,9 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
     for (unsigned int i = 0; i < pmin; i++) {
         if (!utility::approx(p1[i], p2[i])) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            // return false;
+            return false;
         }
     }
-    return false;
 
     if (p1.size() < p2.size()) {
         for (unsigned int i = p1.size(); i < p2.size(); i++) {
@@ -174,18 +173,9 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 
         // create the atom, and perform a sanity check on our extracted list
         Protein protein("test/files/2epe.pdb");
-        protein.clear_hydration();
+        protein.generate_new_hydration();
+        auto p_exp = protein.get_histogram();
 
-        // auto p_exp = protein.get_histogram();
-        auto p_exp = hist::PartialHistogramManagerMT(&protein).calculate_all();
-        std::cout << p_exp->p << std::endl;
-
-        { // hm
-            auto hm = hist::HistogramManager(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->get_pp_histogram(), hm->get_pp_histogram()));
-            REQUIRE(compare_hist(p_exp->get_hp_histogram(), hm->get_hp_histogram()));
-            REQUIRE(compare_hist(p_exp->get_hh_histogram(), hm->get_hh_histogram()));
-        }
         { // hm
             auto hm = hist::HistogramManager(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->p, hm->p));

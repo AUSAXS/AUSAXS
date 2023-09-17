@@ -27,7 +27,7 @@ namespace hist {
 
         StateManager* get_state_manager();
 
-        const unsigned int size;                    // number of managed bodies
+        const unsigned int body_size;               // number of managed bodies
         std::unique_ptr<StateManager> statemanager; // a helper which keeps track of state changes in each body
     };
 }

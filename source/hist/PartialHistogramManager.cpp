@@ -10,7 +10,7 @@
 
 using namespace hist;
 
-PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramManager(protein), coords_p(size), partials_pp(size, size), partials_hp(size) {}
+PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramManager(protein), coords_p(body_size), partials_pp(body_size, body_size), partials_hp(body_size) {}
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 
@@ -25,7 +25,7 @@ std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
     
     // if not, we must first check if the coordinates have been changed in any of the bodies
     else {
-        for (unsigned int i = 0; i < size; i++) {
+        for (unsigned int i = 0; i < body_size; i++) {
             if (internally_modified[i]) {
                 // if the internal state was modified, we have to recalculate the self-correlation
                 calc_self_correlation(i);
@@ -42,7 +42,7 @@ std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
         calc_hh(); // then update the partial histogram
 
         // iterate through the lower triangle
-        for (unsigned int i = 0; i < size; i++) {
+        for (unsigned int i = 0; i < body_size; i++) {
             for (unsigned int j = 0; j < i; j++) {
                 if (externally_modified[i] || externally_modified[j]) {
                     calc_pp(i, j);
@@ -54,7 +54,7 @@ std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
 
     // if the hydration layer was not modified
     else {
-        for (unsigned int i = 0; i < size; i++) {
+        for (unsigned int i = 0; i < body_size; i++) {
             for (unsigned int j = 0; j < i; j++) {
                 if (externally_modified[i] || externally_modified[j]) { // if either of the two bodies were modified
                     calc_pp(i, j); // recalculate their partial histogram
@@ -79,7 +79,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
     std::vector<double> p_pp = master.base.p;
     std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
-    for (unsigned int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < body_size; i++) {
         for (unsigned int j = 0; j <= i; j++) {
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
@@ -91,7 +91,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
     }
 
     // iterate through all partial hydration-protein histograms
-    for (unsigned int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < body_size; i++) {
         detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
@@ -147,7 +147,7 @@ void PartialHistogramManager::initialize() {
     master = detail::MasterHistogram(p_base, axis);
 
     partials_hh = detail::PartialHistogram(axis);
-    for (unsigned int n = 0; n < size; n++) {
+    for (unsigned int n = 0; n < body_size; n++) {
         partials_hp.index(n) = detail::PartialHistogram(axis);
         partials_pp.index(n, n) = detail::PartialHistogram(axis);
         calc_self_correlation(n);
@@ -202,7 +202,7 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
         master += partials_pp.index(index, n);
     }
 
-    for (unsigned int n = index+1; n < size; n++) { // loop from (index, size]
+    for (unsigned int n = index+1; n < body_size; n++) { // loop from (index, size]
         detail::CompactCoordinates& coords_j = coords_p[n];
         std::vector<double> p_pp(master.axis.bins, 0);
         for (unsigned int i = 0; i < coords_i.size; i++) {
