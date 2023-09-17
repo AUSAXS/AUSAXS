@@ -98,25 +98,43 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     for (unsigned int i = 0; i < waters.size(); i+=job_size) {
         hh.push_back(pool.submit(calc_hh, i, std::min(i+job_size, (unsigned int)waters.size())));
     }
-    pool.wait_for_tasks();
 
     //#################//
     // COLLECT RESULTS //
     //#################//
-    Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
-    for (const auto& tmp : pp.get()) {
-        std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
-    }
+    auto p_pp_future = pool.submit(
+        [&]() {
+            Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+            for (const auto& tmp : pp.get()) {
+                std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
+            }
+            return p_pp;
+        }
+    );
 
-    Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0);
-    for (const auto& tmp : hp.get()) {
-        std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<double>());
-    }
+    auto p_hp_future = pool.submit(
+        [&]() {
+            Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0); // ff_type, distance
+            for (const auto& tmp : hp.get()) {
+                std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<double>());
+            }
+            return p_hp;
+        }
+    );
 
-    Container1D<double> p_hh(axes.bins, 0);
-    for (const auto& tmp : hh.get()) {
-        std::transform(p_hh.begin(), p_hh.end(), tmp.begin(), p_hh.begin(), std::plus<double>());
-    }
+    auto p_hh_future = pool.submit(
+        [&]() {
+            Container1D<double> p_hh(axes.bins, 0);
+            for (const auto& tmp : hh.get()) {
+                std::transform(p_hh.begin(), p_hh.end(), tmp.begin(), p_hh.begin(), std::plus<double>());
+            }
+            return p_hh;
+        }
+    );
+    pool.wait_for_tasks();
+    auto p_pp = p_pp_future.get();
+    auto p_hp = p_hp_future.get();
+    auto p_hh = p_hh_future.get();
 
     //###################//
     // SELF-CORRELATIONS //

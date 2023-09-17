@@ -8,6 +8,7 @@
 #include <data/state/Signaller.h>
 #include <hist/HistogramManager.h>
 #include <hist/HistogramManagerMT.h>
+#include <hist/HistogramManagerMTFF.h>
 #include <hist/PartialHistogramManager.h>
 #include <hist/PartialHistogramManagerMT.h>
 #include <hist/CompositeDistanceHistogramFF.h>
@@ -191,6 +192,17 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
         { // phm_mt
             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->p, phm_mt->p));
+        }
+
+        // convert all atoms to Cl which uses the default form factor & thus should be comparable with the other methods
+        for (auto& body : protein.get_bodies()) {
+            for (auto& atom : body.get_atoms()) {
+                atom.element = "Cl";
+            }
+        }
+        { // hm_mt_ff
+            auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->p, hm_mt_ff->p));
         }
     }
 }

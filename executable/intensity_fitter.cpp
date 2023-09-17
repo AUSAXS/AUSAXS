@@ -60,6 +60,9 @@ int main(int argc, char const *argv[]) {
         }
     }
 
+    // settings::detail::parse_option("placement_strategy", {placement_strategy});
+    // settings::detail::parse_option("histogram_manager", {histogram_manager});
+
     if (settings::general::threads == 1) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;}
     else {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
 
@@ -77,11 +80,6 @@ int main(int argc, char const *argv[]) {
         throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
     }
 
-    settings::detail::parse_option("placement_strategy", {placement_strategy});
-    settings::detail::parse_option("histogram_manager", {histogram_manager});
-
-    // std::cout << "Using histogram manager " << static_cast<int>(settings::hist::histogram_manager) << std::endl;
-
     //######################//
     //### ACTUAL PROGRAM ###//
     //######################//
@@ -89,8 +87,8 @@ int main(int argc, char const *argv[]) {
     if (!use_existing_hydration || protein.water_size() == 0) {
         protein.generate_new_hydration();
     }
-    // hist::ScatteringHistogram h = protein.get_histogram();
-    // plots::PlotDistance::quick_plot(h, output + "p(r)." + settings::plot::format);
+    auto h = protein.get_histogram();
+    plots::PlotDistance::quick_plot(h.get(), settings::general::output + "p(r)." + settings::plots::format);
 
     std::shared_ptr<fitter::HydrationFitter> fitter;
     if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
