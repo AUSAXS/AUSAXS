@@ -36,7 +36,7 @@ void DebyeLookupTable::initialize(const std::vector<double>& q, const std::vecto
         // check if the default table has already been instantiated 
         if (default_table.is_empty()) {
             double width = settings::axes::distance_bin_width;
-            std::vector<double>_d = Axis(0, settings::axes::max_distance, settings::axes::max_distance/width).as_vector(true);
+            std::vector<double>_d = Axis(0, settings::axes::max_distance, settings::axes::max_distance/width).as_vector(0.5);
             _d[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
             initialize(default_table, q, _d); // note we pass _d and not d
         }

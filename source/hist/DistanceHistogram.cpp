@@ -19,7 +19,7 @@ DistanceHistogram::~DistanceHistogram() = default;
 
 void DistanceHistogram::initialize() {
     q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
-    d_axis = axis.as_vector(true);
+    d_axis = axis.as_vector(0.5);
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
 
     sinqd_table = std::make_unique<table::DebyeLookupTable>(q_axis, d_axis);
@@ -34,8 +34,11 @@ ScatteringHistogram DistanceHistogram::debye_transform() const {
     for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
         for (unsigned int j = 0; j < p.size(); ++j) { // iterate through the distance histogram
             Iq[i] += p[j]*sinqd_table->lookup(i, j);
+            // std::cout << "Iq[" << j << "] += " << p[j] << " * " << sinqd_table->lookup(i, j) << std::endl;
         }
+        // std::cout << "Iq[" << i << "] = " << Iq[i] << std::endl;
         Iq[i] *= std::exp(-q_axis[i]*q_axis[i]); // form factor
+        // std::cout << "\tIq[" << i << "] = " << Iq[i] << std::endl;
     }
     return ScatteringHistogram(Iq, debye_axis);
 }

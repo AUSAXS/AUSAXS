@@ -87,8 +87,10 @@ class Axis {
 
 		/**
 		 * @brief Get a vector representation of this Axis.
+		 * 
+		 * @param shift Specify the amount to shift each bin by. Using 0.5 will return the center values of each bin.
 		 */
-		std::vector<double> as_vector(bool use_center_values = false) const noexcept;
+		std::vector<double> as_vector(double shift = 0) const noexcept;
 
 		/**
 		 * @brief Check if this Axis is empty.

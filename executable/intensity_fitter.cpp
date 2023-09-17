@@ -89,6 +89,7 @@ int main(int argc, char const *argv[]) {
     }
     auto h = protein.get_histogram();
     plots::PlotDistance::quick_plot(h.get(), settings::general::output + "p(r)." + settings::plots::format);
+    plots::PlotIntensity::quick_plot(h->debye_transform(), settings::general::output + "I(q)_initial." + settings::plots::format);
 
     std::shared_ptr<fitter::HydrationFitter> fitter;
     if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
