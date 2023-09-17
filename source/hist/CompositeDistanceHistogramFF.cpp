@@ -53,3 +53,18 @@ SimpleDataset CompositeDistanceHistogramFF::debye_transform(const std::vector<do
     }
     return SimpleDataset(Iq, q);
 }
+
+void CompositeDistanceHistogramFF::apply_water_scaling_factor(double k) {
+    double k2 = std::pow(k, 2);
+    auto& p_tot = get_total_histogram();
+    for (unsigned int i = 0; i < axis.bins; ++i) {
+        p_tot[i] = 0;
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+                p_tot[i] += p_pp.index(ff1, ff2, i);
+            }
+            p_tot[i] += k*p_hp.index(ff1, i);
+        }
+        p_tot[i] += k2*p_hh.index(i);
+    }
+}

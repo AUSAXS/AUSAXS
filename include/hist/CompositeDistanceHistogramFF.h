@@ -23,7 +23,7 @@ namespace hist {
 
             SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
-            void apply_water_scaling_factor(double k);
+            void apply_water_scaling_factor(double k) override;
 
         private:
             Container3D<double> p_pp;

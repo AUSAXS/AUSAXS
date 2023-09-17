@@ -6,6 +6,7 @@
 #include <hist/HistogramManager.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
@@ -19,8 +20,8 @@ HistogramManager::~HistogramManager() = default;
 std::unique_ptr<DistanceHistogram> HistogramManager::calculate() {return calculate_all();}
 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
-    auto atoms = protein->get_atoms();
-    auto waters = protein->get_waters();
+    // auto atoms = protein->get_atoms();
+    // auto waters = protein->get_waters();
 
     double width = settings::axes::distance_bin_width;
     Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
@@ -29,68 +30,51 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     std::vector<double> p_hp(axes.bins, 0);
     std::vector<double> p_tot(axes.bins, 0);
 
-    // create a more compact representation of the coordinates
-    // extremely wasteful to calculate this from scratch every time
-    std::vector<float> data_p(atoms.size()*4);
-    for (unsigned int i = 0; i < atoms.size(); ++i) {
-        const Atom& a = atoms[i]; 
-        data_p[4*i] = a.coords.x();
-        data_p[4*i+1] = a.coords.y();
-        data_p[4*i+2] = a.coords.z();
-        data_p[4*i+3] = a.effective_charge*a.occupancy;
-    }
-
-    std::vector<float> data_h(waters.size()*4);
-    for (unsigned int i = 0; i < waters.size(); ++i) {
-        const Water& a = waters[i]; 
-        data_h[4*i] = a.coords.x();
-        data_h[4*i+1] = a.coords.y();
-        data_h[4*i+2] = a.coords.z();
-        data_h[4*i+3] = a.effective_charge*a.occupancy;
-    }
+    hist::detail::CompactCoordinates data_p(protein->get_bodies());
+    hist::detail::CompactCoordinates data_h = hist::detail::CompactCoordinates(protein->get_waters());
 
     // calculate p-p distances
-    for (unsigned int i = 0; i < atoms.size(); ++i) {
-        for (unsigned int j = i+1; j < atoms.size(); ++j) {
-            float weight = data_p[4*i+3]*data_p[4*j+3]; // Z1*Z2*w1*w2
-            float dx = data_p[4*i] - data_p[4*j];
-            float dy = data_p[4*i+1] - data_p[4*j+1];
-            float dz = data_p[4*i+2] - data_p[4*j+2];
+    for (unsigned int i = 0; i < data_p.size; ++i) {
+        for (unsigned int j = i+1; j < data_p.size; ++j) {
+            float weight = data_p.data[i].w*data_p.data[j].w;
+            float dx = data_p.data[i].x - data_p.data[j].x;
+            float dy = data_p.data[i].y - data_p.data[j].y;
+            float dz = data_p.data[i].z - data_p.data[j].z;
             float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
             p_pp[dist/width] += 2*weight;
         }
     }
 
     // add self-correlation
-    for (unsigned int i = 0; i < atoms.size(); ++i) {
-        p_pp[0] += data_p[4*i+3]*data_p[4*i+3];
+    for (unsigned int i = 0; i < data_p.size; ++i) {
+        p_pp[0] += std::pow(data_p.data[i].w, 2);
     }
 
-    for (unsigned int i = 0; i < waters.size(); ++i) {
+    for (unsigned int i = 0; i < data_h.size; ++i) {
         // calculate h-h distances
-        for (unsigned int j = i+1; j < waters.size(); ++j) {
-            float weight = data_h[4*i+3]*data_h[4*j+3]; // Z1*Z2*w1*w2
-            float dx = data_h[4*i] - data_h[4*j];
-            float dy = data_h[4*i+1] - data_h[4*j+1];
-            float dz = data_h[4*i+2] - data_h[4*j+2];
+        for (unsigned int j = i+1; j < data_h.size; ++j) {
+            float weight = data_h.data[i].w*data_h.data[j].w;
+            float dx = data_h.data[i].x - data_h.data[j].x;
+            float dy = data_h.data[i].y - data_h.data[j].y;
+            float dz = data_h.data[i].z - data_h.data[j].z;
             float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
             p_hh[dist/width] += 2*weight;
         }
 
         // calculate h-p distances
-        for (unsigned int j = 0; j < atoms.size(); ++j) {
-            float weight = data_h[4*i+3]*data_p[4*j+3]; // Z1*Z2*w1*w2
-            float dx = data_h[4*i] - data_p[4*j];
-            float dy = data_h[4*i+1] - data_p[4*j+1];
-            float dz = data_h[4*i+2] - data_p[4*j+2];
+        for (unsigned int j = 0; j < data_p.size; ++j) {
+            float weight = data_h.data[i].w*data_p.data[j].w;
+            float dx = data_h.data[i].x - data_p.data[j].x;
+            float dy = data_h.data[i].y - data_p.data[j].y;
+            float dz = data_h.data[i].z - data_p.data[j].z;
             float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
             p_hp[dist/width] += 2*weight;
         }
     }
 
     // add self-correlation
-    for (unsigned int i = 0; i < waters.size(); ++i) {
-        p_hh[0] += data_h[4*i+3]*data_h[4*i+3];
+    for (unsigned int i = 0; i < data_h.size; ++i) {
+        p_hh[0] += std::pow(data_h.data[i].w, 2);
     }
 
     // downsize our axes to only the relevant area

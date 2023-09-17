@@ -22,7 +22,7 @@ namespace hist {
             const std::vector<double>& get_hh_histogram() const;
             const std::vector<double>& get_hp_histogram() const;            
 
-            void apply_water_scaling_factor(double k);
+            virtual void apply_water_scaling_factor(double k);
 
         private:
             std::vector<double> p_pp;

@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile);
-    app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.");
+    auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.");
     app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered.")->default_val(settings::protein::center);
     app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::protein::use_effective_charge);
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration);
@@ -60,11 +60,12 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    // settings::detail::parse_option("placement_strategy", {placement_strategy});
-    // settings::detail::parse_option("histogram_manager", {histogram_manager});
-
-    if (settings::general::threads == 1) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;}
-    else {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
+    if (p_hm->count() == 0) {
+        if (settings::general::threads == 1) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;}
+        else {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
+    } else {
+        settings::detail::parse_option("histogram_manager", {histogram_manager});
+    }
 
     // validate input
     if (!constants::filetypes::structure.validate(pdb)) {
@@ -87,9 +88,6 @@ int main(int argc, char const *argv[]) {
     if (!use_existing_hydration || protein.water_size() == 0) {
         protein.generate_new_hydration();
     }
-    auto h = protein.get_histogram();
-    plots::PlotDistance::quick_plot(h.get(), settings::general::output + "p(r)." + settings::plots::format);
-    plots::PlotIntensity::quick_plot(h->debye_transform(), settings::general::output + "I(q)_initial." + settings::plots::format);
 
     std::shared_ptr<fitter::HydrationFitter> fitter;
     if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}

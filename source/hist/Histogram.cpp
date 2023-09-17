@@ -8,17 +8,9 @@ using namespace hist;
 
 Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {}
 
-Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {
-    #ifdef DEBUG
-        if (p.size() != axis.bins) {throw std::invalid_argument("Histogram: Vector and Axis must have the same number of bins.");}
-    #endif
-}
+Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
 
-Histogram::Histogram(std::vector<double>&& p_tot, const Axis& axis) : p(std::move(p_tot)), axis(axis) {
-    #ifdef DEBUG
-        if (p.size() != axis.bins) {throw std::invalid_argument("Histogram: Vector and Axis must have the same number of bins.");}
-    #endif
-}
+Histogram::Histogram(std::vector<double>&& p_tot, const Axis& axis) : p(std::move(p_tot)), axis(axis) {}
 
 Histogram::Histogram(const Axis& axis) noexcept : p(axis.bins), axis(axis) {}
 

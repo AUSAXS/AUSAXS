@@ -34,11 +34,8 @@ ScatteringHistogram DistanceHistogram::debye_transform() const {
     for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
         for (unsigned int j = 0; j < p.size(); ++j) { // iterate through the distance histogram
             Iq[i] += p[j]*sinqd_table->lookup(i, j);
-            // std::cout << "Iq[" << j << "] += " << p[j] << " * " << sinqd_table->lookup(i, j) << std::endl;
         }
-        // std::cout << "Iq[" << i << "] = " << Iq[i] << std::endl;
         Iq[i] *= std::exp(-q_axis[i]*q_axis[i]); // form factor
-        // std::cout << "\tIq[" << i << "] = " << Iq[i] << std::endl;
     }
     return ScatteringHistogram(Iq, debye_axis);
 }

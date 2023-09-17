@@ -39,10 +39,10 @@ class Container2D {
         const T& index(unsigned int i, unsigned int j) const {return operator()(i, j);}
 
         const typename std::vector<T>::const_iterator begin() const {return data.begin();}
-        const typename std::vector<T>::const_iterator end() const {return data.begin();}
+        const typename std::vector<T>::const_iterator end() const {return data.end();}
 
         typename std::vector<T>::iterator begin() {return data.begin();}
-        typename std::vector<T>::iterator end() {return data.begin();}
+        typename std::vector<T>::iterator end() {return data.end();}
 
         unsigned int N, M;
 

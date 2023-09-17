@@ -83,91 +83,103 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     settings::protein::use_effective_charge = false;
 
-    // SECTION("analytical") {
-    //     SECTION("atoms only") {
-    //         // the following just describes the eight corners of a cube centered at origo
-    //         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    //         std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    //         std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    //         std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    //         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-    //         Protein protein(a);
-    //         set_unity_charge(protein);
+    SECTION("analytical") {
+        SECTION("atoms only") {
+            // the following just describes the eight corners of a cube centered at origo
+            std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+            std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+            std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
+            Protein protein(a);
+            set_unity_charge(protein);
 
-    //         { // hm
-    //             auto hm = hist::HistogramManager(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, hm->p));
-    //         }
-    //         { // hm_mt
-    //             auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, hm_mt->p));
-    //         }
-    //         { // phm
-    //             auto phm = protein.get_histogram();
-    //             REQUIRE(compare_hist(p_exp, phm->p));
-    //         }
-    //         { // phm_mt
-    //             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, phm_mt->p));
-    //         }
-    //     }
+            { // hm
+                auto hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->p));
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->p));
+            }
+            { // hm_mt_ff
+                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+            }
+            { // phm
+                auto phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm->p));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->p));
+            }
+        }
 
-    //     SECTION("waters only") {
-    //         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-    //         std::vector<Atom> a = {};
-    //         std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
-    //                                 Water(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1, -1), 1, "C", "C", 1), 
-    //                                 Water(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
-    //                                 Water(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    //         Protein protein(a, w);
-    //         set_unity_charge(protein);
+        SECTION("waters only") {
+            // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+            std::vector<Atom> a = {};
+            std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
+                                    Water(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1, -1), 1, "C", "C", 1), 
+                                    Water(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
+                                    Water(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+            Protein protein(a, w);
+            set_unity_charge(protein);
 
-    //         { // hm
-    //             auto hm = hist::HistogramManager(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, hm->p));
-    //         }
-    //         { // hm_mt
-    //             auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, hm_mt->p));
-    //         }
-    //         { // phm
-    //             auto phm = protein.get_histogram();
-    //             REQUIRE(compare_hist(p_exp, phm->p));
-    //         }
-    //         { // phm_mt
-    //             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, phm_mt->p));
-    //         }
-    //     }
+            { // hm
+                auto hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->p));
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->p));
+            }
+            { // hm_mt_ff
+                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+            }
+            { // phm
+                auto phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm->p));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->p));
+            }
+        }
 
-    //     SECTION("both waters and atoms") {
-    //         // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-    //         std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    //         std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    //         std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    //         std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
-    //         std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
-    //         Protein protein(a, w);
-    //         set_unity_charge(protein);
+        SECTION("both waters and atoms") {
+            // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+            std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
+            std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
+            std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
+            Protein protein(a, w);
+            set_unity_charge(protein);
 
-    //         { // hm
-    //             auto hm = hist::HistogramManager(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, hm->p));
-    //         }
-    //         { // hm_mt
-    //             auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, hm_mt->p));
-    //         }
-    //         { // phm
-    //             auto phm = protein.get_histogram();
-    //             REQUIRE(compare_hist(p_exp, phm->p));
-    //         }
-    //         { // phm_mt
-    //             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-    //             REQUIRE(compare_hist(p_exp, phm_mt->p));
-    //         }
-    //     }
-    // }
+            { // hm
+                auto hm = hist::HistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->p));
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->p));
+            }
+            { // hm_mt_ff
+                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+            }
+            { // phm
+                auto phm = protein.get_histogram();
+                REQUIRE(compare_hist(p_exp, phm->p));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->p));
+            }
+        }
+    }
 
     SECTION("real data with hydration") {
         settings::protein::use_effective_charge = true;
@@ -185,6 +197,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->p, hm_mt->p));
         }
+        { // hm_mt_ff
+            auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->p, hm_mt_ff->p));
+        }
         { // phm
             auto phm = hist::PartialHistogramManager(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->p, phm->p));
@@ -192,17 +208,6 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
         { // phm_mt
             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->p, phm_mt->p));
-        }
-
-        // convert all atoms to Cl which uses the default form factor & thus should be comparable with the other methods
-        for (auto& body : protein.get_bodies()) {
-            for (auto& atom : body.get_atoms()) {
-                atom.element = "Cl";
-            }
-        }
-        { // hm_mt_ff
-            auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->p, hm_mt_ff->p));
         }
     }
 }
