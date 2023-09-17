@@ -164,14 +164,14 @@ namespace constants {
         // no source
         namespace hydrogen {
             constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
-            constexpr std::array<double, 5> b = {1, 0, 0, 0, 0};
+            constexpr std::array<double, 5> b = {0.5, 0, 0, 0, 0};
             constexpr double c = 0;
         }
 
         // no source
         namespace other {
             constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
-            constexpr std::array<double, 5> b = {1, 0, 0, 0, 0};
+            constexpr std::array<double, 5> b = {0.5, 0, 0, 0, 0};
             constexpr double c = 0;
         }
 

@@ -14,7 +14,7 @@ PrecalculatedFormFactorProduct::PrecalculatedFormFactorProduct(const FormFactor&
     precalculated_ff_q = std::move(res);
 }
 
-double PrecalculatedFormFactorProduct::operator()(unsigned int index) const {
+double PrecalculatedFormFactorProduct::evaluate(unsigned int index) const {
     return precalculated_ff_q[index];
 }
 

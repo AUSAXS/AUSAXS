@@ -20,19 +20,51 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     // calculate the Debye scattering intensity
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
 
-    // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
-            auto precalculated_ff = ff_table.index(ff1, ff2);
-            for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
-                for (unsigned int j = 0; j < axis.bins; ++j) { // iterate through the distance histogram
-                    Iq[i] += p_pp.index(ff1, ff2, j)*sinqd_table->lookup(i, j);
+    std::vector<double> q_axis = debye_axis.as_vector();
+
+    // atom-atom
+    for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+                for (unsigned int d = 0; d < p_pp.L; ++d) {
+                    Iq[q] += p_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, ff2).evaluate(q);
                 }
-                Iq[i] *= precalculated_ff(i); // form factor
             }
         }
     }
+
+    // atom-water
+    for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+            for (unsigned int d = 0; d < p_pp.L; ++d) {
+                Iq[q] += p_hp.index(ff1, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::HYDROGEN)).evaluate(q);
+            }
+        }
+    }
+
+    // water-water
+    for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+        for (unsigned int d = 0; d < p_pp.L; ++d) {
+            Iq[q] += p_hh.index(d)*sinqd_table->lookup(q, d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::HYDROGEN), static_cast<int>(hist::detail::form_factor_t::HYDROGEN)).evaluate(q);
+        }
+    }
+
+
+    // calculate the scattering intensity based on the Debye equation
+    // std::vector<double> Iq(debye_axis.bins, 0);
+    // for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+    //     for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+    //         auto precalculated_ff = ff_table.index(ff1, ff2);
+    //         for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
+    //             double tmp = 0;
+    //             for (unsigned int j = 0; j < axis.bins; ++j) { // iterate through the distance histogram
+    //                 tmp += p_pp.index(ff1, ff2, j)*sinqd_table->lookup(i, j);
+    //             }
+    //             Iq[i] += tmp*precalculated_ff(i); // form factor
+    //         }
+    //     }
+    // }
     return ScatteringHistogram(Iq, debye_axis);
 }
 

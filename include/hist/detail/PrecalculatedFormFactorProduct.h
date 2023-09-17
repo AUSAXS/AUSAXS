@@ -10,7 +10,7 @@ namespace hist::detail {
             PrecalculatedFormFactorProduct() = default;
             PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2, const std::vector<double>& q);
 
-            double operator()(unsigned int index) const;
+            double evaluate(unsigned int index) const;
 
             static Container2D<PrecalculatedFormFactorProduct> generate_table();
 
