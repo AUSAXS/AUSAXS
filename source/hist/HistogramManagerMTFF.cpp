@@ -158,13 +158,28 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     }
 
     // downsize our axes to only the relevant area
-    int max_bin = 10; // minimum size is 10
-    for (int i = axes.bins-1; i >= 10; i--) {
+    unsigned int max_bin = 10; // minimum size is 10
+    for (unsigned int i = axes.bins-1; i >= 10; i--) {
         if (p_tot[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
         }
     }
+
+    Container3D<double> p_pp_short(detail::FormFactor::get_count(), detail::FormFactor::get_count(), max_bin);
+    Container2D<double> p_hp_short(detail::FormFactor::get_count(), max_bin);
+    Container1D<double> p_hh_short(max_bin);
+    for (unsigned int i = 0; i < max_bin; ++i) {
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+                p_pp_short.index(ff1, ff2, i) = p_pp.index(ff1, ff2, i);
+            }
+            p_hp_short.index(ff1, i) = p_hp.index(ff1, i);
+        }
+        p_hh_short.index(i) = p_hh.index(i);
+    }
+    p_tot.resize(max_bin);
+
     axes = Axis(0, max_bin*width, max_bin); 
-    return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p_tot), axes);
+    return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), axes);
 }

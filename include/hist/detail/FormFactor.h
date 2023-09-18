@@ -7,6 +7,7 @@
 #include <array>
 #include <string_view>
 
+class Atom;
 namespace hist::detail {
     struct FormFactor {
         constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {}
@@ -19,9 +20,9 @@ namespace hist::detail {
         static unsigned int get_count();
 
         /**
-         * @brief Get the form factor type of an element from the Atom class. 
+         * @brief Get the form factor type of an Atom. 
          */
-        static form_factor_t get_type(std::string_view element);
+        static form_factor_t get_type(const Atom& atom);
 
         std::array<double, 5> a;
         std::array<double, 5> b;
@@ -34,10 +35,10 @@ namespace hist::detail {
     struct FormFactorStorage {
         static const FormFactor& get_form_factor(form_factor_t type);
 
-        inline static const FormFactor hydrogen = FormFactor(constants::form_factor::hydrogen::a, constants::form_factor::hydrogen::b, constants::form_factor::hydrogen::c);
-        inline static const FormFactor carbon   = FormFactor(  constants::form_factor::carbon::a,   constants::form_factor::carbon::b,   constants::form_factor::carbon::c);
-        inline static const FormFactor nitrogen = FormFactor(constants::form_factor::nitrogen::a, constants::form_factor::nitrogen::b, constants::form_factor::nitrogen::c);
-        inline static const FormFactor oxygen   = FormFactor(  constants::form_factor::oxygen::a,   constants::form_factor::oxygen::b,   constants::form_factor::oxygen::c);
-        inline static const FormFactor other    = FormFactor(   constants::form_factor::other::a,    constants::form_factor::other::b,    constants::form_factor::other::c);
+        inline static const FormFactor hydrogen = FormFactor(        constants::form_factor::hydrogen::a,         constants::form_factor::hydrogen::b,         constants::form_factor::hydrogen::c);
+        inline static const FormFactor carbon   = FormFactor(  constants::form_factor::neutral_carbon::a,   constants::form_factor::neutral_carbon::b,   constants::form_factor::neutral_carbon::c);
+        inline static const FormFactor nitrogen = FormFactor(constants::form_factor::neutral_nitrogen::a, constants::form_factor::neutral_nitrogen::b, constants::form_factor::neutral_nitrogen::c);
+        inline static const FormFactor oxygen   = FormFactor(  constants::form_factor::neutral_oxygen::a,   constants::form_factor::neutral_oxygen::b,   constants::form_factor::neutral_oxygen::c);
+        inline static const FormFactor other    = FormFactor(           constants::form_factor::other::a,            constants::form_factor::other::b,            constants::form_factor::other::c);
     };
 }

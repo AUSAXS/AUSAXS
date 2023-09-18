@@ -35,12 +35,10 @@ void PDBReader::read(const io::ExistingFile& path) {
                 Atom atom;
                 atom.parse_pdb(line);
 
-                // if this is a water molecule, add it to the hydration atoms
-                // otherwise add it to the protein atoms
-                if (atom.element == constants::symbols::hydrogen) {
-                    if (!settings::general::keep_hydrogens) {continue;}
-                    f.add(atom);
-                }
+                // check if this is a hydrogen atom
+                if (atom.element == constants::symbols::hydrogen && !settings::general::keep_hydrogens) {continue;}
+
+                // check if this is a water molecule
                 if (atom.is_water()) {f.add(Water(std::move(atom)));} 
                 else {f.add(atom);}
                 break;

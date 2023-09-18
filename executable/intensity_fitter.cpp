@@ -66,6 +66,7 @@ int main(int argc, char const *argv[]) {
     } else {
         settings::detail::parse_option("histogram_manager", {histogram_manager});
     }
+    if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFF) {settings::protein::use_effective_charge = false;}
 
     // validate input
     if (!constants::filetypes::structure.validate(pdb)) {

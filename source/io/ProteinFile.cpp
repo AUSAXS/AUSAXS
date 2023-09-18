@@ -49,8 +49,16 @@ void ProteinFile::add(const Atom& r) {
     protein_atoms.push_back(r);
 }
 
+void ProteinFile::add(Atom&& r) {
+    protein_atoms.push_back(std::move(r));
+}
+
 void ProteinFile::add(const Water& r) {
     hydration_atoms.push_back(r);
+}
+
+void ProteinFile::add(Water&& r) {
+    hydration_atoms.push_back(std::move(r));
 }
 
 void ProteinFile::add(const Terminate& ter) {

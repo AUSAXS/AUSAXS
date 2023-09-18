@@ -22,12 +22,13 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
 
     std::vector<double> Iq(debye_axis.bins, 0);
     std::vector<double> q_axis = debye_axis.as_vector();
+    double k2 = k*k;
 
     // atom-atom
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
-                for (unsigned int d = 0; d < p_pp.L; ++d) {
+                for (unsigned int d = 0; d < axis.bins; ++d) {
                     Iq[q] += p_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, ff2).evaluate(q);
                 }
             }
@@ -37,16 +38,16 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     // atom-water
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-            for (unsigned int d = 0; d < p_pp.L; ++d) {
-                Iq[q] += p_hp.index(ff1, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::HYDROGEN)).evaluate(q);
+            for (unsigned int d = 0; d < axis.bins; ++d) {
+                Iq[q] += k*p_hp.index(ff1, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::NEUTRAL_HYDROGEN)).evaluate(q);
             }
         }
     }
 
     // water-water
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
-        for (unsigned int d = 0; d < p_pp.L; ++d) {
-            Iq[q] += p_hh.index(d)*sinqd_table->lookup(q, d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::HYDROGEN), static_cast<int>(hist::detail::form_factor_t::HYDROGEN)).evaluate(q);
+        for (unsigned int d = 0; d < axis.bins; ++d) {
+            Iq[q] += k2*p_hh.index(d)*sinqd_table->lookup(q, d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::NEUTRAL_HYDROGEN), static_cast<int>(hist::detail::form_factor_t::NEUTRAL_HYDROGEN)).evaluate(q);
         }
     }
 
@@ -70,33 +71,24 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
 
 SimpleDataset CompositeDistanceHistogramFF::debye_transform(const std::vector<double>& q) const {
     // calculate the scattering intensity based on the Debye equation
-    std::vector<double> Iq(q.size(), 0);
-    for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-        for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
-            auto ff1_func = detail::FormFactorStorage::get_form_factor(static_cast<detail::form_factor_t>(ff1));
-            auto ff2_func = detail::FormFactorStorage::get_form_factor(static_cast<detail::form_factor_t>(ff2));
-            for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
-                for (unsigned int j = 0; j < axis.bins; ++j) { // iterate through the distance histogram
-                    Iq[i] += p_pp.index(ff1, ff2, j)*sinqd_table->lookup(i, j);
-                }
-                Iq[i] *= ff1_func.evaluate(q[i])*ff2_func.evaluate(q[i]); // form factor
-            }
-        }
-    }
-    return SimpleDataset(Iq, q);
+    double k2 = k*k;
+    throw std::runtime_error("Not implemented");
+    // std::vector<double> Iq(q.size(), 0);
+    // for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+    //     for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+    //         auto ff1_func = detail::FormFactorStorage::get_form_factor(static_cast<detail::form_factor_t>(ff1));
+    //         auto ff2_func = detail::FormFactorStorage::get_form_factor(static_cast<detail::form_factor_t>(ff2));
+    //         for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
+    //             for (unsigned int j = 0; j < axis.bins; ++j) { // iterate through the distance histogram
+    //                 Iq[i] += p_pp.index(ff1, ff2, j)*sinqd_table->lookup(i, j);
+    //             }
+    //             Iq[i] *= ff1_func.evaluate(q[i])*ff2_func.evaluate(q[i]); // form factor
+    //         }
+    //     }
+    // }
+    // return SimpleDataset(Iq, q);
 }
 
 void CompositeDistanceHistogramFF::apply_water_scaling_factor(double k) {
-    double k2 = std::pow(k, 2);
-    auto& p_tot = get_total_histogram();
-    for (unsigned int i = 0; i < axis.bins; ++i) {
-        p_tot[i] = 0;
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
-                p_tot[i] += p_pp.index(ff1, ff2, i);
-            }
-            p_tot[i] += k*p_hp.index(ff1, i);
-        }
-        p_tot[i] += k2*p_hh.index(i);
-    }
+    this->k = k;
 }

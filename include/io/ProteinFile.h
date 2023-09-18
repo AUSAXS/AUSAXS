@@ -104,10 +104,22 @@ class ProteinFile {
         void add(const Atom& a);
 
         /** 
+         * @brief Add an Atom record to this ProteinFile. 
+         * @param a The Atom record to be added.
+         */
+        void add(Atom&& a);
+
+        /** 
          * @brief Add a Hetatom record to this ProteinFile. 
          * @param w The Hetatom record to be added. 
          */
         void add(const Water& w);
+
+        /** 
+         * @brief Add a Hetatom record to this ProteinFile. 
+         * @param w The Hetatom record to be added. 
+         */
+        void add(Water&& w);
 
         /**
          * @brief Add a Terminate record to this ProteinFile. 

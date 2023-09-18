@@ -4,6 +4,8 @@
 #include <utility/Axis.h>
 #include <utility/Container2D.h>
 
+#include <cmath>
+
 using namespace hist::detail;
 
 PrecalculatedFormFactorProduct::PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2, const std::vector<double>& q) {

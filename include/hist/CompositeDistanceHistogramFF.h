@@ -29,5 +29,6 @@ namespace hist {
             Container3D<double> p_pp;
             Container2D<double> p_hp;
             Container1D<double> p_hh;
+            double k = 1;
     };
 }

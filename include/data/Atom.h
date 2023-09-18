@@ -61,8 +61,7 @@ class Atom : public Record {
         void translate(Vector3<double> v);
 
         /**
-         * @brief Check if this is a water molecule.
-         *        Will always return false for this class.
+         * @brief Check if this is a water molecule by checking the residue name. Both HOH and SOL are considered water molecules.
          */
         virtual bool is_water() const;
 
