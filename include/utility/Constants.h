@@ -170,7 +170,7 @@ namespace constants {
             constexpr double c = 0;
         }
 
-        // no source
+        // no source //! (brug argon?)
         namespace other {
             constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
             constexpr std::array<double, 5> b = {0.5, 0, 0, 0, 0};

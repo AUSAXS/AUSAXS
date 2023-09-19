@@ -27,7 +27,7 @@ double FormFactor::evaluate(double q) const {
     for (unsigned int i = 0; i < 5; ++i) {
         sum += a[i]*std::exp(-b[i]*q*q);
     }
-    return sum + c - 5.95*std::exp(-1.62*q*q/2);
+    return sum + c;
 }
 
 form_factor_t FormFactor::get_type(const Atom& atom) {

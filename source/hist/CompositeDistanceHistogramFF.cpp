@@ -29,7 +29,11 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
                 for (unsigned int d = 0; d < axis.bins; ++d) {
-                    Iq[q] += p_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, ff2).evaluate(q);
+                    Iq[q] += (
+                        p_pp.index(ff1, ff2, d)*ff_table.index(ff1, ff2).evaluate(q) // Z1*Z2*f1(q)*f2(q)
+                        + 5.95*5.95*std::exp(-1.62*1.62*q*q))                        // Zexv^2*ffexv^2
+                    
+                    *sinqd_table->lookup(q, d); 
                 }
             }
         }
@@ -39,7 +43,7 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
             for (unsigned int d = 0; d < axis.bins; ++d) {
-                Iq[q] += k*p_hp.index(ff1, d)*sinqd_table->lookup(q, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::NEUTRAL_HYDROGEN)).evaluate(q);
+                Iq[q] += (k*p_hp.index(ff1, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN)).evaluate(q) - 5.95*std::exp(-1.62*q*q/2))*sinqd_table->lookup(q, d);
             }
         }
     }
@@ -47,7 +51,7 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     // water-water
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
         for (unsigned int d = 0; d < axis.bins; ++d) {
-            Iq[q] += k2*p_hh.index(d)*sinqd_table->lookup(q, d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::NEUTRAL_HYDROGEN), static_cast<int>(hist::detail::form_factor_t::NEUTRAL_HYDROGEN)).evaluate(q);
+            Iq[q] += (k2*p_hh.index(d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN), static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN)).evaluate(q)  - 5.95*std::exp(-1.62*q*q/2))*sinqd_table->lookup(q, d);
         }
     }
 
