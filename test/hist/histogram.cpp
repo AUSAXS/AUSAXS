@@ -7,29 +7,29 @@ TEST_CASE("Histogram::Histogram") {
     SECTION("default") {
         hist::Histogram hist;
         CHECK(hist.size() == 0);
-        CHECK(hist.limits() == Limit{0, 0});
+        CHECK(hist.span_y() == Limit{0, 0});
     }
 
     SECTION("Vector<double>") {
         std::vector<double> data{1, 2, 3, 4, 5};
         hist::Histogram hist(data);
         CHECK(hist.size() == 5);
-        CHECK(hist.limits() == Limit{1, 5});
+        CHECK(hist.span_y() == Limit{1, 5});
     }
 
     SECTION("Vector<double>, Axis") {
         std::vector<double> data{1, 2, 3, 4, 5};
-        Axis axis(1, 10, 1);
+        Axis axis(1, 10, 5);
         hist::Histogram hist(data, axis);
         CHECK(hist.size() == 5);
-        CHECK(hist.limits() == Limit{1, 10});
+        CHECK(hist.span_y() == Limit{1, 5});
     }
 
     SECTION("Axis") {
-        Axis axis(1, 10, 1);
+        Axis axis(1, 10, 10);
         hist::Histogram hist(axis);
         CHECK(hist.size() == 10);
-        CHECK(hist.limits() == Limit{1, 10});
+        CHECK(hist.span_y() == Limit{0, 0});
     }
 }
 
@@ -38,23 +38,23 @@ TEST_CASE("Histogram::shorten_axis") {
         hist::Histogram hist;
         hist.shorten_axis();
         CHECK(hist.size() == 0);
-        CHECK(hist.limits() == Limit{0, 0});
+        CHECK(hist.span_y() == Limit{0, 0});
     }
 
     SECTION("more than 10 elements") {
         std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 0, 0, 0, 0, 0, 0, 0};
         hist::Histogram hist(data);
-        hist.shorten_axis();
-        CHECK(hist.size() == 10);
-        CHECK(hist.limits() == Limit{1, 11});
+        hist.shorten_axis(10);
+        CHECK(hist.size() == 11);
+        CHECK(hist.span_y() == Limit{1, 11});
     }
 
     SECTION("less than 10 elements") {
         std::vector<double> data = {1, 2, 3, 4, 5, 6, 0, 0, 0, 0, 0};
         hist::Histogram hist(data);
-        hist.shorten_axis();
+        hist.shorten_axis(10);
         CHECK(hist.size() == 10);
-        CHECK(hist.limits() == Limit{1, 6});
+        CHECK(hist.span_y() == Limit{0, 6});
     }
 }
 
@@ -84,26 +84,26 @@ TEST_CASE("Histogram::set_axis") {
 TEST_CASE("Histogram::limits") {
     SECTION("empty") {
         hist::Histogram hist;
-        CHECK(hist.limits() == Limit{0, 0});
+        CHECK(hist.span_y() == Limit{0, 0});
     }
 
     SECTION("non-empty") {
         std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
         hist::Histogram hist(data);
-        CHECK(hist.limits() == Limit{-1, 5});
+        CHECK(hist.span_y() == Limit{-1, 5});
     }
 }
 
 TEST_CASE("Histogram::limits_positive") {
     SECTION("empty") {
         hist::Histogram hist;
-        CHECK(hist.limits_positive() == Limit{0, 0});
+        CHECK(hist.span_y_positive() == Limit{0, 0});
     }
 
     SECTION("non-empty") {
         std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
         hist::Histogram hist(data);
-        CHECK(hist.limits_positive() == Limit{0, 5});
+        CHECK(hist.span_y_positive() == Limit{0, 5});
     }
 }
 
@@ -128,7 +128,7 @@ TEST_CASE("Histogram::as_dataset") {
     }
 
     SECTION("non-empty") {
-        std::vector<double> data{-1, 0, 1, 2, 3, 4, 5};
+        std::vector<double> data{0, 1, 2, 3, 4, 5, 6};
         hist::Histogram hist(data);
         auto dataset = hist.as_dataset();
         CHECK(dataset.size() == data.size());
@@ -144,7 +144,7 @@ TEST_CASE("Histogram::operator+=") {
     hist::Histogram hist2(data2);
     hist1 += hist2;
     CHECK(hist1.size() == 5);
-    CHECK(hist1.limits() == Limit{1, 5});
+    CHECK(hist1.span_y() == Limit{2, 10});
     CHECK(hist1.p == Vector{2, 4, 6, 8, 10});
 }
 
@@ -155,7 +155,7 @@ TEST_CASE("Histogram::operator-=") {
     hist::Histogram hist2(data2);
     hist1 -= hist2;
     CHECK(hist1.size() == 5);
-    CHECK(hist1.limits() == Limit{1, 5});
+    CHECK(hist1.span_y() == Limit{0, 0});
     CHECK(hist1.p == Vector{0, 0, 0, 0, 0});
 }
 
@@ -164,7 +164,7 @@ TEST_CASE("Histogram::operator*=") {
     hist::Histogram hist1(data1);
     hist1 *= 2;
     CHECK(hist1.size() == 5);
-    CHECK(hist1.limits() == Limit{1, 5});
+    CHECK(hist1.span_y() == Limit{2, 10});
     CHECK(hist1.p == Vector{2, 4, 6, 8, 10});
 }
 

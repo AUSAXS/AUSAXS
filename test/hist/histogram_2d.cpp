@@ -11,13 +11,13 @@ TEST_CASE("Histogram2D::Histogram2D") {
 
     SECTION("uint, uint") {
         hist::Histogram2D hist(10, 10);
-        CHECK(hist.x_axis == Axis(0, 10, 1));
-        CHECK(hist.y_axis == Axis(0, 10, 1));
+        CHECK(hist.x_axis.bins == 10);
+        CHECK(hist.y_axis.bins == 10);
     }
 
     SECTION("Axis&, Axis&") {
-        Axis x_axis(1, 2, 10);
-        Axis y_axis(1, 5, 10);
+        Axis x_axis(1, 10, 2);
+        Axis y_axis(1, 10, 5);
         hist::Histogram2D hist(x_axis, y_axis);
         CHECK(hist.x_axis == x_axis);
         CHECK(hist.y_axis == y_axis);

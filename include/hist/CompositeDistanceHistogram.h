@@ -24,6 +24,8 @@ namespace hist {
 
             virtual void apply_water_scaling_factor(double k);
 
+            void reset_water_scaling_factor();
+
         private:
             std::vector<double> p_pp;
             std::vector<double> p_hp;

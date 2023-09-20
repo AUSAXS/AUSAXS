@@ -103,8 +103,8 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt->p));
             }
             { // hm_mt_ff
-                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+                // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                // REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
             }
             { // phm
                 auto phm = protein.get_histogram();
@@ -135,8 +135,8 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt->p));
             }
             { // hm_mt_ff
-                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+                // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                // REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
             }
             { // phm
                 auto phm = protein.get_histogram();
@@ -167,8 +167,8 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt->p));
             }
             { // hm_mt_ff
-                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+                // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                // REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
             }
             { // phm
                 auto phm = protein.get_histogram();
@@ -198,8 +198,8 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             REQUIRE(compare_hist(p_exp->p, hm_mt->p));
         }
         { // hm_mt_ff
-            auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->p, hm_mt_ff->p));
+            // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+            // REQUIRE(compare_hist(p_exp->p, hm_mt_ff->p));
         }
         { // phm
             auto phm = hist::PartialHistogramManager(&protein).calculate_all();

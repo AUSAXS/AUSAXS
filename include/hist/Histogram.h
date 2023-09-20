@@ -20,7 +20,7 @@ namespace hist {
              * @brief Constructor. 
              * 
              * Construct a new histogram based on a list of bin values. 
-             * Note that the axis will not be initialized. 
+             * The axis will be initialized to [0, p.size()].
              * 
              * @param p The bin values. 
              */
@@ -86,13 +86,13 @@ namespace hist {
             /**
              * @brief Get the spanned range of this histogram. 
              */
-            [[nodiscard]] Limit limits() const noexcept;
+            [[nodiscard]] Limit span_y() const noexcept;
 
             /**
              * @brief Get the positive spanned range of this histogram.
              *        This can be useful for setting log ranges. 
              */
-            [[nodiscard]] Limit limits_positive() const noexcept;
+            [[nodiscard]] Limit span_y_positive() const noexcept;
 
             /**
              * @brief Get the size of this Histogram.

@@ -88,7 +88,7 @@ TEST_CASE("Axis::as_vector") {
 
     SECTION("use_center_values = true") {
         Axis axis(1, 10, 3);
-        std::vector<double> vec = axis.as_vector(true);
+        std::vector<double> vec = axis.as_vector(0.5);
         CHECK(vec.size() == 3);
         CHECK(vec[0] == 2.5);
         CHECK(vec[1] == 5.5);

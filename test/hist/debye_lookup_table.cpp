@@ -16,6 +16,7 @@ namespace std {
 }
 
 TEST_CASE("DebyeLookupTable::DebyeLookupTable") {
+    settings::general::verbose = false;
     SECTION("vector<double>&, vector<double>&") {
         std::vector<double> d = {1, 2, 3, 4, 5};
         std::vector<double> q = {1, 2, 3, 4, 5, 6};
@@ -26,6 +27,7 @@ TEST_CASE("DebyeLookupTable::DebyeLookupTable") {
 }
 
 TEST_CASE("DebyeLookupTable::lookup") {
+    settings::general::verbose = false;
     std::vector<double> d = {20, 10, 30, 15, 10};
     std::vector<double> q = {0.01, 0.05, 0.1, 0.25, 0.5};
     table::DebyeLookupTable table(q, d);
@@ -53,6 +55,7 @@ TEST_CASE("DebyeLookupTable::lookup") {
 }
 
 TEST_CASE("DebyeLookupTable::uses_default_table") {
+    settings::general::verbose = false;
     SECTION("default table") {
         Axis axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
         std::vector<double> q = axis.as_vector();
@@ -70,6 +73,7 @@ TEST_CASE("DebyeLookupTable::uses_default_table") {
 
 // size_d & size_q
 TEST_CASE("DebyeLookupTable::size") {
+    settings::general::verbose = false;
     SECTION("(5, 5)") {
         std::vector<double> d = {1, 2, 3, 4, 5};
         std::vector<double> q = {1, 2, 3, 4, 5};
@@ -96,6 +100,7 @@ TEST_CASE("DebyeLookupTable::size") {
 }
 
 TEST_CASE("DebyeLookupTable: correct values") {
+    settings::general::verbose = false;
     settings::axes::qmax = 1.001;
     SECTION("default_table") {
         table::DebyeLookupTable::reset_default_table();

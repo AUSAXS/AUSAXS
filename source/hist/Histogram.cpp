@@ -6,7 +6,7 @@
 
 using namespace hist;
 
-Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {}
+Histogram::Histogram(const Vector<double>& p) noexcept : p(p) {generate_axis();}
 
 Histogram::Histogram(const Vector<double>& p, const Axis& axis) : p(p), axis(axis) {}
 
@@ -51,8 +51,9 @@ void Histogram::resize(unsigned int bins) {
 }
 
 void Histogram::shorten_axis(unsigned int min_size) {
+    if (p.size() < min_size) {return;}
     unsigned int max_bin = min_size;
-    for (unsigned int i = axis.bins-1; i >= min_size; --i) {
+    for (unsigned int i = p.size()-2; i > min_size-1; --i) {
         if (p[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
@@ -60,8 +61,9 @@ void Histogram::shorten_axis(unsigned int min_size) {
     }
 
     p.resize(max_bin);
-    double width = axis.width();
-    axis = Axis(0, max_bin*width, int(max_bin));
+    if (!axis.empty()) {
+        axis = Axis(axis.min, axis.min + max_bin*axis.width(), max_bin);
+    }
 }
 
 // void Histogram::extend_axis(double qmax) {
@@ -72,36 +74,33 @@ void Histogram::shorten_axis(unsigned int min_size) {
 // }
 
 void Histogram::generate_axis() {
-    Limit lim = limits();
-    axis.min = lim.min; axis.max = lim.max;
-    axis.bins = p.size() == 0 ? 100 : p.size();
+    axis = Axis(0, p.size(), p.size());
 }
 
 void Histogram::set_axis(const Axis& axis) noexcept {
     this->axis = axis;
 }
 
-Limit Histogram::limits() const noexcept {
-    if (axis.empty()) {
-        auto[min, max] = std::minmax_element(p.begin(), p.end());
-        return Limit(*min, *max);
-    }
-    return axis.limits();
+Limit Histogram::span_y() const noexcept {
+    if (p.size() == 0) {return Limit(0, 0);}
+    auto[min, max] = std::minmax_element(p.begin(), p.end());
+    return Limit(*min, *max);
 }
 
-Limit Histogram::limits_positive() const noexcept {
+Limit Histogram::span_y_positive() const noexcept {
     if (size() == 0) {
         return Limit(0, 0);
     }
 
-    Limit limits(p[0], p[0]);
-    for (const double val : p) {
-        if (0 < val) {
-            limits.min = std::min(val, limits.min);
+    double min = 0;
+    double max = 0;
+    for (unsigned int i = 0; i < p.size(); ++i) {
+        if (0 < p[i]) {
+            min = std::min(p[i], min);
         }
-        limits.max = std::max(val, limits.max);
+        max = std::max(p[i], max);
     }
-    return limits;
+    return Limit(min, max);
 }
 
 std::string Histogram::to_string() const noexcept {

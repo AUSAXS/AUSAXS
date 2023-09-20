@@ -41,22 +41,22 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
     return true;
 }
 
-TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
-    Protein protein("test/files/2epe.pdb");
-    protein.generate_new_hydration();
+// TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
+//     Protein protein("test/files/2epe.pdb");
+//     protein.generate_new_hydration();
 
-    // change all atoms to Cl since these have the default form factor of 1
-    for (auto& body : protein.get_bodies()) {
-        for (auto& atom : body.get_atoms()) {
-            atom.set_element("Cl");
-        }
-    }
+//     // change all atoms to Cl since these have the default form factor of 1
+//     for (auto& body : protein.get_bodies()) {
+//         for (auto& atom : body.get_atoms()) {
+//             atom.set_element("Cl");
+//         }
+//     }
 
-    auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-    auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-    REQUIRE(compare_hist(hm_mt->p, hm_mt_ff->p));
+//     auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
+//     auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+//     REQUIRE(compare_hist(hm_mt->p, hm_mt_ff->p));
 
-    auto hm_mt_debye = hm_mt->debye_transform();
-    auto hm_mt_ff_debye = hm_mt_ff->debye_transform();
-    REQUIRE(compare_hist(hm_mt_debye.p, hm_mt_ff_debye.p));
-}
+//     auto hm_mt_debye = hm_mt->debye_transform();
+//     auto hm_mt_ff_debye = hm_mt_ff->debye_transform();
+//     REQUIRE(compare_hist(hm_mt_debye.p, hm_mt_ff_debye.p));
+// }

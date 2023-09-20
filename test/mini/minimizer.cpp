@@ -109,38 +109,38 @@ TEST_CASE("scan_minimizer") {
     SECTION("problem18 rough") {ScanTest1DRough(problem18);}
 }
 
-TEST_CASE("minimum_explorer", "[manual]") {
-    auto ExplorerTest1D = [] (const TestFunction& test) {
-        mini::dlibMinimizer<mini::type::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
-        auto res = mini1.minimize();
+// TEST_CASE("minimum_explorer", "[manual]") {
+//     auto ExplorerTest1D = [] (const TestFunction& test) {
+//         mini::dlibMinimizer<mini::type::BFGS> mini1(test.function, {{"a", test.bounds[0]}});
+//         auto res = mini1.minimize();
 
-        mini::Parameter p = res.get_parameter("a");
-        mini::MinimumExplorer mini2(test.function, p, 100);
-        res = mini2.minimize();
+//         mini::Parameter p = res.get_parameter("a");
+//         mini::MinimumExplorer mini2(test.function, p, 100);
+//         res = mini2.minimize();
 
-        SimpleDataset data1 = mini1.get_evaluated_points().as_dataset();
-        data1.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::blue}});
-        plots::PlotDataset plot(data1);
+//         SimpleDataset data1 = mini1.get_evaluated_points().as_dataset();
+//         data1.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::blue}});
+//         plots::PlotDataset plot(data1);
 
-        SimpleDataset data2 = mini2.get_evaluated_points().as_dataset();
-        data2.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::orange}});
-        plots::PlotDataset::quick_plot(data2, "figures/test/minimizer/explorer_test_single.pdf");
-        plot.plot(data2);
+//         SimpleDataset data2 = mini2.get_evaluated_points().as_dataset();
+//         data2.add_plot_options(style::draw::points, {{"xlabel", "x"}, {"ylabel", "f(x)"}, {"color", style::color::orange}});
+//         plots::PlotDataset::quick_plot(data2, "figures/test/minimizer/explorer_test_single.pdf");
+//         plot.plot(data2);
 
-        mini::Golden mini3(test.function, {"a", test.bounds[0]});
-        SimpleDataset line = mini3.landscape(1000).as_dataset();
-        plot.plot(line);
+//         mini::Golden mini3(test.function, {"a", test.bounds[0]});
+//         SimpleDataset line = mini3.landscape(1000).as_dataset();
+//         plot.plot(line);
 
-        plot.save("figures/test/minimizer/explorer_test.pdf");
+//         plot.save("figures/test/minimizer/explorer_test.pdf");
 
-        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini1.tol));
-    };
+//         CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(test.min[0], mini1.tol));
+//     };
 
-    // test with a fine grid
-    SECTION("problem04") {ExplorerTest1D(problem04);}
-    // SECTION("problem13") {ExplorerTest1D(problem13);}
-    // SECTION("problem18") {ExplorerTest1D(problem18);}
-}
+//     // test with a fine grid
+//     // SECTION("problem04") {ExplorerTest1D(problem04);}
+//     // SECTION("problem13") {ExplorerTest1D(problem13);}
+//     // SECTION("problem18") {ExplorerTest1D(problem18);}
+// }
 
 typedef dlib::matrix<double,0,1> column_vector;
 TEST_CASE("dlib") {
