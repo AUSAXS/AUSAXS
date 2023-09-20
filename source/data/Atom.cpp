@@ -35,18 +35,11 @@ Atom::Atom(int serial, const string& name, const string& altLoc, const string& r
         set_element(element);
         set_charge(charge);
 
-        // check if we want to correct the hydrogen contribution to the charge
-        if (settings::protein::use_effective_charge) {
-            // use a try-catch block to throw more sensible errors
-            try {
-                effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-            } catch (const except::base& e) {
-                throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
-            }
-        } 
-        // otherwise just use the atomic charge (this will never fail)
-        else {
-            effective_charge = constants::charge::atomic.get(this->element);
+        // use a try-catch block to throw more sensible errors
+        try {
+            effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        } catch (const except::base& e) {
+            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
         uid = uid_counter++;
 }

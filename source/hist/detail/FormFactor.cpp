@@ -17,8 +17,10 @@ const FormFactor& FormFactorStorage::get_form_factor(form_factor_t type) {
             return oxygen;
         case form_factor_t::OTHER:
             return other;
+        case form_factor_t::EXCLUDED_VOLUME:
+            return excluded_volume;
         default:
-            throw std::runtime_error("Invalid form factor type");
+            throw std::runtime_error("FormFactorStorage::get_form_factor: Invalid form factor type");
     }
 }
 
@@ -27,7 +29,7 @@ double FormFactor::evaluate(double q) const {
     for (unsigned int i = 0; i < 5; ++i) {
         sum += a[i]*std::exp(-b[i]*q*q);
     }
-    return sum + c;
+    return (sum + c)/normalization_factor;
 }
 
 form_factor_t FormFactor::get_type(const Atom& atom) {

@@ -5,6 +5,8 @@
 #include <hist/detail/FormFactor.h>
 #include <hist/detail/PrecalculatedFormFactorProduct.h>
 #include <dataset/SimpleDataset.h>
+#include <data/Protein.h>
+#include <data/Atom.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
@@ -22,54 +24,84 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
 
     std::vector<double> Iq(debye_axis.bins, 0);
     std::vector<double> q_axis = debye_axis.as_vector();
-    double k2 = k*k;
 
-    // atom-atom
+    unsigned int excluded_volume_index = static_cast<int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
+    unsigned int neutral_oxygen_index = static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count()-1; ++ff1) {
+            // atom-atom
+            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count()-1; ++ff2) {
+                double atom_atom_sum = 0;
                 for (unsigned int d = 0; d < axis.bins; ++d) {
-                    Iq[q] += (
-                        p_pp.index(ff1, ff2, d)*ff_table.index(ff1, ff2).evaluate(q) // Z1*Z2*f1(q)*f2(q)
-                        + 5.95*5.95*std::exp(-1.62*1.62*q*q))                        // Zexv^2*ffexv^2
-                    
-                    *sinqd_table->lookup(q, d); 
+                    atom_atom_sum += p_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d);
                 }
+                Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
             }
-        }
-    }
 
-    // atom-water
-    for (unsigned int q = 0; q < debye_axis.bins; ++q) {
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+            double atom_exv_sum = 0; // atom-exv
+            double exv_exv_sum = 0;  // exv-exv
             for (unsigned int d = 0; d < axis.bins; ++d) {
-                Iq[q] += (k*p_hp.index(ff1, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN)).evaluate(q) - 5.95*std::exp(-1.62*q*q/2))*sinqd_table->lookup(q, d);
+                double sinqd = sinqd_table->lookup(q, d);
+                atom_exv_sum += (p_pp.index(ff1, excluded_volume_index, d) + p_pp.index(excluded_volume_index, ff1, d))*sinqd;
+                exv_exv_sum += p_pp.index(excluded_volume_index, excluded_volume_index, d)*sinqd;
             }
-        }
-    }
+            Iq[q] -= atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
+            Iq[q] += exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
 
-    // water-water
-    for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+            // atom-water
+            double val = 0;
+            for (unsigned int d = 0; d < axis.bins; ++d) {
+                val += p_hp.index(ff1, d)*sinqd_table->lookup(q, d);
+            }
+            Iq[q] += k*val*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
+        }
+
+        // exv-water
+        double exv_water_sum = 0;
         for (unsigned int d = 0; d < axis.bins; ++d) {
-            Iq[q] += (k2*p_hh.index(d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN), static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN)).evaluate(q)  - 5.95*std::exp(-1.62*q*q/2))*sinqd_table->lookup(q, d);
+            exv_water_sum += p_hp.index(excluded_volume_index, d)*sinqd_table->lookup(q, d);
         }
+        Iq[q] -= k*2*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
+
+        // water-water
+        double water_water_sum = 0;
+        for (unsigned int d = 0; d < axis.bins; ++d) {
+            water_water_sum += p_hh.index(d)*sinqd_table->lookup(q, d);
+        }
+        Iq[q] += k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
     }
 
-
-    // calculate the scattering intensity based on the Debye equation
-    // std::vector<double> Iq(debye_axis.bins, 0);
-    // for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-    //     for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
-    //         auto precalculated_ff = ff_table.index(ff1, ff2);
-    //         for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
-    //             double tmp = 0;
-    //             for (unsigned int j = 0; j < axis.bins; ++j) { // iterate through the distance histogram
-    //                 tmp += p_pp.index(ff1, ff2, j)*sinqd_table->lookup(i, j);
+    // // atom-atom
+    // for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+    //     for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+    //         for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+    //             for (unsigned int d = 0; d < axis.bins; ++d) {
+    //                 Iq[q] += (
+    //                     p_pp.index(ff1, ff2, d)*ff_table.index(ff1, ff2).evaluate(q) // Z1*Z2*f1(q)*f2(q)
+    //                     + 5.95*5.95*std::exp(-1.62*1.62*q*q))                        // Zexv^2*ffexv^2
+                    
+    //                 *sinqd_table->lookup(q, d); 
     //             }
-    //             Iq[i] += tmp*precalculated_ff(i); // form factor
     //         }
     //     }
     // }
+
+    // // atom-water
+    // for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+    //     for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
+    //         for (unsigned int d = 0; d < axis.bins; ++d) {
+    //             Iq[q] += (k*p_hp.index(ff1, d)*ff_table.index(ff1, static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN)).evaluate(q) - 5.95*std::exp(-1.62*q*q/2))*sinqd_table->lookup(q, d);
+    //         }
+    //     }
+    // }
+
+    // // water-water
+    // for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+    //     for (unsigned int d = 0; d < axis.bins; ++d) {
+    //         Iq[q] += (k2*p_hh.index(d)*ff_table.index(static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN), static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN)).evaluate(q)  - 5.95*std::exp(-1.62*q*q/2))*sinqd_table->lookup(q, d);
+    //     }
+    // }
+
     return ScatteringHistogram(Iq, debye_axis);
 }
 

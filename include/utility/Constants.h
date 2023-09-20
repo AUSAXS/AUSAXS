@@ -177,6 +177,13 @@ namespace constants {
             constexpr double c = 0;
         }
 
+        //! get source from Jan
+        namespace excluded_volume {
+            constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
+            constexpr std::array<double, 5> b = {1.62, 0, 0, 0, 0};
+            constexpr double c = 0;
+        }
+
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_carbon {
             constexpr std::array<double, 5> a = { 2.657506, 1.078079,  1.490909, -4.241070, 0.713791};

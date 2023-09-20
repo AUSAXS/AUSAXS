@@ -6,7 +6,7 @@
 #include <rigidbody/RigidBody.h>
 #include <data/BodySplitter.h>
 #include <fitter/FitReporter.h>
-#include <plots/all.h>
+#include <plots/All.h>
 #include <settings/All.h>
 #include <io/File.h>
 #include <rigidbody/sequencer/Sequencer.h>
@@ -23,28 +23,34 @@
 #include <settings/RigidBodySettings.h>
 #include <settings/ProteinSettings.h>
 #include <fitter/HydrationFitter.h>
+#include <hist/detail/FormFactor.h>
 
 #include <cassert>
 
 int main(int argc, char const *argv[]) {
-    settings::protein::use_effective_charge = false;
-    io::ExistingFile mapfile(argv[1]);
-    io::ExistingFile mfile(argv[2]);
-    em::ImageStack images(mapfile);
-
-    settings::em::alpha_levels = {14, 15};
-    settings::fit::max_iterations = 100;
-    Axis axis(settings::em::alpha_levels, settings::fit::max_iterations);
-    fitter::HydrationFitter fitter(mfile);
-    unsigned int c = 0;
-    for (auto& level : axis.as_vector()) {
-        auto protein = images.get_protein(level);
-        protein->generate_new_hydration();
-        fitter.set_scattering_hist(protein->get_histogram());
-        auto res = fitter.fit();
-        std::cout << "Step " << ++c << ": Evaluated cutoff value " << level << " with chi2 " << res->fval << std::endl;
-    }
+    auto ff = hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
+    std::cout << ff.evaluate(0) << std::endl;
 }
+
+// int main(int argc, char const *argv[]) {
+//     settings::protein::use_effective_charge = false;
+//     io::ExistingFile mapfile(argv[1]);
+//     io::ExistingFile mfile(argv[2]);
+//     em::ImageStack images(mapfile);
+
+//     settings::em::alpha_levels = {14, 15};
+//     settings::fit::max_iterations = 100;
+//     Axis axis(settings::em::alpha_levels, settings::fit::max_iterations);
+//     fitter::HydrationFitter fitter(mfile);
+//     unsigned int c = 0;
+//     for (auto& level : axis.as_vector()) {
+//         auto protein = images.get_protein(level);
+//         protein->generate_new_hydration();
+//         fitter.set_scattering_hist(protein->get_histogram());
+//         auto res = fitter.fit();
+//         std::cout << "Step " << ++c << ": Evaluated cutoff value " << level << " with chi2 " << res->fval << std::endl;
+//     }
+// }
 
 // int main(int argc, char const *argv[]) {
 //     settings::protein::use_effective_charge = false;

@@ -151,6 +151,14 @@ double Protein::get_volume_grid() const {
     return grid->get_volume();
 }
 
+double Protein::get_excluded_volume() const {
+    return get_volume_grid()*excluded_volume_scaling_factor;
+}
+
+void Protein::set_excluded_volume_scaling(double factor) {
+    excluded_volume_scaling_factor = factor;
+}
+
 std::shared_ptr<grid::Grid> Protein::create_grid() const {
     grid = std::make_shared<grid::Grid>(bodies); 
     return grid;

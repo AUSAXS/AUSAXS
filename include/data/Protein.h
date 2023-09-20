@@ -127,6 +127,19 @@ class Protein {
 		[[nodiscard]] double get_volume_grid() const;
 
 		/**
+		 * @brief Calculate the excluded volume of this protein based on the number of grid bins it spans.
+		 * 		  This is equivalent to get_volume_grid, but with an optional scaling factor applied.
+		 * 
+		 * @return The volume in Å^3.
+		 */
+		[[nodiscard]] double get_excluded_volume() const;
+
+		/**
+		 * @brief Set the scaling factor for the excluded volume.
+		 */
+		void set_excluded_volume_scaling(double factor);
+
+		/**
 		 * @brief Calculate the volume of this protein based on the number of C-alpha atoms
 		 * 
 		 * @return The volume in Å^3.
@@ -351,6 +364,7 @@ class Protein {
 		mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 		std::shared_ptr<hist::HistogramManager> phm = nullptr;
 		std::shared_ptr<hist::CompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
+		double excluded_volume_scaling_factor = 1; // The scaling factor for the excluded volume.
 
 		void initialize();
 };

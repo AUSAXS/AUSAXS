@@ -24,7 +24,7 @@ Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::gene
     Container2D<PrecalculatedFormFactorProduct> table(FormFactor::get_count(), FormFactor::get_count());
     std::vector<double> q = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
     for (unsigned int i = 0; i < FormFactor::get_count(); ++i) {
-        for (unsigned int j = 0; j < FormFactor::get_count(); ++j) {
+        for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = std::move(
                 PrecalculatedFormFactorProduct(
                     FormFactorStorage::get_form_factor(static_cast<form_factor_t>(i)), 
@@ -32,7 +32,15 @@ Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::gene
                     q
                 )
             );
+            table.index(j, i) = table.index(i, j);
         }
+        table.index(i, i) = std::move(
+            PrecalculatedFormFactorProduct(
+                FormFactorStorage::get_form_factor(static_cast<form_factor_t>(i)), 
+                FormFactorStorage::get_form_factor(static_cast<form_factor_t>(i)), 
+                q
+            )
+        );
     }
     return table;
 }

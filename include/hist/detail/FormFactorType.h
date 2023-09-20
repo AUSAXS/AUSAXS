@@ -8,6 +8,7 @@ namespace hist::detail {
         NEUTRAL_NITROGEN,
         NEUTRAL_OXYGEN,
         OTHER,
-        COUNT
+        EXCLUDED_VOLUME,
+        COUNT, // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
     };
 }

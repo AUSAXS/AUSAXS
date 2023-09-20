@@ -18,7 +18,8 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protei
     HydrationFitter hfit(input, protein.get_histogram());
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
-    this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.5, 1.5}}};
+    if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0.5, 1.5}}};}
+    else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.5, 1.5}}};}
 }
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
@@ -94,7 +95,8 @@ double ExcludedVolumeFitter::get_intercept() {
 }
 
 void ExcludedVolumeFitter::update_excluded_volume(double d) {
-    protein.update_effective_charge(d);
+    // protein.update_effective_charge(d);
+    protein.set_excluded_volume_scaling(d);
     h = protein.get_histogram();
 }
 
