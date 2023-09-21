@@ -26,7 +26,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     auto waters = protein->get_waters();
 
     double width = settings::axes::distance_bin_width;
-    double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water;
+    double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/atoms.size();
     double Z_exv_avg2 = 2*Z_exv_avg*Z_exv_avg;
     unsigned int excluded_volume_bin = static_cast<unsigned int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 

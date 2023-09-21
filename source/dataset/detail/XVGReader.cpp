@@ -65,14 +65,14 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
     // sanity check: comparing the detected number of columns with the header
     if (!header.empty() && header.back().find("type") != std::string::npos) {
         std::string type = header.back().substr(6);
-        if (mode == 2 && type != "xy") {
-            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y].");
+        if (mode == 2) {
+            if (type != "xy") {console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I].");}
         }
-        if (mode == 3 && type != "xydy") {
-            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy].");
+        else if (mode == 3) {
+            if (type != "xydy") {console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr].");}
         }
-        if (mode == 4 && type != "xydxdy") {
-            console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [x | y | dy | dx].");
+        else if (mode == 4) {
+            if (type != "xydxdy") {console::print_warning("\tThe column format of the file \"" + path + "\" may be incompatible. Ensure it is of the form [q | I | Ierr | qerr].");}
         }
     }
 
@@ -113,6 +113,9 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
             dataset->push_back(data_cols[i]);
         }
     }
+    std::vector<std::string> col_names = {"q", "I", "Ierr", "qerr"};
+    col_names.resize(mode);
+    dataset->set_col_names(col_names);
 
     // skip the first few rows if requested
     if (settings::axes::skip != 0 && settings::general::verbose) {

@@ -26,22 +26,24 @@ int main(int argc, char const *argv[]) {
     CLI::App app{"Generate a new hydration layer and fit the resulting scattering intensity histogram for a given input data file."};
     app.add_option("input_s", s_pdb, "Path to the structure file.")->required()->check(CLI::ExistingFile);
     app.add_option("input_m", s_mfile, "Path to the measured data.")->required()->check(CLI::ExistingFile);
-    app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/intensity_fitter/");
-    app.add_option("--reduce,-r", settings::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::percent_water);
-    app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width);
-    app.add_option("--bin_width,--bw", settings::axes::distance_bin_width, "Bin width for the distance histograms.")->default_val(settings::axes::distance_bin_width);
-    app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.")->default_val(placement_strategy);
-    app.add_option("--radius_a,--ra", settings::grid::ra, "Radius of the protein atoms.")->default_val(settings::grid::ra);
-    app.add_option("--radius_h,--rh", settings::grid::rh, "Radius of the hydration atoms.")->default_val(settings::grid::rh);
-    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin);
-    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax);
-    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
-    auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile);
-    auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.");
-    app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered.")->default_val(settings::protein::center);
-    app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::protein::use_effective_charge);
-    app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration);
-    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume);
+    app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/intensity_fitter/")->group("General options");
+    app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads)->group("General options");
+    app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from the measurement file.")->default_val(settings::axes::qmax)->group("General options");
+    app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("General options");
+    auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
+
+    app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered.")->default_val(settings::protein::center)->group("Protein options");
+    app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::protein::use_effective_charge)->group("Protein options");
+    app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
+    app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume)->group("Protein options");
+
+    app.add_option("--reduce,-r", settings::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::percent_water)->group("Advanced options");
+    app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width)->group("Advanced options");
+    app.add_option("--bin_width,--bw", settings::axes::distance_bin_width, "Bin width for the distance histograms.")->default_val(settings::axes::distance_bin_width)->group("Advanced options");
+    app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.")->default_val(placement_strategy)->group("Advanced options");
+    app.add_option("--radius_a,--ra", settings::grid::ra, "Radius of the protein atoms.")->default_val(settings::grid::ra)->group("Advanced options");
+    app.add_option("--radius_h,--rh", settings::grid::rh, "Radius of the hydration atoms.")->default_val(settings::grid::rh)->group("Advanced options");
+    auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
     CLI11_PARSE(app, argc, argv);
 
     //###################//
@@ -98,14 +100,8 @@ int main(int argc, char const *argv[]) {
     fitter::FitReporter::save(result, settings::general::output + "report.txt");
 
     // save fit
-    auto fit = fitter->get_model_dataset();
-    auto data = fitter->get_dataset();
-    fit.save(settings::general::output + "fit.fit");
-    data.save(settings::general::output + mfile.stem() + ".dat");
-
-    // Fit plot
-    plots::PlotIntensityFit::quick_plot(result, settings::general::output + "fit." + settings::plots::format);
-    plots::PlotIntensityFitResiduals::quick_plot(result, settings::general::output + "residuals." + settings::plots::format);
+    fitter->get_model_dataset().save(settings::general::output + "fit.fit");
+    fitter->get_dataset().save(settings::general::output + mfile.stem() + ".dat");
 
     // calculate rhoM
     double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));

@@ -4,6 +4,7 @@
 #include <utility/SimpleMap.h>
 
 #include <string>
+#include <cmath>
 
 namespace io {class ExistingFile;}
 
@@ -162,6 +163,7 @@ namespace constants {
 
     namespace form_factor {
         constexpr double sigma_excluded_volume = 1.62; // Å
+        constexpr double fpi2 = 100*M_PI*M_PI; // 4π^2, conversion factor from s to q
 
         // no source
         namespace hydrogen {
@@ -172,36 +174,36 @@ namespace constants {
 
         // no source //! (brug argon?)
         namespace other {
-            constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
-            constexpr std::array<double, 5> b = {0.5, 0, 0, 0, 0};
-            constexpr double c = 0;
+            constexpr std::array<double, 5> a = { 2.960427, 2.508818, 0.637853,  0.722838, 1.142756};
+            constexpr std::array<double, 5> b = {14.182259/fpi2, 5.936858/fpi2, 0.112726/fpi2, 34.958481/fpi2, 0.390240/fpi2};
+            constexpr double c = 0.027014;
         }
 
         //! get source from Jan
         namespace excluded_volume {
             constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
-            constexpr std::array<double, 5> b = {1.62, 0, 0, 0, 0};
+            constexpr std::array<double, 5> b = {1.62*1.62/2, 0, 0, 0, 0};
             constexpr double c = 0;
         }
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_carbon {
             constexpr std::array<double, 5> a = { 2.657506, 1.078079,  1.490909, -4.241070, 0.713791};
-            constexpr std::array<double, 5> b = {14.780758, 0.776775, 42.086843, -0.000294, 0.239535};
+            constexpr std::array<double, 5> b = {14.780758/fpi2, 0.776775/fpi2, 42.086843/fpi2, -0.000294/fpi2, 0.239535/fpi2};
             constexpr double c = 4.297983;
         }
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_oxygen {
             constexpr std::array<double, 5> a = { 2.960427, 2.508818, 0.637853,  0.722838, 1.142756};
-            constexpr std::array<double, 5> b = {14.182259, 5.936858, 0.112726, 34.958481, 0.390240};
+            constexpr std::array<double, 5> b = {14.182259/fpi2, 5.936858/fpi2, 0.112726/fpi2, 34.958481/fpi2, 0.390240/fpi2};
             constexpr double c = 0.027014;
         }
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_nitrogen {
             constexpr std::array<double, 5> a = {11.893780,  3.277479,  1.858092, 0.858927, 0.912985};
-            constexpr std::array<double, 5> b = { 0.000158, 10.232723, 30.344690, 0.656065, 0.217287};
+            constexpr std::array<double, 5> b = { 0.000158/fpi2, 10.232723/fpi2, 30.344690/fpi2, 0.656065/fpi2, 0.217287/fpi2};
             constexpr double c = -11.804902;
         }
     }

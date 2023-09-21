@@ -67,13 +67,13 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
     if (settings::general::verbose) {
         switch (mode) {
             case 2: 
-                std::cout << "\t2 columns detected. Assuming the format is [x | y]" << std::endl;
+                std::cout << "\t2 columns detected. Assuming the format is [q | I]" << std::endl;
                 break;
             case 3:
-                std::cout << "\t3 columns detected. Assuming the format is [x | y | yerr]" << std::endl;
+                std::cout << "\t3 columns detected. Assuming the format is [q | I | Ierr]" << std::endl;
                 break;
             case 4:
-                std::cout << "\t4 columns detected. Assuming the format is [x | y | yerr | xerr]" << std::endl;
+                std::cout << "\t4 columns detected. Assuming the format is [q | I | Ierr | qerr]" << std::endl;
                 break;
             default:
                 throw except::io_error("DATReader::construct: File has an unsupported number of columns (" + std::to_string(mode) + ").");
@@ -117,6 +117,9 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
             dataset->push_back(data_cols[i]);
         }
     }
+    std::vector<std::string> col_names = {"q", "I", "Ierr", "qerr"};
+    col_names.resize(mode);
+    dataset->set_col_names(col_names);
 
     // skip the first few rows if requested
     if (settings::axes::skip != 0 && settings::general::verbose) {

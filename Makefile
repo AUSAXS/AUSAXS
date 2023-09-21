@@ -268,8 +268,8 @@ intensity_fit/%: build/bin/intensity_fitter
 		sleep 1;\
 		$< $${measurement} $${pdb} ${options};\
 		make plot/output/intensity_fitter/$*;\
-		make plot_fits/$*;\
 	done
+#		make plot_fits/$*;\
 
 # Check the consistency of the program. 
 # The wildcard should be the name of an EM map. A number of SAXS measurements will be simulated from the map, and then fitted to it. 
