@@ -50,3 +50,7 @@ form_factor_t FormFactor::get_type(const Atom& atom) {
 unsigned int FormFactor::get_count() {
     return static_cast<unsigned int>(form_factor_t::COUNT);
 }
+
+unsigned int FormFactor::get_count_without_excluded_volume() {
+    return static_cast<unsigned int>(form_factor_t::COUNT)-1;
+}

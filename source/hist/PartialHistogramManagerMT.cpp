@@ -35,7 +35,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
     const bool hydration_modified = statemanager->get_modified_hydration();
 
     // check if the object has already been initialized
-    if (master.p.size() == 0) [[unlikely]] {
+    if (master.get_counts().size() == 0) [[unlikely]] {
         initialize(); 
     }
 
@@ -111,7 +111,8 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
 
     statemanager->reset();
     pool->wait_for_tasks();
-    return std::make_unique<DistanceHistogram>(master.p.copy(), master.axis);
+    std::vector<double> p = master.get_counts();
+    return std::make_unique<DistanceHistogram>(std::move(p), master.get_axis());
 }
 
 void PartialHistogramManagerMT::update_compact_representation_body(unsigned int index) {
@@ -128,8 +129,8 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     unsigned int bins = total->get_axis().bins;
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    std::vector<double> p_hh = partials_hh.p;
-    std::vector<double> p_pp = master.base.p;
+    std::vector<double> p_hh = partials_hh.get_counts();
+    std::vector<double> p_pp = master.base.get_counts();
     std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < body_size; ++i) {
@@ -138,7 +139,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
 
             // iterate through each entry in the partial histogram
             for (unsigned int k = 0; k < bins; ++k) {
-                p_pp[k] += current.p[k]; // add to p_pp
+                p_pp[k] += current.get_count(k); // add to p_pp
             }
         }
     }
@@ -149,7 +150,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
 
         // iterate through each entry in the partial histogram
         for (unsigned int k = 0; k < bins; ++k) {
-            p_hp[k] += current.p[k]; // add to p_pp
+            p_hp[k] += current.get_count(k); // add to p_pp
         }
     }
 
@@ -157,7 +158,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     p_hh.resize(bins);
     p_pp.resize(bins);
 
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->p), total->get_axis());
+    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->get_counts()), total->get_axis());
 }
 
 /**
@@ -219,9 +220,9 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
     BS::multi_future<std::vector<double>> futures_self_corr;
     unsigned int atom_size = protein->atom_size();
     for (unsigned int i = 0; i < atom_size; i += settings::general::detail::job_size) {
-        futures_self_corr.push_back(pool->submit(calc_internal, std::cref(coords_p[index]), master.axis.bins, i, std::min(i+settings::general::detail::job_size, atom_size)));
+        futures_self_corr.push_back(pool->submit(calc_internal, std::cref(coords_p[index]), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, atom_size)));
     }
-    futures_self_corr.push_back(pool->submit(calc_self, std::cref(coords_p[index]), master.axis.bins));
+    futures_self_corr.push_back(pool->submit(calc_self, std::cref(coords_p[index]), master.get_axis().bins));
     return futures_self_corr;
 }
 
@@ -246,7 +247,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
     BS::multi_future<std::vector<double>> futures_pp;
     detail::CompactCoordinates& coords_n = coords_p[n];
     for (unsigned int i = 0; i < coords_n.size; i += settings::general::detail::job_size) {
-        futures_pp.push_back(pool->submit(calc_pp, std::cref(coords_p[n]), std::cref(coords_p[m]), master.axis.bins, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
+        futures_pp.push_back(pool->submit(calc_pp, std::cref(coords_p[n]), std::cref(coords_p[m]), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, coords_n.size)));
     }
     return futures_pp;
 }
@@ -272,7 +273,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
     BS::multi_future<std::vector<double>> futures_hp;
     detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.size; i += settings::general::detail::job_size) {
-        futures_hp.push_back(pool->submit(calc_hp, std::cref(coords_p[index]), std::cref(coords_h), master.axis.bins, i, std::min(i+settings::general::detail::job_size, coords.size)));
+        futures_hp.push_back(pool->submit(calc_hp, std::cref(coords_p[index]), std::cref(coords_h), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, coords.size)));
     }
     return futures_hp;
 }
@@ -307,14 +308,14 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
 
     BS::multi_future<std::vector<double>> futures_hh;
     for (unsigned int i = 0; i < coords_h.size; i += settings::general::detail::job_size) {
-        futures_hh.push_back(pool->submit(calc_hh, std::cref(coords_h), master.axis.bins, i, std::min(i+settings::general::detail::job_size, coords_h.size)));
+        futures_hh.push_back(pool->submit(calc_hh, std::cref(coords_h), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, coords_h.size)));
     }
-    futures_hh.push_back(pool->submit(calc_self, std::cref(coords_h), master.axis.bins));
+    futures_hh.push_back(pool->submit(calc_self, std::cref(coords_h), master.get_axis().bins));
     return futures_hh;
 }
 
 void PartialHistogramManagerMT::combine_self_correlation(unsigned int index, BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_pp(master.axis.bins, 0);
+    std::vector<double> p_pp(master.get_axis().bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
     for (auto& tmp : futures.get()) {
@@ -324,13 +325,13 @@ void PartialHistogramManagerMT::combine_self_correlation(unsigned int index, BS:
     // update the master histogram
     master_hist_mutex.lock();
     master -= partials_pp.index(index, index);
-    partials_pp.index(index, index).p = std::move(p_pp);
+    partials_pp.index(index, index).get_counts() = std::move(p_pp);
     master += partials_pp.index(index, index);
     master_hist_mutex.unlock();
 }
 
 void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m, BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_pp(master.axis.bins, 0);
+    std::vector<double> p_pp(master.get_axis().bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
     for (auto& tmp : futures.get()) {
@@ -340,13 +341,13 @@ void PartialHistogramManagerMT::combine_pp(unsigned int n, unsigned int m, BS::m
     // update the master histogram
     master_hist_mutex.lock();
     master -= partials_pp.index(n, m);
-    partials_pp.index(n, m).p = std::move(p_pp);
+    partials_pp.index(n, m).get_counts() = std::move(p_pp);
     master += partials_pp.index(n, m);
     master_hist_mutex.unlock();
 }
 
 void PartialHistogramManagerMT::combine_hp(unsigned int index, BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_hp(master.axis.bins, 0);
+    std::vector<double> p_hp(master.get_axis().bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
     for (auto& tmp : futures.get()) {
@@ -356,13 +357,13 @@ void PartialHistogramManagerMT::combine_hp(unsigned int index, BS::multi_future<
     // update the master histogram
     master_hist_mutex.lock();
     master -= partials_hp.index(index); // subtract the previous hydration histogram
-    partials_hp.index(index).p = std::move(p_hp);
+    partials_hp.index(index).get_counts() = std::move(p_hp);
     master += partials_hp.index(index); // add the new hydration histogram
     master_hist_mutex.unlock();
 }
 
 void PartialHistogramManagerMT::combine_hh(BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_hh(master.axis.bins, 0);
+    std::vector<double> p_hh(master.get_axis().bins, 0);
 
     // iterate through all partial results. Each partial result is from a different thread calculation
     for (auto& tmp : futures.get()) {
@@ -372,7 +373,7 @@ void PartialHistogramManagerMT::combine_hh(BS::multi_future<std::vector<double>>
     // update the master histogram
     master_hist_mutex.lock();
     master -= partials_hh; // subtract the previous hydration histogram
-    partials_hh.p = std::move(p_hh);
+    partials_hh.get_counts() = std::move(p_hh);
     master += partials_hh; // add the new hydration histogram
     master_hist_mutex.unlock();
 }

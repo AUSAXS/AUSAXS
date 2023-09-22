@@ -44,7 +44,7 @@ double LinearFitter::fit_chi2_only() {
 }
 
 std::shared_ptr<Fit> LinearFitter::fit() {
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -69,7 +69,7 @@ FitPlots LinearFitter::plot() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // if we have a I0, we need to rescale the data
@@ -100,7 +100,7 @@ SimpleDataset LinearFitter::plot_residuals() {
     double a = fitted->get_parameter("a").value;
     double b = fitted->get_parameter("b").value;
 
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -119,7 +119,7 @@ void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> 
 }
 
 double LinearFitter::chi2(const std::vector<double>&) {
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io

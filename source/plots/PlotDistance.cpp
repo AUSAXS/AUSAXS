@@ -13,10 +13,10 @@ PlotDistance::PlotDistance(const hist::CompositeDistanceHistogram* const d, cons
 
 void PlotDistance::quick_plot(const hist::CompositeDistanceHistogram* const d, const io::File& path) {
     auto distances = d->get_axis().as_vector();
-    SimpleDataset p(distances, d->p.data);
-    SimpleDataset pp(distances, d->get_pp_histogram());
-    SimpleDataset ph(distances, d->get_hp_histogram());
-    SimpleDataset hh(distances, d->get_hh_histogram());
+    SimpleDataset p(distances, d->get_counts());
+    SimpleDataset pp(distances, d->get_pp_counts());
+    SimpleDataset ph(distances, d->get_hp_counts());
+    SimpleDataset hh(distances, d->get_hh_counts());
 
     p.add_plot_options("lines", {{"color", style::color::black}, {"legend", "total"}, {"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}});
     pp.add_plot_options("lines", {{"color", style::color::orange}, {"legend", "atom-atom"}});

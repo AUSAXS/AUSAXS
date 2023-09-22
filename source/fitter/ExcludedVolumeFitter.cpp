@@ -31,7 +31,7 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
 
     update_excluded_volume(res.get_parameter("d").value);
     cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -60,7 +60,7 @@ double ExcludedVolumeFitter::fit_chi2_only() {
 
     update_excluded_volume(res.get_parameter("d").value);
     cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io

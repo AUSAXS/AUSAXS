@@ -31,7 +31,7 @@ SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     }
 }
 
-SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(std::cref(h.p.data), h.axis.as_vector()) {}
+SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(std::cref(h.get_counts()), h.get_axis().as_vector()) {}
 
 SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(x.size()) {initialize(x, y, yerr);}
 

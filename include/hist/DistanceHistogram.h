@@ -30,13 +30,19 @@ namespace hist {
 
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const;
 
-            Vector<double>& get_total_histogram();
-
             const std::vector<double>& get_d_axis() const;
 
             const std::vector<double>& get_q_axis() const;
 
-            const Axis& get_axis() const;
+            /**
+             * @brief Get the total histogram counts. Equivalent to get_counts().
+             */
+            const std::vector<double>& get_total_counts() const;
+
+            /**
+             * @brief Get the total histogram counts. Equivalent to get_counts().
+             */
+            std::vector<double>& get_total_counts();
 
         protected:
 			std::unique_ptr<table::DebyeLookupTable> sinqd_table;   // Lookup-table for sin(qd)/qd values for the scattering histograms.

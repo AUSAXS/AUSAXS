@@ -12,6 +12,7 @@
 #include <hist/PartialHistogramManager.h>
 #include <hist/PartialHistogramManagerMT.h>
 #include <hist/CompositeDistanceHistogramFF.h>
+#include <hist/detail/FormFactor.h>
 #include <io/ExistingFile.h>
 #include <settings/ProteinSettings.h>
 
@@ -96,23 +97,23 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
             { // hm
                 auto hm = hist::HistogramManager(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm->p));
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
             { // hm_mt
                 auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt->p));
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff
-                // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-                // REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff->get_total_counts()));
             }
             { // phm
                 auto phm = protein.get_histogram();
-                REQUIRE(compare_hist(p_exp, phm->p));
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
                 auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, phm_mt->p));
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
         }
 
@@ -128,11 +129,11 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
             { // hm
                 auto hm = hist::HistogramManager(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm->p));
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
             { // hm_mt
                 auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt->p));
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff
                 // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
@@ -140,11 +141,11 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             }
             { // phm
                 auto phm = protein.get_histogram();
-                REQUIRE(compare_hist(p_exp, phm->p));
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
                 auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, phm_mt->p));
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
         }
 
@@ -160,23 +161,23 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
             { // hm
                 auto hm = hist::HistogramManager(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm->p));
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
             { // hm_mt
                 auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt->p));
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff
-                // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-                // REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff->get_total_counts()));
             }
             { // phm
                 auto phm = protein.get_histogram();
-                REQUIRE(compare_hist(p_exp, phm->p));
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
                 auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, phm_mt->p));
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
         }
     }
@@ -191,23 +192,23 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
         { // hm
             auto hm = hist::HistogramManager(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->p, hm->p));
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
         }
         { // hm_mt
             auto hm_mt = hist::HistogramManagerMT(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->p, hm_mt->p));
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
         }
         { // hm_mt_ff
-            // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-            // REQUIRE(compare_hist(p_exp->p, hm_mt_ff->p));
+            auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff->get_total_counts()));
         }
         { // phm
             auto phm = hist::PartialHistogramManager(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->p, phm->p));
+            REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
         }
         { // phm_mt
             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-            REQUIRE(compare_hist(p_exp->p, phm_mt->p));
+            REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
         }
     }
 }

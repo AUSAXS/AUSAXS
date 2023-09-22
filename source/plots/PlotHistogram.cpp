@@ -12,7 +12,7 @@ PlotHistogram::~PlotHistogram() = default;
 
 PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist) {
     PlotOptions options;
-    SimpleDataset p(hist.p.data, hist.axis.as_vector());
+    SimpleDataset p(hist.get_counts(), hist.get_axis().as_vector());
 
     ss << "PlotHistogram\n"
         << p.to_string()

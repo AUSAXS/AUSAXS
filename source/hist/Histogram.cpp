@@ -73,6 +73,22 @@ void Histogram::shorten_axis(unsigned int min_size) {
 //     axis = Axis(0, bins*width, bins);
 // }
 
+const Axis& Histogram::get_axis() const {
+    return axis;
+}
+
+const std::vector<double>& Histogram::get_counts() const {
+    return p.data;
+}
+
+std::vector<double>& Histogram::get_counts() {
+    return const_cast<std::vector<double>&>(const_cast<const Histogram*>(this)->get_counts());
+}
+
+double Histogram::get_count(unsigned int i) const {
+    return get_counts()[i];
+}
+
 void Histogram::generate_axis() {
     axis = Axis(0, p.size(), p.size());
 }

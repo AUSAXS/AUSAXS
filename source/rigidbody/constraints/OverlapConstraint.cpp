@@ -33,8 +33,8 @@ double OverlapConstraint::weight(double r) {
 
 void OverlapConstraint::initialize() {
     // define the target distribution
-    target = protein->get_total_histogram()->p;
-    auto axis = target.axis.as_vector();
+    target = *protein->get_total_histogram().get();
+    auto axis = target.get_axis().as_vector();
     weights = hist::Histogram(axis);
 
     // calculate the weights and reduce their precision

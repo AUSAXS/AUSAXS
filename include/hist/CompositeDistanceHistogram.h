@@ -14,21 +14,25 @@ namespace hist {
         public: 
             CompositeDistanceHistogram() = default;
 
+            CompositeDistanceHistogram(std::vector<double>&& p_tot, const Axis& axis);
+
             CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hp, std::vector<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis);
 
             virtual ~CompositeDistanceHistogram() override;
 
-            const std::vector<double>& get_pp_histogram() const;
-            const std::vector<double>& get_hh_histogram() const;
-            const std::vector<double>& get_hp_histogram() const;            
+            virtual const std::vector<double>& get_pp_counts() const;
+
+            virtual const std::vector<double>& get_hh_counts() const;
+
+            virtual const std::vector<double>& get_hp_counts() const;            
 
             virtual void apply_water_scaling_factor(double k);
 
             void reset_water_scaling_factor();
 
-        private:
-            std::vector<double> p_pp;
-            std::vector<double> p_hp;
-            std::vector<double> p_hh;
+        protected:
+            mutable std::vector<double> p_pp;
+            mutable std::vector<double> p_hp;
+            mutable std::vector<double> p_hh;
     };
 }

@@ -41,7 +41,7 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
 
     // apply c
     cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -66,7 +66,7 @@ double HydrationFitter::fit_chi2_only() {
 
     // apply c
     cast_h()->apply_water_scaling_factor(res.get_parameter("c").value);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -85,7 +85,7 @@ FitPlots HydrationFitter::plot() {
     double c = fitted->get_parameter("c").value;
 
     cast_h()->apply_water_scaling_factor(c);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // calculate the scaled I model values
@@ -114,7 +114,7 @@ SimpleDataset HydrationFitter::plot_residuals() {
     double c = fitted->get_parameter("c").value;
 
     cast_h()->apply_water_scaling_factor(c);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // calculate the residuals
@@ -133,7 +133,7 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
 
     // apply c
     cast_h()->apply_water_scaling_factor(c);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
 
     // we want to fit a*Im + b to Io
@@ -161,7 +161,7 @@ double HydrationFitter::get_intercept() {
     double c = fitted->get_parameter("c").value;
 
     cast_h()->apply_water_scaling_factor(c);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     math::CubicSpline s(h->get_q_axis(), ym);
     return a*s.spline(0) + b;
 }
@@ -174,7 +174,7 @@ SimpleDataset HydrationFitter::get_model_dataset() {
     double c = fitted->get_parameter("c").value;
 
     cast_h()->apply_water_scaling_factor(c);
-    std::vector<double> ym = h->debye_transform().p;
+    std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);
     std::transform(Im.begin(), Im.end(), Im.begin(), [&a, &b] (double I) {return I*a+b;});
 

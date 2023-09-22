@@ -16,6 +16,8 @@ namespace hist {
         public: 
             CompositeDistanceHistogramFF() = default;
 
+            CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept;
+
             /**
              * @brief Construct a new Composite Distance Histogram FF object
              * 
@@ -36,10 +38,18 @@ namespace hist {
 
             void apply_water_scaling_factor(double k) override;
 
+            const std::vector<double>& get_pp_counts() const override;
+
+            const std::vector<double>& get_hh_counts() const override;
+
+            const std::vector<double>& get_hp_counts() const override;
+
+            const std::vector<double>& get_counts() const override;
+
         private:
-            Container3D<double> p_pp;
-            Container2D<double> p_hp;
-            Container1D<double> p_hh;
+            Container3D<double> cp_pp;
+            Container2D<double> cp_hp;
+            Container1D<double> cp_hh;
             double k = 1;
     };
 }

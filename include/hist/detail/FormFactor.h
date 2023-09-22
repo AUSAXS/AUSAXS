@@ -19,8 +19,17 @@ namespace hist::detail {
 
             /**
              * @brief Get the number of unique form factors.
+             * 
+             * This can be used to iterate over all form factors.
              */
             static unsigned int get_count();
+
+            /**
+             * @brief Get the number of unique form factors, excluding the excluded volume form factor.
+             * 
+             * This can be used to iterate over all form factors except the excluded volume form factor.
+             */
+            static unsigned int get_count_without_excluded_volume();
 
             /**
              * @brief Get the form factor type of an Atom. 

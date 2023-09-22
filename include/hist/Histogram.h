@@ -84,6 +84,20 @@ namespace hist {
             void set_axis(const Axis& axis) noexcept;
 
             /**
+             * @brief Get the axis of this Histogram.
+             */
+            const Axis& get_axis() const;
+
+            /**
+             * @brief Get the total histogram.
+             */
+            virtual const std::vector<double>& get_counts() const;
+
+            virtual std::vector<double>& get_counts();
+
+            double get_count(unsigned int i) const;
+
+            /**
              * @brief Get the spanned range of this histogram. 
              */
             [[nodiscard]] Limit span_y() const noexcept;
@@ -110,8 +124,9 @@ namespace hist {
             double operator[](int i) const;
             bool operator==(const Histogram& rhs) const;
 
-            Vector<double> p;   // The bin values. 
-            Axis axis;          // The axis spanned by this histogram. 
+        protected:
+            mutable Vector<double> p;   // The bin values. 
+            Axis axis;                  // The axis spanned by this histogram. 
     };
 
     Histogram operator*(const Histogram& lhs, double rhs);

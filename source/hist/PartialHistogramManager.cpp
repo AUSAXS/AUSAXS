@@ -19,7 +19,7 @@ std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
     const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
     // check if the object has already been initialized
-    if (master.p.size() == 0) [[unlikely]] {
+    if (master.get_counts().size() == 0) [[unlikely]] {
         initialize(); 
     } 
     
@@ -66,7 +66,8 @@ std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
         }
     }
     statemanager.reset();
-    return std::make_unique<DistanceHistogram>(master.p.copy(), master.axis);
+    std::vector<double> p = master.get_counts();
+    return std::make_unique<DistanceHistogram>(std::move(p), master.get_axis());
 }
 
 std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_all() {
@@ -75,8 +76,8 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
     unsigned int bins = total->get_axis().bins;
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    std::vector<double> p_hh = partials_hh.p;
-    std::vector<double> p_pp = master.base.p;
+    std::vector<double> p_hh = partials_hh.get_counts();
+    std::vector<double> p_pp = master.base.get_counts();
     std::vector<double> p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < body_size; i++) {
@@ -85,7 +86,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
 
             // iterate through each entry in the partial histogram
             for (unsigned int k = 0; k < bins; k++) {
-                p_pp[k] += current.p[k]; // add to p_pp
+                p_pp[k] += current.get_count(k); // add to p_pp
             }
         }
     }
@@ -96,7 +97,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
 
         // iterate through each entry in the partial histogram
         for (unsigned int k = 0; k < bins; k++) {
-            p_hp[k] += current.p[k]; // add to p_pp
+            p_hp[k] += current.get_count(k); // add to p_pp
         }
     }
 
@@ -104,7 +105,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
     p_hh.resize(bins);
     p_pp.resize(bins);
 
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->p), total->get_axis());
+    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->get_counts()), total->get_axis());
 }
 
 void PartialHistogramManager::calc_self_correlation(unsigned int index) {
@@ -112,7 +113,7 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
     detail::CompactCoordinates current(protein->get_body(index));
 
     // calculate internal distances between atoms
-    std::vector<double> p_pp(master.axis.bins, 0);
+    std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < current.size; i++) {
         for (unsigned int j = i+1; j < current.size; j++) {
             float weight = current.data[i].w*current.data[j].w;
@@ -132,7 +133,7 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
 
     master.base -= partials_pp.index(index, index);
     master -= partials_pp.index(index, index);
-    partials_pp.index(index, index).p = std::move(p_pp);
+    partials_pp.index(index, index).get_counts() = std::move(p_pp);
     master += partials_pp.index(index, index);
     master.base += partials_pp.index(index, index);
 }
@@ -163,7 +164,7 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
 
     detail::CompactCoordinates& coords_n = coords_p[n];
     detail::CompactCoordinates& coords_m = coords_p[m];
-    std::vector<double> p_pp(master.axis.bins, 0);
+    std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < coords_n.size; i++) {
         for (unsigned int j = 0; j < coords_m.size; j++) {
             float weight = coords_n.data[i].w*coords_m.data[j].w;
@@ -175,7 +176,7 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
         }
     }
     master -= partials_pp.index(n, m);
-    partials_pp.index(n, m).p = std::move(p_pp);
+    partials_pp.index(n, m).get_counts() = std::move(p_pp);
     master += partials_pp.index(n, m);
 }
 
@@ -186,7 +187,7 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
     // we do not want to calculate the self-correlation, so we have to skip entry 'index'
     for (unsigned int n = 0; n < index; n++) { // loop from (0, index]
         detail::CompactCoordinates& coords_j = coords_p[n];
-        std::vector<double> p_pp(master.axis.bins, 0);
+        std::vector<double> p_pp(master.get_axis().bins, 0);
         for (unsigned int i = 0; i < coords_i.size; i++) {
             for (unsigned int j = 0; j < coords_j.size; j++) {
                 float weight = coords_i.data[i].w*coords_j.data[j].w;
@@ -198,13 +199,13 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
             }
         }
         master -= partials_pp.index(index, n);
-        partials_pp.index(index, n).p = std::move(p_pp);
+        partials_pp.index(index, n).get_counts() = std::move(p_pp);
         master += partials_pp.index(index, n);
     }
 
     for (unsigned int n = index+1; n < body_size; n++) { // loop from (index, size]
         detail::CompactCoordinates& coords_j = coords_p[n];
-        std::vector<double> p_pp(master.axis.bins, 0);
+        std::vector<double> p_pp(master.get_axis().bins, 0);
         for (unsigned int i = 0; i < coords_i.size; i++) {
             for (unsigned int j = 0; j < coords_j.size; j++) {
                 float weight = coords_i.data[i].w*coords_j.data[j].w;
@@ -216,14 +217,14 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
             }
         }
         master -= partials_pp.index(index, n);
-        partials_pp.index(index, n).p = std::move(p_pp);
+        partials_pp.index(index, n).get_counts() = std::move(p_pp);
         master += partials_pp.index(index, n);
     }
 }
 
 void PartialHistogramManager::calc_hp(unsigned int index) {
     double width = settings::axes::distance_bin_width;
-    std::vector<double> p_hp(master.axis.bins, 0);
+    std::vector<double> p_hp(master.get_axis().bins, 0);
 
     detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.size; i++) {
@@ -238,13 +239,13 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
     }
 
     master -= partials_hp.index(index); // subtract the previous hydration histogram
-    partials_hp.index(index).p = std::move(p_hp);
+    partials_hp.index(index).get_counts() = std::move(p_hp);
     master += partials_hp.index(index); // add the new hydration histogram
 }
 
 void PartialHistogramManager::calc_hh() {
     const double& width = settings::axes::distance_bin_width;
-    std::vector<double> p_hh(master.axis.bins, 0);
+    std::vector<double> p_hh(master.get_axis().bins, 0);
 
     // calculate internal distances for the hydration layer
     coords_h = detail::CompactCoordinates(protein->get_waters()); //! Remove?
@@ -263,6 +264,6 @@ void PartialHistogramManager::calc_hh() {
     for (unsigned int i = 0; i < coords_h.size; i++) {p_hh[0] += coords_h.data[i].w*coords_h.data[i].w;}
 
     master -= partials_hh; // subtract the previous hydration histogram
-    partials_hh.p = std::move(p_hh);
+    partials_hh.get_counts() = std::move(p_hh);
     master += partials_hh; // add the new hydration histogram
 }

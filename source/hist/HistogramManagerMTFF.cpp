@@ -51,6 +51,9 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
                 p_pp.index(data_p.data[i].ff_type, data_p.data[j].ff_type, dist/width) += 2*data_p.data[i].w*data_p.data[j].w;
                 p_pp.index(data_p.data[i].ff_type, excluded_volume_bin, dist/width) += 2*data_p.data[i].w*Z_exv_avg;
                 p_pp.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
+                // std::cout << "p_pp[" << data_p.data[i].ff_type << ", " << data_p.data[j].ff_type << ", " << int(dist/width) << "] += " << 2*data_p.data[i].w*data_p.data[j].w << std::endl;
+                // std::cout << "p_pp[" << data_p.data[i].ff_type << ", " << excluded_volume_bin << ", " << int(dist/width) << "] += " << 2*data_p.data[i].w*Z_exv_avg << std::endl;                
+                // std::cout << "p_pp[" << excluded_volume_bin << ", " << excluded_volume_bin << ", " << int(dist/width) << "] += " << Z_exv_avg2 << std::endl;
             }
         }
         return p_pp;
@@ -154,8 +157,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
 
     std::vector<double> p_tot(axes.bins, 0);
     for (unsigned int i = 0; i < axes.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count_without_excluded_volume(); ++ff2) {
                 p_tot[i] += p_pp.index(ff1, ff2, i);
             }
             p_tot[i] += p_hp.index(ff1, i);

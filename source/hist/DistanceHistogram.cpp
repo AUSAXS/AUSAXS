@@ -11,7 +11,7 @@ DistanceHistogram::DistanceHistogram(std::vector<double>&& p_tot, const Axis& ax
     initialize();
 }
 
-DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : Histogram(std::move(cdh.get_total_histogram()), cdh.get_axis()) {
+DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : Histogram(std::move(cdh.get_total_counts()), cdh.get_axis()) {
     initialize();
 }
 
@@ -54,10 +54,10 @@ SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) c
     return SimpleDataset(q, Iq);
 }
 
-Vector<double>& DistanceHistogram::get_total_histogram() {return p;}
-
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
-const Axis& DistanceHistogram::get_axis() const {return axis;}
-
 const std::vector<double>& DistanceHistogram::get_q_axis() const {return q_axis;}
+
+const std::vector<double>& DistanceHistogram::get_total_counts() const {return get_counts();}
+
+std::vector<double>& DistanceHistogram::get_total_counts() {return get_counts();}
