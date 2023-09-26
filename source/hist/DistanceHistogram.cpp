@@ -31,11 +31,11 @@ ScatteringHistogram DistanceHistogram::debye_transform() const {
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int i = 0; i < debye_axis.bins; ++i) { // iterate through all q values
-        for (unsigned int j = 0; j < p.size(); ++j) { // iterate through the distance histogram
-            Iq[i] += p[j]*sinqd_table->lookup(i, j);
+    for (unsigned int q = 0; q < debye_axis.bins; ++q) { // iterate through all q values
+        for (unsigned int d = 0; d < p.size(); ++d) { // iterate through the distance histogram
+            Iq[q] += p[d]*sinqd_table->lookup(q, d);
         }
-        Iq[i] *= std::exp(-q_axis[i]*q_axis[i]); // form factor
+        Iq[q] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
     }
     return ScatteringHistogram(Iq, debye_axis);
 }

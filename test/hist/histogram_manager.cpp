@@ -136,8 +136,8 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
             }
             { // hm_mt_ff
-                // auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
-                // REQUIRE(compare_hist(p_exp, hm_mt_ff->p));
+                auto hm_mt_ff = hist::HistogramManagerMTFF(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff->get_total_counts()));
             }
             { // phm
                 auto phm = protein.get_histogram();

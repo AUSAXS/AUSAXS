@@ -53,6 +53,11 @@ namespace table {
              */
             static void reset_default_table();
 
+            /**
+             * @brief Get the default table. 
+             */
+            [[nodiscard]] static DebyeLookupTable get_default_table();
+
         private: 
             std::function<double(double, double)> lookup_function;                      // The lookup function when providing q and d values. 
             std::function<double(unsigned int, unsigned int)> index_lookup_function;    // The lookup function when providing indices in the table. 

@@ -15,8 +15,10 @@
 using namespace fitter;
 
 ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein), fit_type(mini::type::BFGS) {
-    HydrationFitter hfit(input, protein.get_histogram());
-    auto hres = hfit.fit();
+    auto hres = static_cast<HydrationFitter*>(this)->fit();
+
+    // HydrationFitter hfit(input, protein.get_histogram());
+    // auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
     if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0.5, 1.5}}};}
     else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.5, 1.5}}};}
@@ -42,7 +44,7 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
     std::shared_ptr<Fit> ab_fit = fitter.fit();
 
     // update fitter object
-    fitted = std::make_shared<Fit>(res, res.fval, data.size()-1); // start with the fit performed here
+    fitted = std::make_shared<Fit>(res, res.fval, data.size()-2); // start with the fit performed here
     fitted->add_fit(ab_fit);                                      // add the a,b inner fit
     fitted->add_plots(*this);                                     // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points

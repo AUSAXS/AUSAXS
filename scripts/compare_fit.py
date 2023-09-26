@@ -141,10 +141,10 @@ plt.ylabel("Intensity [arb]")
 plt.title(os.path.basename(mfile.split('.')[0]))
 plt.legend()
 plt.semilogy()
-fig.savefig(folder + '/log.png', bbox_inches='tight')
+fig.savefig(folder + '/compare_log.png', bbox_inches='tight')
 
 plt.semilogx()
-fig.savefig(folder + '/loglog.png', bbox_inches='tight')
+fig.savefig(folder + '/compare_loglog.png', bbox_inches='tight')
 
 ax.set_xlim(0.1, 0.5)
-fig.savefig(folder + '/loglog_short.png', bbox_inches='tight')
+fig.savefig(folder + '/compare_loglog_short.png', bbox_inches='tight')

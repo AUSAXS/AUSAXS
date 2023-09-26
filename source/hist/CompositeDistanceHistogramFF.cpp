@@ -21,6 +21,11 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
 #include <plots/PlotDataset.h>
 #include <settings/GeneralSettings.h>
+#define DEBUG_DEBYE_TRANSFORM 0
+#if DEBUG_DEBYE_TRANSFORM
+    unsigned int qcheck = 0;
+#endif
+
 ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     static Container2D<hist::detail::PrecalculatedFormFactorProduct> ff_table = hist::detail::PrecalculatedFormFactorProduct::generate_table();
 
@@ -34,7 +39,6 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
 
     unsigned int excluded_volume_index = static_cast<int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     unsigned int neutral_oxygen_index = static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
-    std::cout << "\nDEBYE_TRANSFORM:" << std::endl;
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
@@ -42,38 +46,73 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                 double atom_atom_sum = 0;
                 for (unsigned int d = 0; d < axis.bins; ++d) {
                     atom_atom_sum += cp_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d);
-                    // if (q==940 && cp_pp.index(ff1, ff2, d) != 0) {std::cout << "aa_sum += p_pp[" << ff1 << ", " << ff2 << ", " << d << "]*sinqd = " << cp_pp.index(ff1, ff2, d) << "*" << sinqd_table->lookup(q, d) << std::endl;}
                 }
                 Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
-                // if (q==940 && atom_atom_sum != 0) {std::cout << "(aa) Iq[" << q << "] += " << atom_atom_sum << " * ff_table[" << ff1 << ", " << ff2 << "](" << q << ") = " << atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q) << std::endl;}
+
+                #if DEBUG_DEBYE_TRANSFORM
+                    if (q==qcheck && atom_atom_sum != 0) {
+                        std::cout << "(aa) Iq[" << q << "] += " << atom_atom_sum << " * ff_table[" << ff1 << ", " << ff2 << "](" << q << ") = " << atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q) << std::endl;
+                        for (unsigned int d = 0; d < axis.bins; ++d) {
+                            if (cp_pp.index(ff1, ff2, d) != 0) {std::cout << "\taa_sum += p_pp[" << ff1 << ", " << ff2 << ", " << d << "] = " << cp_pp.index(ff1, ff2, d) << "*" << sinqd_table->lookup(q, d) << std::endl;}
+                        }
+                        std::cout << "\taasum = " << atom_atom_sum << std::endl;
+                    }
+                #endif
                 ff_effective[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
             }
 
             double atom_exv_sum = 0; // atom-exv
             for (unsigned int d = 0; d < axis.bins; ++d) {
+                //! factor 2 or not?
                 atom_exv_sum += 2*(cp_pp.index(ff1, excluded_volume_index, d) + cp_pp.index(excluded_volume_index, ff1, d))*sinqd_table->lookup(q, d);
-                // if (q==0 && (ff1 == 1 || ff1 == 2)) {std::cout << "ae_sum += p_pp[" << ff1 << ", " << excluded_volume_index << ", " << d << "] = " << cp_pp.index(ff1, excluded_volume_index, d) << std::endl;}
             }
             Iq[q] -= atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
-            // if (q==940 && atom_exv_sum != 0) {std::cout << "(ae) Iq[" << q << "] -= " << atom_exv_sum << " * ff_table[" << ff1 << ", " << excluded_volume_index << "](" << q << ") = " << atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q) << std::endl;}
+
+            #if DEBUG_DEBYE_TRANSFORM
+                if (q==qcheck && atom_exv_sum != 0) {
+                    std::cout << "(ae) Iq[" << q << "] -= " << atom_exv_sum << " * ff_table[" << ff1 << ", " << excluded_volume_index << "](" << q << ") = " << atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q) << std::endl;
+                    for (unsigned int d = 0; d < axis.bins; ++d) {
+                        if (atom_exv_sum != 0) {std::cout << "\tae_sum += 2*p_pp[" << ff1 << ", " << excluded_volume_index << ", " << d << "] = " << 2*(cp_pp.index(ff1, excluded_volume_index, d) + cp_pp.index(excluded_volume_index, ff1, d)) << "*" << sinqd_table->lookup(q, d) << std::endl;}
+                    }
+                    std::cout << "\taesum = " << atom_exv_sum << std::endl;
+                }
+            #endif
 
             // atom-water
-            double val = 0;
+            double atom_water_sum = 0;
             for (unsigned int d = 0; d < axis.bins; ++d) {
-                val += cp_hp.index(ff1, d)*sinqd_table->lookup(q, d);
+                atom_water_sum += cp_hp.index(ff1, d)*sinqd_table->lookup(q, d);
             }
-            Iq[q] += k*val*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
+            Iq[q] += k*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
+
+            #if DEBUG_DEBYE_TRANSFORM
+                if (q==qcheck && ff1 == 1) {
+                    std::cout << "(aw) Iq[" << q << "] += " << k*atom_water_sum << " * ff_table[" << ff1 << ", " << neutral_oxygen_index << "](" << q << ") = " << k*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q) << std::endl;
+                    for (unsigned int d = 0; d < axis.bins; ++d) {
+                        if (atom_water_sum != 0) {std::cout << "\taw_sum += p_hp[" << ff1 << ", " << d << "] = " << cp_hp.index(ff1, d) << "*" << sinqd_table->lookup(q, d) << " = " << cp_hp.index(ff1, d)*sinqd_table->lookup(q, d) << std::endl;}
+                    }
+                    std::cout << "\tawsum = " << atom_water_sum << std::endl;
+                }
+            #endif
         }
 
         // exv-exv
         double exv_exv_sum = 0;
         for (unsigned int d = 0; d < axis.bins; ++d) {
             exv_exv_sum += cp_pp.index(excluded_volume_index, excluded_volume_index, d)*sinqd_table->lookup(q, d);
-            // if (q==0) {std::cout << "ee_sum += p_pp[" << excluded_volume_index << ", " << excluded_volume_index << ", " << d << "] = " << cp_pp.index(excluded_volume_index, excluded_volume_index, d) << std::endl;}
         }
         Iq[q] += exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
         ff_effective[q] /= exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
-        // if (q==940) {std::cout << "(ee) Iq[" << q << "] += " << exv_exv_sum << " * ff_table[" << excluded_volume_index << ", " << excluded_volume_index << "](" << q << ") = " << exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q) << std::endl;}
+
+        #if DEBUG_DEBYE_TRANSFORM
+            if (q==qcheck) {
+                std::cout << "(ee) Iq[" << q << "] += " << exv_exv_sum << " * ff_table[" << excluded_volume_index << ", " << excluded_volume_index << "](" << q << ") = " << exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q) << std::endl;
+                for (unsigned int d = 0; d < axis.bins; ++d) {
+                    if (exv_exv_sum != 0) {std::cout << "\tee_sum += p_pp[" << excluded_volume_index << ", " << excluded_volume_index << ", " << d << "] = " << cp_pp.index(excluded_volume_index, excluded_volume_index, d) << std::endl;}
+                }
+                std::cout << "\teesum = " << exv_exv_sum << std::endl;
+            }
+        #endif
 
         // exv-water
         double exv_water_sum = 0;
@@ -82,12 +121,26 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         }
         Iq[q] -= k*2*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
 
+        #if DEBUG_DEBYE_TRANSFORM
+            if (q==qcheck) {
+                std::cout << "(ew) Iq[" << q << "] -= " << k*2*exv_water_sum << " * ff_table[" << excluded_volume_index << ", " << neutral_oxygen_index << "](" << q << ") = " << k*2*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q) << std::endl;
+                for (unsigned int d = 0; d < axis.bins; ++d) {
+                    std::cout << "\tew_sum += p_hp[" << excluded_volume_index << ", " << d << "] = " << cp_hp.index(excluded_volume_index, d) << "*" << sinqd_table->lookup(q, d) << std::endl;
+                }
+                std::cout << "\tewsum = " << exv_water_sum << std::endl;
+            }
+        #endif
+
         // water-water
         double water_water_sum = 0;
         for (unsigned int d = 0; d < axis.bins; ++d) {
             water_water_sum += cp_hh.index(d)*sinqd_table->lookup(q, d);
         }
         Iq[q] += k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
+
+        #if DEBUG_DEBYE_TRANSFORM
+            if (q==qcheck) {std::cout << "(ww) Iq[" << q << "] += " << k*k*water_water_sum << " * ff_table[" << neutral_oxygen_index << ", " << neutral_oxygen_index << "](" << q << ") = " << k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q) << std::endl;}
+        #endif
     }
     SimpleDataset temp(q_axis, ff_effective);
     temp.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff_effective"}});
