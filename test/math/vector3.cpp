@@ -51,7 +51,7 @@ TEST_CASE("basic operations") {
 
     REQUIRE(2/x == Vector3<double>{2, 1, 2.0/3});
     REQUIRE(2/y == Vector3<double>{0.5, 2.0/5, 1.0/3});
-    REQUIRE(2/z == Vector3<double>{2.0/7, 0.5, 2.0/9});
+    REQUIRE(2/z == Vector3<double>{2./7, 2./8, 2./9});
 
     // multiplication
     REQUIRE(x*2 == Vector3<double>{2, 4, 6});

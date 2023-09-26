@@ -20,6 +20,9 @@ namespace fitter {
 	 * This is just a convenient wrapper around SimpleLeastSquares. 
 	 */
 	class LinearFitter : public Fitter {
+		protected: 
+			LinearFitter() = default;
+
 		public: 
             LinearFitter(LinearFitter&& other);
 
@@ -139,6 +142,8 @@ namespace fitter {
 			 * @brief Get the result of the last fit() call. 
 			 */
 			[[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const override;
+
+			void operator=(LinearFitter&& other);
 
 		protected: 
 			std::shared_ptr<Fit> fitted; 				// The previous fit result

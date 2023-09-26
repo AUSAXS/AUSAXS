@@ -202,3 +202,8 @@ SimpleDataset HydrationFitter::get_dataset() const {
 void HydrationFitter::set_guess(const mini::Parameter& guess) {
     this->guess = guess;
 }
+
+void HydrationFitter::operator=(HydrationFitter&& other) {
+    LinearFitter::operator=(std::move(other));
+    guess = std::move(other.guess);
+}

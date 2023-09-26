@@ -26,7 +26,7 @@ struct fixture {
                       Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0"), Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1,  1), 1, 0, "C", "0"),
                       Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0"), Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1, 1,  1), 1, 0, "C", "0")
     };
-    Body body = Body(a, {});
+    Body body = Body(a);
 };
 
 struct multiple_fixture {
@@ -51,7 +51,6 @@ struct multiple_fixture {
     Body b3 = Body(std::vector<Atom>{a5, a6});
     Body b4 = Body(std::vector<Atom>{a7, a8});
     std::vector<Body> ap = {b1, b2, b3, b4};
-    Protein protein = Protein(ap);
 };
 
 TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
@@ -166,6 +165,7 @@ TEST_CASE_METHOD(fixture, "Body::total_effective_charge") {
 
 TEST_CASE_METHOD(fixture, "Body::center") {
     settings::protein::use_effective_charge = false;
+    
     SECTION("trivial center") {
         body.translate(Vector3<double>{-1, -1, -1});
         body.center();
@@ -176,9 +176,12 @@ TEST_CASE_METHOD(fixture, "Body::center") {
     }
 
     SECTION("non-trivial center") {
-        auto a = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "O", "O", 1),
-             Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "O", "O", 1)};
-        auto body = Body(a, {});
+        auto a = {  Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), 
+                    Atom(Vector3<double>(-1,  1, -1), 1, "O", "O", 1),
+                    Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), 
+                    Atom(Vector3<double>( 1,  1, -1), 1, "O", "O", 1)
+        };
+        body = Body(a);
 
         body.center();
         double shift = 0.142402;

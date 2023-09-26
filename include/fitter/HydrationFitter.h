@@ -16,6 +16,9 @@ namespace fitter {
      *    c: The scattering length of the hydration shell.
      */
     class HydrationFitter : public LinearFitter {
+        protected:
+            HydrationFitter() = default;
+
         public: 
             HydrationFitter(HydrationFitter&& other);
 
@@ -121,6 +124,8 @@ namespace fitter {
              * @brief Set the fitting algorithm to use.
              */
             void set_algorithm(const mini::type& t);
+
+            void operator=(HydrationFitter&& other);
 
             mini::type fit_type = mini::type::BFGS;
         protected:

@@ -155,3 +155,10 @@ std::shared_ptr<Fit> LinearFitter::get_fit() const {
     if (fitted == nullptr) {throw except::bad_order("LinearFitter::get_fit: Cannot get the fit results before a fit has been made!");}
     return fitted;
 }
+
+void LinearFitter::operator=(LinearFitter&& other) {
+    fitted = std::move(other.fitted);
+    data = std::move(other.data);
+    I0 = other.I0;
+    h = std::move(other.h);
+}

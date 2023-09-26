@@ -63,7 +63,7 @@ TEST_CASE("Slice::operator=") {
     SECTION("cols") {
         A.col(1) = {2, 5, 1};
         A.col(3) = {7, 1, 3};
-        REQUIRE(A == Matrix{{1, 2, 2, 7}, {9, 5, 2, 1}, {6, 1, 1, 3}});
+        REQUIRE(A == Matrix{{1, 2, 2, 7}, {3, 5, 2, 1}, {5, 1, 4, 3}});
     }
 
     SECTION("minus") {

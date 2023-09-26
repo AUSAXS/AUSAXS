@@ -42,7 +42,7 @@ TEST_CASE("atom_assign", "[manual]") {
 
 TEST_CASE("body_splitter", "[manual]") {
     vector<int> splits = {9, 99};
-    Protein protein = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+    Protein protein = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", splits);
     rigidbody::RigidBody body(protein);
 }
 
@@ -79,7 +79,7 @@ TEST_CASE("vector_assign", "[manual]") {
 
 TEST_CASE("grid_add", "[manual]") {
     vector<int> splits = {9, 99};
-    rigidbody::RigidBody rbody = rigidbody::BodySplitter::split("data/LAR1-2/LAR1-2.pdb", splits);
+    rigidbody::RigidBody rbody = rigidbody::BodySplitter::split("test/files/LAR1-2.pdb", splits);
     rbody.generate_new_hydration();
     rbody.clear_grid();
     rbody.generate_new_hydration();

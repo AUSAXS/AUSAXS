@@ -14,14 +14,14 @@
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protein& protein) : HydrationFitter(input, protein.get_histogram()), protein(protein), fit_type(mini::type::BFGS) {
-    auto hres = static_cast<HydrationFitter*>(this)->fit();
-
-    // HydrationFitter hfit(input, protein.get_histogram());
-    // auto hres = hfit.fit();
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protein& protein) : HydrationFitter(), protein(protein), fit_type(mini::type::BFGS) {
+    HydrationFitter hfit(input, protein.get_histogram());
+    auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
-    if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0.5, 1.5}}};}
-    else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0.5, 1.5}}};}
+    if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0, 1.5}}};}
+    else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0, 1.5}}};}
+
+    HydrationFitter::operator=(std::move(hfit));
 }
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {

@@ -46,7 +46,7 @@ void Body::initialize() {
 void Body::save(const io::File& path) {file.write(path);}
 
 void Body::center() {
-    if (!centered && settings::protein::center) {
+    if (!centered) {
         translate(-get_cm());
         centered = true;
     }

@@ -184,7 +184,7 @@ TEST_CASE_METHOD(fixture, "Protein::update_effective_charge") {
 TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
     SECTION("delegated to HistogramManager") {
         Protein protein = Protein(bodies, {});
-        REQUIRE(compare_hist(protein.get_histogram()->p, protein.get_histogram_manager()->calculate()->p));
+        REQUIRE(compare_hist(protein.get_histogram()->get_counts(), protein.get_histogram_manager()->calculate()->get_counts()));
     }
  
     SECTION("compare_debye") {
@@ -195,7 +195,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
         Protein protein(atoms, {});
 
         vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-        vector<double> I_smart = protein.get_histogram()->debye_transform().p;
+        vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
 
         for (int i = 0; i < 8; i++) {
             if (!utility::approx(I_dumb[i], I_smart[i], 1e-1)) {
@@ -213,7 +213,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
         std::cout << "hydration atoms: " << protein.get_waters().size() << std::endl; 
 
         vector<double> I_dumb = protein.calc_debye_scattering_intensity();
-        vector<double> I_smart = protein.get_histogram()->debye_transform().p;
+        vector<double> I_smart = protein.get_histogram()->debye_transform().get_counts();
 
         for (int i = 0; i < 8; i++) {
             if (!utility::approx(I_dumb[i], I_smart[i], 1e-3, 0.05)) {
@@ -226,7 +226,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
 
 TEST_CASE_METHOD(fixture, "Protein::get_total_histogram") {
     Protein protein = Protein(bodies, {});
-    REQUIRE(compare_hist(protein.get_histogram()->p, protein.get_histogram_manager()->calculate_all()->p));
+    REQUIRE(compare_hist(protein.get_histogram()->get_counts(), protein.get_histogram_manager()->calculate_all()->get_counts()));
     // REQUIRE(protein.get_histogram() == protein.get_histogram_manager()->calculate_all());
 }
 
@@ -482,8 +482,8 @@ TEST_CASE("histogram") {
         auto d_o = one.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p_m = d_m->p;
-        const vector<double>& p_o = d_o->p;
+        const vector<double>& p_m = d_m->get_counts();
+        const vector<double>& p_o = d_o->get_counts();
 
         // compare each entry
         for (size_t i = 0; i < p_o.size(); i++) {
@@ -547,8 +547,8 @@ TEST_CASE("histogram") {
         auto d_b = hist::HistogramManager(&protein).calculate_all();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p = d_p->p;
-        const vector<double>& b_tot = d_b->p;
+        const vector<double>& p = d_p->get_counts();
+        const vector<double>& b_tot = d_b->get_counts();
 
         // compare each entry
         for (unsigned int i = 0; i < b_tot.size(); i++) {
@@ -583,8 +583,8 @@ TEST_CASE("histogram") {
         auto h2 = protein2.get_histogram();
 
         // direct access to the histogram data (only p is defined)
-        const vector<double>& p1 = h1->p;
-        const vector<double>& p2 = h2->p;
+        const vector<double>& p1 = h1->get_counts();
+        const vector<double>& p2 = h2->get_counts();
 
         // compare each entry
         for (size_t i = 0; i < p1.size(); i++) {

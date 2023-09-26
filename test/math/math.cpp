@@ -2,11 +2,6 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <random>
-
 #include <math/Matrix.h>
 #include <math/Vector.h>
 #include <math/Vector3.h>
@@ -18,6 +13,11 @@
 #include <math/Statistics.h>
 #include <dataset/SimpleDataset.h>
 #include <plots/PlotDataset.h>
+
+#include <vector>
+#include <string>
+#include <iostream>
+#include <random>
 
 using std::cout, std::endl;
 
@@ -135,7 +135,7 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
     }
     double steps = 4; // interpolates 4 steps between points
 
-    CubicSpline csin(x, y);
+    math::CubicSpline csin(x, y);
     std::vector<double> newx, newy;
 
     for (size_t i = 0; i < x.size()-1; i++) {

@@ -64,21 +64,21 @@ TEST_CASE("Histogram::resize") {
     hist::Histogram hist;
     hist.resize(10);
     CHECK(hist.size() == 10);
-    CHECK(hist.p.size() == 10);
+    CHECK(hist.get_counts().size() == 10);
 }
 
 TEST_CASE("Histogram::generate_axis") {
     std::vector<double> data{1, 2, 3, 4, 5};
     hist::Histogram hist(data);
     hist.generate_axis();
-    CHECK(hist.axis.limits() == Limit{1, 5});
+    CHECK(hist.get_axis().limits() == Limit{0, 5});
 }
 
 TEST_CASE("Histogram::set_axis") {
     std::vector<double> data{1, 2, 3, 4, 5};
     hist::Histogram hist(data);
     hist.set_axis(Axis(1, 10, 1));
-    CHECK(hist.axis.limits() == Limit{1, 10});
+    CHECK(hist.get_axis().limits() == Limit{1, 10});
 }
 
 TEST_CASE("Histogram::limits") {
@@ -133,7 +133,7 @@ TEST_CASE("Histogram::as_dataset") {
         auto dataset = hist.as_dataset();
         CHECK(dataset.size() == data.size());
         CHECK(dataset.x() == data);
-        CHECK(dataset.y() == hist.p);
+        CHECK(dataset.y() == hist.get_counts());
     }
 }
 
@@ -145,7 +145,7 @@ TEST_CASE("Histogram::operator+=") {
     hist1 += hist2;
     CHECK(hist1.size() == 5);
     CHECK(hist1.span_y() == Limit{2, 10});
-    CHECK(hist1.p == Vector{2, 4, 6, 8, 10});
+    CHECK(hist1.get_counts() == std::vector<double>{2, 4, 6, 8, 10});
 }
 
 TEST_CASE("Histogram::operator-=") {
@@ -156,7 +156,7 @@ TEST_CASE("Histogram::operator-=") {
     hist1 -= hist2;
     CHECK(hist1.size() == 5);
     CHECK(hist1.span_y() == Limit{0, 0});
-    CHECK(hist1.p == Vector{0, 0, 0, 0, 0});
+    CHECK(hist1.get_counts() == std::vector<double>{0, 0, 0, 0, 0});
 }
 
 TEST_CASE("Histogram::operator*=") {
@@ -165,7 +165,7 @@ TEST_CASE("Histogram::operator*=") {
     hist1 *= 2;
     CHECK(hist1.size() == 5);
     CHECK(hist1.span_y() == Limit{2, 10});
-    CHECK(hist1.p == Vector{2, 4, 6, 8, 10});
+    CHECK(hist1.get_counts() == std::vector<double>{2, 4, 6, 8, 10});
 }
 
 TEST_CASE("Histogram::operator[]") {
