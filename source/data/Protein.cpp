@@ -302,6 +302,7 @@ void Protein::update_effective_charge(double scaling) {
     double displaced_vol = scaling*get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
     previous_charge += displaced_charge;
+    std::cout << "Protein volume: " << get_excluded_volume() << std::endl;
 
     // number of atoms
     unsigned int N = atom_size();

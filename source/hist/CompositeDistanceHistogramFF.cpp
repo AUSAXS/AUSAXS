@@ -15,7 +15,7 @@ CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(Container3D<double>&&
     : CompositeDistanceHistogram(std::move(p_tot), axis), cp_pp(std::move(p_pp)), cp_hp(std::move(p_hp)), cp_hh(std::move(p_hh)) {}
 
 CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept 
-    : CompositeDistanceHistogram(std::move(other.p_pp), std::move(other.p_hp), std::move(other.p_hh), std::move(other.p), other.axis), cp_pp(std::move(other.cp_pp)), cp_hp(std::move(other.cp_hp)), cp_hh(std::move(other.cp_hh)), k(other.k) {}
+    : CompositeDistanceHistogram(std::move(other.p_pp), std::move(other.p_hp), std::move(other.p_hh), std::move(other.p), other.axis), cp_pp(std::move(other.cp_pp)), cp_hp(std::move(other.cp_hp)), cp_hh(std::move(other.cp_hh)), w_scaling(other.w_scaling), exv_scaling(other.exv_scaling) {}
 
 CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
@@ -35,7 +35,7 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     std::vector<double> Iq(debye_axis.bins, 0);
     std::vector<double> q_axis = debye_axis.as_vector();
 
-    std::vector<double> ff_effective(q_axis.size(), 0);
+    // std::vector<double> ff_effective(q_axis.size(), 0);
 
     unsigned int excluded_volume_index = static_cast<int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     unsigned int neutral_oxygen_index = static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
@@ -48,6 +48,7 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                     atom_atom_sum += cp_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d);
                 }
                 Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
+                // Iq[q] += atom_atom_sum*std::exp(-std::pow(q_axis[q], 2));
 
                 #if DEBUG_DEBYE_TRANSFORM
                     if (q==qcheck && atom_atom_sum != 0) {
@@ -58,15 +59,15 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                         std::cout << "\taasum = " << atom_atom_sum << std::endl;
                     }
                 #endif
-                // ff_effective[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
             }
 
             double atom_exv_sum = 0; // atom-exv
             for (unsigned int d = 0; d < axis.bins; ++d) {
                 //! factor 2 or not?
-                atom_exv_sum += 2*(cp_pp.index(ff1, excluded_volume_index, d) + cp_pp.index(excluded_volume_index, ff1, d))*sinqd_table->lookup(q, d);
+                atom_exv_sum += (cp_pp.index(ff1, excluded_volume_index, d) + cp_pp.index(excluded_volume_index, ff1, d))*sinqd_table->lookup(q, d);
             }
-            Iq[q] -= atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
+            // Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
+            // Iq[q] -= 2*exv_scaling*atom_exv_sum*std::exp(-std::pow(q_axis[q], 2));
 
             #if DEBUG_DEBYE_TRANSFORM
                 if (q==qcheck && atom_exv_sum != 0) {
@@ -83,7 +84,8 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
             for (unsigned int d = 0; d < axis.bins; ++d) {
                 atom_water_sum += cp_hp.index(ff1, d)*sinqd_table->lookup(q, d);
             }
-            Iq[q] += k*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
+            Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
+            // Iq[q] += 2*w_scaling*atom_water_sum*std::exp(-std::pow(q_axis[q], 2));
 
             #if DEBUG_DEBYE_TRANSFORM
                 if (q==qcheck && ff1 == 1) {
@@ -101,8 +103,8 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         for (unsigned int d = 0; d < axis.bins; ++d) {
             exv_exv_sum += cp_pp.index(excluded_volume_index, excluded_volume_index, d)*sinqd_table->lookup(q, d);
         }
-        Iq[q] += exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
-        // ff_effective[q] /= exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
+        // Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
+        // Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*std::exp(-std::pow(q_axis[q], 2));
 
         #if DEBUG_DEBYE_TRANSFORM
             if (q==qcheck) {
@@ -119,7 +121,8 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         for (unsigned int d = 0; d < axis.bins; ++d) {
             exv_water_sum += cp_hp.index(excluded_volume_index, d)*sinqd_table->lookup(q, d);
         }
-        Iq[q] -= k*2*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
+        // Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
+        // Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*std::exp(-std::pow(q_axis[q], 2));
 
         #if DEBUG_DEBYE_TRANSFORM
             if (q==qcheck) {
@@ -136,16 +139,16 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         for (unsigned int d = 0; d < axis.bins; ++d) {
             water_water_sum += cp_hh.index(d)*sinqd_table->lookup(q, d);
         }
-        Iq[q] += k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
-        // ff_effective[q] = k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
+        Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
+        // Iq[q] += w_scaling*w_scaling*water_water_sum*std::exp(-std::pow(q_axis[q], 2));
 
         #if DEBUG_DEBYE_TRANSFORM
             if (q==qcheck) {std::cout << "(ww) Iq[" << q << "] += " << k*k*water_water_sum << " * ff_table[" << neutral_oxygen_index << ", " << neutral_oxygen_index << "](" << q << ") = " << k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q) << std::endl;}
         #endif
     }
-    SimpleDataset temp(q_axis, ff_effective);
-    temp.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff_effective"}});
-    plots::PlotDataset::quick_plot(temp, settings::general::output + "ff_effective.png");
+    // SimpleDataset temp(q_axis, ff_effective);
+    // temp.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff_effective"}});
+    // plots::PlotDataset::quick_plot(temp, settings::general::output + "ff_effective.png");
     return ScatteringHistogram(Iq, debye_axis);
 }
 
@@ -155,7 +158,7 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_counts() const {
     auto& p_hp = get_hp_counts();
     auto& p_hh = get_hh_counts();
     for (unsigned int i = 0; i < axis.bins; ++i) {
-        p[i] = p_pp[i] + k*p_hp[i] + k*k*p_hh[i];
+        p[i] = p_pp[i] + w_scaling*p_hp[i] + w_scaling*w_scaling*p_hh[i];
     }
     return p.data;
 }
@@ -176,7 +179,7 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
     p_hp = std::vector<double>(axis.bins, 0);
     for (unsigned int i = 0; i < axis.bins; ++i) {
         for (unsigned int ff1 = 0; ff1 < hist::detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
-            p_hp[i] += cp_hp.index(ff1, i);
+            p_hp[i] += w_scaling*cp_hp.index(ff1, i);
         }
     }
     return p_hp;
@@ -185,14 +188,13 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
 const std::vector<double>& CompositeDistanceHistogramFF::get_hh_counts() const {
     p_hh = std::vector<double>(axis.bins, 0);
     for (unsigned int i = 0; i < axis.bins; ++i) {
-        p_hh[i] += cp_hh.index(i);
+        p_hh[i] += w_scaling*w_scaling*cp_hh.index(i);
     }
     return p_hh;
 }
 
-SimpleDataset CompositeDistanceHistogramFF::debye_transform(const std::vector<double>& q) const {
+SimpleDataset CompositeDistanceHistogramFF::debye_transform(const std::vector<double>&) const {
     // calculate the scattering intensity based on the Debye equation
-    double k2 = k*k;
     throw std::runtime_error("Not implemented");
     // std::vector<double> Iq(q.size(), 0);
     // for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
@@ -211,5 +213,9 @@ SimpleDataset CompositeDistanceHistogramFF::debye_transform(const std::vector<do
 }
 
 void CompositeDistanceHistogramFF::apply_water_scaling_factor(double k) {
-    this->k = k;
+    w_scaling = k;
+}
+
+void CompositeDistanceHistogramFF::apply_excluded_volume_scaling_factor(double k) {
+    exv_scaling = k;
 }

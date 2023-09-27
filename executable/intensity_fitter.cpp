@@ -107,6 +107,8 @@ int main(int argc, char const *argv[]) {
     double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
     std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
+    protein.save(settings::general::output + "model.pdb");
+
     // std::vector<double> q;
     // for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}
 

@@ -38,6 +38,8 @@ namespace hist {
 
             void apply_water_scaling_factor(double k) override;
 
+            void apply_excluded_volume_scaling_factor(double k);
+
             const std::vector<double>& get_pp_counts() const override;
 
             const std::vector<double>& get_hh_counts() const override;
@@ -50,6 +52,7 @@ namespace hist {
             Container3D<double> cp_pp;
             Container2D<double> cp_hp;
             Container1D<double> cp_hh;
-            double k = 1;
+            double w_scaling = 1;
+            double exv_scaling = 1;
     };
 }

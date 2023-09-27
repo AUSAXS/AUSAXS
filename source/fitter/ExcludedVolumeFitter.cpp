@@ -6,6 +6,7 @@
 #include <hist/Histogram.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
+#include <hist/CompositeDistanceHistogramFF.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>
@@ -98,8 +99,10 @@ double ExcludedVolumeFitter::get_intercept() {
 
 void ExcludedVolumeFitter::update_excluded_volume(double d) {
     // protein.update_effective_charge(d);
-    protein.set_excluded_volume_scaling(d);
-    h = protein.get_histogram();
+
+    static_cast<hist::CompositeDistanceHistogramFF*>(h.get())->apply_excluded_volume_scaling_factor(d);
+    // protein.set_excluded_volume_scaling(d);
+    // h = protein.get_histogram();
 }
 
 SimpleDataset ExcludedVolumeFitter::get_model_dataset() {
