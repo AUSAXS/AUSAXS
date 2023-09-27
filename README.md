@@ -1,6 +1,9 @@
 ![title_light](../media/title_dark.png?raw=true#gh-light-mode-only)
 ![title_dark](../media/title_light.png?raw=true#gh-dark-mode-only)
 
+step 1: udskift formfaktor i oprindeligt program
+step 2: kig på bidraget af hydreringen til intensiteten
+
 # Main features
 - **Simple foundation**: We strive to use only simple methods and techniques, making as few assumptions as possible. By implementing the methods in modern C++ with efficiency in mind, we have managed to achieve some of the best performance available.
 - **Rigidbody optimization**: Perform self-consistent and customizable rigidbody optimizations, generating a new hydration shell for each step. Optional calibration with scattering curves predicted by molecular dynamics simulations can limit the number of free parameters to just 2, dramatically reducing the capability of overfitting.   

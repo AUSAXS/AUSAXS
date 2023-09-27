@@ -30,7 +30,7 @@
 int main(int argc, char const *argv[]) {
     settings::general::output = "temp/stuff/ff/";
     auto plot = [] (hist::detail::FormFactor ff, std::string name) {
-        auto q = Axis(0, 20, 100).as_vector();
+        auto q = Axis(0, 1, 100).as_vector();
         std::vector<double> y(q.size());
         for (unsigned int i = 0; i < q.size(); ++i) {
             y[i] = ff.evaluate(q[i]);
@@ -43,13 +43,16 @@ int main(int argc, char const *argv[]) {
     auto C = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_CARBON), "carbon");
     auto O = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_OXYGEN), "oxygen");
     auto EV = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::EXCLUDED_VOLUME), "excluded_volume");
+    auto other = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::OTHER), "other");
     C.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}, {"legend", "Carbon"}, {"color", "red"}});
     O.add_plot_options({{"legend", "Oxygen"}, {"color", "blue"}});
     EV.add_plot_options({{"legend", "Excluded volume"}, {"color", "green"}});
+    other.add_plot_options({{"legend", "Other"}, {"color", "black"}});
 
     plots::PlotDataset(C)
         .plot(O)
         .plot(EV)
+        .plot(other)
     .save(settings::general::output + "ff.png");
 }
 

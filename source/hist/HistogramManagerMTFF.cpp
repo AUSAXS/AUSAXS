@@ -27,6 +27,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
 
     double width = settings::axes::distance_bin_width;
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/atoms.size();
+    std::cout << Z_exv_avg << std::endl;
     double Z_exv_avg2 = 2*Z_exv_avg*Z_exv_avg;
     unsigned int excluded_volume_bin = static_cast<unsigned int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
@@ -42,12 +43,12 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     BS::thread_pool pool(settings::general::threads);
     auto calc_pp = [&data_p, &axes, &atoms, &width, &Z_exv_avg, &Z_exv_avg2, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
         Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
-        for (unsigned int i = imin; i < imax; i++) {
+        for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = i+1; j < atoms.size(); j++) {
                 float dx = data_p.data[i].x - data_p.data[j].x;
                 float dy = data_p.data[i].y - data_p.data[j].y;
                 float dz = data_p.data[i].z - data_p.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp.index(data_p.data[i].ff_type, data_p.data[j].ff_type, dist/width) += 2*data_p.data[i].w*data_p.data[j].w;
                 p_pp.index(data_p.data[i].ff_type, excluded_volume_bin, dist/width) += 2*data_p.data[i].w*Z_exv_avg;
                 p_pp.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
@@ -61,12 +62,12 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
 
     auto calc_hp = [&data_h, &data_p, &axes, &waters, &atoms, &width, &Z_exv_avg, &Z_exv_avg2, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
         Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0); // ff_type, distance
-        for (unsigned int i = imin; i < imax; i++) {
+        for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < atoms.size(); j++) {
                 float dx = data_h.data[i].x - data_p.data[j].x;
                 float dy = data_h.data[i].y - data_p.data[j].y;
                 float dz = data_h.data[i].z - data_p.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hp.index(data_p.data[j].ff_type, dist/width) += 2*data_h.data[i].w*data_p.data[j].w;
                 p_hp.index(excluded_volume_bin, dist/width) += 2*data_h.data[i].w*Z_exv_avg;
             }
@@ -76,13 +77,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
 
     auto calc_hh = [&data_h, &axes, &waters, &width] (unsigned int imin, unsigned int imax) {
         Container1D<double> p_hh(axes.bins, 0);
-        for (unsigned int i = imin; i < imax; i++) {
+        for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = i+1; j < waters.size(); j++) {
                 float weight = data_h.data[i].w*data_h.data[j].w;
                 float dx = data_h.data[i].x - data_h.data[j].x;
                 float dy = data_h.data[i].y - data_h.data[j].y;
                 float dz = data_h.data[i].z - data_h.data[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
+                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hh.index(dist/width) += 2*weight;
             }
         }
@@ -168,7 +169,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
-    for (unsigned int i = axes.bins-1; i >= 10; i--) {
+    for (unsigned int i = axes.bins-1; i >= 10; --i) {
         if (p_tot[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;

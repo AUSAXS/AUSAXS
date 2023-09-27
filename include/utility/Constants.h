@@ -163,7 +163,7 @@ namespace constants {
 
     namespace form_factor {
         constexpr double sigma_excluded_volume = 1.62; // Å
-        constexpr double fpi2 = 100*M_PI*M_PI; // 4π^2, conversion factor from s to q
+        constexpr double fpi2 = 4*M_PI*M_PI; // 4π^2, conversion factor from s to q
 
         // no source
         namespace hydrogen {
@@ -172,11 +172,12 @@ namespace constants {
             constexpr double c = 0;
         }
 
-        // no source //! (brug argon?)
+        // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
+        // this is the form factor of argon
         namespace other {
-            constexpr std::array<double, 5> a = { 2.960427, 2.508818, 0.637853,  0.722838, 1.142756};
-            constexpr std::array<double, 5> b = {14.182259/fpi2, 5.936858/fpi2, 0.112726/fpi2, 34.958481/fpi2, 0.390240/fpi2};
-            constexpr double c = 0.027014;
+            constexpr std::array<double, 5> a = {7.188004, 6.638454, 0.454180, 1.929593, 1.523654};
+            constexpr std::array<double, 5> b = {0.956221/fpi2, 15.339877/fpi2, 15.339862/fpi2, 39.043824/fpi2, 0.062409/fpi2};
+            constexpr double c = 0.265954;
         }
 
         //! get source from Jan
