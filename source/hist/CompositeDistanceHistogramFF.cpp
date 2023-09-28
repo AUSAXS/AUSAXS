@@ -21,10 +21,6 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
 #include <plots/PlotDataset.h>
 #include <settings/GeneralSettings.h>
-#define DEBUG_DEBYE_TRANSFORM 0
-#if DEBUG_DEBYE_TRANSFORM
-    unsigned int qcheck = 0;
-#endif
 
 ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     static Container2D<hist::detail::PrecalculatedFormFactorProduct> ff_table = hist::detail::PrecalculatedFormFactorProduct::generate_table();
@@ -36,6 +32,7 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     std::vector<double> q_axis = debye_axis.as_vector();
 
     // std::vector<double> ff_effective(q_axis.size(), 0);
+    std::vector<double> I_cross(q_axis.size(), 0);
 
     unsigned int excluded_volume_index = static_cast<int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     unsigned int neutral_oxygen_index = static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
@@ -48,36 +45,13 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                     atom_atom_sum += cp_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d);
                 }
                 Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
-                // Iq[q] += atom_atom_sum*std::exp(-std::pow(q_axis[q], 2));
-
-                #if DEBUG_DEBYE_TRANSFORM
-                    if (q==qcheck && atom_atom_sum != 0) {
-                        std::cout << "(aa) Iq[" << q << "] += " << atom_atom_sum << " * ff_table[" << ff1 << ", " << ff2 << "](" << q << ") = " << atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q) << std::endl;
-                        for (unsigned int d = 0; d < axis.bins; ++d) {
-                            if (cp_pp.index(ff1, ff2, d) != 0) {std::cout << "\taa_sum += p_pp[" << ff1 << ", " << ff2 << ", " << d << "] = " << cp_pp.index(ff1, ff2, d) << "*" << sinqd_table->lookup(q, d) << std::endl;}
-                        }
-                        std::cout << "\taasum = " << atom_atom_sum << std::endl;
-                    }
-                #endif
             }
 
             double atom_exv_sum = 0; // atom-exv
             for (unsigned int d = 0; d < axis.bins; ++d) {
-                //! factor 2 or not?
-                atom_exv_sum += (cp_pp.index(ff1, excluded_volume_index, d) + cp_pp.index(excluded_volume_index, ff1, d))*sinqd_table->lookup(q, d);
+                atom_exv_sum += cp_pp.index(ff1, excluded_volume_index, d)*sinqd_table->lookup(q, d);
             }
-            // Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
-            // Iq[q] -= 2*exv_scaling*atom_exv_sum*std::exp(-std::pow(q_axis[q], 2));
-
-            #if DEBUG_DEBYE_TRANSFORM
-                if (q==qcheck && atom_exv_sum != 0) {
-                    std::cout << "(ae) Iq[" << q << "] -= " << atom_exv_sum << " * ff_table[" << ff1 << ", " << excluded_volume_index << "](" << q << ") = " << atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q) << std::endl;
-                    for (unsigned int d = 0; d < axis.bins; ++d) {
-                        if (atom_exv_sum != 0) {std::cout << "\tae_sum += 2*p_pp[" << ff1 << ", " << excluded_volume_index << ", " << d << "] = " << 2*(cp_pp.index(ff1, excluded_volume_index, d) + cp_pp.index(excluded_volume_index, ff1, d)) << "*" << sinqd_table->lookup(q, d) << std::endl;}
-                    }
-                    std::cout << "\taesum = " << atom_exv_sum << std::endl;
-                }
-            #endif
+            Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
 
             // atom-water
             double atom_water_sum = 0;
@@ -85,17 +59,6 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                 atom_water_sum += cp_hp.index(ff1, d)*sinqd_table->lookup(q, d);
             }
             Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
-            // Iq[q] += 2*w_scaling*atom_water_sum*std::exp(-std::pow(q_axis[q], 2));
-
-            #if DEBUG_DEBYE_TRANSFORM
-                if (q==qcheck && ff1 == 1) {
-                    std::cout << "(aw) Iq[" << q << "] += " << k*atom_water_sum << " * ff_table[" << ff1 << ", " << neutral_oxygen_index << "](" << q << ") = " << k*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q) << std::endl;
-                    for (unsigned int d = 0; d < axis.bins; ++d) {
-                        if (atom_water_sum != 0) {std::cout << "\taw_sum += p_hp[" << ff1 << ", " << d << "] = " << cp_hp.index(ff1, d) << "*" << sinqd_table->lookup(q, d) << " = " << cp_hp.index(ff1, d)*sinqd_table->lookup(q, d) << std::endl;}
-                    }
-                    std::cout << "\tawsum = " << atom_water_sum << std::endl;
-                }
-            #endif
         }
 
         // exv-exv
@@ -103,36 +66,14 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         for (unsigned int d = 0; d < axis.bins; ++d) {
             exv_exv_sum += cp_pp.index(excluded_volume_index, excluded_volume_index, d)*sinqd_table->lookup(q, d);
         }
-        // Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
-        // Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*std::exp(-std::pow(q_axis[q], 2));
-
-        #if DEBUG_DEBYE_TRANSFORM
-            if (q==qcheck) {
-                std::cout << "(ee) Iq[" << q << "] += " << exv_exv_sum << " * ff_table[" << excluded_volume_index << ", " << excluded_volume_index << "](" << q << ") = " << exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q) << std::endl;
-                for (unsigned int d = 0; d < axis.bins; ++d) {
-                    if (exv_exv_sum != 0) {std::cout << "\tee_sum += p_pp[" << excluded_volume_index << ", " << excluded_volume_index << ", " << d << "] = " << cp_pp.index(excluded_volume_index, excluded_volume_index, d) << std::endl;}
-                }
-                std::cout << "\teesum = " << exv_exv_sum << std::endl;
-            }
-        #endif
+        Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
 
         // exv-water
         double exv_water_sum = 0;
         for (unsigned int d = 0; d < axis.bins; ++d) {
             exv_water_sum += cp_hp.index(excluded_volume_index, d)*sinqd_table->lookup(q, d);
         }
-        // Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
-        // Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*std::exp(-std::pow(q_axis[q], 2));
-
-        #if DEBUG_DEBYE_TRANSFORM
-            if (q==qcheck) {
-                std::cout << "(ew) Iq[" << q << "] -= " << k*2*exv_water_sum << " * ff_table[" << excluded_volume_index << ", " << neutral_oxygen_index << "](" << q << ") = " << k*2*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q) << std::endl;
-                for (unsigned int d = 0; d < axis.bins; ++d) {
-                    std::cout << "\tew_sum += p_hp[" << excluded_volume_index << ", " << d << "] = " << cp_hp.index(excluded_volume_index, d) << "*" << sinqd_table->lookup(q, d) << std::endl;
-                }
-                std::cout << "\tewsum = " << exv_water_sum << std::endl;
-            }
-        #endif
+        Iq[q] -= exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
 
         // water-water
         double water_water_sum = 0;
@@ -140,15 +81,11 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
             water_water_sum += cp_hh.index(d)*sinqd_table->lookup(q, d);
         }
         Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
-        // Iq[q] += w_scaling*w_scaling*water_water_sum*std::exp(-std::pow(q_axis[q], 2));
-
-        #if DEBUG_DEBYE_TRANSFORM
-            if (q==qcheck) {std::cout << "(ww) Iq[" << q << "] += " << k*k*water_water_sum << " * ff_table[" << neutral_oxygen_index << ", " << neutral_oxygen_index << "](" << q << ") = " << k*k*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q) << std::endl;}
-        #endif
     }
     // SimpleDataset temp(q_axis, ff_effective);
     // temp.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff_effective"}});
     // plots::PlotDataset::quick_plot(temp, settings::general::output + "ff_effective.png");
+
     return ScatteringHistogram(Iq, debye_axis);
 }
 

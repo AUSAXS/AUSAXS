@@ -356,9 +356,9 @@ void PartialHistogramManagerMT::combine_hp(unsigned int index, BS::multi_future<
 
     // update the master histogram
     master_hist_mutex.lock();
-    master -= partials_hp.index(index); // subtract the previous hydration histogram
+    master -= partials_hp.index(index)*2; // subtract the previous hydration histogram
     partials_hp.index(index).get_counts() = std::move(p_hp);
-    master += partials_hp.index(index); // add the new hydration histogram
+    master += partials_hp.index(index)*2; // add the new hydration histogram
     master_hist_mutex.unlock();
 }
 

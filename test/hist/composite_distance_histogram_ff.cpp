@@ -141,9 +141,9 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                     std::cout << "8*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
                     std::cout << "8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
                 }
-                Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);
-                Iq_exp[q] -= 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);
-                Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);
+                Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                  // + aa
+                Iq_exp[q] -= 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);  // -2ax
+                Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                     // + xx
                 if (q==qcheck) {
                     std::cout << "aasum = " << aasum << std::endl;
                     std::cout << "(aa) Iq_exp[" << q << "] += " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
@@ -152,9 +152,9 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                 }
 
                 double awsum = 16*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-                Iq_exp[q] += awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);
-                Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);
-                Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);
+                Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);    // +2aw
+                Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);       // -2ew
+                Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                           // + ww
                 if (q==qcheck) {
                     std::cout << "awsum = " << awsum << std::endl;
                     std::cout << "(aw) Iq_exp[" << q << "] += " << awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;

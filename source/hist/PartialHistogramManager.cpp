@@ -238,9 +238,9 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
         }
     }
 
-    master -= partials_hp.index(index); // subtract the previous hydration histogram
+    master -= partials_hp.index(index)*2; // subtract the previous hydration histogram
     partials_hp.index(index).get_counts() = std::move(p_hp);
-    master += partials_hp.index(index); // add the new hydration histogram
+    master += partials_hp.index(index)*2; // add the new hydration histogram
 }
 
 void PartialHistogramManager::calc_hh() {

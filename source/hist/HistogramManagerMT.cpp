@@ -150,7 +150,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
 
     // calculate p_tot    
     std::vector<double> p_tot(max_bin, 0);
-    for (unsigned int i = 0; i < max_bin; ++i) {p_tot[i] = p_pp[i] + p_hh[i] + p_hp[i];}
+    for (unsigned int i = 0; i < max_bin; ++i) {p_tot[i] = p_pp[i] + p_hh[i] + 2*p_hp[i];}
 
     return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p_tot), axes);
 }
