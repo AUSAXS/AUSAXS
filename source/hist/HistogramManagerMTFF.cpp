@@ -25,7 +25,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     double width = settings::axes::distance_bin_width;
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
     std::cout << "Z_exv_avg = " << Z_exv_avg << std::endl;
-    double Z_exv_avg2 = 2*Z_exv_avg*Z_exv_avg;
+    double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
     unsigned int excluded_volume_bin = static_cast<unsigned int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
 
@@ -41,13 +41,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     auto calc_pp = [&data_p, &axes, &width, &Z_exv_avg, &Z_exv_avg2, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
         Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = i; j < data_p.size; ++j) {
+            for (unsigned int j = 0; j < data_p.size; ++j) {
                 float dx = data_p.data[i].x - data_p.data[j].x;
                 float dy = data_p.data[i].y - data_p.data[j].y;
                 float dz = data_p.data[i].z - data_p.data[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp.index(data_p.data[i].ff_type, data_p.data[j].ff_type, dist/width) += 2*data_p.data[i].w*data_p.data[j].w;
-                p_pp.index(data_p.data[i].ff_type, excluded_volume_bin, dist/width) += 2*data_p.data[i].w*Z_exv_avg;
+                p_pp.index(data_p.data[i].ff_type, data_p.data[j].ff_type, dist/width) += data_p.data[i].w*data_p.data[j].w;
+                p_pp.index(data_p.data[i].ff_type, excluded_volume_bin, dist/width) += data_p.data[i].w*Z_exv_avg;
                 p_pp.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
             }
         }
@@ -62,8 +62,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
                 float dy = data_h.data[i].y - data_p.data[j].y;
                 float dz = data_h.data[i].z - data_p.data[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hp.index(data_p.data[j].ff_type, dist/width) += 2*data_h.data[i].w*data_p.data[j].w;
-                p_hp.index(excluded_volume_bin, dist/width) += 2*data_h.data[i].w*Z_exv_avg;
+                p_hp.index(data_p.data[j].ff_type, dist/width) += data_h.data[i].w*data_p.data[j].w;
+                p_hp.index(excluded_volume_bin, dist/width) += data_h.data[i].w*Z_exv_avg;
             }
         }
         return p_hp;
@@ -72,13 +72,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     auto calc_hh = [&data_h, &axes, &width] (unsigned int imin, unsigned int imax) {
         Container1D<double> p_hh(axes.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = i; j < data_h.size; ++j) {
+            for (unsigned int j = 0; j < data_h.size; ++j) {
                 float weight = data_h.data[i].w*data_h.data[j].w;
                 float dx = data_h.data[i].x - data_h.data[j].x;
                 float dy = data_h.data[i].y - data_h.data[j].y;
                 float dz = data_h.data[i].z - data_h.data[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hh.index(dist/width) += 2*weight;
+                p_hh.index(dist/width) += weight;
             }
         }
         return p_hh;
@@ -141,13 +141,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    for (unsigned int i = 0; i < data_p.size; ++i) {
-        p_pp.index(data_p.data[i].ff_type, data_p.data[i].ff_type, 0) -= std::pow(data_p.data[i].w, 2);
-        p_pp.index(excluded_volume_bin, excluded_volume_bin, 0) -= std::pow(Z_exv_avg, 2);
-    }
-    for (unsigned int i = 0; i < data_h.size; ++i) {
-        p_hh.index(0) -= std::pow(data_h.data[i].w, 2);
-    }
+    // for (unsigned int i = 0; i < data_p.size; ++i) {
+    //     p_pp.index(data_p.data[i].ff_type, data_p.data[i].ff_type, 0) -= std::pow(data_p.data[i].w, 2);
+    //     p_pp.index(excluded_volume_bin, excluded_volume_bin, 0) -= std::pow(Z_exv_avg, 2);
+    // }
+    // for (unsigned int i = 0; i < data_h.size; ++i) {
+    //     p_hh.index(0) -= std::pow(data_h.data[i].w, 2);
+    // }
 
     std::vector<double> p_tot(axes.bins, 0);
     for (unsigned int i = 0; i < axes.bins; ++i) {
@@ -155,7 +155,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
             for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count_without_excluded_volume(); ++ff2) {
                 p_tot[i] += p_pp.index(ff1, ff2, i);
             }
-            p_tot[i] += p_hp.index(ff1, i);
+            p_tot[i] += 2*p_hp.index(ff1, i);
         }
         p_tot[i] += p_hh.index(i);
     }

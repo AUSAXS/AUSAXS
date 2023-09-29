@@ -109,6 +109,13 @@ namespace constants {
         extern const saxs::detail::SimpleMap<double> amino_acids;
     }
 
+    // Atom enum for a consistent way to denote the type of an atom
+    enum class atom_t {
+        e, H, He, Li, Be, B, C, N, O, F, Ne, Na, Mg, Al, Si, P, S, Cl, Ar, K, Ca, Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Cu, Zn, W, 
+        M, // This fake element is for compatibility with the GROMACS tip4p water model.
+        UNKNOWN
+    };
+
     /**
      * @brief Mass 
      * 
@@ -116,7 +123,7 @@ namespace constants {
      */
     namespace mass {
         // get the weight of an atom
-        extern const saxs::detail::SimpleMap<double> atomic;
+        double get_mass(atom_t atom);
 
         namespace density {
             constexpr double water = 0.9982067*SI::mass::u/SI::volume::A3;
@@ -131,7 +138,7 @@ namespace constants {
      */
     namespace charge {
         // get the charge Z of an atom
-        extern const saxs::detail::SimpleMap<unsigned int> atomic;
+        unsigned int get_charge(atom_t atom);
 
         namespace density {
             constexpr double water = 0.334; // e/Å^3
@@ -143,7 +150,21 @@ namespace constants {
      */
     namespace valence {
         // get the valence of an atom
-        extern const saxs::detail::SimpleMap<unsigned int> atomic;
+        unsigned int get_valence(atom_t atom);
+    }
+
+    namespace symbols {
+        extern std::string hydrogen;
+        extern std::string carbon;
+        extern std::string nitrogen;
+        extern std::string oxygen;
+
+        namespace detail {
+            extern const saxs::detail::SimpleMap<constants::atom_t> string_to_atomt_map;
+        }
+
+        atom_t parse_element_string(const std::string& element_string);
+        std::string write_element_string(atom_t atom);
     }
 
     /**
@@ -152,13 +173,6 @@ namespace constants {
     namespace hydrogen_atoms {
         // get the number of hydrogen atoms attached to an atom of a specific acid. Example: get.at("GLY").at("CA") = 2
         extern parser::residue::ResidueStorage residues;
-    }
-
-    namespace symbols {
-        extern std::string hydrogen;
-        extern std::string carbon;
-        extern std::string nitrogen;
-        extern std::string oxygen;
     }
 
     namespace form_factor {

@@ -36,7 +36,7 @@ void PDBReader::read(const io::ExistingFile& path) {
                 atom.parse_pdb(line);
 
                 // check if this is a hydrogen atom
-                if (atom.element == constants::symbols::hydrogen && !settings::general::keep_hydrogens) {continue;}
+                if (atom.element == constants::atom_t::H && !settings::general::keep_hydrogens) {continue;}
 
                 // check if this is a water molecule
                 if (atom.is_water()) {f.add(Water(std::move(atom)));} 

@@ -127,7 +127,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
             std::vector<double> q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
             Iq_exp.resize(q_axis.size(), 0);
 
-            unsigned int qcheck = 878;
+            unsigned int qcheck = 1;
             for (unsigned int q = 0; q < q_axis.size(); ++q) {
                 double aasum = 
                     8 + 
@@ -136,30 +136,28 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                     8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]);
                 if (q==qcheck) {
                     std::cout << "8*1" << std::endl;
+                    std::cout << "8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
                     std::cout << "24*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
                     std::cout << "24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
                     std::cout << "8*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
-                    std::cout << "8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
                 }
                 Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                  // + aa
                 Iq_exp[q] -= 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);  // -2ax
                 Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                     // + xx
-                if (q==qcheck) {
-                    std::cout << "aasum = " << aasum << std::endl;
-                    std::cout << "(aa) Iq_exp[" << q << "] += " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(ae) Iq_exp[" << q << "] -= " << 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(ee) Iq_exp[" << q << "] += " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
-                }
 
-                double awsum = 16*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+                double awsum = 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
                 Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);    // +2aw
                 Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);       // -2ew
                 Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                           // + ww
                 if (q==qcheck) {
+                    std::cout << "aasum = " << aasum << std::endl;
                     std::cout << "awsum = " << awsum << std::endl;
-                    std::cout << "(aw) Iq_exp[" << q << "] += " << awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(aa) Iq_exp[" << q << "] += " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "(ae) Iq_exp[" << q << "] -= " << 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(aw) Iq_exp[" << q << "] += " << 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(ee) Iq_exp[" << q << "] += " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
                     std::cout << "(ew) Iq_exp[" << q << "] -= " << 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(ww) Iq_exp[" << q << "] += " << awsum*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "(ww) Iq_exp[" << q << "] += " << 1*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
                 }
             }
         }

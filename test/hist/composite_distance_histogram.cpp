@@ -196,7 +196,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                     8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]);
                 Iq_exp[q] += aasum*std::pow(ff(q_axis[q]), 2);
 
-                double awsum = 16*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+                double awsum = 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
                 Iq_exp[q] += 2*awsum*std::pow(ff(q_axis[q]), 2);
                 Iq_exp[q] += 1*std::pow(ff(q_axis[q]), 2);
             }

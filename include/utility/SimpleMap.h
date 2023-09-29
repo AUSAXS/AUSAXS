@@ -32,10 +32,10 @@ namespace saxs {
             /**
              * @brief Get a value from the storage. 
              */
-            virtual V get(std::string key) const {
+            virtual V get(const std::string& key) const {
                 std::string k2 = utility::to_lowercase(key);
-                if (data.find(k2) == data.end()) {
-                    throw except::map_error("Error in SimpleMap::get: Key " + k2 + " not found in map");
+                if (!data.contains(k2)) {
+                    throw except::map_error("SimpleMap::get: Key " + k2 + " not found in map");
                 }
                 return data.at(k2);
             }
@@ -56,7 +56,7 @@ namespace saxs {
              * @brief Check if this map contains the given key. 
              */
             bool contains(const std::string& key) const {
-                return data.find(utility::to_lowercase(key)) != data.end();
+                return data.contains(utility::to_lowercase(key));
             }
 
             typename std::unordered_map<std::string, V>::const_iterator begin() const {

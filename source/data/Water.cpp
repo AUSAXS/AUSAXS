@@ -1,4 +1,5 @@
 #include <data/Water.h>
+#include <utility/Constants.h>
 
 Water::Water(const Atom&& a) noexcept : Atom(std::move(a)) {}
 Water::Water(const Atom& a) : Atom(a) {}
@@ -16,7 +17,7 @@ Water Water::create_new_water() {
 }
 
 Water Water::create_new_water(Vector3<double> coords) {
-    return Water(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, "O", "");
+    return Water(-1, "O", "", "HOH", "", -1, "", coords, 1, 0, constants::atom_t::O, "");
 }
 
 Water& Water::operator=(const Water& rhs) = default;

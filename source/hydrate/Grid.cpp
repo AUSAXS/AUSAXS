@@ -7,6 +7,7 @@
 #include <data/Water.h>
 #include <settings/GridSettings.h>
 #include <utility/Console.h>
+#include <utility/Constants.h>
 #include <data/Protein.h>
 #include <io/ExistingFile.h>
 
@@ -618,16 +619,16 @@ void Grid::save(const io::File& path) const {
             for (unsigned int k = 0; k < grid.zdim; k++) {
                 switch (grid.index(i, j, k)) {
                     case GridObj::A_CENTER:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", "A", 1, "", Vector3<double>(i, j, k), 1, 0, "C", ""));
+                        atoms.push_back(Atom(c++, "C", "", "LYS", "A", 1, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case GridObj::A_AREA:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", "B", 2, "", Vector3<double>(i, j, k), 1, 0, "C", ""));
+                        atoms.push_back(Atom(c++, "C", "", "LYS", "B", 2, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case GridObj::H_CENTER:
-                        waters.push_back(Water(c++, "H", "", "HOH", "C", 3, "", Vector3<double>(i, j, k), 1, 0, "H", ""));
+                        waters.push_back(Water(c++, "H", "", "HOH", "C", 3, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
                         break;
                     case GridObj::H_AREA:
-                        waters.push_back(Water(c++, "H", "", "HOH", "D", 4, "", Vector3<double>(i, j, k), 1, 0, "H", ""));
+                        waters.push_back(Water(c++, "H", "", "HOH", "D", 4, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
                         break;
                 }
             }

@@ -40,40 +40,159 @@ namespace constants {
         };
     }
 
-    namespace mass {
-        // The fake element "M" is for compatibility with the GROMACS tip4p water model. 
-        const saxs::detail::SimpleMap<double> atomic = std::unordered_map<std::string, double>{
-            {"H", 1.0079}, {"He", 4.0026}, {"Li", 6.941}, {"Be", 9.0122}, {"B", 10.811}, {"C", 12.0107}, {"N", 14.0067}, {"O", 15.9994}, {"F", 18.9984}, 
-            {"Ne", 20.1797}, {"Na", 22.9897}, {"Mg", 24.305}, {"Al", 26.9815}, {"Si", 28.0855}, {"P", 30.9738}, {"S", 32.065}, {"Cl", 35.453}, 
-            {"Ar", 39.948}, {"K", 39.0983}, {"Ca", 40.078}, {"Sc", 44.9559}, {"Ti", 47.867}, {"V", 50.9415}, {"Cr", 51.9961}, {"Mn", 54.938}, 
-            {"Fe", 55.845}, {"Co", 58.9332}, {"Ni", 58.6934}, {"Cu", 63.546}, {"Zn", 65.39}, {"W", 183.84},
-            {"M", 0}
-        };
-    }
-
-    namespace charge {
-        const saxs::detail::SimpleMap<unsigned int> atomic = std::unordered_map<std::string, unsigned int>{
-            {"e", 1}, {"H", 1}, {"He", 2}, {"Li", 3}, {"Be", 4}, {"B", 5}, {"C", 6}, {"N", 7}, {"O", 8}, {"F", 9}, {"Ne", 10}, {"Na", 11}, 
-            {"Mg", 12}, {"Al", 13}, {"Si", 14}, {"P", 15}, {"S", 16}, {"Cl", 17}, {"Ar", 18}, {"K", 19}, {"Ca", 20}, {"Sc", 21}, {"Ti", 22}, 
-            {"V", 23}, {"Cr", 24}, {"Mn", 25}, {"Fe", 26}, {"Co", 27}, {"Ni", 28}, {"Cu", 29}, {"Zn", 30}, {"W", 74}, 
-            {"M", 0}
-        };
-    }
-
-    namespace valence {
-        const saxs::detail::SimpleMap<unsigned int> atomic = std::unordered_map<std::string, unsigned int>{
-            {"H", 1}, {"C", 4}, {"N", 3}, {"O", 2}, {"F", 1}, {"Ne", 0}, {"S", 2}, {"P", 1}, {"Cl", 1}, {"M", 0}
-        };
-    }
-
-    namespace hydrogen_atoms {
-        parser::residue::ResidueStorage residues;
-    }
-
     namespace symbols {
         std::string hydrogen = "H";
         std::string carbon = "C";
         std::string nitrogen = "N";
         std::string oxygen = "O";
+
+        const saxs::detail::SimpleMap<constants::atom_t> detail::string_to_atomt_map = std::unordered_map<std::string, constants::atom_t>{
+            {"e", atom_t::e}, {"H", atom_t::H}, {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B}, {"C", atom_t::C}, {"N", atom_t::N},
+            {"O", atom_t::O}, {"F", atom_t::F}, {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P},
+            {"S", atom_t::S}, {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K}, {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V},
+            {"Cr", atom_t::Cr}, {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W},
+            {"M", atom_t::M}
+        };
+   }
+
+    //* note: this must be initialized *after* symbols::detail::string_to_atomt_map
+    namespace hydrogen_atoms {
+        parser::residue::ResidueStorage residues;
+    }
+}
+
+constants::atom_t constants::symbols::parse_element_string(const std::string& element_string) {
+    return constants::symbols::detail::string_to_atomt_map.get(element_string);
+}
+
+std::string constants::symbols::write_element_string(atom_t atom) {
+    switch(atom) {
+        case atom_t::e: return "e";
+        case atom_t::H: return "H";
+        case atom_t::He: return "He";
+        case atom_t::Li: return "Li";
+        case atom_t::Be: return "Be";
+        case atom_t::B: return "B";
+        case atom_t::C: return "C";
+        case atom_t::N: return "N";
+        case atom_t::O: return "O";
+        case atom_t::F: return "F";
+        case atom_t::Ne: return "Ne";
+        case atom_t::Na: return "Na";
+        case atom_t::Mg: return "Mg";
+        case atom_t::Al: return "Al";
+        case atom_t::Si: return "Si";
+        case atom_t::P: return "P";
+        case atom_t::S: return "S";
+        case atom_t::Cl: return "Cl";
+        case atom_t::Ar: return "Ar";
+        case atom_t::K: return "K";
+        case atom_t::Ca: return "Ca";
+        case atom_t::Sc: return "Sc";
+        case atom_t::Ti: return "Ti";
+        case atom_t::V: return "V";
+        case atom_t::Cr: return "Cr";
+        case atom_t::Mn: return "Mn";
+        case atom_t::Fe: return "Fe";
+        case atom_t::Co: return "Co";
+        case atom_t::Ni: return "Ni";
+        case atom_t::Cu: return "Cu";
+        case atom_t::Zn: return "Zn";
+        case atom_t::W: return "W";
+        case atom_t::M: return "M";
+        default: throw std::runtime_error("constants::symbols::write_element_string: Unknown atom type");
+    }
+}
+
+unsigned int constants::charge::get_charge(atom_t atom) {
+    switch(atom) {
+        case atom_t::e: return -1;
+        case atom_t::H: return 1;
+        case atom_t::He: return 2;
+        case atom_t::Li: return 3;
+        case atom_t::Be: return 4;
+        case atom_t::B: return 5;
+        case atom_t::C: return 6;
+        case atom_t::N: return 7;
+        case atom_t::O: return 8;
+        case atom_t::F: return 9;
+        case atom_t::Ne: return 10;
+        case atom_t::Na: return 11;
+        case atom_t::Mg: return 12;
+        case atom_t::Al: return 13;
+        case atom_t::Si: return 14;
+        case atom_t::P: return 15;
+        case atom_t::S: return 16;
+        case atom_t::Cl: return 17;
+        case atom_t::Ar: return 18;
+        case atom_t::K: return 19;
+        case atom_t::Ca: return 20;
+        case atom_t::Sc: return 21;
+        case atom_t::Ti: return 22;
+        case atom_t::V: return 23;
+        case atom_t::Cr: return 24;
+        case atom_t::Mn: return 25;
+        case atom_t::Fe: return 26;
+        case atom_t::Co: return 27;
+        case atom_t::Ni: return 28;
+        case atom_t::Cu: return 29;
+        case atom_t::Zn: return 30;
+        case atom_t::W: return 74;
+        case atom_t::M: return 0;
+        default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type");
+    }
+}
+
+unsigned int constants::valence::get_valence(atom_t atom) {
+    switch(atom) {
+        case atom_t::H: return 1;
+        case atom_t::C: return 4;
+        case atom_t::N: return 3;
+        case atom_t::O: return 2;
+        case atom_t::F: return 1;
+        case atom_t::Ne: return 0;
+        case atom_t::S: return 2;
+        case atom_t::P: return 1;
+        case atom_t::Cl: return 1;
+        case atom_t::M: return 0;
+        default: throw std::runtime_error("constants::valence::get_valence: Unknown atom type");
+    }
+}
+
+double constants::mass::get_mass(atom_t atom) {
+    switch(atom) {
+        case atom_t::H: return 1.0079;
+        case atom_t::He: return 4.0026;
+        case atom_t::Li: return 6.941;
+        case atom_t::Be: return 9.0122;
+        case atom_t::B: return 10.811;
+        case atom_t::C: return 12.0107;
+        case atom_t::N: return 14.0067;
+        case atom_t::O: return 15.9994;
+        case atom_t::F: return 18.9984;
+        case atom_t::Ne: return 20.1797;
+        case atom_t::Na: return 22.9897;
+        case atom_t::Mg: return 24.305;
+        case atom_t::Al: return 26.9815;
+        case atom_t::Si: return 28.0855;
+        case atom_t::P: return 30.9738;
+        case atom_t::S: return 32.065;
+        case atom_t::Cl: return 35.453;
+        case atom_t::Ar: return 39.948;
+        case atom_t::K: return 39.0983;
+        case atom_t::Ca: return 40.078;
+        case atom_t::Sc: return 44.9559;
+        case atom_t::Ti: return 47.867;
+        case atom_t::V: return 50.9415;
+        case atom_t::Cr: return 51.9961;
+        case atom_t::Mn: return 54.938;
+        case atom_t::Fe: return 55.845;
+        case atom_t::Co: return 58.9332;
+        case atom_t::Ni: return 58.6934;
+        case atom_t::Cu: return 63.546;
+        case atom_t::Zn: return 65.39;
+        case atom_t::W: return 183.84;
+        case atom_t::M: return 0;
+        default: throw std::runtime_error("constants::mass::get_mass: Unknown atom type");   
     }
 }

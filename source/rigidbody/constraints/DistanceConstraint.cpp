@@ -15,7 +15,7 @@ DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, un
     const Atom& atom2 = body2.get_atom(iatom2);
 
     // we only want to allow constraints between the backbone C-alpha structure
-    if (atom1.element != constants::symbols::carbon || atom2.element != constants::symbols::carbon) {
+    if (atom1.element != constants::atom_t::C || atom2.element != constants::atom_t::C) {
         throw except::invalid_argument("Constraint::Constraint: Constraints only makes sense between the carbon-atoms of the backbone!");
     }
 
@@ -33,7 +33,7 @@ DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, un
 
 DistanceConstraint::DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
     // we only want to allow constraints between the backbone C-alpha structure
-    if (atom1.element != constants::symbols::carbon || atom2.element != constants::symbols::carbon) {
+    if (atom1.element != constants::atom_t::C || atom2.element != constants::atom_t::C) {
         throw except::invalid_argument("Constraint::Constraint: Constraints only makes sense between the carbon-atoms of the backbone!");
     }
 

@@ -3,6 +3,7 @@
 #include <Symbols.h>
 #include <data/Protein.h>
 #include <data/Atom.h>
+#include <utility/Constants.h>
 
 #include <cmath>
 
@@ -40,7 +41,7 @@ double Fval::I() const {
 Protein Fval::as_protein() {
     std::vector<Atom> atoms(points.size());
     for (unsigned int i = 0; i < points.size(); i++) {
-        atoms[i] = Atom(points[i], 1, "H", "LYS", i);
+        atoms[i] = Atom(points[i], 1, constants::atom_t::H, "LYS", i);
     } 
     return Protein(atoms);
 }

@@ -3,6 +3,7 @@
 #include <settings/EMSettings.h>
 #include <data/Atom.h>
 #include <utility/Axis3D.h>
+#include <utility/Constants.h>
 
 using namespace em;
 
@@ -41,7 +42,7 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
             if (val < cutoff) {
                 continue;
             }
-            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, "C", ""));
+            atoms.push_back(Atom(0, "C", "", "LYS", "", 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, constants::atom_t::C, ""));
         }
     }
     return atoms;

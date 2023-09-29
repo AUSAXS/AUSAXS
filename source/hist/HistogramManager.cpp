@@ -68,7 +68,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
             float dy = data_h.data[i].y - data_p.data[j].y;
             float dz = data_h.data[i].z - data_p.data[j].z;
             float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-            p_hp[dist/width] += 2*weight;
+            p_hp[dist/width] += weight;
         }
     }
 

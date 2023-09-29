@@ -4,10 +4,11 @@
 #include <utility/Exceptions.h>
 #include <utility/ResidueMap.h>
 #include <utility/StringUtils.h>
+#include <utility/Constants.h>
 
 using namespace saxs::detail;
 
-saxs::detail::AtomKey::AtomKey(const std::string& name, const std::string& symbol) : name(utility::to_lowercase(name)), symbol(symbol) {}
+saxs::detail::AtomKey::AtomKey(const std::string& name, constants::atom_t atom) : name(utility::to_lowercase(name)), atom(atom) {}
 bool saxs::detail::AtomKey::operator==(const AtomKey& other) const {
     return name == other.name;
 }
@@ -26,14 +27,14 @@ double ResidueMap::get(const AtomKey& key) {
     if (map.contains(key)) {return map.at(key);}
 
     // if not, check if the key is a hydrogen
-    if (key.symbol == "H") {return 0;}
+    if (key.atom == constants::atom_t::H) {return 0;}
 
     // estimate the number of bonds as the average for that element
     if (update_average) [[unlikely]] {this->calculate_average();}
-    if (average.contains(key.symbol)) {
-        return average.at(key.symbol);
+    if (average.contains(key.atom)) {
+        return average.at(key.atom);
     } else {
-        throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element " + key.symbol + " is available.");
+        throw except::map_error("SimpleResidueMap::get: Key " + key.name + " not found in map, and no estimate for element id " + constants::symbols::write_element_string(key.atom) + " is available.");
     }
 }
 
@@ -42,16 +43,16 @@ void ResidueMap::insert(const AtomKey& key, int value) {
     update_average = true;
 }
 
-void ResidueMap::insert(const std::string& name, const std::string& symbol, int value) {
+void ResidueMap::insert(const std::string& name, constants::atom_t symbol, int value) {
     insert(AtomKey(name, symbol), value);
 }
 
 void ResidueMap::calculate_average() {
-    std::unordered_map<std::string, int> counts;
+    std::unordered_map<constants::atom_t, int> counts;
     
     for (auto& [key, value] : map) {
-        average[key.symbol] += value;
-        counts[key.symbol] ++;
+        average[key.atom] += value;
+        counts[key.atom] ++;
     }
 
     for (auto& [key, value] : average) {

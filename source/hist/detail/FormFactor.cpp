@@ -33,17 +33,12 @@ double FormFactor::evaluate(double q) const {
 }
 
 form_factor_t FormFactor::get_type(const Atom& atom) {
-    auto element = atom.element;
-    if (element == "H") {
-        return form_factor_t::NEUTRAL_HYDROGEN;
-    } else if (element == "C") {
-        return form_factor_t::NEUTRAL_CARBON;
-    } else if (element == "N") {
-        return form_factor_t::NEUTRAL_NITROGEN;
-    } else if (atom.is_water()) {
-        return form_factor_t::NEUTRAL_OXYGEN;
-    } else {
-        return form_factor_t::OTHER;
+    switch(atom.element) {
+        case constants::atom_t::H: return form_factor_t::NEUTRAL_HYDROGEN;
+        case constants::atom_t::C: return form_factor_t::NEUTRAL_CARBON;
+        case constants::atom_t::N: return form_factor_t::NEUTRAL_NITROGEN;
+        case constants::atom_t::O: return form_factor_t::NEUTRAL_OXYGEN;
+        default: return form_factor_t::OTHER;
     }
 }
 

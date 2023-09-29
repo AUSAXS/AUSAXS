@@ -234,7 +234,7 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
             float dy = coords.data[i].y - coords_h.data[j].y;
             float dz = coords.data[i].z - coords_h.data[j].z;
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_hp[dist/width] += 2*weight;
+            p_hp[dist/width] += weight;
         }
     }
 

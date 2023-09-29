@@ -8,20 +8,18 @@
 #include <iomanip>
 #include <iostream>
 
-using std::vector, std::string, std::setw, std::left, std::right, std::shared_ptr, std::unique_ptr;
-
-Atom::Atom(Vector3<double> v, double occupancy, const string& element, const string& resName, int serial) : uid(uid_counter++) {
+Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
     // we use our setters so we can validate the input if necessary
     set_coordinates(v);
     set_occupancy(occupancy);
     set_element(element);
     set_resName(resName);
     set_serial(serial);
-    set_effective_charge(constants::charge::atomic.get(this->element));
+    set_effective_charge(constants::charge::get_charge(this->element));
 }
 
-Atom::Atom(int serial, const string& name, const string& altLoc, const string& resName, const string& chainID, int resSeq, const string& iCode, 
-    Vector3<double> coords, double occupancy, double tempFactor, const string& element, const string& charge) : uid(uid_counter++) {
+Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, const std::string& chainID, int resSeq, const std::string& iCode, 
+    Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) {
         set_serial(serial);
         set_name(name);
         set_altLoc(altLoc);
@@ -36,17 +34,20 @@ Atom::Atom(int serial, const string& name, const string& altLoc, const string& r
         set_charge(charge);
 
         // use a try-catch block to throw more sensible errors
-        try {
-            effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-        } catch (const except::base& e) {
-            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
-        }
+        #ifdef DEBUG
+            try {
+                effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+            } catch (const except::base& e) {
+            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
+            }
+        #endif
+        effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
         uid = uid_counter++;
 }
 
 Atom::Atom() : uid(uid_counter++) {}
 
-void Atom::parse_pdb(const string& str) {
+void Atom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
     int pad_size = 81 - s.size();
     if (pad_size < 0) {
@@ -54,7 +55,7 @@ void Atom::parse_pdb(const string& str) {
         std::cout << "\"" << s << "\"" << std::endl;
         s = s.substr(0, 80);
     } else {
-        s += string(pad_size, ' ');
+        s += std::string(pad_size, ' ');
     }
 
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
@@ -63,7 +64,7 @@ void Atom::parse_pdb(const string& str) {
     //                   0     1           2              3     4  5  6      7     8
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
     const char form[] = "%6c%5c%1c%4c%1c%3c%1c%1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c";
-    string recName = "      ", serial = "     ", space1 = " ", name = "    ", altLoc = " ", resName = "   ", space2 = " ", 
+    std::string recName = "      ", serial = "     ", space1 = " ", name = "    ", altLoc = " ", resName = "   ", space2 = " ", 
         chainID = " ", resSeq = "    ", iCode = " ", space3 = "   ", x = "        ", y = "        ", z = "        ", 
         occupancy = "      ", tempFactor = "      ", space4 = "          ", element = "  ", charge = "  ";
     sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), name.data(), altLoc.data(), resName.data(), 
@@ -72,7 +73,7 @@ void Atom::parse_pdb(const string& str) {
 
     // sanity check
     if (!(Record::get_type(recName) == RecordType::ATOM)) [[unlikely]] {
-        throw except::parse_error("Atom::parse_pdb: input string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
+        throw except::parse_error("Atom::parse_pdb: input std::string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
     }
 
     // remove any spaces from the numbers
@@ -114,37 +115,38 @@ void Atom::parse_pdb(const string& str) {
     }
 
     if (settings::protein::use_effective_charge) {
-        effective_charge = constants::charge::atomic.get(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
     } else {
-        effective_charge = constants::charge::atomic.get(this->element);
+        effective_charge = constants::charge::get_charge(this->element);
     }
 }
 
-string Atom::as_pdb() const {
+using std::left, std::right, std::setw;
+std::string Atom::as_pdb() const {
     std::stringstream ss;
     //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S2  EL CH
     //                   0     1           2              3     4  5  6      7     8
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
     //          format: "%6c%5c%2c%4c%1c%3c %1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c"
-    ss << left << setw(6) << get_recName()                                   // 1 - 6
-        << right << setw(5) << serial                                        // 7 - 11
-        << " "                                                               // 12
-        << " " << left << setw(3) << name                                    // 13 - 16
-        << left << setw(1) << altLoc                                         // 17
-        << left << setw(3) << resName                                        // 18 - 20
-        << " "                                                               // 21
-        << left << setw(1) << chainID                                        // 22
-        << right << setw(4) << resSeq                                        // 23 - 26
-        << right << setw(1) << iCode                                         // 27
-        << "   "                                                             // 28 - 30
-        << right << setw(8) << utility::fixedwidth(coords.x(), 7)            // 31 - 38
-        << right << setw(8) << utility::fixedwidth(coords.y(), 7)            // 39 - 46
-        << right << setw(8) << utility::fixedwidth(coords.z(), 7)            // 47 - 54
-        << right << setw(6) << utility::fixedwidth(occupancy, 6)             // 55 - 60
-        << right << setw(6) << utility::fixedwidth(tempFactor, 6)            // 61 - 66
-        << "          "                                                      // 67 - 76
-        << right << setw(2) << element                                       // 77 - 78
-        << left << setw(2) << charge                                         // 79 - 80
+    ss << left << setw(6) << get_recName()                                          // 1 - 6
+        << right << setw(5) << serial                                               // 7 - 11
+        << " "                                                                      // 12
+        << " " << left << setw(3) << name                                           // 13 - 16
+        << left << setw(1) << altLoc                                                // 17
+        << left << setw(3) << resName                                               // 18 - 20
+        << " "                                                                      // 21
+        << left << setw(1) << chainID                                               // 22
+        << right << setw(4) << resSeq                                               // 23 - 26
+        << right << setw(1) << iCode                                                // 27
+        << "   "                                                                    // 28 - 30
+        << right << setw(8) << utility::fixedwidth(coords.x(), 7)                   // 31 - 38
+        << right << setw(8) << utility::fixedwidth(coords.y(), 7)                   // 39 - 46
+        << right << setw(8) << utility::fixedwidth(coords.z(), 7)                   // 47 - 54
+        << right << setw(6) << utility::fixedwidth(occupancy, 6)                    // 55 - 60
+        << right << setw(6) << utility::fixedwidth(tempFactor, 6)                   // 61 - 66
+        << "          "                                                             // 67 - 76
+        << right << setw(2) << constants::symbols::write_element_string(element)    // 77 - 78
+        << left << setw(2) << charge                                                // 79 - 80
         << std::endl;
     return ss.str();
 }
@@ -160,21 +162,29 @@ void Atom::set_y(double y) {coords.y() = y;}
 void Atom::set_z(double z) {coords.z() = z;}
 void Atom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
 void Atom::set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
-void Atom::set_altLoc(const string& altLoc) {this->altLoc = altLoc;}
+void Atom::set_altLoc(const std::string& altLoc) {this->altLoc = altLoc;}
 void Atom::set_serial(int serial) {this->serial = serial;}
 void Atom::set_resSeq(int resSeq) {this->resSeq = resSeq;}
 void Atom::set_effective_charge(double charge) {effective_charge = charge;}
-void Atom::set_chainID(const string& chainID) {this->chainID = chainID;}
-void Atom::set_iCode(const string& iCode) {this->iCode = iCode;}
-void Atom::set_charge(const string& charge) {this->charge = charge;}
-void Atom::set_resName(const string& resName) {this->resName = resName;}
-void Atom::set_name(const string& name) {this->name = name;}
+void Atom::set_chainID(const std::string& chainID) {this->chainID = chainID;}
+void Atom::set_iCode(const std::string& iCode) {this->iCode = iCode;}
+void Atom::set_charge(const std::string& charge) {this->charge = charge;}
+void Atom::set_resName(const std::string& resName) {this->resName = resName;}
+void Atom::set_name(const std::string& name) {this->name = name;}
 
-void Atom::set_element(const string& element) {
-    if (!constants::mass::atomic.contains(element)) [[unlikely]] { // check that the weight is defined
-        throw except::invalid_argument("Atom::set_element: The weight of element " + element + " is not defined.");
-    }
+void Atom::set_element(constants::atom_t element) {
+    #ifdef DEBUG
+        try {
+            constants::mass::get_mass(element);
+        } catch (const except::base& e) {
+            throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
+        }
+    #endif
     this->element = element;
+}
+
+void Atom::set_element(const std::string& element) {
+    set_element(constants::symbols::parse_element_string(element));
 }
 
 Vector3<double>& Atom::get_coordinates() {return coords;}
@@ -185,35 +195,43 @@ double Atom::get_occupancy() const {return occupancy;}
 double Atom::get_tempFactor() const {return tempFactor;}
 double Atom::get_absolute_charge() const {return Z();}
 double Atom::get_effective_charge() const {return effective_charge;}
-string Atom::get_altLoc() const {return altLoc;}
-string Atom::get_chainID() const {return chainID;}
-string Atom::get_iCode() const {return iCode;}
-string Atom::get_charge() const {return charge;}
-string Atom::get_resName() const {return resName;}
-string Atom::get_name() const {return name;}
-string Atom::get_element() const {return element;}
-string Atom::get_recName() const {return recName;}
+std::string Atom::get_altLoc() const {return altLoc;}
+std::string Atom::get_chainID() const {return chainID;}
+std::string Atom::get_iCode() const {return iCode;}
+std::string Atom::get_charge() const {return charge;}
+std::string Atom::get_resName() const {return resName;}
+std::string Atom::get_name() const {return name;}
+constants::atom_t Atom::get_element() const {return element;}
+std::string Atom::get_recName() const {return recName;}
 
 double Atom::get_mass() const {
     if (settings::protein::use_effective_charge) {
+        #ifdef DEBUG
+            try {
+                return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
+            } catch (const except::base& e) {
+                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
+            }
+        #endif
         // mass of this nucleus + mass of attached H atoms
-        if (element.empty() || resName.empty() || name.empty()) [[unlikely]] {
-            throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element, residue name, or name was not set!");
-        }
-        return constants::mass::atomic.get(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::atomic.get("H");
+        return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
     } else {
-        if (element.empty()) [[unlikely]] {
-            throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
-        }
-        return constants::mass::atomic.get(element);
+        #ifdef DEBUG
+            if (element == constants::atom_t::UNKNOWN) [[unlikely]] {
+                throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
+            }
+        #endif
+        return constants::mass::get_mass(element);
     }
 }
 
 unsigned int Atom::Z() const {
-    if (element == "") [[unlikely]] {
-        throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
-    }
-    return constants::charge::atomic.get(element);
+    #ifdef DEBUG
+        if (element == constants::atom_t::UNKNOWN) [[unlikely]] {
+            throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
+        }
+    #endif
+    return constants::charge::get_charge(element);
 }
 
 void Atom::add_effective_charge(const double charge) {effective_charge += charge;}

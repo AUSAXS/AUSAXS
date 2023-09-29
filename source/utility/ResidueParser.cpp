@@ -12,11 +12,11 @@
 #include <fstream>
 
 //### ATOM ###//
-parser::residue::detail::Atom::Atom(const std::string& name, const std::string& altname, const std::string& symbol) : name(name), altname(altname), symbol(symbol) {
-    valency = constants::valence::atomic.get(symbol);
+parser::residue::detail::Atom::Atom(const std::string& name, const std::string& altname, constants::atom_t atom) : name(name), altname(altname), atom(atom) {
+    valency = constants::valence::get_valence(atom);
 }
                 
-parser::residue::detail::Atom::Atom(const std::string& name, int charge, const std::string& symbol) : name(name), symbol(symbol) {
+parser::residue::detail::Atom::Atom(const std::string& name, int charge, constants::atom_t atom) : name(name), atom(atom) {
     // the goal of this whole class is to determine the total charge surrounding an atom
     // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
     // thus the number of hydrogen bonds is later used as the effective charge of the atom
@@ -25,8 +25,8 @@ parser::residue::detail::Atom::Atom(const std::string& name, int charge, const s
     hydrogen_bonds = charge; // adding additional hydrogen bonds is directly translated to adding additional charge
 }
 
-void parser::residue::detail::Atom::add_bond(const std::string& symbol, unsigned int order) {
-    if (symbol == "H") {
+void parser::residue::detail::Atom::add_bond(const constants::atom_t atom, unsigned int order) {
+    if (atom == constants::atom_t::H) {
         hydrogen_bonds++;
     }
     valency -= order;
@@ -59,14 +59,14 @@ parser::residue::detail::Residue::Residue(const std::string& name, std::vector<A
     apply_bond(bonds);
 }
 
-void parser::residue::detail::Residue::add_atom(const std::string& name, const std::string& altname, const std::string& symbol) {
+void parser::residue::detail::Residue::add_atom(const std::string& name, const std::string& altname, constants::atom_t atom) {
     name_map.insert({name, atoms.size()});
-    atoms.push_back(Atom(name, altname, symbol));
+    atoms.push_back(Atom(name, altname, atom));
 }
 
-void parser::residue::detail::Residue::add_atom(const std::string& name, int charge, const std::string& symbol) {
+void parser::residue::detail::Residue::add_atom(const std::string& name, int charge, constants::atom_t atom) {
     name_map.insert({name, atoms.size()});
-    atoms.push_back(Atom(name, charge, symbol));
+    atoms.push_back(Atom(name, charge, atom));
 }
 
 void parser::residue::detail::Residue::apply_bond(const std::vector<Bond>& bonds) {
@@ -78,8 +78,8 @@ void parser::residue::detail::Residue::apply_bond(const std::vector<Bond>& bonds
 void parser::residue::detail::Residue::apply_bond(const Bond& bond) {
     Atom& a1 = atoms.at(name_map.at(bond.name1));
     Atom& a2 = atoms.at(name_map.at(bond.name2));
-    a1.add_bond(a2.symbol, bond.order);
-    a2.add_bond(a1.symbol, bond.order);
+    a1.add_bond(a2.atom, bond.order);
+    a2.add_bond(a1.atom, bond.order);
 }
 
 std::string parser::residue::detail::Residue::to_string() const {
@@ -94,15 +94,15 @@ saxs::detail::ResidueMap parser::residue::detail::Residue::to_map() const {
     saxs::detail::ResidueMap map;
     for (const Atom& a : atoms) {
         // skip all H's, they are automatically handled by the SimpleResidueMap
-        if (a.symbol == "H") {
+        if (a.atom == constants::atom_t::H) {
             continue;
         }
 
         // check if the alternate name should also be inserted
         if (a.altname != a.name && !a.altname.empty()) {
-            map.insert(a.altname, a.symbol, a.hydrogen_bonds);
+            map.insert(a.altname, a.atom, a.hydrogen_bonds);
         }
-        map.insert(a.name, a.symbol, a.hydrogen_bonds);
+        map.insert(a.name, a.atom, a.hydrogen_bonds);
     }
     return map;
 }
@@ -120,9 +120,9 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(const i
             std::vector<std::string> tokens = utility::split(line, " \n\r");
             std::string formula = tokens[1];
 
-            // the formula is of the form "Xn Ym" for residues, but X for ions. 
-            // if it is an ion, X should be present in the mass map so we use this as a check
-            if (!constants::mass::atomic.contains(formula)) {
+            // the formula is of the form "Xn Ym" for residues (e.g. "C10 H22 O6"), but X for ions (e.g. "Zn"). 
+            // if it is an ion, X can be parsed as an element
+            if (!constants::symbols::detail::string_to_atomt_map.contains(formula)) {
                 break;
             }
 
@@ -132,7 +132,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(const i
                 if (line.find("pdbx_formal_charge") != std::string::npos) {
                     tokens = utility::split(line, " \n\r");
                     int charge = std::stoi(tokens[1]);
-                    residue.add_atom(formula, charge, formula);
+                    residue.add_atom(formula, charge, constants::symbols::parse_element_string(formula));
                     return residue;
                 }
             }
@@ -168,7 +168,7 @@ parser::residue::detail::Residue parser::residue::detail::Residue::parse(const i
             }
         }
 
-        residue.add_atom(atom_id, atom_id_alt, type_symbol);
+        residue.add_atom(atom_id, atom_id_alt, constants::symbols::parse_element_string(type_symbol));
     }
 
     // find the beginning of the bond section
@@ -255,7 +255,7 @@ void parser::residue::ResidueStorage::initialize() {
                 std::string element = tokens[0];
                 std::string atom = tokens[1];
                 int hydrogens = std::stoi(tokens[2]);
-                map.emplace(saxs::detail::AtomKey(atom, element), hydrogens);
+                map.emplace(saxs::detail::AtomKey(atom, constants::symbols::parse_element_string(element)), hydrogens);
             }
             insert(residue, std::move(map));
         }
@@ -294,7 +294,7 @@ void parser::residue::ResidueStorage::write_residue(const std::string& name) {
     auto map = get(name);
     file << "#" << "\n" << name << "\n"; // residue header
     for (const auto& [key, val] : map) {
-        file << key.symbol << " " << key.name << " " << val << "\n";
+        file << constants::symbols::write_element_string(key.atom) << " " << key.name << " " << val << "\n";
     }
     file << std::endl;
 }

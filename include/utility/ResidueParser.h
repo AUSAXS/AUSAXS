@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 
+namespace constants {enum class atom_t;}
 namespace io {class ExistingFile;}
 namespace parser {
     namespace residue {
@@ -17,32 +18,33 @@ namespace parser {
                 /**
                  * @brief Constructor.
                  * 
-                 * @param name the name of the atom.
-                 * @param altname the alternate name of the atom.
-                 * @param symbol the symbol of the atom.
+                 * @param name The name of the atom.
+                 * @param altname The alternate name of the atom.
+                 * @param atom The atom type. This is necessary to avoid ambiguities since the name is always capitalized in PDB files, so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca).
                  */
-                Atom(const std::string& name, const std::string& altname, const std::string& symbol);
+                Atom(const std::string& name, const std::string& altname, constants::atom_t symbol);
 
                 /**
                  * @brief Constructor.
                  * 
-                 * @param name the name of the atom.
-                 * @param charge the charge of the atom.
-                 * @param symbol the symbol of the atom.
+                 * @param name The name of the atom.
+                 * @param charge The charge of the atom.
+                 * @param atom The atom type. This is necessary to avoid ambiguities since the name is always capitalized in PDB files, so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca).
                  */
-                Atom(const std::string& name, int charge, const std::string& symbol);
+                Atom(const std::string& name, int charge, constants::atom_t symbol);
 
                 /**
                  * @brief Add a bond from this atom to another.
                  * 
-                 * @param symbol the symbol of the atom to which this atom is bonded.
-                 * @param order the order of the bond.
+                 * @param symbol The type of atom this instance is bonded to.
+                 * @param order The order of the bond.
                  */
-                void add_bond(const std::string& symbol, unsigned int order);
+                void add_bond(constants::atom_t symbol, unsigned int order);
                 
                 std::string to_string() const;
 
-                std::string name, altname, symbol;
+                std::string name, altname;
+                constants::atom_t atom;
                 unsigned int valency;
                 unsigned int hydrogen_bonds = 0;
             };
@@ -84,29 +86,29 @@ namespace parser {
                     /**
                      * @brief Constructor.
                      * 
-                     * @param name the name of the residue.
-                     * @param atoms the atoms in the residue.
-                     * @param bonds the bonds in the residue.
+                     * @param name The name of the residue.
+                     * @param atoms The atoms in the residue.
+                     * @param bonds The bonds in the residue.
                      */
                     Residue(const std::string& name, std::vector<Atom> atoms, std::vector<Bond> bonds);
 
                     /**
                      * @brief Add an atom to the residue.
                      * 
-                     * @param name the name of the atom.
-                     * @param altname the alternate name of the atom.
-                     * @param symbol the symbol of the atom.
+                     * @param name The name of the atom.
+                     * @param altname The alternate name of the atom.
+                     * @param atom The atom type.
                      */
-                    void add_atom(const std::string& name, const std::string& altname, const std::string& symbol);
+                    void add_atom(const std::string& name, const std::string& altname, constants::atom_t atom);
 
                     /**
                      * @brief Add an atom to the residue.
                      * 
-                     * @param name the name of the atom.
-                     * @param charge the charge of the atom.
-                     * @param symbol the symbol of the atom.
+                     * @param name The name of the atom.
+                     * @param charge The charge of the atom.
+                     * @param atom The atom type.
                      */
-                    void add_atom(const std::string& name, int charge, const std::string& symbol);
+                    void add_atom(const std::string& name, int charge, constants::atom_t atom);
 
                     /**
                      * @brief Add a bond to the residue.

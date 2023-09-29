@@ -27,11 +27,11 @@ std::vector<DistanceConstraint> VolumetricConstraints::generate() const {
             int min_atom1 = -1, min_atom2 = -1;
             for (unsigned int iatom1 = 0; iatom1 < body1.get_atoms().size(); iatom1++) {
                 const Atom& atom1 = body1.get_atom(iatom1);
-                if (atom1.element != constants::symbols::carbon) {continue;}
+                if (atom1.element != constants::atom_t::C) {continue;}
 
                 for (unsigned int iatom2 = 0; iatom2 < body2.get_atoms().size(); iatom2++) {
                     const Atom& atom2 = body2.get_atom(iatom2);
-                    if (atom2.element != constants::symbols::carbon) {continue;}
+                    if (atom2.element != constants::atom_t::C) {continue;}
 
                     double dist = atom1.distance(atom2);
                     if (dist > min_dist) {continue;}
