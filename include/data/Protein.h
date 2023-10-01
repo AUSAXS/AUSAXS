@@ -278,7 +278,8 @@ class Protein {
 		 *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
 		 *        create a ScatteringHistogram and call its equivalent method instead. 
 		 */
-		[[nodiscard]] std::vector<double> calc_debye_scattering_intensity() const;
+		[[nodiscard]] std::vector<double> debye_transform() const;
+		[[nodiscard]] std::vector<double> debye_transform_ff() const;
 
 		/**
 		 * @brief Get the number of constituent bodies. 

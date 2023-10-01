@@ -266,7 +266,7 @@ Water& Protein::get_waters(unsigned int i) {return hydration_atoms[i];}
 
 const Water& Protein::get_water(unsigned int i) const {return hydration_atoms[i];}
 
-std::vector<double> Protein::calc_debye_scattering_intensity() const {
+std::vector<double> Protein::debye_transform() const {
     std::vector<Atom> atoms = get_atoms();
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
     std::vector<double> Q = std::vector<double>(debye_axis.bins);
@@ -292,6 +292,85 @@ std::vector<double> Protein::calc_debye_scattering_intensity() const {
             }
         }
         I.push_back(sum);
+    }
+    return I;
+}
+
+#include <hist/detail/FormFactor.h>
+std::vector<double> Protein::debye_transform_ff() const {
+    std::vector<Atom> atoms = get_atoms();
+    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
+    std::vector<double> Q = std::vector<double>(debye_axis.bins);
+    double debye_width = debye_axis.width();
+    for (unsigned int i = 0; i < debye_axis.bins; i++) {
+        Q[i] = debye_axis.min + i*debye_width;
+    }
+    double Z_exv = get_excluded_volume()*constants::charge::density::water/atoms.size();
+
+    std::vector<double> I;
+    I.reserve(Q.size());
+    for (const auto& q : Q) {
+        double Iq = 0;
+        for (const auto& atom_i : atoms) {
+            for (const auto& atom_j : atoms) {
+                // atom
+                double Zi = atom_i.get_effective_charge()*atom_i.get_occupancy();
+                double Zj = atom_j.get_effective_charge()*atom_j.get_occupancy();
+                double fi = Zi*hist::detail::FormFactorStorage::get_form_factor(hist::detail::FormFactor::get_type(atom_i)).evaluate(q);
+                double fj = Zj*hist::detail::FormFactorStorage::get_form_factor(hist::detail::FormFactor::get_type(atom_j)).evaluate(q);
+                double qr = q*atom_i.distance(atom_j);
+
+                // exv
+                double Z_exv_i = Z_exv*atom_i.get_occupancy();
+                double Z_exv_j = Z_exv*atom_j.get_occupancy();
+                double f_exv = Z_exv_i*hist::detail::FormFactorStorage::excluded_volume.evaluate(q);
+
+                double tmp = Zi*Zj*fi*fj + Z_exv_i*Z_exv_j*f_exv*f_exv - 2*Zi*Z_exv_i*fi*f_exv;
+                if (qr < 1e-9) {
+                    Iq += tmp;
+                } else {
+                    Iq += tmp*sin(qr)/qr;
+                }
+            }
+
+            for (const auto& water : get_waters()) {
+                // water
+                double Zi = atom_i.get_effective_charge()*atom_i.get_occupancy();
+                double Zj = water.get_effective_charge()*water.get_occupancy();
+                double fi = Zi*hist::detail::FormFactorStorage::get_form_factor(hist::detail::FormFactor::get_type(atom_i)).evaluate(q);
+                double fj = Zj*hist::detail::FormFactorStorage::oxygen.evaluate(q);
+                double qr = q*atom_i.distance(water);
+
+                // exv
+                double Z_exv_i = Z_exv*atom_i.get_occupancy();
+                double f_exv = Z_exv_i*hist::detail::FormFactorStorage::excluded_volume.evaluate(q);
+
+                double tmp = 2*Zi*Zj*fi*fj - 2*Zi*Z_exv_i*fi*f_exv;
+                if (qr < 1e-9) {
+                    Iq += tmp;
+                } else {
+                    Iq += tmp*sin(qr)/qr;
+                }
+            }
+        }
+
+        for (const auto& water_i : get_waters()) {
+            for (const auto& water_j : get_waters()) {
+                double Zi = water_i.get_effective_charge()*water_i.get_occupancy();
+                double Zj = water_j.get_effective_charge()*water_j.get_occupancy();
+                double fw = Zj*hist::detail::FormFactorStorage::oxygen.evaluate(q);
+                double qr = q*water_i.distance(water_j);
+
+                double tmp = Zi*Zj*fw*fw;
+                if (qr < 1e-9) {
+                    Iq += tmp;
+                } else {
+                    Iq += tmp*sin(qr)/qr;
+                }
+            }
+        }
+
+        I.push_back(Iq);
     }
     return I;
 }

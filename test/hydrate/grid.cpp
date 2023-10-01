@@ -15,6 +15,7 @@
 #include <hydrate/culling/CullingStrategy.h>
 #include <settings/All.h>
 #include <math/Vector3.h>
+#include <utility/Constants.h>
  
 using std::vector;
 using namespace grid;
@@ -49,7 +50,7 @@ TEST_CASE("Grid::Grid") {
     }
 
     SECTION("vector<Atom>&") {
-        std::vector<Atom> atoms = {Atom({0, 0, 0}, 0, "C", "", 0), Atom({1, 1, 1}, 0, "C", "", 0), Atom({2, 2, 2}, 0, "C", "", 0)};
+        std::vector<Atom> atoms = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0), Atom({1, 1, 1}, 0,  constants::atom_t::C, "", 0), Atom({2, 2, 2}, 0,  constants::atom_t::C, "", 0)};
         Grid grid(atoms);
         CHECK(grid.a_members.size() == 3);
         CHECK(grid.w_members.empty());
@@ -61,7 +62,7 @@ TEST_CASE("Grid::Grid") {
     }
 
     SECTION("std::vector<Body>&") {
-        std::vector<Body> bodies = {Body({Atom({0, 0, 0}, 0, "C", "", 0), Atom({1, 1, 1}, 0, "C", "", 0), Atom({2, 2, 2}, 0, "C", "", 0)})};
+        std::vector<Body> bodies = {Body({Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0), Atom({1, 1, 1}, 0,  constants::atom_t::C, "", 0), Atom({2, 2, 2}, 0,  constants::atom_t::C, "", 0)})};
         Grid grid(bodies);
         CHECK(grid.a_members.size() == 3);
         CHECK(grid.w_members.empty());
@@ -73,7 +74,7 @@ TEST_CASE("Grid::Grid") {
     }
 
     SECTION("space_saving_constructor") {
-        vector<Atom> atoms = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2), Atom({1, 1, 1}, 0, "C", "", 2)};
+        vector<Atom> atoms = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2), Atom({1, 1, 1}, 0,  constants::atom_t::C, "", 2)};
 
         SECTION("bounding box") {
             // check that bounding_box works
@@ -128,7 +129,7 @@ TEST_CASE("generation") {
     settings::grid::width = 1;
     Grid grid(axes);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
     grid.add(a);
     GridObj& g = grid.grid;
 
@@ -141,7 +142,7 @@ TEST_CASE("generation") {
 }
 
 TEST_CASE("GridMember") {
-    grid::GridMember<Atom> a(Atom({0.1, 0.2, 0.3}, 0, "C", "", 0), {1, 2, 3});
+    grid::GridMember<Atom> a(Atom({0.1, 0.2, 0.3}, 0,  constants::atom_t::C, "", 0), {1, 2, 3});
 
     auto b = a;
     CHECK(b == a);
@@ -156,7 +157,7 @@ TEST_CASE("Grid::bounding_box") {
     GridDebug grid(axes);
 
     SECTION("simple") {
-        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
 
         auto[min, max] = grid.bounding_box_index();
@@ -169,7 +170,7 @@ TEST_CASE("Grid::bounding_box") {
     }
 
     SECTION("complex") {
-        vector<Atom> a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
+        vector<Atom> a = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2)};
         grid.add(a);
         grid.expand_volume();
 
@@ -188,7 +189,7 @@ TEST_CASE("Grid::get_volume") {
     settings::grid::width = 1e-1;
     Grid grid(axes);
 
-    std::vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+    std::vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
     grid.add(a);
     grid.expand_volume();
     GridObj &g = grid.grid;
@@ -215,7 +216,7 @@ TEST_CASE("Grid::expand_volume") {
     settings::grid::ra = 3;
     Grid grid(axes);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
     grid.add(a);
     GridObj &g = grid.grid;
     grid.expand_volume();
@@ -291,8 +292,8 @@ TEST_CASE("volume") {
     GridDebug grid(axes);
 
     // cout << grid.get_volume() << endl;
-    vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
-    vector<Water> w = {Water({2, 2, 2}, 0, "C", "", 0), Water({2, 2, 3}, 0, "C", "", 0)};
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+    vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::C, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::C, "", 0)};
     grid.add(a);
     grid.add(w);
     REQUIRE(grid.unexpanded_volume() == 1); // atoms are added as point-particles, and only occupy one unit of space.
@@ -300,7 +301,7 @@ TEST_CASE("volume") {
     grid.expand_volume();
     REQUIRE(grid.unexpanded_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
 
-    grid.add(Atom({0, 0, -1}, 0, "C", "", 0));
+    grid.add(Atom({0, 0, -1}, 0,  constants::atom_t::C, "", 0));
     grid.expand_volume();
     REQUIRE(grid.unexpanded_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
 }
@@ -318,7 +319,7 @@ TEST_CASE("Grid::hydrate") {
 
         // add a single atom to the grid, and hydrate it
         settings::grid::percent_water = 0;
-        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
         REQUIRE(grid.get_atoms().size() == 1); // check atoms
 
@@ -393,7 +394,7 @@ TEST_CASE("Grid: using different widths") {
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
         Grid grid(axes);
 
-        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
         GridObj& g = grid.grid;
 
@@ -426,7 +427,7 @@ TEST_CASE("Grid: using different widths") {
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
         GridDebug grid(axes);
 
-        vector<Atom> a = {Atom({5, 0, -7}, 0, "C", "", 1), Atom({0, -5, 0}, 0, "C", "", 2)};
+        vector<Atom> a = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2)};
         grid.add(a);
         grid.expand_volume();
 
@@ -473,9 +474,9 @@ TEST_CASE("Grid: add and remove") {
     GridDebug grid(axes);
 
     // atoms
-    Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
-    Atom a2 = Atom({0, 3, 0}, 0, "C", "", 2);
-    Atom a3 = Atom({0, 0, 3}, 0, "C", "", 3);
+    Atom a1 = Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1);
+    Atom a2 = Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2);
+    Atom a3 = Atom({0, 0, 3}, 0,  constants::atom_t::C, "", 3);
     vector<Atom> a = {a1, a2, a3};
 
     // waters
@@ -551,12 +552,12 @@ TEST_CASE("Grid: add and remove") {
     }
 
     SECTION("remove index") {
-        Atom a4 = Atom({1, 0, 0}, 0, "C", "", 4);
-        Atom a5 = Atom({0, 1, 0}, 0, "C", "", 5);
-        Atom a6 = Atom({0, 0, 1}, 0, "C", "", 6);
-        Atom a7 = Atom({2, 0, 0}, 0, "C", "", 7);
-        Atom a8 = Atom({0, 2, 0}, 0, "C", "", 8);
-        Atom a9 = Atom({0, 0, 2}, 0, "C", "", 9);
+        Atom a4 = Atom({1, 0, 0}, 0,  constants::atom_t::C, "", 4);
+        Atom a5 = Atom({0, 1, 0}, 0,  constants::atom_t::C, "", 5);
+        Atom a6 = Atom({0, 0, 1}, 0,  constants::atom_t::C, "", 6);
+        Atom a7 = Atom({2, 0, 0}, 0,  constants::atom_t::C, "", 7);
+        Atom a8 = Atom({0, 2, 0}, 0,  constants::atom_t::C, "", 8);
+        Atom a9 = Atom({0, 0, 2}, 0,  constants::atom_t::C, "", 9);
         a = {a1, a2, a3, a4, a5, a6, a7, a8, a9}; 
 
         grid.add(a);
@@ -590,9 +591,9 @@ TEST_CASE("Grid: correct_volume") {
     GridDebug grid(axes);
 
     // atoms
-    Atom a1 = Atom({3, 0, 0}, 0, "C", "", 1);
-    Atom a2 = Atom({0, 3, 0}, 0, "C", "", 2);
-    Atom a3 = Atom({0, 0, 3}, 0, "C", "", 3);
+    Atom a1 = Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1);
+    Atom a2 = Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2);
+    Atom a3 = Atom({0, 0, 3}, 0,  constants::atom_t::C, "", 3);
     vector<Atom> a = {a1, a2, a3};
 
     // waters
@@ -631,7 +632,7 @@ TEST_CASE("Grid::find_free_locs") {
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
         GridDebug grid(axes);
 
-        vector<Atom> a = {Atom({0, 0, 0}, 0, "C", "", 0)};
+        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
         grid.expand_volume();
 
@@ -668,7 +669,7 @@ TEST_CASE("Grid::deflate_volume") {
     settings::grid::rh = 3;
     GridDebug grid(axes);
 
-    vector<Atom> a = {Atom({3, 0, 0}, 0, "C", "", 1), Atom({0, 3, 0}, 0, "C", "", 2)};
+    vector<Atom> a = {Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1), Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2)};
     grid.add(a);
     REQUIRE(grid.unexpanded_volume() == 2);
 
@@ -734,7 +735,7 @@ TEST_CASE("Grid::operator=") {
     SECTION("copy") {
         Axis3D axes(-10, 10, -10, 10, -10, 10);
         Grid grid1(axes);
-        grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
+        grid1.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
         grid1.hydrate();
 
         Grid grid2 = grid1;
@@ -748,7 +749,7 @@ TEST_CASE("Grid::operator=") {
     SECTION("move") {
         Axis3D axes(-10, 10, -10, 10, -10, 10);
         Grid grid1(axes);
-        grid1.add(Atom({0, 0, 0}, 0, "C", "", 0));
+        grid1.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
         grid1.hydrate();
 
         Grid gridcopy = grid1;
@@ -765,7 +766,7 @@ TEST_CASE("hydration") {
     settings::grid::rh = 1;
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     Grid grid(axes);
-    grid.add(Atom({0, 0, 0}, 0, "C", "", 0));
+    grid.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
     grid.hydrate();
 
     // check that the waters have been expanded

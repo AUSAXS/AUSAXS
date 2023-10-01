@@ -87,10 +87,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     SECTION("analytical") {
         SECTION("atoms only") {
             // the following just describes the eight corners of a cube centered at origo
-            std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-            std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-            std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-            std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
             std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
             Protein protein(a);
             set_unity_charge(protein);
@@ -120,10 +120,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
         SECTION("waters only") {
             // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
             std::vector<Atom> a = {};
-            std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), 
-                                    Water(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1, -1), 1, "C", "C", 1), 
-                                    Water(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>(-1, 1,  1), 1, "C", "C", 1),
-                                    Water(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1), 
+                                    Water(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1), 
+                                    Water(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
+                                    Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
             Protein protein(a, w);
             set_unity_charge(protein);
 
@@ -151,10 +151,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
         SECTION("both waters and atoms") {
             // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-            std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-            std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-            std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-            std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Water(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+            std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
             std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
             Protein protein(a, w);
             set_unity_charge(protein);
