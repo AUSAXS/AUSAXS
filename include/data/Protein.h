@@ -279,7 +279,6 @@ class Protein {
 		 *        create a ScatteringHistogram and call its equivalent method instead. 
 		 */
 		[[nodiscard]] std::vector<double> debye_transform() const;
-		[[nodiscard]] std::vector<double> debye_transform_ff() const;
 
 		/**
 		 * @brief Get the number of constituent bodies. 

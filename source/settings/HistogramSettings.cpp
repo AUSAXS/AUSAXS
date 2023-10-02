@@ -34,6 +34,7 @@ template<> std::string settings::io::detail::SettingRef<settings::hist::Histogra
         case settings::hist::HistogramManagerChoice::PartialHistogramManager: return "phm";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT: return "phmmt";
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFF: return "phmmtff";
+        case settings::hist::HistogramManagerChoice::DebugManager: return "debug";
         default: return std::to_string(static_cast<int>(settingref));
     }
 }
@@ -45,6 +46,7 @@ template<> void settings::io::detail::SettingRef<settings::hist::HistogramManage
     else if (utility::to_lowercase(val[0]) == "phm") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManager;}
     else if (utility::to_lowercase(val[0]) == "phmmt") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMT;}
     else if (utility::to_lowercase(val[0]) == "phmmtff") {settingref = settings::hist::HistogramManagerChoice::PartialHistogramManagerMTFF;}
+    else if (utility::to_lowercase(val[0]) == "debug") {settingref = settings::hist::HistogramManagerChoice::DebugManager;}
     else if (!val[0].empty() && std::isdigit(val[0][0])) {settingref = static_cast<settings::hist::HistogramManagerChoice>(std::stoi(val[0]));}
     else {
         throw except::io_error("settings::hist::histogram_manager: Unkown HistogramManagerChoice. Did you forget to add parsing support for it in HistogramSettings.cpp?");

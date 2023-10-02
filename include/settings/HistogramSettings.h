@@ -18,7 +18,8 @@ namespace settings::hist {
         HistogramManagerMTFF,       // A multithreaded implementation of the simple manager that uses precalculated form factor products.
         PartialHistogramManager,    // A smart manager that only recalculates the parts of the histogram that are needed.
         PartialHistogramManagerMT,  // A multithreaded implementation of the partial manager.
-        PartialHistogramManagerMTFF // A multithreaded implementation of the partial manager that uses precalculated form factor products.
+        PartialHistogramManagerMTFF,// A multithreaded implementation of the partial manager that uses precalculated form factor products.
+        DebugManager
     };
     extern HistogramManagerChoice histogram_manager;
 }

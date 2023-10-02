@@ -48,11 +48,13 @@ namespace hist {
 
             const std::vector<double>& get_counts() const override;
 
+        protected:
+            double w_scaling = 1;
+            double exv_scaling = 1;
+
         private:
             Container3D<double> cp_pp;
             Container2D<double> cp_hp;
             Container1D<double> cp_hh;
-            double w_scaling = 1;
-            double exv_scaling = 1;
     };
 }

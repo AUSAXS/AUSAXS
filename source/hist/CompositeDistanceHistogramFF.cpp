@@ -15,7 +15,7 @@ CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(Container3D<double>&&
     : CompositeDistanceHistogram(std::move(p_tot), axis), cp_pp(std::move(p_pp)), cp_hp(std::move(p_hp)), cp_hh(std::move(p_hh)) {}
 
 CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept 
-    : CompositeDistanceHistogram(std::move(other.p_pp), std::move(other.p_hp), std::move(other.p_hh), std::move(other.p), other.axis), cp_pp(std::move(other.cp_pp)), cp_hp(std::move(other.cp_hp)), cp_hh(std::move(other.cp_hh)), w_scaling(other.w_scaling), exv_scaling(other.exv_scaling) {}
+    : CompositeDistanceHistogram(std::move(other.p_pp), std::move(other.p_hp), std::move(other.p_hh), std::move(other.p), other.axis), w_scaling(other.w_scaling), exv_scaling(other.exv_scaling), cp_pp(std::move(other.cp_pp)), cp_hp(std::move(other.cp_hp)), cp_hh(std::move(other.cp_hh)) {}
 
 CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
