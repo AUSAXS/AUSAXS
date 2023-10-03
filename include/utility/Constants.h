@@ -132,6 +132,16 @@ namespace constants {
     }
 
     /**
+     * @brief Radius
+     * 
+     * This namespace contains the radius of the most common atomic elements encountered in SAXS. 
+     */
+    namespace radius {
+        // get the radius of an atom
+        double get_vdw_radius(atom_t atom);
+    }
+
+    /**
      * @brief Charge
      * 
      * This namespace contains the net charge of the most common atomic elements encountered in SAXS. 

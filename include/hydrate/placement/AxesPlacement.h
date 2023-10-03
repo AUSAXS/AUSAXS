@@ -25,6 +25,6 @@ namespace grid {
          * @param loc the location to be checked. 
          * @return True if this is an acceptable location, false otherwise.
          */
-        bool collision_check(const Vector3<unsigned int>& loc) const;
+        bool collision_check(const Vector3<unsigned int>& loc, double ra) const;
     };
 }

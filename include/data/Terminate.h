@@ -8,7 +8,8 @@
 class Terminate : public Record {
 	public: 
 		int serial, resSeq;
-		std::string resName, chainID, iCode;
+		std::string resName, iCode;
+		char chainID;
 
 		/**
 		 * @brief Default constructor. 
@@ -24,7 +25,7 @@ class Terminate : public Record {
 		 * @param resSeq The residue sequence identifier. 
 		 * @param iCode iCode. 
 		 */
-		Terminate(int serial, const std::string& resName, const std::string& chainID, int resSeq, const std::string& iCode);
+		Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode);
 
 		/**
 		 * @brief Destructor.

@@ -18,7 +18,7 @@ Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const
     set_effective_charge(constants::charge::get_charge(this->element));
 }
 
-Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, const std::string& chainID, int resSeq, const std::string& iCode, 
+Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
     Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) {
         set_serial(serial);
         set_name(name);
@@ -65,10 +65,11 @@ void Atom::parse_pdb(const std::string& str) {
     //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
     const char form[] = "%6c%5c%1c%4c%1c%3c%1c%1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c";
     std::string recName = "      ", serial = "     ", space1 = " ", name = "    ", altLoc = " ", resName = "   ", space2 = " ", 
-        chainID = " ", resSeq = "    ", iCode = " ", space3 = "   ", x = "        ", y = "        ", z = "        ", 
+        resSeq = "    ", iCode = " ", space3 = "   ", x = "        ", y = "        ", z = "        ", 
         occupancy = "      ", tempFactor = "      ", space4 = "          ", element = "  ", charge = "  ";
+    char chainID = ' ';
     sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), name.data(), altLoc.data(), resName.data(), 
-        space2.data(), chainID.data(), resSeq.data(), iCode.data(), space3.data(), x.data(), y.data(), z.data(), 
+        space2.data(), &chainID, resSeq.data(), iCode.data(), space3.data(), x.data(), y.data(), z.data(), 
         occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
 
     // sanity check
@@ -166,7 +167,7 @@ void Atom::set_altLoc(const std::string& altLoc) {this->altLoc = altLoc;}
 void Atom::set_serial(int serial) {this->serial = serial;}
 void Atom::set_resSeq(int resSeq) {this->resSeq = resSeq;}
 void Atom::set_effective_charge(double charge) {effective_charge = charge;}
-void Atom::set_chainID(const std::string& chainID) {this->chainID = chainID;}
+void Atom::set_chainID(char chainID) {this->chainID = chainID;}
 void Atom::set_iCode(const std::string& iCode) {this->iCode = iCode;}
 void Atom::set_charge(const std::string& charge) {this->charge = charge;}
 void Atom::set_resName(const std::string& resName) {this->resName = resName;}
@@ -196,7 +197,7 @@ double Atom::get_tempFactor() const {return tempFactor;}
 double Atom::get_absolute_charge() const {return Z();}
 double Atom::get_effective_charge() const {return effective_charge;}
 std::string Atom::get_altLoc() const {return altLoc;}
-std::string Atom::get_chainID() const {return chainID;}
+char Atom::get_chainID() const {return chainID;}
 std::string Atom::get_iCode() const {return iCode;}
 std::string Atom::get_charge() const {return charge;}
 std::string Atom::get_resName() const {return resName;}

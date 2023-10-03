@@ -95,7 +95,7 @@ void ProteinFile::refresh() {
     if (protein_atoms.empty()) {return;}
 
     bool terminate_inserted = false;
-    std::string chainID = "0"; int resSeq = 0; int serial = protein_atoms[0].serial;
+    char chainID = '0'; int resSeq = 0; int serial = protein_atoms[0].serial;
 
     auto insert_ter = [&] () {
         // last atom before the terminate
@@ -122,12 +122,12 @@ void ProteinFile::refresh() {
         serial++;
     }
 
-    chainID = protein_atoms[protein_atoms.size()-1].chainID;
+    chainID = protein_atoms[protein_atoms.size()-1].chainID+1;
     resSeq = protein_atoms[protein_atoms.size()-1].resSeq + 1;
     for (auto& a : hydration_atoms) {
         a.set_serial(serial++ % 100000);
-        a.set_resSeq(resSeq++);
-        a.set_chainID(chainID);
+        a.set_resSeq(resSeq++ % 10000);
+        a.set_chainID(chainID + int(resSeq/10000));
     }
 }
 

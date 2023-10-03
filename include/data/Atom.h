@@ -26,7 +26,7 @@ class Atom : public Record {
          * 
          * @param all see http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
          */
-        Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, const std::string& chainID, int resSeq, 
+        Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, 
             const std::string& iCode, Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge);
 
         /**
@@ -136,7 +136,7 @@ class Atom : public Record {
          * 
          * @param chainID the chain ID, e.g. A.
          */
-        void set_chainID(const std::string& chainID);
+        void set_chainID(char chainID);
 
         /**
          * @brief Set the insertion code for this atom.
@@ -230,7 +230,7 @@ class Atom : public Record {
         /**
          * @brief Get the chain ID of this Atom.
          */
-        std::string get_chainID() const;
+        char get_chainID() const;
 
         /**
          * @brief Get the insertion code of this Atom.
@@ -314,7 +314,8 @@ class Atom : public Record {
 
         // properties as defined in https://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf, page 180.
         Vector3<double> coords = {0, 0, 0};
-        std::string name, altLoc, resName, chainID, iCode, charge, recName = "ATOM  ";
+        std::string name, altLoc, resName, iCode, charge, recName = "ATOM  ";
+        char chainID;
         constants::atom_t element;
         double occupancy = -1, tempFactor = -1;
         int serial = -1, resSeq = -1; 

@@ -23,6 +23,18 @@ std::ostream& utility::detail::operator<<(std::ostream& os, const __dummy& obj) 
 
 utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) {
     std::string s = std::to_string(number);
+    // remove unnecessary 0s
+    unsigned int end = s.size();
+    for (unsigned int i = end; i > 0; i--) {
+        if (s[i-1] != '0') {
+            end = i+1;
+            break;
+        }
+    }
+    if (end < s.size()) {
+        s = s.substr(0, end);
+    }
+
     std::string o;
     for (unsigned int i = 0; i < width; i++) {
         if (i < s.size()) {
@@ -33,10 +45,12 @@ utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) 
     }
 
     // check how lossy the conversion was
-    double d = std::stod(o);
-    if (!approx(d, number, 1e-3)) {
-        console::print_warning("Fixed-width conversion of " + std::to_string(number) + " to " + o + " is lossy.");
-    }
+    #ifdef DEBUG
+        double d = std::stod(o);
+        if (!approx(d, number, 1e-3)) {
+            console::print_warning("Fixed-width conversion of " + std::to_string(number) + " to " + o + " is lossy.");
+        }
+    #endif
     
     return {o};
 } 

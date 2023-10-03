@@ -2,6 +2,7 @@
 #include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
 #include <data/Water.h>
+#include <utility/Constants.h>
 
 std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     // dereference the values we'll need for better performance
@@ -20,7 +21,7 @@ std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    int r_eff = grid->get_radius_atoms() + grid->get_radius_water();
+    int r_eff = constants::radius::get_vdw_radius(constants::atom_t::C) + constants::radius::get_vdw_radius(constants::atom_t::O);
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
         for (int j = min.y(); j < max.y(); j++) {

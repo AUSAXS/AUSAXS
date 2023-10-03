@@ -9,7 +9,7 @@ using std::left, std::right, std::setw;
 
 Terminate::Terminate() = default;
 
-Terminate::Terminate(int serial, const std::string& resName, const std::string& chainID, int resSeq, const std::string& iCode) {
+Terminate::Terminate(int serial, const std::string& resName, char chainID, int resSeq, const std::string& iCode) {
     this->serial = serial;
     this->resName = resName;
     this->chainID = chainID;
@@ -32,10 +32,10 @@ void Terminate::parse_pdb(const std::string& s) {
     //                   0     1     2        
     //                   0  6  1  8  0  1  2  6  7  
     const char form[] = "%6c%5c%6c%3c%1c%1c%4c%1c";
-    std::string recName = "      ", serial = "     ", space1 = "      ", resName = "   ", space2 = " ", 
-        chainID = " ", resSeq = "    ", iCode = " ";
+    std::string recName = "      ", serial = "     ", space1 = "      ", resName = "   ", space2 = " ", resSeq = "    ", iCode = " ";
+    char chainID;
     sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), resName.data(), 
-        space2.data(), chainID.data(), resSeq.data(), iCode.data());
+        space2.data(), &chainID, resSeq.data(), iCode.data());
 
     // sanity check
     if (Record::get_type(recName) != RecordType::TERMINATE) {

@@ -196,3 +196,50 @@ double constants::mass::get_mass(atom_t atom) {
         default: throw std::runtime_error("constants::mass::get_mass: Unknown atom type");   
     }
 }
+
+double constants::radius::get_vdw_radius(atom_t atom) {
+    // switch(atom) {
+    //     case atom_t::O: return 1.5;
+    //     default: return 2.4;
+    // }
+    switch(atom) {
+        // Rowland 1996, crystallographic
+        case atom_t::H: return 1.1;
+
+        // wikipedia, likely also crystallographic
+        case atom_t::He: return 1.4;
+        case atom_t::Ne: return 1.54;
+        case atom_t::Ar: return 1.88;
+
+        // Batsanov, 2001, equilibrium values
+        case atom_t::Li: return 2.63;
+        case atom_t::Be: return 2.23;
+        case atom_t::B: return 2.05;
+        case atom_t::C: return 1.96;
+        case atom_t::N: return 1.79;
+        case atom_t::O: return 1.71;
+        case atom_t::F: return 1.65;
+        case atom_t::Na: return 2.77;
+        case atom_t::Mg: return 2.42;
+        case atom_t::Al: return 2.40;
+        case atom_t::Si: return 2.26;
+        case atom_t::P: return 2.14;
+        case atom_t::S: return 2.06;
+        case atom_t::Cl: return 2.05;
+        case atom_t::K: return 3.02;
+        case atom_t::Ca: return 2.78;
+        case atom_t::Sc: return 2.62;
+        case atom_t::Ti: return 2.44;
+        case atom_t::V: return 2.27;
+        case atom_t::Cr: return 2.23;
+        case atom_t::Mn: return 2.25;
+        case atom_t::Fe: return 2.27;
+        case atom_t::Co: return 2.25;
+        case atom_t::Ni: return 2.23;
+        case atom_t::Cu: return 2.27;
+        case atom_t::Zn: return 2.24;
+        case atom_t::W: return 2.36;
+        case atom_t::M: return 0;
+        default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type");
+    }
+}

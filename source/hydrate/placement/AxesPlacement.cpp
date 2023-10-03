@@ -3,16 +3,16 @@
 #include <hydrate/GridMember.h>
 #include <data/Water.h>
 #include <math/Vector3.h>
+#include <utility/Constants.h>
 
 std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
-    unsigned int ra = grid->get_radius_atoms(), rh = grid->get_radius_water();
 
     // short lambda to actually place the generated water molecules
     std::vector<GridMember<Water>> placed_water(grid->a_members.size());
-    size_t index = 0;
+    unsigned int index = 0;
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Water a = Water::create_new_water(exact_loc);
         GridMember<Water> gm = grid->add(a, true);
@@ -23,47 +23,49 @@ std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    int r_eff = ra+rh;                  // the effective bin radius
-    double r_eff_real = r_eff*grid->get_width(); // the effective real radius
+    static double rh = constants::radius::get_vdw_radius(constants::atom_t::O); // radius of a water molecule
     for (const auto& atom : grid->a_members) {
         int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
+        double ra = constants::radius::get_vdw_radius(atom.atom.get_element()); // radius of the atom
+        double r_eff_real = ra+rh; // the effective bin radius
+        int r_eff_bin = std::round(r_eff_real/grid->get_width()); // the effective bin radius in bins
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-        unsigned int xm = std::max(x-r_eff, 0), xp = std::min(x+r_eff, (int) bins[0]-1); // xminus and xplus
-        unsigned int ym = std::max(y-r_eff, 0), yp = std::min(y+r_eff, (int) bins[1]-1); // yminus and yplus
-        unsigned int zm = std::max(z-r_eff, 0), zp = std::min(z+r_eff, (int) bins[2]-1); // zminus and zplus
+        unsigned int xm = std::max(x-r_eff_bin, 0), xp = std::min(x+r_eff_bin, (int) bins[0]-1); // xminus and xplus
+        unsigned int ym = std::max(y-r_eff_bin, 0), yp = std::min(y+r_eff_bin, (int) bins[1]-1); // yminus and yplus
+        unsigned int zm = std::max(z-r_eff_bin, 0), zp = std::min(z+r_eff_bin, (int) bins[2]-1); // zminus and zplus
 
         // check collisions for x ± r_eff
-        if ((gref.index(xm, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xm, y, z))) {
+        if ((gref.index(xm, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xm, y, z), ra)) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.x() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref.index(xp, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xp, y, z))) {
+        if ((gref.index(xp, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xp, y, z), ra)) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.x() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for y ± r_eff
-        if ((gref.index(x, ym, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, ym, z))) {
+        if ((gref.index(x, ym, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, ym, z), ra)) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.y() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref.index(x, yp, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, yp, z))) {
+        if ((gref.index(x, yp, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, yp, z), ra)) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.y() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for z ± r_eff
-        if ((gref.index(x, y, zm) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zm))) {
+        if ((gref.index(x, y, zm) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zm), ra)) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.z() -= r_eff_real;
             add_loc(exact_loc);
         }
-        if ((gref.index(x, y, zp) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zp))) {
+        if ((gref.index(x, y, zp) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zp), ra)) {
             Vector3 exact_loc = atom.atom.coords;
             exact_loc.z() += r_eff_real;
             add_loc(exact_loc);
@@ -74,11 +76,13 @@ std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     return placed_water;
 }
 
-bool grid::AxesPlacement::collision_check(const Vector3<unsigned int>& loc) const {
+bool grid::AxesPlacement::collision_check(const Vector3<unsigned int>& loc, double ra) const {
+    static double rh = constants::radius::get_vdw_radius(constants::atom_t::O); // radius of a water molecule
+
     // dereference the values we'll need for better performance
     GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
-    int ra = grid->get_radius_atoms(), rh = grid->get_radius_water();
+    
     int x = loc.x(), y = loc.y(), z = loc.z();
 
     // loop over the box [x-r, x+r][y-r, y+r][z-r, z+r]

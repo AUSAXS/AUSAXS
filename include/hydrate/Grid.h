@@ -203,35 +203,6 @@ namespace grid {
 			const Axis3D& get_axes() const {return axes;}
 
 			/**
-			 * @brief Set the atomic radius (does not affect waters). 
-			 * 		  Note that this will not affect already expanded atoms.
-			 * 		  Complexity: O(1).
-			 * 
-			 * @param radius The new radius in Ångström.
-			 */
-			void set_radius_atoms(double radius);
-
-			/**
-			 * @brief Set the water radius (does not affect atoms).
-			 * 		  Note that this will not affect already expanded waters.
-			 * 
-			 * @param radius The new radius in Ångström.
-			 */
-			void set_radius_water(double radius);
-
-			/**
-			 * @brief Get the atomic radius.
-			 * 		  Complexity: O(1).
-			 */
-			unsigned int get_radius_atoms() const {return ra;}
-
-			/**
-			 * @brief Get the water radius.
-			 * 		  Complexity: O(1).
-			 */
-			unsigned int get_radius_water() const {return rh;}
-
-			/**
 			 * @brief Create the smallest possible box containing the center points of all member atoms.
 			 * 		  Complexity: O(n) in the number of atoms.
 			 * 
@@ -300,8 +271,6 @@ namespace grid {
 
 		protected: // only protected since they are important for testing
 			unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
-			unsigned int ra = 0; // Radius of each atom represented as a number of bins
-			unsigned int rh = 0; // Radius of each water molecule represented as a number of bins
 
 			/** 
 			 * @brief Expand a single member atom into an actual sphere.

@@ -20,13 +20,11 @@ namespace grid {
 
             void prepare_rotations(int divisions = 8);
 
-            // the vectors representing the bin offsets of rotations
             std::vector<Vector3<int>> rot_bins_1rh; // rotation bins at 1rh radius
             std::vector<Vector3<int>> rot_bins_3rh; // rotation bins at 3rh radius
             std::vector<Vector3<int>> rot_bins_5rh; // rotation bins at 5rh radius
             std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
-            std::vector<Vector3<int>> rot_bins_rarh; // rotation bins at rarh radius
-            std::vector<Vector3<double>> rot_locs_rarh; // exact locations of the rarh bins
+            std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
 
             std::vector<GridMember<Water>> place() const override;
 

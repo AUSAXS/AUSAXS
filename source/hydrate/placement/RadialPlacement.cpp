@@ -4,18 +4,15 @@
 #include <hydrate/GridMember.h>
 #include <settings/GridSettings.h>
 #include <data/Water.h>
+#include <utility/Constants.h>
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
-    int rh = grid->get_radius_water(), ra = grid->get_radius_atoms();
-    double width = grid->get_width();
-
     // vector<vector<int>> bins;
     std::vector<Vector3<int>> bins_1rh;
     std::vector<Vector3<int>> bins_3rh;
     std::vector<Vector3<int>> bins_5rh;
     std::vector<Vector3<int>> bins_7rh;
-    std::vector<Vector3<int>> bins_rarh;
-    std::vector<Vector3<double>> locs_rarh;
+    std::vector<Vector3<double>> locs;
     double ang = 2*M_PI/divisions;
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
@@ -55,15 +52,14 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
         }
     }
 
-    double rarh = ra+rh;
+    double rh = constants::radius::get_vdw_radius(constants::atom_t::O);
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_1rh.push_back(Vector3<int>(std::trunc(rh*xr), std::trunc(rh*yr), std::trunc(rh*zr)));
-        bins_3rh.push_back(Vector3<int>(std::trunc(3*rh*xr), std::trunc(3*rh*yr), std::trunc(3*rh*zr)));
-        bins_5rh.push_back(Vector3<int>(std::trunc(5*rh*xr), std::trunc(5*rh*yr), std::trunc(5*rh*zr)));
-        bins_7rh.push_back(Vector3<int>(std::trunc(7*rh*xr), std::trunc(7*rh*yr), std::trunc(7*rh*zr)));
-        bins_rarh.push_back(Vector3<int>(std::trunc((rarh)*xr), std::trunc((rarh)*yr), std::trunc((rarh)*zr)));
-        locs_rarh.push_back(Vector3<double>((rarh*width)*xr, (rarh*width)*yr, (rarh*width)*zr));
+        bins_1rh.push_back(Vector3<int>(std::round(rh*xr),   std::round(rh*yr),   std::round(rh*zr)));
+        bins_3rh.push_back(Vector3<int>(std::round(3*rh*xr), std::round(3*rh*yr), std::round(3*rh*zr)));
+        bins_5rh.push_back(Vector3<int>(std::round(5*rh*xr), std::round(5*rh*yr), std::round(5*rh*zr)));
+        bins_7rh.push_back(Vector3<int>(std::round(7*rh*xr), std::round(7*rh*yr), std::round(7*rh*zr)));
+        locs.push_back(Vector3<double>(xr, yr, zr));
     }
 
     // set the member vectors
@@ -71,8 +67,7 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     rot_bins_3rh = std::move(bins_3rh);
     rot_bins_5rh = std::move(bins_5rh);
     rot_bins_7rh = std::move(bins_7rh);
-    rot_bins_rarh = std::move(bins_rarh);
-    rot_locs_rarh = std::move(locs_rarh);
+    rot_locs = std::move(locs);
 }
 
 std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
@@ -92,10 +87,15 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
         placed_water[index++] = std::move(gm);
     };
 
+    static double rh = constants::radius::get_vdw_radius(constants::atom_t::O);
     for (const auto& atom : grid->a_members) {
         int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-        for (unsigned int i = 0; i < rot_bins_rarh.size(); i++) {
-            int xr = x + rot_bins_rarh[i].x(), yr = y + rot_bins_rarh[i].y(), zr = z + rot_bins_rarh[i].z(); // new coordinates
+        int ra = constants::radius::get_vdw_radius(atom.atom.get_element());
+        int reff = ra + rh;
+        for (unsigned int i = 0; i < rot_locs.size(); i++) {
+            int xr = x + std::round(rot_locs[i].x()*reff);
+            int yr = y + std::round(rot_locs[i].y()*reff);
+            int zr = z + std::round(rot_locs[i].z()*reff);
             
             // check bounds
             if (xr < 0) xr = 0;
@@ -104,11 +104,11 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
             if (yr >= (int) bins.y()) yr = bins.y()-1;
             if (zr < 0) zr = 0;
             if (zr >= (int) bins.z()) zr = bins.z()-1;
-
+            
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
             Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
             if (gref.index(xr, yr, zr) == GridObj::EMPTY && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
-                Vector3<double> exact_loc = atom.atom.coords + rot_locs_rarh[i];
+                Vector3<double> exact_loc = atom.atom.coords + rot_locs[i]*reff;
                 add_loc(exact_loc);
             }
         }
@@ -132,9 +132,11 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
         return false;
     };
 
-    for (unsigned int i = 0; i < rot_bins_1rh.size(); i++) {
+    for (unsigned int i = 0; i < rot_locs.size(); i++) {
         // check for collisions at 1rh
-        int xr = loc.x() + rot_bins_1rh[i].x(), yr = loc.y() + rot_bins_1rh[i].y(), zr = loc.z() + rot_bins_1rh[i].z(); // new coordinates
+        int xr = loc.x() + rot_bins_1rh[i].x();
+        int yr = loc.y() + rot_bins_1rh[i].y();
+        int zr = loc.z() + rot_bins_1rh[i].z();
 
         // check for bounds
         if (xr < 0) xr = 0;
@@ -152,7 +154,9 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
         // check if we're in a cavity
         for (unsigned int j = 0; j < rot_bins_3rh.size(); j++) {
             // check at 3r
-            int xr = loc.x() + rot_bins_3rh[j].x(), yr = loc.y() + rot_bins_3rh[j].y(), zr = loc.z() + rot_bins_3rh[j].z();
+            int xr = loc.x() + rot_bins_3rh[j].x();
+            int yr = loc.y() + rot_bins_3rh[j].y();
+            int zr = loc.z() + rot_bins_3rh[j].z();
             if (is_out_of_bounds({xr, yr, zr})) { // if the line goes out of bounds, we know for sure it won't intersect anything
                 score += 3;                       // so we add three points and move on to the next
                 continue;
@@ -165,7 +169,9 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
             } 
 
             // check at 5r
-            xr = loc.x() + rot_bins_5rh[j].x(); yr = loc.y() + rot_bins_5rh[j].y(); zr = loc.z() + rot_bins_5rh[j].z();
+            xr = loc.x() + rot_bins_5rh[j].x();
+            yr = loc.y() + rot_bins_5rh[j].y();
+            zr = loc.z() + rot_bins_5rh[j].z();
             if (is_out_of_bounds({xr, yr, zr})) {
                 score += 2;
                 continue;
@@ -178,7 +184,9 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
             } 
 
             // check at 7r
-            xr = loc.x() + rot_bins_7rh[j].x(); yr = loc.y() + rot_bins_7rh[j].y(); zr = loc.z() + rot_bins_7rh[j].z();
+            xr = loc.x() + rot_bins_7rh[j].x();
+            yr = loc.y() + rot_bins_7rh[j].y();
+            zr = loc.z() + rot_bins_7rh[j].z();
             if (is_out_of_bounds({xr, yr, zr})) {
                 score += 1;
                 continue;

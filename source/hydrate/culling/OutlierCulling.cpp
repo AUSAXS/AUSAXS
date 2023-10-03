@@ -3,6 +3,7 @@
 #include <hydrate/Grid.h>
 #include <math/Vector3.h>
 #include <data/Water.h>
+#include <utility/Constants.h>
 
 #include <utility>
 
@@ -14,7 +15,7 @@ std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water
     }
 
     std::vector<std::pair<GridMember<Water>, int>> v(placed_water.size());
-    const int r = 3*grid->get_radius_atoms(); // use 2*atomic_radius as the boundary
+    int r = 3*constants::radius::get_vdw_radius(constants::atom_t::C); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
     const GridObj& gref = grid->grid;
     size_t index = 0;
