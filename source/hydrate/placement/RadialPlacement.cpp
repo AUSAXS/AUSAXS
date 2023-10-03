@@ -7,7 +7,8 @@
 #include <utility/Constants.h>
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
-    // vector<vector<int>> bins;
+    double width = grid->get_width();
+
     std::vector<Vector3<int>> bins_1rh;
     std::vector<Vector3<int>> bins_3rh;
     std::vector<Vector3<int>> bins_5rh;
@@ -55,10 +56,10 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     double rh = constants::radius::get_vdw_radius(constants::atom_t::O);
     for (const auto& rot : rots) {
         double xr = rot.x(), yr = rot.y(), zr = rot.z();
-        bins_1rh.push_back(Vector3<int>(std::round(rh*xr),   std::round(rh*yr),   std::round(rh*zr)));
-        bins_3rh.push_back(Vector3<int>(std::round(3*rh*xr), std::round(3*rh*yr), std::round(3*rh*zr)));
-        bins_5rh.push_back(Vector3<int>(std::round(5*rh*xr), std::round(5*rh*yr), std::round(5*rh*zr)));
-        bins_7rh.push_back(Vector3<int>(std::round(7*rh*xr), std::round(7*rh*yr), std::round(7*rh*zr)));
+        bins_1rh.push_back(Vector3<int>(std::round(  rh*xr)/width, std::round(  rh*yr)/width, std::round(  rh*zr)/width));
+        bins_3rh.push_back(Vector3<int>(std::round(3*rh*xr)/width, std::round(3*rh*yr)/width, std::round(3*rh*zr)/width));
+        bins_5rh.push_back(Vector3<int>(std::round(5*rh*xr)/width, std::round(5*rh*yr)/width, std::round(5*rh*zr)/width));
+        bins_7rh.push_back(Vector3<int>(std::round(7*rh*xr)/width, std::round(7*rh*yr)/width, std::round(7*rh*zr)/width));
         locs.push_back(Vector3<double>(xr, yr, zr));
     }
 
@@ -71,31 +72,27 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
 }
 
 std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
-    // dereference the values we'll need for better performance
     auto bins = grid->get_bins();
-    GridObj& gref = grid->grid;
+    double width = grid->get_width();
 
     // we define a helper lambda
-    std::vector<GridMember<Water>> placed_water(grid->a_members.size());
-    unsigned int index = 0;
+    std::vector<GridMember<Water>> placed_water; 
+    placed_water.reserve(grid->a_members.size());
     auto add_loc = [&] (Vector3<double> exact_loc) {
         Water a = Water::create_new_water(exact_loc);
         GridMember<Water> gm = grid->add(a, true);
-        if (placed_water.size() <= index) [[unlikely]] {
-            placed_water.resize(2*index);
-        }
-        placed_water[index++] = std::move(gm);
+        placed_water.push_back(std::move(gm));
     };
 
-    static double rh = constants::radius::get_vdw_radius(constants::atom_t::O);
+    double rh = grid->get_hydration_radius();
     for (const auto& atom : grid->a_members) {
         int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-        int ra = constants::radius::get_vdw_radius(atom.atom.get_element());
-        int reff = ra + rh;
+        double ra = grid->get_atomic_radius(atom.atom.get_element());
+        double reff = ra + rh;
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            int xr = x + std::round(rot_locs[i].x()*reff);
-            int yr = y + std::round(rot_locs[i].y()*reff);
-            int zr = z + std::round(rot_locs[i].z()*reff);
+            int xr = x + std::round(rot_locs[i].x()*reff)/width;
+            int yr = y + std::round(rot_locs[i].y()*reff)/width;
+            int zr = z + std::round(rot_locs[i].z()*reff)/width;
             
             // check bounds
             if (xr < 0) xr = 0;
@@ -107,14 +104,12 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
             
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
             Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
-            if (gref.index(xr, yr, zr) == GridObj::EMPTY && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
+            if (grid->grid.index(xr, yr, zr) == GridObj::EMPTY && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
                 Vector3<double> exact_loc = atom.atom.coords + rot_locs[i]*reff;
                 add_loc(exact_loc);
             }
         }
     }
-
-    placed_water.resize(index);
     return placed_water;
 }
 

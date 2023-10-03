@@ -13,6 +13,7 @@ class Body;
 class Atom;
 class Water;
 namespace io{class File;}
+namespace constants {enum class atom_t;}
 namespace grid {
 	template<typename T> class GridMember;
 	class PlacementStrategy;
@@ -55,6 +56,16 @@ namespace grid {
 			Grid(Grid&& grid) noexcept;
 
 			~Grid();
+
+			/**
+			 * @brief Get the atomic radius of an atom in Å.
+			 */
+			virtual double get_atomic_radius(constants::atom_t atom) const;
+
+			/**
+			 * @brief Get the radius of a water molecule in Å.
+			 */
+			virtual double get_hydration_radius() const;
 
 			/** 
 			 * @brief Add a vector of atoms to the grid. 

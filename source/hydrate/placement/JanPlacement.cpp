@@ -21,7 +21,7 @@ std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    int r_eff = constants::radius::get_vdw_radius(constants::atom_t::C) + constants::radius::get_vdw_radius(constants::atom_t::O);
+    int r_eff = (grid->get_atomic_radius(constants::atom_t::C) + grid->get_hydration_radius())/grid->get_width();
     auto[min, max] = grid->bounding_box_index();
     for (int i = min.x(); i < max.x(); i++) {
         for (int j = min.y(); j < max.y(); j++) {

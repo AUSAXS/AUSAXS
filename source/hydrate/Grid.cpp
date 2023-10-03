@@ -96,6 +96,14 @@ void Grid::setup() {
     water_culler = grid::factory::construct_culling_strategy(this);
 }
 
+double Grid::get_atomic_radius(constants::atom_t atom) const {
+    return constants::radius::get_vdw_radius(atom);
+}
+
+double Grid::get_hydration_radius() const {
+    return constants::radius::get_vdw_radius(constants::atom_t::O);
+}
+
 std::vector<Water> Grid::hydrate() {
     std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
     water_culler->set_target_count(settings::grid::percent_water*a_members.size()); // target is 10% of atoms
@@ -194,7 +202,7 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-    int r = constants::radius::get_vdw_radius(atom.atom.get_element()); // cast to int to avoid unsigned underflow
+    int r = get_atomic_radius(atom.atom.get_element())/width; // cast to int to avoid unsigned underflow
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
@@ -224,7 +232,7 @@ void Grid::expand_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
-    int r = constants::radius::get_vdw_radius(constants::atom_t::O);    // cast to int to avoid unsigned underflow
+    int r = get_hydration_radius()/width; // cast to int to avoid unsigned underflow
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
@@ -482,7 +490,7 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-    int r = constants::radius::get_vdw_radius(atom.atom.get_element()); // cast to int to avoid unsigned underflow
+    int r = get_atomic_radius(atom.atom.get_element())/width; // cast to int to avoid unsigned underflow
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
@@ -510,7 +518,7 @@ void Grid::deflate_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
-    int r = constants::radius::get_vdw_radius(constants::atom_t::O); // cast to int to avoid unsigned underflow
+    int r = get_hydration_radius()/width; // cast to int to avoid unsigned underflow
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus

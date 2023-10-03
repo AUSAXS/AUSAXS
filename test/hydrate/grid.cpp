@@ -24,17 +24,22 @@ using namespace grid;
 class GridDebug : public grid::Grid {
     using Grid::Grid;
     public: 
+        double get_atomic_radius(constants::atom_t atom) const override {return ra;}
+        double get_hydration_radius() const override {return rh;}
+        void set_atomic_radius(double ra) {this->ra = ra;}
+        void set_hydration_radius(double rh) {this->rh = rh;}
         auto unexpanded_volume() {return volume;}
         auto bounding_box_index() {return Grid::bounding_box_index();}
         auto to_bins(const Vector3<double> v) {return Grid::to_bins(v);}
         auto find_free_locs() {return Grid::find_free_locs();}
         static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
+
+    private:
+        double ra = 0, rh = 0;
 };
 
 TEST_CASE("Grid::Grid") {
     settings::grid::width = 1;
-    settings::grid::ra = 3;
-    settings::grid::rh = 3;
 
     SECTION("Axis3D&") {
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
@@ -43,8 +48,6 @@ TEST_CASE("Grid::Grid") {
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms().empty());
         CHECK(grid.get_volume() == 0);
-        CHECK(grid.get_radius_atoms() == settings::grid::ra);
-        CHECK(grid.get_radius_water() == settings::grid::rh);
         CHECK(grid.get_width() == settings::grid::width);
         CHECK(grid.get_axes() == axes);
     }
@@ -56,8 +59,6 @@ TEST_CASE("Grid::Grid") {
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms() == atoms);
         CHECK(grid.get_volume() != 0);
-        CHECK(grid.get_radius_atoms() == settings::grid::ra);
-        CHECK(grid.get_radius_water() == settings::grid::rh);
         CHECK(grid.get_width() == settings::grid::width);
     }
 
@@ -68,8 +69,6 @@ TEST_CASE("Grid::Grid") {
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms() == bodies[0].get_atoms());
         CHECK(grid.get_volume() != 0);
-        CHECK(grid.get_radius_atoms() == settings::grid::ra);
-        CHECK(grid.get_radius_water() == settings::grid::rh);
         CHECK(grid.get_width() == settings::grid::width);
     }
 
@@ -213,8 +212,8 @@ TEST_CASE("Grid::get_volume") {
 TEST_CASE("Grid::expand_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    settings::grid::ra = 3;
-    Grid grid(axes);
+    GridDebug grid(axes);
+    grid.set_atomic_radius(3);
 
     vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
     grid.add(a);

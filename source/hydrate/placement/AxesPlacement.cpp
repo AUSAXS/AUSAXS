@@ -23,12 +23,12 @@ std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     };
 
     // loop over the location of all member atoms
-    static double rh = constants::radius::get_vdw_radius(constants::atom_t::O); // radius of a water molecule
+    double rh = grid->get_hydration_radius(); // radius of a water molecule
     for (const auto& atom : grid->a_members) {
         int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-        double ra = constants::radius::get_vdw_radius(atom.atom.get_element()); // radius of the atom
+        double ra = grid->get_atomic_radius(atom.atom.get_element()); // radius of the atom
         double r_eff_real = ra+rh; // the effective bin radius
-        int r_eff_bin = std::round(r_eff_real/grid->get_width()); // the effective bin radius in bins
+        int r_eff_bin = std::round(r_eff_real)/grid->get_width(); // the effective bin radius in bins
 
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
         unsigned int xm = std::max(x-r_eff_bin, 0), xp = std::min(x+r_eff_bin, (int) bins[0]-1); // xminus and xplus
