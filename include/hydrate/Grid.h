@@ -274,7 +274,7 @@ namespace grid {
 			/**
 			 * @brief Get the contents of a single bin.
 			 */
-			const GridObj::DATATYPE& index(unsigned int i, unsigned int j, unsigned int k) const;
+			const GridObj::State& index(unsigned int i, unsigned int j, unsigned int k) const;
 
 			GridObj grid; // The actual grid.
 			std::list<GridMember<Atom>> a_members; // A list of all member atoms and where they are located.

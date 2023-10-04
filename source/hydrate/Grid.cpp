@@ -106,7 +106,15 @@ double Grid::get_hydration_radius() const {
 
 std::vector<Water> Grid::hydrate() {
     std::vector<GridMember<Water>> placed_water = find_free_locs(); // the molecules which were placed by the find_free_locs method
-    water_culler->set_target_count(settings::grid::percent_water*a_members.size()); // target is 10% of atoms
+
+    // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area
+    double vol = get_volume(); // volume in cubic Ångström
+    double r = std::cbrt(3*vol/(4*M_PI)); // radius of the protein in Ångström
+    double area = 4*M_PI*std::pow(r, 2.5); // surface area of the protein in Ångström^2
+    double target = settings::grid::water_scaling*area; // the target number of water molecules
+    std::cout << "Target: " << target << std::endl;
+
+    water_culler->set_target_count(target);
     return water_culler->cull(placed_water);
 }
 
@@ -202,7 +210,7 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-    int r = get_atomic_radius(atom.atom.get_element())/width; // cast to int to avoid unsigned underflow
+    int r = std::round(get_atomic_radius(atom.atom.get_element())/width);
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
@@ -216,7 +224,7 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
-                    if (grid.index(i, j, k) != GridObj::EMPTY) {continue;}
+                    if (!grid.is_empty(i, j, k)) {continue;}
                     grid.index(i, j, k) = GridObj::A_AREA;
                     added_volume++;
                 }
@@ -232,7 +240,7 @@ void Grid::expand_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
-    int r = get_hydration_radius()/width; // cast to int to avoid unsigned underflow
+    int r = std::round(get_hydration_radius()/width);
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
     int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
@@ -243,8 +251,72 @@ void Grid::expand_volume(GridMember<Water>& water) {
             for (int k = zm; k < zp; k++) {
                 // determine if the bin is within a sphere centered on the atom
                 if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
-                    if (grid.index(i, j, k) != GridObj::EMPTY) {continue;}
-                    grid.index(i, j, k) = GridObj::H_AREA;
+                    if (!grid.is_empty(i, j, k)) {continue;}
+                    grid.index(i, j, k) = GridObj::W_AREA;
+                }
+            }
+        }
+    }
+}
+
+void Grid::deflate_volume() {
+    // iterate through each member location
+    for (auto& atom : a_members) {
+        deflate_volume(atom);
+    }
+
+    for (auto& water : w_members) {
+        deflate_volume(water);
+    }
+}
+
+void Grid::deflate_volume(GridMember<Atom>& atom) {
+    if (!atom.expanded_volume) {return;} // check if this location has already been deflated
+    atom.expanded_volume = false; // mark the atom as deflated
+
+    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+    int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
+    int r = std::round(get_atomic_radius(atom.atom.get_element())/width);
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
+
+    // i, j, k *must* be ints due to avoid unsigned underflow
+    int removed_volume = 0;
+    for (int i = xm; i < xp; i++) {
+        for (int j = ym; j < yp; j++) {
+            for (int k = zm; k < zp; k++) {
+                // determine if the bin is within a sphere centered on the atom
+                if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
+                    if (!grid.is_atom_area(i, j, k)) {continue;}
+                    grid.index(i, j, k) = GridObj::EMPTY;
+                    removed_volume++;
+                }
+            }
+        }
+    }
+    volume -= removed_volume; // only the actual atoms contributes to the volume
+}
+
+void Grid::deflate_volume(GridMember<Water>& water) {
+    if (!water.expanded_volume) {return;} // check if this location has already been deflated
+    water.expanded_volume = false; // mark the water as deflated
+
+    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
+    int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
+    int r = std::round(get_hydration_radius()/width);
+    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
+    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
+    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
+
+    // i, j, k *must* be ints to avoid unsigned underflow
+    for (int i = xm; i < xp; i++) {
+        for (int j = ym; j < yp; j++) {
+            for (int k = zm; k < zp; k++) {
+                // determine if the bin is within a sphere centered on the atom
+                if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
+                    if (!grid.is_water_area(i, j, k)) {continue;}
+                    grid.index(i, j, k) = GridObj::EMPTY;
                 }
             }
         }
@@ -329,7 +401,7 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     }
 
     GridMember gm(water, loc);
-    grid.index(x, y, z) = GridObj::H_CENTER;
+    grid.index(x, y, z) = GridObj::W_CENTER;
     if (expand) {expand_volume(gm);}
     w_members.push_back(std::move(gm));
 
@@ -473,70 +545,6 @@ void Grid::remove(const std::vector<Water>& waters) {
     }
 }
 
-void Grid::deflate_volume() {
-    // iterate through each member location
-    for (auto& atom : a_members) {
-        deflate_volume(atom);
-    }
-
-    for (auto& water : w_members) {
-        deflate_volume(water);
-    }
-}
-
-void Grid::deflate_volume(GridMember<Atom>& atom) {
-    if (!atom.expanded_volume) {return;} // check if this location has already been deflated
-    atom.expanded_volume = false; // mark the atom as deflated
-
-    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-    int r = get_atomic_radius(atom.atom.get_element())/width; // cast to int to avoid unsigned underflow
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
-
-    // i, j, k *must* be ints due to avoid unsigned underflow
-    int removed_volume = 0;
-    for (int i = xm; i < xp; i++) {
-        for (int j = ym; j < yp; j++) {
-            for (int k = zm; k < zp; k++) {
-                // determine if the bin is within a sphere centered on the atom
-                if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
-                    if (grid.index(i, j, k) != GridObj::A_AREA) {continue;}
-                    grid.index(i, j, k) = GridObj::EMPTY;
-                    removed_volume++;
-                }
-            }
-        }
-    }
-    volume -= removed_volume; // only the actual atoms contributes to the volume
-}
-
-void Grid::deflate_volume(GridMember<Water>& water) {
-    if (!water.expanded_volume) {return;} // check if this location has already been deflated
-    water.expanded_volume = false; // mark the water as deflated
-
-    // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
-    int r = get_hydration_radius()/width; // cast to int to avoid unsigned underflow
-    int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
-    int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
-    int zm = std::max(z-r, 0), zp = std::min(z+r+1, (int) axes.z.bins); // zminus and zplus
-
-    // i, j, k *must* be ints to avoid unsigned underflow
-    for (int i = xm; i < xp; i++) {
-        for (int j = ym; j < yp; j++) {
-            for (int k = zm; k < zp; k++) {
-                // determine if the bin is within a sphere centered on the atom
-                if (std::sqrt(std::pow(x - i, 2) + std::pow(y - j, 2) + std::pow(z - k, 2)) <= r) {
-                    if (grid.index(i, j, k) != GridObj::H_AREA) {continue;}
-                    grid.index(i, j, k) = GridObj::EMPTY;
-                }
-            }
-        }
-    }
-}
-
 void Grid::clear_waters() {
     std::vector<Water> waters;
     waters.reserve(w_members.size());
@@ -608,11 +616,14 @@ void Grid::save(const io::File& path) const {
                     case GridObj::A_AREA:
                         atoms.push_back(Atom(c++, "C", "", "LYS", 'B', 2, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
-                    case GridObj::H_CENTER:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'C', 3, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
+                    case GridObj::VOLUME:
+                        atoms.push_back(Atom(c++, "H", "", "HOH", 'C', 3, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
                         break;
-                    case GridObj::H_AREA:
+                    case GridObj::W_CENTER:
                         waters.push_back(Water(c++, "H", "", "HOH", 'D', 4, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        break;
+                    case GridObj::W_AREA:
+                        waters.push_back(Water(c++, "H", "", "HOH", 'E', 5, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
                         break;
                 }
             }
@@ -641,7 +652,7 @@ Body Grid::generate_excluded_volume() const {
     return body;
 }
 
-const GridObj::DATATYPE& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
+const GridObj::State& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {
     return grid.index(i, j, k);
 }
 

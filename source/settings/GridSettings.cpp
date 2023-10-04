@@ -4,9 +4,7 @@
 #include <settings/SettingsIORegistry.h>
 
 namespace settings::grid {
-    double percent_water = 0.1;
-    double ra = 2.4;
-    double rh = 1.5;
+    double water_scaling = 0.01;
     double width = 1;
     double scaling = 0.25;
     bool cubic = false;
@@ -19,9 +17,7 @@ namespace settings::grid {
 
     namespace io {
         settings::io::SettingSection grid_settings("Grid", {
-            settings::io::create(percent_water, "percent_water"),
-            settings::io::create(ra, "ra"),
-            settings::io::create(rh, "rh"),
+            settings::io::create(water_scaling, "water_scaling"),
             settings::io::create(width, "width"),
             settings::io::create(scaling, "scaling"),
             settings::io::create(cubic, "cubic"),

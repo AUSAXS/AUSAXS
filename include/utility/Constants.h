@@ -112,8 +112,9 @@ namespace constants {
     // Atom enum for a consistent way to denote the type of an atom
     enum class atom_t {
         e, H, He, Li, Be, B, C, N, O, F, Ne, Na, Mg, Al, Si, P, S, Cl, Ar, K, Ca, Sc, Ti, V, Cr, Mn, Fe, Co, Ni, Cu, Zn, W, 
-        M, // This fake element is for compatibility with the GROMACS tip4p water model.
-        UNKNOWN
+        M,      // This fake element is for compatibility with the GROMACS tip4p water model.
+        dummy,  // Fake element for dummy atoms with variable properties. 
+        unknown
     };
 
     /**
@@ -122,7 +123,9 @@ namespace constants {
      * This namespace contains the masses of the most common atomic elements encountered in SAXS. 
      */
     namespace mass {
-        // get the weight of an atom
+        /**
+         * @brief Get the mass of an atom in u.
+         */
         double get_mass(atom_t atom);
 
         namespace density {
@@ -137,8 +140,18 @@ namespace constants {
      * This namespace contains the radius of the most common atomic elements encountered in SAXS. 
      */
     namespace radius {
-        // get the radius of an atom
+        /**
+         * @brief Get the Van der Waals radius of an atom in Ångström.
+         */
         double get_vdw_radius(atom_t atom);
+
+        /**
+         * @brief Set the radius of the dummy atom.
+         */
+        void set_dummy_radius(double radius);
+        namespace detail {
+            extern double dummy_radius;
+        }
     }
 
     /**
@@ -147,7 +160,9 @@ namespace constants {
      * This namespace contains the net charge of the most common atomic elements encountered in SAXS. 
      */
     namespace charge {
-        // get the charge Z of an atom
+        /**
+         * @brief Get the charge of an atom in e.
+         */
         unsigned int get_charge(atom_t atom);
 
         namespace density {

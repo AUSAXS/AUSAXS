@@ -37,12 +37,10 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
     app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume)->group("Protein options");
 
-    app.add_option("--reduce,-r", settings::grid::percent_water, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::percent_water)->group("Advanced options");
+    app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
     app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width)->group("Advanced options");
     app.add_option("--bin_width,--bw", settings::axes::distance_bin_width, "Bin width for the distance histograms.")->default_val(settings::axes::distance_bin_width)->group("Advanced options");
     app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.")->default_val(placement_strategy)->group("Advanced options");
-    app.add_option("--radius_a,--ra", settings::grid::ra, "Radius of the protein atoms.")->default_val(settings::grid::ra)->group("Advanced options");
-    app.add_option("--radius_h,--rh", settings::grid::rh, "Radius of the hydration atoms.")->default_val(settings::grid::rh)->group("Advanced options");
     auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
     CLI11_PARSE(app, argc, argv);
 

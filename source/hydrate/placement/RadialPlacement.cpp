@@ -141,7 +141,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
         if (zr < 0) zr = 0;
         if (zr >= (int) bins.z()) zr = bins.z()-1;
 
-        if (gref.index(xr, yr, zr) != GridObj::EMPTY) {
+        if (!gref.is_empty(xr, yr, zr)) {
             if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
             return false;
         }
@@ -152,12 +152,12 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
             int xr = loc.x() + rot_bins_3rh[j].x();
             int yr = loc.y() + rot_bins_3rh[j].y();
             int zr = loc.z() + rot_bins_3rh[j].z();
-            if (is_out_of_bounds({xr, yr, zr})) { // if the line goes out of bounds, we know for sure it won't intersect anything
-                score += 3;                       // so we add three points and move on to the next
+            if (is_out_of_bounds({xr, yr, zr})) {   // if the line goes out of bounds, we know for sure it won't intersect anything
+                score += 3;                         // so we add three points and move on to the next
                 continue;
             }
-            if (gref.index(xr, yr, zr) != GridObj::EMPTY) { // if the line intersects something at 3r, we don't check the other two points of the same line
-                score -= 3;                                 // but immediately subtract 3 points and move on to the next
+            if (!gref.is_empty(xr, yr, zr)) {       // if the line intersects something at 3r, we don't check the other two points of the same line
+                score -= 3;                         // but immediately subtract 3 points and move on to the next
                 continue;
             } else {
                 score++;
@@ -171,7 +171,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 2;
                 continue;
             }
-            if (gref.index(xr, yr, zr) != GridObj::EMPTY) {
+            if (!gref.is_empty(xr, yr, zr)) {
                 score -= 2;
                 continue;
             } else {
@@ -186,7 +186,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 1;
                 continue;
             }
-            if (gref.index(xr, yr, zr) != GridObj::EMPTY) {
+            if (!gref.is_empty(xr, yr, zr)) {
                 score -= 1;
                 continue;
             } else {

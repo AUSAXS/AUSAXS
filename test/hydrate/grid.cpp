@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <vector>
 #include <string>
@@ -24,8 +25,8 @@ using namespace grid;
 class GridDebug : public grid::Grid {
     using Grid::Grid;
     public: 
-        double get_atomic_radius(constants::atom_t atom) const override {return ra;}
-        double get_hydration_radius() const override {return rh;}
+		double get_atomic_radius(constants::atom_t) const override {return ra;}
+		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
         auto unexpanded_volume() {return volume;}
@@ -33,7 +34,7 @@ class GridDebug : public grid::Grid {
         auto to_bins(const Vector3<double> v) {return Grid::to_bins(v);}
         auto find_free_locs() {return Grid::find_free_locs();}
         static auto bounding_box(const vector<Atom>& atoms) {return Grid::bounding_box(atoms);}
-
+    
     private:
         double ra = 0, rh = 0;
 };
@@ -212,10 +213,10 @@ TEST_CASE("Grid::get_volume") {
 TEST_CASE("Grid::expand_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    GridDebug grid(axes);
-    grid.set_atomic_radius(3);
+    Grid grid(axes);
+    constants::radius::set_dummy_radius(3);
 
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
     grid.add(a);
     GridObj &g = grid.grid;
     grid.expand_volume();
@@ -287,12 +288,12 @@ TEST_CASE("Grid::expand_volume") {
 TEST_CASE("volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    settings::grid::ra = 1;
+    constants::radius::set_dummy_radius(1);
     GridDebug grid(axes);
 
     // cout << grid.get_volume() << endl;
-    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-    vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::C, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::C, "", 0)};
+    vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
+    vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::dummy, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::dummy, "", 0)};
     grid.add(a);
     grid.add(w);
     REQUIRE(grid.unexpanded_volume() == 1); // atoms are added as point-particles, and only occupy one unit of space.
@@ -312,12 +313,12 @@ TEST_CASE("Grid::hydrate") {
     SECTION("correct placement") {
         Axis3D axes(-10, 10, -10, 10, -10, 10);
         settings::grid::width = 1;
-        settings::grid::ra = 3;
-        settings::grid::rh = 3;
-        Grid grid(axes);
+        GridDebug grid(axes);
+        grid.set_atomic_radius(3);
+        grid.set_hydration_radius(3);
 
         // add a single atom to the grid, and hydrate it
-        settings::grid::percent_water = 0;
+        settings::grid::water_scaling = 0;
         vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
         REQUIRE(grid.get_atoms().size() == 1); // check atoms
@@ -388,10 +389,10 @@ TEST_CASE("Grid: using different widths") {
     auto test_width_basics = [] (settings::grid::PlacementStrategy strategy) {
         settings::grid::placement_strategy = strategy;
         settings::grid::width = 0.1;
-        settings::grid::ra = 3;
-        settings::grid::rh = 3;
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
-        Grid grid(axes);
+        GridDebug grid(axes);
+        grid.set_atomic_radius(3);
+        grid.set_hydration_radius(3);
 
         vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
@@ -403,7 +404,7 @@ TEST_CASE("Grid: using different widths") {
         REQUIRE(grid.a_members.back().atom.coords == Vector3(0, 0, 0));
 
         // check water generation
-        settings::grid::percent_water = 0;
+        settings::grid::water_scaling = 0;
         vector<Water> water = grid.hydrate();
 
         // since this needs to work with different placement strategies, we have to perform a more general check on the positions
@@ -421,10 +422,10 @@ TEST_CASE("Grid: using different widths") {
     auto test_width_bounds = [] (settings::grid::PlacementStrategy strategy) {
         settings::grid::placement_strategy = strategy;
         settings::grid::width = 0.1;
-        settings::grid::ra = 3;
-        settings::grid::rh = 3;
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
         GridDebug grid(axes);
+        grid.set_atomic_radius(3);
+        grid.set_hydration_radius(3);
 
         vector<Atom> a = {Atom({5, 0, -7}, 0,  constants::atom_t::C, "", 1), Atom({0, -5, 0}, 0,  constants::atom_t::C, "", 2)};
         grid.add(a);
@@ -468,9 +469,9 @@ TEST_CASE("Grid: using different widths") {
 TEST_CASE("Grid: add and remove") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    settings::grid::ra = 3;
-    settings::grid::rh = 3;
     GridDebug grid(axes);
+    grid.set_atomic_radius(3);
+    grid.set_hydration_radius(3);
 
     // atoms
     Atom a1 = Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1);
@@ -585,9 +586,9 @@ TEST_CASE("Grid: add and remove") {
 TEST_CASE("Grid: correct_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    settings::grid::ra = 10;
-    settings::grid::rh = 10; // heavy overlap
     GridDebug grid(axes);
+    grid.set_atomic_radius(10);     // heavy overlap
+    grid.set_hydration_radius(10);
 
     // atoms
     Atom a1 = Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1);
@@ -626,10 +627,10 @@ TEST_CASE("Grid::find_free_locs") {
     auto test_func = [] (settings::grid::PlacementStrategy ch) {
         settings::grid::placement_strategy = ch;
         settings::grid::width = 1;
-        settings::grid::ra = 3;
-        settings::grid::rh = 3;
         Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
         GridDebug grid(axes);
+        grid.set_atomic_radius(3);
+        grid.set_hydration_radius(3);
 
         vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
         grid.add(a);
@@ -664,9 +665,9 @@ TEST_CASE("Grid::find_free_locs") {
 TEST_CASE("Grid::deflate_volume") {
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    settings::grid::ra = 3;
-    settings::grid::rh = 3;
     GridDebug grid(axes);
+    grid.set_atomic_radius(3);
+    grid.set_hydration_radius(3);
 
     vector<Atom> a = {Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1), Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2)};
     grid.add(a);
@@ -693,9 +694,7 @@ TEST_CASE("Grid::deflate_volume") {
 
 TEST_CASE("Grid: cubic_grid") {
     settings::grid::cubic = true;
-    settings::grid::width = 1;
-    settings::grid::ra = 3;
-    settings::grid::rh = 3;
+    settings::grid::width = GENERATE(0.1, 0.5, 1);
 
     SECTION("largest x") {
         Axis3D axes(-10, 10, -1, 1, -1, 1, settings::grid::width);
@@ -762,7 +761,6 @@ TEST_CASE("Grid::operator=") {
 }
 
 TEST_CASE("hydration") {
-    settings::grid::rh = 1;
     Axis3D axes(-10, 10, -10, 10, -10, 10);
     Grid grid(axes);
     grid.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));

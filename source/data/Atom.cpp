@@ -218,7 +218,7 @@ double Atom::get_mass() const {
         return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
     } else {
         #ifdef DEBUG
-            if (element == constants::atom_t::UNKNOWN) [[unlikely]] {
+            if (element == constants::atom_t::unknown) [[unlikely]] {
                 throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
             }
         #endif
@@ -228,7 +228,7 @@ double Atom::get_mass() const {
 
 unsigned int Atom::Z() const {
     #ifdef DEBUG
-        if (element == constants::atom_t::UNKNOWN) [[unlikely]] {
+        if (element == constants::atom_t::unknown) [[unlikely]] {
             throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
         }
     #endif

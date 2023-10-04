@@ -32,33 +32,32 @@ namespace constants {
         {"glutamine", "GLN"}, {"lysine", "LYS"}, {"arginine", "ARG"}, {"histidine", "HIS"}, {"methionine", "MET"}, {"cysteine", "CYS"}, {"proline", "PRO"}
     };
 
-    namespace volume {
-        const saxs::detail::SimpleMap<double> amino_acids = std::unordered_map<std::string, double>{
-            {"GLY", 66.4}, {"ALA", 91.5}, {"VAL", 141.7}, {"LEU", 167.9}, {"ILE", 168.8}, {"PHE", 203.5}, {"TYR", 203.6}, {"TRP", 237.6}, 
-            {"ASP", 113.6}, {"GLU", 140.6}, {"SER", 99.1}, {"THR", 122.1}, {"ASN", 135.2}, {"GLN", 161.1}, {"LYS", 176.2}, {"ARG", 180.8}, 
-            {"HIS", 167.3}, {"MET", 170.8}, {"CYS", 105.6}, {"PRO", 129.3}
-        };
+    const saxs::detail::SimpleMap<double> volume::amino_acids = std::unordered_map<std::string, double>{
+        {"GLY", 66.4}, {"ALA", 91.5}, {"VAL", 141.7}, {"LEU", 167.9}, {"ILE", 168.8}, {"PHE", 203.5}, {"TYR", 203.6}, {"TRP", 237.6}, 
+        {"ASP", 113.6}, {"GLU", 140.6}, {"SER", 99.1}, {"THR", 122.1}, {"ASN", 135.2}, {"GLN", 161.1}, {"LYS", 176.2}, {"ARG", 180.8}, 
+        {"HIS", 167.3}, {"MET", 170.8}, {"CYS", 105.6}, {"PRO", 129.3}
+    };
+
+    double radius::detail::dummy_radius = 1;
+    void radius::set_dummy_radius(double radius) {
+        radius::detail::dummy_radius = radius;
     }
 
-    namespace symbols {
-        std::string hydrogen = "H";
-        std::string carbon = "C";
-        std::string nitrogen = "N";
-        std::string oxygen = "O";
+    std::string symbols::hydrogen = "H";
+    std::string symbols::carbon = "C";
+    std::string symbols::nitrogen = "N";
+    std::string symbols::oxygen = "O";
 
-        const saxs::detail::SimpleMap<constants::atom_t> detail::string_to_atomt_map = std::unordered_map<std::string, constants::atom_t>{
-            {"e", atom_t::e}, {"H", atom_t::H}, {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B}, {"C", atom_t::C}, {"N", atom_t::N},
-            {"O", atom_t::O}, {"F", atom_t::F}, {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P},
-            {"S", atom_t::S}, {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K}, {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V},
-            {"Cr", atom_t::Cr}, {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W},
-            {"M", atom_t::M}
-        };
-   }
+    const saxs::detail::SimpleMap<constants::atom_t> symbols::detail::string_to_atomt_map = std::unordered_map<std::string, constants::atom_t>{
+        {"e", atom_t::e}, {"H", atom_t::H}, {"He", atom_t::He}, {"Li", atom_t::Li}, {"Be", atom_t::Be}, {"B", atom_t::B}, {"C", atom_t::C}, {"N", atom_t::N},
+        {"O", atom_t::O}, {"F", atom_t::F}, {"Ne", atom_t::Ne}, {"Na", atom_t::Na}, {"Mg", atom_t::Mg}, {"Al", atom_t::Al}, {"Si", atom_t::Si}, {"P", atom_t::P},
+        {"S", atom_t::S}, {"Cl", atom_t::Cl}, {"Ar", atom_t::Ar}, {"K", atom_t::K}, {"Ca", atom_t::Ca}, {"Sc", atom_t::Sc}, {"Ti", atom_t::Ti}, {"V", atom_t::V},
+        {"Cr", atom_t::Cr}, {"Mn", atom_t::Mn}, {"Fe", atom_t::Fe}, {"Co", atom_t::Co}, {"Ni", atom_t::Ni}, {"Cu", atom_t::Cu}, {"Zn", atom_t::Zn}, {"W", atom_t::W},
+        {"M", atom_t::M}
+    };
 
     //* note: this must be initialized *after* symbols::detail::string_to_atomt_map
-    namespace hydrogen_atoms {
-        parser::residue::ResidueStorage residues;
-    }
+    parser::residue::ResidueStorage hydrogen_atoms::residues;
 }
 
 constants::atom_t constants::symbols::parse_element_string(const std::string& element_string) {
@@ -239,7 +238,11 @@ double constants::radius::get_vdw_radius(atom_t atom) {
         case atom_t::Cu: return 2.27;
         case atom_t::Zn: return 2.24;
         case atom_t::W: return 2.36;
+
+        // fake elements
         case atom_t::M: return 0;
+        case atom_t::dummy: return radius::detail::dummy_radius;
+
         default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type");
     }
 }

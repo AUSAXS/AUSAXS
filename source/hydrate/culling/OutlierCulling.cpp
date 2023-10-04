@@ -31,8 +31,8 @@ std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water
         for (int i = xm; i < xp; i++) {
             for (int j = ym; j < yp; j++) {
                 for (int k = zm; k < zp; k++) {
-                    if (gref.index(i, j, k) == GridObj::A_CENTER) {score++;}
-                    else if (gref.index(i, j, k) == GridObj::H_CENTER) {score-=5;}
+                    if (gref.is_atom_center(i, j, k)) {score++;}
+                    else if (gref.is_water_center(i, j, k)) {score-=5;}
                 }
             }
         }
