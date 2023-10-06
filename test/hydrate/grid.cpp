@@ -788,3 +788,58 @@ TEST_CASE("hydration") {
         }
     }
 }
+
+TEST_CASE("Grid::bin_ops") {
+    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Grid grid(axes);
+    auto& gref = grid.grid;
+
+    {
+        gref.index(0, 0, 0) = GridObj::A_CENTER;
+        CHECK(gref.is_atom_center(0, 0, 0) == true);
+        CHECK(gref.is_atom_area(0, 0, 0) == false);
+        CHECK(gref.is_water_center(0, 0, 0) == false);
+        CHECK(gref.is_water_area(0, 0, 0) == false);
+        CHECK(gref.is_empty(0, 0, 0) == false);
+    }
+    {
+        gref.index(0, 0, 0) = GridObj::A_AREA;
+        CHECK(gref.is_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_atom_area(0, 0, 0) == true);
+        CHECK(gref.is_water_center(0, 0, 0) == false);
+        CHECK(gref.is_water_area(0, 0, 0) == false);
+        CHECK(gref.is_empty(0, 0, 0) == false);
+    }
+    {
+        gref.index(0, 0, 0) = GridObj::W_CENTER;
+        CHECK(gref.is_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_atom_area(0, 0, 0) == false);
+        CHECK(gref.is_water_center(0, 0, 0) == true);
+        CHECK(gref.is_water_area(0, 0, 0) == false);
+        CHECK(gref.is_empty(0, 0, 0) == false);
+    }
+    {
+        gref.index(0, 0, 0) = GridObj::W_AREA;
+        CHECK(gref.is_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_atom_area(0, 0, 0) == false);
+        CHECK(gref.is_water_center(0, 0, 0) == false);
+        CHECK(gref.is_water_area(0, 0, 0) == true);
+        CHECK(gref.is_empty(0, 0, 0) == false);
+    }
+    {
+        gref.index(0, 0, 0) = GridObj::VOLUME;
+        CHECK(gref.is_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_atom_area(0, 0, 0) == false);
+        CHECK(gref.is_water_center(0, 0, 0) == false);
+        CHECK(gref.is_water_area(0, 0, 0) == false);
+        CHECK(gref.is_empty(0, 0, 0) == true);
+    }
+    {
+        gref.index(0, 0, 0) = GridObj::EMPTY;
+        CHECK(gref.is_atom_center(0, 0, 0) == false);
+        CHECK(gref.is_atom_area(0, 0, 0) == false);
+        CHECK(gref.is_water_center(0, 0, 0) == false);
+        CHECK(gref.is_water_area(0, 0, 0) == false);
+        CHECK(gref.is_empty(0, 0, 0) == true);
+    }
+}
