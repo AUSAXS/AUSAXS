@@ -99,6 +99,7 @@ std::string constants::symbols::write_element_string(atom_t atom) {
         case atom_t::Zn: return "Zn";
         case atom_t::W: return "W";
         case atom_t::M: return "M";
+        case atom_t::dummy: return "dummy";
         default: throw std::runtime_error("constants::symbols::write_element_string: Unknown atom type");
     }
 }
@@ -138,6 +139,7 @@ unsigned int constants::charge::get_charge(atom_t atom) {
         case atom_t::Zn: return 30;
         case atom_t::W: return 74;
         case atom_t::M: return 0;
+        case atom_t::dummy: return 0;
         default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type");
     }
 }
@@ -192,6 +194,7 @@ double constants::mass::get_mass(atom_t atom) {
         case atom_t::Zn: return 65.39;
         case atom_t::W: return 183.84;
         case atom_t::M: return 0;
+        case atom_t::dummy: return 1;
         default: throw std::runtime_error("constants::mass::get_mass: Unknown atom type");   
     }
 }
@@ -241,7 +244,10 @@ double constants::radius::get_vdw_radius(atom_t atom) {
 
         // fake elements
         case atom_t::M: return 0;
-        case atom_t::dummy: return radius::detail::dummy_radius;
+        case atom_t::dummy: {
+            std::cout << "constants::radius::get_vdw_radius: Warning: dummy atom radius requested. Returning " << radius::detail::dummy_radius << " Ångström." << std::endl;
+            return radius::detail::dummy_radius;
+        }
 
         default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type");
     }

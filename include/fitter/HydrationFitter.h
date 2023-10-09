@@ -142,6 +142,6 @@ namespace fitter {
             hist::CompositeDistanceHistogram* cast_h() const;
 
         private: 
-            mini::Parameter guess = {"c", 5, {0, 10}}; // The guess value for the hydration scaling factor.
+            mini::Parameter guess = {"c", 1, {0, 10}}; // The guess value for the hydration scaling factor.
     };
 }

@@ -97,6 +97,8 @@ int main(int argc, char const *argv[]) {
     fitter::FitReporter::report(result);
     fitter::FitReporter::save(result, settings::general::output + "report.txt");
 
+    plots::PlotDistance::quick_plot(protein.get_histogram().get(), settings::general::output + "distance." + settings::plots::format);
+
     // save fit
     fitter->get_model_dataset().save(settings::general::output + "fit.fit");
     fitter->get_dataset().save(settings::general::output + mfile.stem() + ".dat");

@@ -8,14 +8,14 @@
 std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.atom;});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.get_atom();});
         return final_water;
     }
 
     int factor = std::floor(placed_water.size()/target_count); // reduction factor
     if (factor < 2) {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.atom;});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.get_atom();});
         return final_water;
     }
 
@@ -27,10 +27,10 @@ std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water
     for (const auto& a : placed_water) {
         counter++;
         if (counter % factor != 0) {
-            removed_water[rm_index++] = a.atom;
+            removed_water[rm_index++] = a.get_atom();
             continue;
         }
-        final_water[pw_index++] = a.atom;
+        final_water[pw_index++] = a.get_atom();
     }
     removed_water.resize(rm_index);
     final_water.resize(pw_index);

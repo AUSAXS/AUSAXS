@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math/Vector3.h>
+#include <utility/Constants.h>
 
 #include <vector>
 
@@ -10,59 +11,79 @@ namespace grid {
      */
     template<typename T>
     struct GridMember {
-        /**
-         * @brief Default constructor.
-         */
-        GridMember() {}
+        public:
+            GridMember() = default;
 
-        /**
-         * @brief Copy constructor.
-         */
-        GridMember(const GridMember<T>& gm) : atom(gm.atom), loc(gm.loc), expanded_volume(gm.expanded_volume) {}
+            /**
+             * @brief Copy constructor.
+             */
+            GridMember(const GridMember<T>& gm);
 
-        /**
-         * @brief Move constructor.
-         */
-        GridMember(const GridMember<T>&& gm) noexcept : atom(std::move(gm.atom)), loc(std::move(gm.loc)), expanded_volume(std::move(gm.expanded_volume)) {}
+            /**
+             * @brief Move constructor.
+             */
+            GridMember(const GridMember<T>&& gm) noexcept;
 
-        /**
-         * @brief Constructor.
-         * @param atom The atom itself. 
-         * @param loc The grid location of the atom. 
-         */
-        GridMember(const T& atom, Vector3<int> loc) : atom(atom), loc(std::move(loc)) {}
+            /**
+             * @brief Constructor.
+             * @param atom The atom itself. 
+             * @param loc The grid location of the atom. 
+             */
+            GridMember(const T& atom, Vector3<int> loc);
 
-        ~GridMember() = default;
+            /**
+             * @brief Constructor.
+             * @param atom The atom itself. 
+             * @param loc The grid location of the atom. 
+             */
+            GridMember(T&& atom, Vector3<int> loc);
 
-        // The atom itself
-        T atom;
+            ~GridMember() = default;
 
-        // The bin location of the Atom key. Although this should never be negative, we don't use unsigned ints because it's a mess with implicit conversion errors.
-        Vector3<int> loc; 
+            /**
+             * @brief Get the bin location of this atom.
+             */
+            Vector3<int>& get_loc();
 
-        // Whether the volume of this location has been expanded or not.
-        bool expanded_volume = false; 
+            /**
+             * @brief Get the bin location of this atom.
+             */
+            const Vector3<int>& get_loc() const;
 
-        bool operator==(const T& rhs) const {return atom == rhs;}
-        bool operator==(const GridMember<T>& rhs) const {
-            if (atom != rhs.atom) {return false;}
-            if (loc != rhs.loc) {return false;}
-            if (expanded_volume != rhs.expanded_volume) {return false;}
-            return true;
-        } 
+            /**
+             * @brief Check if the volume of this atom has been expanded.
+             */
+            bool is_expanded() const;
 
-        GridMember& operator=(const GridMember<T>& rhs) {
-            atom = rhs.atom;
-            loc = rhs.loc;
-            expanded_volume = rhs.expanded_volume;
-            return *this;
-        }
+            /**
+             * @brief Mark the volume of this atom as expanded or not.
+             */
+            void set_expanded(bool b);
 
-        GridMember& operator=(GridMember<T>&& rhs) {
-            atom = std::move(rhs.atom);
-            loc = std::move(rhs.loc);
-            expanded_volume = std::move(rhs.expanded_volume);
-            return *this;
-        }
+            /**
+             * @brief Get the atom object itself.
+             */
+            T& get_atom();
+
+            /**
+             * @brief Get the atom object itself.
+             */
+            const T& get_atom() const;
+
+            /**
+             * @brief Get the atom type.
+             */
+            constants::atom_t get_atom_type() const;
+
+            GridMember& operator=(const GridMember& gm) = default;
+            GridMember& operator=(GridMember&& gm) noexcept = default;
+            bool operator==(const GridMember& gm) const = default;
+            bool operator==(const T& atom) const {return this->atom == atom;}
+
+        private:
+            T atom;
+            Vector3<int> loc;               // bin location
+            bool expanded_volume = false;   // whether the volume of this atom has been expanded
+
     };
 }

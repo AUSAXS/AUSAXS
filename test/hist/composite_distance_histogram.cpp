@@ -21,7 +21,7 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
         p_pp[i] = rand() % 100;
         p_hp[i] = rand() % 100;
         p_hh[i] = rand() % 100;
-        p[i] = p_pp[i] + p_hp[i] + p_hh[i];
+        p[i] = p_pp[i] + 2*p_hp[i] + p_hh[i];
     }
     Axis axis(1, 10, 1);
     return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p), axis);

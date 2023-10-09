@@ -193,7 +193,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
     unsigned int index = 0; // index of current atom
     for (grid::GridMember<Atom>& atom : grid->a_members) {
         // check if atom is already in a group
-        unsigned int id1 = to_id(atom.loc);
+        unsigned int id1 = to_id(atom.get_loc());
 
         // each atom starts in a group of its own, unless already added by someone else
         unsigned int g1 = 0;
@@ -205,7 +205,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
 
         // check spherical shell within 2ra for collisions
         for (const auto& bin : rot_bins_2ra) {
-            Vector3<int> pos = atom.loc + bin;
+            Vector3<int> pos = atom.get_loc() + bin;
             if (grid->grid.index(pos) == GridObj::EMPTY) {
                 continue;
             }
@@ -255,7 +255,7 @@ std::vector<bool> grid::ClusterCulling::remove_clusters(unsigned int min_group_s
     std::vector<bool> atoms_to_remove(grid->a_members.size(), false); // atom indices to remove
     unsigned int i = 0;
     for (auto& atom : grid->a_members) {
-        unsigned int id = to_id(atom.loc);
+        unsigned int id = to_id(atom.get_loc());
         if (groups_to_remove[groups.at(id)]) {
             atoms_to_remove[i] = true;
             remove_count--;
@@ -282,7 +282,7 @@ std::vector<bool> grid::ClusterCulling::remove_tendrils(unsigned int min_neighbo
 
         // check spherical shell within 2ra for collisions
         for (const auto& bin : rot_bins_2ra) {
-            Vector3<int> pos = atom.loc + bin;
+            Vector3<int> pos = atom.get_loc() + bin;
             if (grid->grid.index(pos) != GridObj::EMPTY) {
                 neighbours++;
             }
@@ -290,7 +290,7 @@ std::vector<bool> grid::ClusterCulling::remove_tendrils(unsigned int min_neighbo
 
         // check spherical shell within 3ra for collisions
         for (const auto& bin : rot_bins_3ra) {
-            Vector3<int> pos = atom.loc + bin;
+            Vector3<int> pos = atom.get_loc() + bin;
             if (grid->grid.index(pos) != GridObj::EMPTY) {
                 neighbours++;
             }

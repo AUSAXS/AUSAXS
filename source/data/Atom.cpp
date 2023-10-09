@@ -177,7 +177,7 @@ void Atom::set_element(constants::atom_t element) {
     #ifdef DEBUG
         try {
             constants::mass::get_mass(element);
-        } catch (const except::base& e) {
+        } catch (const std::exception& e) {
             throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
         }
     #endif
@@ -210,7 +210,7 @@ double Atom::get_mass() const {
         #ifdef DEBUG
             try {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
-            } catch (const except::base& e) {
+            } catch (const std::exception& e) {
                 throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
             }
         #endif

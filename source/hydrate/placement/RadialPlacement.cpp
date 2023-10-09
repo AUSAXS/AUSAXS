@@ -86,8 +86,8 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 
     double rh = grid->get_hydration_radius();
     for (const auto& atom : grid->a_members) {
-        int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-        double ra = grid->get_atomic_radius(atom.atom.get_element());
+        int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z();
+        double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
             int xr = x + std::round(rot_locs[i].x()*reff)/width;
@@ -105,7 +105,7 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
             Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
             if (grid->grid.is_empty_or_volume(xr, yr, zr) && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
-                Vector3<double> exact_loc = atom.atom.coords + rot_locs[i]*reff;
+                Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
                 add_loc(exact_loc);
             }
         }

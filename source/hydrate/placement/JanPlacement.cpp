@@ -11,7 +11,7 @@ std::vector<grid::GridMember<Water>> grid::JanPlacement::place() const {
 
     // place a water molecule (note: not added to the grid before the end of this method)
     std::vector<Water> placed_water(grid->a_members.size());
-    size_t index = 0;
+    unsigned int index = 0;
     auto add_loc = [&] (const Vector3<int>& v) {
         Water a = Water::create_new_water(grid->to_xyz(v));
         if (placed_water.size() <= index) [[unlikely]] {

@@ -10,7 +10,7 @@
 std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
         std::vector<Water> final_water(placed_water.size());
-        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.atom;});
+        std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.get_atom();});
         return final_water;
     }
 
@@ -20,7 +20,7 @@ std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water
     const GridObj& gref = grid->grid;
     unsigned int index = 0;
     for (const auto& water : placed_water) {
-        const int x = water.loc[0], y = water.loc[1], z = water.loc[2];
+        const int x = water.get_loc().x(), y = water.get_loc().y(), z = water.get_loc().z();
         int score = 0;
 
         // create a box of size [x-2r, x+2r][y-2r, y+2r][z-2r, z+2r] within the bounds
@@ -47,10 +47,10 @@ std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water
     std::vector<Water> removed_water(placed_water.size() - target_count); // the water molecules which will be removed
     unsigned int n = 0;
     for (n = 0; n < target_count; n++) {
-        final_water[n] = v[n].first.atom;
+        final_water[n] = v[n].first.get_atom();
     }
     for (; n < placed_water.size(); n++) {
-        removed_water[n] = v[n].first.atom;
+        removed_water[n] = v[n].first.get_atom();
     }
 
     grid->remove(removed_water);

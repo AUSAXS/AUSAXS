@@ -113,6 +113,7 @@ std::vector<Water> Grid::hydrate() {
     double area = 4*M_PI*std::pow(r, 2.5); // surface area of the protein in Ångström^2
     double target = settings::grid::water_scaling*area; // the target number of water molecules
     std::cout << "Target: " << target << std::endl;
+    std::cout << "Placed water: " << placed_water.size() << std::endl;
 
     water_culler->set_target_count(target);
     return water_culler->cull(placed_water);
@@ -139,8 +140,8 @@ std::pair<Vector3<int>, Vector3<int>> Grid::bounding_box_index() const {
     Vector3<int> max(0, 0, 0);
     for (const auto& atom : a_members) {
         for (unsigned int i = 0; i < 3; i++) {
-            if (min[i] > atom.loc[i]) min[i] = atom.loc[i]; // min
-            if (max[i] < atom.loc[i]) max[i] = atom.loc[i]+1; // max. +1 since this will often be used as loop limits
+            if (min[i] > atom.get_loc()[i]) min[i] = atom.get_loc()[i]; // min
+            if (max[i] < atom.get_loc()[i]) max[i] = atom.get_loc()[i]+1; // max. +1 since this will often be used as loop limits
         }
     }
     return std::make_pair(min, max);
@@ -163,7 +164,7 @@ std::vector<Water> Grid::get_waters() const {
     std::vector<Water> atoms(w_members.size());
     int i = 0; // counter
     for (const auto& water : w_members) {
-        atoms[i] = water.atom;
+        atoms[i] = water.get_atom();
         i++;
     }
     atoms.resize(i);
@@ -174,7 +175,7 @@ std::vector<Atom> Grid::get_atoms() const {
     std::vector<Atom> atoms(a_members.size());
     int i = 0; // counter
     for (const auto& atom : a_members) {
-        atoms[i] = atom.atom;
+        atoms[i] = atom.get_atom();
         i++;
     }
     atoms.resize(i);
@@ -183,12 +184,12 @@ std::vector<Atom> Grid::get_atoms() const {
 
 void Grid::force_expand_volume() {
     for (auto& atom : a_members) {
-        atom.expanded_volume = false;
+        atom.set_expanded(false);
         expand_volume(atom);
     }
 
     for (auto& water : w_members) {
-        water.expanded_volume = false;
+        water.set_expanded(false);
         expand_volume(water);
     }
 }
@@ -205,13 +206,13 @@ void Grid::expand_volume() {
 }
 
 void Grid::expand_volume(GridMember<Atom>& atom) {
-    if (atom.expanded_volume) {return;} // check if this location has already been expanded
-    atom.expanded_volume = true; // mark this location as expanded
+    if (atom.is_expanded()) {return;} // check if this location has already been expanded
+    atom.set_expanded(true); // mark this location as expanded
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-    int rvdw = std::round(get_atomic_radius(atom.atom.get_element())/width);
-    int rvol = settings::grid::rvol/width;
+    int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z();
+    int rvdw = std::round(get_atomic_radius(atom.get_atom_type())/width);
+    int rvol = std::round(settings::grid::rvol/width);
 
     #ifdef DEBUG
         if (rvol < rvdw) {throw except::invalid_argument("Grid::expand_volume: rvol < rvdw. This should never happen!");}
@@ -250,11 +251,11 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
 }
 
 void Grid::expand_volume(GridMember<Water>& water) {
-    if (water.expanded_volume) {return;} // check if this location has already been expanded
-    water.expanded_volume = true; // mark this location as expanded
+    if (water.is_expanded()) {return;} // check if this location has already been expanded
+    water.set_expanded(true); // mark this location as expanded
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
+    int x = water.get_loc().x(), y = water.get_loc().y(), z = water.get_loc().z();
     int r = std::round(get_hydration_radius()/width);
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
@@ -286,11 +287,11 @@ void Grid::deflate_volume() {
 }
 
 void Grid::deflate_volume(GridMember<Atom>& atom) {
-    if (!atom.expanded_volume) {return;} // check if this location has already been deflated
-    atom.expanded_volume = false; // mark the atom as deflated
+    if (!atom.is_expanded()) {return;} // check if this location has already been deflated
+    atom.set_expanded(false); // mark the atom as deflated
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
+    int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z();
     int r = settings::grid::rvol/width;
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
@@ -315,11 +316,11 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
 }
 
 void Grid::deflate_volume(GridMember<Water>& water) {
-    if (!water.expanded_volume) {return;} // check if this location has already been deflated
-    water.expanded_volume = false; // mark the water as deflated
+    if (!water.is_expanded()) {return;} // check if this location has already been deflated
+    water.set_expanded(false); // mark the water as deflated
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
-    int x = water.loc.x(), y = water.loc.y(), z = water.loc.z();
+    int x = water.get_loc().x(), y = water.get_loc().y(), z = water.get_loc().z();
     int r = std::round(get_hydration_radius()/width);
     int xm = std::max(x-r, 0), xp = std::min(x+r+1, (int) axes.x.bins); // xminus and xplus
     int ym = std::max(y-r, 0), yp = std::min(y+r+1, (int) axes.y.bins); // yminus and yplus
@@ -433,17 +434,17 @@ void Grid::remove(std::vector<bool>& to_remove) {
     unsigned int total_removed = 0;
     for(auto& atom : a_members) {
         if (to_remove[index++]) {
-            removed[atom.atom.uid] = true;
+            removed[atom.get_atom().uid] = true;
             total_removed++;
         } else {
-            removed[atom.atom.uid] = false;
+            removed[atom.get_atom().uid] = false;
         }
     }
 
     index = 0;
     std::vector<GridMember<Atom>> removed_atoms(total_removed);
     auto predicate = [&removed, &removed_atoms, &index] (GridMember<Atom>& gm) {
-        if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
+        if (removed[gm.get_atom().uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_atoms[index++] = std::move(gm);
             return true;
         }
@@ -463,7 +464,7 @@ void Grid::remove(std::vector<bool>& to_remove) {
     // clean up the grid
     for (auto& atom : removed_atoms) {
         deflate_volume(atom);
-        grid.index(atom.loc) = GridObj::EMPTY;
+        grid.index(atom.get_loc()) = GridObj::EMPTY;
         volume--;
     }
 }
@@ -478,7 +479,7 @@ void Grid::remove(const Atom& atom) {
 
     a_members.erase(pos);
     deflate_volume(member);
-    grid.index(member.loc) = GridObj::EMPTY;
+    grid.index(member.get_loc()) = GridObj::EMPTY;
     volume--;
 }
 
@@ -492,7 +493,7 @@ void Grid::remove(const Water& water) {
 
     w_members.erase(pos);
     deflate_volume(member);
-    grid.index(member.loc) = GridObj::EMPTY;
+    grid.index(member.get_loc()) = GridObj::EMPTY;
 }
 
 void Grid::remove(const std::vector<Atom>& atoms) {
@@ -504,7 +505,7 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     unsigned int index = 0; // current index in removed_atoms
     std::vector<GridMember<Atom>> removed_atoms(atoms.size()); // the atoms which will be removed
     auto predicate = [&removed, &removed_atoms, &index] (const GridMember<Atom>& gm) {
-        if (removed[gm.atom.uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
+        if (removed[gm.get_atom().uid]) { // now we can simply look up in our removed vector to determine if an element should be removed
             removed_atoms[index++] = gm;
             return true;
         }
@@ -524,7 +525,7 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     // clean up the grid
     for (auto& atom : removed_atoms) {
         deflate_volume(atom);
-        grid.index(atom.loc) = GridObj::EMPTY;
+        grid.index(atom.get_loc()) = GridObj::EMPTY;
         volume--;
     }
 }
@@ -537,7 +538,7 @@ void Grid::remove(const std::vector<Water>& waters) {
     unsigned int index = 0; // current index in removed_waters
     std::vector<GridMember<Water>> to_remove(waters.size()); // the waters which will be removed
     auto predicate = [&to_remove_id, &to_remove, &index] (const GridMember<Water>& gm) {
-        if (to_remove_id.contains(gm.atom.uid)) { // now we can simply look up in our removed vector to determine if an element should be removed
+        if (to_remove_id.contains(gm.get_atom().uid)) { // now we can simply look up in our removed vector to determine if an element should be removed
             to_remove[index++] = gm;
             return true;
         }
@@ -557,14 +558,14 @@ void Grid::remove(const std::vector<Water>& waters) {
     // clean up the grid
     for (auto& water : to_remove) {
         deflate_volume(water);
-        grid.index(water.loc) = GridObj::EMPTY;
+        grid.index(water.get_loc()) = GridObj::EMPTY;
     }
 }
 
 void Grid::clear_waters() {
     std::vector<Water> waters;
     waters.reserve(w_members.size());
-    std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.atom);});
+    std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.get_atom());});
     remove(waters);
     if (w_members.size() != 0) [[unlikely]] {throw except::unexpected("Grid::clear_waters: Something went wrong.");}
 }
@@ -582,7 +583,19 @@ Vector3<int> Grid::to_bins(const Vector3<double>& v) const {
 
 double Grid::get_volume() {
     expand_volume();
-    return std::pow(width, 3)*volume;
+
+    // assume perfect sphere
+    // double vol = std::pow(width, 3)*volume; // volume in cubic Å
+    // double r = std::cbrt(3*vol/(4*M_PI));   // radius of the protein in Ångström
+
+    // assume ellipsoid with axes r, r, 0.8r
+    double vol = std::pow(width, 3)*volume; // volume in cubic Å
+    double r = std::cbrt(3*vol/(4*M_PI*0.8));   // radius of the protein in Ångström
+
+    // since rvol is significantly larger than the Van der Waals radius, we must correct for this
+    // this has a significant volume contribution for small proteins
+    r -= (settings::grid::rvol - constants::radius::get_vdw_radius(constants::atom_t::C));
+    return 0.8*4/3*M_PI*std::pow(r, 3); // volume in cubic Å
 }
 
 Grid& Grid::operator=(const Grid& rhs) {

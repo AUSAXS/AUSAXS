@@ -25,8 +25,8 @@ std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
     // loop over the location of all member atoms
     double rh = grid->get_hydration_radius(); // radius of a water molecule
     for (const auto& atom : grid->a_members) {
-        int x = atom.loc.x(), y = atom.loc.y(), z = atom.loc.z();
-        double ra = grid->get_atomic_radius(atom.atom.get_element()); // radius of the atom
+        int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z();
+        double ra = grid->get_atomic_radius(atom.get_atom_type()); // radius of the atom
         double r_eff_real = ra+rh; // the effective bin radius
         int r_eff_bin = std::round(r_eff_real)/grid->get_width(); // the effective bin radius in bins
 
@@ -37,36 +37,36 @@ std::vector<grid::GridMember<Water>> grid::AxesPlacement::place() const {
 
         // check collisions for x ± r_eff
         if ((gref.index(xm, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xm, y, z), ra)) {
-            Vector3 exact_loc = atom.atom.coords;
+            Vector3 exact_loc = atom.get_atom().get_coordinates();
             exact_loc.x() -= r_eff_real;
             add_loc(exact_loc);
         }
         if ((gref.index(xp, y, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(xp, y, z), ra)) {
-            Vector3 exact_loc = atom.atom.coords;
+            Vector3 exact_loc = atom.get_atom().get_coordinates();
             exact_loc.x() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for y ± r_eff
         if ((gref.index(x, ym, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, ym, z), ra)) {
-            Vector3 exact_loc = atom.atom.coords;
+            Vector3 exact_loc = atom.get_atom().get_coordinates();
             exact_loc.y() -= r_eff_real;
             add_loc(exact_loc);
         }
         if ((gref.index(x, yp, z) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, yp, z), ra)) {
-            Vector3 exact_loc = atom.atom.coords;
+            Vector3 exact_loc = atom.get_atom().get_coordinates();
             exact_loc.y() += r_eff_real;
             add_loc(exact_loc);
         }
 
         // check collisions for z ± r_eff
         if ((gref.index(x, y, zm) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zm), ra)) {
-            Vector3 exact_loc = atom.atom.coords;
+            Vector3 exact_loc = atom.get_atom().get_coordinates();
             exact_loc.z() -= r_eff_real;
             add_loc(exact_loc);
         }
         if ((gref.index(x, y, zp) == GridObj::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zp), ra)) {
-            Vector3 exact_loc = atom.atom.coords;
+            Vector3 exact_loc = atom.get_atom().get_coordinates();
             exact_loc.z() += r_eff_real;
             add_loc(exact_loc);
         }
