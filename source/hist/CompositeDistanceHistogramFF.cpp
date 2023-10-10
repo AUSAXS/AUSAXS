@@ -23,6 +23,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 #include <settings/GeneralSettings.h>
 
 #define DEBUG_DEBYE_TRANSFORM 0
+#define DEBUG_PLOT_FF 1
 #ifdef DEBUG_DEBYE_TRANSFORM
     static unsigned int qcheck = 1;
 #endif
@@ -36,8 +37,14 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
     std::vector<double> Iq(debye_axis.bins, 0);
     std::vector<double> q_axis = debye_axis.as_vector();
 
-    // std::vector<double> ff_effective(q_axis.size(), 0);
-    std::vector<double> I_cross(q_axis.size(), 0);
+    #ifdef DEBUG_PLOT_FF
+        std::vector<double> I_aa(q_axis.size(), 0);
+        std::vector<double> I_aw(q_axis.size(), 0);
+        std::vector<double> I_ax(q_axis.size(), 0);
+        std::vector<double> I_ww(q_axis.size(), 0);
+        std::vector<double> I_wx(q_axis.size(), 0);
+        std::vector<double> I_xx(q_axis.size(), 0);
+    #endif
 
     unsigned int excluded_volume_index = static_cast<int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
     unsigned int neutral_oxygen_index = static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
@@ -62,6 +69,9 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                     }
                     if (q == qcheck && atom_atom_sum != 0) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
                 #endif
+                #if DEBUG_PLOT_FF
+                    I_aa[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
+                #endif
             }
 
             double atom_exv_sum = 0; // atom-exv
@@ -81,6 +91,9 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                 }
                 if (q == qcheck && atom_exv_sum != 0) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
             #endif
+            #if DEBUG_PLOT_FF
+                I_ax[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
+            #endif
 
             // atom-water
             double atom_water_sum = 0;
@@ -99,6 +112,9 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                     std::cout << "\taw_sum = " << atom_water_sum << std::endl;
                 }
                 if (q == qcheck && ff1 == 1) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
+            #endif
+            #if DEBUG_PLOT_FF
+                I_aw[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
             #endif
         }
 
@@ -120,13 +136,15 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
             }
             if (q == qcheck) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
         #endif
+        #if DEBUG_PLOT_FF
+            I_xx[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
+        #endif
 
         // exv-water
         double exv_water_sum = 0;
         for (unsigned int d = 0; d < axis.bins; ++d) {
             exv_water_sum += cp_hp.index(excluded_volume_index, d)*sinqd_table->lookup(q, d);
         }
-        // Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
         Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
         #if DEBUG_DEBYE_TRANSFORM
             if (q==qcheck) {
@@ -139,6 +157,9 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                 std::cout << "\twx_sum = " << exv_water_sum << std::endl;
             }
             if (q == qcheck) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
+        #endif
+        #if DEBUG_PLOT_FF
+            I_wx[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
         #endif
 
         // water-water
@@ -153,10 +174,41 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
                 << water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q) << std::endl;}
             if (q == qcheck) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
         #endif
+        #if DEBUG_PLOT_FF
+            I_ww[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
+        #endif
     }
-    // SimpleDataset temp(q_axis, ff_effective);
-    // temp.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff_effective"}});
-    // plots::PlotDataset::quick_plot(temp, settings::general::output + "ff_effective.png");
+
+    #if DEBUG_PLOT_FF
+        for (unsigned int i = 0; i < q_axis.size(); ++i) {
+            I_aa[i] = std::abs(I_aa[i]);
+            I_aw[i] = std::abs(I_aw[i]);
+            I_ax[i] = std::abs(I_ax[i]);
+            I_ww[i] = std::abs(I_ww[i]);
+            I_wx[i] = std::abs(I_wx[i]);
+            I_xx[i] = std::abs(I_xx[i]);
+        }
+        SimpleDataset temp_aa(q_axis, I_aa);
+        SimpleDataset temp_aw(q_axis, I_aw);
+        SimpleDataset temp_ax(q_axis, I_ax);
+        SimpleDataset temp_ww(q_axis, I_ww);
+        SimpleDataset temp_wx(q_axis, I_wx);
+        SimpleDataset temp_xx(q_axis, I_xx);
+        temp_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aa"}, {"color", style::color::red}});
+        temp_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aw"}, {"color", style::color::green}});
+        temp_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ax"}, {"color", style::color::blue}});
+        temp_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ww"}, {"color", style::color::brown}});
+        temp_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_wx"}, {"color", style::color::orange}});
+        temp_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::purple}});
+
+        plots::PlotDataset(temp_aa)
+            .plot(temp_ax)
+            .plot(temp_xx)
+        .save(settings::general::output + "ff.png");
+        temp_aa.save(settings::general::output + "ff_aa.dat");
+        temp_ax.save(settings::general::output + "ff_ax.dat");
+        temp_xx.save(settings::general::output + "ff_xx.dat");
+    #endif
 
     return ScatteringHistogram(Iq, debye_axis);
 }

@@ -202,7 +202,7 @@ namespace constants {
 
     namespace form_factor {
         constexpr double sigma_excluded_volume = 1.62; // Å
-        constexpr double fpi2 = 4*M_PI*M_PI; // 4π^2, conversion factor from s to q
+        constexpr double fpi2 = 4*4*M_PI*M_PI; // 4π^2, conversion factor from s to q
 
         // no source
         namespace hydrogen {

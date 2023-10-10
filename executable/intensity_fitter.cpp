@@ -64,7 +64,8 @@ int main(int argc, char const *argv[]) {
         if (settings::general::threads == 1) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;}
         else {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;}
     } else {
-        settings::detail::parse_option("histogram_manager", {histogram_manager});
+        if (fit_excluded_volume) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFF;}
+        else {settings::detail::parse_option("histogram_manager", {histogram_manager});}
     }
     if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFF) {settings::protein::use_effective_charge = false;}
 
@@ -89,6 +90,8 @@ int main(int argc, char const *argv[]) {
     if (!use_existing_hydration || protein.water_size() == 0) {
         protein.generate_new_hydration();
     }
+
+    // protein.get_histogram()->debye_transform();
 
     std::shared_ptr<fitter::HydrationFitter> fitter;
     if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}

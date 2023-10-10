@@ -2,12 +2,14 @@
 
 #include <crystal/CrystalScattering.h>
 #include <hydrate/GridReader.h>
-#include <plots/all.h>
+#include <plots/All.h>
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
+#include <data/Protein.h>
+#include <hist/CompositeDistanceHistogram.h>
 
 int main(int argc, char const *argv[]) {
     io::ExistingFile crystal;
@@ -19,7 +21,7 @@ int main(int argc, char const *argv[]) {
 
     settings::protein::use_effective_charge = false;
     Protein protein(crystal);
-    auto debye = protein.get_histogram().calc_debye_scattering_intensity();
+    auto debye = protein.get_histogram()->debye_transform();
 
     settings::axes::qmin = 1e-4;
     settings::axes::bins = 1000;

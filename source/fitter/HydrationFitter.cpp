@@ -150,8 +150,6 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
         chi += v*v;
     }
 
-    std::cout << "c = " << c << ", chi2 = " << chi << std::endl;
-
     return chi;
 }
 

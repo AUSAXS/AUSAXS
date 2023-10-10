@@ -8,7 +8,7 @@ namespace settings::grid {
     double width = 1;
     double scaling = 0.25;
     bool cubic = false;
-    double rvol = 2.4;
+    double rvol = 2.15;
     PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy;
     CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;
 
