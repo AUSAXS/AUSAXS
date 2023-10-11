@@ -115,11 +115,15 @@ void Atom::parse_pdb(const std::string& str) {
         throw;
     }
 
-    if (settings::protein::use_effective_charge) {
-        effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-    } else {
-        effective_charge = constants::charge::get_charge(this->element);
-    }
+    // use a try-catch block to throw more sensible errors
+    #ifdef DEBUG
+        try {
+            effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        } catch (const except::base& e) {
+        throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+        }
+    #endif
+    effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
 }
 
 using std::left, std::right, std::setw;

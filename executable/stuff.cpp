@@ -28,104 +28,118 @@
 
 #include <cassert>
 
-// int main(int argc, char const *argv[]) {
-//     settings::axes::qmin = 0.02;
-//     settings::axes::qmax = 1;
-
-//     std::string base_path = "temp/debug/";
-//     SimpleDataset I_aa(base_path + "ff_aa.dat");
-//     SimpleDataset I_ax(base_path + "ff_ax.dat");
-//     SimpleDataset I_xx(base_path + "ff_xx.dat");
-//     SimpleDataset coords(base_path + "COORDINATE.dat");
-//     SimpleDataset exclvol(base_path + "exclvol.dat");
-//     SimpleDataset vacuum(base_path + "vaccum.dat");
-//     // SimpleDataset lyshr(base_path + "LYSHR.RSR");
-
-//     I_aa.normalize(1);
-//     I_ax.normalize(1);
-//     I_xx.normalize(1);
-//     coords.normalize(1);
-//     exclvol.normalize(1);
-//     vacuum.normalize(1);
-
-//     SimpleDataset I_sum(I_aa);
-//     for (unsigned int i = 0; i < I_aa.size(); ++i) {
-//         double cy = coords.interpolate_y(I_aa.x(i));
-//         I_sum.y(i) = I_aa.y(i) + I_ax.y(i) + I_xx.y(i);
-//         I_aa.y(i) /= cy;
-//         I_ax.y(i) /= cy;
-//         I_xx.y(i) /= cy;
-//     }
-
-//     for (unsigned int i = 0; i < exclvol.size(); ++i) {
-//         exclvol.y(i) /= coords.interpolate_y(exclvol.x(i));
-//         vacuum.y(i)  /= coords.interpolate_y(vacuum.x(i));
-//     }
-
-//     I_aa.normalize(1);
-//     I_ax.normalize(1);
-//     I_xx.normalize(1);
-//     coords.normalize(1);
-//     exclvol.normalize(1);
-//     vacuum.normalize(1);
-//     I_sum.normalize(1);
-
-//     I_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aa"}, {"color", style::color::red}});
-//     I_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ax"}, {"color", style::color::blue}});
-//     I_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::green}});
-//     coords.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "coords"}, {"linestyle", style::line::dashed}, {"color", style::color::red}});
-//     exclvol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "exclvol"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
-//     vacuum.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "vacuum"}, {"linestyle", style::line::dashed}, {"color", style::color::green}});
-//     I_sum.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_sum"}, {"color", style::color::black}});
-//     // lyshr.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "lyshr"}, {"color", style::color::black}});
-
-//     I_aa.save(base_path + "AUSAXS_aa.dat");
-//     I_ax.save(base_path + "AUSAXS_ax.dat");
-//     I_xx.save(base_path + "AUSAXS_xx.dat");
-//     exclvol.save(base_path + "scaled_exclvol.dat");
-//     vacuum.save(base_path + "scaled_vacuum.dat");
-
-//     plots::PlotDataset(I_aa)
-//         .plot(I_ax)
-//         .plot(I_xx)
-//         .plot(exclvol)
-//         .plot(vacuum)
-//     .save(base_path + "compare.png");
-
-//     plots::PlotDataset(I_sum)
-//         .plot(coords)
-//     .save(base_path + "total.png");
-// }
-
-// plot form factors
+//************************************************************************************************* 
+//********************************* PLOT SCATTERING STUFF *****************************************
+//*************************************************************************************************
 int main(int argc, char const *argv[]) {
-    settings::general::output = "temp/stuff/ff/";
-    auto plot = [] (hist::detail::FormFactor ff, std::string name) {
-        auto q = Axis(0, 1, 100).as_vector();
-        std::vector<double> y(q.size());
-        for (unsigned int i = 0; i < q.size(); ++i) {
-            y[i] = ff.evaluate(q[i]);
-        }
-        SimpleDataset d(q, y);
-        d.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}});
-        return d;
-    };
+    settings::axes::qmin = 0.02;
+    settings::axes::qmax = 1;
 
-    auto C = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_CARBON), "carbon");
-    auto O = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_OXYGEN), "oxygen");
-    auto EV = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::EXCLUDED_VOLUME), "excluded_volume");
-    auto other = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::OTHER), "other");
-    C.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}, {"legend", "Carbon"}, {"color", "red"}});
-    O.add_plot_options({{"legend", "Oxygen"}, {"color", "blue"}});
-    EV.add_plot_options({{"legend", "Excluded volume"}, {"color", "green"}});
-    other.add_plot_options({{"legend", "Other"}, {"color", "black"}});
+    std::string base_path = "temp/debug/";
+    SimpleDataset I_aa(base_path + "ff_aa.dat");
+    SimpleDataset I_ax(base_path + "ff_ax.dat");
+    SimpleDataset I_xx(base_path + "ff_xx.dat");
+    SimpleDataset coords(base_path + "COORDINATE.dat");
+    SimpleDataset exclvol(base_path + "exclvol.dat");
+    SimpleDataset crysol(base_path + "vaccum.dat");
+    SimpleDataset foxs(base_path + "foxs_vacuum.dat");
+    // SimpleDataset lyshr(base_path + "LYSHR.RSR");
 
-    plots::PlotDataset(C)
-        .plot(O)
-        .plot(EV)
-        .plot(other)
-    .save(settings::general::output + "ff.png");
+    I_aa.normalize(1);
+    I_ax.normalize(1);
+    I_xx.normalize(1);
+    coords.normalize(1);
+    exclvol.normalize(1);
+    crysol.normalize(1);
+    foxs.normalize(1);
+
+    SimpleDataset I_sum(I_aa);
+    for (unsigned int i = 0; i < I_aa.size(); ++i) {
+        double cy = coords.interpolate_y(I_aa.x(i));
+        I_sum.y(i) = I_aa.y(i) + I_ax.y(i) + I_xx.y(i);
+        // I_aa.y(i) /= cy;
+        // I_ax.y(i) /= cy;
+        // I_xx.y(i) /= cy;
+    }
+
+    for (unsigned int i = 0; i < exclvol.size(); ++i) {
+        // exclvol.y(i) /= coords.interpolate_y(exclvol.x(i));
+        // vacuum.y(i)  /= coords.interpolate_y(vacuum.x(i));
+    }
+
+    I_aa.normalize(1);
+    I_ax.normalize(1);
+    I_xx.normalize(1);
+    coords.normalize(1);
+    exclvol.normalize(1);
+    crysol.normalize(1);
+    I_sum.normalize(1);
+    foxs.normalize(1);
+
+    I_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aa"}, {"color", style::color::red}});
+    I_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ax"}, {"color", style::color::blue}});
+    I_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::green}});
+    coords.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "coords"}, {"linestyle", style::line::dashed}, {"color", style::color::red}});
+    exclvol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "exclvol"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
+    crysol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "crysol"}, {"linestyle", style::line::dashed}, {"color", style::color::green}});
+    I_sum.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_sum"}, {"color", style::color::black}});
+    foxs.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "foxs"}, {"linestyle", style::line::dotted}, {"color", style::color::blue}});
+    // lyshr.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "lyshr"}, {"color", style::color::black}});
+
+    // I_aa.save(base_path + "AUSAXS_aa.dat");
+    // I_ax.save(base_path + "AUSAXS_ax.dat");
+    // I_xx.save(base_path + "AUSAXS_xx.dat");
+    // exclvol.save(base_path + "scaled_exclvol.dat");
+    // vacuum.save(base_path + "scaled_vacuum.dat");
+
+    plots::PlotDataset(I_aa)
+        .plot(I_ax)
+        .plot(I_xx)
+        .plot(exclvol)
+        .plot(crysol)
+    .save(base_path + "compare.png");
+
+    plots::PlotDataset(I_aa)
+        .plot(crysol)
+        .plot(foxs)
+    .save(base_path + "vacuum.png");
+
+    plots::PlotDataset(I_sum)
+        .plot(coords)
+    .save(base_path + "total.png");
 }
+
+//*************************************************************************************************
+//********************************* PLOT FORM FACTORS *********************************************
+//*************************************************************************************************
+// int main(int argc, char const *argv[]) {
+//     settings::general::output = "temp/stuff/ff/";
+//     auto plot = [] (hist::detail::FormFactor ff, std::string name) {
+//         auto q = Axis(0, 1, 100).as_vector();
+//         std::vector<double> y(q.size());
+//         for (unsigned int i = 0; i < q.size(); ++i) {
+//             y[i] = ff.evaluate(q[i]);
+//         }
+//         SimpleDataset d(q, y);
+//         d.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}});
+//         return d;
+//     };
+
+//     auto C = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_CARBON), "carbon");
+//     auto O = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_OXYGEN), "oxygen");
+//     auto EV = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::EXCLUDED_VOLUME), "excluded_volume");
+//     auto other = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::OTHER), "other");
+//     C.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}, {"legend", "Carbon"}, {"color", "red"}});
+//     O.add_plot_options({{"legend", "Oxygen"}, {"color", "blue"}});
+//     EV.add_plot_options({{"legend", "Excluded volume"}, {"color", "green"}});
+//     other.add_plot_options({{"legend", "Other"}, {"color", "black"}});
+
+//     plots::PlotDataset(C)
+//         .plot(O)
+//         .plot(EV)
+//         .plot(other)
+//     .save(settings::general::output + "ff.png");
+// }
 
 // int main(int argc, char const *argv[]) {
 //     settings::protein::use_effective_charge = false;
@@ -147,7 +161,9 @@ int main(int argc, char const *argv[]) {
 //     }
 // }
 
-// plot the excluded volume
+//*************************************************************************************************
+//********************************* PLOT EXCLUDED VOLUME ******************************************
+//*************************************************************************************************
 // int main(int argc, char const *argv[]) {
 //     settings::protein::use_effective_charge = false;
 //     io::ExistingFile file(argv[1]);
@@ -178,7 +194,9 @@ int main(int argc, char const *argv[]) {
 //         assert(rigidbody2.get_constraint_manager()->distance_constraints.size() == 2);
 // }
 
-// debug sequencer
+//*************************************************************************************************
+//********************************* DEBUG SEQUENCER ***********************************************
+//*************************************************************************************************
 // int main(int argc, char const *argv[]) {
 //     settings::grid::scaling = 2;
 //     settings::grid::cubic = true;

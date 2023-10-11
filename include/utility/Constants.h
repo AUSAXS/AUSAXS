@@ -202,10 +202,14 @@ namespace constants {
 
     namespace form_factor {
         constexpr double sigma_excluded_volume = 1.62; // Å
-        constexpr double fpi2 = 4*4*M_PI*M_PI; // 4π^2, conversion factor from s to q
+        constexpr double fpi2 = 4*4*M_PI*M_PI/2; // 4π^2, conversion factor from s to q
 
         // no source
         namespace hydrogen {
+            // constexpr std::array<double, 5> a = {0.489918, 0.262003, 0.196767, 0.049879, 0};
+            // constexpr std::array<double, 5> b = {20.6593/fpi2, 7.74039/fpi2, 49.5519/fpi2, 2.20159/fpi2, 0};
+            // constexpr double c = 0.001305;
+
             constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
             constexpr std::array<double, 5> b = {0.5, 0, 0, 0, 0};
             constexpr double c = 0;
@@ -214,6 +218,10 @@ namespace constants {
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         // this is the form factor of argon
         namespace other {
+            // constexpr std::array<double, 5> a = {7.4845, 6.7723, 0.6539, 1.6442, 0};
+            // constexpr std::array<double, 5> b = {0.9072/fpi2, 14.8407/fpi2, 43.8983/fpi2, 33.3929/fpi2, 0};
+            // constexpr double c = 1.4445;
+
             constexpr std::array<double, 5> a = {7.188004, 6.638454, 0.454180, 1.929593, 1.523654};
             constexpr std::array<double, 5> b = {0.956221/fpi2, 15.339877/fpi2, 15.339862/fpi2, 39.043824/fpi2, 0.062409/fpi2};
             constexpr double c = 0.265954;
@@ -228,6 +236,10 @@ namespace constants {
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_carbon {
+            // constexpr std::array<double, 5> a = {2.31, 1.02, 1.5886, 0.865, 0};
+            // constexpr std::array<double, 5> b = {20.8439/fpi2, 10.2075/fpi2, 0.5687/fpi2, 51.6512/fpi2, 0};
+            // constexpr double c = 0.2156;
+
             constexpr std::array<double, 5> a = { 2.657506, 1.078079,  1.490909, -4.241070, 0.713791};
             constexpr std::array<double, 5> b = {14.780758/fpi2, 0.776775/fpi2, 42.086843/fpi2, -0.000294/fpi2, 0.239535/fpi2};
             constexpr double c = 4.297983;
@@ -235,6 +247,10 @@ namespace constants {
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_oxygen {
+            // constexpr std::array<double, 5> a = { 3.0485, 2.2868, 1.5463, 0.867, 0};
+            // constexpr std::array<double, 5> b = {13.2771/fpi2, 5.7011/fpi2, 0.3239/fpi2, 32.9089/fpi2, 0};
+            // constexpr double c = 0.2508;
+
             constexpr std::array<double, 5> a = { 2.960427, 2.508818, 0.637853,  0.722838, 1.142756};
             constexpr std::array<double, 5> b = {14.182259/fpi2, 5.936858/fpi2, 0.112726/fpi2, 34.958481/fpi2, 0.390240/fpi2};
             constexpr double c = 0.027014;
@@ -242,6 +258,10 @@ namespace constants {
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace neutral_nitrogen {
+            // constexpr std::array<double, 5> a = { 12.2126, 3.1322, 2.0125, 1.1663, 0};
+            // constexpr std::array<double, 5> b = { 0.0057/fpi2, 9.8933/fpi2, 28.9975/fpi2, 0.5826/fpi2, 0};
+            // constexpr double c = -11.529;
+
             constexpr std::array<double, 5> a = {11.893780,  3.277479,  1.858092, 0.858927, 0.912985};
             constexpr std::array<double, 5> b = { 0.000158/fpi2, 10.232723/fpi2, 30.344690/fpi2, 0.656065/fpi2, 0.217287/fpi2};
             constexpr double c = -11.804902;
