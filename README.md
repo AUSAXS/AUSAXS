@@ -33,6 +33,7 @@ Precompiled binaries are available **here**.
 # Design philosophy
 
 # Todo
+* 	[ ] HistogramManager: Consider calculating d^2 and then taking the square root afterwards. This should be a significant speedup. 
 * 	[ ] Consider implementing a unit class to avoid unit conversion errors in functions
 * 	[ ] Redo the storage of Image to be a single 3D vector owned by the ImageStack. 
 * 	[ ] Consider implementing form factors for the most common atoms. This will also allow fitting the excluded volume to the MD simulations (probably), thus avoiding the background fitting parameter. 
