@@ -4,6 +4,9 @@
 
 namespace hist {class Histogram;}
 namespace plots {
+	/**
+	 * @brief Plot a specific \class Histogram object.
+	 */
 	class PlotHistogram : public Plot {
 		public:
 			/**

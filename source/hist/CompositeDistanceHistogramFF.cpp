@@ -28,7 +28,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
     static unsigned int qcheck = 1;
 #endif
 
-ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
+ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
     static Container2D<hist::detail::PrecalculatedFormFactorProduct> ff_table = hist::detail::PrecalculatedFormFactorProduct::generate_table();
 
     // calculate the Debye scattering intensity
@@ -213,7 +213,7 @@ ScatteringHistogram CompositeDistanceHistogramFF::debye_transform() const {
         temp_ww.save(settings::general::output + "ff_ww.dat");
     #endif
 
-    return ScatteringHistogram(Iq, debye_axis);
+    return ScatteringProfile(Iq, debye_axis);
 }
 
 

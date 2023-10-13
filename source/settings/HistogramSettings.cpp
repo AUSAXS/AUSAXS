@@ -5,7 +5,7 @@
 
 namespace settings::axes {
     unsigned int max_distance = 2000;
-    double distance_bin_width = 1;
+    double distance_bin_width = 0.2;
     unsigned int bins = 1000;
     double qmin = 1e-4;
     double qmax = 0.5;

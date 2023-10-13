@@ -32,7 +32,7 @@ namespace hist {
 
             ~CompositeDistanceHistogramFF() override;
 
-            ScatteringHistogram debye_transform() const override;
+            ScatteringProfile debye_transform() const override;
 
             SimpleDataset debye_transform(const std::vector<double>& q) const override;
 

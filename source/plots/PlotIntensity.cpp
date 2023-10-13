@@ -9,7 +9,7 @@
 
 using namespace plots;
 
-PlotIntensity::PlotIntensity(const hist::ScatteringHistogram& d, style::Color color) {
+PlotIntensity::PlotIntensity(const hist::ScatteringProfile& d, style::Color color) {
     plot(d, color);
 }
 
@@ -37,7 +37,7 @@ PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, style::Color color
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(const hist::ScatteringHistogram& data, style::Color color) {
+PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, style::Color color) {
     PlotOptions options;
     options.color = color;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
@@ -85,7 +85,7 @@ void PlotIntensity::quick_plot(const SimpleDataset& d, const io::File& path) {
     plot.save(path);
 }
 
-void PlotIntensity::quick_plot(const hist::ScatteringHistogram& h, const io::File& path) {
+void PlotIntensity::quick_plot(const hist::ScatteringProfile& h, const io::File& path) {
     PlotIntensity plot(h);
     plot.save(path);
 }

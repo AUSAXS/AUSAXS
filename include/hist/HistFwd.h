@@ -8,7 +8,7 @@ namespace hist {
     class Histogram;
 
     /**
-     * @brief A ScatteringHistogram is just a (q, I(q)) histogram. 
+     * @brief A ScatteringProfile is just a (q, I(q)) histogram. 
      */    
-    using ScatteringHistogram = Histogram;
+    using ScatteringProfile = Histogram;
 }

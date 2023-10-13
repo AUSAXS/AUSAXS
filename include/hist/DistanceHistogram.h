@@ -26,7 +26,7 @@ namespace hist {
 
             virtual ~DistanceHistogram() override;
 
-            virtual ScatteringHistogram debye_transform() const;
+            virtual ScatteringProfile debye_transform() const;
 
             virtual SimpleDataset debye_transform(const std::vector<double>& q) const;
 

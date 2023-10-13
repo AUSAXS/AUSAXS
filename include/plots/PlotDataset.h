@@ -11,6 +11,11 @@ namespace plots {
 	concept DatasetType = std::is_base_of_v<Dataset, C> || std::is_base_of_v<Multiset, C>;
 
 	class PlotOptions;
+
+	/**
+	 * @brief Plot the contents of a specific \class Dataset object.
+	 * 		  Multiple datasets can be plotted by chaining calls to the plot() method.
+	 */
 	class PlotDataset : public Plot {
 		public:
 			/**

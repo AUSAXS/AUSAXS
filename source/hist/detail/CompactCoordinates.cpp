@@ -36,3 +36,9 @@ CompactCoordinates::CompactCoordinates(const std::vector<Water>& atoms) : size(a
         data[i] = CompactCoordinates::Data(a.coords, a.effective_charge*a.occupancy);
     }
 }
+
+unsigned int CompactCoordinates::get_size() const {return size;}
+
+CompactCoordinates::Data& CompactCoordinates::operator[](unsigned int i) {return data[i];}
+
+const CompactCoordinates::Data& CompactCoordinates::operator[](unsigned int i) const {return data[i];}

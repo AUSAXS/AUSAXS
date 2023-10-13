@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/PartialHistogramManager.h>
+#include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <utility/Container1D.h>
 #include <utility/Container2D.h>

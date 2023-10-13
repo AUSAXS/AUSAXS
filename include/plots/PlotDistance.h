@@ -6,9 +6,7 @@
 
 namespace plots {
 	/**
-	 * @brief \class PlotDistance.
-	 * 
-	 * Plots a histogram of all distances. 
+	 * @brief Plot the distance histogram for a protein. 
 	 */
 	class PlotDistance : public Plot {
 		public:

@@ -117,17 +117,17 @@ int main(int argc, char const *argv[]) {
 
     I_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aa"}, {"color", style::color::red}});
     I_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ax"}, {"color", style::color::blue}});
-    I_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::green}});
-    I_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_aw"}, {"color", style::color::pink}});
-    I_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_xw"}, {"color", style::color::purple}});
-    I_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_ww"}, {"color", style::color::brown}});
+    I_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::green}});
+    I_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aw"}, {"color", style::color::pink}});
+    I_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xw"}, {"color", style::color::purple}});
+    I_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ww"}, {"color", style::color::brown}});
 
-    foxs_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aa"}, {"color", style::color::red}});
-    foxs_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ax"}, {"color", style::color::blue}});
-    foxs_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xx"}, {"color", style::color::green}});
-    foxs_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aw"}, {"color", style::color::pink}});
-    foxs_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xw"}, {"color", style::color::purple}});
-    foxs_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ww"}, {"color", style::color::brown}});
+    foxs_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aa"}, {"color", style::color::red}});
+    foxs_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ax"}, {"color", style::color::blue}});
+    foxs_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xx"}, {"color", style::color::green}});
+    foxs_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aw"}, {"color", style::color::pink}});
+    foxs_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xw"}, {"color", style::color::purple}});
+    foxs_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ww"}, {"color", style::color::brown}});
 
     coords.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "coords"}, {"linestyle", style::line::dashed}, {"color", style::color::red}});
     exclvol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "exclvol"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
@@ -179,6 +179,18 @@ int main(int argc, char const *argv[]) {
     plots::PlotDataset(foxs)
         .plot(foxs_aa)
     .save(base_path + "foxs_test.png");
+
+    plots::PlotDataset(foxs_xx)
+        .plot(I_xx)
+    .save(base_path + "excluded_volume_profiles.png");
+
+    for (unsigned int i = 0; i < foxs_xx.size(); ++i) {foxs_xx.y(i) /= foxs_aa.y(i);}
+    for (unsigned int i = 0; i < I_xx.size(); ++i) {I_xx.y(i) /= I_aa.y(i);}
+
+    plots::PlotDataset(foxs_xx)
+        .plot(I_xx)
+        .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
+    .save(base_path + "xx_div_aa.png");
 }
 
 //*************************************************************************************************

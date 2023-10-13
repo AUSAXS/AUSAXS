@@ -1,21 +1,19 @@
 #pragma once
 
-#include <hist/HistogramManager.h>
+#include <hist/distance_calculator/HistogramManager.h>
 
 namespace hist {
-	class CompositeDistanceHistogram;
-
 	/**
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
 	 */
-	class HistogramManagerMTFF : public HistogramManager {
+	class HistogramManagerMT : public HistogramManager {
 		public:
 			using HistogramManager::HistogramManager;
 
-			HistogramManagerMTFF(HistogramManager&);
+			HistogramManagerMT(HistogramManager&);
 
-			~HistogramManagerMTFF() override;
+			~HistogramManagerMT() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

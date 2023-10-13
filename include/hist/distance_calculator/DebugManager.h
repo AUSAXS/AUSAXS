@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/HistogramManager.h>
+#include <hist/distance_calculator/HistogramManager.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/detail/FormFactor.h>
@@ -19,7 +19,7 @@ namespace hist {
                 this->q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
             }
 
-            ScatteringHistogram debye_transform() const override {
+            ScatteringProfile debye_transform() const override {
                 static unsigned int counter = 0;
                 std::cout << "debye transform " << counter++ << std::endl;
 
@@ -118,7 +118,7 @@ namespace hist {
 
                     I.push_back(Iq);
                 }
-                return ScatteringHistogram(I, Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins));
+                return ScatteringProfile(I, Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins));
             }
 
         private:

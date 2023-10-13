@@ -1,5 +1,5 @@
 #include <em/manager/SimpleProteinManager.h>
-#include <hist/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
 #include <data/Protein.h>
 #include <utility/Exceptions.h>
 #include <data/Atom.h>

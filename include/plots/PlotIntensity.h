@@ -17,7 +17,7 @@ namespace plots {
 			 * 
 			 * @param d The ScatteringHistogram to be plotted. 
 			 */
-			PlotIntensity(const hist::ScatteringHistogram& d, style::Color color = style::color::black);
+			PlotIntensity(const hist::ScatteringProfile& d, style::Color color = style::color::black);
 
 			/**
 			 * @brief Constructor.
@@ -34,7 +34,7 @@ namespace plots {
 			/**
 			 * @brief Plot a scattering histogram.
 			 */
-			PlotIntensity& plot(const hist::ScatteringHistogram& data, style::Color color = style::color::black);
+			PlotIntensity& plot(const hist::ScatteringProfile& data, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot an additional data set as points. 
@@ -55,7 +55,7 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const hist::ScatteringHistogram& h, const io::File& path);
+			static void quick_plot(const hist::ScatteringProfile& h, const io::File& path);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

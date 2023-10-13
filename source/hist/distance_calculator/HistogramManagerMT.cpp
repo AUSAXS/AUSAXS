@@ -1,4 +1,4 @@
-#include <hist/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
@@ -34,11 +34,11 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     auto calc_pp = [&data_p, &axes, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(axes.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = i+1; j < data_p.size; ++j) {
-                float weight = data_p.data[i].w*data_p.data[j].w;
-                float dx = data_p.data[i].x - data_p.data[j].x;
-                float dy = data_p.data[i].y - data_p.data[j].y;
-                float dz = data_p.data[i].z - data_p.data[j].z;
+            for (unsigned int j = i+1; j < data_p.get_size(); ++j) {
+                float weight = data_p[i].w*data_p[j].w;
+                float dx = data_p[i].x - data_p[j].x;
+                float dy = data_p[i].y - data_p[j].y;
+                float dz = data_p[i].z - data_p[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp[dist/width] += 2*weight;
             }
@@ -48,11 +48,11 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     auto calc_hh = [&data_h, &axes, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_hh(axes.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = i+1; j < data_h.size; ++j) {
-                float weight = data_h.data[i].w*data_h.data[j].w;
-                float dx = data_h.data[i].x - data_h.data[j].x;
-                float dy = data_h.data[i].y - data_h.data[j].y;
-                float dz = data_h.data[i].z - data_h.data[j].z;
+            for (unsigned int j = i+1; j < data_h.get_size(); ++j) {
+                float weight = data_h[i].w*data_h[j].w;
+                float dx = data_h[i].x - data_h[j].x;
+                float dy = data_h[i].y - data_h[j].y;
+                float dz = data_h[i].z - data_h[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hh[dist/width] += 2*weight;
             }
@@ -62,11 +62,11 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     auto calc_hp = [&data_h, &data_p, &axes, &width] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_hp(axes.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_p.size; ++j) {
-                float weight = data_h.data[i].w*data_p.data[j].w;
-                float dx = data_h.data[i].x - data_p.data[j].x;
-                float dy = data_h.data[i].y - data_p.data[j].y;
-                float dz = data_h.data[i].z - data_p.data[j].z;
+            for (unsigned int j = 0; j < data_p.get_size(); ++j) {
+                float weight = data_h[i].w*data_p[j].w;
+                float dx = data_h[i].x - data_p[j].x;
+                float dy = data_h[i].y - data_p[j].y;
+                float dz = data_h[i].z - data_p[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hp[dist/width] += weight;
             }
@@ -132,8 +132,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    for (unsigned int i = 0; i < protein->atom_size(); ++i) {p_pp[0] += std::pow(data_p.data[i].w, 2);}
-    for (unsigned int i = 0; i < protein->water_size(); ++i) {p_hh[0] += std::pow(data_h.data[i].w, 2);}
+    for (unsigned int i = 0; i < protein->atom_size(); ++i) {p_pp[0] += std::pow(data_p[i].w, 2);}
+    for (unsigned int i = 0; i < protein->water_size(); ++i) {p_hh[0] += std::pow(data_h[i].w, 2);}
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10

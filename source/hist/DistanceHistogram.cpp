@@ -25,7 +25,7 @@ void DistanceHistogram::initialize() {
     sinqd_table = std::make_unique<table::DebyeLookupTable>(q_axis, d_axis);
 }
 
-ScatteringHistogram DistanceHistogram::debye_transform() const {
+ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
 
@@ -37,7 +37,7 @@ ScatteringHistogram DistanceHistogram::debye_transform() const {
         }
         Iq[q] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
     }
-    return ScatteringHistogram(Iq, debye_axis);
+    return ScatteringProfile(Iq, debye_axis);
 }
 
 SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {

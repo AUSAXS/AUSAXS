@@ -1,4 +1,4 @@
-#include <hist/HistogramManagerMTFF.h>
+#include <hist/distance_calculator/HistogramManagerMTFF.h>
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/detail/FormFactor.h>
@@ -41,13 +41,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     auto calc_pp = [&data_p, &axes, &width, &Z_exv_avg, &Z_exv_avg2, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
         Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_p.size; ++j) {
-                float dx = data_p.data[i].x - data_p.data[j].x;
-                float dy = data_p.data[i].y - data_p.data[j].y;
-                float dz = data_p.data[i].z - data_p.data[j].z;
+            for (unsigned int j = 0; j < data_p.get_size(); ++j) {
+                float dx = data_p[i].x - data_p[j].x;
+                float dy = data_p[i].y - data_p[j].y;
+                float dz = data_p[i].z - data_p[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp.index(data_p.data[i].ff_type, data_p.data[j].ff_type, dist/width) += data_p.data[i].w*data_p.data[j].w;
-                p_pp.index(data_p.data[i].ff_type, excluded_volume_bin, dist/width) += data_p.data[i].w*Z_exv_avg;
+                p_pp.index(data_p[i].ff_type, data_p[j].ff_type, dist/width) += data_p[i].w*data_p[j].w;
+                p_pp.index(data_p[i].ff_type, excluded_volume_bin, dist/width) += data_p[i].w*Z_exv_avg;
                 p_pp.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
             }
         }
@@ -57,13 +57,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     auto calc_hp = [&data_h, &data_p, &axes, &width, &Z_exv_avg, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
         Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0); // ff_type, distance
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_p.size; ++j) {
-                float dx = data_h.data[i].x - data_p.data[j].x;
-                float dy = data_h.data[i].y - data_p.data[j].y;
-                float dz = data_h.data[i].z - data_p.data[j].z;
+            for (unsigned int j = 0; j < data_p.get_size(); ++j) {
+                float dx = data_h[i].x - data_p[j].x;
+                float dy = data_h[i].y - data_p[j].y;
+                float dz = data_h[i].z - data_p[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hp.index(data_p.data[j].ff_type, dist/width) += data_h.data[i].w*data_p.data[j].w;
-                p_hp.index(excluded_volume_bin, dist/width) += data_h.data[i].w*Z_exv_avg;
+                p_hp.index(data_p[j].ff_type, dist/width) += data_h[i].w*data_p[j].w;
+                p_hp.index(excluded_volume_bin, dist/width) += data_h[i].w*Z_exv_avg;
             }
         }
         return p_hp;
@@ -72,11 +72,11 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     auto calc_hh = [&data_h, &axes, &width] (unsigned int imin, unsigned int imax) {
         Container1D<double> p_hh(axes.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_h.size; ++j) {
-                float weight = data_h.data[i].w*data_h.data[j].w;
-                float dx = data_h.data[i].x - data_h.data[j].x;
-                float dy = data_h.data[i].y - data_h.data[j].y;
-                float dz = data_h.data[i].z - data_h.data[j].z;
+            for (unsigned int j = 0; j < data_h.get_size(); ++j) {
+                float weight = data_h[i].w*data_h[j].w;
+                float dx = data_h[i].x - data_h[j].x;
+                float dy = data_h[i].y - data_h[j].y;
+                float dz = data_h[i].z - data_h[j].z;
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_hh.index(dist/width) += weight;
             }
@@ -89,16 +89,16 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     //##############//
     unsigned int job_size = settings::general::detail::job_size;
     BS::multi_future<Container3D<double>> pp;
-    for (unsigned int i = 0; i < data_p.size; i+=job_size) {
-        pp.push_back(pool.submit(calc_pp, i, std::min(i+job_size, data_p.size)));
+    for (unsigned int i = 0; i < data_p.get_size(); i+=job_size) {
+        pp.push_back(pool.submit(calc_pp, i, std::min(i+job_size, data_p.get_size())));
     }
     BS::multi_future<Container2D<double>> hp;
-    for (unsigned int i = 0; i < data_h.size; i+=job_size) {
-        hp.push_back(pool.submit(calc_hp, i, std::min(i+job_size, data_h.size)));
+    for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
+        hp.push_back(pool.submit(calc_hp, i, std::min(i+job_size, data_h.get_size())));
     }
     BS::multi_future<Container1D<double>> hh;
-    for (unsigned int i = 0; i < data_h.size; i+=job_size) {
-        hh.push_back(pool.submit(calc_hh, i, std::min(i+job_size, data_h.size)));
+    for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
+        hh.push_back(pool.submit(calc_hh, i, std::min(i+job_size, data_h.get_size())));
     }
 
     //#################//
@@ -141,12 +141,12 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all(
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    // for (unsigned int i = 0; i < data_p.size; ++i) {
-    //     p_pp.index(data_p.data[i].ff_type, data_p.data[i].ff_type, 0) -= std::pow(data_p.data[i].w, 2);
+    // for (unsigned int i = 0; i < data_p.get_size(); ++i) {
+    //     p_pp.index(data_p[i].ff_type, data_p[i].ff_type, 0) -= std::pow(data_p[i].w, 2);
     //     p_pp.index(excluded_volume_bin, excluded_volume_bin, 0) -= std::pow(Z_exv_avg, 2);
     // }
-    // for (unsigned int i = 0; i < data_h.size; ++i) {
-    //     p_hh.index(0) -= std::pow(data_h.data[i].w, 2);
+    // for (unsigned int i = 0; i < data_h.get_size(); ++i) {
+    //     p_hh.index(0) -= std::pow(data_h[i].w, 2);
     // }
 
     std::vector<double> p_tot(axes.bins, 0);

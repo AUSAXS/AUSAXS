@@ -13,8 +13,8 @@
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
-#include <hist/detail/HistogramManagerFactory.h>
-#include <hist/HistogramManager.h>
+#include <hist/distance_calculator/HistogramManagerFactory.h>
+#include <hist/distance_calculator/HistogramManager.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <utility/Constants.h>

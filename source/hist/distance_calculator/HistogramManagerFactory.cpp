@@ -1,11 +1,11 @@
-#include <hist/detail/HistogramManagerFactory.h>
+#include <hist/distance_calculator/HistogramManagerFactory.h>
 #include <settings/HistogramSettings.h>
-#include <hist/HistogramManager.h>
-#include <hist/HistogramManagerMT.h>
-#include <hist/HistogramManagerMTFF.h>
-#include <hist/PartialHistogramManager.h>
-#include <hist/PartialHistogramManagerMT.h>
-#include <hist/DebugManager.h>
+#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMTFF.h>
+#include <hist/distance_calculator/PartialHistogramManager.h>
+#include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <hist/distance_calculator/DebugManager.h>
 #include <data/Protein.h>
 
 using namespace hist::factory;

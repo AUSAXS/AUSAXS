@@ -38,3 +38,9 @@ CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<Water>& atoms) : si
         data[i] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, FormFactor::get_type(a));
     }
 }
+
+unsigned int CompactCoordinatesFF::get_size() const {return size;}
+
+CompactCoordinatesFF::Data& CompactCoordinatesFF::operator[](unsigned int i) {return data[i];}
+
+const CompactCoordinatesFF::Data& CompactCoordinatesFF::operator[](unsigned int i) const {return data[i];}

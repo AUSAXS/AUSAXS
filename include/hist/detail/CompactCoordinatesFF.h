@@ -11,8 +11,9 @@ class Water;
 namespace hist::detail {
     /**
      * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
-     *        The idea is that by only extracting the absolute necessities for the distance calculation, more values can be stored
-     *        in the cache at any given time. This is meant as a helper class to DistanceCalculator.
+     *        The idea is that by only extracting the absolute necessities for the distance calculation such as the coordinates and weight,
+     *        more values can be stored in the cache at any given time. This is further improved by storing the coordinates as floats instead of doubles.
+     *        This is meant as a helper class to DistanceCalculator.
      */
     struct CompactCoordinatesFF {
         struct Data {
@@ -40,7 +41,13 @@ namespace hist::detail {
          */
         CompactCoordinatesFF(const std::vector<Water>& atoms);
 
-        unsigned int size;
-        std::vector<Data> data;
+        unsigned int get_size() const;
+
+        Data& operator[](unsigned int i);
+        const Data& operator[](unsigned int i) const;
+
+        private: 
+            unsigned int size;
+            std::vector<Data> data;
     };
 }

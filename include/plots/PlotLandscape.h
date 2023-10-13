@@ -5,7 +5,7 @@
 namespace mini {class Landscape;}
 namespace plots {
     /**
-     * @brief Plot a landscape.
+     * @brief Plot a specific \class Landscape object.
      */
     class PlotLandscape : public Plot {
         public:
