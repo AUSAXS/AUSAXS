@@ -1,11 +1,11 @@
-#include <hist/detail/FormFactor.h>
+#include <formfactor/FormFactor.h>
 #include <data/Atom.h>
 
 #include <cmath>
 
-using namespace hist::detail;
+using namespace form_factor;
 
-const FormFactor& FormFactorStorage::get_form_factor(form_factor_t type) {
+constexpr const FormFactor& storage::get_form_factor(form_factor_t type) {
     switch (type) {
         case form_factor_t::NEUTRAL_HYDROGEN:
             return hydrogen;
@@ -29,7 +29,7 @@ double FormFactor::evaluate(double q) const {
     for (unsigned int i = 0; i < 5; ++i) {
         sum += a[i]*std::exp(-b[i]*q*q);
     }
-    return (sum + c)/normalization_factor;
+    return (sum + c)/f0;
 }
 
 form_factor_t FormFactor::get_type(const Atom& atom) {

@@ -1,26 +1,16 @@
 #pragma once
 
 #include <utility/Concepts.h>
+#include <hist/HistFwd.h>
+#include <io/IOFwd.h>
+#include <data/DataFwd.h>
 
 #include <string>
 #include <vector>
 #include <memory>
 
 class SimpleDataset;
-class Body;
-class Water;
-class Atom;
-namespace io {
-	class File;
-	class ExistingFile;
-}
 namespace fitter {class Fit;}
-namespace hist {
-	class DistanceHistogram;
-	class CompositeDistanceHistogram;
-	class HistogramManager;
-	class Histogram;
-}
 namespace grid {class Grid;}
 template<numeric T> class Vector3;
 

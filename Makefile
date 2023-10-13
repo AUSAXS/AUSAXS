@@ -242,7 +242,7 @@ pepsi/%:
 	@ measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
 	folder=$$(dirname $${measurement}); \
 	structure=$$(find $${folder}/ -name "*.pdb"); \
-	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit"
+	~/tools/Pepsi-SAXS/Pepsi-SAXS $${structure} $${measurement} -o "temp/pepsi/pepsi.fit" ${options}
 	@ mv temp/pepsi/pepsi.fit output/intensity_fitter/$*/pepsi.fit
 
 foxs/%:
@@ -254,7 +254,7 @@ foxs/%:
 	structure=$$(find $${folder}/ -name "*.pdb"); \
 	cp $${structure} .; \
 	cp $${measurement} .; \
-	foxs $$(basename "$${structure}") $$(basename "$${measurement}")
+	foxs $$(basename "$${structure}") $$(basename "$${measurement}") ${options}
 	@ mv temp/foxs/*.fit output/intensity_fitter/$*/foxs.fit
 
 # Perform a fit of a structure file to a measurement. 

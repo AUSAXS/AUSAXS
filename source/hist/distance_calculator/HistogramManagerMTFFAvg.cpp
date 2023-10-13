@@ -1,4 +1,4 @@
-#include <hist/distance_calculator/HistogramManagerMTFF.h>
+#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/detail/FormFactor.h>
@@ -15,13 +15,13 @@
 
 using namespace hist;
 
-HistogramManagerMTFF::HistogramManagerMTFF(HistogramManager& hm) : HistogramManager(hm) {}
+HistogramManagerMTFFAvg::HistogramManagerMTFFAvg(HistogramManager& hm) : HistogramManager(hm) {}
 
-HistogramManagerMTFF::~HistogramManagerMTFF() = default;
+HistogramManagerMTFFAvg::~HistogramManagerMTFFAvg() = default;
 
-std::unique_ptr<DistanceHistogram> HistogramManagerMTFF::calculate() {return calculate_all();}
+std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg::calculate() {return calculate_all();}
 
-std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFF::calculate_all() {
+std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_all() {
     double width = settings::axes::distance_bin_width;
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
     std::cout << "Z_exv_avg = " << Z_exv_avg << std::endl;

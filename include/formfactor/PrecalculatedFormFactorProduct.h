@@ -3,7 +3,7 @@
 #include <vector>
 
 template<typename T> class Container2D;
-namespace hist::detail {
+namespace form_factor {
     class FormFactor;
     class PrecalculatedFormFactorProduct {
         public:

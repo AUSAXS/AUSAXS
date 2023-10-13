@@ -20,9 +20,6 @@ HistogramManager::~HistogramManager() = default;
 std::unique_ptr<DistanceHistogram> HistogramManager::calculate() {return calculate_all();}
 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
-    // auto atoms = protein->get_atoms();
-    // auto waters = protein->get_waters();
-
     double width = settings::axes::distance_bin_width;
     Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
     std::vector<double> p_pp(axes.bins, 0);

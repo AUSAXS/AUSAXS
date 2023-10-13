@@ -9,13 +9,13 @@ namespace hist {
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
 	 */
-	class HistogramManagerMTFF : public HistogramManager {
+	class HistogramManagerMTFFAvg : public HistogramManager {
 		public:
 			using HistogramManager::HistogramManager;
 
-			HistogramManagerMTFF(HistogramManager&);
+			HistogramManagerMTFFAvg(HistogramManager&);
 
-			~HistogramManagerMTFF() override;
+			~HistogramManagerMTFFAvg() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 

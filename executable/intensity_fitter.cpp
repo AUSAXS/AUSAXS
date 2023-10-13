@@ -91,26 +91,26 @@ int main(int argc, char const *argv[]) {
         protein.generate_new_hydration();
     }
 
-    protein.get_histogram()->debye_transform();
+    // protein.get_histogram()->debye_transform();
 
-    // std::shared_ptr<fitter::HydrationFitter> fitter;
-    // if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
-    // else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
-    // std::shared_ptr<fitter::Fit> result = fitter->fit();
-    // fitter::FitReporter::report(result);
-    // fitter::FitReporter::save(result, settings::general::output + "report.txt");
+    std::shared_ptr<fitter::HydrationFitter> fitter;
+    if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
+    else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
+    std::shared_ptr<fitter::Fit> result = fitter->fit();
+    fitter::FitReporter::report(result);
+    fitter::FitReporter::save(result, settings::general::output + "report.txt");
 
-    // plots::PlotDistance::quick_plot(protein.get_histogram().get(), settings::general::output + "distance." + settings::plots::format);
+    plots::PlotDistance::quick_plot(protein.get_histogram().get(), settings::general::output + "distance." + settings::plots::format);
 
-    // // save fit
-    // fitter->get_model_dataset().save(settings::general::output + "fit.fit");
-    // fitter->get_dataset().save(settings::general::output + mfile.stem() + ".dat");
+    // save fit
+    fitter->get_model_dataset().save(settings::general::output + "fit.fit");
+    fitter->get_dataset().save(settings::general::output + mfile.stem() + ".dat");
 
-    // // calculate rhoM
-    // double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
-    // std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
+    // calculate rhoM
+    double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
+    std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
-    // protein.save(settings::general::output + "model.pdb");
+    protein.save(settings::general::output + "model.pdb");
 
     // std::vector<double> q;
     // for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}

@@ -1,12 +1,12 @@
-#include <hist/detail/PrecalculatedFormFactorProduct.h>
-#include <hist/detail/FormFactor.h>
+#include <formfactor/PrecalculatedFormFactorProduct.h>
+#include <formfactor/FormFactor.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Axis.h>
 #include <utility/Container2D.h>
 
 #include <cmath>
 
-using namespace hist::detail;
+using namespace form_factor;
 
 PrecalculatedFormFactorProduct::PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2, const std::vector<double>& q) {
     std::vector<double> res(q.size());
@@ -27,8 +27,8 @@ Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::gene
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = std::move(
                 PrecalculatedFormFactorProduct(
-                    FormFactorStorage::get_form_factor(static_cast<form_factor_t>(i)), 
-                    FormFactorStorage::get_form_factor(static_cast<form_factor_t>(j)), 
+                    storage::get_form_factor(static_cast<form_factor_t>(i)), 
+                    storage::get_form_factor(static_cast<form_factor_t>(j)), 
                     q
                 )
             );
@@ -36,8 +36,8 @@ Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::gene
         }
         table.index(i, i) = std::move(
             PrecalculatedFormFactorProduct(
-                FormFactorStorage::get_form_factor(static_cast<form_factor_t>(i)), 
-                FormFactorStorage::get_form_factor(static_cast<form_factor_t>(i)), 
+                storage::get_form_factor(static_cast<form_factor_t>(i)), 
+                storage::get_form_factor(static_cast<form_factor_t>(i)), 
                 q
             )
         );
