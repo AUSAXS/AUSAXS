@@ -1,13 +1,12 @@
 #pragma once
 
-#include <hist/detail/FormFactorType.h>
+#include <form_factor/FormFactorType.h>
 #include <utility/Concepts.h>
+#include <data/DataFwd.h>
+#include <math/MathFwd.h>
 
 #include <vector>
 
-template<numeric T> class Vector3;
-class Body;
-class Water;
 namespace hist::detail {
     /**
      * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
@@ -18,7 +17,7 @@ namespace hist::detail {
     struct CompactCoordinatesFF {
         struct Data {
             Data();
-            Data(const Vector3<double>& v, float w, hist::detail::form_factor_t ff_type);
+            Data(const Vector3<double>& v, float w, form_factor::form_factor_t ff_type);
             float x, y, z, w; 
             unsigned int ff_type;
         };
@@ -29,17 +28,17 @@ namespace hist::detail {
         /**
          * @brief Extract the necessary coordinates and weights from a body. 
          */
-        CompactCoordinatesFF(const Body& body);
+        CompactCoordinatesFF(const data::Body& body);
 
         /**
          * @brief Extract the necessary coordinates and weights from a vector of bodies. 
          */
-        CompactCoordinatesFF(const std::vector<Body>& bodies);
+        CompactCoordinatesFF(const std::vector<data::Body>& bodies);
 
         /**
          * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
          */
-        CompactCoordinatesFF(const std::vector<Water>& atoms);
+        CompactCoordinatesFF(const std::vector<data::record::Water>& atoms);
 
         unsigned int get_size() const;
 

@@ -3,15 +3,17 @@
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/GeneralSettings.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <utility/Console.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 
 #include <limits>
 
 using namespace rigidbody;
+using namespace data;
+using namespace data::record;
 
 std::vector<DistanceConstraint> VolumetricConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}

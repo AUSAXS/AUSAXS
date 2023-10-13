@@ -1,10 +1,10 @@
 #pragma once
 
 #include <utility/Concepts.h>
+#include <math/MathFwd.h>
 
 #include <vector>
 
-template<numeric T> class Vector3;
 namespace grid {
     /**
      * @brief A simple class that represents a 3D grid.

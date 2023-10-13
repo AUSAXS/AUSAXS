@@ -25,7 +25,7 @@ namespace plots {
 			 * @param data The protein whose distances will be plotted. 
 			 * @param path The path to the folder where the plot will be saved. 
 			 */
-			PlotProfiles(const Protein* const protein, const io::File& path);
+			PlotProfiles(const data::Molecule* const protein, const io::File& path);
 
 			/**
 			 * @brief Destructor. 
@@ -42,6 +42,6 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(const Protein* const protein, const io::File& path);
+			static void quick_plot(const data::Molecule* const protein, const io::File& path);
 	};
 }

@@ -2,9 +2,9 @@
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
-#include <data/Protein.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/Molecule.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 

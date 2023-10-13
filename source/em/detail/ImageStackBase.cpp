@@ -4,7 +4,7 @@
 #include <em/manager/ProteinManagerFactory.h>
 #include <em/ObjectBounds3D.h>
 #include <em/Image.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <fitter/Fit.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
@@ -12,7 +12,7 @@
 #include <settings/HistogramSettings.h>
 #include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <utility/Axis3D.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
@@ -73,7 +73,7 @@ std::unique_ptr<hist::CompositeDistanceHistogram> ImageStackBase::get_histogram(
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
-Protein* ImageStackBase::get_protein(double cutoff) const {
+data::Molecule* ImageStackBase::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 

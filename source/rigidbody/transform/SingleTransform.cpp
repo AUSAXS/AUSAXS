@@ -2,7 +2,7 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <rigidbody/transform/BackupBody.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 
 using namespace rigidbody;
 

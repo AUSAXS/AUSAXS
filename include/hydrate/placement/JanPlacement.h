@@ -15,6 +15,6 @@ namespace grid {
             using PlacementStrategy::PlacementStrategy; // inherit constructor
             ~JanPlacement() override = default;
 
-            std::vector<GridMember<Water>> place() const override;
+            std::vector<GridMember<data::record::Water>> place() const override;
         };
 }

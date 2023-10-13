@@ -3,7 +3,7 @@
 
 using namespace signaller;
 
-BoundSignaller::BoundSignaller(unsigned int id, StateManager* const owner) : owner(owner), id(id) {}
+BoundSignaller::BoundSignaller(unsigned int id, state::StateManager* const owner) : owner(owner), id(id) {}
 
 BoundSignaller::~BoundSignaller() = default;
 

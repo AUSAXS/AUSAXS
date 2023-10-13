@@ -1,10 +1,9 @@
 #include <data/Body.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <data/state/UnboundSignaller.h>
 #include <hydrate/Grid.h>
-#include <utility/Constants.h>
-#include <settings/ProteinSettings.h>
+#include <constants/Constants.h>
 #include <math/Matrix.h>
 #include <math/MatrixUtils.h>
 #include <math/Vector3.h>
@@ -15,6 +14,8 @@
 #include <algorithm>
 #include <numeric>
 
+using namespace data;
+
 Body::Body() {
     initialize();
 }
@@ -23,11 +24,11 @@ Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {
     initialize();
 }
 
-Body::Body(const std::vector<Atom>& protein_atoms, const std::vector<Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {
+Body::Body(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms) : uid(uid_counter++), file(protein_atoms, hydration_atoms) {
     initialize();
 }
 
-Body::Body(const std::vector<Atom>& protein_atoms) : Body(protein_atoms, std::vector<Water>()) {}
+Body::Body(const std::vector<record::Atom>& protein_atoms) : Body(protein_atoms, std::vector<record::Water>()) {}
 
 Body::Body(const Body& body) : uid(body.uid), file(body.file) {
     initialize();
@@ -83,8 +84,8 @@ double Body::get_volume_acids() const {
 void Body::translate(const Vector3<double>& v) {
     changed_external_state();
 
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&v] (Atom& atom) {atom.translate(v);});
-    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&v] (Water& atom) {atom.translate(v);});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&v] (record::Atom& atom) {atom.translate(v);});
+    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&v] (record::Water& atom) {atom.translate(v);});
 }
 
 void Body::rotate(const Matrix<double>& R) {
@@ -112,16 +113,16 @@ void Body::rotate(const Vector3<double>& axis, double angle) {
 void Body::update_effective_charge(double charge) {
     changed_external_state();
     changed_internal_state();
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge] (Atom& a) {a.add_effective_charge(charge);});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&charge] (record::Atom& a) {a.add_effective_charge(charge);});
     updated_charge = true;
 }
 
 double Body::total_atomic_charge() const {
-    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const Atom& atom) {return sum + atom.Z();});
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [] (double sum, const record::Atom& atom) {return sum + atom.Z();});
 }
 
 double Body::total_effective_charge() const {
-    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [](double sum, const Atom& a) { return sum + a.get_effective_charge(); });
+    return std::accumulate(get_atoms().begin(), get_atoms().end(), 0.0, [](double sum, const record::Atom& a) { return sum + a.get_effective_charge(); });
 }
 
 double Body::molar_mass() const {
@@ -130,8 +131,8 @@ double Body::molar_mass() const {
 
 double Body::absolute_mass() const {
     double M = 0;
-    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const Atom& a) {M += a.get_mass();});
-    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const Water& a) {M += a.get_mass();});
+    std::for_each(file.protein_atoms.begin(), file.protein_atoms.end(), [&M] (const record::Atom& a) {M += a.get_mass();});
+    std::for_each(file.hydration_atoms.begin(), file.hydration_atoms.end(), [&M] (const record::Water& a) {M += a.get_mass();});
     return M;
 }
 
@@ -171,19 +172,19 @@ void Body::register_probe(std::shared_ptr<signaller::Signaller> signal) {
     this->signal = signal;
 }
 
-std::vector<Atom>& Body::get_atoms() {return file.protein_atoms;}
+std::vector<record::Atom>& Body::get_atoms() {return file.protein_atoms;}
 
-std::vector<Water>& Body::get_waters() {return file.hydration_atoms;}
+std::vector<record::Water>& Body::get_waters() {return file.hydration_atoms;}
 
-const std::vector<Atom>& Body::get_atoms() const {return file.protein_atoms;}
+const std::vector<record::Atom>& Body::get_atoms() const {return file.protein_atoms;}
 
-const std::vector<Water>& Body::get_waters() const {return file.hydration_atoms;}
+const std::vector<record::Water>& Body::get_waters() const {return file.hydration_atoms;}
 
-Atom& Body::get_atom(unsigned int index) {return file.protein_atoms[index];}
+record::Atom& Body::get_atom(unsigned int index) {return file.protein_atoms[index];}
 
-const Atom& Body::get_atom(unsigned int index) const {return file.protein_atoms[index];}
+const record::Atom& Body::get_atom(unsigned int index) const {return file.protein_atoms[index];}
 
-ProteinFile& Body::get_file() {return file;}
+data::detail::AtomCollection& Body::get_file() {return file;}
 
 unsigned int Body::get_id() const {return uid;}
 

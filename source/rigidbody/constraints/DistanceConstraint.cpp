@@ -1,13 +1,15 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <settings/RigidBodySettings.h>
-#include <utility/Constants.h>
-#include <data/Protein.h>
+#include <constants/Constants.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 
 using namespace rigidbody;
+using namespace data;
+using namespace data::record;
 
-DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
+DistanceConstraint::DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2) 
     : protein(protein), ibody1(ibody1), ibody2(ibody2), iatom1(iatom1), iatom2(iatom2) {
     const Body& body1 = protein->get_body(ibody1);
     const Body& body2 = protein->get_body(ibody2);
@@ -31,7 +33,7 @@ DistanceConstraint::DistanceConstraint(Protein* protein, unsigned int ibody1, un
     );}
 }
 
-DistanceConstraint::DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
+DistanceConstraint::DistanceConstraint(data::Molecule* protein, const Atom& atom1, const Atom& atom2) : protein(protein) {
     // we only want to allow constraints between the backbone C-alpha structure
     if (atom1.element != constants::atom_t::C || atom2.element != constants::atom_t::C) {
         throw except::invalid_argument("Constraint::Constraint: Constraints only makes sense between the carbon-atoms of the backbone!");

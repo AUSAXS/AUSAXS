@@ -1,12 +1,11 @@
 #pragma once
 
 #include <utility/Concepts.h>
+#include <data/DataFwd.h>
+#include <math/MathFwd.h>
 
 #include <vector>
 
-template<numeric T> class Vector3;
-class Body;
-class Water;
 namespace hist::detail {
     /**
      * @brief A compact vector representation of the coordinates and weight of all atoms in a body. 
@@ -27,17 +26,17 @@ namespace hist::detail {
         /**
          * @brief Extract the necessary coordinates and weights from a body. 
          */
-        CompactCoordinates(const Body& body);
+        CompactCoordinates(const data::Body& body);
 
         /**
          * @brief Extract the necessary coordinates and weights from a vector of bodies. 
          */
-        CompactCoordinates(const std::vector<Body>& bodies);
+        CompactCoordinates(const std::vector<data::Body>& bodies);
 
         /**
          * @brief Extract the necessary coordinates and weights from a vector of hydration atoms. 
          */
-        CompactCoordinates(const std::vector<Water>& atoms);
+        CompactCoordinates(const std::vector<data::record::Water>& atoms);
 
         unsigned int get_size() const;
 

@@ -2,16 +2,15 @@
 
 #include <em/detail/header/MapHeader.h>
 #include <em/Image.h>
-
 #include <hist/HistFwd.h>
 #include <data/DataFwd.h>
 #include <fitter/FitterFwd.h>
+#include <io/IOFwd.h>
 
 #include <vector>
 #include <string>
 #include <memory>
 
-namespace io {class ExistingFile;}
 namespace em {
     class ObjectBounds3D;
     namespace managers {class ProteinManager;}
@@ -73,7 +72,7 @@ namespace em {
             /**
              * @brief Get the protein generated with the chosen cutoff value.
              */
-            Protein* get_protein(double cutoff) const;
+            data::Molecule* get_protein(double cutoff) const;
 
             /**
              * @brief Get the header of the input file. 

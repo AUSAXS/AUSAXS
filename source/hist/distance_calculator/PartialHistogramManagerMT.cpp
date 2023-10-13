@@ -1,10 +1,10 @@
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Atom.h> 
-#include <data/Water.h>
+#include <data/record/Atom.h> 
+#include <data/record/Water.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
@@ -15,7 +15,7 @@
 
 using namespace hist;
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(Protein* protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
+PartialHistogramManagerMT::PartialHistogramManagerMT(const data::Molecule* const protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 
 PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 

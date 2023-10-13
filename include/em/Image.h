@@ -1,13 +1,14 @@
 #pragma once
 
 #include <math/Matrix.h>
-#include <hist/Histogram2D.h>
 #include <em/ObjectBounds2D.h>
+#include <data/DataFwd.h>
 
 #include <vector>
 #include <list>
 
-class Atom;
+namespace hist {class Histogram2D;}
+
 namespace em {
     namespace detail::header {class MapHeader;}
 
@@ -32,7 +33,7 @@ namespace em {
 
             hist::Histogram2D as_hist() const;
 
-            std::list<Atom> generate_atoms(double cutoff) const;
+            std::list<data::record::Atom> generate_atoms(double cutoff) const;
 
             /**
              * @brief Count the number of voxels for a given cutoff value.

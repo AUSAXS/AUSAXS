@@ -2,12 +2,14 @@
 #include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
 #include <math/Vector3.h>
-#include <data/Water.h>
-#include <utility/Constants.h>
+#include <data/record/Water.h>
+#include <constants/Constants.h>
 
 #include <utility>
 
-std::vector<Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
+using namespace data::record;
+
+std::vector<data::record::Water> grid::OutlierCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
         std::vector<Water> final_water(placed_water.size());
         std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.get_atom();});

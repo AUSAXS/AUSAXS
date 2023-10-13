@@ -1,8 +1,8 @@
 #pragma once
 
+#include <data/state/DataStateFwd.h>
 #include <data/state/Signaller.h>
 
-class StateManager;
 namespace signaller {
     /**
      * @brief Dummy version of a Signaller object. This can be used to initialize an instance of Signaller. 

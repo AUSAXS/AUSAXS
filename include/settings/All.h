@@ -7,6 +7,6 @@
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <settings/PlotSettings.h>
-#include <settings/ProteinSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <settings/RigidBodySettings.h>
 #include <settings/SettingsIO.h>

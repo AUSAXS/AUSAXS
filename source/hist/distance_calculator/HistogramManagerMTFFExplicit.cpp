@@ -1,15 +1,16 @@
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/detail/CompactCoordinatesFF.h>
-#include <hist/detail/FormFactor.h>
-#include <data/Protein.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <form_factor/FormFactor.h>
+#include <data/Molecule.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <utility/Container3D.h>
 #include <utility/Container2D.h>
 #include <utility/Container1D.h>
+#include <constants/Constants.h>
 
 #include <BS_thread_pool.hpp>
 
@@ -24,9 +25,8 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit::calculate() {re
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calculate_all() {
     double width = settings::axes::distance_bin_width;
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
-    std::cout << "Z_exv_avg = " << Z_exv_avg << std::endl;
     double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
-    unsigned int excluded_volume_bin = static_cast<unsigned int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
+    unsigned int excluded_volume_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
 
     // create a more compact representation of the coordinates
@@ -39,7 +39,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
     //########################//
     BS::thread_pool pool(settings::general::threads);
     auto calc_pp = [&data_p, &axes, &width, &Z_exv_avg, &Z_exv_avg2, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
-        Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+        Container3D<double> p_pp(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), axes.bins, 0); // ff_type1, ff_type2, distance
+        Container3D<double> p_exv(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), axes.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < data_p.get_size(); ++j) {
                 float dx = data_p[i].x - data_p[j].x;
@@ -48,14 +49,14 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
                 float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
                 p_pp.index(data_p[i].ff_type, data_p[j].ff_type, dist/width) += data_p[i].w*data_p[j].w;
                 p_pp.index(data_p[i].ff_type, excluded_volume_bin, dist/width) += data_p[i].w*Z_exv_avg;
-                p_pp.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
+                p_exv.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
             }
         }
         return p_pp;
     };
 
     auto calc_hp = [&data_h, &data_p, &axes, &width, &Z_exv_avg, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
-        Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0); // ff_type, distance
+        Container2D<double> p_hp(form_factor::get_count(), axes.bins, 0); // ff_type, distance
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < data_p.get_size(); ++j) {
                 float dx = data_h[i].x - data_p[j].x;
@@ -106,7 +107,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
     //#################//
     auto p_pp_future = pool.submit(
         [&]() {
-            Container3D<double> p_pp(detail::FormFactor::get_count(), detail::FormFactor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+            Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
             for (const auto& tmp : pp.get()) {
                 std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
             }
@@ -116,7 +117,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
 
     auto p_hp_future = pool.submit(
         [&]() {
-            Container2D<double> p_hp(detail::FormFactor::get_count(), axes.bins, 0); // ff_type, distance
+            Container2D<double> p_hp(form_factor::get_count(), axes.bins, 0); // ff_type, distance
             for (const auto& tmp : hp.get()) {
                 std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<double>());
             }
@@ -151,8 +152,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
 
     std::vector<double> p_tot(axes.bins, 0);
     for (unsigned int i = 0; i < axes.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count_without_excluded_volume(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 p_tot[i] += p_pp.index(ff1, ff2, i);
             }
             p_tot[i] += 2*p_hp.index(ff1, i);
@@ -169,12 +170,12 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
         }
     }
 
-    Container3D<double> p_pp_short(detail::FormFactor::get_count(), detail::FormFactor::get_count(), max_bin);
-    Container2D<double> p_hp_short(detail::FormFactor::get_count(), max_bin);
+    Container3D<double> p_pp_short(form_factor::get_count(), form_factor::get_count(), max_bin);
+    Container2D<double> p_hp_short(form_factor::get_count(), max_bin);
     Container1D<double> p_hh_short(max_bin);
     for (unsigned int i = 0; i < max_bin; ++i) {
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < form_factor::get_count(); ++ff2) {
                 p_pp_short.index(ff1, ff2, i) = p_pp.index(ff1, ff2, i);
             }
             p_hp_short.index(ff1, i) = p_hp.index(ff1, i);

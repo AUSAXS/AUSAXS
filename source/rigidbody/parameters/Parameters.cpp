@@ -1,13 +1,14 @@
 #include <rigidbody/parameters/Parameters.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/Exceptions.h>
+#include <math/Vector3.h>
 #include <Symbols.h>
 
 using namespace rigidbody;
 
-Parameters::Parameters(const Protein* protein) : params(protein->body_size()) {
-    const std::vector<Body>& bodies = protein->get_bodies();
+Parameters::Parameters(const data::Molecule* protein) : params(protein->body_size()) {
+    const std::vector<data::Body>& bodies = protein->get_bodies();
     for (unsigned int i = 0; i < params.size(); i++) {
         id_to_index[bodies[i].get_id()] = i;
     }

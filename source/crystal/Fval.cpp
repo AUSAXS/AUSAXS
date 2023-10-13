@@ -1,9 +1,9 @@
 #include <crystal/Fval.h>
 #include <utility/Basis3D.h>
 #include <Symbols.h>
-#include <data/Protein.h>
-#include <data/Atom.h>
-#include <utility/Constants.h>
+#include <data/Molecule.h>
+#include <data/record/Atom.h>
+#include <constants/Constants.h>
 
 #include <cmath>
 
@@ -38,12 +38,12 @@ double Fval::I() const {
     return std::norm(fval);
 }
 
-Protein Fval::as_protein() {
-    std::vector<Atom> atoms(points.size());
+data::Molecule Fval::as_protein() {
+    std::vector<data::record::Atom> atoms(points.size());
     for (unsigned int i = 0; i < points.size(); i++) {
-        atoms[i] = Atom(points[i], 1, constants::atom_t::H, "LYS", i);
+        atoms[i] = data::record::Atom(points[i], 1, constants::atom_t::H, "LYS", i);
     } 
-    return Protein(atoms);
+    return data::Molecule(atoms);
 }
 
 // #include <settings/CrystalSettings.h>

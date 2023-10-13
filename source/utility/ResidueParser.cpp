@@ -1,9 +1,9 @@
 #include <utility/ResidueParser.h>
 #include <utility/Curl.h>
-#include <utility/Constants.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <utility/ResidueMap.h>
+#include <constants/Constants.h>
 #include <settings/GeneralSettings.h>
 #include <io/ExistingFile.h>
 

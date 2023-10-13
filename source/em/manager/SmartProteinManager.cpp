@@ -1,19 +1,21 @@
 #include <em/manager/SmartProteinManager.h>
 #include <hist/CompositeDistanceHistogram.h>
-#include <data/Protein.h>
-#include <data/Atom.h>
+#include <data/Molecule.h>
+#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <utility/Console.h>
 #include <em/detail/ImageStackBase.h>
 #include <settings/EMSettings.h>
 #include <em/Image.h>
-#include <data/Water.h>
+#include <data/record/Water.h>
 #include <Symbols.h>
 
 #include <vector>
 #include <functional>
 
 using namespace em::managers;
+using namespace data;
+using namespace data::record;
 
 std::unique_ptr<hist::CompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
@@ -34,14 +36,14 @@ std::vector<Atom> SmartProteinManager::generate_atoms(double cutoff) const {
     return std::vector<Atom>(std::make_move_iterator(std::begin(atoms)), std::make_move_iterator(std::end(atoms)));
 }
 
-std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) const {
+std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cutoff) const {
     std::vector<Atom> atoms = generate_atoms(cutoff);
     std::vector<Body> bodies(charge_levels.size());
     std::vector<Atom> current_atoms(atoms.size());
 
     if (atoms.empty()) {
         console::print_warning("Warning in SmartProteinManager::generate_protein: No voxels found for cutoff \"" + std::to_string(cutoff) + "\".");
-        return std::make_unique<Protein>(bodies);
+        return std::make_unique<data::Molecule>(bodies);
     }
 
     if (charge_levels.empty()) {
@@ -85,7 +87,7 @@ std::unique_ptr<Protein> SmartProteinManager::generate_protein(double cutoff) co
     current_atoms.resize(current_index);
     bodies[charge_index] = Body(current_atoms);
 
-    return std::make_unique<Protein>(bodies);
+    return std::make_unique<data::Molecule>(bodies);
 }
 
 void SmartProteinManager::update_protein(double cutoff) {
@@ -106,7 +108,7 @@ void SmartProteinManager::update_protein(double cutoff) {
         throw except::unexpected("SmartProteinManager::update_protein: charge_levels is empty.");
     }
 
-    std::unique_ptr<Protein> new_protein = generate_protein(cutoff);
+    std::unique_ptr<data::Molecule> new_protein = generate_protein(cutoff);
     // std::cout << "Found " << new_protein->atom_size() << " voxels with a cutoff larger than " << cutoff << std::endl;
 
     std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
@@ -168,14 +170,14 @@ void SmartProteinManager::update_protein(double cutoff) {
     previous_cutoff = cutoff;
 }
 
-Protein* SmartProteinManager::get_protein() const {
+data::Molecule* SmartProteinManager::get_protein() const {
     #ifdef DEBUG
         if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
     #endif
     return protein.get();
 }
 
-Protein* SmartProteinManager::get_protein(double cutoff) {
+data::Molecule* SmartProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
     return protein.get();
 }

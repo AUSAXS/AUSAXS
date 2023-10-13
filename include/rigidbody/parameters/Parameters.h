@@ -1,12 +1,12 @@
 #pragma once
 
-#include <math/Vector3.h>
 #include <rigidbody/parameters/Parameter.h>
+#include <data/DataFwd.h>
+#include <math/MathFwd.h>
 
 #include <unordered_map>
 #include <vector>
 
-class Protein;
 namespace rigidbody {
     /**
      * @brief A small structure for storing the current set of parameters. 
@@ -19,7 +19,7 @@ namespace rigidbody {
          * 
          * @param protein The protein to create this object for. 
          */
-        Parameters(const Protein* protein);
+        Parameters(const data::Molecule* protein);
 
         /**
          * @brief Update the parameter set for a single body. 

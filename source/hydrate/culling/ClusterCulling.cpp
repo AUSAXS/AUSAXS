@@ -3,10 +3,12 @@
 #include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
 #include <math/Vector3.h>
-#include <data/Water.h>
-#include <utility/Constants.h>
+#include <data/record/Water.h>
+#include <constants/Constants.h>
 
 #include <cmath>
+
+using namespace data::record;
 
 grid::ClusterCulling::ClusterCulling(grid::Grid* grid) : grid(grid) {
     prepare_rotations();

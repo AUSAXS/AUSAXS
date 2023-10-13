@@ -3,7 +3,7 @@
 #include <dataset/detail/DatasetReader.h>
 #include <dataset/detail/DATReader.h>
 #include <dataset/detail/XVGReader.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 
 std::unique_ptr<Dataset> factory::DatasetFactory::construct(const io::ExistingFile& file, unsigned int expected_cols) {
     std::unique_ptr<detail::DatasetReader> constructor;

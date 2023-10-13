@@ -1,11 +1,11 @@
 #pragma once
 
 #include <hist/detail/BodyTracker.h>
+#include <data/DataFwd.h>
 
 #include <vector>
 #include <memory>
 
-class Protein;
 namespace hist {
 	class DistanceHistogram;
 	class CompositeDistanceHistogram;
@@ -16,7 +16,7 @@ namespace hist {
 	 */
 	class HistogramManager : public hist::BodyTracker {
 		public:
-			HistogramManager(Protein* protein); 
+			HistogramManager(const data::Molecule* const protein); 
 
 			HistogramManager(const HistogramManager& hm); 
 
@@ -33,6 +33,6 @@ namespace hist {
 			virtual std::unique_ptr<CompositeDistanceHistogram> calculate_all();
 
 		protected:
-			Protein* protein;	// pointer to the parent Protein
+			const data::Molecule* const protein;	// pointer to the parent Protein
     };
 }

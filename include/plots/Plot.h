@@ -1,8 +1,9 @@
 #pragma once
 
+#include <io/IOFwd.h>
+
 #include <sstream>
 
-namespace io {class File;}
 namespace plots {
 	/**
 	 * @brief Virtual super-class for all plotter objects. 

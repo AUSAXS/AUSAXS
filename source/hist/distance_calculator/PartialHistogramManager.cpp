@@ -1,16 +1,16 @@
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <data/state/StateManager.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
 
-PartialHistogramManager::PartialHistogramManager(Protein* protein) : HistogramManager(protein), coords_p(body_size), partials_pp(body_size, body_size), partials_hp(body_size) {}
+PartialHistogramManager::PartialHistogramManager(const data::Molecule* const protein) : HistogramManager(protein), coords_p(body_size), partials_pp(body_size, body_size), partials_hp(body_size) {}
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 

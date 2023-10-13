@@ -1,13 +1,14 @@
 #pragma once
 
+#include <data/DataFwd.h>
+#include <data/state/DataStateFwd.h>
+
 #include <memory>
 
-class Protein;
-class StateManager;
 namespace signaller {class Signaller;}
 namespace hist {
     struct BodyTracker {
-        BodyTracker(Protein* protein);
+        BodyTracker(const data::Molecule* const protein);
 
         ~BodyTracker();
 
@@ -23,11 +24,11 @@ namespace hist {
          */
         void signal_modified_hydration_layer();
 
-        const StateManager* get_state_manager() const;
+        const state::StateManager* get_state_manager() const;
 
-        StateManager* get_state_manager();
+        state::StateManager* get_state_manager();
 
-        const unsigned int body_size;               // number of managed bodies
-        std::unique_ptr<StateManager> statemanager; // a helper which keeps track of state changes in each body
+        const unsigned int body_size;                       // number of managed bodies
+        std::unique_ptr<state::StateManager> statemanager;  // a helper which keeps track of state changes in each body
     };
 }

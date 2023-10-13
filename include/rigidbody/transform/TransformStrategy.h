@@ -1,16 +1,13 @@
 #pragma once
 
 #include <utility/Concepts.h>
+#include <math/MathFwd.h>
 
 #include <vector>
 #include <memory>
 
-class Protein;
-class Body;
 class TransformGroup;
 class BackupBody;
-template<numeric T> class Vector3;
-template<numeric T> class Matrix;
 namespace rigidbody {
     class DistanceConstraint;
     class RigidBody;

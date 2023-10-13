@@ -1,0 +1,351 @@
+#include <data/record/Atom.h>
+#include <constants/Constants.h>
+#include <utility/Utility.h>
+#include <settings/MoleculeSettings.h>
+#include <utility/Console.h>
+
+#include <utility>
+#include <iomanip>
+#include <iostream>
+
+using namespace data::record;
+
+Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const std::string& resName, int serial) : uid(uid_counter++) {
+    // we use our setters so we can validate the input if necessary
+    set_coordinates(v);
+    set_occupancy(occupancy);
+    set_element(element);
+    set_resName(resName);
+    set_serial(serial);
+    set_effective_charge(constants::charge::get_charge(this->element));
+}
+
+Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
+    Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) {
+        set_serial(serial);
+        set_name(name);
+        set_altLoc(altLoc);
+        set_resName(resName);
+        set_chainID(chainID);
+        set_resSeq(resSeq);
+        set_iCode(iCode);
+        set_coordinates(coords);
+        set_occupancy(occupancy);
+        set_tempFactor(tempFactor);
+        set_element(element);
+        set_charge(charge);
+
+        // use a try-catch block to throw more sensible errors
+        #ifdef DEBUG
+            try {
+                effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+            } catch (const except::base& e) {
+            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
+            }
+        #endif
+        effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        uid = uid_counter++;
+}
+
+Atom::Atom() : uid(uid_counter++) {}
+
+void Atom::parse_pdb(const std::string& str) {
+    auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
+    int pad_size = 81 - s.size();
+    if (pad_size < 0) {
+        console::print_warning("Warning in Atom::parse_pdb: Line is longer than 80 characters. Truncating.");
+        std::cout << "\"" << s << "\"" << std::endl;
+        s = s.substr(0, 80);
+    } else {
+        s += std::string(pad_size, ' ');
+    }
+
+    // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#ATOM
+
+    //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S4  EL CH
+    //                   0     1           2              3     4  5  6      7     8
+    //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
+    const char form[] = "%6c%5c%1c%4c%1c%3c%1c%1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c";
+    std::string recName = "      ", serial = "     ", space1 = " ", name = "    ", altLoc = " ", resName = "   ", space2 = " ", 
+        resSeq = "    ", iCode = " ", space3 = "   ", x = "        ", y = "        ", z = "        ", 
+        occupancy = "      ", tempFactor = "      ", space4 = "          ", element = "  ", charge = "  ";
+    char chainID = ' ';
+    sscanf(s.c_str(), form, recName.data(), serial.data(), space1.data(), name.data(), altLoc.data(), resName.data(), 
+        space2.data(), &chainID, resSeq.data(), iCode.data(), space3.data(), x.data(), y.data(), z.data(), 
+        occupancy.data(), tempFactor.data(), space4.data(), element.data(), charge.data());
+
+    // sanity check
+    if (!(Record::get_type(recName) == RecordType::ATOM)) [[unlikely]] {
+        throw except::parse_error("Atom::parse_pdb: input std::string is not \"ATOM  \" or \"HETATM\" (" + recName + ").");
+    }
+
+    // remove any spaces from the numbers
+    serial = utility::remove_all(serial, " ");
+    name = utility::remove_all(space1+name, " "); // we add space1 since some programs (gromacs) uses it for the name.
+    resName = utility::remove_all(resName, " ");
+    resSeq = utility::remove_all(resSeq, " ");
+    x = utility::remove_all(x, " ");
+    y = utility::remove_all(y, " ");
+    z = utility::remove_all(z, " ");
+    occupancy = utility::remove_all(occupancy, " ");
+    tempFactor = utility::remove_all(tempFactor, " ");
+    element = utility::remove_all(element, " ");
+
+    // sometimes people use the first character of x for some other purpose.
+    // if it is a digit, the following won't work. On the other hand they're kinda asking for it then. Follow the standard, people. 
+    if (!(std::isdigit(x[0]) || x[0] == '-')) {
+        x = x.substr(1, x.size()-1);
+    }
+
+    // set all of the properties
+    try {
+        this->recName = recName;
+        this->serial = std::stoi(serial);
+        this->name = name;
+        this->altLoc = altLoc;
+        this->resName = resName;
+        this->chainID = chainID;
+        this->resSeq = std::stoi(resSeq);
+        this->iCode = iCode;
+        set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
+        if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
+        if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
+        if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
+        this->charge = charge;
+    } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
+        console::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
+        throw;
+    }
+
+    // use a try-catch block to throw more sensible errors
+    #ifdef DEBUG
+        try {
+            effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+        } catch (const except::base& e) {
+        throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+        }
+    #endif
+    effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+}
+
+using std::left, std::right, std::setw;
+std::string Atom::as_pdb() const {
+    std::stringstream ss;
+    //                   RN SE S1 NA AL RN CI S2 RS iC S3 X  Y  Z  OC TF S2  EL CH
+    //                   0     1           2              3     4  5  6      7     8
+    //                   0  6  1  2  6  7  0  1  2  6  7  0  8  6  4  0  6   6  8  0  
+    //          format: "%6c%5c%2c%4c%1c%3c %1c%4c%1c%3c%8c%8c%8c%6c%6c%10c%2c%2c"
+    ss << left << setw(6) << get_recName()                                          // 1 - 6
+        << right << setw(5) << serial                                               // 7 - 11
+        << " "                                                                      // 12
+        << " " << left << setw(3) << name                                           // 13 - 16
+        << left << setw(1) << altLoc                                                // 17
+        << left << setw(3) << resName                                               // 18 - 20
+        << " "                                                                      // 21
+        << left << setw(1) << chainID                                               // 22
+        << right << setw(4) << resSeq                                               // 23 - 26
+        << right << setw(1) << iCode                                                // 27
+        << "   "                                                                    // 28 - 30
+        << right << setw(8) << utility::fixedwidth(coords.x(), 7)                   // 31 - 38
+        << right << setw(8) << utility::fixedwidth(coords.y(), 7)                   // 39 - 46
+        << right << setw(8) << utility::fixedwidth(coords.z(), 7)                   // 47 - 54
+        << right << setw(6) << utility::fixedwidth(occupancy, 6)                    // 55 - 60
+        << right << setw(6) << utility::fixedwidth(tempFactor, 6)                   // 61 - 66
+        << "          "                                                             // 67 - 76
+        << right << setw(2) << constants::symbols::write_element_string(element)    // 77 - 78
+        << left << setw(2) << charge                                                // 79 - 80
+        << std::endl;
+    return ss.str();
+}
+
+RecordType Atom::get_type() const {return RecordType::ATOM;}
+
+double Atom::distance(const Atom& a) const {return coords.distance(a.coords);}
+void Atom::translate(Vector3<double> v) {coords += v;}
+bool Atom::is_water() const {return (resName == "HOH") | (resName == "SOL");}
+void Atom::set_coordinates(Vector3<double> v) {coords = v;}
+void Atom::set_x(double x) {coords.x() = x;}
+void Atom::set_y(double y) {coords.y() = y;}
+void Atom::set_z(double z) {coords.z() = z;}
+void Atom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
+void Atom::set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
+void Atom::set_altLoc(const std::string& altLoc) {this->altLoc = altLoc;}
+void Atom::set_serial(int serial) {this->serial = serial;}
+void Atom::set_resSeq(int resSeq) {this->resSeq = resSeq;}
+void Atom::set_effective_charge(double charge) {effective_charge = charge;}
+void Atom::set_chainID(char chainID) {this->chainID = chainID;}
+void Atom::set_iCode(const std::string& iCode) {this->iCode = iCode;}
+void Atom::set_charge(const std::string& charge) {this->charge = charge;}
+void Atom::set_resName(const std::string& resName) {this->resName = resName;}
+void Atom::set_name(const std::string& name) {this->name = name;}
+
+void Atom::set_element(constants::atom_t element) {
+    #ifdef DEBUG
+        try {
+            constants::mass::get_mass(element);
+        } catch (const std::exception& e) {
+            throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
+        }
+    #endif
+    this->element = element;
+}
+
+void Atom::set_element(const std::string& element) {
+    set_element(constants::symbols::parse_element_string(element));
+}
+
+Vector3<double>& Atom::get_coordinates() {return coords;}
+const Vector3<double>& Atom::get_coordinates() const {return coords;}
+int Atom::get_serial() const {return serial;}
+int Atom::get_resSeq() const {return resSeq;}
+double Atom::get_occupancy() const {return occupancy;}
+double Atom::get_tempFactor() const {return tempFactor;}
+double Atom::get_absolute_charge() const {return Z();}
+double Atom::get_effective_charge() const {return effective_charge;}
+std::string Atom::get_altLoc() const {return altLoc;}
+char Atom::get_chainID() const {return chainID;}
+std::string Atom::get_iCode() const {return iCode;}
+std::string Atom::get_charge() const {return charge;}
+std::string Atom::get_resName() const {return resName;}
+std::string Atom::get_name() const {return name;}
+constants::atom_t Atom::get_element() const {return element;}
+std::string Atom::get_recName() const {return recName;}
+
+double Atom::get_mass() const {
+    if (settings::molecule::use_effective_charge) {
+        #ifdef DEBUG
+            try {
+                return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
+            } catch (const std::exception& e) {
+                throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
+            }
+        #endif
+        // mass of this nucleus + mass of attached H atoms
+        return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
+    } else {
+        #ifdef DEBUG
+            if (element == constants::atom_t::unknown) [[unlikely]] {
+                throw except::invalid_argument("Atom::get_mass: Attempted to get atomic mass, but the element was not set!");
+            }
+        #endif
+        return constants::mass::get_mass(element);
+    }
+}
+
+unsigned int Atom::Z() const {
+    #ifdef DEBUG
+        if (element == constants::atom_t::unknown) [[unlikely]] {
+            throw except::invalid_argument("Atom::get_Z: Attempted to get atomic charge, but the element was not set!");
+        }
+    #endif
+    return constants::charge::get_charge(element);
+}
+
+void Atom::add_effective_charge(const double charge) {effective_charge += charge;}
+
+bool Atom::operator<(const Atom& rhs) const {
+    return serial < rhs.serial;
+}
+
+bool Atom::operator==(const Atom& rhs) const {
+    return uid == rhs.uid;
+}
+
+#define FAILURE_MSG false
+#if FAILURE_MSG
+    #include <iostream>
+#endif
+bool Atom::equals_content(const Atom& rhs) const {
+    if (coords != rhs.coords) {
+        #if FAILURE_MSG
+            std::cout << "coords (" << coords.x() << ", " << coords.y() << ", " << coords.z() << ") != rhs.coords (" << rhs.coords.x() << ", " << rhs.coords.y() << ", " << rhs.coords.z() << ")" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (name != rhs.name) {
+        #if FAILURE_MSG
+            std::cout << "name != rhs.name" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (altLoc != rhs.altLoc) {
+        #if FAILURE_MSG
+            std::cout << "altLoc != rhs.altLoc" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (resName != rhs.resName) {
+        #if FAILURE_MSG
+            std::cout << "resName != rhs.resName" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (chainID != rhs.chainID) {
+        #if FAILURE_MSG
+            std::cout << "chainID != rhs.chainID" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (iCode != rhs.iCode) {
+        #if FAILURE_MSG
+            std::cout << "iCode != rhs.iCode" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (element != rhs.element) {
+        #if FAILURE_MSG
+            std::cout << "element != rhs.element" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (charge != rhs.charge) {
+        #if FAILURE_MSG
+            std::cout << "charge != rhs.charge" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (occupancy != rhs.occupancy) {
+        #if FAILURE_MSG
+            std::cout << "occupancy != rhs.occupancy" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (tempFactor != rhs.tempFactor) {
+        #if FAILURE_MSG
+            std::cout << "tempFactor != rhs.tempFactor" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (serial != rhs.serial) {
+        #if FAILURE_MSG
+            std::cout << "serial != rhs.serial" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (resSeq != rhs.resSeq) {
+        #if FAILURE_MSG
+            std::cout << "resSeq != rhs.resSeq" << std::endl;
+        #endif
+        return false;
+    }
+
+    if (effective_charge != rhs.effective_charge) {
+        #if FAILURE_MSG
+            std::cout << "effective_charge != rhs.effective_charge" << std::endl;
+        #endif
+        return false;
+    }
+
+    return true;
+}

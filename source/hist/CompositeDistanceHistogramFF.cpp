@@ -2,11 +2,11 @@
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
 #include <hist/DebyeLookupTable.h>
-#include <hist/detail/FormFactor.h>
-#include <hist/detail/PrecalculatedFormFactorProduct.h>
+#include <form_factor/FormFactor.h>
+#include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <dataset/SimpleDataset.h>
-#include <data/Protein.h>
-#include <data/Atom.h>
+#include <data/Molecule.h>
+#include <data/record/Atom.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
@@ -29,7 +29,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 #endif
 
 ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
-    static Container2D<hist::detail::PrecalculatedFormFactorProduct> ff_table = hist::detail::PrecalculatedFormFactorProduct::generate_table();
+    static Container2D<form_factor::PrecalculatedFormFactorProduct> ff_table = form_factor::PrecalculatedFormFactorProduct::generate_table();
 
     // calculate the Debye scattering intensity
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
@@ -46,12 +46,12 @@ ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
         std::vector<double> I_xx(q_axis.size(), 0);
     #endif
 
-    unsigned int excluded_volume_index = static_cast<int>(hist::detail::form_factor_t::EXCLUDED_VOLUME);
-    unsigned int neutral_oxygen_index = static_cast<int>(hist::detail::form_factor_t::NEUTRAL_OXYGEN);
+    unsigned int excluded_volume_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    unsigned int neutral_oxygen_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
-        for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
-            for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count_without_excluded_volume(); ++ff2) {
+            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 double atom_atom_sum = 0;
                 for (unsigned int d = 0; d < axis.bins; ++d) {
                     atom_atom_sum += cp_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d);
@@ -294,8 +294,8 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_counts() const {
 const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
     p_pp = std::vector<double>(axis.bins, 0);
     for (unsigned int i = 0; i < axis.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < hist::detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < hist::detail::FormFactor::get_count_without_excluded_volume(); ++ff2) {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
                 p_pp[i] += cp_pp.index(ff1, ff2, i);
             }
         }
@@ -306,7 +306,7 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
 const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
     p_hp = std::vector<double>(axis.bins, 0);
     for (unsigned int i = 0; i < axis.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < hist::detail::FormFactor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             p_hp[i] += cp_hp.index(ff1, i);
         }
     }

@@ -2,8 +2,8 @@
 
 #include <rigidbody/constraints/Constraint.h>
 #include <hist/Histogram.h>
+#include <data/DataFwd.h>
 
-class Protein;
 namespace rigidbody {
 
     /**
@@ -17,7 +17,7 @@ namespace rigidbody {
         public:
             OverlapConstraint();
 
-            OverlapConstraint(Protein* protein);
+            OverlapConstraint(data::Molecule* protein);
 
             virtual ~OverlapConstraint() override;
 
@@ -34,7 +34,7 @@ namespace rigidbody {
             static double weight(double r);
 
         private: 
-            Protein* protein;
+            data::Molecule* protein;
             hist::Histogram target;
             hist::Histogram weights;
 

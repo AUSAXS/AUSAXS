@@ -1,13 +1,11 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
+#include <data/DataFwd.h>
 
 #include <memory>
 #include <iostream>
 
-class Protein;
-class Atom;
-class Body;
 namespace rigidbody {
     /**
      * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
@@ -30,7 +28,7 @@ namespace rigidbody {
              * @param iatom1 The index of the first atom in the first body.
              * @param iatom2 The index of the second atom in the second body.
              */
-            DistanceConstraint(Protein* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
+            DistanceConstraint(data::Molecule* protein, unsigned int ibody1, unsigned int ibody2, unsigned int iatom1, unsigned int iatom2);
 
             /**
              * @brief Create a new constraint between a pair of atoms.
@@ -41,7 +39,7 @@ namespace rigidbody {
              * @param atom1 The first atom.
              * @param atom2 The second atom.
              */
-            DistanceConstraint(Protein* protein, const Atom& atom1, const Atom& atom2);
+            DistanceConstraint(data::Molecule* protein, const data::record::Atom& atom1, const data::record::Atom& atom2);
 
             virtual ~DistanceConstraint() override = default;
 
@@ -55,32 +53,32 @@ namespace rigidbody {
             /**
              * @brief Get the first atom of this constraint. 
              */
-            const Atom& get_atom1() const;
+            const data::record::Atom& get_atom1() const;
 
             /**
              * @brief Get the second atom of this constraint. 
              */
-            const Atom& get_atom2() const;
+            const data::record::Atom& get_atom2() const;
 
             /**
              * @brief Get the first body of this constraint. 
              */
-            const Body& get_body1() const;
+            const data::Body& get_body1() const;
 
             /**
              * @brief Get the first body of this constraint. 
              */
-            Body& get_body1();
+            data::Body& get_body1();
 
             /**
              * @brief Get the second body of this constraint. 
              */
-            const Body& get_body2() const;
+            const data::Body& get_body2() const;
 
             /**
              * @brief Get the second body of this constraint. 
              */
-            Body& get_body2();
+            data::Body& get_body2();
 
             /**
              * @brief Check if a constraint is identical to this object. 
@@ -96,12 +94,12 @@ namespace rigidbody {
 
             friend std::ostream& operator<<(std::ostream& os, const DistanceConstraint& constraint) {os << constraint.to_string(); return os;}
 
-            double r_base;          // The normal distance between the two atoms. 
-            Protein* protein;       // The protein this constraint belongs to.
-            unsigned int ibody1;    // The index of the first body.
-            unsigned int ibody2;    // The index of the second body.
-            unsigned int iatom1;    // The index of the first atom.
-            unsigned int iatom2;    // The index of the second atom.
+            double r_base;              // The normal distance between the two atoms. 
+            data::Molecule* protein;    // The protein this constraint belongs to.
+            unsigned int ibody1;        // The index of the first body.
+            unsigned int ibody2;        // The index of the second body.
+            unsigned int iatom1;        // The index of the first atom.
+            unsigned int iatom2;        // The index of the second atom.
 
         private: 
             struct AtomLoc {int body, atom;};
@@ -117,6 +115,6 @@ namespace rigidbody {
              * @brief Find the bodies containing the argument atoms.
              *        This is linear in the total number of atoms. 
              */
-            std::pair<AtomLoc, AtomLoc> find_host_bodies(const Atom& atom1, const Atom& atom2) const;
+            std::pair<AtomLoc, AtomLoc> find_host_bodies(const data::record::Atom& atom1, const data::record::Atom& atom2) const;
     };
 }

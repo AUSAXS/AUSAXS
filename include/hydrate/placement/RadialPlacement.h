@@ -26,7 +26,7 @@ namespace grid {
             std::vector<Vector3<int>> rot_bins_7rh; // rotation bins at 7rh radius
             std::vector<Vector3<double>> rot_locs;  // absolute locations of the rotation bins
 
-            std::vector<GridMember<Water>> place() const override;
+            std::vector<GridMember<data::record::Water>> place() const override;
 
         private:
             /**

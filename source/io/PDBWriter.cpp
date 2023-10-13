@@ -1,17 +1,20 @@
 #include <io/PDBWriter.h>
 #include <io/Writer.h>
-#include <io/ProteinFile.h>
+#include <data/detail/AtomCollection.h>
 #include <io/File.h>
-#include <data/Terminate.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/record/Terminate.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <utility/Exceptions.h>
 #include <settings/GeneralSettings.h>
 
 #include <fstream>
 #include <algorithm>
 
-PDBWriter::PDBWriter(ProteinFile* file) : file(file) {}
+using namespace io::detail;
+using namespace data::record;
+
+PDBWriter::PDBWriter(data::detail::AtomCollection* file) : file(file) {}
 
 PDBWriter::~PDBWriter() = default;
 
@@ -39,7 +42,7 @@ void PDBWriter::write(const io::File& path) {
 }
 
 std::vector<std::string> PDBWriter::as_pdb() const {
-    ProteinFile& f = *file;
+    data::detail::AtomCollection& f = *file;
     std::vector<std::string> files;
     std::string s = f.header.get();
 

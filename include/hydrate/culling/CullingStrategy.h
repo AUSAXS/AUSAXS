@@ -1,8 +1,9 @@
 #pragma once
 
+#include <data/DataFwd.h>
+
 #include <vector>
 
-class Water;
 namespace grid {    
     template<typename T> class GridMember;
     class Grid;
@@ -27,7 +28,7 @@ namespace grid {
              * @brief Cull the water molecules.
              * @return The remaining molecules after the culling.
              */
-            virtual std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const = 0;
+            virtual std::vector<data::record::Water> cull(std::vector<GridMember<data::record::Water>>& placed_water) const = 0;
 
             /**
              * @brief Set the desired number of water molecules after the culling. 

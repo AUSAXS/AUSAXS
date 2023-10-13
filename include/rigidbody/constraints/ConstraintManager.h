@@ -2,19 +2,19 @@
 
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
+#include <data/DataFwd.h>
 
 #include <vector>
 #include <memory>
 #include <unordered_map>
 
-class Protein;
 namespace rigidbody {
     class ConstraintManager {
         public:
             /**
              * @brief Construct a new Constraint Manager for a given protein.
              */
-            ConstraintManager(Protein* protein);
+            ConstraintManager(data::Molecule* protein);
 
             ~ConstraintManager();
 
@@ -32,7 +32,7 @@ namespace rigidbody {
 
             bool operator==(const ConstraintManager& other) const;
 
-            Protein* protein = nullptr;
+            data::Molecule* protein = nullptr;
             OverlapConstraint overlap_constraint;                                                        // The overlap constraint
             std::vector<DistanceConstraint> distance_constraints;                                        // All distance constraints
 			std::unordered_map<unsigned int, std::vector<DistanceConstraint*>> distance_constraints_map; // Maps a body index to all its constraints

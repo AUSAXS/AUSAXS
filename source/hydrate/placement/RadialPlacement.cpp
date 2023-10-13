@@ -3,8 +3,10 @@
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
 #include <settings/GridSettings.h>
-#include <data/Water.h>
-#include <utility/Constants.h>
+#include <data/record/Water.h>
+#include <constants/Constants.h>
+
+using namespace data::record;
 
 void grid::RadialPlacement::prepare_rotations(int divisions) {
     double width = grid->get_width();

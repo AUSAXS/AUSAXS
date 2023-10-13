@@ -1,5 +1,5 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
@@ -9,7 +9,7 @@ using namespace rigidbody;
 
 OverlapConstraint::OverlapConstraint() = default;
 
-OverlapConstraint::OverlapConstraint(Protein* protein) {
+OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
     this->protein = protein;
     initialize();
 }

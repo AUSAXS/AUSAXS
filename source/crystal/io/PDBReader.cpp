@@ -1,16 +1,16 @@
 #include <crystal/io/PDBReader.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <utility/Axis3D.h>
 #include <utility/Basis3D.h>
 #include <settings/CrystalSettings.h>
 #include <settings/HistogramSettings.h>
 #include <io/ExistingFile.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <data/Body.h>
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
-    Protein protein(input);
+    data::Molecule protein(input);
     double expansion = settings::crystal::grid_expansion;
 
     auto prot_atoms = protein.get_atoms();

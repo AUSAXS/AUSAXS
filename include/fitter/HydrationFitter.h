@@ -2,8 +2,8 @@
 
 #include <fitter/LinearFitter.h>
 #include <mini/detail/Parameter.h>
+#include <io/IOFwd.h>
 
-namespace io {class ExistingFile;}
 namespace fitter {
     class FitPlots;
 

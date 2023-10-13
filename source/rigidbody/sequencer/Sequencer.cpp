@@ -6,12 +6,12 @@
 
 using namespace rigidbody::sequencer;
 
-template<typename T> requires std::is_same_v<std::decay_t<T>, Protein>
+template<typename T> requires std::is_same_v<std::decay_t<T>, data::Molecule>
 Sequencer::Sequencer(const io::ExistingFile& saxs, T&& rigidbody) {
     rigidbody::sequencer::rigidbody = std::make_unique<RigidBodyManager>(saxs, std::forward<T>(rigidbody));
 }
-template Sequencer::Sequencer(const io::ExistingFile& saxs, Protein&& protein);
-template Sequencer::Sequencer(const io::ExistingFile& saxs, const Protein& protein);
+template Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule&& protein);
+template Sequencer::Sequencer(const io::ExistingFile& saxs, const data::Molecule& protein);
 Sequencer::~Sequencer() = default;
 
 void Sequencer::execute() {

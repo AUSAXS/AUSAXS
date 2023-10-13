@@ -13,6 +13,6 @@ namespace grid {
             ~OutlierCulling() override = default;
 
             // runs in O(n ln n) where n is the number of water molecules
-            std::vector<Water> cull(std::vector<GridMember<Water>>& placed_water) const override;
+            std::vector<data::record::Water> cull(std::vector<GridMember<data::record::Water>>& placed_water) const override;
         };
 }

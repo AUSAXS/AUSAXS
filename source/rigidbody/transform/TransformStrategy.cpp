@@ -12,13 +12,13 @@ TransformStrategy::TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody
 TransformStrategy::~TransformStrategy() = default;
 
 void TransformStrategy::rotate(const Matrix<double>& M, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(-group.pivot);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (Body* body) {body->rotate(M);});
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (Body* body) {body->translate(group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (data::Body* body) {body->translate(-group.pivot);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&M]     (data::Body* body) {body->rotate(M);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&group] (data::Body* body) {body->translate(group.pivot);});
 }
 
 void TransformStrategy::translate(const Vector3<double>& t, TransformGroup& group) {
-    std::for_each(group.bodies.begin(), group.bodies.end(), [&t] (Body* body) {body->translate(t);});
+    std::for_each(group.bodies.begin(), group.bodies.end(), [&t] (data::Body* body) {body->translate(t);});
 }
 
 void TransformStrategy::undo() {

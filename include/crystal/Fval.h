@@ -2,12 +2,12 @@
 
 #include <crystal/miller/Miller.h>
 #include <math/Vector3.h>
+#include <data/DataFwd.h>
 
 #include <vector>
 #include <complex>
 
 class Basis3D;
-class Protein;
 namespace crystal {
     class Fval {
         public: 
@@ -26,7 +26,7 @@ namespace crystal {
 
             double I() const;
 
-            static Protein as_protein();
+            static data::Molecule as_protein();
             
             Miller hkl;
             double qlength;

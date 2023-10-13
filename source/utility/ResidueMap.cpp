@@ -4,7 +4,7 @@
 #include <utility/Exceptions.h>
 #include <utility/ResidueMap.h>
 #include <utility/StringUtils.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 
 using namespace saxs::detail;
 

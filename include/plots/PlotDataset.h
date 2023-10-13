@@ -1,11 +1,10 @@
 #pragma once
 
 #include <plots/Plot.h>
+#include <dataset/DatasetFwd.h>
 
 #include <concepts>
 
-class Dataset;
-class Multiset;
 namespace plots {
 	template<typename C>
 	concept DatasetType = std::is_base_of_v<Dataset, C> || std::is_base_of_v<Multiset, C>;

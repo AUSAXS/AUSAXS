@@ -6,7 +6,7 @@
 #include <rigidbody/RigidBody.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <data/Body.h>
 
 #include <unordered_set>
@@ -75,7 +75,7 @@ TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
     }
 
     // create a vector of pointers to the bodies in the paths
-    std::vector<Body*> bodies1, bodies2;
+    std::vector<data::Body*> bodies1, bodies2;
     for (const auto& ibody : path1) {
         bodies1.push_back(&rigidbody->get_body(ibody));
     }

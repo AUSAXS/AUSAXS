@@ -1,9 +1,10 @@
 #pragma once
 
+#include <data/DataFwd.h>
+
 #include <memory>
 #include <vector>
 
-class Protein;
 namespace hist {class CompositeDistanceHistogram;}
 namespace em {
     class ImageStackBase;
@@ -29,12 +30,12 @@ namespace em {
                 /**
                  * @brief Get the Protein backing this object. 
                  */
-                virtual Protein* get_protein() const = 0;
+                virtual data::Molecule* get_protein() const = 0;
 
                 /**
                  * @brief Get the Protein generated from a given cutoff.
                  */
-                virtual Protein* get_protein(double cutoff) = 0;
+                virtual data::Molecule* get_protein(double cutoff) = 0;
 
                 /**
                  * @brief Get the histogram for a given cutoff.

@@ -1,9 +1,9 @@
 #include <io/XYZWriter.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <io/File.h>
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 
 #include <iomanip>
 
@@ -20,7 +20,7 @@ io::XYZWriter::~XYZWriter() {
     console::print_info("Trajectory written to " + path);
 }
 
-void io::XYZWriter::write_frame(const Protein* protein) {
+void io::XYZWriter::write_frame(const data::Molecule* protein) {
     static unsigned int frame = 0;
     auto atoms = protein->get_atoms();
     file << " " << atoms.size() << std::endl;

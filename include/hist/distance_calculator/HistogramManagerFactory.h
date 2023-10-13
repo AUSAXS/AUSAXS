@@ -1,8 +1,9 @@
 #pragma once
 
+#include <data/DataFwd.h>
+
 #include <memory>
 
-class Protein;
 namespace settings::hist {enum class HistogramManagerChoice;}
 namespace hist {
     class HistogramManager;
@@ -10,11 +11,11 @@ namespace hist {
         /**
          * @brief Create a HistogramManager object.
          */
-        std::unique_ptr<HistogramManager> construct_histogram_manager(Protein* protein);
+        std::unique_ptr<HistogramManager> construct_histogram_manager(data::Molecule* protein);
 
         /**
          * @brief Create a HistogramManager object.
          */
-        std::unique_ptr<HistogramManager> construct_histogram_manager(Protein* protein, const settings::hist::HistogramManagerChoice& choice);
+        std::unique_ptr<HistogramManager> construct_histogram_manager(data::Molecule* protein, const settings::hist::HistogramManagerChoice& choice);
     }
 }

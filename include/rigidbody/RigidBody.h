@@ -1,6 +1,6 @@
 #pragma once
 
-#include <data/Protein.h>
+#include <data/Molecule.h>
 
 #include <memory>
 
@@ -13,10 +13,10 @@ namespace rigidbody {
 	namespace detail {
 		struct BestConf {
 			BestConf();
-			BestConf(std::shared_ptr<grid::Grid> grid, std::vector<Water> waters, double chi2) noexcept;
+			BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept;
 			~BestConf();
 			std::shared_ptr<grid::Grid> grid;
-			std::vector<Water> waters;
+			std::vector<data::record::Water> waters;
 			double chi2;	
 		};
 
@@ -26,11 +26,11 @@ namespace rigidbody {
 	class ConstraintManager;
 	class TransformStrategy;
 	class ParameterGenerationStrategy;
-	class RigidBody : public Protein {
+	class RigidBody : public data::Molecule {
 		public:
-			RigidBody(Protein&& protein);
+			RigidBody(data::Molecule&& protein);
 
-			RigidBody(const Protein& protein);
+			RigidBody(const data::Molecule& protein);
 
 			virtual ~RigidBody();
 

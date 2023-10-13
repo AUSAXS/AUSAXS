@@ -11,11 +11,11 @@
 #include <mini/All.h>
 #include <plots/All.h>
 #include <settings/GeneralSettings.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, Protein& protein) : HydrationFitter(), protein(protein), fit_type(mini::type::BFGS) {
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, data::Molecule& protein) : HydrationFitter(), protein(protein), fit_type(mini::type::BFGS) {
     HydrationFitter hfit(input, protein.get_histogram());
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;

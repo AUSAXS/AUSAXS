@@ -1,6 +1,12 @@
 #pragma once
 
-class Atom;
-class Body;
-class Protein;
-class Water;
+// This also forwards some elements of data/record for simplicity
+namespace data {
+    class Body;
+    class Molecule;
+
+    namespace record {
+        class Atom;
+        class Water;
+    }
+}

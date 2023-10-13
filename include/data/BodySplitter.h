@@ -1,9 +1,10 @@
 #pragma once
 
+#include <data/DataFwd.h>
+#include <io/IOFwd.h>
+
 #include <vector>
 
-class Protein;
-namespace io {class ExistingFile;}
 namespace rigidbody {
     struct BodySplitter {
         /**
@@ -11,6 +12,6 @@ namespace rigidbody {
          * 
          * @param input The path to the input data file. 
          */
-        static Protein split(const io::ExistingFile& input, std::vector<int> splits);
+        static data::Molecule split(const io::ExistingFile& input, std::vector<int> splits);
     };
 }

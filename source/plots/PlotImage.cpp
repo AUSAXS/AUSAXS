@@ -2,7 +2,8 @@
 #include <settings/PlotSettings.h>
 #include <em/Image.h>
 #include <dataset/SimpleDataset.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
+#include <hist/Histogram2D.h>
 
 using namespace plots;
 
@@ -13,12 +14,12 @@ PlotImage::PlotImage(const em::Image& image) {
 PlotImage::~PlotImage() = default;
 
 PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
-    const std::list<Atom>& atoms = image.generate_atoms(cutoff);
+    const std::list<data::record::Atom>& atoms = image.generate_atoms(cutoff);
     std::vector<double> x;
     std::vector<double> y;
     x.reserve(atoms.size());
     y.reserve(atoms.size());
-    for (const Atom& atom : atoms) {
+    for (const data::record::Atom& atom : atoms) {
         x.push_back(atom.coords.x());
         y.push_back(atom.coords.y());
     }

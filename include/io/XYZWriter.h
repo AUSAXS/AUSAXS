@@ -1,8 +1,9 @@
 #pragma once
 
+#include <data/DataFwd.h>
+
 #include <fstream>
 
-class Protein;
 namespace io {class File;}
 namespace io {
     /**
@@ -17,7 +18,7 @@ namespace io {
             /**
              * @brief Write a frame to the file.
              */
-            void write_frame(const Protein* protein);
+            void write_frame(const data::Molecule* protein);
 
         private:
             std::ofstream file;

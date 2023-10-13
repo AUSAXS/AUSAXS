@@ -1,8 +1,8 @@
 #include <CLI/CLI.hpp>
 
 #include <data/Body.h>
-#include <data/Water.h>
-#include <data/Protein.h>
+#include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <fitter/HydrationFitter.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/FitReporter.h>
@@ -10,7 +10,7 @@
 #include <plots/All.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
 #include <hist/CompositeDistanceHistogram.h>
@@ -32,8 +32,8 @@ int main(int argc, char const *argv[]) {
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from the measurement file.")->default_val(settings::axes::qmin)->group("General options");
     auto p_settings = app.add_option("-s,--settings", s_settings, "Path to the settings file.")->check(CLI::ExistingFile)->group("General options");
 
-    app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered.")->default_val(settings::protein::center)->group("Protein options");
-    app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::protein::use_effective_charge)->group("Protein options");
+    app.add_flag("--center,!--no-center", settings::molecule::center, "Decides whether the protein will be centered.")->default_val(settings::molecule::center)->group("Protein options");
+    app.add_flag("--effective-charge,!--no-effective-charge", settings::molecule::use_effective_charge, "Decides whether the effective atomic charge will be used.")->default_val(settings::molecule::use_effective_charge)->group("Protein options");
     app.add_flag("--use-existing-hydration,!--no-use-existing-hydration", use_existing_hydration, "Decides whether the hydration layer will be generated from scratch or if the existing one will be used.")->default_val(use_existing_hydration)->group("Protein options");
     app.add_flag("--fit-excluded-volume,!--no-fit-excluded-volume", fit_excluded_volume, "Decides whether the excluded volume will be fitted.")->default_val(fit_excluded_volume)->group("Protein options");
 
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[]) {
         if (fit_excluded_volume) {settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMTFF;}
         else {settings::detail::parse_option("histogram_manager", {histogram_manager});}
     }
-    if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFF) {settings::protein::use_effective_charge = false;}
+    if (settings::hist::histogram_manager == settings::hist::HistogramManagerChoice::HistogramManagerMTFF) {settings::molecule::use_effective_charge = false;}
 
     // validate input
     if (!constants::filetypes::structure.validate(pdb)) {
@@ -86,7 +86,7 @@ int main(int argc, char const *argv[]) {
     //######################//
     //### ACTUAL PROGRAM ###//
     //######################//
-    Protein protein(pdb);
+    data::Molecule protein(pdb);
     if (!use_existing_hydration || protein.water_size() == 0) {
         protein.generate_new_hydration();
     }

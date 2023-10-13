@@ -1,15 +1,15 @@
 #pragma once
 
+#include <data/state/DataStateFwd.h>
 #include <data/state/Signaller.h>
 
-class StateManager;
 namespace signaller {
     /**
      * @brief A small probe for signalling changes which can be dispatched to other classes. 
      */
     class BoundSignaller : public Signaller {
         public: 
-            BoundSignaller(unsigned int id, StateManager* const owner);
+            BoundSignaller(unsigned int id, state::StateManager* const owner);
 
             ~BoundSignaller() override;
 
@@ -29,7 +29,7 @@ namespace signaller {
             unsigned int get_id() const;
 
         private: 
-            StateManager* const owner;
+            state::StateManager* const owner;
             unsigned int id;
     };
 }

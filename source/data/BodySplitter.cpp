@@ -1,16 +1,18 @@
 #include <data/BodySplitter.h>
 #include <data/Body.h>
-#include <data/Atom.h>
-#include <data/Water.h>
-#include <data/Protein.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <utility/Exceptions.h>
 #include <rigidbody/constraints/Constraint.h>
 
 #include <algorithm>
 
 using namespace rigidbody;
+using namespace data;
+using namespace data::record;
 
-Protein BodySplitter::split(const io::ExistingFile& input, std::vector<int> splits) {
+Molecule BodySplitter::split(const io::ExistingFile& input, std::vector<int> splits) {
     Body body(input);
     std::vector<Atom>& atoms = body.get_atoms();
 
@@ -52,5 +54,5 @@ Protein BodySplitter::split(const io::ExistingFile& input, std::vector<int> spli
     std::vector<Atom> a(begin, end);
     bodies[index_body] = Body(a);
 
-    return Protein(bodies);
+    return Molecule(bodies);
 }

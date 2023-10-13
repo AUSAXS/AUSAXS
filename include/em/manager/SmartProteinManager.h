@@ -1,11 +1,10 @@
 #pragma once
 
 #include <em/manager/ProteinManager.h>
+#include <data/DataFwd.h>
 
 #include <vector>
 
-class Protein;
-class Atom;
 namespace hist {class CompositeDistanceHistogram;}
 namespace em::managers {
     /**
@@ -31,12 +30,12 @@ namespace em::managers {
             /**
              * @brief Get the Protein backing this object. 
              */
-            Protein* get_protein() const override;
+            data::Molecule* get_protein() const override;
 
             /**
              * @brief Get the Protein generated from a given cutoff.
              */
-            Protein* get_protein(double cutoff) override;
+            data::Molecule* get_protein(double cutoff) override;
 
             /**
              * @brief Set the charge levels.
@@ -44,12 +43,12 @@ namespace em::managers {
             virtual void set_charge_levels(const std::vector<double>& levels) noexcept;
 
         protected:
-            std::unique_ptr<Protein> protein;
+            std::unique_ptr<data::Molecule> protein;
 
             /**
              * @brief Generate the atmos for a given cutoff.
              */
-            std::vector<Atom> generate_atoms(double cutoff) const;
+            std::vector<data::record::Atom> generate_atoms(double cutoff) const;
 
             /**
              * @brief Update the Protein to reflect a new cutoff value.
@@ -62,6 +61,6 @@ namespace em::managers {
             /**
              * @brief Generate a new Protein for a given cutoff. 
              */
-            std::unique_ptr<Protein>generate_protein(double cutoff) const;
+            std::unique_ptr<data::Molecule> generate_protein(double cutoff) const;
     };
 }

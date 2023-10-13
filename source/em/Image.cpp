@@ -1,9 +1,10 @@
 #include <em/Image.h>
 #include <em/detail/header/MapHeader.h>
 #include <settings/EMSettings.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <utility/Axis3D.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
+#include <hist/Histogram2D.h>
 
 using namespace em;
 
@@ -20,9 +21,9 @@ unsigned int Image::get_z() const {return z;}
 float Image::index(unsigned int x, unsigned int y) const {return data.index(x, y);}
 float& Image::index(unsigned int x, unsigned int y) {return data.index(x, y);}
 
-std::list<Atom> Image::generate_atoms(double cutoff) const {
+std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
     if (header == nullptr) [[unlikely]] {throw except::invalid_operation("Image::generate_atoms: Header must be initialized to use this method.");}
-    std::list<Atom> atoms;
+    std::list<data::record::Atom> atoms;
     auto map_axes = header->get_axes();
 
     // loop through all pixels in this image
@@ -42,7 +43,7 @@ std::list<Atom> Image::generate_atoms(double cutoff) const {
             if (val < cutoff) {
                 continue;
             }
-            atoms.push_back(Atom(0, "C", "", "LYS", ' ', 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, constants::atom_t::dummy, ""));
+            atoms.push_back(data::record::Atom(0, "C", "", "LYS", ' ', 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, constants::atom_t::dummy, ""));
         }
     }
     return atoms;

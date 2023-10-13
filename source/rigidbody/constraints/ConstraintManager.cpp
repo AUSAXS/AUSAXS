@@ -2,14 +2,14 @@
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <Symbols.h>
 
 using namespace rigidbody;
 
-ConstraintManager::ConstraintManager(Protein* protein) : protein(protein), overlap_constraint(protein) {
+ConstraintManager::ConstraintManager(data::Molecule* protein) : protein(protein), overlap_constraint(protein) {
     auto generator = factory::generate_constraints(this);
     distance_constraints = generator->generate();
     generate_constraint_map();

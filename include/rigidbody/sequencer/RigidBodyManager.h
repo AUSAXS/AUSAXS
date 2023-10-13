@@ -11,7 +11,7 @@ namespace rigidbody {
     namespace sequencer {
         class RigidBodyManager : RigidBody {
             public:
-                template<typename T> requires std::is_same_v<std::decay_t<T>, Protein>
+                template<typename T> requires std::is_same_v<std::decay_t<T>, data::Molecule>
                 RigidBodyManager(const io::ExistingFile& saxs, T&& rigidbody);
                 ~RigidBodyManager();
 

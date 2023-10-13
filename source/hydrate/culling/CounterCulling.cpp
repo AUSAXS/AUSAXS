@@ -1,11 +1,13 @@
 #include <hydrate/culling/CounterCulling.h>
 #include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>
-#include <data/Water.h>
+#include <data/record/Water.h>
 
 #include <cmath>
 
-std::vector<Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
+using namespace data::record;
+
+std::vector<data::record::Water> grid::CounterCulling::cull(std::vector<grid::GridMember<Water>>& placed_water) const {
     if (target_count == 0) {
         std::vector<Water> final_water(placed_water.size());
         std::transform(placed_water.begin(), placed_water.end(), final_water.begin(), [] (GridMember<Water>& gm) {return gm.get_atom();});

@@ -2,16 +2,18 @@
 #include <hydrate/culling/CullingFactory.h>
 #include <hydrate/placement/PlacementFactory.h>
 #include <hydrate/GridMember.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <data/Body.h>
-#include <data/Water.h>
 #include <settings/GridSettings.h>
 #include <utility/Console.h>
-#include <utility/Constants.h>
-#include <data/Protein.h>
+#include <constants/Constants.h>
+#include <data/Molecule.h>
 #include <io/ExistingFile.h>
 
 using namespace grid;
+using namespace data;
+using namespace data::record;
 
 Grid::Grid(const Axis3D& axes) : axes(axes) {
     setup();
@@ -657,7 +659,7 @@ void Grid::save(const io::File& path) const {
             }
         }
     }
-    Protein p(atoms, waters);
+    data::Molecule p(atoms, waters);
     p.save(path);
 }
 

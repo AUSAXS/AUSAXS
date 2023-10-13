@@ -1,6 +1,6 @@
 #include <hydrate/GridMember.h>
-#include <data/Water.h>
-#include <data/Atom.h>
+#include <data/record/Water.h>
+#include <data/record/Atom.h>
 
 using namespace grid;
 
@@ -37,5 +37,5 @@ const T& GridMember<T>::get_atom() const {return atom;}
 template<typename T>
 constants::atom_t GridMember<T>::get_atom_type() const {return atom.get_element();}
 
-template class grid::GridMember<Atom>;
-template class grid::GridMember<Water>;
+template class grid::GridMember<data::record::Atom>;
+template class grid::GridMember<data::record::Water>;

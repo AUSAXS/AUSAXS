@@ -2,17 +2,14 @@
 
 #include <hydrate/GridObj.h>
 #include <utility/Axis3D.h>
+#include <data/DataFwd.h>
+#include <io/IOFwd.h>
 #include <math/Vector3.h>
-#include <io/File.h>
 
 #include <list>
 #include <vector>
 #include <memory>
 
-class Body;
-class Atom;
-class Water;
-namespace io{class File;}
 namespace constants {enum class atom_t;}
 namespace grid {
 	template<typename T> class GridMember;
@@ -34,7 +31,7 @@ namespace grid {
 			 * 
 			 * @param atoms The atoms to be stored in the Grid. 
 			 */
-			Grid(const std::vector<Atom>& atoms);
+			Grid(const std::vector<data::record::Atom>& atoms);
 
 			/**
 			 * @brief Space-saving constructor. 
@@ -43,7 +40,7 @@ namespace grid {
 			 * 
 			 * @param bodies The bodies to be stored in the Grid. 
 			 */
-			Grid(const std::vector<Body>& bodies);
+			Grid(const std::vector<data::Body>& bodies);
 
 			/**
 			 * @brief Copy constructor. 
@@ -72,7 +69,7 @@ namespace grid {
 			 * 		  All added atoms are automatically expanded.
 			 * 		  Complexity: O(n) in the number of added atoms.
 			 */
-			template <typename T, typename = std::enable_if_t<std::is_base_of<Atom, T>::value>>
+			template <typename T, typename = std::enable_if_t<std::is_base_of<data::record::Atom, T>::value>>
 			std::vector<grid::GridMember<T>> add(const std::vector<T>& atoms);
 
 			/**
@@ -80,26 +77,26 @@ namespace grid {
 			 * 		  All added atoms are automatically expanded.
 			 * 		  Complexity: O(n) in the number of added atoms.
 			 */
-			std::vector<grid::GridMember<Atom>> add(const Body* body);
+			std::vector<grid::GridMember<data::record::Atom>> add(const data::Body* body);
 
 			/** 
 			 * @brief Add a single atom to the grid. 
 			 *        Complexity: O(1). 
 			 */
-			const GridMember<Atom>& add(const Atom& atom, bool expand = false);
+			const GridMember<data::record::Atom>& add(const data::record::Atom& atom, bool expand = false);
 
 			/** 
 			 * @brief Add a single water to the grid. 
 			 *        Complexity: O(1). 
 			 */
-			const GridMember<Water>& add(const Water& atom, bool expand = false);
+			const GridMember<data::record::Water>& add(const data::record::Water& atom, bool expand = false);
 
 			/**
 			 * @brief Remove the contents of a body from the grid.
 			 * 		  All removed atoms are automatically deflated. 
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
-			void remove(const Body* body);
+			void remove(const data::Body* body);
 
 			/**
 			 * @brief Remove atoms as specified by the @a to_remove vector. 
@@ -112,25 +109,25 @@ namespace grid {
 			 * @brief Remove a single atom from the grid.
 			 *        Complexity: O(n) in the number of member atoms. 
 			 */
-			void remove(const Atom& atom);
+			void remove(const data::record::Atom& atom);
 
 			/**
 			 * @brief Remove a single waters from the grid.
 			 *        Complexity: O(n) in the number of member waters. 
 			 */
-			void remove(const Water& atom);
+			void remove(const data::record::Water& atom);
 
 			/**
 			 * @brief Remove multiple waters from the grid.
 			 *        Complexity: O(n) in the number of removed waters. 
 			 */
-			void remove(const std::vector<Water>& atom);
+			void remove(const std::vector<data::record::Water>& atom);
 
 			/**
 			 * @brief Remove multiple protein atoms from the grid.
 			 *        Complexity: O(n) in the number of removed atoms. 
 			 */
-			void remove(const std::vector<Atom>& atom);
+			void remove(const std::vector<data::record::Atom>& atom);
 
 			/**
 			 * @brief Remove all waters from the grid.
@@ -174,7 +171,7 @@ namespace grid {
 			 * 
 			 * @return Pointers to the new water molecules. 
 			 */
-			std::vector<Water> hydrate();
+			std::vector<data::record::Water> hydrate();
 
 			/**
 			 * @brief Get the number of bins in each dimension.
@@ -185,13 +182,13 @@ namespace grid {
 			 * @brief Get a copy of all waters in the grid. 
 			 * 		  Complexity: O(n) in the number of member waters.
 			 */
-			std::vector<Water> get_waters() const;
+			std::vector<data::record::Water> get_waters() const;
 
 			/**
 			 * @brief Get a copy of all atoms in the grid.
 			 * 		  Complexity: O(n) in the number of member atoms.
 			 */
-			std::vector<Atom> get_atoms() const;
+			std::vector<data::record::Atom> get_atoms() const;
 
 			/**
 			 * @brief Get the total volume spanned by the atoms in this grid in Å^3.
@@ -267,9 +264,9 @@ namespace grid {
 			/**
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 */
-			Body generate_excluded_volume() const;
+			data::Body generate_excluded_volume() const;
 
-			std::vector<Atom> get_surface_atoms() const;
+			std::vector<data::record::Atom> get_surface_atoms() const;
 
 			/**
 			 * @brief Get the contents of a single bin.
@@ -277,8 +274,8 @@ namespace grid {
 			const GridObj::State& index(unsigned int i, unsigned int j, unsigned int k) const;
 
 			GridObj grid; // The actual grid.
-			std::list<GridMember<Atom>> a_members; // A list of all member atoms and where they are located.
-			std::list<GridMember<Water>> w_members; // A list of all member water molecules and where they are located. 
+			std::list<GridMember<data::record::Atom>> a_members; // A list of all member atoms and where they are located.
+			std::list<GridMember<data::record::Water>> w_members; // A list of all member water molecules and where they are located. 
 
 		protected: // only protected since they are important for testing
 			unsigned int volume = 0; // The number of bins covered by the members, i.e. the actual volume in the unit (width)^3
@@ -288,28 +285,28 @@ namespace grid {
 			 * 		  Only expands atoms if they have not already been expanded. 
 			 * 		  Complexity: O(1).
 			 */
-			void expand_volume(GridMember<Atom>& atom);
+			void expand_volume(GridMember<data::record::Atom>& atom);
 
 			/** 
 			 * @brief Expand a single member water molecule into an actual sphere.
 			 * 		  Only expands molecules if they have not already been expanded.
 			 * 		  Complexity: O(1).
 			 */
-			void expand_volume(GridMember<Water>& atom);
+			void expand_volume(GridMember<data::record::Water>& atom);
 
 			/** 
 			 * @brief Deflate a single member atom into an actual sphere.
 			 * 		  Only deflates atoms if they have been expanded.
 			 * 		  Complexity: O(1).
 			 */
-			void deflate_volume(GridMember<Atom>& atom);
+			void deflate_volume(GridMember<data::record::Atom>& atom);
 
 			/** 
 			 * @brief Deflate a single member atom into an actual sphere.
 			 * 		  Only deflates atoms if they have been expanded.
 			 * 		  Complexity: O(1).
 			 */
-			void deflate_volume(GridMember<Water>& atom);
+			void deflate_volume(GridMember<data::record::Water>& atom);
 
 			/**
 			 * @brief Create the smallest possible box containing all atoms.
@@ -317,14 +314,14 @@ namespace grid {
 			 * 
 			 * @return Two vectors containing the minimum and maximum coordinates of the box. 
 			 */
-			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<Atom>& atoms);
+			static std::pair<Vector3<double>, Vector3<double>> bounding_box(const std::vector<data::record::Atom>& atoms);
 
 			/**
 			 * @brief Identify possible hydration binding locations for the structure. 
 			 * 
 			 * @return A list of possible (binx, biny, binz) locations.
 			 */
-			std::vector<GridMember<Water>> find_free_locs();
+			std::vector<GridMember<data::record::Water>> find_free_locs();
 
 		private:
 			Axis3D axes;

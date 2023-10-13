@@ -21,8 +21,8 @@
 #include <hydrate/GridMember.h>
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/culling/CullingStrategy.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <data/Body.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
@@ -31,16 +31,16 @@
 using namespace rigidbody;
 
 rigidbody::detail::BestConf::BestConf() = default;
-rigidbody::detail::BestConf::BestConf(std::shared_ptr<grid::Grid> grid, std::vector<Water> waters, double chi2) noexcept : grid(std::move(grid)), waters(std::move(waters)), chi2(chi2) {}
+rigidbody::detail::BestConf::BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept : grid(std::move(grid)), waters(std::move(waters)), chi2(chi2) {}
 rigidbody::detail::BestConf::~BestConf() = default;
 
 RigidBody::~RigidBody() = default;
 
-RigidBody::RigidBody(Protein&& protein) : Protein(std::move(protein)) {
+RigidBody::RigidBody(data::Molecule&& protein) : data::Molecule(std::move(protein)) {
     initialize();
 }
 
-RigidBody::RigidBody(const Protein& protein) : Protein(protein) {
+RigidBody::RigidBody(const data::Molecule& protein) : data::Molecule(protein) {
     initialize();
 }
 

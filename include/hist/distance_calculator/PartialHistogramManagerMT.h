@@ -17,7 +17,7 @@ namespace hist {
 	 */
 	class PartialHistogramManagerMT : public PartialHistogramManager {
 		public:
-			PartialHistogramManagerMT(Protein* protein);
+			PartialHistogramManagerMT(const data::Molecule* const protein);
 
 			PartialHistogramManagerMT(PartialHistogramManager&);
 

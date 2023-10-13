@@ -2,6 +2,9 @@
 #include <data/state/BoundSignaller.h>
 
 #include <iostream>
+
+using namespace state;
+
 StateManager::StateManager(unsigned int size) : size(size), _externally_modified(size, true), _internally_modified(size, true), _modified_hydration(true) {
     for (unsigned int i = 0; i < size; i++) {
         probes.push_back(std::make_shared<signaller::BoundSignaller>(i, this));

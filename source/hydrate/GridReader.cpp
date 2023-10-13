@@ -6,8 +6,8 @@
 #include <utility/Exceptions.h>
 #include <io/ExistingFile.h>
 #include <math/Vector3.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 
 #include <fstream>
 

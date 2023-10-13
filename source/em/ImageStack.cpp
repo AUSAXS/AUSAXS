@@ -8,11 +8,11 @@
 #include <mini/detail/Parameter.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <em/manager/ProteinManager.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <utility/Console.h>
 #include <utility/Limit.h>
 #include <utility/Utility.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 
@@ -337,7 +337,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // fitter.normalize_intensity(I0);
 
     // fit function
-    settings::protein::center = false;   // do not center the protein - this may cause issues
+    settings::molecule::center = false;   // do not center the protein - this may cause issues
     if (settings::em::plot_landscapes && settings::em::hydrate) {
         std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN); 
     }
