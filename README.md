@@ -33,6 +33,9 @@ Precompiled binaries are available **here**.
 # Design philosophy
 
 # Todo
+* 	[ ] Method names: Change all references to 'protein' to 'molecule' to be consistent with the new class name changes. 
+* 	[ ] AtomCollection: Consider separating the io functionality from the atom storage, and then changing Body to only store raw atom data. We are almost never interested in saving the header/footer from input files anyway. 
+*	[ ] PlotOpionts: Separate from SimpleDataset & Histogram. No need to carry around all of this information all the time. 
 * 	[ ] HistogramManager: Consider calculating d^2 and then taking the square root afterwards. This should be a significant speedup. 
 * 	[ ] Consider implementing a unit class to avoid unit conversion errors in functions
 * 	[ ] Redo the storage of Image to be a single 3D vector owned by the ImageStack. 

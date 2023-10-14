@@ -11,7 +11,6 @@ namespace form_factor {
         N,                  // neutral nitrogen
         NH,                 // neutral nitrogen with hydrogen
         NH2,                // neutral nitrogen with two hydrogens
-        NH3,                // neutral nitrogen with three hydrogens
         O,                  // neutral oxygen
         OH,                 // neutral oxygen with hydrogen
         S,                  // neutral sulfur

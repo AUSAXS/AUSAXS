@@ -3,7 +3,7 @@
 #include <crystal/miller/ReducedMillers.h>
 #include <crystal/miller/FibonacciMillers.h>
 #include <settings/CrystalSettings.h>
-#include <utility/ResidueMap.h>
+#include <residue/ResidueMap.h>
 
 std::unique_ptr<crystal::MillerGenerationStrategy> crystal::factory::construct_miller_strategy() {
     return construct_miller_strategy(settings::crystal::miller_generation_strategy);

@@ -14,7 +14,7 @@ CompactCoordinatesFF::Data::Data(const Vector3<double>& v, float w, form_factor:
 CompactCoordinatesFF::CompactCoordinatesFF(const data::Body& body) : size(body.get_atoms().size()), data(size) {
     for (unsigned int i = 0; i < size; ++i) {
         const auto& a = body.get_atom(i); 
-        data[i] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a));
+        data[i] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a.get_element()));
     }
 }
 
@@ -27,7 +27,7 @@ CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::Body>& bodies
     unsigned int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {
-            data[i++] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a));
+            data[i++] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a.get_element()));
         }
     }
 }
@@ -35,7 +35,7 @@ CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::Body>& bodies
 CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::record::Water>& atoms) : size(atoms.size()), data(size) {
     for (unsigned int i = 0; i < size; ++i) {
         const auto& a = atoms[i]; 
-        data[i] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a));
+        data[i] = CompactCoordinatesFF::Data(a.coords, a.effective_charge*a.occupancy, form_factor::get_type(a.get_element()));
     }
 }
 

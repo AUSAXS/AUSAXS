@@ -2,28 +2,26 @@
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
 
-namespace settings::rigidbody {
-    unsigned int iterations = 1000;
-    double bond_distance = 3;
-    TransformationStrategyChoice transform_strategy = TransformationStrategyChoice::RigidTransform;
-    ParameterGenerationStrategyChoice parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
-    BodySelectStrategyChoice body_select_strategy = BodySelectStrategyChoice::RandomSelect;
-    ConstraintGenerationStrategyChoice constraint_generation_strategy = ConstraintGenerationStrategyChoice::Linear;
-    DecayStrategyChoice decay_strategy = DecayStrategyChoice::Linear;
+unsigned int settings::rigidbody::iterations = 1000;
+double settings::rigidbody::bond_distance = 3;
+settings::rigidbody::TransformationStrategyChoice settings::rigidbody::transform_strategy = TransformationStrategyChoice::RigidTransform;
+settings::rigidbody::ParameterGenerationStrategyChoice settings::rigidbody::parameter_generation_strategy = ParameterGenerationStrategyChoice::Simple;
+settings::rigidbody::BodySelectStrategyChoice settings::rigidbody::body_select_strategy = BodySelectStrategyChoice::RandomSelect;
+settings::rigidbody::ConstraintGenerationStrategyChoice settings::rigidbody::constraint_generation_strategy = ConstraintGenerationStrategyChoice::Linear;
+settings::rigidbody::DecayStrategyChoice settings::rigidbody::decay_strategy = DecayStrategyChoice::Linear;
 
-    namespace detail {
-        std::vector<int> constraints;
-        std::string calibration_file;
-    }
+namespace settings::rigidbody::detail {
+    std::vector<int> constraints;
+    std::string calibration_file;
+}
 
-    namespace io {
-        settings::io::SettingSection rigidbody_settings("RigidBody", {
-            settings::io::create(iterations, "iterations"),
-            settings::io::create(bond_distance, "bond_distance"),
-            settings::io::create(detail::constraints, "constraints"),
-            settings::io::create(detail::calibration_file, "calibration_file")
-        });
-    }
+namespace settings::rigidbody::io {
+    settings::io::SettingSection rigidbody_settings("RigidBody", {
+        settings::io::create(iterations, "iterations"),
+        settings::io::create(bond_distance, "bond_distance"),
+        settings::io::create(detail::constraints, "constraints"),
+        settings::io::create(detail::calibration_file, "calibration_file")
+    });
 }
 
 template<> std::string settings::io::detail::SettingRef<settings::rigidbody::TransformationStrategyChoice>::get() const {return std::to_string(static_cast<int>(settingref));}

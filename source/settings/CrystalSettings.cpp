@@ -1,26 +1,24 @@
 #include <settings/CrystalSettings.h>
 #include <settings/SettingsIORegistry.h>
 
-namespace settings::crystal {
-    unsigned int h = 100;
-    unsigned int k = 100;
-    unsigned int l = 100;
+unsigned int settings::crystal::h = 100;
+unsigned int settings::crystal::k = 100;
+unsigned int settings::crystal::l = 100;
 
-    double max_q = 1e6; 
-    double grid_expansion = 3;
+double settings::crystal::max_q = 1e6; 
+double settings::crystal::grid_expansion = 3;
 
-    double reduced::basis_q = 3;
+double settings::crystal::reduced::basis_q = 3;
 
-    namespace io {
-        settings::io::SettingSection grid_settings("Crystal", { 
-            settings::io::create(h, "h"),
-            settings::io::create(k, "k"),
-            settings::io::create(l, "l"),
-            settings::io::create(max_q, "max_q"),
-            settings::io::create(grid_expansion, "grid_expansion"),
-            settings::io::create(reduced::basis_q, "basis_q")
-        });
-    }
+namespace settings::crystal::io {
+    settings::io::SettingSection grid_settings("Crystal", { 
+        settings::io::create(h, "h"),
+        settings::io::create(k, "k"),
+        settings::io::create(l, "l"),
+        settings::io::create(max_q, "max_q"),
+        settings::io::create(grid_expansion, "grid_expansion"),
+        settings::io::create(reduced::basis_q, "basis_q")
+    });
 }
 
 namespace settings::crystal {

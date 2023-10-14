@@ -3,23 +3,21 @@
 
 #include <thread>
 
-namespace settings::general {
-    constexpr const char* const residue_folder = "temp/residues/";
-    bool verbose = true;
-    unsigned int threads = std::thread::hardware_concurrency()-1;
-    std::string output = "output/";
-    bool keep_hydrogens = false;
-    bool supplementary_plots = true;
+constexpr const char* const settings::general::residue_folder = "temp/residues/";
+bool settings::general::verbose = true;
+unsigned int settings::general::threads = std::thread::hardware_concurrency()-1;
+std::string settings::general::output = "output/";
+bool settings::general::keep_hydrogens = false;
+bool settings::general::supplementary_plots = true;
 
-    namespace detail {
-        unsigned int job_size = 200; // The number of atoms to process in each job.
-    };
+namespace settings::general::detail {
+    unsigned int job_size = 200; // The number of atoms to process in each job.
+};
 
-    namespace io {
-        settings::io::SettingSection general_settings("General", {
-            settings::io::create(verbose, {"verbose", "v"}),
-            settings::io::create(threads, {"threads", "t"}),
-            settings::io::create(output, {"output", "o"}),
-        });
-    }
+namespace settings::general::io {
+    settings::io::SettingSection general_settings("General", {
+        settings::io::create(verbose, {"verbose", "v"}),
+        settings::io::create(threads, {"threads", "t"}),
+        settings::io::create(output, {"output", "o"}),
+    });
 }

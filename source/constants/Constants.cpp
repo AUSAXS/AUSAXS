@@ -57,7 +57,11 @@ namespace constants {
     };
 
     //* note: this must be initialized *after* symbols::detail::string_to_atomt_map
-    parser::residue::ResidueStorage hydrogen_atoms::residues;
+    residue::ResidueStorage hydrogen_atoms::residues;
+}
+
+constants::atomic_group_t constants::symbols::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
+    return hydrogen_atoms::residues.get_atomic_group(atom_name, atom_type);
 }
 
 constants::atom_t constants::symbols::parse_element_string(const std::string& element_string) {

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <utility/ResidueParser.h>
 #include <utility/SimpleMap.h>
+#include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
+#include <io/IOFwd.h>
 
 #include <string>
 #include <cmath>
-
-namespace io {class ExistingFile;}
 
 /**
  * @brief Constexpr power function.
@@ -183,6 +182,48 @@ namespace constants {
 
         atom_t parse_element_string(const std::string& element_string);
         std::string write_element_string(atom_t atom);
+
+        /**
+         * @brief Get the atomic group from the name of an atom and its type. 
+         */
+        atomic_group_t get_atomic_group(const std::string& atom_name, atom_t atom_type);
+
+        /**
+         * @brief Get the atomic group a given atom belongs to.
+         * 
+         * @param atom_type The atomic type. 
+         * @param hydrogens The number of hydrogens attached to the atom.
+         */
+        constexpr constants::atomic_group_t get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens) {
+            if (hydrogens == 0) {return constants::atomic_group_t::unknown;}
+            switch (atom_type) {
+                case constants::atom_t::C:
+                    switch (hydrogens) {
+                        case 1: return constants::atomic_group_t::CH;
+                        case 2: return constants::atomic_group_t::CH2;
+                        case 3: return constants::atomic_group_t::CH3;
+                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
+                    }
+                case constants::atom_t::N:
+                    switch (hydrogens) {
+                        case 1: return constants::atomic_group_t::NH;
+                        case 2: return constants::atomic_group_t::NH2;
+                        case 3: return constants::atomic_group_t::NH3;
+                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
+                    }
+                case constants::atom_t::O:
+                    switch (hydrogens) {
+                        case 1: return constants::atomic_group_t::OH;
+                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
+                    }
+                case constants::atom_t::S:
+                    switch (hydrogens) {
+                        case 1: return constants::atomic_group_t::SH;
+                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
+                    }
+                default: return constants::atomic_group_t::unknown;
+            }
+        }
     }
 
     /**
@@ -190,6 +231,6 @@ namespace constants {
      */
     namespace hydrogen_atoms {
         // get the number of hydrogen atoms attached to an atom of a specific acid. Example: get.at("GLY").at("CA") = 2
-        extern parser::residue::ResidueStorage residues;
+        extern residue::ResidueStorage residues;
     }
 }

@@ -3,30 +3,28 @@
 #include <utility/StringUtils.h>
 #include <settings/SettingsIORegistry.h>
 
-namespace settings::grid {
-    double water_scaling = 0.01;
-    double width = 1;
-    double scaling = 0.25;
-    bool cubic = false;
-    double rvol = 2.15;
-    PlacementStrategy placement_strategy = PlacementStrategy::RadialStrategy;
-    CullingStrategy culling_strategy = CullingStrategy::CounterStrategy;
+double settings::grid::water_scaling = 0.01;
+double settings::grid::width = 1;
+double settings::grid::scaling = 0.25;
+bool settings::grid::cubic = false;
+double settings::grid::rvol = 2.15;
+settings::grid::PlacementStrategy settings::grid::placement_strategy = PlacementStrategy::RadialStrategy;
+settings::grid::CullingStrategy settings::grid::culling_strategy = CullingStrategy::CounterStrategy;
 
-    namespace detail {
-        double min_score = 0.1;
-    }
+namespace settings::grid::detail {
+    double min_score = 0.1;
+}
 
-    namespace io {
-        settings::io::SettingSection grid_settings("Grid", {
-            settings::io::create(water_scaling, "water_scaling"),
-            settings::io::create(width, "width"),
-            settings::io::create(scaling, "scaling"),
-            settings::io::create(cubic, "cubic"),
-            settings::io::create(detail::min_score, "detail.min_score"),
-            settings::io::create(placement_strategy, "placement_strategy"),
-            settings::io::create(culling_strategy, "culling_strategy")
-        });
-    }
+namespace settings::grid::io {
+    settings::io::SettingSection grid_settings("Grid", {
+        settings::io::create(water_scaling, "water_scaling"),
+        settings::io::create(width, "width"),
+        settings::io::create(scaling, "scaling"),
+        settings::io::create(cubic, "cubic"),
+        settings::io::create(detail::min_score, "detail.min_score"),
+        settings::io::create(placement_strategy, "placement_strategy"),
+        settings::io::create(culling_strategy, "culling_strategy")
+    });
 }
 
 template<> std::string settings::io::detail::SettingRef<Limit3D>::get() const {

@@ -3,14 +3,14 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
-namespace settings::axes {
-    unsigned int max_distance = 2000;
-    double distance_bin_width = 0.2;
-    unsigned int bins = 1000;
-    double qmin = 1e-4;
-    double qmax = 0.5;
-    unsigned int skip = 0;
+unsigned int settings::axes::max_distance = 2000;
+double settings::axes::distance_bin_width = 0.2;
+unsigned int settings::axes::bins = 1000;
+double settings::axes::qmin = 1e-4;
+double settings::axes::qmax = 0.5;
+unsigned int settings::axes::skip = 0;
 
+namespace settings::axes::io {
     settings::io::SettingSection axes_settings("Axes", {
         settings::io::create(max_distance, "max_distance"),
         settings::io::create(distance_bin_width, "distance_bin_width"),

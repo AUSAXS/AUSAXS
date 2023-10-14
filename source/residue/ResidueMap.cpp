@@ -1,19 +1,19 @@
-#include <string>
-#include <iostream>
-
+#include <residue/ResidueMap.h>
 #include <utility/Exceptions.h>
-#include <utility/ResidueMap.h>
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
 
-using namespace saxs::detail;
+#include <string>
+#include <iostream>
 
-saxs::detail::AtomKey::AtomKey(const std::string& name, constants::atom_t atom) : name(utility::to_lowercase(name)), atom(atom) {}
-bool saxs::detail::AtomKey::operator==(const AtomKey& other) const {
+using namespace residue::detail;
+
+AtomKey::AtomKey(const std::string& name, constants::atom_t atom) : name(utility::to_lowercase(name)), atom(atom) {}
+bool AtomKey::operator==(const AtomKey& other) const {
     return name == other.name;
 }
 
-unsigned int std::hash<saxs::detail::AtomKey>::operator()(const saxs::detail::AtomKey& k) const {return std::hash<std::string>()(k.name);}
+unsigned int std::hash<residue::detail::AtomKey>::operator()(const AtomKey& k) const {return std::hash<std::string>()(k.name);}
 
 ResidueMap::ResidueMap() = default;
 
@@ -61,3 +61,12 @@ void ResidueMap::calculate_average() {
 }
 
 const std::unordered_map<AtomKey, int>& ResidueMap::get_map() const {return map;}
+
+constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
+    auto key = AtomKey(atom_name, atom_type);
+    if (!map.contains(key)) {
+        throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
+    }
+    int hydrogens = map.at(key);
+    return constants::symbols::get_atomic_group(atom_type, hydrogens);
+}

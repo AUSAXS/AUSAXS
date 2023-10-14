@@ -3,10 +3,12 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorTable.h>
+#include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
 
 #include <array>
 #include <string_view>
+#include <stdexcept>
 
 namespace form_factor {
     class FormFactor {
@@ -33,32 +35,60 @@ namespace form_factor {
             }
     };
 
-
     /**
      * @brief Get the number of unique form factors.
      * 
      * This can be used to iterate over all form factors.
      */
-    constexpr unsigned int get_count();
+    constexpr unsigned int get_count() {
+        return static_cast<unsigned int>(form_factor_t::COUNT);
+    }
 
     /**
      * @brief Get the number of unique form factors, excluding the excluded volume form factor.
      * 
      * This can be used to iterate over all form factors except the excluded volume form factor.
      */
-    constexpr unsigned int get_count_without_excluded_volume();
+    constexpr unsigned int get_count_without_excluded_volume() {
+        return static_cast<unsigned int>(form_factor_t::COUNT)-1;
+    }
 
     /**
-     * @brief Get the form factor type of an Atom. 
+     * @brief Get the form factor type based on an atom type. 
+     *        In case the atom type is not recognized, the default form factor (argon) is returned.
      */
-    constexpr form_factor_t get_type(const data::record::Atom& atom);
+    constexpr form_factor_t get_type(constants::atom_t atom_type) {
+        switch(atom_type) {
+            case constants::atom_t::H: return form_factor_t::H;
+            case constants::atom_t::C: return form_factor_t::C;
+            case constants::atom_t::N: return form_factor_t::N;
+            case constants::atom_t::O: return form_factor_t::O;
+            default: return form_factor_t::OTHER;
+        }
+    }
+
+    /**
+     * @brief Get the form factor type based on an atom type and an atomic group.
+     *        The atomic group takes priority. Only if the atomic group is not recognized, the atom type is used.
+     *        In case either the atomic group or the atom type is not recognized, the default form factor (argon) is returned.
+     */
+    constexpr form_factor_t get_type(constants::atom_t atom_type, constants::atomic_group_t atomic_group) {
+        switch(atomic_group) {
+            case constants::atomic_group_t::CH: return form_factor_t::CH;
+            case constants::atomic_group_t::CH2: return form_factor_t::CH2;
+            case constants::atomic_group_t::CH3: return form_factor_t::CH3;
+            case constants::atomic_group_t::NH: return form_factor_t::NH;
+            case constants::atomic_group_t::NH2: return form_factor_t::NH2;
+            case constants::atomic_group_t::OH: return form_factor_t::OH;
+            case constants::atomic_group_t::SH: return form_factor_t::SH;
+            default: return get_type(atom_type);
+        }
+    }
 
     /**
      * This struct contains the form factors of the most common atomic elements encountered in SAXS. 
      */
     namespace storage {
-        constexpr const FormFactor& get_form_factor(form_factor_t type);
-
         // atomic
         inline constexpr FormFactor H               = FormFactor(               constants::form_factor::H::a,               constants::form_factor::H::b,               constants::form_factor::H::c);
         inline constexpr FormFactor C               = FormFactor(               constants::form_factor::C::a,               constants::form_factor::C::b,               constants::form_factor::C::c);
@@ -89,5 +119,40 @@ namespace form_factor {
 
         // all others; this is just the form factor of argon
         inline constexpr FormFactor other           = FormFactor(           constants::form_factor::other::a,           constants::form_factor::other::b,           constants::form_factor::other::c);
+
+        constexpr const FormFactor& get_form_factor(form_factor_t type) {
+            switch (type) {
+                case form_factor_t::H:
+                    return H;
+                case form_factor_t::C:
+                    return C;
+                case form_factor_t::N:
+                    return N;
+                case form_factor_t::O:
+                    return O;
+                case form_factor_t::S:
+                    return S;
+                case form_factor_t::CH:
+                    return CH_sp3;
+                case form_factor_t::CH2:
+                    return CH2_sp3;
+                case form_factor_t::CH3:
+                    return CH3_sp3;
+                case form_factor_t::NH:
+                    return NH;
+                case form_factor_t::NH2:
+                    return NH2;
+                case form_factor_t::OH:
+                    return OH_alc;
+                case form_factor_t::SH:
+                    return SH;
+                case form_factor_t::OTHER:
+                    return other;
+                case form_factor_t::EXCLUDED_VOLUME:
+                    return excluded_volume;
+                default:
+                    throw std::runtime_error("FormFactorStorage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
+            }
+        }
     };
 }

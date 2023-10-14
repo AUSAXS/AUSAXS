@@ -2,12 +2,12 @@
 
 #include <data/record/Record.h>
 #include <math/Vector3.h>
+#include <constants/ConstantsFwd.h>
 
 #include <string>
 #include <vector>
 #include <memory>
 
-namespace constants {enum class atom_t;}
 namespace data::record {
     class Atom : public Record {
         public:
@@ -317,7 +317,8 @@ namespace data::record {
             Vector3<double> coords = {0, 0, 0};
             std::string name, altLoc, resName, iCode, charge, recName = "ATOM  ";
             char chainID;
-            constants::atom_t element;
+            constants::atom_t element = constants::atom_t::unknown;
+            constants::atomic_group_t atomic_group = constants::atomic_group_t::unknown;
             double occupancy = -1, tempFactor = -1;
             int serial = -1, resSeq = -1; 
 

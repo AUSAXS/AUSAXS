@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace data::record {
     enum class RecordType;
     class Atom;
