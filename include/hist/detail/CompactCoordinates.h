@@ -1,8 +1,8 @@
 #pragma once
 
+#include <hist/detail/CompactCoordinatesData.h>
 #include <utility/Concepts.h>
 #include <data/DataFwd.h>
-#include <math/MathFwd.h>
 
 #include <vector>
 
@@ -14,13 +14,6 @@ namespace hist::detail {
      *        This is meant as a helper class to DistanceCalculator.
      */
     struct CompactCoordinates {
-        struct Data {
-            Data();
-            Data(const Vector3<double>& v, float w);
-            float x, y, z, w;
-        };
-        static_assert(sizeof(Data) == 16, "hist::detail::CompactCoordinates::Data is not 16 bytes");
-
         CompactCoordinates() = default;
 
         /**
@@ -40,11 +33,11 @@ namespace hist::detail {
 
         unsigned int get_size() const;
 
-        Data& operator[](unsigned int i);
-        const Data& operator[](unsigned int i) const;
+        CompactCoordinatesData& operator[](unsigned int i);
+        const CompactCoordinatesData& operator[](unsigned int i) const;
 
         private: 
             unsigned int size;
-            std::vector<Data> data;
+            std::vector<CompactCoordinatesData> data;
     };
 }

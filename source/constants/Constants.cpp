@@ -60,8 +60,8 @@ namespace constants {
     residue::ResidueStorage hydrogen_atoms::residues;
 }
 
-constants::atomic_group_t constants::symbols::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
-    return hydrogen_atoms::residues.get_atomic_group(atom_name, atom_type);
+constants::atomic_group_t constants::symbols::get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom_type) {
+    return hydrogen_atoms::residues.get_atomic_group(residue_name, atom_name, atom_type);
 }
 
 constants::atom_t constants::symbols::parse_element_string(const std::string& element_string) {
@@ -106,6 +106,42 @@ std::string constants::symbols::write_element_string(atom_t atom) {
         case atom_t::dummy: return "dummy";
         default: throw std::runtime_error("constants::symbols::write_element_string: Unknown atom type");
     }
+}
+
+constants::atomic_group_t constants::symbols::get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens) {
+    if (hydrogens == 0) {return constants::atomic_group_t::unknown;}
+    switch (atom_type) {
+        case constants::atom_t::C:
+            switch (hydrogens) {
+                case 1: return constants::atomic_group_t::CH;
+                case 2: return constants::atomic_group_t::CH2;
+                case 3: return constants::atomic_group_t::CH3;
+                default: break;
+            }
+            break;
+        case constants::atom_t::N:
+            switch (hydrogens) {
+                case 1: return constants::atomic_group_t::NH;
+                case 2: return constants::atomic_group_t::NH2;
+                case 3: return constants::atomic_group_t::NH3;
+                default: break;
+            }
+            break;
+        case constants::atom_t::O:
+            switch (hydrogens) {
+                case 1: return constants::atomic_group_t::OH;
+                default: break;
+            }
+            break;
+        case constants::atom_t::S:
+            switch (hydrogens) {
+                case 1: return constants::atomic_group_t::SH;
+                default: break;
+            }
+            break;
+        default: break;
+    }
+    return constants::atomic_group_t::unknown;
 }
 
 unsigned int constants::charge::get_charge(atom_t atom) {

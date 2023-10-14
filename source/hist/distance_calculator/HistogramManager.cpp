@@ -33,12 +33,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     // calculate p-p distances
     for (unsigned int i = 0; i < data_p.get_size(); ++i) {
         for (unsigned int j = i+1; j < data_p.get_size(); ++j) {
-            float weight = data_p[i].w*data_p[j].w;
-            float dx = data_p[i].x - data_p[j].x;
-            float dy = data_p[i].y - data_p[j].y;
-            float dz = data_p[i].z - data_p[j].z;
-            float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-            p_pp[dist/width] += 2*weight;
+            auto res = data_p[i].evaluate(data_p[j]);
+            p_pp[res.distance/width] += 2*res.weight;
         }
     }
 
@@ -50,22 +46,14 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     for (unsigned int i = 0; i < data_h.get_size(); ++i) {
         // calculate h-h distances
         for (unsigned int j = i+1; j < data_h.get_size(); ++j) {
-            float weight = data_h[i].w*data_h[j].w;
-            float dx = data_h[i].x - data_h[j].x;
-            float dy = data_h[i].y - data_h[j].y;
-            float dz = data_h[i].z - data_h[j].z;
-            float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-            p_hh[dist/width] += 2*weight;
+            auto res = data_h[i].evaluate(data_h[j]);
+            p_hh[res.distance/width] += 2*res.weight;
         }
 
         // calculate h-p distances
         for (unsigned int j = 0; j < data_p.get_size(); ++j) {
-            float weight = data_h[i].w*data_p[j].w;
-            float dx = data_h[i].x - data_p[j].x;
-            float dy = data_h[i].y - data_p[j].y;
-            float dz = data_h[i].z - data_p[j].z;
-            float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-            p_hp[dist/width] += weight;
+            auto res = data_h[i].evaluate(data_p[j]);
+            p_hp[res.distance/width] += res.weight;
         }
     }
 

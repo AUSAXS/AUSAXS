@@ -184,9 +184,13 @@ namespace constants {
         std::string write_element_string(atom_t atom);
 
         /**
-         * @brief Get the atomic group from the name of an atom and its type. 
+         * @brief Get the atomic group of an atom.
+         * 
+         * @param residue_name The name of the residue, e.g. GLY or ALA.
+         * @param atom_name The name of the atom, e.g. CH2 or NH2
+         * @param atom_type The atom type. This is required to avoid ambiguities since the name is always capitalized in PDB files, so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca).
          */
-        atomic_group_t get_atomic_group(const std::string& atom_name, atom_t atom_type);
+        atomic_group_t get_atomic_group(const std::string& residue_name, const std::string& atom_name, atom_t atom_type);
 
         /**
          * @brief Get the atomic group a given atom belongs to.
@@ -194,36 +198,7 @@ namespace constants {
          * @param atom_type The atomic type. 
          * @param hydrogens The number of hydrogens attached to the atom.
          */
-        constexpr constants::atomic_group_t get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens) {
-            if (hydrogens == 0) {return constants::atomic_group_t::unknown;}
-            switch (atom_type) {
-                case constants::atom_t::C:
-                    switch (hydrogens) {
-                        case 1: return constants::atomic_group_t::CH;
-                        case 2: return constants::atomic_group_t::CH2;
-                        case 3: return constants::atomic_group_t::CH3;
-                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
-                    }
-                case constants::atom_t::N:
-                    switch (hydrogens) {
-                        case 1: return constants::atomic_group_t::NH;
-                        case 2: return constants::atomic_group_t::NH2;
-                        case 3: return constants::atomic_group_t::NH3;
-                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
-                    }
-                case constants::atom_t::O:
-                    switch (hydrogens) {
-                        case 1: return constants::atomic_group_t::OH;
-                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
-                    }
-                case constants::atom_t::S:
-                    switch (hydrogens) {
-                        case 1: return constants::atomic_group_t::SH;
-                        default: throw except::map_error("ResidueMap::get_atomic_group: Invalid number of hydrogens for atom " + write_element_string(atom_type) + ": " + std::to_string(hydrogens));
-                    }
-                default: return constants::atomic_group_t::unknown;
-            }
-        }
+        constants::atomic_group_t get_atomic_group(constants::atom_t atom_type, unsigned int hydrogens);
     }
 
     /**

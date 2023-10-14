@@ -34,6 +34,7 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         set_tempFactor(tempFactor);
         set_element(element);
         set_charge(charge);
+        atomic_group = constants::symbols::get_atomic_group(get_resName(), get_name(), get_element());
 
         // use a try-catch block to throw more sensible errors
         #ifdef DEBUG
@@ -125,6 +126,7 @@ void Atom::parse_pdb(const std::string& str) {
         throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
     #endif
+    atomic_group = constants::symbols::get_atomic_group(get_resName(), get_name(), get_element());
     effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
 }
 
