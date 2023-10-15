@@ -34,33 +34,29 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     for (unsigned int i = 0; i < data_p.get_size(); ++i) {
         for (unsigned int j = i+1; j < data_p.get_size(); ++j) {
             auto res = data_p[i].evaluate(data_p[j]);
-            p_pp[res.distance/width] += 2*res.weight;
+            p_pp[res.distance] += 2*res.weight;
         }
     }
 
     // add self-correlation
-    for (unsigned int i = 0; i < data_p.get_size(); ++i) {
-        p_pp[0] += std::pow(data_p[i].w, 2);
-    }
+    p_pp[0] = std::accumulate(data_p.get_data().begin(), data_p.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
     for (unsigned int i = 0; i < data_h.get_size(); ++i) {
         // calculate h-h distances
         for (unsigned int j = i+1; j < data_h.get_size(); ++j) {
             auto res = data_h[i].evaluate(data_h[j]);
-            p_hh[res.distance/width] += 2*res.weight;
+            p_hh[res.distance] += 2*res.weight;
         }
 
         // calculate h-p distances
         for (unsigned int j = 0; j < data_p.get_size(); ++j) {
             auto res = data_h[i].evaluate(data_p[j]);
-            p_hp[res.distance/width] += res.weight;
+            p_hp[res.distance] += res.weight;
         }
     }
 
     // add self-correlation
-    for (unsigned int i = 0; i < data_h.get_size(); ++i) {
-        p_hh[0] += std::pow(data_h[i].w, 2);
-    }
+    p_hh[0] = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10

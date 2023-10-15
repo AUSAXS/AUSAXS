@@ -116,17 +116,13 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
     std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < current.get_size(); i++) {
         for (unsigned int j = i+1; j < current.get_size(); j++) {
-            float weight = current[i].w*current[j].w;
-            float dx = current[i].x - current[j].x;
-            float dy = current[i].y - current[j].y;
-            float dz = current[i].z - current[j].z;
-            float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_pp[dist/width] += 2*weight;
+            auto res = current[i].evaluate(current[j]);
+            p_pp[res.distance] += 2*res.weight;
         }
     }
 
     // calculate self-correlation
-    for (unsigned int i = 0; i < current.get_size(); i++) {p_pp[0] += current[i].w*current[i].w;}
+    p_pp[0] = std::accumulate(current.get_data().begin(), current.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
     // store the coordinates for later
     coords_p[index] = std::move(current);
@@ -167,12 +163,8 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
     std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < coords_n.get_size(); i++) {
         for (unsigned int j = 0; j < coords_m.get_size(); j++) {
-            float weight = coords_n[i].w*coords_m[j].w;
-            float dx = coords_n[i].x - coords_m[j].x;
-            float dy = coords_n[i].y - coords_m[j].y;
-            float dz = coords_n[i].z - coords_m[j].z;
-            float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_pp[dist/width] += 2*weight;
+            auto res = coords_n[i].evaluate(coords_m[j]);
+            p_pp[res.distance] += 2*res.weight;
         }
     }
     master -= partials_pp.index(n, m);
@@ -190,12 +182,8 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
         std::vector<double> p_pp(master.get_axis().bins, 0);
         for (unsigned int i = 0; i < coords_i.get_size(); i++) {
             for (unsigned int j = 0; j < coords_j.get_size(); j++) {
-                float weight = coords_i[i].w*coords_j[j].w;
-                float dx = coords_i[i].x - coords_j[j].x;
-                float dy = coords_i[i].y - coords_j[j].y;
-                float dz = coords_i[i].z - coords_j[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp[dist/width] += 2*weight;
+                auto res = coords_i[i].evaluate(coords_j[j]);
+                p_pp[res.distance] += 2*res.weight;
             }
         }
         master -= partials_pp.index(index, n);
@@ -208,12 +196,8 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
         std::vector<double> p_pp(master.get_axis().bins, 0);
         for (unsigned int i = 0; i < coords_i.get_size(); i++) {
             for (unsigned int j = 0; j < coords_j.get_size(); j++) {
-                float weight = coords_i[i].w*coords_j[j].w;
-                float dx = coords_i[i].x - coords_j[j].x;
-                float dy = coords_i[i].y - coords_j[j].y;
-                float dz = coords_i[i].z - coords_j[j].z;
-                float dist = sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp[dist/width] += 2*weight;
+                auto res = coords_i[i].evaluate(coords_j[j]);
+                p_pp[res.distance] += 2*res.weight;
             }
         }
         master -= partials_pp.index(index, n);
@@ -229,12 +213,8 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
     detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.get_size(); i++) {
         for (unsigned int j = 0; j < coords_h.get_size(); j++) {
-            float weight = coords[i].w*coords_h[j].w;
-            float dx = coords[i].x - coords_h[j].x;
-            float dy = coords[i].y - coords_h[j].y;
-            float dz = coords[i].z - coords_h[j].z;
-            float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_hp[dist/width] += weight;
+            auto res = coords[i].evaluate(coords_h[j]);
+            p_hp[res.distance] += res.weight;
         }
     }
 
@@ -251,17 +231,13 @@ void PartialHistogramManager::calc_hh() {
     coords_h = detail::CompactCoordinates(protein->get_waters()); //! Remove?
     for (unsigned int i = 0; i < coords_h.get_size(); i++) {
         for (unsigned int j = i+1; j < coords_h.get_size(); j++) {
-            float weight = coords_h[i].w*coords_h[j].w;
-            float dx = coords_h[i].x - coords_h[j].x;
-            float dy = coords_h[i].y - coords_h[j].y;
-            float dz = coords_h[i].z - coords_h[j].z;
-            float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_hh[dist/width] += 2*weight;
+            auto res = coords_h[i].evaluate(coords_h[j]);
+            p_hh[res.distance] += 2*res.weight;
         }
     }
 
     // calculate self-correlation
-    for (unsigned int i = 0; i < coords_h.get_size(); i++) {p_hh[0] += coords_h[i].w*coords_h[i].w;}
+    p_hh[0] = std::accumulate(coords_h.get_data().begin(), coords_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
     master -= partials_hh; // subtract the previous hydration histogram
     partials_hh.get_counts() = std::move(p_hh);

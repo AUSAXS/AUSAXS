@@ -16,7 +16,7 @@ check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1;_USE_MATH_DEFINES>")#;_GLIBCXX_DEBUG>")
 add_compile_options(
-	-Ofast ${fprofile} -fno-finite-math-only -pipe
+	-Ofast ${fprofile} -fno-finite-math-only -pipe -mavx
 	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 	"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"
 )
@@ -76,7 +76,7 @@ if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     FetchContent_MakeAvailable(backward)
 endif()
 include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
-add_compile_options("$<$<CONFIG:DEBUG>:-fopt-info-loop;-fopt-info-vec>")
+#add_compile_options("$<$<CONFIG:DEBUG>:-fopt-info-loop;-fopt-info-vec>")
 
 ############################################
 ##           Find and link CURL           ##

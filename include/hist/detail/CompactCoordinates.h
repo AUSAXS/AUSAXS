@@ -33,11 +33,14 @@ namespace hist::detail {
 
         unsigned int get_size() const;
 
+        const std::vector<CompactCoordinatesData>& get_data() const;
+
         CompactCoordinatesData& operator[](unsigned int i);
         const CompactCoordinatesData& operator[](unsigned int i) const;
 
         private: 
             unsigned int size;
             std::vector<CompactCoordinatesData> data;
+            double width = settings::axes::distance_bin_width;
     };
 }

@@ -3,6 +3,7 @@
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Body.h>
+#include <settings/HistogramSettings.h>
 
 using namespace hist::detail;
 
@@ -11,6 +12,7 @@ CompactCoordinates::CompactCoordinates(const data::Body& body) : size(body.get_a
         const auto& a = body.get_atom(i); 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
     }
+    CompactCoordinatesData::inv_width = 1./settings::axes::distance_bin_width;
 }
 
 CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) {
@@ -25,6 +27,7 @@ CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) {
             data[i++] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
         }
     }
+    CompactCoordinatesData::inv_width = 1./settings::axes::distance_bin_width;
 }
 
 CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& atoms) : size(atoms.size()), data(size) {
@@ -32,7 +35,10 @@ CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& a
         const auto& a = atoms[i]; 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
     }
+    CompactCoordinatesData::inv_width = 1./settings::axes::distance_bin_width;
 }
+
+const std::vector<CompactCoordinatesData>& CompactCoordinates::get_data() const {return data;}
 
 unsigned int CompactCoordinates::get_size() const {return size;}
 
