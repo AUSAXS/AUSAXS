@@ -197,12 +197,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = i+1; j < coords.get_size(); ++j) {
-                float weight = coords[i].w*coords[j].w;
-                float dx = coords[i].x - coords[j].x;
-                float dy = coords[i].y - coords[j].y;
-                float dz = coords[i].z - coords[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp[dist/width] += 2*weight;
+                auto res = coords[i].evaluate(coords[j]);
+                p_pp[res.distance] += 2*res.weight;
             }
         }
         return p_pp;
@@ -211,9 +207,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
     // calculate self correlation
     static auto calc_self = [] (const detail::CompactCoordinates& coords, unsigned int pp_size) {
         std::vector<double> p_pp(pp_size, 0);
-        for (unsigned int i = 0; i < coords.get_size(); ++i) {
-            p_pp[0] += coords[i].w*coords[i].w;
-        }
+        p_pp[0] = std::accumulate(coords.get_data().begin(), coords.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
         return p_pp;
     };
 
@@ -233,12 +227,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < coords_m.get_size(); ++j) {
-                float weight = coords_n[i].w*coords_m[j].w;
-                float dx = coords_n[i].x - coords_m[j].x;
-                float dy = coords_n[i].y - coords_m[j].y;
-                float dz = coords_n[i].z - coords_m[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp[dist/width] += 2*weight;
+                auto res = coords_n[i].evaluate(coords_m[j]);
+                p_pp[res.distance] += 2*res.weight;
             }
         }
         return p_pp;
@@ -259,12 +249,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
         std::vector<double> p_hp(hp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < coords_h.get_size(); ++j) {
-                float weight = coords_i[i].w*coords_h[j].w;
-                float dx = coords_i[i].x - coords_h[j].x;
-                float dy = coords_i[i].y - coords_h[j].y;
-                float dz = coords_i[i].z - coords_h[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hp[dist/width] += weight;
+                auto res = coords_i[i].evaluate(coords_h[j]);
+                p_hp[res.distance] += res.weight;
             }
         }
         return p_hp;
@@ -286,12 +272,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
         std::vector<double> p_hh(hh_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = i+1; j < coords_h.get_size(); ++j) {
-                float weight = coords_h[i].w*coords_h[j].w;
-                float dx = coords_h[i].x - coords_h[j].x;
-                float dy = coords_h[i].y - coords_h[j].y;
-                float dz = coords_h[i].z - coords_h[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hh[dist/width] += 2*weight;
+                auto res = coords_h[i].evaluate(coords_h[j]);
+                p_hh[res.distance] += 2*res.weight;
             }
         }
         return p_hh;
@@ -300,9 +282,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
     // calculate self correlation
     static auto calc_self = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size) {
         std::vector<double> p_hh(hh_size, 0);
-        for (unsigned int i = 0; i < coords_h.get_size(); ++i) {
-            p_hh[0] += coords_h[i].w*coords_h[i].w;
-        }
+        p_hh[0] = std::accumulate(coords_h.get_data().begin(), coords_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
         return p_hh;
     };
 

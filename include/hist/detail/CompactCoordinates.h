@@ -41,6 +41,5 @@ namespace hist::detail {
         private: 
             unsigned int size;
             std::vector<CompactCoordinatesData> data;
-            double width = settings::axes::distance_bin_width;
     };
 }

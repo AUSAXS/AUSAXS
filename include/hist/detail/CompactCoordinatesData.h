@@ -3,13 +3,15 @@
 #include <math/MathFwd.h>
 
 #include <array>
+#include <cstdint>
 
 namespace hist::detail {
     /**
      * @brief Simple structure for storing the results of a distance and weight calculation.
      */
     struct EvaluatedResult {
-        EvaluatedResult(float distance, float weight) : distance(distance), weight(weight) {}
+        EvaluatedResult() = default;
+        EvaluatedResult(int32_t distance, float weight) : distance(distance), weight(weight) {}
         int32_t distance; // The distance bin 
         float weight;     // The combined weight
     };
@@ -77,7 +79,7 @@ namespace hist::detail {
                 std::array<float, 4> data;
             };
 
-            static float inv_width;
+            inline static float inv_width;
 
         protected:
             EvaluatedResult evaluate_scalar(const CompactCoordinatesData& other) const;
