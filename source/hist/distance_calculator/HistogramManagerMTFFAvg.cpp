@@ -23,12 +23,11 @@ HistogramManagerMTFFAvg::~HistogramManagerMTFFAvg() = default;
 std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg::calculate() {return calculate_all();}
 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_all() {
-    double width = settings::axes::distance_bin_width;
+    constexpr unsigned int exv_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
     std::cout << "Z_exv_avg = " << Z_exv_avg << std::endl;
     double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
-    unsigned int excluded_volume_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
+    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
@@ -39,47 +38,88 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     // PREPARE MULTITHREADING //
     //########################//
     BS::thread_pool pool(settings::general::threads);
-    auto calc_pp = [&data_p, &axes, &width, &Z_exv_avg, &Z_exv_avg2, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
+    auto calc_pp = [&data_p, &axes, &Z_exv_avg, &Z_exv_avg2] (unsigned int imin, unsigned int imax) {
         Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_p.get_size(); ++j) {
-                float dx = data_p[i].x - data_p[j].x;
-                float dy = data_p[i].y - data_p[j].y;
-                float dz = data_p[i].z - data_p[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_pp.index(data_p[i].ff_type, data_p[j].ff_type, dist/width) += data_p[i].w*data_p[j].w;
-                p_pp.index(data_p[i].ff_type, excluded_volume_bin, dist/width) += data_p[i].w*Z_exv_avg;
-                p_pp.index(excluded_volume_bin, excluded_volume_bin, dist/width) += Z_exv_avg2;
+            unsigned int j = i+1;
+            for (; j+7 < data_p.get_size(); j+=8) {
+                auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {
+                    p_pp.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
+                    p_pp.index(data_p.get_ff_type(i+k), exv_bin, res.distance[k]) += 2*data_p[j+k].value.w*Z_exv_avg;
+                    p_pp.index(exv_bin, exv_bin, res.distance[k]) += 2*Z_exv_avg2;
+                }
+            }
+
+            for (; j+3 < data_p.get_size(); j+=4) {
+                auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {
+                    p_pp.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
+                    p_pp.index(data_p.get_ff_type(i+k), exv_bin, res.distance[k]) += 2*data_p[j+k].value.w*Z_exv_avg;
+                    p_pp.index(exv_bin, exv_bin, res.distance[k]) += 2*Z_exv_avg2;
+                }
+            }
+
+            for (; j < data_p.get_size(); ++j) {
+                auto res = data_p[i].evaluate(data_p[j]);
+                p_pp.index(data_p.get_ff_type(i), data_p.get_ff_type(j), res.distance) += 2*res.weight;
+                p_pp.index(data_p.get_ff_type(i), exv_bin, res.distance) += 2*data_p[j].value.w*Z_exv_avg;
+                p_pp.index(exv_bin, exv_bin, res.distance) += 2*Z_exv_avg2;
             }
         }
         return p_pp;
     };
 
-    auto calc_hp = [&data_h, &data_p, &axes, &width, &Z_exv_avg, &excluded_volume_bin] (unsigned int imin, unsigned int imax) {
+    auto calc_hp = [&data_h, &data_p, &axes, &Z_exv_avg, &exv_bin] (unsigned int imin, unsigned int imax) {
         Container2D<double> p_hp(form_factor::get_count(), axes.bins, 0); // ff_type, distance
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_p.get_size(); ++j) {
-                float dx = data_h[i].x - data_p[j].x;
-                float dy = data_h[i].y - data_p[j].y;
-                float dz = data_h[i].z - data_p[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hp.index(data_p[j].ff_type, dist/width) += data_h[i].w*data_p[j].w;
-                p_hp.index(excluded_volume_bin, dist/width) += data_h[i].w*Z_exv_avg;
+            unsigned int j = 0;
+            for (; j+7 < data_p.get_size(); j+=8) {
+                auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {
+                    p_hp.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
+                    p_hp.index(exv_bin, res.distance[k]) += data_p[j+k].value.w*Z_exv_avg;
+                }
+            }
+
+            for (; j+3 < data_p.get_size(); j+=4) {
+                auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {
+                    p_hp.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
+                    p_hp.index(exv_bin, res.distance[k]) += data_p[j+k].value.w*Z_exv_avg;
+                }
+            }
+
+            for (; j < data_p.get_size(); ++j) {
+                auto res = data_h[i].evaluate(data_p[j]);
+                p_hp.index(data_p.get_ff_type(j), res.distance) += res.weight;
+                p_hp.index(exv_bin, res.distance) += data_p[j].value.w*Z_exv_avg;
             }
         }
         return p_hp;
     };
 
-    auto calc_hh = [&data_h, &axes, &width] (unsigned int imin, unsigned int imax) {
+    auto calc_hh = [&data_h, &axes] (unsigned int imin, unsigned int imax) {
         Container1D<double> p_hh(axes.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
-            for (unsigned int j = 0; j < data_h.get_size(); ++j) {
-                float weight = data_h[i].w*data_h[j].w;
-                float dx = data_h[i].x - data_h[j].x;
-                float dy = data_h[i].y - data_h[j].y;
-                float dz = data_h[i].z - data_h[j].z;
-                float dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-                p_hh.index(dist/width) += weight;
+            unsigned int j = i+1;
+            for (; j+7 < data_h.get_size(); j+=8) {
+                auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {
+                    p_hh.index(res.distance[k]) += res.weight[k];
+                }
+            }
+
+            for (; j+3 < data_h.get_size(); j+=4) {
+                auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {
+                    p_hh.index(res.distance[k]) += res.weight[k];
+                }
+            }
+
+            for (; j < data_h.get_size(); ++j) {
+                auto res = data_h[i].evaluate(data_h[j]);
+                p_hh.index(res.distance) += res.weight;
             }
         }
         return p_hh;
@@ -142,23 +182,22 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    // for (unsigned int i = 0; i < data_p.get_size(); ++i) {
-    //     p_pp.index(data_p[i].ff_type, data_p[i].ff_type, 0) -= std::pow(data_p[i].w, 2);
-    //     p_pp.index(excluded_volume_bin, excluded_volume_bin, 0) -= std::pow(Z_exv_avg, 2);
-    // }
-    // for (unsigned int i = 0; i < data_h.get_size(); ++i) {
-    //     p_hh.index(0) -= std::pow(data_h[i].w, 2);
-    // }
+    for (unsigned int i = 0; i < data_p.get_size(); ++i) {p_pp.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += std::pow(data_p[i].value.w, 2);}
+    p_pp.index(exv_bin, exv_bin, 0) = data_p.get_size()*Z_exv_avg2;
+    p_hh.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + data.value.w*data.value.w;});
 
+    // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     std::vector<double> p_tot(axes.bins, 0);
-    for (unsigned int i = 0; i < axes.bins; ++i) {
+    {   // sum all elements to the total
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                p_tot[i] += p_pp.index(ff1, ff2, i);
+                std::transform(p_tot.begin(), p_tot.end(), p_pp.begin(ff1, ff2), p_tot.begin(), std::plus<double>());
             }
-            p_tot[i] += 2*p_hp.index(ff1, i);
         }
-        p_tot[i] += p_hh.index(i);
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+            std::transform(p_tot.begin(), p_tot.end(), p_hp.begin(ff1), p_tot.begin(), std::plus<double>());
+        }
+        std::transform(p_tot.begin(), p_tot.end(), p_hh.begin(), p_tot.begin(), std::plus<double>());
     }
 
     // downsize our axes to only the relevant area
@@ -173,17 +212,19 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     Container3D<double> p_pp_short(form_factor::get_count(), form_factor::get_count(), max_bin);
     Container2D<double> p_hp_short(form_factor::get_count(), max_bin);
     Container1D<double> p_hh_short(max_bin);
-    for (unsigned int i = 0; i < max_bin; ++i) {
+    {   // copy first max_bin elements to a new container
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count(); ++ff2) {
-                p_pp_short.index(ff1, ff2, i) = p_pp.index(ff1, ff2, i);
+                std::transform(p_pp_short.begin(ff1, ff2), p_pp_short.end(ff1, ff2), p_pp.begin(ff1, ff2), p_pp_short.begin(ff1, ff2), std::plus<double>());
             }
-            p_hp_short.index(ff1, i) = p_hp.index(ff1, i);
         }
-        p_hh_short.index(i) = p_hh.index(i);
+        for (unsigned int ff1 = 0; ff1 < form_factor::get_count(); ++ff1) {
+            std::transform(p_hp_short.begin(ff1), p_hp_short.end(ff1), p_hp.begin(ff1), p_hp_short.begin(ff1), std::plus<double>());
+        }
+        std::transform(p_hh_short.begin(), p_hh_short.end(), p_hh.begin(), p_hh_short.begin(), std::plus<double>());
     }
     p_tot.resize(max_bin);
 
-    axes = Axis(0, max_bin*width, max_bin); 
+    axes = Axis(0, max_bin*settings::axes::distance_bin_width, max_bin); 
     return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), axes);
 }

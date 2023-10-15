@@ -192,8 +192,6 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
 
     // calculate internal distances between atoms
     static auto calc_internal = [] (const detail::CompactCoordinates& coords, unsigned int pp_size, unsigned int imin, unsigned int imax) {
-        double width = settings::axes::distance_bin_width;
-
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = i+1; j < coords.get_size(); ++j) {
@@ -222,8 +220,6 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
     static auto calc_pp = [] (const detail::CompactCoordinates& coords_n, const detail::CompactCoordinates& coords_m, unsigned int pp_size, unsigned int imin, unsigned int imax) {
-        double width = settings::axes::distance_bin_width;
-
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < coords_m.get_size(); ++j) {
@@ -244,8 +240,6 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigned int index) {
     static auto calc_hp = [] (const detail::CompactCoordinates& coords_i, const detail::CompactCoordinates& coords_h, unsigned int hp_size, unsigned int imin, unsigned int imax) {
-        double width = settings::axes::distance_bin_width;
-
         std::vector<double> p_hp(hp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = 0; j < coords_h.get_size(); ++j) {
@@ -267,8 +261,6 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
     // calculate internal distances for the hydration layer
     static auto calc_hh = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size, unsigned int imin, unsigned int imax) {
-        double width = settings::axes::distance_bin_width;
-
         std::vector<double> p_hh(hh_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             for (unsigned int j = i+1; j < coords_h.get_size(); ++j) {

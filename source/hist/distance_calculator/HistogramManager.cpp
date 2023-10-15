@@ -20,8 +20,7 @@ HistogramManager::~HistogramManager() = default;
 std::unique_ptr<DistanceHistogram> HistogramManager::calculate() {return calculate_all();}
 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
-    double width = settings::axes::distance_bin_width;
-    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/width); 
+    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
     std::vector<double> p_pp(axes.bins, 0);
     std::vector<double> p_hh(axes.bins, 0);
     std::vector<double> p_hp(axes.bins, 0);
@@ -32,7 +31,18 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
 
     // calculate p-p distances
     for (unsigned int i = 0; i < data_p.get_size(); ++i) {
-        for (unsigned int j = i+1; j < data_p.get_size(); ++j) {
+        unsigned int j = i+1;
+        for (; j+7 < data_p.get_size(); j+=8) {
+            auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j+3 < data_p.get_size(); j+=4) {
+            auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j < data_p.get_size(); ++j) {
             auto res = data_p[i].evaluate(data_p[j]);
             p_pp[res.distance] += 2*res.weight;
         }
@@ -43,15 +53,41 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
 
     for (unsigned int i = 0; i < data_h.get_size(); ++i) {
         // calculate h-h distances
-        for (unsigned int j = i+1; j < data_h.get_size(); ++j) {
-            auto res = data_h[i].evaluate(data_h[j]);
-            p_hh[res.distance] += 2*res.weight;
-        }
+        {
+            unsigned int j = i+1;
+            for (; j+7 < data_h.get_size(); j+=8) {
+                auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+            }
 
+            for (; j+3 < data_h.get_size(); j+=4) {
+                auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+            }
+
+            for (; j < data_h.get_size(); ++j) {
+                auto res = data_h[i].evaluate(data_h[j]);
+                p_hh[res.distance] += 2*res.weight;
+            }
+        }
+        
         // calculate h-p distances
-        for (unsigned int j = 0; j < data_p.get_size(); ++j) {
-            auto res = data_h[i].evaluate(data_p[j]);
-            p_hp[res.distance] += res.weight;
+        {
+            unsigned int j = 0;
+            for (; j+7 < data_p.get_size(); j+=8) {
+                auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+            }
+
+            for (; j+3 < data_p.get_size(); j+=4) {
+                auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+            }
+
+            for (; j < data_p.get_size(); ++j) {
+                auto res = data_h[i].evaluate(data_p[j]);
+                p_hp[res.distance] += res.weight;
+            }
         }
     }
 
@@ -71,7 +107,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    axes = Axis(0, max_bin*width, max_bin); 
+    axes = Axis(0, max_bin*settings::axes::distance_bin_width, max_bin); 
 
     // calculate p_tot
     for (unsigned int i = 0; i < max_bin; ++i) {p_tot[i] = p_pp[i] + p_hh[i] + 2*p_hp[i];}

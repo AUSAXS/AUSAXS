@@ -109,13 +109,23 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_a
 }
 
 void PartialHistogramManager::calc_self_correlation(unsigned int index) {
-    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates current(protein->get_body(index));
 
     // calculate internal distances between atoms
     std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < current.get_size(); i++) {
-        for (unsigned int j = i+1; j < current.get_size(); j++) {
+        unsigned int j = i+1;
+        for (; j+7 < current.get_size(); j+=8) {
+            auto res = current[i].evaluate(current[j], current[j+1], current[j+2], current[j+3], current[j+4], current[j+5], current[j+6], current[j+7]);
+            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j+3 < current.get_size(); j+=4) {
+            auto res = current[i].evaluate(current[j], current[j+1], current[j+2], current[j+3]);
+            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j < current.get_size(); ++j) {
             auto res = current[i].evaluate(current[j]);
             p_pp[res.distance] += 2*res.weight;
         }
@@ -138,8 +148,7 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManager::initialize() {
-    double width = settings::axes::distance_bin_width;
-    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/width); 
+    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 
@@ -156,14 +165,23 @@ void PartialHistogramManager::initialize() {
 }
 
 void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
-    double width = settings::axes::distance_bin_width;
-
     detail::CompactCoordinates& coords_n = coords_p[n];
     detail::CompactCoordinates& coords_m = coords_p[m];
     std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < coords_n.get_size(); i++) {
-        for (unsigned int j = 0; j < coords_m.get_size(); j++) {
-            auto res = coords_n[i].evaluate(coords_m[j]);
+        unsigned int j = i+1;
+        for (; j+7 < coords_n.get_size(); j+=8) {
+            auto res = coords_n[i].evaluate(coords_n[j], coords_n[j+1], coords_n[j+2], coords_n[j+3], coords_n[j+4], coords_n[j+5], coords_n[j+6], coords_n[j+7]);
+            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j+3 < coords_n.get_size(); j+=4) {
+            auto res = coords_n[i].evaluate(coords_n[j], coords_n[j+1], coords_n[j+2], coords_n[j+3]);
+            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j < coords_n.get_size(); ++j) {
+            auto res = coords_n[i].evaluate(coords_n[j]);
             p_pp[res.distance] += 2*res.weight;
         }
     }
@@ -173,7 +191,6 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
 }
 
 void PartialHistogramManager::calc_pp(unsigned int index) {
-    double width = settings::axes::distance_bin_width;
     detail::CompactCoordinates& coords_i = coords_p[index];
 
     // we do not want to calculate the self-correlation, so we have to skip entry 'index'
@@ -181,8 +198,19 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
         detail::CompactCoordinates& coords_j = coords_p[n];
         std::vector<double> p_pp(master.get_axis().bins, 0);
         for (unsigned int i = 0; i < coords_i.get_size(); i++) {
-            for (unsigned int j = 0; j < coords_j.get_size(); j++) {
-                auto res = coords_i[i].evaluate(coords_j[j]);
+            unsigned int j = i+1;
+            for (; j+7 < coords_j.get_size(); j+=8) {
+                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3], coords_j[j+4], coords_j[j+5], coords_j[j+6], coords_j[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            }
+
+            for (; j+3 < coords_j.get_size(); j+=4) {
+                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            }
+
+            for (; j < coords_j.get_size(); ++j) {
+                auto res = coords_j[i].evaluate(coords_j[j]);
                 p_pp[res.distance] += 2*res.weight;
             }
         }
@@ -195,8 +223,19 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
         detail::CompactCoordinates& coords_j = coords_p[n];
         std::vector<double> p_pp(master.get_axis().bins, 0);
         for (unsigned int i = 0; i < coords_i.get_size(); i++) {
-            for (unsigned int j = 0; j < coords_j.get_size(); j++) {
-                auto res = coords_i[i].evaluate(coords_j[j]);
+            unsigned int j = i+1;
+            for (; j+7 < coords_j.get_size(); j+=8) {
+                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3], coords_j[j+4], coords_j[j+5], coords_j[j+6], coords_j[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            }
+
+            for (; j+3 < coords_j.get_size(); j+=4) {
+                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            }
+
+            for (; j < coords_j.get_size(); ++j) {
+                auto res = coords_j[i].evaluate(coords_j[j]);
                 p_pp[res.distance] += 2*res.weight;
             }
         }
@@ -207,12 +246,22 @@ void PartialHistogramManager::calc_pp(unsigned int index) {
 }
 
 void PartialHistogramManager::calc_hp(unsigned int index) {
-    double width = settings::axes::distance_bin_width;
     std::vector<double> p_hp(master.get_axis().bins, 0);
 
     detail::CompactCoordinates& coords = coords_p[index];
     for (unsigned int i = 0; i < coords.get_size(); i++) {
-        for (unsigned int j = 0; j < coords_h.get_size(); j++) {
+        unsigned int j = 0;
+        for (; j+7 < coords_h.get_size(); j+=8) {
+            auto res = coords[i].evaluate(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
+            for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+        }
+
+        for (; j+3 < coords_h.get_size(); j+=4) {
+            auto res = coords[i].evaluate(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
+            for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+        }
+
+        for (; j < coords_h.get_size(); ++j) {
             auto res = coords[i].evaluate(coords_h[j]);
             p_hp[res.distance] += res.weight;
         }
@@ -224,13 +273,23 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
 }
 
 void PartialHistogramManager::calc_hh() {
-    const double& width = settings::axes::distance_bin_width;
     std::vector<double> p_hh(master.get_axis().bins, 0);
 
     // calculate internal distances for the hydration layer
     coords_h = detail::CompactCoordinates(protein->get_waters()); //! Remove?
     for (unsigned int i = 0; i < coords_h.get_size(); i++) {
-        for (unsigned int j = i+1; j < coords_h.get_size(); j++) {
+        unsigned int j = i+1;
+        for (; j+7 < coords_h.get_size(); j+=8) {
+            auto res = coords_h[i].evaluate(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
+            for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j+3 < coords_h.get_size(); j+=4) {
+            auto res = coords_h[i].evaluate(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
+            for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+        }
+
+        for (; j < coords_h.get_size(); ++j) {
             auto res = coords_h[i].evaluate(coords_h[j]);
             p_hh[res.distance] += 2*res.weight;
         }

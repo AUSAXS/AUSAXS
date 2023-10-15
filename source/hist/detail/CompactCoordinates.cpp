@@ -7,6 +7,8 @@
 
 using namespace hist::detail;
 
+CompactCoordinates::CompactCoordinates(unsigned int size) : size(size), data(size) {}
+
 CompactCoordinates::CompactCoordinates(const data::Body& body) : size(body.get_atoms().size()), data(size) {
     for (unsigned int i = 0; i < size; ++i) {
         const auto& a = body.get_atom(i); 
@@ -16,10 +18,7 @@ CompactCoordinates::CompactCoordinates(const data::Body& body) : size(body.get_a
 }
 
 CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) {
-    size = 0;
-    for (const auto& body : bodies) {
-        size += body.get_atoms().size();
-    }
+    size = std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.atom_size();});
     data.resize(size);
     unsigned int i = 0;
     for (const auto& body : bodies) {

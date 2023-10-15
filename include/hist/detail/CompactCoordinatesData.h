@@ -101,5 +101,5 @@ namespace hist::detail {
                                                 const CompactCoordinatesData& v5, const CompactCoordinatesData& v6, const CompactCoordinatesData& v7, const CompactCoordinatesData& v8) const;            
             #endif
     };
-    static_assert(sizeof(CompactCoordinatesData) == 16, "hist::detail::CompactCoordinates::Data is not 16 bytes");
+    static_assert(sizeof(CompactCoordinatesData) == 16, "hist::detail::CompactCoordinates::CompactCoordinatesData is not 16 bytes. This is required for aligning SIMD instructions.");
 }
