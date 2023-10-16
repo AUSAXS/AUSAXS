@@ -2,6 +2,10 @@
 
 #include <array>
 
+#if SAFE_MATH
+    #include <utility/Exceptions.h>
+#endif
+
 namespace container {
     template <typename T, int size_x, int size_y>
     class ArrayContainer2D {
@@ -32,7 +36,7 @@ namespace container {
              * @brief Get an iterator to the beginning of the vector at index i.
              */
             const typename std::array<T, size_y>::const_iterator begin(unsigned int i) const {
-                #if (SAFE_MATH)
+                #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
@@ -44,7 +48,7 @@ namespace container {
              * @brief Get an iterator to the end of the vector at index i.
              */
             const typename std::array<T, size_y>::const_iterator end(unsigned int i) const {
-                #if (SAFE_MATH)
+                #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
@@ -56,7 +60,7 @@ namespace container {
              * @brief Get an iterator to the beginning of the vector at index i.
              */
             typename std::array<T, size_y>::iterator begin(unsigned int i) {
-                #if (SAFE_MATH)
+                #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("Container2D::begin: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }
@@ -68,7 +72,7 @@ namespace container {
              * @brief Get an iterator to the end of the vector at index i.
              */
             typename std::array<T, size_y>::iterator end(unsigned int i) {
-                #if (SAFE_MATH)
+                #if SAFE_MATH
                     if (i >= N) {
                         throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                     }

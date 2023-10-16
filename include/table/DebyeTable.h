@@ -1,6 +1,7 @@
 #pragma once
 
 #include <table/Table.h>
+#include <utility/Concepts.h>
 
 namespace table {
     class DebyeTable : private Table {
@@ -13,7 +14,8 @@ namespace table {
              * @param q The scattering vector to generate lookup values for. 
              * @param d The distance histogram to generate lookup values for. 
              */
-            DebyeTable(const std::vector<double>& q, const std::vector<double>& d);
+            template<container_type T1, container_type T2>
+            DebyeTable(const T1& q, const T2& d);
 
             /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 
@@ -75,7 +77,8 @@ namespace table {
              * @param q The scattering vector to generate lookup values for. 
              * @param d The distance histogram to generate lookup values for. 
              */
-            void initialize(const std::vector<double>& q, const std::vector<double>& d);
+            template<container_type T1, container_type T2>
+            void initialize(const T1& q, const T2& d);
 
             /**
              * @brief Check if a DebyeTable is empty.

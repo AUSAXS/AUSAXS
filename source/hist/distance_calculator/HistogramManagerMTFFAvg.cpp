@@ -28,7 +28,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
     std::cout << "Z_exv_avg = " << Z_exv_avg << std::endl;
     double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
-    Axis axes(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
@@ -39,8 +38,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     // PREPARE MULTITHREADING //
     //########################//
     BS::thread_pool pool(settings::general::threads);
-    auto calc_pp = [&data_p, &axes, &Z_exv_avg, &Z_exv_avg2] (unsigned int imin, unsigned int imax) {
-        Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+    auto calc_pp = [&data_p, &Z_exv_avg, &Z_exv_avg2] (unsigned int imin, unsigned int imax) {
+        Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < data_p.get_size(); j+=8) {
@@ -71,8 +70,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
         return p_pp;
     };
 
-    auto calc_hp = [&data_h, &data_p, &axes, &Z_exv_avg, &exv_bin] (unsigned int imin, unsigned int imax) {
-        Container2D<double> p_hp(form_factor::get_count(), axes.bins, 0); // ff_type, distance
+    auto calc_hp = [&data_h, &data_p, &Z_exv_avg, &exv_bin] (unsigned int imin, unsigned int imax) {
+        Container2D<double> p_hp(form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type, distance
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
             for (; j+7 < data_p.get_size(); j+=8) {
@@ -100,8 +99,8 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
         return p_hp;
     };
 
-    auto calc_hh = [&data_h, &axes] (unsigned int imin, unsigned int imax) {
-        Container1D<double> p_hh(axes.bins, 0);
+    auto calc_hh = [&data_h] (unsigned int imin, unsigned int imax) {
+        Container1D<double> p_hh(constants::axes::d_axis.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < data_h.get_size(); j+=8) {
@@ -148,7 +147,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     //#################//
     auto p_pp_future = pool.submit(
         [&]() {
-            Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), axes.bins, 0); // ff_type1, ff_type2, distance
+            Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
             for (const auto& tmp : pp.get()) {
                 std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<double>());
             }
@@ -158,7 +157,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
 
     auto p_hp_future = pool.submit(
         [&]() {
-            Container2D<double> p_hp(form_factor::get_count(), axes.bins, 0); // ff_type, distance
+            Container2D<double> p_hp(form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type, distance
             for (const auto& tmp : hp.get()) {
                 std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<double>());
             }
@@ -168,7 +167,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
 
     auto p_hh_future = pool.submit(
         [&]() {
-            Container1D<double> p_hh(axes.bins, 0);
+            Container1D<double> p_hh(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : hh.get()) {
                 std::transform(p_hh.begin(), p_hh.end(), tmp.begin(), p_hh.begin(), std::plus<double>());
             }
@@ -188,7 +187,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     p_hh.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
-    std::vector<double> p_tot(axes.bins, 0);
+    std::vector<double> p_tot(constants::axes::d_axis.bins, 0);
     {   // sum all elements to the total
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -203,7 +202,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
-    for (unsigned int i = axes.bins-1; i >= 10; --i) {
+    for (unsigned int i = p_tot.size()-1; i >= 10; --i) {
         if (p_tot[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
@@ -225,7 +224,5 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
         std::transform(p_hh_short.begin(), p_hh_short.end(), p_hh.begin(), p_hh_short.begin(), std::plus<double>());
     }
     p_tot.resize(max_bin);
-
-    axes = Axis(0, max_bin*settings::axes::distance_bin_width, max_bin); 
-    return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), axes);
+    return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
 }

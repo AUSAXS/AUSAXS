@@ -3,7 +3,7 @@
 #include <io/ExistingFile.h>
 #include <math/Vector3.h>
 #include <utility/Basis3D.h>
-#include <settings/HistogramSettings.h>
+#include <constants/Constants.h>
 
 #include <fstream>
 
@@ -39,8 +39,8 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::UnitCellReader::re
 
     // calculate the distance between the edges of the box
     double distance = std::sqrt(std::pow(xaxis.x(), 2) + std::pow(yaxis.y(), 2) + std::pow(zaxis.z(), 2));
-    if (distance > settings::axes::max_distance) {
-        throw except::io_error("PDBReader::read: The distance between the edges of the box is " + std::to_string(distance) + " Å, which is larger than the maximum allowed distance of " + std::to_string(settings::axes::max_distance) + " Å.");
+    if (distance > constants::axes::d_axis.max) {
+        throw except::io_error("PDBReader::read: The distance between the edges of the box is " + std::to_string(distance) + " Å, which is larger than the maximum allowed distance of " + std::to_string(constants::axes::d_axis.max) + " Å.");
     }
 
     std::getline(file, line); // skip empty line

@@ -1,35 +1,20 @@
 #include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/FormFactor.h>
-#include <settings/HistogramSettings.h>
+#include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <utility/Axis.h>
-#include <container/Container2D.h>
+#include <constants/Constants.h>
 
 #include <cmath>
 
 using namespace form_factor;
 
-PrecalculatedFormFactorProduct::PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2, const std::vector<double>& q) {
-    std::vector<double> res(q.size());
-    for (unsigned int i = 0; i < q.size(); ++i) {
-        res[i] = ff1.evaluate(q[i])*ff2.evaluate(q[i]);
-    }
-    precalculated_ff_q = std::move(res);
-}
-
-double PrecalculatedFormFactorProduct::evaluate(unsigned int index) const {
-    return precalculated_ff_q[index];
-}
-
-container::Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::generate_table() {
-    container::Container2D<PrecalculatedFormFactorProduct> table(form_factor::get_count(), form_factor::get_count());
-    std::vector<double> q = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> generate_table() {
+    container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> table;
     for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = std::move(
                 PrecalculatedFormFactorProduct(
                     storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                    storage::get_form_factor(static_cast<form_factor_t>(j)), 
-                    q
+                    storage::get_form_factor(static_cast<form_factor_t>(j))
                 )
             );
             table.index(j, i) = table.index(i, j);
@@ -37,10 +22,18 @@ container::Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorPr
         table.index(i, i) = std::move(
             PrecalculatedFormFactorProduct(
                 storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                q
+                storage::get_form_factor(static_cast<form_factor_t>(i))
             )
         );
     }
     return table;
+}
+
+inline constexpr auto ff_table = generate_table();
+const PrecalculatedFormFactorProduct& form_factor::storage::get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept {
+    return ff_table.index(i, j);
+}
+
+const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>& form_factor::storage::get_precalculated_form_factor_table() noexcept {
+    return ff_table;
 }

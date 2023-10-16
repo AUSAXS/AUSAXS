@@ -9,6 +9,7 @@
 #include <array>
 #include <string_view>
 #include <stdexcept>
+#include <cmath>
 
 namespace form_factor {
     class FormFactor {
@@ -17,21 +18,36 @@ namespace form_factor {
                 initialize();
             }
 
-            /**
-             * @brief Evaluate the form factor at a given q value.
-             *        The form factor is normalized to 1 at q = 0.
-             */
-            double evaluate(double q) const;
-
+        private: 
             std::array<double, 5> a;
             std::array<double, 5> b;
             double c;
 
-        private: 
             double f0 = 1;
 
             constexpr void initialize() {
                 f0 = a[0] + a[1] + a[2] + a[3] + a[4] + c;
+            }
+
+        public: 
+            /**
+             * @brief Evaluate the form factor at a given q value.
+             *        The form factor is normalized to 1 at q = 0.
+             */
+            constexpr double evaluate(double q) const {
+                double sum = 0;
+                for (unsigned int i = 0; i < 5; ++i) {
+                    sum += a[i]*std::exp(-b[i]*q*q);
+                }
+                return (sum + c)/f0;
+            }
+
+            constexpr double constexpr_evaluate(double q) const noexcept {
+                double sum = 0;
+                for (unsigned int i = 0; i < 5; ++i) {
+                    sum += a[i]*std::exp(-b[i]*q*q);
+                }
+                return (sum + c)/f0;
             }
     };
 

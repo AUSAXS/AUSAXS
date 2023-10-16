@@ -8,6 +8,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
+#include <constants/Constants.h>
 
 #include <mutex>
 #include <list>
@@ -165,7 +166,7 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManagerMT::initialize() {
-    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
+    const Axis& axis = constants::axes::d_axis; 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 

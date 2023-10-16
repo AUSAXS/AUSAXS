@@ -12,7 +12,7 @@ namespace table {
      * 
      * This table is evaluated at compile-time for the default q and d axes defined in the constants namespace.
      */
-    class ArrayDebyeTable : private container::ArrayContainer2D<double, constants::axes::q_axis.size(), constants::axes::d_axis.size()> {
+    class ArrayDebyeTable : private container::ArrayContainer2D<double, constants::axes::q_axis.bins, constants::axes::d_axis.bins> {
         public:
             constexpr ArrayDebyeTable() noexcept {
                 initialize();
@@ -36,12 +36,12 @@ namespace table {
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            std::array<double, constants::axes::d_axis.size()>::iterator begin(unsigned int q_index) {return ArrayContainer2D::begin(q_index);}
+            std::array<double, constants::axes::d_axis.bins>::const_iterator begin(unsigned int q_index) const {return ArrayContainer2D::begin(q_index);}
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            std::array<double, constants::axes::d_axis.size()>::iterator end(unsigned int q_index) {return ArrayContainer2D::end(q_index);}
+            std::array<double, constants::axes::d_axis.bins>::const_iterator end(unsigned int q_index) const {return ArrayContainer2D::end(q_index);}
 
             /**
              * @brief Get the default table. 
@@ -52,7 +52,7 @@ namespace table {
              * @brief Check if the two vectors are compatible with the default table. 
              *        Note that this check is only performed in debug mode.
              */
-            static void check_default(const std::vector<double>& q, const std::vector<double>& d) {}
+            static void check_default(const std::vector<double>& q, const std::vector<double>& d);
 
         private: 
             constexpr void initialize() noexcept {
@@ -61,9 +61,9 @@ namespace table {
                 double inv_120 = 1./120;  // 1/120
 
                 for (unsigned int i = 0; i < size_q(); ++i) {
-                    double q = constants::axes::q_axis[i];
+                    double q = constants::axes::q_vals[i];
                     for (unsigned int j = 0; j < size_d(); ++j) {
-                        double d = constants::axes::d_axis[j];
+                        double d = constants::axes::d_vals[j];
                         double qd = q*d;
                         if (qd < tolerance) {
                             double qd2 = qd*qd;
@@ -75,7 +75,4 @@ namespace table {
                 }
             }
     };
-    inline static constexpr ArrayDebyeTable default_table;
-
-    const ArrayDebyeTable& ArrayDebyeTable::get_default_table() {return default_table;}
 }

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <container/ContainerFwd.h>
+#include <constants/Constants.h>
+#include <form_factor/FormFactor.h>
+#include <container/ArrayContainer2D.h>
 
 #include <vector>
 
@@ -8,21 +11,30 @@ namespace form_factor {
     class FormFactor;
     class PrecalculatedFormFactorProduct {
         public:
-            PrecalculatedFormFactorProduct() = default;
-            PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2, const std::vector<double>& q);
-
-            double evaluate(unsigned int index) const;
+            constexpr PrecalculatedFormFactorProduct() noexcept = default;
+            constexpr PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2) noexcept {
+                std::array<double, constants::axes::q_axis.bins> res;
+                for (unsigned int i = 0; i < res.size(); ++i) {
+                    res[i] = ff1.evaluate(constants::axes::q_vals[i])*ff2.evaluate(constants::axes::q_vals[i]);
+                }
+                precalculated_ff_q = std::move(res);
+            }
 
             /**
-             * @brief Generate a table of precalculated form factor products.
-             *        Each entry is a precalculated form factor product for the default q axis. 
-             *        The table is indexed by the form factor types, with the last column being the excluded volume. 
-             *        It thus has the dimensions (#no_of_form_factors+1, #no_of_form_factors+1)
-             *        The table is symmetric, so only the upper triangle is filled (i.e. i <= j)
+             * @brief Get the precalculated form factor product for a given q value.
+             * 
+             * These products are calculated at compile-time for the default q axis defined in the constants namespace.
              */
-            static container::Container2D<PrecalculatedFormFactorProduct> generate_table();
+            constexpr double evaluate(unsigned int index) const noexcept {
+                return precalculated_ff_q[index];
+            }
 
         private:
-            std::vector<double> precalculated_ff_q;
+            std::array<double, constants::axes::q_axis.bins> precalculated_ff_q;
     };
+
+    namespace storage {
+        const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept;
+        const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>& get_precalculated_form_factor_table() noexcept;
+    }
 }

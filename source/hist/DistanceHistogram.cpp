@@ -1,9 +1,10 @@
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
-#include <table/DebyeTable.h>
+#include <table/ArrayDebyeTable.h>
 #include <dataset/SimpleDataset.h>
 #include <settings/HistogramSettings.h>
+#include <constants/Constants.h>
 
 using namespace hist;
 
@@ -20,21 +21,21 @@ DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : Histogr
 DistanceHistogram::~DistanceHistogram() = default;
 
 void DistanceHistogram::initialize() {
-    q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+    q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
     d_axis = axis.as_vector(0.5);
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
-
-    table::DebyeTable::check_default(q_axis, d_axis);
+    table::ArrayDebyeTable::check_default(q_axis, d_axis);
 }
 
 ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
-    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
-    const auto& sinqd_table = table::DebyeTable::get_default_table();
+    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);
-    for (unsigned int q = 0; q < debye_axis.bins; ++q) { // iterate through all q values
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) { // iterate through all q values
         Iq[q] = std::inner_product(p.begin(), p.end(), sinqd_table.begin(q), 0.0);
         Iq[q] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
     }

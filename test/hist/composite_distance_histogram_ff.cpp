@@ -51,7 +51,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
     auto ff_carbon = form_factor::storage::get_form_factor(form_factor::form_factor_t::C);
     auto ff_exv = form_factor::storage::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
     auto ff_w = form_factor::storage::get_form_factor(form_factor::form_factor_t::O);
-    std::vector<double> q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+    const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
 
     SECTION("no water") {

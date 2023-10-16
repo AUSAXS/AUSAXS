@@ -11,8 +11,7 @@ using namespace hist;
 using namespace data::record;
 
 DebugDistanceHistogram::DebugDistanceHistogram(const data::Molecule* const protein) : protein(protein) {
-    settings::axes::bins = 100;
-    this->q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+    this->q_axis = Axis(settings::axes::qmin, settings::axes::qmax, 100).as_vector();
 }
 
 DebugDistanceHistogram::~DebugDistanceHistogram() = default;
@@ -116,7 +115,7 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
 
         I.push_back(Iq);
     }
-    return ScatteringProfile(I, Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins));
+    return ScatteringProfile(I, Axis(settings::axes::qmin, settings::axes::qmax, 100));
 }
 
 DebugManager::~DebugManager() = default;

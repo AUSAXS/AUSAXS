@@ -1,7 +1,10 @@
 #include <hist/detail/CompactCoordinatesData.h>
+#include <constants/Constants.h>
 #include <math/Vector3.h>
 
 using namespace hist::detail;
+
+constexpr float inv_width = 1.0f/constants::axes::d_axis.width();
 
 CompactCoordinatesData::CompactCoordinatesData() : data(std::array<float, 4>({0, 0, 0, 0})) {}
 

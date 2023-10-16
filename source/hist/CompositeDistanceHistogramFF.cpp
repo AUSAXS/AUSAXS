@@ -1,7 +1,7 @@
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
-#include <table/DebyeTable.h>
+#include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <dataset/SimpleDataset.h>
@@ -219,18 +219,19 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
 
 ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
-    static container::Container2D<form_factor::PrecalculatedFormFactorProduct> ff_table = form_factor::PrecalculatedFormFactorProduct::generate_table();
-    const auto& sinqd_table = table::DebyeTable::get_default_table();
+    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
 
     // calculate the Debye scattering intensity
-    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
+    Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+    unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
     std::vector<double> q_axis = debye_axis.as_vector();
 
     unsigned int ff_exv_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
-    for (unsigned int q = 0; q < debye_axis.bins; ++q) {
+    for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {

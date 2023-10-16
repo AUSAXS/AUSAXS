@@ -77,6 +77,18 @@ class Axis {
 		constexpr double step() const noexcept {return width();}
 
 		/**
+		 * @brief Get the bin index for a given value.
+		 */
+		unsigned int get_bin(double value) const noexcept;
+
+		/**
+		 * @brief Get a sub-axis of this Axis.
+		 * 		  The closest match to the specified minimum and maximum values are used.
+		 * 		  This guarantees that the returned Axis is an exact subset of this Axis.
+		 */
+		Axis sub_axis(double min, double max) const noexcept;
+
+		/**
 		 * @brief Resize this Axis to a new number of bins.
 		 * 		  The maximum value is adjusted to keep the bin width constant.
 		 */

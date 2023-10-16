@@ -2,21 +2,14 @@
 #include <settings/SettingsIORegistry.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
+#include <constants/Constants.h>
 
-unsigned int settings::axes::max_distance = 2000;
-double settings::axes::distance_bin_width = 0.5;
-unsigned int settings::axes::bins = 200;
-double settings::axes::qmin = 1e-4;
+double settings::axes::qmin = constants::axes::q_axis.min;
 double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 
 namespace settings::axes::io {
     settings::io::SettingSection axes_settings("Axes", {
-        settings::io::create(max_distance, "max_distance"),
-        settings::io::create(distance_bin_width, "distance_bin_width"),
-        settings::io::create(bins, "bins"),
-        settings::io::create(qmin, "qmin"),
-        settings::io::create(qmax, "qmax"),
         settings::io::create(skip, "skip"),
     });
 }

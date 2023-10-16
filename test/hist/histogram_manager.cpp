@@ -87,7 +87,6 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 #include <settings/GeneralSettings.h>
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     settings::molecule::use_effective_charge = false;
-    settings::axes::distance_bin_width = 1;
 
     SECTION("analytical") {
         SECTION("atoms only") {

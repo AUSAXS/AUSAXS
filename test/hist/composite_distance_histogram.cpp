@@ -26,7 +26,7 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
         p_hh[i] = rand() % 100;
         p[i] = p_pp[i] + 2*p_hp[i] + p_hh[i];
     }
-    Axis axis(1, 10, 1);
+    Axis axis(1, 10, size);
     return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p), axis);
 }
 
@@ -127,7 +127,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
         std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
         std::vector<double> Iq_exp;
         {
-            std::vector<double> q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+            const auto& q_axis = constants::axes::q_vals;
             Iq_exp.resize(q_axis.size(), 0);
             auto ff = [] (double q) {return std::exp(-q*q/2);};
 
@@ -187,7 +187,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
         std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
         std::vector<double> Iq_exp;
         {
-            std::vector<double> q_axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
+            const auto& q_axis = constants::axes::q_vals;
             Iq_exp.resize(q_axis.size(), 0);
             auto ff = [] (double q) {return std::exp(-q*q/2);};
 

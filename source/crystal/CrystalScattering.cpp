@@ -15,6 +15,7 @@
 #include <dataset/SimpleDataset.h>
 #include <utility/Basis3D.h>
 #include <io/ExistingFile.h>
+#include <constants/Constants.h>
 
 #include <atomic>
 #include <thread>
@@ -190,8 +191,8 @@ SimpleDataset CrystalScattering::calculate() const {
     // sort fvals by q
     std::sort(fvals.begin(), fvals.end(), [] (const Fval& a, const Fval& b) {return a.qlength < b.qlength;});
 
-    // prepare 100 equidistant logarithmic bins between 0 and 0.5
-    std::vector<double> bins(settings::axes::bins);
+    // prepare the q profile
+    std::vector<double> bins(constants::axes::q_axis.get_bin(settings::axes::qmax));
     double logmin = std::log10(settings::axes::qmin);
     double logmax = std::log10(settings::axes::qmax);
     double logstep = (logmax - logmin)/bins.size();

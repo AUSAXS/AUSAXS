@@ -7,6 +7,7 @@
 #include <data/record/Water.h>
 #include <data/state/StateManager.h>
 #include <settings/HistogramSettings.h>
+#include <constants/Constants.h>
 
 using namespace hist;
 
@@ -148,7 +149,7 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManager::initialize() {
-    Axis axis(0, settings::axes::max_distance, settings::axes::max_distance/settings::axes::distance_bin_width); 
+    const Axis& axis = constants::axes::d_axis; 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
 

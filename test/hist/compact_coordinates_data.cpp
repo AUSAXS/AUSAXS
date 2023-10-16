@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <catch2/generators/catch_generators.hpp>
 
 #include <hist/detail/CompactCoordinatesData.h>
+#include <constants/Constants.h>
 #include <math/Vector3.h>
 
 using namespace hist::detail;
@@ -46,34 +46,34 @@ struct DebugData : CompactCoordinatesData {
 
 #include <functional>
 void single_tests(std::function<EvaluatedResult(const DebugData&, const DebugData&)> evaluate) {
-    DYNAMIC_SECTION("single distance, w = " << CompactCoordinatesData::inv_width) {
-        double width = CompactCoordinatesData::inv_width;
+    SECTION("single distance") {
+        double width = constants::axes::d_axis.width();
         DebugData data1({1, 1, 1}, 2);
         DebugData data2({2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
-        CHECK(result.distance == std::round(1*width));
+        CHECK(result.distance == std::round(1./width));
         CHECK(result.weight == 8);
 
         DebugData data3({2, 2, 2}, 8);
         result = evaluate(data1, data3);
-        CHECK(result.distance == std::round(std::sqrt(3)*width));
+        CHECK(result.distance == std::round(std::sqrt(3)/width));
         CHECK(result.weight == 16);
     }
 }
 
 void quad_tests(std::function<QuadEvaluatedResult(const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&)> evaluate) {
-    DYNAMIC_SECTION("four distances, w = " << CompactCoordinatesData::inv_width) {
-        double width = CompactCoordinatesData::inv_width;
+    SECTION("four distances") {
+        double width = constants::axes::d_axis.width();
         DebugData data({1, 1, 1}, 2);
         DebugData data1({2, 1, 1}, 4);
         DebugData data2({2, 2, 2}, 8);
         DebugData data3({3, 3, 3}, 16);
         DebugData data4({4, 4, 4}, 3);
         auto result = evaluate(data, data1, data2, data3, data4);
-        CHECK(result.distances.first  == std::round(1*width));
-        CHECK(result.distances.second == std::round(std::sqrt(3)*width));
-        CHECK(result.distances.third  == std::round(std::sqrt(12)*width));
-        CHECK(result.distances.fourth == std::round(std::sqrt(27)*width));
+        CHECK(result.distances.first  == std::round(1./width));
+        CHECK(result.distances.second == std::round(std::sqrt(3)/width));
+        CHECK(result.distances.third  == std::round(std::sqrt(12)/width));
+        CHECK(result.distances.fourth == std::round(std::sqrt(27)/width));
         CHECK(result.weights.first == 8);
         CHECK(result.weights.second == 16);
         CHECK(result.weights.third == 32);
@@ -82,8 +82,8 @@ void quad_tests(std::function<QuadEvaluatedResult(const DebugData&, const DebugD
 }
 
 void octo_tests(std::function<OctoEvaluatedResult(const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&)> evaluate) {
-    DYNAMIC_SECTION("eight distances, w = " << CompactCoordinatesData::inv_width) {
-        double width = CompactCoordinatesData::inv_width;
+    SECTION("eight distances") {
+        double width = constants::axes::d_axis.width();
         DebugData data({1, 1, 1}, 2);
         DebugData data1({2, 1, 1}, 4);
         DebugData data2({2, 2, 2}, 8);
@@ -94,14 +94,14 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData&, const DebugD
         DebugData data7({7, 7, 7}, 15);
         DebugData data8({8, 8, 8}, 5);
         auto result = evaluate(data, data1, data2, data3, data4, data5, data6, data7, data8);
-        CHECK(result.distances.first   == std::round(1*width));
-        CHECK(result.distances.second  == std::round(std::sqrt(3)*width));
-        CHECK(result.distances.third   == std::round(std::sqrt(12)*width));
-        CHECK(result.distances.fourth  == std::round(std::sqrt(27)*width));
-        CHECK(result.distances.fifth   == std::round(std::sqrt(48)*width));
-        CHECK(result.distances.sixth   == std::round(std::sqrt(75)*width));
-        CHECK(result.distances.seventh == std::round(std::sqrt(108)*width));
-        CHECK(result.distances.eighth  == std::round(std::sqrt(147)*width));
+        CHECK(result.distances.first   == std::round(1./width));
+        CHECK(result.distances.second  == std::round(std::sqrt(3)/width));
+        CHECK(result.distances.third   == std::round(std::sqrt(12)/width));
+        CHECK(result.distances.fourth  == std::round(std::sqrt(27)/width));
+        CHECK(result.distances.fifth   == std::round(std::sqrt(48)/width));
+        CHECK(result.distances.sixth   == std::round(std::sqrt(75)/width));
+        CHECK(result.distances.seventh == std::round(std::sqrt(108)/width));
+        CHECK(result.distances.eighth  == std::round(std::sqrt(147)/width));
         CHECK(result.weights.first == 8);
         CHECK(result.weights.second == 16);
         CHECK(result.weights.third == 32);
@@ -114,24 +114,23 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData&, const DebugD
 }
 
 TEST_CASE("CompactCoordinatesData::evaluate") {
-    CompactCoordinatesData::inv_width = GENERATE(1, 2, 5);
     SECTION("scalar") {
-        // single_tests([](const DebugData& data1, const DebugData& data2) { return data1.evaluate_scalar(data2); });
-        // quad_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4) { return data.evaluate_scalar(data1, data2, data3, data4); });
-        // octo_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4, const DebugData& data5, const DebugData& data6, const DebugData& data7, const DebugData& data8) { return data.evaluate_scalar(data1, data2, data3, data4, data5, data6, data7, data8); });
+        single_tests([](const DebugData& data1, const DebugData& data2) { return data1.evaluate_scalar(data2); });
+        quad_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4) { return data.evaluate_scalar(data1, data2, data3, data4); });
+        octo_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4, const DebugData& data5, const DebugData& data6, const DebugData& data7, const DebugData& data8) { return data.evaluate_scalar(data1, data2, data3, data4, data5, data6, data7, data8); });
     }
 
     #if defined __SSE2__
         SECTION("sse") {
-            // single_tests([](const DebugData& data1, const DebugData& data2) { return data1.evaluate_sse(data2); });
-            // quad_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4) { return data.evaluate_sse(data1, data2, data3, data4); });
-            // octo_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4, const DebugData& data5, const DebugData& data6, const DebugData& data7, const DebugData& data8) { return data.evaluate_sse(data1, data2, data3, data4, data5, data6, data7, data8); });
+            single_tests([](const DebugData& data1, const DebugData& data2) { return data1.evaluate_sse(data2); });
+            quad_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4) { return data.evaluate_sse(data1, data2, data3, data4); });
+            octo_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4, const DebugData& data5, const DebugData& data6, const DebugData& data7, const DebugData& data8) { return data.evaluate_sse(data1, data2, data3, data4, data5, data6, data7, data8); });
         }
     #endif
 
     #if defined __AVX__
         SECTION("avx") {
-            // single_tests([](const DebugData& data1, const DebugData& data2) { return data1.evaluate_avx(data2); });
+            single_tests([](const DebugData& data1, const DebugData& data2) { return data1.evaluate_avx(data2); });
             quad_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4) { return data.evaluate_avx(data1, data2, data3, data4); });
             octo_tests([](const DebugData& data, const DebugData& data1, const DebugData& data2, const DebugData& data3, const DebugData& data4, const DebugData& data5, const DebugData& data6, const DebugData& data7, const DebugData& data8) { return data.evaluate_avx(data1, data2, data3, data4, data5, data6, data7, data8); });
         }

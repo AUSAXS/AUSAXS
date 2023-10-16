@@ -9,8 +9,8 @@ auto& debye_table = table::ArrayDebyeTable::get_default_table();
 
 TEST_CASE("DebyeTable::correct_values") {
     SECTION("default_table") {
-        auto& q = constants::axes::q_axis;
-        auto& d = constants::axes::d_axis;
+        auto& q = constants::axes::q_vals;
+        auto& d = constants::axes::d_vals;
 
         // prepare the q values for the intensity calculations
         REQUIRE(debye_table.size_d() == d.size());

@@ -270,16 +270,11 @@ const Water& Molecule::get_water(unsigned int i) const {return hydration_atoms[i
 
 std::vector<double> Molecule::debye_transform() const {
     std::vector<Atom> atoms = get_atoms();
-    Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
-    std::vector<double> Q = std::vector<double>(debye_axis.bins);
-    double debye_width = debye_axis.width();
-    for (unsigned int i = 0; i < debye_axis.bins; i++) {
-        Q[i] = debye_axis.min + i*debye_width;
-    }
+    auto& q_axis = constants::axes::q_vals;
 
     std::vector<double> I;
-    I.reserve(Q.size());
-    for (const auto& q : Q) {
+    I.reserve(q_axis.size());
+    for (const auto& q : q_axis) {
         double sum = 0;
         for (const auto& atom_i : atoms) {
             for (const auto& atom_j : atoms) {

@@ -8,6 +8,7 @@
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Body.h>
+#include <constants/Constants.h>
 
 std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(const ::io::ExistingFile& input) const {
     data::Molecule protein(input);
@@ -29,8 +30,8 @@ std::pair<Basis3D, std::vector<Vector3<double>>> crystal::io::PDBReader::read(co
 
     // quick check to see if the box is too large
     double distance = std::sqrt(std::pow(axis.x.span(), 2) + std::pow(axis.y.span(), 2) + std::pow(axis.z.span(), 2));
-    if (distance > settings::axes::max_distance) {
-        throw except::io_error("PDBReader::read: The distance between the edges of the box is " + std::to_string(distance) + " Å, which is larger than the maximum allowed distance of " + std::to_string(settings::axes::max_distance) + " Å.");
+    if (distance > constants::axes::d_axis.max) {
+        throw except::io_error("PDBReader::read: The distance between the edges of the box is " + std::to_string(distance) + " Å, which is larger than the maximum allowed distance of " + std::to_string(constants::axes::d_axis.max) + " Å.");
     }
 
     // center the protein in the middle of the box

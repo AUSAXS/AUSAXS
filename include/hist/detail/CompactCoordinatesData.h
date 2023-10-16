@@ -79,8 +79,6 @@ namespace hist::detail {
                 std::array<float, 4> data;
             };
 
-            inline static float inv_width;
-
         protected:
             EvaluatedResult evaluate_scalar(const CompactCoordinatesData& other) const;
             QuadEvaluatedResult evaluate_scalar(const CompactCoordinatesData& v1, const CompactCoordinatesData& v2, const CompactCoordinatesData& v3, const CompactCoordinatesData& v4) const;

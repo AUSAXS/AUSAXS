@@ -2,6 +2,8 @@
 
 #include <utility/Axis.h>
 #include <utility/Limit.h>
+#include <constants/Constants.h>
+#include <settings/HistogramSettings.h>
 
 TEST_CASE("Axis::Axis") {
     SECTION("default") {
@@ -108,4 +110,71 @@ TEST_CASE("Axis::limits") {
     Axis axis(1, 10, 3);
     CHECK(axis.limits().min == 1);
     CHECK(axis.limits().max == 10);
+}
+
+TEST_CASE("Axis::get_bin") {
+    SECTION("empty") {
+        Axis axis;
+        CHECK(axis.get_bin(1) == 0);
+    }
+
+    SECTION("int") {
+        Axis axis(1, 10, 3);
+        CHECK(axis.get_bin(1) == 0);
+        CHECK(axis.get_bin(2) == 0);
+        CHECK(axis.get_bin(3) == 0);
+        CHECK(axis.get_bin(4) == 1);
+        CHECK(axis.get_bin(5) == 1);
+        CHECK(axis.get_bin(6) == 1);
+        CHECK(axis.get_bin(7) == 2);
+        CHECK(axis.get_bin(8) == 2);
+        CHECK(axis.get_bin(9) == 2);
+        CHECK(axis.get_bin(10) == 2);
+        CHECK(axis.get_bin(11) == 2);
+    }
+
+    SECTION("double") {
+        Axis axis(1, 5, 20);
+        for (unsigned int i = 0; i < axis.bins; ++i) {
+            if (axis.get_bin(axis.min + i*axis.width()) != i) {
+                std::cout << "i: " << i << std::endl;
+                std::cout << "\tget_bin(" << axis.min + i*axis.width() << "): " << axis.get_bin(axis.min + i*axis.width()) << std::endl;
+                CHECK(false);
+            }
+        }
+        CHECK(axis.get_bin(0) == 0);
+        CHECK(axis.get_bin(0.24) == 0);
+        CHECK(axis.get_bin(6) == 19);
+    }
+}
+
+TEST_CASE("Axis::sub_axis") {
+    SECTION("simple") {
+        Axis axis(1, 10, 10);
+        Axis sub_axis = axis.sub_axis(2, 8);
+        CHECK(sub_axis.min == 2);
+        CHECK(sub_axis.max == 8);
+        CHECK(sub_axis.bins == 6);
+
+        sub_axis = axis.sub_axis(0, 11);
+        CHECK(sub_axis.min == 1);
+        CHECK(sub_axis.max == 10);
+        CHECK(sub_axis.bins == 10);
+
+        sub_axis = axis.sub_axis(0.5, 5.5);
+        CHECK(sub_axis.min == 1);
+        CHECK(sub_axis.max == 5);
+        CHECK(sub_axis.bins == 4);
+    }
+
+    SECTION("q_conversion") {
+        auto q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+        CHECK(q_axis.size() == double(constants::axes::q_axis.bins)/2);
+        CHECK(q_axis.front() == settings::axes::qmin);
+        CHECK(q_axis.back() == settings::axes::qmax);
+
+        for (unsigned int i = 0; i < q_axis.size(); ++i) {
+            CHECK(q_axis[i] == constants::axes::q_axis.min + i*constants::axes::q_axis.width());
+        }
+    }
 }
