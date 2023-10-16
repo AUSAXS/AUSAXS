@@ -11,7 +11,7 @@
 
 using namespace hist;
 
-CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(Container3D<double>&& p_pp, Container2D<double>&& p_hp, Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis) 
+CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(container::Container3D<double>&& p_pp, container::Container2D<double>&& p_hp, container::Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis) 
     : CompositeDistanceHistogram(std::move(p_tot), axis), cp_pp(std::move(p_pp)), cp_hp(std::move(p_hp)), cp_hh(std::move(p_hh)) {}
 
 CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept 
@@ -219,7 +219,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
 
 ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
-    static Container2D<form_factor::PrecalculatedFormFactorProduct> ff_table = form_factor::PrecalculatedFormFactorProduct::generate_table();
+    static container::Container2D<form_factor::PrecalculatedFormFactorProduct> ff_table = form_factor::PrecalculatedFormFactorProduct::generate_table();
     const auto& sinqd_table = table::DebyeTable::get_default_table();
 
     // calculate the Debye scattering intensity

@@ -4,8 +4,8 @@
 #include <utility/StringUtils.h>
 
 unsigned int settings::axes::max_distance = 2000;
-double settings::axes::distance_bin_width = 0.2;
-unsigned int settings::axes::bins = 1000;
+double settings::axes::distance_bin_width = 0.5;
+unsigned int settings::axes::bins = 200;
 double settings::axes::qmin = 1e-4;
 double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;

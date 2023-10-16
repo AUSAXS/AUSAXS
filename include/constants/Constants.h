@@ -4,9 +4,11 @@
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
 #include <io/IOFwd.h>
+#include <utility/Axis.h>
 
 #include <string>
 #include <cmath>
+#include <array>
 
 /**
  * @brief Constexpr power function.
@@ -37,6 +39,18 @@ namespace constants {
         const detail::FileType em_map =     {{".map",  ".ccp4", ".mrc", ".rec"}};
         const detail::FileType unit_cell =  {{".cell", ".uc"}};
         const detail::FileType grid =       {{".grid"}};
+    }
+
+    /**
+     * @brief Constants used to define the default axes.
+     */
+    namespace axes {
+        namespace detail {
+            constexpr Axis distance_histogram(0, 2000, 4000);
+            constexpr Axis q_profile(1e-4, 1, 200);
+        }
+        constexpr auto q_axis = detail::q_profile.as_array<detail::q_profile.bins>();
+        constexpr auto d_axis = detail::distance_histogram.as_array<detail::distance_histogram.bins>(0.5);
     }
 
     /**

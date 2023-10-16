@@ -7,8 +7,6 @@ Axis::Axis() noexcept : bins(0), min(0), max(0) {}
 
 Axis::Axis(const Limit& limits, int bins) noexcept : bins(bins), min(limits.min), max(limits.max) {}
 
-Axis::Axis(double xmin, double xmax, int bins) noexcept : bins(bins), min(xmin), max(xmax)  {}
-
 Axis& Axis::operator=(std::initializer_list<double> list) noexcept {
     std::vector<double> d = list;
     bins = std::round(d[0]); 
@@ -30,26 +28,10 @@ bool Axis::operator==(const Axis& rhs) const noexcept {
 
 bool Axis::operator!=(const Axis& rhs) const noexcept {return !operator==(rhs);}
 
-double Axis::width() const noexcept {return (max-min)/bins;}
-
-double Axis::span() const noexcept {return max-min;}
-
-double Axis::step() const noexcept {return width();}
-
 void Axis::resize(unsigned int bins) noexcept {
     auto w = width();
     this->bins = bins;
     this->max = min + bins*w;
-}
-
-std::vector<double> Axis::as_vector(double shift) const noexcept {
-    std::vector<double> v(bins);
-    double w = width();
-    double new_min = min + shift*w;
-    for (unsigned int i = 0; i < bins; ++i) {
-        v[i] = new_min + i*w;
-    }
-    return v;
 }
 
 bool Axis::empty() const noexcept {return bins==0;}

@@ -5,6 +5,7 @@
 #include <data/Molecule.h>
 #include <settings/All.h>
 #include <constants/Constants.h>
+#include <container/Container2D.h>
 
 using namespace hist;
 using namespace data::record;
@@ -26,9 +27,9 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
     std::vector<double> I;
     I.reserve(q_axis.size());
 
-    Container2D<double> aa_distances(atoms.size(), atoms.size());
-    Container2D<double> aw_distances(atoms.size(), protein->get_waters().size());
-    Container2D<double> ww_distances(protein->get_waters().size(), protein->get_waters().size());
+    container::Container2D<double> aa_distances(atoms.size(), atoms.size());
+    container::Container2D<double> aw_distances(atoms.size(), protein->get_waters().size());
+    container::Container2D<double> ww_distances(protein->get_waters().size(), protein->get_waters().size());
     for (unsigned int i = 0; i < atoms.size(); ++i) {
         for (unsigned int j = 0; j < atoms.size(); ++j) {
             aa_distances(i, j) = atoms[i].distance(atoms[j]);

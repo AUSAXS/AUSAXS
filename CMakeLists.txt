@@ -16,7 +16,7 @@ check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1;_USE_MATH_DEFINES>")#;_GLIBCXX_DEBUG>")
 add_compile_options(
-	-Ofast ${fprofile} -fno-finite-math-only -pipe -mavx
+	-Ofast ${fprofile} -fno-finite-math-only -pipe -mavx -fconstexpr-ops-limit=10000000000
 	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 	"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"
 )

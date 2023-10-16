@@ -18,7 +18,7 @@ const std::vector<double>& CompositeDistanceHistogram::get_hp_counts() const {re
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     auto& p_tot = get_total_counts();
-    for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_pp[i] + 2*k*p_hp[i] + k*k*p_hh[i];} // p = p_tot, inherited from Histogram
+    for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_pp[i] + 2*k*p_hp[i] + k*k*p_hh[i];}
 }
 
 void CompositeDistanceHistogram::reset_water_scaling_factor() {

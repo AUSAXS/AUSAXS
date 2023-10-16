@@ -17,14 +17,14 @@ DebyeTable::DebyeTable(const std::vector<double>& q, const std::vector<double>& 
 
 // fast cosine from https://stackoverflow.com/a/28050328
 // error margin is 0.00109 in the range [-pi, pi]
-// [[maybe_unused]] inline double cos(double x) noexcept {
-//     constexpr double tp = 1./(2.*M_PI);
-//     x *= tp;
-//     x -= 0.25 + std::floor(x + 0.25);
-//     x *= 16.*(std::abs(x) - 0.5);
-//     x += .225*x*(std::abs(x) - 1.);
-//     return x;
-// }
+[[maybe_unused]] inline double fast_cos(double x) noexcept {
+    constexpr double tp = 1./(2.*M_PI);
+    x *= tp;
+    x -= 0.25 + std::floor(x + 0.25);
+    x *= 16.*(std::abs(x) - 0.5);
+    x += .225*x*(std::abs(x) - 1.);
+    return x;
+}
 
 // conversion of above expression but for sine
 inline double fast_sin(double x) {
@@ -79,6 +79,9 @@ std::vector<double>::iterator DebyeTable::end(unsigned int q_index) {
     return Table::end(q_index);
 }
 
+#if DEBUG 
+    #include <iostream>
+#endif
 void DebyeTable::check_default([[maybe_unused]] const std::vector<double>& q, [[maybe_unused]] const std::vector<double>& d) {
     #if DEBUG 
         Axis axis = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
@@ -86,46 +89,46 @@ void DebyeTable::check_default([[maybe_unused]] const std::vector<double>& q, [[
 
         if (q.size() != axis.bins) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: q.size() != axis.bins" << std::endl;
+            std::cout << "\tReason: q.size() != axis.bins" << std::endl;
         }
 
         if (q[0] != axis.min) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: q[0] != axis.min" << std::endl;
+            std::cout << "\tReason: q[0] != axis.min" << std::endl;
         }
 
         if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: q[1] != axis.min + (axis.max-axis.min)/axis.bins" << std::endl;
+            std::cout << "\tReason: q[1] != axis.min + (axis.max-axis.min)/axis.bins" << std::endl;
         }
 
         if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins" << std::endl;
+            std::cout << "\tReason: q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins" << std::endl;
         }
 
         // check empty
         if (d.empty()) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: d.empty()" << std::endl;
+            std::cout << "\tReason: d.empty()" << std::endl;
         }
 
         // check if too large for default table
         if (d.back() > settings::axes::max_distance) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: d.back() > default_size" << std::endl;
+            std::cout << "\tReason: d.back() > default_size" << std::endl;
         }
         
         // check first width (d[1]-d[0] may be different from the default width)
         if (!utility::approx(d[2]-d[1], width)) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: !utility::approx(d[2]-d[1], width)" << std::endl;
+            std::cout << "\tReason: !utility::approx(d[2]-d[1], width)" << std::endl;
         }
         
         // check second width
         if (!utility::approx(d[3]-d[2], width)) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "Reason: !utility::approx(d[3]-d[2], width)" << std::endl;
+            std::cout << "\tReason: !utility::approx(d[3]-d[2], width)" << std::endl;
         }
     #endif
 }

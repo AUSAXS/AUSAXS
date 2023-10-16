@@ -1,9 +1,9 @@
 #pragma once
 
 #include <hist/CompositeDistanceHistogram.h>
-#include <utility/Container1D.h>
-#include <utility/Container2D.h>
-#include <utility/Container3D.h>
+#include <container/Container1D.h>
+#include <container/Container2D.h>
+#include <container/Container3D.h>
 
 #include <vector>
 
@@ -28,7 +28,7 @@ namespace hist {
              * @param axis Distance axis
              * @param Z_exv_avg Average charge of excluded volume
              */
-            CompositeDistanceHistogramFF(Container3D<double>&& p_pp, Container2D<double>&& p_hp, Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogramFF(container::Container3D<double>&& p_pp, container::Container2D<double>&& p_hp, container::Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis);
 
             ~CompositeDistanceHistogramFF() override;
 
@@ -53,8 +53,8 @@ namespace hist {
             double exv_scaling = 1;
 
         private:
-            Container3D<double> cp_pp;
-            Container2D<double> cp_hp;
-            Container1D<double> cp_hh;
+            container::Container3D<double> cp_pp;
+            container::Container2D<double> cp_hp;
+            container::Container1D<double> cp_hh;
     };
 }

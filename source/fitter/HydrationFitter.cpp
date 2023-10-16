@@ -184,15 +184,8 @@ SimpleDataset HydrationFitter::get_model_dataset() {
 SimpleDataset HydrationFitter::get_model_dataset(const std::vector<double>& q) {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::get_model_dataset: Cannot determine model intercept before a fit has been made!");}
  
-    double a = fitted->get_parameter("a").value;
-    double b = fitted->get_parameter("b").value;
-    double c = fitted->get_parameter("c").value;
-
-    cast_h()->apply_water_scaling_factor(c);
-    SimpleDataset model = h->debye_transform(q);
-    auto y = model.y();
-    std::transform(y.begin(), y.end(), y.begin(), [&a, &b] (double I) {return I*a+b;});
-    return model;
+    auto model = get_model_dataset();
+    return model.interpolate(q);
 }
 
 SimpleDataset HydrationFitter::get_dataset() const {

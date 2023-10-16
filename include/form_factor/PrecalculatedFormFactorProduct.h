@@ -1,8 +1,9 @@
 #pragma once
 
+#include <container/ContainerFwd.h>
+
 #include <vector>
 
-template<typename T> class Container2D;
 namespace form_factor {
     class FormFactor;
     class PrecalculatedFormFactorProduct {
@@ -19,7 +20,7 @@ namespace form_factor {
              *        It thus has the dimensions (#no_of_form_factors+1, #no_of_form_factors+1)
              *        The table is symmetric, so only the upper triangle is filled (i.e. i <= j)
              */
-            static Container2D<PrecalculatedFormFactorProduct> generate_table();
+            static container::Container2D<PrecalculatedFormFactorProduct> generate_table();
 
         private:
             std::vector<double> precalculated_ff_q;

@@ -2,7 +2,7 @@
 #include <form_factor/FormFactor.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Axis.h>
-#include <utility/Container2D.h>
+#include <container/Container2D.h>
 
 #include <cmath>
 
@@ -20,8 +20,8 @@ double PrecalculatedFormFactorProduct::evaluate(unsigned int index) const {
     return precalculated_ff_q[index];
 }
 
-Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::generate_table() {
-    Container2D<PrecalculatedFormFactorProduct> table(form_factor::get_count(), form_factor::get_count());
+container::Container2D<PrecalculatedFormFactorProduct> PrecalculatedFormFactorProduct::generate_table() {
+    container::Container2D<PrecalculatedFormFactorProduct> table(form_factor::get_count(), form_factor::get_count());
     std::vector<double> q = Axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins).as_vector();
     for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {

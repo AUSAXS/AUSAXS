@@ -7,13 +7,14 @@
 #include <data/record/Water.h>
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
-#include <utility/Container3D.h>
-#include <utility/Container2D.h>
-#include <utility/Container1D.h>
+#include <container/Container3D.h>
+#include <container/Container2D.h>
+#include <container/Container1D.h>
 #include <constants/Constants.h>
 
 #include <BS_thread_pool.hpp>
 
+using namespace container;
 using namespace hist;
 
 HistogramManagerMTFFAvg::HistogramManagerMTFFAvg(HistogramManager& hm) : HistogramManager(hm) {}

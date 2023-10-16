@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 #include <vector>
+#include <array>
 #include <string>
 
 class Limit;
@@ -18,9 +19,7 @@ class Axis {
 		Axis() noexcept;
 
 		/**
-		 * @brief Constructor. 
-		 * 
-		 * Construct a new axis based on a Limit and the number of bins. 
+		 * @brief Construct a new axis based on a Limit and the number of bins. 
 		 * 
 		 * @param limits The limits on the axis. 
 		 * @param bins The number of equidistant bins. 
@@ -28,15 +27,13 @@ class Axis {
 		Axis(const Limit& limits, int bins) noexcept;
 
 		/**
-		 * @brief Constructor. 
-		 * 
-		 * Construct a new axis based on explicit minimum and maximum values, along with the number of bins. 
+		 * @brief Construct a new axis based on explicit minimum and maximum values, along with the number of bins. 
 		 * 
 		 * @param xmin The minimum value spanned by this axis. 
 		 * @param xmax The maximum value spanned by this axis. 
 		 * @param bins The number of equidistant bins. 
 		 */
-		Axis(double xmin, double xmax, int bins) noexcept;
+		constexpr Axis(double xmin, double xmax, int bins) noexcept : bins(bins), min(xmin), max(xmax)  {}
 
 		/**
 		 * @brief List initializer. 
@@ -67,17 +64,17 @@ class Axis {
 		/**
 		 * @brief Get the bin width. 
 		 */
-		double width() const noexcept;
+		constexpr double width() const noexcept {return (max-min)/bins;}
 
 		/**
 		 * @brief Get the span of this Axis.
 		 */
-		double span() const noexcept;
+		constexpr double span() const noexcept {return max-min;}
 
 		/**
 		 * @brief Get the bin width.
 		 */
-		double step() const noexcept;
+		constexpr double step() const noexcept {return width();}
 
 		/**
 		 * @brief Resize this Axis to a new number of bins.
@@ -90,7 +87,31 @@ class Axis {
 		 * 
 		 * @param shift Specify the amount to shift each bin by. Using 0.5 will return the center values of each bin.
 		 */
-		std::vector<double> as_vector(double shift = 0) const noexcept;
+		std::vector<double> as_vector(double shift = 0) const noexcept {
+			std::vector<double> v(bins);
+			double w = width();
+			double new_min = min + shift*w;
+			for (unsigned int i = 0; i < bins; ++i) {
+				v[i] = new_min + i*w;
+			}
+			return v;
+		}
+
+		/**
+		 * @brief Get an array representation of this Axis. 
+		 * 
+		 * @param shift Specify the amount to shift each bin by. Using 0.5 will return the center values of each bin.
+		 */
+		template<unsigned int size>
+		constexpr std::array<double, size> as_array(double shift = 0) const noexcept {
+			std::array<double, size> v;
+			double w = width();
+			double new_min = min + shift*w;
+			for (unsigned int i = 0; i < bins; ++i) {
+				v[i] = new_min + i*w;
+			}
+			return v;
+		}
 
 		/**
 		 * @brief Check if this Axis is empty.

@@ -107,6 +107,7 @@ namespace fitter {
 
             /**
              * @brief Get the model dataset for the points specified by @a q. 
+             *        These points are interpolated from the model histogram.
              */
             [[nodiscard]] SimpleDataset get_model_dataset(const std::vector<double>& q);
 
