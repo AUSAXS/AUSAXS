@@ -49,7 +49,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     }
 
     // add self-correlation
-    p_pp[0] = std::accumulate(data_p.get_data().begin(), data_p.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_pp[0] = std::accumulate(data_p.get_data().begin(), data_p.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);} );
 
     for (unsigned int i = 0; i < data_h.get_size(); ++i) {
         // calculate h-h distances
@@ -92,7 +92,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     }
 
     // add self-correlation
-    p_hh[0] = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_hh[0] = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);} );
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10

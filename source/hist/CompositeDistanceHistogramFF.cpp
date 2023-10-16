@@ -293,11 +293,9 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_counts() const {
 
 const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
     p_pp = std::vector<double>(axis.bins, 0);
-    for (unsigned int i = 0; i < axis.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                p_pp[i] += cp_pp.index(ff1, ff2, i);
-            }
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+            std::transform(p_pp.begin(), p_pp.end(), cp_pp.begin(ff1, ff2), p_pp.begin(), std::plus<double>());
         }
     }
     return p_pp;
@@ -305,19 +303,15 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
 
 const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
     p_hp = std::vector<double>(axis.bins, 0);
-    for (unsigned int i = 0; i < axis.bins; ++i) {
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            p_hp[i] += cp_hp.index(ff1, i);
-        }
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        std::transform(p_hp.begin(), p_hp.end(), cp_hp.begin(ff1), p_hp.begin(), std::plus<double>());
     }
     return p_hp;
 }
 
 const std::vector<double>& CompositeDistanceHistogramFF::get_hh_counts() const {
     p_hh = std::vector<double>(axis.bins, 0);
-    for (unsigned int i = 0; i < axis.bins; ++i) {
-        p_hh[i] += cp_hh.index(i);
-    }
+    std::transform(p_hh.begin(), p_hh.end(), cp_hh.begin(), p_hh.begin(), std::plus<double>());
     return p_hh;
 }
 

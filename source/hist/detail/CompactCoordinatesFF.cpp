@@ -33,7 +33,7 @@ CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::record::Water
     for (unsigned int i = 0; i < size; ++i) {
         const auto& a = atoms[i]; 
         data[i] = hist::detail::CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
-        ff_types[i++] = static_cast<int>(form_factor::get_type(a.get_element()));
+        ff_types[i] = static_cast<int>(form_factor::get_type(a.get_element()));
     }
 }
 

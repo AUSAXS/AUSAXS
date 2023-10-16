@@ -81,7 +81,7 @@ class Container3D {
                     throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                 }
             #endif
-            return data.begin() + (L+1)*(j + M*i);
+            return data.begin() + L*(j + M*i) + L;
         }
 
         /**
@@ -105,7 +105,7 @@ class Container3D {
                     throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                 }
             #endif
-            return data.begin() + (L+1)*(j + M*i);
+            return data.begin() + L*(j + M*i) + L;
         }
 
         /**

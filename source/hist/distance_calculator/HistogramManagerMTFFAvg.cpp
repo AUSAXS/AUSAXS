@@ -106,20 +106,20 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
             for (; j+7 < data_h.get_size(); j+=8) {
                 auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {
-                    p_hh.index(res.distance[k]) += res.weight[k];
+                    p_hh.index(res.distance[k]) += 2*res.weight[k];
                 }
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
                 auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {
-                    p_hh.index(res.distance[k]) += res.weight[k];
+                    p_hh.index(res.distance[k]) += 2*res.weight[k];
                 }
             }
 
             for (; j < data_h.get_size(); ++j) {
                 auto res = data_h[i].evaluate(data_h[j]);
-                p_hh.index(res.distance) += res.weight;
+                p_hh.index(res.distance) += 2*res.weight;
             }
         }
         return p_hh;
@@ -184,7 +184,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     //###################//
     for (unsigned int i = 0; i < data_p.get_size(); ++i) {p_pp.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += std::pow(data_p[i].value.w, 2);}
     p_pp.index(exv_bin, exv_bin, 0) = data_p.get_size()*Z_exv_avg2;
-    p_hh.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + data.value.w*data.value.w;});
+    p_hh.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     std::vector<double> p_tot(axes.bins, 0);

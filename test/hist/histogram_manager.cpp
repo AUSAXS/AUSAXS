@@ -188,8 +188,8 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     }
 
     SECTION("real data with hydration") {
-        settings::molecule::use_effective_charge = true;
-                
+        settings::molecule::use_effective_charge = false;
+
         // create the atom, and perform a sanity check on our extracted list
         Molecule protein("test/files/2epe.pdb");
         protein.generate_new_hydration();

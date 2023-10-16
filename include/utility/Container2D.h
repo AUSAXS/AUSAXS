@@ -71,8 +71,8 @@ class Container2D {
                 if (i >= N) {
                     throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                 }
-            #endif            
-            return data.begin() + (i+1)*M;
+            #endif
+            return data.begin() + i*M + M;
         }
 
         /**
@@ -96,7 +96,7 @@ class Container2D {
                     throw except::out_of_bounds("Container2D::end: Index out of bounds (" + std::to_string(N) + ") <= (" + std::to_string(i) + ")");
                 }
             #endif            
-            return data.begin() + (i+1)*M;
+            return data.begin() + i*M + M;
         }
 
         /**
