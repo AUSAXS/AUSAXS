@@ -1,8 +1,9 @@
 #pragma once
 
-#include <utility/Table.h>
+#include <table/Table.h>
 
 #include <unordered_map>
+#include <stdexcept>
 
 namespace table {
     /**

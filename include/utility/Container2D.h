@@ -121,6 +121,6 @@ class Container2D {
 
         unsigned int N, M;
 
-    private:
+    protected:
         std::vector<T> data;
 };

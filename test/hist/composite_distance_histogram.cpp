@@ -2,18 +2,21 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/CompositeDistanceHistogram.h>
-#include <hist/HistogramManager.h>
-#include <hist/HistogramManagerMT.h>
-#include <hist/PartialHistogramManager.h>
-#include <hist/PartialHistogramManagerMT.h>
-#include <data/Protein.h>
+#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/distance_calculator/PartialHistogramManager.h>
+#include <hist/distance_calculator/PartialHistogramManagerMT.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Atom.h>
-#include <data/Water.h>
 #include <io/ExistingFile.h>
 #include <utility/Utility.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <settings/All.h>
+
+using namespace data::record;
+using namespace data;
 
 hist::CompositeDistanceHistogram generate_random(unsigned int size) {
     std::vector<double> p_pp(size), p_hp(size), p_hh(size), p(size);
@@ -37,7 +40,7 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
 }
 
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
 
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
     std::vector<Atom> b1 =   {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -45,7 +48,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     std::vector<Atom> b3 =   {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Water> w =   {Water(Vector3<double>(1, -1,  1), 1, constants::atom_t::C, "C", 1),  Water(Vector3<double>(1, 1,  1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
-    Protein protein(a, w);
+    Molecule protein(a, w);
 
     auto hist = protein.get_histogram();
     std::vector<double> p_pp = hist->get_pp_counts();
@@ -68,7 +71,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     }
 }
 
-void set_unity_charge(Protein& protein) {
+void set_unity_charge(Molecule& protein) {
     // set the weights to 1 so we can analytically determine the result
     // waters
     for (auto& atom : protein.get_waters()) {
@@ -95,7 +98,7 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 }
 
 TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -104,7 +107,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
         std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
-        Protein protein(a);
+        Molecule protein(a);
 
         set_unity_charge(protein);
 
@@ -165,7 +168,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
         std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Protein protein(a, w);
+        Molecule protein(a, w);
 
         set_unity_charge(protein);
         double Z = protein.get_excluded_volume()*constants::charge::density::water/8;

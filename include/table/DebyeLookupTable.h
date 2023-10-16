@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility/LookupTable.h>
+#include <table/LookupTable.h>
 
 #include <functional>
 
@@ -13,7 +13,7 @@ namespace table {
      * 
      * If the default table cannot be used, this class works exactly like the standard \class LookupTable. 
      */
-    class DebyeLookupTable {
+    class [[deprecated("use DebyeTable instead")]] DebyeLookupTable {
         public: 
             /**
              * @brief Constructor. 

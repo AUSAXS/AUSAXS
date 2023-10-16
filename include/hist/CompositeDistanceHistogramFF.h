@@ -34,7 +34,7 @@ namespace hist {
 
             ScatteringProfile debye_transform() const override;
 
-            SimpleDataset debye_transform(const std::vector<double>& q) const override;
+            // SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
             void apply_water_scaling_factor(double k) override;
 

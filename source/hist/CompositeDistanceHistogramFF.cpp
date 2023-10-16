@@ -1,7 +1,7 @@
 #include <hist/CompositeDistanceHistogramFF.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
-#include <hist/DebyeLookupTable.h>
+#include <table/DebyeTable.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <dataset/SimpleDataset.h>
@@ -220,6 +220,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 
 ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
     static Container2D<form_factor::PrecalculatedFormFactorProduct> ff_table = form_factor::PrecalculatedFormFactorProduct::generate_table();
+    const auto& sinqd_table = table::DebyeTable::get_default_table();
 
     // calculate the Debye scattering intensity
     Axis debye_axis(settings::axes::qmin, settings::axes::qmax, settings::axes::bins);
@@ -227,55 +228,36 @@ ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
     std::vector<double> Iq(debye_axis.bins, 0);
     std::vector<double> q_axis = debye_axis.as_vector();
 
-    auto& ff_exv = form_factor::storage::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
-
-    unsigned int excluded_volume_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    unsigned int neutral_oxygen_index = static_cast<int>(form_factor::form_factor_t::O);
+    unsigned int ff_exv_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = 0; q < debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double atom_atom_sum = 0;
-                for (unsigned int d = 0; d < axis.bins; ++d) {
-                    atom_atom_sum += cp_pp.index(ff1, ff2, d)*sinqd_table->lookup(q, d);
-                }
+                double atom_atom_sum = std::inner_product(cp_pp.begin(ff1, ff2), cp_pp.end(ff1, ff2), sinqd_table.begin(q), 0.0);
                 Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
             }
 
-            double atom_exv_sum = 0; // atom-exv
-            for (unsigned int d = 0; d < axis.bins; ++d) {
-                atom_exv_sum += cp_pp.index(ff1, excluded_volume_index, d)*sinqd_table->lookup(q, d);
-            }
-            Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, excluded_volume_index).evaluate(q);
+            // atom-exv
+            double atom_exv_sum = std::inner_product(cp_pp.begin(ff1, ff_exv_index), cp_pp.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
+            Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
 
             // atom-water
-            double atom_water_sum = 0;
-            for (unsigned int d = 0; d < axis.bins; ++d) {
-                atom_water_sum += cp_hp.index(ff1, d)*sinqd_table->lookup(q, d);
-            }
-            Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, neutral_oxygen_index).evaluate(q);
+            double atom_water_sum = std::inner_product(cp_hp.begin(ff1), cp_hp.end(ff1), sinqd_table.begin(q), 0.0);
+            Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
         }
 
         // exv-exv
-        double exv_exv_sum = 0;
-        for (unsigned int d = 0; d < axis.bins; ++d) {
-            exv_exv_sum += cp_pp.index(excluded_volume_index, excluded_volume_index, d)*sinqd_table->lookup(q, d);
-        }
-        Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(excluded_volume_index, excluded_volume_index).evaluate(q);
+        double exv_exv_sum = std::inner_product(cp_pp.begin(ff_exv_index, ff_exv_index), cp_pp.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
+        Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
 
         // exv-water
-        double exv_water_sum = 0;
-        for (unsigned int d = 0; d < axis.bins; ++d) {
-            exv_water_sum += cp_hp.index(excluded_volume_index, d)*sinqd_table->lookup(q, d);
-        }
-        Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(excluded_volume_index, neutral_oxygen_index).evaluate(q);
+        double exv_water_sum = std::inner_product(cp_hp.begin(ff_exv_index), cp_hp.end(ff_exv_index), sinqd_table.begin(q), 0.0);
+        Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
 
         // water-water
-        double water_water_sum = 0;
-        for (unsigned int d = 0; d < axis.bins; ++d) {
-            water_water_sum += cp_hh.index(d)*sinqd_table->lookup(q, d);
-        }
-        Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(neutral_oxygen_index, neutral_oxygen_index).evaluate(q);
+        double water_water_sum = std::inner_product(cp_hh.begin(), cp_hh.end(), sinqd_table.begin(q), 0.0);
+        Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
 }
@@ -313,25 +295,6 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_hh_counts() const {
     p_hh = std::vector<double>(axis.bins, 0);
     std::transform(p_hh.begin(), p_hh.end(), cp_hh.begin(), p_hh.begin(), std::plus<double>());
     return p_hh;
-}
-
-SimpleDataset CompositeDistanceHistogramFF::debye_transform(const std::vector<double>&) const {
-    // calculate the scattering intensity based on the Debye equation
-    throw std::runtime_error("Not implemented");
-    // std::vector<double> Iq(q.size(), 0);
-    // for (unsigned int ff1 = 0; ff1 < detail::FormFactor::get_count(); ++ff1) {
-    //     for (unsigned int ff2 = 0; ff2 < detail::FormFactor::get_count(); ++ff2) {
-    //         auto ff1_func = detail::FormFactorStorage::get_form_factor(static_cast<detail::form_factor_t>(ff1));
-    //         auto ff2_func = detail::FormFactorStorage::get_form_factor(static_cast<detail::form_factor_t>(ff2));
-    //         for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
-    //             for (unsigned int j = 0; j < axis.bins; ++j) { // iterate through the distance histogram
-    //                 Iq[i] += p_pp.index(ff1, ff2, j)*sinqd_table->lookup(i, j);
-    //             }
-    //             Iq[i] *= ff1_func.evaluate(q[i])*ff2_func.evaluate(q[i]); // form factor
-    //         }
-    //     }
-    // }
-    // return SimpleDataset(Iq, q);
 }
 
 void CompositeDistanceHistogramFF::apply_water_scaling_factor(double k) {

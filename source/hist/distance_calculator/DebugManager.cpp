@@ -1,6 +1,5 @@
 #include <hist/distance_calculator/DebugManager.h>
 #include <form_factor/FormFactor.h>
-#include <hist/DebyeLookupTable.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Molecule.h>

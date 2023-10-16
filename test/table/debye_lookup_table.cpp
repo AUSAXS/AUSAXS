@@ -1,11 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/DebyeLookupTable.h>
+#include <table/DebyeLookupTable.h>
 #include <utility/Axis.h>
 #include <utility/Utility.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <settings/All.h>
+
+using namespace data::record;
 
 // Define the hash function for atoms so we can use them in our tests
 namespace std {

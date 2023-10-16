@@ -47,6 +47,6 @@ class Container1D {
 
         unsigned int N;
 
-    private:
+    protected:
         std::vector<T> data;
 };

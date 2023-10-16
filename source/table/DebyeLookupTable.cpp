@@ -1,4 +1,4 @@
-#include <hist/DebyeLookupTable.h>
+#include <table/DebyeLookupTable.h>
 #include <utility/Console.h>
 #include <utility/Utility.h>
 #include <utility/Axis.h>

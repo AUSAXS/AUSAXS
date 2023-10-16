@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <utility/LookupTable.h>
-#include <data/Atom.h>
+#include <table/LookupTable.h>
 #include <settings/HistogramSettings.h>
 
 TEST_CASE("LookupTable::LookupTable") {
@@ -131,25 +130,4 @@ TEST_CASE("lookup_tables") {
         CHECK(table.lookup(rows[2], cols[1]) == rows[2] + cols[1]);
         CHECK(table.lookup(rows[2], cols[2]) == rows[2] + cols[2]);        
     }
-
-    // not currently used anywhere, and currently throws compile errors since Atom is not comparable
-    // SECTION("object table") {
-    //     std::vector<Atom> atoms1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1), Atom(Vector3<double>(1, -1, -1), 1, "C", "C", 1)};
-    //     std::vector<Atom> atoms2 = {Atom(Vector3<double>(-1, -1, 1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, 1), 1, "C", "C", 1)};
-
-    //     table::LookupTable<Atom, Atom> table(atoms1, atoms2);
-
-    //     for (unsigned int i = 0; i < atoms1.size(); i++) {
-    //         for (unsigned int j = 0; j < atoms2.size(); j++) {
-    //             table.assign(atoms1[i], atoms2[j], i+j);
-    //         }
-    //     }
-
-    //     CHECK(table.lookup(atoms1[0], atoms2[0]) == 0);
-    //     CHECK(table.lookup(atoms1[0], atoms2[1]) == 1);
-    //     CHECK(table.lookup(atoms1[1], atoms2[0]) == 1);
-    //     CHECK(table.lookup(atoms1[1], atoms2[1]) == 2);
-    //     CHECK(table.lookup(atoms1[2], atoms2[0]) == 2);
-    //     CHECK(table.lookup(atoms1[2], atoms2[1]) == 3);
-    // }
 }

@@ -130,6 +130,6 @@ class Container3D {
 
         unsigned int N, M, L;
 
-    private:
+    protected:
         std::vector<T> data;
 };
