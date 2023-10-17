@@ -78,7 +78,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
                 auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {
                     p_hp.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
-                    p_hp.index(exv_bin, res.distance[k]) += data_h[j].value.w*Z_exv_avg;
+                    p_hp.index(exv_bin, res.distance[k]) += data_h[i].value.w*Z_exv_avg;
                 }
             }
 
@@ -86,14 +86,14 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
                 auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {
                     p_hp.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
-                    p_hp.index(exv_bin, res.distance[k]) += data_h[j].value.w*Z_exv_avg;
+                    p_hp.index(exv_bin, res.distance[k]) += data_h[i].value.w*Z_exv_avg;
                 }
             }
 
             for (; j < data_p.get_size(); ++j) {
                 auto res = data_h[i].evaluate(data_p[j]);
                 p_hp.index(data_p.get_ff_type(j), res.distance) += res.weight;
-                p_hp.index(exv_bin, res.distance) += data_h[j].value.w*Z_exv_avg;
+                p_hp.index(exv_bin, res.distance) += data_h[i].value.w*Z_exv_avg;
             }
         }
         return p_hp;
@@ -212,16 +212,14 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     Container3D<double> p_pp_short(form_factor::get_count(), form_factor::get_count(), max_bin);
     Container2D<double> p_hp_short(form_factor::get_count(), max_bin);
     Container1D<double> p_hh_short(max_bin);
-    {   // copy first max_bin elements to a new container
+    {   // move first max_bin elements to a new container
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count(); ++ff2) {
-                std::transform(p_pp_short.begin(ff1, ff2), p_pp_short.end(ff1, ff2), p_pp.begin(ff1, ff2), p_pp_short.begin(ff1, ff2), std::plus<double>());
+                std::move(p_pp.begin(ff1, ff2), p_pp.begin(ff1, ff2)+max_bin, p_pp_short.begin(ff1, ff2));
             }
+            std::move(p_hp.begin(ff1), p_hp.begin(ff1)+max_bin, p_hp_short.begin(ff1));
         }
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count(); ++ff1) {
-            std::transform(p_hp_short.begin(ff1), p_hp_short.end(ff1), p_hp.begin(ff1), p_hp_short.begin(ff1), std::plus<double>());
-        }
-        std::transform(p_hh_short.begin(), p_hh_short.end(), p_hh.begin(), p_hh_short.begin(), std::plus<double>());
+        std::move(p_hh.begin(), p_hh.begin()+max_bin, p_hh_short.begin());
     }
     p_tot.resize(max_bin);
     return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
