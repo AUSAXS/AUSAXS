@@ -56,7 +56,7 @@ namespace table {
 
         private: 
             constexpr void initialize() noexcept {
-                double tolerance = 1;     // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
+                double tolerance = 1e-3;  // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
                 double inv_6 = 1./6;      // 1/6
                 double inv_120 = 1./120;  // 1/120
 

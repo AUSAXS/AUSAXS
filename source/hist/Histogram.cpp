@@ -53,7 +53,7 @@ void Histogram::resize(unsigned int bins) {
 void Histogram::shorten_axis(unsigned int min_size) {
     if (p.size() < min_size) {return;}
     unsigned int max_bin = min_size;
-    for (unsigned int i = p.size()-2; i > min_size-1; --i) {
+    for (unsigned int i = p.size()-1; i > min_size; --i) {
         if (p[i] != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;

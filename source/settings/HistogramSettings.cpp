@@ -5,7 +5,7 @@
 #include <constants/Constants.h>
 
 double settings::axes::qmin = constants::axes::q_axis.min;
-double settings::axes::qmax = 0.5;
+double settings::axes::qmax = 0.5 + 1e-3; // push it a little bit over to ensure we cover the range
 unsigned int settings::axes::skip = 0;
 
 namespace settings::axes::io {

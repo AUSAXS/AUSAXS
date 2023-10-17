@@ -66,7 +66,7 @@ std::vector<double>::iterator DebyeTable::end(unsigned int q_index) {
     #include <iostream>
 #endif
 void DebyeTable::check_default([[maybe_unused]] const std::vector<double>& q, [[maybe_unused]] const std::vector<double>& d) {
-    #if DEBUG 
+    #if DEBUG
         Axis axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 
         if (q.size() != axis.bins) [[unlikely]] {

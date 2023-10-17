@@ -7,15 +7,12 @@ using namespace table;
     #include <utility/Console.h>
     #include <utility/Utility.h>
     #include <settings/HistogramSettings.h>
+    #include <settings/GeneralSettings.h>
 #endif
 void ArrayDebyeTable::check_default(const std::vector<double>& q, const std::vector<double>& d) {
     #if DEBUG 
+        if (!settings::general::warnings) {return;}
         const Axis& axis = constants::axes::q_axis;
-
-        if (q.size() != axis.bins) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
-            std::cout << "\tReason: q.size() != axis.bins" << std::endl;
-        }
 
         if (q[0] != axis.min) [[unlikely]] {
             console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");

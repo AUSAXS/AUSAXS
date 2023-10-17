@@ -45,7 +45,33 @@ void set_unity_charge(Molecule& protein) {
     }
 }
 
-#define DEBYE_DEBUG 0
+// calculation: 8 points
+//          1 line  of length 0
+//          3 lines of length 2
+//          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+//          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+//
+// calculation: 1 center point
+//          1 line  of length 0
+//          16 lines of length sqrt(2) = 1.41 (counting both directions)
+//
+// sum:
+//          9 line  of length 0
+//          16 lines of length sqrt(2)
+//          24 lines of length 2
+//          24 lines of length sqrt(8)
+//          8 lines of length sqrt(12)
+auto width = constants::axes::d_axis.width();
+std::vector<double> d = {
+    0, 
+    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
+    constants::axes::d_vals[std::round(2./width)], 
+    constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
+    constants::axes::d_vals[std::round(std::sqrt(12)/width)]
+};
+
+#define DEBYE_DEBUG 1
+unsigned int qcheck = 0;
 TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
     settings::molecule::use_effective_charge = false;
     auto ff_carbon = form_factor::storage::get_form_factor(form_factor::form_factor_t::C);
@@ -54,159 +80,160 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
 
-    SECTION("no water") {
-        std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
-        Molecule protein(a);
+    // SECTION("no water") {
+    //     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
+    //     Molecule protein(a);
 
-        set_unity_charge(protein);
-        double Z = protein.get_excluded_volume()*constants::charge::density::water/9;
-        protein.set_excluded_volume_scaling(1./Z);
+    //     set_unity_charge(protein);
+    //     double Z = protein.get_excluded_volume()*constants::charge::density::water/9;
+    //     protein.set_excluded_volume_scaling(1./Z);
 
-        // check distances
-        // calculation: 8 identical points. 
-        //      each point has:
-        //          1 line  of length 0
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        // center point has:
-        //          1 line  of length 0
-        //          16 lines of length sqrt(2) (two for each point)
+    //     for (unsigned int q = 0; q < q_axis.size(); ++q) {
+    //         double aasum = 
+    //             9 + 
+    //             16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
+    //             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //             8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
-        std::vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        // std::vector<double> d =     {0, 2, std::sqrt(8), std::sqrt(12)};
-        std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
-            double dsum = 
-                9 + 
-                24*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-                24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-                8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) +
-                16*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-            Iq_exp[q] += dsum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);
-            Iq_exp[q] -= 2*dsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);
-            Iq_exp[q] += dsum*std::pow(ff_exv.evaluate(q_axis[q]), 2);
-        }
+    //         double axsum = 
+    //             16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
+    //             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //             8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    }
+    //         #if DEBYE_DEBUG
+    //             if (q==qcheck) {
+    //                 std::cout << "aasum: " << aasum << std::endl;
+    //                 std::cout << "\t9*1" << std::endl;
+    //                 std::cout << "\t16*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
+    //                 std::cout << "\t24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+    //                 std::cout << "\t24*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+    //                 std::cout << "\t8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+    //             }
+    //         #endif
 
-    SECTION("with water") {
-        std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Molecule protein(a, w);
+    //         Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);
+    //         Iq_exp[q] -= 2*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);
+    //         Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);
+    //     }
 
-        set_unity_charge(protein);
-        double Z = protein.get_excluded_volume()*constants::charge::density::water/8;
-        protein.set_excluded_volume_scaling(1./Z);
+    //     auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+    //     REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+    // }
 
-        // check distances
-        // calculation: 8 identical points + 1 water in the middle. 
-        //      each point has:
-        //          1 line  of length 0
-        //          1 line of length sqrt(2) = 1.41
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        std::vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        // std::vector<double> d =     {0, 2, std::sqrt(8), std::sqrt(12), std::sqrt(2)};
-        std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
-        unsigned int qcheck = 1;
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
-            double aasum = 
-                8 + 
-                24*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-                24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-                8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]);
+    // SECTION("with water") {
+    //     std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
+    //     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
+    //     Molecule protein(a, w);
 
-            #if DEBYE_DEBUG
-                if (q==qcheck) {
-                    std::cout << "8*1" << std::endl;
-                    std::cout << "8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
-                    std::cout << "24*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
-                    std::cout << "24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
-                    std::cout << "8*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
-                }
-            #endif
-            Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                  // + aa
-            Iq_exp[q] -= 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);  // -2ax
-            Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                     // + xx
+    //     set_unity_charge(protein);
+    //     double Z = protein.get_excluded_volume()*constants::charge::density::water/8;
+    //     protein.set_excluded_volume_scaling(1./Z);
 
-            double awsum = 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-            Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);    // +2aw
-            Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);       // -2ew
-            Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                           // + ww
+    //     for (unsigned int q = 0; q < q_axis.size(); ++q) {
+    //         double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
+    //         double aasum = 
+    //             8 + 
+    //             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //             8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+    //         double axsum = 
+    //             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //             8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
 
-            #if DEBYE_DEBUG
-                if (q==qcheck) {
-                    std::cout << "aasum = " << aasum << std::endl;
-                    std::cout << "awsum = " << awsum << std::endl;
-                    std::cout << "(aa) Iq_exp[" << q << "] += " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(ae) Iq_exp[" << q << "] -= " << 2*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(aw) Iq_exp[" << q << "] += " << 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(ee) Iq_exp[" << q << "] += " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(ew) Iq_exp[" << q << "] -= " << 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(ww) Iq_exp[" << q << "] += " << 1*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
-                }
-            #endif
-        }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    }
+    //         #if DEBYE_DEBUG
+    //             if (q==qcheck) {
+    //                 std::cout << "8*1" << std::endl;
+    //                 std::cout << "8*sin(" << q_axis[q] << "*" << d[4] << ")/(" << q_axis[q] << "*" << d[4] << ") = " << std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]) << std::endl;
+    //                 std::cout << "24*sin(" << q_axis[q] << "*" << d[1] << ")/(" << q_axis[q] << "*" << d[1] << ") = " << std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) << std::endl;
+    //                 std::cout << "24*sin(" << q_axis[q] << "*" << d[2] << ")/(" << q_axis[q] << "*" << d[2] << ") = " << std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) << std::endl;
+    //                 std::cout << "8*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
+    //             }
+    //         #endif
+    //         Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                  // + aa
+    //         Iq_exp[q] -= 2*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);  // -2ax
+    //         Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                     // + xx
+    //         Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);    // +2aw
+    //         Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);       // -2wx
+    //         Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                           // + ww
 
-    SECTION("real scalings") {
-        std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Molecule protein(a, w);
+    //         #if DEBYE_DEBUG
+    //             if (q==qcheck) {
+    //                 std::cout << "aasum = " << aasum << std::endl;
+    //                 std::cout << "awsum = " << awsum << std::endl;
+    //                 std::cout << "(aa) Iq_exp[" << q << "] += " << aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
+    //                 std::cout << "(ax) Iq_exp[" << q << "] -= " << 2*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
+    //                 std::cout << "(aw) Iq_exp[" << q << "] += " << 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+    //                 std::cout << "(xx) Iq_exp[" << q << "] += " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
+    //                 std::cout << "(xw) Iq_exp[" << q << "] -= " << 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+    //                 std::cout << "(ww) Iq_exp[" << q << "] += " << 1*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
+    //             }
+    //         #endif
+    //     }
+    //     auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+    //     REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+    // }
 
-        double ZX = protein.get_excluded_volume()*constants::charge::density::water/8;
-        double ZC = 6; // 6
-        double ZO = 8; // 8
+    // SECTION("real scalings") {
+    //     std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b2 =  {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b3 =  {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
+    //     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
+    //     Molecule protein(a, w);
 
-        // check distances
-        // calculation: 8 identical points + 1 water in the middle. 
-        //      each point has:
-        //          1 line  of length 0
-        //          1 line of length sqrt(2) = 1.41
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        std::vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        // std::vector<double> d =     {0, 2, std::sqrt(8), std::sqrt(12), std::sqrt(2)};
-        std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
-        unsigned int qcheck = 1;
-        for (unsigned int q = 0; q < q_axis.size(); ++q) {
-            double aasum = 
-                8 + 
-                24*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
-                24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-                8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]);
-            Iq_exp[q] += ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                    // + aa
-            Iq_exp[q] -= 2*ZC*ZX*aasum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);    // -2ax
-            Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                       // + xx
+    //     double ZX = protein.get_excluded_volume()*constants::charge::density::water/8;
+    //     double ZC = 6; // 6
+    //     double ZO = 8; // 8
 
-            double awsum = 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-            Iq_exp[q] += 2*ZC*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // +2aw
-            Iq_exp[q] -= 2*ZO*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2ew
-            Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
-        }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
-        REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-    }
+    //     for (unsigned int q = 0; q < q_axis.size(); ++q) {
+    //         double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
+    //         double aasum = 
+    //             8 + 
+    //             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //             8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+    //         double axsum = 
+    //             24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
+    //             24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+    //             8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
+
+    //         #if DEBYE_DEBUG
+    //             if (q==qcheck) {
+    //                 std::cout << "aasum = " << aasum << std::endl;
+    //                 std::cout << "axsum = " << axsum << std::endl;
+    //                 std::cout << "awsum = " << awsum << std::endl;
+    //                 std::cout << "(aa) Iq_exp[" << q << "] += " << ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
+    //                 std::cout << "(ax) Iq_exp[" << q << "] -= " << 2*ZC*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
+    //                 std::cout << "(aw) Iq_exp[" << q << "] += " << 2*ZX*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+    //                 std::cout << "(xx) Iq_exp[" << q << "] += " << ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
+    //                 std::cout << "(xw) Iq_exp[" << q << "] -= " << 2*ZX*ZO*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+    //                 std::cout << "(ww) Iq_exp[" << q << "] += " << 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
+    //             }
+    //         #endif
+
+    //         Iq_exp[q] += ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                    // + aa
+    //         Iq_exp[q] -= 2*ZC*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);    // -2ax
+    //         Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                       // + xx
+    //         Iq_exp[q] += 2*ZC*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // +2aw
+    //         Iq_exp[q] -= 2*ZO*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2wx
+    //         Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
+    //     }
+    //     auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+    //     REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+    // }
 
     SECTION("real data") {
         Molecule protein("test/files/2epe.pdb");

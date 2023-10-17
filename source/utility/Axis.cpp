@@ -41,14 +41,19 @@ Limit Axis::limits() const noexcept {return Limit(min, max);}
 unsigned int Axis::get_bin(double value) const noexcept {
     if (bins == 0) [[unlikely]] {return 0;}
     if (value <= min) {return 0;}
-    if (value >= max) {return bins-1;}
+    if (value >= max) {return bins;}
     return std::floor((value+1e-6-min)/width()); // +1e-6 to avoid flooring floating point errors, and we will likely never have bins this small anyway
 }
 
-Axis Axis::sub_axis(double min, double max) const noexcept {
-    auto min_bin = get_bin(min);
-    auto max_bin = get_bin(max);
-    return Axis(min_bin, min_bin + max_bin - min_bin, width());
+Axis Axis::sub_axis(double vmin, double vmax) const noexcept {
+    unsigned int min_bin = get_bin(vmin);
+    unsigned int max_bin = get_bin(vmax);
+    double width = this->width();
+
+    double new_min = this->min + min_bin*width;
+    double new_max = this->min + max_bin*width;
+
+    return Axis(new_min, new_max, max_bin - min_bin);
 }
 
 std::ostream& operator<<(std::ostream& os, const Axis& axis) noexcept {os << axis.to_string(); return os;}

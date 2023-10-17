@@ -31,6 +31,7 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
 }
 
 TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
+    settings::general::warnings = false;
     auto hist = generate_random(100);
     auto p = hist.get_total_counts();
     hist.apply_water_scaling_factor(2);
@@ -40,6 +41,7 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
 }
 
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
+    settings::general::warnings = false;
     settings::molecule::use_effective_charge = false;
 
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
@@ -97,8 +99,34 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
     return true;
 }
 
+// calculation: 8 points
+//          1 line  of length 0
+//          3 lines of length 2
+//          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
+//          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
+//
+// calculation: 1 center point
+//          1 line  of length 0
+//          16 lines of length sqrt(2) = 1.41 (counting both directions)
+//
+// sum:
+//          9 line  of length 0
+//          16 lines of length sqrt(2)
+//          24 lines of length 2
+//          24 lines of length sqrt(8)
+//          8 lines of length sqrt(12)
+auto width = constants::axes::d_axis.width();
+std::vector<double> d = {
+    0, 
+    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
+    constants::axes::d_vals[std::round(2./width)], 
+    constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
+    constants::axes::d_vals[std::round(std::sqrt(12)/width)]
+};
+
 TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
     settings::molecule::use_effective_charge = false;
+    settings::general::warnings = true;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -111,20 +139,6 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
 
         set_unity_charge(protein);
 
-        // check distances
-        // calculation: 8 identical points. 
-        //      each point has:
-        //          1 line  of length 0
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        // center point has:
-        //          1 line  of length 0
-        //          16 lines of length sqrt(2) (two for each point)
-
-        std::vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        // std::vector<double> d =     {0, 2, std::sqrt(8), std::sqrt(12)};
-        std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
         std::vector<double> Iq_exp;
         {
             const auto& q_axis = constants::axes::q_vals;
@@ -134,11 +148,10 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
             for (unsigned int q = 0; q < q_axis.size(); ++q) {
                 double dsum = 
                     9 + 
-                    24*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
+                    16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) +
                     24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-                    8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) +
-                    16*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-
+                    24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+                    8 *std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
                 Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
             }
         }
@@ -174,17 +187,6 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
         double Z = protein.get_excluded_volume()*constants::charge::density::water/8;
         protein.set_excluded_volume_scaling(1./Z);
 
-        // check distances
-        // calculation: 8 identical points + 1 water in the middle. 
-        //      each point has:
-        //          1 line  of length 0
-        //          1 line of length sqrt(2) = 1.41
-        //          3 lines of length 2
-        //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-        //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-        std::vector<double> p_exp = {8, 0, 2*8*3, 8, 0, 0, 0, 0, 0, 0};
-        // std::vector<double> d =     {0, 2, std::sqrt(8), std::sqrt(12), std::sqrt(2)};
-        std::vector<double> d =     {0, 2.5, 2.5, 3.5, 1.5};
         std::vector<double> Iq_exp;
         {
             const auto& q_axis = constants::axes::q_vals;
@@ -194,13 +196,13 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
             for (unsigned int q = 0; q < q_axis.size(); ++q) {
                 double aasum = 
                     8 + 
-                    24*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]) + 
                     24*std::sin(q_axis[q]*d[2])/(q_axis[q]*d[2]) + 
-                    8*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]);
+                    24*std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) + 
+                    8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
                 Iq_exp[q] += aasum*std::pow(ff(q_axis[q]), 2);
 
-                double awsum = 8*std::sin(q_axis[q]*d[4])/(q_axis[q]*d[4]);
-                Iq_exp[q] += 2*awsum*std::pow(ff(q_axis[q]), 2);
+                double awsum = 16*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
+                Iq_exp[q] += awsum*std::pow(ff(q_axis[q]), 2);
                 Iq_exp[q] += 1*std::pow(ff(q_axis[q]), 2);
             }
         }

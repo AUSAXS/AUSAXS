@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <utility/Axis.h>
 #include <utility/Limit.h>
@@ -129,8 +130,8 @@ TEST_CASE("Axis::get_bin") {
         CHECK(axis.get_bin(7) == 2);
         CHECK(axis.get_bin(8) == 2);
         CHECK(axis.get_bin(9) == 2);
-        CHECK(axis.get_bin(10) == 2);
-        CHECK(axis.get_bin(11) == 2);
+        CHECK(axis.get_bin(10) == 3);
+        CHECK(axis.get_bin(11) == 3);
     }
 
     SECTION("double") {
@@ -144,13 +145,13 @@ TEST_CASE("Axis::get_bin") {
         }
         CHECK(axis.get_bin(0) == 0);
         CHECK(axis.get_bin(0.24) == 0);
-        CHECK(axis.get_bin(6) == 19);
+        CHECK(axis.get_bin(6) == 20);
     }
 }
 
 TEST_CASE("Axis::sub_axis") {
     SECTION("simple") {
-        Axis axis(1, 10, 10);
+        Axis axis(1, 10, 9);
         Axis sub_axis = axis.sub_axis(2, 8);
         CHECK(sub_axis.min == 2);
         CHECK(sub_axis.max == 8);
@@ -159,7 +160,7 @@ TEST_CASE("Axis::sub_axis") {
         sub_axis = axis.sub_axis(0, 11);
         CHECK(sub_axis.min == 1);
         CHECK(sub_axis.max == 10);
-        CHECK(sub_axis.bins == 10);
+        CHECK(sub_axis.bins == 9);
 
         sub_axis = axis.sub_axis(0.5, 5.5);
         CHECK(sub_axis.min == 1);
@@ -168,13 +169,16 @@ TEST_CASE("Axis::sub_axis") {
     }
 
     SECTION("q_conversion") {
-        auto q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
-        CHECK(q_axis.size() == double(constants::axes::q_axis.bins)/2);
-        CHECK(q_axis.front() == settings::axes::qmin);
-        CHECK(q_axis.back() == settings::axes::qmax);
+        auto q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 
-        for (unsigned int i = 0; i < q_axis.size(); ++i) {
-            CHECK(q_axis[i] == constants::axes::q_axis.min + i*constants::axes::q_axis.width());
+        // settings::axes::qmax is not an exact entry in constants::axes::q_axis, so we can only check that we are close
+        CHECK_THAT(q_axis.max, Catch::Matchers::WithinAbs(settings::axes::qmax, 1e-3)); 
+        CHECK(q_axis.min == settings::axes::qmin);
+        CHECK(q_axis.bins == constants::axes::q_axis.bins/2); 
+
+        auto qvals = q_axis.as_vector();
+        for (unsigned int i = 0; i < q_axis.bins; ++i) {
+            CHECK(qvals[i] == constants::axes::q_vals[i]);
         }
     }
 }

@@ -16,6 +16,7 @@
 #include <io/ExistingFile.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/HistogramSettings.h>
+#include <constants/Constants.h>
 
 using namespace data::record;
 using namespace data;
@@ -35,19 +36,23 @@ struct analytical_histogram {
         }
     }
 
-    // the following just describes the eight corners of a cube centered at origo
-    // {Vector3<double>(-1, -1, -1), Vector3<double>(-1, 1, -1)};
-    // {Vector3<double>( 1, -1, -1), Vector3<double>( 1, 1, -1)};
-    // {Vector3<double>(-1, -1,  1), Vector3<double>(-1, 1,  1)};
-    // {Vector3<double>( 1, -1,  1), Vector3<double>( 1, 1,  1)};
-
     // calculation: 8 identical points. 
     //      each point has:
     //          1 line  of length 0
     //          3 lines of length 2
     //          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
     //          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-    std::vector<double> p_exp = {8, 0, 8*3, 8*1+8*3, 0, 0, 0, 0, 0, 0};
+    std::vector<double> calc_exp() {
+        auto width = constants::axes::d_axis.width();
+        std::vector<double> res(5/width);
+        res[0] = 8;
+        res[std::round(2/width)] += 8*3;
+        res[std::round(std::sqrt(8)/width)] += 8*3;
+        res[std::round(std::sqrt(12)/width)] += 8*1;
+        return res;
+    }
+
+    std::vector<double> p_exp = calc_exp();
 };
 
 /**
@@ -55,32 +60,16 @@ struct analytical_histogram {
  *        Only indices [0, p1.size()] are checked.
  */
 bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    unsigned int pmin = std::min(p1.size(), p2.size());
-    for (unsigned int i = 0; i < pmin; i++) {
+    if (p2.size() < p1.size()) {
+        std::cout << "Failed: p2.size() < p1.size()" << std::endl;
+        return false;
+    }
+    for (unsigned int i = 0; i < p1.size(); i++) {
         if (!utility::approx(p1[i], p2[i])) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;
         }
     }
-
-    if (p1.size() < p2.size()) {
-        for (unsigned int i = p1.size(); i < p2.size(); i++) {
-            if (!utility::approx(p2[i], 0)) {
-                std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-                return false;
-            }
-        }
-    }
-
-    else {
-        for (unsigned int i = p2.size(); i < p1.size(); i++) {
-            if (!utility::approx(p1[i], 0)) {
-                std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-                return false;
-            }
-        }
-    }
-
     return true;
 }
 

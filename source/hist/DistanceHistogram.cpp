@@ -42,20 +42,6 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-// SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
-//     // calculate the scattering intensity based on the Debye equation
-//     std::vector<double> Iq(q.size(), 0);
-//     for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
-//         for (unsigned int j = 0; j < p.size(); ++j) { // iterate through the distance histogram
-//             double qd = q[i]*d_axis[j];
-//             if (qd < 1e-6) {Iq[i] += 1;}
-//             else {Iq[i] += p[j]*std::sin(qd)/qd;}
-//         }
-//         Iq[i] *= std::exp(-q[i]*q[i]); // form factor
-//     }
-//     return SimpleDataset(q, Iq);
-// }
-
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
 const std::vector<double>& DistanceHistogram::get_q_axis() const {return q_axis;}

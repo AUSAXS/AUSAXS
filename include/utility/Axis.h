@@ -78,6 +78,7 @@ class Axis {
 
 		/**
 		 * @brief Get the bin index for a given value.
+		 * 		  Returns bins in the range [0, bins]
 		 */
 		unsigned int get_bin(double value) const noexcept;
 

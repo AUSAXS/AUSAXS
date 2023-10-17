@@ -57,11 +57,6 @@ namespace hist {
 			void initialize();
 
 			/**
-			 * @brief Calculate the atom-atom distances between body @a index and all others. 
-			 */
-			void calc_pp(unsigned int index);
-
-			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 */
 			void calc_pp(unsigned int n, unsigned int m);

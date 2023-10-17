@@ -170,80 +170,25 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
     detail::CompactCoordinates& coords_m = coords_p[m];
     std::vector<double> p_pp(master.get_axis().bins, 0);
     for (unsigned int i = 0; i < coords_n.get_size(); i++) {
-        unsigned int j = i+1;
-        for (; j+7 < coords_n.get_size(); j+=8) {
-            auto res = coords_n[i].evaluate(coords_n[j], coords_n[j+1], coords_n[j+2], coords_n[j+3], coords_n[j+4], coords_n[j+5], coords_n[j+6], coords_n[j+7]);
+        unsigned int j = 0;
+        for (; j+7 < coords_m.get_size(); j+=8) {
+            auto res = coords_n[i].evaluate(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3], coords_m[j+4], coords_m[j+5], coords_m[j+6], coords_m[j+7]);
             for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
         }
 
-        for (; j+3 < coords_n.get_size(); j+=4) {
-            auto res = coords_n[i].evaluate(coords_n[j], coords_n[j+1], coords_n[j+2], coords_n[j+3]);
+        for (; j+3 < coords_m.get_size(); j+=4) {
+            auto res = coords_n[i].evaluate(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3]);
             for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
         }
 
-        for (; j < coords_n.get_size(); ++j) {
-            auto res = coords_n[i].evaluate(coords_n[j]);
+        for (; j < coords_m.get_size(); ++j) {
+            auto res = coords_n[i].evaluate(coords_m[j]);
             p_pp[res.distance] += 2*res.weight;
         }
     }
     master -= partials_pp.index(n, m);
     partials_pp.index(n, m).get_counts() = std::move(p_pp);
     master += partials_pp.index(n, m);
-}
-
-void PartialHistogramManager::calc_pp(unsigned int index) {
-    detail::CompactCoordinates& coords_i = coords_p[index];
-
-    // we do not want to calculate the self-correlation, so we have to skip entry 'index'
-    for (unsigned int n = 0; n < index; n++) { // loop from (0, index]
-        detail::CompactCoordinates& coords_j = coords_p[n];
-        std::vector<double> p_pp(master.get_axis().bins, 0);
-        for (unsigned int i = 0; i < coords_i.get_size(); i++) {
-            unsigned int j = i+1;
-            for (; j+7 < coords_j.get_size(); j+=8) {
-                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3], coords_j[j+4], coords_j[j+5], coords_j[j+6], coords_j[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
-            }
-
-            for (; j+3 < coords_j.get_size(); j+=4) {
-                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
-            }
-
-            for (; j < coords_j.get_size(); ++j) {
-                auto res = coords_j[i].evaluate(coords_j[j]);
-                p_pp[res.distance] += 2*res.weight;
-            }
-        }
-        master -= partials_pp.index(index, n);
-        partials_pp.index(index, n).get_counts() = std::move(p_pp);
-        master += partials_pp.index(index, n);
-    }
-
-    for (unsigned int n = index+1; n < body_size; n++) { // loop from (index, size]
-        detail::CompactCoordinates& coords_j = coords_p[n];
-        std::vector<double> p_pp(master.get_axis().bins, 0);
-        for (unsigned int i = 0; i < coords_i.get_size(); i++) {
-            unsigned int j = i+1;
-            for (; j+7 < coords_j.get_size(); j+=8) {
-                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3], coords_j[j+4], coords_j[j+5], coords_j[j+6], coords_j[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
-            }
-
-            for (; j+3 < coords_j.get_size(); j+=4) {
-                auto res = coords_j[i].evaluate(coords_j[j], coords_j[j+1], coords_j[j+2], coords_j[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
-            }
-
-            for (; j < coords_j.get_size(); ++j) {
-                auto res = coords_j[i].evaluate(coords_j[j]);
-                p_pp[res.distance] += 2*res.weight;
-            }
-        }
-        master -= partials_pp.index(index, n);
-        partials_pp.index(index, n).get_counts() = std::move(p_pp);
-        master += partials_pp.index(index, n);
-    }
 }
 
 void PartialHistogramManager::calc_hp(unsigned int index) {

@@ -78,7 +78,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
                 auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {
                     p_hp.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
-                    p_hp.index(exv_bin, res.distance[k]) += data_p[j+k].value.w*Z_exv_avg;
+                    p_hp.index(exv_bin, res.distance[k]) += data_h[j].value.w*Z_exv_avg;
                 }
             }
 
@@ -86,14 +86,14 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
                 auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {
                     p_hp.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
-                    p_hp.index(exv_bin, res.distance[k]) += data_p[j+k].value.w*Z_exv_avg;
+                    p_hp.index(exv_bin, res.distance[k]) += data_h[j].value.w*Z_exv_avg;
                 }
             }
 
             for (; j < data_p.get_size(); ++j) {
                 auto res = data_h[i].evaluate(data_p[j]);
                 p_hp.index(data_p.get_ff_type(j), res.distance) += res.weight;
-                p_hp.index(exv_bin, res.distance) += data_p[j].value.w*Z_exv_avg;
+                p_hp.index(exv_bin, res.distance) += data_h[j].value.w*Z_exv_avg;
             }
         }
         return p_hp;
