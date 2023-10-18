@@ -65,6 +65,7 @@ const std::unordered_map<AtomKey, int>& ResidueMap::get_map() const {return map;
 constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_name, constants::atom_t atom_type) {
     auto key = AtomKey(atom_name, atom_type);
     if (!map.contains(key)) {
+        if (key.atom == constants::atom_t::H) {return constants::atomic_group_t::unknown;}
         throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
     }
     int hydrogens = map.at(key);

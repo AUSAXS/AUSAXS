@@ -1,3 +1,5 @@
+#pragma once
+
 #include <array>
 #include <cmath>
 
@@ -21,23 +23,15 @@ namespace constants {
 
         constexpr double sigma_excluded_volume = 1.62; // Å
 
-        // no source
+        // International Tables for Crystallography, https://lampx.tugraz.at/~hadley/ss1/crystaldiffraction/atomicformfactors/formfactors.php        
         namespace H {
-            // constexpr std::array<double, 5> a = {0.489918, 0.262003, 0.196767, 0.049879, 0};
-            // constexpr std::array<double, 5> b = s_to_q({20.6593, 7.74039, 49.5519, 2.20159, 0};
-            // constexpr double c = 0.001305;
-
-            constexpr std::array<double, 5> a = {1, 0, 0, 0, 0};
-            constexpr std::array<double, 5> b = {0.5, 0, 0, 0, 0};
-            constexpr double c = 0;
+            constexpr std::array<double, 5> a = {0.489918, 0.262003, 0.196767, 0.049879, 0};
+            constexpr std::array<double, 5> b = s_to_q({20.6593, 7.74039, 49.5519, 2.20159, 0});
+            constexpr double c = 0.001305;
         }
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace O {
-            // constexpr std::array<double, 5> a = { 3.0485, 2.2868, 1.5463, 0.867, 0};
-            // constexpr std::array<double, 5> b = s_to_q({13.2771, 5.7011, 0.3239, 32.9089, 0};
-            // constexpr double c = 0.2508;
-
             constexpr std::array<double, 5> a =        { 2.960427, 2.508818, 0.637853,  0.722838, 1.142756};
             constexpr std::array<double, 5> b = s_to_q({14.182259, 5.936858, 0.112726, 34.958481, 0.390240});
             constexpr double c = 0.027014;
@@ -45,10 +39,6 @@ namespace constants {
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace N {
-            // constexpr std::array<double, 5> a = { 12.2126, 3.1322, 2.0125, 1.1663, 0};
-            // constexpr std::array<double, 5> b = s_to_q({ 0.0057, 9.8933, 28.9975, 0.5826, 0};
-            // constexpr double c = -11.529;
-
             constexpr std::array<double, 5> a =        {11.893780,  3.277479,  1.858092, 0.858927, 0.912985};
             constexpr std::array<double, 5> b = s_to_q({ 0.000158, 10.232723, 30.344690, 0.656065, 0.217287});
             constexpr double c = -11.804902;
@@ -63,10 +53,6 @@ namespace constants {
 
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         namespace C {
-            // constexpr std::array<double, 5> a = {2.31, 1.02, 1.5886, 0.865, 0};
-            // constexpr std::array<double, 5> b = s_to_q({20.8439, 10.2075, 0.5687, 51.6512, 0};
-            // constexpr double c = 0.2156;
-
             constexpr std::array<double, 5> a =        { 2.657506, 1.078079,  1.490909, -4.241070, 0.713791};
             constexpr std::array<double, 5> b = s_to_q({14.780758, 0.776775, 42.086843, -0.000294, 0.239535});
             constexpr double c = 4.297983;
@@ -75,10 +61,6 @@ namespace constants {
         // Waasmeier & Kirfel, https://doi.org/10.1107/S0108767394013292
         // this is just the form factor of argon
         namespace other {
-            // constexpr std::array<double, 5> a = {7.4845, 6.7723, 0.6539, 1.6442, 0};
-            // constexpr std::array<double, 5> b = s_to_q({0.9072, 14.8407, 43.8983, 33.3929, 0};
-            // constexpr double c = 1.4445;
-
             constexpr std::array<double, 5> a =        {7.188004, 6.638454,  0.454180,  1.929593,  1.523654};
             constexpr std::array<double, 5> b = s_to_q({0.956221, 15.339877, 15.339862, 39.043824, 0.062409});
             constexpr double c = 0.265954;

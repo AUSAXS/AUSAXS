@@ -4,16 +4,17 @@
 
 #include <plots/All.h>
 #include <em/ImageStack.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
 #include <fitter/HydrationFitter.h>
 #include <settings/All.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <em/manager/ProteinManager.h>
+#include <hist/CompositeDistanceHistogram.h>
 
 int main(int argc, char const *argv[]) {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
     settings::fit::verbose = true;

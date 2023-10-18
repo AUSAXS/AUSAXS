@@ -41,14 +41,6 @@ namespace form_factor {
                 }
                 return (sum + c)/f0;
             }
-
-            constexpr double constexpr_evaluate(double q) const noexcept {
-                double sum = 0;
-                for (unsigned int i = 0; i < 5; ++i) {
-                    sum += a[i]*std::exp(-b[i]*q*q);
-                }
-                return (sum + c)/f0;
-            }
     };
 
     /**

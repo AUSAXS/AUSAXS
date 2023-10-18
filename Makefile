@@ -376,8 +376,6 @@ test/%: $$(shell find test/ -wholename "$*.cpp" 2>/dev/null) $(source)
 	@ make -C build "test_$(basename $(notdir $*))" -j${cmake_threads}
 	build/test/bin/test_$(basename $(notdir $*)) ~[slow] ~[broken] ${tags}
 
-test/%.cpp:
-
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
 build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile
 	@ cmake --build build --target $* -j${cmake_threads}

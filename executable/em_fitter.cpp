@@ -7,10 +7,11 @@
 #include <utility/Utility.h>
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 
 int main(int argc, char const *argv[]) {
-    settings::protein::use_effective_charge = false;
+    std::ios_base::sync_with_stdio(false);
+    settings::molecule::use_effective_charge = false;
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
     settings::fit::verbose = true;

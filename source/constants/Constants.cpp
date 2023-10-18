@@ -284,10 +284,7 @@ double constants::radius::get_vdw_radius(atom_t atom) {
 
         // fake elements
         case atom_t::M: return 0;
-        case atom_t::dummy: {
-            std::cout << "constants::radius::get_vdw_radius: Warning: dummy atom radius requested. Returning " << radius::detail::dummy_radius << " Ångström." << std::endl;
-            return radius::detail::dummy_radius;
-        }
+        case atom_t::dummy: {return radius::detail::dummy_radius;}
 
         default: throw std::runtime_error("constants::radius::get_vdw_radius: Unknown atom type");
     }

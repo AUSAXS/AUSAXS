@@ -2,8 +2,8 @@
 
 warmup=3
 iterations=100
-pdb="data/SASDJG5/SASDJG5.pdb"
-dat="data/SASDJG5/SASDJG5.dat"
+pdb="data/SASDE35/SASDE35.pdb"
+dat="data/SASDE35/SASDE35.dat"
 hyperfine_cmd="hyperfine --warmup $warmup --runs $iterations"
 
 crysol_bench() {
@@ -47,7 +47,7 @@ crysol_serial_cmd() {
 
 crysol_serial_bench() {
     export -f crysol_serial_cmd
-    eval "$hyperfine_serial_cmd --command-name crysol-serial --show-output --export-json test/benchmarks/crysol_serial.json --shell=bash 'crysol_serial_cmd'"
+    eval "$hyperfine_serial_cmd --command-name crysol-serial --export-json test/benchmarks/crysol_serial.json --shell=bash 'crysol_serial_cmd'"
 }
 
 ausaxs_serial_bench() {

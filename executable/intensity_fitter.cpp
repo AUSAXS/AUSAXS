@@ -20,6 +20,7 @@
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
+    std::ios_base::sync_with_stdio(false);
     std::string s_pdb, s_mfile, s_settings, placement_strategy = "radial", histogram_manager = "hmmt"; // not using partial histograms has a slightly smaller overhead
     bool use_existing_hydration = false, fit_excluded_volume = false;
 
@@ -39,7 +40,6 @@ int main(int argc, char const *argv[]) {
 
     app.add_option("--reduce,-r", settings::grid::water_scaling, "The desired number of water molecules as a percentage of the number of atoms. Use 0 for no reduction.")->default_val(settings::grid::water_scaling)->group("Advanced options");
     app.add_option("--grid_width,--gw", settings::grid::width, "The distance between each grid point in Ångström. Lower widths increase the precision.")->default_val(settings::grid::width)->group("Advanced options");
-    app.add_option("--bin_width,--bw", settings::axes::distance_bin_width, "Bin width for the distance histograms.")->default_val(settings::axes::distance_bin_width)->group("Advanced options");
     app.add_option("--placement_strategy,--ps", placement_strategy, "The placement strategy to use. Options: Radial, Axes, Jan.")->default_val(placement_strategy)->group("Advanced options");
     auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
     CLI11_PARSE(app, argc, argv);
