@@ -2,7 +2,7 @@
 
 #include <em/ImageStack.h>
 #include <data/Body.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <rigidbody/RigidBody.h>
 #include <data/BodySplitter.h>
 #include <fitter/FitReporter.h>
@@ -15,15 +15,15 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <data/BodySplitter.h>
 #include <rigidbody/RigidBody.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
-#include <settings/ProteinSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <fitter/HydrationFitter.h>
-#include <hist/detail/FormFactor.h>
+#include <form_factor/FormFactor.h>
 #include <hydrate/Grid.h>
 
 #include <cassert>
@@ -31,199 +31,199 @@
 //************************************************************************************************* 
 //********************************* PLOT SCATTERING STUFF *****************************************
 //*************************************************************************************************
-int main(int argc, char const *argv[]) {
-    settings::axes::qmin = 0.02;
-    settings::axes::qmax = 1;
+// int main(int argc, char const *argv[]) {
+//     settings::axes::qmin = 0.02;
+//     settings::axes::qmax = 1;
 
-    std::string base_path = "temp/debug/";
-    SimpleDataset I_aa(base_path + "ff_aa.dat");
-    SimpleDataset I_ax(base_path + "ff_ax.dat");
-    SimpleDataset I_xx(base_path + "ff_xx.dat");
-    SimpleDataset I_aw(base_path + "ff_aw.dat");
-    SimpleDataset I_wx(base_path + "ff_wx.dat");
-    SimpleDataset I_ww(base_path + "ff_ww.dat");
+//     std::string base_path = "temp/debug/";
+//     SimpleDataset I_aa(base_path + "ff_aa.dat");
+//     SimpleDataset I_ax(base_path + "ff_ax.dat");
+//     SimpleDataset I_xx(base_path + "ff_xx.dat");
+//     SimpleDataset I_aw(base_path + "ff_aw.dat");
+//     SimpleDataset I_wx(base_path + "ff_wx.dat");
+//     SimpleDataset I_ww(base_path + "ff_ww.dat");
 
-    SimpleDataset coords(base_path + "COORDINATE.dat");
-    SimpleDataset exclvol(base_path + "exclvol.dat");
-    SimpleDataset crysol(base_path + "vaccum.dat");
-    SimpleDataset foxs(base_path + "foxs_vacuum.dat");
+//     SimpleDataset coords(base_path + "COORDINATE.dat");
+//     SimpleDataset exclvol(base_path + "exclvol.dat");
+//     SimpleDataset crysol(base_path + "vaccum.dat");
+//     SimpleDataset foxs(base_path + "foxs_vacuum.dat");
 
-    SimpleDataset foxs_aa(base_path + "foxs_aa.dat");
-    SimpleDataset foxs_ax(base_path + "foxs_ax.dat");
-    SimpleDataset foxs_xx(base_path + "foxs_xx.dat");
-    SimpleDataset foxs_aw(base_path + "foxs_aw.dat");
-    SimpleDataset foxs_wx(base_path + "foxs_wx.dat");
-    SimpleDataset foxs_ww(base_path + "foxs_ww.dat");
+//     SimpleDataset foxs_aa(base_path + "foxs_aa.dat");
+//     SimpleDataset foxs_ax(base_path + "foxs_ax.dat");
+//     SimpleDataset foxs_xx(base_path + "foxs_xx.dat");
+//     SimpleDataset foxs_aw(base_path + "foxs_aw.dat");
+//     SimpleDataset foxs_wx(base_path + "foxs_wx.dat");
+//     SimpleDataset foxs_ww(base_path + "foxs_ww.dat");
     
-    // SimpleDataset lyshr(base_path + "LYSHR.RSR");
+//     // SimpleDataset lyshr(base_path + "LYSHR.RSR");
 
-    I_aa.normalize(1);
-    I_ax.normalize(1);
-    I_xx.normalize(1);
-    coords.normalize(1);
-    exclvol.normalize(1);
-    crysol.normalize(1);
-    foxs.normalize(1);
+//     I_aa.normalize(1);
+//     I_ax.normalize(1);
+//     I_xx.normalize(1);
+//     coords.normalize(1);
+//     exclvol.normalize(1);
+//     crysol.normalize(1);
+//     foxs.normalize(1);
 
-    SimpleDataset I_sum(I_aa);
-    for (unsigned int i = 0; i < I_aa.size(); ++i) {
-        I_aa.y(i) = std::abs(I_aa.y(i));
-        I_ax.y(i) = std::abs(I_ax.y(i));
-        I_xx.y(i) = std::abs(I_xx.y(i));
-        I_aw.y(i) = std::abs(I_aw.y(i));
-        I_wx.y(i) = std::abs(I_wx.y(i));
-        I_ww.y(i) = std::abs(I_ww.y(i));
+//     SimpleDataset I_sum(I_aa);
+//     for (unsigned int i = 0; i < I_aa.size(); ++i) {
+//         I_aa.y(i) = std::abs(I_aa.y(i));
+//         I_ax.y(i) = std::abs(I_ax.y(i));
+//         I_xx.y(i) = std::abs(I_xx.y(i));
+//         I_aw.y(i) = std::abs(I_aw.y(i));
+//         I_wx.y(i) = std::abs(I_wx.y(i));
+//         I_ww.y(i) = std::abs(I_ww.y(i));
 
-        double cy = coords.interpolate_y(I_aa.x(i));
-        I_sum.y(i) = I_aa.y(i) + I_ax.y(i) + I_xx.y(i);
-        // I_aa.y(i) /= cy;
-        // I_ax.y(i) /= cy;
-        // I_xx.y(i) /= cy;
-    }
+//         double cy = coords.interpolate_y(I_aa.x(i));
+//         I_sum.y(i) = I_aa.y(i) + I_ax.y(i) + I_xx.y(i);
+//         // I_aa.y(i) /= cy;
+//         // I_ax.y(i) /= cy;
+//         // I_xx.y(i) /= cy;
+//     }
 
-    for (unsigned int i = 0; i < foxs_aa.size(); ++i) {
-        foxs_aa.y(i) = std::abs(foxs_aa.y(i));
-        foxs_ax.y(i) = std::abs(foxs_ax.y(i));
-        foxs_xx.y(i) = std::abs(foxs_xx.y(i));
-        foxs_aw.y(i) = std::abs(foxs_aw.y(i));
-        foxs_wx.y(i) = std::abs(foxs_wx.y(i));
-        foxs_ww.y(i) = std::abs(foxs_ww.y(i));
-    }
+//     for (unsigned int i = 0; i < foxs_aa.size(); ++i) {
+//         foxs_aa.y(i) = std::abs(foxs_aa.y(i));
+//         foxs_ax.y(i) = std::abs(foxs_ax.y(i));
+//         foxs_xx.y(i) = std::abs(foxs_xx.y(i));
+//         foxs_aw.y(i) = std::abs(foxs_aw.y(i));
+//         foxs_wx.y(i) = std::abs(foxs_wx.y(i));
+//         foxs_ww.y(i) = std::abs(foxs_ww.y(i));
+//     }
 
-    for (unsigned int i = 0; i < exclvol.size(); ++i) {
-        // exclvol.y(i) /= coords.interpolate_y(exclvol.x(i));
-        // vacuum.y(i)  /= coords.interpolate_y(vacuum.x(i));
-    }
+//     for (unsigned int i = 0; i < exclvol.size(); ++i) {
+//         // exclvol.y(i) /= coords.interpolate_y(exclvol.x(i));
+//         // vacuum.y(i)  /= coords.interpolate_y(vacuum.x(i));
+//     }
 
-    I_aa.normalize(1);
-    I_ax.normalize(1);
-    I_xx.normalize(1);
-    I_aw.normalize(1);
-    I_wx.normalize(1);
-    I_ww.normalize(1);
+//     I_aa.normalize(1);
+//     I_ax.normalize(1);
+//     I_xx.normalize(1);
+//     I_aw.normalize(1);
+//     I_wx.normalize(1);
+//     I_ww.normalize(1);
 
-    foxs_aa.normalize(1);
-    foxs_ax.normalize(1);
-    foxs_xx.normalize(1);
-    foxs_aw.normalize(1);
-    foxs_wx.normalize(1);
-    foxs_ww.normalize(1);
+//     foxs_aa.normalize(1);
+//     foxs_ax.normalize(1);
+//     foxs_xx.normalize(1);
+//     foxs_aw.normalize(1);
+//     foxs_wx.normalize(1);
+//     foxs_ww.normalize(1);
 
-    coords.normalize(1);
-    exclvol.normalize(1);
-    crysol.normalize(1);
-    I_sum.normalize(1);
-    foxs.normalize(1);
+//     coords.normalize(1);
+//     exclvol.normalize(1);
+//     crysol.normalize(1);
+//     I_sum.normalize(1);
+//     foxs.normalize(1);
 
-    I_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aa"}, {"color", style::color::red}});
-    I_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ax"}, {"color", style::color::blue}});
-    I_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::green}});
-    I_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aw"}, {"color", style::color::pink}});
-    I_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xw"}, {"color", style::color::purple}});
-    I_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ww"}, {"color", style::color::brown}});
+//     I_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aa"}, {"color", style::color::red}});
+//     I_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ax"}, {"color", style::color::blue}});
+//     I_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xx"}, {"color", style::color::green}});
+//     I_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_aw"}, {"color", style::color::pink}});
+//     I_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_xw"}, {"color", style::color::purple}});
+//     I_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "I_ww"}, {"color", style::color::brown}});
 
-    foxs_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aa"}, {"color", style::color::red}});
-    foxs_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ax"}, {"color", style::color::blue}});
-    foxs_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xx"}, {"color", style::color::green}});
-    foxs_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aw"}, {"color", style::color::pink}});
-    foxs_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xw"}, {"color", style::color::purple}});
-    foxs_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ww"}, {"color", style::color::brown}});
+//     foxs_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aa"}, {"color", style::color::red}});
+//     foxs_ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ax"}, {"color", style::color::blue}});
+//     foxs_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xx"}, {"color", style::color::green}});
+//     foxs_aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_aw"}, {"color", style::color::pink}});
+//     foxs_wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_xw"}, {"color", style::color::purple}});
+//     foxs_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ww"}, {"color", style::color::brown}});
 
-    coords.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "coords"}, {"linestyle", style::line::dashed}, {"color", style::color::red}});
-    exclvol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "exclvol"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
-    crysol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "crysol"}, {"linestyle", style::line::dashed}, {"color", style::color::green}});
-    I_sum.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_sum"}, {"color", style::color::black}});
-    foxs.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "foxs"}, {"color", style::color::black}});
-    // lyshr.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "lyshr"}, {"color", style::color::black}});
+//     coords.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "coords"}, {"linestyle", style::line::dashed}, {"color", style::color::red}});
+//     exclvol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "exclvol"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
+//     crysol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "crysol"}, {"linestyle", style::line::dashed}, {"color", style::color::green}});
+//     I_sum.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_sum"}, {"color", style::color::black}});
+//     foxs.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "foxs"}, {"color", style::color::black}});
+//     // lyshr.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "lyshr"}, {"color", style::color::black}});
 
-    // I_aa.save(base_path + "AUSAXS_aa.dat");
-    // I_ax.save(base_path + "AUSAXS_ax.dat");
-    // I_xx.save(base_path + "AUSAXS_xx.dat");
-    // exclvol.save(base_path + "scaled_exclvol.dat");
-    // vacuum.save(base_path + "scaled_vacuum.dat");
+//     // I_aa.save(base_path + "AUSAXS_aa.dat");
+//     // I_ax.save(base_path + "AUSAXS_ax.dat");
+//     // I_xx.save(base_path + "AUSAXS_xx.dat");
+//     // exclvol.save(base_path + "scaled_exclvol.dat");
+//     // vacuum.save(base_path + "scaled_vacuum.dat");
 
-    plots::PlotDataset(I_aa)
-        .plot(I_ax)
-        .plot(I_xx)
-        .plot(exclvol)
-        .plot(crysol)
-    .save(base_path + "compare.png");
+//     plots::PlotDataset(I_aa)
+//         .plot(I_ax)
+//         .plot(I_xx)
+//         .plot(exclvol)
+//         .plot(crysol)
+//     .save(base_path + "compare.png");
 
-    plots::PlotDataset(I_aa)
-        .plot(crysol)
-        .plot(foxs)
-    .save(base_path + "vacuum.png");
+//     plots::PlotDataset(I_aa)
+//         .plot(crysol)
+//         .plot(foxs)
+//     .save(base_path + "vacuum.png");
 
-    plots::PlotDataset(I_sum)
-        .plot(coords)
-    .save(base_path + "total.png");
+//     plots::PlotDataset(I_sum)
+//         .plot(coords)
+//     .save(base_path + "total.png");
 
-    plots::PlotDataset(I_aa)
-        .plot(I_xx)
-        .plot(I_ww)
+//     plots::PlotDataset(I_aa)
+//         .plot(I_xx)
+//         .plot(I_ww)
 
-        .plot(foxs_aa)
-        .plot(foxs_xx)
-        .plot(foxs_ww)
-    .save(base_path + "compare_foxs.png");
+//         .plot(foxs_aa)
+//         .plot(foxs_xx)
+//         .plot(foxs_ww)
+//     .save(base_path + "compare_foxs.png");
 
-    plots::PlotDataset(I_ax)
-        .plot(I_aw)
-        .plot(I_wx)
+//     plots::PlotDataset(I_ax)
+//         .plot(I_aw)
+//         .plot(I_wx)
 
-        .plot(foxs_ax)
-        .plot(foxs_aw)
-        .plot(foxs_wx)
-    .save(base_path + "compare_foxs_cross.png");
+//         .plot(foxs_ax)
+//         .plot(foxs_aw)
+//         .plot(foxs_wx)
+//     .save(base_path + "compare_foxs_cross.png");
 
-    plots::PlotDataset(foxs)
-        .plot(foxs_aa)
-    .save(base_path + "foxs_test.png");
+//     plots::PlotDataset(foxs)
+//         .plot(foxs_aa)
+//     .save(base_path + "foxs_test.png");
 
-    plots::PlotDataset(foxs_xx)
-        .plot(I_xx)
-    .save(base_path + "excluded_volume_profiles.png");
+//     plots::PlotDataset(foxs_xx)
+//         .plot(I_xx)
+//     .save(base_path + "excluded_volume_profiles.png");
 
-    for (unsigned int i = 0; i < foxs_xx.size(); ++i) {foxs_xx.y(i) /= foxs_aa.y(i);}
-    for (unsigned int i = 0; i < I_xx.size(); ++i) {I_xx.y(i) /= I_aa.y(i);}
+//     for (unsigned int i = 0; i < foxs_xx.size(); ++i) {foxs_xx.y(i) /= foxs_aa.y(i);}
+//     for (unsigned int i = 0; i < I_xx.size(); ++i) {I_xx.y(i) /= I_aa.y(i);}
 
-    plots::PlotDataset(foxs_xx)
-        .plot(I_xx)
-        .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
-    .save(base_path + "xx_div_aa.png");
-}
+//     plots::PlotDataset(foxs_xx)
+//         .plot(I_xx)
+//         .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
+//     .save(base_path + "xx_div_aa.png");
+// }
 
 //*************************************************************************************************
 //********************************* PLOT FORM FACTORS *********************************************
 //*************************************************************************************************
-// int main(int argc, char const *argv[]) {
-//     settings::general::output = "temp/stuff/ff/";
-//     auto plot = [] (hist::detail::FormFactor ff, std::string name) {
-//         auto q = Axis(0, 1, 100).as_vector();
-//         std::vector<double> y(q.size());
-//         for (unsigned int i = 0; i < q.size(); ++i) {
-//             y[i] = ff.evaluate(q[i]);
-//         }
-//         SimpleDataset d(q, y);
-//         d.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}});
-//         return d;
-//     };
+int main(int argc, char const *argv[]) {
+    settings::general::output = "temp/stuff/ff/";
+    auto plot = [] (form_factor::FormFactor ff, std::string name) {
+        auto q = Axis(0, 1, 100).as_vector();
+        std::vector<double> y(q.size());
+        for (unsigned int i = 0; i < q.size(); ++i) {
+            y[i] = ff.evaluate(q[i]);
+        }
+        SimpleDataset d(q, y);
+        d.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}});
+        return d;
+    };
 
-//     auto C = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_CARBON), "carbon");
-//     auto O = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::NEUTRAL_OXYGEN), "oxygen");
-//     auto EV = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::EXCLUDED_VOLUME), "excluded_volume");
-//     auto other = plot(hist::detail::FormFactorStorage::get_form_factor(hist::detail::form_factor_t::OTHER), "other");
-//     C.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}, {"legend", "Carbon"}, {"color", "red"}});
-//     O.add_plot_options({{"legend", "Oxygen"}, {"color", "blue"}});
-//     EV.add_plot_options({{"legend", "Excluded volume"}, {"color", "green"}});
-//     other.add_plot_options({{"legend", "Other"}, {"color", "black"}});
+    auto C = plot(form_factor::storage::get_form_factor(form_factor::form_factor_t::C), "carbon");
+    auto O = plot(form_factor::storage::get_form_factor(form_factor::form_factor_t::O), "oxygen");
+    auto EV = plot(form_factor::storage::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME), "excluded_volume");
+    auto other = plot(form_factor::storage::get_form_factor(form_factor::form_factor_t::OTHER), "other");
+    C.add_plot_options({{"xlabel", "q"}, {"ylabel", "ff"}, {"legend", "Carbon"}, {"color", "red"}});
+    O.add_plot_options({{"legend", "Oxygen"}, {"color", "blue"}});
+    EV.add_plot_options({{"legend", "Excluded volume"}, {"color", "green"}});
+    other.add_plot_options({{"legend", "Other"}, {"color", "black"}});
 
-//     plots::PlotDataset(C)
-//         .plot(O)
-//         .plot(EV)
-//         .plot(other)
-//     .save(settings::general::output + "ff.png");
-// }
+    plots::PlotDataset(C)
+        .plot(O)
+        .plot(EV)
+        .plot(other)
+    .save(settings::general::output + "ff.png");
+}
 
 // int main(int argc, char const *argv[]) {
 //     settings::protein::use_effective_charge = false;

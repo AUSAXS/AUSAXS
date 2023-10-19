@@ -4,27 +4,25 @@
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <dataset/SimpleDataset.h>
-#include <data/Molecule.h>
-#include <data/record/Atom.h>
 #include <settings/HistogramSettings.h>
 
 using namespace hist;
 
-CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(container::Container3D<double>&& p_pp, container::Container2D<double>&& p_hp, container::Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis) 
-    : CompositeDistanceHistogram(std::move(p_tot), axis), cp_pp(std::move(p_pp)), cp_hp(std::move(p_hp)), cp_hh(std::move(p_hh)) {}
+CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
+    : CompositeDistanceHistogram(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_wa(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
 CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept 
-    : CompositeDistanceHistogram(std::move(other.p_pp), std::move(other.p_hp), std::move(other.p_hh), std::move(other.p), other.axis), w_scaling(other.w_scaling), exv_scaling(other.exv_scaling), cp_pp(std::move(other.cp_pp)), cp_hp(std::move(other.cp_hp)), cp_hh(std::move(other.cp_hh)) {}
+    : CompositeDistanceHistogram(std::move(other.p_aa), std::move(other.p_wa), std::move(other.p_ww), std::move(other.p), other.axis), w_scaling(other.w_scaling), exv_scaling(other.exv_scaling), 
+        cp_aa(std::move(other.cp_aa)), cp_wa(std::move(other.cp_wa)), cp_ww(std::move(other.cp_ww)) {}
 
 CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
-
-#include <plots/PlotDataset.h>
-#include <settings/GeneralSettings.h>
 
 // #define DEBUG_DEBYE_TRANSFORM 1
 // #define DEBUG_PLOT_FF 0
 // #if DEBUG_DEBYE_TRANSFORM
+//     #include <plots/PlotDataset.h>
+//     #include <settings/GeneralSettings.h>
+//     #include <dataset/SimpleDataset.h>
 //     static unsigned int qcheck = 0;
 // #endif
 // ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
@@ -233,30 +231,30 @@ ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double atom_atom_sum = std::inner_product(cp_pp.begin(ff1, ff2), cp_pp.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+            for (unsigned int ff2 = ff1; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+                double atom_atom_sum = std::inner_product(cp_aa.begin(ff1, ff2), cp_aa.end(ff1, ff2), sinqd_table.begin(q), 0.0);
                 Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
             }
 
             // atom-exv
-            double atom_exv_sum = std::inner_product(cp_pp.begin(ff1, ff_exv_index), cp_pp.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
+            double atom_exv_sum = std::inner_product(cp_aa.begin(ff1, ff_exv_index), cp_aa.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
             Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
 
             // atom-water
-            double atom_water_sum = std::inner_product(cp_hp.begin(ff1), cp_hp.end(ff1), sinqd_table.begin(q), 0.0);
+            double atom_water_sum = std::inner_product(cp_wa.begin(ff1), cp_wa.end(ff1), sinqd_table.begin(q), 0.0);
             Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
         }
 
         // exv-exv
-        double exv_exv_sum = std::inner_product(cp_pp.begin(ff_exv_index, ff_exv_index), cp_pp.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
+        double exv_exv_sum = std::inner_product(cp_aa.begin(ff_exv_index, ff_exv_index), cp_aa.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
         Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
 
         // exv-water
-        double exv_water_sum = std::inner_product(cp_hp.begin(ff_exv_index), cp_hp.end(ff_exv_index), sinqd_table.begin(q), 0.0);
+        double exv_water_sum = std::inner_product(cp_wa.begin(ff_exv_index), cp_wa.end(ff_exv_index), sinqd_table.begin(q), 0.0);
         Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
 
         // water-water
-        double water_water_sum = std::inner_product(cp_hh.begin(), cp_hh.end(), sinqd_table.begin(q), 0.0);
+        double water_water_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
         Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
@@ -274,27 +272,27 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_counts() const {
 }
 
 const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
-    p_pp = std::vector<double>(axis.bins, 0);
+    p_aa = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-            std::transform(p_pp.begin(), p_pp.end(), cp_pp.begin(ff1, ff2), p_pp.begin(), std::plus<double>());
+            std::transform(p_aa.begin(), p_aa.end(), cp_aa.begin(ff1, ff2), p_aa.begin(), std::plus<double>());
         }
     }
-    return p_pp;
+    return p_aa;
 }
 
 const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
-    p_hp = std::vector<double>(axis.bins, 0);
+    p_wa = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-        std::transform(p_hp.begin(), p_hp.end(), cp_hp.begin(ff1), p_hp.begin(), std::plus<double>());
+        std::transform(p_wa.begin(), p_wa.end(), cp_wa.begin(ff1), p_wa.begin(), std::plus<double>());
     }
-    return p_hp;
+    return p_wa;
 }
 
 const std::vector<double>& CompositeDistanceHistogramFF::get_hh_counts() const {
-    p_hh = std::vector<double>(axis.bins, 0);
-    std::transform(p_hh.begin(), p_hh.end(), cp_hh.begin(), p_hh.begin(), std::plus<double>());
-    return p_hh;
+    p_ww = std::vector<double>(axis.bins, 0);
+    std::transform(p_ww.begin(), p_ww.end(), cp_ww.begin(), p_ww.begin(), std::plus<double>());
+    return p_ww;
 }
 
 void CompositeDistanceHistogramFF::apply_water_scaling_factor(double k) {

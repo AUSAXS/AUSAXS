@@ -11,17 +11,6 @@
 #include <array>
 
 /**
- * @brief Constexpr power function.
- */
-constexpr double simple_pow(double val, unsigned int power) {
-    double sum = 1;
-    for (unsigned int i = 0; i < power; i++) {
-        sum *= val;
-    }
-    return sum;
-}
-
-/**
  * @brief This namespace contains all constants used in this project. 
  */
 namespace constants {
@@ -78,8 +67,9 @@ namespace constants {
         constexpr double gm = 1.66054e-24; // Dalton --> grams
         constexpr double mg = 1.66054e-21; // Dalton --> mg
         constexpr double cm = 1e-8; // Ångström --> cm
+        constexpr double nm = 1e-1; // Ångström --> nm
 
-        constexpr double mL = simple_pow(unit::cm, 3); // Ångström^3 --> mL
+        constexpr double mL = std::pow(unit::cm, 3); // Ångström^3 --> mL
     }
 
     /**
@@ -98,6 +88,7 @@ namespace constants {
         namespace length {
             constexpr double m = 1;
             constexpr double cm = 1e-2;
+            constexpr double nm = 1e-9;
             constexpr double A = 1e-10; // Ångström
         }
 

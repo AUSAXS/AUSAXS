@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math/detail/exp/exp.h>
+
 #include <cmath>
 
 namespace math {
@@ -32,14 +34,14 @@ namespace math {
     }
 
     /**
-     * @brief Evaluate the exponential function using a Taylor series.
+     * @brief Evaluate the exponential function using IEE4 manipulations, see https://github.com/simonpf/fastexp/tree/master.
      *        This is probably slower than std::exp, but it is constexpr.
+     * 
+     * @tparam degree The degree of the polynomial fit. This determines the accuracy of the approximation.
+     * @param x The argument of the exponential function.
      */
-    constexpr double exp(double x) { 
-        double sum = 1;
-        for (int i = 9; i > 0; --i) {
-            sum = 1 + x*sum/i;
-        } 
-        return sum; 
-    } 
+    template<int degree = 5>
+    constexpr double exp(double x) {
+        return detail::fastexp::exp<double, detail::fastexp::IEEE, degree>(x);
+    }
 }

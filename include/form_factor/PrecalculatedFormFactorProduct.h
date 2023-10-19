@@ -8,11 +8,17 @@
 #include <vector>
 
 namespace form_factor {
-    class FormFactor;
+    template<typename T>
+    concept FormFactorType = requires(T t, double q) {
+        {t.evaluate(q)};
+    };
+
     class PrecalculatedFormFactorProduct {
         public:
             constexpr PrecalculatedFormFactorProduct() noexcept = default;
-            constexpr PrecalculatedFormFactorProduct(const FormFactor& ff1, const FormFactor& ff2) noexcept {
+
+            template<FormFactorType T1, FormFactorType T2>
+            constexpr PrecalculatedFormFactorProduct(const T1& ff1, const T2& ff2) noexcept {
                 std::array<double, constants::axes::q_axis.bins> res;
                 for (unsigned int i = 0; i < res.size(); ++i) {
                     res[i] = ff1.evaluate(constants::axes::q_vals[i])*ff2.evaluate(constants::axes::q_vals[i]);
@@ -34,7 +40,18 @@ namespace form_factor {
     };
 
     namespace storage {
+        /**
+         * @brief Get a precalculated atomic form factor product for a given pair of atomic form factors.
+         * 
+         * @param i The index of the first atomic form factor.
+         * @param j The index of the second atomic form factor.
+         */
         const PrecalculatedFormFactorProduct& get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept;
+
+        /**
+         * @brief Get the precalculated atomic form factor product table.
+         *        The table is symmetric. 
+         */
         const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>& get_precalculated_form_factor_table() noexcept;
     }
 }

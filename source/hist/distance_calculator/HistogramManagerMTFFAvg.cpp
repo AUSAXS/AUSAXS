@@ -26,11 +26,8 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg::calculate() {return 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_all() {
     constexpr unsigned int exv_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
-    std::cout << "Z_exv_avg = " << Z_exv_avg << std::endl;
     double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
 
-    // create a more compact representation of the coordinates
-    // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
     hist::detail::CompactCoordinatesFF data_p(protein->get_bodies());
     hist::detail::CompactCoordinatesFF data_h = hist::detail::CompactCoordinatesFF(protein->get_waters());
 

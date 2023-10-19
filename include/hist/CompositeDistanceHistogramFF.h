@@ -7,7 +7,6 @@
 
 #include <vector>
 
-class Protein;
 namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
@@ -30,9 +29,9 @@ namespace hist {
              */
             CompositeDistanceHistogramFF(container::Container3D<double>&& p_pp, container::Container2D<double>&& p_hp, container::Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis);
 
-            ~CompositeDistanceHistogramFF() override;
+            virtual ~CompositeDistanceHistogramFF() override;
 
-            ScatteringProfile debye_transform() const override;
+            virtual ScatteringProfile debye_transform() const override;
 
             // SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
@@ -51,10 +50,8 @@ namespace hist {
         protected:
             double w_scaling = 1;
             double exv_scaling = 1;
-
-        private:
-            container::Container3D<double> cp_pp;
-            container::Container2D<double> cp_hp;
-            container::Container1D<double> cp_hh;
+            container::Container3D<double> cp_aa;
+            container::Container2D<double> cp_wa;
+            container::Container1D<double> cp_ww;
     };
 }

@@ -1,6 +1,4 @@
 #include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <form_factor/PrecalculatedFormFactorProduct.h>
-#include <utility/Axis.h>
 #include <constants/Constants.h>
 
 #include <cmath>
