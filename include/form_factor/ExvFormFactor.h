@@ -16,7 +16,7 @@ namespace form_factor {
             constexpr ExvFormFactor(double volume) {
                 q0 = volume*constants::charge::density::water;
                 double s_to_q = constants::form_factor::s_to_q_factor; // crysol seems to have missed this conversion?
-                exponent = M_PI*std::pow(volume, 2./3)*s_to_q;         // eq 6
+                exponent = M_PI*std::pow(volume, 2./3)*s_to_q*s_to_q;  // eq 6
             }
 
             constexpr double evaluate_normalized(double q) const {

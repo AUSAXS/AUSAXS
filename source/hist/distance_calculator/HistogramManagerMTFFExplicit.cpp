@@ -184,7 +184,10 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    for (unsigned int i = 0; i < data_p.get_size(); ++i) {p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += std::pow(data_p[i].value.w, 2);}
+    for (unsigned int i = 0; i < data_p.get_size(); ++i) {
+        p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += std::pow(data_p[i].value.w, 2);
+        p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += 1;
+    }
     p_ww.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
@@ -229,7 +232,9 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
         std::move(p_ww.begin(), p_ww.begin()+max_bin, p_ww_short.begin());
     }
     p_tot.resize(max_bin);
-    return std::make_unique<CompositeDistanceHistogramFFExplicit>(std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
-                                                                  std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
-                                                                  std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+
+    return std::make_unique<CompositeDistanceHistogramFFExplicit>(
+        std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
+        std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
+        std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
 }

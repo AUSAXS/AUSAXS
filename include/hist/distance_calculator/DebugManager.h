@@ -1,10 +1,10 @@
 #pragma once
 
 #include <hist/distance_calculator/HistogramManager.h>
-#include <hist/CompositeDistanceHistogramFF.h>
+#include <hist/CompositeDistanceHistogramFFAvg.h>
 
 namespace hist {
-    class DebugDistanceHistogram : public CompositeDistanceHistogramFF {
+    class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg {
         public: 
             DebugDistanceHistogram(const data::Molecule* const protein);
             ~DebugDistanceHistogram() override;

@@ -58,8 +58,8 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
                 double qr = q*aa_distances(i, j);
 
                 // exv
-                double Z_exv_i = Z_exv*atom_i.get_occupancy()*exv_scaling;
-                double Z_exv_j = Z_exv*atom_j.get_occupancy()*exv_scaling;
+                double Z_exv_i = Z_exv*atom_i.get_occupancy()*cx;
+                double Z_exv_j = Z_exv*atom_j.get_occupancy()*cx;
                 double f_exv = Z_exv_i*form_factor::storage::excluded_volume.evaluate(q);
 
                 double tmp = Zi*Zj*fi*fj + Z_exv_i*Z_exv_j*f_exv*f_exv - 2*Zi*Z_exv_i*fi*f_exv;
@@ -76,13 +76,13 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
 
                 // water
                 double Zi = atom_i.get_effective_charge()*atom_i.get_occupancy();
-                double Zj = water.get_effective_charge()*water.get_occupancy()*w_scaling;
+                double Zj = water.get_effective_charge()*water.get_occupancy()*cw;
                 double fi = Zi*form_factor::storage::get_form_factor(form_factor::get_type(atom_i.get_element())).evaluate(q);
                 double fj = Zj*form_factor::storage::O.evaluate(q);
                 double qr = q*aw_distances(i, j);
 
                 // exv
-                double Z_exv_i = Z_exv*atom_i.get_occupancy()*exv_scaling;
+                double Z_exv_i = Z_exv*atom_i.get_occupancy()*cx;
                 double f_exv = Z_exv_i*form_factor::storage::excluded_volume.evaluate(q);
 
                 double tmp = 2*Zi*Zj*fi*fj - 2*Zi*Z_exv_i*fi*f_exv;
@@ -99,8 +99,8 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
                 const auto& water_i = protein->get_waters()[i];
                 const auto& water_j = protein->get_waters()[j];
 
-                double Zi = water_i.get_effective_charge()*water_i.get_occupancy()*w_scaling;
-                double Zj = water_j.get_effective_charge()*water_j.get_occupancy()*w_scaling;
+                double Zi = water_i.get_effective_charge()*water_i.get_occupancy()*cw;
+                double Zj = water_j.get_effective_charge()*water_j.get_occupancy()*cw;
                 double fw = Zj*form_factor::storage::O.evaluate(q);
                 double qr = q*ww_distances(i, j);
 

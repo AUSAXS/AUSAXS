@@ -11,25 +11,24 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    class CompositeDistanceHistogramFF : public CompositeDistanceHistogram {
+    class CompositeDistanceHistogramFFAvg : public CompositeDistanceHistogram {
         public: 
-            CompositeDistanceHistogramFF() = default;
+            CompositeDistanceHistogramFFAvg();
 
-            CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept;
+            CompositeDistanceHistogramFFAvg(CompositeDistanceHistogramFFAvg&& other) noexcept;
 
             /**
              * @brief Construct a new Composite Distance Histogram FF object
              * 
-             * @param p_pp Partial distance histogram for atom-atom interactions
-             * @param p_hp Partial distance histogram for atom-water interactions
-             * @param p_hh Partial distance histogram for water-water interactions
+             * @param p_aa Partial distance histogram for atom-atom interactions
+             * @param p_aw Partial distance histogram for atom-water interactions
+             * @param p_ww Partial distance histogram for water-water interactions
              * @param p_tot Total distance histogram
              * @param axis Distance axis
-             * @param Z_exv_avg Average charge of excluded volume
              */
-            CompositeDistanceHistogramFF(container::Container3D<double>&& p_pp, container::Container2D<double>&& p_hp, container::Container1D<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogramFFAvg(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_wa, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis);
 
-            virtual ~CompositeDistanceHistogramFF() override;
+            virtual ~CompositeDistanceHistogramFFAvg() override;
 
             virtual ScatteringProfile debye_transform() const override;
 
@@ -48,8 +47,8 @@ namespace hist {
             const std::vector<double>& get_counts() const override;
 
         protected:
-            double w_scaling = 1;
-            double exv_scaling = 1;
+            double cw = 1; // water scaling factor
+            double cx = 1; // excluded volume scaling factor
             container::Container3D<double> cp_aa;
             container::Container2D<double> cp_wa;
             container::Container1D<double> cp_ww;

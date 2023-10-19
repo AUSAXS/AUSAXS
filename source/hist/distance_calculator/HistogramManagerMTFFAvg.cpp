@@ -1,5 +1,5 @@
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/CompositeDistanceHistogramFF.h>
+#include <hist/CompositeDistanceHistogramFFAvg.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactor.h>
 #include <data/Molecule.h>
@@ -219,5 +219,5 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
         std::move(p_hh.begin(), p_hh.begin()+max_bin, p_hh_short.begin());
     }
     p_tot.resize(max_bin);
-    return std::make_unique<CompositeDistanceHistogramFF>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+    return std::make_unique<CompositeDistanceHistogramFFAvg>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
 }

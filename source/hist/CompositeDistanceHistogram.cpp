@@ -3,7 +3,7 @@
 
 using namespace hist;
 
-CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_pp, std::vector<double>&& p_hp, std::vector<double>&& p_hh, std::vector<double>&& p_tot, const Axis& axis) 
+CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_aa, std::vector<double>&& p_wa, std::vector<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
     : DistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_wa(std::move(p_wa)), p_ww(std::move(p_ww)) {}
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_tot, const Axis& axis) : DistanceHistogram(std::move(p_tot), axis) {}

@@ -20,7 +20,7 @@ namespace plots {
 			/**
 			 * @brief Default constructor.
 			 */
-			PlotDataset() {}
+			PlotDataset() = default;
 
 			/**
 			 * @brief Constructor.

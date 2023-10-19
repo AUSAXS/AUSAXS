@@ -6,7 +6,7 @@
 #include <hist/Histogram.h>
 #include <hist/DistanceHistogram.h>
 #include <hist/CompositeDistanceHistogram.h>
-#include <hist/CompositeDistanceHistogramFF.h>
+#include <hist/CompositeDistanceHistogramFFAvg.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>
@@ -21,7 +21,6 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, data::
     double c = hres->get_parameter("c").value;
     if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0, 1.5}}};}
     else {this->guess = {{"c", c, {c*0.8, c*1.2}}, {"d", 1, {0, 1.5}}};}
-
     HydrationFitter::operator=(std::move(hfit));
 }
 
@@ -99,8 +98,7 @@ double ExcludedVolumeFitter::get_intercept() {
 
 void ExcludedVolumeFitter::update_excluded_volume(double d) {
     // protein.update_effective_charge(d);
-
-    static_cast<hist::CompositeDistanceHistogramFF*>(h.get())->apply_excluded_volume_scaling_factor(d);
+    static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())->apply_excluded_volume_scaling_factor(d);
     // protein.set_excluded_volume_scaling(d);
     // h = protein.get_histogram();
 }

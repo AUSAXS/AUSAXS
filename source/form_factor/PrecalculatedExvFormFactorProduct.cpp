@@ -27,13 +27,13 @@ constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_facto
     return table;
 }
 
-inline constexpr auto ff_table = generate_exv_exv_table();
+inline constexpr auto ff_xx_table = generate_exv_exv_table();
 const PrecalculatedFormFactorProduct& form_factor::storage::exv::get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept {
-    return ff_table.index(i, j);
+    return ff_xx_table.index(i, j);
 }
 
 const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>& form_factor::storage::exv::get_precalculated_form_factor_table() noexcept {
-    return ff_table;
+    return ff_xx_table;
 }
 
 constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_atom_exv_table() {
@@ -58,11 +58,11 @@ constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_facto
     return table;
 }
 
-inline constexpr auto ff_table = generate_atom_exv_table();
+inline constexpr auto ff_ax_table = generate_atom_exv_table();
 const PrecalculatedFormFactorProduct& form_factor::storage::cross::get_precalculated_form_factor_product(unsigned int i, unsigned int j) noexcept {
-    return ff_table.index(i, j);
+    return ff_ax_table.index(i, j);
 }
 
 const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>& form_factor::storage::cross::get_precalculated_form_factor_table() noexcept {
-    return ff_table;
+    return ff_ax_table;
 }

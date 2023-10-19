@@ -1,4 +1,4 @@
-#include <hist/CompositeDistanceHistogramFF.h>
+#include <hist/CompositeDistanceHistogramFFAvg.h>
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
@@ -8,14 +8,16 @@
 
 using namespace hist;
 
-CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
+CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg() = default;
+
+CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
     : CompositeDistanceHistogram(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_wa(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
-CompositeDistanceHistogramFF::CompositeDistanceHistogramFF(CompositeDistanceHistogramFF&& other) noexcept 
-    : CompositeDistanceHistogram(std::move(other.p_aa), std::move(other.p_wa), std::move(other.p_ww), std::move(other.p), other.axis), w_scaling(other.w_scaling), exv_scaling(other.exv_scaling), 
+CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(CompositeDistanceHistogramFFAvg&& other) noexcept 
+    : CompositeDistanceHistogram(std::move(other.p_aa), std::move(other.p_wa), std::move(other.p_ww), std::move(other.p), other.axis), cw(other.cw), cx(other.cx), 
         cp_aa(std::move(other.cp_aa)), cp_wa(std::move(other.cp_wa)), cp_ww(std::move(other.cp_ww)) {}
 
-CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
+CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 
 // #define DEBUG_DEBYE_TRANSFORM 1
 // #define DEBUG_PLOT_FF 0
@@ -25,7 +27,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 //     #include <dataset/SimpleDataset.h>
 //     static unsigned int qcheck = 0;
 // #endif
-// ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
+// ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
 //     const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
 //     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
 
@@ -215,7 +217,7 @@ CompositeDistanceHistogramFF::~CompositeDistanceHistogramFF() = default;
 //     return ScatteringProfile(Iq, debye_axis);
 // }
 
-ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
+ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
     const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
 
@@ -231,47 +233,47 @@ ScatteringProfile CompositeDistanceHistogramFF::debye_transform() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
-            for (unsigned int ff2 = ff1; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double atom_atom_sum = std::inner_product(cp_aa.begin(ff1, ff2), cp_aa.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
+            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+                double aa_sum = std::inner_product(cp_aa.begin(ff1, ff2), cp_aa.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                Iq[q] += aa_sum*ff_table.index(ff1, ff2).evaluate(q);
             }
 
             // atom-exv
-            double atom_exv_sum = std::inner_product(cp_aa.begin(ff1, ff_exv_index), cp_aa.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
-            Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
+            double ax_sum = std::inner_product(cp_aa.begin(ff1, ff_exv_index), cp_aa.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
+            Iq[q] -= 2*cx*ax_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
 
             // atom-water
-            double atom_water_sum = std::inner_product(cp_wa.begin(ff1), cp_wa.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
+            double aw_sum = std::inner_product(cp_wa.begin(ff1), cp_wa.end(ff1), sinqd_table.begin(q), 0.0);
+            Iq[q] += 2*cw*aw_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
         }
 
         // exv-exv
-        double exv_exv_sum = std::inner_product(cp_aa.begin(ff_exv_index, ff_exv_index), cp_aa.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
-        Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
+        double xx_sum = std::inner_product(cp_aa.begin(ff_exv_index, ff_exv_index), cp_aa.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
+        Iq[q] += cx*cx*xx_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
 
         // exv-water
-        double exv_water_sum = std::inner_product(cp_wa.begin(ff_exv_index), cp_wa.end(ff_exv_index), sinqd_table.begin(q), 0.0);
-        Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
+        double ew_sum = std::inner_product(cp_wa.begin(ff_exv_index), cp_wa.end(ff_exv_index), sinqd_table.begin(q), 0.0);
+        Iq[q] -= 2*cx*cw*ew_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
 
         // water-water
-        double water_water_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
-        Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
+        double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
+        Iq[q] += cw*cw*ww_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const std::vector<double>& CompositeDistanceHistogramFF::get_counts() const {
+const std::vector<double>& CompositeDistanceHistogramFFAvg::get_counts() const {
     p = std::vector<double>(axis.bins, 0);
     auto& p_pp = get_pp_counts();
     auto& p_hp = get_hp_counts();
     auto& p_hh = get_hh_counts();
     for (unsigned int i = 0; i < axis.bins; ++i) {
-        p[i] = p_pp[i] + 2*w_scaling*p_hp[i] + w_scaling*w_scaling*p_hh[i];
+        p[i] = p_pp[i] + 2*cw*p_hp[i] + cw*cw*p_hh[i];
     }
     return p.data;
 }
 
-const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
+const std::vector<double>& CompositeDistanceHistogramFFAvg::get_pp_counts() const {
     p_aa = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -281,7 +283,7 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_pp_counts() const {
     return p_aa;
 }
 
-const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
+const std::vector<double>& CompositeDistanceHistogramFFAvg::get_hp_counts() const {
     p_wa = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         std::transform(p_wa.begin(), p_wa.end(), cp_wa.begin(ff1), p_wa.begin(), std::plus<double>());
@@ -289,16 +291,16 @@ const std::vector<double>& CompositeDistanceHistogramFF::get_hp_counts() const {
     return p_wa;
 }
 
-const std::vector<double>& CompositeDistanceHistogramFF::get_hh_counts() const {
+const std::vector<double>& CompositeDistanceHistogramFFAvg::get_hh_counts() const {
     p_ww = std::vector<double>(axis.bins, 0);
     std::transform(p_ww.begin(), p_ww.end(), cp_ww.begin(), p_ww.begin(), std::plus<double>());
     return p_ww;
 }
 
-void CompositeDistanceHistogramFF::apply_water_scaling_factor(double k) {
-    w_scaling = k;
+void CompositeDistanceHistogramFFAvg::apply_water_scaling_factor(double k) {
+    cw = k;
 }
 
-void CompositeDistanceHistogramFF::apply_excluded_volume_scaling_factor(double k) {
-    exv_scaling = k;
+void CompositeDistanceHistogramFFAvg::apply_excluded_volume_scaling_factor(double k) {
+    cx = k;
 }
