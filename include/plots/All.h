@@ -6,6 +6,7 @@
 #include <plots/PlotDataset.h>
 #include <plots/PlotHistogram.h>
 #include <plots/PlotDistance.h>
+#include <plots/PlotProfiles.h>
 #include <plots/PlotImage.h>
 #include <plots/PlotLandscape.h>
 #include <plots/PlotIntensity.h>

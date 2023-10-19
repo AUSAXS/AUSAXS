@@ -15,6 +15,8 @@ PlotOptions::PlotOptions() : draw_line(true) {}
 
 PlotOptions::PlotOptions(const PlotOptions& opt) {*this = opt;}
 
+PlotOptions::PlotOptions(std::unordered_map<std::string, std::any> options) : draw_line(true) {set(options);}
+
 PlotOptions::PlotOptions(const style::DrawStyle& style, std::unordered_map<std::string, std::any> options) {
     draw_line = draw_markers = draw_errors = false;
     parse(style, true);
@@ -151,6 +153,7 @@ PlotOptions& PlotOptions::operator=(const PlotOptions& opt) {
     xlimits = opt.xlimits;
     legend = opt.legend;
     zorder = opt.zorder;
+    normalize = opt.normalize;
     return *this;
 }
 
@@ -173,6 +176,7 @@ std::string PlotOptions::to_string() const {
         << "ylabel "         << ylabel << "\n"
         << "zlabel "         << zlabel << "\n"
         << "legend "         << legend << "\n"
+        << "normalize "      << normalize << "\n"
         << "ylimits "        << ylimits.min << " " << ylimits.max << "\n"
         << "xlimits "        << xlimits.min << " " << xlimits.max << "\n"
         << "zorder "         << zorder << std::endl;

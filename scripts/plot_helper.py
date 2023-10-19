@@ -460,8 +460,8 @@ def plot_file(file: str):
                     plot_landscape(dataset)
 
                 case PlotType.Histogram:
-                    print("Histogram not implemented yet.")
-                    exit(1)
+                    dataset: Dataset = read_dataset(f)
+                    plot_dataset(dataset)
 
                 case PlotType.Image:
                     x, y, z, options = read_2dhist(f)

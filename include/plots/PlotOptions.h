@@ -42,6 +42,7 @@ namespace plots {
         static inline std::string logy = "logy";
         static inline std::string xlimits = "xlim";
         static inline std::string ylimits = "ylim";
+        static inline std::string normalize = "normalize";
     };
 
     /**
@@ -50,6 +51,13 @@ namespace plots {
     class PlotOptions {
         public:
             PlotOptions();
+
+            /**
+             * @brief Create a new set of plot settings. 
+             * 
+             * @param options The remaining options. If both markers and lines are needed, set both to true here. 
+             */
+            PlotOptions(std::unordered_map<std::string, std::any> options);
 
             /**
              * @brief Create a new set of plot settings. 
@@ -85,6 +93,7 @@ namespace plots {
             bool draw_bars = false;                 // Draw bars for a histogram.
             bool logx = false;                      // Log scale for the x-axis. Only valid if use_existing_axes is false.  
             bool logy = false;                      // Log scale for the y-axis. Only valid if use_existing_axes is false. 
+            bool normalize = false;                 // Normalize the y-axis to 1.
             Limit ylimits;                          // Limits on the y-axis
             Limit xlimits;                          // Limits on the x-axis
             int zorder = 0;                         // Z-order for the plot. Higher zorder plots are drawn on top of lower zorder plots.
@@ -139,6 +148,7 @@ namespace plots {
                 make_shared({option::zlabel}, zlabel),
                 make_shared({option::logx, "log_x"}, logx),
                 make_shared({option::logy, "log_y"}, logy),
+                make_shared({option::normalize, "normalize"}, normalize),
                 make_shared({option::xlimits, "x_lim", "xlimits", "xlimit"}, xlimits),
                 make_shared({option::ylimits, "y_lim", "ylimits", "ylimit"}, ylimits),
                 make_shared({option::legend}, legend),

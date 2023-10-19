@@ -36,9 +36,26 @@ namespace hist {
 
             ScatteringProfile debye_transform() const override;
 
+            /**
+             * @brief Get the intensity profile for atom-atom interactions.
+             */
+            virtual const ScatteringProfile get_profile_ax() const;
+
+            /**
+             * @brief Get the intensity profile for atom-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_xx() const;
+
+            /**
+             * @brief Get the intensity profile for water-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_wx() const;
+
         private:
             container::Container3D<double> cp_ax;
             container::Container3D<double> cp_xx;
             container::Container2D<double> cp_wx;
+
+            double G_factor(double q) const;
     };
 }

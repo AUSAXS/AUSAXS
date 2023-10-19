@@ -1,6 +1,7 @@
 #pragma once
 
 #include <io/IOFwd.h>
+#include <plots/PlotOptions.h>
 
 #include <sstream>
 

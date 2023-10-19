@@ -9,6 +9,10 @@ namespace plots {
 	 */
 	class PlotHistogram : public Plot {
 		public:
+			PlotHistogram();
+
+			virtual ~PlotHistogram();
+
 			/**
 			 * @brief Copy constructor.
 			 * 
@@ -16,12 +20,9 @@ namespace plots {
 			 */
 			PlotHistogram(const hist::Histogram& h);
 
-			/**
-			 * @brief Destructor.
-			 */
-			~PlotHistogram() override;
-
 			PlotHistogram& plot(const hist::Histogram& hist);
+
+			PlotHistogram& plot(const hist::Histogram& hist, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot and save the input dataset and the specified location. 

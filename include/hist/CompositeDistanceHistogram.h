@@ -18,19 +18,49 @@ namespace hist {
 
             virtual ~CompositeDistanceHistogram() override;
 
-            virtual const std::vector<double>& get_pp_counts() const;
+            /**
+             * @brief Get the partial distance histogram for atom-atom interactions.
+             */
+            virtual const std::vector<double>& get_aa_counts() const;
 
-            virtual const std::vector<double>& get_hh_counts() const;
+            /**
+             * @brief Get the partial distance histogram for atom-water interactions.
+             */
+            virtual const std::vector<double>& get_aw_counts() const;            
 
-            virtual const std::vector<double>& get_hp_counts() const;            
+            /**
+             * @brief Get the partial distance histogram for water-water interactions.
+             */
+            virtual const std::vector<double>& get_ww_counts() const;
 
+            /**
+             * @brief Apply a scaling factor to the water partial distance histogram.
+             */
             virtual void apply_water_scaling_factor(double k);
 
+            /**
+             * @brief Reset the water scaling factor to 1.
+             */
             void reset_water_scaling_factor();
+
+            /**
+             * @brief Get the intensity profile for atom-atom interactions.
+             */
+            virtual const ScatteringProfile get_profile_aa() const;
+
+            /**
+             * @brief Get the intensity profile for atom-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_aw() const;
+
+            /**
+             * @brief Get the intensity profile for water-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_ww() const;
 
         protected:
             mutable std::vector<double> p_aa;
-            mutable std::vector<double> p_wa;
+            mutable std::vector<double> p_aw;
             mutable std::vector<double> p_ww;
     };
 }

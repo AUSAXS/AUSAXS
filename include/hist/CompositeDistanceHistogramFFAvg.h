@@ -32,25 +32,71 @@ namespace hist {
 
             virtual ScatteringProfile debye_transform() const override;
 
-            // SimpleDataset debye_transform(const std::vector<double>& q) const override;
-
+            /**
+             * @brief Apply a scaling factor to the water partial distance histogram.
+             */
             void apply_water_scaling_factor(double k) override;
 
+            /**
+             * @brief Apply a scaling factor to the excluded volume partial distance histogram.
+             */
             void apply_excluded_volume_scaling_factor(double k);
 
-            const std::vector<double>& get_pp_counts() const override;
+            /**
+             * @brief Get the partial distance histogram for atom-atom interactions.
+             */
+            const std::vector<double>& get_aa_counts() const override;
 
-            const std::vector<double>& get_hh_counts() const override;
+            /**
+             * @brief Get the partial distance histogram for atom-water interactions.
+             */
+            const std::vector<double>& get_aw_counts() const override;
 
-            const std::vector<double>& get_hp_counts() const override;
+            /**
+             * @brief Get the partial distance histogram for water-water interactions.
+             */
+            const std::vector<double>& get_ww_counts() const override;
 
+            /**
+             * @brief Get the total distance histogram.
+             */
             const std::vector<double>& get_counts() const override;
+
+            /**
+             * @brief Get the intensity profile for atom-atom interactions.
+             */
+            virtual const ScatteringProfile get_profile_aa() const override;
+
+            /**
+             * @brief Get the intensity profile for atom-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_aw() const override;
+
+            /**
+             * @brief Get the intensity profile for water-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_ww() const override;
+
+            /**
+             * @brief Get the intensity profile for atom-atom interactions.
+             */
+            virtual const ScatteringProfile get_profile_ax() const;
+
+            /**
+             * @brief Get the intensity profile for atom-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_xx() const;
+
+            /**
+             * @brief Get the intensity profile for water-water interactions.
+             */
+            virtual const ScatteringProfile get_profile_wx() const;
 
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
             container::Container3D<double> cp_aa;
-            container::Container2D<double> cp_wa;
+            container::Container2D<double> cp_aw;
             container::Container1D<double> cp_ww;
     };
 }
