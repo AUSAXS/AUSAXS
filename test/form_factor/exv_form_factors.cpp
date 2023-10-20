@@ -23,7 +23,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     }
 
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
-        const form_factor::ExvFormFactor& ff_obj = form_factor::storage::exv::get_exv_form_factor(static_cast<form_factor::form_factor_t>(ff));
+        const form_factor::ExvFormFactor& ff_obj = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
         dataset.add_plot_options({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ff))}, {"color", style::color::next()}});
         for (const double& q : q_vals) {
