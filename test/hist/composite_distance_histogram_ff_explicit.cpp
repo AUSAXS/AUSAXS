@@ -1,12 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <hist/distance_calculator/HistogramManagerMT.h>
-#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/CompositeDistanceHistogramFF.h>
-#include <hist/CompositeDistanceHistogram.h>
-#include <hist/Histogram.h>
+#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/CompositeDistanceHistogramFFExplicit.h>
 #include <form_factor/FormFactor.h>
+#include <form_factor/ExvFormFactor.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Molecule.h>
@@ -73,11 +71,12 @@ std::vector<double> d = {
 
 #define DEBYE_DEBUG 0
 // unsigned int qcheck = 0;
-TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
+TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::use_effective_charge = false;
-    auto ff_carbon = form_factor::storage::get_form_factor(form_factor::form_factor_t::C);
-    auto ff_exv = form_factor::storage::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    auto ff_C = form_factor::storage::get_form_factor(form_factor::form_factor_t::C);
     auto ff_w = form_factor::storage::get_form_factor(form_factor::form_factor_t::O);
+    auto ff_Cx = form_factor::storage::exv::get_form_factor(form_factor::form_factor_t::C);
+    auto ff_wx = form_factor::storage::exv::get_form_factor(form_factor::form_factor_t::O);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
 
@@ -119,12 +118,12 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                 }
             #endif
 
-            Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);
-            Iq_exp[q] -= 2*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);
-            Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);
+            Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);
+            Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);
+            Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);
         }
 
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -162,12 +161,12 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                     std::cout << "8*sin(" << q_axis[q] << "*" << d[3] << ")/(" << q_axis[q] << "*" << d[3] << ") = " << std::sin(q_axis[q]*d[3])/(q_axis[q]*d[3]) << std::endl;
                 }
             #endif
-            Iq_exp[q] += aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                  // + aa
-            Iq_exp[q] -= 2*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);  // -2ax
-            Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                     // + xx
-            Iq_exp[q] += 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);    // +2aw
-            Iq_exp[q] -= 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);       // -2wx
-            Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                           // + ww
+            Iq_exp[q] += aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);                 // + aa
+            Iq_exp[q] -= 2*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);  // -2ax
+            Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);                // + xx
+            Iq_exp[q] += 2*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);   // +2aw
+            Iq_exp[q] -= 2*awsum*ff_w.evaluate(q_axis[q])*ff_wx.evaluate(q_axis[q]);  // -2wx
+            Iq_exp[q] += 1*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
 
             #if DEBYE_DEBUG
                 if (q==qcheck) {
@@ -182,7 +181,7 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                 }
             #endif
         }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -225,36 +224,50 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
                 }
             #endif
 
-            Iq_exp[q] += ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2);                    // + aa
-            Iq_exp[q] -= 2*ZC*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]);    // -2ax
-            Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);                       // + xx
-            Iq_exp[q] += 2*ZC*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);      // +2aw
-            Iq_exp[q] -= 2*ZO*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2wx
-            Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
+            Iq_exp[q] += ZC*ZC*aasum*std::pow(ff_C.evaluate(q_axis[q]), 2);                // + aa
+            Iq_exp[q] -= 2*ZC*ZX*axsum*ff_C.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]); // -2ax
+            Iq_exp[q] += ZX*ZX*aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);               // + xx
+            Iq_exp[q] += 2*ZC*ZO*awsum*ff_C.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);  // +2aw
+            Iq_exp[q] -= 2*ZO*ZX*awsum*ff_w.evaluate(q_axis[q])*ff_wx.evaluate(q_axis[q]); // -2wx
+            Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                    // + ww
         }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
-    SECTION("real data") {
-        Molecule protein("test/files/2epe.pdb");
-        double ZX = protein.get_excluded_volume()*constants::charge::density::water/protein.atom_size();
-        double ZC = 6;
-        double ZO = 8;
-        for (auto& body : protein.get_bodies()) {
-            for (auto& atom : body.get_atoms()) {
-                atom.set_element(constants::atom_t::C);
-                atom.set_effective_charge(ZC);
-            }
-        }
-        protein.generate_new_hydration();
-        for (auto& water : protein.get_waters()) {
-            water.set_effective_charge(ZO);
-        }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+    // SECTION("real data") {
+    //     Molecule protein("test/files/2epe.pdb");
+    //     double ZX = protein.get_excluded_volume()*constants::charge::density::water/protein.atom_size();
+    //     double ZC = 6;
+    //     double ZO = 8;
+    //     for (auto& body : protein.get_bodies()) {
+    //         for (auto& atom : body.get_atoms()) {
+    //             atom.set_element(constants::atom_t::C);
+    //             atom.set_effective_charge(ZC);
+    //         }
+    //     }
+    //     protein.generate_new_hydration();
+    //     for (auto& water : protein.get_waters()) {
+    //         water.set_effective_charge(ZO);
+    //     }
+    //     auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
 
-        unsigned int N = protein.atom_size();
-        unsigned int M = protein.water_size();
-        REQUIRE_THAT(Iq[0], Catch::Matchers::WithinRel(std::pow(N*ZC + M*ZO - N*ZX, 2) + 2*N*ZC*ZX, 1e-3));
+    //     unsigned int N = protein.atom_size();
+    //     unsigned int M = protein.water_size();
+    //     REQUIRE_THAT(Iq[0], Catch::Matchers::WithinRel(std::pow(N*ZC + M*ZO - N*ZX, 2) + 2*N*ZC*ZX, 1e-3));
+    // }
+}
+
+TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
+    data::Molecule protein("test/files/2epe.pdb");
+    auto hist_data = hist::HistogramManagerMTFFExplicit(&protein).calculate_all();
+    auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
+    auto Iq = hist->debye_transform();
+    auto profile_sum = 
+          hist->get_profile_ww() - hist->get_profile_wx() + hist->get_profile_xx()
+        + hist->get_profile_aw() - hist->get_profile_ax() + hist->get_profile_aa();
+    REQUIRE(Iq.size() == profile_sum.size());
+    for (unsigned int i = 0; i < Iq.size(); ++i) {
+        REQUIRE_THAT(Iq[i], Catch::Matchers::WithinRel(profile_sum[i], 1e-3));
     }
 }

@@ -46,7 +46,7 @@ const ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
 }
 
 const ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
-    return partial_profile(p_aw, q_axis);
+    return partial_profile(p_aw, q_axis)*2;
 }
 
 const ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {

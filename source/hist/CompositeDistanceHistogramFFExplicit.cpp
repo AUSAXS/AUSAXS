@@ -118,7 +118,7 @@ const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_wx() c
         double Gq = G_factor(q_axis[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             double wx_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] += 2*Gq*cx*cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
+            Iq[q] += 2*Gq*cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
         }
     }
     return ScatteringProfile(Iq, debye_axis);

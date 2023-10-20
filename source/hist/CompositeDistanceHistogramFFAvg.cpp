@@ -330,10 +330,11 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ax() const 
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
+    unsigned int ff_exv_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double ax_sum = std::inner_product(cp_aa.begin(ff1, static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)), cp_aa.end(ff1, static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)), sinqd_table.begin(q), 0.0);
-            Iq[q] -= 2*cx*ax_sum*ff_table.index(ff1, static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)).evaluate(q);
+            double ax_sum = std::inner_product(cp_aa.begin(ff1, ff_exv_index), cp_aa.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
+            Iq[q] += 2*cx*ax_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
         }
     }
     return ScatteringProfile(Iq, debye_axis);
@@ -346,9 +347,10 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_xx() const 
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
+    unsigned int ff_exv_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double xx_sum = std::inner_product(cp_aa.begin(static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME), static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)), cp_aa.end(static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME), static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)), sinqd_table.begin(q), 0.0);
-        Iq[q] += cx*cx*xx_sum*ff_table.index(static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME), static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME)).evaluate(q);
+        double xx_sum = std::inner_product(cp_aa.begin(ff_exv_index, ff_exv_index), cp_aa.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
+        Iq[q] += cx*cx*xx_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
 }
@@ -360,11 +362,11 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_wx() const 
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
+    unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
+    unsigned int ff_exv_index = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double wx_sum = std::inner_product(cp_aw.begin(ff1), cp_aw.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] -= 2*cx*cw*wx_sum*ff_table.index(ff1, static_cast<int>(form_factor::form_factor_t::O)).evaluate(q);
-        }
+        double ew_sum = std::inner_product(cp_aw.begin(ff_exv_index), cp_aw.end(ff_exv_index), sinqd_table.begin(q), 0.0);
+        Iq[q] += 2*cx*cw*ew_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
 }
@@ -376,10 +378,11 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aw() const 
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
+    unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             double aw_sum = std::inner_product(cp_aw.begin(ff1), cp_aw.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] += 2*cw*aw_sum*ff_table.index(ff1, static_cast<int>(form_factor::form_factor_t::O)).evaluate(q);
+            Iq[q] += 2*cw*aw_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
         }
     }
     return ScatteringProfile(Iq, debye_axis);
@@ -392,9 +395,10 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ww() const 
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
+    unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
-        Iq[q] += cw*cw*ww_sum*ff_table.index(static_cast<int>(form_factor::form_factor_t::O), static_cast<int>(form_factor::form_factor_t::O)).evaluate(q);
+        Iq[q] += cw*cw*ww_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
 }

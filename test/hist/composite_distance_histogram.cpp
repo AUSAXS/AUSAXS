@@ -53,9 +53,9 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     Molecule protein(a, w);
 
     auto hist = protein.get_histogram();
-    std::vector<double> p_pp = hist->get_pp_counts();
-    std::vector<double> p_hp = hist->get_hp_counts();
-    std::vector<double> p_hh = hist->get_hh_counts();
+    std::vector<double> p_pp = hist->get_aa_counts();
+    std::vector<double> p_hp = hist->get_aw_counts();
+    std::vector<double> p_hh = hist->get_ww_counts();
 
     hist->apply_water_scaling_factor(2);
     for (unsigned int i = 0; i < p_pp.size(); i++) {
@@ -223,5 +223,16 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
             auto Iq = hist::PartialHistogramManagerMT(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
+    }
+}
+
+TEST_CASE("CompositeDistanceHistogram::get_profile") {
+    data::Molecule protein("test/files/2epe.pdb");
+    auto hist = hist::HistogramManager(&protein).calculate_all();
+    auto Iq = hist->debye_transform();
+    auto profile_sum = hist->get_profile_aa() + hist->get_profile_aw() + hist->get_profile_ww();
+    REQUIRE(Iq.size() == profile_sum.size());
+    for (unsigned int i = 0; i < Iq.size(); ++i) {
+        REQUIRE_THAT(Iq[i], Catch::Matchers::WithinAbs(profile_sum[i], 1e-6));
     }
 }
