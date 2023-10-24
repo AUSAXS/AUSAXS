@@ -9,19 +9,15 @@ constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_facto
     container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
-            table.index(i, j) = std::move(
-                PrecalculatedFormFactorProduct(
-                    storage::exv::get_form_factor(static_cast<form_factor_t>(i)), 
-                    storage::exv::get_form_factor(static_cast<form_factor_t>(j))
-                )
+            table.index(i, j) = PrecalculatedFormFactorProduct(
+                storage::exv::get_form_factor(static_cast<form_factor_t>(i)), 
+                storage::exv::get_form_factor(static_cast<form_factor_t>(j))
             );
             table.index(j, i) = table.index(i, j);
         }
-        table.index(i, i) = std::move(
-            PrecalculatedFormFactorProduct(
-                storage::exv::get_form_factor(static_cast<form_factor_t>(i)), 
-                storage::exv::get_form_factor(static_cast<form_factor_t>(i))
-            )
+        table.index(i, i) = PrecalculatedFormFactorProduct(
+            storage::exv::get_form_factor(static_cast<form_factor_t>(i)), 
+            storage::exv::get_form_factor(static_cast<form_factor_t>(i))
         );
     }
     return table;
@@ -39,21 +35,12 @@ const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::g
 constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_atom_exv_table() {
     container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
-        for (unsigned int j = 0; j < i; ++j) {
-            table.index(i, j) = std::move(
-                PrecalculatedFormFactorProduct(
-                    storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                    storage::exv::get_form_factor(static_cast<form_factor_t>(j))
-                )
-            );
-            table.index(j, i) = table.index(i, j);
-        }
-        table.index(i, i) = std::move(
-            PrecalculatedFormFactorProduct(
+        for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
+            table.index(i, j) = PrecalculatedFormFactorProduct(
                 storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                storage::exv::get_form_factor(static_cast<form_factor_t>(i))
-            )
-        );
+                storage::exv::get_form_factor(static_cast<form_factor_t>(j))
+            );
+        }
     }
     return table;
 }

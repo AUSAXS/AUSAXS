@@ -11,6 +11,8 @@ unsigned int settings::axes::skip = 0;
 namespace settings::axes::io {
     settings::io::SettingSection axes_settings("Axes", {
         settings::io::create(skip, "skip"),
+        settings::io::create(qmin, "qmin"),
+        settings::io::create(qmax, "qmax"),
     });
 }
 

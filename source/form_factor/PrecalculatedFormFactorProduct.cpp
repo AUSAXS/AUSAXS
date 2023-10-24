@@ -9,19 +9,15 @@ constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_facto
     container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> table;
     for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
-            table.index(i, j) = std::move(
-                PrecalculatedFormFactorProduct(
-                    storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                    storage::get_form_factor(static_cast<form_factor_t>(j))
-                )
+            table.index(i, j) = PrecalculatedFormFactorProduct(
+                storage::get_form_factor(static_cast<form_factor_t>(i)), 
+                storage::get_form_factor(static_cast<form_factor_t>(j))
             );
             table.index(j, i) = table.index(i, j);
         }
-        table.index(i, i) = std::move(
-            PrecalculatedFormFactorProduct(
-                storage::get_form_factor(static_cast<form_factor_t>(i)), 
-                storage::get_form_factor(static_cast<form_factor_t>(i))
-            )
+        table.index(i, i) = PrecalculatedFormFactorProduct(
+            storage::get_form_factor(static_cast<form_factor_t>(i)), 
+            storage::get_form_factor(static_cast<form_factor_t>(i))
         );
     }
     return table;

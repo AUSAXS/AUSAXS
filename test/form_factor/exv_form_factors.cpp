@@ -5,11 +5,12 @@
 #include <form_factor/ExvFormFactor.h>
 #include <constants/Constants.h>
 #include <dataset/SimpleDataset.h>
+#include <plots/PlotDataset.h>
 
 const auto& q_vals = constants::axes::q_vals;
 TEST_CASE("ExvFormFactor::evaluate") {}
 
-#include <plots/PlotDataset.h>
+// compare the excluded volume form factors with the average one derived by Jan
 TEST_CASE("ExvFormFactor::plot", "[manual]") {
     plots::PlotDataset plot;
     {
@@ -32,4 +33,23 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
         plot.plot(dataset);
     }
     plot.save("temp/test/form_factor/exv_form_factors.png");
+}
+
+// compare each exv form factor with its real one
+TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
+    for (unsigned int ffi = 0; ffi < form_factor::get_count_without_excluded_volume(); ++ffi) {
+        const form_factor::FormFactor& ff = form_factor::storage::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::ExvFormFactor& ffx = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
+
+        SimpleDataset dataset, datasetx;
+        dataset.add_plot_options({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi))}, {"color", style::color::orange}});
+        datasetx.add_plot_options({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + "x"}, {"color", style::color::black}});
+        for (const double& q : q_vals) {
+            dataset.push_back(q, ff.evaluate(q)*ffx.evaluate(0));
+            datasetx.push_back(q, ffx.evaluate(q));
+        }
+        plots::PlotDataset(dataset)
+            .plot(datasetx)
+        .save("temp/test/form_factor/cmp/" + form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + ".png");
+    }
 }

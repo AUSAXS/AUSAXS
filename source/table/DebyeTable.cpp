@@ -70,46 +70,56 @@ void DebyeTable::check_default([[maybe_unused]] const std::vector<double>& q, [[
         Axis axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 
         if (q.size() != axis.bins) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: q.size() != axis.bins" << std::endl;
         }
 
-        if (q[0] != axis.min) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+        auto qvals = axis.as_vector();
+        unsigned int i = 0;
+        for (; i < axis.bins; ++i) {
+            if (utility::approx(q.front(), qvals[i])) {break;}
+        }
+        if (i == axis.bins) [[unlikely]] {
+            console::print_warning("Warning in ArrayDebyeTable::initialize: Not using default tables.");
+            std::cout << "\tReason: q[0] does not match any index of default q-array" << std::endl;
+
+        }
+        if (q[0] != qvals[i]) [[unlikely]] {
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: q[0] != axis.min" << std::endl;
         }
 
-        if (q[1] != axis.min + (axis.max-axis.min)/axis.bins) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+        if (q[1] != qvals[i+1]) [[unlikely]] {
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: q[1] != axis.min + (axis.max-axis.min)/axis.bins" << std::endl;
         }
 
-        if (q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+        if (q[2] != qvals[i+2]) [[unlikely]] {
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins" << std::endl;
         }
 
         // check empty
         if (d.empty()) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: d.empty()" << std::endl;
         }
 
         // check if too large for default table
         if (d.back() > constants::axes::d_axis.max) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: d.back() > default_size" << std::endl;
         }
         
         // check first width (d[1]-d[0] may be different from the default width)
         if (!utility::approx(d[2]-d[1], constants::axes::d_axis.width())) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: !utility::approx(d[2]-d[1], width)" << std::endl;
         }
         
         // check second width
         if (!utility::approx(d[3]-d[2], constants::axes::d_axis.width())) [[unlikely]] {
-            console::print_warning("Warning in DebyeLookupTable::initialize: Not using default tables.");
+            console::print_warning("Warning in DebyeTable::initialize: Not using default tables.");
             std::cout << "\tReason: !utility::approx(d[3]-d[2], width)" << std::endl;
         }
     #endif

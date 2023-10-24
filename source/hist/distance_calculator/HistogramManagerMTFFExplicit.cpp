@@ -74,7 +74,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
                 auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {
                     p_ww.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
-                    p_wx.index(data_p.get_ff_type(j+k), res.distance[k]) += 2;
+                    p_wx.index(data_p.get_ff_type(j+k), res.distance[k]) += data_h[i].value.w;
                 }
             }
 
@@ -82,14 +82,14 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
                 auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {
                     p_ww.index(data_p.get_ff_type(j+k), res.distance[k]) += res.weight[k];
-                    p_wx.index(data_p.get_ff_type(j+k), res.distance[k]) += 2;
+                    p_wx.index(data_p.get_ff_type(j+k), res.distance[k]) += data_h[i].value.w;
                 }
             }
 
             for (; j < data_p.get_size(); ++j) {
                 auto res = data_h[i].evaluate(data_p[j]);
                 p_ww.index(data_p.get_ff_type(j), res.distance) += res.weight;
-                p_wx.index(data_p.get_ff_type(j), res.distance) += 2;
+                p_wx.index(data_p.get_ff_type(j), res.distance) += data_h[i].value.w;
             }
         }
         return std::tuple(std::move(p_ww), std::move(p_wx));
