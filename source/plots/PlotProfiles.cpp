@@ -30,11 +30,11 @@ void PlotProfiles::quick_plot(const hist::CompositeDistanceHistogram* const data
 		auto xx = data_ff_avg->get_profile_xx().get_counts();
 		std::vector<double> aa_xx;
 		for (unsigned int i = 0; i < aa.size(); ++i) {
-			aa_xx.push_back(aa[i] / xx[i]);
+			aa_xx.push_back(xx[i] / aa[i]);
 		}
 		PlotHistogram plot2;
-		plot2.plot(hist::Histogram(aa_xx, data->get_profile_aa().get_axis()), plots::PlotOptions({{"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}, {"normalize", true}, {"legend", "aa/xx"}}));
-		plot2.save(io::File(path.append("_aa_xx")));
+		plot2.plot(hist::Histogram(aa_xx, data->get_profile_aa().get_axis()), plots::PlotOptions({{"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}, {"normalize", true}, {"legend", "xx/aa"}}));
+		plot2.save(io::File(path.append("_xx_aa")));
 	}
 
 	plot.save(path);

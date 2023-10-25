@@ -20,7 +20,7 @@ CompositeDistanceHistogramFFExplicit::~CompositeDistanceHistogramFFExplicit() = 
 
 double CompositeDistanceHistogramFFExplicit::G_factor(double q) const {
     constexpr double rm = 1.62;
-    constexpr double c = std::pow(4.*M_PI/3, 3./2)*M_PI*rm*rm*constants::form_factor::s_to_q_factor;
+    constexpr double c = std::pow(4*M_PI/3, 3./2)*M_PI*rm*rm*constants::form_factor::s_to_q_factor;
     return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
 }
 

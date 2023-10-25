@@ -270,3 +270,19 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
         REQUIRE_THAT(Iq[i], Catch::Matchers::WithinRel(profile_sum[i], 1e-3));
     }
 }
+
+#include <dataset/SimpleDataset.h>
+#include <plots/PlotDataset.h>
+struct DummyCDHFFX : public hist::CompositeDistanceHistogramFFExplicit {
+    double Gq(double q) const {return G_factor(q);}
+};
+TEST_CASE("CompositeDistanceHistogramFFExplicit::plot_Gq") {
+    SimpleDataset Gq;
+    double r0 = 1.5;
+    DummyCDHFFX hist;
+    hist.apply_excluded_volume_scaling_factor(r0);
+    for (unsigned int i = 0; i < constants::axes::q_vals.size(); ++i) {
+        Gq.push_back(constants::axes::q_vals[i], hist.Gq(constants::axes::q_vals[i]));
+    }
+    plots::PlotDataset::quick_plot(Gq, io::File("temp/test/composite_distance_histogram_ff_explicit/Gq.png"));
+}

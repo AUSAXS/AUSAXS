@@ -51,11 +51,12 @@ namespace hist {
              */
             virtual const ScatteringProfile get_profile_wx() const;
 
+        protected:
+            double G_factor(double q) const;
+
         private:
             container::Container3D<double> cp_ax;
             container::Container3D<double> cp_xx;
             container::Container2D<double> cp_wx;
-
-            double G_factor(double q) const;
     };
 }
