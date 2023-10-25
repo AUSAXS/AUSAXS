@@ -1,6 +1,5 @@
 #pragma once
 
-#include <dataset/PointSet.h>
 #include <dataset/SimpleDataset.h>
 
 /**

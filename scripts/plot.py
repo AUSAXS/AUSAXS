@@ -75,7 +75,7 @@ for currentpath, folders, files in os.walk(folder):
         match extension:
             case "fit":
                 fit_file = os.path.join(currentpath, file)
-            case "dat":
+            case "scat":
                 dat_file = os.path.join(currentpath, file)
             case "plot":
                 print("Plotting file: " + file)

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <math/Matrix.h>
-#include <dataset/PointSet.h>
 #include <utility/Limit.h>
 #include <io/ExistingFile.h>
 

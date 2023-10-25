@@ -143,8 +143,10 @@ class SimpleDataset : public Dataset, public plots::Plottable {
 
         /**
          * @brief Set the normalization of the y-values. The first y-value will be fixed to this. 
+         * 
+         * @return The normalization factor which all entries were multiplied by. 
          */
-        void normalize(double y0);
+        double normalize(double y0 = 1);
 
         /**
          * @brief Scale all errors by some common factor. 

@@ -1,7 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/CompositeDistanceHistogramFFAvg.h>
 #include <hist/CompositeDistanceHistogramFFExplicit.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/ExvFormFactor.h>
@@ -276,7 +278,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
 struct DummyCDHFFX : public hist::CompositeDistanceHistogramFFExplicit {
     double Gq(double q) const {return G_factor(q);}
 };
-TEST_CASE("CompositeDistanceHistogramFFExplicit::plot_Gq") {
+TEST_CASE("plot_Gq", "[manual]") {
     SimpleDataset Gq;
     double r0 = 1.5;
     DummyCDHFFX hist;
@@ -285,4 +287,73 @@ TEST_CASE("CompositeDistanceHistogramFFExplicit::plot_Gq") {
         Gq.push_back(constants::axes::q_vals[i], hist.Gq(constants::axes::q_vals[i]));
     }
     plots::PlotDataset::quick_plot(Gq, io::File("temp/test/composite_distance_histogram_ff_explicit/Gq.png"));
+}
+
+TEST_CASE("plot_cmp", "[manual]") {
+    data::Molecule protein("data/SASDJG5/SASDJG5.pdb");
+    protein.generate_new_hydration();
+    auto h = hist::HistogramManagerMTFFAvg(&protein).calculate_all();
+    auto hx = hist::HistogramManagerMTFFExplicit(&protein).calculate_all();
+    auto hc = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
+    auto hcx = dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(hx.get());
+
+    auto aa = hc->get_profile_aa().as_dataset();
+    auto ax = hc->get_profile_ax().as_dataset();
+    auto xx = hc->get_profile_xx().as_dataset();
+    auto aw = hc->get_profile_aw().as_dataset();
+    auto wx = hc->get_profile_wx().as_dataset();
+    auto ww = hc->get_profile_ww().as_dataset();
+
+    auto aa_x = hcx->get_profile_aa().as_dataset();
+    auto ax_x = hcx->get_profile_ax().as_dataset();
+    auto xx_x = hcx->get_profile_xx().as_dataset();
+    auto aw_x = hcx->get_profile_aw().as_dataset();
+    auto wx_x = hcx->get_profile_wx().as_dataset();
+    auto ww_x = hcx->get_profile_ww().as_dataset();
+
+    for (unsigned int i = 0; i < aa.size(); ++i) {
+        aa.y(i) /= aa_x.y(i);
+        ax.y(i) /= ax_x.y(i);
+        xx.y(i) /= xx_x.y(i);
+        aw.y(i) /= aw_x.y(i);
+        wx.y(i) /= wx_x.y(i);
+        ww.y(i) /= ww_x.y(i);
+    }
+
+    // double c_aa = aa.normalize();
+    // double c_ax = ax.normalize();
+    // double c_xx = xx.normalize();
+    // double c_aw = aw.normalize();
+    // double c_wx = wx.normalize();
+    // double c_ww = ww.normalize();
+
+    // convert number to scientific notation
+    // std::stringstream ss_aa, ss_ax, ss_xx, ss_aw, ss_wx, ss_ww;
+    // ss_aa << std::scientific << c_aa;
+    // ss_ax << std::scientific << c_ax;
+    // ss_xx << std::scientific << c_xx;
+    // ss_aw << std::scientific << c_aw;
+    // ss_wx << std::scientific << c_wx;
+    // ss_ww << std::scientific << c_ww;
+
+    // aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{aa} = $" + ss_aa.str()}, {"color", style::color::red}});
+    // ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ax} = $" + ss_ax.str()}, {"color", style::color::blue}});
+    // xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{xx} = $" + ss_xx.str()}, {"color", style::color::green}});
+    // aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{aw} = $" + ss_aw.str()}, {"color", style::color::pink}});
+    // wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{wx} = $" + ss_wx.str()}, {"color", style::color::purple}});
+    // ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ww} = $" + ss_ww.str()}, {"color", style::color::brown}});
+
+    aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aa}$"}, {"color", style::color::red}});
+    ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{ax}$"}, {"color", style::color::blue}});
+    xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{xx}$"}, {"color", style::color::green}});
+    aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aw}$"}, {"color", style::color::pink}});
+    wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{wx}$"}, {"color", style::color::purple}});
+    ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}});
+    plots::PlotDataset(aa)
+        .plot(ax)
+        .plot(xx)
+        .plot(aw)
+        .plot(wx)
+        .plot(ww)
+    .save("temp/test/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
 }

@@ -192,8 +192,10 @@ void SimpleDataset::push_back(double x, double y, double yerr) {
     row(N-1) = {x, y, yerr};
 }
 
-void SimpleDataset::normalize(double y0) {
-    scale_y(y0/y(0));
+double SimpleDataset::normalize(double y0) {
+    double scale = y0/y(0);
+    scale_y(scale);
+    return scale;
 }
 
 void SimpleDataset::scale_errors(double factor) {

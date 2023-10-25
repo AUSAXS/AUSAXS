@@ -13,7 +13,7 @@
 #include <constants/Constants.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/CompositeDistanceHistogramFFAvg.h>
 
 #include <vector>
 #include <string>
@@ -113,13 +113,23 @@ int main(int argc, char const *argv[]) {
 
     // save fit
     fitter->get_model_dataset().save(settings::general::output + "fit.fit");
-    fitter->get_dataset().save(settings::general::output + mfile.stem() + ".dat");
+    fitter->get_dataset().save(settings::general::output + mfile.stem() + ".scat");
 
     // calculate rhoM
     double rhoM = protein.absolute_mass()/protein.get_volume_grid()*constants::unit::gm/(std::pow(constants::unit::cm, 3));
     std::cout << "RhoM is " << rhoM << " g/cm³" << std::endl;
 
     protein.save(settings::general::output + "model.pdb");
+
+    auto h = protein.get_histogram();
+    h->get_profile_aa().as_dataset().save(settings::general::output + "ausaxs_aa.dat");
+    h->get_profile_aw().as_dataset().save(settings::general::output + "ausaxs_aw.dat");
+    h->get_profile_ww().as_dataset().save(settings::general::output + "ausaxs_ww.dat");
+    if (auto cast = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())) {
+        cast->get_profile_ax().as_dataset().save(settings::general::output + "ausaxs_ax.dat");
+        cast->get_profile_wx().as_dataset().save(settings::general::output + "ausaxs_wx.dat");
+        cast->get_profile_xx().as_dataset().save(settings::general::output + "ausaxs_xx.dat");
+    }
 
     // std::vector<double> q;
     // for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}
