@@ -38,7 +38,7 @@ namespace constants {
         constexpr Axis q_axis(1e-4, 1, 200);
         constexpr auto q_vals = q_axis.as_array<q_axis.bins>(); 
         constexpr auto d_vals = [](){
-            auto temp = d_axis.as_array<d_axis.bins>(0.5);
+            auto temp = d_axis.as_array<d_axis.bins>();
             temp[0] = 0;    // we have to manually set the first value to 0, since it represents self-correlation terms
             return temp;
         }();

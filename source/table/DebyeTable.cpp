@@ -5,7 +5,7 @@
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
-#include <math/Trigonometry.h>
+#include <math/ConstMath.h>
 
 #include <cmath>
 

@@ -212,6 +212,7 @@ std::string Atom::get_resName() const {return resName;}
 std::string Atom::get_name() const {return name;}
 constants::atom_t Atom::get_element() const {return element;}
 std::string Atom::get_recName() const {return recName;}
+constants::atomic_group_t Atom::get_atomic_group() const {return atomic_group;}
 
 double Atom::get_mass() const {
     if (settings::molecule::use_effective_charge) {

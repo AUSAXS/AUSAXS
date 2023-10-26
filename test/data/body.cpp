@@ -1,15 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <utility/Console.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <data/BodySplitter.h>
 #include <settings/All.h>
-#include <data/Water.h>
+#include <data/record/Water.h>
 #include <data/Body.h>
 #include <hist/HistogramManager.h>
 
@@ -19,6 +19,8 @@
 #include <iostream>
 
 using std::cout, std::endl, std::vector, std::shared_ptr;
+using namespace data::record;
+using namespace data;
 
 struct fixture {
     vector<Atom> a = {Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0"), Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, 1, -1), 1, 0, "C", "0"),

@@ -34,6 +34,19 @@ namespace math {
     }
 
     /**
+     * @brief Simple constexpr power function.
+     *        Only supports integer exponents.  
+     */
+    constexpr double pow(double x, int n) {
+        double result = 1;
+        for(int i = 0; i < n; ++i) {
+            result *= x;
+        }
+        if (n < 0) {result = 1./result;}
+        return result;
+    }
+
+    /**
      * @brief Evaluate the exponential function using IEE4 manipulations, see https://github.com/simonpf/fastexp/tree/master.
      *        This is probably slower than std::exp, but it is constexpr.
      * 
@@ -42,6 +55,6 @@ namespace math {
      */
     template<int degree = 5>
     constexpr double exp(double x) {
-        return detail::fastexp::exp<double, detail::fastexp::IEEE, degree>(x);
+        return ::detail::fastexp::exp<double, ::detail::fastexp::IEEE, degree>(x);
     }
 }

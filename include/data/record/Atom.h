@@ -225,11 +225,13 @@ namespace data::record {
 
             /**
              * @brief Get the alternate location of this Atom.
+             *        Example: "A"
              */
             std::string get_altLoc() const;
 
             /**
              * @brief Get the chain ID of this Atom.
+             *        Example: 'A'
              */
             char get_chainID() const;
 
@@ -240,16 +242,19 @@ namespace data::record {
 
             /**
              * @brief Get the string representation of the charge of this Atom.
+             *        Example: +1
              */
             std::string get_charge() const;
 
             /**
              * @brief Get the residue name of this Atom.
+             *        Example: LYS
              */
             std::string get_resName() const;
 
             /**
-             * @brief Get the name of this Atom.
+             * @brief Get the name of this Atom. 
+             *        Example: CG2 (Carbon | position G | branch 2).
              */
             std::string get_name() const;
 
@@ -261,6 +266,7 @@ namespace data::record {
             /**
              * @brief Get the record name of this Atom. 
              *        This is the first 6 characters of the line in the PDB file.
+             *        Example: ATOM
              */
             virtual std::string get_recName() const;
 
@@ -270,6 +276,11 @@ namespace data::record {
              * @return The mass in u.
              */
             double get_mass() const;
+
+            /**
+             * @brief Get the atomic group this Atom belongs to.
+             */
+            constants::atomic_group_t get_atomic_group() const;
 
             /**
              * @brief Get the number of protons in this atom.

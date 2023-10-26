@@ -23,6 +23,7 @@ HistogramManagerMTFFExplicit::~HistogramManagerMTFFExplicit() = default;
 
 std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit::calculate() {return calculate_all();}
 
+#include <form_factor/ExvFormFactor.h>
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calculate_all() {
     hist::detail::CompactCoordinatesFF data_p(protein->get_bodies());
     hist::detail::CompactCoordinatesFF data_h = hist::detail::CompactCoordinatesFF(protein->get_waters());

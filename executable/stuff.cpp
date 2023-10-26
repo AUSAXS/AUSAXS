@@ -36,16 +36,16 @@ int main(int argc, char const *argv[]) {
     settings::axes::qmax = 1;
 
     std::string base_path = "temp/debug/";
-    SimpleDataset I_aa(base_path + "ausaxs/ausaxs_aa_x.dat");
-    SimpleDataset I_ax(base_path + "ausaxs/ausaxs_ax_x.dat");
-    SimpleDataset I_xx(base_path + "ausaxs/ausaxs_xx_x.dat");
-    SimpleDataset I_aw(base_path + "ausaxs/ausaxs_aw_x.dat");
-    SimpleDataset I_wx(base_path + "ausaxs/ausaxs_wx_x.dat");
-    SimpleDataset I_ww(base_path + "ausaxs/ausaxs_ww_x.dat");
+    SimpleDataset I_aa(base_path + "ausaxs/ausaxs_aa.dat");
+    SimpleDataset I_ax(base_path + "ausaxs/ausaxs_ax.dat");
+    SimpleDataset I_xx(base_path + "ausaxs/ausaxs_xx.dat");
+    SimpleDataset I_aw(base_path + "ausaxs/ausaxs_aw.dat");
+    SimpleDataset I_wx(base_path + "ausaxs/ausaxs_wx.dat");
+    SimpleDataset I_ww(base_path + "ausaxs/ausaxs_ww.dat");
 
     SimpleDataset coords(base_path + "COORDINATE.dat");
-    SimpleDataset exclvol(base_path + "exclvol.dat");
-    SimpleDataset crysol(base_path + "vaccum.dat");
+    SimpleDataset C_xx(base_path + "exclvol.dat");
+    SimpleDataset C_aa(base_path + "vaccum.dat");
     SimpleDataset foxs(base_path + "foxs_vacuum.dat");
 
     SimpleDataset foxs_aa(base_path + "foxs_aa.dat");
@@ -61,8 +61,8 @@ int main(int argc, char const *argv[]) {
     I_ax.normalize(1);
     I_xx.normalize(1);
     coords.normalize(1);
-    exclvol.normalize(1);
-    crysol.normalize(1);
+    C_xx.normalize(1);
+    C_aa.normalize(1);
     foxs.normalize(1);
 
     SimpleDataset I_sum(I_aa);
@@ -90,11 +90,6 @@ int main(int argc, char const *argv[]) {
         foxs_ww.y(i) = std::abs(foxs_ww.y(i));
     }
 
-    for (unsigned int i = 0; i < exclvol.size(); ++i) {
-        // exclvol.y(i) /= coords.interpolate_y(exclvol.x(i));
-        // vacuum.y(i)  /= coords.interpolate_y(vacuum.x(i));
-    }
-
     I_aa.normalize(1);
     I_ax.normalize(1);
     I_xx.normalize(1);
@@ -110,8 +105,8 @@ int main(int argc, char const *argv[]) {
     foxs_ww.normalize(1);
 
     coords.normalize(1);
-    exclvol.normalize(1);
-    crysol.normalize(1);
+    C_xx.normalize(1);
+    C_aa.normalize(1);
     I_sum.normalize(1);
     foxs.normalize(1);
 
@@ -130,8 +125,8 @@ int main(int argc, char const *argv[]) {
     foxs_ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"linestyle", style::line::dashed}, {"ylabel", "I"}, {"legend", "foxs_ww"}, {"color", style::color::brown}});
 
     coords.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "coords"}, {"linestyle", style::line::dashed}, {"color", style::color::red}});
-    exclvol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "exclvol"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
-    crysol.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "crysol"}, {"linestyle", style::line::dashed}, {"color", style::color::green}});
+    C_xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "CRYSOL_xx"}, {"linestyle", style::line::dashed}, {"color", style::color::blue}});
+    C_aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "CRYSOL_aa"}, {"linestyle", style::line::dashed}, {"color", style::color::green}});
     I_sum.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "I_sum"}, {"color", style::color::black}});
     foxs.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"ylabel", "I"}, {"legend", "foxs"}, {"color", style::color::black}});
     // lyshr.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", true}, {"logy", true}, {"ylabel", "I"}, {"legend", "lyshr"}, {"color", style::color::black}});
@@ -143,25 +138,19 @@ int main(int argc, char const *argv[]) {
     // vacuum.save(base_path + "scaled_vacuum.dat");
 
     plots::PlotDataset(I_aa)
-        .plot(I_ax)
         .plot(I_xx)
-        .plot(exclvol)
-        .plot(crysol)
+        .plot(C_xx)
+        .plot(C_aa)
     .save(base_path + "compare.png");
 
     plots::PlotDataset(I_aa)
-        .plot(crysol)
+        .plot(C_aa)
         .plot(foxs)
     .save(base_path + "vacuum.png");
-
-    plots::PlotDataset(I_sum)
-        .plot(coords)
-    .save(base_path + "total.png");
 
     plots::PlotDataset(I_aa)
         .plot(I_xx)
         .plot(I_ww)
-
         .plot(foxs_aa)
         .plot(foxs_xx)
         .plot(foxs_ww)
@@ -170,27 +159,44 @@ int main(int argc, char const *argv[]) {
     plots::PlotDataset(I_ax)
         .plot(I_aw)
         .plot(I_wx)
-
         .plot(foxs_ax)
         .plot(foxs_aw)
         .plot(foxs_wx)
     .save(base_path + "compare_foxs_cross.png");
 
-    plots::PlotDataset(foxs)
-        .plot(foxs_aa)
-    .save(base_path + "foxs_test.png");
+    plots::PlotDataset(foxs_xx)
+        .plot(C_xx)
+        .plot(I_xx)
+    .save(base_path + "exv.png");
+
+    for (unsigned int i = 0; i < C_xx.size(); ++i) {
+        C_aa.y(i) /= I_aa.interpolate_y(C_aa.x(i));
+        C_xx.y(i) /= I_xx.interpolate_y(C_xx.x(i));
+    }
+
+    for (unsigned int i = 0; i < foxs_xx.size(); ++i) {
+        foxs_aa.y(i) /= I_aa.interpolate_y(foxs_aa.x(i));
+        foxs_xx.y(i) /= I_xx.interpolate_y(foxs_xx.x(i));
+    }
 
     plots::PlotDataset(foxs_xx)
-        .plot(I_xx)
-    .save(base_path + "excluded_volume_profiles.png");
-
-    for (unsigned int i = 0; i < foxs_xx.size(); ++i) {foxs_xx.y(i) /= foxs_aa.y(i);}
-    for (unsigned int i = 0; i < I_xx.size(); ++i) {I_xx.y(i) /= I_aa.y(i);}
-
-    plots::PlotDataset(foxs_xx)
-        .plot(I_xx)
+        .plot(C_xx)
         .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
-    .save(base_path + "xx_div_aa.png");
+    .save(base_path + "exv_normalized.png");
+
+    plots::PlotDataset(foxs_aa)
+        .plot(C_aa)
+        .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
+    .save(base_path + "vacuum_normalized.png");
+
+
+    // for (unsigned int i = 0; i < foxs_xx.size(); ++i) {foxs_xx.y(i) /= foxs_aa.y(i);}
+    // for (unsigned int i = 0; i < I_xx.size(); ++i) {I_xx.y(i) /= I_aa.y(i);}
+
+    // plots::PlotDataset(foxs_xx)
+    //     .plot(I_xx)
+    //     .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
+    // .save(base_path + "xx_div_aa.png");
 }
 
 //*************************************************************************************************

@@ -20,12 +20,12 @@ CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(CompositeDistan
 CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 
 // #define DEBUG_DEBYE_TRANSFORM 1
-// #define DEBUG_PLOT_FF 0
+// #define DEBUG_PLOT_FF 1
 // #if DEBUG_DEBYE_TRANSFORM
 //     #include <plots/PlotDataset.h>
 //     #include <settings/GeneralSettings.h>
 //     #include <dataset/SimpleDataset.h>
-//     static unsigned int qcheck = 0;
+//     static unsigned int qcheck = -1;
 // #endif
 // ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
 //     const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
@@ -53,10 +53,7 @@ CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 //         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
 //             // atom-atom
 //             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-//                 double atom_atom_sum = 0;
-//                 for (unsigned int d = 0; d < axis.bins; ++d) {
-//                     atom_atom_sum += cp_pp.index(ff1, ff2, d)*sinqd_table.lookup(q, d);
-//                 }
+//                 double atom_atom_sum = std::inner_product(cp_aa.begin(ff1, ff2), cp_aa.end(ff1, ff2), sinqd_table.begin(q), 0.0);
 //                 Iq[q] += atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q);
 //                 #if DEBUG_DEBYE_TRANSFORM
 //                     if (q==qcheck && atom_atom_sum != 0) {
@@ -64,7 +61,7 @@ CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 //                             << atom_atom_sum << "*" << ff_table.index(ff1, ff2).evaluate(q) << " = " 
 //                             << atom_atom_sum*ff_table.index(ff1, ff2).evaluate(q) << std::endl;
 //                         for (unsigned int d = 0; d < axis.bins; ++d) {
-//                             if (cp_pp.index(ff1, ff2, d) != 0) {std::cout << "\t\taa_sum += p_pp[" << ff1 << ", " << ff2 << ", " << d << "] = " << cp_pp.index(ff1, ff2, d) << "*" << sinqd_table.lookup(q, d) << std::endl;}
+//                             if (cp_aa.index(ff1, ff2, d) != 0) {std::cout << "\t\taa_sum += p_pp[" << ff1 << ", " << ff2 << ", " << d << "] = " << cp_aa.index(ff1, ff2, d) << "*" << sinqd_table.lookup(q, d) << std::endl;}
 //                         }
 //                         std::cout << "\taa_sum = " << atom_atom_sum << std::endl;
 //                     }
@@ -75,100 +72,86 @@ CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 //                 #endif
 //             }
 
-//             double atom_exv_sum = 0; // atom-exv
-//             for (unsigned int d = 0; d < axis.bins; ++d) {
-//                 atom_exv_sum += cp_pp.index(ff1, ff_exv_index, d)*sinqd_table.lookup(q, d);
-//             }
-//             Iq[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
+//             // atom-exv
+//             double atom_exv_sum = std::inner_product(cp_aa.begin(ff1, ff_exv_index), cp_aa.end(ff1, ff_exv_index), sinqd_table.begin(q), 0.0);
+//             Iq[q] -= 2*cx*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
 //             #if DEBUG_DEBYE_TRANSFORM
 //                 if (q==qcheck && atom_exv_sum != 0) {
 //                     std::cout << "(ae) Iq[" << q << "] -= 2*ax_sum*ff_table[" << ff1 << ", " << ff_exv_index << "](" << q << ") = " 
 //                         << "2*" << atom_exv_sum << "*" << ff_table.index(ff1, ff_exv_index).evaluate(q) << " = " 
 //                         << 2*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q) << std::endl;
 //                     for (unsigned int d = 0; d < axis.bins; ++d) {
-//                         if (cp_pp.index(ff1, ff_exv_index, d) != 0) {std::cout << "\t\tax_sum += 2*p_pp[" << ff1 << ", " << ff_exv_index << ", " << d << "] = " << 2*(cp_pp.index(ff1, ff_exv_index, d) + cp_pp.index(ff_exv_index, ff1, d)) << "*" << sinqd_table.lookup(q, d) << std::endl;}
+//                         if (cp_aa.index(ff1, ff_exv_index, d) != 0) {std::cout << "\t\tax_sum += 2*p_pp[" << ff1 << ", " << ff_exv_index << ", " << d << "] = " << 2*(cp_aa.index(ff1, ff_exv_index, d) + cp_aa.index(ff_exv_index, ff1, d)) << "*" << sinqd_table.lookup(q, d) << std::endl;}
 //                     }
 //                     std::cout << "\tax_sum = " << atom_exv_sum << std::endl;
 //                 }
 //                 if (q == qcheck && atom_exv_sum != 0) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
 //             #endif
 //             #if DEBUG_PLOT_FF
-//                 I_ax[q] -= 2*exv_scaling*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
+//                 I_ax[q] -= 2*cx*atom_exv_sum*ff_table.index(ff1, ff_exv_index).evaluate(q);
 //             #endif
 
 //             // atom-water
-//             double atom_water_sum = 0;
-//             for (unsigned int d = 0; d < axis.bins; ++d) {
-//                 atom_water_sum += cp_hp.index(ff1, d)*sinqd_table.lookup(q, d);
-//             }
-//             Iq[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
+//             double atom_water_sum = std::inner_product(cp_aw.begin(ff1), cp_aw.end(ff1), sinqd_table.begin(q), 0.0);
+//             Iq[q] += 2*cw*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
 //             #if DEBUG_DEBYE_TRANSFORM
 //                 if (q==qcheck && ff1 == 1) {
 //                     std::cout << "(aw) Iq[" << q << "] += 2*aw_sum*ff_table[" << ff1 << ", " << ff_water_index << "](" << q << ") = " 
 //                         << "2*" << atom_water_sum << "*" << ff_table.index(ff1, ff_water_index).evaluate(q) 
 //                         << 2*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q) << std::endl;
 //                     for (unsigned int d = 0; d < axis.bins; ++d) {
-//                         if (cp_hp.index(ff1, d) != 0) {std::cout << "\t\taw_sum += p_hp[" << ff1 << ", " << d << "] = " << cp_hp.index(ff1, d) << "*" << sinqd_table.lookup(q, d) << " = " << cp_hp.index(ff1, d)*sinqd_table.lookup(q, d) << std::endl;}
+//                         if (cp_aw.index(ff1, d) != 0) {std::cout << "\t\taw_sum += p_hp[" << ff1 << ", " << d << "] = " << cp_aw.index(ff1, d) << "*" << sinqd_table.lookup(q, d) << " = " << cp_aw.index(ff1, d)*sinqd_table.lookup(q, d) << std::endl;}
 //                     }
 //                     std::cout << "\taw_sum = " << atom_water_sum << std::endl;
 //                 }
 //                 if (q == qcheck && ff1 == 1) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
 //             #endif
 //             #if DEBUG_PLOT_FF
-//                 I_aw[q] += 2*w_scaling*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
+//                 I_aw[q] += 2*cw*atom_water_sum*ff_table.index(ff1, ff_water_index).evaluate(q);
 //             #endif
 //         }
 
 //         // exv-exv
-//         double exv_exv_sum = 0;
-//         for (unsigned int d = 0; d < axis.bins; ++d) {
-//             exv_exv_sum += cp_pp.index(ff_exv_index, ff_exv_index, d)*sinqd_table.lookup(q, d);
-//         }
-//         Iq[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
+//         double exv_exv_sum = std::inner_product(cp_aa.begin(ff_exv_index, ff_exv_index), cp_aa.end(ff_exv_index, ff_exv_index), sinqd_table.begin(q), 0.0);
+//         Iq[q] += cx*cx*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
 //         #if DEBUG_DEBYE_TRANSFORM
 //             if (q==qcheck) {
 //                 std::cout << "(ee) Iq[" << q << "] += xx_sum*ff_table[" << ff_exv_index << ", " << ff_exv_index << "](" << q << ") = " 
 //                     << exv_exv_sum << "*" << ff_table.index(ff_exv_index, ff_exv_index).evaluate(q) << " = " 
 //                     << exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q) << std::endl;
 //                 for (unsigned int d = 0; d < axis.bins; ++d) {
-//                     if (cp_pp.index(ff_exv_index, ff_exv_index, d) != 0) {std::cout << "\t\txx_sum += p_pp[" << ff_exv_index << ", " << ff_exv_index << ", " << d << "] = " << cp_pp.index(ff_exv_index, ff_exv_index, d) << std::endl;}
+//                     if (cp_aa.index(ff_exv_index, ff_exv_index, d) != 0) {std::cout << "\t\txx_sum += p_pp[" << ff_exv_index << ", " << ff_exv_index << ", " << d << "] = " << cp_aa.index(ff_exv_index, ff_exv_index, d) << std::endl;}
 //                 }
 //                 std::cout << "\txx_sum = " << exv_exv_sum << std::endl;
 //             }
 //             if (q == qcheck) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
 //         #endif
 //         #if DEBUG_PLOT_FF
-//             I_xx[q] += exv_scaling*exv_scaling*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
+//             I_xx[q] += cx*cx*exv_exv_sum*ff_table.index(ff_exv_index, ff_exv_index).evaluate(q);
 //         #endif
 
 //         // exv-water
-//         double exv_water_sum = 0;
-//         for (unsigned int d = 0; d < axis.bins; ++d) {
-//             exv_water_sum += cp_hp.index(ff_exv_index, d)*sinqd_table.lookup(q, d);
-//         }
-//         Iq[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
+//         double exv_water_sum = std::inner_product(cp_aw.begin(ff_exv_index), cp_aw.end(ff_exv_index), sinqd_table.begin(q), 0.0);
+//         Iq[q] -= 2*cx*cw*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
 //         #if DEBUG_DEBYE_TRANSFORM
 //             if (q==qcheck) {
 //                 std::cout << "(ew) Iq[" << q << "] -= 2*wx_sum*ff_table[" << ff_exv_index << ", " << ff_water_index << "](" << q << ") = "
 //                      << "2*" << exv_water_sum << "*" << ff_table.index(ff_exv_index, ff_water_index).evaluate(q) << " = " 
 //                      << 2*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q) << std::endl;
 //                 for (unsigned int d = 0; d < axis.bins; ++d) {
-//                     if (cp_hp.index(ff_exv_index, d) != 0) {std::cout << "\t\twx_sum += p_hp[" << ff_exv_index << ", " << d << "] = " << cp_hp.index(ff_exv_index, d) << "*" << sinqd_table.lookup(q, d) << std::endl;}
+//                     if (cp_aw.index(ff_exv_index, d) != 0) {std::cout << "\t\twx_sum += p_hp[" << ff_exv_index << ", " << d << "] = " << cp_aw.index(ff_exv_index, d) << "*" << sinqd_table.lookup(q, d) << std::endl;}
 //                 }
 //                 std::cout << "\twx_sum = " << exv_water_sum << std::endl;
 //             }
 //             if (q == qcheck) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
 //         #endif
 //         #if DEBUG_PLOT_FF
-//             I_wx[q] -= 2*exv_scaling*w_scaling*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
+//             I_wx[q] -= 2*cx*cw*exv_water_sum*ff_table.index(ff_exv_index, ff_water_index).evaluate(q);
 //         #endif
 
 //         // water-water
-//         double water_water_sum = 0;
-//         for (unsigned int d = 0; d < axis.bins; ++d) {
-//             water_water_sum += cp_hh.index(d)*sinqd_table.lookup(q, d);
-//         }
-//         Iq[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
+//         double water_water_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
+//         Iq[q] += cw*cw*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
 //         #if DEBUG_DEBYE_TRANSFORM
 //             if (q==qcheck) {std::cout << "(ww) Iq[" << q << "] += ww_sum*ff_table[" << ff_water_index << ", " << ff_water_index << "](" << q << ") = " 
 //                 << water_water_sum << "*" << ff_table.index(ff_water_index, ff_water_index).evaluate(q) << " = " 
@@ -176,7 +159,7 @@ CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 //             if (q == qcheck) {std::cout << "\tIq[" << q << "] = " << Iq[q] << std::endl;}
 //         #endif
 //         #if DEBUG_PLOT_FF
-//             I_ww[q] += w_scaling*w_scaling*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
+//             I_ww[q] += cw*cw*water_water_sum*ff_table.index(ff_water_index, ff_water_index).evaluate(q);
 //         #endif
 //     }
 

@@ -22,7 +22,7 @@ DistanceHistogram::~DistanceHistogram() = default;
 
 void DistanceHistogram::initialize() {
     q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
-    d_axis = axis.as_vector(0.5);
+    d_axis = axis.as_vector();
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
     table::ArrayDebyeTable::check_default(q_axis, d_axis);
 }

@@ -53,8 +53,8 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
                 // atom
                 double Zi = atom_i.get_effective_charge()*atom_i.get_occupancy();
                 double Zj = atom_j.get_effective_charge()*atom_j.get_occupancy();
-                double fi = Zi*form_factor::storage::get_form_factor(form_factor::get_type(atom_i.get_element())).evaluate(q);
-                double fj = Zj*form_factor::storage::get_form_factor(form_factor::get_type(atom_j.get_element())).evaluate(q);
+                double fi = Zi*form_factor::storage::get_form_factor(form_factor::get_type(atom_i.get_element(), atom_i.get_atomic_group())).evaluate(q);
+                double fj = Zj*form_factor::storage::get_form_factor(form_factor::get_type(atom_j.get_element(), atom_i.get_atomic_group())).evaluate(q);
                 double qr = q*aa_distances(i, j);
 
                 // exv
@@ -77,7 +77,7 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
                 // water
                 double Zi = atom_i.get_effective_charge()*atom_i.get_occupancy();
                 double Zj = water.get_effective_charge()*water.get_occupancy()*cw;
-                double fi = Zi*form_factor::storage::get_form_factor(form_factor::get_type(atom_i.get_element())).evaluate(q);
+                double fi = Zi*form_factor::storage::get_form_factor(form_factor::get_type(atom_i.get_element(), atom_i.get_atomic_group())).evaluate(q);
                 double fj = Zj*form_factor::storage::O.evaluate(q);
                 double qr = q*aw_distances(i, j);
 
