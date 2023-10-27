@@ -28,6 +28,7 @@ CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::Body>& bodies
         for (const auto& a : body.get_atoms()) {
             data[i] = hist::detail::CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
             ff_types[i++] = static_cast<int>(form_factor::get_type(a.get_element(), a.get_atomic_group()));
+            // ff_types[i++] = static_cast<int>(form_factor::get_type(a.get_element()));
 
             // auto name = a.get_group_name(); auto residue = a.get_residue_name();
             // if (name == "N") {

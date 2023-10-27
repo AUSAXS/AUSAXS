@@ -66,20 +66,18 @@ namespace form_factor {
         return static_cast<unsigned int>(form_factor_t::COUNT)-1;
     }
 
-    namespace detail {
-        /**
-         * @brief Get the form factor type based on an atom type.
-         *        In case the atom type is not recognized, the default form factor (argon) is returned.
-         */
-        constexpr form_factor_t get_type(constants::atom_t atom_type) {
-            switch(atom_type) {
-                case constants::atom_t::H: return form_factor_t::H;
-                case constants::atom_t::C: return form_factor_t::C;
-                case constants::atom_t::N: return form_factor_t::N;
-                case constants::atom_t::O: return form_factor_t::O;
-                case constants::atom_t::S: return form_factor_t::S;
-                default: return form_factor_t::OTHER;
-            }
+    /**
+     * @brief Get the form factor type based on an atom type.
+     *        In case the atom type is not recognized, the default form factor (argon) is returned.
+     */
+    constexpr form_factor_t get_type(constants::atom_t atom_type) {
+        switch(atom_type) {
+            case constants::atom_t::H: return form_factor_t::H;
+            case constants::atom_t::C: return form_factor_t::C;
+            case constants::atom_t::N: return form_factor_t::N;
+            case constants::atom_t::O: return form_factor_t::O;
+            case constants::atom_t::S: return form_factor_t::S;
+            default: return form_factor_t::OTHER;
         }
     }
 
@@ -98,7 +96,7 @@ namespace form_factor {
             case constants::atomic_group_t::NH3: return form_factor_t::NH3;
             case constants::atomic_group_t::OH: return form_factor_t::OH;
             case constants::atomic_group_t::SH: return form_factor_t::SH;
-            default: return detail::get_type(atom_type);
+            default: return get_type(atom_type);
         }
     }
 }

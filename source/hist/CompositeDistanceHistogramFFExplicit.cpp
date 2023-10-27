@@ -119,25 +119,6 @@ ScatteringProfile CompositeDistanceHistogramFFExplicit::debye_transform() const 
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
-    {
-        for (unsigned int i = 0; i < 10; ++i) {
-            double aa_sum = 0;
-            double xx_sum = 0;
-            double count = 0;
-            for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-                for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                    count += cp_xx.index(ff1, ff2, i);
-                    xx_sum += cp_xx.index(ff1, ff2, i)*ff_xx_table.index(ff1, ff2).evaluate(0);
-                    aa_sum += cp_aa.index(ff1, ff2, i)*ff_aa_table.index(ff1, ff2).evaluate(0);
-                }
-            }
-            std::cout << "d = " << constants::axes::d_axis.get_bin_value(i) << std::endl;
-            std::cout << "\taa_sum[" << i << "] = " << aa_sum << std::endl;
-            std::cout << "\txx_sum[" << i << "] = " << xx_sum << std::endl;
-            std::cout << "\t count[" << i << "] = " << count << std::endl;
-        }
-    }
-
     std::vector<double> Iq(debye_axis.bins, 0);
     unsigned int ff_w_index = static_cast<int>(form_factor::form_factor_t::OH);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
