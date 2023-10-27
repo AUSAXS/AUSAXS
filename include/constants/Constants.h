@@ -35,7 +35,7 @@ namespace constants {
      * @brief Constants used to define the default axes.
      */
     namespace axes {
-        constexpr Axis d_axis(0, 2000, 4000);
+        constexpr Axis d_axis(0, 2000, 8000);
         constexpr Axis q_axis(1e-4, 1, 200);
         constexpr auto q_vals = q_axis.as_array<q_axis.bins>(); 
         constexpr auto d_vals = d_axis.as_array<d_axis.bins>();

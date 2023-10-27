@@ -19,12 +19,12 @@ namespace form_factor::foxs {
 
         private:
             double q0 = 1;
-            static constexpr double modulation = 0.23;
+            static constexpr double modulation = 0.23/2;
     };
 
     namespace storage {
         namespace atomic {
-            FormFactorFoXS get_form_factor(form_factor_t type) {
+            static FormFactorFoXS get_form_factor(form_factor_t type) {
                 switch (type) {
                     case form_factor_t::H:
                         return FormFactorFoXS(0.999953);
@@ -35,7 +35,7 @@ namespace form_factor::foxs {
                     case form_factor_t::O:
                         return FormFactorFoXS(7.9994);
                     case form_factor_t::S:
-                        return FormFactorFoXS(16.9998);
+                        return FormFactorFoXS(15.9998);
                     case form_factor_t::CH:
                         return FormFactorFoXS(6.99915);
                     case form_factor_t::CH2:
@@ -53,13 +53,13 @@ namespace form_factor::foxs {
                     case form_factor_t::SH:
                         return FormFactorFoXS(16.9998);
                     case form_factor_t::OTHER:
-                        return FormFactorFoXS(16.9998);
+                        return FormFactorFoXS(17.99);
                     default:
                         throw std::runtime_error("form_factor::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
-            container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
+            [[maybe_unused]] static container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
                 container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
@@ -79,7 +79,7 @@ namespace form_factor::foxs {
         }
 
         namespace exv {
-            FormFactorFoXS get_form_factor(form_factor_t type) {
+            static FormFactorFoXS get_form_factor(form_factor_t type) {
                 switch (type) {
                     case form_factor_t::H:
                         return FormFactorFoXS(1.7201);
@@ -108,13 +108,13 @@ namespace form_factor::foxs {
                     case form_factor_t::SH:
                         return FormFactorFoXS(8.35334);
                     case form_factor_t::OTHER:
-                        return FormFactorFoXS(8.35334);
+                        return FormFactorFoXS(1.399);
                     default:
                         throw std::runtime_error("form_factor::storage::exv::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
                 }
             }
 
-            container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
+            [[maybe_unused]] static container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
                 container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {
@@ -134,7 +134,7 @@ namespace form_factor::foxs {
         }
 
         namespace cross {
-            container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
+            [[maybe_unused]] static container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_table() {
                 container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
                 for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
                     for (unsigned int j = 0; j < i; ++j) {

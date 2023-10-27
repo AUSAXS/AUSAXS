@@ -18,8 +18,9 @@ CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
 CompositeDistanceHistogramFoXS::~CompositeDistanceHistogramFoXS() = default;
 
 double CompositeDistanceHistogramFoXS::G_factor(double q) const {
-    constexpr double rm = 1.62;
-    constexpr double c = std::pow(4*M_PI/3, 3./2)*M_PI*rm*rm*constants::form_factor::s_to_q_factor;
+    constexpr double rm = 1.58;
+    constexpr double c = rm*rm/(4*M_PI);
+    // constexpr double c = std::pow(4*M_PI/3, 3./2)*M_PI*rm*rm*constants::form_factor::s_to_q_factor;
     return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
 }
 
@@ -40,12 +41,13 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
     //         double count = 0;
     //         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
     //             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-    //                 aa_sum += cp_aa.index(ff1, ff2, i);
     //                 count += cp_xx.index(ff1, ff2, i);
     //                 xx_sum += cp_xx.index(ff1, ff2, i)*ff_xx_table.index(ff1, ff2).evaluate(0);
+    //                 aa_sum += cp_xx.index(ff1, ff2, i)*ff_aa_table.index(ff1, ff2).evaluate(0);
     //             }
     //         }
     //         std::cout << "d = " << constants::axes::d_axis.get_bin_value(i) << std::endl;
+    //         std::cout << "\taa_sum[" << i << "] = " << aa_sum << std::endl;
     //         std::cout << "\txx_sum[" << i << "] = " << xx_sum << std::endl;
     //         std::cout << "\t count[" << i << "] = " << count << std::endl;
     //     }
@@ -57,26 +59,26 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+
                 // atom-atom
-                double aa_sum = std::inner_product(cp_aa.begin(ff1, ff2), cp_aa.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] += aa_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
+                Iq[q] += count_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
 
                 // atom-exv
-                double ax_sum = std::inner_product(cp_ax.begin(ff1, ff2), cp_ax.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] -= 2*Gq*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
+                Iq[q] -= 2*Gq*count_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
 
                 // exv-exv
-                double xx_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] += Gq*Gq*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
+                Iq[q] += Gq*Gq*count_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
             }
 
+            // the sum is multiplied by the water charge, but this can be absorbed into the cw scaling factor
+            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
+
             // atom-water
-            double aw_sum = std::inner_product(cp_aw.begin(ff1), cp_aw.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] += 2*cw*aw_sum*ff_aa_table.index(ff1, ff_w_index).evaluate(q);
+            Iq[q] += 2*cw*count_sum*ff_aa_table.index(ff1, ff_w_index).evaluate(q);
 
             // exv-water
-            double wx_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] -= 2*Gq*cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
+            Iq[q] -= 2*Gq*cw*count_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
         }
 
         // water-water
@@ -96,8 +98,8 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double ax_sum = std::inner_product(cp_ax.begin(ff1, ff2), cp_ax.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] += 2*Gq*ax_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                Iq[q] += 2*Gq*count_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
             }
         }
     }
@@ -114,8 +116,8 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double xx_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] += Gq*Gq*xx_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                Iq[q] += Gq*Gq*count_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
             }
         }
     }
@@ -131,8 +133,8 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double wx_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] += 2*Gq*cw*wx_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
+            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
+            Iq[q] += 2*Gq*cw*count_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
         }
     }
     return ScatteringProfile(Iq, debye_axis);
@@ -147,8 +149,8 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double aa_sum = std::inner_product(cp_aa.begin(ff1, ff2), cp_aa.end(ff1, ff2), sinqd_table.begin(q), 0.0);
-                Iq[q] += aa_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                Iq[q] += count_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
             }
         }
     }
@@ -164,8 +166,8 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
     unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double aw_sum = std::inner_product(cp_aw.begin(ff1), cp_aw.end(ff1), sinqd_table.begin(q), 0.0);
-            Iq[q] += 2*cw*aw_sum*ff_aa_table.index(ff1, ff_water_index).evaluate(q);
+            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
+            Iq[q] += 2*cw*count_sum*ff_aa_table.index(ff1, ff_water_index).evaluate(q);
         }
     }
     return ScatteringProfile(Iq, debye_axis);

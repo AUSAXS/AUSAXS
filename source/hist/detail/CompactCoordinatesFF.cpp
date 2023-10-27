@@ -17,6 +17,7 @@ CompactCoordinatesFF::CompactCoordinatesFF(const data::Body& body) : CompactCoor
 }
 
 #include <form_factor/ExvFormFactor.h>
+#include <hist/foxs/FormFactorFoXS.h>
 #include <fstream>
 CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::Body>& bodies) {
     size = std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.atom_size();});
@@ -40,11 +41,11 @@ CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::Body>& bodies
         }
     }
 
-    // std::ofstream out("ff.txt");
-    // for (unsigned int i = 0; i < 2367; ++i) {
-    //     auto fft = static_cast<form_factor::form_factor_t>(ff_types[i]);
-    //     out << "i = " << i+1 << ": " << bodies[0].get_atom(i).get_group_name() << " " << form_factor::to_string(fft) << " " << form_factor::storage::exv::get_form_factor(fft).evaluate(0) << std::endl;    
-    // }
+    std::ofstream out("ff.txt");
+    for (unsigned int i = 0; i < 2367; ++i) {
+        auto fft = static_cast<form_factor::form_factor_t>(ff_types[i]);
+        out << "i = " << i+1 << ": " << bodies[0].get_atom(i).get_group_name() << " " << form_factor::to_string(fft) << " " << form_factor::foxs::storage::atomic::get_form_factor(fft).evaluate(0) << " " << form_factor::foxs::storage::exv::get_form_factor(fft).evaluate(0) << std::endl;
+    }
 }
 
 CompactCoordinatesFF::CompactCoordinatesFF(const std::vector<data::record::Water>& atoms) : CompactCoordinates(atoms.size()), ff_types(atoms.size()) {

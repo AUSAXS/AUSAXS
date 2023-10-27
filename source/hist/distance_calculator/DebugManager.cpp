@@ -1,6 +1,7 @@
 #include <hist/distance_calculator/DebugManager.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/ExvFormFactor.h>
+#include <hist/foxs/FormFactorFoXS.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -47,26 +48,30 @@ ScatteringProfile DebugDistanceHistogram::debye_transform() const {
 
     std::vector<double> count( constants::axes::d_axis.bins, 0);
     std::vector<double> xx_sum(constants::axes::d_axis.bins, 0);
+    std::vector<double> aa_sum(constants::axes::d_axis.bins, 0);
     hist::detail::CompactCoordinatesFF cc(protein->get_bodies());
     for (unsigned int i = 0; i < atoms.size(); ++i) {
         for (unsigned int j = i+1; j < atoms.size(); ++j) {
-            const auto& atom_i = atoms[i];
-            const auto& atom_j = atoms[j];
+            double fi = form_factor::foxs::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(i))).evaluate(0);
+            double fj = form_factor::foxs::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(j))).evaluate(0);
 
-            double fix = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(i))).evaluate(0);
-            double fjx = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(j))).evaluate(0);
+            double fix = form_factor::foxs::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(i))).evaluate(0);
+            double fjx = form_factor::foxs::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(j))).evaluate(0);
 
             count.at( std::round(aa_distances(i, j)*2)) += 2;
             xx_sum.at(std::round(aa_distances(i, j)*2)) += 2*fix*fjx;
+            aa_sum.at(std::round(aa_distances(i, j)*2)) += 2*fi*fj;
         }
     }
     for (unsigned int i = 0; i < atoms.size(); ++i) {
         count.at(0) += 1;
-        xx_sum.at(0) += std::pow(form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(i))).evaluate(0), 2);
+        xx_sum.at(0) += std::pow(form_factor::foxs::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(i))).evaluate(0), 2);
+        aa_sum.at(0) += std::pow(form_factor::foxs::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(cc.get_ff_type(i))).evaluate(0), 2);
     }
 
     for (unsigned int i = 0; i < 10; ++i) {
         std::cout << "d = " << constants::axes::d_axis.get_bin_value(i) << std::endl;
+        std::cout << "\taa_sum[" << i << "] = " << aa_sum[i] << std::endl;
         std::cout << "\txx_sum[" << i << "] = " << xx_sum[i] << std::endl;
         std::cout << "\t count[" << i << "] = " << count[i] << std::endl;
     }
