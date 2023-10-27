@@ -1,0 +1,5 @@
+Remove scaling factor of pi^2 from excluded volume exponentials
+Use excluded volume measurements by Fraser, Suzuki, & McRae for the Hx, Cx, Nx, Ox form factors
+#Switch around the displaced volume of NH2 and NH
+Divided excluded volume form factors by 2
+Added if-case to CompactCoordinatesFF for "N" atom names to return atom_group_t::NH

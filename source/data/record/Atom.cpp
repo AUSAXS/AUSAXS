@@ -15,7 +15,7 @@ Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const
     set_coordinates(v);
     set_occupancy(occupancy);
     set_element(element);
-    set_resName(resName);
+    set_residue_name(resName);
     set_serial(serial);
     set_effective_charge(constants::charge::get_charge(this->element));
 }
@@ -23,18 +23,18 @@ Atom::Atom(Vector3<double> v, double occupancy, constants::atom_t element, const
 Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const std::string& resName, char chainID, int resSeq, const std::string& iCode, 
     Vector3<double> coords, double occupancy, double tempFactor, constants::atom_t element, const std::string& charge) : uid(uid_counter++) {
         set_serial(serial);
-        set_name(name);
-        set_altLoc(altLoc);
-        set_resName(resName);
+        set_group_name(name);
+        set_alternate_location(altLoc);
+        set_residue_name(resName);
         set_chainID(chainID);
-        set_resSeq(resSeq);
-        set_iCode(iCode);
+        set_residue_sequence_number(resSeq);
+        set_insertion_code(iCode);
         set_coordinates(coords);
         set_occupancy(occupancy);
-        set_tempFactor(tempFactor);
+        set_temperature_factor(tempFactor);
         set_element(element);
         set_charge(charge);
-        atomic_group = constants::symbols::get_atomic_group(get_resName(), get_name(), get_element());
+        atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
 
         // use a try-catch block to throw more sensible errors
         #ifdef DEBUG
@@ -126,7 +126,7 @@ void Atom::parse_pdb(const std::string& str) {
         throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
     #endif
-    atomic_group = constants::symbols::get_atomic_group(get_resName(), get_name(), get_element());
+    atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
     effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
 }
 
@@ -170,16 +170,16 @@ void Atom::set_x(double x) {coords.x() = x;}
 void Atom::set_y(double y) {coords.y() = y;}
 void Atom::set_z(double z) {coords.z() = z;}
 void Atom::set_occupancy(double occupancy) {this->occupancy = occupancy;}
-void Atom::set_tempFactor(double tempFactor) {this->tempFactor = tempFactor;}
-void Atom::set_altLoc(const std::string& altLoc) {this->altLoc = altLoc;}
+void Atom::set_temperature_factor(double tempFactor) {this->tempFactor = tempFactor;}
+void Atom::set_alternate_location(const std::string& altLoc) {this->altLoc = altLoc;}
 void Atom::set_serial(int serial) {this->serial = serial;}
-void Atom::set_resSeq(int resSeq) {this->resSeq = resSeq;}
+void Atom::set_residue_sequence_number(int resSeq) {this->resSeq = resSeq;}
 void Atom::set_effective_charge(double charge) {effective_charge = charge;}
 void Atom::set_chainID(char chainID) {this->chainID = chainID;}
-void Atom::set_iCode(const std::string& iCode) {this->iCode = iCode;}
+void Atom::set_insertion_code(const std::string& iCode) {this->iCode = iCode;}
 void Atom::set_charge(const std::string& charge) {this->charge = charge;}
-void Atom::set_resName(const std::string& resName) {this->resName = resName;}
-void Atom::set_name(const std::string& name) {this->name = name;}
+void Atom::set_residue_name(const std::string& resName) {this->resName = resName;}
+void Atom::set_group_name(const std::string& name) {this->name = name;}
 
 void Atom::set_element(constants::atom_t element) {
     #ifdef DEBUG
@@ -199,17 +199,17 @@ void Atom::set_element(const std::string& element) {
 Vector3<double>& Atom::get_coordinates() {return coords;}
 const Vector3<double>& Atom::get_coordinates() const {return coords;}
 int Atom::get_serial() const {return serial;}
-int Atom::get_resSeq() const {return resSeq;}
+int Atom::get_residue_sequence_number() const {return resSeq;}
 double Atom::get_occupancy() const {return occupancy;}
-double Atom::get_tempFactor() const {return tempFactor;}
+double Atom::get_temperature_factor() const {return tempFactor;}
 double Atom::get_absolute_charge() const {return Z();}
 double Atom::get_effective_charge() const {return effective_charge;}
-std::string Atom::get_altLoc() const {return altLoc;}
+std::string Atom::get_alternate_location() const {return altLoc;}
 char Atom::get_chainID() const {return chainID;}
-std::string Atom::get_iCode() const {return iCode;}
+std::string Atom::get_insertion_code() const {return iCode;}
 std::string Atom::get_charge() const {return charge;}
-std::string Atom::get_resName() const {return resName;}
-std::string Atom::get_name() const {return name;}
+std::string Atom::get_residue_name() const {return resName;}
+std::string Atom::get_group_name() const {return name;}
 constants::atom_t Atom::get_element() const {return element;}
 std::string Atom::get_recName() const {return recName;}
 constants::atomic_group_t Atom::get_atomic_group() const {return atomic_group;}

@@ -131,7 +131,7 @@ void AtomCollection::refresh() {
     resSeq = protein_atoms[protein_atoms.size()-1].resSeq + 1;
     for (auto& a : hydration_atoms) {
         a.set_serial(serial++ % 100000);
-        a.set_resSeq(resSeq++ % 10000);
+        a.set_residue_sequence_number(resSeq++ % 10000);
         a.set_chainID(chainID + int(resSeq/10000));
     }
 }

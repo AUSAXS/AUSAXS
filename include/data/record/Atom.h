@@ -102,14 +102,14 @@ namespace data::record {
              * 
              * @param tempFactor the temperature factor.
              */
-            void set_tempFactor(double tempFactor);
+            void set_temperature_factor(double tempFactor);
 
             /**
              * @brief Set the alternate location for this atom.
              * 
              * @param altLoc the alternate location, e.g. A.
              */
-            void set_altLoc(const std::string& altLoc);
+            void set_alternate_location(const std::string& altLoc);
 
             /**
              * @brief Set the serial number for this atom.
@@ -123,7 +123,7 @@ namespace data::record {
              * 
              * @param resSeq the residue sequence number, e.g. 1.
              */
-            void set_resSeq(int resSeq);
+            void set_residue_sequence_number(int resSeq);
 
             /**
              * @brief Set the effective charge for this atom.
@@ -144,7 +144,7 @@ namespace data::record {
              * 
              * @param iCode the insertion code, e.g. A.
              */
-            void set_iCode(const std::string& iCode);
+            void set_insertion_code(const std::string& iCode);
 
             /**
              * @brief Set the charge for this atom.
@@ -158,14 +158,14 @@ namespace data::record {
              * 
              * @param resName the residue name, typically an amino acid such as LYS.
              */
-            void set_resName(const std::string& resName);
+            void set_residue_name(const std::string& resName);
 
             /**
              * @brief Specify the position of this atom within its residue.
              * 
              * @param name the position specifier, e.g. CG2 (Carbon | position G | branch 2).
              */
-            void set_name(const std::string& name);
+            void set_group_name(const std::string& name);
 
             /**
              * @brief Set the atomic element for this atom. Any spaces are removed. 
@@ -199,7 +199,7 @@ namespace data::record {
             /**
              * @brief Get the residue sequence number of this Atom.
              */
-            int get_resSeq() const;
+            int get_residue_sequence_number() const;
 
             /**
              * @brief Get the occupancy of this Atom.
@@ -209,7 +209,7 @@ namespace data::record {
             /**
              * @brief Get the temperature factor of this Atom.
              */
-            double get_tempFactor() const;
+            double get_temperature_factor() const;
 
             /**
              * @brief Get the effective charge of this Atom. 
@@ -227,7 +227,7 @@ namespace data::record {
              * @brief Get the alternate location of this Atom.
              *        Example: "A"
              */
-            std::string get_altLoc() const;
+            std::string get_alternate_location() const;
 
             /**
              * @brief Get the chain ID of this Atom.
@@ -238,7 +238,7 @@ namespace data::record {
             /**
              * @brief Get the insertion code of this Atom.
              */
-            std::string get_iCode() const;
+            std::string get_insertion_code() const;
 
             /**
              * @brief Get the string representation of the charge of this Atom.
@@ -250,13 +250,13 @@ namespace data::record {
              * @brief Get the residue name of this Atom.
              *        Example: LYS
              */
-            std::string get_resName() const;
+            std::string get_residue_name() const;
 
             /**
              * @brief Get the name of this Atom. 
              *        Example: CG2 (Carbon | position G | branch 2).
              */
-            std::string get_name() const;
+            std::string get_group_name() const;
 
             /**
              * @brief Get the atomic element of this Atom.

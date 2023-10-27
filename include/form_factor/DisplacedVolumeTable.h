@@ -22,7 +22,8 @@ namespace constants::DisplacedVolume {
     constexpr double NH2 = 0.01279*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
     constexpr double NH3 = 0.01794*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
     constexpr double OH =  0.01428*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
-    constexpr double SH =  0.02510*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+    // constexpr double SH =  0.02510*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+    constexpr double SH = 8.35334/0.334;
 
     constexpr double H = 0.00515*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
     constexpr double C = 0.01644*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);

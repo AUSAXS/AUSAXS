@@ -201,7 +201,7 @@ CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 // }
 
 ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
 
     // calculate the Debye scattering intensity
@@ -289,7 +289,7 @@ void CompositeDistanceHistogramFFAvg::apply_excluded_volume_scaling_factor(doubl
 }
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aa() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -307,7 +307,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aa() const 
 }
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ax() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -324,7 +324,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ax() const 
 }
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_xx() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -339,7 +339,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_xx() const 
 }
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_wx() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -355,7 +355,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_wx() const 
 }
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aw() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -372,7 +372,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aw() const 
 }
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ww() const {
-    const auto& ff_table = form_factor::storage::get_precalculated_form_factor_table();
+    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin

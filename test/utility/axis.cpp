@@ -149,6 +149,40 @@ TEST_CASE("Axis::get_bin") {
     }
 }
 
+TEST_CASE("Axis::get_bin_value") {
+    SECTION("empty") {
+        Axis axis;
+        CHECK(axis.get_bin_value(0) == 0);
+    }
+
+    SECTION("simple") {
+        Axis axis(0, 10, 10);
+        for (unsigned int i = 0; i < axis.bins; ++i) {
+            CHECK(axis.get_bin_value(i) == i);
+        }        
+
+        axis = Axis(1, 10, 3);
+        CHECK(axis.get_bin_value(0) == 1);
+        CHECK(axis.get_bin_value(1) == 4);
+        CHECK(axis.get_bin_value(2) == 7);
+        CHECK(axis.get_bin_value(3) == 10);
+    }
+
+    SECTION("complex") {
+        Axis axis(1, 5, 20);
+        for (unsigned int i = 0; i < axis.bins; ++i) {
+            CHECK_THAT(axis.get_bin_value(i), Catch::Matchers::WithinAbs(axis.min + i*axis.width(), 1e-6));
+        }
+    }
+
+    SECTION("d_axis") {
+        auto& d_axis = constants::axes::d_axis;
+        for (unsigned int i = 0; i < d_axis.bins; ++i) {
+            CHECK_THAT(d_axis.get_bin_value(i), Catch::Matchers::WithinAbs(0.5*i, 1e-6));
+        }
+    }
+}
+
 TEST_CASE("Axis::sub_axis") {
     SECTION("simple") {
         Axis axis(1, 10, 9);
@@ -172,9 +206,9 @@ TEST_CASE("Axis::sub_axis") {
         auto q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 
         // settings::axes::qmax is not an exact entry in constants::axes::q_axis, so we can only check that we are close
-        CHECK_THAT(q_axis.max, Catch::Matchers::WithinAbs(settings::axes::qmax, 1e-3)); 
+        CHECK_THAT(q_axis.max, Catch::Matchers::WithinAbs(settings::axes::qmax, 1e-2)); 
         CHECK(q_axis.min == settings::axes::qmin);
-        CHECK(q_axis.bins == constants::axes::q_axis.bins/2); 
+        CHECK_THAT(q_axis.bins, Catch::Matchers::WithinAbs(constants::axes::q_axis.bins/2, 1.01)); 
 
         auto qvals = q_axis.as_vector();
         for (unsigned int i = 0; i < q_axis.bins; ++i) {

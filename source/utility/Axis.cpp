@@ -45,6 +45,11 @@ unsigned int Axis::get_bin(double value) const noexcept {
     return std::floor((value+1e-6-min)/width()); // +1e-6 to avoid flooring floating point errors, and we will likely never have bins this small anyway
 }
 
+double Axis::get_bin_value(unsigned int bin) const noexcept {
+    if (bins == 0) [[unlikely]] {return 0;}
+    return min + bin*width();
+}
+
 Axis Axis::sub_axis(double vmin, double vmax) const noexcept {
     unsigned int min_bin = get_bin(vmin);
     unsigned int max_bin = get_bin(vmax);

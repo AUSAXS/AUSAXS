@@ -111,7 +111,7 @@ void ResidueStorage::write_residue(const std::string& name) {
     file << std::endl;
 }
 
-constants::atomic_group_t ResidueStorage::get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom_type) {
+constants::atomic_group_t ResidueStorage::get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom) {
     auto& residue = get(residue_name);
-    return residue.get_atomic_group(atom_name, atom_type);
+    return residue.get_atomic_group(atom_name, atom);
 }

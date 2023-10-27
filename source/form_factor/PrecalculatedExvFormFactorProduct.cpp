@@ -37,7 +37,7 @@ constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_facto
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
-                storage::get_form_factor(static_cast<form_factor_t>(i)), 
+                storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
                 storage::exv::get_form_factor(static_cast<form_factor_t>(j))
             );
         }

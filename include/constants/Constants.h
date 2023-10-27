@@ -5,6 +5,7 @@
 #include <constants/ConstantsFwd.h>
 #include <io/IOFwd.h>
 #include <utility/Axis.h>
+#include <math/ConstMath.h>
 
 #include <string>
 #include <cmath>
@@ -37,11 +38,7 @@ namespace constants {
         constexpr Axis d_axis(0, 2000, 4000);
         constexpr Axis q_axis(1e-4, 1, 200);
         constexpr auto q_vals = q_axis.as_array<q_axis.bins>(); 
-        constexpr auto d_vals = [](){
-            auto temp = d_axis.as_array<d_axis.bins>();
-            temp[0] = 0;    // we have to manually set the first value to 0, since it represents self-correlation terms
-            return temp;
-        }();
+        constexpr auto d_vals = d_axis.as_array<d_axis.bins>();
     }
 
     /**
@@ -69,7 +66,7 @@ namespace constants {
         constexpr double cm = 1e-8; // Ångström --> cm
         constexpr double nm = 1e-1; // Ångström --> nm
 
-        constexpr double mL = std::pow(unit::cm, 3); // Ångström^3 --> mL
+        constexpr double mL = math::pow(unit::cm, 3); // Ångström^3 --> mL
     }
 
     /**

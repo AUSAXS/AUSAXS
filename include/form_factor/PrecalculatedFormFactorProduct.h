@@ -39,7 +39,7 @@ namespace form_factor {
             std::array<double, constants::axes::q_axis.bins> precalculated_ff_q;
     };
 
-    namespace storage {
+    namespace storage::atomic {
         /**
          * @brief Get a precalculated atomic form factor product for a given pair of atomic form factors.
          * 

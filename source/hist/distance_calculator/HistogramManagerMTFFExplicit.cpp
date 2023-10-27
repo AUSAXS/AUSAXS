@@ -23,7 +23,7 @@ HistogramManagerMTFFExplicit::~HistogramManagerMTFFExplicit() = default;
 
 std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit::calculate() {return calculate_all();}
 
-#include <form_factor/ExvFormFactor.h>
+#include <hist/foxs/CompositeDistanceHistogramFoXS.h>
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calculate_all() {
     hist::detail::CompactCoordinatesFF data_p(protein->get_bodies());
     hist::detail::CompactCoordinatesFF data_h = hist::detail::CompactCoordinatesFF(protein->get_waters());
@@ -41,18 +41,18 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
             for (; j+7 < data_p.get_size(); j+=8) {
                 auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {
-                    p_aa.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                    p_ax.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2*data_p[i+k].value.w;
-                    p_xx.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2;
+                    p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
+                    p_ax.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*data_p[i+k].value.w;
+                    p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2;
                 }
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
                 auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {
-                    p_aa.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                    p_ax.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2*data_p[i+k].value.w;
-                    p_xx.index(data_p.get_ff_type(i+k), data_p.get_ff_type(j+k), res.distance[k]) += 2;
+                    p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
+                    p_ax.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*data_p[i+k].value.w;
+                    p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2;
                 }
             }
 
@@ -234,7 +234,12 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
     }
     p_tot.resize(max_bin);
 
-    return std::make_unique<CompositeDistanceHistogramFFExplicit>(
+    // return std::make_unique<CompositeDistanceHistogramFFExplicit>(
+    //     std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
+    //     std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
+    //     std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+
+    return std::make_unique<CompositeDistanceHistogramFoXS>(
         std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
         std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
         std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));

@@ -83,6 +83,12 @@ class Axis {
 		unsigned int get_bin(double value) const noexcept;
 
 		/**
+		 * @brief Get the axis value for a given bin.
+		 * 		  Returns values in the range [min, max]
+		 */
+		double get_bin_value(unsigned int bin) const noexcept;
+
+		/**
 		 * @brief Get a sub-axis of this Axis.
 		 * 		  The closest match to the specified minimum and maximum values are used.
 		 * 		  This guarantees that the returned Axis is an exact subset of this Axis.
@@ -114,6 +120,7 @@ class Axis {
 		 * @brief Get an array representation of this Axis. 
 		 * 
 		 * @param shift Specify the amount to shift each bin by. Using 0.5 will return the center values of each bin.
+		 * @tparam size The size of the array.
 		 */
 		template<unsigned int size>
 		constexpr std::array<double, size> as_array(double shift = 0) const noexcept {

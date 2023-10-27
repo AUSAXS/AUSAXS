@@ -173,17 +173,23 @@ int main(int argc, char const *argv[]) {
         C_aa.y(i) /= I_aa.interpolate_y(C_aa.x(i));
         C_xx.y(i) /= I_xx.interpolate_y(C_xx.x(i));
     }
+    C_xx.normalize();
+    C_aa.normalize();
 
     for (unsigned int i = 0; i < foxs_xx.size(); ++i) {
         foxs_aa.y(i) /= I_aa.interpolate_y(foxs_aa.x(i));
         foxs_xx.y(i) /= I_xx.interpolate_y(foxs_xx.x(i));
     }
+    foxs_aa.normalize();
+    foxs_xx.normalize();
 
+    foxs_xx.add_plot_options({{"logy", false}, {"logx", false}, {"xlimits", std::vector<double>{0, 0.5}}, {"ylimits", std::vector<double>{0.8, 1.2}}});
     plots::PlotDataset(foxs_xx)
         .plot(C_xx)
         .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))
     .save(base_path + "exv_normalized.png");
 
+    foxs_aa.add_plot_options({{"logy", false}, {"logx", false}, {"xlimits", std::vector<double>{0, 0.5}}, {"ylimits", std::vector<double>{0.8, 1.2}}});
     plots::PlotDataset(foxs_aa)
         .plot(C_aa)
         .hline(1, plots::PlotOptions(style::draw::line, {{"linestyle", style::line::dashed}, {"color", style::color::black}}))

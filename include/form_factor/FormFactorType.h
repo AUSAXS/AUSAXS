@@ -16,6 +16,7 @@ namespace form_factor {
         N,                  // neutral nitrogen
         NH,                 // neutral nitrogen with hydrogen
         NH2,                // neutral nitrogen with two hydrogens
+        NH3,                // neutral nitrogen with three hydrogens
         O,                  // neutral oxygen
         OH,                 // neutral oxygen with hydrogen
         S,                  // neutral sulfur
@@ -35,6 +36,7 @@ namespace form_factor {
             case form_factor_t::N: return "N";
             case form_factor_t::NH: return "NH";
             case form_factor_t::NH2: return "NH2";
+            case form_factor_t::NH3: return "NH3";
             case form_factor_t::O: return "O";
             case form_factor_t::OH: return "OH";
             case form_factor_t::S: return "S";
@@ -75,6 +77,7 @@ namespace form_factor {
                 case constants::atom_t::C: return form_factor_t::C;
                 case constants::atom_t::N: return form_factor_t::N;
                 case constants::atom_t::O: return form_factor_t::O;
+                case constants::atom_t::S: return form_factor_t::S;
                 default: return form_factor_t::OTHER;
             }
         }
@@ -92,6 +95,7 @@ namespace form_factor {
             case constants::atomic_group_t::CH3: return form_factor_t::CH3;
             case constants::atomic_group_t::NH: return form_factor_t::NH;
             case constants::atomic_group_t::NH2: return form_factor_t::NH2;
+            case constants::atomic_group_t::NH3: return form_factor_t::NH3;
             case constants::atomic_group_t::OH: return form_factor_t::OH;
             case constants::atomic_group_t::SH: return form_factor_t::SH;
             default: return detail::get_type(atom_type);

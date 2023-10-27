@@ -46,7 +46,7 @@ namespace form_factor {
     /**
      * This struct contains the form factors of the most common atomic elements encountered in SAXS. 
      */
-    namespace storage {
+    namespace storage::atomic {
         // atomic
         constexpr FormFactor H               = FormFactor(               constants::form_factor::H::a,               constants::form_factor::H::b,               constants::form_factor::H::c);
         constexpr FormFactor C               = FormFactor(               constants::form_factor::C::a,               constants::form_factor::C::b,               constants::form_factor::C::c);
@@ -100,6 +100,8 @@ namespace form_factor {
                     return NH;
                 case form_factor_t::NH2:
                     return NH2;
+                case form_factor_t::NH3:
+                    return NH3_plus;
                 case form_factor_t::OH:
                     return OH_alc;
                 case form_factor_t::SH:

@@ -24,10 +24,10 @@ namespace residue {
              * @brief Get the atomic group based on the residue name and atom type.
              * 
              * @param residue_name The name of the residue, e.g. GLY or ALA.
-             * @param name The name of the atom, e.g. CH2 or NH2
+             * @param atom_name The name of the atom, e.g. CH2 or NH2
              * @param atom The atom type. This is required to avoid ambiguities since the name is always capitalized in PDB files, so otherwise we cannot distinguish between e.g. a C-alpha (CA) and a calcium (Ca).
              */
-            constants::atomic_group_t get_atomic_group(const std::string& residue_name, const std::string& name, constants::atom_t atom);
+            constants::atomic_group_t get_atomic_group(const std::string& residue_name, const std::string& atom_name, constants::atom_t atom);
 
         private: 
             /**

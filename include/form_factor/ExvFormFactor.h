@@ -16,7 +16,7 @@ namespace form_factor {
             constexpr ExvFormFactor(double volume) {
                 q0 = volume*constants::charge::density::water;
                 // double s_to_q = M_PI*M_PI*constants::form_factor::s_to_q_factor;   // crysol seems to have missed this conversion?
-                double s_to_q = constants::form_factor::s_to_q_factor;   // crysol seems to have missed this conversion?
+                double s_to_q = 1./(4*M_PI*M_PI);   // crysol seems to have missed this conversion?
                 exponent = M_PI*std::pow(volume, 2./3)*s_to_q;                  // eq 6
             }
 
@@ -57,6 +57,7 @@ namespace form_factor {
                 case form_factor_t::CH3: return CH3;
                 case form_factor_t::NH: return NH;
                 case form_factor_t::NH2: return NH2;
+                case form_factor_t::NH3: return NH3;
                 case form_factor_t::OH: return OH;
                 case form_factor_t::H: return H;
                 case form_factor_t::C: return C;

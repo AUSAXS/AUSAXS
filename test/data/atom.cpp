@@ -376,7 +376,8 @@ TEST_CASE("operators") {
     REQUIRE(w2 < w1);
 }
 
-TEST_CASE("correct_atomic_group") {
+#include <form_factor/FormFactorType.h>
+TEST_CASE("correct_atomic_group_ff") {
     Atom atom;
 
     SECTION("lys") {
@@ -392,30 +393,39 @@ TEST_CASE("correct_atomic_group") {
         
         atom.parse_pdb(lys1);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::NH2);
 
         atom.parse_pdb(lys2);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(lys3);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::C);
 
         atom.parse_pdb(lys4);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::O);
 
         atom.parse_pdb(lys5);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
 
         atom.parse_pdb(lys6);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
 
         atom.parse_pdb(lys7);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
 
         atom.parse_pdb(lys8);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
 
         atom.parse_pdb(lys9);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH3);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::N);
     }
 
     SECTION("val") {
@@ -429,24 +439,31 @@ TEST_CASE("correct_atomic_group") {
 
         atom.parse_pdb(val1);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::NH2);
 
         atom.parse_pdb(val2);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(val3);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::C);
 
         atom.parse_pdb(val4);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::O);
 
         atom.parse_pdb(val5);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(val6);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH3);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH3);
 
         atom.parse_pdb(val7);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH3);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH3);
     }
 
     SECTION("phe") {
@@ -464,36 +481,47 @@ TEST_CASE("correct_atomic_group") {
 
         atom.parse_pdb(phe1);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::NH2);
 
         atom.parse_pdb(phe2);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(phe3);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::C);
 
         atom.parse_pdb(phe4);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::O);
 
         atom.parse_pdb(phe5);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
 
         atom.parse_pdb(phe6);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::C);
 
         atom.parse_pdb(phe7);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(phe8);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(phe9);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(phe10);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
 
         atom.parse_pdb(phe11);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
     }
 
     SECTION("gly") {
@@ -504,14 +532,61 @@ TEST_CASE("correct_atomic_group") {
 
         atom.parse_pdb(gly1);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::NH2);
 
         atom.parse_pdb(gly2);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
 
         atom.parse_pdb(gly3);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::C);
 
         atom.parse_pdb(gly4);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::O);
+    }
+
+    SECTION("met") {
+        std::string met1 = "ATOM     42  N   MET A   6       2.683  -9.695  -4.055  1.00 35.86           N  ";
+        std::string met2 = "ATOM     43  CA  MET A   6       2.271 -11.076  -4.245  1.00 38.24           C  ";
+        std::string met3 = "ATOM     44  C   MET A   6       3.262 -12.007  -3.567  1.00 35.64           C  ";
+        std::string met4 = "ATOM     45  O   MET A   6       4.477 -11.842  -3.708  1.00 35.28           O  ";
+        std::string met5 = "ATOM     46  CB  MET A   6       2.177 -11.397  -5.740  1.00 47.86           C  ";
+        std::string met6 = "ATOM     47  CG  MET A   6       1.540 -12.723  -6.078  1.00 54.30           C  ";
+        std::string met7 = "ATOM     48  SD  MET A   6       1.467 -12.932  -7.867  1.00 55.60           S  ";
+        std::string met8 = "ATOM     49  CE  MET A   6       0.762 -11.361  -8.347  1.00 49.93           C  ";
+
+        atom.parse_pdb(met1);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::NH2);
+
+        atom.parse_pdb(met2);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH);
+
+        atom.parse_pdb(met3);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::C);
+
+        atom.parse_pdb(met4);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::O);
+
+        atom.parse_pdb(met5);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
+
+        atom.parse_pdb(met6);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH2);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH2);
+
+        atom.parse_pdb(met7);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::unknown);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::S);
+
+        atom.parse_pdb(met8);
+        REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::CH3);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::CH3);
     }
 }
