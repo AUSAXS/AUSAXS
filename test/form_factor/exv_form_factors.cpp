@@ -14,7 +14,7 @@ TEST_CASE("ExvFormFactor::evaluate") {}
 TEST_CASE("ExvFormFactor::plot", "[manual]") {
     plots::PlotDataset plot;
     {
-        const form_factor::FormFactor& ff_exv = form_factor::storage::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
+        const form_factor::FormFactor& ff_exv = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
         SimpleDataset dataset;
         dataset.add_plot_options({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"color", style::color::next()}, {"linewidth", 2}});
         for (const double& q : q_vals) {
@@ -38,7 +38,7 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
 // compare each exv form factor with its real one
 TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
     for (unsigned int ffi = 0; ffi < form_factor::get_count_without_excluded_volume(); ++ffi) {
-        const form_factor::FormFactor& ff = form_factor::storage::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
+        const form_factor::FormFactor& ff = form_factor::storage::atomic::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
         const form_factor::ExvFormFactor& ffx = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
 
         SimpleDataset dataset, datasetx;

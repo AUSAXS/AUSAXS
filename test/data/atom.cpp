@@ -15,7 +15,7 @@ TEST_CASE("Atom::Atom") {
         Atom a1({3, 0, 5}, 2, constants::atom_t::He, "LYS", 3);
 
         CHECK(a1.get_serial() == 3);
-        CHECK(a1.get_resName() == "LYS");
+        CHECK(a1.get_residue_name() == "LYS");
         CHECK(a1.get_coordinates() == Vector3<double>({3, 0, 5}));
         CHECK(a1.get_occupancy() == 2);
         CHECK(a1.get_element() == constants::atom_t::He);
@@ -26,15 +26,15 @@ TEST_CASE("Atom::Atom") {
         Atom a1(15, "CA", "altLoc", "GLY", 'X', 3, "iCode", Vector3<double>({0, 1, 2}), 2.5, 3.5, constants::atom_t::He, "2-");
 
         CHECK(a1.get_serial() == 15);
-        CHECK(a1.get_name() == "CA");
-        CHECK(a1.get_altLoc() == "altLoc");
-        CHECK(a1.get_resName() == "GLY");
+        CHECK(a1.get_group_name() == "CA");
+        CHECK(a1.get_alternate_location() == "altLoc");
+        CHECK(a1.get_residue_name() == "GLY");
         CHECK(a1.get_chainID() == 'X');
-        CHECK(a1.get_resSeq() == 3);
-        CHECK(a1.get_iCode() == "iCode");
+        CHECK(a1.get_residue_sequence_number() == 3);
+        CHECK(a1.get_insertion_code() == "iCode");
         CHECK(a1.get_coordinates() == Vector3({0, 1, 2}));
         CHECK(a1.get_occupancy() == 2.5);
-        CHECK(a1.get_tempFactor() == 3.5);
+        CHECK(a1.get_temperature_factor() == 3.5);
         CHECK(a1.get_element() == constants::atom_t::He);
         CHECK(a1.get_charge() == "2-");
         CHECK(a1.is_water() == false);
@@ -57,15 +57,15 @@ TEST_CASE("Atom::parse_pdb") {
         std::string line = "ATOM      1  N   GLY A   1       1.000   2.000   3.000  1.00  0.00           N  ";
         Atom a1; a1.parse_pdb(line);
         CHECK(a1.get_serial() == 1);
-        CHECK(a1.get_name() == "N");
-        CHECK(a1.get_altLoc() == " ");
-        CHECK(a1.get_resName() == "GLY");
+        CHECK(a1.get_group_name() == "N");
+        CHECK(a1.get_alternate_location() == " ");
+        CHECK(a1.get_residue_name() == "GLY");
         CHECK(a1.get_chainID() == 'A');
-        CHECK(a1.get_resSeq() == 1);
-        CHECK(a1.get_iCode() == " ");
+        CHECK(a1.get_residue_sequence_number() == 1);
+        CHECK(a1.get_insertion_code() == " ");
         CHECK(a1.get_coordinates() == Vector3({1, 2, 3}));
         CHECK(a1.get_occupancy() == 1);
-        CHECK(a1.get_tempFactor() == 0);
+        CHECK(a1.get_temperature_factor() == 0);
         CHECK(a1.get_element() == constants::atom_t::N);
         CHECK(a1.get_charge() == "  ");
         CHECK(a1.is_water() == false);
@@ -75,15 +75,15 @@ TEST_CASE("Atom::parse_pdb") {
         std::string line = "HETATM    2  C   LYS B   2       5.000   4.000   2.000  0.50  0.50           C  ";
         Atom a1; a1.parse_pdb(line);
         CHECK(a1.get_serial() == 2);
-        CHECK(a1.get_name() == "C");
-        CHECK(a1.get_altLoc() == " ");
-        CHECK(a1.get_resName() == "LYS");
+        CHECK(a1.get_group_name() == "C");
+        CHECK(a1.get_alternate_location() == " ");
+        CHECK(a1.get_residue_name() == "LYS");
         CHECK(a1.get_chainID() == 'B');
-        CHECK(a1.get_resSeq() == 2);
-        CHECK(a1.get_iCode() == " ");
+        CHECK(a1.get_residue_sequence_number() == 2);
+        CHECK(a1.get_insertion_code() == " ");
         CHECK(a1.get_coordinates() == Vector3({5, 4, 2}));
         CHECK(a1.get_occupancy() == 0.5);
-        CHECK(a1.get_tempFactor() == 0.5);
+        CHECK(a1.get_temperature_factor() == 0.5);
         CHECK(a1.get_element() == constants::atom_t::C);
         CHECK(a1.get_charge() == "  ");
         CHECK(a1.is_water() == false);
@@ -93,15 +93,15 @@ TEST_CASE("Atom::parse_pdb") {
         std::string line = "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C ";
         Atom a; a.parse_pdb(line);
         CHECK(a.get_serial() == 1);
-        CHECK(a.get_name() == "CB");
-        CHECK(a.get_altLoc() == " "); // spaces are only removed from number strings
-        CHECK(a.get_resName() == "ARG");
+        CHECK(a.get_group_name() == "CB");
+        CHECK(a.get_alternate_location() == " "); // spaces are only removed from number strings
+        CHECK(a.get_residue_name() == "ARG");
         CHECK(a.get_chainID() == 'A');
-        CHECK(a.get_resSeq() == 129);
-        CHECK(a.get_iCode() == " "); // same
+        CHECK(a.get_residue_sequence_number() == 129);
+        CHECK(a.get_insertion_code() == " "); // same
         CHECK(a.get_coordinates() == Vector3({2.1, 3.2, 4.3}));
         CHECK(a.get_occupancy() == 0.5);
-        CHECK(a.get_tempFactor() == 42.04);
+        CHECK(a.get_temperature_factor() == 42.04);
         CHECK(a.get_element() == constants::atom_t::C);
         CHECK(a.get_charge() == "  "); // same
         CHECK(a.get_recName() == "ATOM  ");
@@ -188,14 +188,14 @@ TEST_CASE("Atom::set_occupancy") {
 
 TEST_CASE("Atom::set_tempFactor") {
     Atom a1;
-    a1.set_tempFactor(2);
-    CHECK(a1.get_tempFactor() == 2);
+    a1.set_temperature_factor(2);
+    CHECK(a1.get_temperature_factor() == 2);
 }
 
 TEST_CASE("Atom::set_altLoc") {
     Atom a1;
-    a1.set_altLoc("Z");
-    CHECK(a1.get_altLoc() == "Z");
+    a1.set_alternate_location("Z");
+    CHECK(a1.get_alternate_location() == "Z");
 }
 
 TEST_CASE("Atom::set_serial") {
@@ -206,14 +206,14 @@ TEST_CASE("Atom::set_serial") {
 
 TEST_CASE("Atom::set_resSeq") {
     Atom a1;
-    a1.set_resSeq(2);
-    CHECK(a1.get_resSeq() == 2);
+    a1.set_residue_sequence_number(2);
+    CHECK(a1.get_residue_sequence_number() == 2);
 }
 
 TEST_CASE("Atom::set_iCode") {
     Atom a1;
-    a1.set_iCode("Z");
-    CHECK(a1.get_iCode() == "Z");
+    a1.set_insertion_code("Z");
+    CHECK(a1.get_insertion_code() == "Z");
 }
 
 TEST_CASE("Atom::set_chainID") {
@@ -236,14 +236,14 @@ TEST_CASE("Atom::set_charge") {
 
 TEST_CASE("Atom::set_resName") {
     Atom a1;
-    a1.set_resName("resName");
-    CHECK(a1.get_resName() == "resName");
+    a1.set_residue_name("resName");
+    CHECK(a1.get_residue_name() == "resName");
 }
 
 TEST_CASE("Atom::set_name") {
     Atom a1;
-    a1.set_name("name");
-    CHECK(a1.get_name() == "name");
+    a1.set_group_name("name");
+    CHECK(a1.get_group_name() == "name");
 }
 
 TEST_CASE("Atom::set_effective_charge") {
@@ -261,16 +261,16 @@ TEST_CASE("Atom::get_mass") {
     SECTION("H") {
         Atom a1;
         a1.set_element("H");
-        a1.set_resName("GLY");
-        a1.set_name("H");
+        a1.set_residue_name("GLY");
+        a1.set_group_name("H");
         CHECK(a1.get_mass() == constants::mass::get_mass(constants::atom_t::H));
     }
 
     SECTION("C") {
         Atom a1;
         a1.set_element("C");
-        a1.set_resName("GLY");
-        a1.set_name("CA"); // CA has 2 H attached
+        a1.set_residue_name("GLY");
+        a1.set_group_name("CA"); // CA has 2 H attached
         CHECK(a1.get_mass() == constants::mass::get_mass(constants::atom_t::C) + 2*constants::mass::get_mass(constants::atom_t::H));
     }
 }
@@ -425,7 +425,7 @@ TEST_CASE("correct_atomic_group_ff") {
 
         atom.parse_pdb(lys9);
         REQUIRE(atom.get_atomic_group() == constants::atomic_group_t::NH3);
-        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::N);
+        REQUIRE(form_factor::get_type(atom.get_element(), atom.get_atomic_group()) == form_factor::form_factor_t::NH3);
     }
 
     SECTION("val") {

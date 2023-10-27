@@ -12,7 +12,7 @@ using namespace form_factor;
 // Check that we have the correct conversion of the s-values. The form factors are not supposed to change a lot over the span of our q-values.
 TEST_CASE("FormFactor::evaluate") {
     for (unsigned int ff = 0; ff < get_count_without_excluded_volume(); ++ff) {
-        const FormFactor& ff_obj = storage::get_form_factor(static_cast<form_factor_t>(ff));
+        const FormFactor& ff_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0.0), Catch::Matchers::WithinAbs(1, 1e-6));
         if (ff_obj.evaluate(0.5) < 0.95) {
             std::cout << "Warning: Form factor " << ff << " has a value of " << ff_obj.evaluate(0.5) << " at q = 0.5" << std::endl;
@@ -25,7 +25,7 @@ TEST_CASE("FormFactor::evaluate") {
 // Check that the form factors are normalized. 
 TEST_CASE("FormFactor::normalized") {
     for (unsigned int ff = 0; ff < get_count_without_excluded_volume(); ++ff) {
-        const FormFactor& ff_obj = storage::get_form_factor(static_cast<form_factor_t>(ff));
+        const FormFactor& ff_obj = storage::atomic::get_form_factor(static_cast<form_factor_t>(ff));
         CHECK_THAT(ff_obj.evaluate(0), Catch::Matchers::WithinAbs(1, 1e-6));
     }
 }
@@ -41,7 +41,7 @@ TEST_CASE("FormFactor::compare_with_four_gaussians") {
         double c = 0.2508;
 
         FormFactor ff(a, b, c);
-        const FormFactor& O = storage::get_form_factor(form_factor_t::O);
+        const FormFactor& O = storage::atomic::get_form_factor(form_factor_t::O);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(O.evaluate(q), 1e-3));
         }
@@ -53,7 +53,7 @@ TEST_CASE("FormFactor::compare_with_four_gaussians") {
         double c = -11.529;
 
         FormFactor ff(a, b, c);
-        const FormFactor& N = storage::get_form_factor(form_factor_t::N);
+        const FormFactor& N = storage::atomic::get_form_factor(form_factor_t::N);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(N.evaluate(q), 1e-3));
         }
@@ -65,7 +65,7 @@ TEST_CASE("FormFactor::compare_with_four_gaussians") {
         double c = 0.2156;
 
         FormFactor ff(a, b, c);
-        const FormFactor& C = storage::get_form_factor(form_factor_t::C);
+        const FormFactor& C = storage::atomic::get_form_factor(form_factor_t::C);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(C.evaluate(q), 1e-3));
         }
@@ -77,7 +77,7 @@ TEST_CASE("FormFactor::compare_with_four_gaussians") {
         double c = 1.4445;
 
         FormFactor ff(a, b, c);
-        const FormFactor& other = storage::get_form_factor(form_factor_t::OTHER);
+        const FormFactor& other = storage::atomic::get_form_factor(form_factor_t::OTHER);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(other.evaluate(q), 1e-3));
         }
@@ -89,7 +89,7 @@ TEST_CASE("FormFactor::compare_with_four_gaussians") {
         double c = 0.8669;
 
         FormFactor ff(a, b, c);
-        const FormFactor& S = storage::get_form_factor(form_factor_t::S);
+        const FormFactor& S = storage::atomic::get_form_factor(form_factor_t::S);
         for (const double& q : q_vals) {
             CHECK_THAT(ff.evaluate(q), Catch::Matchers::WithinAbs(S.evaluate(q), 1e-3));
         }
