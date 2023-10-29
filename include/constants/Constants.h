@@ -3,6 +3,7 @@
 #include <utility/SimpleMap.h>
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
+#include <constants/SI.h>
 #include <io/IOFwd.h>
 #include <utility/Axis.h>
 #include <math/ConstMath.h>
@@ -68,32 +69,6 @@ namespace constants {
         constexpr double nm = 1e-1; // Ångström --> nm
 
         constexpr double mL = math::pow(unit::cm, 3); // Ångström^3 --> mL
-    }
-
-    /**
-     * @brief Absolute units.
-     * 
-     * This namespace contains all the absolute unit conversion constants. 
-     */
-    namespace SI {
-        namespace mass {
-            constexpr double kg = 1;
-            constexpr double gm = 1e-3;
-            constexpr double mg = 1e-6;
-            constexpr double u = 1.66053*1e-27;
-        }
-
-        namespace length {
-            constexpr double m = 1;
-            constexpr double cm = 1e-2;
-            constexpr double nm = 1e-9;
-            constexpr double A = 1e-10; // Ångström
-        }
-
-        namespace volume {
-            constexpr double A3 = 1e-30; // Ångström^3
-            constexpr double cm3 = 1e-6;
-        }
     }
 
     // The 1-symbol names of all amino acids. 

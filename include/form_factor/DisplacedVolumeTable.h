@@ -1,7 +1,6 @@
 #pragma once
 
-#include <form_factor/FormFactorType.h>
-#include <constants/Constants.h>
+#include <constants/SI.h>
 #include <constants/vdwTable.h>
 #include <math/ConstMath.h>
 
@@ -9,7 +8,7 @@
 
 #define TRAUBE_FF false
 #define PONTIUS_FF true
-namespace constants::DisplacedVolume {
+namespace constants::displaced_volume {
     namespace {
         constexpr double volume(double radius) {
             return 4*M_PI/3*math::pow(radius, 3);
@@ -64,8 +63,7 @@ namespace constants::DisplacedVolume {
         constexpr double O = volume(constants::radius::vdw::O);
         constexpr double S = volume(constants::radius::vdw::S);
     #endif
-
-    constexpr double avg = 50./3;
+    constexpr double avg_vol = 50./3;
     constexpr double OH2 = 2.98*math::pow(10, -23)*math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = volume(constants::radius::vdw::Ar);
 }

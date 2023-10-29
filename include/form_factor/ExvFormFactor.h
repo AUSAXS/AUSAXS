@@ -14,10 +14,10 @@ namespace form_factor {
     class ExvFormFactor {
         public: 
             constexpr ExvFormFactor(double volume) {
+                double s_to_q = M_PI*M_PI*constants::form_factor::s_to_q_factor;
+                // double s_to_q = constants::form_factor::s_to_q_factor;
+                exponent = M_PI*std::pow(volume, 2./3)*s_to_q;
                 q0 = volume*constants::charge::density::water;
-                double s_to_q = M_PI*M_PI*constants::form_factor::s_to_q_factor;   // crysol seems to have missed this conversion?
-                // double s_to_q = constants::form_factor::s_to_q_factor;   // crysol seems to have missed this conversion?
-                exponent = M_PI*std::pow(volume, 2./3)*s_to_q;           // eq 6
             }
 
             constexpr double evaluate_normalized(double q) const {
@@ -28,29 +28,26 @@ namespace form_factor {
                 return q0*evaluate_normalized(q);
             }
 
-        private:
             double exponent = 0;
             double q0 = 1;
     };
 
     namespace storage::exv {
-        constexpr ExvFormFactor CH =  ExvFormFactor(constants::DisplacedVolume::CH);
-        constexpr ExvFormFactor CH2 = ExvFormFactor(constants::DisplacedVolume::CH2);
-        constexpr ExvFormFactor CH3 = ExvFormFactor(constants::DisplacedVolume::CH3);
-        constexpr ExvFormFactor NH =  ExvFormFactor(constants::DisplacedVolume::NH);
-        constexpr ExvFormFactor NH2 = ExvFormFactor(constants::DisplacedVolume::NH2);
-        constexpr ExvFormFactor NH3 = ExvFormFactor(constants::DisplacedVolume::NH3);
-        constexpr ExvFormFactor OH =  ExvFormFactor(constants::DisplacedVolume::OH);
-        constexpr ExvFormFactor SH =  ExvFormFactor(constants::DisplacedVolume::SH);
+        constexpr ExvFormFactor CH =  ExvFormFactor(constants::displaced_volume::CH);
+        constexpr ExvFormFactor CH2 = ExvFormFactor(constants::displaced_volume::CH2);
+        constexpr ExvFormFactor CH3 = ExvFormFactor(constants::displaced_volume::CH3);
+        constexpr ExvFormFactor NH =  ExvFormFactor(constants::displaced_volume::NH);
+        constexpr ExvFormFactor NH2 = ExvFormFactor(constants::displaced_volume::NH2);
+        constexpr ExvFormFactor NH3 = ExvFormFactor(constants::displaced_volume::NH3);
+        constexpr ExvFormFactor OH =  ExvFormFactor(constants::displaced_volume::OH);
+        constexpr ExvFormFactor SH =  ExvFormFactor(constants::displaced_volume::SH);
 
-        constexpr ExvFormFactor H = ExvFormFactor(constants::DisplacedVolume::H);
-        constexpr ExvFormFactor C = ExvFormFactor(constants::DisplacedVolume::C);
-        constexpr ExvFormFactor N = ExvFormFactor(constants::DisplacedVolume::N);
-        constexpr ExvFormFactor O = ExvFormFactor(constants::DisplacedVolume::O);
-        constexpr ExvFormFactor S = ExvFormFactor(constants::DisplacedVolume::S);
-        constexpr ExvFormFactor Ar = ExvFormFactor(constants::DisplacedVolume::Ar);
-
-        constexpr ExvFormFactor avg = ExvFormFactor(constants::DisplacedVolume::avg);
+        constexpr ExvFormFactor H =   ExvFormFactor(constants::displaced_volume::H);
+        constexpr ExvFormFactor C =   ExvFormFactor(constants::displaced_volume::C);
+        constexpr ExvFormFactor N =   ExvFormFactor(constants::displaced_volume::N);
+        constexpr ExvFormFactor O =   ExvFormFactor(constants::displaced_volume::O);
+        constexpr ExvFormFactor S =   ExvFormFactor(constants::displaced_volume::S);
+        constexpr ExvFormFactor Ar =  ExvFormFactor(constants::displaced_volume::Ar);
 
         constexpr ExvFormFactor get_form_factor(form_factor_t type) {
             switch(type) {
@@ -68,7 +65,6 @@ namespace form_factor {
                 case form_factor_t::S: return S;
                 case form_factor_t::SH: return SH;
                 case form_factor_t::OTHER: return Ar;
-                case form_factor_t::EXCLUDED_VOLUME: return avg;
                 default: throw std::runtime_error("form_factor::storage::exv::get_exv_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
         }

@@ -3,6 +3,8 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/FormFactorTable.h>
+#include <form_factor/DisplacedVolumeTable.h>
+#include <form_factor/ExvFormFactor.h>
 #include <constants/ConstantsFwd.h>
 #include <data/DataFwd.h>
 
@@ -14,33 +16,36 @@
 namespace form_factor {
     class FormFactor {
         public:
+            /**
+             * @brief Initialize a vacuum form factor based on a 5-Gaussian approximation.
+             */
             constexpr FormFactor(std::array<double, 5> a, std::array<double, 5> b, double c) : a(a), b(b), c(c) {
-                initialize();
+                f0 = 1./(a[0] + a[1] + a[2] + a[3] + a[4] + c);
             }
 
-        private: 
-            std::array<double, 5> a;
-            std::array<double, 5> b;
-            double c;
+            /**
+             * @brief Initialize an excluded volume form factor.
+             *        This is only used to instantiate the average excluded volume form factor.
+             */
+            constexpr FormFactor(ExvFormFactor&& ffx) : a({1, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0), f0(1) {}
 
-            double f0 = 1;
-
-            constexpr void initialize() {
-                f0 = a[0] + a[1] + a[2] + a[3] + a[4] + c;
-            }
-
-        public: 
             /**
              * @brief Evaluate the form factor at a given q value.
-             *        The form factor is normalized to 1 at q = 0.
+             *        The vacuum form factors are normalized to 1 at q = 0.
              */
             constexpr double evaluate(double q) const {
                 double sum = 0;
                 for (unsigned int i = 0; i < 5; ++i) {
                     sum += a[i]*std::exp(-b[i]*q*q);
                 }
-                return (sum + c)/f0;
+                return (sum + c)*f0;
             }
+
+        private: 
+            std::array<double, 5> a;
+            std::array<double, 5> b;
+            double c;
+            double f0 = 1;
     };
 
     /**
@@ -74,6 +79,7 @@ namespace form_factor {
 
         // average excluded volume
         constexpr FormFactor excluded_volume = FormFactor( constants::form_factor::excluded_volume::a, constants::form_factor::excluded_volume::b, constants::form_factor::excluded_volume::c);
+        // constexpr FormFactor excluded_volume = FormFactor(constants::displaced_volume::avg_vol);
 
         // all others; this is just the form factor of argon
         constexpr FormFactor other           = FormFactor(           constants::form_factor::other::a,           constants::form_factor::other::b,           constants::form_factor::other::c);
