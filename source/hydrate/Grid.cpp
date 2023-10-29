@@ -663,23 +663,26 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
-Body Grid::generate_excluded_volume() const {
-    Body body;
-    for (unsigned int i = 0; i < grid.xdim; i++) {
-        for (unsigned int j = 0; j < grid.ydim; j++) {
-            for (unsigned int k = 0; k < grid.zdim; k++) {
+std::vector<Vector3<double>> Grid::generate_excluded_volume() {
+    expand_volume();
+    std::vector<Vector3<double>> exv_atoms;
+    exv_atoms.reserve(volume);
+    auto[vmin, vmax] = bounding_box_index();
+    for (unsigned int i = vmin.x(); i < vmax.x(); i++) {
+        for (unsigned int j = vmin.y(); j < vmin.y(); j++) {
+            for (unsigned int k = vmin.z(); k < vmin.z(); k++) {
                 switch (grid.index(i, j, k)) {
+                    case GridObj::VOLUME:
                     case GridObj::A_AREA:
                     case GridObj::A_CENTER: 
-                        body.get_atoms().push_back(Water::create_new_water(to_xyz(i, j, k)));
-                        break;
-                    default: 
+                        exv_atoms.push_back(to_xyz(i, j, k));
+                    default: [[fallthrough]]
                         break;
                 }
             }
         }
     }
-    return body;
+    return exv_atoms;
 }
 
 const GridObj::State& Grid::index(unsigned int i, unsigned int j, unsigned int k) const {

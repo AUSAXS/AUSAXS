@@ -11,7 +11,7 @@
 
 using namespace hist;
 
-PartialHistogramManager::PartialHistogramManager(const data::Molecule* const protein) : HistogramManager(protein), coords_p(body_size), partials_pp(body_size, body_size), partials_hp(body_size) {}
+PartialHistogramManager::PartialHistogramManager(view_ptr<const data::Molecule> protein) : HistogramManager(protein), coords_p(body_size), partials_pp(body_size, body_size), partials_hp(body_size) {}
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 
@@ -222,7 +222,7 @@ void PartialHistogramManager::calc_hh() {
     std::vector<double> p_hh(master.get_axis().bins, 0);
 
     // calculate internal distances for the hydration layer
-    coords_h = detail::CompactCoordinates(protein->get_waters()); //! Remove?
+    // coords_h = detail::CompactCoordinates(protein->get_waters()); //! Remove?
     for (unsigned int i = 0; i < coords_h.get_size(); i++) {
         unsigned int j = i+1;
         for (; j+7 < coords_h.get_size(); j+=8) {

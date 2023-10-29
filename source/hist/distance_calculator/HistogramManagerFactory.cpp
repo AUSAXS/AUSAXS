@@ -11,11 +11,11 @@
 
 using namespace hist::factory;
 
-std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(data::Molecule* protein) {
+std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(view_ptr<const data::Molecule> protein) {
     return hist::factory::construct_histogram_manager(protein, settings::hist::histogram_manager);
 }
 
-std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(data::Molecule* protein, const settings::hist::HistogramManagerChoice& choice) {
+std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manager(view_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice) {
     switch (choice) {
         case settings::hist::HistogramManagerChoice::HistogramManager: 
             return std::make_unique<HistogramManager>(protein);

@@ -16,7 +16,7 @@
 
 using namespace hist;
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(const data::Molecule* const protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
+PartialHistogramManagerMT::PartialHistogramManagerMT(view_ptr<const data::Molecule> protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 
 PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
 

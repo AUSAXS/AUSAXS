@@ -2,13 +2,14 @@
 
 #include <data/DataFwd.h>
 #include <data/state/DataStateFwd.h>
+#include <utility/view_ptr.h>
 
 #include <memory>
 
 namespace signaller {class Signaller;}
 namespace hist {
     struct BodyTracker {
-        BodyTracker(const data::Molecule* const protein);
+        BodyTracker(view_ptr<const data::Molecule> protein);
 
         ~BodyTracker();
 
@@ -24,9 +25,9 @@ namespace hist {
          */
         void signal_modified_hydration_layer();
 
-        const state::StateManager* get_state_manager() const;
+        view_ptr<const state::StateManager> get_state_manager() const;
 
-        state::StateManager* get_state_manager();
+        view_ptr<state::StateManager> get_state_manager();
 
         const unsigned int body_size;                       // number of managed bodies
         std::unique_ptr<state::StateManager> statemanager;  // a helper which keeps track of state changes in each body

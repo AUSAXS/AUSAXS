@@ -234,7 +234,7 @@ std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
     return phm->calculate();
 }
 
-std::shared_ptr<grid::Grid> Molecule::get_grid() {
+view_ptr<grid::Grid> Molecule::get_grid() const {
     return grid == nullptr ? create_grid() : grid;
 }
 

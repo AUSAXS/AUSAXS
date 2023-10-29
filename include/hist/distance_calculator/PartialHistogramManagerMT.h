@@ -15,7 +15,7 @@ namespace hist {
 	 */
 	class PartialHistogramManagerMT : public PartialHistogramManager {
 		public:
-			PartialHistogramManagerMT(const data::Molecule* const protein);
+			PartialHistogramManagerMT(view_ptr<const data::Molecule> protein);
 
 			PartialHistogramManagerMT(PartialHistogramManager&);
 
@@ -24,12 +24,12 @@ namespace hist {
 			/**
 			 * @brief Calculate only the total scattering histogram. 
 			 */
-			std::unique_ptr<DistanceHistogram>  calculate() override;
+			std::unique_ptr<DistanceHistogram> calculate() override;
 
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			std::unique_ptr<CompositeDistanceHistogram>  calculate_all() override;
+			std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
 
 		private:
 			std::unique_ptr<BS::thread_pool> pool;

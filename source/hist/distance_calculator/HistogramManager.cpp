@@ -12,7 +12,7 @@
 
 using namespace hist;
 
-HistogramManager::HistogramManager(const data::Molecule* const protein) : BodyTracker(protein), protein(protein) {}
+HistogramManager::HistogramManager(view_ptr<const data::Molecule> protein) : BodyTracker(protein), protein(protein) {}
 
 HistogramManager::HistogramManager(const HistogramManager& hm) : BodyTracker(hm.protein), protein(hm.protein) {}
 

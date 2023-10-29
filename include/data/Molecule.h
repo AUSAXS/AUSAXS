@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility/Concepts.h>
+#include <utility/view_ptr.h>
 #include <hist/HistFwd.h>
 #include <io/IOFwd.h>
 #include <data/DataFwd.h>
@@ -183,7 +184,7 @@ namespace data {
 			/**
 			 * @brief Get the grid representation. 
 			 */
-			[[nodiscard]] std::shared_ptr<grid::Grid> get_grid();
+			[[nodiscard]] view_ptr<grid::Grid> get_grid() const;
 
 			/**
 			 * @brief Set the grid representation.

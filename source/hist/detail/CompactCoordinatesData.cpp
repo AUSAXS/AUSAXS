@@ -8,8 +8,6 @@ constexpr float inv_width = 1.0f/constants::axes::d_axis.width();
 
 CompactCoordinatesData::CompactCoordinatesData() : data(std::array<float, 4>({0, 0, 0, 0})) {}
 
-CompactCoordinatesData::CompactCoordinatesData(const Vector3<double>& v, float w) : value{.x=float(v.x()), .y=float(v.y()), .z=float(v.z()), .w=w} {}
-
 EvaluatedResult CompactCoordinatesData::evaluate(const CompactCoordinatesData& other) const {
     #if defined __SSE2__
         return evaluate_sse(other);

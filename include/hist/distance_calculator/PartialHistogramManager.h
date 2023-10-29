@@ -28,7 +28,7 @@ namespace hist {
 	 */
 	class PartialHistogramManager : public HistogramManager {
 		public:
-			PartialHistogramManager(const data::Molecule* const protein); 
+			PartialHistogramManager(view_ptr<const data::Molecule> protein); 
 
 			virtual ~PartialHistogramManager() override;
 

@@ -92,7 +92,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
 }
 
 bool RigidBody::optimize_step(detail::BestConf& best) {
-    std::shared_ptr<grid::Grid> grid = get_grid();
+    auto grid = get_grid();
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();

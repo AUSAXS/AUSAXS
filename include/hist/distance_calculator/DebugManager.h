@@ -6,13 +6,13 @@
 namespace hist {
     class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg {
         public: 
-            DebugDistanceHistogram(const data::Molecule* const protein);
+            DebugDistanceHistogram(view_ptr<const data::Molecule> protein);
             ~DebugDistanceHistogram() override;
 
             ScatteringProfile debye_transform() const override;
 
         private:
-            const data::Molecule* const protein;
+            view_ptr<const data::Molecule> protein;
     };
 
 	/**

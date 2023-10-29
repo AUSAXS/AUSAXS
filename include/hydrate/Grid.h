@@ -264,7 +264,7 @@ namespace grid {
 			/**
 			 * @brief Convert all bins occupied by atoms to dummy atoms for use in excluded volume calculations.
 			 */
-			data::Body generate_excluded_volume() const;
+			std::vector<Vector3<double>> generate_excluded_volume();
 
 			std::vector<data::record::Atom> get_surface_atoms() const;
 

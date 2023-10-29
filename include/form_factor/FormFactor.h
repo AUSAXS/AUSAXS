@@ -78,8 +78,8 @@ namespace form_factor {
         constexpr FormFactor SH              = FormFactor(              constants::form_factor::SH::a,              constants::form_factor::SH::b,              constants::form_factor::SH::c);
 
         // average excluded volume
-        constexpr FormFactor excluded_volume = FormFactor( constants::form_factor::excluded_volume::a, constants::form_factor::excluded_volume::b, constants::form_factor::excluded_volume::c);
-        // constexpr FormFactor excluded_volume = FormFactor(constants::displaced_volume::avg_vol);
+        // constexpr FormFactor excluded_volume = FormFactor( constants::form_factor::excluded_volume::a, constants::form_factor::excluded_volume::b, constants::form_factor::excluded_volume::c);
+        constexpr FormFactor excluded_volume = ExvFormFactor(constants::displaced_volume::avg_vol);
 
         // all others; this is just the form factor of argon
         constexpr FormFactor other           = FormFactor(           constants::form_factor::other::a,           constants::form_factor::other::b,           constants::form_factor::other::c);

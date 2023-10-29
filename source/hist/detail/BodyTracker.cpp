@@ -7,7 +7,7 @@
 
 using namespace hist;
 
-BodyTracker::BodyTracker(const data::Molecule* const protein) : body_size(protein->body_size()), statemanager(std::make_unique<state::StateManager>(body_size)) {}
+BodyTracker::BodyTracker(view_ptr<const data::Molecule> protein) : body_size(protein->body_size()), statemanager(std::make_unique<state::StateManager>(body_size)) {}
 
 BodyTracker::~BodyTracker() = default;
 
@@ -17,10 +17,10 @@ void BodyTracker::signal_modified_hydration_layer() {
     statemanager->modified_hydration_layer();
 }
 
-const state::StateManager* BodyTracker::get_state_manager() const {
+view_ptr<const state::StateManager> BodyTracker::get_state_manager() const {
     return statemanager.get();
 }
 
-state::StateManager* BodyTracker::get_state_manager() {
+view_ptr<state::StateManager> BodyTracker::get_state_manager() {
     return statemanager.get();
 }

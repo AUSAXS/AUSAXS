@@ -54,7 +54,8 @@ namespace hist::detail {
         public:
             CompactCoordinatesData();
 
-            CompactCoordinatesData(const Vector3<double>& v, float w);
+            template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+            CompactCoordinatesData(const Vector3<T>& v, float w) : value{.x=float(v.x()), .y=float(v.y()), .z=float(v.z()), .w=w} {}
 
             /**
              * @brief Calculate the distance and combined weight between this and a single other CompactCoordinatesData.

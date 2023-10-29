@@ -3,9 +3,6 @@
 #include <hist/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <data/Molecule.h>
-#include <data/record/Atom.h>
-#include <data/record/Water.h>
-#include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
 
@@ -22,13 +19,15 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {return calcu
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() {
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
-    hist::detail::CompactCoordinates data_p(protein->get_bodies());
-    hist::detail::CompactCoordinates data_h = hist::detail::CompactCoordinates(protein->get_waters());
+    data_p_ptr = std::make_unique<hist::detail::CompactCoordinates>(protein->get_bodies());
+    data_h_ptr = std::make_unique<hist::detail::CompactCoordinates>(protein->get_waters());
+    auto& data_p = *data_p_ptr;
+    auto& data_h = *data_h_ptr;
 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    BS::thread_pool pool(settings::general::threads);
+    pool = std::make_unique<BS::thread_pool>(settings::general::threads);
     auto calc_pp = [&data_p] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(constants::axes::d_axis.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
@@ -101,21 +100,21 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     unsigned int job_size = settings::general::detail::job_size;
     BS::multi_future<std::vector<double>> pp;
     for (unsigned int i = 0; i < protein->atom_size(); i+=job_size) {
-        pp.push_back(pool.submit(calc_pp, i, std::min(i+job_size, (unsigned int)protein->atom_size())));
+        pp.push_back(pool->submit(calc_pp, i, std::min(i+job_size, (unsigned int)protein->atom_size())));
     }
     BS::multi_future<std::vector<double>> hh;
     for (unsigned int i = 0; i < protein->water_size(); i+=job_size) {
-        hh.push_back(pool.submit(calc_hh, i, std::min(i+job_size, (unsigned int)protein->water_size())));
+        hh.push_back(pool->submit(calc_hh, i, std::min(i+job_size, (unsigned int)protein->water_size())));
     }
     BS::multi_future<std::vector<double>> hp;
     for (unsigned int i = 0; i < protein->water_size(); i+=job_size) {
-        hp.push_back(pool.submit(calc_hp, i, std::min(i+job_size, (unsigned int)protein->water_size())));
+        hp.push_back(pool->submit(calc_hp, i, std::min(i+job_size, (unsigned int)protein->water_size())));
     }
 
     //#################//
     // COLLECT RESULTS //
     //#################//
-    auto p_pp_future = pool.submit(
+    auto p_pp_future = pool->submit(
         [&](){
             std::vector<double> p_pp(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : pp.get()) {
@@ -125,7 +124,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
         }
     );
 
-    auto p_hp_future = pool.submit(
+    auto p_hp_future = pool->submit(
         [&](){
             std::vector<double> p_hp(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : hp.get()) {
@@ -135,7 +134,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
         }
     );
 
-    auto p_hh_future = pool.submit(
+    auto p_hh_future = pool->submit(
         [&](){
             std::vector<double> p_hh(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : hh.get()) {
@@ -145,7 +144,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
         }
     );
 
-    pool.wait_for_tasks();
+    pool->wait_for_tasks();
     auto p_pp = p_pp_future.get();
     auto p_hp = p_hp_future.get();
     auto p_hh = p_hh_future.get();

@@ -1,7 +1,7 @@
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/CompositeDistanceHistogramFFAvg.h>
 #include <hist/detail/CompactCoordinatesFF.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>

@@ -1,7 +1,7 @@
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
 #include <hist/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/detail/CompactCoordinatesFF.h>
-#include <form_factor/FormFactor.h>
+#include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -234,13 +234,13 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
     }
     p_tot.resize(max_bin);
 
-    // return std::make_unique<CompositeDistanceHistogramFFExplicit>(
-    //     std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
-    //     std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
-    //     std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
-
-    return std::make_unique<CompositeDistanceHistogramFoXS>(
+    return std::make_unique<CompositeDistanceHistogramFFExplicit>(
         std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
         std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
         std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+
+    // return std::make_unique<CompositeDistanceHistogramFoXS>(
+    //     std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
+    //     std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
+    //     std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
 }

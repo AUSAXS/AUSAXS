@@ -13,7 +13,7 @@
 using namespace hist;
 using namespace data::record;
 
-DebugDistanceHistogram::DebugDistanceHistogram(const data::Molecule* const protein) : protein(protein) {
+DebugDistanceHistogram::DebugDistanceHistogram(view_ptr<const data::Molecule> protein) : protein(protein) {
     this->q_axis = Axis(settings::axes::qmin, settings::axes::qmax, 100).as_vector();
 }
 

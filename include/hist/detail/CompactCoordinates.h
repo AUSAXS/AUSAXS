@@ -18,7 +18,13 @@ namespace hist::detail {
             CompactCoordinates() = default;
 
             /**
-             * @brief Construct a CompactCoordinates object with a given size.
+             * @brief Create a compact coordinate representation of the given coordinates.
+             *        The weights are assumed to be unity.
+             */
+            CompactCoordinates(std::vector<Vector3<double>>&& coordinates);
+
+            /**
+             * @brief Create a CompactCoordinates object with a given size.
              */
             CompactCoordinates(unsigned int size);
 

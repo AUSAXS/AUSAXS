@@ -2,6 +2,7 @@
 
 #include <hist/detail/BodyTracker.h>
 #include <data/DataFwd.h>
+#include <utility/view_ptr.h>
 
 #include <vector>
 #include <memory>
@@ -16,7 +17,7 @@ namespace hist {
 	 */
 	class HistogramManager : public hist::BodyTracker {
 		public:
-			HistogramManager(const data::Molecule* const protein); 
+			HistogramManager(view_ptr<const data::Molecule> protein); 
 
 			HistogramManager(const HistogramManager& hm); 
 
@@ -33,6 +34,6 @@ namespace hist {
 			virtual std::unique_ptr<CompositeDistanceHistogram> calculate_all();
 
 		protected:
-			const data::Molecule* const protein;	// pointer to the parent Protein
+			view_ptr<const data::Molecule> protein; // pointer to the parent Protein
     };
 }

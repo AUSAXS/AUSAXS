@@ -24,5 +24,10 @@ namespace hist {
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
 			std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
+
+		protected:
+			std::unique_ptr<BS::thread_pool> pool;
+			std::unique_ptr<hist::detail::CompactCoordinates> data_p_ptr;
+		    std::unique_ptr<hist::detail::CompactCoordinates> data_h_ptr;
 	};
 }
