@@ -13,7 +13,7 @@ using namespace residue::detail;
 Atom::Atom(const std::string& name, const std::string& altname, constants::atom_t atom) : name(name), altname(altname), atom(atom) {
     valency = constants::valence::get_valence(atom);
 }
-                
+
 Atom::Atom(const std::string& name, int charge, constants::atom_t atom) : name(name), atom(atom) {
     // the goal of this whole class is to determine the total charge surrounding an atom
     // we do this by counting the "hidden" hydrogen bonds not typically present in a PDB file
@@ -191,9 +191,14 @@ Residue Residue::parse(const io::ExistingFile& filename) {
         residue.apply_bond(Bond(atom1, atom2, order));
     }
 
+    // remove a hydrogen bond from the N-terminus since it will almost always be bonded to the CA of the next chain
+    if (residue.name_map.contains("N")) {
+        residue.atoms[(residue.name_map.at("N"))].hydrogen_bonds -= 1;
+    }
+
     // check that the file was read correctly
     if (!found_atom_section || !found_bond_section) {
-        throw except::io_error("Could not find atom or bond section in file " + filename);
+        throw except::io_error("Could not find atom or bond section in file \"" + filename + "\"");
     }
     
     return residue;

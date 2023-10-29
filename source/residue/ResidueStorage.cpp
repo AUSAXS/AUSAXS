@@ -63,7 +63,7 @@ void ResidueStorage::initialize() {
 
                 // lines are of the form "element atom hydrogens"
                 std::vector<std::string> tokens = utility::split(line, " \n\r");
-                if (tokens.size() != 3) {throw except::io_error("ResidueStorage::initialize: Invalid line in master file: " + line + ". Corrupted file?");}
+                if (tokens.size() != 3) {throw except::io_error("ResidueStorage::initialize: Invalid line in master file: " + line + ". Perhaps the file is corrupted. Delete it to regenerate.");}
                 std::string element = tokens[0];
                 std::string atom = tokens[1];
                 int hydrogens = std::stoi(tokens[2]);
@@ -83,7 +83,7 @@ void ResidueStorage::download_residue(const std::string& name) {
         if (!std::filesystem::exists(path + name + ".cif")) {
             curl::download("files.rcsb.org/ligands/view/" + name + ".cif", path + name + ".cif"); // download the cif file
         } else {
-            std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. \n\tReloading and adding it now." << std::endl;
+            std::cout << "\tResidue " << name << " is already downloaded, but not present in the master list. \n\tThe file will now be parsed and re-added to the master file." << std::endl;
         }
 
         // parse the cif file & add it to storage

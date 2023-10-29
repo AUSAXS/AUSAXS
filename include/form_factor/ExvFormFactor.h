@@ -43,12 +43,14 @@ namespace form_factor {
         constexpr ExvFormFactor OH =  ExvFormFactor(constants::DisplacedVolume::OH);
         constexpr ExvFormFactor SH =  ExvFormFactor(constants::DisplacedVolume::SH);
 
-        constexpr ExvFormFactor H =  ExvFormFactor(constants::DisplacedVolume::H);
-        constexpr ExvFormFactor C =  ExvFormFactor(constants::DisplacedVolume::C);
-        constexpr ExvFormFactor N =  ExvFormFactor(constants::DisplacedVolume::N);
-        constexpr ExvFormFactor O =  ExvFormFactor(constants::DisplacedVolume::O);
-        constexpr ExvFormFactor S =  ExvFormFactor(constants::DisplacedVolume::S);
+        constexpr ExvFormFactor H = ExvFormFactor(constants::DisplacedVolume::H);
+        constexpr ExvFormFactor C = ExvFormFactor(constants::DisplacedVolume::C);
+        constexpr ExvFormFactor N = ExvFormFactor(constants::DisplacedVolume::N);
+        constexpr ExvFormFactor O = ExvFormFactor(constants::DisplacedVolume::O);
+        constexpr ExvFormFactor S = ExvFormFactor(constants::DisplacedVolume::S);
         constexpr ExvFormFactor Ar = ExvFormFactor(constants::DisplacedVolume::Ar);
+
+        constexpr ExvFormFactor avg = ExvFormFactor(constants::DisplacedVolume::avg);
 
         constexpr ExvFormFactor get_form_factor(form_factor_t type) {
             switch(type) {
@@ -66,6 +68,7 @@ namespace form_factor {
                 case form_factor_t::S: return S;
                 case form_factor_t::SH: return SH;
                 case form_factor_t::OTHER: return Ar;
+                case form_factor_t::EXCLUDED_VOLUME: return avg;
                 default: throw std::runtime_error("form_factor::storage::exv::get_exv_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
         }

@@ -34,12 +34,19 @@ namespace math {
     }
 
     /**
+     * @brief Absolute value function.
+     */
+    constexpr double abs(double x) noexcept {
+        return x < 0 ? -x : x;
+    }
+
+    /**
      * @brief Simple constexpr power function.
      *        Only supports integer exponents.  
      */
     constexpr double pow(double x, int n) {
         double result = 1;
-        for(int i = 0; i < n; ++i) {
+        for(int i = 0; i < math::abs(n); ++i) {
             result *= x;
         }
         if (n < 0) {result = 1./result;}
