@@ -668,9 +668,11 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     std::vector<Vector3<double>> exv_atoms;
     exv_atoms.reserve(volume);
     auto[vmin, vmax] = bounding_box_index();
-    for (int i = vmin.x(); i < vmax.x(); ++i) {
-        for (int j = vmin.y(); j < vmin.y(); ++j) {
-            for (int k = vmin.z(); k < vmin.z(); ++k) {
+
+    int buffer = 2./width; // 2Å buffer in each direction should be enough to capture all filled voxels
+    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); ++i) {
+        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); ++j) {
+            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); ++k) {
                 switch (grid.index(i, j, k)) {
                     case GridObj::VOLUME:
                     case GridObj::A_AREA:

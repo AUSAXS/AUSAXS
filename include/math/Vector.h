@@ -159,7 +159,15 @@ class Vector {
          */
         unsigned int dim() const;
 
+        /**
+         * @brief Resize this Vector to the given size.
+         */
         void resize(unsigned int size);
+
+        /**
+         * @brief Check if this Vector is empty.
+         */
+        bool empty() const;
 
         unsigned int N;
         std::vector<T> data;

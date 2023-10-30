@@ -246,6 +246,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
 }
 
 const std::vector<double>& CompositeDistanceHistogramFFAvg::get_counts() const {
+    if (!p.empty()) {return p.data;}
     p = std::vector<double>(axis.bins, 0);
     auto& p_pp = get_aa_counts();
     auto& p_hp = get_aw_counts();

@@ -153,6 +153,9 @@ void Vector<T>::resize(unsigned int size) {
     data.resize(size);
 }
 
+template<numeric T>
+bool Vector<T>::empty() const {return data.empty();}
+
 template<numeric T> template<numeric Q>
 void Vector<T>::compatibility_check(const Vector<Q>& v) const {
     #if (SAFE_MATH)
