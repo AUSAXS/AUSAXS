@@ -110,5 +110,11 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+    return std::make_unique<CompositeDistanceHistogram>(
+        std::move(p_pp), 
+        std::move(p_hp), 
+        std::move(p_hh), 
+        std::move(p_tot), 
+        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+    );
 }

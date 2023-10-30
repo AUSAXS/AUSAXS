@@ -33,6 +33,7 @@ Precompiled binaries are available **here**.
 # Design philosophy
 
 # Todo
+*	[ ] Replace all unsigned integers in tight loop conditions. Using signed integers allows for more efficient code, since they are assumed to never overflow.
 * 	[ ] Form factors: Make OH2 the default. It's fairly close to argon anyway, and more accurately models the solvent. 
 * 	[ ] Method names: Change all references to 'protein' to 'molecule' to be consistent with the new class name changes. 
 * 	[ ] AtomCollection: Consider separating the io functionality from the atom storage, and then changing Body to only store raw atom data. We are almost never interested in saving the header/footer from input files anyway. 

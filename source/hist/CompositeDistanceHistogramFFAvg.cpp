@@ -256,7 +256,9 @@ const std::vector<double>& CompositeDistanceHistogramFFAvg::get_counts() const {
     return p.data;
 }
 
+std::vector<double>& CompositeDistanceHistogramFFAvg::get_aa_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvg&>(*this).get_aa_counts());}
 const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aa_counts() const {
+    if (!p_aa.empty()) {return p_aa;}
     p_aa = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -266,7 +268,9 @@ const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aa_counts() cons
     return p_aa;
 }
 
+std::vector<double>& CompositeDistanceHistogramFFAvg::get_aw_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvg&>(*this).get_aw_counts());}
 const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aw_counts() const {
+    if (!p_aw.empty()) {return p_aw;}
     p_aw = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         std::transform(p_aw.begin(), p_aw.end(), cp_aw.begin(ff1), p_aw.begin(), std::plus<double>());
@@ -274,19 +278,26 @@ const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aw_counts() cons
     return p_aw;
 }
 
+std::vector<double>& CompositeDistanceHistogramFFAvg::get_ww_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvg&>(*this).get_ww_counts());}
 const std::vector<double>& CompositeDistanceHistogramFFAvg::get_ww_counts() const {
+    if (!p_ww.empty()) {return p_ww;}
     p_ww = std::vector<double>(axis.bins, 0);
     std::transform(p_ww.begin(), p_ww.end(), cp_ww.begin(), p_ww.begin(), std::plus<double>());
     return p_ww;
 }
 
-void CompositeDistanceHistogramFFAvg::apply_water_scaling_factor(double k) {
-    cw = k;
-}
+const container::Container3D<double>& CompositeDistanceHistogramFFAvg::get_aa_counts_ff() const {return cp_aa;}
+container::Container3D<double>& CompositeDistanceHistogramFFAvg::get_aa_counts_ff() {return cp_aa;}
 
-void CompositeDistanceHistogramFFAvg::apply_excluded_volume_scaling_factor(double k) {
-    cx = k;
-}
+const container::Container2D<double>& CompositeDistanceHistogramFFAvg::get_aw_counts_ff() const {return cp_aw;}
+container::Container2D<double>& CompositeDistanceHistogramFFAvg::get_aw_counts_ff() {return cp_aw;}
+
+const container::Container1D<double>& CompositeDistanceHistogramFFAvg::get_ww_counts_ff() const {return cp_ww;}
+container::Container1D<double>& CompositeDistanceHistogramFFAvg::get_ww_counts_ff() {return cp_ww;}
+
+void CompositeDistanceHistogramFFAvg::apply_water_scaling_factor(double k) {cw = k;}
+
+void CompositeDistanceHistogramFFAvg::apply_excluded_volume_scaling_factor(double k) {cx = k;}
 
 const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aa() const {
     const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();

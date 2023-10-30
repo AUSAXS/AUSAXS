@@ -19,7 +19,7 @@ namespace hist {
 
 			PartialHistogramManagerMT(PartialHistogramManager&);
 
-			~PartialHistogramManagerMT() override;
+			virtual ~PartialHistogramManagerMT() override;
 
 			/**
 			 * @brief Calculate only the total scattering histogram. 
@@ -32,7 +32,6 @@ namespace hist {
 			std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
 
 		private:
-			std::unique_ptr<BS::thread_pool> pool;
 			std::mutex master_hist_mutex;
 
 			/**

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 
 namespace hist {
-    class HistogramManagerMTFFGrid : public HistogramManagerMT {
+    class HistogramManagerMTFFGrid : public HistogramManagerMTFFAvg {
         public:
-            using HistogramManagerMT::HistogramManagerMT;
+            using HistogramManagerMTFFAvg::HistogramManagerMTFFAvg;
 
-            ~HistogramManagerMTFFGrid() override;
+            virtual ~HistogramManagerMTFFGrid() override;
 
             /**
              * @brief Calculate only the total scattering histogram. 

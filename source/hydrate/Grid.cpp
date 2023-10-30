@@ -668,15 +668,15 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     std::vector<Vector3<double>> exv_atoms;
     exv_atoms.reserve(volume);
     auto[vmin, vmax] = bounding_box_index();
-    for (unsigned int i = vmin.x(); i < vmax.x(); i++) {
-        for (unsigned int j = vmin.y(); j < vmin.y(); j++) {
-            for (unsigned int k = vmin.z(); k < vmin.z(); k++) {
+    for (int i = vmin.x(); i < vmax.x(); ++i) {
+        for (int j = vmin.y(); j < vmin.y(); ++j) {
+            for (int k = vmin.z(); k < vmin.z(); ++k) {
                 switch (grid.index(i, j, k)) {
                     case GridObj::VOLUME:
                     case GridObj::A_AREA:
                     case GridObj::A_CENTER: 
                         exv_atoms.push_back(to_xyz(i, j, k));
-                    default: [[fallthrough]]
+                    default:
                         break;
                 }
             }

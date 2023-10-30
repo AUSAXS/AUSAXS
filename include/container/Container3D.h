@@ -129,9 +129,37 @@ namespace container {
              */
             typename std::vector<T>::iterator end() {return data.end();}
 
-            unsigned int N, M, L;
+            /**
+             * @brief Get the number of elements in the x direction.
+             */
+            unsigned int size_x() const {return N;}
+
+            /**
+             * @brief Get the number of elements in the y direction.
+             */
+            unsigned int size_y() const {return M;}
+
+            /**
+             * @brief Get the length of each (x, y) element.
+             */
+            unsigned int size_z() const {return L;}
+
+            /**
+             * @brief Resize the container to contain @a size elements for each (x, y) index.
+             */
+            void resize(unsigned int size) {
+                Container3D tmp(N, M, size);
+                for (unsigned int i = 0; i < N; i++) {
+                    for (unsigned int j = 0; j < M; j++) {
+                        std::move(begin(i, j), begin(i, j)+size, tmp.begin(i, j));
+                    }
+                }
+                L = size;
+                data = std::move(tmp.data);
+            }
 
         protected:
+            unsigned int N, M, L;
             std::vector<T> data;
     };
 }

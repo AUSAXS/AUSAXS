@@ -22,16 +22,19 @@ namespace hist {
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
             virtual const std::vector<double>& get_aa_counts() const;
+            virtual std::vector<double>& get_aa_counts(); // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            virtual const std::vector<double>& get_aw_counts() const;            
+            virtual const std::vector<double>& get_aw_counts() const;
+            virtual std::vector<double>& get_aw_counts(); // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
             virtual const std::vector<double>& get_ww_counts() const;
+            virtual std::vector<double>& get_ww_counts(); // @copydoc get_ww_counts() const
 
             /**
              * @brief Apply a scaling factor to the water partial distance histogram.

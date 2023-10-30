@@ -46,7 +46,7 @@ bigplot/%: scripts/plot.py
 ###				UTILITY					      ###
 #################################################################################
 # compile & show the docs
-docs: 
+doxygen: 
 	@ make -C build doc
 	firefox build/docs/html/index.html 
 

@@ -5,8 +5,7 @@
 #include <data/Molecule.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
-
-#include <BS_thread_pool.hpp>
+#include <utility/MultiThreading.h>
 
 using namespace hist;
 
@@ -17,6 +16,8 @@ HistogramManagerMT::~HistogramManagerMT() = default;
 std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {return calculate_all();}
 
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() {
+    auto pool = utility::multi_threading::get_global_pool();
+
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
     data_p_ptr = std::make_unique<hist::detail::CompactCoordinates>(protein->get_bodies());
@@ -27,7 +28,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    pool = std::make_unique<BS::thread_pool>(settings::general::threads);
     auto calc_pp = [&data_p] (unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(constants::axes::d_axis.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) {
@@ -171,5 +171,11 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() 
     p_hh.resize(max_bin);
     p_hp.resize(max_bin);
     p_tot.resize(max_bin);
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+    return std::make_unique<CompositeDistanceHistogram>(
+        std::move(p_pp), 
+        std::move(p_hp), 
+        std::move(p_hh), 
+        std::move(p_tot), 
+        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+    );
 }

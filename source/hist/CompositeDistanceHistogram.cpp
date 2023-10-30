@@ -14,10 +14,13 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_t
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 
 const std::vector<double>& CompositeDistanceHistogram::get_aa_counts() const {return p_aa;}
+std::vector<double>& CompositeDistanceHistogram::get_aa_counts() {return p_aa;}
 
 const std::vector<double>& CompositeDistanceHistogram::get_aw_counts() const {return p_aw;}
+std::vector<double>& CompositeDistanceHistogram::get_aw_counts() {return p_aw;}
 
 const std::vector<double>& CompositeDistanceHistogram::get_ww_counts() const {return p_ww;}
+std::vector<double>& CompositeDistanceHistogram::get_ww_counts() {return p_ww;}
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     auto& p_tot = get_total_counts();

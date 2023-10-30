@@ -17,9 +17,9 @@ class view_ptr {
 
         view_ptr(T& ref) : ptr(&ref) {}
 
-        view_ptr(std::unique_ptr<T> ptr) : ptr(ptr.get()) {}
+        view_ptr(const std::unique_ptr<T>& ptr) : ptr(ptr.get()) {}
 
-        view_ptr(std::shared_ptr<T> ptr) : ptr(ptr.get()) {}
+        view_ptr(const std::shared_ptr<T>& ptr) : ptr(ptr.get()) {}
 
         view_ptr& operator=(const view_ptr<T>& other) {
             ptr = other.ptr;

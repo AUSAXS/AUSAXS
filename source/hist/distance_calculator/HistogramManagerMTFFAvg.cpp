@@ -1,6 +1,5 @@
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/CompositeDistanceHistogramFFAvg.h>
-#include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
@@ -11,8 +10,7 @@
 #include <container/Container2D.h>
 #include <container/Container1D.h>
 #include <constants/Constants.h>
-
-#include <BS_thread_pool.hpp>
+#include <utility/MultiThreading.h>
 
 using namespace container;
 using namespace hist;
@@ -28,13 +26,15 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
     double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
 
-    hist::detail::CompactCoordinatesFF data_p(protein->get_bodies());
-    hist::detail::CompactCoordinatesFF data_h = hist::detail::CompactCoordinatesFF(protein->get_waters());
+    data_p_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(protein->get_bodies());
+    data_h_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(protein->get_waters());
+    auto& data_p = *data_p_ptr;
+    auto& data_h = *data_h_ptr;
 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    BS::thread_pool pool(settings::general::threads);
+    auto pool = utility::multi_threading::get_global_pool();
     auto calc_pp = [&data_p, &Z_exv_avg, &Z_exv_avg2] (unsigned int imin, unsigned int imax) {
         Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) {
@@ -128,21 +128,21 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     unsigned int job_size = settings::general::detail::job_size;
     BS::multi_future<Container3D<double>> pp;
     for (unsigned int i = 0; i < data_p.get_size(); i+=job_size) {
-        pp.push_back(pool.submit(calc_pp, i, std::min(i+job_size, data_p.get_size())));
+        pp.push_back(pool->submit(calc_pp, i, std::min(i+job_size, data_p.get_size())));
     }
     BS::multi_future<Container2D<double>> hp;
     for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
-        hp.push_back(pool.submit(calc_hp, i, std::min(i+job_size, data_h.get_size())));
+        hp.push_back(pool->submit(calc_hp, i, std::min(i+job_size, data_h.get_size())));
     }
     BS::multi_future<Container1D<double>> hh;
     for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
-        hh.push_back(pool.submit(calc_hh, i, std::min(i+job_size, data_h.get_size())));
+        hh.push_back(pool->submit(calc_hh, i, std::min(i+job_size, data_h.get_size())));
     }
 
     //#################//
     // COLLECT RESULTS //
     //#################//
-    auto p_pp_future = pool.submit(
+    auto p_pp_future = pool->submit(
         [&]() {
             Container3D<double> p_pp(form_factor::get_count(), form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
             for (const auto& tmp : pp.get()) {
@@ -152,7 +152,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
         }
     );
 
-    auto p_hp_future = pool.submit(
+    auto p_hp_future = pool->submit(
         [&]() {
             Container2D<double> p_hp(form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type, distance
             for (const auto& tmp : hp.get()) {
@@ -162,7 +162,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
         }
     );
 
-    auto p_hh_future = pool.submit(
+    auto p_hh_future = pool->submit(
         [&]() {
             Container1D<double> p_hh(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : hh.get()) {
@@ -171,7 +171,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
             return p_hh;
         }
     );
-    pool.wait_for_tasks();
+    pool->wait_for_tasks();
     auto p_pp = p_pp_future.get();
     auto p_hp = p_hp_future.get();
     auto p_hh = p_hh_future.get();
@@ -205,19 +205,15 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
             break;
         }
     }
-
-    Container3D<double> p_pp_short(form_factor::get_count(), form_factor::get_count(), max_bin);
-    Container2D<double> p_hp_short(form_factor::get_count(), max_bin);
-    Container1D<double> p_hh_short(max_bin);
-    {   // move first max_bin elements to a new container
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count(); ++ff2) {
-                std::move(p_pp.begin(ff1, ff2), p_pp.begin(ff1, ff2)+max_bin, p_pp_short.begin(ff1, ff2));
-            }
-            std::move(p_hp.begin(ff1), p_hp.begin(ff1)+max_bin, p_hp_short.begin(ff1));
-        }
-        std::move(p_hh.begin(), p_hh.begin()+max_bin, p_hh_short.begin());
-    }
+    p_pp.resize(max_bin);
+    p_hp.resize(max_bin);
+    p_hh.resize(max_bin);
     p_tot.resize(max_bin);
-    return std::make_unique<CompositeDistanceHistogramFFAvg>(std::move(p_pp_short), std::move(p_hp_short), std::move(p_hh_short), std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+    return std::make_unique<CompositeDistanceHistogramFFAvg>(
+        std::move(p_pp), 
+        std::move(p_hp), 
+        std::move(p_hh), 
+        std::move(p_tot), 
+        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+    );
 }

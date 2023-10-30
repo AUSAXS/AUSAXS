@@ -46,16 +46,37 @@ namespace hist {
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
             const std::vector<double>& get_aa_counts() const override;
+            std::vector<double>& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
             const std::vector<double>& get_aw_counts() const override;
+            std::vector<double>& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
             const std::vector<double>& get_ww_counts() const override;
+            std::vector<double>& get_ww_counts() override; // @copydoc get_ww_counts() const
+
+            /**
+             * @brief Get the partial distance histogram for atom-atom interactions.
+             */
+            const container::Container3D<double>& get_aa_counts_ff() const;
+            container::Container3D<double>& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
+
+            /**
+             * @brief Get the partial distance histogram for atom-water interactions.
+             */
+            const container::Container2D<double>& get_aw_counts_ff() const;
+            container::Container2D<double>& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
+
+            /**
+             * @brief Get the partial distance histogram for water-water interactions.
+             */
+            const container::Container1D<double>& get_ww_counts_ff() const;
+            container::Container1D<double>& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
 
             /**
              * @brief Get the total distance histogram.

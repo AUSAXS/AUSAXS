@@ -9,16 +9,16 @@
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
 #include <constants/Constants.h>
+#include <utility/MultiThreading.h>
 
 #include <mutex>
 #include <list>
-#include <BS_thread_pool.hpp>
 
 using namespace hist;
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(view_ptr<const data::Molecule> protein) : PartialHistogramManager(protein), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
+PartialHistogramManagerMT::PartialHistogramManagerMT(view_ptr<const data::Molecule> protein) : PartialHistogramManager(protein) {}
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm), pool(std::make_unique<BS::thread_pool>(settings::general::threads)) {}
+PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm) {}
 
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
@@ -34,6 +34,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
     const std::vector<bool>& externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool>& internally_modified = statemanager->get_internally_modified_bodies();
     const bool hydration_modified = statemanager->get_modified_hydration();
+    static auto pool = utility::multi_threading::get_global_pool();
 
     // check if the object has already been initialized
     if (master.get_counts().size() == 0) [[unlikely]] {
@@ -159,13 +160,20 @@ std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate
     p_hh.resize(bins);
     p_pp.resize(bins);
 
-    return std::make_unique<CompositeDistanceHistogram>(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(total->get_counts()), total->get_axis());
+    return std::make_unique<CompositeDistanceHistogram>(
+        std::move(p_pp), 
+        std::move(p_hp), 
+        std::move(p_hh), 
+        std::move(total->get_counts()), 
+        total->get_axis()
+    );
 }
 
 /**
  * @brief This initializes some necessary variables and precalculates the internal distances between atoms in each body.
  */
 void PartialHistogramManagerMT::initialize() {
+    static auto pool = utility::multi_threading::get_global_pool();
     const Axis& axis = constants::axes::d_axis; 
     std::vector<double> p_base(axis.bins, 0);
     master = detail::MasterHistogram(p_base, axis);
@@ -189,6 +197,7 @@ void PartialHistogramManagerMT::initialize() {
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_correlation(unsigned int index) {
+    static auto pool = utility::multi_threading::get_global_pool();
     update_compact_representation_body(index);
 
     // calculate internal distances between atoms
@@ -231,6 +240,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigned int n, unsigned int m) {
+    static auto pool = utility::multi_threading::get_global_pool();
     static auto calc_pp = [] (const detail::CompactCoordinates& coords_n, const detail::CompactCoordinates& coords_m, unsigned int pp_size, unsigned int imin, unsigned int imax) {
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
@@ -262,6 +272,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigned int index) {
+    static auto pool = utility::multi_threading::get_global_pool();
     static auto calc_hp = [] (const detail::CompactCoordinates& coords_i, const detail::CompactCoordinates& coords_h, unsigned int hp_size, unsigned int imin, unsigned int imax) {
         std::vector<double> p_hp(hp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
@@ -293,6 +304,7 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
 }
 
 BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
+    static auto pool = utility::multi_threading::get_global_pool();
     // calculate internal distances for the hydration layer
     static auto calc_hh = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size, unsigned int imin, unsigned int imax) {
         std::vector<double> p_hh(hh_size, 0);

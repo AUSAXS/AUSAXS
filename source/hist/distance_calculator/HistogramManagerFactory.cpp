@@ -4,6 +4,7 @@
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
 #include <hist/distance_calculator/DebugManager.h>
@@ -25,6 +26,8 @@ std::unique_ptr<hist::HistogramManager> hist::factory::construct_histogram_manag
             return std::make_unique<HistogramManagerMTFFAvg>(protein);
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
             return std::make_unique<HistogramManagerMTFFExplicit>(protein);
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
+            return std::make_unique<HistogramManagerMTFFGrid>(protein);
         case settings::hist::HistogramManagerChoice::PartialHistogramManager:
             return std::make_unique<PartialHistogramManager>(protein);
         case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:

@@ -120,9 +120,30 @@ namespace container {
              */
             typename std::vector<T>::iterator end() {return data.end();}
 
-            unsigned int N, M;
+            /**
+             * @brief Get the number of contained x-elements.
+             */
+            unsigned int size_x() const {return N;}
+
+            /**
+             * @brief Get the length of each x-element.
+             */
+            unsigned int size_y() const {return M;}
+
+            /**
+             * @brief Resize the container to contain @a size elements for each x index.
+             */
+            void resize(unsigned int size) {
+                Container2D tmp(N, size);
+                for (unsigned int i = 0; i < N; i++) {
+                    std::move(begin(i), begin(i)+size, tmp.begin(i));
+                }
+                M = size;
+                data = std::move(tmp.data);                
+            }
 
         protected:
+            unsigned int N, M;
             std::vector<T> data;
     };
 }

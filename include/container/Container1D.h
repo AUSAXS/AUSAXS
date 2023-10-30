@@ -46,9 +46,21 @@ namespace container {
             typename std::vector<T>::iterator begin() {return data.begin();}
             typename std::vector<T>::iterator end() {return data.end();}
 
-            unsigned int N;
+            /**
+             * @brief Get the size of the container.
+             */
+            unsigned int size() const {return N;}
+
+            /**
+             * @brief Resize the container to contain @a size elements.
+             */
+            void resize(unsigned int size) {
+                N = size;
+                data.resize(size);
+            }
 
         protected:
+            unsigned int N;
             std::vector<T> data;
     };
 }

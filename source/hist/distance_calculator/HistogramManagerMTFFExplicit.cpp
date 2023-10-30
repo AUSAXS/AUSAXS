@@ -11,8 +11,7 @@
 #include <container/Container2D.h>
 #include <container/Container1D.h>
 #include <constants/Constants.h>
-
-#include <BS_thread_pool.hpp>
+#include <utility/MultiThreading.h>
 
 using namespace container;
 using namespace hist;
@@ -25,13 +24,15 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit::calculate() {re
 
 #include <hist/foxs/CompositeDistanceHistogramFoXS.h>
 std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calculate_all() {
-    hist::detail::CompactCoordinatesFF data_p(protein->get_bodies());
-    hist::detail::CompactCoordinatesFF data_h = hist::detail::CompactCoordinatesFF(protein->get_waters());
+    data_p_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(protein->get_bodies());
+    data_h_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(protein->get_waters());
+    auto& data_p = *data_p_ptr;
+    auto& data_h = *data_h_ptr;
 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    BS::thread_pool pool(settings::general::threads);
+    auto pool = utility::multi_threading::get_global_pool();
     auto calc_pp = [&data_p] (unsigned int imin, unsigned int imax) {
         Container3D<double> p_aa(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
         Container3D<double> p_ax(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
@@ -128,21 +129,21 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
     unsigned int job_size = settings::general::detail::job_size;
     BS::multi_future<std::tuple<Container3D<double>, Container3D<double>, Container3D<double>>> pp;
     for (unsigned int i = 0; i < data_p.get_size(); i+=job_size) {
-        pp.push_back(pool.submit(calc_pp, i, std::min(i+job_size, data_p.get_size())));
+        pp.push_back(pool->submit(calc_pp, i, std::min(i+job_size, data_p.get_size())));
     }
     BS::multi_future<std::tuple<Container2D<double>, Container2D<double>>> hp;
     for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
-        hp.push_back(pool.submit(calc_hp, i, std::min(i+job_size, data_h.get_size())));
+        hp.push_back(pool->submit(calc_hp, i, std::min(i+job_size, data_h.get_size())));
     }
     BS::multi_future<Container1D<double>> hh;
     for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
-        hh.push_back(pool.submit(calc_hh, i, std::min(i+job_size, data_h.get_size())));
+        hh.push_back(pool->submit(calc_hh, i, std::min(i+job_size, data_h.get_size())));
     }
 
     //#################//
     // COLLECT RESULTS //
     //#################//
-    auto p_pp_future = pool.submit(
+    auto p_pp_future = pool->submit(
         [&]() {
             Container3D<double> p_aa(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
             Container3D<double> p_ax(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
@@ -156,7 +157,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
         }
     );
 
-    auto p_hp_future = pool.submit(
+    auto p_hp_future = pool->submit(
         [&]() {
             Container2D<double> p_wa(form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type, distance
             Container2D<double> p_wx(form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type, distance
@@ -168,7 +169,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
         }
     );
 
-    auto p_hh_future = pool.submit(
+    auto p_hh_future = pool->submit(
         [&]() {
             Container1D<double> p_ww(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : hh.get()) {
@@ -177,7 +178,7 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
             return p_ww;
         }
     );
-    pool.wait_for_tasks();
+    pool->wait_for_tasks();
     auto [p_aa, p_ax, p_xx] = p_pp_future.get();
     auto [p_wa, p_wx] = p_hp_future.get();
     auto p_ww = p_hh_future.get();
@@ -214,33 +215,36 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
         }
     }
 
-    Container3D<double> p_aa_short(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), max_bin);
-    Container3D<double> p_ax_short(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), max_bin);
-    Container3D<double> p_xx_short(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), max_bin);
-    Container2D<double> p_wa_short(form_factor::get_count_without_excluded_volume(), max_bin);
-    Container2D<double> p_wx_short(form_factor::get_count_without_excluded_volume(), max_bin);
-    Container1D<double> p_ww_short(max_bin);
-    {   // move first max_bin elements to a new container
-        for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                std::move(p_aa.begin(ff1, ff2), p_aa.begin(ff1, ff2)+max_bin, p_aa_short.begin(ff1, ff2));
-                std::move(p_ax.begin(ff1, ff2), p_ax.begin(ff1, ff2)+max_bin, p_ax_short.begin(ff1, ff2));
-                std::move(p_xx.begin(ff1, ff2), p_xx.begin(ff1, ff2)+max_bin, p_xx_short.begin(ff1, ff2));
-            }
-            std::move(p_wa.begin(ff1), p_wa.begin(ff1)+max_bin, p_wa_short.begin(ff1));
-            std::move(p_wx.begin(ff1), p_wx.begin(ff1)+max_bin, p_wx_short.begin(ff1));
-        }
-        std::move(p_ww.begin(), p_ww.begin()+max_bin, p_ww_short.begin());
+    pool->push_task([&](){p_aa.resize(max_bin);});
+    pool->push_task([&](){p_ax.resize(max_bin);});
+    pool->push_task([&](){p_xx.resize(max_bin);});
+    pool->push_task([&](){p_wa.resize(max_bin);});
+    pool->push_task([&](){p_wx.resize(max_bin);});
+    pool->push_task([&](){p_ww.resize(max_bin);});
+    pool->push_task([&](){p_tot.resize(max_bin);});
+    pool->wait_for_tasks();
+
+    if (settings::hist::use_foxs_method) {
+        return std::make_unique<CompositeDistanceHistogramFoXS>(
+            std::move(p_aa), 
+            std::move(p_ax), 
+            std::move(p_xx),
+            std::move(p_wa), 
+            std::move(p_wx), 
+            std::move(p_ww),
+            std::move(p_tot), 
+            Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+        );
+    } else {
+        return std::make_unique<CompositeDistanceHistogramFFExplicit>(
+            std::move(p_aa), 
+            std::move(p_ax), 
+            std::move(p_xx),
+            std::move(p_wa), 
+            std::move(p_wx), 
+            std::move(p_ww),
+            std::move(p_tot), 
+            Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+        );
     }
-    p_tot.resize(max_bin);
-
-    return std::make_unique<CompositeDistanceHistogramFFExplicit>(
-        std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
-        std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
-        std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
-
-    // return std::make_unique<CompositeDistanceHistogramFoXS>(
-    //     std::move(p_aa_short), std::move(p_ax_short), std::move(p_xx_short),
-    //     std::move(p_wa_short), std::move(p_wx_short), std::move(p_ww_short),
-    //     std::move(p_tot), Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
 }
