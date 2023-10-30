@@ -101,17 +101,15 @@ int main(int argc, char const *argv[]) {
         protein.generate_new_hydration();
     }
 
-    // protein.get_histogram()->debye_transform();
-
     std::shared_ptr<fitter::HydrationFitter> fitter;
-    if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein);}
+    if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(mfile, protein.get_histogram());}
     else {fitter = std::make_shared<fitter::HydrationFitter>(mfile, protein.get_histogram());}
     std::shared_ptr<fitter::Fit> result = fitter->fit();
     fitter::FitReporter::report(result);
     fitter::FitReporter::save(result, settings::general::output + "report.txt");
 
-    plots::PlotDistance::quick_plot(protein.get_histogram().get(), settings::general::output + "distance." + settings::plots::format);
-    plots::PlotProfiles::quick_plot(protein.get_histogram().get(), settings::general::output + "profiles." + settings::plots::format);
+    plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "distance." + settings::plots::format);
+    plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
 
     // save fit
     fitter->get_model_dataset().save(settings::general::output + "fit.fit");
@@ -123,7 +121,7 @@ int main(int argc, char const *argv[]) {
 
     protein.save(settings::general::output + "model.pdb");
 
-    auto h = protein.get_histogram();
+    auto h = fitter->get_scattering_hist();
     h->get_profile_aa().as_dataset().save(settings::general::output + "ausaxs_aa.dat");
     h->get_profile_aw().as_dataset().save(settings::general::output + "ausaxs_aw.dat");
     h->get_profile_ww().as_dataset().save(settings::general::output + "ausaxs_ww.dat");

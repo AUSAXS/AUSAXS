@@ -128,6 +128,11 @@ namespace fitter {
 
             void operator=(HydrationFitter&& other);
 
+            /**
+			 * @brief Get a view of the scattering histogram used for the fit. 
+			 */
+			[[nodiscard]] view_ptr<hist::CompositeDistanceHistogram> get_scattering_hist();
+
             mini::type fit_type = mini::type::BFGS;
         protected:
             /**
@@ -140,7 +145,7 @@ namespace fitter {
              * 
              * @return This is always safe since the constructor of this class guarantees that the histogram is a CompositeDistanceHistogram.
              */
-            hist::CompositeDistanceHistogram* cast_h() const;
+            view_ptr<hist::CompositeDistanceHistogram> cast_h() const;
 
         private: 
             mini::Parameter guess = {"c", 1, {0, 10}}; // The guess value for the hydration scaling factor.

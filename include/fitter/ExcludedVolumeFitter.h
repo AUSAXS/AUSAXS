@@ -20,7 +20,7 @@ namespace fitter {
      */
     class ExcludedVolumeFitter : public HydrationFitter {
         public:
-            ExcludedVolumeFitter(const io::ExistingFile& saxs, data::Molecule& protein);
+            ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::CompositeDistanceHistogram> h);
 
             /**
              * @brief Destructor.
@@ -83,7 +83,6 @@ namespace fitter {
 
         private: 
             std::vector<mini::Parameter> guess; // The guess values for the parameters.
-            data::Molecule& protein;            // The protein being fitted.
             mini::type fit_type;                // The algorithm to use.
 
             void update_excluded_volume(double d);

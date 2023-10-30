@@ -6,6 +6,7 @@
 #include <hist/HistFwd.h>
 #include <fitter/FitterFwd.h>
 #include <dataset/DatasetFwd.h>
+#include <utility/view_ptr.h>
 
 #include <memory>
 
@@ -44,12 +45,12 @@ namespace plots {
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			PlotIntensity& plot(const std::shared_ptr<fitter::Fit> fit, style::Color color = style::color::black);
+			PlotIntensity& plot(const view_ptr<fitter::Fit> fit, style::Color color = style::color::black);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
 			 */
-			PlotIntensity& plot_guinier_approx(const hist::CompositeDistanceHistogram* const data);
+			PlotIntensity& plot_guinier_approx(const view_ptr<hist::CompositeDistanceHistogram> data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

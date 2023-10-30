@@ -118,6 +118,10 @@ void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> 
     this->h = std::move(h);
 }
 
+view_ptr<hist::DistanceHistogram> LinearFitter::get_scattering_hist() {
+    return h;
+}
+
 double LinearFitter::chi2(const std::vector<double>&) {
     std::vector<double> ym = h->debye_transform().get_counts();
     std::vector<double> Im = splice(ym);

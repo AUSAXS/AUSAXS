@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/Fitter.h>
+#include <utility/view_ptr.h>
 
 class Limit;
 namespace hist {
@@ -122,6 +123,11 @@ namespace fitter {
 			 * @brief Change the scattering histogram used for the fit. 
 			 */
 			void set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> h);
+
+			/**
+			 * @brief Get a view of the scattering histogram used for the fit. 
+			 */
+			[[nodiscard]] view_ptr<hist::DistanceHistogram> get_scattering_hist();
 
 			/**
 			 * @brief Normalize all internally calculated intensities such that they start at this value.  

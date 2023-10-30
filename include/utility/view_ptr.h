@@ -36,12 +36,12 @@ class view_ptr {
             return *this;
         }
 
-        T& get() {
-            return *ptr;
+        T* get() {
+            return ptr;
         }
 
-        const T& get() const {
-            return *ptr;
+        const T* get() const {
+            return ptr;
         }
 
         T* operator->() const {

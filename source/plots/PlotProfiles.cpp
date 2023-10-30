@@ -7,20 +7,20 @@
 
 using namespace plots;
 
-PlotProfiles::PlotProfiles(const hist::CompositeDistanceHistogram* const data, const io::File& path) {
+PlotProfiles::PlotProfiles(const view_ptr<hist::CompositeDistanceHistogram> data, const io::File& path) {
 	quick_plot(data, path);
 }
 
 PlotProfiles::~PlotProfiles() = default;
 
-void PlotProfiles::quick_plot(const hist::CompositeDistanceHistogram* const data, const io::File& path) {
+void PlotProfiles::quick_plot(const view_ptr<hist::CompositeDistanceHistogram> data, const io::File& path) {
 	PlotHistogram plot;
 	plot.plot(data->get_profile_aa(), plots::PlotOptions({{"color", style::color::orange}, {"legend", "aa"}, {"normalize", true}, {"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}}));
 	plot.plot(data->get_profile_aw(), plots::PlotOptions({{"color", style::color::green},  {"legend", "aw"}, {"normalize", true}}));
 	plot.plot(data->get_profile_ww(), plots::PlotOptions({{"color", style::color::blue},   {"legend", "ww"}, {"normalize", true}}));
 
 	// if this is a pointer to a CompositeDistanceHistogramFFAvg or CompositeDistanceHistogramFFExplicit, additionally plot the exv
-	if (const hist::CompositeDistanceHistogramFFAvg* const data_ff_avg = dynamic_cast<const hist::CompositeDistanceHistogramFFAvg* const>(data)) {
+	if (const hist::CompositeDistanceHistogramFFAvg* data_ff_avg = dynamic_cast<const hist::CompositeDistanceHistogramFFAvg*>(data.get())) {
 		plot.plot(data_ff_avg->get_profile_ax(), plots::PlotOptions({{"color", style::color::red},    {"normalize", true}, {"legend", "ax"}}));
 		plot.plot(data_ff_avg->get_profile_xx(), plots::PlotOptions({{"color", style::color::purple}, {"normalize", true}, {"legend", "xx"}}));
 		plot.plot(data_ff_avg->get_profile_wx(), plots::PlotOptions({{"color", style::color::cyan},   {"normalize", true}, {"legend", "wx"}}));

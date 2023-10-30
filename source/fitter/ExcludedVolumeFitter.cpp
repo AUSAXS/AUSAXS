@@ -15,8 +15,8 @@
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, data::Molecule& protein) : HydrationFitter(), protein(protein), fit_type(mini::type::BFGS) {
-    HydrationFitter hfit(input, protein.get_histogram());
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h) : HydrationFitter(), fit_type(mini::type::BFGS) {
+    HydrationFitter hfit(input, std::move(h));
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
     if (c == 0) {this->guess = {{"c", 0, {0, 1}},  {"d", 1, {0, 1.5}}};}
@@ -97,10 +97,7 @@ double ExcludedVolumeFitter::get_intercept() {
 }
 
 void ExcludedVolumeFitter::update_excluded_volume(double d) {
-    // protein.update_effective_charge(d);
     static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())->apply_excluded_volume_scaling_factor(d);
-    // protein.set_excluded_volume_scaling(d);
-    // h = protein.get_histogram();
 }
 
 SimpleDataset ExcludedVolumeFitter::get_model_dataset() {

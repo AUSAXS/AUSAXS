@@ -17,13 +17,13 @@ PlotIntensityFit::PlotIntensityFit(const fitter::Fit& fit) : Plot() {
     plot(fit.figures);
 }
 
-PlotIntensityFit::PlotIntensityFit(const std::shared_ptr<fitter::Fit> fit) : Plot() {
+PlotIntensityFit::PlotIntensityFit(const view_ptr<fitter::Fit> fit) : Plot() {
     plot(fit->figures);
 }
 
 PlotIntensityFit::~PlotIntensityFit() = default;
 
-void PlotIntensityFit::quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path) {
+void PlotIntensityFit::quick_plot(const view_ptr<fitter::Fit> fit, const io::File& path) {
     PlotIntensityFit plot(fit);
     plot.save(path);
 }

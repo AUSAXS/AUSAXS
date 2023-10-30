@@ -1,8 +1,7 @@
 #pragma once
 
 #include <plots/Plot.h>
-
-#include <memory>
+#include <utility/view_ptr.h>
 
 namespace fitter {
 	class LinearFitter;
@@ -36,7 +35,7 @@ namespace plots {
 			 * 
 			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
 			 */
-			PlotIntensityFit(const std::shared_ptr<fitter::Fit> fit);
+			PlotIntensityFit(const view_ptr<fitter::Fit> fit);
 
 			/**
 			 * @brief Destructor.
@@ -47,7 +46,7 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const std::shared_ptr<fitter::Fit> fit, const io::File& path);
+			static void quick_plot(const view_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
 			void plot(const fitter::FitPlots& graphs);

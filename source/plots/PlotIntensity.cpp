@@ -53,11 +53,11 @@ PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, style::C
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(const std::shared_ptr<fitter::Fit> fit, style::Color color) {
+PlotIntensity& PlotIntensity::plot(const view_ptr<fitter::Fit> fit, style::Color color) {
     return plot(fit->figures.intensity, color);
 }
 
-PlotIntensity& PlotIntensity::plot_guinier_approx(const hist::CompositeDistanceHistogram* const data) {
+PlotIntensity& PlotIntensity::plot_guinier_approx(const view_ptr<hist::CompositeDistanceHistogram> data) {
     PlotOptions options;
     options.legend = "Guinier approx";
     options.xlabel = "$q$ [$\\AA^{-1}$]";
