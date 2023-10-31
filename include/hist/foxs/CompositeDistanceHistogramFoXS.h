@@ -30,7 +30,7 @@ namespace hist {
             CompositeDistanceHistogramFoXS(
                 container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx, 
                 container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww, 
-                std::vector<double>&& p_tot, const Axis& axis);
+                const Axis& axis);
 
             ~CompositeDistanceHistogramFoXS() override;
 

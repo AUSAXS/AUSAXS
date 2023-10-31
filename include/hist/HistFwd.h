@@ -2,9 +2,8 @@
 
 namespace hist {
     class DistanceHistogram;
-    class CompositeDistanceHistogram;
-    class CompositeDistanceHistogramFFAvg;
-    class CompositeDistanceHistogramFFExplicit;
+    class ICompositeDistanceHistogram;
+    class ICompositeDistanceHistogramExv;
     class Histogram;
     class HistogramManager;
 

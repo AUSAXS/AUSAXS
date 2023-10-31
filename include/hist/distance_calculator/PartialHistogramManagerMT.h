@@ -29,7 +29,7 @@ namespace hist {
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
+			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
 			std::mutex master_hist_mutex;

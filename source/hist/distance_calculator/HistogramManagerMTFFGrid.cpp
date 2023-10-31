@@ -2,6 +2,7 @@
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <data/Molecule.h>
 #include <hydrate/Grid.h>
 #include <settings/GeneralSettings.h>
@@ -21,7 +22,7 @@ std::unique_ptr<DistanceHistogram> HistogramManagerMTFFGrid::calculate() {
     return calculate_all();
 }
 
-std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_all() {
     constexpr unsigned int exv_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     auto base_res = HistogramManagerMTFFAvg::calculate_all(); // make sure everything is initialized
     hist::detail::CompactCoordinates data_x = hist::detail::CompactCoordinates(protein->get_grid()->generate_excluded_volume());
@@ -172,7 +173,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_
 
     // ensure that our new vectors are compatible with those from the base class
     auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    auto p_tot = std::move(cast_res->get_total_counts());
     auto p_aa =  std::move(cast_res->get_aa_counts_ff());
     auto p_aw =  std::move(cast_res->get_aw_counts_ff());
     auto p_ww =  std::move(cast_res->get_ww_counts_ff());
@@ -181,7 +181,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_
         p_aa.resize(max_bin);
         p_aw.resize(max_bin);
         p_ww.resize(max_bin);
-        p_tot.resize(max_bin);
     } else {
         max_bin = base_res->get_axis().bins; // make sure we overwrite anything which may already be stored
     }
@@ -192,10 +191,9 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_
     std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(exv_bin));
     std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(exv_bin, exv_bin));
 
-    return std::make_unique<CompositeDistanceHistogramFFAvg>(
+    return std::make_unique<CompositeDistanceHistogramFFGrid>(
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
-        std::move(p_tot), 
         Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
 }

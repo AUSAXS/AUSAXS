@@ -1,6 +1,7 @@
 #pragma once
 
 #include <data/DataFwd.h>
+#include <hist/HistFwd.h>
 
 #include <memory>
 #include <vector>
@@ -40,7 +41,7 @@ namespace em {
                 /**
                  * @brief Get the histogram for a given cutoff.
                  */
-                virtual std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(double cutoff) = 0;
+                virtual std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) = 0;
 
                 /**
                  * @brief Set the charge levels.

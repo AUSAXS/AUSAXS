@@ -5,8 +5,8 @@
 
 using namespace form_factor;
 
-constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> generate_table() {
-    container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()> table;
+constexpr form_factor::storage::atomic::table_t generate_table() {
+    form_factor::storage::atomic::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
@@ -28,6 +28,6 @@ const PrecalculatedFormFactorProduct& form_factor::storage::atomic::get_precalcu
     return ff_table.index(i, j);
 }
 
-const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>& form_factor::storage::atomic::get_precalculated_form_factor_table() noexcept {
+const form_factor::storage::atomic::table_t& form_factor::storage::atomic::get_precalculated_form_factor_table() noexcept {
     return ff_table;
 }

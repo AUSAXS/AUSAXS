@@ -71,7 +71,7 @@ std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
     return std::make_unique<DistanceHistogram>(std::move(p), master.get_axis());
 }
 
-std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManager::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager::calculate_all() {
     auto total = calculate();
     total->shorten_axis();
     unsigned int bins = total->get_axis().bins;

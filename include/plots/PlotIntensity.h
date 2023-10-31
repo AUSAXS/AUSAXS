@@ -50,7 +50,7 @@ namespace plots {
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
 			 */
-			PlotIntensity& plot_guinier_approx(const view_ptr<hist::CompositeDistanceHistogram> data);
+			PlotIntensity& plot_guinier_approx(const view_ptr<hist::ICompositeDistanceHistogram> data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

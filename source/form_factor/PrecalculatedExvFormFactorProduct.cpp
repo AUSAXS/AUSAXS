@@ -5,8 +5,8 @@
 
 using namespace form_factor;
 
-constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_exv_exv_table() {
-    container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+constexpr form_factor::storage::exv::table_t generate_exv_exv_table() {
+    form_factor::storage::exv::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
@@ -28,12 +28,12 @@ const PrecalculatedFormFactorProduct& form_factor::storage::exv::get_precalculat
     return ff_xx_table.index(i, j);
 }
 
-const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>& form_factor::storage::exv::get_precalculated_form_factor_table() noexcept {
+const form_factor::storage::exv::table_t& form_factor::storage::exv::get_precalculated_form_factor_table() noexcept {
     return ff_xx_table;
 }
 
-constexpr container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> generate_atom_exv_table() {
-    container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()> table;
+constexpr form_factor::storage::cross::table_t generate_atom_exv_table() {
+    form_factor::storage::cross::table_t table;
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < form_factor::get_count_without_excluded_volume(); ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
@@ -50,6 +50,6 @@ const PrecalculatedFormFactorProduct& form_factor::storage::cross::get_precalcul
     return ff_ax_table.index(i, j);
 }
 
-const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>& form_factor::storage::cross::get_precalculated_form_factor_table() noexcept {
+const form_factor::storage::cross::table_t& form_factor::storage::cross::get_precalculated_form_factor_table() noexcept {
     return ff_ax_table;
 }

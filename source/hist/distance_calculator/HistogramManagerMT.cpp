@@ -15,7 +15,7 @@ HistogramManagerMT::~HistogramManagerMT() = default;
 
 std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {return calculate_all();}
 
-std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMT::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT::calculate_all() {
     auto pool = utility::multi_threading::get_global_pool();
 
     // create a more compact representation of the coordinates

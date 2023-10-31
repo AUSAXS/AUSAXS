@@ -20,7 +20,7 @@ HistogramManager::~HistogramManager() = default;
 
 std::unique_ptr<DistanceHistogram> HistogramManager::calculate() {return calculate_all();}
 
-std::unique_ptr<CompositeDistanceHistogram> HistogramManager::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManager::calculate_all() {
     std::vector<double> p_pp( constants::axes::d_axis.bins, 0);
     std::vector<double> p_hh( constants::axes::d_axis.bins, 0);
     std::vector<double> p_hp( constants::axes::d_axis.bins, 0);

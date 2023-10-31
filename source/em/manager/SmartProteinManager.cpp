@@ -17,7 +17,7 @@ using namespace em::managers;
 using namespace data;
 using namespace data::record;
 
-std::unique_ptr<hist::CompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
+std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
     return protein->get_histogram();
 }

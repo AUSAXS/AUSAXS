@@ -11,6 +11,8 @@ namespace hist {
 
             ScatteringProfile debye_transform() const override;
 
+			
+
         private:
             view_ptr<const data::Molecule> protein;
     };
@@ -33,6 +35,6 @@ namespace hist {
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
+			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 	};
 }

@@ -7,9 +7,9 @@
 using namespace hist;
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_aa, std::vector<double>&& p_aw, std::vector<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
-    : DistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
+    : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
 
-CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_tot, const Axis& axis) : DistanceHistogram(std::move(p_tot), axis) {}
+CompositeDistanceHistogram::CompositeDistanceHistogram(std::vector<double>&& p_tot, const Axis& axis) : ICompositeDistanceHistogram(std::move(p_tot), axis) {}
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 

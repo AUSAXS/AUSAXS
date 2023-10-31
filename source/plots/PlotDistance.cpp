@@ -1,17 +1,17 @@
 #include <plots/PlotDistance.h>
 #include <plots/PlotDataset.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
 #include <dataset/SimpleDataset.h>
 
 using namespace plots;
 
 PlotDistance::~PlotDistance() = default;
 
-PlotDistance::PlotDistance(const view_ptr<hist::CompositeDistanceHistogram> d, const io::File& path) {
+PlotDistance::PlotDistance(const view_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
     quick_plot(d, path);
 }
 
-void PlotDistance::quick_plot(const view_ptr<hist::CompositeDistanceHistogram> d, const io::File& path) {
+void PlotDistance::quick_plot(const view_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
     auto distances = d->get_axis().as_vector();
     SimpleDataset p(distances, d->get_counts());
     SimpleDataset pp(distances, d->get_aa_counts());

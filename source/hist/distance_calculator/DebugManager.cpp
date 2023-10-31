@@ -158,6 +158,6 @@ std::unique_ptr<DistanceHistogram> DebugManager::calculate() {
     return std::make_unique<DebugDistanceHistogram>(protein);
 }
 
-std::unique_ptr<CompositeDistanceHistogram> DebugManager::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> DebugManager::calculate_all() {
     return std::make_unique<DebugDistanceHistogram>(protein);
 }

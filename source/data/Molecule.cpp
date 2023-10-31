@@ -226,7 +226,7 @@ void Molecule::generate_new_hydration() {
     get_waters() = grid->hydrate();
 }
 
-std::unique_ptr<hist::CompositeDistanceHistogram> Molecule::get_histogram() const {
+std::unique_ptr<hist::ICompositeDistanceHistogram> Molecule::get_histogram() const {
     return phm->calculate_all();
 }
 

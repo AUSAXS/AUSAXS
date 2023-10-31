@@ -15,7 +15,7 @@
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h) : HydrationFitter(), fit_type(mini::type::BFGS) {
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : HydrationFitter(), fit_type(mini::type::BFGS) {
     HydrationFitter hfit(input, std::move(h));
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
@@ -97,7 +97,7 @@ double ExcludedVolumeFitter::get_intercept() {
 }
 
 void ExcludedVolumeFitter::update_excluded_volume(double d) {
-    static_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())->apply_excluded_volume_scaling_factor(d);
+    static_cast<hist::ICompositeDistanceHistogramExv*>(h.get())->apply_excluded_volume_scaling_factor(d);
 }
 
 SimpleDataset ExcludedVolumeFitter::get_model_dataset() {

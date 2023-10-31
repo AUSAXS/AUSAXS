@@ -9,7 +9,7 @@
 
 namespace hist {
 	class DistanceHistogram;
-	class CompositeDistanceHistogram;
+	class ICompositeDistanceHistogram;
 
 	/**
 	 * @brief A histogram manager which calculates the distance histogram in a slow but simple way. 
@@ -31,7 +31,7 @@ namespace hist {
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			virtual std::unique_ptr<CompositeDistanceHistogram> calculate_all();
+			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all();
 
 		protected:
 			view_ptr<const data::Molecule> protein; // pointer to the parent Protein

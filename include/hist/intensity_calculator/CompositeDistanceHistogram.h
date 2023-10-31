@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
 
 #include <vector>
 
@@ -8,7 +8,7 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms.
      */
-    class CompositeDistanceHistogram : public DistanceHistogram {
+    class CompositeDistanceHistogram : public ICompositeDistanceHistogram {
         public: 
             CompositeDistanceHistogram() = default;
 
@@ -21,25 +21,25 @@ namespace hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            virtual const std::vector<double>& get_aa_counts() const;
-            virtual std::vector<double>& get_aa_counts(); // @copydoc get_aa_counts() const
+            virtual const std::vector<double>& get_aa_counts() const override;
+            virtual std::vector<double>& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            virtual const std::vector<double>& get_aw_counts() const;
-            virtual std::vector<double>& get_aw_counts(); // @copydoc get_aw_counts() const
+            virtual const std::vector<double>& get_aw_counts() const override;
+            virtual std::vector<double>& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            virtual const std::vector<double>& get_ww_counts() const;
-            virtual std::vector<double>& get_ww_counts(); // @copydoc get_ww_counts() const
+            virtual const std::vector<double>& get_ww_counts() const override;
+            virtual std::vector<double>& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Apply a scaling factor to the water partial distance histogram.
              */
-            virtual void apply_water_scaling_factor(double k);
+            virtual void apply_water_scaling_factor(double k) override;
 
             /**
              * @brief Reset the water scaling factor to 1.
@@ -49,19 +49,19 @@ namespace hist {
             /**
              * @brief Get the intensity profile for atom-atom interactions.
              */
-            virtual const ScatteringProfile get_profile_aa() const;
+            virtual const ScatteringProfile get_profile_aa() const override;
 
             /**
              * @brief Get the intensity profile for atom-water interactions.
              */
-            virtual const ScatteringProfile get_profile_aw() const;
+            virtual const ScatteringProfile get_profile_aw() const override;
 
             /**
              * @brief Get the intensity profile for water-water interactions.
              */
-            virtual const ScatteringProfile get_profile_ww() const;
+            virtual const ScatteringProfile get_profile_ww() const override;
 
-        protected:
+        private:
             mutable std::vector<double> p_aa;
             mutable std::vector<double> p_aw;
             mutable std::vector<double> p_ww;

@@ -16,7 +16,7 @@ namespace plots {
 			 * @param data The ScatteringHistogram which will be plotted. 
 			 * @param path The path to the folder where the plot will be saved. 
 			 */
-			PlotProfiles(const view_ptr<hist::CompositeDistanceHistogram> data, const io::File& path);
+			PlotProfiles(const view_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path);
 
 			/**
 			 * @brief Destructor. 
@@ -27,6 +27,6 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			static void quick_plot(const view_ptr<hist::CompositeDistanceHistogram> data, const io::File& path);
+			static void quick_plot(const view_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path);
 	};
 }

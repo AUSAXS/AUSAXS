@@ -21,7 +21,7 @@ HistogramManagerMTFFAvg::~HistogramManagerMTFFAvg() = default;
 
 std::unique_ptr<DistanceHistogram> HistogramManagerMTFFAvg::calculate() {return calculate_all();}
 
-std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_all() {
     constexpr unsigned int exv_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
     double Z_exv_avg = protein->get_excluded_volume()*constants::charge::density::water/protein->atom_size();
     double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
@@ -208,12 +208,10 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFAvg::calculate_a
     p_pp.resize(max_bin);
     p_hp.resize(max_bin);
     p_hh.resize(max_bin);
-    p_tot.resize(max_bin);
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
         std::move(p_pp), 
         std::move(p_hp), 
         std::move(p_hh), 
-        std::move(p_tot), 
         Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
     );
 }

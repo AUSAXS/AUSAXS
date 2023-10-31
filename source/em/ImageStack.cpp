@@ -27,13 +27,13 @@ ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images
 
 ImageStack::~ImageStack() = default;
 
-std::shared_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::CompositeDistanceHistogram> h) {
+std::shared_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(std::move(h), param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::CompositeDistanceHistogram> h, mini::Parameter& param) {
+std::shared_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(std::move(h));} // ensure parameter bounds are present
 
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
@@ -397,18 +397,18 @@ mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingF
     return cutoff_scan(axis, file);
 }
 
-mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::unique_ptr<hist::CompositeDistanceHistogram> h) {
+mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
     return cutoff_scan_helper(points, fitter);
 }
 
-mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::unique_ptr<hist::CompositeDistanceHistogram> h) {
+mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan(axis, std::move(h));
 }
 
-std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::CompositeDistanceHistogram> h) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     return cutoff_scan_fit(axis, std::move(h));
 }
@@ -433,7 +433,7 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
     return minimizer.landscape(points.bins);
 }
 
-std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::CompositeDistanceHistogram> h) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
     return cutoff_scan_fit_helper(points, fitter);

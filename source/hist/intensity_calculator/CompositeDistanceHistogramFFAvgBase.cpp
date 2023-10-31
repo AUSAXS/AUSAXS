@@ -11,8 +11,8 @@ template<typename T>
 CompositeDistanceHistogramFFAvgBase<T>::CompositeDistanceHistogramFFAvgBase() = default;
 
 template<typename T>
-CompositeDistanceHistogramFFAvgBase<T>::CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
-    : CompositeDistanceHistogram(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
+CompositeDistanceHistogramFFAvgBase<T>::CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, const Axis& axis) 
+    : ICompositeDistanceHistogramExv(std::vector<double>(axis.bins), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
 template<typename T>
 CompositeDistanceHistogramFFAvgBase<T>::~CompositeDistanceHistogramFFAvgBase() = default;
@@ -246,7 +246,6 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::debye_transform() cons
 
 template<typename T>
 const std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_counts() const {
-    if (!p.empty()) {return p.data;}
     p = std::vector<double>(axis.bins, 0);
     auto& p_pp = get_aa_counts();
     auto& p_hp = get_aw_counts();

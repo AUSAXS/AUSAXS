@@ -195,9 +195,10 @@ def read_dataset(file):
             scaling /= options.stagger
             options.stagger = 1
 
-        for i in range(len(data)):
-            data[i][1] /= scaling
-            data[i][2] /= scaling
+        if scaling != 0:
+            for i in range(len(data)):
+                data[i][1] /= scaling
+                data[i][2] /= scaling
 
     if options.stagger != 1: 
         for i in range(len(data)):

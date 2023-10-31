@@ -23,7 +23,7 @@ HistogramManagerMTFFExplicit::~HistogramManagerMTFFExplicit() = default;
 std::unique_ptr<DistanceHistogram> HistogramManagerMTFFExplicit::calculate() {return calculate_all();}
 
 #include <hist/foxs/CompositeDistanceHistogramFoXS.h>
-std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit::calculate_all() {
     data_p_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(protein->get_bodies());
     data_h_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(protein->get_waters());
     auto& data_p = *data_p_ptr;
@@ -232,7 +232,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
             std::move(p_wa), 
             std::move(p_wx), 
             std::move(p_ww),
-            std::move(p_tot), 
             Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
         );
     } else {
@@ -243,7 +242,6 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFExplicit::calcul
             std::move(p_wa), 
             std::move(p_wx), 
             std::move(p_ww),
-            std::move(p_tot), 
             Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
         );
     }

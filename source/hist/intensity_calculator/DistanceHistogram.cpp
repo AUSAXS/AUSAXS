@@ -14,7 +14,7 @@ DistanceHistogram::DistanceHistogram(std::vector<double>&& p_tot, const Axis& ax
     initialize();
 }
 
-DistanceHistogram::DistanceHistogram(CompositeDistanceHistogram&& cdh) : Histogram(std::move(cdh.get_total_counts()), cdh.get_axis()) {
+DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_total_counts()), cdh->get_axis()) {
     initialize();
 }
 

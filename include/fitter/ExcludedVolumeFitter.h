@@ -20,7 +20,7 @@ namespace fitter {
      */
     class ExcludedVolumeFitter : public HydrationFitter {
         public:
-            ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            ExcludedVolumeFitter(const io::ExistingFile& saxs, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Destructor.

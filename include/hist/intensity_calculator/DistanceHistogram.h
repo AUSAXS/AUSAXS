@@ -22,7 +22,7 @@ namespace hist {
             /**
              * @brief Extract the total histogram from a CompositeDistanceHistogram.
              */
-            DistanceHistogram(CompositeDistanceHistogram&& cdh);
+            DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh);
 
             virtual ~DistanceHistogram() override;
 

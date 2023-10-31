@@ -2,7 +2,7 @@
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
 #include <dataset/SimpleDataset.h>
@@ -57,7 +57,7 @@ PlotIntensity& PlotIntensity::plot(const view_ptr<fitter::Fit> fit, style::Color
     return plot(fit->figures.intensity, color);
 }
 
-PlotIntensity& PlotIntensity::plot_guinier_approx(const view_ptr<hist::CompositeDistanceHistogram> data) {
+PlotIntensity& PlotIntensity::plot_guinier_approx(const view_ptr<hist::ICompositeDistanceHistogram> data) {
     PlotOptions options;
     options.legend = "Guinier approx";
     options.xlabel = "$q$ [$\\AA^{-1}$]";

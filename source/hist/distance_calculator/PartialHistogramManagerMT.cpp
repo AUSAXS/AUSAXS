@@ -125,7 +125,7 @@ void PartialHistogramManagerMT::update_compact_representation_water() {
     coords_h = detail::CompactCoordinates(protein->get_waters());
 }
 
-std::unique_ptr<CompositeDistanceHistogram> PartialHistogramManagerMT::calculate_all() {
+std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT::calculate_all() {
     auto total = calculate();
     total->shorten_axis();
     unsigned int bins = total->get_axis().bins;

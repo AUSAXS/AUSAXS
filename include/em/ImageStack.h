@@ -54,14 +54,14 @@ namespace em {
              * @param h The histogram to fit to.  
              * @param param The cutoff parameter.
              */
-            std::shared_ptr<fitter::EMFit> fit(std::unique_ptr<hist::CompositeDistanceHistogram> h, mini::Parameter& param);
+            std::shared_ptr<fitter::EMFit> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param);
 
             /**
              * @brief Fit the cutoff value with the input histogram. 
              * 
              * @param h The histogram to fit to.  
              */
-            std::shared_ptr<fitter::EMFit> fit(std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            std::shared_ptr<fitter::EMFit> fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -71,7 +71,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            mini::Landscape cutoff_scan(const Axis& points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            mini::Landscape cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -81,7 +81,7 @@ namespace em {
              * 
              * @return A Dataset containing the scanned cutoff values and their corresponding chi2 values. 
              */
-            mini::Landscape cutoff_scan(unsigned int points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            mini::Landscape cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan of the cutoff values. 
@@ -111,7 +111,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 
@@ -121,7 +121,7 @@ namespace em {
              * 
              * @return A Landscape containing both the fit and scan.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Perform a scan & fit of the cutoff values. 

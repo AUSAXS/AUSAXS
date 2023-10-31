@@ -35,7 +35,7 @@ namespace fitter {
              * @param input The path to the file containing the measured values. 
              * @param h The histogram.
              */
-            HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * Prepare a fit of the histogram to the measured data. 
@@ -43,7 +43,7 @@ namespace fitter {
              * @param data The measured data.
              * @param h The histogram.
              */
-            HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::CompositeDistanceHistogram> h);
+            HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h);
 
             /**
              * @brief Constructor.
@@ -53,7 +53,7 @@ namespace fitter {
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
              */
-            HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model);
+            HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model);
 
             /**
              * @brief Constructor.
@@ -63,7 +63,7 @@ namespace fitter {
              * @param model The model histogram. 
              * @param limits The limits on the generated data points. 
              */
-            HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits);
+            HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model, const Limit& limits);
 
             /**
              * @brief Destructor.
@@ -131,7 +131,7 @@ namespace fitter {
             /**
 			 * @brief Get a view of the scattering histogram used for the fit. 
 			 */
-			[[nodiscard]] view_ptr<hist::CompositeDistanceHistogram> get_scattering_hist();
+			[[nodiscard]] view_ptr<hist::ICompositeDistanceHistogram> get_scattering_hist();
 
             mini::type fit_type = mini::type::BFGS;
         protected:
@@ -145,7 +145,7 @@ namespace fitter {
              * 
              * @return This is always safe since the constructor of this class guarantees that the histogram is a CompositeDistanceHistogram.
              */
-            view_ptr<hist::CompositeDistanceHistogram> cast_h() const;
+            view_ptr<hist::ICompositeDistanceHistogram> cast_h() const;
 
         private: 
             mini::Parameter guess = {"c", 1, {0, 10}}; // The guess value for the hydration scaling factor.

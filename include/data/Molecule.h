@@ -79,7 +79,7 @@ namespace data {
 			/**
 			 * @brief Get the distances between each atom.
 			 */
-			[[nodiscard]] std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram() const;
+			[[nodiscard]] std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram() const;
 
 			/**
 			 * @brief Get the total distance histogram only. 
@@ -355,7 +355,7 @@ namespace data {
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 			std::shared_ptr<hist::HistogramManager> phm = nullptr;
-			std::shared_ptr<hist::CompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
+			std::shared_ptr<hist::ICompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
 			double excluded_volume_scaling_factor = 1; // The scaling factor for the excluded volume.
 
 			void initialize();

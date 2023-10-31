@@ -1,9 +1,6 @@
 #pragma once
 
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <container/Container1D.h>
-#include <container/Container2D.h>
-#include <container/Container3D.h>
+#include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
 
 #include <vector>
 
@@ -12,7 +9,7 @@ namespace hist {
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
     template<typename T>
-    class CompositeDistanceHistogramFFAvgBase : public CompositeDistanceHistogram {
+    class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
 
@@ -25,7 +22,7 @@ namespace hist {
              * @param p_tot Total distance histogram
              * @param axis Distance axis
              */
-            CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_wa, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_wa, container::Container1D<double>&& p_ww, const Axis& axis);
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
@@ -100,17 +97,17 @@ namespace hist {
             /**
              * @brief Get the intensity profile for atom-atom interactions.
              */
-            virtual const ScatteringProfile get_profile_ax() const;
+            virtual const ScatteringProfile get_profile_ax() const override;
 
             /**
              * @brief Get the intensity profile for atom-water interactions.
              */
-            virtual const ScatteringProfile get_profile_xx() const;
+            virtual const ScatteringProfile get_profile_xx() const override;
 
             /**
              * @brief Get the intensity profile for water-water interactions.
              */
-            virtual const ScatteringProfile get_profile_wx() const;
+            virtual const ScatteringProfile get_profile_wx() const override;
 
             virtual const T& get_ff_table() const = 0;
 
@@ -120,5 +117,10 @@ namespace hist {
             container::Container3D<double> cp_aa;
             container::Container2D<double> cp_aw;
             container::Container1D<double> cp_ww;
+
+        private:
+            mutable std::vector<double> p_aa;
+            mutable std::vector<double> p_aw;
+            mutable std::vector<double> p_ww;
     };
 }

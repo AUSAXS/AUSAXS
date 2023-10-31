@@ -2,13 +2,10 @@
 
 #include <fitter/Fitter.h>
 #include <utility/view_ptr.h>
+#include <hist/HistFwd.h>
+#include <io/IOFwd.h>
 
 class Limit;
-namespace hist {
-	class DistanceHistogram;
-	class CompositeDistanceHistogram;
-}
-namespace io {class ExistingFile;}
 namespace fitter {
 
 	/**

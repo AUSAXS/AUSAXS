@@ -26,7 +26,7 @@ namespace hist {
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
+			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
 			std::unique_ptr<hist::detail::CompactCoordinatesFF> data_p_ptr;

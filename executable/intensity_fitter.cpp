@@ -13,7 +13,8 @@
 #include <constants/Constants.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 #include <vector>
 #include <string>
@@ -125,7 +126,7 @@ int main(int argc, char const *argv[]) {
     h->get_profile_aa().as_dataset().save(settings::general::output + "ausaxs_aa.dat");
     h->get_profile_aw().as_dataset().save(settings::general::output + "ausaxs_aw.dat");
     h->get_profile_ww().as_dataset().save(settings::general::output + "ausaxs_ww.dat");
-    if (auto cast = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get())) {
+    if (auto cast = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h.get())) {
         if (fit_excluded_volume) {cast->apply_excluded_volume_scaling_factor(result->get_parameter("d"));}
         cast->get_profile_ax().as_dataset().save(settings::general::output + "ausaxs_ax.dat");
         cast->get_profile_wx().as_dataset().save(settings::general::output + "ausaxs_wx.dat");

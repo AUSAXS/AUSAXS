@@ -57,7 +57,7 @@ namespace em {
             /**
              * @brief Prepare a ScatteringHistogram based on this object. 
              */
-            std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(double cutoff) const;
+            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) const;
 
             /**
              * @brief Count the number of voxels for a given cutoff.
@@ -67,7 +67,7 @@ namespace em {
             /**
              * @brief Get the fitted ScatteringHistogram.
              */
-            std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFit> res) const;
+            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(const std::shared_ptr<fitter::EMFit> res) const;
 
             /**
              * @brief Get the protein generated with the chosen cutoff value.

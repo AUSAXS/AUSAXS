@@ -2,10 +2,10 @@
 
 #include <em/manager/ProteinManager.h>
 #include <data/DataFwd.h>
+#include <hist/HistFwd.h>
 
 #include <vector>
 
-namespace hist {class CompositeDistanceHistogram;}
 namespace em::managers {
     /**
      * @brief A helper class for the ImageStack. 
@@ -25,7 +25,7 @@ namespace em::managers {
             /**
              * @brief Get the histogram for a given cutoff.
              */
-            std::unique_ptr<hist::CompositeDistanceHistogram> get_histogram(double cutoff);
+            std::unique_ptr<hist::ICompositeDistanceHistogram> get_histogram(double cutoff) override;
 
             /**
              * @brief Get the Protein backing this object. 

@@ -40,7 +40,7 @@ namespace hist {
 			/**
 			 * @brief Calculate all contributions to the scattering histogram. 
 			 */
-			virtual std::unique_ptr<CompositeDistanceHistogram> calculate_all() override;
+			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
 			detail::MasterHistogram master;                       			// the current total histogram

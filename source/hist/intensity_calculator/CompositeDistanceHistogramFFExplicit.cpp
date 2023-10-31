@@ -13,8 +13,8 @@ CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit() = d
 CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
     container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx,
     container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww,
-    std::vector<double>&& p_tot, const Axis& axis)
-: CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_wa), std::move(p_ww), std::move(p_tot), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+    const Axis& axis)
+: CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_wa), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
 
 CompositeDistanceHistogramFFExplicit::~CompositeDistanceHistogramFFExplicit() = default;
 

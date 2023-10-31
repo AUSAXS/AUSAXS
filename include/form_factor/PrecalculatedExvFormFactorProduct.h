@@ -9,6 +9,7 @@
 #include <vector>
 
 namespace form_factor::storage::exv {
+    using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>;
     /**
      * @brief Get a precalculated excluded-volume form factor product for a given pair of excluded volume form factors.
      * 
@@ -21,10 +22,12 @@ namespace form_factor::storage::exv {
      * @brief Get the precalculated excluded-volume form factor product table.
      *        The table is symmetric. 
      */
-    const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>& get_precalculated_form_factor_table() noexcept;
+    const table_t& get_precalculated_form_factor_table() noexcept;
 }
 
 namespace form_factor::storage::cross {
+    using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>;
+
     /**
      * @brief Get a precalculated form factor product for a given pair of excluded volume and atomic form factors. 
      * 
@@ -37,5 +40,5 @@ namespace form_factor::storage::cross {
      * @brief Get the precalculated form factor product table for a given pair of excluded volume and atomic form factors.
      *        The first index is the atomic form factor, and the second index is the excluded volume form factor.
      */
-    const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume()>& get_precalculated_form_factor_table() noexcept;
+    const table_t& get_precalculated_form_factor_table() noexcept;
 }

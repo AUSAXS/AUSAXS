@@ -19,10 +19,10 @@ using namespace fitter;
 
 HydrationFitter::HydrationFitter(HydrationFitter&& other) : LinearFitter(std::move(other)), guess(std::move(other.guess)) {}
 HydrationFitter::HydrationFitter(const io::ExistingFile& input) : LinearFitter(input) {}
-HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::CompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {}
-HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::CompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {}
-HydrationFitter::HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model) : HydrationFitter(std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}
-HydrationFitter::HydrationFitter(std::unique_ptr<hist::CompositeDistanceHistogram> model, const Limit& limits) : LinearFitter(std::move(model), limits) {}
+HydrationFitter::HydrationFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(input, std::move(h)) {}
+HydrationFitter::HydrationFitter(const SimpleDataset& data, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : LinearFitter(data, std::move(h)) {}
+HydrationFitter::HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model) : HydrationFitter(std::move(model), Limit(settings::axes::qmin, settings::axes::qmax)) {}
+HydrationFitter::HydrationFitter(std::unique_ptr<hist::ICompositeDistanceHistogram> model, const Limit& limits) : LinearFitter(std::move(model), limits) {}
 
 void HydrationFitter::set_algorithm(const mini::type& t) {fit_type = t;}
 std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
@@ -30,8 +30,8 @@ std::shared_ptr<Fit> HydrationFitter::fit(const mini::type& algorithm) {
     return fit();
 }
 
-view_ptr<hist::CompositeDistanceHistogram> HydrationFitter::cast_h() const {
-    return static_cast<hist::CompositeDistanceHistogram*>(h.get());
+view_ptr<hist::ICompositeDistanceHistogram> HydrationFitter::cast_h() const {
+    return static_cast<hist::ICompositeDistanceHistogram*>(h.get());
 }
 
 std::shared_ptr<Fit> HydrationFitter::fit() {
@@ -192,8 +192,8 @@ SimpleDataset HydrationFitter::get_dataset() const {
     return data;
 }
 
-view_ptr<hist::CompositeDistanceHistogram> HydrationFitter::get_scattering_hist() {
-    return static_cast<hist::CompositeDistanceHistogram*>(h.get());
+view_ptr<hist::ICompositeDistanceHistogram> HydrationFitter::get_scattering_hist() {
+    return static_cast<hist::ICompositeDistanceHistogram*>(h.get());
 }
 
 void HydrationFitter::set_guess(const mini::Parameter& guess) {
