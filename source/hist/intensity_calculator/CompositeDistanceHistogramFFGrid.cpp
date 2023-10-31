@@ -29,6 +29,10 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
             ffx
         );
         table.index(exv_bin, i) = table.index(i, exv_bin);
+        table.index(exv_bin, exv_bin) = PrecalculatedFormFactorProduct(
+            ffx, 
+            ffx
+        );
     }
     return table;
 }

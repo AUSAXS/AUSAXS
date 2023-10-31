@@ -22,6 +22,7 @@ namespace settings::hist {
         PartialHistogramManagerMTFFGrid,     // A multithreaded implementation of the partial manager using a grid-based approach to evaluate the excluded volume.
         DebugManager,
     };
-    extern bool use_foxs_method;
+    extern bool use_foxs_method; // Whether to use the FoXS methods to evaluate the scattering intensity.
+    extern bool weighted_bins;   // Whether to use weighted p(r) bins or not.
     extern HistogramManagerChoice histogram_manager;
 }

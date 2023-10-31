@@ -13,6 +13,9 @@ namespace form_factor {
      */
     class ExvFormFactor {
         public: 
+            /**
+             * @brief Create a new excluded volume form factor with the given volume.
+             */
             constexpr ExvFormFactor(double volume) {
                 // double s_to_q = M_PI*M_PI*constants::form_factor::s_to_q_factor;
                 double s_to_q = constants::form_factor::s_to_q_factor;

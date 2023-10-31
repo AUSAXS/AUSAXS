@@ -8,6 +8,7 @@ double settings::axes::qmin = constants::axes::q_axis.min;
 double settings::axes::qmax = 0.5;
 unsigned int settings::axes::skip = 0;
 bool settings::hist::use_foxs_method = false;
+bool settings::hist::weighted_bins = true;
 
 namespace settings::axes::io {
     settings::io::SettingSection axes_settings("Axes", {
