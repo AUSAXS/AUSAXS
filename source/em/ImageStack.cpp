@@ -13,8 +13,8 @@
 #include <utility/Limit.h>
 #include <utility/Utility.h>
 #include <constants/Constants.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 #include <fstream>
 

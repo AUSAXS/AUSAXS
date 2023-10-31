@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <container/Container1D.h>
 #include <container/Container2D.h>
 #include <container/Container3D.h>

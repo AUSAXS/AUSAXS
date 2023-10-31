@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <container/Container1D.h>
 #include <container/Container2D.h>
 #include <container/Container3D.h>

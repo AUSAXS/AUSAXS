@@ -1,7 +1,7 @@
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/detail/CompactCoordinatesFF.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <data/Molecule.h>
 #include <hydrate/Grid.h>
 #include <settings/GeneralSettings.h>

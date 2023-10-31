@@ -13,7 +13,7 @@
 #include <constants/Constants.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 
 #include <vector>
 #include <string>

@@ -1,5 +1,5 @@
 #include <em/manager/SmartProteinManager.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <data/Body.h>

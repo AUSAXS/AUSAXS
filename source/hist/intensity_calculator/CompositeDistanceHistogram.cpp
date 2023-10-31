@@ -1,4 +1,4 @@
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <constants/Constants.h>

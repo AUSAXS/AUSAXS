@@ -2,7 +2,7 @@
 #include <fitter/FitPlots.h>
 #include <math/CubicSpline.h>
 #include <math/SimpleLeastSquares.h>
-#include <hist/DistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/Histogram.h>
 #include <utility/Exceptions.h>
 #include <settings/HistogramSettings.h>

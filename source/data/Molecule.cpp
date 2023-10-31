@@ -15,8 +15,8 @@
 #include <settings/GeneralSettings.h>
 #include <hist/distance_calculator/HistogramManagerFactory.h>
 #include <hist/distance_calculator/HistogramManager.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <constants/Constants.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>

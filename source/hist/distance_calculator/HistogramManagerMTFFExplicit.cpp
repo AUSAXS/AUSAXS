@@ -1,5 +1,5 @@
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>

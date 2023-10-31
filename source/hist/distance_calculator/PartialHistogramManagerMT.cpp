@@ -1,6 +1,6 @@
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/record/Atom.h> 

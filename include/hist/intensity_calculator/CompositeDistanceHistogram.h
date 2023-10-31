@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/DistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
 
 #include <vector>
 

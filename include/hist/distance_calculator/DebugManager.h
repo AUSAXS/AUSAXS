@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hist/distance_calculator/HistogramManager.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 
 namespace hist {
     class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg {

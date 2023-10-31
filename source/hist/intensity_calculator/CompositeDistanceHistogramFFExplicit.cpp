@@ -1,4 +1,4 @@
-#include <hist/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactor.h>

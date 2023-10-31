@@ -1,5 +1,4 @@
-#include <hist/CompositeDistanceHistogramFFAvg.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactor.h>

@@ -4,8 +4,8 @@
 #include <data/Molecule.h>
 #include <data/state/StateManager.h>
 #include <hist/distance_calculator/HistogramManager.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>

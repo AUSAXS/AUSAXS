@@ -1,5 +1,5 @@
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/FormFactorType.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>

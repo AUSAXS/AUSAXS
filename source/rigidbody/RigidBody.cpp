@@ -24,8 +24,8 @@
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <data/Body.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <Symbols.h>
 
 using namespace rigidbody;

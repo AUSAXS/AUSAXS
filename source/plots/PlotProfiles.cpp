@@ -1,9 +1,9 @@
 #include <plots/PlotProfiles.h>
 
 #include <dataset/SimpleDataset.h>
-#include <hist/CompositeDistanceHistogram.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
-#include <hist/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 
 using namespace plots;
 

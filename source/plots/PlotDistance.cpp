@@ -1,6 +1,6 @@
 #include <plots/PlotDistance.h>
 #include <plots/PlotDataset.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <dataset/SimpleDataset.h>
 
 using namespace plots;

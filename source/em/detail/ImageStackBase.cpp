@@ -14,8 +14,8 @@
 #include <utility/Exceptions.h>
 #include <constants/Constants.h>
 #include <utility/Axis3D.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 #include <fstream>
 #include <cstdint>

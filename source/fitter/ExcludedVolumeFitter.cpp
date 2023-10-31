@@ -4,9 +4,9 @@
 #include <math/SimpleLeastSquares.h>
 #include <math/CubicSpline.h>
 #include <hist/Histogram.h>
-#include <hist/DistanceHistogram.h>
-#include <hist/CompositeDistanceHistogram.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <utility/Exceptions.h>
 #include <mini/All.h>
 #include <plots/All.h>

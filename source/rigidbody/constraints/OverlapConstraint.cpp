@@ -1,6 +1,6 @@
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Molecule.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
