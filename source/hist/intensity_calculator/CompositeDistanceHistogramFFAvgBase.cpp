@@ -1,4 +1,4 @@
-#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvgBase.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <form_factor/FormFactor.h>
@@ -7,16 +7,15 @@
 
 using namespace hist;
 
-CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg() = default;
+template<typename T>
+CompositeDistanceHistogramFFAvgBase<T>::CompositeDistanceHistogramFFAvgBase() = default;
 
-CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
+template<typename T>
+CompositeDistanceHistogramFFAvgBase<T>::CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_aw, container::Container1D<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis) 
     : CompositeDistanceHistogram(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
-CompositeDistanceHistogramFFAvg::CompositeDistanceHistogramFFAvg(CompositeDistanceHistogramFFAvg&& other) noexcept 
-    : CompositeDistanceHistogram(std::move(other.p_aa), std::move(other.p_aw), std::move(other.p_ww), std::move(other.p), other.axis), cw(other.cw), cx(other.cx), 
-        cp_aa(std::move(other.cp_aa)), cp_aw(std::move(other.cp_aw)), cp_ww(std::move(other.cp_ww)) {}
-
-CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
+template<typename T>
+CompositeDistanceHistogramFFAvgBase<T>::~CompositeDistanceHistogramFFAvgBase() = default;
 
 // #define DEBUG_DEBYE_TRANSFORM 1
 // #define DEBUG_PLOT_FF 1
@@ -199,8 +198,9 @@ CompositeDistanceHistogramFFAvg::~CompositeDistanceHistogramFFAvg() = default;
 //     return ScatteringProfile(Iq, debye_axis);
 // }
 
-ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::debye_transform() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
 
     // calculate the Debye scattering intensity
@@ -244,7 +244,8 @@ ScatteringProfile CompositeDistanceHistogramFFAvg::debye_transform() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const std::vector<double>& CompositeDistanceHistogramFFAvg::get_counts() const {
+template<typename T>
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_counts() const {
     if (!p.empty()) {return p.data;}
     p = std::vector<double>(axis.bins, 0);
     auto& p_pp = get_aa_counts();
@@ -256,8 +257,11 @@ const std::vector<double>& CompositeDistanceHistogramFFAvg::get_counts() const {
     return p.data;
 }
 
-std::vector<double>& CompositeDistanceHistogramFFAvg::get_aa_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvg&>(*this).get_aa_counts());}
-const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aa_counts() const {
+template<typename T>
+std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aa_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_aa_counts());}
+
+template<typename T>
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aa_counts() const {
     if (!p_aa.empty()) {return p_aa;}
     p_aa = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
@@ -268,8 +272,11 @@ const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aa_counts() cons
     return p_aa;
 }
 
-std::vector<double>& CompositeDistanceHistogramFFAvg::get_aw_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvg&>(*this).get_aw_counts());}
-const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aw_counts() const {
+template<typename T>
+std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aw_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_aw_counts());}
+
+template<typename T>
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aw_counts() const {
     if (!p_aw.empty()) {return p_aw;}
     p_aw = std::vector<double>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
@@ -278,29 +285,44 @@ const std::vector<double>& CompositeDistanceHistogramFFAvg::get_aw_counts() cons
     return p_aw;
 }
 
-std::vector<double>& CompositeDistanceHistogramFFAvg::get_ww_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvg&>(*this).get_ww_counts());}
-const std::vector<double>& CompositeDistanceHistogramFFAvg::get_ww_counts() const {
+template<typename T>
+std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_ww_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_ww_counts());}
+
+template<typename T>
+const std::vector<double>& CompositeDistanceHistogramFFAvgBase<T>::get_ww_counts() const {
     if (!p_ww.empty()) {return p_ww;}
     p_ww = std::vector<double>(axis.bins, 0);
     std::transform(p_ww.begin(), p_ww.end(), cp_ww.begin(), p_ww.begin(), std::plus<double>());
     return p_ww;
 }
 
-const container::Container3D<double>& CompositeDistanceHistogramFFAvg::get_aa_counts_ff() const {return cp_aa;}
-container::Container3D<double>& CompositeDistanceHistogramFFAvg::get_aa_counts_ff() {return cp_aa;}
+template<typename T>
+const container::Container3D<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aa_counts_ff() const {return cp_aa;}
 
-const container::Container2D<double>& CompositeDistanceHistogramFFAvg::get_aw_counts_ff() const {return cp_aw;}
-container::Container2D<double>& CompositeDistanceHistogramFFAvg::get_aw_counts_ff() {return cp_aw;}
+template<typename T>
+container::Container3D<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aa_counts_ff() {return cp_aa;}
 
-const container::Container1D<double>& CompositeDistanceHistogramFFAvg::get_ww_counts_ff() const {return cp_ww;}
-container::Container1D<double>& CompositeDistanceHistogramFFAvg::get_ww_counts_ff() {return cp_ww;}
+template<typename T>
+const container::Container2D<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aw_counts_ff() const {return cp_aw;}
 
-void CompositeDistanceHistogramFFAvg::apply_water_scaling_factor(double k) {cw = k;}
+template<typename T>
+container::Container2D<double>& CompositeDistanceHistogramFFAvgBase<T>::get_aw_counts_ff() {return cp_aw;}
 
-void CompositeDistanceHistogramFFAvg::apply_excluded_volume_scaling_factor(double k) {cx = k;}
+template<typename T>
+const container::Container1D<double>& CompositeDistanceHistogramFFAvgBase<T>::get_ww_counts_ff() const {return cp_ww;}
 
-const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aa() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+container::Container1D<double>& CompositeDistanceHistogramFFAvgBase<T>::get_ww_counts_ff() {return cp_ww;}
+
+template<typename T>
+void CompositeDistanceHistogramFFAvgBase<T>::apply_water_scaling_factor(double k) {cw = k;}
+
+template<typename T>
+void CompositeDistanceHistogramFFAvgBase<T>::apply_excluded_volume_scaling_factor(double k) {cx = k;}
+
+template<typename T>
+const ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::get_profile_aa() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -317,8 +339,9 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aa() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ax() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+const ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::get_profile_ax() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -334,8 +357,9 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ax() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_xx() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+const ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::get_profile_xx() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -349,8 +373,9 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_xx() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_wx() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+const ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::get_profile_wx() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -365,8 +390,9 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_wx() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aw() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+const ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::get_profile_aw() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -382,8 +408,9 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_aw() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ww() const {
-    const auto& ff_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
+template<typename T>
+const ScatteringProfile CompositeDistanceHistogramFFAvgBase<T>::get_profile_ww() const {
+    const auto& ff_table = get_ff_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -396,3 +423,5 @@ const ScatteringProfile CompositeDistanceHistogramFFAvg::get_profile_ww() const 
     }
     return ScatteringProfile(Iq, debye_axis);
 }
+
+template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t>;

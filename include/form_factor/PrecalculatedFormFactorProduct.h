@@ -40,6 +40,8 @@ namespace form_factor {
     };
 
     namespace storage::atomic {
+        using table_t = container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>;
+
         /**
          * @brief Get a precalculated atomic form factor product for a given pair of atomic form factors.
          * 
@@ -52,6 +54,6 @@ namespace form_factor {
          * @brief Get the precalculated atomic form factor product table.
          *        The table is symmetric. 
          */
-        const container::ArrayContainer2D<PrecalculatedFormFactorProduct, form_factor::get_count(), form_factor::get_count()>& get_precalculated_form_factor_table() noexcept;
+        const table_t& get_precalculated_form_factor_table() noexcept;
     }
 }
