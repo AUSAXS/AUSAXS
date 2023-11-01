@@ -2,7 +2,7 @@
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
 #include <dataset/SimpleDataset.h>

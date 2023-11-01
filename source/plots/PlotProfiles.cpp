@@ -1,8 +1,8 @@
 #include <plots/PlotProfiles.h>
 
 #include <dataset/SimpleDataset.h>
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 
 using namespace plots;
 

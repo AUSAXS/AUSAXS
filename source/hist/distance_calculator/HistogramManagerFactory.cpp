@@ -1,6 +1,6 @@
 #include <hist/distance_calculator/HistogramManagerFactory.h>
 #include <hist/distance_calculator/HistogramManager.h>
-// #include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
 // #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 // #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
 // #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>

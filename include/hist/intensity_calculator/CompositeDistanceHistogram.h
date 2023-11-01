@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 
 #include <vector>

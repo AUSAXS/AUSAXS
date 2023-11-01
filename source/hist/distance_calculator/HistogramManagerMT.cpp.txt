@@ -9,8 +9,6 @@
 
 using namespace hist;
 
-HistogramManagerMT::HistogramManagerMT(HistogramManager& hm) : HistogramManager(hm) {}
-
 HistogramManagerMT::~HistogramManagerMT() = default;
 
 std::unique_ptr<DistanceHistogram> HistogramManagerMT::calculate() {return calculate_all();}

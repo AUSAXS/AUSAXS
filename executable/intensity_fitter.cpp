@@ -13,7 +13,7 @@
 #include <constants/Constants.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 #include <vector>
@@ -109,7 +109,7 @@ int main(int argc, char const *argv[]) {
     fitter::FitReporter::report(result);
     fitter::FitReporter::save(result, settings::general::output + "report.txt");
 
-    plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "distance." + settings::plots::format);
+    plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
     plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
 
     // save fit
