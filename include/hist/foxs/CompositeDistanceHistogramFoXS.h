@@ -11,7 +11,8 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    class CompositeDistanceHistogramFoXS : public CompositeDistanceHistogramFFAvg {
+    template<bool use_weighted_distribution>
+    class CompositeDistanceHistogramFoXS : public CompositeDistanceHistogramFFAvg<use_weighted_distribution> {
         public: 
             CompositeDistanceHistogramFoXS();
 

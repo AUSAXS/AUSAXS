@@ -27,9 +27,9 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFAvgBase(
-                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_aa, 
-                hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type>&& p_wa, 
-                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_ww, 
+                hist::GenericDistribution3D<use_weighted_distribution>&& p_aa, 
+                hist::GenericDistribution2D<use_weighted_distribution>&& p_wa, 
+                hist::GenericDistribution1D<use_weighted_distribution>&& p_ww, 
                 const Axis& axis
             );
 
@@ -50,43 +50,43 @@ namespace hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const std::vector<double>& get_aa_counts() const override;
-            std::vector<double>& get_aa_counts() override; // @copydoc get_aa_counts() const
+            const std::vector<constants::axes::d_type>& get_aa_counts() const override;
+            std::vector<constants::axes::d_type>& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const std::vector<double>& get_aw_counts() const override;
-            std::vector<double>& get_aw_counts() override; // @copydoc get_aw_counts() const
+            const std::vector<constants::axes::d_type>& get_aw_counts() const override;
+            std::vector<constants::axes::d_type>& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const std::vector<double>& get_ww_counts() const override;
-            std::vector<double>& get_ww_counts() override; // @copydoc get_ww_counts() const
+            const std::vector<constants::axes::d_type>& get_ww_counts() const override;
+            std::vector<constants::axes::d_type>& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const container::Container3D<double>& get_aa_counts_ff() const;
-            container::Container3D<double>& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
+            const container::Container3D<constants::axes::d_type>& get_aa_counts_ff() const;
+            container::Container3D<constants::axes::d_type>& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const container::Container2D<double>& get_aw_counts_ff() const;
-            container::Container2D<double>& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
+            const container::Container2D<constants::axes::d_type>& get_aw_counts_ff() const;
+            container::Container2D<constants::axes::d_type>& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const container::Container1D<double>& get_ww_counts_ff() const;
-            container::Container1D<double>& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
+            const container::Container1D<constants::axes::d_type>& get_ww_counts_ff() const;
+            container::Container1D<constants::axes::d_type>& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
 
             /**
              * @brief Get the total distance histogram.
              */
-            const std::vector<double>& get_counts() const override;
+            const std::vector<constants::axes::d_type>& get_counts() const override;
 
             /**
              * @brief Get the intensity profile for atom-atom interactions.
@@ -123,13 +123,13 @@ namespace hist {
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
-            hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type> cp_aa;
-            hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type> cp_aw;
-            hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type> cp_ww;
+            hist::GenericDistribution3D<use_weighted_distribution> cp_aa;
+            hist::GenericDistribution2D<use_weighted_distribution> cp_aw;
+            hist::GenericDistribution1D<use_weighted_distribution> cp_ww;
 
         private:
-            mutable hist::Distribution1D<constants::axes::d_type> p_aa;
-            mutable hist::Distribution1D<constants::axes::d_type> p_aw;
-            mutable hist::Distribution1D<constants::axes::d_type> p_ww;
+            mutable hist::Distribution1D p_aa;
+            mutable hist::Distribution1D p_aw;
+            mutable hist::Distribution1D p_ww;
     };
 }

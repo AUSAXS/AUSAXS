@@ -5,7 +5,7 @@ namespace hist {
     class ICompositeDistanceHistogram;
     class ICompositeDistanceHistogramExv;
     class Histogram;
-    class HistogramManager;
+    class IHistogramManager;
 
     /**
      * @brief A ScatteringProfile is just a (q, I(q)) histogram. 

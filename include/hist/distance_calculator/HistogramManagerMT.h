@@ -9,11 +9,10 @@ namespace hist {
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
 	 */
-	class HistogramManagerMT : public HistogramManager {
+	template<bool use_weighted_distribution>
+	class HistogramManagerMT : public HistogramManager<use_weighted_distribution> {
 		public:
-			using HistogramManager::HistogramManager;
-
-			HistogramManagerMT(HistogramManager&);
+			using HistogramManager<use_weighted_distribution>::HistogramManager;
 
 			virtual ~HistogramManagerMT() override;
 

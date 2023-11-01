@@ -4,16 +4,16 @@
 #include <hist/distribution/WeightedDistribution2D.h>
 
 namespace hist {
-    template <bool UseWeightedContainer, typename T>
+    template <bool UseWeightedContainer>
     struct GenericDistribution2D;
 
-    template <typename T>
-    struct GenericDistribution2D<true, T> {
-        using type = WeightedDistribution2D<T>;
+    template <>
+    struct GenericDistribution2D<true> {
+        using type = WeightedDistribution2D;
     };
 
-    template <typename T>
-    struct GenericDistribution2D<false, T> {
-        using type = Distribution2D<T>;
+    template <>
+    struct GenericDistribution2D<false> {
+        using type = Distribution2D;
     };
 }

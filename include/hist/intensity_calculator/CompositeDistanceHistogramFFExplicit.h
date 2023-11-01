@@ -29,12 +29,12 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFExplicit(
-                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_aa, 
-                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_ax, 
-                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_xx, 
-                hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type>&& p_wa, 
-                hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type>&& p_wx, 
-                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_ww, 
+                hist::GenericDistribution3D<use_weighted_distribution>&& p_aa, 
+                hist::GenericDistribution3D<use_weighted_distribution>&& p_ax, 
+                hist::GenericDistribution3D<use_weighted_distribution>&& p_xx, 
+                hist::GenericDistribution2D<use_weighted_distribution>&& p_wa, 
+                hist::GenericDistribution2D<use_weighted_distribution>&& p_wx, 
+                hist::GenericDistribution1D<use_weighted_distribution>&& p_ww, 
                 const Axis& axis
             );
 
@@ -61,8 +61,8 @@ namespace hist {
             double G_factor(double q) const;
 
         private:
-            hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type> cp_ax;
-            hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type> cp_xx;
-            hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type> cp_wx;
+            hist::GenericDistribution3D<use_weighted_distribution> cp_ax;
+            hist::GenericDistribution3D<use_weighted_distribution> cp_xx;
+            hist::GenericDistribution2D<use_weighted_distribution> cp_wx;
     };
 }

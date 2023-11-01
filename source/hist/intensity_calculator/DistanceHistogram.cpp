@@ -10,7 +10,7 @@ using namespace hist;
 
 DistanceHistogram::DistanceHistogram() = default;
 
-DistanceHistogram::DistanceHistogram(std::vector<double>&& p_tot, const Axis& axis) : Histogram(std::move(p_tot), axis) {
+DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_counts()), axis) {
     initialize();
 }
 

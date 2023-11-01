@@ -59,6 +59,8 @@ namespace container {
                 data.resize(size);
             }
 
+            std::vector<T>& get_data() {return data;}
+
         protected:
             std::size_t N;
             std::vector<T> data;

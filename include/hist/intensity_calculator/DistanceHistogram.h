@@ -1,10 +1,12 @@
 #pragma once
 
 #include <utility/Axis.h>
+#include <hist/distribution/Distribution1D.h>
 #include <hist/Histogram.h>
 #include <hist/HistFwd.h>
 #include <table/TableFwd.h>
 #include <dataset/DatasetFwd.h>
+#include <constants/Constants.h>
 
 #include <vector>
 #include <memory>
@@ -17,7 +19,7 @@ namespace hist {
         public: 
             DistanceHistogram();
 
-            DistanceHistogram(std::vector<double>&& p_tot, const Axis& axis);
+            DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis);
 
             /**
              * @brief Extract the total histogram from a CompositeDistanceHistogram.

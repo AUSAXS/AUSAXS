@@ -1,30 +1,39 @@
 #pragma once
 
 #include <container/Container1D.h>
+#include <constants/Constants.h>
+
+#include <cmath>
 
 namespace hist {
-    template<typename T>
     class Distribution1D {
+        using type = constants::axes::d_type;
+
         public:
-            Distribution1D(unsigned int size, T value) : data(size, value) {}
+            Distribution1D(unsigned int size);
+            Distribution1D(unsigned int size, type value);
 
             /**
              * @brief Add a value for a given distance.
              */
-            void add(float distance, T value) {data.index(std::round(distance)) += value;}
-            void add(unsigned int i, T value) {data.index(i) += value;}
+            void add(float distance, type value);
+            void add(int32_t i, type value);
 
-            const T index(unsigned int i) const {return data.index(i);}
+            type& index(unsigned int i);
+            const type& index(unsigned int i) const;
 
-            const typename std::vector<T>::const_iterator begin() const {return data.begin();}
-            const typename std::vector<T>::const_iterator end() const {return data.end();}
+            const typename std::vector<type>::const_iterator begin() const;
+            const typename std::vector<type>::const_iterator end() const;
 
-            typename std::vector<T>::iterator begin() {return data.begin();}
-            typename std::vector<T>::iterator end() {return data.end();}
+            typename std::vector<type>::iterator begin();
+            typename std::vector<type>::iterator end();
 
-            std::size_t size() const {return data.size();}
+            std::size_t size() const;
+            void resize(unsigned int size);
+
+            std::vector<type>& get_counts();
 
         private:
-            container::Container1D<T> data;
+            container::Container1D<type> data;
     };
 }

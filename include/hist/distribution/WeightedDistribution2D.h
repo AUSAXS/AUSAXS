@@ -4,31 +4,32 @@
 #include <hist/distribution/WeightedEntry.h>
 
 namespace hist {
-    template<typename T>
     class WeightedDistribution2D {
+        using type = constants::axes::d_type;
+
         public:
-            WeightedDistribution2D(unsigned int size_x, unsigned int size_y, T value) : data(size_x, size_y, value) {}
+            WeightedDistribution2D(unsigned int size_x, unsigned int size_y, type value);
 
-            void add(unsigned int x, float distance, T value) {
-                data.index(x, std::round(distance)).add(distance, value);
-            }
+            void add(unsigned int x, float distance, type value);
 
-            const T index(unsigned int x, unsigned int y) const {return data.index(x, y).value;}
+            type& index(unsigned int x, unsigned int y);
+            const type& index(unsigned int x, unsigned int y) const;
 
-            const typename std::vector<T>::const_iterator begin(unsigned int x) const {return data.begin(x);}
-            const typename std::vector<T>::const_iterator end(unsigned int x) const {return data.end(x);}
-            const typename std::vector<T>::const_iterator begin() const {return data.begin();}
-            const typename std::vector<T>::const_iterator end() const {return data.end();}
+            const typename std::vector<detail::WeightedEntry>::const_iterator begin(unsigned int x) const;
+            const typename std::vector<detail::WeightedEntry>::const_iterator end(unsigned int x) const;
+            const typename std::vector<detail::WeightedEntry>::const_iterator begin() const;
+            const typename std::vector<detail::WeightedEntry>::const_iterator end() const;
 
-            typename std::vector<T>::iterator begin(unsigned int x) {return data.begin(x);}
-            typename std::vector<T>::iterator end(unsigned int x) {return data.end(x);}
-            typename std::vector<T>::iterator begin() {return data.begin();}
-            typename std::vector<T>::iterator end() {return data.end();}
+            typename std::vector<detail::WeightedEntry>::iterator begin(unsigned int x);
+            typename std::vector<detail::WeightedEntry>::iterator end(unsigned int x);
+            typename std::vector<detail::WeightedEntry>::iterator begin();
+            typename std::vector<detail::WeightedEntry>::iterator end();
 
-            std::size_t size_x() const {return data.size_x();}
-            std::size_t size_y() const {return data.size_y();}
+            std::size_t size_x() const;
+            std::size_t size_y() const;
+            void resize(unsigned int size);
 
         private:
-            container::Container2D<detail::WeightedEntry<T>> data;
+            container::Container2D<detail::WeightedEntry> data;
     };
 }

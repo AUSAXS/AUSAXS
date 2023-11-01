@@ -6,7 +6,6 @@
 #include <memory>
 #include <vector>
 
-namespace hist {class CompositeDistanceHistogram;}
 namespace em {
     class ImageStackBase;
 

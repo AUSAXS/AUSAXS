@@ -14,13 +14,11 @@ namespace hist {
         public: 
             CompositeDistanceHistogram() = default;
 
-            CompositeDistanceHistogram(hist::Distribution1D<double>&& p_tot, const Axis& axis);
-
             CompositeDistanceHistogram(
-                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_aa, 
-                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_wa, 
-                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_ww, 
-                hist::Distribution1D<constants::axes::d_type>&& p_tot, 
+                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_aa, 
+                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_wa, 
+                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_ww, 
+                hist::Distribution1D&& p_tot, 
                 const Axis& axis
             );
 
@@ -29,20 +27,20 @@ namespace hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            virtual const std::vector<double>& get_aa_counts() const override;
-            virtual std::vector<double>& get_aa_counts() override; // @copydoc get_aa_counts() const
+            virtual const std::vector<constants::axes::d_type>& get_aa_counts() const override;
+            virtual std::vector<constants::axes::d_type>& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            virtual const std::vector<double>& get_aw_counts() const override;
-            virtual std::vector<double>& get_aw_counts() override; // @copydoc get_aw_counts() const
+            virtual const std::vector<constants::axes::d_type>& get_aw_counts() const override;
+            virtual std::vector<constants::axes::d_type>& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            virtual const std::vector<double>& get_ww_counts() const override;
-            virtual std::vector<double>& get_ww_counts() override; // @copydoc get_ww_counts() const
+            virtual const std::vector<constants::axes::d_type>& get_ww_counts() const override;
+            virtual std::vector<constants::axes::d_type>& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Apply a scaling factor to the water partial distance histogram.
@@ -70,8 +68,8 @@ namespace hist {
             virtual const ScatteringProfile get_profile_ww() const override;
 
         private:
-            mutable Distribution1D<constants::axes::d_type> p_aa;
-            mutable Distribution1D<constants::axes::d_type> p_aw;
-            mutable Distribution1D<constants::axes::d_type> p_ww;
+            mutable typename hist::GenericDistribution1D<use_weighted_distribution>::type p_aa;
+            mutable typename hist::GenericDistribution1D<use_weighted_distribution>::type p_aw;
+            mutable typename hist::GenericDistribution1D<use_weighted_distribution>::type p_ww;
     };
 }

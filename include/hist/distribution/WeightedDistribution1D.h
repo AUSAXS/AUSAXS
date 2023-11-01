@@ -4,27 +4,29 @@
 #include <container/Container1D.h>
 
 namespace hist {
-    template<typename T>
     class WeightedDistribution1D {
+        using type = constants::axes::d_type;
+
         public:
-            WeightedDistribution1D(unsigned int size, T value) : data(size, value) {}
+            WeightedDistribution1D(unsigned int size, type value);
 
-            /**
-             * @brief Add a value for a given distance.
-             */
-            void add(float distance, T value) {data.index(std::round(distance)).add(distance, value);}
+            void add(float distance, type value);
 
-            const T index(unsigned int i) const {return data.index(i).value;}
+            type& index(unsigned int i);
+            const type& index(unsigned int i) const;
 
-            const typename std::vector<T>::const_iterator begin() const {return data.begin();}
-            const typename std::vector<T>::const_iterator end() const {return data.end();}
+            const typename std::vector<detail::WeightedEntry>::const_iterator begin() const;
+            const typename std::vector<detail::WeightedEntry>::const_iterator end() const;
 
-            typename std::vector<T>::iterator begin() {return data.begin();}
-            typename std::vector<T>::iterator end() {return data.end();}
+            typename std::vector<detail::WeightedEntry>::iterator begin();
+            typename std::vector<detail::WeightedEntry>::iterator end();
 
-            std::size_t size() const {return data.size();}
+            std::size_t size() const;
+            void resize(unsigned int size);
+
+            std::vector<type>& get_counts();
 
         private:
-            container::Container1D<detail::WeightedEntry<T>> data;
+            container::Container1D<detail::WeightedEntry> data;
     };
 }
