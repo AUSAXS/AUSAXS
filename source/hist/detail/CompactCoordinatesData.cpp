@@ -191,7 +191,8 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                                                              // cast to int
 
         _mm_store_si128(reinterpret_cast<__m128i*>(result.distance.data()), dist_bin); // efficient store of bins
-        return *reinterpret_cast<QuadEvaluatedResultRounded*>(&result);
+
+        return reinterpret_cast<QuadEvaluatedResultRounded&>(result);
     }
 
     OctoEvaluatedResult CompactCoordinatesData::evaluate_sse(const CompactCoordinatesData& v1, const CompactCoordinatesData& v2, const CompactCoordinatesData& v3, const CompactCoordinatesData& v4, const CompactCoordinatesData& v5, const CompactCoordinatesData& v6, const CompactCoordinatesData& v7, const CompactCoordinatesData& v8) const {
@@ -247,7 +248,7 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
             __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                                                                // cast to int
             _mm_store_si128(reinterpret_cast<__m128i*>(result.distance.data()+4), dist_bin);
         }
-        return *reinterpret_cast<OctoEvaluatedResultRounded*>(&result);
+        return reinterpret_cast<OctoEvaluatedResultRounded&>(result);
     }
 #endif
 
@@ -304,7 +305,7 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                                                              // cast to int
 
         _mm_store_si128(reinterpret_cast<__m128i*>(result.distance.data()), dist_bin); // efficient store of bins
-        return *reinterpret_cast<QuadEvaluatedResultRounded*>(&result);
+        return reinterpret_cast<QuadEvaluatedResultRounded&>(result);
     }
 
     OctoEvaluatedResult CompactCoordinatesData::evaluate_avx(const CompactCoordinatesData& v1, const CompactCoordinatesData& v2, const CompactCoordinatesData& v3, const CompactCoordinatesData& v4, const CompactCoordinatesData& v5, const CompactCoordinatesData& v6, const CompactCoordinatesData& v7, const CompactCoordinatesData& v8) const {
@@ -334,6 +335,6 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                                                                // cast to int
 
         _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance.data()), dist_bin); // efficient store of bins
-        return *reinterpret_cast<OctoEvaluatedResultRounded*>(&result);
+        return reinterpret_cast<OctoEvaluatedResultRounded&>(result);
     }
 #endif

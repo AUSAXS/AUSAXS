@@ -17,9 +17,11 @@ class view_ptr {
 
         view_ptr(T& ref) : ptr(&ref) {}
 
-        view_ptr(const std::unique_ptr<T>& ptr) : ptr(ptr.get()) {}
+        template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+        view_ptr(const std::unique_ptr<U>& ptr) : ptr(ptr.get()) {}
 
-        view_ptr(const std::shared_ptr<T>& ptr) : ptr(ptr.get()) {}
+        template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+        view_ptr(const std::shared_ptr<U>& ptr) : ptr(ptr.get()) {}
 
         view_ptr& operator=(const view_ptr<T>& other) {
             ptr = other.ptr;
