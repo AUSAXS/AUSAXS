@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hist/detail/BodyTracker.h>
+#include <hist/HistFwd.h>
 #include <data/DataFwd.h>
 #include <utility/view_ptr.h>
 
@@ -8,9 +9,6 @@
 #include <memory>
 
 namespace hist {
-	class DistanceHistogram;
-	class ICompositeDistanceHistogram;
-
 	/**
 	 * @brief A histogram manager which calculates the distance histogram in a slow but simple way. 
 	 * 		  This class is only intended for testing and inheritance. Use the PartialHistogramManagerMT class for production. 

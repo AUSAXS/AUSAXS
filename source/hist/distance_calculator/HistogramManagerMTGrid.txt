@@ -36,17 +36,17 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_
         for (unsigned int i = imin; i < imax; ++i) { // exv
             unsigned int j = 0;                      // exv
             for (; j+7 < data_x.get_size(); j+=8) {
-                auto res = data_x[i].evaluate(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3], data_x[j+4], data_x[j+5], data_x[j+6], data_x[j+7]);
+                auto res = data_x[i].evaluate_rounded(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3], data_x[j+4], data_x[j+5], data_x[j+6], data_x[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_xx.index(res.distance[k]) += 2*res.weight[k];}
             }
 
             for (; j+3 < data_x.get_size(); j+=4) {
-                auto res = data_x[i].evaluate(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3]);
+                auto res = data_x[i].evaluate_rounded(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_xx.index(res.distance[k]) += 2*res.weight[k];}
             }
 
             for (; j < data_x.get_size(); ++j) {
-                auto res = data_x[i].evaluate(data_x[j]);
+                auto res = data_x[i].evaluate_rounded(data_x[j]);
                 p_xx.index(res.distance) += 2*res.weight;
             }
         }
@@ -58,17 +58,17 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_
         for (unsigned int i = imin; i < imax; ++i) { // atoms
             unsigned int j = 0;                      // exv
             for (; j+7 < data_x.get_size(); j+=8) {
-                auto res = data_p[i].evaluate(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3], data_x[j+4], data_x[j+5], data_x[j+6], data_x[j+7]);
+                auto res = data_p[i].evaluate_rounded(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3], data_x[j+4], data_x[j+5], data_x[j+6], data_x[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_ax.index(res.distance[k]) += 2*res.weight[k];}
             }
 
             for (; j+3 < data_x.get_size(); j+=4) {
-                auto res = data_p[i].evaluate(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3]);
+                auto res = data_p[i].evaluate_rounded(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_ax.index(res.distance[k]) += 2*res.weight[k];}
             }
 
             for (; j < data_x.get_size(); ++j) {
-                auto res = data_p[i].evaluate(data_x[j]);
+                auto res = data_p[i].evaluate_rounded(data_x[j]);
                 p_ax.index(res.distance) += 2*res.weight;
             }
         }
@@ -80,17 +80,17 @@ std::unique_ptr<CompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate_
         for (unsigned int i = imin; i < imax; ++i) { // waters
             unsigned int j = 0;                      // exv
             for (; j+7 < data_x.get_size(); j+=8) {
-                auto res = data_h[i].evaluate(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3], data_x[j+4], data_x[j+5], data_x[j+6], data_x[j+7]);
+                auto res = data_h[i].evaluate_rounded(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3], data_x[j+4], data_x[j+5], data_x[j+6], data_x[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_wx.index(res.distance[k]) += res.weight[k];}
             }
 
             for (; j+3 < data_x.get_size(); j+=4) {
-                auto res = data_h[i].evaluate(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3]);
+                auto res = data_h[i].evaluate_rounded(data_x[j], data_x[j+1], data_x[j+2], data_x[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_wx.index(res.distance[k]) += res.weight[k];}
             }
 
             for (; j < data_x.get_size(); ++j) {
-                auto res = data_h[i].evaluate(data_x[j]);
+                auto res = data_h[i].evaluate_rounded(data_x[j]);
                 p_wx.index(res.distance) += res.weight;
             }
         }

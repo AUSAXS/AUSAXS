@@ -33,17 +33,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT::calculate_all()
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < data_p.get_size(); j+=8) {
-                auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
-                auto res = data_p[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
             }
 
             for (; j < data_p.get_size(); ++j) {
-                auto res = data_p[i].evaluate(data_p[j]);
+                auto res = data_p[i].evaluate_rounded(data_p[j]);
                 p_pp[res.distance] += 2*res.weight;
             }
         }
@@ -55,17 +55,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT::calculate_all()
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < data_h.get_size(); j+=8) {
-                auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
+                auto res = data_h[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
-                auto res = data_h[i].evaluate(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
+                auto res = data_h[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
             }
 
             for (; j < data_h.get_size(); ++j) {
-                auto res = data_h[i].evaluate(data_h[j]);
+                auto res = data_h[i].evaluate_rounded(data_h[j]);
                 p_hh[res.distance] += 2*res.weight;
             }
         }
@@ -77,17 +77,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT::calculate_all()
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
             for (; j+7 < data_p.get_size(); j+=8) {
-                auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                auto res = data_h[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distance[k]] += res.weight[k];}
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
-                auto res = data_h[i].evaluate(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                auto res = data_h[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distance[k]] += res.weight[k];}
             }
 
             for (; j < data_p.get_size(); ++j) {
-                auto res = data_h[i].evaluate(data_p[j]);
+                auto res = data_h[i].evaluate_rounded(data_p[j]);
                 p_hp[res.distance] += res.weight;
             }
         }
