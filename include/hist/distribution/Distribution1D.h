@@ -10,7 +10,7 @@ namespace hist {
         using type = constants::axes::d_type;
 
         public:
-            Distribution1D(unsigned int size);
+            Distribution1D() = default;
             Distribution1D(unsigned int size, type value);
 
             /**

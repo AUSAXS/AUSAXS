@@ -27,11 +27,20 @@ namespace hist::detail {
                 return *this;
             }
 
-            WeightedEntry& operator-=(const WeightedEntry& rhs) {
-                distance -= rhs.distance;
-                value -= rhs.value;
-                count -= rhs.count;
-                return *this;
+            /**
+             * @brief This ensures that the WeightedEntry can be used with std::accumulate.
+             */
+            friend double operator+(const WeightedEntry& lhs, double v) {return lhs.value + v;}
+
+            /**
+             * @brief This ensures that the WeightedEntry can be used with std::accumulate.
+             */
+            friend double operator+(double v, const WeightedEntry& rhs) {return rhs.value + v;}
+
+            friend WeightedEntry operator+(const WeightedEntry& lhs, const WeightedEntry& rhs) {
+                WeightedEntry res = lhs;
+                res += rhs;
+                return res;
             }
 
             type distance;

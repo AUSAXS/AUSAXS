@@ -7,6 +7,7 @@ namespace hist {
     class Distribution2D {
         using type = constants::axes::d_type;
         public:
+            Distribution2D() = default;
             Distribution2D(unsigned int size_x, unsigned int size_y, type value);
 
             /**

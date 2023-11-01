@@ -17,8 +17,6 @@ namespace hist {
 		public:
 			HistogramManager(view_ptr<const data::Molecule> protein); 
 
-			HistogramManager(const HistogramManager& hm); 
-
 			virtual ~HistogramManager();
 
 			/**

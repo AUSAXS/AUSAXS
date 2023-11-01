@@ -8,6 +8,7 @@ namespace hist {
         using type = constants::axes::d_type;
 
         public:
+            WeightedDistribution1D() = default;
             WeightedDistribution1D(unsigned int size, type value);
 
             void add(float distance, type value);

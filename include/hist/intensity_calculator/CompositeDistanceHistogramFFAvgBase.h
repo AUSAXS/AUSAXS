@@ -27,9 +27,9 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFAvgBase(
-                hist::GenericDistribution3D<use_weighted_distribution>&& p_aa, 
-                hist::GenericDistribution2D<use_weighted_distribution>&& p_wa, 
-                hist::GenericDistribution1D<use_weighted_distribution>&& p_ww, 
+                typename hist::GenericDistribution3D<use_weighted_distribution>::type&& p_aa, 
+                typename hist::GenericDistribution2D<use_weighted_distribution>::type&& p_wa, 
+                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_ww, 
                 const Axis& axis
             );
 
@@ -123,9 +123,9 @@ namespace hist {
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
-            hist::GenericDistribution3D<use_weighted_distribution> cp_aa;
-            hist::GenericDistribution2D<use_weighted_distribution> cp_aw;
-            hist::GenericDistribution1D<use_weighted_distribution> cp_ww;
+            typename hist::GenericDistribution3D<use_weighted_distribution>::type cp_aa; 
+            typename hist::GenericDistribution2D<use_weighted_distribution>::type cp_aw; 
+            typename hist::GenericDistribution1D<use_weighted_distribution>::type cp_ww;
 
         private:
             mutable hist::Distribution1D p_aa;

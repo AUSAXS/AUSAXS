@@ -18,9 +18,6 @@ template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::HistogramManager(view_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {}
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(const HistogramManager& hm) : IHistogramManager(hm.protein), protein(hm.protein) {}
-
-template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::~HistogramManager() = default;
 
 template<bool use_weighted_distribution>
@@ -28,9 +25,11 @@ std::unique_ptr<DistanceHistogram> HistogramManager<use_weighted_distribution>::
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {
-    typename hist::GenericDistribution1D<use_weighted_distribution>::type p_pp(constants::axes::d_axis.bins, 0);
-    typename hist::GenericDistribution1D<use_weighted_distribution>::type p_hh(constants::axes::d_axis.bins, 0);
-    typename hist::GenericDistribution1D<use_weighted_distribution>::type p_hp(constants::axes::d_axis.bins, 0);
+    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
+
+    GenericDistribution1D_t p_pp(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_hh(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_hp(constants::axes::d_axis.bins, 0);
 
     hist::detail::CompactCoordinates data_p(protein->get_bodies());
     hist::detail::CompactCoordinates data_h = hist::detail::CompactCoordinates(protein->get_waters());

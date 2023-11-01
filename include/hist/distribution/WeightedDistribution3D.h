@@ -8,6 +8,7 @@ namespace hist {
         using type = constants::axes::d_type;
 
         public:
+            WeightedDistribution3D() = default;
             WeightedDistribution3D(unsigned int size_x, unsigned int size_y, unsigned int size_z, type value);
 
             void add(unsigned int x, unsigned int y, float distance, type value);

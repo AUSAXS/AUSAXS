@@ -1,8 +1,6 @@
 #pragma once
 
 #include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distribution/GenericDistribution2D.h>
-#include <hist/distribution/GenericDistribution3D.h>
 #include <hist/detail/CompactCoordinates.h>
 
 namespace add8_impl {

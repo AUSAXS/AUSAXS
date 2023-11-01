@@ -4,7 +4,6 @@
 
 using namespace hist;
 
-Distribution1D::Distribution1D(unsigned int size) : data(size) {}
 Distribution1D::Distribution1D(unsigned int size, type value) : data(size, value) {}
 
 void Distribution1D::add(float distance, type value) {data.index(std::round(distance)) += value;}

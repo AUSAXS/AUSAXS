@@ -1,10 +1,9 @@
 #pragma once
 
 #include <hist/distance_calculator/HistogramManager.h>
+#include <hist/detail/CompactCoordinates.h>
 
 namespace hist {
-	namespace detail {class CompactCoordinates;}
-
 	/**
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
