@@ -1,6 +1,10 @@
 #pragma once
 
 #include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/GenericDistribution2D.h>
+#include <hist/distribution/GenericDistribution3D.h>
+#include <constants/Constants.h>
 
 #include <vector>
 
@@ -8,7 +12,7 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    template<typename T>
+    template<typename FormFactorTableType, bool use_weighted_distribution>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
@@ -22,7 +26,12 @@ namespace hist {
              * @param p_tot Total distance histogram
              * @param axis Distance axis
              */
-            CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_wa, container::Container1D<double>&& p_ww, const Axis& axis);
+            CompositeDistanceHistogramFFAvgBase(
+                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_aa, 
+                hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type>&& p_wa, 
+                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_ww, 
+                const Axis& axis
+            );
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
@@ -109,18 +118,18 @@ namespace hist {
              */
             virtual const ScatteringProfile get_profile_wx() const override;
 
-            virtual const T& get_ff_table() const = 0;
+            virtual const FormFactorTableType& get_ff_table() const = 0;
 
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
-            container::Container3D<double> cp_aa;
-            container::Container2D<double> cp_aw;
-            container::Container1D<double> cp_ww;
+            hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type> cp_aa;
+            hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type> cp_aw;
+            hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type> cp_ww;
 
         private:
-            mutable std::vector<double> p_aa;
-            mutable std::vector<double> p_aw;
-            mutable std::vector<double> p_ww;
+            mutable hist::Distribution1D<constants::axes::d_type> p_aa;
+            mutable hist::Distribution1D<constants::axes::d_type> p_aw;
+            mutable hist::Distribution1D<constants::axes::d_type> p_ww;
     };
 }

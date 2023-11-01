@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
+#include <hist/distribution/GenericDistribution1D.h>
 
 #include <vector>
 
@@ -8,13 +9,20 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms.
      */
+    template<bool use_weighted_distribution>
     class CompositeDistanceHistogram : public ICompositeDistanceHistogram {
         public: 
             CompositeDistanceHistogram() = default;
 
-            CompositeDistanceHistogram(std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogram(hist::Distribution1D<double>&& p_tot, const Axis& axis);
 
-            CompositeDistanceHistogram(std::vector<double>&& p_aa, std::vector<double>&& p_wa, std::vector<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogram(
+                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_aa, 
+                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_wa, 
+                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_ww, 
+                hist::Distribution1D<constants::axes::d_type>&& p_tot, 
+                const Axis& axis
+            );
 
             virtual ~CompositeDistanceHistogram() override;
 
@@ -62,8 +70,8 @@ namespace hist {
             virtual const ScatteringProfile get_profile_ww() const override;
 
         private:
-            mutable std::vector<double> p_aa;
-            mutable std::vector<double> p_aw;
-            mutable std::vector<double> p_ww;
+            mutable Distribution1D<constants::axes::d_type> p_aa;
+            mutable Distribution1D<constants::axes::d_type> p_aw;
+            mutable Distribution1D<constants::axes::d_type> p_ww;
     };
 }

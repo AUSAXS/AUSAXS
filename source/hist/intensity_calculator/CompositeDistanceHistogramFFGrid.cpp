@@ -6,7 +6,8 @@
 using namespace hist;
 using namespace form_factor;
 
-form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
+template<bool use_weighted_distribution>
+form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid<use_weighted_distribution>::generate_table() {
     form_factor::storage::atomic::table_t table;
 
     unsigned int exv_bin = static_cast<unsigned int>(form_factor_t::EXCLUDED_VOLUME);
@@ -36,3 +37,6 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
     }
     return table;
 }
+
+template class hist::CompositeDistanceHistogramFFGrid<false>;
+template class hist::CompositeDistanceHistogramFFGrid<true>;

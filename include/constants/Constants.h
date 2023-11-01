@@ -36,6 +36,7 @@ namespace constants {
      * @brief Constants used to define the default axes.
      */
     namespace axes {
+        using d_type = double;
         constexpr Axis d_axis(0, 2000, 8000);
         // constexpr Axis d_axis(0, 2000, 4000);
         constexpr Axis q_axis(1e-4, 1, 200);

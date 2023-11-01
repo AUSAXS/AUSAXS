@@ -49,7 +49,7 @@ namespace container {
             /**
              * @brief Get the size of the container.
              */
-            unsigned int size() const {return N;}
+            std::size_t size() const {return N;}
 
             /**
              * @brief Resize the container to contain @a size elements.
@@ -60,7 +60,7 @@ namespace container {
             }
 
         protected:
-            unsigned int N;
+            std::size_t N;
             std::vector<T> data;
     };
 }

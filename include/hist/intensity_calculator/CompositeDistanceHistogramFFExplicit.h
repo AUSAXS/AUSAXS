@@ -1,9 +1,9 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <container/Container1D.h>
-#include <container/Container2D.h>
-#include <container/Container3D.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/GenericDistribution2D.h>
+#include <hist/distribution/GenericDistribution3D.h>
 
 #include <vector>
 
@@ -11,7 +11,8 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg {
+    template<bool use_weighted_distribution>
+    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg<use_weighted_distribution> {
         public: 
             CompositeDistanceHistogramFFExplicit();
 
@@ -28,9 +29,14 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFExplicit(
-                container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx, 
-                container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww, 
-                const Axis& axis);
+                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_aa, 
+                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_ax, 
+                hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type>&& p_xx, 
+                hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type>&& p_wa, 
+                hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type>&& p_wx, 
+                hist::GenericDistribution1D<use_weighted_distribution, constants::axes::d_type>&& p_ww, 
+                const Axis& axis
+            );
 
             ~CompositeDistanceHistogramFFExplicit() override;
 
@@ -55,8 +61,8 @@ namespace hist {
             double G_factor(double q) const;
 
         private:
-            container::Container3D<double> cp_ax;
-            container::Container3D<double> cp_xx;
-            container::Container2D<double> cp_wx;
+            hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type> cp_ax;
+            hist::GenericDistribution3D<use_weighted_distribution, constants::axes::d_type> cp_xx;
+            hist::GenericDistribution2D<use_weighted_distribution, constants::axes::d_type> cp_wx;
     };
 }

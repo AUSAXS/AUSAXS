@@ -123,12 +123,12 @@ namespace container {
             /**
              * @brief Get the number of contained x-elements.
              */
-            unsigned int size_x() const {return N;}
+            std::size_t size_x() const {return N;}
 
             /**
              * @brief Get the length of each x-element.
              */
-            unsigned int size_y() const {return M;}
+            std::size_t size_y() const {return M;}
 
             /**
              * @brief Resize the container to contain @a size elements for each x index.
@@ -143,7 +143,7 @@ namespace container {
             }
 
         protected:
-            unsigned int N, M;
+            std::size_t N, M;
             std::vector<T> data;
     };
 }
