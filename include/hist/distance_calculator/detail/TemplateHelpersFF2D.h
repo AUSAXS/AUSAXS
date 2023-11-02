@@ -4,41 +4,47 @@
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <form_factor/FormFactorType.h>
 
-namespace detail::add8 {
-    template<int factor>
-    inline auto evaluate(hist::Distribution2D& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+namespace detail::ff2::add8 {
+    template<bool use_weighted_distribution>
+    inline auto evaluate(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j);
+
+    template<>
+    inline auto evaluate<false>(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         return data_i[i].evaluate_rounded(data_j[j], data_j[j+1], data_j[j+2], data_j[j+3], data_j[j+4], data_j[j+5], data_j[j+6], data_j[j+7]);
     }
 
-    template<int factor>
-    inline auto evaluate(hist::WeightedDistribution2D& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+    template<>
+    inline auto evaluate<true>(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         return data_i[i].evaluate(data_j[j], data_j[j+1], data_j[j+2], data_j[j+3], data_j[j+4], data_j[j+5], data_j[j+6], data_j[j+7]);
     }
 }
 
-namespace detail::add4 {
-    template<int factor>
-    inline auto evaluate(hist::Distribution2D& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+namespace detail::ff2::add4 {
+    template<bool use_weighted_distribution>
+    inline auto evaluate(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j);
+
+    template<>
+    inline auto evaluate<false>(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         return data_i[i].evaluate_rounded(data_j[j], data_j[j+1], data_j[j+2], data_j[j+3]);
     }
 
-    template<int factor>
-    inline auto evaluate(hist::WeightedDistribution2D& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+    template<>
+    inline auto evaluate<true>(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         return data_i[i].evaluate(data_j[j], data_j[j+1], data_j[j+2], data_j[j+3]);
     }
 }
 
-namespace detail::add1 {
-    // template<bool use_weighted_distribution, int factor>
-    // inline auto evaluate(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j);
+namespace detail::ff2::add1 {
+    template<bool use_weighted_distribution>
+    inline auto evaluate(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j);
 
-    template<int factor>
-    inline auto evaluate(hist::Distribution2D& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+    template<>
+    inline auto evaluate<false>(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         return data_i[i].evaluate_rounded(data_j[j]);
     }
 
-    template<int factor>
-    inline auto evaluate(hist::WeightedDistribution2D& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+    template<>
+    inline auto evaluate<true>(const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
         return data_i[i].evaluate(data_j[j]);
     }
 }
@@ -56,7 +62,7 @@ namespace detail::add1 {
  */
 template<bool use_weighted_distribution, int factor>
 inline void add8(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
-    auto res = detail::add8::evaluate<factor>(p, data_i, data_j, i, j);
+    auto res = detail::ff2::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 8; ++k) {
         p.add(data_i.get_ff_type(i), res.distance[k], factor*data_j[j+k].value.w);
         p.add(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance[k], factor*data_i[i].value.w);
@@ -76,7 +82,7 @@ inline void add8(typename hist::GenericDistribution2D<use_weighted_distribution>
  */
 template<bool use_weighted_distribution, int factor>
 inline void add4(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
-    auto res = detail::add4::evaluate<factor>(p, data_i, data_j, i, j);
+    auto res = detail::ff2::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 4; ++k) {
         p.add(data_i.get_ff_type(i), res.distance[k], factor*data_j[j+k].value.w);
         p.add(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance[k], factor*data_i[i].value.w);
@@ -96,7 +102,7 @@ inline void add4(typename hist::GenericDistribution2D<use_weighted_distribution>
  */
 template<bool use_weighted_distribution, int factor>
 inline void add1(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
-    auto res = detail::add1::evaluate<factor>(p, data_i, data_j, i, j);
+    auto res = detail::ff2::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     p.add(data_i.get_ff_type(i), res.distance, factor*data_j[j].value.w);
     p.add(static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance, factor*data_i[i].value.w);
 }

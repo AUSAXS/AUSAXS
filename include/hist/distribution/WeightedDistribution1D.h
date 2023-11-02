@@ -23,6 +23,7 @@ namespace hist {
             typename std::vector<detail::WeightedEntry>::iterator end();
 
             std::size_t size() const;
+            bool empty() const;
             void resize(unsigned int size);
 
             std::vector<type>& get_counts();

@@ -16,7 +16,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distributi
     typename hist::GenericDistribution2D<use_weighted_distribution>::type&& p_wa, 
     typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_ww, 
     const Axis& axis)
-    : ICompositeDistanceHistogramExv(std::vector<double>(axis.bins), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
+    : ICompositeDistanceHistogramExv(hist::Distribution1D(axis.bins, 0), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::~CompositeDistanceHistogramFFAvgBase() = default;
@@ -261,73 +261,73 @@ const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableTy
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts() {
-    return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_aa_counts());
+std::vector<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts() {
+    return const_cast<std::vector<constants::axes::d_type>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_aa_counts());
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts() const {
+const std::vector<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts() const {
     if (!p_aa.empty()) {return p_aa;}
-    p_aa = std::vector<double>(axis.bins, 0);
+    p_aa = std::vector<constants::axes::d_type>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-            std::transform(p_aa.begin(), p_aa.end(), cp_aa.begin(ff1, ff2), p_aa.begin(), std::plus<double>());
+            std::transform(p_aa.begin(), p_aa.end(), cp_aa.begin(ff1, ff2), p_aa.begin(), std::plus<>());
         }
     }
     return p_aa;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_aw_counts());}
+std::vector<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_aw_counts());}
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts() const {
+const std::vector<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts() const {
     if (!p_aw.empty()) {return p_aw;}
-    p_aw = std::vector<double>(axis.bins, 0);
+    p_aw = std::vector<constants::axes::d_type>(axis.bins, 0);
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-        std::transform(p_aw.begin(), p_aw.end(), cp_aw.begin(ff1), p_aw.begin(), std::plus<double>());
+        std::transform(p_aw.begin(), p_aw.end(), cp_aw.begin(ff1), p_aw.begin(), std::plus<>());
     }
     return p_aw;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_ww_counts());}
+std::vector<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts() {return const_cast<std::vector<double>&>(static_cast<const CompositeDistanceHistogramFFAvgBase&>(*this).get_ww_counts());}
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts() const {
+const std::vector<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts() const {
     if (!p_ww.empty()) {return p_ww;}
-    p_ww = std::vector<double>(axis.bins, 0);
-    std::transform(p_ww.begin(), p_ww.end(), cp_ww.begin(), p_ww.begin(), std::plus<double>());
+    p_ww = std::vector<constants::axes::d_type>(axis.bins, 0);
+    std::transform(p_ww.begin(), p_ww.end(), cp_ww.begin(), p_ww.begin(), std::plus<>());
     return p_ww;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-const container::Container3D<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts_ff() const {
+const container::Container3D<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts_ff() const {
     return cp_aa;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-container::Container3D<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts_ff() {
+container::Container3D<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aa_counts_ff() {
     return cp_aa;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-const container::Container2D<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts_ff() const {
+const container::Container2D<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts_ff() const {
     return cp_aw;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-container::Container2D<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts_ff() {
+container::Container2D<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_aw_counts_ff() {
     return cp_aw;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-const container::Container1D<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts_ff() const {
+const container::Container1D<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts_ff() const {
     return cp_ww;
 }
 
 template<typename FormFactorTableType, bool use_weighted_distribution>
-container::Container1D<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts_ff() {
+container::Container1D<constants::axes::d_type>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType, use_weighted_distribution>::get_ww_counts_ff() {
     return cp_ww;
 }
 
@@ -445,5 +445,5 @@ const ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType,
     return ScatteringProfile(Iq, debye_axis);
 }
 
-template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t, true>;
 template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t, false>;
+template class hist::CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t, true>;

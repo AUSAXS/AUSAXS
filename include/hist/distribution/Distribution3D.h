@@ -32,6 +32,7 @@ namespace hist {
             std::size_t size_x() const;
             std::size_t size_y() const;
             std::size_t size_z() const;
+            bool empty() const;
             void resize(unsigned int size);
 
         private:

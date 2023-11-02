@@ -26,5 +26,6 @@ typename std::vector<hist::detail::WeightedEntry>::iterator WeightedDistribution
 std::size_t WeightedDistribution3D::size_x() const {return data.size_x();}
 std::size_t WeightedDistribution3D::size_y() const {return data.size_y();}
 std::size_t WeightedDistribution3D::size_z() const {return data.size_z();}
+bool WeightedDistribution3D::empty() const {return size_x() == 0 || size_y() == 0 || size_z() == 0;}
 
 void WeightedDistribution3D::resize(unsigned int size) {data.resize(size);}

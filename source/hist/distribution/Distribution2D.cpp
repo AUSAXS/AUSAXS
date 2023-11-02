@@ -24,5 +24,6 @@ typename std::vector<Distribution2D::type>::iterator Distribution2D::end() {retu
 
 std::size_t Distribution2D::size_x() const {return data.size_x();}
 std::size_t Distribution2D::size_y() const {return data.size_y();}
+bool Distribution2D::empty() const {return size_x() == 0 || size_y() == 0;}
 
 void Distribution2D::resize(unsigned int size) {data.resize(size);}

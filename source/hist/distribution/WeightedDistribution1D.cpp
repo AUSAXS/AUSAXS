@@ -18,6 +18,7 @@ typename std::vector<hist::detail::WeightedEntry>::iterator WeightedDistribution
 typename std::vector<hist::detail::WeightedEntry>::iterator WeightedDistribution1D::end() {return data.end();}
 
 std::size_t WeightedDistribution1D::size() const {return data.size();}
+bool WeightedDistribution1D::empty() const {return size() == 0;}
 void WeightedDistribution1D::resize(unsigned int size) {data.resize(size);}
 
 std::vector<WeightedDistribution1D::type>& WeightedDistribution1D::get_counts() {

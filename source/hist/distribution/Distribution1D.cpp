@@ -19,6 +19,7 @@ typename std::vector<Distribution1D::type>::iterator Distribution1D::begin() {re
 typename std::vector<Distribution1D::type>::iterator Distribution1D::end() {return data.end();}
 
 std::size_t Distribution1D::size() const {return data.size();}
+bool Distribution1D::empty() const {return size() == 0;}
 
 void Distribution1D::resize(unsigned int size) {data.resize(size);}
 

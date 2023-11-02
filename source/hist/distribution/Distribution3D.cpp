@@ -25,4 +25,6 @@ typename std::vector<Distribution3D::type>::iterator Distribution3D::end() {retu
 std::size_t Distribution3D::size_x() const {return data.size_x();}
 std::size_t Distribution3D::size_y() const {return data.size_y();}
 std::size_t Distribution3D::size_z() const {return data.size_z();}
+bool Distribution3D::empty() const {return size_x() == 0 || size_y() == 0 || size_z() == 0;}
+
 void Distribution3D::resize(unsigned int size) {data.resize(size);}

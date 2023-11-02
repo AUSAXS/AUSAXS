@@ -128,8 +128,8 @@ namespace hist {
             typename hist::GenericDistribution1D<use_weighted_distribution>::type cp_ww;
 
         private:
-            mutable hist::Distribution1D p_aa;
-            mutable hist::Distribution1D p_aw;
-            mutable hist::Distribution1D p_ww;
+            mutable std::vector<constants::axes::d_type> p_aa;
+            mutable std::vector<constants::axes::d_type> p_aw;
+            mutable std::vector<constants::axes::d_type> p_ww;
     };
 }
