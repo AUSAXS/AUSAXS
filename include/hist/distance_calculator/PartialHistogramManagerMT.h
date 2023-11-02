@@ -13,8 +13,7 @@ namespace hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator.
 	 */
-	template<bool use_weighted_distribution>
-	class PartialHistogramManagerMT : public PartialHistogramManager<use_weighted_distribution> {
+	class PartialHistogramManagerMT : public PartialHistogramManager {
 		public:
 			PartialHistogramManagerMT(view_ptr<const data::Molecule> protein);
 

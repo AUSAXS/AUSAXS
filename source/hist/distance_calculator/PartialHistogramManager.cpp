@@ -1,6 +1,7 @@
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/distribution/GenericDistribution1D.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
 #include <data/record/Atom.h>
@@ -15,7 +16,7 @@ PartialHistogramManager::PartialHistogramManager(view_ptr<const data::Molecule> 
 
 PartialHistogramManager::~PartialHistogramManager() = default;
 
-std::unique_ptr<DistanceHistogram>  PartialHistogramManager::calculate() {
+std::unique_ptr<DistanceHistogram> PartialHistogramManager::calculate() {
     const std::vector<bool> externally_modified = statemanager->get_externally_modified_bodies();
     const std::vector<bool> internally_modified = statemanager->get_internally_modified_bodies();
 
@@ -228,7 +229,6 @@ void PartialHistogramManager::calc_hh() {
     std::vector<double> p_hh(master.get_axis().bins, 0);
 
     // calculate internal distances for the hydration layer
-    // coords_h = detail::CompactCoordinates(protein->get_waters()); //! Remove?
     for (unsigned int i = 0; i < coords_h.get_size(); i++) {
         unsigned int j = i+1;
         for (; j+7 < coords_h.get_size(); j+=8) {
@@ -254,3 +254,6 @@ void PartialHistogramManager::calc_hh() {
     partials_hh.get_counts() = std::move(p_hh);
     master += partials_hh; // add the new hydration histogram
 }
+
+// template class hist::PartialHistogramManager<true>;
+// template class hist::PartialHistogramManager<false>;

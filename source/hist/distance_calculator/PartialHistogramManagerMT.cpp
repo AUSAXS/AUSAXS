@@ -18,8 +18,6 @@ using namespace hist;
 
 PartialHistogramManagerMT::PartialHistogramManagerMT(view_ptr<const data::Molecule> protein) : PartialHistogramManager(protein) {}
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm) {}
-
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {

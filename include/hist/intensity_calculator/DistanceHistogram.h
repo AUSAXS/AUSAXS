@@ -18,7 +18,7 @@ namespace hist {
     class DistanceHistogram : public Histogram {
         public: 
             DistanceHistogram();
-
+            DistanceHistogram(std::vector<constants::axes::d_type>&& p_tot, const Axis& axis);
             DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis);
 
             /**

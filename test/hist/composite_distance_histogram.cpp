@@ -67,7 +67,7 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
         REQUIRE_THAT(p_pp[i] + 3*2*p_hp[i] + 9*p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }
 
-    hist->apply_water_scaling_factor(1);
+    hist->reset_water_scaling_factor();
     for (unsigned int i = 0; i < p_pp.size(); i++) {
         REQUIRE_THAT(p_pp[i] + 2*p_hp[i] + p_hh[i], Catch::Matchers::WithinRel(hist->get_total_counts()[i]));
     }
@@ -165,11 +165,11 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManager(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManagerMT(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }
@@ -216,11 +216,11 @@ TEST_CASE("CompositeDistanceHistogramFF::debye_transform") {
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManager(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManagerMT(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }

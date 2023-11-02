@@ -10,9 +10,11 @@ using namespace hist;
 
 DistanceHistogram::DistanceHistogram() = default;
 
-DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_container().get_data()), axis) {
+DistanceHistogram::DistanceHistogram(std::vector<constants::axes::d_type>&& p_tot, const Axis& axis) : Histogram(std::move(p_tot), axis) {
     initialize();
 }
+
+DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis) : DistanceHistogram(std::move(p_tot.get_container().get_data()), axis) {}
 
 DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_total_counts()), cdh->get_axis()) {
     initialize();
