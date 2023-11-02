@@ -6,61 +6,53 @@
 
 using namespace hist;
 
-template<bool use_weighted_distribution>
-CompositeDistanceHistogram<use_weighted_distribution>::CompositeDistanceHistogram(
-    typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_aa, 
-    typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_aw, 
-    typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_ww, 
+CompositeDistanceHistogram::CompositeDistanceHistogram(
+    hist::WeightedDistribution1D&& p_aa, 
+    hist::WeightedDistribution1D&& p_aw, 
+    hist::WeightedDistribution1D&& p_ww, 
     hist::Distribution1D&& p_tot, 
-    const Axis& axis) 
-    : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) 
-{}
+    const Axis& axis
+) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa.get_container())), p_aw(std::move(p_aw.get_container())), p_ww(std::move(p_ww.get_container())) {}
 
-template<bool use_weighted_distribution>
-CompositeDistanceHistogram<use_weighted_distribution>::~CompositeDistanceHistogram() = default;
+CompositeDistanceHistogram::CompositeDistanceHistogram(
+    hist::Distribution1D&& p_aa, 
+    hist::Distribution1D&& p_aw, 
+    hist::Distribution1D&& p_ww, 
+    hist::Distribution1D&& p_tot, 
+    const Axis& axis
+) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa.get_container())), p_aw(std::move(p_aw.get_container())), p_ww(std::move(p_ww.get_container())) {}
 
-template<bool use_weighted_distribution>
-const std::vector<constants::axes::d_type>& CompositeDistanceHistogram<use_weighted_distribution>::get_aa_counts() const {
-    return p_aa.get_counts();
+CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
+
+const std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aa_counts() const {
+    return p_aa;
 }
 
-template<bool use_weighted_distribution>
-std::vector<constants::axes::d_type>& CompositeDistanceHistogram<use_weighted_distribution>::get_aa_counts() {
-    return p_aa.get_counts();
+std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aa_counts() {
+    return p_aa;
 }
 
-template<bool use_weighted_distribution>
-const std::vector<constants::axes::d_type>& CompositeDistanceHistogram<use_weighted_distribution>::get_aw_counts() const {
-    return p_aw.get_counts();
+const std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aw_counts() const {
+    return p_aw;
 }
 
-template<bool use_weighted_distribution>
-std::vector<constants::axes::d_type>& CompositeDistanceHistogram<use_weighted_distribution>::get_aw_counts() {
-    return p_aw.get_counts();
+std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aw_counts() {
+    return p_aw;
 }
 
-template<bool use_weighted_distribution>
-const std::vector<constants::axes::d_type>& CompositeDistanceHistogram<use_weighted_distribution>::get_ww_counts() const {
-    return p_ww.get_counts();
+const std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_ww_counts() const {
+    return p_ww;
 }
 
-template<bool use_weighted_distribution>
-std::vector<constants::axes::d_type>& CompositeDistanceHistogram<use_weighted_distribution>::get_ww_counts() {
-    return p_ww.get_counts();
+std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_ww_counts() {
+    return p_ww;
 }
 
-template<bool use_weighted_distribution>
-void CompositeDistanceHistogram<use_weighted_distribution>::apply_water_scaling_factor(double k) {
+void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     auto& p_tot = get_total_counts();
     for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
 }
 
-template<bool use_weighted_distribution>
-void CompositeDistanceHistogram<use_weighted_distribution>::reset_water_scaling_factor() {
-    apply_water_scaling_factor(1);
-}
-
-template<bool use_weighted_distribution>
 auto partial_profile = [] (const std::vector<constants::axes::d_type>& p, const std::vector<double>& q_axis) {
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
@@ -74,20 +66,14 @@ auto partial_profile = [] (const std::vector<constants::axes::d_type>& p, const 
     return ScatteringProfile(Iq, debye_axis);
 };
 
-template<bool use_weighted_distribution>
-const ScatteringProfile CompositeDistanceHistogram<use_weighted_distribution>::get_profile_aa() const {
-    return partial_profile<use_weighted_distribution>(get_aa_counts(), q_axis);
+const ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
+    return partial_profile(get_aa_counts(), q_axis);
 }
 
-template<bool use_weighted_distribution>
-const ScatteringProfile CompositeDistanceHistogram<use_weighted_distribution>::get_profile_aw() const {
-    return partial_profile<use_weighted_distribution>(get_aw_counts(), q_axis)*2;
+const ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
+    return partial_profile(get_aw_counts(), q_axis)*2;
 }
 
-template<bool use_weighted_distribution>
-const ScatteringProfile CompositeDistanceHistogram<use_weighted_distribution>::get_profile_ww() const {
-    return partial_profile<use_weighted_distribution>(get_ww_counts(), q_axis);
+const ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {
+    return partial_profile(get_ww_counts(), q_axis);
 }
-
-template class hist::CompositeDistanceHistogram<false>;
-template class hist::CompositeDistanceHistogram<true>;

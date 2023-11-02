@@ -43,6 +43,12 @@ namespace hist::detail {
                 return res;
             }
 
+            friend WeightedEntry operator*(const WeightedEntry& lhs, double rhs) {
+                WeightedEntry res = lhs;
+                res.value *= rhs;
+                return res;
+            }
+
             type distance;
             type value;
             type count;

@@ -28,3 +28,9 @@ std::size_t WeightedDistribution2D::size_y() const {return data.size_y();}
 bool WeightedDistribution2D::empty() const {return size_x() == 0 || size_y() == 0;}
 
 void WeightedDistribution2D::resize(unsigned int size) {data.resize(size);}
+
+container::Container2D<constants::axes::d_type> WeightedDistribution2D::get_container() {
+    container::Container2D<constants::axes::d_type> result(size_x(), size_y());
+    std::transform(begin(), end(), result.begin(), [](const detail::WeightedEntry& entry) {return entry.value;});
+    return result;
+}

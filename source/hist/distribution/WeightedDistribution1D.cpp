@@ -21,11 +21,8 @@ std::size_t WeightedDistribution1D::size() const {return data.size();}
 bool WeightedDistribution1D::empty() const {return size() == 0;}
 void WeightedDistribution1D::resize(unsigned int size) {data.resize(size);}
 
-std::vector<WeightedDistribution1D::type>& WeightedDistribution1D::get_counts() {
-    static std::vector<type> result;
-    result = std::vector<type>(size());
-    for (unsigned int i = 0; i < size(); ++i) {
-        result[i] = data.index(i).value;
-    }
+container::Container1D<constants::axes::d_type> WeightedDistribution1D::get_container() {
+    container::Container1D<constants::axes::d_type> result(size());
+    std::transform(begin(), end(), result.begin(), [](const detail::WeightedEntry& entry) {return entry.value;});
     return result;
 }

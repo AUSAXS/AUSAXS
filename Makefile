@@ -3,7 +3,7 @@ pymol := pymol
 simprog := pdb2mrc
 pdbfixer := ~/tools/conda/bin/pdbfixer
 
-cmake_threads := 1
+cmake_threads := 6
 
 source := $(addprefix source/, $(shell find source/ -printf "%P "))
 include := $(addprefix include/, $(shell find include/ -printf "%P "))

@@ -1,9 +1,12 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <container/Container1D.h>
-#include <container/Container2D.h>
-#include <container/Container3D.h>
+#include <hist/distribution/Distribution3D.h>
+#include <hist/distribution/Distribution2D.h>
+#include <hist/distribution/Distribution1D.h>
+#include <hist/distribution/WeightedDistribution3D.h>
+#include <hist/distribution/WeightedDistribution2D.h>
+#include <hist/distribution/WeightedDistribution1D.h>
 
 #include <vector>
 
@@ -11,8 +14,7 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    template<bool use_weighted_distribution>
-    class CompositeDistanceHistogramFoXS : public CompositeDistanceHistogramFFAvg<use_weighted_distribution> {
+    class CompositeDistanceHistogramFoXS : public CompositeDistanceHistogramFFAvg {
         public: 
             CompositeDistanceHistogramFoXS();
 
@@ -29,9 +31,36 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFoXS(
-                container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx, 
-                container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww, 
-                const Axis& axis);
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww, 
+                const Axis& axis
+            );
+
+            /**
+             * @brief Construct a new Composite Distance Histogram FF object
+             * 
+             * @param p_aa Partial distance histogram for atom-atom interactions
+             * @param p_ax Partial distance histogram for atom-excluded volume interactions
+             * @param p_xx Partial distance histogram for excluded volume-excluded volume interactions
+             * @param p_aw Partial distance histogram for atom-water interactions
+             * @param p_wx Partial distance histogram for water-excluded volume interactions
+             * @param p_ww Partial distance histogram for water-water interactions
+             * @param p_tot Total distance histogram
+             * @param axis Distance axis
+             */
+            CompositeDistanceHistogramFoXS(
+                hist::WeightedDistribution3D&& p_aa, 
+                hist::WeightedDistribution3D&& p_ax, 
+                hist::WeightedDistribution3D&& p_xx, 
+                hist::WeightedDistribution2D&& p_aw, 
+                hist::WeightedDistribution2D&& p_wx, 
+                hist::WeightedDistribution1D&& p_ww, 
+                const Axis& axis
+            );
 
             ~CompositeDistanceHistogramFoXS() override;
 

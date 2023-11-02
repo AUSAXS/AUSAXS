@@ -10,10 +10,24 @@ using namespace hist;
 CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS() = default;
 
 CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
-    container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx,
-    container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww,
-    const Axis& axis)
-: CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_wa), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D&& p_ax, 
+    hist::Distribution3D&& p_xx, 
+    hist::Distribution2D&& p_aw, 
+    hist::Distribution2D&& p_wx, 
+    hist::Distribution1D&& p_ww, 
+    const Axis& axis
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax.get_container())), cp_xx(std::move(p_xx.get_container())), cp_wx(std::move(p_wx.get_container())) {}
+
+CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
+    hist::WeightedDistribution3D&& p_aa, 
+    hist::WeightedDistribution3D&& p_ax, 
+    hist::WeightedDistribution3D&& p_xx, 
+    hist::WeightedDistribution2D&& p_aw, 
+    hist::WeightedDistribution2D&& p_wx, 
+    hist::WeightedDistribution1D&& p_ww, 
+    const Axis& axis
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax.get_container())), cp_xx(std::move(p_xx.get_container())), cp_wx(std::move(p_wx.get_container())) {}
 
 CompositeDistanceHistogramFoXS::~CompositeDistanceHistogramFoXS() = default;
 

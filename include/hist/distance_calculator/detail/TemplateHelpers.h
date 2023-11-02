@@ -54,7 +54,7 @@ namespace add1_impl {
  * @param data The first atom.
  */
 template<bool use_weighted_distribution, int factor>
-inline void add8(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesData& data, const hist::detail::CompactCoordinatesData& a, const hist::detail::CompactCoordinatesData& b, const hist::detail::CompactCoordinatesData& c, const hist::detail::CompactCoordinatesData& d, const hist::detail::CompactCoordinatesData& e, const hist::detail::CompactCoordinatesData& f, const hist::detail::CompactCoordinatesData& g, const hist::detail::CompactCoordinatesData& h) {
+inline void evaluate8(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesData& data, const hist::detail::CompactCoordinatesData& a, const hist::detail::CompactCoordinatesData& b, const hist::detail::CompactCoordinatesData& c, const hist::detail::CompactCoordinatesData& d, const hist::detail::CompactCoordinatesData& e, const hist::detail::CompactCoordinatesData& f, const hist::detail::CompactCoordinatesData& g, const hist::detail::CompactCoordinatesData& h) {
     add8_impl::add8_impl<factor>(p, data, a, b, c, d, e, f, g, h);
 }
 
@@ -67,7 +67,7 @@ inline void add8(typename hist::GenericDistribution1D<use_weighted_distribution>
  * @param data The first atom.
  */
 template<bool use_weighted_distribution, int factor>
-inline void add4(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesData& data, const hist::detail::CompactCoordinatesData& a, const hist::detail::CompactCoordinatesData& b, const hist::detail::CompactCoordinatesData& c, const hist::detail::CompactCoordinatesData& d) {
+inline void evaluate4(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesData& data, const hist::detail::CompactCoordinatesData& a, const hist::detail::CompactCoordinatesData& b, const hist::detail::CompactCoordinatesData& c, const hist::detail::CompactCoordinatesData& d) {
     add4_impl::add4_impl<factor>(p, data, a, b, c, d);
 }
 
@@ -80,6 +80,6 @@ inline void add4(typename hist::GenericDistribution1D<use_weighted_distribution>
  * @param data The first atom.
  */
 template<bool use_weighted_distribution, int factor>
-inline void add1(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesData& data, const hist::detail::CompactCoordinatesData& a) {
+inline void evaluate1(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesData& data, const hist::detail::CompactCoordinatesData& a) {
     add1_impl::add1_impl<factor>(p, data, a);
 }

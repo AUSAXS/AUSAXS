@@ -4,6 +4,7 @@
 
 using namespace hist;
 
+Distribution1D::Distribution1D(unsigned int size) : data(size) {}
 Distribution1D::Distribution1D(unsigned int size, type value) : data(size, value) {}
 
 void Distribution1D::add(float distance, type value) {data.index(std::round(distance)) += value;}
@@ -23,4 +24,4 @@ bool Distribution1D::empty() const {return size() == 0;}
 
 void Distribution1D::resize(unsigned int size) {data.resize(size);}
 
-std::vector<Distribution1D::type>& Distribution1D::get_counts() {return data.get_data();}
+container::Container1D<Distribution1D::type>& Distribution1D::get_container() {return data;}

@@ -29,3 +29,9 @@ std::size_t WeightedDistribution3D::size_z() const {return data.size_z();}
 bool WeightedDistribution3D::empty() const {return size_x() == 0 || size_y() == 0 || size_z() == 0;}
 
 void WeightedDistribution3D::resize(unsigned int size) {data.resize(size);}
+
+container::Container3D<constants::axes::d_type> WeightedDistribution3D::get_container() {
+    container::Container3D<constants::axes::d_type> result(size_x(), size_y(), size_z());
+    std::transform(begin(), end(), result.begin(), [](const detail::WeightedEntry& entry) {return entry.value;});
+    return result;
+}

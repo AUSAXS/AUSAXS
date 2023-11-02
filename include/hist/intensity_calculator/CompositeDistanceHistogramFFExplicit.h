@@ -11,8 +11,7 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    template<bool use_weighted_distribution>
-    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg<use_weighted_distribution> {
+    class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg {
         public: 
             CompositeDistanceHistogramFFExplicit();
 
@@ -29,12 +28,22 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFExplicit(
-                hist::GenericDistribution3D<use_weighted_distribution>&& p_aa, 
-                hist::GenericDistribution3D<use_weighted_distribution>&& p_ax, 
-                hist::GenericDistribution3D<use_weighted_distribution>&& p_xx, 
-                hist::GenericDistribution2D<use_weighted_distribution>&& p_wa, 
-                hist::GenericDistribution2D<use_weighted_distribution>&& p_wx, 
-                hist::GenericDistribution1D<use_weighted_distribution>&& p_ww, 
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww, 
+                const Axis& axis
+            );
+
+            CompositeDistanceHistogramFFExplicit(
+                hist::WeightedDistribution3D&& p_aa, 
+                hist::WeightedDistribution3D&& p_ax, 
+                hist::WeightedDistribution3D&& p_xx, 
+                hist::WeightedDistribution2D&& p_aw, 
+                hist::WeightedDistribution2D&& p_wx, 
+                hist::WeightedDistribution1D&& p_ww, 
                 const Axis& axis
             );
 
@@ -61,8 +70,8 @@ namespace hist {
             double G_factor(double q) const;
 
         private:
-            hist::GenericDistribution3D<use_weighted_distribution> cp_ax;
-            hist::GenericDistribution3D<use_weighted_distribution> cp_xx;
-            hist::GenericDistribution2D<use_weighted_distribution> cp_wx;
+            container::Container3D<constants::axes::d_type> cp_ax;
+            container::Container3D<constants::axes::d_type> cp_xx;
+            container::Container2D<constants::axes::d_type> cp_wx;
     };
 }

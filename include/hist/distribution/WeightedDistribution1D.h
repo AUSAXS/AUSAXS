@@ -26,7 +26,13 @@ namespace hist {
             bool empty() const;
             void resize(unsigned int size);
 
-            std::vector<type>& get_counts();
+            /**
+             * @brief Get a container with the values of the distribution.
+             *        Note that this is a copy operation.
+             * 
+             * Complexity: O(n)
+             */
+            container::Container1D<type> get_container();
 
         private:
             container::Container1D<detail::WeightedEntry> data;

@@ -28,3 +28,5 @@ std::size_t Distribution3D::size_z() const {return data.size_z();}
 bool Distribution3D::empty() const {return size_x() == 0 || size_y() == 0 || size_z() == 0;}
 
 void Distribution3D::resize(unsigned int size) {data.resize(size);}
+
+container::Container3D<Distribution3D::type>& Distribution3D::get_container() {return data;}

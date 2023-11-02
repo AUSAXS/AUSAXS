@@ -11,6 +11,7 @@ namespace hist {
 
         public:
             Distribution1D() = default;
+            Distribution1D(unsigned int size);
             Distribution1D(unsigned int size, type value);
 
             /**
@@ -32,7 +33,13 @@ namespace hist {
             bool empty() const;
             void resize(unsigned int size);
 
-            std::vector<type>& get_counts();
+            /**
+             * @brief Get a container with the values of the distribution.
+             *        Note that this is reference to the internal container.
+             * 
+             * Complexity: O(1)
+             */
+            container::Container1D<type>& get_container();
 
         private:
             container::Container1D<type> data;

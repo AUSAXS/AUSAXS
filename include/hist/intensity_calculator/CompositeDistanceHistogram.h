@@ -2,6 +2,7 @@
 
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
+#include <container/Container1D.h>
 
 #include <vector>
 
@@ -9,15 +10,22 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms.
      */
-    template<bool use_weighted_distribution>
     class CompositeDistanceHistogram : public ICompositeDistanceHistogram {
         public: 
             CompositeDistanceHistogram() = default;
 
             CompositeDistanceHistogram(
-                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_aa, 
-                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_wa, 
-                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_ww, 
+                hist::WeightedDistribution1D&& p_aa, 
+                hist::WeightedDistribution1D&& p_aw, 
+                hist::WeightedDistribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot, 
+                const Axis& axis
+            );
+
+            CompositeDistanceHistogram(
+                hist::Distribution1D&& p_aa, 
+                hist::Distribution1D&& p_aw, 
+                hist::Distribution1D&& p_ww, 
                 hist::Distribution1D&& p_tot, 
                 const Axis& axis
             );
@@ -48,11 +56,6 @@ namespace hist {
             virtual void apply_water_scaling_factor(double k) override;
 
             /**
-             * @brief Reset the water scaling factor to 1.
-             */
-            void reset_water_scaling_factor();
-
-            /**
              * @brief Get the intensity profile for atom-atom interactions.
              */
             virtual const ScatteringProfile get_profile_aa() const override;
@@ -68,8 +71,8 @@ namespace hist {
             virtual const ScatteringProfile get_profile_ww() const override;
 
         private:
-            mutable typename hist::GenericDistribution1D<use_weighted_distribution>::type p_aa;
-            mutable typename hist::GenericDistribution1D<use_weighted_distribution>::type p_aw;
-            mutable typename hist::GenericDistribution1D<use_weighted_distribution>::type p_ww;
+            mutable container::Container1D<constants::axes::d_type> p_aa;
+            mutable container::Container1D<constants::axes::d_type> p_aw;
+            mutable container::Container1D<constants::axes::d_type> p_ww;
     };
 }

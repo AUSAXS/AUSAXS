@@ -12,7 +12,7 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    template<typename FormFactorTableType, bool use_weighted_distribution>
+    template<typename FormFactorTableType>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
@@ -27,9 +27,16 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFAvgBase(
-                typename hist::GenericDistribution3D<use_weighted_distribution>::type&& p_aa, 
-                typename hist::GenericDistribution2D<use_weighted_distribution>::type&& p_wa, 
-                typename hist::GenericDistribution1D<use_weighted_distribution>::type&& p_ww, 
+                hist::WeightedDistribution3D&& p_aa, 
+                hist::WeightedDistribution2D&& p_aw, 
+                hist::WeightedDistribution1D&& p_ww, 
+                const Axis& axis
+            );
+
+            CompositeDistanceHistogramFFAvgBase(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution1D&& p_ww, 
                 const Axis& axis
             );
 
@@ -123,9 +130,9 @@ namespace hist {
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
-            typename hist::GenericDistribution3D<use_weighted_distribution>::type cp_aa; 
-            typename hist::GenericDistribution2D<use_weighted_distribution>::type cp_aw; 
-            typename hist::GenericDistribution1D<use_weighted_distribution>::type cp_ww;
+            container::Container3D<constants::axes::d_type> cp_aa; 
+            container::Container2D<constants::axes::d_type> cp_aw; 
+            container::Container1D<constants::axes::d_type> cp_ww;
 
         private:
             mutable std::vector<constants::axes::d_type> p_aa;

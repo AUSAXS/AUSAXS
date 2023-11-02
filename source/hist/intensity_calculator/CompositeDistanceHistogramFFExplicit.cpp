@@ -8,33 +8,38 @@
 
 using namespace hist;
 
-template<bool use_weighted_distribution>
-CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::CompositeDistanceHistogramFFExplicit() = default;
+CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit() = default;
 
-template<bool use_weighted_distribution>
-CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::CompositeDistanceHistogramFFExplicit(
-    hist::GenericDistribution3D<use_weighted_distribution>&& p_aa, 
-    hist::GenericDistribution3D<use_weighted_distribution>&& p_ax, 
-    hist::GenericDistribution3D<use_weighted_distribution>&& p_xx, 
-    hist::GenericDistribution2D<use_weighted_distribution>&& p_wa, 
-    hist::GenericDistribution2D<use_weighted_distribution>&& p_wx, 
-    hist::GenericDistribution1D<use_weighted_distribution>&& p_ww, 
+CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
+    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D&& p_ax, 
+    hist::Distribution3D&& p_xx, 
+    hist::Distribution2D&& p_aw, 
+    hist::Distribution2D&& p_wx, 
+    hist::Distribution1D&& p_ww, 
     const Axis& axis
-)
-: CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_wa), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax.get_container())), cp_xx(std::move(p_xx.get_container())), cp_wx(std::move(p_wx.get_container())) {}
 
-template<bool use_weighted_distribution>
-CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::~CompositeDistanceHistogramFFExplicit() = default;
+CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
+    hist::WeightedDistribution3D&& p_aa, 
+    hist::WeightedDistribution3D&& p_ax, 
+    hist::WeightedDistribution3D&& p_xx, 
+    hist::WeightedDistribution2D&& p_aw, 
+    hist::WeightedDistribution2D&& p_wx, 
+    hist::WeightedDistribution1D&& p_ww, 
+    const Axis& axis
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax.get_container())), cp_xx(std::move(p_xx.get_container())), cp_wx(std::move(p_wx.get_container())) {}
 
-template<bool use_weighted_distribution>
-double CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::G_factor(double q) const {
+CompositeDistanceHistogramFFExplicit::~CompositeDistanceHistogramFFExplicit() = default;
+
+double CompositeDistanceHistogramFFExplicit::G_factor(double q) const {
     constexpr double rm = 1.62;
     constexpr double c = std::pow(4*M_PI/3, 3./2)*M_PI*rm*rm*constants::form_factor::s_to_q_factor;
     return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
 }
 
 // static unsigned int qcheck = 26;
-// ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::debye_transform() const {
+// ScatteringProfile CompositeDistanceHistogramFFExplicit::debye_transform() const {
 //     const auto& ff_aa_table = form_factor::storage::get_precalculated_form_factor_table();
 //     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
 //     const auto& ff_xx_table = form_factor::storage::exv::get_precalculated_form_factor_table();
@@ -118,8 +123,7 @@ double CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::G_factor
 //     return ScatteringProfile(Iq, debye_axis);
 // }
 
-template<bool use_weighted_distribution>
-ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::debye_transform() const {
+ScatteringProfile CompositeDistanceHistogramFFExplicit::debye_transform() const {
     const auto& ff_aa_table = form_factor::storage::atomic::get_precalculated_form_factor_table();
     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
     const auto& ff_xx_table = form_factor::storage::exv::get_precalculated_form_factor_table();
@@ -164,8 +168,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distribution
     return ScatteringProfile(Iq, debye_axis);
 }
 
-template<bool use_weighted_distribution>
-const ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::get_profile_ax() const {
+const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_ax() const {
     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -184,8 +187,7 @@ const ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distri
     return ScatteringProfile(Iq, debye_axis);
 }
 
-template<bool use_weighted_distribution>
-const ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::get_profile_xx() const {
+const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_xx() const {
     const auto& ff_xx_table = form_factor::storage::exv::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -204,8 +206,7 @@ const ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distri
     return ScatteringProfile(Iq, debye_axis);
 }
 
-template<bool use_weighted_distribution>
-const ScatteringProfile CompositeDistanceHistogramFFExplicit<use_weighted_distribution>::get_profile_wx() const {
+const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_wx() const {
     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);

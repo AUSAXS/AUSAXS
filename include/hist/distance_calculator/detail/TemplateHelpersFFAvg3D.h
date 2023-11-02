@@ -61,7 +61,7 @@ namespace detail::ff3::add1 {
  * @param j The index of the second atom.
  */
 template<bool use_weighted_distribution, int factor>
-inline void add8(typename hist::GenericDistribution3D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+inline void evaluate8(typename hist::GenericDistribution3D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
     auto res = detail::ff3::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 8; ++k) {
         p.add(data_i.get_ff_type(i), data_j.get_ff_type(j+k), res.distance[k], factor*res.weight[k]);
@@ -82,7 +82,7 @@ inline void add8(typename hist::GenericDistribution3D<use_weighted_distribution>
  * @param j The index of the second atom.
  */
 template<bool use_weighted_distribution, int factor>
-inline void add4(typename hist::GenericDistribution3D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+inline void evaluate4(typename hist::GenericDistribution3D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
     auto res = detail::ff3::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 4; ++k) {
         p.add(data_i.get_ff_type(i), data_j.get_ff_type(j+k), res.distance[k], factor*res.weight[k]);
@@ -103,7 +103,7 @@ inline void add4(typename hist::GenericDistribution3D<use_weighted_distribution>
  * @param j The index of the second atom.
  */
 template<bool use_weighted_distribution, int factor>
-inline void add1(typename hist::GenericDistribution3D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
+inline void evaluate1(typename hist::GenericDistribution3D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
     auto res = detail::ff3::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     p.add(data_i.get_ff_type(i), data_j.get_ff_type(j), res.distance, factor*res.weight);
     p.add(data_i.get_ff_type(i), static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME), res.distance, factor*data_j[j].value.w);

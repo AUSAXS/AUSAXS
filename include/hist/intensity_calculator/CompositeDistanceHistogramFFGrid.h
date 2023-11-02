@@ -4,9 +4,8 @@
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 
 namespace hist {
-    template<bool use_weighted_distribution>
-    class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t, use_weighted_distribution> {
-        using CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t, use_weighted_distribution>::CompositeDistanceHistogramFFAvgBase;
+    class CompositeDistanceHistogramFFGrid : public CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t> {
+        using CompositeDistanceHistogramFFAvgBase<form_factor::storage::atomic::table_t>::CompositeDistanceHistogramFFAvgBase;
 
         const form_factor::storage::atomic::table_t& get_ff_table() const override {
             static auto ff_table = generate_table();

@@ -17,6 +17,7 @@ namespace hist {
         virtual std::vector<double>& get_ww_counts() = 0;
 
         virtual void apply_water_scaling_factor(double k) = 0;
+        void reset_water_scaling_factor() {apply_water_scaling_factor(1);}
 
         virtual const ScatteringProfile get_profile_aa() const = 0;
 

@@ -1,8 +1,8 @@
 #include <hist/distance_calculator/HistogramManagerFactory.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
-// #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-// #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
+#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
 // #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 // #include <hist/distance_calculator/PartialHistogramManager.h>
 // #include <hist/distance_calculator/PartialHistogramManagerMT.h>
@@ -22,12 +22,12 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 
                 return std::make_unique<HistogramManager<true>>(protein);
-            // case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-            //     return std::make_unique<HistogramManagerMT<true>>(protein);
-            // case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-            //     return std::make_unique<HistogramManagerMTFFAvg<true>>(protein);
-            // case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-            //     return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMT:
+                return std::make_unique<HistogramManagerMT<true>>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
+                return std::make_unique<HistogramManagerMTFFAvg<true>>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+                return std::make_unique<HistogramManagerMTFFExplicit<true>>(protein);
             // case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
             //     return std::make_unique<HistogramManagerMTFFGrid<true>>(protein);
             // case settings::hist::HistogramManagerChoice::PartialHistogramManager:
@@ -43,12 +43,12 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 
                 return std::make_unique<HistogramManager<false>>(protein);
-            // case settings::hist::HistogramManagerChoice::HistogramManagerMT:
-            //     return std::make_unique<HistogramManagerMT<false>>(protein);
-            // case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
-            //     return std::make_unique<HistogramManagerMTFFAvg<false>>(protein);
-            // case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
-            //     return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMT:
+                return std::make_unique<HistogramManagerMT<false>>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
+                return std::make_unique<HistogramManagerMTFFAvg<false>>(protein);
+            case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+                return std::make_unique<HistogramManagerMTFFExplicit<false>>(protein);
             // case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: 
             //     return std::make_unique<HistogramManagerMTFFGrid<false>>(protein);
             // case settings::hist::HistogramManagerChoice::PartialHistogramManager:

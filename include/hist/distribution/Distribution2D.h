@@ -34,6 +34,14 @@ namespace hist {
             bool empty() const;
             void resize(unsigned int size);
 
+            /**
+             * @brief Get a container with the values of the distribution.
+             *        Note that this is reference to the internal container.
+             * 
+             * Complexity: O(1)
+             */
+            container::Container2D<type>& get_container();
+
         private:
             container::Container2D<type> data;
     };
