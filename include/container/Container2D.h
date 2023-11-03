@@ -142,6 +142,11 @@ namespace container {
                 data = std::move(tmp.data);                
             }
 
+            /**
+             * @brief Check if the container is empty.
+             */
+            bool empty() const {return data.empty();}
+
         protected:
             std::size_t N, M;
             std::vector<T> data;

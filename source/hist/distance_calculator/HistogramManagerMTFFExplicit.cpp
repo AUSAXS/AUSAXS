@@ -46,30 +46,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             unsigned int j = i+1;                    // atom
             for (; j+7 < data_p.get_size(); j+=8) {
                 evaluate8<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_p, data_p, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
-                // for (unsigned int k = 0; k < 8; ++k) {
-                //     p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                //     p_ax.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*data_p[i+k].value.w;
-                //     p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2;
-                // }
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
                 evaluate4<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_p, data_p, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
-                // for (unsigned int k = 0; k < 4; ++k) {
-                //     p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                //     p_ax.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*data_p[i+k].value.w;
-                //     p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2;
-                // }
             }
 
             for (; j < data_p.get_size(); ++j) {
                 evaluate1<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_p, data_p, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_p[j]);
-                // p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j), res.distance) += 2*res.weight;
-                // p_ax.index(data_p.get_ff_type(i), data_p.get_ff_type(j), res.distance) += 2*data_p[i].value.w;
-                // p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(j), res.distance) += 2;
              }
         }
         return std::tuple(std::move(p_aa), std::move(p_ax), std::move(p_xx));
@@ -82,27 +66,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             unsigned int j = 0;                      // water
             for (; j+7 < data_h.get_size(); j+=8) {
                 evaluate8<use_weighted_distribution, 1>(p_ww, p_wx, data_p, data_h, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
-                // for (unsigned int k = 0; k < 8; ++k) {
-                //     p_ww.index(data_p.get_ff_type(i), res.distance[k]) += res.weight[k];
-                //     p_wx.index(data_p.get_ff_type(i), res.distance[k]) += data_h[j+k].value.w;
-                // }
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
                 evaluate4<use_weighted_distribution, 1>(p_ww, p_wx, data_p, data_h, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
-                // for (unsigned int k = 0; k < 4; ++k) {
-                //     p_ww.index(data_p.get_ff_type(i), res.distance[k]) += res.weight[k];
-                //     p_wx.index(data_p.get_ff_type(i), res.distance[k]) += data_h[j+k].value.w;
-                // }
             }
 
             for (; j < data_h.get_size(); ++j) {
                 evaluate1<use_weighted_distribution, 1>(p_ww, p_wx, data_p, data_h, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_h[j]);
-                // p_ww.index(data_p.get_ff_type(i), res.distance) += res.weight;
-                // p_wx.index(data_p.get_ff_type(i), res.distance) += data_h[j].value.w;
             }
         }
         return std::tuple(std::move(p_ww), std::move(p_wx));
@@ -114,24 +85,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             unsigned int j = i+1;                    // water
             for (; j+7 < data_h.get_size(); j+=8) {
                 evaluate8<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
-                // auto res = data_h[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
-                // for (unsigned int k = 0; k < 8; ++k) {
-                //     p_hh.index(res.distance[k]) += 2*res.weight[k];
-                // }
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
                 evaluate4<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
-                // auto res = data_h[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
-                // for (unsigned int k = 0; k < 4; ++k) {
-                //     p_hh.index(res.distance[k]) += 2*res.weight[k];
-                // }
             }
 
             for (; j < data_h.get_size(); ++j) {
                 evaluate1<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
-                // auto res = data_h[i].evaluate_rounded(data_h[j]);
-                // p_hh.index(res.distance) += 2*res.weight;
             }
         }
         return p_hh;

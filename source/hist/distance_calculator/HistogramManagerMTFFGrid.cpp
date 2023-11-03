@@ -38,7 +38,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     //########################//
     auto pool = utility::multi_threading::get_global_pool();
     auto calc_xx = [&data_x] (unsigned int imin, unsigned int imax) {
-        hist::WeightedDistribution1D<constants::axes::d_type> p_xx(constants::axes::d_axis.bins, 0);
+        hist::WeightedDistribution1D p_xx(constants::axes::d_axis.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) { // exv
             unsigned int j = i+1;                    // exv
             for (; j+7 < data_x.get_size(); j+=8) {
@@ -60,7 +60,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     };
 
     auto calc_ax = [&data_p, &data_x] (unsigned int imin, unsigned int imax) {
-        hist::WeightedDistribution2D<constants::axes::d_type> p_ax(form_factor::get_count(), constants::axes::d_axis.bins, 0);
+        hist::WeightedDistribution2D p_ax(form_factor::get_count(), constants::axes::d_axis.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) { // atoms
             unsigned int j = 0;                      // exv
             for (; j+7 < data_x.get_size(); j+=8) {
@@ -82,7 +82,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     };
 
     auto calc_wx = [&data_h, &data_x] (unsigned int imin, unsigned int imax) {
-        hist::WeightedDistribution1D<constants::axes::d_type> p_wx(constants::axes::d_axis.bins, 0);
+        hist::WeightedDistribution1D p_wx(constants::axes::d_axis.bins, 0);
         for (unsigned int i = imin; i < imax; ++i) { // waters
             unsigned int j = 0;                      // exv
             for (; j+7 < data_x.get_size(); j+=8) {
@@ -107,15 +107,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     // SUBMIT TASKS //
     //##############//
     unsigned int job_size = settings::general::detail::job_size;
-    BS::multi_future<hist::WeightedDistribution1D<constants::axes::d_type>> xx;
+    BS::multi_future<hist::WeightedDistribution1D> xx;
     for (unsigned int i = 0; i < protein->atom_size(); i+=job_size) {
         xx.push_back(pool->submit(calc_xx, i, std::min(i+job_size, (unsigned int)protein->atom_size())));
     }
-    BS::multi_future<hist::WeightedDistribution2D<constants::axes::d_type>> ax;
+    BS::multi_future<hist::WeightedDistribution2D> ax;
     for (unsigned int i = 0; i < protein->water_size(); i+=job_size) {
         ax.push_back(pool->submit(calc_ax, i, std::min(i+job_size, (unsigned int)protein->water_size())));
     }
-    BS::multi_future<hist::WeightedDistribution1D<constants::axes::d_type>> wx;
+    BS::multi_future<hist::WeightedDistribution1D> wx;
     for (unsigned int i = 0; i < protein->water_size(); i+=job_size) {
         wx.push_back(pool->submit(calc_wx, i, std::min(i+job_size, (unsigned int)protein->water_size())));
     }
@@ -125,9 +125,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
     //#################//
     auto p_xx_future = pool->submit(
         [&](){
-            hist::WeightedDistribution1D<constants::axes::d_type> p_xx(constants::axes::d_axis.bins, 0);
+            hist::WeightedDistribution1D p_xx(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : xx.get()) {
-                std::transform(p_xx.begin(), p_xx.end(), tmp.begin(), p_xx.begin(), std::plus<constants::axes::d_type>());
+                std::transform(p_xx.begin(), p_xx.end(), tmp.begin(), p_xx.begin(), std::plus<>());
             }
             return p_xx;
         }
@@ -135,9 +135,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
 
     auto p_ax_future = pool->submit(
         [&](){
-            hist::WeightedDistribution2D<constants::axes::d_type> p_ax(form_factor::get_count(), constants::axes::d_axis.bins, 0);
+            hist::WeightedDistribution2D p_ax(form_factor::get_count(), constants::axes::d_axis.bins, 0);
             for (const auto& tmp : ax.get()) {
-                std::transform(p_ax.begin(), p_ax.end(), tmp.begin(), p_ax.begin(), std::plus<constants::axes::d_type>());
+                std::transform(p_ax.begin(), p_ax.end(), tmp.begin(), p_ax.begin(), std::plus<>());
             }
             return p_ax;
         }
@@ -145,9 +145,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
 
     auto p_wx_future = pool->submit(
         [&](){
-            hist::WeightedDistribution1D<constants::axes::d_type> p_wx(constants::axes::d_axis.bins, 0);
+            hist::WeightedDistribution1D p_wx(constants::axes::d_axis.bins, 0);
             for (const auto& tmp : wx.get()) {
-                std::transform(p_wx.begin(), p_wx.end(), tmp.begin(), p_wx.begin(), std::plus<constants::axes::d_type>());
+                std::transform(p_wx.begin(), p_wx.end(), tmp.begin(), p_wx.begin(), std::plus<>());
             }
             return p_wx;
         }
@@ -196,5 +196,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid::calculate
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
-        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin));
+        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+    );
 }

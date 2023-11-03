@@ -27,7 +27,7 @@ CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
     hist::WeightedDistribution2D&& p_wx, 
     hist::WeightedDistribution1D&& p_ww, 
     const Axis& axis
-) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax.get_container())), cp_xx(std::move(p_xx.get_container())), cp_wx(std::move(p_wx.get_container())) {}
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
 
 CompositeDistanceHistogramFoXS::~CompositeDistanceHistogramFoXS() = default;
 

@@ -65,6 +65,11 @@ namespace container {
 
             std::vector<T>& get_data() {return data;}
 
+            /**
+             * @brief Check if the container is empty.
+             */
+            bool empty() const {return data.empty();}
+
         protected:
             std::size_t N;
             std::vector<T> data;

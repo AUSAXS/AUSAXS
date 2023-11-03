@@ -35,20 +35,20 @@ namespace hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            virtual const std::vector<constants::axes::d_type>& get_aa_counts() const override;
-            virtual std::vector<constants::axes::d_type>& get_aa_counts() override; // @copydoc get_aa_counts() const
+            virtual const hist::Distribution1D& get_aa_counts() const override;
+            virtual hist::Distribution1D& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            virtual const std::vector<constants::axes::d_type>& get_aw_counts() const override;
-            virtual std::vector<constants::axes::d_type>& get_aw_counts() override; // @copydoc get_aw_counts() const
+            virtual const Distribution1D& get_aw_counts() const override;
+            virtual Distribution1D& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            virtual const std::vector<constants::axes::d_type>& get_ww_counts() const override;
-            virtual std::vector<constants::axes::d_type>& get_ww_counts() override; // @copydoc get_ww_counts() const
+            virtual const Distribution1D& get_ww_counts() const override;
+            virtual Distribution1D& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Apply a scaling factor to the water partial distance histogram.
@@ -71,8 +71,8 @@ namespace hist {
             virtual const ScatteringProfile get_profile_ww() const override;
 
         private:
-            mutable container::Container1D<constants::axes::d_type> p_aa;
-            mutable container::Container1D<constants::axes::d_type> p_aw;
-            mutable container::Container1D<constants::axes::d_type> p_ww;
+            mutable Distribution1D p_aa;
+            mutable Distribution1D p_aw;
+            mutable Distribution1D p_ww;
     };
 }

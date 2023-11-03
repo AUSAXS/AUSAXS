@@ -3,9 +3,9 @@
 #include <utility/SimpleMap.h>
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsFwd.h>
+#include <constants/Axes.h>
 #include <constants/SI.h>
 #include <io/IOFwd.h>
-#include <utility/Axis.h>
 #include <math/ConstMath.h>
 
 #include <string>
@@ -30,18 +30,6 @@ namespace constants {
         const detail::FileType em_map =     {{".map",  ".ccp4", ".mrc", ".rec"}};
         const detail::FileType unit_cell =  {{".cell", ".uc"}};
         const detail::FileType grid =       {{".grid"}};
-    }
-
-    /**
-     * @brief Constants used to define the default axes.
-     */
-    namespace axes {
-        using d_type = double;
-        constexpr Axis d_axis(0, 2000, 8000);
-        // constexpr Axis d_axis(0, 2000, 4000);
-        constexpr Axis q_axis(1e-4, 1, 200);
-        constexpr auto q_vals = q_axis.as_array<q_axis.bins>(); 
-        constexpr auto d_vals = d_axis.as_array<d_axis.bins>();
     }
 
     /**

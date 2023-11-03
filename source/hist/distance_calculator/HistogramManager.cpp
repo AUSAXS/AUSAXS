@@ -8,6 +8,7 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/WeightedDistribution.h>
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
@@ -15,13 +16,21 @@
 using namespace hist;
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(view_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {}
+HistogramManager<use_weighted_distribution>::HistogramManager(view_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {
+    initialize();
+}
 
 template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::~HistogramManager() = default;
 
 template<bool use_weighted_distribution>
 std::unique_ptr<DistanceHistogram> HistogramManager<use_weighted_distribution>::calculate() {return calculate_all();}
+
+template<>
+void HistogramManager<true>::initialize() const {hist::WeightedDistribution::reset();}
+
+template<>
+void HistogramManager<false>::initialize() const {}
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {

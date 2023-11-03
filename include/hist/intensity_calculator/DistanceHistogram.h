@@ -18,7 +18,6 @@ namespace hist {
     class DistanceHistogram : public Histogram {
         public: 
             DistanceHistogram();
-            DistanceHistogram(std::vector<constants::axes::d_type>&& p_tot, const Axis& axis);
             DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis);
 
             /**
@@ -39,7 +38,7 @@ namespace hist {
             /**
              * @brief Get the total histogram counts. Equivalent to get_counts().
              */
-            const std::vector<double>& get_total_counts() const;
+            virtual const std::vector<double>& get_total_counts() const;
 
             /**
              * @brief Get the total histogram counts. Equivalent to get_counts().

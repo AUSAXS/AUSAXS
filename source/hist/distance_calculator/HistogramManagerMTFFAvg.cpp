@@ -43,30 +43,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
             unsigned int j = i+1;                    // atom
             for (; j+7 < data_p.get_size(); j+=8) {
                 evaluate8<use_weighted_distribution, 2>(p_aa, data_p, data_p, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
-                // for (unsigned int k = 0; k < 8; ++k) {
-                //     p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                //     p_aa.index(data_p.get_ff_type(i), form_factor::exv_bin, res.distance[k]) += 2*data_p[i].value.w*Z_exv_avg;
-                //     p_aa.index(form_factor::exv_bin, form_factor::exv_bin, res.distance[k]) += 2*Z_exv_avg2;
-                // }
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
                 evaluate4<use_weighted_distribution, 2>(p_aa, data_p, data_p, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
-                // for (unsigned int k = 0; k < 4; ++k) {
-                //     p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                //     p_aa.index(data_p.get_ff_type(i), form_factor::exv_bin, res.distance[k]) += 2*data_p[i].value.w*Z_exv_avg;
-                //     p_aa.index(form_factor::exv_bin, form_factor::exv_bin, res.distance[k]) += 2*Z_exv_avg2;
-                // }
             }
 
             for (; j < data_p.get_size(); ++j) {
                 evaluate1<use_weighted_distribution, 2>(p_aa, data_p, data_p, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_p[j]);
-                // p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j), res.distance) += 2*res.weight;
-                // p_aa.index(data_p.get_ff_type(i), form_factor::exv_bin, res.distance) += 2*data_p[i].value.w*Z_exv_avg;
-                // p_aa.index(form_factor::exv_bin, form_factor::exv_bin, res.distance) += 2*Z_exv_avg2;
             }
         }
         return p_aa;
@@ -78,27 +62,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
             unsigned int j = 0;                      // water
             for (; j+7 < data_h.get_size(); j+=8) {
                 evaluate8<use_weighted_distribution, 1>(p_aw, data_p, data_h, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
-                // for (unsigned int k = 0; k < 8; ++k) {
-                //     p_aw.index(data_p.get_ff_type(i), res.distance[k]) += res.weight[k];
-                //     p_aw.index(form_factor::exv_bin, res.distance[k]) += data_h[j+k].value.w*Z_exv_avg;
-                // }
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
                 evaluate4<use_weighted_distribution, 1>(p_aw, data_p, data_h, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
-                // for (unsigned int k = 0; k < 4; ++k) {
-                //     p_aw.index(data_p.get_ff_type(i), res.distance[k]) += res.weight[k];
-                //     p_aw.index(form_factor::exv_bin, res.distance[k]) += data_h[j+k].value.w*Z_exv_avg;
-                // }
             }
 
             for (; j < data_h.get_size(); ++j) {
                 evaluate1<use_weighted_distribution, 1>(p_aw, data_p, data_h, i, j);
-                // auto res = data_p[i].evaluate_rounded(data_h[j]);
-                // p_aw.index(data_p.get_ff_type(i), res.distance) += res.weight;
-                // p_aw.index(form_factor::exv_bin, res.distance) += data_h[j].value.w*Z_exv_avg;
             }
         }
         return p_aw;
@@ -110,24 +81,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
             unsigned int j = i+1;                    // water
             for (; j+7 < data_h.get_size(); j+=8) {
                 evaluate8<use_weighted_distribution, 2>(p_ww, data_h, data_h, i, j);
-                // auto res = data_h[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
-                // for (unsigned int k = 0; k < 8; ++k) {
-                //     p_ww.index(res.distance[k]) += 2*res.weight[k];
-                // }
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
                 evaluate4<use_weighted_distribution, 2>(p_ww, data_h, data_h, i, j);
-                // auto res = data_h[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
-                // for (unsigned int k = 0; k < 4; ++k) {
-                //     p_ww.index(res.distance[k]) += 2*res.weight[k];
-                // }
             }
 
             for (; j < data_h.get_size(); ++j) {
                 evaluate1<use_weighted_distribution, 2>(p_ww, data_h, data_h, i, j);
-                // auto res = data_h[i].evaluate_rounded(data_h[j]);
-                // p_ww.index(res.distance) += 2*res.weight;
             }
         }
         return p_ww;

@@ -7,14 +7,14 @@ namespace hist {
         using hist::DistanceHistogram::DistanceHistogram;
         virtual ~ICompositeDistanceHistogram() = default;
 
-        virtual const std::vector<double>& get_aa_counts() const = 0;
-        virtual std::vector<double>& get_aa_counts() = 0;
+        virtual const Distribution1D& get_aa_counts() const = 0;
+        virtual Distribution1D& get_aa_counts() = 0;
 
-        virtual const std::vector<double>& get_aw_counts() const = 0;
-        virtual std::vector<double>& get_aw_counts() = 0;
+        virtual const Distribution1D& get_aw_counts() const = 0;
+        virtual Distribution1D& get_aw_counts() = 0;
 
-        virtual const std::vector<double>& get_ww_counts() const = 0;
-        virtual std::vector<double>& get_ww_counts() = 0;
+        virtual const Distribution1D& get_ww_counts() const = 0;
+        virtual Distribution1D& get_ww_counts() = 0;
 
         virtual void apply_water_scaling_factor(double k) = 0;
         void reset_water_scaling_factor() {apply_water_scaling_factor(1);}

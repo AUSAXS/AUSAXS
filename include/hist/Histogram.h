@@ -88,7 +88,7 @@ namespace hist {
              */
             virtual const std::vector<double>& get_counts() const;
 
-            virtual std::vector<double>& get_counts();
+            std::vector<double>& get_counts();
 
             double get_count(unsigned int i) const;
 

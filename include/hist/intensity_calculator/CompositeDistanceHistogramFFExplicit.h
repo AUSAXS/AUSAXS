@@ -70,8 +70,8 @@ namespace hist {
             double G_factor(double q) const;
 
         private:
-            container::Container3D<constants::axes::d_type> cp_ax;
-            container::Container3D<constants::axes::d_type> cp_xx;
-            container::Container2D<constants::axes::d_type> cp_wx;
+            hist::Distribution3D cp_ax;
+            hist::Distribution3D cp_xx;
+            hist::Distribution2D cp_wx;
     };
 }

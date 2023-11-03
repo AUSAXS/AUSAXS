@@ -78,9 +78,9 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager::calculate_
     unsigned int bins = total->get_axis().bins;
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    std::vector<double> p_hh = partials_hh.get_counts();
-    std::vector<double> p_pp = master.base.get_counts();
-    std::vector<double> p_hp(bins, 0);
+    Distribution1D p_hh = partials_hh.get_counts();
+    Distribution1D p_pp = master.base.get_counts();
+    Distribution1D p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < body_size; i++) {
         for (unsigned int j = 0; j <= i; j++) {
@@ -88,7 +88,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager::calculate_
 
             // iterate through each entry in the partial histogram
             for (unsigned int k = 0; k < bins; k++) {
-                p_pp[k] += current.get_count(k); // add to p_pp
+                p_pp.index(k) += current.get_count(k); // add to p_pp
             }
         }
     }
@@ -99,7 +99,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager::calculate_
 
         // iterate through each entry in the partial histogram
         for (unsigned int k = 0; k < bins; k++) {
-            p_hp[k] += current.get_count(k); // add to p_pp
+            p_hp.index(k) += current.get_count(k); // add to p_pp
         }
     }
 

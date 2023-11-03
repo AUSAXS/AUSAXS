@@ -3,10 +3,9 @@
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 
 namespace hist {
-	template<bool use_weighted_distribution>
-    class HistogramManagerMTFFGrid : public HistogramManagerMTFFAvg<use_weighted_distribution> {
+    class HistogramManagerMTFFGrid : public HistogramManagerMTFFAvg<false> {
         public:
-            using HistogramManagerMTFFAvg<use_weighted_distribution>::HistogramManagerMTFFAvg;
+            using HistogramManagerMTFFAvg<false>::HistogramManagerMTFFAvg;
 
             virtual ~HistogramManagerMTFFGrid() override;
 

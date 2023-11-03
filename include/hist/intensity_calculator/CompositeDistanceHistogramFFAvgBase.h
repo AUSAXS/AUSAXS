@@ -57,43 +57,43 @@ namespace hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const std::vector<constants::axes::d_type>& get_aa_counts() const override;
-            std::vector<constants::axes::d_type>& get_aa_counts() override; // @copydoc get_aa_counts() const
+            const Distribution1D& get_aa_counts() const override;
+            Distribution1D& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const std::vector<constants::axes::d_type>& get_aw_counts() const override;
-            std::vector<constants::axes::d_type>& get_aw_counts() override; // @copydoc get_aw_counts() const
+            const Distribution1D& get_aw_counts() const override;
+            Distribution1D& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const std::vector<constants::axes::d_type>& get_ww_counts() const override;
-            std::vector<constants::axes::d_type>& get_ww_counts() override; // @copydoc get_ww_counts() const
+            const Distribution1D& get_ww_counts() const override;
+            Distribution1D& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const container::Container3D<constants::axes::d_type>& get_aa_counts_ff() const;
-            container::Container3D<constants::axes::d_type>& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
+            const Distribution3D& get_aa_counts_ff() const;
+            Distribution3D& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const container::Container2D<constants::axes::d_type>& get_aw_counts_ff() const;
-            container::Container2D<constants::axes::d_type>& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
+            const Distribution2D& get_aw_counts_ff() const;
+            Distribution2D& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const container::Container1D<constants::axes::d_type>& get_ww_counts_ff() const;
-            container::Container1D<constants::axes::d_type>& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
+            const Distribution1D& get_ww_counts_ff() const;
+            Distribution1D& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
 
             /**
              * @brief Get the total distance histogram.
              */
-            const std::vector<constants::axes::d_type>& get_counts() const override;
+            const std::vector<double>& get_counts() const override;
 
             /**
              * @brief Get the intensity profile for atom-atom interactions.
@@ -130,13 +130,13 @@ namespace hist {
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
-            container::Container3D<constants::axes::d_type> cp_aa; 
-            container::Container2D<constants::axes::d_type> cp_aw; 
-            container::Container1D<constants::axes::d_type> cp_ww;
+            Distribution3D cp_aa; 
+            Distribution2D cp_aw; 
+            Distribution1D cp_ww;
 
         private:
-            mutable std::vector<constants::axes::d_type> p_aa;
-            mutable std::vector<constants::axes::d_type> p_aw;
-            mutable std::vector<constants::axes::d_type> p_ww;
+            mutable Distribution1D p_aa;
+            mutable Distribution1D p_aw;
+            mutable Distribution1D p_ww;
     };
 }

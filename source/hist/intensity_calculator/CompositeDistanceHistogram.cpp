@@ -12,7 +12,7 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::WeightedDistribution1D&& p_ww, 
     hist::Distribution1D&& p_tot, 
     const Axis& axis
-) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa.get_container())), p_aw(std::move(p_aw.get_container())), p_ww(std::move(p_ww.get_container())) {}
+) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
@@ -24,27 +24,27 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 
-const std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aa_counts() const {
+const Distribution1D& CompositeDistanceHistogram::get_aa_counts() const {
     return p_aa;
 }
 
-std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aa_counts() {
+Distribution1D& CompositeDistanceHistogram::get_aa_counts() {
     return p_aa;
 }
 
-const std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aw_counts() const {
+const Distribution1D& CompositeDistanceHistogram::get_aw_counts() const {
     return p_aw;
 }
 
-std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_aw_counts() {
+Distribution1D& CompositeDistanceHistogram::get_aw_counts() {
     return p_aw;
 }
 
-const std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_ww_counts() const {
+const Distribution1D& CompositeDistanceHistogram::get_ww_counts() const {
     return p_ww;
 }
 
-std::vector<constants::axes::d_type>& CompositeDistanceHistogram::get_ww_counts() {
+Distribution1D& CompositeDistanceHistogram::get_ww_counts() {
     return p_ww;
 }
 
@@ -53,7 +53,7 @@ void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
 }
 
-auto partial_profile = [] (const std::vector<constants::axes::d_type>& p, const std::vector<double>& q_axis) {
+auto partial_profile = [] (const Distribution1D& p, const std::vector<double>& q_axis) {
     const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
