@@ -54,18 +54,18 @@ void set_unity_charge(Molecule& protein) {
 //
 // calculation: 1 center point
 //          1 line  of length 0
-//          16 lines of length sqrt(2) = 1.41 (counting both directions)
+//          16 lines of length sqrt(3) = 1.73 (counting both directions)
 //
 // sum:
 //          9 line  of length 0
-//          16 lines of length sqrt(2)
+//          16 lines of length sqrt(3)
 //          24 lines of length 2
 //          24 lines of length sqrt(8)
 //          8 lines of length sqrt(12)
 auto width = constants::axes::d_axis.width();
 std::vector<double> d = {
     0, 
-    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
+    constants::axes::d_vals[std::round(std::sqrt(3)/width)], 
     constants::axes::d_vals[std::round(2./width)], 
     constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
     constants::axes::d_vals[std::round(std::sqrt(12)/width)]

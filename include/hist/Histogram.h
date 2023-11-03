@@ -64,11 +64,6 @@ namespace hist {
             void shorten_axis(unsigned int min_size = 10);
 
             /**
-             * @brief Extend the view axis to the given maximum value. 
-             */
-            // void extend_axis(double qmax);
-
-            /**
              * @brief Resize the number of bins in this histogram, keeping the width constant.
              */
             void resize(unsigned int bins);

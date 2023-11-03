@@ -18,6 +18,8 @@ namespace container {
             Container1D() : N(0), data(0) {}
             Container1D(unsigned int size) : N(size), data(size) {}
             Container1D(unsigned int size, const T& value) : N(size), data(size, value) {}
+            Container1D(const std::vector<T>& data) : N(data.size()), data(data) {}
+            Container1D(std::vector<T>&& data) : N(data.size()), data(std::move(data)) {}
 
             T& operator()(unsigned int i) {
                 #if (SAFE_MATH)

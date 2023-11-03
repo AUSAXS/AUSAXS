@@ -4,45 +4,14 @@
 #include <constants/Constants.h>
 
 namespace hist {
-    class Distribution2D {
-        using type = constants::axes::d_type;
+    class Distribution2D : public container::Container2D<constants::axes::d_type> {
         public:
-            Distribution2D() = default;
-            Distribution2D(unsigned int size_x, unsigned int size_y, type value);
+            using Container2D::Container2D;
 
             /**
              * @brief Add a value for a given distance.
              */
-            void add(unsigned int x, float distance, type value);
-            void add(unsigned int x, int32_t i, type value);
-
-            type& index(unsigned int x, unsigned int y);
-            const type& index(unsigned int x, unsigned int y) const;
-
-            const typename std::vector<type>::const_iterator begin(unsigned int x) const;
-            const typename std::vector<type>::const_iterator end(unsigned int x) const;
-            const typename std::vector<type>::const_iterator begin() const;
-            const typename std::vector<type>::const_iterator end() const;
-
-            typename std::vector<type>::iterator begin(unsigned int x);
-            typename std::vector<type>::iterator end(unsigned int x);
-            typename std::vector<type>::iterator begin();
-            typename std::vector<type>::iterator end();
-
-            std::size_t size_x() const;
-            std::size_t size_y() const;
-            bool empty() const;
-            void resize(unsigned int size);
-
-            /**
-             * @brief Get a container with the values of the distribution.
-             *        Note that this is reference to the internal container.
-             * 
-             * Complexity: O(1)
-             */
-            container::Container2D<type>& get_container();
-
-        private:
-            container::Container2D<type> data;
+            void add(unsigned int x, float distance, constants::axes::d_type value);
+            void add(unsigned int x, int32_t i, constants::axes::d_type value);
     };
 }

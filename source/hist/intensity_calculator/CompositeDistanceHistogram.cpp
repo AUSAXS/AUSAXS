@@ -20,7 +20,7 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_ww, 
     hist::Distribution1D&& p_tot, 
     const Axis& axis
-) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa.get_container())), p_aw(std::move(p_aw.get_container())), p_ww(std::move(p_ww.get_container())) {}
+) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 

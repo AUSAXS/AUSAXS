@@ -25,6 +25,8 @@ namespace form_factor {
         EXCLUDED_VOLUME,    // excluded volume
         COUNT,              // this will have the numerical value of the number of form factor types, and can thus be used to allocate arrays
     };
+    constexpr int exv_bin   = static_cast<int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
+    constexpr int water_bin = static_cast<int>(form_factor::form_factor_t::OH);
 
     [[maybe_unused]] static std::string to_string(form_factor_t type) {
         switch (type) {

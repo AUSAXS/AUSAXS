@@ -29,10 +29,6 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
 
-    constexpr unsigned int exv_bin = static_cast<unsigned int>(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    double Z_exv_avg = this->protein->get_excluded_volume()*constants::charge::density::water/this->protein->atom_size();
-    double Z_exv_avg2 = Z_exv_avg*Z_exv_avg;
-
     data_p_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_bodies());
     data_h_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_waters());
     auto& data_p = *data_p_ptr;
@@ -41,7 +37,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    auto calc_aa = [&data_p, &Z_exv_avg, &Z_exv_avg2] (unsigned int imin, unsigned int imax) {
+    auto calc_aa = [&data_p] (unsigned int imin, unsigned int imax) {
         GenericDistribution3D_t p_aa(form_factor::get_count(), form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
         for (unsigned int i = imin; i < imax; ++i) { // atom
             unsigned int j = i+1;                    // atom
@@ -50,8 +46,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
                 // auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
                 // for (unsigned int k = 0; k < 8; ++k) {
                 //     p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                //     p_aa.index(data_p.get_ff_type(i), exv_bin, res.distance[k]) += 2*data_p[j+k].value.w*Z_exv_avg;
-                //     p_aa.index(exv_bin, exv_bin, res.distance[k]) += 2*Z_exv_avg2;
+                //     p_aa.index(data_p.get_ff_type(i), form_factor::exv_bin, res.distance[k]) += 2*data_p[i].value.w*Z_exv_avg;
+                //     p_aa.index(form_factor::exv_bin, form_factor::exv_bin, res.distance[k]) += 2*Z_exv_avg2;
                 // }
             }
 
@@ -60,8 +56,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
                 // auto res = data_p[i].evaluate_rounded(data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
                 // for (unsigned int k = 0; k < 4; ++k) {
                 //     p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j+k), res.distance[k]) += 2*res.weight[k];
-                //     p_aa.index(data_p.get_ff_type(i), exv_bin, res.distance[k]) += 2*data_p[j+k].value.w*Z_exv_avg;
-                //     p_aa.index(exv_bin, exv_bin, res.distance[k]) += 2*Z_exv_avg2;
+                //     p_aa.index(data_p.get_ff_type(i), form_factor::exv_bin, res.distance[k]) += 2*data_p[i].value.w*Z_exv_avg;
+                //     p_aa.index(form_factor::exv_bin, form_factor::exv_bin, res.distance[k]) += 2*Z_exv_avg2;
                 // }
             }
 
@@ -69,14 +65,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
                 evaluate1<use_weighted_distribution, 2>(p_aa, data_p, data_p, i, j);
                 // auto res = data_p[i].evaluate_rounded(data_p[j]);
                 // p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(j), res.distance) += 2*res.weight;
-                // p_aa.index(data_p.get_ff_type(i), exv_bin, res.distance) += 2*data_p[j].value.w*Z_exv_avg;
-                // p_aa.index(exv_bin, exv_bin, res.distance) += 2*Z_exv_avg2;
+                // p_aa.index(data_p.get_ff_type(i), form_factor::exv_bin, res.distance) += 2*data_p[i].value.w*Z_exv_avg;
+                // p_aa.index(form_factor::exv_bin, form_factor::exv_bin, res.distance) += 2*Z_exv_avg2;
             }
         }
         return p_aa;
     };
 
-    auto calc_aw = [&data_h, &data_p, &Z_exv_avg, &exv_bin] (unsigned int imin, unsigned int imax) {
+    auto calc_aw = [&data_h, &data_p] (unsigned int imin, unsigned int imax) {
         GenericDistribution2D_t p_aw(form_factor::get_count(), constants::axes::d_axis.bins, 0); // ff_type, distance
         for (unsigned int i = imin; i < imax; ++i) { // atom
             unsigned int j = 0;                      // water
@@ -85,7 +81,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
                 // auto res = data_p[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
                 // for (unsigned int k = 0; k < 8; ++k) {
                 //     p_aw.index(data_p.get_ff_type(i), res.distance[k]) += res.weight[k];
-                //     p_aw.index(exv_bin, res.distance[k]) += data_h[j+k].value.w*Z_exv_avg;
+                //     p_aw.index(form_factor::exv_bin, res.distance[k]) += data_h[j+k].value.w*Z_exv_avg;
                 // }
             }
 
@@ -94,7 +90,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
                 // auto res = data_p[i].evaluate_rounded(data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
                 // for (unsigned int k = 0; k < 4; ++k) {
                 //     p_aw.index(data_p.get_ff_type(i), res.distance[k]) += res.weight[k];
-                //     p_aw.index(exv_bin, res.distance[k]) += data_h[j+k].value.w*Z_exv_avg;
+                //     p_aw.index(form_factor::exv_bin, res.distance[k]) += data_h[j+k].value.w*Z_exv_avg;
                 // }
             }
 
@@ -102,7 +98,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
                 evaluate1<use_weighted_distribution, 1>(p_aw, data_p, data_h, i, j);
                 // auto res = data_p[i].evaluate_rounded(data_h[j]);
                 // p_aw.index(data_p.get_ff_type(i), res.distance) += res.weight;
-                // p_aw.index(exv_bin, res.distance) += data_h[j].value.w*Z_exv_avg;
+                // p_aw.index(form_factor::exv_bin, res.distance) += data_h[j].value.w*Z_exv_avg;
             }
         }
         return p_aw;
@@ -195,7 +191,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     // SELF-CORRELATIONS //
     //###################//
     for (unsigned int i = 0; i < data_p.get_size(); ++i) {p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += std::pow(data_p[i].value.w, 2);}
-    p_aa.index(exv_bin, exv_bin, 0) = data_p.get_size()*Z_exv_avg2;
+    p_aa.index(form_factor::exv_bin, form_factor::exv_bin, 0) = data_p.get_size();
     p_ww.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
@@ -223,6 +219,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     p_aa.resize(max_bin);
     p_aw.resize(max_bin);
     p_ww.resize(max_bin);
+
+    // multiply the excluded volume charge onto the excluded volume bins
+    double Z_exv_avg = this->protein->get_excluded_volume()*constants::charge::density::water/this->protein->atom_size();
+    for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
+        std::transform(p_aa.begin(ff1, form_factor::exv_bin), p_aa.end(ff1, form_factor::exv_bin), p_aa.begin(ff1, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
+    }
+    std::transform(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg*Z_exv_avg;});
+    std::transform(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), p_aw.begin(form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
         std::move(p_aa), 
         std::move(p_aw), 

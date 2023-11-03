@@ -66,13 +66,6 @@ void Histogram::shorten_axis(unsigned int min_size) {
     }
 }
 
-// void Histogram::extend_axis(double qmax) {
-//     double width = axis.width();
-//     unsigned int bins = int(qmax/width);
-//     p.resize(bins);
-//     axis = Axis(0, bins*width, bins);
-// }
-
 const Axis& Histogram::get_axis() const {
     return axis;
 }

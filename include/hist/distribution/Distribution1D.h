@@ -6,42 +6,18 @@
 #include <cmath>
 
 namespace hist {
-    class Distribution1D {
-        using type = constants::axes::d_type;
-
+    class Distribution1D : public container::Container1D<constants::axes::d_type> {
         public:
-            Distribution1D() = default;
-            Distribution1D(unsigned int size);
-            Distribution1D(unsigned int size, type value);
+            using Container1D::Container1D;
 
             /**
              * @brief Add a value for a given distance.
              */
-            void add(float distance, type value);
-            void add(int32_t i, type value);
-
-            type& index(unsigned int i);
-            const type& index(unsigned int i) const;
-
-            const typename std::vector<type>::const_iterator begin() const;
-            const typename std::vector<type>::const_iterator end() const;
-
-            typename std::vector<type>::iterator begin();
-            typename std::vector<type>::iterator end();
-
-            std::size_t size() const;
-            bool empty() const;
-            void resize(unsigned int size);
+            void add(float distance, constants::axes::d_type value);
 
             /**
-             * @brief Get a container with the values of the distribution.
-             *        Note that this is reference to the internal container.
-             * 
-             * Complexity: O(1)
+             * @brief Add a value for a given distance.
              */
-            container::Container1D<type>& get_container();
-
-        private:
-            container::Container1D<type> data;
+            void add(int32_t i, constants::axes::d_type value);
     };
 }
