@@ -59,15 +59,18 @@ struct DebugData : CompactCoordinatesData {
 #include <functional>
 void single_tests(std::function<EvaluatedResult(const DebugData&, const DebugData&)> evaluate) {
     SECTION("single distance") {
+        double width = constants::axes::d_axis.width();
         DebugData data1(Vector3<double>{1, 1, 1}, 2);
         DebugData data2(Vector3<double>{2, 1, 1}, 4);
         auto result = evaluate(data1, data2);
         CHECK(result.distance == 1);
+        CHECK(result.distance_bin == std::round(1./width));
         CHECK(result.weight == 8);
 
         DebugData data3(Vector3<double>{2, 2, 2}, 8);
         result = evaluate(data1, data3);
         CHECK_THAT(result.distance, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
+        CHECK(result.distance_bin == std::round(std::sqrt(3)/width));
         CHECK(result.weight == 16);
     }
 }
@@ -90,20 +93,25 @@ void single_tests_rounded(std::function<EvaluatedResultRounded(const DebugData&,
 
 void quad_tests(std::function<QuadEvaluatedResult(const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&)> evaluate) {
     SECTION("four distances") {
+        double width = constants::axes::d_axis.width();
         DebugData data( Vector3<double>{1, 1, 1}, 2);
         DebugData data1(Vector3<double>{2, 1, 1}, 4);
         DebugData data2(Vector3<double>{2, 2, 2}, 8);
         DebugData data3(Vector3<double>{3, 3, 3}, 16);
         DebugData data4(Vector3<double>{4, 4, 4}, 3);
         auto result = evaluate(data, data1, data2, data3, data4);
-        CHECK_THAT(result.distances.first,  Catch::Matchers::WithinAbs(1, 1e-6));
-        CHECK_THAT(result.distances.second, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
-        CHECK_THAT(result.distances.third,  Catch::Matchers::WithinAbs(std::sqrt(12), 1e-6));
-        CHECK_THAT(result.distances.fourth, Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
-        CHECK(result.weights.first == 8);
-        CHECK(result.weights.second == 16);
-        CHECK(result.weights.third == 32);
-        CHECK(result.weights.fourth == 6);
+        CHECK_THAT(result.distance.first,  Catch::Matchers::WithinAbs(1, 1e-6));
+        CHECK_THAT(result.distance.second, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
+        CHECK_THAT(result.distance.third,  Catch::Matchers::WithinAbs(std::sqrt(12), 1e-6));
+        CHECK_THAT(result.distance.fourth, Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
+        CHECK(result.distance_bin.first  == std::round(1./width));
+        CHECK(result.distance_bin.second == std::round(std::sqrt(3)/width));
+        CHECK(result.distance_bin.third  == std::round(std::sqrt(12)/width));
+        CHECK(result.distance_bin.fourth == std::round(std::sqrt(27)/width));
+        CHECK(result.weight.first == 8);
+        CHECK(result.weight.second == 16);
+        CHECK(result.weight.third == 32);
+        CHECK(result.weight.fourth == 6);
     }
 }
 
@@ -116,19 +124,20 @@ void quad_tests_rounded(std::function<QuadEvaluatedResultRounded(const DebugData
         DebugData data3(Vector3<double>{3, 3, 3}, 16);
         DebugData data4(Vector3<double>{4, 4, 4}, 3);
         auto result = evaluate(data, data1, data2, data3, data4);
-        CHECK(result.distances.first  == std::round(1./width));
-        CHECK(result.distances.second == std::round(std::sqrt(3)/width));
-        CHECK(result.distances.third  == std::round(std::sqrt(12)/width));
-        CHECK(result.distances.fourth == std::round(std::sqrt(27)/width));
-        CHECK(result.weights.first == 8);
-        CHECK(result.weights.second == 16);
-        CHECK(result.weights.third == 32);
-        CHECK(result.weights.fourth == 6);
+        CHECK(result.distance.first  == std::round(1./width));
+        CHECK(result.distance.second == std::round(std::sqrt(3)/width));
+        CHECK(result.distance.third  == std::round(std::sqrt(12)/width));
+        CHECK(result.distance.fourth == std::round(std::sqrt(27)/width));
+        CHECK(result.weight.first == 8);
+        CHECK(result.weight.second == 16);
+        CHECK(result.weight.third == 32);
+        CHECK(result.weight.fourth == 6);
     }
 }
 
 void octo_tests(std::function<OctoEvaluatedResult(const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&, const DebugData&)> evaluate) {
     SECTION("eight distances") {
+        double width = constants::axes::d_axis.width();
         DebugData data( Vector3<double>{1, 1, 1}, 2);
         DebugData data1(Vector3<double>{2, 1, 1}, 4);
         DebugData data2(Vector3<double>{2, 2, 2}, 8);
@@ -139,22 +148,30 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData&, const DebugD
         DebugData data7(Vector3<double>{7, 7, 7}, 15);
         DebugData data8(Vector3<double>{8, 8, 8}, 5);
         auto result = evaluate(data, data1, data2, data3, data4, data5, data6, data7, data8);
-        CHECK_THAT(result.distances.first,  Catch::Matchers::WithinAbs(1, 1e-6));
-        CHECK_THAT(result.distances.second, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
-        CHECK_THAT(result.distances.third,  Catch::Matchers::WithinAbs(std::sqrt(12), 1e-6));
-        CHECK_THAT(result.distances.fourth, Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
-        CHECK_THAT(result.distances.fifth,  Catch::Matchers::WithinAbs(std::sqrt(48), 1e-6));
-        CHECK_THAT(result.distances.sixth,  Catch::Matchers::WithinAbs(std::sqrt(75), 1e-6));
-        CHECK_THAT(result.distances.seventh,Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
-        CHECK_THAT(result.distances.eighth, Catch::Matchers::WithinAbs(std::sqrt(147), 1e-6));
-        CHECK(result.weights.first == 8);
-        CHECK(result.weights.second == 16);
-        CHECK(result.weights.third == 32);
-        CHECK(result.weights.fourth == 64);
-        CHECK(result.weights.fifth == 128);
-        CHECK(result.weights.sixth == 256);
-        CHECK(result.weights.seventh == 30);
-        CHECK(result.weights.eighth == 10);
+        CHECK_THAT(result.distance.first,  Catch::Matchers::WithinAbs(1, 1e-6));
+        CHECK_THAT(result.distance.second, Catch::Matchers::WithinAbs(std::sqrt(3), 1e-6));
+        CHECK_THAT(result.distance.third,  Catch::Matchers::WithinAbs(std::sqrt(12), 1e-6));
+        CHECK_THAT(result.distance.fourth, Catch::Matchers::WithinAbs(std::sqrt(27), 1e-6));
+        CHECK_THAT(result.distance.fifth,  Catch::Matchers::WithinAbs(std::sqrt(48), 1e-6));
+        CHECK_THAT(result.distance.sixth,  Catch::Matchers::WithinAbs(std::sqrt(75), 1e-6));
+        CHECK_THAT(result.distance.seventh,Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
+        CHECK_THAT(result.distance.eighth, Catch::Matchers::WithinAbs(std::sqrt(147), 1e-6));
+        CHECK(result.distance_bin.first   == std::round(1./width));
+        CHECK(result.distance_bin.second  == std::round(std::sqrt(3)/width));
+        CHECK(result.distance_bin.third   == std::round(std::sqrt(12)/width));
+        CHECK(result.distance_bin.fourth  == std::round(std::sqrt(27)/width));
+        CHECK(result.distance_bin.fifth   == std::round(std::sqrt(48)/width));
+        CHECK(result.distance_bin.sixth   == std::round(std::sqrt(75)/width));
+        CHECK(result.distance_bin.seventh == std::round(std::sqrt(108)/width));
+        CHECK(result.distance_bin.eighth  == std::round(std::sqrt(147)/width));
+        CHECK(result.weight.first == 8);
+        CHECK(result.weight.second == 16);
+        CHECK(result.weight.third == 32);
+        CHECK(result.weight.fourth == 64);
+        CHECK(result.weight.fifth == 128);
+        CHECK(result.weight.sixth == 256);
+        CHECK(result.weight.seventh == 30);
+        CHECK(result.weight.eighth == 10);
     }
 }
 
@@ -171,22 +188,22 @@ void octo_tests_rounded(std::function<OctoEvaluatedResultRounded(const DebugData
         DebugData data7(Vector3<double>{7, 7, 7}, 15);
         DebugData data8(Vector3<double>{8, 8, 8}, 5);
         auto result = evaluate(data, data1, data2, data3, data4, data5, data6, data7, data8);
-        CHECK(result.distances.first   == std::round(1./width));
-        CHECK(result.distances.second  == std::round(std::sqrt(3)/width));
-        CHECK(result.distances.third   == std::round(std::sqrt(12)/width));
-        CHECK(result.distances.fourth  == std::round(std::sqrt(27)/width));
-        CHECK(result.distances.fifth   == std::round(std::sqrt(48)/width));
-        CHECK(result.distances.sixth   == std::round(std::sqrt(75)/width));
-        CHECK(result.distances.seventh == std::round(std::sqrt(108)/width));
-        CHECK(result.distances.eighth  == std::round(std::sqrt(147)/width));
-        CHECK(result.weights.first == 8);
-        CHECK(result.weights.second == 16);
-        CHECK(result.weights.third == 32);
-        CHECK(result.weights.fourth == 64);
-        CHECK(result.weights.fifth == 128);
-        CHECK(result.weights.sixth == 256);
-        CHECK(result.weights.seventh == 30);
-        CHECK(result.weights.eighth == 10);
+        CHECK(result.distance.first   == std::round(1./width));
+        CHECK(result.distance.second  == std::round(std::sqrt(3)/width));
+        CHECK(result.distance.third   == std::round(std::sqrt(12)/width));
+        CHECK(result.distance.fourth  == std::round(std::sqrt(27)/width));
+        CHECK(result.distance.fifth   == std::round(std::sqrt(48)/width));
+        CHECK(result.distance.sixth   == std::round(std::sqrt(75)/width));
+        CHECK(result.distance.seventh == std::round(std::sqrt(108)/width));
+        CHECK(result.distance.eighth  == std::round(std::sqrt(147)/width));
+        CHECK(result.weight.first == 8);
+        CHECK(result.weight.second == 16);
+        CHECK(result.weight.third == 32);
+        CHECK(result.weight.fourth == 64);
+        CHECK(result.weight.fifth == 128);
+        CHECK(result.weight.sixth == 256);
+        CHECK(result.weight.seventh == 30);
+        CHECK(result.weight.eighth == 10);
     }
 }
 

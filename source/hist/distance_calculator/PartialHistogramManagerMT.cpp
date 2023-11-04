@@ -201,12 +201,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
         unsigned int j = i+1;
         for (; j+7 < coords.get_size(); j+=8) {
             auto res = coords[i].evaluate_rounded(coords[j], coords[j+1], coords[j+2], coords[j+3], coords[j+4], coords[j+5], coords[j+6], coords[j+7]);
-            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
         for (; j+3 < coords.get_size(); j+=4) {
             auto res = coords[i].evaluate_rounded(coords[j], coords[j+1], coords[j+2], coords[j+3]);
-            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
         for (; j < coords.get_size(); ++j) {
@@ -241,12 +241,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
             unsigned int j = 0;
             for (; j+7 < coords_m.get_size(); j+=8) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3], coords_m[j+4], coords_m[j+5], coords_m[j+6], coords_m[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j+3 < coords_m.get_size(); j+=4) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j < coords_m.get_size(); ++j) {
@@ -273,12 +273,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
             unsigned int j = 0;
             for (; j+7 < coords_h.get_size(); j+=8) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+                for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distances[k]] += res.weights[k];}
             }
 
             for (; j+3 < coords_h.get_size(); j+=4) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+                for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distances[k]] += res.weights[k];}
             }
 
             for (; j < coords_h.get_size(); ++j) {
@@ -306,12 +306,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
             unsigned int j = i+1;
             for (; j+7 < coords_h.get_size(); j+=8) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j+3 < coords_h.get_size(); j+=4) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j < coords_h.get_size(); ++j) {

@@ -20,8 +20,8 @@ template<bool use_weighted_distribution, int factor>
 inline void evaluate8(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_ww, typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_wx, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
     auto res = detail::ff2::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 8; ++k) {
-        p_ww.add(data_i.get_ff_type(i), res.distance[k], factor*res.weight[k]);
-        p_wx.add(data_i.get_ff_type(i), res.distance[k], factor*data_j[j+k].value.w);
+        p_ww.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);
+        p_wx.add(data_i.get_ff_type(i), res.distances[k], factor*data_j[j+k].value.w);
     }
 }
 
@@ -40,8 +40,8 @@ template<bool use_weighted_distribution, int factor>
 inline void evaluate4(typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_ww, typename hist::GenericDistribution2D<use_weighted_distribution>::type& p_wx, const hist::detail::CompactCoordinatesFF& data_i, const hist::detail::CompactCoordinatesFF& data_j, int i, int j) {
     auto res = detail::ff2::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 4; ++k) {
-        p_ww.add(data_i.get_ff_type(i), res.distance[k], factor*res.weight[k]);
-        p_wx.add(data_i.get_ff_type(i), res.distance[k], factor*data_j[j+k].value.w);
+        p_ww.add(data_i.get_ff_type(i), res.distances[k], factor*res.weights[k]);
+        p_wx.add(data_i.get_ff_type(i), res.distances[k], factor*data_j[j+k].value.w);
     }
 }
 

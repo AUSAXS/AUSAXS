@@ -37,15 +37,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < data_p.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_pp, data_p[i], data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                evaluate8<use_weighted_distribution, 2>(p_pp, data_p, data_p, i, j);
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_pp, data_p[i], data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                evaluate4<use_weighted_distribution, 2>(p_pp, data_p, data_p, i, j);
             }
 
             for (; j < data_p.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_pp, data_p[i], data_p[j]);
+                evaluate1<use_weighted_distribution, 2>(p_pp, data_p, data_p, i, j);
             }
         }
         return p_pp;
@@ -56,15 +56,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < data_h.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_hh, data_h[i], data_h[j], data_h[j+1], data_h[j+2], data_h[j+3], data_h[j+4], data_h[j+5], data_h[j+6], data_h[j+7]);
+                evaluate8<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
             }
 
             for (; j+3 < data_h.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_hh, data_h[i], data_h[j], data_h[j+1], data_h[j+2], data_h[j+3]);
+                evaluate4<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
             }
 
             for (; j < data_h.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_hh, data_h[i], data_h[j]);
+                evaluate1<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
             }
         }
         return p_hh;
@@ -75,15 +75,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
             for (; j+7 < data_p.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_hp, data_h[i], data_p[j], data_p[j+1], data_p[j+2], data_p[j+3], data_p[j+4], data_p[j+5], data_p[j+6], data_p[j+7]);
+                evaluate8<use_weighted_distribution, 1>(p_hp, data_h, data_p, i, j);
             }
 
             for (; j+3 < data_p.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_hp, data_h[i], data_p[j], data_p[j+1], data_p[j+2], data_p[j+3]);
+                evaluate4<use_weighted_distribution, 1>(p_hp, data_h, data_p, i, j);
             }
 
             for (; j < data_p.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_hp, data_h[i], data_p[j]);
+                evaluate1<use_weighted_distribution, 1>(p_hp, data_h, data_p, i, j);
             }
         }
         return p_hp;
