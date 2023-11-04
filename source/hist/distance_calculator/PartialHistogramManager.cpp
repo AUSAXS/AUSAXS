@@ -68,7 +68,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager::calculate() {
         }
     }
     statemanager.reset();
-    std::vector<double> p = master.get_counts();
+    Distribution1D p = master.get_counts();
     return std::make_unique<DistanceHistogram>(std::move(p), master.get_axis());
 }
 

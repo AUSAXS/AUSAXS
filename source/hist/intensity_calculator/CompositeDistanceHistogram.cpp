@@ -12,7 +12,9 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::WeightedDistribution1D&& p_ww, 
     hist::Distribution1D&& p_tot, 
     const Axis& axis
-) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
+) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {
+    use_weighted_sinc_table();
+}
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
@@ -53,8 +55,7 @@ void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
 }
 
-auto partial_profile = [] (const Distribution1D& p, const std::vector<double>& q_axis) {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+auto partial_profile = [] (const Distribution1D& p, const std::vector<double>& q_axis, const table::ArrayDebyeTable& sinqd_table) {
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 
@@ -67,13 +68,13 @@ auto partial_profile = [] (const Distribution1D& p, const std::vector<double>& q
 };
 
 const ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
-    return partial_profile(get_aa_counts(), q_axis);
+    return partial_profile(get_aa_counts(), q_axis, get_sinc_table());
 }
 
 const ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
-    return partial_profile(get_aw_counts(), q_axis)*2;
+    return partial_profile(get_aw_counts(), q_axis, get_sinc_table())*2;
 }
 
 const ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {
-    return partial_profile(get_ww_counts(), q_axis);
+    return partial_profile(get_ww_counts(), q_axis, get_sinc_table());
 }

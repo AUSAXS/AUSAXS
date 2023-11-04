@@ -4,7 +4,7 @@
 #include <hist/distribution/Distribution1D.h>
 #include <hist/Histogram.h>
 #include <hist/HistFwd.h>
-#include <table/TableFwd.h>
+#include <table/ArrayDebyeTable.h>
 #include <dataset/DatasetFwd.h>
 #include <constants/Constants.h>
 
@@ -19,6 +19,7 @@ namespace hist {
         public: 
             DistanceHistogram();
             DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis);
+            DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis);
 
             /**
              * @brief Extract the total histogram from a CompositeDistanceHistogram.
@@ -46,10 +47,24 @@ namespace hist {
             std::vector<double>& get_total_counts();
 
         protected:
-            std::vector<double> d_axis; // the distance axis
-            std::vector<double> q_axis; // the q axis
+            std::vector<double> d_axis;                 // the distance axis
+            std::vector<double> q_axis;                 // the q axis
+
+            /**
+             * @brief Get the sinc(x) lookup table for the Debye transform.
+             */
+            const table::ArrayDebyeTable& get_sinc_table() const;
+
+            /**
+             * @brief Use a weighted sinc table for the Debye transform.
+             *        The weights are extracted from the WeightedHistogram struct, which automatically keeps track of all WeightedDistribution counts. 
+             */
+            void use_weighted_sinc_table();
 
         private:
+            table::ArrayDebyeTable weighted_sinc_table; // the weighted sinc table
+            bool use_weighted_table = false;            // whether to use the weighted sinc table
+
             void initialize();
     };
 }

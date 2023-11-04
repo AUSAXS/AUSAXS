@@ -1,5 +1,6 @@
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/distribution/WeightedDistribution.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <dataset/SimpleDataset.h>
@@ -12,8 +13,21 @@ DistanceHistogram::DistanceHistogram() = default;
 
 DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {}
 
+DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {}
+
 DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_counts()), cdh->get_axis()) {
     initialize();
+}
+
+const table::ArrayDebyeTable& DistanceHistogram::get_sinc_table() const {
+    if (use_weighted_table) {return weighted_sinc_table;}
+    return table::ArrayDebyeTable::get_default_table();
+}
+
+void DistanceHistogram::use_weighted_sinc_table() {
+    auto weighted_bins = hist::WeightedDistribution::get_weighted_bins();
+    weighted_sinc_table = table::ArrayDebyeTable(weighted_bins);
+    use_weighted_table = true;
 }
 
 DistanceHistogram::~DistanceHistogram() = default;
@@ -28,7 +42,7 @@ void DistanceHistogram::initialize() {
 ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    const auto& sinqd_table = get_sinc_table();
 
     // calculate the scattering intensity based on the Debye equation
     std::vector<double> Iq(debye_axis.bins, 0);

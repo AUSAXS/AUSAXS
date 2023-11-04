@@ -1,7 +1,7 @@
 #pragma once
 
 #include <container/ArrayContainer2D.h>
-#include <constants/Constants.h>
+#include <constants/Axes.h>
 
 #include <cmath>
 #include <vector>
@@ -14,8 +14,18 @@ namespace table {
      */
     class ArrayDebyeTable : private container::ArrayContainer2D<double, constants::axes::q_axis.bins, constants::axes::d_axis.bins> {
         public:
+            /**
+             * @brief Initialize a compile-time sinc lookup table for the default q-axis with the given d-axis.
+             */
+            constexpr ArrayDebyeTable(std::array<constants::axes::d_type, constants::axes::d_axis.bins> darray) noexcept {
+                initialize(darray);
+            }
+
+            /**
+             * @brief Initialize a compile-time sinc lookup table for the default q and d axes.
+             */
             constexpr ArrayDebyeTable() noexcept {
-                initialize();
+                initialize(constants::axes::d_vals);
             }
 
             /**
@@ -55,7 +65,7 @@ namespace table {
             static void check_default(const std::vector<double>& q, const std::vector<double>& d);
 
         private: 
-            constexpr void initialize() noexcept {
+            constexpr void initialize(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>& darray) noexcept {
                 double tolerance = 1e-3;  // The minimum x-value where sin(x)/x is replaced by its Taylor-series.
                 double inv_6 = 1./6;      // 1/6
                 double inv_120 = 1./120;  // 1/120
@@ -63,7 +73,7 @@ namespace table {
                 for (unsigned int i = 0; i < size_q(); ++i) {
                     double q = constants::axes::q_vals[i];
                     for (unsigned int j = 0; j < size_d(); ++j) {
-                        double d = constants::axes::d_vals[j];
+                        double d = darray[j];
                         double qd = q*d;
                         if (qd < tolerance) {
                             double qd2 = qd*qd;

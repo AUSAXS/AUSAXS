@@ -171,10 +171,11 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
             }
-            { // hm_mt_ff_grid
-                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-                REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
-            }
+            // grid-based doesn't make sense for a water-only system and will throw an exception - excluded volume is based on atomic volumes
+            // { // hm_mt_ff_grid 
+            //     auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
+            // }
             { // phm
                 auto phm = hist::PartialHistogramManager(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
