@@ -4,7 +4,7 @@
 
 using namespace hist::detail;
 
-constexpr float inv_width = 1.0f/constants::axes::d_axis.width();
+constexpr float inv_width = constants::axes::d_inv_width;
 
 CompactCoordinatesData::CompactCoordinatesData() : data(std::array<float, 4>({0, 0, 0, 0})) {}
 
@@ -73,7 +73,7 @@ static inline float squared_dot_product(const float* v1, const float* v2) {
 
 EvaluatedResult CompactCoordinatesData::evaluate_scalar(const CompactCoordinatesData& other) const {
     float dist = std::sqrt(squared_dot_product(this->data.data(), other.data.data()));
-    return EvaluatedResult(std::round(inv_width*dist), dist, value.w*other.value.w);
+    return EvaluatedResult(dist, value.w*other.value.w);
 }
 
 EvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const CompactCoordinatesData& other) const {
@@ -87,9 +87,8 @@ QuadEvaluatedResult CompactCoordinatesData::evaluate_scalar(const CompactCoordin
     float dx3 = std::sqrt(squared_dot_product(this->data.data(), v3.data.data()));
     float dx4 = std::sqrt(squared_dot_product(this->data.data(), v4.data.data()));
     return QuadEvaluatedResult(
-        std::array<int32_t, 4>{(int32_t) std::round(inv_width*dx1), (int32_t) std::round(inv_width*dx2), (int32_t) std::round(inv_width*dx3), (int32_t) std::round(inv_width*dx4)},
-        std::array<float, 4>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w},
-        std::array<float, 4>{dx1, dx2, dx3, dx4}
+        std::array<float, 4>{dx1, dx2, dx3, dx4},
+        std::array<float, 4>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w}
     );
 }
 
@@ -114,9 +113,8 @@ OctoEvaluatedResult CompactCoordinatesData::evaluate_scalar(const CompactCoordin
     float dx7 = std::sqrt(squared_dot_product(this->data.data(), v7.data.data()));
     float dx8 = std::sqrt(squared_dot_product(this->data.data(), v8.data.data()));
     return OctoEvaluatedResult(
-        std::array<int32_t, 8>{(int32_t) std::round(inv_width*dx1), (int32_t) std::round(inv_width*dx2), (int32_t) std::round(inv_width*dx3), (int32_t) std::round(inv_width*dx4), (int32_t) std::round(inv_width*dx5), (int32_t) std::round(inv_width*dx6), (int32_t) std::round(inv_width*dx7), (int32_t) std::round(inv_width*dx8)},
-        std::array<float, 8>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w, value.w*v5.value.w, value.w*v6.value.w, value.w*v7.value.w, value.w*v8.value.w},
-        std::array<float, 8>{dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8}
+        std::array<float, 8>{dx1, dx2, dx3, dx4, dx5, dx6, dx7, dx8},
+        std::array<float, 8>{value.w*v1.value.w, value.w*v2.value.w, value.w*v3.value.w, value.w*v4.value.w, value.w*v5.value.w, value.w*v6.value.w, value.w*v7.value.w, value.w*v8.value.w}
     );
 }
 
@@ -167,7 +165,7 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m128 dist2 = squared_dot_product(this->data.data(), other.data.data(), OutputControl::ALL);
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
         float dist = _mm_cvtss_f32(dist_sqrt);
-        return EvaluatedResult(std::round(inv_width*dist), dist, this->value.w*other.value.w);
+        return EvaluatedResult(dist, this->value.w*other.value.w);
     }
 
     EvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_sse(const CompactCoordinatesData& other) const {
@@ -189,15 +187,12 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         dist2 = _mm_add_ps(dist2, dist2_4);
 
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(inv_width)); // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                     // cast to int
 
         __m128 w1 = _mm_set_ps1(value.w);
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
         QuadEvaluatedResult result;
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin); // efficient store of bins
         _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
         _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);             // efficient store of weights
         return result;
@@ -240,14 +235,11 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(inv_width)); // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                     // cast to int
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
             __m128 weights = _mm_mul_ps(w1, w2);
 
-            _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin);
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);
             _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);
         }
@@ -261,14 +253,11 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
             dist2 = _mm_add_ps(dist2, dist2_3);
             dist2 = _mm_add_ps(dist2, dist2_4);
             __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-            __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(inv_width)); // multiply by the inverse width
-            __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                     // cast to int
 
             __m128 w1 = _mm_set_ps1(value.w);
             __m128 w2 = _mm_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w);
             __m128 weights = _mm_mul_ps(w1, w2);
 
-            _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()+4), dist_bin);
             _mm_store_ps(reinterpret_cast<float*>(result.distances.data()+4), dist_sqrt);
             _mm_store_ps(reinterpret_cast<float*>(result.weights.data()+4), weights);
         }
@@ -357,15 +346,12 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m128 dist2_128_upper = _mm256_extractf128_ps(dist2_256_shuffled, 1);  // |0    |0    |Δx3^2|Δx4^2|
         __m128 dist2 = _mm_add_ps(dist2_128_lower, dist2_128_upper);            // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|
         __m128 dist_sqrt = _mm_sqrt_ps(dist2);
-        __m128 dist_binf = _mm_mul_ps(dist_sqrt, _mm_set_ps1(inv_width));       // multiply by the inverse width
-        __m128i dist_bin = _mm_cvtps_epi32(dist_binf);                          // cast to int
 
         __m128 w1 = _mm_set1_ps(value.w);
         __m128 w2 = _mm_set_ps(v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m128 weights = _mm_mul_ps(w1, w2);
 
         QuadEvaluatedResult result;
-        _mm_store_si128(reinterpret_cast<__m128i*>(result.distance_bins.data()), dist_bin); // efficient store of bins
         _mm_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);         // efficient store of distances
         _mm_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);             // efficient store of weights
         return result;
@@ -404,16 +390,13 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         dist2_256 = _mm256_add_ps(dist2_256, dist2_3);                                                                 // |Δx1^2|Δx2^2|Δx3^2|0    |Δx5^2|Δx6^2|Δx7^2|0    |
         dist2_256 = _mm256_add_ps(dist2_256, dist2_4);                                                                 // |Δx1^2|Δx2^2|Δx3^2|Δx4^2|Δx5^2|Δx6^2|Δx7^2|Δx8^2|
         __m256 dist_sqrt = _mm256_sqrt_ps(dist2_256);
-        __m256 dist_binf = _mm256_mul_ps(dist_sqrt, _mm256_set1_ps(inv_width)); // multiply by the inverse width
-        __m256i dist_bin = _mm256_cvtps_epi32(dist_binf);                       // cast to int
 
         __m256 w1 = _mm256_set1_ps(value.w);
         __m256 w2 = _mm256_set_ps(v8.value.w, v7.value.w, v6.value.w, v5.value.w, v4.value.w, v3.value.w, v2.value.w, v1.value.w);
         __m256 weights = _mm256_mul_ps(w1, w2);
 
         OctoEvaluatedResult result;
-        _mm256_store_si256(reinterpret_cast<__m256i*>(result.distance_bins.data()), dist_bin);  // efficient store of bins
-        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);          // efficient store of bins
+        _mm256_store_ps(reinterpret_cast<float*>(result.distances.data()), dist_sqrt);          // efficient store of distances
         _mm256_store_ps(reinterpret_cast<float*>(result.weights.data()), weights);              // efficient store of weights
         return result;
     }

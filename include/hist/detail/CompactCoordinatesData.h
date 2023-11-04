@@ -11,10 +11,9 @@ namespace hist::detail {
      */
     struct EvaluatedResult {
         EvaluatedResult() = default;
-        EvaluatedResult(int32_t distance_bin, float distance, float weight) : distance_bin(distance_bin), weight(weight), distance(distance) {}
-        int32_t distance_bin;   // The distance bin
-        float weight;           // The combined weight
+        EvaluatedResult(float distance, float weight) : distance(distance), weight(weight) {}
         float distance;         // The raw distance 
+        float weight;           // The combined weight
     };
 
     struct EvaluatedResultRounded {
@@ -31,25 +30,19 @@ namespace hist::detail {
     struct QuadEvaluatedResult {
         QuadEvaluatedResult() = default;
         QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) 
-            :  distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin},
-               weights{v1.weight, v2.weight, v3.weight, v4.weight},
-               distances{v1.distance, v2.distance, v3.distance, v4.distance}
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, weights{v1.weight, v2.weight, v3.weight, v4.weight}
         {}
-        QuadEvaluatedResult(const std::array<int32_t, 4>& distance_bins, const std::array<float, 4>& weights, const std::array<float, 4>& distances) 
-            : distance_bins(distance_bins), weights(weights), distances(distances) 
+        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<float, 4>& weights) 
+            : distances(distances), weights(weights) 
         {}
 
         union {
-            struct {int32_t first, second, third, fourth;} distance_bin;    // The distance bin
-            std::array<int32_t, 4> distance_bins;                           // The distance bin
+            struct {float first, second, third, fourth;} distance;          // The raw distances
+            std::array<float, 4> distances;                                 // The raw distances
         };
         union {
             struct {float first, second, third, fourth;} weight;            // The combined weight
             std::array<float, 4> weights;                                   // The combined weight
-        };
-        union {
-            struct {float first, second, third, fourth;} distance;          // The raw distances
-            std::array<float, 4> distances;                                 // The raw distances
         };
     };
 
@@ -86,26 +79,20 @@ namespace hist::detail {
         OctoEvaluatedResult(
             const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, 
             const EvaluatedResult& v5, const EvaluatedResult& v6, const EvaluatedResult& v7, const EvaluatedResult& v8) 
-            : distance_bins{v1.distance_bin, v2.distance_bin, v3.distance_bin, v4.distance_bin, v5.distance_bin, v6.distance_bin, v7.distance_bin, v8.distance_bin},
-              weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight},
-              distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance}
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
+              weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight}
         {}
-        OctoEvaluatedResult(const std::array<int32_t, 8>& distance_bins, const std::array<float, 8>& weights, const std::array<float, 8>& distances) 
-            : distance_bins(distance_bins), weights(weights), distances(distances) 
+        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<float, 8>& weights) 
+            : distances(distances), weights(weights) 
         {}
-
 
         union {
-            struct {int32_t first, second, third, fourth, fifth, sixth, seventh, eighth;} distance_bin; // The distance bin
-            std::array<int32_t, 8> distance_bins;                                                       // The distance bin
+            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} distance;       // The distance
+            std::array<float, 8> distances;                                                             // The distance
         };
         union {
             struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weight;         // The combined weight
             std::array<float, 8> weights;                                                               // The combined weight
-        };
-        union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} distance;       // The distance
-            std::array<float, 8> distances;                                                             // The distance
         };
     };
 
@@ -137,11 +124,11 @@ namespace hist::detail {
 
     // assert that it is safe to perform memcpy and reinterpret_cast on these structures
     // sizes - EvaluatedResult must be exactly 1 float larger than EvaluatedResultRounded for storing the exact distance
-    static_assert(sizeof(EvaluatedResult)            == 12, "hist::detail::EvaluatedResult is not 12 bytes long");
+    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 12 bytes long");
     static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
-    static_assert(sizeof(QuadEvaluatedResult)        == 48, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
+    static_assert(sizeof(QuadEvaluatedResult)        == 32, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
     static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
-    static_assert(sizeof(OctoEvaluatedResult)        == 96, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
+    static_assert(sizeof(OctoEvaluatedResult)        == 64, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
     static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
 
     // ensure our structures are trivially copyable

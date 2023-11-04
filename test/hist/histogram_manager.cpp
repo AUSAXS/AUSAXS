@@ -92,204 +92,202 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             set_unity_charge(protein);
 
             { // hm
-                // auto hm = hist::HistogramManager<false>(&protein).calculate_all();
-                // REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
+                auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
 
-                auto hm = hist::HistogramManager<true>(&protein).calculate_all();
+                hm = hist::HistogramManager<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
             }
-            // { // hm_mt
-            //     auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
 
-            //     hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
-            // }
-            // { // hm_mt_ff_avg
-            //     auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
+                hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
+            }
+            { // hm_mt_ff_avg
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
 
-            //     hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
-            // }
-            // { // hm_mt_ff_explicit
-            //     auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
+                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
+            }
+            { // hm_mt_ff_explicit
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
 
-            //     hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
-            // }
-            // { // hm_mt_ff_grid
-            //     auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
-            // }
-            // { // phm
-            //     auto phm = hist::PartialHistogramManager(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
-            // }
-            // { // phm_mt
-            //     auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
-            // }
+                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
+            }
+            { // hm_mt_ff_grid
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
+            }
+            { // phm
+                auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
+            }
+        }
+
+        SECTION("waters only") {
+            // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+            std::vector<Atom> a = {};
+            std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1), 
+                                    Water(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1), 
+                                    Water(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
+                                    Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+            Molecule protein(a, w);
+            set_unity_charge(protein);
+
+            { // hm
+                auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
+
+                hm = hist::HistogramManager<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
+
+                hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
+            }
+            { // hm_mt_ff_avg
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
+
+                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
+            }
+            { // hm_mt_ff_explicit
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
+
+                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
+            }
+            { // hm_mt_ff_grid
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
+            }
+            { // phm
+                auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
+            }
+        }
+
+        SECTION("both waters and atoms") {
+            // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
+            std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
+            Molecule protein(a, w);
+            set_unity_charge(protein);
+
+            { // hm
+                auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
+
+                hm = hist::HistogramManager<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
+            }
+            { // hm_mt
+                auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
+
+                hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
+            }
+            { // hm_mt_ff_avg
+                auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
+
+                hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
+            }
+            { // hm_mt_ff_explicit
+                auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
+
+                hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
+            }
+            { // hm_mt_ff_grid
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
+            }
+            { // phm
+                auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
+            }
+            { // phm_mt
+                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
+            }
+        }
+    }
+
+    SECTION("real data with hydration") {
+        settings::molecule::use_effective_charge = false;
+
+        // create the atom, and perform a sanity check on our extracted list
+        Molecule protein("test/files/2epe.pdb");
+        protein.generate_new_hydration();
+        auto p_exp = protein.get_histogram();
+
+        { // hm
+            auto hm = hist::HistogramManager<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
+
+            hm = hist::HistogramManager<true>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
+        }
+        { // hm_mt
+            auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
+
+            hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
+        }
+        { // hm_mt_ff_avg
+            auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_avg->get_total_counts()));
+
+            hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_avg->get_total_counts()));
+        }
+        { // hm_mt_ff_explicit
+            auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
+
+            hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
+        }
+        { // hm_mt_ff_grid
+            auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid->get_total_counts()));
+        }
+        { // phm
+            auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
+        }
+        { // phm_mt
+            auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
         }
     }
 }
-
-        // SECTION("waters only") {
-        //     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-        //     std::vector<Atom> a = {};
-        //     std::vector<Water> w = {Water(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1), 
-        //                             Water(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1), 
-        //                             Water(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1),
-        //                             Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        //     Molecule protein(a, w);
-        //     set_unity_charge(protein);
-
-        //     { // hm
-        //         auto hm = hist::HistogramManager<false>(&protein).calculate_all();
-        //         REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
-
-        //         hm = hist::HistogramManager<true>(&protein).calculate_all();
-        //         REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
-        //     }
-            // { // hm_mt
-            //     auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
-
-            //     hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
-            // }
-            // { // hm_mt_ff_avg
-            //     auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
-
-            //     hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
-            // }
-            // { // hm_mt_ff_explicit
-            //     auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
-
-            //     hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
-            // }
-            // { // hm_mt_ff_grid
-            //     auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
-            // }
-            // { // phm
-            //     auto phm = hist::PartialHistogramManager(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
-            // }
-            // { // phm_mt
-            //     auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-            //     REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
-            // }
-        // }
-
-//         SECTION("both waters and atoms") {
-//             // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
-//             std::vector<Atom> b1 = {Atom( Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-//             std::vector<Atom> b2 = {Atom( Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-//             std::vector<Atom> b3 = {Atom( Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom( Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-//             std::vector<Water> w = {Water(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Water(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-//             std::vector<Body> a = {Body(b1), Body(b2), Body(b3)};
-//             Molecule protein(a, w);
-//             set_unity_charge(protein);
-
-//             { // hm
-//                 auto hm = hist::HistogramManager<false>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
-
-//                 hm = hist::HistogramManager<true>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm->get_total_counts()));
-//             }
-//             { // hm_mt
-//                 auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
-
-//                 hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt->get_total_counts()));
-//             }
-//             { // hm_mt_ff_avg
-//                 auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
-
-//                 hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt_ff_avg->get_total_counts()));
-//             }
-//             { // hm_mt_ff_explicit
-//                 auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
-
-//                 hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
-//             }
-//             { // hm_mt_ff_grid
-//                 auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
-//             }
-//             { // phm
-//                 auto phm = hist::PartialHistogramManager(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
-//             }
-//             { // phm_mt
-//                 auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-//                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
-//             }
-//         }
-//     }
-
-//     SECTION("real data with hydration") {
-//         settings::molecule::use_effective_charge = false;
-
-//         // create the atom, and perform a sanity check on our extracted list
-//         Molecule protein("test/files/2epe.pdb");
-//         protein.generate_new_hydration();
-//         auto p_exp = protein.get_histogram();
-
-//         { // hm
-//             auto hm = hist::HistogramManager<false>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
-
-//             hm = hist::HistogramManager<true>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm->get_total_counts()));
-//         }
-//         { // hm_mt
-//             auto hm_mt = hist::HistogramManagerMT<false>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
-
-//             hm_mt = hist::HistogramManagerMT<true>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt->get_total_counts()));
-//         }
-//         { // hm_mt_ff_avg
-//             auto hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_avg->get_total_counts()));
-
-//             hm_mt_ff_avg = hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_avg->get_total_counts()));
-//         }
-//         { // hm_mt_ff_explicit
-//             auto hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
-
-//             hm_mt_ff_explicit = hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
-//         }
-//         { // hm_mt_ff_grid
-//             auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid->get_total_counts()));
-//         }
-//         { // phm
-//             auto phm = hist::PartialHistogramManager(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
-//         }
-//         { // phm_mt
-//             auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
-//             REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
-//         }
-//     }
-// }
 
 TEST_CASE("PartialHistogramManager::get_probe") {
     Molecule protein("test/files/2epe.pdb");
