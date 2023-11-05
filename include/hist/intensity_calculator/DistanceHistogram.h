@@ -4,9 +4,10 @@
 #include <hist/distribution/Distribution1D.h>
 #include <hist/Histogram.h>
 #include <hist/HistFwd.h>
-#include <table/ArrayDebyeTable.h>
+#include <table/DebyeTable.h>
 #include <dataset/DatasetFwd.h>
 #include <constants/Constants.h>
+#include <utility/view_ptr.h>
 
 #include <vector>
 #include <memory>
@@ -53,7 +54,7 @@ namespace hist {
             /**
              * @brief Get the sinc(x) lookup table for the Debye transform.
              */
-            const table::ArrayDebyeTable& get_sinc_table() const;
+            const view_ptr<const table::DebyeTable> get_sinc_table() const;
 
             /**
              * @brief Use a weighted sinc table for the Debye transform.
@@ -62,8 +63,8 @@ namespace hist {
             void use_weighted_sinc_table();
 
         private:
-            table::ArrayDebyeTable weighted_sinc_table; // the weighted sinc table
-            bool use_weighted_table = false;            // whether to use the weighted sinc table
+            std::unique_ptr<table::DebyeTable> weighted_sinc_table;// the weighted sinc table
+            bool use_weighted_table = false;                            // whether to use the weighted sinc table
 
             void initialize();
     };

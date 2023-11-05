@@ -55,13 +55,13 @@ void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
 }
 
-auto partial_profile = [] (const Distribution1D& p, const std::vector<double>& q_axis, const table::ArrayDebyeTable& sinqd_table) {
+auto partial_profile = [] (const Distribution1D& p, const std::vector<double>& q_axis, const view_ptr<const table::DebyeTable> sinqd_table) {
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        Iq[q] = std::inner_product(p.begin(), p.end(), sinqd_table.begin(q), 0.0);
+        Iq[q] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
         Iq[q] *= std::exp(-q_axis[q]*q_axis[q]);
     }
     return ScatteringProfile(Iq, debye_axis);

@@ -32,8 +32,8 @@ namespace hist {
         /**
          * @brief Get a weighted distance axis based on the contents added to all WeightedDistribution instances since the last reset.
          */
-        static std::array<constants::axes::d_type, constants::axes::d_axis.bins> get_weighted_bins() {
-            std::array<constants::axes::d_type, constants::axes::d_axis.bins> weighted_bins{};
+        static std::vector<constants::axes::d_type> get_weighted_bins() {
+            std::vector<constants::axes::d_type> weighted_bins(constants::axes::d_axis.bins, 0);
             std::transform(entries.begin(), entries.end(), constants::axes::d_vals.begin(), weighted_bins.begin(), [](const detail::Entry& entry, constants::axes::d_type d_val) {
                 // if no counts were added to this bin, entry.count-1 = 0, which is negated to get 1
                 // if any counts were added, entry.count-1 != 0, which is negated to get 0. thus the first term contributes only if the bin is empty
