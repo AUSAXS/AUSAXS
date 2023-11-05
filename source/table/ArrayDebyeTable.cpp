@@ -1,3 +1,5 @@
+#pragma message("Precompiling sinc lookup table. This shouldn't take too long...")
+
 #include <table/ArrayDebyeTable.h>
 
 using namespace table;
@@ -39,6 +41,12 @@ void ArrayDebyeTable::check_default(const std::vector<double>& q, const std::vec
             std::cout << "\tReason: q[2] != axis.min + 2*(axis.max-axis.min)/axis.bins" << std::endl;
         }
 
+        check_default(d);
+    #endif
+}
+
+void ArrayDebyeTable::check_default(const std::vector<constants::axes::d_type>& d) {
+    #ifdef DEBUG
         // check empty
         if (d.empty()) [[unlikely]] {
             console::print_warning("Warning in ArrayDebyeTable::initialize: Not using default tables.");
@@ -64,6 +72,7 @@ void ArrayDebyeTable::check_default(const std::vector<double>& q, const std::vec
         }
     #endif
 }
+
 
 inline constexpr ArrayDebyeTable default_table;
 const ArrayDebyeTable& ArrayDebyeTable::get_default_table() {

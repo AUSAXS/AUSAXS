@@ -35,7 +35,7 @@ namespace hist {
 
             const std::vector<double>& get_d_axis() const;
 
-            const std::vector<double>& get_q_axis() const;
+            static const std::vector<double>& get_q_axis();
 
             /**
              * @brief Get the total histogram counts. Equivalent to get_counts().
@@ -48,8 +48,7 @@ namespace hist {
             std::vector<double>& get_total_counts();
 
         protected:
-            std::vector<double> d_axis;                 // the distance axis
-            std::vector<double> q_axis;                 // the q axis
+            std::vector<double> d_axis; // the distance axis
 
             /**
              * @brief Get the sinc(x) lookup table for the Debye transform.

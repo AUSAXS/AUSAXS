@@ -45,6 +45,7 @@ int main(int argc, char const *argv[]) {
     auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
 
     app.add_flag("--foxs", settings::hist::use_foxs_method, "Decides whether the FOXS method will be used.")->default_val(settings::hist::use_foxs_method)->group("Hidden");
+    app.add_flag("--weighted_bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
 
     //###################//

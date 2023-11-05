@@ -12,9 +12,14 @@ using namespace hist;
 
 DistanceHistogram::DistanceHistogram() = default;
 
-DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {}
+DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {
+    initialize();
+}
 
-DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {}
+DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {
+    use_weighted_sinc_table();
+    initialize();
+}
 
 DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_counts()), cdh->get_axis()) {
     initialize();
@@ -34,14 +39,14 @@ void DistanceHistogram::use_weighted_sinc_table() {
 DistanceHistogram::~DistanceHistogram() = default;
 
 void DistanceHistogram::initialize() {
-    q_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
     d_axis = axis.as_vector();
     d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
-    table::ArrayDebyeTable::check_default(q_axis, d_axis);
+    table::ArrayDebyeTable::check_default(d_axis);
 }
 
 ScatteringProfile DistanceHistogram::debye_transform() const {
     // calculate the Debye scattering intensity
+    const auto& q_axis = constants::axes::q_vals;
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     const auto& sinqd_table = get_sinc_table();
 
@@ -57,7 +62,10 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
 
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
-const std::vector<double>& DistanceHistogram::get_q_axis() const {return q_axis;}
+const std::vector<double>& DistanceHistogram::get_q_axis() {
+    static const std::vector<double> q_vals = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax).as_vector();
+    return q_vals;
+}
 
 const std::vector<double>& DistanceHistogram::get_total_counts() const {return get_counts();}
 

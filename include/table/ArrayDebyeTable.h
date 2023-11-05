@@ -63,6 +63,12 @@ namespace table {
              */
             static void check_default(const std::vector<double>& q, const std::vector<constants::axes::d_type>& d);
 
+            /**
+             * @brief Check if the vector is compatible with the default table. 
+             *        Note that this check is only performed in debug mode.
+             */
+            static void check_default(const std::vector<constants::axes::d_type>& d);
+
         private: 
             constexpr void initialize() noexcept {
                 double tolerance = 1e-3;  // The minimum x-value where sin(x)/x is replaced by its Taylor-series.

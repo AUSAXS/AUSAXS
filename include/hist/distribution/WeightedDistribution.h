@@ -7,7 +7,7 @@
 namespace hist {
     namespace detail {
         struct Entry {
-            int32_t count = 1; // Start at 1 to avoid division by zero.
+            int32_t count = 0;
             float content = 0;
 
             /**
@@ -35,9 +35,11 @@ namespace hist {
         static std::vector<constants::axes::d_type> get_weighted_bins() {
             std::vector<constants::axes::d_type> weighted_bins(constants::axes::d_axis.bins, 0);
             std::transform(entries.begin(), entries.end(), constants::axes::d_vals.begin(), weighted_bins.begin(), [](const detail::Entry& entry, constants::axes::d_type d_val) {
-                // if no counts were added to this bin, entry.count-1 = 0, which is negated to get 1
-                // if any counts were added, entry.count-1 != 0, which is negated to get 0. thus the first term contributes only if the bin is empty
-                return !(entry.count-1)*d_val + entry.content/(entry.count-1);
+                // if no counts were added to this bin, entry.count == 0, which when negated is 1
+                // if any counts were added, entry.count != 0, which when negated is 0. 
+                // thus the first term is non-zero iff no counts were added to this bin, and similarly a 1 is added to the divisor of the second term iff no counts were added
+                // we do this to avoid a nested if statement
+                return (!entry.count)*d_val + entry.content/(entry.count + !entry.count);
             });
             return weighted_bins;
         }
