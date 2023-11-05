@@ -2,6 +2,7 @@
 
 #include <utility/Concepts.h>
 #include <math/MathFwd.h>
+#include <container/Container3D.h>
 
 #include <vector>
 
@@ -115,6 +116,6 @@ namespace grid {
 
             unsigned int xdim, ydim, zdim;
         private:
-            std::vector<std::vector<std::vector<State>>> grid; // The actual grid. Datatype is char since we need at least four different values.
+            container::Container3D<State> grid; // The actual grid. Datatype is char since we need at least four different values.
     };
 }

@@ -38,7 +38,7 @@ PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, style::Color color
 }
 
 PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, style::Color color) {
-    PlotOptions options;
+    PlotOptions options = data.get_plot_options();
     options.color = color;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";

@@ -3,10 +3,10 @@
 
 using namespace grid;
 
-GridObj::GridObj(unsigned int x, unsigned int y, unsigned int z) : xdim(x), ydim(y), zdim(z), grid(x, std::vector<std::vector<State>>(y, std::vector<State>(z, EMPTY))) {}
+GridObj::GridObj(unsigned int x, unsigned int y, unsigned int z) : xdim(x), ydim(y), zdim(z), grid(x, y, z, EMPTY) {}
 
-GridObj::State& GridObj::index(unsigned int x, unsigned int y, unsigned int z) {return grid[x][y][z];}
-const GridObj::State& GridObj::index(unsigned int x, unsigned int y, unsigned int z) const {return grid[x][y][z];}
+GridObj::State& GridObj::index(unsigned int x, unsigned int y, unsigned int z) {return grid.index(x, y, z);}
+const GridObj::State& GridObj::index(unsigned int x, unsigned int y, unsigned int z) const {return grid.index(x, y, z);}
 
 GridObj::State& GridObj::index(const Vector3<int>& v) {return index(v.x(), v.y(), v.z());}
 const GridObj::State& GridObj::index(const Vector3<int>& v) const {return index(v.x(), v.y(), v.z());}

@@ -639,19 +639,19 @@ void Grid::save(const io::File& path) const {
             for (unsigned int k = 0; k < grid.zdim; k++) {
                 switch (grid.index(i, j, k)) {
                     case GridObj::A_CENTER:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'A', 1, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms.push_back(Atom(c++, "C", "", "LYS", 'A', 1, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case GridObj::A_AREA:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'B', 2, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms.push_back(Atom(c++, "C", "", "LYS", 'B', 2, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case GridObj::VOLUME:
-                        atoms.push_back(Atom(c++, "C", "", "LYS", 'C', 3, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::C, ""));
+                        atoms.push_back(Atom(c++, "C", "", "LYS", 'C', 3, "", to_xyz(i, j, k), 1, 0, constants::atom_t::C, ""));
                         break;
                     case GridObj::W_CENTER:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'D', 4, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        waters.push_back(Water(c++, "H", "", "HOH", 'D', 4, "", to_xyz(i, j, k), 1, 0, constants::atom_t::H, ""));
                         break;
                     case GridObj::W_AREA:
-                        waters.push_back(Water(c++, "H", "", "HOH", 'E', 5, "", Vector3<double>(i, j, k), 1, 0, constants::atom_t::H, ""));
+                        waters.push_back(Water(c++, "H", "", "HOH", 'E', 5, "", to_xyz(i, j, k), 1, 0, constants::atom_t::H, ""));
                         break;
                     default:
                         break;

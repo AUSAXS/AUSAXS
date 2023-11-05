@@ -3,18 +3,20 @@
 #include <constants/Constants.h>
 
 #include <vector>
+#include <atomic>
 
+#include <iostream> //! remove
 namespace hist {
     namespace detail {
         struct Entry {
-            int32_t count = 0;
-            float content = 0;
+            std::atomic<int> count = 0;
+            std::atomic<float> content = 0;
 
             /**
              * @brief Add the distance to this bin, and increase the counter by one.
              */
             void add(float distance) {
-                count++;
+                ++count;
                 content += distance;
             }
         };
@@ -41,6 +43,11 @@ namespace hist {
                 // we do this to avoid a nested if statement
                 return (!entry.count)*d_val + entry.content/(entry.count + !entry.count);
             });
+
+            for (unsigned int i = 0; i < 20; ++i) {
+                std::cout << "entry[" << i << "]: " << entries[i].content << " / " << entries[i].count << " = " << entries[i].content/entries[i].count << " = " << weighted_bins[i] << std::endl;
+            }
+
             return weighted_bins;
         }
 
