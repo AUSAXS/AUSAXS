@@ -90,7 +90,19 @@ namespace hist {
 
             std::vector<double>& get_counts();
 
-            double get_count(unsigned int i) const;
+            /**
+             * @brief Get the count at a specific bin.
+             */
+            const double& get_count(unsigned int i) const;
+
+            /**
+             * @brief Get the count at a specific bin.
+             */
+            double& get_count(unsigned int i);
+
+            const double& index(unsigned int i) const; // @copydoc get_count(unsigned int i) const
+
+            double& index(unsigned int i); // @copydoc get_count(unsigned int i)
 
             /**
              * @brief Get the spanned range of this histogram. 

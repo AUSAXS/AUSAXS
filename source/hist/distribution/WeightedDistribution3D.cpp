@@ -9,5 +9,5 @@ using namespace hist;
 void WeightedDistribution3D::add(int x, int y, float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(x, y, i) += value;
-    WeightedDistribution::entries[i].add(distance);
+    WeightedDistribution::entries.get()[i].add(distance);
 }

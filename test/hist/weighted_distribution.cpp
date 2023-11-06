@@ -236,9 +236,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
 #include <io/ExistingFile.h>
 #include <plots/PlotIntensity.h>
 #include <settings/GridSettings.h>
+#include <settings/HistogramSettings.h>
 TEST_CASE("sphere_comparison", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
+    settings::axes::qmax = 1;
     auto axes = Axis3D(0, 100, 0, 100, 0, 100, 0.1);
     settings::grid::width = axes.width();
     grid::Grid grid(axes);
@@ -259,17 +261,19 @@ TEST_CASE("sphere_comparison", "[manual]") {
 
     Molecule protein(loc);
     auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-    auto v = hist::WeightedDistribution::get_weighted_bins();
-    std::cout << "Weighted bins:" << std::endl;
-    for (unsigned int i = 0; i < 20; ++i) {
-        std::cout << "d[i] = " << v[i] << std::endl;
-    }
+    auto Iq2 = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
 
-    Iq1.add_plot_options(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"ylimit", Limit{1e-4, 0}}});
-    Iq2.add_plot_options(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}});
+    Iq1.add_plot_options(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}});
+    Iq2.add_plot_options(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}});
 
     plots::PlotIntensity(Iq1, style::color::orange)
         .plot(Iq2, style::color::blue)
     .save("temp/test/hist/sphere_comparison.png");
+
+    auto ratio = Iq1;
+    for (unsigned int i = 0; i < ratio.get_counts().size(); ++i) {
+        ratio.get_count(i) = Iq1.get_count(i)/Iq2.get_count(i);
+    }
+    ratio.add_plot_options(style::draw::line, {{"color", style::color::red}, {"legend", "Ratio"}, {"lw", 2}});
+    plots::PlotIntensity(ratio, style::color::red).save("temp/test/hist/sphere_comparison_ratio.png");
 }
