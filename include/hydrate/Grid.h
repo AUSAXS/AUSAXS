@@ -20,9 +20,9 @@ namespace grid {
 			/**
 			 * @brief Constructor.
 			 * 
-			 * @param base the base point for the grid.
+			 * @param axes The axis limits. The width must be set through settings::grid::width.
 			 */
-			Grid(const Axis3D& axes);
+			Grid(const Limit3D& axes);
 
 			/**
 			 * @brief Space-saving constructor. 
@@ -202,7 +202,7 @@ namespace grid {
 			 * @brief Get the width of each bin.
 			 * 		  Complexity: O(1).
 			 */
-			double get_width() const {return axes.width();}
+			double get_width() const;
 
 			/**
 			 * @brief Get a copy of the axes of the grid.

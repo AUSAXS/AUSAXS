@@ -15,7 +15,7 @@ using namespace grid;
 using namespace data;
 using namespace data::record;
 
-Grid::Grid(const Axis3D& axes) : axes(axes) {
+Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::width)) {
     setup();
 }
 
@@ -210,8 +210,8 @@ void Grid::expand_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z(); 
-    double rvdw = get_atomic_radius(atom.get_atom_type())/axes.width();
-    double rvol = settings::grid::rvol/axes.width();
+    double rvdw = get_atomic_radius(atom.get_atom_type())/settings::grid::width;
+    double rvol = settings::grid::rvol/settings::grid::width;
 
     int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::floor(rvol) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::floor(rvol) + 1, axes.y.bins); // yminus and yplus
@@ -251,7 +251,7 @@ void Grid::expand_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.get_loc().x(), y = water.get_loc().y(), z = water.get_loc().z();
-    double rvdw = get_hydration_radius()/axes.width();
+    double rvdw = get_hydration_radius()/settings::grid::width;
     int xm = std::max<int>(x - std::ceil(rvdw), 0), xp = std::min<int>(x + std::floor(rvdw) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvdw), 0), yp = std::min<int>(y + std::floor(rvdw) + 1, axes.y.bins); // yminus and yplus
     int zm = std::max<int>(z - std::ceil(rvdw), 0), zp = std::min<int>(z + std::floor(rvdw) + 1, axes.z.bins); // zminus and zplus
@@ -287,7 +287,7 @@ void Grid::deflate_volume(GridMember<Atom>& atom) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z();
-    double rvol = settings::grid::rvol/axes.width();
+    double rvol = settings::grid::rvol/settings::grid::width;
     int xm = std::max<int>(x - std::ceil(rvol), 0), xp = std::min<int>(x + std::floor(rvol) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvol), 0), yp = std::min<int>(y + std::floor(rvol) + 1, axes.y.bins); // yminus and yplus
     int zm = std::max<int>(z - std::ceil(rvol), 0), zp = std::min<int>(z + std::floor(rvol) + 1, axes.z.bins); // zminus and zplus
@@ -316,7 +316,7 @@ void Grid::deflate_volume(GridMember<Water>& water) {
 
     // create a box of size [x-r, x+r][y-r, y+r][z-r, z+r] within the bounds
     int x = water.get_loc().x(), y = water.get_loc().y(), z = water.get_loc().z();
-    double rvdw = get_hydration_radius()/axes.width();
+    double rvdw = get_hydration_radius()/settings::grid::width;
     int xm = std::max<int>(x - std::ceil(rvdw), 0), xp = std::min<int>(x + std::floor(rvdw) + 1, axes.x.bins); // xminus and xplus
     int ym = std::max<int>(y - std::ceil(rvdw), 0), yp = std::min<int>(y + std::floor(rvdw) + 1, axes.y.bins); // yminus and yplus
     int zm = std::max<int>(z - std::ceil(rvdw), 0), zp = std::min<int>(z + std::floor(rvdw) + 1, axes.z.bins); // zminus and zplus
@@ -570,9 +570,9 @@ Vector3<int> Grid::get_bins() const {
 }
 
 Vector3<int> Grid::to_bins(const Vector3<double>& v) const {
-    int binx = std::round((v.x() - axes.x.min)/axes.width());
-    int biny = std::round((v.y() - axes.y.min)/axes.width());
-    int binz = std::round((v.z() - axes.z.min)/axes.width());
+    int binx = std::round((v.x() - axes.x.min)/settings::grid::width);
+    int biny = std::round((v.y() - axes.y.min)/settings::grid::width);
+    int binz = std::round((v.z() - axes.z.min)/settings::grid::width);
     return Vector3<int>(binx, biny, binz);
 }
 
@@ -591,7 +591,7 @@ double Grid::get_volume() {
     // this has a significant volume contribution for small proteins
     // r -= (settings::grid::rvol - constants::radius::get_vdw_radius(constants::atom_t::C));
     // return 0.8*4/3*M_PI*std::pow(r, 3); // volume in cubic Å
-    return volume*std::pow(axes.width(), 3);
+    return volume*std::pow(settings::grid::width, 3);
 }
 
 Grid& Grid::operator=(const Grid& rhs) {
@@ -657,13 +657,15 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
+#include <random>
+#include <settings/GeneralSettings.h>
 std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     expand_volume();
     std::vector<Vector3<double>> exv_atoms;
     exv_atoms.reserve(volume);
     auto[vmin, vmax] = bounding_box_index();
 
-    int buffer = 2./axes.width(); // 2Å buffer in each direction should be enough to capture all filled voxels
+    int buffer = 2./settings::grid::width; // 2Å buffer in each direction should be enough to capture all filled voxels
     for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); ++i) {
         for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); ++j) {
             for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); ++k) {
@@ -678,6 +680,33 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
             }
         }
     }
+
+    // check if we should use excluded volume spheres larger than the grid width
+    if (settings::grid::exv_radius != settings::grid::width) {
+        double reduction_factor = std::pow(settings::grid::exv_radius/settings::grid::width, 3);
+        auto rng = std::mt19937{std::random_device{}()};
+        std::shuffle(exv_atoms.begin(), exv_atoms.end(), rng);
+        exv_atoms.resize(exv_atoms.size()/reduction_factor);
+
+        {
+            std::vector<Atom> atoms(exv_atoms.size());
+            for (unsigned int i = 0; i < exv_atoms.size(); i++) {
+                atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
+            }
+            data::Molecule(atoms).save(settings::general::output + "exv.pdb");
+        }
+
+        return exv_atoms;
+    }
+
+    {
+        std::vector<Atom> atoms(exv_atoms.size());
+        for (unsigned int i = 0; i < exv_atoms.size(); i++) {
+            atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
+        }
+        data::Molecule(atoms).save(settings::general::output + "exv.pdb");
+    }
+
     return exv_atoms;
 }
 
@@ -699,3 +728,5 @@ Vector3<double> Grid::to_xyz(int i, int j, int k) const {
 Vector3<int> Grid::get_center() const {
     return {int(axes.x.bins/2), int(axes.y.bins/2), int(axes.z.bins/2)};
 }
+
+double Grid::get_width() const {return settings::grid::width;}

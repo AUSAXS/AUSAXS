@@ -3,7 +3,7 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
 
-namespace detail::ff1::add8 {
+namespace detail::add8 {
     template<int use_weighted_distribution>
     inline auto evaluate(const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j);
 
@@ -18,7 +18,7 @@ namespace detail::ff1::add8 {
     }
 }
 
-namespace detail::ff1::add4 {
+namespace detail::add4 {
     template<int use_weighted_distribution>
     inline auto evaluate(const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j);
 
@@ -33,7 +33,7 @@ namespace detail::ff1::add4 {
     }
 }
 
-namespace detail::ff1::add1 {
+namespace detail::add1 {
     template<int use_weighted_distribution>
     inline auto evaluate(const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j);
 
@@ -61,7 +61,7 @@ namespace detail::ff1::add1 {
  */
 template<bool use_weighted_distribution, int factor>
 inline void evaluate8(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-    auto res = detail::ff1::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+    auto res = detail::add8::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 8; ++k) {p.add(res.distances[k], factor*res.weights[k]);}
 }
 
@@ -78,7 +78,7 @@ inline void evaluate8(typename hist::GenericDistribution1D<use_weighted_distribu
  */
 template<bool use_weighted_distribution, int factor>
 inline void evaluate4(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-    auto res = detail::ff1::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+    auto res = detail::add4::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     for (unsigned int k = 0; k < 4; ++k) {p.add(res.distances[k], factor*res.weights[k]);}
 }
 
@@ -95,6 +95,6 @@ inline void evaluate4(typename hist::GenericDistribution1D<use_weighted_distribu
  */
 template<bool use_weighted_distribution, int factor>
 inline void evaluate1(typename hist::GenericDistribution1D<use_weighted_distribution>::type& p, const hist::detail::CompactCoordinates& data_i, const hist::detail::CompactCoordinates& data_j, int i, int j) {
-    auto res = detail::ff1::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
+    auto res = detail::add1::evaluate<use_weighted_distribution>(data_i, data_j, i, j);
     p.add(res.distance, factor*res.weight);
 }

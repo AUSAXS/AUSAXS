@@ -9,8 +9,8 @@ using namespace form_factor;
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
     form_factor::storage::atomic::table_t table;
 
-    unsigned int exv_bin = static_cast<unsigned int>(form_factor_t::EXCLUDED_VOLUME);
-    FormFactor ffx = ExvFormFactor(std::pow(settings::grid::width, 3));
+    auto scaling_factor = settings::grid::exv_radius/settings::grid::width;
+    FormFactor ffx = ExvFormFactor(std::pow(settings::grid::width*scaling_factor, 3));
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(
@@ -24,12 +24,12 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
             storage::atomic::get_form_factor(static_cast<form_factor_t>(i))
         );
 
-        table.index(i, exv_bin) = PrecalculatedFormFactorProduct(
+        table.index(i, form_factor::exv_bin) = PrecalculatedFormFactorProduct(
             storage::atomic::get_form_factor(static_cast<form_factor_t>(i)), 
             ffx
         );
-        table.index(exv_bin, i) = table.index(i, exv_bin);
-        table.index(exv_bin, exv_bin) = PrecalculatedFormFactorProduct(
+        table.index(form_factor::exv_bin, i) = table.index(i, form_factor::exv_bin);
+        table.index(form_factor::exv_bin, form_factor::exv_bin) = PrecalculatedFormFactorProduct(
             ffx, 
             ffx
         );

@@ -5,7 +5,7 @@
 
 namespace hist::detail {class CompactCoordinates;}
 namespace hist::symmetry {
-    namespace {
+    namespace detail {
         struct Plane {
             Plane(Vector3<double>&& x, Vector3<double>&& y) : x(std::move(x)), y(std::move(y)) {normal = x.cross(y).normalize();}
             Plane(const Vector3<double>& x, const Vector3<double>& y) : x(x), y(y) {normal = x.cross(y).normalize();}
@@ -29,6 +29,6 @@ namespace hist::symmetry {
             std::vector<double> calculate_cross_terms(hist::detail::CompactCoordinates& body1, hist::detail::CompactCoordinates& body2);
 
         private:
-            Plane plane;
+            detail::Plane plane;
     };
 }

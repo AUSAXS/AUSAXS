@@ -241,9 +241,9 @@ TEST_CASE("sphere_comparison", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::axes::qmax = 1;
-    auto axes = Axis3D(-50, 50, -50, 50, -50, 50, 0.2);
+    auto axes = Axis3D(-50, 50, -50, 50, -50, 50, 1);
     grid::Grid grid(axes);
-    double radius = 5;
+    double radius = 15;
     double radius2 = radius*radius;
     Vector3<double> center = grid.to_xyz(grid.get_center());
     for (unsigned int i = 0; i < axes.x.bins; ++i) {

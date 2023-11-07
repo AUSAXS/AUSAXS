@@ -8,6 +8,7 @@
 #include <math/Vector3.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
+#include <utility/Limit3D.h>
 
 #include <fstream>
 
@@ -57,5 +58,5 @@ grid::Grid GridReader::read(const io::ExistingFile& filename) {
     // }
 
     // return grid;
-    return grid::Grid({1, 1, 1, 1, 1, 1});
+    return grid::Grid(Limit3D{1, 1, 1, 1, 1, 1});
 }

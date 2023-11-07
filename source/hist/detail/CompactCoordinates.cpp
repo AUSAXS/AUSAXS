@@ -9,8 +9,8 @@ using namespace hist::detail;
 
 CompactCoordinates::CompactCoordinates(unsigned int size) : size(size), data(size) {}
 
-CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinates) : size(coordinates.size()), data(size) {
-    std::transform(coordinates.begin(), coordinates.end(), data.begin(), [](const Vector3<double>& v) {return CompactCoordinatesData(v, 1);});
+CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinates, double weight) : size(coordinates.size()), data(size) {
+    std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return CompactCoordinatesData(v, weight);});
 }
 
 CompactCoordinates::CompactCoordinates(const data::Body& body) : size(body.get_atoms().size()), data(size) {

@@ -21,7 +21,7 @@ namespace hist::detail {
              * @brief Create a compact coordinate representation of the given coordinates.
              *        The weights are assumed to be unity.
              */
-            CompactCoordinates(std::vector<Vector3<double>>&& coordinates);
+            CompactCoordinates(std::vector<Vector3<double>>&& coordinates, double weight);
 
             /**
              * @brief Create a CompactCoordinates object with a given size.

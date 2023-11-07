@@ -8,7 +8,7 @@ Vector3<double> PlaneSymmetry::mirror(const Vector3<double>& v) const {
     return v - 2*(v.dot(n))*n;
 }
 
-std::vector<double> PlaneSymmetry::calculate_cross_terms(hist::detail::CompactCoordinates& body1, hist::detail::CompactCoordinates& body2) {
+std::vector<double> PlaneSymmetry::calculate_cross_terms(hist::detail::CompactCoordinates&, hist::detail::CompactCoordinates&) {
     // std::vector<double> cross_terms;
     // cross_terms.reserve(body1.get_size()*body2.get_size());
 
@@ -36,4 +36,5 @@ std::vector<double> PlaneSymmetry::calculate_cross_terms(hist::detail::CompactCo
     // }
 
     // return cross_terms;
+    return {};
 }
