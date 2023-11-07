@@ -15,6 +15,9 @@ namespace container {
     template <typename T>
     class ThreadLocalWrapper {
         public:
+            /**
+             * @brief Create a wrapper around T, and create a thread-local instance of T for each thread using the given arguments.
+             */
             template <typename... Args>
             ThreadLocalWrapper(Args&&... args) {
                 auto ids = utility::multi_threading::get_global_pool()->get_thread_ids();
@@ -36,6 +39,29 @@ namespace container {
                 std::vector<std::reference_wrapper<T>> result; result.reserve(data.size());
                 for (auto& [id, t] : data) {result.emplace_back(t);}
                 return result;
+            }
+
+            /**
+             * @brief Get the number of thread-local instances of the wrapped type.
+             */
+            std::size_t size() const {return data.size();}
+
+            /**
+             * @brief Merge all thread-local instances of the wrapped type into a single instance.
+             */
+            T merge() const {
+                T result;
+                if constexpr (std::ranges::range<T>) {
+                    for (const auto& [id, t] : data) {
+                        std::transform(t.begin(), t.end(), result.begin(), result.begin(), std::plus<>());
+                    }
+                    return result;
+                } else {
+                    for (const auto& [id, t] : data) {
+                        result += t;
+                    }
+                    return result;
+                }
             }
 
         private:

@@ -241,16 +241,15 @@ TEST_CASE("sphere_comparison", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::axes::qmax = 1;
-    auto axes = Axis3D(0, 100, 0, 100, 0, 100, 0.1);
-    settings::grid::width = axes.width();
+    auto axes = Axis3D(-50, 50, -50, 50, -50, 50, 0.2);
     grid::Grid grid(axes);
     double radius = 5;
     double radius2 = radius*radius;
-    for (unsigned int i = 0; i < axes.x.max; ++i) {
-        for (unsigned int j = 0; j < axes.y.max; ++j) {
-            for (unsigned int k = 0; k < axes.z.max; ++k) {
-                auto v = grid.to_xyz(i, j, k);
-                if (v.distance2(Vector3{0., 0., 0.}) < radius2) {
+    Vector3<double> center = grid.to_xyz(grid.get_center());
+    for (unsigned int i = 0; i < axes.x.bins; ++i) {
+        for (unsigned int j = 0; j < axes.y.bins; ++j) {
+            for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                if (grid.to_xyz(i, j, k).distance2(center) < radius2) {
                     grid.grid.index(i, j, k) = grid::GridObj::VOLUME;
                 }
             }
@@ -261,7 +260,7 @@ TEST_CASE("sphere_comparison", "[manual]") {
 
     Molecule protein(loc);
     auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    auto Iq2 = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
+    auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
 
     Iq1.add_plot_options(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}});
     Iq2.add_plot_options(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}});

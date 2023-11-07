@@ -22,7 +22,7 @@ namespace io::detail {
              * 
              * @param path Path to the input PDB format data file. 
              */
-            void read(const io::ExistingFile& path) override;
+            void read(const io::File& path) override;
 
         private: 
             data::detail::AtomCollection* const file; // The File backing this Reader. 

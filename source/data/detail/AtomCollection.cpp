@@ -26,9 +26,9 @@ AtomCollection::AtomCollection(const std::vector<record::Atom>& protein_atoms, c
 AtomCollection::AtomCollection(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms, const record::Header& header, const record::Footer& footer, const record::Terminate& terminate) 
     : header(header), footer(footer), terminate(terminate), protein_atoms(protein_atoms), hydration_atoms(hydration_atoms) {}
 
-AtomCollection::AtomCollection(const io::ExistingFile& AtomCollectionname) {
-    reader = construct_reader(AtomCollectionname);
-    read(AtomCollectionname);
+AtomCollection::AtomCollection(const io::File& file) {
+    reader = construct_reader(file);
+    read(file);
 }
 
 AtomCollection::~AtomCollection() = default;
@@ -38,7 +38,7 @@ void AtomCollection::update(std::vector<record::Atom>& patoms, std::vector<recor
     hydration_atoms = hatoms;
 }
 
-void AtomCollection::read(const io::ExistingFile& path) {reader->read(path);}
+void AtomCollection::read(const io::File& path) {reader->read(path);}
 
 void AtomCollection::write(const io::File& path) {
     refresh();
@@ -178,7 +178,7 @@ bool AtomCollection::equals_content(const AtomCollection& rhs) const {
     return true;    
 }
 
-std::unique_ptr<io::detail::Reader> AtomCollection::construct_reader(const io::ExistingFile& path) {
+std::unique_ptr<io::detail::Reader> AtomCollection::construct_reader(const io::File& path) {
     if (path.extension() == ".xml" || path.extension() == ".XML") { // .xml AtomCollection
         throw except::invalid_argument("AtomCollection::construct_reader: .xml input AtomCollections are not supported.");
     } else if (path.extension() == ".pdb" || path.extension() == ".PDB") { // .pdb AtomCollection

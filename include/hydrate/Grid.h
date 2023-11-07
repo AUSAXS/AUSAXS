@@ -202,7 +202,7 @@ namespace grid {
 			 * @brief Get the width of each bin.
 			 * 		  Complexity: O(1).
 			 */
-			double get_width() const {return width;}
+			double get_width() const {return axes.width();}
 
 			/**
 			 * @brief Get a copy of the axes of the grid.
@@ -273,6 +273,11 @@ namespace grid {
 			 */
 			const GridObj::State& index(unsigned int i, unsigned int j, unsigned int k) const;
 
+			/**
+			 * @brief Get the center of the grid in bin coordinates.
+			 */
+			Vector3<int> get_center() const;
+
 			GridObj grid; // The actual grid.
 			std::list<GridMember<data::record::Atom>> a_members; // A list of all member atoms and where they are located.
 			std::list<GridMember<data::record::Water>> w_members; // A list of all member water molecules and where they are located. 
@@ -325,7 +330,6 @@ namespace grid {
 
 		private:
 			Axis3D axes;
-			double width; // distance between each grid point
 			std::unique_ptr<PlacementStrategy> water_placer; // the strategy for placing water molecules
 			std::unique_ptr<CullingStrategy> water_culler; // the strategy for culling the placed water molecules
 

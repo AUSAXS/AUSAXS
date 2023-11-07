@@ -53,7 +53,7 @@ namespace data {
 			 * 
 			 * @param input Path to the input file. 
 			 */
-			explicit Molecule(const io::ExistingFile& input);
+			explicit Molecule(const io::File& input);
 
 			/**
 			 * @brief Create a new molecule based on a set of bodies.

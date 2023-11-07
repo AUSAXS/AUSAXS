@@ -49,7 +49,7 @@ Molecule::Molecule(const Molecule& molecule) : hydration_atoms(molecule.hydratio
     initialize();
 }
 
-Molecule::Molecule(const io::ExistingFile& input) {
+Molecule::Molecule(const io::File& input) {
     Body b1(input);
     bodies = {b1};
     this->get_waters() = std::move(bodies[0].get_waters());

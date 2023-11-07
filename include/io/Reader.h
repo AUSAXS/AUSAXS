@@ -1,9 +1,10 @@
 #pragma once
 
+#include <io/IOFwd.h>
+
 #include <string>
 
-namespace io {class ExistingFile;}
-    namespace io::detail {
+namespace io::detail {
     /**
      * @brief Virtual super-class for all data file readers. 
      */
@@ -14,7 +15,7 @@ namespace io {class ExistingFile;}
             /**
              * @brief Read the data stored in a file. 
              */
-            virtual void read(const io::ExistingFile&) = 0;
+            virtual void read(const io::File&) = 0;
 
             bool operator==(const Reader& rhs) const = default;
     };

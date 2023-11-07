@@ -2,29 +2,31 @@
 
 #include <container/Container3D.h>
 
+using namespace container;
+
 TEST_CASE("Container3D::Container3D") {
     SECTION("default") {
         Container3D<int> container;
-        CHECK(container.N == 0);
-        CHECK(container.M == 0);
-        CHECK(container.L == 0);
+        CHECK(container.size_x() == 0);
+        CHECK(container.size_y() == 0);
+        CHECK(container.size_z() == 0);
     }
 
     SECTION("unsigned int, unsigned int, unsigned int") {
         Container3D<int> container(2, 3, 4);
-        CHECK(container.N == 2);
-        CHECK(container.M == 3);
-        CHECK(container.L == 4);
+        CHECK(container.size_x() == 2);
+        CHECK(container.size_y() == 3);
+        CHECK(container.size_z() == 4);
     }
 
     SECTION("unsigned int, unsigned int, unsigned int, const T&") {
         Container3D<int> container(2, 3, 4, 5);
-        CHECK(container.N == 2);
-        CHECK(container.M == 3);
-        CHECK(container.L == 4);
-        for (unsigned int i = 0; i < container.N; ++i) {
-            for (unsigned int j = 0; j < container.M; ++j) {
-                for (unsigned int k = 0; k < container.L; ++k) {
+        CHECK(container.size_x() == 2);
+        CHECK(container.size_y() == 3);
+        CHECK(container.size_z() == 4);
+        for (unsigned int i = 0; i < container.size_x(); ++i) {
+            for (unsigned int j = 0; j < container.size_y(); ++j) {
+                for (unsigned int k = 0; k < container.size_z(); ++k) {
                     CHECK(container(i, j, k) == 5);
                 }
             }
@@ -37,9 +39,9 @@ TEST_CASE("Container3D::iterators") {
         Container3D<int> container1(2, 3, 4, 5);
         Container3D<int> container2(2, 3, 4);
         std::copy(container1.begin(), container1.end(), container2.begin());
-        for (unsigned int i = 0; i < container2.N; ++i) {
-            for (unsigned int j = 0; j < container2.M; ++j) {
-                for (unsigned int k = 0; k < container2.L; ++k) {
+        for (unsigned int i = 0; i < container2.size_x(); ++i) {
+            for (unsigned int j = 0; j < container2.size_y(); ++j) {
+                for (unsigned int k = 0; k < container2.size_z(); ++k) {
                     CHECK(container2(i, j, k) == 5);
                 }
             }
@@ -59,9 +61,9 @@ TEST_CASE("Container3D::iterators") {
         SECTION("different vals") {
             Container3D<int> container(2, 3, 4);
             int c = 0;
-            for (unsigned int i = 0; i < container.N; ++i) {
-                for (unsigned int j = 0; j < container.M; ++j) {
-                    for (unsigned int k = 0; k < container.L; ++k) {
+            for (unsigned int i = 0; i < container.size_x(); ++i) {
+                for (unsigned int j = 0; j < container.size_y(); ++j) {
+                    for (unsigned int k = 0; k < container.size_z(); ++k) {
                         container(i, j, k) = c++;
                     }
                 }
