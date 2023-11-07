@@ -3,8 +3,8 @@
 
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
 #include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
-#include <hist/CompositeDistanceHistogramFFExplicit.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFExplicit.h>
 #include <form_factor/FormFactor.h>
 #include <form_factor/ExvFormFactor.h>
 #include <data/record/Atom.h>
@@ -54,18 +54,18 @@ void set_unity_charge(Molecule& protein) {
 //
 // calculation: 1 center point
 //          1 line  of length 0
-//          16 lines of length sqrt(2) = 1.41 (counting both directions)
+//          16 lines of length sqrt(3) = 1.73 (counting both directions)
 //
 // sum:
 //          9 line  of length 0
-//          16 lines of length sqrt(2)
+//          16 lines of length sqrt(3)
 //          24 lines of length 2
 //          24 lines of length sqrt(8)
 //          8 lines of length sqrt(12)
 auto width = constants::axes::d_axis.width();
 std::vector<double> d = {
     0, 
-    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
+    constants::axes::d_vals[std::round(std::sqrt(3)/width)], 
     constants::axes::d_vals[std::round(2./width)], 
     constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
     constants::axes::d_vals[std::round(std::sqrt(12)/width)]
@@ -125,7 +125,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += aasum*std::pow(ff_Cx.evaluate(q_axis[q]), 2);
         }
 
-        auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -183,7 +183,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                 }
             #endif
         }
-        auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -232,7 +232,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*ZO*awsum*ff_w.evaluate(q_axis[q])*ff_Cx.evaluate(q_axis[q]);     // -2wx
             Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                     // + ww
         }
-        auto Iq = hist::HistogramManagerMTFFExplicit(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -261,7 +261,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     data::Molecule protein("test/files/2epe.pdb");
-    auto hist_data = hist::HistogramManagerMTFFExplicit(&protein).calculate_all();
+    auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());
     auto Iq = hist->debye_transform();
     auto profile_sum = 
@@ -292,8 +292,8 @@ TEST_CASE("plot_Gq", "[manual]") {
 TEST_CASE("plot_cmp", "[manual]") {
     data::Molecule protein("data/SASDJG5/SASDJG5.pdb");
     protein.generate_new_hydration();
-    auto h = hist::HistogramManagerMTFFAvg(&protein).calculate_all();
-    auto hx = hist::HistogramManagerMTFFExplicit(&protein).calculate_all();
+    auto h = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+    auto hx = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
     auto hc = dynamic_cast<hist::CompositeDistanceHistogramFFAvg*>(h.get());
     auto hcx = dynamic_cast<hist::CompositeDistanceHistogramFFExplicit*>(hx.get());
 

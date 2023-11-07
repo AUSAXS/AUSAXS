@@ -53,7 +53,7 @@ namespace data {
 			 * 
 			 * @param input Path to the input file. 
 			 */
-			explicit Molecule(const io::ExistingFile& input);
+			explicit Molecule(const io::File& input);
 
 			/**
 			 * @brief Create a new molecule based on a set of bodies.
@@ -313,12 +313,12 @@ namespace data {
 			/**
 			 * @brief Get the histogram manager of this molecule.
 			 */
-			[[nodiscard]] std::shared_ptr<hist::HistogramManager> get_histogram_manager() const;
+			[[nodiscard]] view_ptr<hist::IHistogramManager> get_histogram_manager() const;
 
 			/**
 			 * @brief Set the histogram manager of this molecule.
 			 */
-			void set_histogram_manager(std::unique_ptr<hist::HistogramManager> manager);
+			void set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager);
 
 			/**
 			 * @brief Signal that the hydration layer has been modified.
@@ -354,7 +354,7 @@ namespace data {
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
-			std::shared_ptr<hist::HistogramManager> phm = nullptr;
+			std::shared_ptr<hist::IHistogramManager> phm = nullptr;
 			std::shared_ptr<hist::ICompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
 			double excluded_volume_scaling_factor = 1; // The scaling factor for the excluded volume.
 

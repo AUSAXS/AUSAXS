@@ -18,6 +18,8 @@ namespace container {
             Container1D() : N(0), data(0) {}
             Container1D(unsigned int size) : N(size), data(size) {}
             Container1D(unsigned int size, const T& value) : N(size), data(size, value) {}
+            Container1D(const std::vector<T>& data) : N(data.size()), data(data) {}
+            Container1D(std::vector<T>&& data) : N(data.size()), data(std::move(data)) {}
 
             T& operator()(unsigned int i) {
                 #if (SAFE_MATH)
@@ -49,7 +51,7 @@ namespace container {
             /**
              * @brief Get the size of the container.
              */
-            unsigned int size() const {return N;}
+            std::size_t size() const {return N;}
 
             /**
              * @brief Resize the container to contain @a size elements.
@@ -59,8 +61,17 @@ namespace container {
                 data.resize(size);
             }
 
+            operator std::vector<T>&() {return data;}
+
+            std::vector<T>& get_data() {return data;}
+
+            /**
+             * @brief Check if the container is empty.
+             */
+            bool empty() const {return data.empty();}
+
         protected:
-            unsigned int N;
+            std::size_t N;
             std::vector<T> data;
     };
 }

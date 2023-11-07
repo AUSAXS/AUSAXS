@@ -20,7 +20,7 @@ Body::Body() {
     initialize();
 }
 
-Body::Body(const io::ExistingFile& path) : uid(uid_counter++), file(path) {
+Body::Body(const io::File& path) : uid(uid_counter++), file(path) {
     initialize();
 }
 

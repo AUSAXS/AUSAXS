@@ -10,10 +10,24 @@ using namespace hist;
 CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS() = default;
 
 CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
-    container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx,
-    container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww,
-    const Axis& axis)
-: CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_wa), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D&& p_ax, 
+    hist::Distribution3D&& p_xx, 
+    hist::Distribution2D&& p_aw, 
+    hist::Distribution2D&& p_wx, 
+    hist::Distribution1D&& p_ww, 
+    const Axis& axis
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
+
+CompositeDistanceHistogramFoXS::CompositeDistanceHistogramFoXS(
+    hist::WeightedDistribution3D&& p_aa, 
+    hist::WeightedDistribution3D&& p_ax, 
+    hist::WeightedDistribution3D&& p_xx, 
+    hist::WeightedDistribution2D&& p_aw, 
+    hist::WeightedDistribution2D&& p_wx, 
+    hist::WeightedDistribution1D&& p_ww, 
+    const Axis& axis
+) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
 
 CompositeDistanceHistogramFoXS::~CompositeDistanceHistogramFoXS() = default;
 
@@ -28,7 +42,7 @@ static auto ff_aa_table = form_factor::foxs::storage::atomic::generate_table();
 static auto ff_ax_table = form_factor::foxs::storage::cross::generate_table();
 static auto ff_xx_table = form_factor::foxs::storage::exv::generate_table();
 ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -38,7 +52,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
 
                 // atom-atom
                 Iq[q] += count_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
@@ -51,7 +65,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
             }
 
             // the sum is multiplied by the water charge, but this can be absorbed into the cw scaling factor
-            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
+            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table->begin(q), 0.0);
 
             // atom-water
             Iq[q] += 2*cw*count_sum*ff_aa_table.index(ff1, ff_w_index).evaluate(q);
@@ -61,14 +75,14 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
         }
 
         // water-water
-        double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
+        double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table->begin(q), 0.0);
         Iq[q] += cw*cw*ww_sum*ff_aa_table.index(ff_w_index, ff_w_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
 }
 
 const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -77,7 +91,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q] += 2*Gq*count_sum*ff_ax_table.index(ff1, ff2).evaluate(q);
             }
         }
@@ -86,7 +100,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
 }
 
 const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -95,7 +109,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q] += Gq*Gq*count_sum*ff_xx_table.index(ff1, ff2).evaluate(q);
             }
         }
@@ -103,7 +117,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
     return ScatteringProfile(Iq, debye_axis);}
 
 const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -112,7 +126,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         double Gq = G_factor(constants::axes::q_vals[q]);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
+            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table->begin(q), 0.0);
             Iq[q] += 2*Gq*cw*count_sum*ff_ax_table.index(ff_w_index, ff1).evaluate(q);
         }
     }
@@ -120,7 +134,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
 }
 
 const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -128,7 +142,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
-                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table.begin(q), 0.0);
+                double count_sum = std::inner_product(cp_xx.begin(ff1, ff2), cp_xx.end(ff1, ff2), sinqd_table->begin(q), 0.0);
                 Iq[q] += count_sum*ff_aa_table.index(ff1, ff2).evaluate(q);
             }
         }
@@ -137,7 +151,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
 }
 
 const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
@@ -145,7 +159,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
     unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
-            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table.begin(q), 0.0);
+            double count_sum = std::inner_product(cp_wx.begin(ff1), cp_wx.end(ff1), sinqd_table->begin(q), 0.0);
             Iq[q] += 2*cw*count_sum*ff_aa_table.index(ff1, ff_water_index).evaluate(q);
         }
     }
@@ -153,14 +167,14 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
 }
 
 const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ww() const {
-    const auto& sinqd_table = table::ArrayDebyeTable::get_default_table();
+    auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
     unsigned int ff_water_index = static_cast<int>(form_factor::form_factor_t::O);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table.begin(q), 0.0);
+        double ww_sum = std::inner_product(cp_ww.begin(), cp_ww.end(), sinqd_table->begin(q), 0.0);
         Iq[q] += cw*cw*ww_sum*ff_aa_table.index(ff_water_index, ff_water_index).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);

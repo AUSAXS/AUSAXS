@@ -11,11 +11,10 @@ namespace hist {
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
 	 */
-	class HistogramManagerMTFFAvg : public HistogramManager {
+	template<bool use_weighted_distribution>
+	class HistogramManagerMTFFAvg : public HistogramManager<use_weighted_distribution> {
 		public:
-			using HistogramManager::HistogramManager;
-
-			HistogramManagerMTFFAvg(HistogramManager&);
+			using HistogramManager<use_weighted_distribution>::HistogramManager;
 
 			virtual ~HistogramManagerMTFFAvg() override;
 

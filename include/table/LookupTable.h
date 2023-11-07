@@ -27,6 +27,8 @@ namespace table {
                 initialize(rows, columns);
             }
 
+            ~LookupTable() noexcept override = default;
+
             /**
              * @brief Initialize the table with new index vectors. 
              * 

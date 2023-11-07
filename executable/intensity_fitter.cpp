@@ -13,7 +13,7 @@
 #include <constants/Constants.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/FittedParameter.h>
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 #include <vector>
@@ -45,6 +45,7 @@ int main(int argc, char const *argv[]) {
     auto p_hm = app.add_option("--histogram-manager,--hm", histogram_manager, "The histogram manager to use. Options: HM, HMMT, HMMTFF, PHM, PHMMT, PHMMTFF.")->group("Advanced options");
 
     app.add_flag("--foxs", settings::hist::use_foxs_method, "Decides whether the FOXS method will be used.")->default_val(settings::hist::use_foxs_method)->group("Hidden");
+    app.add_flag("--weighted_bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
 
     //###################//
@@ -109,7 +110,7 @@ int main(int argc, char const *argv[]) {
     fitter::FitReporter::report(result);
     fitter::FitReporter::save(result, settings::general::output + "report.txt");
 
-    plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "distance." + settings::plots::format);
+    plots::PlotDistance::quick_plot(fitter->get_scattering_hist(), settings::general::output + "p(r)." + settings::plots::format);
     plots::PlotProfiles::quick_plot(fitter->get_scattering_hist(), settings::general::output + "profiles." + settings::plots::format);
 
     // save fit

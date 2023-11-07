@@ -1,6 +1,10 @@
 #pragma once
 
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogramExv.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/GenericDistribution2D.h>
+#include <hist/distribution/GenericDistribution3D.h>
+#include <constants/Constants.h>
 
 #include <vector>
 
@@ -8,7 +12,7 @@ namespace hist {
     /**
      * @brief A class containing multiple partial distance histograms for multiple form factors. 
      */
-    template<typename T>
+    template<typename FormFactorTableType>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
             CompositeDistanceHistogramFFAvgBase();
@@ -22,7 +26,19 @@ namespace hist {
              * @param p_tot Total distance histogram
              * @param axis Distance axis
              */
-            CompositeDistanceHistogramFFAvgBase(container::Container3D<double>&& p_aa, container::Container2D<double>&& p_wa, container::Container1D<double>&& p_ww, const Axis& axis);
+            CompositeDistanceHistogramFFAvgBase(
+                hist::WeightedDistribution3D&& p_aa, 
+                hist::WeightedDistribution2D&& p_aw, 
+                hist::WeightedDistribution1D&& p_ww, 
+                const Axis& axis
+            );
+
+            CompositeDistanceHistogramFFAvgBase(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution1D&& p_ww, 
+                const Axis& axis
+            );
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
@@ -41,38 +57,38 @@ namespace hist {
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const std::vector<double>& get_aa_counts() const override;
-            std::vector<double>& get_aa_counts() override; // @copydoc get_aa_counts() const
+            const Distribution1D& get_aa_counts() const override;
+            Distribution1D& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const std::vector<double>& get_aw_counts() const override;
-            std::vector<double>& get_aw_counts() override; // @copydoc get_aw_counts() const
+            const Distribution1D& get_aw_counts() const override;
+            Distribution1D& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const std::vector<double>& get_ww_counts() const override;
-            std::vector<double>& get_ww_counts() override; // @copydoc get_ww_counts() const
+            const Distribution1D& get_ww_counts() const override;
+            Distribution1D& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            const container::Container3D<double>& get_aa_counts_ff() const;
-            container::Container3D<double>& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
+            const Distribution3D& get_aa_counts_ff() const;
+            Distribution3D& get_aa_counts_ff(); // @copydoc get_aa_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            const container::Container2D<double>& get_aw_counts_ff() const;
-            container::Container2D<double>& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
+            const Distribution2D& get_aw_counts_ff() const;
+            Distribution2D& get_aw_counts_ff(); // @copydoc get_aw_counts_ff() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            const container::Container1D<double>& get_ww_counts_ff() const;
-            container::Container1D<double>& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
+            const Distribution1D& get_ww_counts_ff() const;
+            Distribution1D& get_ww_counts_ff(); // @copydoc get_ww_counts_ff() const
 
             /**
              * @brief Get the total distance histogram.
@@ -109,18 +125,18 @@ namespace hist {
              */
             virtual const ScatteringProfile get_profile_wx() const override;
 
-            virtual const T& get_ff_table() const = 0;
+            virtual const FormFactorTableType& get_ff_table() const = 0;
 
         protected:
             double cw = 1; // water scaling factor
             double cx = 1; // excluded volume scaling factor
-            container::Container3D<double> cp_aa;
-            container::Container2D<double> cp_aw;
-            container::Container1D<double> cp_ww;
+            Distribution3D cp_aa; 
+            Distribution2D cp_aw; 
+            Distribution1D cp_ww;
 
         private:
-            mutable std::vector<double> p_aa;
-            mutable std::vector<double> p_aw;
-            mutable std::vector<double> p_ww;
+            mutable Distribution1D p_aa;
+            mutable Distribution1D p_aw;
+            mutable Distribution1D p_ww;
     };
 }

@@ -12,7 +12,7 @@ using namespace rigidbody;
 using namespace data;
 using namespace data::record;
 
-Molecule BodySplitter::split(const io::ExistingFile& input, std::vector<int> splits) {
+Molecule BodySplitter::split(const io::File& input, std::vector<int> splits) {
     Body body(input);
     std::vector<Atom>& atoms = body.get_atoms();
 

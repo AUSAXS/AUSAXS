@@ -4,7 +4,8 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 
 namespace hist {
-    class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg {
+	template<bool use_weighted_distribution>
+    class DebugDistanceHistogram : public CompositeDistanceHistogramFFAvg<use_weighted_distribution> {
         public: 
             DebugDistanceHistogram(view_ptr<const data::Molecule> protein);
             ~DebugDistanceHistogram() override;
@@ -21,9 +22,10 @@ namespace hist {
 	 * @brief A multi-threaded simple distance calculator. 
      *        This class is only intended for testing. Use the PartialHistogramManagerMT class for production.
 	 */
-	class DebugManager : public HistogramManager {
+	template<bool use_weighted_distribution>
+	class DebugManager : public HistogramManager<use_weighted_distribution> {
 		public:
-			using HistogramManager::HistogramManager;
+			using HistogramManager<use_weighted_distribution>::HistogramManager;
 
 			~DebugManager() override;
 

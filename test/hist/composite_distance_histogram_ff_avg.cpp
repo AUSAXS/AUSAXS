@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
-#include <hist/CompositeDistanceHistogramFFAvg.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
 #include <form_factor/FormFactor.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
@@ -51,18 +51,18 @@ void set_unity_charge(Molecule& protein) {
 //
 // calculation: 1 center point
 //          1 line  of length 0
-//          16 lines of length sqrt(2) = 1.41 (counting both directions)
+//          16 lines of length sqrt(3) = 1.73 (counting both directions)
 //
 // sum:
 //          9 line  of length 0
-//          16 lines of length sqrt(2)
+//          16 lines of length sqrt(3)
 //          24 lines of length 2
 //          24 lines of length sqrt(8)
 //          8 lines of length sqrt(12)
 auto width = constants::axes::d_axis.width();
 std::vector<double> d = {
     0, 
-    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
+    constants::axes::d_vals[std::round(std::sqrt(3)/width)], 
     constants::axes::d_vals[std::round(2./width)], 
     constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
     constants::axes::d_vals[std::round(std::sqrt(12)/width)]
@@ -74,7 +74,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     settings::molecule::use_effective_charge = false;
     auto ff_carbon = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::C);
     auto ff_exv = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
-    auto ff_w = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::O);
+    auto ff_w = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::OH);
     const auto& q_axis = constants::axes::q_vals;
     std::vector<double> Iq_exp(q_axis.size(), 0);
 
@@ -121,7 +121,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] += aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2);
         }
 
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -174,12 +174,12 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
                     std::cout << "(ax) Iq_exp[" << q << "] -= " << 2*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
                     std::cout << "(aw) Iq_exp[" << q << "] += " << 2*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
                     std::cout << "(xx) Iq_exp[" << q << "] += " << aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(xw) Iq_exp[" << q << "] -= " << 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(wx) Iq_exp[" << q << "] -= " << 2*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
                     std::cout << "(ww) Iq_exp[" << q << "] += " << 1*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
                 }
             #endif
         }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -210,15 +210,15 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 
             #if DEBYE_DEBUG
                 if (q==qcheck) {
-                    std::cout << "aasum = " << aasum << std::endl;
-                    std::cout << "axsum = " << axsum << std::endl;
-                    std::cout << "awsum = " << awsum << std::endl;
-                    std::cout << "(aa) Iq_exp[" << q << "] += " << ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(ax) Iq_exp[" << q << "] -= " << 2*ZC*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(aw) Iq_exp[" << q << "] += " << 2*ZX*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(xx) Iq_exp[" << q << "] += " << ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
-                    std::cout << "(xw) Iq_exp[" << q << "] -= " << 2*ZX*ZO*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
-                    std::cout << "(ww) Iq_exp[" << q << "] += " << 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "aasum = " << ZC*ZC*aasum << std::endl;
+                    std::cout << "axsum = " << ZC*ZX*axsum << std::endl;
+                    std::cout << "awsum = " << ZC*ZO*awsum << std::endl;
+                    std::cout << "(aa) Iq_exp[" << q << "] += " << "Za*Za*aasum*ffa*ffa   =   " << ZC*ZC*aasum << "*" << ff_carbon.evaluate(q_axis[q])*ff_carbon.evaluate(q_axis[q]) << " = " << ZC*ZC*aasum*std::pow(ff_carbon.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "(ax) Iq_exp[" << q << "] -= " << "2*Zx*Zx*axsum*ffa*ffx = 2*" << ZX*ZX*axsum << "*" << ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << " = " << 2*ZC*ZX*axsum*ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(aw) Iq_exp[" << q << "] += " << "2*Zx*Zw*awsum*ffa*ffw = 2*" << ZX*ZO*awsum << "*" << ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << " = " << 2*ZX*ZO*awsum*ff_carbon.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(xx) Iq_exp[" << q << "] += " << "Zx*Zx*xxsum*ffx*ffx   =   " << ZX*ZX*aasum << "*" << ff_exv.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << " = "<< ZX*ZX*aasum*std::pow(ff_exv.evaluate(q_axis[q]), 2) << std::endl;
+                    std::cout << "(wx) Iq_exp[" << q << "] -= " << "2*Zx*Zw*wxsum*ffx*ffw = 2*" << ZX*ZO*awsum << "*" << ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << " = " << 2*ZX*ZO*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]) << std::endl;
+                    std::cout << "(ww) Iq_exp[" << q << "] += " << "Zw*Zw*wwsum*ffw*ffw   =   " << ZO*ZO*1 << "*" << ff_carbon.evaluate(q_axis[q])*ff_exv.evaluate(q_axis[q]) << " = " << 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2) << std::endl;
                 }
             #endif
 
@@ -229,7 +229,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
             Iq_exp[q] -= 2*ZO*ZX*awsum*ff_exv.evaluate(q_axis[q])*ff_w.evaluate(q_axis[q]);         // -2wx
             Iq_exp[q] += 1*ZO*ZO*std::pow(ff_w.evaluate(q_axis[q]), 2);                             // + ww
         }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
     }
 
@@ -248,7 +248,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         for (auto& water : protein.get_waters()) {
             water.set_effective_charge(ZO);
         }
-        auto Iq = hist::HistogramManagerMTFFAvg(&protein).calculate_all()->debye_transform();
+        auto Iq = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()->debye_transform();
 
         unsigned int N = protein.atom_size();
         unsigned int M = protein.water_size();
@@ -258,7 +258,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
     data::Molecule protein("test/files/2epe.pdb");
-    auto hist_data = hist::HistogramManagerMTFFAvg(&protein).calculate_all();
+    auto hist_data = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
     auto Iq = hist->debye_transform();
     auto profile_sum = 

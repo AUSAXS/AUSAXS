@@ -2,4 +2,5 @@
 
 namespace table {
     class DebyeTable;
+    class ArrayDebyeTable;
 }

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h>
-#include <container/Container1D.h>
-#include <container/Container2D.h>
-#include <container/Container3D.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <hist/distribution/GenericDistribution2D.h>
+#include <hist/distribution/GenericDistribution3D.h>
 
 #include <vector>
 
@@ -28,9 +28,24 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFExplicit(
-                container::Container3D<double>&& p_aa, container::Container3D<double>&& p_ax, container::Container3D<double>&& p_xx, 
-                container::Container2D<double>&& p_wa, container::Container2D<double>&& p_wx, container::Container1D<double>&& p_ww, 
-                const Axis& axis);
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww, 
+                const Axis& axis
+            );
+
+            CompositeDistanceHistogramFFExplicit(
+                hist::WeightedDistribution3D&& p_aa, 
+                hist::WeightedDistribution3D&& p_ax, 
+                hist::WeightedDistribution3D&& p_xx, 
+                hist::WeightedDistribution2D&& p_aw, 
+                hist::WeightedDistribution2D&& p_wx, 
+                hist::WeightedDistribution1D&& p_ww, 
+                const Axis& axis
+            );
 
             ~CompositeDistanceHistogramFFExplicit() override;
 
@@ -55,8 +70,8 @@ namespace hist {
             double G_factor(double q) const;
 
         private:
-            container::Container3D<double> cp_ax;
-            container::Container3D<double> cp_xx;
-            container::Container2D<double> cp_wx;
+            hist::Distribution3D cp_ax;
+            hist::Distribution3D cp_xx;
+            hist::Distribution2D cp_wx;
     };
 }

@@ -33,16 +33,16 @@ namespace data::detail {
             AtomCollection(AtomCollection&& AtomCollection) noexcept;
 
             /**
-             * @brief Constructor. 
-             *        Construct a new AtomCollection based on two vectors of atoms. 
+             * @brief Construct a new AtomCollection based on two vectors of atoms. 
+             * 
              * @param protein_atoms A vector containing the constituent atoms of the molecule. 
              * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
              */
             AtomCollection(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms);
 
             /**
-             * @brief Constructor. 
-             *        Construct a new AtomCollection based on two vectors of atoms. 
+             * @brief Construct a new AtomCollection based on two vectors of atoms. 
+             * 
              * @param protein_atoms A vector containing the constituent atoms of the molecule. 
              * @param hydration_atoms A vector containing the water molecules for an existing hydration layer. 
              * @param header The header of this AtomCollection. 
@@ -52,11 +52,11 @@ namespace data::detail {
             AtomCollection(const std::vector<record::Atom>& protein_atoms, const std::vector<record::Water>& hydration_atoms, const record::Header& header, const record::Footer& footer, const record::Terminate& terminate);
 
             /**
-             * @brief Constructor.
-             *        Construct a new AtomCollection based on a input molecular data AtomCollection. 
-             * @param AtomCollectionname Path to the input AtomCollection. 
+             * @brief Construct a new AtomCollection based on a input molecular data AtomCollection. 
+             * 
+             * @param file Path to the input AtomCollection. 
              */
-            AtomCollection(const io::ExistingFile& AtomCollectionname);
+            AtomCollection(const io::File& file);
 
             /**
              * @brief Destructor.
@@ -74,7 +74,7 @@ namespace data::detail {
              * @brief Fill this object with data from a given input data AtomCollection. 
              * @param path Path to the input data AtomCollection. 
              */
-            void read(const io::ExistingFile& path);
+            void read(const io::File& path);
 
             /**
              * @brief Write this AtomCollection to disk. 
@@ -160,7 +160,7 @@ namespace data::detail {
              * @brief Construct a Reader appropriate for the AtomCollection format deduced from the input data AtomCollection. 
              * @param path Path to the input data AtomCollection. 
              */
-            std::unique_ptr<io::detail::Reader> construct_reader(const io::ExistingFile& path);
+            std::unique_ptr<io::detail::Reader> construct_reader(const io::File& path);
             /**
              * @brief Construct a Writer appropriate for the AtomCollection format deduced from the output save path.
              * @param path Path to where this object will be written. 

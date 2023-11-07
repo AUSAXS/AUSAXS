@@ -27,7 +27,7 @@ namespace data {
 			 * @param path path to the input file. 
 			 * @param signaller a signalling object to signal changes of state
 			 */
-			explicit Body(const io::ExistingFile& path);
+			explicit Body(const io::File& path);
 
 			/**
 			 * @brief Create a new collection of atoms (body) based on two vectors

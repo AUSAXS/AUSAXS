@@ -12,6 +12,6 @@ namespace rigidbody {
          * 
          * @param input The path to the input data file. 
          */
-        static data::Molecule split(const io::ExistingFile& input, std::vector<int> splits);
+        static data::Molecule split(const io::File& input, std::vector<int> splits);
     };
 }

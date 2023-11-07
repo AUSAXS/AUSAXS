@@ -12,15 +12,15 @@ namespace hist::detail {
     struct EvaluatedResult {
         EvaluatedResult() = default;
         EvaluatedResult(float distance, float weight) : distance(distance), weight(weight) {}
-        float distance; // The distance 
-        float weight;   // The combined weight
+        float distance;         // The raw distance 
+        float weight;           // The combined weight
     };
 
     struct EvaluatedResultRounded {
         EvaluatedResultRounded() = default;
-        EvaluatedResultRounded(int32_t distance, float weight) : distance(distance), weight(weight) {}
-        int32_t distance; // The distance bin 
-        float weight;     // The combined weight
+        EvaluatedResultRounded(int32_t distance_bin, float weight) : distance(distance_bin), weight(weight) {}
+        int32_t distance;       // The distance bin 
+        float weight;           // The combined weight
     };
 
     /**
@@ -29,14 +29,20 @@ namespace hist::detail {
      */
     struct QuadEvaluatedResult {
         QuadEvaluatedResult() = default;
-        QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) : distance{v1.distance, v2.distance, v3.distance, v4.distance}, weight{v1.weight, v2.weight, v3.weight, v4.weight} {}
+        QuadEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4) 
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, weights{v1.weight, v2.weight, v3.weight, v4.weight}
+        {}
+        QuadEvaluatedResult(const std::array<float, 4>& distances, const std::array<float, 4>& weights) 
+            : distances(distances), weights(weights) 
+        {}
+
         union {
-            struct {float first, second, third, fourth;} distances; // The distance
-            std::array<float, 4> distance;                          // The distance
+            struct {float first, second, third, fourth;} distance;          // The raw distances
+            std::array<float, 4> distances;                                 // The raw distances
         };
         union {
-            struct {float first, second, third, fourth;} weights;   // The combined weight
-            std::array<float, 4> weight;                            // The combined weight
+            struct {float first, second, third, fourth;} weight;            // The combined weight
+            std::array<float, 4> weights;                                   // The combined weight
         };
     };
 
@@ -46,18 +52,21 @@ namespace hist::detail {
      */
     struct QuadEvaluatedResultRounded {
         QuadEvaluatedResultRounded() = default;
-        QuadEvaluatedResultRounded(
-            const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4) 
-            : distance{v1.distance, v2.distance, v3.distance, v4.distance}, weight{v1.weight, v2.weight, v3.weight, v4.weight} 
+        QuadEvaluatedResultRounded(const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4) 
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance}, 
+                weights{v1.weight, v2.weight, v3.weight, v4.weight} 
+        {}
+        QuadEvaluatedResultRounded(const std::array<int32_t, 4>& distances, const std::array<float, 4>& weights) 
+            : distances(distances), weights(weights) 
         {}
 
         union {
-            struct {int32_t first, second, third, fourth;} distances; // The distance bin
-            std::array<int32_t, 4> distance;                          // The distance bin
+            struct {int32_t first, second, third, fourth;} distance;    // The distance bin
+            std::array<int32_t, 4> distances;                           // The distance bin
         };
         union {
-            struct {float first, second, third, fourth;} weights;   // The combined weight
-            std::array<float, 4> weight;                            // The combined weight
+            struct {float first, second, third, fourth;} weight;        // The combined weight
+            std::array<float, 4> weights;                               // The combined weight
         };
     };
 
@@ -67,14 +76,23 @@ namespace hist::detail {
      */
     struct OctoEvaluatedResult {
         OctoEvaluatedResult() = default;
-        OctoEvaluatedResult(const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, const EvaluatedResult& v5, const EvaluatedResult& v6, const EvaluatedResult& v7, const EvaluatedResult& v8) : distance{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance}, weight{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight} {}
+        OctoEvaluatedResult(
+            const EvaluatedResult& v1, const EvaluatedResult& v2, const EvaluatedResult& v3, const EvaluatedResult& v4, 
+            const EvaluatedResult& v5, const EvaluatedResult& v6, const EvaluatedResult& v7, const EvaluatedResult& v8) 
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance},
+              weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight}
+        {}
+        OctoEvaluatedResult(const std::array<float, 8>& distances, const std::array<float, 8>& weights) 
+            : distances(distances), weights(weights) 
+        {}
+
         union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} distances; // The distance
-            std::array<float, 8> distance;                                                         // The distance
+            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} distance;       // The distance
+            std::array<float, 8> distances;                                                             // The distance
         };
         union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weights; // The combined weight
-            std::array<float, 8> weight;                                                         // The combined weight
+            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weight;         // The combined weight
+            std::array<float, 8> weights;                                                               // The combined weight
         };
     };
 
@@ -87,19 +105,47 @@ namespace hist::detail {
         OctoEvaluatedResultRounded(
             const EvaluatedResultRounded& v1, const EvaluatedResultRounded& v2, const EvaluatedResultRounded& v3, const EvaluatedResultRounded& v4, 
             const EvaluatedResultRounded& v5, const EvaluatedResultRounded& v6, const EvaluatedResultRounded& v7, const EvaluatedResultRounded& v8) 
-            : distance{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance}, 
-              weight{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight} 
+            : distances{v1.distance, v2.distance, v3.distance, v4.distance, v5.distance, v6.distance, v7.distance, v8.distance}, 
+              weights{v1.weight, v2.weight, v3.weight, v4.weight, v5.weight, v6.weight, v7.weight, v8.weight} 
+        {}
+        OctoEvaluatedResultRounded(const std::array<int32_t, 8>& distances, const std::array<float, 8>& weights) 
+            : distances(distances), weights(weights) 
         {}
 
         union {
-            struct {int32_t first, second, third, fourth, fifth, sixth, seventh, eighth;} distances; // The distance bin
-            std::array<int32_t, 8> distance;                                                         // The distance bin
+            struct {int32_t first, second, third, fourth, fifth, sixth, seventh, eighth;} distance; // The distance bin
+            std::array<int32_t, 8> distances;                                                       // The distance bin
         };
         union {
-            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weights; // The combined weight
-            std::array<float, 8> weight;                                                         // The combined weight
+            struct {float first, second, third, fourth, fifth, sixth, seventh, eighth;} weight;     // The combined weight
+            std::array<float, 8> weights;                                                           // The combined weight
         };
     };
+
+    // assert that it is safe to perform memcpy and reinterpret_cast on these structures
+    // sizes - EvaluatedResult must be exactly 1 float larger than EvaluatedResultRounded for storing the exact distance
+    static_assert(sizeof(EvaluatedResult)            == 8,  "hist::detail::EvaluatedResult is not 12 bytes long");
+    static_assert(sizeof(EvaluatedResultRounded)     == 8,  "hist::detail::EvaluatedResultRounded is not 8 bytes long");
+    static_assert(sizeof(QuadEvaluatedResult)        == 32, "hist::detail::QuadEvaluatedResult is not 48 bytes long");
+    static_assert(sizeof(QuadEvaluatedResultRounded) == 32, "hist::detail::QuadEvaluatedResultRounded is not 32 bytes long");
+    static_assert(sizeof(OctoEvaluatedResult)        == 64, "hist::detail::OctoEvaluatedResult is not 96 bytes long");
+    static_assert(sizeof(OctoEvaluatedResultRounded) == 64, "hist::detail::OctoEvaluatedResultRounded is not 64 bytes long");
+
+    // ensure our structures are trivially copyable
+    static_assert(std::is_trivial_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
+    static_assert(std::is_trivial_v<EvaluatedResultRounded>,     "hist::detail::EvaluatedResultRounded is not trivial");
+    static_assert(std::is_trivial_v<QuadEvaluatedResult>,        "hist::detail::QuadEvaluatedResult is not trivial");
+    static_assert(std::is_trivial_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not trivial");
+    static_assert(std::is_trivial_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not trivial");
+    static_assert(std::is_trivial_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
+
+    // check that the structures have a standard memory layout. this is required for the reinterpret_casts.
+    static_assert(std::is_standard_layout_v<EvaluatedResult>,            "hist::detail::EvaluatedResult is not trivial");
+    static_assert(std::is_standard_layout_v<EvaluatedResultRounded>,     "hist::detail::EvaluatedResultRounded is not trivial");
+    static_assert(std::is_standard_layout_v<QuadEvaluatedResult>,        "hist::detail::QuadEvaluatedResult is not trivial");
+    static_assert(std::is_standard_layout_v<QuadEvaluatedResultRounded>, "hist::detail::QuadEvaluatedResultRounded is not trivial");
+    static_assert(std::is_standard_layout_v<OctoEvaluatedResult>,        "hist::detail::OctoEvaluatedResult is not trivial");
+    static_assert(std::is_standard_layout_v<OctoEvaluatedResultRounded>, "hist::detail::OctoEvaluatedResultRounded is not trivial");
 
     class CompactCoordinatesData {
         public:

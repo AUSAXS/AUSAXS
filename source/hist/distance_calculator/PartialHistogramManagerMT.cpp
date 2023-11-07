@@ -18,8 +18,6 @@ using namespace hist;
 
 PartialHistogramManagerMT::PartialHistogramManagerMT(view_ptr<const data::Molecule> protein) : PartialHistogramManager(protein) {}
 
-PartialHistogramManagerMT::PartialHistogramManagerMT(PartialHistogramManager& phm) : PartialHistogramManager(phm) {}
-
 PartialHistogramManagerMT::~PartialHistogramManagerMT() = default;
 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
@@ -113,7 +111,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT::calculate() {
 
     statemanager->reset();
     pool->wait_for_tasks();
-    std::vector<double> p = master.get_counts();
+    Distribution1D p = master.get_counts();
     return std::make_unique<DistanceHistogram>(std::move(p), master.get_axis());
 }
 
@@ -131,18 +129,16 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT::calculat
     unsigned int bins = total->get_axis().bins;
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    std::vector<double> p_hh = partials_hh.get_counts();
-    std::vector<double> p_pp = master.base.get_counts();
-    std::vector<double> p_hp(bins, 0);
+    Distribution1D p_hh = partials_hh.get_counts();
+    Distribution1D p_pp = master.base.get_counts();
+    Distribution1D p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < body_size; ++i) {
         for (unsigned int j = 0; j <= i; ++j) {
             detail::PartialHistogram& current = partials_pp.index(i, j);
 
             // iterate through each entry in the partial histogram
-            for (unsigned int k = 0; k < bins; ++k) {
-                p_pp[k] += current.get_count(k); // add to p_pp
-            }
+            std::transform(p_pp.begin(), p_pp.end(), current.get_counts().begin(), p_pp.begin(), std::plus<>());
         }
     }
 
@@ -151,9 +147,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT::calculat
         detail::PartialHistogram& current = partials_hp.index(i);
 
         // iterate through each entry in the partial histogram
-        for (unsigned int k = 0; k < bins; ++k) {
-            p_hp[k] += current.get_count(k); // add to p_pp
-        }
+        std::transform(p_hp.begin(), p_hp.end(), current.get_counts().begin(), p_hp.begin(), std::plus<>());
     }
 
     // p_hp is already resized
@@ -207,12 +201,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
         unsigned int j = i+1;
         for (; j+7 < coords.get_size(); j+=8) {
             auto res = coords[i].evaluate_rounded(coords[j], coords[j+1], coords[j+2], coords[j+3], coords[j+4], coords[j+5], coords[j+6], coords[j+7]);
-            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
         for (; j+3 < coords.get_size(); j+=4) {
             auto res = coords[i].evaluate_rounded(coords[j], coords[j+1], coords[j+2], coords[j+3]);
-            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+            for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
         for (; j < coords.get_size(); ++j) {
@@ -247,12 +241,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
             unsigned int j = 0;
             for (; j+7 < coords_m.get_size(); j+=8) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3], coords_m[j+4], coords_m[j+5], coords_m[j+6], coords_m[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j+3 < coords_m.get_size(); j+=4) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j < coords_m.get_size(); ++j) {
@@ -279,12 +273,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
             unsigned int j = 0;
             for (; j+7 < coords_h.get_size(); j+=8) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+                for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distances[k]] += res.weights[k];}
             }
 
             for (; j+3 < coords_h.get_size(); j+=4) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distance[k]] += res.weight[k];}
+                for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distances[k]] += res.weights[k];}
             }
 
             for (; j < coords_h.get_size(); ++j) {
@@ -312,12 +306,12 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
             unsigned int j = i+1;
             for (; j+7 < coords_h.get_size(); j+=8) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
-                for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j+3 < coords_h.get_size(); j+=4) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
-                for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distance[k]] += 2*res.weight[k];}
+                for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
             }
 
             for (; j < coords_h.get_size(); ++j) {

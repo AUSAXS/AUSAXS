@@ -100,7 +100,7 @@ namespace container {
              */
             typename std::vector<T>::iterator end() {return data.end();}
 
-            unsigned int N, M, L;
+            std::size_t N, M, L;
 
         protected:
             std::array<T, size_x*size_y*size_z> data;

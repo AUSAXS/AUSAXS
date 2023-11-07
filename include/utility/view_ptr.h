@@ -13,9 +13,11 @@ class view_ptr {
 
         view_ptr(view_ptr<T>&& other) = default;
 
-        view_ptr(T* ptr) : ptr(ptr) {}
+        template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+        view_ptr(U* ptr) : ptr(ptr) {}
 
-        view_ptr(T& ref) : ptr(&ref) {}
+        template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
+        view_ptr(U& ref) : ptr(&ref) {}
 
         template<typename U, typename = std::enable_if_t<std::is_base_of_v<T, U>>>
         view_ptr(const std::unique_ptr<U>& ptr) : ptr(ptr.get()) {}

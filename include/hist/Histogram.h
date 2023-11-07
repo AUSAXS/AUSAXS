@@ -64,11 +64,6 @@ namespace hist {
             void shorten_axis(unsigned int min_size = 10);
 
             /**
-             * @brief Extend the view axis to the given maximum value. 
-             */
-            // void extend_axis(double qmax);
-
-            /**
              * @brief Resize the number of bins in this histogram, keeping the width constant.
              */
             void resize(unsigned int bins);
@@ -93,9 +88,21 @@ namespace hist {
              */
             virtual const std::vector<double>& get_counts() const;
 
-            virtual std::vector<double>& get_counts();
+            std::vector<double>& get_counts();
 
-            double get_count(unsigned int i) const;
+            /**
+             * @brief Get the count at a specific bin.
+             */
+            const double& get_count(unsigned int i) const;
+
+            /**
+             * @brief Get the count at a specific bin.
+             */
+            double& get_count(unsigned int i);
+
+            const double& index(unsigned int i) const; // @copydoc get_count(unsigned int i) const
+
+            double& index(unsigned int i); // @copydoc get_count(unsigned int i)
 
             /**
              * @brief Get the spanned range of this histogram. 

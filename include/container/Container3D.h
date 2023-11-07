@@ -132,17 +132,17 @@ namespace container {
             /**
              * @brief Get the number of elements in the x direction.
              */
-            unsigned int size_x() const {return N;}
+            std::size_t size_x() const {return N;}
 
             /**
              * @brief Get the number of elements in the y direction.
              */
-            unsigned int size_y() const {return M;}
+            std::size_t size_y() const {return M;}
 
             /**
              * @brief Get the length of each (x, y) element.
              */
-            unsigned int size_z() const {return L;}
+            std::size_t size_z() const {return L;}
 
             /**
              * @brief Resize the container to contain @a size elements for each (x, y) index.
@@ -158,8 +158,13 @@ namespace container {
                 data = std::move(tmp.data);
             }
 
+            /**
+             * @brief Check if the container is empty.
+             */
+            bool empty() const {return data.empty();}
+
         protected:
-            unsigned int N, M, L;
+            std::size_t N, M, L;
             std::vector<T> data;
     };
 }

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <hist/intensity_calculator/interface/ICompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hist/distribution/GenericDistribution1D.h>
+#include <container/Container1D.h>
 
 #include <vector>
 
@@ -12,39 +14,46 @@ namespace hist {
         public: 
             CompositeDistanceHistogram() = default;
 
-            CompositeDistanceHistogram(std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogram(
+                hist::WeightedDistribution1D&& p_aa, 
+                hist::WeightedDistribution1D&& p_aw, 
+                hist::WeightedDistribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot, 
+                const Axis& axis
+            );
 
-            CompositeDistanceHistogram(std::vector<double>&& p_aa, std::vector<double>&& p_wa, std::vector<double>&& p_ww, std::vector<double>&& p_tot, const Axis& axis);
+            CompositeDistanceHistogram(
+                hist::Distribution1D&& p_aa, 
+                hist::Distribution1D&& p_aw, 
+                hist::Distribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot, 
+                const Axis& axis
+            );
 
             virtual ~CompositeDistanceHistogram() override;
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.
              */
-            virtual const std::vector<double>& get_aa_counts() const override;
-            virtual std::vector<double>& get_aa_counts() override; // @copydoc get_aa_counts() const
+            virtual const hist::Distribution1D& get_aa_counts() const override;
+            virtual hist::Distribution1D& get_aa_counts() override; // @copydoc get_aa_counts() const
 
             /**
              * @brief Get the partial distance histogram for atom-water interactions.
              */
-            virtual const std::vector<double>& get_aw_counts() const override;
-            virtual std::vector<double>& get_aw_counts() override; // @copydoc get_aw_counts() const
+            virtual const Distribution1D& get_aw_counts() const override;
+            virtual Distribution1D& get_aw_counts() override; // @copydoc get_aw_counts() const
 
             /**
              * @brief Get the partial distance histogram for water-water interactions.
              */
-            virtual const std::vector<double>& get_ww_counts() const override;
-            virtual std::vector<double>& get_ww_counts() override; // @copydoc get_ww_counts() const
+            virtual const Distribution1D& get_ww_counts() const override;
+            virtual Distribution1D& get_ww_counts() override; // @copydoc get_ww_counts() const
 
             /**
              * @brief Apply a scaling factor to the water partial distance histogram.
              */
             virtual void apply_water_scaling_factor(double k) override;
-
-            /**
-             * @brief Reset the water scaling factor to 1.
-             */
-            void reset_water_scaling_factor();
 
             /**
              * @brief Get the intensity profile for atom-atom interactions.
@@ -62,8 +71,8 @@ namespace hist {
             virtual const ScatteringProfile get_profile_ww() const override;
 
         private:
-            mutable std::vector<double> p_aa;
-            mutable std::vector<double> p_aw;
-            mutable std::vector<double> p_ww;
+            mutable Distribution1D p_aa;
+            mutable Distribution1D p_aw;
+            mutable Distribution1D p_ww;
     };
 }

@@ -67,7 +67,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
 	BSThreadPool
-	GIT_REPOSITORY https://github.com/darren-harton/thread-pool
+	GIT_REPOSITORY https://github.com/klytje/thread-pool
 )
 
 set(CMAKE_CXX_STANDARD 20) # continue with C++20

@@ -49,7 +49,7 @@ Molecule::Molecule(const Molecule& molecule) : hydration_atoms(molecule.hydratio
     initialize();
 }
 
-Molecule::Molecule(const io::ExistingFile& input) {
+Molecule::Molecule(const io::File& input) {
     Body b1(input);
     bodies = {b1};
     this->get_waters() = std::move(bodies[0].get_waters());
@@ -343,9 +343,9 @@ std::shared_ptr<fitter::Fit> Molecule::fit(const io::ExistingFile& measurement) 
     return fitter.fit();
 }
 
-std::shared_ptr<HistogramManager> Molecule::get_histogram_manager() const {return phm;}
+view_ptr<IHistogramManager> Molecule::get_histogram_manager() const {return phm;}
 
-void Molecule::set_histogram_manager(std::unique_ptr<hist::HistogramManager> manager) {
+void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager) {
     phm = std::move(manager);
     bind_body_signallers();
 }

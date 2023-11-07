@@ -66,13 +66,6 @@ void Histogram::shorten_axis(unsigned int min_size) {
     }
 }
 
-// void Histogram::extend_axis(double qmax) {
-//     double width = axis.width();
-//     unsigned int bins = int(qmax/width);
-//     p.resize(bins);
-//     axis = Axis(0, bins*width, bins);
-// }
-
 const Axis& Histogram::get_axis() const {
     return axis;
 }
@@ -85,8 +78,20 @@ std::vector<double>& Histogram::get_counts() {
     return const_cast<std::vector<double>&>(const_cast<const Histogram*>(this)->get_counts());
 }
 
-double Histogram::get_count(unsigned int i) const {
-    return get_counts()[i];
+double& Histogram::get_count(unsigned int i) {
+    return p[i];
+}
+
+const double& Histogram::get_count(unsigned int i) const {
+    return p[i];
+}
+
+double& Histogram::index(unsigned int i) {
+    return get_count(i);
+}
+
+const double& Histogram::index(unsigned int i) const {
+    return get_count(i);
 }
 
 void Histogram::generate_axis() {
