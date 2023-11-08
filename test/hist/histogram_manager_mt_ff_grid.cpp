@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
@@ -11,12 +12,14 @@
 #include <hydrate/Grid.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/GridSettings.h>
+#include <utility/Utility.h>
 
 using namespace hist;
 using namespace data;
 using namespace data::record;
 
 auto test = [] (const Molecule& protein) {
+    settings::molecule::center = false; // to avoid rounding errors
     auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
 
     // convert the grid to water atoms
@@ -27,7 +30,7 @@ auto test = [] (const Molecule& protein) {
         waters[i].set_effective_charge(1);
     }
     Molecule exv(protein.get_atoms(), waters);
-    auto h_exv = hist::HistogramManagerMT<false>(&exv).calculate_all();
+    auto h_exv = hist::HistogramManager<false>(&exv).calculate_all();
 
     // calculate the xx, ax, aa distributions
     auto h_cast = static_cast<CompositeDistanceHistogramFFAvg*>(h.get());
@@ -41,7 +44,7 @@ auto test = [] (const Molecule& protein) {
                 std::transform(aa.begin(i, j), aa.end(i, j), temp_aa.begin(), temp_aa.begin(), std::plus<>());
             }
             std::transform(aa.begin(i, form_factor::exv_bin), aa.end(i, form_factor::exv_bin), temp_ax.begin(), temp_ax.begin(), std::plus<>());
-            std::transform(aa.begin(form_factor::exv_bin, i), aa.end(form_factor::exv_bin, i), temp_ax.begin(), temp_ax.begin(), std::plus<>());
+            std::transform(aa.begin(form_factor::exv_bin, i), aa.end(form_factor::exv_bin, i), temp_ax.begin(), temp_ax.begin(), std::plus<>()); // should all be 0
         }
         std::transform(aa.begin(form_factor::exv_bin, form_factor::exv_bin), aa.end(form_factor::exv_bin, form_factor::exv_bin), temp_xx.begin(), temp_xx.begin(), std::plus<>());
 
@@ -68,24 +71,36 @@ auto test = [] (const Molecule& protein) {
         }
     }
 
+    // aa
     for (int i = 0; i < std::min<int>(xx1.size(), xx2.size()); ++i) {
-        if (xx1.index(i) != xx2.index(i)) {
+        if (!utility::approx(aa1.index(i), aa2.index(i), 1e-6, 0)) {
             std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
-            REQUIRE(xx1.index(i) == xx2.index(i));
-        } else if (ax1.index(i) != ax2.index(i)) {
-            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
-            REQUIRE(ax1.index(i) == ax2.index(i));
-        } else if (aa1.index(i) != aa2.index(i)) {
-            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
-            REQUIRE(aa1.index(i) == aa2.index(i));
+            REQUIRE_THAT(aa1.index(i), Catch::Matchers::WithinAbs(aa2.index(i), 1e-6));
         }
     }
-    SUCCEED();    
+    SUCCEED();
+
+    // xx
+    for (int i = 0; i < std::min<int>(xx1.size(), xx2.size()); ++i) {
+        if (!utility::approx(xx1.index(i), xx2.index(i), 1e-6, 0)) {
+            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
+            REQUIRE_THAT(xx1.index(i), Catch::Matchers::WithinAbs(xx2.index(i), 1e-6));
+        }
+    } 
+    SUCCEED();
+
+    // ax
+    for (int i = 0; i < std::min<int>(xx1.size(), xx2.size()); ++i) {
+        if (!utility::approx(ax1.index(i), ax2.index(i), 1e-6, 0)) {
+            std::cout << "histogram_manager_mt_ff_grid failed at index " << i << std::endl;
+            REQUIRE_THAT(ax1.index(i), Catch::Matchers::WithinAbs(ax2.index(i), 1e-6));
+        }
+    }
+    SUCCEED();
 };
 
 TEST_CASE("HistogramManagerMTFFGrid::calculate") {
     settings::molecule::use_effective_charge = false;
-
     SECTION("simple") {
         settings::grid::width = GENERATE(0.2, 0.5, 1, 2);
         settings::grid::exv_radius = settings::grid::width;
@@ -101,7 +116,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate") {
     SECTION("actual data") {
         settings::grid::width = 1;
         settings::grid::exv_radius = 1;
-        Molecule protein("test/files/2epe.pdb");
+        Molecule protein("test/files/LAR1-2.pdb");
         protein.clear_hydration();
         test(protein);
     }

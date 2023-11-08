@@ -133,10 +133,10 @@ namespace container {
             /**
              * @brief Resize the container to contain @a size elements for each x index.
              */
-            void resize(unsigned int size) {
+            void resize(int size) {
                 Container2D tmp(N, size);
                 for (unsigned int i = 0; i < N; i++) {
-                    std::move(begin(i), begin(i)+size, tmp.begin(i));
+                    std::move(begin(i), begin(i)+std::min<int>(size, M), tmp.begin(i));
                 }
                 M = size;
                 data = std::move(tmp.data);                

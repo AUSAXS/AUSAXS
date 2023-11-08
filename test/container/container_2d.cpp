@@ -68,3 +68,39 @@ TEST_CASE("Container3D::iterators") {
         }
     }
 }
+
+TEST_CASE("Container2D::resize") {
+    Container2D<double> container(3, 4);
+    {
+        unsigned int i = 0;
+        std::transform(container.begin(), container.end(), container.begin(), [&i](double) {return i++;});
+    }
+
+    SECTION("larger") {
+        container.resize(5);
+        CHECK(container.size_x() == 3);
+        CHECK(container.size_y() == 5);
+
+        unsigned int c = 0;
+        for (unsigned int i = 0; i < container.size_x(); ++i) {
+            for (unsigned int j = 0; j < 4; ++j) {
+                CHECK(container(i, j) == c++);
+            }
+            CHECK(container(i, 4) == 0);
+        }
+    }
+
+    SECTION("smaller") {
+        container.resize(3);
+        CHECK(container.size_x() == 3);
+        CHECK(container.size_y() == 3);
+
+        unsigned int c = 0;
+        for (unsigned int i = 0; i < container.size_x(); ++i) {
+            for (unsigned int j = 0; j < container.size_y(); ++j) {
+                CHECK(container(i, j) == c++);
+            }
+            c++;
+        }
+    }
+}

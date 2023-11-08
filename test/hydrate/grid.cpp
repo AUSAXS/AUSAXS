@@ -7,19 +7,21 @@
 #include <fstream>
 
 #include <data/Body.h>
-#include <data/Protein.h>
-#include <data/Atom.h>
-#include <data/Water.h>
+#include <data/Molecule.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/culling/CullingStrategy.h>
 #include <settings/All.h>
 #include <math/Vector3.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
  
 using std::vector;
 using namespace grid;
+using namespace data;
+using namespace data::record;
 
 // Debug class to expose the volume variable
 class GridDebug : public grid::Grid {
@@ -42,15 +44,15 @@ class GridDebug : public grid::Grid {
 TEST_CASE("Grid::Grid") {
     settings::grid::width = 1;
 
-    SECTION("Axis3D&") {
-        Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
+    SECTION("Limit3D&") {
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         Grid grid(axes);
         CHECK(grid.a_members.empty());
         CHECK(grid.w_members.empty());
         CHECK(grid.get_atoms().empty());
         CHECK(grid.get_volume() == 0);
         CHECK(grid.get_width() == settings::grid::width);
-        CHECK(grid.get_axes() == axes);
+        CHECK(grid.get_axes() == Axis3D(axes, settings::grid::width));
     }
 
     SECTION("vector<Atom>&") {
@@ -125,7 +127,7 @@ TEST_CASE("Grid::Grid") {
 }
 
 TEST_CASE("generation") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     Grid grid(axes);
 
@@ -152,7 +154,7 @@ TEST_CASE("GridMember") {
 }
 
 TEST_CASE("Grid::bounding_box") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     GridDebug grid(axes);
 
@@ -185,9 +187,9 @@ TEST_CASE("Grid::bounding_box") {
 }
 
 TEST_CASE("Grid::get_volume") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D lims(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1e-1;
-    Grid grid(axes);
+    Grid grid(lims);
 
     std::vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
     grid.add(a);
@@ -195,7 +197,7 @@ TEST_CASE("Grid::get_volume") {
     GridObj &g = grid.grid;
 
     unsigned int count = 0;
-    axes = grid.get_axes();
+    auto axes = grid.get_axes();
     for (unsigned int i = 0; i < axes.x.bins; i++) {
         for (unsigned int j = 0; j < axes.y.bins; j++) {
             for (unsigned int k = 0; k < axes.z.bins; k++) {
@@ -210,9 +212,30 @@ TEST_CASE("Grid::get_volume") {
     CHECK(grid.get_volume() == count*std::pow(settings::grid::width, 3));
 }
 
+TEST_CASE("Grid::width") {
+    // check that the grid width is actually used
+    settings::grid::width = GENERATE(0.25, 0.5, 1, 2);
+
+    Limit3D lims(-10, 10, -10, 10, -10, 10);
+    Grid grid(lims);
+
+    auto axes = grid.get_axes();
+    for (unsigned int i = 0; i < axes.x.bins-1; ++i) {
+        CHECK(grid.to_xyz(i, 0, 0).distance(grid.to_xyz(i+1, 0, 0)) == settings::grid::width);
+        CHECK(grid.to_xyz(0, i, 0).distance(grid.to_xyz(0, i+1, 0)) == settings::grid::width);
+        CHECK(grid.to_xyz(0, 0, i).distance(grid.to_xyz(0, 0, i+1)) == settings::grid::width);
+    }
+
+    auto center = grid.get_center();
+    CHECK(grid.to_xyz(center) == Vector3<double>{0, 0, 0});
+    CHECK(grid.to_xyz(center+Vector3<double>{1, 0, 0}) == Vector3<double>{settings::grid::width, 0, 0});
+    CHECK(grid.to_xyz(center+Vector3<double>{0, 1, 0}) == Vector3<double>{0, settings::grid::width, 0});
+    CHECK(grid.to_xyz(center+Vector3<double>{0, 0, 1}) == Vector3<double>{0, 0, settings::grid::width});
+}
+
 TEST_CASE("Grid::expand_volume") {
-    settings::protein::use_effective_charge = false;
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    settings::molecule::use_effective_charge = false;
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     Grid grid(axes);
     constants::radius::set_dummy_radius(3);
@@ -287,7 +310,7 @@ TEST_CASE("Grid::expand_volume") {
 }
 
 TEST_CASE("volume") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     GridDebug grid(axes);
     grid.set_atomic_radius(1);
@@ -321,7 +344,7 @@ TEST_CASE("Grid::hydrate") {
 
     // check that all the expected hydration sites are found
     SECTION("correct placement") {
-        Axis3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         settings::grid::width = 1;
         GridDebug grid(axes);
         grid.set_atomic_radius(3);
@@ -351,7 +374,7 @@ TEST_CASE("Grid::hydrate") {
     SECTION("reversible") {
         SECTION("LAR1-2") {
             // get the grid before hydrating it
-            Protein protein("test/files/LAR1-2.pdb");
+            Molecule protein("test/files/LAR1-2.pdb");
             protein.clear_hydration();
             auto g1 = *protein.get_grid();
 
@@ -381,7 +404,7 @@ TEST_CASE("Grid::hydrate") {
 
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
-        Protein protein("test/files/LAR1-2.pdb");
+        Molecule protein("test/files/LAR1-2.pdb");
         protein.generate_new_hydration();
         auto h1 = protein.get_waters();
         auto a1 = protein.get_atoms();
@@ -400,7 +423,7 @@ TEST_CASE("Grid: using different widths") {
     auto test_width_basics = [] (settings::grid::PlacementStrategy strategy) {
         settings::grid::placement_strategy = strategy;
         settings::grid::width = 0.1;
-        Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         GridDebug grid(axes);
         grid.set_atomic_radius(3);
         grid.set_hydration_radius(3);
@@ -411,8 +434,8 @@ TEST_CASE("Grid: using different widths") {
 
         // check that it was placed correctly
         REQUIRE(g.index(100, 100, 100) == GridObj::A_CENTER);
-        REQUIRE(grid.a_members.back().loc == Vector3(100, 100, 100));
-        REQUIRE(grid.a_members.back().atom.coords == Vector3(0, 0, 0));
+        REQUIRE(grid.a_members.back().get_loc() == Vector3(100, 100, 100));
+        REQUIRE(grid.a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
 
         // check water generation
         settings::grid::water_scaling = 0;
@@ -433,7 +456,7 @@ TEST_CASE("Grid: using different widths") {
     auto test_width_bounds = [] (settings::grid::PlacementStrategy strategy) {
         settings::grid::placement_strategy = strategy;
         settings::grid::width = 0.1;
-        Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         GridDebug grid(axes);
         grid.set_atomic_radius(3);
         grid.set_hydration_radius(3);
@@ -478,7 +501,7 @@ TEST_CASE("Grid: using different widths") {
 }
 
 TEST_CASE("Grid: add and remove") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     GridDebug grid(axes);
     grid.set_atomic_radius(3);
@@ -595,7 +618,7 @@ TEST_CASE("Grid: add and remove") {
 }
 
 TEST_CASE("Grid: correct_volume") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     GridDebug grid(axes);
     grid.set_atomic_radius(10);     // heavy overlap
@@ -638,7 +661,7 @@ TEST_CASE("Grid::find_free_locs") {
     auto test_func = [] (settings::grid::PlacementStrategy ch) {
         settings::grid::placement_strategy = ch;
         settings::grid::width = 1;
-        Axis3D axes(-10, 10, -10, 10, -10, 10, settings::grid::width);
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         GridDebug grid(axes);
         grid.set_atomic_radius(3);
         grid.set_hydration_radius(3);
@@ -655,7 +678,7 @@ TEST_CASE("Grid::find_free_locs") {
         for (const auto& l : locs) {
             bool found = false;
             for (const auto& p : v) {
-                if (l.atom.coords == p) {found = true;}
+                if (l.get_atom().get_coordinates() == p) {found = true;}
             }
             REQUIRE(found);
         }
@@ -674,7 +697,7 @@ TEST_CASE("Grid::find_free_locs") {
 
 // Test that expansion and deflation completely cancels each other. 
 TEST_CASE("Grid::deflate_volume") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
     GridDebug grid(axes);
     grid.set_atomic_radius(3);
@@ -708,31 +731,31 @@ TEST_CASE("Grid: cubic_grid") {
     settings::grid::width = GENERATE(0.1, 0.5, 1);
 
     SECTION("largest x") {
-        Axis3D axes(-10, 10, -1, 1, -1, 1, settings::grid::width);
+        Limit3D axes(-10, 10, -1, 1, -1, 1);
 
         Grid grid(axes);
         auto gaxes = grid.get_axes();
-        CHECK(gaxes.x == axes.x);
+        CHECK(gaxes.x.limits() == axes.x);
         CHECK(gaxes.x == gaxes.y);
         CHECK(gaxes.x == gaxes.z);
     }
 
     SECTION("largest y") {
-        Axis3D axes(-1, 1, -10, 10, -1, 1, settings::grid::width);
+        Limit3D axes(-1, 1, -10, 10, -1, 1);
 
         Grid grid(axes);
         auto gaxes = grid.get_axes();
-        CHECK(gaxes.y == axes.y);
+        CHECK(gaxes.y.limits() == axes.y);
         CHECK(gaxes.y == gaxes.y);
         CHECK(gaxes.y == gaxes.z);
     }
 
     SECTION("largest x") {
-        Axis3D axes(-1, 1, -1, 1, -10, 10, settings::grid::width);
+        Limit3D axes(-1, 1, -1, 1, -10, 10);
 
         Grid grid(axes);
         auto gaxes = grid.get_axes();
-        CHECK(gaxes.z == axes.z);
+        CHECK(gaxes.z.limits() == axes.z);
         CHECK(gaxes.z == gaxes.y);
         CHECK(gaxes.z == gaxes.z);
     }
@@ -742,7 +765,7 @@ TEST_CASE("Grid: cubic_grid") {
 
 TEST_CASE("Grid::operator=") {
     SECTION("copy") {
-        Axis3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         Grid grid1(axes);
         grid1.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
         grid1.hydrate();
@@ -756,7 +779,7 @@ TEST_CASE("Grid::operator=") {
     }
 
     SECTION("move") {
-        Axis3D axes(-10, 10, -10, 10, -10, 10);
+        Limit3D axes(-10, 10, -10, 10, -10, 10);
         Grid grid1(axes);
         grid1.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
         grid1.hydrate();
@@ -772,18 +795,18 @@ TEST_CASE("Grid::operator=") {
 }
 
 TEST_CASE("hydration") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
-    Grid grid(axes);
+    Limit3D lims(-10, 10, -10, 10, -10, 10);
+    Grid grid(lims);
     grid.add(Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0));
     grid.hydrate();
 
     // check that the waters have been expanded
     for (const auto& w : grid.w_members) {
-        CHECK(w.expanded_volume);
+        CHECK(w.is_expanded());
     }
 
     grid.clear_waters();
-
+    auto axes = grid.get_axes();
     for (unsigned int i = 0; i < axes.x.bins; i++) {
         for (unsigned int j = 0; j < axes.y.bins; j++) {
             for (unsigned int k = 0; k < axes.z.bins; k++) {
@@ -801,7 +824,7 @@ TEST_CASE("hydration") {
 }
 
 TEST_CASE("Grid::bin_ops") {
-    Axis3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D axes(-10, 10, -10, 10, -10, 10);
     Grid grid(axes);
     auto& gref = grid.grid;
 

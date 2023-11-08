@@ -194,7 +194,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     auto p_aw = std::move(cast_res->get_aw_counts_ff());
     auto p_ww = std::move(cast_res->get_ww_counts_ff());
 
-    if (max_bin > base_res->get_axis().bins) {
+    if (base_res->get_axis().bins < max_bin) {
         p_aa.resize(max_bin);
         p_aw.resize(max_bin);
         p_ww.resize(max_bin);
@@ -203,7 +203,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     }
 
     for (unsigned int i = 0; i < p_aa.size_x(); ++i) {
-        std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, p_aa.begin(form_factor::exv_bin, i));
+        std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, p_aa.begin(i, form_factor::exv_bin));
     }
     std::move(p_wx.begin(), p_wx.begin()+max_bin, p_aw.begin(form_factor::exv_bin));
     std::move(p_xx.begin(), p_xx.begin()+max_bin, p_aa.begin(form_factor::exv_bin, form_factor::exv_bin));

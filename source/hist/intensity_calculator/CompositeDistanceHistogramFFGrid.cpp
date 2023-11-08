@@ -10,9 +10,9 @@ form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate
     form_factor::storage::atomic::table_t table;
 
     auto V = 4./3*M_PI*std::pow(settings::grid::exv_radius, 3);
-    // FormFactor ffx = ExvFormFactor(V);
-    FormFactor ffx({1, 0, 0, 0, 0}, {settings::grid::exv_radius, 0, 0, 0, 0}, 0);
-    ffx.set_normalization(V*0.334);
+    FormFactor ffx = ExvFormFactor(V);
+    // FormFactor ffx({1, 0, 0, 0, 0}, {settings::grid::exv_radius, 0, 0, 0, 0}, 0);
+    // ffx.set_normalization(V*0.334);
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {
             table.index(i, j) = PrecalculatedFormFactorProduct(

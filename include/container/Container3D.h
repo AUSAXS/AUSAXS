@@ -147,11 +147,11 @@ namespace container {
             /**
              * @brief Resize the container to contain @a size elements for each (x, y) index.
              */
-            void resize(unsigned int size) {
+            void resize(int size) {
                 Container3D tmp(N, M, size);
                 for (unsigned int i = 0; i < N; i++) {
                     for (unsigned int j = 0; j < M; j++) {
-                        std::move(begin(i, j), begin(i, j)+size, tmp.begin(i, j));
+                        std::move(begin(i, j), begin(i, j)+std::min<int>(size, L), tmp.begin(i, j));
                     }
                 }
                 L = size;
