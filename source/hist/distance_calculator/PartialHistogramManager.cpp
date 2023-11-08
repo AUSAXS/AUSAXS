@@ -121,19 +121,19 @@ void PartialHistogramManager::calc_self_correlation(unsigned int index) {
 
     // calculate internal distances between atoms
     std::vector<double> p_pp(master.get_axis().bins, 0);
-    for (unsigned int i = 0; i < current.get_size(); i++) {
+    for (unsigned int i = 0; i < current.size(); i++) {
         unsigned int j = i+1;
-        for (; j+7 < current.get_size(); j+=8) {
+        for (; j+7 < current.size(); j+=8) {
             auto res = current[i].evaluate_rounded(current[j], current[j+1], current[j+2], current[j+3], current[j+4], current[j+5], current[j+6], current[j+7]);
             for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j+3 < current.get_size(); j+=4) {
+        for (; j+3 < current.size(); j+=4) {
             auto res = current[i].evaluate_rounded(current[j], current[j+1], current[j+2], current[j+3]);
             for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j < current.get_size(); ++j) {
+        for (; j < current.size(); ++j) {
             auto res = current[i].evaluate_rounded(current[j]);
             p_pp[res.distance] += 2*res.weight;
         }
@@ -176,19 +176,19 @@ void PartialHistogramManager::calc_pp(unsigned int n, unsigned int m) {
     detail::CompactCoordinates& coords_n = coords_p[n];
     detail::CompactCoordinates& coords_m = coords_p[m];
     std::vector<double> p_pp(master.get_axis().bins, 0);
-    for (unsigned int i = 0; i < coords_n.get_size(); i++) {
+    for (unsigned int i = 0; i < coords_n.size(); i++) {
         unsigned int j = 0;
-        for (; j+7 < coords_m.get_size(); j+=8) {
+        for (; j+7 < coords_m.size(); j+=8) {
             auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3], coords_m[j+4], coords_m[j+5], coords_m[j+6], coords_m[j+7]);
             for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j+3 < coords_m.get_size(); j+=4) {
+        for (; j+3 < coords_m.size(); j+=4) {
             auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3]);
             for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j < coords_m.get_size(); ++j) {
+        for (; j < coords_m.size(); ++j) {
             auto res = coords_n[i].evaluate_rounded(coords_m[j]);
             p_pp[res.distance] += 2*res.weight;
         }
@@ -202,19 +202,19 @@ void PartialHistogramManager::calc_hp(unsigned int index) {
     std::vector<double> p_hp(master.get_axis().bins, 0);
 
     detail::CompactCoordinates& coords = coords_p[index];
-    for (unsigned int i = 0; i < coords.get_size(); i++) {
+    for (unsigned int i = 0; i < coords.size(); i++) {
         unsigned int j = 0;
-        for (; j+7 < coords_h.get_size(); j+=8) {
+        for (; j+7 < coords_h.size(); j+=8) {
             auto res = coords[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
             for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distances[k]] += res.weights[k];}
         }
 
-        for (; j+3 < coords_h.get_size(); j+=4) {
+        for (; j+3 < coords_h.size(); j+=4) {
             auto res = coords[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
             for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distances[k]] += res.weights[k];}
         }
 
-        for (; j < coords_h.get_size(); ++j) {
+        for (; j < coords_h.size(); ++j) {
             auto res = coords[i].evaluate_rounded(coords_h[j]);
             p_hp[res.distance] += res.weight;
         }
@@ -229,19 +229,19 @@ void PartialHistogramManager::calc_hh() {
     std::vector<double> p_hh(master.get_axis().bins, 0);
 
     // calculate internal distances for the hydration layer
-    for (unsigned int i = 0; i < coords_h.get_size(); i++) {
+    for (unsigned int i = 0; i < coords_h.size(); i++) {
         unsigned int j = i+1;
-        for (; j+7 < coords_h.get_size(); j+=8) {
+        for (; j+7 < coords_h.size(); j+=8) {
             auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
             for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j+3 < coords_h.get_size(); j+=4) {
+        for (; j+3 < coords_h.size(); j+=4) {
             auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
             for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j < coords_h.get_size(); ++j) {
+        for (; j < coords_h.size(); ++j) {
             auto res = coords_h[i].evaluate_rounded(coords_h[j]);
             p_hh[res.distance] += 2*res.weight;
         }

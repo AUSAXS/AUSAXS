@@ -683,7 +683,10 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
 
     // check if we should use excluded volume spheres larger than the grid width
     if (settings::grid::exv_radius != settings::grid::width) {
-        double reduction_factor = std::pow(settings::grid::exv_radius/settings::grid::width, 3);
+        std::cout << "Aggregating excluded volume spheres." << std::endl;
+        double r = settings::grid::exv_radius;
+        double V = 4./3*M_PI*std::pow(r, 3);
+        double reduction_factor = V/std::pow(settings::grid::width, 3);
         auto rng = std::mt19937{std::random_device{}()};
         std::shuffle(exv_atoms.begin(), exv_atoms.end(), rng);
         exv_atoms.resize(exv_atoms.size()/reduction_factor);

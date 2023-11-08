@@ -26,7 +26,7 @@ namespace hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			std::unique_ptr<hist::detail::CompactCoordinates> data_p_ptr;
-		    std::unique_ptr<hist::detail::CompactCoordinates> data_h_ptr;
+			std::unique_ptr<hist::detail::CompactCoordinates> data_a_ptr;
+		    std::unique_ptr<hist::detail::CompactCoordinates> data_w_ptr;
 	};
 }

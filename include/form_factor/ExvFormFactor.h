@@ -1,6 +1,7 @@
 #pragma once
 
 #include <constants/Constants.h>
+#include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/DisplacedVolumeTable.h>
 
@@ -36,37 +37,37 @@ namespace form_factor {
     };
 
     namespace storage::exv {
-        constexpr ExvFormFactor CH =  ExvFormFactor(constants::displaced_volume::CH);
+        constexpr ExvFormFactor CH  = ExvFormFactor(constants::displaced_volume::CH);
         constexpr ExvFormFactor CH2 = ExvFormFactor(constants::displaced_volume::CH2);
         constexpr ExvFormFactor CH3 = ExvFormFactor(constants::displaced_volume::CH3);
-        constexpr ExvFormFactor NH =  ExvFormFactor(constants::displaced_volume::NH);
+        constexpr ExvFormFactor NH  = ExvFormFactor(constants::displaced_volume::NH);
         constexpr ExvFormFactor NH2 = ExvFormFactor(constants::displaced_volume::NH2);
         constexpr ExvFormFactor NH3 = ExvFormFactor(constants::displaced_volume::NH3);
-        constexpr ExvFormFactor OH =  ExvFormFactor(constants::displaced_volume::OH);
-        constexpr ExvFormFactor SH =  ExvFormFactor(constants::displaced_volume::SH);
+        constexpr ExvFormFactor OH  = ExvFormFactor(constants::displaced_volume::OH);
+        constexpr ExvFormFactor SH  = ExvFormFactor(constants::displaced_volume::SH);
 
-        constexpr ExvFormFactor H =   ExvFormFactor(constants::displaced_volume::H);
-        constexpr ExvFormFactor C =   ExvFormFactor(constants::displaced_volume::C);
-        constexpr ExvFormFactor N =   ExvFormFactor(constants::displaced_volume::N);
-        constexpr ExvFormFactor O =   ExvFormFactor(constants::displaced_volume::O);
-        constexpr ExvFormFactor S =   ExvFormFactor(constants::displaced_volume::S);
+        constexpr ExvFormFactor H  =  ExvFormFactor(constants::displaced_volume::H);
+        constexpr ExvFormFactor C  =  ExvFormFactor(constants::displaced_volume::C);
+        constexpr ExvFormFactor N  =  ExvFormFactor(constants::displaced_volume::N);
+        constexpr ExvFormFactor O  =  ExvFormFactor(constants::displaced_volume::O);
+        constexpr ExvFormFactor S  =  ExvFormFactor(constants::displaced_volume::S);
         constexpr ExvFormFactor Ar =  ExvFormFactor(constants::displaced_volume::Ar);
 
         constexpr ExvFormFactor get_form_factor(form_factor_t type) {
             switch(type) {
-                case form_factor_t::CH: return CH;
-                case form_factor_t::CH2: return CH2;
-                case form_factor_t::CH3: return CH3;
-                case form_factor_t::NH: return NH;
-                case form_factor_t::NH2: return NH2;
-                case form_factor_t::NH3: return NH3;
-                case form_factor_t::OH: return OH;
-                case form_factor_t::H: return H;
-                case form_factor_t::C: return C;
-                case form_factor_t::N: return N;
-                case form_factor_t::O: return O;
-                case form_factor_t::S: return S;
-                case form_factor_t::SH: return SH;
+                case form_factor_t::CH:    return CH;
+                case form_factor_t::CH2:   return CH2;
+                case form_factor_t::CH3:   return CH3;
+                case form_factor_t::NH:    return NH;
+                case form_factor_t::NH2:   return NH2;
+                case form_factor_t::NH3:   return NH3;
+                case form_factor_t::OH:    return OH;
+                case form_factor_t::H:     return H;
+                case form_factor_t::C:     return C;
+                case form_factor_t::N:     return N;
+                case form_factor_t::O:     return O;
+                case form_factor_t::S:     return S;
+                case form_factor_t::SH:    return SH;
                 case form_factor_t::OTHER: return Ar;
                 default: throw std::runtime_error("form_factor::storage::exv::get_exv_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }

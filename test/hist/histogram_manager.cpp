@@ -120,7 +120,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
             }
             { // hm_mt_ff_grid
-                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
+
+                hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             }
             { // phm
@@ -225,7 +228,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_explicit->get_total_counts()));
             }
             { // hm_mt_ff_grid
-                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+                auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
+
+                hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             }
             { // phm
@@ -276,7 +282,10 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_explicit->get_total_counts()));
         }
         { // hm_mt_ff_grid
-            auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid(&protein).calculate_all();
+            auto hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid->get_total_counts()));
+
+            hm_mt_ff_grid = hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid->get_total_counts()));
         }
         { // phm

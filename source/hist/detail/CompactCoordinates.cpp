@@ -7,22 +7,20 @@
 
 using namespace hist::detail;
 
-CompactCoordinates::CompactCoordinates(unsigned int size) : size(size), data(size) {}
+CompactCoordinates::CompactCoordinates(unsigned int size) : data(size) {}
 
-CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinates, double weight) : size(coordinates.size()), data(size) {
+CompactCoordinates::CompactCoordinates(std::vector<Vector3<double>>&& coordinates, double weight) : data(coordinates.size()) {
     std::transform(coordinates.begin(), coordinates.end(), data.begin(), [weight] (const Vector3<double>& v) {return CompactCoordinatesData(v, weight);});
 }
 
-CompactCoordinates::CompactCoordinates(const data::Body& body) : size(body.get_atoms().size()), data(size) {
-    for (unsigned int i = 0; i < size; ++i) {
+CompactCoordinates::CompactCoordinates(const data::Body& body) : data(body.atom_size()) {
+    for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = body.get_atom(i); 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
     }
 }
 
-CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) {
-    size = std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.atom_size();});
-    data.resize(size);
+CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) : data(std::accumulate(bodies.begin(), bodies.end(), 0, [](unsigned int sum, const data::Body& body) {return sum + body.atom_size();})) {
     unsigned int i = 0;
     for (const auto& body : bodies) {
         for (const auto& a : body.get_atoms()) {
@@ -31,8 +29,8 @@ CompactCoordinates::CompactCoordinates(const std::vector<data::Body>& bodies) {
     }
 }
 
-CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& atoms) : size(atoms.size()), data(size) {
-    for (unsigned int i = 0; i < size; ++i) {
+CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& atoms) : data(atoms.size()) {
+    for (unsigned int i = 0; i < size(); ++i) {
         const auto& a = atoms[i]; 
         data[i] = CompactCoordinatesData(a.coords, a.effective_charge*a.occupancy);
     }
@@ -40,7 +38,7 @@ CompactCoordinates::CompactCoordinates(const std::vector<data::record::Water>& a
 
 const std::vector<CompactCoordinatesData>& CompactCoordinates::get_data() const {return data;}
 
-unsigned int CompactCoordinates::get_size() const {return size;}
+std::size_t CompactCoordinates::size() const {return data.size();}
 
 CompactCoordinatesData& CompactCoordinates::operator[](unsigned int i) {return data[i];}
 

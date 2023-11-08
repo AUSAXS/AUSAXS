@@ -26,8 +26,9 @@ namespace form_factor {
             /**
              * @brief Initialize an excluded volume form factor.
              *        This is only used to instantiate the average excluded volume form factor.
+             *        Note that these excluded volume form factors are not normalized. 
              */
-            constexpr FormFactor(ExvFormFactor&& ffx) : a({1, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0), f0(1) {}
+            constexpr FormFactor(ExvFormFactor&& ffx) : a({ffx.q0, 0, 0, 0, 0}), b({ffx.exponent, 0, 0, 0, 0}), c(0), f0(1) {}
 
             /**
              * @brief Evaluate the form factor at a given q value.
@@ -39,6 +40,14 @@ namespace form_factor {
                     sum += a[i]*std::exp(-b[i]*q*q);
                 }
                 return (sum + c)*f0;
+            }
+
+            /**
+             * @brief Manually set the normalization of this form factor.
+             *        evaluate(0) will return this value.
+             */
+            constexpr void set_normalization(double f0) {
+                this->f0 = f0;
             }
 
         private: 

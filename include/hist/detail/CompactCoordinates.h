@@ -43,7 +43,7 @@ namespace hist::detail {
              */
             CompactCoordinates(const std::vector<data::record::Water>& atoms);
 
-            unsigned int get_size() const;
+            std::size_t size() const;
 
             const std::vector<CompactCoordinatesData>& get_data() const;
 
@@ -51,7 +51,6 @@ namespace hist::detail {
             const CompactCoordinatesData& operator[](unsigned int i) const;
 
         protected: 
-            unsigned int size;
             std::vector<CompactCoordinatesData> data;
     };
 }

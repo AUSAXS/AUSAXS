@@ -1,10 +1,10 @@
 #pragma once
 
-#include <utility/Concepts.h>
-#include <utility/view_ptr.h>
 #include <hist/HistFwd.h>
-#include <io/IOFwd.h>
 #include <data/DataFwd.h>
+#include <math/MathFwd.h>
+#include <io/ExistingFile.h>
+#include <utility/view_ptr.h>
 
 #include <string>
 #include <vector>
@@ -13,7 +13,6 @@
 class SimpleDataset;
 namespace fitter {class Fit;}
 namespace grid {class Grid;}
-template<numeric T> class Vector3;
 
 namespace data {
 	/**

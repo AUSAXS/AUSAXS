@@ -199,17 +199,17 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_self_corre
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
         unsigned int j = i+1;
-        for (; j+7 < coords.get_size(); j+=8) {
+        for (; j+7 < coords.size(); j+=8) {
             auto res = coords[i].evaluate_rounded(coords[j], coords[j+1], coords[j+2], coords[j+3], coords[j+4], coords[j+5], coords[j+6], coords[j+7]);
             for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j+3 < coords.get_size(); j+=4) {
+        for (; j+3 < coords.size(); j+=4) {
             auto res = coords[i].evaluate_rounded(coords[j], coords[j+1], coords[j+2], coords[j+3]);
             for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
         }
 
-        for (; j < coords.get_size(); ++j) {
+        for (; j < coords.size(); ++j) {
             auto res = coords[i].evaluate_rounded(coords[j]);
             p_pp[res.distance] += 2*res.weight;
         }
@@ -239,17 +239,17 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
         std::vector<double> p_pp(pp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
-            for (; j+7 < coords_m.get_size(); j+=8) {
+            for (; j+7 < coords_m.size(); j+=8) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3], coords_m[j+4], coords_m[j+5], coords_m[j+6], coords_m[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
             }
 
-            for (; j+3 < coords_m.get_size(); j+=4) {
+            for (; j+3 < coords_m.size(); j+=4) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j], coords_m[j+1], coords_m[j+2], coords_m[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_pp[res.distances[k]] += 2*res.weights[k];}
             }
 
-            for (; j < coords_m.get_size(); ++j) {
+            for (; j < coords_m.size(); ++j) {
                 auto res = coords_n[i].evaluate_rounded(coords_m[j]);
                 p_pp[res.distance] += 2*res.weight;
             }
@@ -259,8 +259,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_pp(unsigne
 
     BS::multi_future<std::vector<double>> futures_pp;
     detail::CompactCoordinates& coords_n = coords_p[n];
-    for (unsigned int i = 0; i < coords_n.get_size(); i += settings::general::detail::job_size) {
-        futures_pp.push_back(pool->submit(calc_pp, std::cref(coords_p[n]), std::cref(coords_p[m]), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, coords_n.get_size())));
+    for (unsigned int i = 0; i < coords_n.size(); i += settings::general::detail::job_size) {
+        futures_pp.push_back(pool->submit(calc_pp, std::cref(coords_p[n]), std::cref(coords_p[m]), master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, coords_n.size())));
     }
     return futures_pp;
 }
@@ -271,17 +271,17 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
         std::vector<double> p_hp(hp_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
-            for (; j+7 < coords_h.get_size(); j+=8) {
+            for (; j+7 < coords_h.size(); j+=8) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_hp[res.distances[k]] += res.weights[k];}
             }
 
-            for (; j+3 < coords_h.get_size(); j+=4) {
+            for (; j+3 < coords_h.size(); j+=4) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_hp[res.distances[k]] += res.weights[k];}
             }
 
-            for (; j < coords_h.get_size(); ++j) {
+            for (; j < coords_h.size(); ++j) {
                 auto res = coords_i[i].evaluate_rounded(coords_h[j]);
                 p_hp[res.distance] += res.weight;
             }
@@ -291,8 +291,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hp(unsigne
 
     BS::multi_future<std::vector<double>> futures_hp;
     detail::CompactCoordinates& coords = coords_p[index];
-    for (unsigned int i = 0; i < coords.get_size(); i += settings::general::detail::job_size) {
-        futures_hp.push_back(pool->submit(calc_hp, std::cref(coords_p[index]), std::cref(coords_h), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, coords.get_size())));
+    for (unsigned int i = 0; i < coords.size(); i += settings::general::detail::job_size) {
+        futures_hp.push_back(pool->submit(calc_hp, std::cref(coords_p[index]), std::cref(coords_h), master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, coords.size())));
     }
     return futures_hp;
 }
@@ -304,17 +304,17 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
         std::vector<double> p_hh(hh_size, 0);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
-            for (; j+7 < coords_h.get_size(); j+=8) {
+            for (; j+7 < coords_h.size(); j+=8) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3], coords_h[j+4], coords_h[j+5], coords_h[j+6], coords_h[j+7]);
                 for (unsigned int k = 0; k < 8; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
             }
 
-            for (; j+3 < coords_h.get_size(); j+=4) {
+            for (; j+3 < coords_h.size(); j+=4) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j], coords_h[j+1], coords_h[j+2], coords_h[j+3]);
                 for (unsigned int k = 0; k < 4; ++k) {p_hh[res.distances[k]] += 2*res.weights[k];}
             }
 
-            for (; j < coords_h.get_size(); ++j) {
+            for (; j < coords_h.size(); ++j) {
                 auto res = coords_h[i].evaluate_rounded(coords_h[j]);
                 p_hh[res.distance] += 2*res.weight;
             }
@@ -330,8 +330,8 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT::calc_hh() {
     };
 
     BS::multi_future<std::vector<double>> futures_hh;
-    for (unsigned int i = 0; i < coords_h.get_size(); i += settings::general::detail::job_size) {
-        futures_hh.push_back(pool->submit(calc_hh, std::cref(coords_h), master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, coords_h.get_size())));
+    for (unsigned int i = 0; i < coords_h.size(); i += settings::general::detail::job_size) {
+        futures_hh.push_back(pool->submit(calc_hh, std::cref(coords_h), master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, coords_h.size())));
     }
     futures_hh.push_back(pool->submit(calc_self, std::cref(coords_h), master.get_axis().bins));
     return futures_hh;

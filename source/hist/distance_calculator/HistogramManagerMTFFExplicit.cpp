@@ -29,70 +29,72 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     using GenericDistribution2D_t = typename hist::GenericDistribution2D<use_weighted_distribution>::type;
     using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;
-    data_p_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_bodies());
-    data_h_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_waters());
-    auto& data_p = *data_p_ptr;
-    auto& data_h = *data_h_ptr;
+    data_a_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_bodies());
+    data_w_ptr = std::make_unique<hist::detail::CompactCoordinatesFF>(this->protein->get_waters());
+    auto& data_a = *data_a_ptr;
+    auto& data_w = *data_w_ptr;
+    int data_a_size = (int) data_a.size();
+    int data_w_size = (int) data_w.size();
 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
     auto pool = utility::multi_threading::get_global_pool();
-    auto calc_pp = [&data_p] (unsigned int imin, unsigned int imax) {
+    auto calc_pp = [&data_a, data_a_size] (int imin, int imax) {
         GenericDistribution3D_t p_aa(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
         GenericDistribution3D_t p_ax(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
         GenericDistribution3D_t p_xx(form_factor::get_count_without_excluded_volume(), form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type1, ff_type2, distance
-        for (unsigned int i = imin; i < imax; ++i) { // atom
-            unsigned int j = i+1;                    // atom
-            for (; j+7 < data_p.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_p, data_p, i, j);
+        for (int i = imin; i < imax; ++i) { // atom
+            int j = i+1;                    // atom
+            for (; j+7 < data_a_size; j+=8) {
+                evaluate8<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
             }
 
-            for (; j+3 < data_p.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_p, data_p, i, j);
+            for (; j+3 < data_a_size; j+=4) {
+                evaluate4<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
             }
 
-            for (; j < data_p.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_p, data_p, i, j);
+            for (; j < data_a_size; ++j) {
+                evaluate1<use_weighted_distribution, 2>(p_aa, p_ax, p_xx, data_a, data_a, i, j);
              }
         }
         return std::tuple(std::move(p_aa), std::move(p_ax), std::move(p_xx));
     };
 
-    auto calc_hp = [&data_h, &data_p] (unsigned int imin, unsigned int imax) {
+    auto calc_hp = [&data_w, &data_a, data_w_size] (int imin, int imax) {
         GenericDistribution2D_t p_ww(form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type, distance
         GenericDistribution2D_t p_wx(form_factor::get_count_without_excluded_volume(), constants::axes::d_axis.bins, 0); // ff_type, distance
-        for (unsigned int i = imin; i < imax; ++i) { // atom
-            unsigned int j = 0;                      // water
-            for (; j+7 < data_h.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_ww, p_wx, data_p, data_h, i, j);
+        for (int i = imin; i < imax; ++i) { // atom
+            int j = 0;                      // water
+            for (; j+7 < data_w_size; j+=8) {
+                evaluate8<use_weighted_distribution, 1>(p_ww, p_wx, data_a, data_w, i, j);
             }
 
-            for (; j+3 < data_h.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_ww, p_wx, data_p, data_h, i, j);
+            for (; j+3 < data_w_size; j+=4) {
+                evaluate4<use_weighted_distribution, 1>(p_ww, p_wx, data_a, data_w, i, j);
             }
 
-            for (; j < data_h.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_ww, p_wx, data_p, data_h, i, j);
+            for (; j < data_w_size; ++j) {
+                evaluate1<use_weighted_distribution, 1>(p_ww, p_wx, data_a, data_w, i, j);
             }
         }
         return std::tuple(std::move(p_ww), std::move(p_wx));
     };
 
-    auto calc_hh = [&data_h] (unsigned int imin, unsigned int imax) {
+    auto calc_hh = [&data_w, data_w_size] (int imin, int imax) {
         GenericDistribution1D_t p_hh(constants::axes::d_axis.bins, 0);
-        for (unsigned int i = imin; i < imax; ++i) { // water
-            unsigned int j = i+1;                    // water
-            for (; j+7 < data_h.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
+        for (int i = imin; i < imax; ++i) { // water
+            int j = i+1;                    // water
+            for (; j+7 < data_w_size; j+=8) {
+                evaluate8<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
             }
 
-            for (; j+3 < data_h.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
+            for (; j+3 < data_w_size; j+=4) {
+                evaluate4<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
             }
 
-            for (; j < data_h.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
+            for (; j < data_w_size; ++j) {
+                evaluate1<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
             }
         }
         return p_hh;
@@ -101,18 +103,18 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     //##############//
     // SUBMIT TASKS //
     //##############//
-    unsigned int job_size = settings::general::detail::job_size;
+    int job_size = settings::general::detail::job_size;
     BS::multi_future<std::tuple<GenericDistribution3D_t, GenericDistribution3D_t, GenericDistribution3D_t>> pp;
-    for (unsigned int i = 0; i < data_p.get_size(); i+=job_size) {
-        pp.push_back(pool->submit(calc_pp, i, std::min(i+job_size, data_p.get_size())));
+    for (int i = 0; i < (int) data_a_size; i+=job_size) {
+        pp.push_back(pool->submit(calc_pp, i, std::min<int>(i+job_size, (int) data_a_size)));
     }
     BS::multi_future<std::tuple<GenericDistribution2D_t, GenericDistribution2D_t>> hp;
-    for (unsigned int i = 0; i < data_p.get_size(); i+=job_size) {
-        hp.push_back(pool->submit(calc_hp, i, std::min(i+job_size, data_p.get_size())));
+    for (int i = 0; i < (int) data_a_size; i+=job_size) {
+        hp.push_back(pool->submit(calc_hp, i, std::min<int>(i+job_size, (int) data_a_size)));
     }
     BS::multi_future<GenericDistribution1D_t> hh;
-    for (unsigned int i = 0; i < data_h.get_size(); i+=job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min(i+job_size, data_h.get_size())));
+    for (int i = 0; i < (int) data_w_size; i+=job_size) {
+        hh.push_back(pool->submit(calc_hh, i, std::min<int>(i+job_size, (int) data_w_size)));
     }
 
     //#################//
@@ -161,11 +163,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    for (unsigned int i = 0; i < data_p.get_size(); ++i) {
-        p_aa.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += std::pow(data_p[i].value.w, 2);
-        p_xx.index(data_p.get_ff_type(i), data_p.get_ff_type(i), 0) += 1;
+    for (int i = 0; i < data_a_size; ++i) {
+        p_aa.index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0) += std::pow(data_a[i].value.w, 2);
+        p_xx.index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0) += 1;
     }
-    p_ww.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
+    p_ww.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
     hist::Distribution1D p_tot(constants::axes::d_axis.bins, 0);

@@ -24,66 +24,68 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
 
     // create a more compact representation of the coordinates
     // extremely wasteful to calculate this from scratch every time (class is not meant for serial use anyway?)
-    data_p_ptr = std::make_unique<hist::detail::CompactCoordinates>(this->protein->get_bodies());
-    data_h_ptr = std::make_unique<hist::detail::CompactCoordinates>(this->protein->get_waters());
-    auto& data_p = *data_p_ptr;
-    auto& data_h = *data_h_ptr;
+    data_a_ptr = std::make_unique<hist::detail::CompactCoordinates>(this->protein->get_bodies());
+    data_w_ptr = std::make_unique<hist::detail::CompactCoordinates>(this->protein->get_waters());
+    auto& data_a = *data_a_ptr;
+    auto& data_w = *data_w_ptr;
+    int data_a_size = (int) data_a.size();
+    int data_w_size = (int) data_w.size();
 
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    auto calc_pp = [&data_p] (unsigned int imin, unsigned int imax) {
+    auto calc_pp = [&data_a, data_a_size] (int imin, int imax) {
         GenericDistribution1D_t p_pp(constants::axes::d_axis.bins, 0);
-        for (unsigned int i = imin; i < imax; ++i) {
-            unsigned int j = i+1;
-            for (; j+7 < data_p.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_pp, data_p, data_p, i, j);
+        for (int i = imin; i < imax; ++i) {
+            int j = i+1;
+            for (; j+7 < data_a_size; j+=8) {
+                evaluate8<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
             }
 
-            for (; j+3 < data_p.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_pp, data_p, data_p, i, j);
+            for (; j+3 < data_a_size; j+=4) {
+                evaluate4<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
             }
 
-            for (; j < data_p.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_pp, data_p, data_p, i, j);
+            for (; j < data_a_size; ++j) {
+                evaluate1<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
             }
         }
         return p_pp;
     };
 
-    auto calc_hh = [&data_h] (unsigned int imin, unsigned int imax) {
+    auto calc_hh = [&data_w, data_w_size] (int imin, int imax) {
         GenericDistribution1D_t p_hh(constants::axes::d_axis.bins, 0);
-        for (unsigned int i = imin; i < imax; ++i) {
-            unsigned int j = i+1;
-            for (; j+7 < data_h.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
+        for (int i = imin; i < imax; ++i) {
+            int j = i+1;
+            for (; j+7 < data_w_size; j+=8) {
+                evaluate8<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
             }
 
-            for (; j+3 < data_h.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
+            for (; j+3 < data_w_size; j+=4) {
+                evaluate4<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
             }
 
-            for (; j < data_h.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_hh, data_h, data_h, i, j);
+            for (; j < data_w_size; ++j) {
+                evaluate1<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
             }
         }
         return p_hh;
     };
 
-    auto calc_hp = [&data_h, &data_p] (unsigned int imin, unsigned int imax) {
+    auto calc_hp = [&data_w, &data_a, data_a_size] (int imin, int imax) {
         GenericDistribution1D_t p_hp(constants::axes::d_axis.bins, 0);
-        for (unsigned int i = imin; i < imax; ++i) {
-            unsigned int j = 0;
-            for (; j+7 < data_p.get_size(); j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_hp, data_h, data_p, i, j);
+        for (int i = imin; i < imax; ++i) {
+            int j = 0;
+            for (; j+7 < data_a_size; j+=8) {
+                evaluate8<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
             }
 
-            for (; j+3 < data_p.get_size(); j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_hp, data_h, data_p, i, j);
+            for (; j+3 < data_a_size; j+=4) {
+                evaluate4<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
             }
 
-            for (; j < data_p.get_size(); ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_hp, data_h, data_p, i, j);
+            for (; j < data_a_size; ++j) {
+                evaluate1<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
             }
         }
         return p_hp;
@@ -92,18 +94,18 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     //##############//
     // SUBMIT TASKS //
     //##############//
-    unsigned int job_size = settings::general::detail::job_size;
+    int job_size = settings::general::detail::job_size;
     BS::multi_future<GenericDistribution1D_t> pp;
-    for (unsigned int i = 0; i < this->protein->atom_size(); i+=job_size) {
-        pp.push_back(pool->submit(calc_pp, i, std::min(i+job_size, (unsigned int) this->protein->atom_size())));
+    for (int i = 0; i < (int) data_a_size; i+=job_size) {
+        pp.push_back(pool->submit(calc_pp, i, std::min<int>(i+job_size, (int) data_a_size)));
     }
     BS::multi_future<GenericDistribution1D_t> hh;
-    for (unsigned int i = 0; i < this->protein->water_size(); i+=job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min(i+job_size, (unsigned int) this->protein->water_size())));
+    for (int i = 0; i < (int) data_w_size; i+=job_size) {
+        hh.push_back(pool->submit(calc_hh, i, std::min<int>(i+job_size, (int) data_w_size)));
     }
     BS::multi_future<GenericDistribution1D_t> hp;
-    for (unsigned int i = 0; i < this->protein->water_size(); i+=job_size) {
-        hp.push_back(pool->submit(calc_hp, i, std::min(i+job_size, (unsigned int) this->protein->water_size())));
+    for (int i = 0; i < (int) data_w_size; i+=job_size) {
+        hp.push_back(pool->submit(calc_hp, i, std::min<int>(i+job_size, (int) data_w_size)));
     }
 
     //#################//
@@ -147,8 +149,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    p_pp.index(0) = std::accumulate(data_p.get_data().begin(), data_p.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
-    p_hh.index(0) = std::accumulate(data_h.get_data().begin(), data_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_pp.index(0) = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_hh.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
     // calculate p_tot    
     Distribution1D p_tot(constants::axes::d_axis.bins, 0);
