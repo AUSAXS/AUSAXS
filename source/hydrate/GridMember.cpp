@@ -17,10 +17,16 @@ template<typename T>
 GridMember<T>::GridMember(T&& atom, Vector3<int> loc) : atom(std::move(atom)), loc(std::move(loc)) {}
 
 template<typename T>
-Vector3<int>& GridMember<T>::get_loc() {return loc;}
+Vector3<int>& GridMember<T>::get_bin_loc() {return loc;}
 
 template<typename T>
-const Vector3<int>& GridMember<T>::get_loc() const {return loc;}
+const Vector3<int>& GridMember<T>::get_bin_loc() const {return loc;}
+
+template<typename T>
+Vector3<double>& GridMember<T>::get_absolute_loc() {return atom.get_coordinates();}
+
+template<typename T>
+const Vector3<double>& GridMember<T>::get_absolute_loc() const {return atom.get_coordinates();}
 
 template<typename T>
 bool GridMember<T>::is_expanded() const {return expanded_volume;}

@@ -20,6 +20,7 @@
  
 using std::vector;
 using namespace grid;
+using namespace grid::detail;
 using namespace data;
 using namespace data::record;
 
@@ -31,7 +32,7 @@ class GridDebug : public grid::Grid {
 		double get_hydration_radius() const override {return rh;}
         void set_atomic_radius(double ra) {this->ra = ra;}
         void set_hydration_radius(double rh) {this->rh = rh;}
-        auto unexpanded_volume() {return volume;}
+        auto get_volume_without_expanding() {return volume;}
         auto bounding_box_index() {return Grid::bounding_box_index();}
         auto to_bins(const Vector3<double> v) {return Grid::to_bins(v);}
         auto find_free_locs() {return Grid::find_free_locs();}
@@ -91,12 +92,12 @@ TEST_CASE("Grid::Grid") {
 
         auto func = [] (const Grid& grid) {
             Axis3D axes = grid.get_axes();
-            CHECK(axes.x.min ==  0 - 5*settings::grid::scaling*0.5 - settings::grid::width);
-            CHECK(axes.y.min == -5 - 6*settings::grid::scaling*0.5 - settings::grid::width);
-            CHECK(axes.z.min == -7 - 8*settings::grid::scaling*0.5 - settings::grid::width);
-            CHECK(axes.x.max ==  5 + 5*settings::grid::scaling*0.5 + settings::grid::width);
-            CHECK(axes.y.max ==  1 + 6*settings::grid::scaling*0.5 + settings::grid::width);
-            CHECK(axes.z.max ==  1 + 8*settings::grid::scaling*0.5 + settings::grid::width);
+            CHECK(axes.x.min == std::floor( 0 - 5*settings::grid::scaling*0.5 - settings::grid::width));
+            CHECK(axes.y.min == std::floor(-5 - 6*settings::grid::scaling*0.5 - settings::grid::width));
+            CHECK(axes.z.min == std::floor(-7 - 8*settings::grid::scaling*0.5 - settings::grid::width));
+            CHECK(axes.x.max ==  std::ceil(5 + 5*settings::grid::scaling*0.5 + settings::grid::width));
+            CHECK(axes.y.max ==  std::ceil(1 + 6*settings::grid::scaling*0.5 + settings::grid::width));
+            CHECK(axes.z.max ==  std::ceil(1 + 8*settings::grid::scaling*0.5 + settings::grid::width));
 
             // check that we're not using a ton of unnecessary bins
             CHECK(axes.x.bins < 20);
@@ -105,9 +106,9 @@ TEST_CASE("Grid::Grid") {
 
             // check that this is reflected in the grid itself
             const GridObj& g = grid.grid;
-            CHECK(g.xdim < 20);
-            CHECK(g.ydim < 20);
-            CHECK(g.zdim < 20);
+            CHECK(g.size_x() < 20);
+            CHECK(g.size_y() < 20);
+            CHECK(g.size_z() < 20);
         };
 
         SECTION("single body") {
@@ -136,11 +137,11 @@ TEST_CASE("generation") {
     GridObj& g = grid.grid;
 
     // check that it was placed correctly in the grid
-    REQUIRE(g.index(10, 10, 10) == GridObj::A_CENTER);
-    REQUIRE(g.index(10, 10, 11) == GridObj::EMPTY);
-    REQUIRE(g.index(10, 11, 11) == GridObj::EMPTY);
-    REQUIRE(g.index(11, 10, 10) == GridObj::EMPTY);
-    REQUIRE(g.index(9, 8, 14) == GridObj::EMPTY);
+    REQUIRE(g.index(10, 10, 10) == A_CENTER);
+    REQUIRE(g.index(10, 10, 11) == EMPTY);
+    REQUIRE(g.index(10, 11, 11) == EMPTY);
+    REQUIRE(g.index(11, 10, 10) == EMPTY);
+    REQUIRE(g.index(9, 8, 14) == EMPTY);
 }
 
 TEST_CASE("GridMember") {
@@ -201,7 +202,7 @@ TEST_CASE("Grid::get_volume") {
     for (unsigned int i = 0; i < axes.x.bins; i++) {
         for (unsigned int j = 0; j < axes.y.bins; j++) {
             for (unsigned int k = 0; k < axes.z.bins; k++) {
-                if (g.index(i, j, k) != GridObj::EMPTY) {
+                if (g.index(i, j, k) != EMPTY) {
                     count++;
                 }
             }
@@ -235,78 +236,30 @@ TEST_CASE("Grid::width") {
 
 TEST_CASE("Grid::expand_volume") {
     settings::molecule::use_effective_charge = false;
-    Limit3D axes(-10, 10, -10, 10, -10, 10);
+    Limit3D lims(-10, 10, -10, 10, -10, 10);
     settings::grid::width = 1;
-    Grid grid(axes);
-    constants::radius::set_dummy_radius(3);
+    Grid grid(lims);
+    constants::radius::set_dummy_radius(3+1e-6);
 
     vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::dummy, "", 0)};
     grid.add(a);
-    GridObj &g = grid.grid;
     grid.expand_volume();
 
-    REQUIRE(g.index(10, 10, 10) == GridObj::A_CENTER); // check that the center is still marked as capital 'A'
-
-    // check that the x=13 plane looks like this: 
-    // x x x
-    // x o x
-    // x x x
-    CHECK(g.index(14, 10, 10) == GridObj::EMPTY); // check that it does not extend to the x=14 plane
-    CHECK(g.index(13, 10, 10) == GridObj::A_AREA);
-
-    CHECK(g.index(13, 9, 9) == GridObj::EMPTY);
-    CHECK(g.index(13, 9, 10) == GridObj::EMPTY);
-    CHECK(g.index(13, 9, 11) == GridObj::EMPTY);
-
-    CHECK(g.index(13, 10, 9) == GridObj::EMPTY);
-    CHECK(g.index(13, 11, 11) == GridObj::EMPTY);
-
-    CHECK(g.index(13, 11, 9) == GridObj::EMPTY);
-    CHECK(g.index(13, 11, 10) == GridObj::EMPTY);
-    CHECK(g.index(13, 11, 11) == GridObj::EMPTY);
-
-    // repeat with the x=7 plane
-    CHECK(g.index(6, 10, 10) == GridObj::EMPTY); // check that it does not extend to the x=6 plane
-    CHECK(g.index(7, 10, 10) == GridObj::A_AREA);
-
-    CHECK(g.index(7, 9, 9) == GridObj::EMPTY);
-    CHECK(g.index(7, 9, 10) == GridObj::EMPTY);
-    CHECK(g.index(7, 9, 11) == GridObj::EMPTY);
-
-    CHECK(g.index(7, 10, 9) == GridObj::EMPTY);
-    CHECK(g.index(7, 11, 11) == GridObj::EMPTY);
-
-    CHECK(g.index(7, 11, 9) == GridObj::EMPTY);
-    CHECK(g.index(7, 11, 10) == GridObj::EMPTY);
-    CHECK(g.index(7, 11, 11) == GridObj::EMPTY);
-
-    // check some other points as well
-    // x=10, z=10 line, from z=6 it looks like x o o o o o o o x
-    CHECK(g.index(10, 6, 10) == GridObj::EMPTY);
-    CHECK(g.index(10, 7, 10) == GridObj::A_AREA);
-    CHECK(g.index(10, 8, 10) == GridObj::A_AREA);
-    CHECK(g.index(10, 9, 10) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 10) == GridObj::A_CENTER);
-    CHECK(g.index(10, 11, 10) == GridObj::A_AREA);
-    CHECK(g.index(10, 12, 10) == GridObj::A_AREA);
-    CHECK(g.index(10, 13, 10) == GridObj::A_AREA);
-    CHECK(g.index(10, 14, 10) == GridObj::EMPTY);
-
-    // x=10, y=10 line, from y=6 it looks like x o o o o o o o x
-    CHECK(g.index(10, 10, 6) == GridObj::EMPTY);
-    CHECK(g.index(10, 10, 7) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 8) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 9) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 10) == GridObj::A_CENTER);
-    CHECK(g.index(10, 10, 11) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 12) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 13) == GridObj::A_AREA);
-    CHECK(g.index(10, 10, 14) == GridObj::EMPTY);
-
-    // some random points
-    CHECK(g.index(9, 9, 9) == GridObj::A_AREA);
-    CHECK(g.index(8, 8, 8) == GridObj::EMPTY);
-    CHECK(g.index(13, 13, 13) == GridObj::EMPTY);
+    auto axes = grid.get_axes();
+    for (unsigned int i = 0; i < axes.x.bins; ++i) {
+        for (unsigned int j = 0; j < axes.y.bins; ++j) {
+            for (unsigned int k = 0; k < axes.z.bins; ++k) {
+                auto& bin = grid.grid.index(i, j, k);
+                if (grid.to_xyz(i, j, k).norm() <= 3) {
+                    if (i == 10 && j == 10 && k == 10) {continue;}
+                    CHECK(bin == A_AREA);
+                } else {
+                    CHECK(bin == EMPTY);
+                }
+            }
+        }
+    }
+    CHECK(grid.grid.index(10, 10, 10) == A_CENTER);
 }
 
 TEST_CASE("volume") {
@@ -320,22 +273,20 @@ TEST_CASE("volume") {
     vector<Water> w = {Water({2, 2, 2}, 0,  constants::atom_t::dummy, "", 0), Water({2, 2, 3}, 0,  constants::atom_t::dummy, "", 0)};
     grid.add(a);
     grid.add(w);
-    REQUIRE(grid.unexpanded_volume() == 1); // atoms are added as point-particles, and only occupy one unit of space.
+    REQUIRE(grid.get_volume_without_expanding() == 1); // atoms are added as point-particles, and only occupy one unit of space.
 
     SECTION("") {
         settings::grid::rvol = 1;
-        grid.expand_volume();
-        REQUIRE(grid.unexpanded_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
+        REQUIRE(grid.get_volume() == 7); // the radius is 1, so expanding the volume in a sphere results in one unit of volume added along each coordinate axis
 
         grid.add(Atom({0, 0, -1}, 0,  constants::atom_t::C, "", 0));
-        grid.expand_volume();
-        REQUIRE(grid.unexpanded_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
+        REQUIRE(grid.get_volume() == 12); // second atom is placed adjacent to the first one, so the volumes overlap. 
     }
 
     SECTION("") {
         settings::grid::rvol = 2;
         grid.expand_volume();
-        REQUIRE(grid.unexpanded_volume() == 33);
+        REQUIRE(grid.get_volume() == 33);
     }
 }
 
@@ -384,14 +335,14 @@ TEST_CASE("Grid::hydrate") {
             auto g2 = *protein.get_grid();
 
             // check sizes
-            REQUIRE(g1.grid.xdim == g2.grid.xdim);
-            REQUIRE(g1.grid.ydim == g2.grid.ydim);
-            REQUIRE(g1.grid.zdim == g2.grid.zdim);
+            REQUIRE(g1.grid.size_x() == g2.grid.size_x());
+            REQUIRE(g1.grid.size_y() == g2.grid.size_y());
+            REQUIRE(g1.grid.size_z() == g2.grid.size_z());
 
             // check that the grids are the same
-            for (unsigned int i = 0; i < g1.grid.xdim; i++) {
-                for (unsigned int j = 0; j < g1.grid.ydim; j++) {
-                    for (unsigned int k = 0; k < g1.grid.zdim; k++) {
+            for (unsigned int i = 0; i < g1.grid.size_x(); i++) {
+                for (unsigned int j = 0; j < g1.grid.size_y(); j++) {
+                    for (unsigned int k = 0; k < g1.grid.size_z(); k++) {
                         if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
                             REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
                         }
@@ -404,22 +355,26 @@ TEST_CASE("Grid::hydrate") {
 
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
+        settings::grid::culling_strategy = settings::grid::CullingStrategy::CounterStrategy;
         Molecule protein("test/files/LAR1-2.pdb");
         protein.generate_new_hydration();
         auto h1 = protein.get_waters();
-        auto a1 = protein.get_atoms();
         protein.generate_new_hydration();
         auto h2 = protein.get_waters();
-        auto a2 = protein.get_atoms();
 
         // check that the hydration generation is deterministic
+        // REQUIRE(h1.size() == h2.size());
         for (unsigned int i = 0; i < h1.size(); i++) {
-            REQUIRE(a1[i].coords == a2[i].coords);
+            if (h1[i].coords != h2[i].coords) {
+                std::cout << "h1[i+1]: " << h1[i+1].coords << std::endl;
+                std::cout << "h2[i+1]: " << h2[i+1].coords << std::endl;
+            }
+            REQUIRE(h1[i].coords == h2[i].coords);
         }
     }
 }
 
-TEST_CASE("Grid: using different widths") {
+TEST_CASE("using different widths") {
     auto test_width_basics = [] (settings::grid::PlacementStrategy strategy) {
         settings::grid::placement_strategy = strategy;
         settings::grid::width = 0.1;
@@ -433,8 +388,8 @@ TEST_CASE("Grid: using different widths") {
         GridObj& g = grid.grid;
 
         // check that it was placed correctly
-        REQUIRE(g.index(100, 100, 100) == GridObj::A_CENTER);
-        REQUIRE(grid.a_members.back().get_loc() == Vector3(100, 100, 100));
+        REQUIRE(g.index(100, 100, 100) == A_CENTER);
+        REQUIRE(grid.a_members.back().get_bin_loc() == Vector3(100, 100, 100));
         REQUIRE(grid.a_members.back().get_atom().get_coordinates() == Vector3(0, 0, 0));
 
         // check water generation
@@ -564,9 +519,9 @@ TEST_CASE("Grid: add and remove") {
         auto loc_a2 = grid.to_bins(a2.coords);
         auto loc_w1 = grid.to_bins(w1.coords);
         auto loc_w3 = grid.to_bins(w3.coords);
-        REQUIRE(g.index(loc_a2) == GridObj::EMPTY);
-        REQUIRE(g.index(loc_w1) == GridObj::EMPTY);
-        REQUIRE(g.index(loc_w3) == GridObj::EMPTY);
+        REQUIRE(g.index(loc_a2) == EMPTY);
+        REQUIRE(g.index(loc_w1) == EMPTY);
+        REQUIRE(g.index(loc_w3) == EMPTY);
     }
 
     SECTION("remove_vector") {
@@ -637,24 +592,24 @@ TEST_CASE("Grid: correct_volume") {
     vector<Water> w = {w1, w2, w3};
 
     // single non-overlapping
-    REQUIRE(grid.unexpanded_volume() == 0);
+    REQUIRE(grid.get_volume_without_expanding() == 0);
     grid.add(a1);
-    REQUIRE(grid.unexpanded_volume() != 0);
+    REQUIRE(grid.get_volume_without_expanding() != 0);
     grid.remove(a1);
-    REQUIRE(grid.unexpanded_volume() == 0);
+    REQUIRE(grid.get_volume_without_expanding() == 0);
 
     grid.add(w1);
-    REQUIRE(grid.unexpanded_volume() == 0);
+    REQUIRE(grid.get_volume_without_expanding() == 0);
     grid.remove(w1);
-    REQUIRE(grid.unexpanded_volume() == 0);
+    REQUIRE(grid.get_volume_without_expanding() == 0);
 
     // multiple overlapping
     grid.add(a);
     grid.add(w);
-    REQUIRE(grid.unexpanded_volume() != 0);
+    REQUIRE(grid.get_volume_without_expanding() != 0);
     grid.remove(a);
     grid.remove(w);
-    REQUIRE(grid.unexpanded_volume() == 0);
+    REQUIRE(grid.get_volume_without_expanding() == 0);
 }
 
 TEST_CASE("Grid::find_free_locs") {
@@ -705,12 +660,12 @@ TEST_CASE("Grid::deflate_volume") {
 
     vector<Atom> a = {Atom({3, 0, 0}, 0,  constants::atom_t::C, "", 1), Atom({0, 3, 0}, 0,  constants::atom_t::C, "", 2)};
     grid.add(a);
-    REQUIRE(grid.unexpanded_volume() == 2);
+    REQUIRE(grid.get_volume_without_expanding() == 2);
 
     grid.expand_volume();
     grid.deflate_volume();
     GridObj &g = grid.grid;
-    REQUIRE(grid.unexpanded_volume() == 2);
+    REQUIRE(grid.get_volume_without_expanding() == 2);
 
     auto bins = grid.get_bins();
     for (int i = 0; i < bins.x(); i++) {
@@ -718,7 +673,7 @@ TEST_CASE("Grid::deflate_volume") {
             for (int k = 0; k < bins.z(); k++) {
                 if (i == 10 && j == 13 && k == 10) {continue;} // center of the first atom
                 if (i == 13 && j == 10 && k == 10) {continue;} // center of the second atom
-                if (g.index(i, j, k) != GridObj::EMPTY) {
+                if (g.index(i, j, k) != EMPTY) {
                     REQUIRE(false);
                 }
             }
@@ -811,8 +766,8 @@ TEST_CASE("hydration") {
         for (unsigned int j = 0; j < axes.y.bins; j++) {
             for (unsigned int k = 0; k < axes.z.bins; k++) {
                 auto index = grid.grid.index(i, j, k);
-                if (index != GridObj::EMPTY) {
-                    if (index == GridObj::A_CENTER || index == GridObj::A_AREA || index == GridObj::VOLUME) {
+                if (index != EMPTY) {
+                    if (index == A_CENTER || index == A_AREA || index == VOLUME) {
                         continue;
                     }
                     std::cout << "Failed on index " << i << ", " << j << ", " << k << " with " << index << std::endl;
@@ -829,7 +784,7 @@ TEST_CASE("Grid::bin_ops") {
     auto& gref = grid.grid;
 
     {
-        gref.index(0, 0, 0) = GridObj::A_CENTER;
+        gref.index(0, 0, 0) = A_CENTER;
         CHECK(gref.is_atom_center(0, 0, 0) == true);
         CHECK(gref.is_atom_area(0, 0, 0) == false);
         CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
@@ -840,7 +795,7 @@ TEST_CASE("Grid::bin_ops") {
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
     }
     {
-        gref.index(0, 0, 0) = GridObj::A_AREA;
+        gref.index(0, 0, 0) = A_AREA;
         CHECK(gref.is_atom_center(0, 0, 0) == false);
         CHECK(gref.is_atom_area(0, 0, 0) == true);
         CHECK(gref.is_atom_area_or_volume(0, 0, 0) == true);
@@ -851,7 +806,7 @@ TEST_CASE("Grid::bin_ops") {
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
     }
     {
-        gref.index(0, 0, 0) = GridObj::W_CENTER;
+        gref.index(0, 0, 0) = W_CENTER;
         CHECK(gref.is_atom_center(0, 0, 0) == false);
         CHECK(gref.is_atom_area(0, 0, 0) == false);
         CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
@@ -862,7 +817,7 @@ TEST_CASE("Grid::bin_ops") {
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
     }
     {
-        gref.index(0, 0, 0) = GridObj::W_AREA;
+        gref.index(0, 0, 0) = W_AREA;
         CHECK(gref.is_atom_center(0, 0, 0) == false);
         CHECK(gref.is_atom_area(0, 0, 0) == false);
         CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);
@@ -873,7 +828,7 @@ TEST_CASE("Grid::bin_ops") {
         CHECK(gref.is_empty_or_volume(0, 0, 0) == false);
     }
     {
-        gref.index(0, 0, 0) = GridObj::VOLUME;
+        gref.index(0, 0, 0) = VOLUME;
         CHECK(gref.is_atom_center(0, 0, 0) == false);
         CHECK(gref.is_atom_area(0, 0, 0) == false);
         CHECK(gref.is_atom_area_or_volume(0, 0, 0) == true);
@@ -884,7 +839,7 @@ TEST_CASE("Grid::bin_ops") {
         CHECK(gref.is_empty_or_volume(0, 0, 0) == true);
     }
     {
-        gref.index(0, 0, 0) = GridObj::EMPTY;
+        gref.index(0, 0, 0) = EMPTY;
         CHECK(gref.is_atom_center(0, 0, 0) == false);
         CHECK(gref.is_atom_area(0, 0, 0) == false);
         CHECK(gref.is_atom_area_or_volume(0, 0, 0) == false);

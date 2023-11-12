@@ -241,10 +241,11 @@ TEST_CASE("sphere_comparison", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
     settings::axes::qmax = 1;
-    auto axes = Axis3D(-50, 50, -50, 50, -50, 50, 1);
-    grid::Grid grid(axes);
+    auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
+    grid::Grid grid(lims);
     double radius = 15;
     double radius2 = radius*radius;
+    auto axes = grid.get_axes();
     Vector3<double> center = grid.to_xyz(grid.get_center());
     for (unsigned int i = 0; i < axes.x.bins; ++i) {
         for (unsigned int j = 0; j < axes.y.bins; ++j) {

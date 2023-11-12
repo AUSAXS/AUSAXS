@@ -217,7 +217,7 @@ const std::vector<Water>& Molecule::get_waters() const {return hydration_atoms;}
 
 void Molecule::generate_new_hydration() {
     // delete the old hydration layer
-    get_waters() = std::vector<Water>();
+    get_waters().clear();
     signal_modified_hydration_layer();
 
     // create the grid and hydrate it

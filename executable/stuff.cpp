@@ -25,8 +25,29 @@
 #include <fitter/HydrationFitter.h>
 #include <form_factor/FormFactor.h>
 #include <hydrate/Grid.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 
 #include <cassert>
+
+int main(int argc, char const *argv[]) {
+    settings::grid::width = 1;
+    settings::grid::exv_radius = 1;
+    data::Molecule protein("data/rigidbody/lysozyme/2epe.pdb");
+    plots::PlotIntensity plot;
+    for (double rx = 0.5; rx < 3; rx += 0.25) {
+        settings::grid::width = rx;
+        settings::grid::exv_radius = rx;
+        protein.clear_grid();
+        hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+        auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+        auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
+        auto profile = h_cast->get_profile_xx();
+        profile.add_plot_options({{"legend", std::to_string(rx)}});
+        plot.plot(profile, style::color::next());
+    }
+    plot.save("temp/stuff/xx_variation.png");
+}
 
 //************************************************************************************************* 
 //********************************* PLOT SCATTERING STUFF *****************************************

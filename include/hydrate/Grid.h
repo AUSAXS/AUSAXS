@@ -271,14 +271,14 @@ namespace grid {
 			/**
 			 * @brief Get the contents of a single bin.
 			 */
-			const GridObj::State& index(unsigned int i, unsigned int j, unsigned int k) const;
+			const detail::State& index(unsigned int i, unsigned int j, unsigned int k) const;
 
 			/**
 			 * @brief Get the center of the grid in bin coordinates.
 			 */
 			Vector3<int> get_center() const;
 
-			GridObj grid; // The actual grid.
+			detail::GridObj grid; // The actual grid.
 			std::list<GridMember<data::record::Atom>> a_members; // A list of all member atoms and where they are located.
 			std::list<GridMember<data::record::Water>> w_members; // A list of all member water molecules and where they are located. 
 

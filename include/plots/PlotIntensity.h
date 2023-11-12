@@ -13,6 +13,8 @@
 namespace plots {
 	class PlotIntensity : public Plot {
 		public:
+			PlotIntensity() = default;
+
 			/**
 			 * @brief Copy constructor.
 			 * 

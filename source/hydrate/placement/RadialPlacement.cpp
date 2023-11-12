@@ -88,7 +88,7 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 
     double rh = grid->get_hydration_radius();
     for (const auto& atom : grid->a_members) {
-        int x = atom.get_loc().x(), y = atom.get_loc().y(), z = atom.get_loc().z();
+        int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
@@ -106,7 +106,7 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
             
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
             Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
-            if (grid->grid.is_empty_or_volume(xr, yr, zr) && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
+            if (grid->grid.is_empty(xr, yr, zr) && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
                 Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
                 add_loc(exact_loc);
             }
@@ -116,8 +116,7 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 }
 
 bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
-    // dereference the values we'll need for better performance
-    GridObj& gref = grid->grid;
+    detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
 
     int score = 0;
@@ -143,7 +142,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
         if (zr < 0) zr = 0;
         if (zr >= (int) bins.z()) zr = bins.z()-1;
 
-        if (!gref.is_empty_or_volume(xr, yr, zr)) {
+        if (!gref.is_empty(xr, yr, zr)) {
             if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
             return false;
         }
@@ -158,7 +157,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 3;                         // so we add three points and move on to the next
                 continue;
             }
-            if (!gref.is_empty_or_volume(xr, yr, zr)) { // if the line intersects something at 3r, we don't check the other two points of the same line
+            if (!gref.is_empty(xr, yr, zr)) { // if the line intersects something at 3r, we don't check the other two points of the same line
                 score -= 3;                             // but immediately subtract 3 points and move on to the next
                 continue;
             } else {
@@ -173,7 +172,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 2;
                 continue;
             }
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_empty(xr, yr, zr)) {
                 score -= 2;
                 continue;
             } else {
@@ -188,7 +187,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 1;
                 continue;
             }
-            if (!gref.is_empty_or_volume(xr, yr, zr)) {
+            if (!gref.is_empty(xr, yr, zr)) {
                 score -= 1;
                 continue;
             } else {

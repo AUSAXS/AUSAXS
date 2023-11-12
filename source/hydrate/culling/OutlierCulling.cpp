@@ -19,10 +19,10 @@ std::vector<data::record::Water> grid::OutlierCulling::cull(std::vector<grid::Gr
     std::vector<std::pair<GridMember<Water>, int>> v(placed_water.size());
     int r = 3*grid->get_atomic_radius(constants::atom_t::C)/grid->get_width(); // use 2*atomic_radius as the boundary
     auto bins = grid->get_bins();
-    const GridObj& gref = grid->grid;
+    const detail::GridObj& gref = grid->grid;
     unsigned int index = 0;
     for (const auto& water : placed_water) {
-        const int x = water.get_loc().x(), y = water.get_loc().y(), z = water.get_loc().z();
+        const int x = water.get_bin_loc().x(), y = water.get_bin_loc().y(), z = water.get_bin_loc().z();
         int score = 0;
 
         // create a box of size [x-2r, x+2r][y-2r, y+2r][z-2r, z+2r] within the bounds

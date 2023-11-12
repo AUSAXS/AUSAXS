@@ -43,12 +43,22 @@ namespace grid {
             /**
              * @brief Get the bin location of this atom.
              */
-            Vector3<int>& get_loc();
+            Vector3<int>& get_bin_loc();
 
             /**
              * @brief Get the bin location of this atom.
              */
-            const Vector3<int>& get_loc() const;
+            const Vector3<int>& get_bin_loc() const;
+
+            /**
+             * @brief Get the absolute location of this atom.
+             */
+            Vector3<double>& get_absolute_loc(); 
+
+            /**
+             * @brief Get the absolute location of this atom.
+             */
+            const Vector3<double>& get_absolute_loc() const;
 
             /**
              * @brief Check if the volume of this atom has been expanded.
