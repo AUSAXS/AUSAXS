@@ -7,7 +7,6 @@
 
 using namespace data::record;
 
-#include <sstream>
 std::vector<grid::GridMember<data::record::Water>> grid::AxesPlacement::place() const {
     detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
@@ -24,11 +23,8 @@ std::vector<grid::GridMember<data::record::Water>> grid::AxesPlacement::place() 
         placed_water[index++] = gm;
     };
 
-    static int counter;
-    counter = 0;
     // loop over the location of all member atoms
     double rh = grid->get_hydration_radius(); // radius of a water molecule
-    std::cout << "(AxesPlacement) Grid[23, 32, 54] = " << (int) grid->grid.index(23, 32, 54) << std::endl;
     for (const auto& atom : grid->a_members) {
         double ra = grid->get_atomic_radius(atom.get_atom_type()); // radius of the atom
         double r_eff_real = ra+rh; // the effective bin radius
@@ -36,83 +32,52 @@ std::vector<grid::GridMember<data::record::Water>> grid::AxesPlacement::place() 
 
         auto coords_abs = atom.get_atom().get_coordinates();
         auto x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
-        auto xx = coords_abs.x(), yx = coords_abs.y(), zx = coords_abs.z(); // eXact coordinates
+
         // we define a small box of size [i-rh, i+rh][j-rh, j+rh][z-rh, z+rh]
-        int xm = std::max<int>(std::round(xx-r_eff_bin), 0), xp = std::min<int>(std::round(xx+r_eff_bin), bins[0]-1); // xminus and xplus
-        int ym = std::max<int>(std::round(yx-r_eff_bin), 0), yp = std::min<int>(std::round(yx+r_eff_bin), bins[1]-1); // yminus and yplus
-        int zm = std::max<int>(std::round(zx-r_eff_bin), 0), zp = std::min<int>(std::round(zx+r_eff_bin), bins[2]-1); // zminus and zplus
+        auto bin_min = grid->to_bins(coords_abs - r_eff_real);
+        auto bin_max = grid->to_bins(coords_abs + r_eff_real);
+        bin_min.x() = std::max<int>(bin_min.x(), 0); bin_max.x() = std::min<int>(bin_max.x(), bins[0]-1);
+        bin_min.y() = std::max<int>(bin_min.y(), 0); bin_max.y() = std::min<int>(bin_max.y(), bins[1]-1);
+        bin_min.z() = std::max<int>(bin_min.z(), 0); bin_max.z() = std::min<int>(bin_max.z(), bins[2]-1);
 
         // check collisions for x ± r_eff
-        std::stringstream ss;
-        std::cout << "\nChecking x: " << std::endl;
-        if ((gref.index(xm, y, z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(xm, y, z), ra)) {
-            Vector3 exact_loc = atom.get_atom().get_coordinates();
+        if ((gref.index(bin_min.x(), y, z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(bin_min.x(), y, z), ra)) {
+            Vector3 exact_loc = coords_abs;
             exact_loc.x() -= r_eff_real;
-            std::cout << "\tAdding water at bin (" << xm << ", " << y << ", " << z << "), exact: " << exact_loc << std::endl;
-            counter++;
             add_loc(exact_loc);
-        } else if (gref.index(xm, y, z) != detail::EMPTY) {
-            ss << "\tBin location (" << xm << ", " << y << ", " << z << ") already taken by " << (int) gref.index(xm, y, z) << std::endl;
         }
-        if ((gref.index(xp, y, z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(xp, y, z), ra)) {
-            Vector3 exact_loc = atom.get_atom().get_coordinates();
+        if ((gref.index(bin_max.x(), y, z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(bin_max.x(), y, z), ra)) {
+            Vector3 exact_loc = coords_abs;
             exact_loc.x() += r_eff_real;
-            std::cout << "\tAdding water at bin (" << xp << ", " << y << ", " << z << "), exact: " << exact_loc << std::endl;
-            counter++;
             add_loc(exact_loc);
-        } else if (gref.index(xp, y, z) != detail::EMPTY) {
-            ss << "\tBin location (" << xp << ", " << y << ", " << z << ") already taken by " << (int) gref.index(xp, y, z) << std::endl;
         }
 
         // check collisions for y ± r_eff
-        std::cout << "Checking y: " << std::endl;
-        if ((gref.index(x, ym, z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, ym, z), ra)) {
-            Vector3 exact_loc = atom.get_atom().get_coordinates();
+        if ((gref.index(x, bin_min.y(), z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, bin_min.y(), z), ra)) {
+            Vector3 exact_loc = coords_abs;
             exact_loc.y() -= r_eff_real;
-            std::cout << "\tAdding water at bin (" << x << ", " << ym << ", " << z << "), exact: " << exact_loc << std::endl;
-            counter++;
             add_loc(exact_loc);
-        } else if (gref.index(x, ym, z) != detail::EMPTY) {
-            ss << "\tBin location (" << x << ", " << ym << ", " << z << ") already taken by " << (int) gref.index(x, ym, z) << std::endl;
         }
 
-        if ((gref.index(x, yp, z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, yp, z), ra)) {
-            Vector3 exact_loc = atom.get_atom().get_coordinates();
+        if ((gref.index(x, bin_max.y(), z) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, bin_max.x(), z), ra)) {
+            Vector3 exact_loc = coords_abs;
             exact_loc.y() += r_eff_real;
-            std::cout << "\tAdding water at bin (" << x << ", " << yp << ", " << z << "), exact: " << exact_loc << std::endl;
-            counter++;
             add_loc(exact_loc);
-        } else if (gref.index(x, yp, z) != detail::EMPTY) {
-            ss << "\tBin location (" << x << ", " << yp << ", " << z << ") already taken by " << (int) gref.index(x, yp, z) << std::endl;
         }
 
         // check collisions for z ± r_eff
-        std::cout << "Checking z: " << std::endl;
-        if ((gref.index(x, y, zm) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zm), ra)) {
-            Vector3 exact_loc = atom.get_atom().get_coordinates();
+        if ((gref.index(x, y, bin_min.z()) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, y, bin_min.z()), ra)) {
+            Vector3 exact_loc = coords_abs;
             exact_loc.z() -= r_eff_real;
-            std::cout << "\tAdding water at bin (" << x << ", " << y << ", " << zm << "), exact: " << exact_loc << std::endl;
-            counter++;
             add_loc(exact_loc);
-        } else if (gref.index(x, y, zm) != detail::EMPTY) {
-            ss << "\tBin location (" << x << ", " << y << ", " << zm << ") already taken by " << (int) gref.index(x, y, zm) << std::endl;
         }
 
-        if ((gref.index(x, y, zp) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, y, zp), ra)) {
-            Vector3 exact_loc = atom.get_atom().get_coordinates();
+        if ((gref.index(x, y, bin_max.z()) == detail::EMPTY) && collision_check(Vector3<unsigned int>(x, y, bin_max.z()), ra)) {
+            Vector3 exact_loc = coords_abs;
             exact_loc.z() += r_eff_real;
-            std::cout << "\tAdding water at bin (" << x << ", " << y << ", " << zp << "), exact: " << exact_loc << std::endl;
-            counter++;
             add_loc(exact_loc);
-        } else if (gref.index(x, y, zp) != detail::EMPTY) {
-            ss << "\tBin location (" << x << ", " << y << ", " << zp << ") already taken by " << (int) gref.index(x, y, zp) << std::endl;
-        }
-
-        if (1560 <= counter && counter <= 1580) {
-            std::cout << ss.str() << std::endl;
         }
     }
-    std::cout << "(AxesPlacement) Grid[23, 32, 54] = " << (int) grid->grid.index(23, 32, 54) << std::endl;
 
     placed_water.resize(index);
     return placed_water;

@@ -225,6 +225,13 @@ namespace grid {
 			Vector3<int> to_bins(const Vector3<double>& v) const;
 
 			/**
+			 * @brief Convert a vector of absolute coordinates (x, y, z) to a vector of bin locations.
+			 * 		  If the coordinates are outside the grid, they are set to the closest edge.
+			 * 		  Complexity: O(1) (but slower than to_bins)
+			 */
+			Vector3<int> to_bins_bounded(const Vector3<double>& v) const;
+
+			/**
 			 * @brief Convert a location in the grid (binx, biny, binz) to a vector of absolute coordinates (x, y, z).
 			 * 		  Complexity: O(1).
 			 */

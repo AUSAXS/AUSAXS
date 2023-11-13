@@ -75,7 +75,6 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
 
 std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     auto bins = grid->get_bins();
-    double width = grid->get_width();
 
     // we define a helper lambda
     std::vector<GridMember<Water>> placed_water; 
@@ -88,33 +87,16 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
 
     double rh = grid->get_hydration_radius();
     for (const auto& atom : grid->a_members) {
-        int x = atom.get_bin_loc().x(), y = atom.get_bin_loc().y(), z = atom.get_bin_loc().z();
+        auto coords_abs = atom.get_atom().get_coordinates();
         double ra = grid->get_atomic_radius(atom.get_atom_type());
         double reff = ra + rh;
         for (unsigned int i = 0; i < rot_locs.size(); i++) {
-            int xr = x + std::round(rot_locs[i].x()*reff)/width;
-            int yr = y + std::round(rot_locs[i].y()*reff)/width;
-            int zr = z + std::round(rot_locs[i].z()*reff)/width;
-            
-            // check bounds
-            if (xr < 0) xr = 0;
-            if (xr >= (int) bins.x()) xr = bins.x()-1;
-            if (yr < 0) yr = 0;
-            if (yr >= (int) bins.y()) yr = bins.y()-1;
-            if (zr < 0) zr = 0;
-            if (zr >= (int) bins.z()) zr = bins.z()-1;
-            
+            auto bins = grid->to_bins_bounded(coords_abs + rot_locs[i]*reff);
+
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
-            Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
-            if (grid->grid.is_empty_or_volume(xr, yr, zr) && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
+            Vector3<int> skip_bin(bins.x()-rot_bins_1rh[i].x(), bins.y()-rot_bins_1rh[i].y(), bins.z()-rot_bins_1rh[i].z());
+            if (grid->grid.is_empty_or_volume(bins.x(), bins.y(), bins.z()) && collision_check(Vector3<int>(bins.x(), bins.y(), bins.z()), skip_bin)) {
                 Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
-                if (   std::abs(exact_loc.x() + 11.594196) < 1e-3 
-                    && std::abs(exact_loc.y() + 12.758109) < 1e-3
-                    && std::abs(exact_loc.z() + 46.385084) < 1e-3
-                ) {
-                    std::cout << "Problematic bin: " << Vector3<int>(xr, yr, zr) << std::endl;
-                }
-                
                 add_loc(exact_loc);
             }
         }
@@ -122,16 +104,11 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
-Vector3<int> problem = {20, 27, 26};
 bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
     detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
-
-    if (loc == problem) {
-        std::cout << "Checking location " << grid->to_xyz(19, 26, 26) << std::endl;
-    }
-
     int score = 0;
+
     // check if a location is out-of-bounds
     auto is_out_of_bounds = [&bins, &score] (Vector3<int> v) {
         if (v.x() < 0 || (int) bins.x() <= v.x() ) {return true;}
@@ -156,10 +133,6 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
 
         if (!gref.is_empty_or_volume(xr, yr, zr)) {
             if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
-
-            if (loc == problem) {
-                std::cout << "Rejected: occupied point: " << Vector3(xr, yr, zr) << score << std::endl;
-            }
 
             return false;
         }
@@ -214,15 +187,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
     }
 
     if (score <= settings::grid::detail::min_score*rot_bins_1rh.size()) {
-        if (loc == problem) {
-            std::cout << "Score is too small: " << score << std::endl;
-        }        
         return false;
     }
-
-    if (loc == problem) {
-        std::cout << "Score is accepted: " << score << std::endl;
-    }
-
     return true;
 }

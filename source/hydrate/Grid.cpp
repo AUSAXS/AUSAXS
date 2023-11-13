@@ -424,8 +424,6 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     auto loc = to_bins(water.coords);
     int x = loc.x(), y = loc.y(), z = loc.z(); 
 
-    std::cout << "\t\tPlacing water at bin (" << x << ", " << y << ", " << z << "), exact: " << water.coords << std::endl;
-
     // sanity check
     bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
     if (out_of_bounds) [[unlikely]] {
@@ -434,7 +432,7 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
 
     #if DEBUG
         if (!(grid.index(x, y, z) == detail::EMPTY || grid.index(x, y, z) == detail::W_CENTER || grid.index(x, y, z) == detail::VOLUME)) {
-            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location!");
+            throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
         }
     #endif
 
@@ -587,9 +585,7 @@ void Grid::clear_waters() {
     std::vector<Water> waters;
     waters.reserve(w_members.size());
     std::for_each(w_members.begin(), w_members.end(), [&waters] (const GridMember<Water>& water) {waters.push_back(water.get_atom());});
-    std::cout << "Grid[23, 32, 54] = " << (int) grid.index(23, 32, 54) << std::endl;
     remove(waters);
-    std::cout << "Grid[23, 32, 54] = " << (int) grid.index(23, 32, 54) << std::endl;
     if (w_members.size() != 0) [[unlikely]] {throw except::unexpected("Grid::clear_waters: Something went wrong.");}
 }
 
@@ -602,6 +598,14 @@ Vector3<int> Grid::to_bins(const Vector3<double>& v) const {
     int biny = std::round((v.y() - axes.y.min)/settings::grid::width);
     int binz = std::round((v.z() - axes.z.min)/settings::grid::width);
     return Vector3<int>(binx, biny, binz);
+}
+
+Vector3<int> Grid::to_bins_bounded(const Vector3<double>& v) const {
+    auto bins = to_bins(v);
+    bins.x() = std::clamp<int>(bins.x(), 0, axes.x.bins-1);
+    bins.y() = std::clamp<int>(bins.y(), 0, axes.y.bins-1);
+    bins.z() = std::clamp<int>(bins.z(), 0, axes.z.bins-1);
+    return bins;
 }
 
 double Grid::get_volume() {

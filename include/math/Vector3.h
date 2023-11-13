@@ -246,8 +246,26 @@ bool operator!=(const Vector<T>& v, const Vector3<Q>& w) {return !(w == v);}
 template<numeric T, numeric Q>
 Vector3<T> operator+(Vector3<T> left, const Vector3<Q>& right) {return left += right;}
 
+template<numeric T>
+Vector3<T> operator+(Vector3<T> left, double right) {
+	Vector3<T> w = left;
+	w.x() += right;
+	w.y() += right;
+	w.z() += right;
+	return w;
+}
+
 template<numeric T, numeric Q>
 Vector3<T> operator-(Vector3<T> left, const Vector3<Q>& right) {return left -= right;}
+
+template<numeric T>
+Vector3<T> operator-(Vector3<T> left, double right) {
+	Vector3<T> w = left;
+	w.x() -= right;
+	w.y() -= right;
+	w.z() -= right;
+	return w;
+}
 
 template<numeric T>
 Vector3<T> operator-(Vector3<T> v) {return Vector3<T>() - v;}
