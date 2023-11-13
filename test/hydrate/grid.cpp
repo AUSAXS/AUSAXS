@@ -356,33 +356,25 @@ TEST_CASE("Grid::hydrate") {
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
         settings::grid::culling_strategy = settings::grid::CullingStrategy::CounterStrategy;
+        settings::grid::placement_strategy = settings::grid::PlacementStrategy::AxesStrategy;
         Molecule protein("test/files/LAR1-2.pdb");
+        protein.get_grid()->force_expand_volume();
 
         std::cout << "\nFIRST HYDRATION" << std::endl;
-        auto g1 = *protein.get_grid();
         protein.generate_new_hydration();
         auto h1 = protein.get_waters();
+        std::cout << "Grid[23, 32, 54] = " << (int) protein.get_grid()->grid.index(23, 32, 54) << std::endl;
 
         std::cout << "\nSECOND HYDRATION" << std::endl;
-        protein.clear_hydration();
-        auto g2 = *protein.get_grid();
+        // protein.clear_hydration();
         protein.generate_new_hydration();
         auto h2 = protein.get_waters();
-
-        for (unsigned int i = 0; i < g1.grid.size_x(); i++) {
-            for (unsigned int j = 0; j < g1.grid.size_y(); j++) {
-                for (unsigned int k = 0; k < g1.grid.size_z(); k++) {
-                    if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
-                        REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
-                    }
-                }
-            }
-        }
 
         // check that the hydration generation is deterministic
         // REQUIRE(h1.size() == h2.size());
         for (unsigned int i = 0; i < h1.size(); i++) {
             if (h1[i].coords != h2[i].coords) {
+                std::cout << "\nFailed on i = " << i << std::endl;
                 std::cout << "h1[i+1]: " << h1[i+1].coords << std::endl;
                 std::cout << "h2[i+1]: " << h2[i+1].coords << std::endl;
 

@@ -104,31 +104,11 @@ namespace data {
 			void generate_new_hydration();
 
 			/**
-			 * @brief Calculate the volume of this molecule based on its constituent amino acids
-			 * 
-			 * @return The volume in Å^3.
-			 */
-			[[nodiscard]] double get_volume_acids() const;
-
-			/**
 			 * @brief Calculate the volume of this molecule based on the number of grid bins it spans.
 			 * 
 			 * @return The volume in Å^3.
 			 */
 			[[nodiscard]] double get_volume_grid() const;
-
-			/**
-			 * @brief Calculate the excluded volume of this molecule based on the number of grid bins it spans.
-			 * 		  This is equivalent to get_volume_grid, but with an optional scaling factor applied.
-			 * 
-			 * @return The volume in Å^3.
-			 */
-			[[nodiscard]] double get_excluded_volume() const;
-
-			/**
-			 * @brief Set the scaling factor for the excluded volume.
-			 */
-			void set_excluded_volume_scaling(double factor);
 
 			/**
 			 * @brief Calculate the volume of this molecule based on the number of C-alpha atoms

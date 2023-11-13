@@ -107,10 +107,6 @@ void Molecule::save(const io::File& path) {
     file.write(path);
 }
 
-double Molecule::get_volume_acids() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.get_volume_acids();});
-}
-
 double Molecule::molar_mass() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.molar_mass();});
 }
@@ -151,14 +147,6 @@ double Molecule::get_relative_mass_density() const {
 double Molecule::get_volume_grid() const {
     if (grid == nullptr) {create_grid();}
     return grid->get_volume();
-}
-
-double Molecule::get_excluded_volume() const {
-    return get_volume_grid()*excluded_volume_scaling_factor;
-}
-
-void Molecule::set_excluded_volume_scaling(double factor) {
-    excluded_volume_scaling_factor = factor;
 }
 
 std::shared_ptr<grid::Grid> Molecule::create_grid() const {
@@ -299,7 +287,7 @@ void Molecule::update_effective_charge(double scaling) {
     double displaced_vol = scaling*get_volume_grid();
     double displaced_charge = constants::charge::density::water*displaced_vol - previous_charge;
     previous_charge += displaced_charge;
-    std::cout << "Molecule volume: " << get_excluded_volume() << std::endl;
+    std::cout << "Molecule volume: " << get_volume_grid() << std::endl;
 
     // number of atoms
     unsigned int N = atom_size();

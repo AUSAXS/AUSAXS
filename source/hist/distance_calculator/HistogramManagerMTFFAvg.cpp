@@ -184,7 +184,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     p_ww.resize(max_bin);
 
     // multiply the excluded volume charge onto the excluded volume bins
-    double Z_exv_avg = this->protein->get_excluded_volume()*constants::charge::density::water/this->protein->atom_size();
+    double Z_exv_avg = this->protein->get_volume_grid()*constants::charge::density::water/this->protein->atom_size();
     for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
         std::transform(p_aa.begin(ff1, form_factor::exv_bin), p_aa.end(ff1, form_factor::exv_bin), p_aa.begin(ff1, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
     }
