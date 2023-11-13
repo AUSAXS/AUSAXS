@@ -9,25 +9,24 @@
 
 using namespace plots;
 
-PlotIntensity::PlotIntensity(const hist::ScatteringProfile& d, style::Color color) {
-    plot(d, color);
+PlotIntensity::PlotIntensity(const hist::ScatteringProfile& d, const PlotOptions& options) {
+    plot(d, options);
 }
 
-PlotIntensity::PlotIntensity(const SimpleDataset& d, style::Color color) {
-    plot(d, color);
+PlotIntensity::PlotIntensity(const SimpleDataset& d, const PlotOptions& options) {
+    plot(d, options);
 }
 
 PlotIntensity::~PlotIntensity() = default;
 
-PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, style::Color color) {
-    PlotOptions options = data.get_plot_options();
+PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, const PlotOptions& temp) {
+    PlotOptions options = temp;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
     options.ylimits = data.span_y_positive();
     options.ylimits.max *= 1.1;
     options.logx = true;
     options.logy = true;
-    options.color = color;
 
     ss << "PlotDataset\n"
        << data.to_string()
@@ -37,9 +36,8 @@ PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, style::Color color
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, style::Color color) {
-    PlotOptions options = data.get_plot_options();
-    options.color = color;
+PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, const PlotOptions& temp) {
+    PlotOptions options = temp;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
     options.logx = true;
@@ -53,8 +51,8 @@ PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, style::C
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(const view_ptr<fitter::Fit> fit, style::Color color) {
-    return plot(fit->figures.intensity, color);
+PlotIntensity& PlotIntensity::plot(const view_ptr<fitter::Fit> fit, const PlotOptions& options) {
+    return plot(fit->figures.intensity, options);
 }
 
 PlotIntensity& PlotIntensity::plot_guinier_approx(const view_ptr<hist::ICompositeDistanceHistogram> data) {
@@ -80,12 +78,12 @@ PlotIntensity& PlotIntensity::plot_guinier_approx(const view_ptr<hist::IComposit
     // return *this;
 }
 
-void PlotIntensity::quick_plot(const SimpleDataset& d, const io::File& path) {
-    PlotIntensity plot(d);
+void PlotIntensity::quick_plot(const SimpleDataset& d, const PlotOptions& options, const io::File& path) {
+    PlotIntensity plot(d, options);
     plot.save(path);
 }
 
-void PlotIntensity::quick_plot(const hist::ScatteringProfile& h, const io::File& path) {
-    PlotIntensity plot(h);
+void PlotIntensity::quick_plot(const hist::ScatteringProfile& h, const PlotOptions& options, const io::File& path) {
+    PlotIntensity plot(h, options);
     plot.save(path);
 }

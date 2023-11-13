@@ -20,14 +20,14 @@ namespace plots {
 			 * 
 			 * @param d The ScatteringHistogram to be plotted. 
 			 */
-			PlotIntensity(const hist::ScatteringProfile& d, style::Color color = style::color::black);
+			PlotIntensity(const hist::ScatteringProfile& d, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Constructor.
 			 * 
 			 * @param d The dataset to be plotted.
 			 */
-			PlotIntensity(const SimpleDataset& d, style::Color color = style::color::black);
+			PlotIntensity(const SimpleDataset& d, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Destructor.
@@ -37,17 +37,17 @@ namespace plots {
 			/**
 			 * @brief Plot a scattering histogram.
 			 */
-			PlotIntensity& plot(const hist::ScatteringProfile& data, style::Color color = style::color::black);
+			PlotIntensity& plot(const hist::ScatteringProfile& data, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot an additional data set as points. 
 			 */
-			PlotIntensity& plot(const SimpleDataset& data, style::Color color = style::color::black);
+			PlotIntensity& plot(const SimpleDataset& data, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			PlotIntensity& plot(const view_ptr<fitter::Fit> fit, style::Color color = style::color::black);
+			PlotIntensity& plot(const view_ptr<fitter::Fit> fit, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
@@ -58,12 +58,12 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const hist::ScatteringProfile& h, const io::File& path);
+			static void quick_plot(const hist::ScatteringProfile& h, const plots::PlotOptions& options, const io::File& path);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(const SimpleDataset& d, const io::File& path);
+			static void quick_plot(const SimpleDataset& d, const plots::PlotOptions& options, const io::File& path);
 	};
 }

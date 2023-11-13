@@ -8,11 +8,11 @@ PlotHistogram::PlotHistogram() = default;
 
 PlotHistogram::~PlotHistogram() = default;
 
-PlotHistogram::PlotHistogram(const hist::Histogram& h) {
-    plot(h);
+PlotHistogram::PlotHistogram(const hist::Histogram& h, const PlotOptions& options) {
+    plot(h, options);
 }
 
-PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist, const plots::PlotOptions& options) {
+PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist, const PlotOptions& options) {
     SimpleDataset p(hist.get_axis().as_vector(), hist.get_counts());
 
     ss << "PlotHistogram\n"
@@ -23,11 +23,7 @@ PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist, const plots::Plo
     return *this;
 }
 
-PlotHistogram& PlotHistogram::plot(const hist::Histogram& hist) {
-    return plot(hist, hist.get_plot_options());
-}
-
-void PlotHistogram::quick_plot(const hist::Histogram& hist, const io::File& path) {
-    PlotHistogram plot(hist);
+void PlotHistogram::quick_plot(const hist::Histogram& hist, const PlotOptions& options, const io::File& path) {
+    PlotHistogram plot(hist, options);
     plot.save(path);
 }

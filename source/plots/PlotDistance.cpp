@@ -18,15 +18,10 @@ void PlotDistance::quick_plot(const view_ptr<hist::ICompositeDistanceHistogram> 
     SimpleDataset ph(distances, d->get_aw_counts());
     SimpleDataset hh(distances, d->get_ww_counts());
 
-    p.add_plot_options("lines", {{"color", style::color::black}, {"legend", "total"}, {"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}});
-    pp.add_plot_options("lines", {{"color", style::color::orange}, {"legend", "atom-atom"}});
-    ph.add_plot_options("lines", {{"color", style::color::green}, {"legend", "atom-water"}});
-    hh.add_plot_options("lines", {{"color", style::color::blue}, {"legend", "water-water"}});
-
     PlotDataset plot;
-    plot.plot(p);
-    plot.plot(pp);
-    plot.plot(ph);
-    plot.plot(hh);
+    plot.plot(p,  plots::PlotOptions("lines", {{"color", style::color::black}, {"legend", "total"}, {"xlabel", "Distance [$\\AA$]"}, {"ylabel", "Count"}}));
+    plot.plot(pp, plots::PlotOptions("lines", {{"color", style::color::orange}, {"legend", "atom-atom"}}));
+    plot.plot(ph, plots::PlotOptions("lines", {{"color", style::color::green}, {"legend", "atom-water"}}));
+    plot.plot(hh, plots::PlotOptions("lines", {{"color", style::color::blue}, {"legend", "water-water"}}));
     plot.save(path);
 }

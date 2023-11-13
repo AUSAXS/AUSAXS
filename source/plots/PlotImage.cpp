@@ -25,12 +25,10 @@ PlotImage& PlotImage::plot_atoms(const em::Image& image, double cutoff) {
     }
 
     SimpleDataset p(x, y);
-    p.add_plot_options("points", {{"color", style::color::black}, {"marker_size", 2}});
-
     ss << "PlotImageAtoms"
         << p.to_string()
         << "\n"
-        << p.get_plot_options().to_string()
+        << plots::PlotOptions("points", {{"color", style::color::black}, {"marker_size", 2}}).to_string()
         << std::endl;
     return *this;
 }

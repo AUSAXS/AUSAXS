@@ -35,15 +35,14 @@ int main(int argc, char const *argv[]) {
     settings::grid::exv_radius = 1;
     data::Molecule protein("data/rigidbody/lysozyme/2epe.pdb");
     plots::PlotIntensity plot;
-    for (double rx = 0.5; rx < 3; rx += 0.25) {
-        settings::grid::width = rx;
+    for (double rx = 1; rx <= 3; rx += 1) {
         settings::grid::exv_radius = rx;
         protein.clear_grid();
         hist::CompositeDistanceHistogramFFGrid::regenerate_table();
         auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
         auto profile = h_cast->get_profile_xx();
-        profile.add_plot_options({{"legend", std::to_string(rx)}});
+        profile.add_plot_options({{"legend", std::to_string(rx)}, {"lw", 2}});
         plot.plot(profile, style::color::next());
     }
     plot.save("temp/stuff/xx_variation.png");

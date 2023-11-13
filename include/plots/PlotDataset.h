@@ -6,9 +6,6 @@
 #include <concepts>
 
 namespace plots {
-	template<typename C>
-	concept DatasetType = std::is_base_of_v<Dataset, C> || std::is_base_of_v<Multiset, C>;
-
 	class PlotOptions;
 
 	/**
@@ -25,13 +22,7 @@ namespace plots {
 			/**
 			 * @brief Constructor.
 			 */
-			template<DatasetType T>
-			PlotDataset(const T& d);
-
-			/**
-			 * @brief Constructor.
-			 */
-			PlotDataset(const Multiset& d);
+			PlotDataset(const Dataset& d, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Destructor.
@@ -41,24 +32,22 @@ namespace plots {
 			/**
 			 * @brief Plot an additional Dataset. 
 			 */
-			template<DatasetType T> 
-			PlotDataset& plot(const T& data);
+			PlotDataset& plot(const Dataset& data, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot a vertical line at the specified x coordinate.
 			 */
-			PlotDataset& vline(double x, const PlotOptions& options);
+			PlotDataset& vline(double x, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot a horizontal line at the specified y coordinate.
 			 */
-			PlotDataset& hline(double y, const PlotOptions& options);
+			PlotDataset& hline(double y, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single dataset. 
 			 */
-			template<DatasetType T>
-			static void quick_plot(const T& data, const io::File& path);
+			static void quick_plot(const Dataset& data, const plots::PlotOptions& options, const io::File& path);
 		};
 }

@@ -9,7 +9,7 @@ namespace hist {
     /**
      * @brief A representation of a histogram. 
      */
-    class Histogram : public plots::Plottable {
+    class Histogram {
         public:
             /**
              * @brief Default constructor.

@@ -19,8 +19,6 @@ Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Da
 
 Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::string xlabel, std::string ylabel) : Dataset2D(x, y) {
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err", std::string(xlabel)+"err"});
-    options.xlabel = xlabel;
-    options.ylabel = ylabel;
 }
 
 Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {

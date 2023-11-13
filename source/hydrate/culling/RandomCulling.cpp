@@ -10,7 +10,6 @@ using namespace data::record;
 RandomCulling::~RandomCulling() = default;
 
 std::vector<data::record::Water> RandomCulling::cull(std::vector<GridMember<Water>>& placed_water) const {
-    auto rng = std::mt19937{std::random_device{}()};
-    std::shuffle(placed_water.begin(), placed_water.end(), rng); // shuffle the molecules
+    std::shuffle(placed_water.begin(), placed_water.end(), std::mt19937{std::random_device{}()}); // shuffle the molecules
     return CounterCulling::cull(placed_water);
 }

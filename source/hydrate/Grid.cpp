@@ -114,11 +114,8 @@ std::vector<Water> Grid::hydrate() {
     double area = 4*M_PI*std::pow(r, 2.5); // surface area of the protein in Ångström^2
     double target = settings::grid::water_scaling*area; // the target number of water molecules
 
-    // water_culler->set_target_count(target);
-    // return water_culler->cull(placed_water);
-    std::vector<Water> waters(placed_water.size());
-    std::transform(placed_water.begin(), placed_water.end(), waters.begin(), [] (const GridMember<Water>& gm) {return gm.get_atom();});
-    return waters;
+    water_culler->set_target_count(target);
+    return water_culler->cull(placed_water);
 }
 
 std::vector<GridMember<Water>> Grid::find_free_locs() {
@@ -403,15 +400,16 @@ const GridMember<Atom>& Grid::add(const Atom& atom, bool expand) {
     unsigned int x = loc.x(), y = loc.y(), z = loc.z();
 
     // sanity check
-    bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
-    if (out_of_bounds) [[unlikely]] {
-        throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
-    }
+    #if DEBUG
+        bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
+        if (out_of_bounds) [[unlikely]] {
+            throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + atom.coords.to_string());
+        }
+    #endif
 
     auto& bin = grid.index(x, y, z);
     volume += grid.is_empty(bin);
     bin = detail::A_CENTER;
-    // if (grid.index(x, y, z) != GridObj::A_AREA) {volume++;}
 
     GridMember gm(atom, loc);
     if (expand) {expand_volume(gm);}
@@ -425,12 +423,11 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
     int x = loc.x(), y = loc.y(), z = loc.z(); 
 
     // sanity check
-    bool out_of_bounds = x >= axes.x.bins || y >= axes.y.bins || z >= axes.z.bins;
-    if (out_of_bounds) [[unlikely]] {
-        throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
-    }
-
     #if DEBUG
+        if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins) [[unlikely]] {
+            throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
+        }
+
         if (!(grid.index(x, y, z) == detail::EMPTY || grid.index(x, y, z) == detail::W_CENTER || grid.index(x, y, z) == detail::VOLUME)) {
             throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
         }
@@ -720,34 +717,24 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     }
 
     // check if we should use excluded volume spheres larger than the grid width
-    if (false && settings::grid::exv_radius != settings::grid::width) {
+    if (settings::grid::exv_radius != settings::grid::width) {
         std::cout << "Aggregating excluded volume spheres." << std::endl;
         double r = settings::grid::exv_radius;
         double V = std::pow(r, 3);
         double reduction_factor = V/std::pow(settings::grid::width, 3);
-        auto rng = std::mt19937{std::random_device{}()};
-        std::shuffle(exv_atoms.begin(), exv_atoms.end(), rng);
+        std::shuffle(exv_atoms.begin(), exv_atoms.end(), std::mt19937{std::random_device{}()});
         exv_atoms.resize(exv_atoms.size()/reduction_factor);
 
-        {
-            std::vector<Atom> atoms(exv_atoms.size());
-            for (unsigned int i = 0; i < exv_atoms.size(); i++) {
-                atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
-            }
-            data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
-        }
+        // {
+        //     std::vector<Atom> atoms(exv_atoms.size());
+        //     for (unsigned int i = 0; i < exv_atoms.size(); i++) {
+        //         atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
+        //     }
+        //     data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
+        // }
 
         return exv_atoms;
     }
-
-    {
-        std::vector<Atom> atoms(exv_atoms.size());
-        for (unsigned int i = 0; i < exv_atoms.size(); i++) {
-            atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
-        }
-        data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
-    }
-
     return exv_atoms;
 }
 

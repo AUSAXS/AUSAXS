@@ -125,16 +125,16 @@ int main(int argc, char const *argv[]) {
 
     protein.save(settings::general::output + "model.pdb");
 
-    auto h = fitter->get_scattering_hist();
-    h->get_profile_aa().as_dataset().save(settings::general::output + "ausaxs_aa.dat");
-    h->get_profile_aw().as_dataset().save(settings::general::output + "ausaxs_aw.dat");
-    h->get_profile_ww().as_dataset().save(settings::general::output + "ausaxs_ww.dat");
-    if (auto cast = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h.get())) {
-        if (fit_excluded_volume) {cast->apply_excluded_volume_scaling_factor(result->get_parameter("d"));}
-        cast->get_profile_ax().as_dataset().save(settings::general::output + "ausaxs_ax.dat");
-        cast->get_profile_wx().as_dataset().save(settings::general::output + "ausaxs_wx.dat");
-        cast->get_profile_xx().as_dataset().save(settings::general::output + "ausaxs_xx.dat");
-    }
+    // auto h = fitter->get_scattering_hist();
+    // h->get_profile_aa().as_dataset().save(settings::general::output + "ausaxs_aa.dat");
+    // h->get_profile_aw().as_dataset().save(settings::general::output + "ausaxs_aw.dat");
+    // h->get_profile_ww().as_dataset().save(settings::general::output + "ausaxs_ww.dat");
+    // if (auto cast = dynamic_cast<hist::ICompositeDistanceHistogramExv*>(h.get())) {
+    //     if (fit_excluded_volume) {cast->apply_excluded_volume_scaling_factor(result->get_parameter("d"));}
+    //     cast->get_profile_ax().as_dataset().save(settings::general::output + "ausaxs_ax.dat");
+    //     cast->get_profile_wx().as_dataset().save(settings::general::output + "ausaxs_wx.dat");
+    //     cast->get_profile_xx().as_dataset().save(settings::general::output + "ausaxs_xx.dat");
+    // }
 
     // std::vector<double> q;
     // for (double qv = 0; qv < 1; qv+=0.01) {q.push_back(qv);}

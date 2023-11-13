@@ -9,7 +9,7 @@ namespace hist {class Histogram;}
 /**
  * @brief A simple dataset is a collection of points of the form x | y | yerr. 
  */
-class SimpleDataset : public Dataset, public plots::Plottable {
+class SimpleDataset : public Dataset {
     protected: 
         /**
          * @brief Construct a dataset with N rows and M columns. 

@@ -40,8 +40,6 @@ SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<dou
 SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) : SimpleDataset(x.size()) {
     initialize(x, y);
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
-    options.xlabel = xlabel;
-    options.ylabel = ylabel;
 }
 
 SimpleDataset::SimpleDataset(unsigned int N, unsigned int M) : Dataset(N, M) {}

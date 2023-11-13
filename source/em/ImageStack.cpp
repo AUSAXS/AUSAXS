@@ -156,7 +156,6 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_landscape, avg_copy = avg;
             for (auto m : minima) {p_min.push_back(to_level(avg.x(m)), avg.y(m));}
-            p_min.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
             // convert cutoff to std levels
             for (unsigned int i = 0; i < chi2_copy.size(); ++i) {
@@ -167,11 +166,9 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             }
 
             // prepare rest of the plot
-            avg_copy.add_plot_options(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset plot(avg_copy);
-            chi2_copy.add_plot_options(style::draw::points);
-            plot.plot(chi2_copy);
-            plot.plot(p_min);
+            plots::PlotDataset plot(avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}}));
+            plot.plot(chi2_copy, plots::PlotOptions(style::draw::points, {{}}));
+            plot.plot(p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 9}}));
             plot.save(settings::general::output + "chi2_evaluated_points_limited." + settings::plots::format);
         }
 
@@ -179,13 +176,17 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         { 
             auto l = evals.as_dataset();
             l.sort_x();            
-            l.add_plot_options(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}});
             {
                 auto l_copy = l;
                 for (unsigned int i = 0; i < l_copy.size(); ++i) {
                     l_copy.x(i) = to_level(l_copy.x(i));
                 }
-                plots::PlotDataset::quick_plot(l_copy, settings::general::output + "chi2_evaluated_points_full." + settings::plots::format);
+
+                plots::PlotDataset::quick_plot(
+                    l_copy, 
+                    plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}}), 
+                    settings::general::output + "chi2_evaluated_points_full." + settings::plots::format
+                );
             }
 
             // plot with mass axis
@@ -203,11 +204,10 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
                 // create chi2 / mass dataset
                 l.x() = mass_cutoff.y();
-                l.add_plot_options(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}});
 
                 // make the plot
                 plots::PlotDataset plot;
-                plot.plot(l);
+                plot.plot(l, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}));
                 for (auto m : minima_mass) {
                     plot.vline(m, plots::PlotOptions(style::draw::line, {{"ls", style::line::dashed}, {"color", style::color::red}}));
                 }
@@ -246,15 +246,13 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min_abs.x, min_abs.y);
-            p_start.add_plot_options(style::draw::points, {{"color", style::color::blue}, {"s", 9}});
 
             // do the actual plotting
-            area.add_plot_options(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}});
-            plots::PlotDataset(area)
+            plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}}))
                 .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                 .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                 .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
-                .plot(p_start)
+                .plot(p_start, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 9}}))
             .save(settings::general::output + "chi2_near_minimum." + settings::plots::format);
 
             // make mass version
@@ -268,17 +266,16 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
                 // create chi2 / mass dataset
                 area.x() = mass_cutoff.y();
-                area.add_plot_options(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}});
 
                 // interpolate start point
                 p_start.x(0) = mass_cutoff.interpolate_y(p_start.x(0));
 
                 // make the plot
-                plots::PlotDataset(area)
+                plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}))
                     .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                     .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                     .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
-                    .plot(p_start)
+                    .plot(p_start, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 9}}))
                 .save(settings::general::output + "chi2_near_minimum_mass." + settings::plots::format);
             }
         }
