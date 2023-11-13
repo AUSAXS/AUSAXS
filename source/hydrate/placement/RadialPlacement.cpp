@@ -106,8 +106,15 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
             
             // we have to make sure we don't check the direction of the atom we are trying to place this water on
             Vector3<int> skip_bin(xr-rot_bins_1rh[i].x(), yr-rot_bins_1rh[i].y(), zr-rot_bins_1rh[i].z());
-            if (grid->grid.is_empty(xr, yr, zr) && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
+            if (grid->grid.is_empty_or_volume(xr, yr, zr) && collision_check(Vector3<int>(xr, yr, zr), skip_bin)) {
                 Vector3<double> exact_loc = atom.get_atom().get_coordinates() + rot_locs[i]*reff;
+                if (   std::abs(exact_loc.x() + 11.594196) < 1e-3 
+                    && std::abs(exact_loc.y() + 12.758109) < 1e-3
+                    && std::abs(exact_loc.z() + 46.385084) < 1e-3
+                ) {
+                    std::cout << "Problematic bin: " << Vector3<int>(xr, yr, zr) << std::endl;
+                }
+                
                 add_loc(exact_loc);
             }
         }
@@ -115,9 +122,14 @@ std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
     return placed_water;
 }
 
+Vector3<int> problem = {20, 27, 26};
 bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vector3<int>& skip_bin) const {
     detail::GridObj& gref = grid->grid;
     auto bins = grid->get_bins();
+
+    if (loc == problem) {
+        std::cout << "Checking location " << grid->to_xyz(19, 26, 26) << std::endl;
+    }
 
     int score = 0;
     // check if a location is out-of-bounds
@@ -142,8 +154,13 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
         if (zr < 0) zr = 0;
         if (zr >= (int) bins.z()) zr = bins.z()-1;
 
-        if (!gref.is_empty(xr, yr, zr)) {
+        if (!gref.is_empty_or_volume(xr, yr, zr)) {
             if (Vector3(xr, yr, zr) == skip_bin) {continue;} // skip the bin containing the atom we're trying to place this water molecule on
+
+            if (loc == problem) {
+                std::cout << "Rejected: occupied point: " << Vector3(xr, yr, zr) << score << std::endl;
+            }
+
             return false;
         }
 
@@ -157,7 +174,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 3;                         // so we add three points and move on to the next
                 continue;
             }
-            if (!gref.is_empty(xr, yr, zr)) { // if the line intersects something at 3r, we don't check the other two points of the same line
+            if (!gref.is_empty_or_volume(xr, yr, zr)) { // if the line intersects something at 3r, we don't check the other two points of the same line
                 score -= 3;                             // but immediately subtract 3 points and move on to the next
                 continue;
             } else {
@@ -172,7 +189,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 2;
                 continue;
             }
-            if (!gref.is_empty(xr, yr, zr)) {
+            if (!gref.is_empty_or_volume(xr, yr, zr)) {
                 score -= 2;
                 continue;
             } else {
@@ -187,7 +204,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
                 score += 1;
                 continue;
             }
-            if (!gref.is_empty(xr, yr, zr)) {
+            if (!gref.is_empty_or_volume(xr, yr, zr)) {
                 score -= 1;
                 continue;
             } else {
@@ -195,6 +212,17 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
             }
         }
     }
-    if (score <= settings::grid::detail::min_score*rot_bins_1rh.size()) {return false;}
+
+    if (score <= settings::grid::detail::min_score*rot_bins_1rh.size()) {
+        if (loc == problem) {
+            std::cout << "Score is too small: " << score << std::endl;
+        }        
+        return false;
+    }
+
+    if (loc == problem) {
+        std::cout << "Score is accepted: " << score << std::endl;
+    }
+
     return true;
 }

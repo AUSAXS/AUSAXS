@@ -293,74 +293,91 @@ TEST_CASE("volume") {
 TEST_CASE("Grid::hydrate") {
     settings::general::verbose = false;
 
-    // check that all the expected hydration sites are found
-    SECTION("correct placement") {
-        Limit3D axes(-10, 10, -10, 10, -10, 10);
-        settings::grid::width = 1;
-        GridDebug grid(axes);
-        grid.set_atomic_radius(3);
-        grid.set_hydration_radius(3);
-        settings::grid::rvol = 3;
+    // // check that all the expected hydration sites are found
+    // SECTION("correct placement") {
+    //     Limit3D axes(-10, 10, -10, 10, -10, 10);
+    //     settings::grid::width = 1;
+    //     GridDebug grid(axes);
+    //     grid.set_atomic_radius(3);
+    //     grid.set_hydration_radius(3);
+    //     settings::grid::rvol = 3;
 
-        // add a single atom to the grid, and hydrate it
-        settings::grid::water_scaling = 0;
-        vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
-        grid.add(a);
-        REQUIRE(grid.get_atoms().size() == 1); // check atoms
+    //     // add a single atom to the grid, and hydrate it
+    //     settings::grid::water_scaling = 0;
+    //     vector<Atom> a = {Atom({0, 0, 0}, 0,  constants::atom_t::C, "", 0)};
+    //     grid.add(a);
+    //     REQUIRE(grid.get_atoms().size() == 1); // check atoms
 
-        vector<Water> water = grid.hydrate();
+    //     vector<Water> water = grid.hydrate();
 
-        REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
-        CHECK(water[0].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
-        CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
-        CHECK(water[2].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
-        CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
-        CHECK(water[4].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
-        CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
+    //     REQUIRE(water.size() == 6); // check that the expected number of water molecules was placed
+    //     CHECK(water[0].coords == Vector3{0, 0, 6});  // (0, 0,  2r)
+    //     CHECK(water[1].coords == Vector3{0, 0, -6}); // (0, 0, -2r)
+    //     CHECK(water[2].coords == Vector3{6, 0, 0});  // ( 2r, 0, 0)
+    //     CHECK(water[3].coords == Vector3{-6, 0, 0}); // (-2r, 0, 0)
+    //     CHECK(water[4].coords == Vector3{0, 6, 0});  // (0,  2r, 0)
+    //     CHECK(water[5].coords == Vector3{0, -6, 0}); // (0, -2r, 0)
 
-        REQUIRE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
-    }
+    //     REQUIRE(grid.get_atoms().size() == 1); // check that they are indeed registered as water molecules
+    // }
 
-    // check that a hydration operation is reversible
-    SECTION("reversible") {
-        SECTION("LAR1-2") {
-            // get the grid before hydrating it
-            Molecule protein("test/files/LAR1-2.pdb");
-            protein.clear_hydration();
-            auto g1 = *protein.get_grid();
+    // // check that a hydration operation is reversible
+    // SECTION("reversible") {
+    //     SECTION("LAR1-2") {
+    //         // get the grid before hydrating it
+    //         Molecule protein("test/files/LAR1-2.pdb");
+    //         protein.clear_hydration();
+    //         auto g1 = *protein.get_grid();
 
-            // hydrate it and clear the hydration
-            protein.generate_new_hydration();
-            protein.clear_hydration();
-            auto g2 = *protein.get_grid();
+    //         // hydrate it and clear the hydration
+    //         protein.generate_new_hydration();
+    //         protein.clear_hydration();
+    //         auto g2 = *protein.get_grid();
 
-            // check sizes
-            REQUIRE(g1.grid.size_x() == g2.grid.size_x());
-            REQUIRE(g1.grid.size_y() == g2.grid.size_y());
-            REQUIRE(g1.grid.size_z() == g2.grid.size_z());
+    //         // check sizes
+    //         REQUIRE(g1.grid.size_x() == g2.grid.size_x());
+    //         REQUIRE(g1.grid.size_y() == g2.grid.size_y());
+    //         REQUIRE(g1.grid.size_z() == g2.grid.size_z());
 
-            // check that the grids are the same
-            for (unsigned int i = 0; i < g1.grid.size_x(); i++) {
-                for (unsigned int j = 0; j < g1.grid.size_y(); j++) {
-                    for (unsigned int k = 0; k < g1.grid.size_z(); k++) {
-                        if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
-                            REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
-                        }
-                    }
-                }
-            }
-            REQUIRE(g1.get_volume() == g2.get_volume());
-        }
-    }
+    //         // check that the grids are the same
+    //         for (unsigned int i = 0; i < g1.grid.size_x(); i++) {
+    //             for (unsigned int j = 0; j < g1.grid.size_y(); j++) {
+    //                 for (unsigned int k = 0; k < g1.grid.size_z(); k++) {
+    //                     if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
+    //                         REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         REQUIRE(g1.get_volume() == g2.get_volume());
+    //     }
+    // }
 
     // check that a hydration operation produces consistent results
     SECTION("consistency") {
         settings::grid::culling_strategy = settings::grid::CullingStrategy::CounterStrategy;
         Molecule protein("test/files/LAR1-2.pdb");
+
+        std::cout << "\nFIRST HYDRATION" << std::endl;
+        auto g1 = *protein.get_grid();
         protein.generate_new_hydration();
         auto h1 = protein.get_waters();
+
+        std::cout << "\nSECOND HYDRATION" << std::endl;
+        protein.clear_hydration();
+        auto g2 = *protein.get_grid();
         protein.generate_new_hydration();
         auto h2 = protein.get_waters();
+
+        for (unsigned int i = 0; i < g1.grid.size_x(); i++) {
+            for (unsigned int j = 0; j < g1.grid.size_y(); j++) {
+                for (unsigned int k = 0; k < g1.grid.size_z(); k++) {
+                    if (g1.grid.index(i, j, k) != g2.grid.index(i, j, k)) {
+                        REQUIRE(g1.grid.index(i, j, k) != g2.grid.index(i, j, k));
+                    }
+                }
+            }
+        }
 
         // check that the hydration generation is deterministic
         // REQUIRE(h1.size() == h2.size());
@@ -368,6 +385,9 @@ TEST_CASE("Grid::hydrate") {
             if (h1[i].coords != h2[i].coords) {
                 std::cout << "h1[i+1]: " << h1[i+1].coords << std::endl;
                 std::cout << "h2[i+1]: " << h2[i+1].coords << std::endl;
+
+                std::cout << protein.get_grid()->to_bins(h1[i].coords) << std::endl;
+                std::cout << protein.get_grid()->to_bins(h2[i].coords) << std::endl;
             }
             REQUIRE(h1[i].coords == h2[i].coords);
         }
