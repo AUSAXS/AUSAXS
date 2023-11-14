@@ -23,8 +23,10 @@ PlotIntensity& PlotIntensity::plot(const SimpleDataset& data, const PlotOptions&
     PlotOptions options = temp;
     options.xlabel = "$q$ [$\\AA^{-1}$]";
     options.ylabel = "$I$ [arb]";
-    options.ylimits = data.span_y_positive();
-    options.ylimits.max *= 1.1;
+    if (options.ylimits.empty()) {
+        options.ylimits = data.span_y_positive();
+        options.ylimits.max *= 1.1;
+    }
     options.logx = true;
     options.logy = true;
 

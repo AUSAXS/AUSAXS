@@ -2,7 +2,6 @@
 
 #include <math/Vector.h>
 #include <utility/Axis.h>
-#include <plots/PlotOptions.h>
 
 class SimpleDataset;
 namespace hist {

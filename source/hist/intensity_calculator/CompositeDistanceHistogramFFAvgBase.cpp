@@ -221,7 +221,6 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
 
     std::vector<double> Iq(debye_axis.bins, 0);
-    std::cout << "Calculating range (" << q0 << ", " << q0+debye_axis.bins << ")" << std::endl;
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom

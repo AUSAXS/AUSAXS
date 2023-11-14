@@ -149,8 +149,8 @@ namespace plots {
                 make_shared({option::logx, "log_x"}, logx),
                 make_shared({option::logy, "log_y"}, logy),
                 make_shared({option::normalize, "normalize"}, normalize),
-                make_shared({option::xlimits, "x_lim", "xlimits", "xlimit"}, xlimits),
-                make_shared({option::ylimits, "y_lim", "ylimits", "ylimit"}, ylimits),
+                make_shared({option::xlimits, "x_lim", "xlimits", "xlimit", "xlims", "xrange"}, xlimits),
+                make_shared({option::ylimits, "y_lim", "ylimits", "ylimit", "ylims", "yrange"}, ylimits),
                 make_shared({option::legend}, legend),
                 make_shared({option::zorder}, zorder)
             };

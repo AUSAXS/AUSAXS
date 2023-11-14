@@ -48,6 +48,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--foxs", settings::hist::use_foxs_method, "Decides whether the FOXS method will be used.")->default_val(settings::hist::use_foxs_method)->group("Hidden");
     app.add_flag("--weighted_bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("Hidden");
+    app.add_flag("--save_exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
 
     //###################//

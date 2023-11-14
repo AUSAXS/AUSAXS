@@ -9,7 +9,7 @@ using namespace form_factor;
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
     form_factor::storage::atomic::table_t table;
 
-    auto V = std::pow(settings::grid::exv_radius, 3);
+    auto V = std::pow(settings::grid::exv_radius*settings::grid::width, 3);
     FormFactor ffx = ExvFormFactor(V);
     // FormFactor ffx({1, 0, 0, 0, 0}, {settings::grid::exv_radius, 0, 0, 0, 0}, 0);
     // ffx.set_normalization(V*0.334);

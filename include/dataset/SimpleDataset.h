@@ -1,6 +1,5 @@
 #pragma once
 
-#include <plots/PlotOptions.h>
 #include <dataset/PointSet.h>
 #include <dataset/Dataset.h>
 

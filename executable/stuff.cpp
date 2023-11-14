@@ -26,16 +26,20 @@
 #include <form_factor/FormFactor.h>
 #include <hydrate/Grid.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 
 #include <cassert>
 
 int main(int argc, char const *argv[]) {
-    settings::axes::qmin = 1e-2; settings::axes::qmax = 1;
+    settings::axes::qmin = 5e-2; 
+    settings::axes::qmax = 1;
     settings::grid::width = 1;
     settings::grid::exv_radius = 1;
-    data::Molecule protein("data/rigidbody/lysozyme/2epe.pdb");
-    plots::PlotIntensity plot;
+    settings::hist::weighted_bins = true;
+    settings::general::output = "temp/stuff/comparison/";
+    data::Molecule protein("data/6lyz/6lyz.pdb");
+    std::vector<SimpleDataset> profiles;
     for (double rx = 1; rx <= 4; rx += 1) {
         settings::grid::exv_radius = rx;
         protein.clear_grid();
@@ -43,10 +47,78 @@ int main(int argc, char const *argv[]) {
         auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
         auto profile = h_cast->get_profile_xx();
-        plot.plot(profile, plots::PlotOptions({{"legend", std::to_string(rx)}, {"lw", 2}, {"color", style::color::next()}}));
+        profiles.push_back(profile.as_dataset());
     }
-    plot.save("temp/stuff/xx_variation.png");
+
+    auto jan_1 = SimpleDataset("temp/stuff/comparison/jan_1.dat");
+    auto jan_2 = SimpleDataset("temp/stuff/comparison/jan_2.dat");
+    auto jan_3 = SimpleDataset("temp/stuff/comparison/jan_3.dat");
+
+    profiles[0].normalize(1);
+    profiles[1].normalize(10);
+    profiles[2].normalize(100);
+    jan_1.normalize(1);
+    jan_2.normalize(10);
+    jan_3.normalize(100);
+
+    plots::PlotIntensity()
+        .plot(profiles[0], plots::PlotOptions({{"legend", "1"}, {"lw", 2}, {"color", style::color::red}, {"ylimits", Limit{1e-4, 110}}}))
+        .plot(jan_1, plots::PlotOptions({{"legend", "Jan 1"}, {"lw", 2}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
+        .plot(profiles[1], plots::PlotOptions({{"legend", "2"}, {"lw", 2}, {"color", style::color::blue}}))
+        .plot(jan_2, plots::PlotOptions({{"legend", "Jan 2"}, {"lw", 2}, {"color", style::color::blue}, {"linestyle", style::line::dashed}}))
+        .plot(profiles[2], plots::PlotOptions({{"legend", "3"}, {"lw", 2}, {"color", style::color::green}}))
+        .plot(jan_3, plots::PlotOptions({{"legend", "Jan 3"}, {"lw", 2}, {"color", style::color::green}, {"linestyle", style::line::dashed}}))
+    .save("temp/stuff/comparison/compare.png");
+
+    settings::grid::width = 1;
+    settings::grid::exv_radius = 1;
+    hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+    data::Molecule jan1("temp/stuff/comparison/jan_1.pdb");
+    auto p1 = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&jan1).calculate_all().get())->get_profile_xx().as_dataset();
+
+    settings::grid::width = 2;
+    hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+    data::Molecule jan2("temp/stuff/comparison/jan_2.pdb");
+    auto p2 = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&jan2).calculate_all().get())->get_profile_xx().as_dataset();
+
+    settings::grid::save_exv = true;
+    settings::grid::width = 3;
+    hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+    data::Molecule jan3("temp/stuff/comparison/jan_3.pdb");
+    auto p3 = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&jan3).calculate_all().get())->get_profile_xx().as_dataset();
+    settings::grid::save_exv = false;
+
+    p1.normalize(1);
+    p2.normalize(10);
+    p3.normalize(100);
+
+    plots::PlotIntensity()
+        .plot(p1, plots::PlotOptions({{"legend", "Jan 1"}, {"lw", 2}, {"color", style::color::red}, {"ylimits", Limit{1e-4, 110}}}))
+        .plot(jan_1, plots::PlotOptions({{"legend", "Jan 1"}, {"lw", 2}, {"color", style::color::red}, {"linestyle", style::line::dashed}}))
+        .plot(p2, plots::PlotOptions({{"legend", "Jan 2"}, {"lw", 2}, {"color", style::color::blue}}))
+        .plot(jan_2, plots::PlotOptions({{"legend", "Jan 2"}, {"lw", 2}, {"color", style::color::blue}, {"linestyle", style::line::dashed}}))
+        .plot(p3, plots::PlotOptions({{"legend", "Jan 3"}, {"lw", 2}, {"color", style::color::green}}))
+        .plot(jan_3, plots::PlotOptions({{"legend", "Jan 3"}, {"lw", 2}, {"color", style::color::green}, {"linestyle", style::line::dashed}}))
+    .save("temp/stuff/comparison/jan.png");
 }
+
+// int main(int argc, char const *argv[]) {
+//     settings::axes::qmin = 1e-2; settings::axes::qmax = 1;
+//     settings::grid::width = 1;
+//     settings::grid::exv_radius = 1;
+//     data::Molecule protein("data/rigidbody/lysozyme/2epe.pdb");
+//     plots::PlotIntensity plot;
+//     for (double rx = 1; rx <= 4; rx += 1) {
+//         settings::grid::exv_radius = rx;
+//         protein.clear_grid();
+//         hist::CompositeDistanceHistogramFFGrid::regenerate_table();
+//         auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+//         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
+//         auto profile = h_cast->get_profile_xx();
+//         plot.plot(profile, plots::PlotOptions({{"legend", std::to_string(rx)}, {"lw", 2}, {"color", style::color::next()}}));
+//     }
+//     plot.save("temp/stuff/xx_variation.png");
+// }
 
 //************************************************************************************************* 
 //********************************* PLOT SCATTERING STUFF *****************************************
