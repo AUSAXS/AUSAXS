@@ -9,6 +9,7 @@ double settings::grid::scaling = 0.25;
 bool settings::grid::cubic = false;
 double settings::grid::rvol = 2.15;
 double settings::grid::exv_radius = 2;
+bool settings::grid::save_exv = false;
 settings::grid::PlacementStrategy settings::grid::placement_strategy = PlacementStrategy::RadialStrategy;
 settings::grid::CullingStrategy settings::grid::culling_strategy = CullingStrategy::CounterStrategy;
 
@@ -24,6 +25,7 @@ namespace settings::grid::io {
         settings::io::create(cubic, "cubic"),
         settings::io::create(rvol, "rvol"),
         settings::io::create(exv_radius, "exv_radius"),
+        settings::io::create(save_exv, "save_exv"),
         settings::io::create(detail::min_score, "detail.min_score"),
         settings::io::create(placement_strategy, "placement_strategy"),
         settings::io::create(culling_strategy, "culling_strategy")

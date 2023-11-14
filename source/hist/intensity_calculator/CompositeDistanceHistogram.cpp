@@ -62,8 +62,8 @@ auto partial_profile = [] (const Distribution1D& p, const view_ptr<const table::
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
-        Iq[q] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
-        Iq[q] *= std::exp(-q_axis[q]*q_axis[q]);
+        Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
+        Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]);
     }
     return ScatteringProfile(Iq, debye_axis);
 };

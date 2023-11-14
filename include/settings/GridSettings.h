@@ -10,6 +10,7 @@ namespace settings {
         extern bool cubic;           // Whether to generate a cubic grid. This is primarily intended for rigid body optimization, to ensure there's enough space for all possible conformations.
         extern double rvol;          // The radius of the excluded volume sphere around each atom.
         extern double exv_radius;    // The radius of the excluded volume sphere used for the grid-based excluded volume calculations in Å.
+        extern bool save_exv;        // Whether to save the excluded volume grid when using the grid-based excluded volume calculations.
 
         namespace detail {
             extern double min_score; // (0.5 + min_score) is the minimum percentage of radial lines which must not intersect anything to place a water molecule.

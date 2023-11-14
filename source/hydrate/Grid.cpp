@@ -2,14 +2,18 @@
 #include <hydrate/culling/CullingFactory.h>
 #include <hydrate/placement/PlacementFactory.h>
 #include <hydrate/GridMember.h>
+#include <data/detail/AtomCollection.h>
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
 #include <settings/GridSettings.h>
+#include <settings/GeneralSettings.h>
 #include <utility/Console.h>
 #include <constants/Constants.h>
-#include <data/Molecule.h>
 #include <io/ExistingFile.h>
+
+#include <random>
 
 using namespace grid;
 using namespace data;
@@ -84,9 +88,9 @@ void Grid::setup() {
     // check if the grid is abnormally large
     long long int total_bins = (long long) axes.x.bins*axes.y.bins*axes.z.bins;
     if (total_bins > 32e9) {
-        throw except::invalid_argument("Grid: Too many bins.");
+        throw except::size_error("Grid::setup: Attempting to allocate a grid of size > 16GB. Try reducing the number of bins.");
     } else if (total_bins > 4e9) {
-        console::print_warning("Warning in Grid::setup: Consider lowering the number of bins.");
+        console::print_warning("Warning in Grid::setup: Attempting to allocate a grid of size > 2GB. Consider lowering the number of bins.");
     }
 
     this->grid = detail::GridObj(axes.x.bins, axes.y.bins, axes.z.bins);
@@ -691,9 +695,6 @@ void Grid::save(const io::File& path) const {
     p.save(path);
 }
 
-#include <random>
-#include <settings/GeneralSettings.h>
-#include <data/detail/AtomCollection.h>
 std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     expand_volume();
     std::vector<Vector3<double>> exv_atoms;
@@ -701,9 +702,9 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     auto[vmin, vmax] = bounding_box_index();
 
     int buffer = 2./settings::grid::width; // 2Å buffer in each direction should be enough to capture all filled voxels
-    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); ++i) {
-        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); ++j) {
-            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); ++k) {
+    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); i+=settings::grid::exv_radius) {
+        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); j+=settings::grid::exv_radius) {
+            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); k+=settings::grid::exv_radius) {
                 switch (grid.index(i, j, k)) {
                     case detail::VOLUME:
                     case detail::A_AREA:
@@ -716,24 +717,22 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
         }
     }
 
-    // check if we should use excluded volume spheres larger than the grid width
-    if (settings::grid::exv_radius != settings::grid::width) {
-        std::cout << "Aggregating excluded volume spheres." << std::endl;
-        double r = settings::grid::exv_radius;
-        double V = std::pow(r, 3);
-        double reduction_factor = V/std::pow(settings::grid::width, 3);
-        std::shuffle(exv_atoms.begin(), exv_atoms.end(), std::mt19937{std::random_device{}()});
-        exv_atoms.resize(exv_atoms.size()/reduction_factor);
+    // // check if we should use excluded volume spheres larger than the grid width
+    // if (settings::grid::exv_radius != settings::grid::width) {
+    //     std::cout << "Aggregating excluded volume spheres." << std::endl;
+    //     double r = settings::grid::exv_radius;
+    //     double V = std::pow(r, 3);
+    //     double reduction_factor = V/std::pow(settings::grid::width, 3);
+    //     std::shuffle(exv_atoms.begin(), exv_atoms.end(), std::mt19937{std::random_device{}()});
+    //     exv_atoms.resize(exv_atoms.size()/reduction_factor);
+    // }
 
-        // {
-        //     std::vector<Atom> atoms(exv_atoms.size());
-        //     for (unsigned int i = 0; i < exv_atoms.size(); i++) {
-        //         atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
-        //     }
-        //     data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
-        // }
-
-        return exv_atoms;
+    if (settings::grid::save_exv) {
+        std::vector<Atom> atoms(exv_atoms.size());
+        for (unsigned int i = 0; i < exv_atoms.size(); i++) {
+            atoms[i] = Atom(i, "C", "", "LYS", 'A', 1, "", exv_atoms[i], 1, 0, constants::atom_t::C, "");
+        }
+        data::detail::AtomCollection(atoms, {}).write(settings::general::output + "exv.pdb");
     }
     return exv_atoms;
 }

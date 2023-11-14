@@ -19,14 +19,7 @@ std::string Axis::to_string() const noexcept {
     return "Axis: (" + std::to_string(min) + ", " + std::to_string(max) + ") with " + std::to_string(bins) + " bins";
 }
 
-bool Axis::operator==(const Axis& rhs) const noexcept {
-    if (bins != rhs.bins) {return false;}
-    if (min != rhs.min) {return false;}
-    if (max != rhs.max) {return false;}
-    return true;
-}
-
-bool Axis::operator!=(const Axis& rhs) const noexcept {return !operator==(rhs);}
+bool Axis::operator==(const Axis& rhs) const noexcept = default;
 
 void Axis::resize(unsigned int bins) noexcept {
     auto w = width();
@@ -55,9 +48,8 @@ Axis Axis::sub_axis(double vmin, double vmax) const noexcept {
     unsigned int max_bin = get_bin(vmax);
     double width = this->width();
 
-    double new_min = this->min + min_bin*width;
-    double new_max = this->min + max_bin*width;
-
+    double new_min = get_bin_value(min_bin);
+    double new_max = get_bin_value(max_bin);
     return Axis(new_min, new_max, max_bin - min_bin);
 }
 

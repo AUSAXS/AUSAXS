@@ -55,13 +55,6 @@ class Axis {
 		bool operator==(const Axis& rhs) const noexcept;
 
 		/**
-		 * @brief Inequality operator. 
-		 * 
-		 * Check if this object is different from another. 
-		 */
-		bool operator!=(const Axis& rhs) const noexcept;
-
-		/**
 		 * @brief Get the bin width. 
 		 */
 		constexpr double width() const noexcept {return (max-min)/bins;}
