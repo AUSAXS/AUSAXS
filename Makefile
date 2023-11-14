@@ -316,6 +316,10 @@ unit_cell/%: build/bin/unit_cell
 	@ structure=$$(find data/ -name "$*.pdb"); \
 	$< $${structure}
 
+exv_comparison/%: build/bin/exv_comparison
+	@ structure=$$(find data/ -name "$*.pdb"); \
+	$< $${structure}; \
+	make plot/output/$@
 
 ####################################################################################
 ###			     SIMULATIONS					 ###
