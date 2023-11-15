@@ -17,6 +17,7 @@
 #include <data/record/Water.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
+#include <dataset/SimpleDataset.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/GeneralSettings.h>
 #include <settings/GridSettings.h>
@@ -274,6 +275,63 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }
+}
+
+#include <form_factor/ExvFormFactor.h>
+#include <form_factor/FormFactor.h>
+TEST_CASE("6lyz_exv", "[manual]") {
+    auto exact = [] (const data::Molecule& molecule, double exv_radius) {
+        container::Container2D<double> distances(molecule.get_atoms().size(), molecule.get_atoms().size());
+        auto atoms = molecule.get_atoms();
+        for (unsigned int i = 0; i < atoms.size(); ++i) {
+            for (unsigned int j = 0; j < atoms.size(); ++j) {
+                distances(i, j) = atoms[i].distance(atoms[j]);
+            }
+        }
+
+        auto qaxis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
+        auto q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
+        form_factor::FormFactor ff = form_factor::ExvFormFactor(std::pow(2*exv_radius, 3));
+        hist::ScatteringProfile I(qaxis);
+        for (unsigned int q = q0; q < q0+qaxis.bins; ++q) {
+            double sum = 0;
+            for (unsigned int i = 0; i < atoms.size(); ++i) {
+                for (unsigned int j = 0; j < atoms.size(); ++j) {
+                    double qd = constants::axes::q_vals[q]*distances(i, j);
+                    if (qd < 1e-6) {
+                        sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2);
+                    } else {
+                        sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2)*std::sin(qd)/(qd);
+                    }
+                }
+            }
+            I.index(q-q0) = sum;
+        }
+        return I;
+    };
+
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
+    settings::axes::qmax = 1;
+    settings::grid::exv_radius = 1;
+    settings::grid::rvol = 1;
+    constants::radius::set_dummy_radius(1);
+
+    data::Molecule protein("test/files/6lyz_exv.pdb");
+    for (auto& b : protein.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
+    auto Iq = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()->debye_transform().as_dataset();
+    auto Iqw = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform().as_dataset();
+    auto Iqexact = exact(protein, settings::grid::exv_radius).as_dataset();
+
+    Iq.normalize();
+    Iqw.normalize();
+    Iqexact.normalize();
+
+    plots::PlotIntensity()
+        .plot(Iq, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
+        .plot(Iqw, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"lw", 2}}))
+        .plot(Iqexact, plots::PlotOptions(style::draw::line, {{"color", style::color::green}, {"legend", "Exact"}, {"ls", style::line::dashed}, {"lw", 2}}))
+    .save("temp/test/hist/6lyz_exv.png");
 }
 
 TEST_CASE("sphere_comparison", "[manual]") {
