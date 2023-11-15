@@ -9,9 +9,9 @@ using namespace form_factor;
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
     form_factor::storage::atomic::table_t table;
 
-    auto V = std::pow(settings::grid::exv_radius*settings::grid::width, 3);
+    auto V = std::pow(2*settings::grid::exv_radius, 3);
     FormFactor ffx = ExvFormFactor(V);
-    // FormFactor ffx({1, 0, 0, 0, 0}, {settings::grid::exv_radius, 0, 0, 0, 0}, 0);
+    // FormFactor ffx({1, 0, 0, 0, 0}, {std::pow(settings::grid::exv_radius, 2)/2, 0, 0, 0, 0}, 0);
     // ffx.set_normalization(V*0.334);
     for (unsigned int i = 0; i < form_factor::get_count_without_excluded_volume(); ++i) {
         for (unsigned int j = 0; j < i; ++j) {

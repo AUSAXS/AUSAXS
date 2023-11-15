@@ -108,14 +108,7 @@ namespace data {
 			 * 
 			 * @return The volume in Å^3.
 			 */
-			[[nodiscard]] double get_volume_grid() const;
-
-			/**
-			 * @brief Calculate the volume of this molecule based on the number of C-alpha atoms
-			 * 
-			 * @return The volume in Å^3.
-			 */
-			// [[nodiscard]] double get_volume_calpha() const;
+			[[nodiscard]] virtual double get_volume_grid() const;
 
 			/** 
 			 * @brief Calculate the center-mass coordinates.
@@ -335,7 +328,6 @@ namespace data {
 			mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
 			std::shared_ptr<hist::IHistogramManager> phm = nullptr;
 			std::shared_ptr<hist::ICompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
-			double excluded_volume_scaling_factor = 1; // The scaling factor for the excluded volume.
 
 			void initialize();
 	};

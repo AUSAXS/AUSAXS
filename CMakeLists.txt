@@ -153,7 +153,7 @@ file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 #target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${CURL})
 #link_libraries(saxs_static)
 
-### DOUBLE-COMPILED STATIC & SHARED LIBARY APPROACH - SUPPORTS PROFILING ###
+### DOUBLE-COMPILED STATIC & SHARED LIBRARY APPROACH - SUPPORTS PROFILING ###
 add_library(saxs_static STATIC ${SOURCE_FILES})
 add_library(saxs SHARED ${SOURCE_FILES})
 target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")

@@ -701,10 +701,14 @@ std::vector<Vector3<double>> Grid::generate_excluded_volume() {
     exv_atoms.reserve(volume);
     auto[vmin, vmax] = bounding_box_index();
 
+    if (std::fmod(settings::grid::exv_radius*2, settings::grid::width) != 0) {
+        console::print_warning("Warning in Grid::generate_excluded_volume: The excluded volume radius is not a multiple of the grid width. Rounding to nearest integer.");
+    }
+    int stride = std::round(2*settings::grid::exv_radius/settings::grid::width);
     int buffer = 2./settings::grid::width; // 2Å buffer in each direction should be enough to capture all filled voxels
-    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); i+=settings::grid::exv_radius) {
-        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); j+=settings::grid::exv_radius) {
-            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); k+=settings::grid::exv_radius) {
+    for (int i = std::max<int>(vmin.x()-buffer, 0); i < std::min<int>(vmax.x()+buffer, axes.x.bins); i+=stride) {
+        for (int j = std::max<int>(vmin.y()-buffer, 0); j < std::min<int>(vmax.y()+buffer, axes.y.bins); j+=stride) {
+            for (int k = std::max<int>(vmin.z()-buffer, 0); k < std::min<int>(vmax.z()+buffer, axes.z.bins); k+=stride) {
                 switch (grid.index(i, j, k)) {
                     case detail::VOLUME:
                     case detail::A_AREA:

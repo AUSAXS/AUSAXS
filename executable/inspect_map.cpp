@@ -1,9 +1,10 @@
 #include <em/ImageStack.h>
+#include <io/ExistingFile.h>
 
 #include <iostream>
 
 int main(int argc, char const *argv[]) {
-    std::string mfile = argv[1];
+    io::ExistingFile mfile = argv[1];
     em::ImageStack map(mfile);
 
     std::cout << *map.get_header() << std::endl;

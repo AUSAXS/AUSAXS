@@ -21,6 +21,12 @@ std::ostream& utility::detail::operator<<(std::ostream& os, const __dummy& obj) 
     return os;
 }
 
+std::string utility::round(double val, unsigned int decimals) noexcept {
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(decimals) << val;
+    return ss.str();
+}
+
 utility::detail::__dummy utility::fixedwidth(double number, unsigned int width) {
     std::string s = std::to_string(number);
     // remove unnecessary 0s

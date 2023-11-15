@@ -1,6 +1,5 @@
 set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE TEST)
 
 # Reset the compile options for the test files
 set(CMAKE_CXX_FLAGS "")
@@ -21,12 +20,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-file(GLOB_RECURSE TEST_SRC "*.cpp")
-
 # make the tests available through cmake
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
 include(Catch)
+
+file(GLOB_RECURSE TEST_SRC "*.cpp")
 
 add_custom_target(tests)
 foreach(test ${TEST_SRC})
@@ -34,6 +33,7 @@ foreach(test ${TEST_SRC})
 	set(name "test_${testname}")
 	add_executable("${name}" ${test} $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
 	target_link_libraries("${name}" Catch2::Catch2WithMain)
+	target_include_directories("${name}" PRIVATE "${CMAKE_SOURCE_DIR}/test")
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test/bin"
 		COMPILE_FLAGS "${CMAKE_CXX_FLAGS_TEST}"

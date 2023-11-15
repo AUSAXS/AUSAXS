@@ -17,59 +17,10 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 
+#include "../test/hist/hist_test_helper.h"
+
 using namespace data::record;
 using namespace data;
-
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    unsigned int pmin = std::min(p1.size(), p2.size());
-    for (unsigned int i = 0; i < pmin; i++) {
-        if (!utility::approx(p1[i], p2[i], 1e-6, 0.01)) {
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void set_unity_charge(Molecule& protein) {
-    // set the weights to 1 so we can analytically determine the result
-    // waters
-    for (auto& atom : protein.get_waters()) {
-        atom.set_effective_charge(1);
-    }
-    // atoms
-    for (auto& body : protein.get_bodies()) {
-        for (auto& atom : body.get_atoms()) {
-            atom.set_effective_charge(1);
-        }
-    }
-}
-
-// calculation: 8 points
-//          1 line  of length 0
-//          3 lines of length 2
-//          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-//          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-//
-// calculation: 1 center point
-//          1 line  of length 0
-//          16 lines of length sqrt(3) = 1.73 (counting both directions)
-//
-// sum:
-//          9 line  of length 0
-//          16 lines of length sqrt(3)
-//          24 lines of length 2
-//          24 lines of length sqrt(8)
-//          8 lines of length sqrt(12)
-auto width = constants::axes::d_axis.width();
-std::vector<double> d = {
-    0, 
-    constants::axes::d_vals[std::round(std::sqrt(3)/width)], 
-    constants::axes::d_vals[std::round(2./width)], 
-    constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
-    constants::axes::d_vals[std::round(std::sqrt(12)/width)]
-};
 
 #define DEBYE_DEBUG 0
 unsigned int qcheck = 26;
@@ -89,11 +40,11 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
-        Molecule protein(a);
+        DebugMolecule protein(a);
 
         set_unity_charge(protein);
-        double Z = protein.get_excluded_volume()*constants::charge::density::water/9;
-        protein.set_excluded_volume_scaling(1./Z);
+        double Z = protein.get_volume_grid()*constants::charge::density::water/9;
+        protein.set_volume_scaling(1./Z);
 
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double aasum = 
@@ -136,11 +87,11 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
         std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Molecule protein(a, w);
+        DebugMolecule protein(a, w);
 
         set_unity_charge(protein);
-        double Z = protein.get_excluded_volume()*constants::charge::density::water/8;
-        protein.set_excluded_volume_scaling(1./Z);
+        double Z = protein.get_volume_grid()*constants::charge::density::water/8;
+        protein.set_volume_scaling(1./Z);
 
         for (unsigned int q = 0; q < q_axis.size(); ++q) {
             double awsum = 8*std::sin(q_axis[q]*d[1])/(q_axis[q]*d[1]);
@@ -286,7 +237,7 @@ TEST_CASE("plot_Gq", "[manual]") {
     for (unsigned int i = 0; i < constants::axes::q_vals.size(); ++i) {
         Gq.push_back(constants::axes::q_vals[i], hist.Gq(constants::axes::q_vals[i]));
     }
-    plots::PlotDataset::quick_plot(Gq, io::File("temp/test/composite_distance_histogram_ff_explicit/Gq.png"));
+    plots::PlotDataset::quick_plot(Gq, plots::PlotOptions(), io::File("temp/test/composite_distance_histogram_ff_explicit/Gq.png"));
 }
 
 TEST_CASE("plot_cmp", "[manual]") {
@@ -343,17 +294,12 @@ TEST_CASE("plot_cmp", "[manual]") {
     // wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{wx} = $" + ss_wx.str()}, {"color", style::color::purple}});
     // ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$c_{ww} = $" + ss_ww.str()}, {"color", style::color::brown}});
 
-    aa.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aa}$"}, {"color", style::color::red}});
-    ax.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{ax}$"}, {"color", style::color::blue}});
-    xx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{xx}$"}, {"color", style::color::green}});
-    aw.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aw}$"}, {"color", style::color::pink}});
-    wx.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{wx}$"}, {"color", style::color::purple}});
-    ww.add_plot_options({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}});
-    plots::PlotDataset(aa)
-        .plot(ax)
-        .plot(xx)
-        .plot(aw)
-        .plot(wx)
-        .plot(ww)
+    plots::PlotDataset()
+        .plot(aa, plots::PlotOptions({{"xlabel", "q"}, {"linewidth", 2}, {"logx", false}, {"logy", true}, {"ylabel", "I"}, {"legend", "$I_{aa}$"}, {"color", style::color::red}}))
+        .plot(ax, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ax}$"}, {"color", style::color::blue}}))
+        .plot(xx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{xx}$"}, {"color", style::color::green}}))
+        .plot(aw, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{aw}$"}, {"color", style::color::pink}}))
+        .plot(wx, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{wx}$"}, {"color", style::color::purple}}))
+        .plot(ww, plots::PlotOptions({{"linewidth", 2}, {"legend", "$I_{ww}$"}, {"color", style::color::brown}}))
     .save("temp/test/composite_distance_histogram_ff_explicit/compare_ausaxs_x.png");
 }

@@ -50,6 +50,11 @@ namespace utility {
      */
     std::string uid(const std::string& s);
 
+    /**
+     * @brief Round a number to a string.
+     */
+    std::string round(double val, unsigned int decimals) noexcept;
+
     namespace detail {
         // Dummy object for fixed-length printing of numbers. 
         // std::setprecision does *not* count leading zeros, which breaks our strict formatting.

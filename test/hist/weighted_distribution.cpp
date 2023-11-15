@@ -1,6 +1,14 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/distance_calculator/HistogramManagerMT.h>
+#include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
+#include <hist/distance_calculator/HistogramManagerMTFFExplicit.h>
+#include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
+#include <hist/distance_calculator/PartialHistogramManager.h>
+#include <hist/distance_calculator/PartialHistogramManagerMT.h>
 #include <hist/distribution/WeightedDistribution.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/WeightedDistribution2D.h>
@@ -9,88 +17,20 @@
 #include <data/record/Water.h>
 #include <data/Body.h>
 #include <data/Molecule.h>
-#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/distance_calculator/HistogramManager.h>
-#include <hist/distance_calculator/HistogramManagerMT.h>
-#include <hist/distance_calculator/PartialHistogramManager.h>
-#include <hist/distance_calculator/PartialHistogramManagerMT.h>
 #include <settings/MoleculeSettings.h>
 #include <settings/GeneralSettings.h>
+#include <settings/GridSettings.h>
+#include <settings/HistogramSettings.h>
+#include <hydrate/Grid.h>
+#include <io/ExistingFile.h>
+#include <plots/PlotIntensity.h>
+#include <table/ArrayDebyeTable.h>
+
+#include "../test/hist/hist_test_helper.h"
 
 using namespace hist;
 using namespace data;
 using namespace data::record;
-
-hist::CompositeDistanceHistogram generate_random(unsigned int size) {
-    hist::Distribution1D p_pp(size), p_hp(size), p_hh(size), p(size);
-    for (unsigned int i = 0; i < size; ++i) {
-        p_pp.index(i) = rand() % 100;
-        p_hp.index(i) = rand() % 100;
-        p_hh.index(i) = rand() % 100;
-        p.index(i) = p_pp.index(i) + 2*p_hp.index(i) + p_hh.index(i);
-    }
-    Axis axis(1, 10, size);
-    return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p), axis);
-}
-
-void set_unity_charge(data::Molecule& protein) {
-    // set the weights to 1 so we can analytically determine the result
-    // waters
-    for (auto& atom : protein.get_waters()) {
-        atom.set_effective_charge(1);
-    }
-    // atoms
-    for (auto& body : protein.get_bodies()) {
-        for (auto& atom : body.get_atoms()) {
-            atom.set_effective_charge(1);
-        }
-    }
-}
-
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    unsigned int pmin = std::min(p1.size(), p2.size());
-    for (unsigned int i = 0; i < pmin; i++) {
-        if (!utility::approx(p1[i], p2[i], 1e-6, 0.01)) {
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// calculation: 8 points
-//          1 line  of length 0
-//          3 lines of length 2
-//          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-//          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-//
-// calculation: 1 center point
-//          1 line  of length 0
-//          16 lines of length sqrt(2) = 1.41 (counting both directions)
-//
-// sum:
-//          9 line  of length 0
-//          16 lines of length sqrt(2)
-//          24 lines of length 2
-//          24 lines of length sqrt(8)
-//          8 lines of length sqrt(12)
-auto width = constants::axes::d_axis.width();
-std::vector<double> d = {
-    0, 
-    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
-    constants::axes::d_vals[std::round(2./width)], 
-    constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
-    constants::axes::d_vals[std::round(std::sqrt(12)/width)]
-};
-
-std::vector<double> d_exact = {
-    0, 
-    std::sqrt(2), 
-    2, 
-    std::sqrt(8), 
-    std::sqrt(12)
-};
 
 TEST_CASE("WeightedDistribution: tracks content") {
     hist::WeightedDistribution::reset();
@@ -146,6 +86,110 @@ TEST_CASE("WeightedDistribution: tracks content") {
     }
 }
 
+struct DistanceHistogramDebug : public hist::DistanceHistogram {
+    using hist::DistanceHistogram::DistanceHistogram;
+    auto get_sinc_table() {
+        use_weighted_sinc_table();
+        return hist::DistanceHistogram::get_sinc_table();
+    }
+};
+TEST_CASE("sinc_table") {
+    settings::molecule::use_effective_charge = false;
+    std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
+    Molecule protein(a);
+
+    auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+
+    DistanceHistogramDebug temp;
+    auto bins = WeightedDistribution::get_weighted_bins();
+    auto table = temp.get_sinc_table();
+    for (unsigned int q = 0; q < table->size_q(); ++q) {
+        std::vector<double> sinc(20);
+        for (unsigned int d = 0; d < 20; ++d) {
+            double qd = constants::axes::q_vals[q]*bins[d];
+            double val = 0;
+            if (qd < 1e-3) {val = 1 - qd*qd/6 + qd*qd*qd*qd/120;}
+            else {val = std::sin(qd)/qd;}
+            REQUIRE_THAT(table->lookup(q, d), Catch::Matchers::WithinAbs(val, 1e-6));
+            sinc[d] = val;
+        }
+        std::transform(sinc.begin(), sinc.end(), table->begin(q), sinc.begin(), std::minus<double>());
+        REQUIRE_THAT(std::accumulate(sinc.begin(), sinc.end(), 0.0), Catch::Matchers::WithinAbs(0, 1e-6));
+    }
+}
+
+TEST_CASE("distance_calculators") {
+    settings::molecule::use_effective_charge = false;
+    std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
+    Molecule protein(a);
+
+    auto check_default = [] () {
+        auto p = WeightedDistribution::get_weighted_bins();
+        for (unsigned int i = 0; i < 20; ++i) {
+            if (p[i] != constants::axes::d_vals[i]) {return false;}
+        }
+        return true;
+    };
+    auto check_exact = [] () {
+        auto p = WeightedDistribution::get_weighted_bins();
+        for (auto e : d_exact) {
+            if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {return false;}
+        }
+        return true;
+    };
+
+    { // hm
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::HistogramManager<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::HistogramManager<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
+    { // hm_mt
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::HistogramManagerMT<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::HistogramManagerMT<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
+    { // hm_mt_ff_avg
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
+    { // hm_mt_ff_explicit
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
+    { // hm_mt_ff_grid
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
+}
+
 TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
     settings::molecule::use_effective_charge = false;
     settings::general::warnings = true;
@@ -195,11 +239,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
         std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Molecule protein(a, w);
+        DebugMolecule protein(a, w);
 
         set_unity_charge(protein);
-        double Z = protein.get_excluded_volume()*constants::charge::density::water/8;
-        protein.set_excluded_volume_scaling(1./Z);
+        double Z = protein.get_volume_grid()*constants::charge::density::water/8;
+        protein.set_volume_scaling(1./Z);
 
         std::vector<double> Iq_exp;
         {
@@ -232,11 +276,6 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
     }
 }
 
-#include <hydrate/Grid.h>
-#include <io/ExistingFile.h>
-#include <plots/PlotIntensity.h>
-#include <settings/GridSettings.h>
-#include <settings/HistogramSettings.h>
 TEST_CASE("sphere_comparison", "[manual]") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
@@ -251,7 +290,7 @@ TEST_CASE("sphere_comparison", "[manual]") {
         for (unsigned int j = 0; j < axes.y.bins; ++j) {
             for (unsigned int k = 0; k < axes.z.bins; ++k) {
                 if (grid.to_xyz(i, j, k).distance2(center) < radius2) {
-                    grid.grid.index(i, j, k) = grid::GridObj::VOLUME;
+                    grid.grid.index(i, j, k) = grid::detail::VOLUME;
                 }
             }
         }
@@ -263,17 +302,68 @@ TEST_CASE("sphere_comparison", "[manual]") {
     auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
     auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
 
-    Iq1.add_plot_options(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}});
-    Iq2.add_plot_options(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}});
-
-    plots::PlotIntensity(Iq1, style::color::orange)
-        .plot(Iq2, style::color::blue)
+    plots::PlotIntensity()
+        .plot(Iq1, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
+        .plot(Iq2, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
     .save("temp/test/hist/sphere_comparison.png");
 
     auto ratio = Iq1;
     for (unsigned int i = 0; i < ratio.get_counts().size(); ++i) {
         ratio.get_count(i) = Iq1.get_count(i)/Iq2.get_count(i);
     }
-    ratio.add_plot_options(style::draw::line, {{"color", style::color::red}, {"legend", "Ratio"}, {"lw", 2}});
-    plots::PlotIntensity(ratio, style::color::red).save("temp/test/hist/sphere_comparison_ratio.png");
+
+    plots::PlotIntensity(
+        ratio,
+        plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"legend", "Ratio"}, {"lw", 2}}))
+    .save("temp/test/hist/sphere_comparison_ratio.png");
+}
+
+TEST_CASE("real_comparison", "[manual]") {
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
+    settings::axes::qmax = 1;
+
+    data::Molecule protein("test/files/LAR1-2.pdb");
+    auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
+    auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+
+    unsigned int counter = 0;
+    auto weighted_bins = WeightedDistribution::get_weighted_bins();
+    for (unsigned int i = 0; i < weighted_bins.size(); ++i) {
+        if (weighted_bins[i] != constants::axes::d_vals[i]) {
+            counter++;
+        }
+    }
+    REQUIRE(counter != 0);
+
+    {
+        DistanceHistogramDebug temp;
+        auto table = temp.get_sinc_table();
+        counter = 0;
+        const auto& default_table = table::ArrayDebyeTable::get_default_table();
+        REQUIRE(table->size_q() == default_table.size_q());
+        REQUIRE(table->size_d() == default_table.size_d());
+        for (unsigned int q = 0; q < table->size_q(); ++q) {
+            for (unsigned int d = 0; d < table->size_d(); ++d) {
+                if (table->lookup(q, d) != default_table.lookup(q, d)) {
+                    counter++;
+                }
+            }
+        }
+        REQUIRE(counter != 0);
+    }
+
+    counter = 0;
+    REQUIRE(Iq1.size() == Iq2.size());
+    for (unsigned int i = 0; i < Iq1.size(); ++i) {
+        if (Iq1.get_count(i) != Iq2.get_count(i)) {
+            counter++;
+        }
+    }
+    REQUIRE(counter != 0);
+
+    plots::PlotIntensity()
+        .plot(Iq1, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
+        .plot(Iq2, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"ls", style::line::dashed}, {"lw", 2}}))
+    .save("temp/test/hist/real_comparison.png");
 }

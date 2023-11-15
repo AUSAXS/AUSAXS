@@ -15,6 +15,8 @@
 #include <constants/Constants.h>
 #include <settings/All.h>
 
+#include "../test/hist/hist_test_helper.h"
+
 using namespace data::record;
 using namespace data;
 
@@ -30,65 +32,6 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
     Axis axis(1, 10, size);
     return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p), axis);
 }
-
-void set_unity_charge(data::Molecule& protein) {
-    // set the weights to 1 so we can analytically determine the result
-    // waters
-    for (auto& atom : protein.get_waters()) {
-        atom.set_effective_charge(1);
-    }
-    // atoms
-    for (auto& body : protein.get_bodies()) {
-        for (auto& atom : body.get_atoms()) {
-            atom.set_effective_charge(1);
-        }
-    }
-}
-
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    unsigned int pmin = std::min(p1.size(), p2.size());
-    for (unsigned int i = 0; i < pmin; i++) {
-        if (!utility::approx(p1[i], p2[i], 1e-6, 0.01)) {
-            std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
-            return false;
-        }
-    }
-
-    return true;
-}
-
-// calculation: 8 points
-//          1 line  of length 0
-//          3 lines of length 2
-//          3 lines of length sqrt(2*2^2) = sqrt(8) = 2.82
-//          1 line  of length sqrt(3*2^2) = sqrt(12) = 3.46
-//
-// calculation: 1 center point
-//          1 line  of length 0
-//          16 lines of length sqrt(2) = 1.41 (counting both directions)
-//
-// sum:
-//          9 line  of length 0
-//          16 lines of length sqrt(2)
-//          24 lines of length 2
-//          24 lines of length sqrt(8)
-//          8 lines of length sqrt(12)
-auto width = constants::axes::d_axis.width();
-std::vector<double> d = {
-    0, 
-    constants::axes::d_vals[std::round(std::sqrt(2)/width)], 
-    constants::axes::d_vals[std::round(2./width)], 
-    constants::axes::d_vals[std::round(std::sqrt(8)/width)], 
-    constants::axes::d_vals[std::round(std::sqrt(12)/width)]
-};
-
-std::vector<double> d_exact = {
-    0, 
-    std::sqrt(2), 
-    2, 
-    std::sqrt(8), 
-    std::sqrt(12)
-};
 
 TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
     settings::general::warnings = false;
@@ -190,11 +133,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
         std::vector<Atom> b4 =  {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
         std::vector<Water> w = {Water(Vector3<double>( 0,  0,  0), 1, constants::atom_t::O, "HOH", 1)};
         std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4)};
-        Molecule protein(a, w);
+        DebugMolecule protein(a, w);
 
         set_unity_charge(protein);
-        double Z = protein.get_excluded_volume()*constants::charge::density::water/8;
-        protein.set_excluded_volume_scaling(1./Z);
+        double Z = protein.get_volume_grid()*constants::charge::density::water/8;
+        protein.set_volume_scaling(1./Z);
 
         std::vector<double> Iq_exp;
         {
