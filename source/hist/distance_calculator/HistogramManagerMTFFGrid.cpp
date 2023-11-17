@@ -9,8 +9,8 @@
 #include <settings/GridSettings.h>
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>
-#include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distance_calculator/detail/TemplateHelpersFFAvg.h>
+#include <hist/distribution/WeightedDistribution.h>
 #include <form_factor/FormFactorType.h>
 #include <utility/MultiThreading.h>
 
@@ -49,9 +49,11 @@ template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     using GenericDistribution2D_t = typename hist::GenericDistribution2D<use_weighted_distribution>::type;
+    using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<use_weighted_distribution>::calculate_all(); // make sure everything is initialized
+    hist::WeightedDistribution::reset();
     hist::detail::CompactCoordinates data_x = hist::detail::CompactCoordinates(this->protein->get_grid()->generate_excluded_volume(), 1);
     auto& data_a = *this->data_a_ptr;
     auto& data_w = *this->data_w_ptr;
@@ -190,9 +192,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
 
     // ensure that our new vectors are compatible with those from the base class
     auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
-    auto p_aa = std::move(cast_res->get_aa_counts_ff());
-    auto p_aw = std::move(cast_res->get_aw_counts_ff());
-    auto p_ww = std::move(cast_res->get_ww_counts_ff());
+    GenericDistribution3D_t p_aa = std::move(cast_res->get_aa_counts_ff());
+    GenericDistribution2D_t p_aw = std::move(cast_res->get_aw_counts_ff());
+    GenericDistribution1D_t p_ww = std::move(cast_res->get_ww_counts_ff());
 
     if (base_res->get_axis().bins < max_bin) {
         p_aa.resize(max_bin);

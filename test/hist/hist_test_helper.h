@@ -1,6 +1,7 @@
 #pragma once
 
 #include <data/Molecule.h>
+#include <utility/Concepts.h>
 
 /**
  * @brief Debug molecule that allows scaling the volume.
@@ -15,9 +16,10 @@ class DebugMolecule : public data::Molecule {
         double volume_scaling = 1;
 };
 
-bool compare_hist(Vector<double> p1, Vector<double> p2) {
-    unsigned int pmin = std::min(p1.size(), p2.size());
-    for (unsigned int i = 0; i < pmin; i++) {
+template<container_type T1, container_type T2>
+bool compare_hist(T1 p1, T2 p2) {
+    int pmin = std::min<int>(p1.size(), p2.size());
+    for (int i = 0; i < pmin; i++) {
         if (!utility::approx(p1[i], p2[i], 1e-6, 0)) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;

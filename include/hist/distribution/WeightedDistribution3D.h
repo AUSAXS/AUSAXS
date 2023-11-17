@@ -4,6 +4,8 @@
 #include <constants/Axes.h>
 
 namespace hist {
+    class Distribution3D;
+
     /**
      * @brief This is a small wrapper around the Container3D class, indicating that the data
      *        is distributed along the constants::axes::d_vals axis. Anything added to this
@@ -13,6 +15,7 @@ namespace hist {
     class WeightedDistribution3D : public container::Container3D<constants::axes::d_type> {
         public:
             using Container3D::Container3D;
+            WeightedDistribution3D(Distribution3D&& other);
 
             /**
              * @brief Add a value for a given distance.

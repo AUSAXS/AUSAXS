@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
@@ -312,15 +313,16 @@ TEST_CASE("6lyz_exv", "[manual]") {
 
     settings::molecule::use_effective_charge = false;
     settings::molecule::center = false;
+    settings::axes::qmin = 5e-2;
     settings::axes::qmax = 1;
-    settings::grid::exv_radius = 1;
-    settings::grid::rvol = 1;
-    constants::radius::set_dummy_radius(1);
+    settings::grid::exv_radius = 1.5;
+    settings::grid::rvol = 2;
+    constants::radius::set_dummy_radius(2);
 
     data::Molecule protein("test/files/6lyz_exv.pdb");
     for (auto& b : protein.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
-    auto Iq = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()->debye_transform().as_dataset();
-    auto Iqw = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform().as_dataset();
+    auto Iq =  static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all().get())->get_profile_xx().as_dataset();
+    auto Iqw = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all().get())->get_profile_xx().as_dataset();
     auto Iqexact = exact(protein, settings::grid::exv_radius).as_dataset();
 
     Iq.normalize();
@@ -328,7 +330,7 @@ TEST_CASE("6lyz_exv", "[manual]") {
     Iqexact.normalize();
 
     plots::PlotIntensity()
-        .plot(Iq, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}}))
+        .plot(Iq, plots::PlotOptions(style::draw::line, {{"color", style::color::orange}, {"legend", "Unweighted"}, {"lw", 2}, {"yrange", Limit(1e-4, 1.1)}}))
         .plot(Iqw, plots::PlotOptions(style::draw::line, {{"color", style::color::blue}, {"legend", "Weighted"}, {"lw", 2}}))
         .plot(Iqexact, plots::PlotOptions(style::draw::line, {{"color", style::color::green}, {"legend", "Exact"}, {"ls", style::line::dashed}, {"lw", 2}}))
     .save("temp/test/hist/6lyz_exv.png");

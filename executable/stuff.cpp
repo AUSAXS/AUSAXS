@@ -121,7 +121,7 @@ int main(int argc, char const *argv[]) {
     data::Molecule jan2("temp/stuff/comparison/jan_2.pdb");
     for (auto& b : jan2.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
     auto p2 = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&jan2).calculate_all().get())->get_profile_xx().as_dataset();
-    // auto exact2 = exact(jan2, 1).as_dataset();
+    auto exact2 = exact(jan2, 1).as_dataset();
 
     constants::radius::set_dummy_radius(2);
     settings::grid::rvol = 2;
@@ -131,14 +131,14 @@ int main(int argc, char const *argv[]) {
     data::Molecule jan3("temp/stuff/comparison/jan_3.pdb");
     for (auto& b : jan3.get_bodies()) {for (auto& a : b.get_atoms()){a.element = constants::atom_t::dummy;}}
     auto p3 = static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&jan3).calculate_all().get())->get_profile_xx().as_dataset();
-    // auto exact3 = exact(jan3, 1.5).as_dataset();
+    auto exact3 = exact(jan3, 1.5).as_dataset();
 
     p1.normalize(1);
     // exact1.normalize(1);
     p2.normalize(10);
-    // exact2.normalize(10);
+    exact2.normalize(10);
     p3.normalize(100);
-    // exact3.normalize(100);
+    exact3.normalize(100);
 
     plots::PlotIntensity()
         .plot(p1,     plots::PlotOptions({{"legend", "Grid 1"}, {"lw", 2}, {"color", style::color::red}, {"ylimits", Limit{1e-4, 110}}}))
@@ -146,10 +146,10 @@ int main(int argc, char const *argv[]) {
         // .plot(exact1, plots::PlotOptions({{"legend", "Exact 1"}, {"lw", 2}, {"color", style::color::red}, {"linestyle", style::line::dotted}}))
         .plot(p2,    plots::PlotOptions({{"legend", "Grid 2"}, {"lw", 2}, {"color", style::color::blue}}))
         .plot(jan_2, plots::PlotOptions({{"legend", "Jan 2"}, {"lw", 2}, {"color", style::color::blue}, {"linestyle", style::line::dashed}}))
-        // .plot(exact2, plots::PlotOptions({{"legend", "Exact 2"}, {"lw", 2}, {"color", style::color::blue}, {"linestyle", style::line::dotted}}))
+        .plot(exact2, plots::PlotOptions({{"legend", "Exact 2"}, {"lw", 2}, {"color", style::color::blue}, {"linestyle", style::line::dotted}}))
         .plot(p3,    plots::PlotOptions({{"legend", "Grid 3"}, {"lw", 2}, {"color", style::color::green}}))
         .plot(jan_3, plots::PlotOptions({{"legend", "Jan 3"}, {"lw", 2}, {"color", style::color::green}, {"linestyle", style::line::dashed}}))
-        // .plot(exact3, plots::PlotOptions({{"legend", "Exact 3"}, {"lw", 2}, {"color", style::color::green}, {"linestyle", style::line::dotted}}))
+        .plot(exact3, plots::PlotOptions({{"legend", "Exact 3"}, {"lw", 2}, {"color", style::color::green}, {"linestyle", style::line::dotted}}))
     .save("temp/stuff/comparison/jan.png");
 }
 
