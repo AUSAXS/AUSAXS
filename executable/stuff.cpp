@@ -52,7 +52,7 @@ auto exact = [] (const data::Molecule& molecule, double exv_radius) {
                 if (qd < 1e-6) {
                     sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2);
                 } else {
-                    sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2)*std::sin(qd)/(qd);
+                    sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2)*std::sin(qd)/qd;
                 }
             }
         }
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[]) {
         settings::grid::exv_radius = rx;
         protein.clear_grid();
         hist::CompositeDistanceHistogramFFGrid::regenerate_table();
-        auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
+        auto h = hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
         auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());
         auto profile = h_cast->get_profile_xx();
         profiles.push_back(profile.as_dataset());

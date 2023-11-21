@@ -321,6 +321,10 @@ exv_comparison/%: build/bin/exv_comparison
 	$< $${structure}; \
 	make plot/output/$@
 
+bin_size_analysis/%: build/bin/bin_size_analysis
+	$< $*
+	make plot/output/bin_size_analysis
+
 ####################################################################################
 ###			     SIMULATIONS					 ###
 ####################################################################################

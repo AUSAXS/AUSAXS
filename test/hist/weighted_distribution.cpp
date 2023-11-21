@@ -300,9 +300,11 @@ TEST_CASE("6lyz_exv", "[manual]") {
                 for (unsigned int j = 0; j < atoms.size(); ++j) {
                     double qd = constants::axes::q_vals[q]*distances(i, j);
                     if (qd < 1e-6) {
-                        sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2);
+                        // sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2);
+                        sum += 1;
                     } else {
-                        sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2)*std::sin(qd)/(qd);
+                        // sum += std::pow(ff.evaluate(constants::axes::q_vals[q]), 2)*std::sin(qd)/(qd);
+                        sum += std::sin(qd)/(qd);
                     }
                 }
             }
