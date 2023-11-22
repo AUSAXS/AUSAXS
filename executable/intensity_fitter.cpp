@@ -73,13 +73,16 @@ int main(int argc, char const *argv[]) {
     } else {
         settings::detail::parse_option("histogram_manager", {histogram_manager});
         if (fit_excluded_volume) {
-            if (settings::hist::histogram_manager != settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg && settings::hist::histogram_manager != settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit) {
-                throw except::invalid_argument("The histogram manager must be either HMMTFF or HMMTFFExplicit when fitting the excluded volume.");
+            switch(settings::hist::histogram_manager) {
+                case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
+                case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit:
+                case settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid: break;
+                default: throw except::invalid_argument("The histogram manager must be either HMMTFF, HMMTFFExplicit or HMMTFFGrid when fitting the excluded volume.");
             }
         }
     }
     switch (settings::hist::histogram_manager) {
-        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:      [[fallthrough]];
+        case settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg:
         case settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit: settings::molecule::use_effective_charge = false;
         default: break;
     }

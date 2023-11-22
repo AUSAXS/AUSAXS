@@ -138,5 +138,10 @@ namespace hist {
             mutable Distribution1D p_aa;
             mutable Distribution1D p_aw;
             mutable Distribution1D p_ww;
+
+            /**
+             * @brief Get the multiplicative factor for the excluded volume form factor.
+             */
+            virtual double exv_factor(double q) const;
     };
 }

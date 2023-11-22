@@ -86,7 +86,7 @@ class Options:
 
         # labels
             case "title":
-                self.title = words[1]
+                self.title = " ".join(words[1:])
             case "xlabel":
                 self.xlabel = " ".join(words[1:])
             case "ylabel":

@@ -67,7 +67,7 @@ namespace hist {
             virtual const ScatteringProfile get_profile_wx() const;
 
         protected:
-            double G_factor(double q) const;
+            double exv_factor(double q) const override;
 
         private:
             hist::Distribution3D cp_ax;

@@ -76,7 +76,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
                 std::cout << "\t4 columns detected. Assuming the format is [q | I | Ierr | qerr]" << std::endl;
                 break;
             default:
-                throw except::io_error("DATReader::construct: File has an unsupported number of columns (" + std::to_string(mode) + ").");
+                std::cout << "\t" << mode << " columns detected. Assuming the format is [q | I | Ierr | qerr | ...]" << std::endl;
         }
     }
 

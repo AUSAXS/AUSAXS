@@ -6,6 +6,11 @@
 using namespace hist;
 using namespace form_factor;
 
+double CompositeDistanceHistogramFFGrid::exv_factor(double q) const {
+    return std::exp(-(cx*cx-1)*q*q);
+    // return 1;
+}
+
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {
     form_factor::storage::atomic::table_t table;
 

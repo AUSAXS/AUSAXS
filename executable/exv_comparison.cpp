@@ -20,6 +20,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/exv_comparison/")->group("General options");
     CLI11_PARSE(app, argc, argv);
 
+    //### GENERATE INTERNAL PLOT ###//
     io::ExistingFile pdb(s_pdb);
     settings::general::output += pdb.stem() + "/";
     settings::axes::qmin = 1e-2;
@@ -63,4 +64,37 @@ int main(int argc, char const *argv[]) {
         .plot(mtffavg, plots::PlotOptions({{"legend", ssa.str()}, {"color", style::color::next()}}))
         .plot(mtffexp, plots::PlotOptions({{"legend", sse.str()}, {"color", style::color::next()}}))
     .save(settings::general::output + "intensity.png");
+
+
+    //### CHECK FOR PRESENCE OF EXTERNAL DATA IN OUTPUT FOLDER ###//
+    io::File crysol(settings::general::output + "crysol.dat");
+    io::File foxs(settings::general::output + "foxs_xx.dat");
+    io::File gromacs(settings::general::output + "gromacs_exv.xvg");
+
+    if (!crysol.exists() || !foxs.exists() || !gromacs.exists()) {
+        std::cout << "External data not found in output folder. Skipping external comparison." << std::endl;
+        return 0;
+    }
+
+    // generate plot
+    SimpleDataset crysol_data;
+    {
+        Dataset tmp(crysol);
+        crysol_data = SimpleDataset(tmp.x(), tmp.col(3));
+    }
+    auto foxs_data    = SimpleDataset(foxs);
+    auto gromacs_data = SimpleDataset(gromacs);
+
+    crysol_data.normalize();
+    foxs_data.normalize();
+    gromacs_data.normalize();
+
+    plots::PlotIntensity()
+        .plot(crysol_data, plots::PlotOptions({{"legend", "CRYSOL"}, {"xlabel", "q (Å⁻¹)"}, {"ylabel", "I(q)"}, {"color", style::color::cyan}, {"title", pdb.stem() + " $I_{xx}$ profiles"}, {"yrange", Limit(1e-4, 1.1)}, {"xrange", Limit(1e-2, 1)}}))
+        .plot(foxs_data, plots::PlotOptions({{"legend", "FoXS"}, {"color", style::color::orange}}))
+        .plot(gromacs_data, plots::PlotOptions({{"legend", "GROMACS"}, {"color", style::color::green}}))
+        .plot(mtffg2, plots::PlotOptions({{"legend", "Grid-based"}, {"color", style::color::red}}))
+        .plot(mtffavg, plots::PlotOptions({{"legend", "Average"}, {"color", style::color::purple}}))
+        .plot(mtffexp, plots::PlotOptions({{"legend", "Explicit"}, {"color", style::color::brown}}))
+    .save(settings::general::output + "comparison.png");
 }

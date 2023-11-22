@@ -26,5 +26,6 @@ namespace hist {
         private: 
             static form_factor::storage::atomic::table_t generate_table();
             inline static form_factor::storage::atomic::table_t ff_table = generate_table();
+            double exv_factor(double q) const override;
     };
 }

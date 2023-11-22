@@ -212,6 +212,11 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::~CompositeDistanceHist
 // }
 
 template<typename FormFactorTableType>
+double CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::exv_factor(double) const {
+    return cx;
+}
+
+template<typename FormFactorTableType>
 ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::debye_transform() const {
     const auto& ff_table = get_ff_table();
     auto sinqd_table = get_sinc_table();
@@ -222,6 +227,7 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        double cx = exv_factor(q);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             // atom-atom
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {
@@ -374,6 +380,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        double cx = exv_factor(q);
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             double ax_sum = std::inner_product(cp_aa.begin(ff1, form_factor::exv_bin), cp_aa.end(ff1, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
             Iq[q-q0] += 2*cx*ax_sum*ff_table.index(ff1, form_factor::exv_bin).evaluate(q);
@@ -391,6 +398,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        double cx = exv_factor(q);
         double xx_sum = std::inner_product(cp_aa.begin(form_factor::exv_bin, form_factor::exv_bin), cp_aa.end(form_factor::exv_bin, form_factor::exv_bin), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += cx*cx*xx_sum*ff_table.index(form_factor::exv_bin, form_factor::exv_bin).evaluate(q);
     }
@@ -406,6 +414,7 @@ const ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>
 
     std::vector<double> Iq(debye_axis.bins, 0);
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) {
+        double cx = exv_factor(q);
         double ew_sum = std::inner_product(cp_aw.begin(form_factor::exv_bin), cp_aw.end(form_factor::exv_bin), sinqd_table->begin(q), 0.0);
         Iq[q-q0] += 2*cx*cw*ew_sum*ff_table.index(form_factor::exv_bin, form_factor::water_bin).evaluate(q);
     }
