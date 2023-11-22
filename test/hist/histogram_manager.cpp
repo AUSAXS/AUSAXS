@@ -127,11 +127,17 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             }
             { // phm
-                auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+                auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
+
+                phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
+
+                phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
         }
@@ -180,11 +186,17 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             //     REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             // }
             { // phm
-                auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+                auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
+
+                phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
+
+                phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
         }
@@ -235,11 +247,17 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
                 REQUIRE(compare_hist(p_exp, hm_mt_ff_grid->get_total_counts()));
             }
             { // phm
-                auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+                auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
+
+                phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm->get_total_counts()));
             }
             { // phm_mt
-                auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+                auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+                REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
+
+                phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
                 REQUIRE(compare_hist(p_exp, phm_mt->get_total_counts()));
             }
         }
@@ -289,11 +307,17 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
             REQUIRE(compare_hist(p_exp->get_total_counts(), hm_mt_ff_grid->get_total_counts()));
         }
         { // phm
-            auto phm = hist::PartialHistogramManager(&protein).calculate_all();
+            auto phm = hist::PartialHistogramManager<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
+
+            phm = hist::PartialHistogramManager<true>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phm->get_total_counts()));
         }
         { // phm_mt
-            auto phm_mt = hist::PartialHistogramManagerMT(&protein).calculate_all();
+            auto phm_mt = hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+            REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
+
+            phm_mt = hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
             REQUIRE(compare_hist(p_exp->get_total_counts(), phm_mt->get_total_counts()));
         }
     }
@@ -301,7 +325,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
 
 TEST_CASE("PartialHistogramManager::get_probe") {
     Molecule protein("test/files/2epe.pdb");
-    auto phm = hist::PartialHistogramManager(&protein);
+    auto phm = hist::PartialHistogramManager<false>(&protein);
     auto sm = phm.get_state_manager();
 
     // check the signalling object is correct
@@ -315,7 +339,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
 
 TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     Molecule protein("test/files/2epe.pdb");
-    auto phm = hist::PartialHistogramManager(&protein);
+    auto phm = hist::PartialHistogramManager<false>(&protein);
     auto sm = phm.get_state_manager();
     sm->reset();
     phm.signal_modified_hydration_layer();

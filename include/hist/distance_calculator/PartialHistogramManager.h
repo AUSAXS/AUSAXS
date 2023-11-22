@@ -26,7 +26,8 @@ namespace hist {
 	/**
 	 * @brief A single-threaded smart distance calculator which efficiently calculates the distance histogram.
 	 */
-	class PartialHistogramManager : public HistogramManager<false> {
+    template<bool use_weighted_distribution> 
+	class PartialHistogramManager : public HistogramManager<use_weighted_distribution> {
 		public:
 			PartialHistogramManager(view_ptr<const data::Molecule> protein); 
 
