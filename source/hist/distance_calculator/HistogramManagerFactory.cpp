@@ -13,11 +13,11 @@
 
 using namespace hist::factory;
 
-std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(view_ptr<const data::Molecule> protein, bool use_weighted_distribution) {
+std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(std::observer_ptr<const data::Molecule> protein, bool use_weighted_distribution) {
     return hist::factory::construct_histogram_manager(protein, settings::hist::histogram_manager, use_weighted_distribution);
 }
 
-std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(view_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice, bool use_weighted_distribution) {
+std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(std::observer_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice, bool use_weighted_distribution) {
     if (use_weighted_distribution) {
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 

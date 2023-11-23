@@ -16,7 +16,7 @@
 using namespace hist;
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(view_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {
+HistogramManager<use_weighted_distribution>::HistogramManager(std::observer_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {
     initialize();
 }
 

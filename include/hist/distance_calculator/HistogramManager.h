@@ -2,7 +2,7 @@
 
 #include <hist/distance_calculator/IHistogramManager.h>
 #include <data/DataFwd.h>
-#include <utility/view_ptr.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 #include <memory>
@@ -15,7 +15,7 @@ namespace hist {
 	template<bool use_weighted_distribution>
 	class HistogramManager : public IHistogramManager {
 		public:
-			HistogramManager(view_ptr<const data::Molecule> protein); 
+			HistogramManager(std::observer_ptr<const data::Molecule> protein); 
 
 			virtual ~HistogramManager();
 
@@ -30,7 +30,7 @@ namespace hist {
 			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			view_ptr<const data::Molecule> protein; // pointer to the parent Protein
+			std::observer_ptr<const data::Molecule> protein; // pointer to the parent Protein
 
 			/**
 			 * @brief Perform the additional initialization steps required to prepare this class.

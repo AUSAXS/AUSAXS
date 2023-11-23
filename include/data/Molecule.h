@@ -4,7 +4,7 @@
 #include <data/DataFwd.h>
 #include <math/MathFwd.h>
 #include <io/ExistingFile.h>
-#include <utility/view_ptr.h>
+#include <utility/observer_ptr.h>
 
 #include <string>
 #include <vector>
@@ -156,7 +156,7 @@ namespace data {
 			/**
 			 * @brief Get the grid representation. 
 			 */
-			[[nodiscard]] view_ptr<grid::Grid> get_grid() const;
+			[[nodiscard]] std::observer_ptr<grid::Grid> get_grid() const;
 
 			/**
 			 * @brief Set the grid representation.
@@ -235,7 +235,7 @@ namespace data {
 			/**
 			 * @brief Create a grid and fill it with the atoms of this molecule. 
 			 */
-			std::shared_ptr<grid::Grid> create_grid() const;
+			std::observer_ptr<grid::Grid> create_grid() const;
 
 			/**
 			 * @brief Calculate the Debye scattering intensity for this molecule. Does not include hydration atoms. 
@@ -285,7 +285,7 @@ namespace data {
 			/**
 			 * @brief Get the histogram manager of this molecule.
 			 */
-			[[nodiscard]] view_ptr<hist::IHistogramManager> get_histogram_manager() const;
+			[[nodiscard]] std::observer_ptr<hist::IHistogramManager> get_histogram_manager() const;
 
 			/**
 			 * @brief Set the histogram manager of this molecule.
@@ -325,9 +325,9 @@ namespace data {
 			bool centered = false;              // True if this object has been centered, false otherwise. 
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
-			mutable std::shared_ptr<grid::Grid> grid = nullptr; // The grid representation of this body
-			std::shared_ptr<hist::IHistogramManager> phm = nullptr;
-			std::shared_ptr<hist::ICompositeDistanceHistogram> histogram = nullptr; // An object representing the distances between atoms
+			mutable std::unique_ptr<grid::Grid> grid; // The grid representation of this body
+			std::unique_ptr<hist::IHistogramManager> phm ;
+			std::unique_ptr<hist::ICompositeDistanceHistogram> histogram; // An object representing the distances between atoms
 
 			void initialize();
 	};

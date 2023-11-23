@@ -27,38 +27,38 @@ ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images
 
 ImageStack::~ImageStack() = default;
 
-std::shared_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
+std::unique_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(std::move(h), param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param) {
+std::unique_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(std::move(h));} // ensure parameter bounds are present
 
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-    return fit_helper(fitter, param);
+    std::unique_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_unique<HydrationFitter>(std::move(h), limit) : std::make_unique<LinearFitter>(std::move(h), limit);
+    return fit_helper(std::make_observer(fitter.get()), param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file) {
+std::unique_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
     return fit(file, param);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
+std::unique_ptr<EMFit> ImageStack::fit(const io::ExistingFile& file, mini::Parameter& param) {
     if (!param.has_bounds()) {return fit(file);} // ensure parameter bounds are present
-    std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
-    return fit_helper(fitter, param);
+    std::unique_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_unique<HydrationFitter>(file) : std::make_unique<LinearFitter>(file);
+    return fit_helper(std::make_observer(fitter.get()), param);
 }
 
-std::shared_ptr<fitter::EMFit> ImageStack::fit_helper(std::shared_ptr<fitter::LinearFitter> fitter) {
+std::unique_ptr<fitter::EMFit> ImageStack::fit_helper(std::observer_ptr<fitter::LinearFitter> fitter) {
     auto p = mini::Parameter();
     return fit_helper(fitter, p);
 }
 
-std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitter, mini::Parameter& param) {
+std::unique_ptr<EMFit> ImageStack::fit_helper(std::observer_ptr<LinearFitter> fitter, mini::Parameter& param) {
     update_charge_levels(*param.bounds);
     set_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
@@ -167,7 +167,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
             // prepare rest of the plot
             plots::PlotDataset plot(avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}}));
-            plot.plot(chi2_copy, plots::PlotOptions(style::draw::points, {{}}));
+            plot.plot(chi2_copy, plots::PlotOptions(style::draw::points, {}));
             plot.plot(p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 9}}));
             plot.save(settings::general::output + "chi2_evaluated_points_limited." + settings::plots::format);
         }
@@ -308,7 +308,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     min_abs = evals.as_dataset().find_minimum();
     f({min_abs.x});
 
-    std::shared_ptr<fitter::EMFit> emfit = std::make_shared<EMFit>(*fitter, res, res.fval);
+    std::unique_ptr<fitter::EMFit> emfit = std::make_unique<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min_abs.x);
@@ -322,7 +322,7 @@ std::shared_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     return emfit;
 }
 
-std::function<double(std::vector<double>)> ImageStack::prepare_function(std::shared_ptr<LinearFitter> fitter) {
+std::function<double(std::vector<double>)> ImageStack::prepare_function(std::observer_ptr<LinearFitter> fitter) {
     // convert the calculated intensities to absolute scale
     // utility::print_warning("Warning in ImageStack::prepare_function: Not using absolute scale.");
     // auto protein = phm->get_protein(1);
@@ -336,12 +336,12 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // fit function
     settings::molecule::center = false;   // do not center the protein - this may cause issues
     if (settings::em::plot_landscapes && settings::em::hydrate) {
-        std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN); 
+        static_cast<HydrationFitter*>(fitter.get())->set_algorithm(mini::type::SCAN);
     }
 
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself
-    std::function<double(std::vector<double>)> chi2 = [this, fitter] (const std::vector<double>& params) {
+    std::function<double(std::vector<double>)> chi2 = [this, &fitter] (const std::vector<double>& params) {
         static unsigned int counter = 0;
         static double last_c = 5;
         auto p = get_protein_manager()->get_protein(params[0]);
@@ -353,7 +353,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             p->generate_new_hydration();    // generate a new hydration layer
 
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
-            std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}}); 
+            static_cast<HydrationFitter*>(fitter.get())->set_guess(mini::Parameter{"c", last_c, {0, 200}});
             fitter->set_scattering_hist(std::move(p->get_histogram()));
 
             auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
@@ -386,7 +386,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);
-    return cutoff_scan_helper(points, fitter);
+    return cutoff_scan_helper(points, std::make_observer(fitter.get()));
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingFile& file) {
@@ -397,7 +397,7 @@ mini::Landscape ImageStack::cutoff_scan(unsigned int points, const io::ExistingF
 mini::Landscape ImageStack::cutoff_scan(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-    return cutoff_scan_helper(points, fitter);
+    return cutoff_scan_helper(points, std::make_observer(fitter.get()));
 }
 
 mini::Landscape ImageStack::cutoff_scan(unsigned int points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
@@ -412,16 +412,16 @@ std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int point
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, const io::ExistingFile& file) {
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
-    return cutoff_scan_fit_helper(points, fitter);
+    return cutoff_scan_fit_helper(points, std::make_observer(fitter.get()));
 }
 
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(unsigned int points, const io::ExistingFile& file) {
     Axis axis(from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max), points);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(file) : std::make_shared<LinearFitter>(file);    
-    return cutoff_scan_fit_helper(axis, fitter);
+    return cutoff_scan_fit_helper(axis, std::make_observer(fitter.get()));
 }
 
-mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
+mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::observer_ptr<LinearFitter> fitter) {
     update_charge_levels(points.limits());
     set_minimum_bounds(points.min);
     auto func = prepare_function(fitter);
@@ -433,10 +433,10 @@ mini::Landscape ImageStack::cutoff_scan_helper(const Axis& points, std::shared_p
 std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit(const Axis& points, std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     auto limit = Limit(settings::axes::qmin, settings::axes::qmax);
     std::shared_ptr<LinearFitter> fitter = settings::em::hydrate ? std::make_shared<HydrationFitter>(std::move(h), limit) : std::make_shared<LinearFitter>(std::move(h), limit);
-    return cutoff_scan_fit_helper(points, fitter);
+    return cutoff_scan_fit_helper(points, std::make_observer(fitter.get()));
 }
 
-std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<LinearFitter> fitter) {
+std::pair<EMFit, mini::Landscape> ImageStack::cutoff_scan_fit_helper(const Axis& points, std::observer_ptr<LinearFitter> fitter) {
     update_charge_levels(points.limits());
     set_minimum_bounds(points.min);
     auto func = prepare_function(fitter);

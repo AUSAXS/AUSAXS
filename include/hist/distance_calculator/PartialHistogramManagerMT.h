@@ -16,7 +16,7 @@ namespace hist {
     template<bool use_weighted_distribution> 
 	class PartialHistogramManagerMT : public PartialHistogramManager<use_weighted_distribution> {
 		public:
-			PartialHistogramManagerMT(view_ptr<const data::Molecule> protein);
+			PartialHistogramManagerMT(std::observer_ptr<const data::Molecule> protein);
 
 			virtual ~PartialHistogramManagerMT() override;
 

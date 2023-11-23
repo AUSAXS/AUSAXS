@@ -9,19 +9,21 @@
 #include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/ObjectBounds3D.h>
-#include <plots/all.h>
+#include <fitter/Fit.h>
+#include <plots/All.h>
 #include <fitter/FitReporter.h>
 #include <dataset/Multiset.h>
 #include <utility/Utility.h>
 #include <utility/Console.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Water.h>
-#include <data/Atom.h>
+#include <data/record/Water.h>
+#include <data/record/Atom.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <io/ExistingFile.h>
 #include <settings/All.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
 using std::vector;
 
@@ -33,49 +35,46 @@ TEST_CASE("extract_image", "[manual]") {
     plot.save("test.pdf");
 }
 
-TEST_CASE("test_model", "[slow],[manual]") {
+TEST_CASE("test_model", "[manual]") {
     settings::axes::qmax = 0.4;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
-    Protein protein("test/A2M_native/native.pdb");
+    data::Molecule protein("test/A2M_native/native.pdb");
     auto res = image.fit(protein.get_histogram());
 
     // set optimal cutoff
     std::cout << "Optimal cutoff is " << res->get_parameter("cutoff").value << std::endl;
 
-    // Fit intensity plot (debug, should be equal to the next one)
-    plots::PlotIntensity plot_i(protein.get_histogram(), style::color::black);
-    plot_i.plot(res, style::color::blue);
-    plot_i.save("em_intensity.pdf");
+    plots::PlotIntensity()
+        .plot(protein.get_histogram()->debye_transform(), plots::PlotOptions({{"color", style::color::black}}))
+        .plot(res, plots::PlotOptions({{"color", style::color::blue}}))
+    .save("em_intensity_fit.png");
 
     // Fit plot
-    plots::PlotIntensityFit plot_f(res);
-    plot_f.save("em_intensity_fit.pdf");
+    plots::PlotIntensityFit(res).save("em_intensity_fit.png");
 
     // Residual plot
-    plots::PlotIntensityFitResiduals plot_r(res);
-    plot_r.save("em_residuals.pdf");
+    plots::PlotIntensityFitResiduals(res).save("em_residuals.png");
 
-    fitter::FitReporter::report(res);
+    fitter::FitReporter::report(*res);
 }
 
 TEST_CASE("generate_contour", "[files],[slow],[manual]") {
     settings::axes::qmax = 0.4;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
     em::ImageStack image("sim/native_10.ccp4");
-    Protein protein("data/A2M_native/native.pdb");
-    hist::ScatteringHistogram hist = protein.get_histogram();
+    data::Molecule protein("data/A2M_native/native.pdb");
 
-    auto[r, s] = image.cutoff_scan_fit({1, 2, 1000}, hist);
+    auto[r, s] = image.cutoff_scan_fit({1, 2, 1000}, protein.get_histogram());
     auto fit = r.evaluated_points.as_dataset();
     auto scan = s.as_dataset();
-    fit.add_plot_options("markers", {{"color", style::color::orange}});
 
-    plots::PlotDataset plot(scan);
-    plot.plot(fit);
-    plot.save("figures/test/em/chi2_landscape.pdf");
+    plots::PlotDataset()
+        .plot(scan, plots::PlotOptions({{"color", style::color::black}}))
+        .plot(fit, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}))
+    .save("figures/test/em/chi2_landscape.pdf");
 }
 
 /**
@@ -93,7 +92,7 @@ TEST_CASE("check_fit", "[files],[manual],[slow]") {
     }
 
     settings::em::sample_frequency = 2;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::fit::verbose = true;
     settings::em::hydrate = true;
     em::ImageStack map(mapfile);
@@ -101,19 +100,19 @@ TEST_CASE("check_fit", "[files],[manual],[slow]") {
     auto[r, s] = map.cutoff_scan_fit({0.025, 0.03, 1000}, mfile);
     auto fit = r.evaluated_points.as_dataset();
     auto scan = s.as_dataset();
-    fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
     auto fitted_water_factors = map.get_fitted_water_factors_dataset();
-    plots::PlotDataset::quick_plot(fitted_water_factors, "figures/test/em/check_fit_landscape_wf.pdf");
+    plots::PlotDataset::quick_plot(fitted_water_factors, plots::PlotOptions(style::draw::points, {}), "figures/test/em/check_fit_landscape_wf.pdf");
 
-    plots::PlotDataset plot(scan);
-    plot.plot(fit);
-    plot.save("figures/test/em/check_fit_landscape.pdf");
+    plots::PlotDataset()
+        .plot(scan, plots::PlotOptions({{"color", style::color::black}}))
+        .plot(fit, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}))
+    .save("figures/test/em/check_fit_landscape.pdf");
 }
 
 TEST_CASE("check_bound_savings", "[manual],[slow]") {
     settings::axes::qmax = 0.4;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     em::ImageStack image("sim/native_10.ccp4");
 
     em::ObjectBounds3D bounds = image.minimum_volume(1);
@@ -132,20 +131,19 @@ TEST_CASE("check_bound_savings", "[manual],[slow]") {
 TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
     unsigned int repeats = 50;
 
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
 
     // prepare measured data
-    Protein protein("data/A2M_native/native.pdb");
-    SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    data::Molecule protein("data/A2M_native/native.pdb");
+    SimpleDataset data = protein.get_histogram()->debye_transform();
     data.reduce(settings::fit::N, true);
     data.limit_x(Limit(settings::axes::qmin, settings::axes::qmax));
     data.simulate_errors();
 
     // prepare fit data
     em::ImageStack image("sim/native_10.ccp4");
-    auto hist = protein.get_histogram();
 
     vector<std::pair<double, double>> optvals;
     Multiset contours;
@@ -172,7 +170,7 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
         settings::em::sample_frequency = 2;
         settings::em::simulation::noise = false;
         for (unsigned int i = 0; i < repeats; i++) {
-            auto landscape = image.cutoff_scan({10, 0, 6}, hist).as_dataset();
+            auto landscape = image.cutoff_scan({10, 0, 6}, protein.get_histogram()).as_dataset();
             contours.push_back(landscape);
             compare_contours(landscape);
         }
@@ -180,40 +178,38 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
 
     SECTION("with_noise") {
         settings::em::simulation::noise = true;
+        plots::PlotDataset plot_c;
         for (unsigned int i = 0; i < repeats; i++) {
-            auto[r, s] = image.cutoff_scan_fit({1.5, 4.5, 100}, hist);
+            auto[r, s] = image.cutoff_scan_fit({1.5, 4.5, 100}, protein.get_histogram());
             auto fit = r.evaluated_points.as_dataset();
             optvals.push_back({fit.x(fit.size()-1), fit.y(fit.size()-1)});
 
             // chi2 contour plot
             auto scan = s.as_dataset();
-            fit.add_plot_options(style::draw::points, {{"color", style::color::orange}});
-
-            plots::PlotDataset plot_c(scan);
-            plot_c.plot(fit);
-            plot_c.save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
-
-            scan.add_plot_options(style::draw::line, {{"color", style::color::black}});
             contours.push_back(scan);
             evaluations.push_back(fit);
+
+            plots::PlotDataset()
+                .plot(scan, plots::PlotOptions(style::draw::line, {{"color", style::color::black}}))
+                .plot(fit, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}))
+            .save("figures/test/em/repeat_chi2_contours/" + std::to_string(i) + ".png");
+
+            plot_c.plot(scan, plots::PlotOptions(style::draw::points, {{"color", style::color::black}}));
         }
 
         Dataset2D fit_mins;
-        fit_mins.set_plot_options(plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}}));
         for (const auto& val : optvals) {
             fit_mins.push_back(val.first, val.second);
             std::cout << "(x, y): " << "(" << val.first << ", " << val.second << ")" << std::endl;
         }
 
         Dataset2D scan_mins;
-        scan_mins.set_plot_options(plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"ms", 8}, {"s", 0.8}}));
         for (const Dataset2D& contour : contours) {
             scan_mins.push_back(contour.find_minimum());
         }
 
-        plots::PlotDataset plot_c(contours);
-        plot_c.plot(fit_mins);
-        plot_c.plot(scan_mins);
+        plot_c.plot(fit_mins, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}}));
+        plot_c.plot(scan_mins, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"ms", 8}, {"s", 0.8}}));
         plot_c.save("figures/test/em/repeat_chi2_contours.pdf");
 
 
@@ -221,18 +217,17 @@ TEST_CASE("repeat_chi2_contour", "[files],[slow],[manual]") {
         REQUIRE(scan_mins.size() == fit_mins.size());
 
         Dataset2D diff;
-        diff.set_plot_options(plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}));
         for (unsigned int i = 0; i < scan_mins.size(); i++) {
             double delta_x = fit_mins.x(i) - scan_mins.x(i);
             double delta_y = fit_mins.y(i) - scan_mins.y(i);
             diff.push_back({delta_x, delta_y});
         }
-        plots::PlotDataset::quick_plot(diff, "figures/test/em/diff.pdf");        
+        plots::PlotDataset::quick_plot(diff, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}, {"ms", 8}, {"s", 0.8}, {"xlabel", "\\Delta cutoff"}, {"ylabel", "\\Delta \\chi^{2}"}}), "figures/test/em/diff.pdf");        
     }
 }
 
 TEST_CASE("plot_images", "[files],[manual],[slow]") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
 
@@ -246,21 +241,21 @@ TEST_CASE("plot_images", "[files],[manual],[slow]") {
     }
 }
 
-TEST_CASE("get_histogram", "[manual]") {
-    settings::protein::use_effective_charge = false;
-    settings::em::sample_frequency = 1;
+// TEST_CASE("get_histogram", "[manual]") {
+//     settings::molecule::use_effective_charge = false;
+//     settings::em::sample_frequency = 1;
 
-    std::string file = "test/files/A2M_2020_Q4.ccp4";
-    std::cout << "DEBUG" << std::endl;
-    em::ImageStack image(file);
-    std::cout << "DEBUG" << std::endl;
-    auto hist = image.get_histogram(2);
-    std::cout << "DEBUG" << std::endl;
-    plots::PlotHistogram::quick_plot(hist, "figures/test/em/histogram.pdf");
-}
+//     std::string file = "test/files/A2M_2020_Q4.ccp4";
+//     std::cout << "DEBUG" << std::endl;
+//     em::ImageStack image(file);
+//     std::cout << "DEBUG" << std::endl;
+//     auto hist = image.get_histogram(2);
+//     std::cout << "DEBUG" << std::endl;
+//     plots::PlotHistogram::quick_plot(*hist, plots::PlotOptions(), "figures/test/em/histogram.pdf");
+// }
 
 TEST_CASE("voxelplot", "[manual]") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
     em::ImageStack image("test/files/A2M_2020_Q4.ccp4");
@@ -288,7 +283,7 @@ TEST_CASE("voxelplot", "[manual]") {
 }
 
 TEST_CASE("voxelcount", "[manual]") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
     em::ImageStack image("data/emd_24889/emd_24889.map");
@@ -299,12 +294,11 @@ TEST_CASE("voxelcount", "[manual]") {
         data.push_back({val, double(image.count_voxels(val))});
     }
 
-    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}});
-    plots::PlotDataset::quick_plot(data, "temp/test/em/voxel_count.png"); 
+    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "number of voxels"}, {"logy", true}}), "temp/test/em/voxel_count.png"); 
 }
 
 TEST_CASE("mass_cutoff_plot", "[manual]") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 1;
     settings::axes::qmax = 0.4;
     em::ImageStack image("data/emd_24889/emd_24889.map");
@@ -318,12 +312,11 @@ TEST_CASE("mass_cutoff_plot", "[manual]") {
         // data.push_back({val, image.get_protein(val)->get_volume_grid()*constants::mass::density::protein});
     }
 
-    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "mass"}});
-    plots::PlotDataset::quick_plot(data, "temp/em/mass_cutoff.png"); 
+    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "mass"}}), "temp/em/mass_cutoff.png"); 
 }
 
 TEST_CASE("instability", "[files],[manual]") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
     settings::axes::qmax = 0.4;
     em::ImageStack image("data/emd_12747/emd_12747.map");
@@ -338,8 +331,7 @@ TEST_CASE("instability", "[files],[manual]") {
         prev = count;
     }
 
-    data.add_plot_options("markers", {{"xlabel", "cutoff"}, {"ylabel", "change"}});
-    plots::PlotDataset::quick_plot(data, "figures/test/em/instability.pdf"); 
+    plots::PlotDataset::quick_plot(data, plots::PlotOptions("markers", {{"xlabel", "cutoff"}, {"ylabel", "change"}}), "figures/test/em/instability.pdf"); 
 }
 
 TEST_CASE("save_as_pdb", "[manual]") {
@@ -348,33 +340,33 @@ TEST_CASE("save_as_pdb", "[manual]") {
 }
 
 TEST_CASE("plot_pdb_as_points", "[files],[manual]") {
-    Protein protein("data/maptest.pdb");
+    data::Molecule protein("data/maptest.pdb");
 
     auto h = protein.get_histogram();
-    SimpleDataset data = h.calc_debye_scattering_intensity();
+    SimpleDataset data = h->debye_transform();
     // data.set_resolution(25); // set the resolution //! ???
     data.reduce(100, true);  // reduce to 100 datapoints
     data.simulate_errors();  // simulate y errors
     // data.scale_errors(1000); // scale all errors so we can actually see them
 
-    plots::PlotIntensity plot(protein.get_histogram()); // plot actual curve
-    plot.plot(data);                          // plot simulated data points
-    plot.save("figures/test/em/plot_pdb_as_points.pdf");
+    plots::PlotIntensity()
+        .plot(protein.get_histogram()->debye_transform(), plots::PlotOptions({{"color", style::color::black}}))
+        .plot(data, plots::PlotOptions({{"color", style::color::orange}}))
+    .save("figures/test/em/plot_pdb_as_points.pdf");
 }
 
 TEST_CASE("check_simulated_errors", "[files],[manual],[broken]") {
     settings::axes::qmax = 0.4;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
 
     em::ImageStack image("sim/native_10.ccp4");
     auto hist = image.get_histogram(2);
-    auto data = hist.calc_debye_scattering_intensity();
+    auto data = hist->debye_transform().as_dataset();
     data.normalize(1.1);
     data.simulate_errors();
     data.save("temp/em/simulated_errors.txt");
 
-    data.add_plot_options("errors", {{"logx", true}, {"logy", true}});
-    plots::PlotDataset plot(data);
+    plots::PlotDataset plot(data, plots::PlotOptions("errors", {{"logx", true}, {"logy", true}}));
     plot.save("temp/em/check_errors.pdf");
 }

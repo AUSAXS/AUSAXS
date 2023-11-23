@@ -118,8 +118,8 @@ void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> 
     this->h = std::move(h);
 }
 
-view_ptr<hist::DistanceHistogram> LinearFitter::get_scattering_hist() {
-    return h;
+std::observer_ptr<hist::DistanceHistogram> LinearFitter::get_scattering_hist() {
+    return std::make_observer(h.get());
 }
 
 double LinearFitter::chi2(const std::vector<double>&) {

@@ -6,6 +6,7 @@
 #include <data/DataFwd.h>
 #include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 #include <string>
@@ -72,12 +73,12 @@ namespace em {
             /**
              * @brief Get the protein generated with the chosen cutoff value.
              */
-            data::Molecule* get_protein(double cutoff) const;
+            std::observer_ptr<data::Molecule> get_protein(double cutoff) const;
 
             /**
              * @brief Get the header of the input file. 
              */
-            detail::header::MapHeader* get_header() const;
+            std::observer_ptr<detail::header::MapHeader> get_header() const;
 
             /**
              * @brief Set the header. 
@@ -100,7 +101,7 @@ namespace em {
              * @param cutoff The cutoff value. If positive, atoms will be generated at all pixel values higher than this. If negative, they will be generated at pixels lower than this. 
              * @param path Path to save location.
              */
-            void save(double cutoff, std::string path) const;
+            void save(double cutoff, const io::File& path) const;
 
             /**
              * @brief Get the mean density.
@@ -127,7 +128,7 @@ namespace em {
             /**
              * @brief Get the histogram manager.
              */
-            em::managers::ProteinManager* get_protein_manager() const;
+            std::observer_ptr<em::managers::ProteinManager> get_protein_manager() const;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.

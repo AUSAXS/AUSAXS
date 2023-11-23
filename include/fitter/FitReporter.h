@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fitter/Fit.h>
+#include <utility/observer_ptr.h>
 
 #include <string>
 #include <functional>
@@ -13,6 +14,9 @@ namespace fitter {
             static void report(const T& fit);
 
             template<FitType T>
+            static void report(const std::observer_ptr<T> fit);
+
+            template<FitType T>
             static void report(const std::shared_ptr<T> fit);
 
             template<FitType T>
@@ -22,7 +26,13 @@ namespace fitter {
             static void save(const T& fit, const io::File& path);
 
             template<FitType T>
+            static void save(const std::observer_ptr<T> fit, const io::File& path);
+
+            template<FitType T>
             static void save(const std::shared_ptr<T> fit, const io::File& path);
+
+            template<FitType T>
+            static void save(const std::observer_ptr<T> fit, const io::File& path, const std::string& header);
 
             template<FitType T>
             static void save(const std::shared_ptr<T> fit, const io::File& path, const std::string& header);

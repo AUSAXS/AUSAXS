@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <numeric>
 #include <functional>
+#include <memory>
 
 using namespace em;
 
@@ -30,7 +31,7 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images
         if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
         image(z).set_z(z);
     }
-    phm = factory::create_manager(this);
+    phm = factory::create_manager(std::make_observer(this));
 }
 
 ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
@@ -47,12 +48,12 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     size_z = map_axes.z.bins;
 
     read(input);
-    phm = factory::create_manager(this);
+    phm = factory::create_manager(std::make_observer(this));
 }
 
 ImageStackBase::~ImageStackBase() = default;
 
-void ImageStackBase::save(double cutoff, std::string path) const {
+void ImageStackBase::save(double cutoff, const io::File& path) const {
     auto protein = phm->get_protein(cutoff);
     protein->save(path);
 }
@@ -73,7 +74,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
-data::Molecule* ImageStackBase::get_protein(double cutoff) const {
+std::observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 
@@ -164,8 +165,8 @@ float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) 
     return data[layer].index(x, y);
 }
 
-em::detail::header::MapHeader* ImageStackBase::get_header() const {
-    return header.get();
+std::observer_ptr<em::detail::header::MapHeader> ImageStackBase::get_header() const {
+    return std::make_observer(header.get());
 }
 
 void ImageStackBase::set_header(std::unique_ptr<em::detail::header::MapHeader> header) {
@@ -212,6 +213,6 @@ double ImageStackBase::rms() const {
     return _rms;
 }
 
-managers::ProteinManager* ImageStackBase::get_protein_manager() const {
-    return phm.get();
+std::observer_ptr<managers::ProteinManager> ImageStackBase::get_protein_manager() const {
+    return std::make_observer(phm.get());
 }

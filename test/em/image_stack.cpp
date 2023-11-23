@@ -4,8 +4,8 @@
 #include <em/ImageStack.h>
 #include <em/detail/header/MRCHeader.h>
 #include <settings/All.h>
-#include <data/Atom.h>
-#include <data/Protein.h>
+#include <data/record/Atom.h>
+#include <data/Molecule.h>
 
 #include <map>
 

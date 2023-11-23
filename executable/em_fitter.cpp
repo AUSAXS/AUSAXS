@@ -16,6 +16,7 @@ int main(int argc, char const *argv[]) {
     settings::em::hydrate = true;
     settings::fit::verbose = true;
     settings::em::alpha_levels = {1, 10};
+    settings::hist::weighted_bins = true;
 
     io::ExistingFile mfile, mapfile, settings;
     CLI::App app{"Fit an EM map to a SAXS measurement."};
@@ -33,6 +34,7 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Whether to hydrate the protein before fitting.");
     app.add_flag("--fixed-weight,!--no-fixed-weight", settings::em::fixed_weights, "Whether to use a fixed weight for the fit.");
     app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Whether to print the progress of the fit to the console.");
+    app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
 
     //###################//

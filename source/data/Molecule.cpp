@@ -72,7 +72,7 @@ Molecule::Molecule(const std::vector<std::string>& input) {
 Molecule::~Molecule() = default;
 
 void Molecule::initialize() {
-    set_histogram_manager(hist::factory::construct_histogram_manager(this));
+    set_histogram_manager(hist::factory::construct_histogram_manager(std::make_observer(this)));
     if (!centered && settings::molecule::center) {center();} // Centering *must* happen before generating the grid in 'update_effective_charge'!
     if (!updated_charge && settings::molecule::use_effective_charge) {update_effective_charge();}
 }
@@ -149,9 +149,9 @@ double Molecule::get_volume_grid() const {
     return grid->get_volume();
 }
 
-std::shared_ptr<grid::Grid> Molecule::create_grid() const {
-    grid = std::make_shared<grid::Grid>(bodies); 
-    return grid;
+std::observer_ptr<grid::Grid> Molecule::create_grid() const {
+    grid = std::make_unique<grid::Grid>(bodies); 
+    return std::make_observer(grid.get());
 }
 
 std::vector<Atom> Molecule::get_atoms() const {
@@ -222,12 +222,12 @@ std::unique_ptr<hist::DistanceHistogram> Molecule::get_total_histogram() const {
     return phm->calculate();
 }
 
-view_ptr<grid::Grid> Molecule::get_grid() const {
-    return grid == nullptr ? create_grid() : grid;
+std::observer_ptr<grid::Grid> Molecule::get_grid() const {
+    return grid == nullptr ? std::make_observer(create_grid().get()) : std::make_observer(grid.get());
 }
 
 void Molecule::set_grid(const grid::Grid& grid) {
-    this->grid = std::make_shared<grid::Grid>(grid);
+    this->grid = std::make_unique<grid::Grid>(grid);
 }
 
 void Molecule::clear_grid() {
@@ -331,7 +331,7 @@ std::shared_ptr<fitter::Fit> Molecule::fit(const io::ExistingFile& measurement) 
     return fitter.fit();
 }
 
-view_ptr<IHistogramManager> Molecule::get_histogram_manager() const {return phm;}
+std::observer_ptr<IHistogramManager> Molecule::get_histogram_manager() const {return std::make_observer(phm.get());}
 
 void Molecule::set_histogram_manager(std::unique_ptr<hist::IHistogramManager> manager) {
     phm = std::move(manager);

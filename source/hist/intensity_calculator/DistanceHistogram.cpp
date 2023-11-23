@@ -25,9 +25,9 @@ DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram
     initialize();
 }
 
-const view_ptr<const table::DebyeTable> DistanceHistogram::get_sinc_table() const {
-    if (use_weighted_table) {return weighted_sinc_table;}
-    return view_ptr<const table::DebyeTable>(table::ArrayDebyeTable::get_default_table());
+const std::observer_ptr<const table::DebyeTable> DistanceHistogram::get_sinc_table() const {
+    if (use_weighted_table) {return std::make_observer(weighted_sinc_table.get());}
+    return std::make_observer(&table::ArrayDebyeTable::get_default_table());
 }
 
 void DistanceHistogram::use_weighted_sinc_table() {

@@ -55,7 +55,7 @@ void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
 }
 
-auto partial_profile = [] (const Distribution1D& p, const view_ptr<const table::DebyeTable> sinqd_table) {
+auto partial_profile = [] (const Distribution1D& p, std::observer_ptr<const table::DebyeTable> sinqd_table) {
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin);
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     const auto& q_axis = constants::axes::q_vals;

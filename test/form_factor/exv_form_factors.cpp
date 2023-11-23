@@ -16,21 +16,19 @@ TEST_CASE("ExvFormFactor::plot", "[manual]") {
     {
         const form_factor::FormFactor& ff_exv = form_factor::storage::atomic::get_form_factor(form_factor::form_factor_t::EXCLUDED_VOLUME);
         SimpleDataset dataset;
-        dataset.add_plot_options({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"color", style::color::next()}, {"linewidth", 2}});
         for (const double& q : q_vals) {
             dataset.push_back(q, ff_exv.evaluate(q));
         }
-        plot.plot(dataset);
+        plot.plot(dataset, plots::PlotOptions({{"legend", "average exv"}, {"xlabel", "q"}, {"ylabel", "Amplitude"}, {"logx", true}, {"color", style::color::next()}, {"linewidth", 2}}));
     }
 
     for (unsigned int ff = 0; ff < form_factor::get_count_without_excluded_volume(); ++ff) {
         const form_factor::ExvFormFactor& ff_obj = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ff));
         SimpleDataset dataset;
-        dataset.add_plot_options({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ff))}, {"color", style::color::next()}});
         for (const double& q : q_vals) {
             dataset.push_back(q, ff_obj.evaluate_normalized(q));
         }
-        plot.plot(dataset);
+        plot.plot(dataset, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ff))}, {"color", style::color::next()}}));
     }
     plot.save("temp/test/form_factor/exv_form_factors.png");
 }
@@ -42,14 +40,13 @@ TEST_CASE("ExvFormFactor::plot_cmp", "[manual]") {
         const form_factor::ExvFormFactor& ffx = form_factor::storage::exv::get_form_factor(static_cast<form_factor::form_factor_t>(ffi));
 
         SimpleDataset dataset, datasetx;
-        dataset.add_plot_options({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi))}, {"color", style::color::orange}});
-        datasetx.add_plot_options({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + "x"}, {"color", style::color::black}});
         for (const double& q : q_vals) {
             dataset.push_back(q, ff.evaluate(q)*ffx.evaluate(0));
             datasetx.push_back(q, ffx.evaluate(q));
         }
-        plots::PlotDataset(dataset)
-            .plot(datasetx)
+        plots::PlotDataset()
+            .plot(dataset, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi))}, {"color", style::color::orange}}))
+            .plot(datasetx, plots::PlotOptions({{"legend", form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + "x"}, {"color", style::color::black}}))
         .save("temp/test/form_factor/cmp/" + form_factor::to_string(static_cast<form_factor::form_factor_t>(ffi)) + ".png");
     }
 }

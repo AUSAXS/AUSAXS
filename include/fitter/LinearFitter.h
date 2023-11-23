@@ -1,7 +1,7 @@
 #pragma once
 
 #include <fitter/Fitter.h>
-#include <utility/view_ptr.h>
+#include <utility/observer_ptr.h>
 #include <hist/HistFwd.h>
 #include <io/IOFwd.h>
 
@@ -124,7 +124,7 @@ namespace fitter {
 			/**
 			 * @brief Get a view of the scattering histogram used for the fit. 
 			 */
-			[[nodiscard]] view_ptr<hist::DistanceHistogram> get_scattering_hist();
+			[[nodiscard]] std::observer_ptr<hist::DistanceHistogram> get_scattering_hist();
 
 			/**
 			 * @brief Normalize all internally calculated intensities such that they start at this value.  

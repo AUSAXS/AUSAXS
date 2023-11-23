@@ -57,7 +57,7 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
 
     if (settings::general::supplementary_plots) {
         // plots::PlotDistance::quick_plot(get_histogram(), settings::general::output + "/hist/distance_0.png");
-        plots::PlotIntensityFit::quick_plot(fitter->fit(), settings::general::output + "initial_curve.png");
+        plots::PlotIntensityFit::quick_plot(std::make_observer(fitter->fit().get()), settings::general::output + "initial_curve.png");
     }
 
     // save the best configuration in a simple struct

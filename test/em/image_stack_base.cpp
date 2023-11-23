@@ -2,13 +2,14 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <em/detail/ImageStackBase.h>
 #include <em/detail/header/data/MRCData.h>
 #include <em/detail/header/MRCHeader.h>
 #include <em/manager/ProteinManager.h>
-#include <hist/ScatteringHistogram.h>
+#include <hist/HistFwd.h>
 #include <em/ObjectBounds3D.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <settings/All.h>
 
 #include <fstream>
@@ -93,7 +94,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     em::ImageStackBase isb(images);
     auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
     header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
@@ -226,7 +227,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_minimum_bounds") {
 
     auto bound = GENERATE(1, 5, 9);
     isb.set_minimum_bounds(bound);
-    for (auto i = 0; i < isb.size(); ++i) {
+    for (unsigned int i = 0; i < isb.size(); ++i) {
         auto b = isb.image(i).get_bounds();
         for (auto j = b[i].min; j < b[i].max; ++j) {
             REQUIRE(bound <= isb.image(i).index(i, j));

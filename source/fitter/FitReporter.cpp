@@ -14,6 +14,9 @@ void FitReporter::report(const T& fit) {
 }
 
 template<FitType T>
+void FitReporter::report(const std::observer_ptr<T> fit) {report(*fit);}
+
+template<FitType T>
 void FitReporter::report(const std::shared_ptr<T> fit) {report(*fit);}
 
 template<FitType T>
@@ -39,6 +42,11 @@ void FitReporter::save(const T& fit, const io::File& path) {
 
 template<FitType T>
 void FitReporter::save(const std::shared_ptr<T> fit, const io::File& path, const std::string& header) {
+    save(std::make_observer(fit.get()), path, header);
+}
+
+template<FitType T>
+void FitReporter::save(const std::observer_ptr<T> fit, const io::File& path, const std::string& header) {
     path.directory().create();
 
     std::ofstream out(path);
@@ -46,6 +54,11 @@ void FitReporter::save(const std::shared_ptr<T> fit, const io::File& path, const
     out << header << std::endl;
     out << fit->to_string() << std::endl;
     out.close();
+}
+
+template<FitType T>
+void FitReporter::save(const std::observer_ptr<T> fit, const io::File& path) {
+    save(*fit, path);
 }
 
 template<FitType T>
@@ -89,17 +102,23 @@ std::function<std::string(std::string)> FitReporter::get_title_reporter(const st
 }
 
 template void FitReporter::report(const Fit&);
+template void FitReporter::report(const std::observer_ptr<Fit>);
 template void FitReporter::report(const std::shared_ptr<Fit>);
 template void FitReporter::report(const std::vector<Fit>&, const std::vector<std::string>&);
 template void FitReporter::save(const Fit&, const io::File&);
+template void FitReporter::save(const std::observer_ptr<Fit>, const io::File&);
+template void FitReporter::save(const std::observer_ptr<Fit>, const io::File&, const std::string&);
 template void FitReporter::save(const std::shared_ptr<Fit>, const io::File&);
 template void FitReporter::save(const std::shared_ptr<Fit>, const io::File&, const std::string&);
 template void FitReporter::save(const std::vector<Fit>&, const io::File&, const std::vector<std::string>&);
 
 template void FitReporter::report(const EMFit&);
+template void FitReporter::report(const std::observer_ptr<EMFit>);
 template void FitReporter::report(const std::shared_ptr<EMFit>);
 template void FitReporter::report(const std::vector<EMFit>&, const std::vector<std::string>&);
 template void FitReporter::save(const EMFit&, const io::File&);
+template void FitReporter::save(const std::observer_ptr<EMFit>, const io::File&);
+template void FitReporter::save(const std::observer_ptr<EMFit>, const io::File&, const std::string&);
 template void FitReporter::save(const std::shared_ptr<EMFit>, const io::File&);
 template void FitReporter::save(const std::shared_ptr<EMFit>, const io::File&, const std::string&);
 template void FitReporter::save(const std::vector<EMFit>&, const io::File&, const std::vector<std::string>&);

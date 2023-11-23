@@ -6,13 +6,13 @@
 
 using namespace plots;
 
-PlotProfiles::PlotProfiles(const view_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path) {
+PlotProfiles::PlotProfiles(std::observer_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path) {
 	quick_plot(data, path);
 }
 
 PlotProfiles::~PlotProfiles() = default;
 
-void PlotProfiles::quick_plot(const view_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path) {
+void PlotProfiles::quick_plot(std::observer_ptr<hist::ICompositeDistanceHistogram> data, const io::File& path) {
 	PlotHistogram plot;
 	plot.plot(data->get_profile_aa(), plots::PlotOptions({{"color", style::color::orange}, {"legend", "aa"}, {"normalize", true}, {"xlabel", "q"}, {"ylabel", "I(q)"}, {"logx", true}, {"logy", true}}));
 	plot.plot(data->get_profile_aw(), plots::PlotOptions({{"color", style::color::green},  {"legend", "aw"}, {"normalize", true}}));

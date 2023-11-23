@@ -190,6 +190,22 @@ TEST_CASE("distance_calculators") {
         hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
         REQUIRE(check_exact());
     }
+    { // phm
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::PartialHistogramManager<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::PartialHistogramManager<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
+    { // phm_mt
+        WeightedDistribution::reset();
+        REQUIRE(check_default());
+        hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
+        REQUIRE(check_default());
+        hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
+        REQUIRE(check_exact());
+    }
 }
 
 TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {

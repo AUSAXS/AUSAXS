@@ -3,6 +3,7 @@
 #include <em/manager/ProteinManager.h>
 #include <data/DataFwd.h>
 #include <hist/HistFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 
@@ -30,12 +31,12 @@ namespace em::managers {
             /**
              * @brief Get the Protein backing this object. 
              */
-            data::Molecule* get_protein() const override;
+            std::observer_ptr<const data::Molecule> get_protein() const override;
 
             /**
              * @brief Get the Protein generated from a given cutoff.
              */
-            data::Molecule* get_protein(double cutoff) override;
+            std::observer_ptr<data::Molecule> get_protein(double cutoff) override;
 
             /**
              * @brief Set the charge levels.
