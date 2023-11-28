@@ -7,8 +7,8 @@ using namespace hist;
 using namespace form_factor;
 
 double CompositeDistanceHistogramFFGrid::exv_factor(double q) const {
-    return std::exp(-(cx*cx-1)*q*q);
-    // return 1;
+    auto dV = std::pow(2*settings::grid::exv_radius, 3)*(cx-1);
+    return ExvFormFactor(dV).evaluate(q);
 }
 
 form_factor::storage::atomic::table_t CompositeDistanceHistogramFFGrid::generate_table() {

@@ -36,7 +36,7 @@ namespace plots {
 			 * 
 			 * @param fitter The fit to plot. Remember to update it with the optimized values before creating an instance of this class. 
 			 */
-			PlotIntensityFitResiduals(std::observer_ptr<fitter::Fit> fit);
+			PlotIntensityFitResiduals(observer_ptr<fitter::Fit> fit);
 
 			/**
 			 * @brief Destructor.
@@ -47,7 +47,7 @@ namespace plots {
 			 * @brief Plot and save the input dataset at the specified location. 
 			 * 	      This is a convenient shortcut for quickly creating a plot of a single histogram. 
 			 */
-			static void quick_plot(std::observer_ptr<fitter::Fit> fit, const io::File& path);
+			static void quick_plot(observer_ptr<fitter::Fit> fit, const io::File& path);
 
 		private:
 			void plot(const SimpleDataset& graph);

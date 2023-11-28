@@ -15,13 +15,13 @@ PlotIntensityFitResiduals::PlotIntensityFitResiduals(const fitter::Fit& fit) : P
     plot(fit.residuals);
 }
 
-PlotIntensityFitResiduals::PlotIntensityFitResiduals(std::observer_ptr<fitter::Fit> fit) : Plot() {
+PlotIntensityFitResiduals::PlotIntensityFitResiduals(observer_ptr<fitter::Fit> fit) : Plot() {
     plot(fit->residuals);
 }
 
 PlotIntensityFitResiduals::~PlotIntensityFitResiduals() = default;
 
-void PlotIntensityFitResiduals::quick_plot(std::observer_ptr<fitter::Fit> fit, const io::File& path) {
+void PlotIntensityFitResiduals::quick_plot(observer_ptr<fitter::Fit> fit, const io::File& path) {
     PlotIntensityFitResiduals plot(fit);
     plot.save(path);
 }

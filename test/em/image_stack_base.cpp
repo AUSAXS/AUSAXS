@@ -95,11 +95,8 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     settings::molecule::use_effective_charge = false;
-    em::ImageStackBase isb(images);
-    auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
-    header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
-    header->nx = 3; header->ny = 3; header->nz = 3;
-    REQUIRE(isb.get_histogram(5) == isb.get_protein_manager()->get_histogram(5));
+    em::ImageStackBase isb("test/files/A2M_2020_Q4.ccp4");
+    REQUIRE(*isb.get_histogram(5) == *isb.get_protein_manager()->get_histogram(5));
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
@@ -113,10 +110,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_protein") {
-    em::ImageStackBase isb(images);
-        auto header = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
-    header->cella_x = 1; header->cella_y = 1; header->cella_z = 1;
-    header->nx = 3; header->ny = 3; header->nz = 3;
+    em::ImageStackBase isb("test/files/A2M_2020_Q4.ccp4");
     REQUIRE(isb.get_protein(5) == isb.get_protein_manager()->get_protein(5));
 }
 
@@ -142,11 +136,18 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
     header_data.mapc = 3;
     header_data.mapr = 2;
     header_data.maps = 1;
-    std::unique_ptr header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
+    std::unique_ptr<em::detail::header::MapHeader> header = std::make_unique<em::detail::header::MRCHeader>(header_data);
 
     em::ImageStackBase isb(images);
     isb.set_header(std::move(header));
-    REQUIRE(isb.get_header() == header.get());
+    auto h = static_cast<em::detail::header::MRCData*>(isb.get_header()->get_data());
+    CHECK(h->nx == 10);
+    CHECK(h->ny == 10);
+    CHECK(h->nz == 10);
+    CHECK(h->mode == 2);
+    CHECK(h->mapc == 3);
+    CHECK(h->mapr == 2);
+    CHECK(h->maps == 1);
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::size") {

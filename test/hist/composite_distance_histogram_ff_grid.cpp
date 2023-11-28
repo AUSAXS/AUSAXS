@@ -37,6 +37,5 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes") {
     }
 
     SimpleDataset dataset(rxs, volumes);
-    dataset.add_plot_options({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}});
-    plots::PlotDataset::quick_plot(dataset, "temp/test/hist/composite_distance_histogram_ff_grid/volumes.png");
+    plots::PlotDataset::quick_plot(dataset, plots::PlotOptions({{"xlabel", "Grid width [Å]"}, {"ylabel", "Volume [Å³]"}, {"color", style::color::blue}}), "temp/test/hist/composite_distance_histogram_ff_grid/volumes.png");
 }

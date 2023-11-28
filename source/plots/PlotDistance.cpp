@@ -7,11 +7,11 @@ using namespace plots;
 
 PlotDistance::~PlotDistance() = default;
 
-PlotDistance::PlotDistance(std::observer_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
+PlotDistance::PlotDistance(observer_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
     quick_plot(d, path);
 }
 
-void PlotDistance::quick_plot(std::observer_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
+void PlotDistance::quick_plot(observer_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
     auto distances = d->get_axis().as_vector();
     SimpleDataset p(distances, d->get_counts());
     SimpleDataset pp(distances, d->get_aa_counts());

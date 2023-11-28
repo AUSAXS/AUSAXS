@@ -5,7 +5,7 @@
 
 using namespace em::managers;
 
-ProteinManager::ProteinManager(std::observer_ptr<const em::ImageStackBase> images) : images(images) {
+ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : images(images) {
     double max = images->from_level(5);
     Axis axis(0, max, settings::em::charge_levels);
     set_charge_levels(axis.as_vector());

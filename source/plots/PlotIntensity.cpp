@@ -53,11 +53,11 @@ PlotIntensity& PlotIntensity::plot(const hist::ScatteringProfile& data, const Pl
     return *this;
 }
 
-PlotIntensity& PlotIntensity::plot(std::observer_ptr<fitter::Fit> fit, const PlotOptions& options) {
+PlotIntensity& PlotIntensity::plot(observer_ptr<fitter::Fit> fit, const PlotOptions& options) {
     return plot(fit->figures.intensity, options);
 }
 
-PlotIntensity& PlotIntensity::plot_guinier_approx(std::observer_ptr<hist::ICompositeDistanceHistogram> data) {
+PlotIntensity& PlotIntensity::plot_guinier_approx(observer_ptr<hist::ICompositeDistanceHistogram> data) {
     PlotOptions options;
     options.legend = "Guinier approx";
     options.xlabel = "$q$ [$\\AA^{-1}$]";

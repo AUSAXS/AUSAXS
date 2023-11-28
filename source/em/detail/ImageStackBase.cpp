@@ -31,7 +31,7 @@ ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images
         if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
         image(z).set_z(z);
     }
-    phm = factory::create_manager(std::make_observer(this));
+    phm = factory::create_manager(this);
 }
 
 ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
@@ -48,7 +48,7 @@ ImageStackBase::ImageStackBase(const io::ExistingFile& file) {
     size_z = map_axes.z.bins;
 
     read(input);
-    phm = factory::create_manager(std::make_observer(this));
+    phm = factory::create_manager(this);
 }
 
 ImageStackBase::~ImageStackBase() = default;
@@ -74,7 +74,7 @@ std::unique_ptr<hist::ICompositeDistanceHistogram> ImageStackBase::get_histogram
     return get_histogram(res->get_parameter("cutoff").value);
 }
 
-std::observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
+observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
     return phm->get_protein(cutoff);
 }
 
@@ -165,8 +165,8 @@ float ImageStackBase::index(unsigned int x, unsigned int y, unsigned int layer) 
     return data[layer].index(x, y);
 }
 
-std::observer_ptr<em::detail::header::MapHeader> ImageStackBase::get_header() const {
-    return std::make_observer(header.get());
+observer_ptr<em::detail::header::MapHeader> ImageStackBase::get_header() const {
+    return header.get();
 }
 
 void ImageStackBase::set_header(std::unique_ptr<em::detail::header::MapHeader> header) {
@@ -213,6 +213,6 @@ double ImageStackBase::rms() const {
     return _rms;
 }
 
-std::observer_ptr<managers::ProteinManager> ImageStackBase::get_protein_manager() const {
-    return std::make_observer(phm.get());
+observer_ptr<managers::ProteinManager> ImageStackBase::get_protein_manager() const {
+    return phm.get();
 }

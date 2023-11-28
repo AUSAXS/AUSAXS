@@ -9,6 +9,7 @@
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 #include <dataset/Dataset2D.h>
+#include <settings/EMSettings.h>
 
 #include <iostream>
 #include <fstream>
@@ -29,14 +30,12 @@ LinearFitter::LinearFitter(std::unique_ptr<hist::DistanceHistogram> model, const
     model_setup(std::move(model), limits);
 }
 
-void LinearFitter::model_setup(std::unique_ptr<hist::DistanceHistogram>, const Limit&) {
-    throw except::not_implemented("LinearFitter::model_setup: Not implemented yet!");
-    // data = model.calc_debye_scattering_intensity();
-    // data.reduce(settings::fit::N, true);
-    // data.limit_x(limits);
-    // data.simulate_errors();
-    // if (I0 > 0) {data.normalize(I0);}
-    // if (settings::em::simulation::noise) {data.simulate_noise();}
+void LinearFitter::model_setup(std::unique_ptr<hist::DistanceHistogram> model, const Limit& limits) {
+    data = model->debye_transform();
+    data.limit_x(limits);
+    data.simulate_errors();
+    if (I0 > 0) {data.normalize(I0);}
+    if (settings::em::simulation::noise) {data.simulate_noise();}
 }
 
 double LinearFitter::fit_chi2_only() {
@@ -118,8 +117,8 @@ void LinearFitter::set_scattering_hist(std::unique_ptr<hist::DistanceHistogram> 
     this->h = std::move(h);
 }
 
-std::observer_ptr<hist::DistanceHistogram> LinearFitter::get_scattering_hist() {
-    return std::make_observer(h.get());
+observer_ptr<hist::DistanceHistogram> LinearFitter::get_scattering_hist() {
+    return h.get();
 }
 
 double LinearFitter::chi2(const std::vector<double>&) {

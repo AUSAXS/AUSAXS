@@ -2,6 +2,7 @@
 
 #include <em/detail/header/data/DummyData.h>
 #include <utility/UtilityFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <memory>
 #include <string>
@@ -50,7 +51,7 @@ namespace em::detail::header {
             /**
              * @brief Get the header data.
              */
-            HeaderData* get_data() const noexcept;
+            observer_ptr<HeaderData> get_data() const noexcept;
 
             /**
              * @brief Set the header data.
@@ -58,7 +59,7 @@ namespace em::detail::header {
             void set_data(std::unique_ptr<HeaderData> data);
 
         private: 
-            std::unique_ptr<HeaderData> data = nullptr;
+            std::unique_ptr<HeaderData> data;
     };
     std::ostream& operator<<(std::ostream& os, const MapHeader& h);
 }

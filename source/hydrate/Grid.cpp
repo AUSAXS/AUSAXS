@@ -26,8 +26,6 @@ Grid::Grid(const Limit3D& axes) : axes(Axis3D(axes, settings::grid::width)) {
 Grid::Grid(const std::vector<Atom>& atoms) : Grid({Body(atoms)}) {}
 
 Grid::Grid(const std::vector<Body>& bodies) {
-    Vector3<double> nmin, nmax; // new min & max
-
     // find the total bounding box containing all bodies
     Vector3 min{0, 0, 0}, max{0, 0, 0};
     for (const Body& body : bodies) {
@@ -40,6 +38,7 @@ Grid::Grid(const std::vector<Body>& bodies) {
     }
 
     // expand bounding box by scaling factor
+    Vector3<double> nmin, nmax; // new min & max
     for (unsigned int i = 0; i < 3; i++) {
         double expand = 0.5*(max[i] - min[i])*settings::grid::scaling; // amount to expand in each direction
         nmin[i] = std::floor(min[i] - expand - settings::grid::width); // flooring to make our grid 'nice' (i.e. bin edges are at integer values)

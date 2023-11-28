@@ -1,4 +1,4 @@
-#pragma message("Precompiling sinc lookup table. This shouldn't take too long...")
+#pragma message("Precompiling sinc lookup table. This may take a couple of minutes...")
 
 #include <table/ArrayDebyeTable.h>
 

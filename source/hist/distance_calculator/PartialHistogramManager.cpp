@@ -14,7 +14,7 @@
 using namespace hist;
 
 template<bool use_weighted_distribution> 
-PartialHistogramManager<use_weighted_distribution>::PartialHistogramManager(std::observer_ptr<const data::Molecule> protein) 
+PartialHistogramManager<use_weighted_distribution>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
     : HistogramManager<use_weighted_distribution>(protein), coords_p(this->body_size), partials_pp(this->body_size, this->body_size), partials_hp(this->body_size) {}
 
 template<bool use_weighted_distribution> 

@@ -170,16 +170,16 @@ void SmartProteinManager::update_protein(double cutoff) {
     previous_cutoff = cutoff;
 }
 
-std::observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
+observer_ptr<const data::Molecule> SmartProteinManager::get_protein() const {
     #ifdef DEBUG
         if (protein == nullptr) {throw except::nullptr_error("SmartProteinManager::get_protein: Protein has not been initialized yet.");}
     #endif
-    return std::make_observer(protein.get());
+    return protein.get();
 }
 
-std::observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
+observer_ptr<data::Molecule> SmartProteinManager::get_protein(double cutoff) {
     update_protein(cutoff);
-    return std::make_observer(protein.get());
+    return protein.get();
 }
 
 void SmartProteinManager::set_charge_levels(const std::vector<double>& levels) noexcept {

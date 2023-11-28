@@ -21,7 +21,7 @@ namespace em {
                 /**
                  * @brief Construct a Manager from an ImageStack.
                  */
-                ProteinManager(std::observer_ptr<const em::ImageStackBase> images);
+                ProteinManager(observer_ptr<const em::ImageStackBase> images);
 
                 /**
                  * @brief Destructor.
@@ -31,12 +31,12 @@ namespace em {
                 /**
                  * @brief Get the Protein backing this object. 
                  */
-                virtual std::observer_ptr<const data::Molecule> get_protein() const = 0;
+                virtual observer_ptr<const data::Molecule> get_protein() const = 0;
 
                 /**
                  * @brief Get the Protein generated from a given cutoff.
                  */
-                virtual std::observer_ptr<data::Molecule> get_protein(double cutoff) = 0;
+                virtual observer_ptr<data::Molecule> get_protein(double cutoff) = 0;
 
                 /**
                  * @brief Get the histogram for a given cutoff.
@@ -54,7 +54,7 @@ namespace em {
                 std::vector<double> get_charge_levels() const noexcept;
 
             protected:
-                std::observer_ptr<const em::ImageStackBase> images; 
+                observer_ptr<const em::ImageStackBase> images; 
                 std::vector<double> charge_levels;
         };
     }

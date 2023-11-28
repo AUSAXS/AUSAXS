@@ -53,7 +53,7 @@ namespace hist {
             /**
              * @brief Get the sinc(x) lookup table for the Debye transform.
              */
-            const std::observer_ptr<const table::DebyeTable> get_sinc_table() const;
+            observer_ptr<const table::DebyeTable> get_sinc_table() const;
 
             /**
              * @brief Use a weighted sinc table for the Debye transform.

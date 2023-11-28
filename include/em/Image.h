@@ -3,6 +3,7 @@
 #include <math/Matrix.h>
 #include <em/ObjectBounds2D.h>
 #include <data/DataFwd.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 #include <list>
@@ -23,11 +24,11 @@ namespace em {
              * @param header Header of the parent ImageStack. 
              * @param layer The layer number of this Image. 
              */
-            Image(em::detail::header::MapHeader* header, unsigned int layer = 0);
+            Image(observer_ptr<em::detail::header::MapHeader> header, unsigned int layer = 0);
 
             Image(const Matrix<float>& data);
 
-            Image(const Matrix<float>& data, em::detail::header::MapHeader* header, unsigned int layer);
+            Image(const Matrix<float>& data, observer_ptr<em::detail::header::MapHeader> header, unsigned int layer);
             
             ~Image() = default;
 
@@ -68,7 +69,7 @@ namespace em {
             /**
              * @brief Set the header. 
              */
-            void set_header(em::detail::header::MapHeader* header);
+            void set_header(observer_ptr<em::detail::header::MapHeader> header);
 
             /**
              * @brief Get the minimum area covering all pixels with a density more extreme than the cutoff. 
@@ -99,9 +100,9 @@ namespace em {
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
         private:
-            em::detail::header::MapHeader* header;  // Non-owning pointer to the header of the parent ImageStack.
-            Matrix<float> data;                     // The actual data storage. 
-            unsigned int z = 0;                     // The z-index of this image in the ImageStack. 
+            observer_ptr<em::detail::header::MapHeader> header; // Non-owning pointer to the header of the parent ImageStack.
+            Matrix<float> data;                                 // The actual data storage. 
+            unsigned int z = 0;                                 // The z-index of this image in the ImageStack. 
             ObjectBounds2D bounds;
     };
 }

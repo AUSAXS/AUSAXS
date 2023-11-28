@@ -124,7 +124,7 @@ namespace fitter {
 			/**
 			 * @brief Get a view of the scattering histogram used for the fit. 
 			 */
-			[[nodiscard]] std::observer_ptr<hist::DistanceHistogram> get_scattering_hist();
+			[[nodiscard]] observer_ptr<hist::DistanceHistogram> get_scattering_hist();
 
 			/**
 			 * @brief Normalize all internally calculated intensities such that they start at this value.  

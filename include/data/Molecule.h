@@ -156,7 +156,7 @@ namespace data {
 			/**
 			 * @brief Get the grid representation. 
 			 */
-			[[nodiscard]] std::observer_ptr<grid::Grid> get_grid() const;
+			[[nodiscard]] observer_ptr<grid::Grid> get_grid() const;
 
 			/**
 			 * @brief Set the grid representation.
@@ -235,7 +235,7 @@ namespace data {
 			/**
 			 * @brief Create a grid and fill it with the atoms of this molecule. 
 			 */
-			std::observer_ptr<grid::Grid> create_grid() const;
+			observer_ptr<grid::Grid> create_grid() const;
 
 			/**
 			 * @brief Calculate the Debye scattering intensity for this molecule. Does not include hydration atoms. 
@@ -285,7 +285,7 @@ namespace data {
 			/**
 			 * @brief Get the histogram manager of this molecule.
 			 */
-			[[nodiscard]] std::observer_ptr<hist::IHistogramManager> get_histogram_manager() const;
+			[[nodiscard]] observer_ptr<hist::IHistogramManager> get_histogram_manager() const;
 
 			/**
 			 * @brief Set the histogram manager of this molecule.
@@ -318,7 +318,7 @@ namespace data {
 
 		private:
 			std::vector<record::Water> hydration_atoms; // Stores the hydration atoms from the generated hydration layer
-			std::vector<Body> bodies;           // The constituent bodies
+			std::vector<Body> bodies;           		// The constituent bodies
 
 			// the following two variables are only necessary to ensure copying cannot repeat the same work
 			bool updated_charge = false;        // True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise.

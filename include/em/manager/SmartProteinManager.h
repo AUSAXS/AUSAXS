@@ -31,12 +31,12 @@ namespace em::managers {
             /**
              * @brief Get the Protein backing this object. 
              */
-            std::observer_ptr<const data::Molecule> get_protein() const override;
+            observer_ptr<const data::Molecule> get_protein() const override;
 
             /**
              * @brief Get the Protein generated from a given cutoff.
              */
-            std::observer_ptr<data::Molecule> get_protein(double cutoff) override;
+            observer_ptr<data::Molecule> get_protein(double cutoff) override;
 
             /**
              * @brief Set the charge levels.

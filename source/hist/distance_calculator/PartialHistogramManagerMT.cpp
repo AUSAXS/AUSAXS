@@ -19,7 +19,7 @@
 using namespace hist;
 
 template<bool use_weighted_distribution> 
-PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(std::observer_ptr<const data::Molecule> protein) : PartialHistogramManager<use_weighted_distribution>(protein) {}
+PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) : PartialHistogramManager<use_weighted_distribution>(protein) {}
 
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT() = default;

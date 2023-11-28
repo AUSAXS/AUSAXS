@@ -15,7 +15,7 @@ namespace hist {
 	template<bool use_weighted_distribution>
 	class HistogramManager : public IHistogramManager {
 		public:
-			HistogramManager(std::observer_ptr<const data::Molecule> protein); 
+			HistogramManager(observer_ptr<const data::Molecule> protein); 
 
 			virtual ~HistogramManager();
 
@@ -30,7 +30,7 @@ namespace hist {
 			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			std::observer_ptr<const data::Molecule> protein; // pointer to the parent Protein
+			observer_ptr<const data::Molecule> protein; // pointer to the parent Protein
 
 			/**
 			 * @brief Perform the additional initialization steps required to prepare this class.

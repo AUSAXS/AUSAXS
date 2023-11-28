@@ -73,12 +73,12 @@ int main(int argc, char const *argv[]) {
     std::string cmd_line;
     for (int i = 0; i < argc; ++i) {cmd_line.append(argv[i]).append(" ");}
 
-    fitter::FitReporter::report(res);
-    fitter::FitReporter::save(res, settings::general::output + "report.txt", cmd_line);
+    fitter::FitReporter::report(res.get());
+    fitter::FitReporter::save(res.get(), settings::general::output + "report.txt", cmd_line);
 
     res->figures.data.save(settings::general::output + mfile.stem() + ".dat");
     res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
-    plots::PlotIntensityFit::quick_plot(res, settings::general::output + "intensity_fit." + settings::plots::format);
-    plots::PlotIntensityFitResiduals::quick_plot(res, settings::general::output + "residuals." + settings::plots::format);
+    plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "intensity_fit." + settings::plots::format);
+    plots::PlotIntensityFitResiduals::quick_plot(res.get(), settings::general::output + "residuals." + settings::plots::format);
     return 0;
 }

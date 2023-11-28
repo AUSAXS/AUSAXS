@@ -47,12 +47,12 @@ namespace plots {
 			/**
 			 * @brief Plot the result of a fit. 
 			 */
-			PlotIntensity& plot(std::observer_ptr<fitter::Fit> fit, const plots::PlotOptions& options);
+			PlotIntensity& plot(observer_ptr<fitter::Fit> fit, const plots::PlotOptions& options);
 
 			/**
 			 * @brief Plot the Guinier approximation for this scattering histogram. 
 			 */
-			PlotIntensity& plot_guinier_approx(std::observer_ptr<hist::ICompositeDistanceHistogram> data);
+			PlotIntensity& plot_guinier_approx(observer_ptr<hist::ICompositeDistanceHistogram> data);
 
 			/**
 			 * @brief Plot and save the input dataset at the specified location. 

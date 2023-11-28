@@ -7,7 +7,6 @@
 #include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
 #include <dataset/DatasetFwd.h>
-#include <utility/observer_ptr.h>
 
 #include <functional>
 
@@ -167,21 +166,21 @@ namespace em {
              * @brief Prepare the fitting function. 
              *        Note that the lifetime of the returned function is the same as that of the fitter.
              */
-            std::function<double(std::vector<double>)> prepare_function(std::observer_ptr<fitter::LinearFitter> fitter);
+            std::function<double(std::vector<double>)> prepare_function(std::shared_ptr<fitter::LinearFitter> fitter);
 
             /**
              * @brief A helper function for the fitting methods. This performs the actual fit. 
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::unique_ptr<fitter::EMFit> fit_helper(std::observer_ptr<fitter::LinearFitter> fitter);
+            std::unique_ptr<fitter::EMFit> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter);
 
             /**
              * @brief A helper function for the fitting methods. This performs the actual fit. 
              * 
              * @param fitter The fitter object to fit. 
              */
-            std::unique_ptr<fitter::EMFit> fit_helper(std::observer_ptr<fitter::LinearFitter> fitter, mini::Parameter& param);
+            std::unique_ptr<fitter::EMFit> fit_helper(std::shared_ptr<fitter::LinearFitter> fitter, mini::Parameter& param);
 
             /**
              * @brief A helper function for the cutoff scanning method.
@@ -189,7 +188,7 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            mini::Landscape cutoff_scan_helper(const Axis& points, std::observer_ptr<fitter::LinearFitter> fitter);
+            mini::Landscape cutoff_scan_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
 
             /**
              * @brief A helper function for the cutoff scan & fit method.
@@ -197,6 +196,6 @@ namespace em {
              * @param points The range to scan.
              * @param fitter The fitting object.
              */
-            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::observer_ptr<fitter::LinearFitter> fitter);
+            std::pair<fitter::EMFit, mini::Landscape> cutoff_scan_fit_helper(const Axis& points, std::shared_ptr<fitter::LinearFitter> fitter);
     };
 }

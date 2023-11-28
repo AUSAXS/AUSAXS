@@ -24,6 +24,8 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <hydrate/Grid.h>
+#include <data/Molecule.h>
 
 using std::vector;
 
@@ -48,16 +50,12 @@ TEST_CASE("test_model", "[manual]") {
 
     plots::PlotIntensity()
         .plot(protein.get_histogram()->debye_transform(), plots::PlotOptions({{"color", style::color::black}}))
-        .plot(res, plots::PlotOptions({{"color", style::color::blue}}))
+        .plot(res.get(), plots::PlotOptions({{"color", style::color::blue}}))
     .save("em_intensity_fit.png");
 
-    // Fit plot
-    plots::PlotIntensityFit(res).save("em_intensity_fit.png");
-
-    // Residual plot
-    plots::PlotIntensityFitResiduals(res).save("em_residuals.png");
-
-    fitter::FitReporter::report(*res);
+    plots::PlotIntensityFit(res.get()).save("em_intensity_fit.png");
+    plots::PlotIntensityFitResiduals(res.get()).save("em_residuals.png");
+    fitter::FitReporter::report(res.get());
 }
 
 TEST_CASE("generate_contour", "[files],[slow],[manual]") {

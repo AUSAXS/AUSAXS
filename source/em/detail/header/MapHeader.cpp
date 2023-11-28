@@ -18,7 +18,7 @@ unsigned int MapHeader::get_byte_size() const {
     return byte_sizes.at(get_data_type());
 }
 
-HeaderData* MapHeader::get_data() const noexcept {
+observer_ptr<HeaderData> MapHeader::get_data() const noexcept {
     return data.get();}
 
 void MapHeader::set_data(std::unique_ptr<HeaderData> data) {this->data = std::move(data);}

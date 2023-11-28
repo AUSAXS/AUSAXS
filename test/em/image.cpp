@@ -4,6 +4,7 @@
 #include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/ObjectBounds3D.h>
+#include <utility/Limit.h>
 
 TEST_CASE("Image::Image") {
     SECTION("std::shared_ptr<ccp4::Header>, unsigned int") {}

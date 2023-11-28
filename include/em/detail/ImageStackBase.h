@@ -73,12 +73,12 @@ namespace em {
             /**
              * @brief Get the protein generated with the chosen cutoff value.
              */
-            std::observer_ptr<data::Molecule> get_protein(double cutoff) const;
+            observer_ptr<data::Molecule> get_protein(double cutoff) const;
 
             /**
              * @brief Get the header of the input file. 
              */
-            std::observer_ptr<detail::header::MapHeader> get_header() const;
+            observer_ptr<detail::header::MapHeader> get_header() const;
 
             /**
              * @brief Set the header. 
@@ -128,7 +128,7 @@ namespace em {
             /**
              * @brief Get the histogram manager.
              */
-            std::observer_ptr<em::managers::ProteinManager> get_protein_manager() const;
+            observer_ptr<em::managers::ProteinManager> get_protein_manager() const;
 
             /**
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.

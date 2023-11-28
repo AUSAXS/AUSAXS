@@ -227,7 +227,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
 #include <dataset/SimpleDataset.h>
 #include <plots/PlotDataset.h>
 struct DummyCDHFFX : public hist::CompositeDistanceHistogramFFExplicit {
-    double Gq(double q) const {return G_factor(q);}
+    double Gq(double q) const {return exv_factor(q);}
 };
 TEST_CASE("plot_Gq", "[manual]") {
     SimpleDataset Gq;

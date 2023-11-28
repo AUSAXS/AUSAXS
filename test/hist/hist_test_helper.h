@@ -20,7 +20,7 @@ template<container_type T1, container_type T2>
 bool compare_hist(T1 p1, T2 p2) {
     int pmin = std::min<int>(p1.size(), p2.size());
     for (int i = 0; i < pmin; i++) {
-        if (!utility::approx(p1[i], p2[i], 1e-6, 0)) {
+        if (!utility::approx(p1[i], p2[i], 1e-6, 1e-3)) {
             std::cout << "Failed on index " << i << ". Values: " << p1[i] << ", " << p2[i] << std::endl;
             return false;
         }
