@@ -6,7 +6,7 @@
 cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(Buttons LANGUAGES C CXX)
 
-set(ELEMENTS_ROOT "external/elements")
+set(ELEMENTS_ROOT "${CMAKE_BINARY_DIR}/external/elements")
 if (NOT ELEMENTS_ROOT)
    message(FATAL_ERROR "ELEMENTS_ROOT is not set")
 endif()
@@ -27,7 +27,7 @@ set(ELEMENTS_APP_TITLE "gui")
 set(ELEMENTS_APP_COPYRIGHT "Copyright (c) 2016-2020 Joel de Guzman")
 set(ELEMENTS_APP_ID "gui")
 set(ELEMENTS_APP_VERSION "1.0")
-set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/main.cpp)
+set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 #set(ELEMENTS_APP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/main.cpp)
 
 include(ElementsConfigApp)

@@ -7,17 +7,19 @@
 #include <algorithm>
 #include <random>
 #include <iostream>
+#include <memory>
 
-#include "data/Protein.h"
-#include "fitter/IntensityFitter.h"
-#include "plots/PlotDistance.h"
-#include "plots/PlotIntensity.h"
-#include "plots/PlotIntensityFit.h"
-#include "plots/PlotIntensityFitResiduals.h"
-#include "settings.h"
+#include <data/Molecule.h>
+#include <fitter/ExcludedVolumeFitter.h>
+#include <plots/PlotDistance.h>
+#include <plots/PlotIntensity.h>
+#include <plots/PlotIntensityFit.h>
+#include <plots/PlotIntensityFitResiduals.h>
+#include <constants/Constants.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <settings/All.h>
 
 using namespace cycfi::elements;
-using std::cout, std::endl; 
 
 // Main window background color
 auto constexpr bkd_color_accent = rgba(55, 55, 57, 255);
@@ -33,7 +35,7 @@ std::shared_ptr<cycfi::elements::image> current_image;
 int current_image_selection = 1;
 
 // Sensible defaults
-string file_in = "data/2epe.pdb", file_out = "figures/";
+std::string file_in = "data/2epe.pdb", file_out = "figures/";
 
 auto io_menu() {
    static float const grid[] = { 0.32, 1.0 };
@@ -53,8 +55,8 @@ auto io_menu() {
    in.second->set_text("2epe");
    in.second->on_text = [input = in.second.get()] (std::string_view text)
       {
-         file_in = "data/" + string(text) + ".pdb";
-         cout << "Input file is currently " << file_in << endl;
+         file_in = "data/" + std::string(text) + ".pdb";
+         std::cout << "Input file is currently " << file_in << std::endl;
       };
 
    auto out = input_box("Output path");
@@ -62,7 +64,7 @@ auto io_menu() {
    out.second->on_text = [input = out.second.get()] (std::string_view text)
       {
          file_out = text;
-         cout << "Output file is currently " << file_out << endl;
+         std::cout << "Output file is currently " << file_out << std::endl;
       };
 
    return htile(
@@ -76,13 +78,13 @@ auto placement_strategy_menu()
    return selection_menu(
       [] (std::string_view select)
       {
-         cout << "Selected " << select << endl;
+         std::cout << "Selected " << select << std::endl;
          if (select == "Radial strategy") {
-            setting::grid::psc = setting::grid::RadialStrategy;
+            settings::grid::placement_strategy = settings::grid::PlacementStrategy::RadialStrategy;
          } else if (select == "Axes strategy") {
-            setting::grid::psc = setting::grid::AxesStrategy;
+            settings::grid::placement_strategy = settings::grid::PlacementStrategy::AxesStrategy;
          } else if (select == "Jan strategy") {
-            setting::grid::psc = setting::grid::JanStrategy;
+            settings::grid::placement_strategy = settings::grid::PlacementStrategy::JanStrategy;
          }
       },
       {
@@ -109,20 +111,19 @@ auto widths_menu()
    };
 
    auto bin_width = input_box("Bin width");
-   bin_width.second->set_text(std::to_string(setting::axes::scattering_intensity_plot_binned_width));
+   bin_width.second->set_text(std::to_string(constants::axes::q_axis.bins));
    bin_width.second->on_text = [input = bin_width.second.get()] (std::string_view text)
       {
          try {
-            setting::axes::scattering_intensity_plot_binned_width = std::stod(string(text));
          } catch (const std::exception&) {}
       };
 
    auto grid_width = input_box("Grid width");
-   grid_width.second->set_text(std::to_string(setting::grid::width));
+   grid_width.second->set_text(std::to_string(settings::grid::width));
    grid_width.second->on_text = [input = grid_width.second.get()] (std::string_view text)
       {
          try {
-            setting::grid::width = std::stod(string(text));
+            settings::grid::width = std::stod(std::string(text));
          } catch (const std::exception&) {}
       };
 
@@ -140,12 +141,12 @@ auto toggle_menu(view& _view) {
 
    check_center.on_click = [&_view] (bool pressed) mutable
    {
-      setting::protein::center = pressed;
+      settings::molecule::center = pressed;
    };
 
    check_effective_charge.on_click = [&_view] (bool pressed) mutable
    {
-      setting::protein::use_effective_charge = pressed;
+      settings::molecule::use_effective_charge = pressed;
       if (pressed) {
          std::cout << "Enabled effective charge" << std::endl;
       } else {
@@ -179,21 +180,21 @@ auto radii_menu()
       return bottom_margin(10, hgrid(grid, my_label(caption), input));
    };
 
-   auto ra = input_box("Atomic radius");
-   ra.second->set_text(std::to_string(setting::grid::ra));
+   auto ra = input_box("Excluded volume radius");
+   ra.second->set_text(std::to_string(settings::grid::rvol));
    ra.second->on_text = [input = ra.second.get()] (std::string_view text)
       {
          try {
-            setting::grid::ra = std::stod(string(text));
+            settings::grid::rvol = std::stod(std::string(text));
          } catch (const std::exception&) {}
       };
 
    auto rh = input_box("Water radius");
-   rh.second->set_text(std::to_string(setting::grid::rh));
+   rh.second->set_text(std::to_string(settings::grid::rvol));
    rh.second->on_text = [input = rh.second.get()] (std::string_view text)
       {
          try {
-            setting::grid::rh = std::stod(string(text));
+            settings::grid::rvol = std::stod(std::string(text));
          } catch (const std::exception&) {}
       };
 
@@ -262,39 +263,37 @@ auto generate_button(view& _view) {
    lbutton.on_click = [&_view] (bool pressed) mutable
       {
          if (pressed) {
-            Protein protein(file_in);
+            data::Molecule protein(file_in);
             protein.generate_new_hydration();
-            ScatteringHistogram d = protein.get_histogram();
+            auto d = protein.get_histogram();
+            auto p = d->debye_transform();
 
             // Distance plot
-            PlotDistance d_plot(d);
-            string path = "build/resources/distances.png";
+            std::string path = "temp/gui/distance.png";
+            plots::PlotDistance d_plot(d.get(), path);
             d_plot.save(path); 
-            image_distance = share(image("distances.png"));
+            image_distance = share(image("temp/gui/distance.png"));
 
             // Debye scattering intensity plot
-            PlotIntensity i_plot(d);
-            path = "build/resources/intensity.png";
+            plots::PlotIntensity i_plot(p, plots::PlotOptions());
+            path = "temp/gui/log.png";
             i_plot.save(path);
-            image_intensity = share(image("intensity.png"));
+            image_intensity = share(image("temp/gui/log.png"));
 
             // Debye scattering intensity fit
-            string measurement_data = file_in.substr(0, file_in.find_last_of('.')) + ".RSR";
-            IntensityFitter fitter(measurement_data, d);
-            std::shared_ptr<Fitter::Fit> result = fitter.fit();
+            std::string measurement_data = file_in.substr(0, file_in.find_last_of('.')) + ".rsr";
+            fitter::HydrationFitter fitter(measurement_data, std::move(d));
+            auto result = fitter.fit();
 
-            PlotIntensityFit plot_f(fitter);
-            path = "build/resources/intensity_fit.png";
+            plots::PlotIntensityFit plot_f(fitter);
+            path = "temp/gui/log.png";
             plot_f.save(path);
-            image_intensity_fit = share(image("intensity_fit.png"));
+            image_intensity_fit = share(image("temp/gui/log.png"));
 
-            PlotIntensityFitResiduals plot_r(fitter);
-            path = "build/resources/residuals.png";
+            plots::PlotIntensityFitResiduals plot_r(fitter);
+            path = "temp/gui/log.png";
             plot_r.save(path);
-            image_residuals = share(image("residuals.png"));
-
-            result->print();
-            std::cout << "c is: " << result->params["a"]*protein.get_mass()/pow(constants::radius::electron, 2)*constants::unit::mg/pow(constants::unit::cm, 3) << std::endl;
+            image_residuals = share(image("temp/gui/log.png"));
 
             if (current_image_selection == 1) {*current_image = *image_distance;} 
             else if (current_image_selection == 2) {*current_image = *image_intensity;} 
@@ -308,12 +307,11 @@ auto generate_button(view& _view) {
 }
 
 auto make_controls(view& _view) {
-   image_intensity = share(image("intensity.png"));
-   image_distance = share(image("distances.png"));
-   image_intensity_fit = share(image("intensity_fit.png"));
-   image_residuals = share(image("residuals.png"));
-
-   current_image = share(image("distances.png")); //! Must be assigned this way - otherwise compiler optimizations may remove later assignments
+   image_intensity     = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/log.png").c_str()));
+   image_intensity_fit = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/log.png").c_str()));
+   image_residuals     = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/log.png").c_str()));
+   image_distance      = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/distance.png").c_str()));
+   current_image       = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/distance.png").c_str())); //! Must be assigned this way - otherwise compiler optimizations may remove later assignments
    auto image_box = layer
                         (
                            margin

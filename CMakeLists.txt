@@ -170,4 +170,4 @@ add_subdirectory(test)
 ############################################
 ##          Other executables             ##
 ############################################
-add_subdirectory(executable)
+add_subdirectory(executable/gui)

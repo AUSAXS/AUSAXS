@@ -52,7 +52,7 @@ doxygen:
 
 .PHONY:
 gui: build/source/gui/gui
-	build/gui
+	./build/executable/gui/gui
 
 # show the coverage of a single test. requires code to be compiled with the --coverage option.
 coverage/%: test/%
