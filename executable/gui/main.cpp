@@ -50,20 +50,30 @@ auto io_menu(gui::view& view) {
 	static auto output_box = gui::input_box("output path");
 	static bool map_ok = false;
 	static bool saxs_ok = false;
+	static bool default_output = true;
 	output_box.second->set_text("output/em_fitter");
 
 	map_box.second->on_text = [&view] (std::string_view text) {
-		static bool empty_flag = true;
-		if (!text.empty()) {
-			empty_flag = false;
+		static unsigned int last_size = 0;
+		if (text.size() == 1) {
 			map_box_bg = bg_color_accent;
-			view.refresh();
-		} else if (!empty_flag) {
-			empty_flag = true;
+		} else if (text.empty()) {
 			map_box_bg = bg_color;
-			view.refresh();
 		}
 
+		if (map_ok) {
+			map_ok = false;
+			map_box_bg = bg_color_accent;
+		}
+
+		// prevent autocompletion when deleting text
+		if (text.size() < last_size) {
+			last_size = text.size();
+			return;
+		}
+		last_size = text.size();
+
+		// only autocomplete if the last character is a '/' and there are less than 20 matches
 		if (text.back() != '/') {return;}
 		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
 
@@ -107,7 +117,6 @@ auto io_menu(gui::view& view) {
 			std::cout << "invalid map file " << file.path() << std::endl;
 			map_box_bg = bred;
 			map_ok = false;
-			view.refresh();
 			return;
 		}
 
@@ -115,7 +124,6 @@ auto io_menu(gui::view& view) {
 		std::cout << "map file was set to " << settings::map_file << std::endl;
 		map_box_bg = bgreen;
 		map_ok = true;
-		view.refresh();
 
 		if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
 		for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
@@ -130,23 +138,34 @@ auto io_menu(gui::view& view) {
 			}
 		}
 
-		if (saxs_ok) {
-			std::string path = output_box.second->get_text() + "/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
+		if (saxs_ok && default_output) {
+			std::string path = "output/em_fitter/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
 			output_box.second->set_text(path);
 			output_box.second->on_enter(path);
 		}
 	};
 
 	saxs_box.second->on_text = [&view] (std::string_view text) {
-		static bool empty_flag = true;
-		if (!text.empty()) {
-			empty_flag = false;
+		static unsigned int last_size = 0;
+		if (text.size() == 1) {
 			saxs_box_bg = bg_color_accent;
-		} else if (!empty_flag) {
-			empty_flag = true;
+		} else if (text.empty()) {
 			saxs_box_bg = bg_color;
 		}
 
+		if (saxs_ok) {
+			saxs_ok = false;
+			saxs_box_bg = bg_color_accent;
+		}
+
+		// prevent autocompletion when deleting text
+		if (text.size() < last_size) {
+			last_size = text.size();
+			return;
+		}
+		last_size = text.size();
+
+		// only autocomplete if the last character is a '/' and there are less than 20 matches
 		if (text.back() != '/') {return;}
 		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
 
@@ -190,7 +209,6 @@ auto io_menu(gui::view& view) {
 			std::cout << "invalid saxs file " << file.path() << std::endl;
 			saxs_box_bg = bred;
 			saxs_ok = false;
-			view.refresh();
 			return;
 		}
 
@@ -198,18 +216,18 @@ auto io_menu(gui::view& view) {
 		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
 		saxs_box_bg = bgreen;
 		saxs_ok = true;
-		view.refresh();
 
-		if (map_ok) {
-			std::string path = output_box.second->get_text() + "/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
+		if (map_ok && default_output) {
+			std::string path = "output/em_fitter/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
 			output_box.second->set_text(path);
 			output_box.second->on_enter(path);
 		}
 	};
 
 	output_box.second->on_enter = [] (std::string_view text) {
-		 settings::general::output = text;
-		 std::cout << "output path was set to " << settings::general::output << std::endl;
+		default_output = false;
+		settings::general::output = text;
+		std::cout << "output path was set to " << settings::general::output << std::endl;
 	};
 
 	return gui::htile(
