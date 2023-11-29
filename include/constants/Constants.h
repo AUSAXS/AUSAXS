@@ -20,8 +20,19 @@ namespace constants {
         namespace detail {
             struct FileType {
                 FileType(std::vector<std::string> extensions);
-                bool validate(const io::ExistingFile& path) const;
+
+                /**
+                 * @brief Validate if a file exists and has one of the allowed extensions for this file type.
+                 */
+                bool validate(const io::File& path) const;
                 std::vector<std::string> extensions;
+            };
+
+            struct SettingsType {
+                /**
+                 * @brief Validate if a file exists and has one of the default setting file names.
+                 */
+                bool validate(const io::File& path) const;
             };
         }
 
@@ -30,6 +41,7 @@ namespace constants {
         const detail::FileType em_map =     {{".map",  ".ccp4", ".mrc", ".rec"}};
         const detail::FileType unit_cell =  {{".cell", ".uc"}};
         const detail::FileType grid =       {{".grid"}};
+        const detail::SettingsType setting;
     }
 
     /**

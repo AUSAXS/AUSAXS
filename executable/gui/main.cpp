@@ -1,7 +1,7 @@
 /*=============================================================================
-   Copyright (c) 2016-2020 Joel de Guzman
+	Copyright (c) 2016-2020 Joel de Guzman
 
-   Distributed under the MIT License (https://opensource.org/licenses/MIT)
+	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
 #include <elements.hpp>
 #include <algorithm>
@@ -18,339 +18,239 @@
 #include <constants/Constants.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
+#include <utility/Limit2D.h>
 
-using namespace cycfi::elements;
+#include <list>
 
-// Main window background color
-auto constexpr bkd_color_accent = rgba(55, 55, 57, 255);
-auto constexpr bkd_color = rgba(35, 35, 37, 255);
-constexpr auto bgreen   = colors::green.level(0.7).opacity(0.4);
-auto background = box(bkd_color);
+namespace gui = cycfi::elements;
 
-// The different image types which can be plotted
-std::shared_ptr<cycfi::elements::image> image_intensity, image_distance, image_intensity_fit, image_residuals; 
+auto constexpr bg_color_accent = gui::rgba(55, 55, 57, 255);
+auto constexpr bg_color = gui::rgba(35, 35, 37, 255);
+auto constexpr bgreen   = gui::colors::green.level(0.7).opacity(0.4);
+auto constexpr bred     = gui::colors::red.level(0.7).opacity(0.4);
 
-// The currently shown image
-std::shared_ptr<cycfi::elements::image> current_image;
-int current_image_selection = 1;
+auto abs_path(const std::string& path) {
+	return std::filesystem::current_path().string() + "/" + path;
+}
+auto perform_plot(const std::string& path) {
+	std::string command = "python3 scripts/plot.py " + path;
+	std::system(command.c_str());
+};
 
-// Sensible defaults
-std::string file_in = "data/2epe.pdb", file_out = "figures/";
-
-auto io_menu() {
-   static float const grid[] = { 0.32, 1.0 };
-
-   auto my_label = [=](auto text)
-   {
-      return right_margin(10, label(text).text_align(canvas::right));
-   };
-
-   auto my_input = [=] (auto caption, auto input)
-   {
-      return bottom_margin(10, hgrid(grid, my_label(caption), input));
-   };
-
-   // This is an example on how to add an on_text callback:
-   auto in = input_box("Input path");
-   in.second->set_text("2epe");
-   in.second->on_text = [input = in.second.get()] (std::string_view text)
-      {
-         file_in = "data/" + std::string(text) + ".pdb";
-         std::cout << "Input file is currently " << file_in << std::endl;
-      };
-
-   auto out = input_box("Output path");
-   out.second->set_text("figures/");
-   out.second->on_text = [input = out.second.get()] (std::string_view text)
-      {
-         file_out = text;
-         std::cout << "Output file is currently " << file_out << std::endl;
-      };
-
-   return htile(
-               my_input("Input path", in.first), 
-               left_margin(20, my_input("Output path", out.first))
-          );
+namespace settings {
+	std::string map_file, saxs_file;
 }
 
-auto placement_strategy_menu()
-{
-   return selection_menu(
-      [] (std::string_view select)
-      {
-         std::cout << "Selected " << select << std::endl;
-         if (select == "Radial strategy") {
-            settings::grid::placement_strategy = settings::grid::PlacementStrategy::RadialStrategy;
-         } else if (select == "Axes strategy") {
-            settings::grid::placement_strategy = settings::grid::PlacementStrategy::AxesStrategy;
-         } else if (select == "Jan strategy") {
-            settings::grid::placement_strategy = settings::grid::PlacementStrategy::JanStrategy;
-         }
-      },
-      {
-         "Radial strategy",
-         "Axes strategy",
-         "Jan strategy"
-      }
+auto io_menu(gui::view& view) {
+	static auto saxs_box_bg = gui::box(bg_color);
+	static auto map_box_bg = gui::box(bg_color);
+	static auto output_box_bg = gui::box(bg_color);
+	static auto saxs_box = gui::input_box("pdb path");
+	static auto map_box = gui::input_box("map path");
+	static auto output_box = gui::input_box("output path");
+	static bool map_ok = false;
+	static bool saxs_ok = false;
+	output_box.second->set_text("output/em_fitter");
 
-   ).first; // We return only the first, the menu. the second is a shared pointer to the label.
-}
+	map_box.second->on_text = [&view] (std::string_view text) {
+		static bool empty_flag = true;
+		if (!text.empty()) {
+			empty_flag = false;
+			map_box_bg = bg_color_accent;
+			view.refresh();
+		} else if (!empty_flag) {
+			empty_flag = true;
+			map_box_bg = bg_color;
+			view.refresh();
+		}
 
-auto widths_menu() 
-{
-   static float const grid[] = {0.4, 1.0};
+		if (text.back() != '/') {return;}
+		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
 
-   auto my_label = [=](auto text)
-   {
-      return right_margin(10, label(text).text_align(canvas::right));
-   };
+		std::list<std::string> matches;
+		for (auto& p : std::filesystem::directory_iterator(text)) {
+			io::File tmp(p.path().string());
+			if (constants::filetypes::em_map.validate(tmp)) {
+				matches.push_back(tmp.path());
+			}
+		}
+		if (matches.empty()) {return;}
+		if (matches.size() == 1) {
+			// only one match, auto-fill
+			settings::map_file = matches.front();
+			map_box.second->set_text(matches.front());
+			map_box.second->on_enter(matches.front());
+			return;
+		}
+		// find the longest common prefix
+		std::string prefix = matches.front();
+		for (auto& match : matches) {
+			if (prefix == match) {continue;}
+			std::string tmp;
+			for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
+				if (prefix[i] == match[i]) {
+					tmp += prefix[i];
+				} else {
+					break;
+				}
+			}
+			prefix = tmp;
+		}
+		if (prefix.size() > 1) {
+			map_box.second->set_text(prefix);
+		}
+	};
 
-   auto my_input = [=] (auto caption, auto input)
-   {
-      return bottom_margin(10, hgrid(grid, my_label(caption), input));
-   };
+	map_box.second->on_enter = [&view] (std::string_view text) {
+		io::File file = io::File(std::string(text));
+		if (!constants::filetypes::em_map.validate(file)) {
+			std::cout << "invalid map file " << file.path() << std::endl;
+			map_box_bg = bred;
+			map_ok = false;
+			view.refresh();
+			return;
+		}
 
-   auto bin_width = input_box("Bin width");
-   bin_width.second->set_text(std::to_string(constants::axes::q_axis.bins));
-   bin_width.second->on_text = [input = bin_width.second.get()] (std::string_view text)
-      {
-         try {
-         } catch (const std::exception&) {}
-      };
+		settings::map_file = file.path();
+		std::cout << "map file was set to " << settings::map_file << std::endl;
+		map_box_bg = bgreen;
+		map_ok = true;
+		view.refresh();
 
-   auto grid_width = input_box("Grid width");
-   grid_width.second->set_text(std::to_string(settings::grid::width));
-   grid_width.second->on_text = [input = grid_width.second.get()] (std::string_view text)
-      {
-         try {
-            settings::grid::width = std::stod(std::string(text));
-         } catch (const std::exception&) {}
-      };
+		if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
+		for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
+			io::File tmp(p.path().string());
+			if (constants::filetypes::structure.validate(tmp)) {
+				settings::saxs_file = tmp.path();
+				saxs_box.second->set_text(tmp.path());
+				saxs_box.second->on_enter(tmp.path());
+			} else if (constants::filetypes::setting.validate(tmp)) {
+				std::cout << "discovered settings file " << tmp.path() << std::endl;
+				settings::read(tmp);
+			}
+		}
 
-   return htile(
-               my_input("Bin width", bin_width.first), 
-               left_margin(20, my_input("Grid width", grid_width.first))
-          );
-}
+		if (saxs_ok) {
+			std::string path = output_box.second->get_text() + "/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
+			output_box.second->set_text(path);
+			output_box.second->on_enter(path);
+		}
+	};
 
-auto toggle_menu(view& _view) {
-   auto check_center = check_box("Center molecule");
-   auto check_effective_charge = check_box("Use effective charge");
-   check_center.value(true);
-   check_effective_charge.value(true);
+	saxs_box.second->on_text = [&view] (std::string_view text) {
+		static bool empty_flag = true;
+		if (!text.empty()) {
+			empty_flag = false;
+			saxs_box_bg = bg_color_accent;
+		} else if (!empty_flag) {
+			empty_flag = true;
+			saxs_box_bg = bg_color;
+		}
 
-   check_center.on_click = [&_view] (bool pressed) mutable
-   {
-      settings::molecule::center = pressed;
-   };
+		if (text.back() != '/') {return;}
+		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
 
-   check_effective_charge.on_click = [&_view] (bool pressed) mutable
-   {
-      settings::molecule::use_effective_charge = pressed;
-      if (pressed) {
-         std::cout << "Enabled effective charge" << std::endl;
-      } else {
-         std::cout << "Disabled effective charge" << std::endl;
-      }
-   };
+		std::list<std::string> matches;
+		for (auto& p : std::filesystem::directory_iterator(text)) {
+			io::File tmp(p.path().string());
+			if (constants::filetypes::structure.validate(tmp)) {
+				matches.push_back(tmp.path());
+			}
+		}
+		if (matches.empty()) {return;}
+		if (matches.size() == 1) {
+			// only one match, auto-fill
+			settings::saxs_file = matches.front();
+			saxs_box.second->set_text(matches.front());
+			saxs_box.second->on_enter(matches.front());
+			return;
+		}
+		// find the longest common prefix
+		std::string prefix = matches.front();
+		for (auto& match : matches) {
+			if (prefix == match) {continue;}
+			std::string tmp;
+			for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
+				if (prefix[i] == match[i]) {
+					tmp += prefix[i];
+				} else {
+					break;
+				}
+			}
+			prefix = tmp;
+		}
+		if (prefix.size() > 1) {
+			saxs_box.second->set_text(prefix);
+		}
+	};
 
-   return group("Check boxes",
-            margin({ 10, 10, 20, 20 },
-               top_margin(25,
-                  htile(
-                     top_margin(10, align_left(check_center)),
-                     top_margin(10, align_left(check_effective_charge))
-                  )
-               )
-            )
-   );
-}
+	saxs_box.second->on_enter = [&view] (std::string_view text) {
+		io::File file = io::File(std::string(text));
+		if (!constants::filetypes::structure.validate(file)) {
+			std::cout << "invalid saxs file " << file.path() << std::endl;
+			saxs_box_bg = bred;
+			saxs_ok = false;
+			view.refresh();
+			return;
+		}
 
-auto radii_menu() 
-{
-   static float const grid[] = {0.4, 1.0};
+		settings::saxs_file = file.path();
+		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
+		saxs_box_bg = bgreen;
+		saxs_ok = true;
+		view.refresh();
 
-   auto my_label = [=](auto text)
-   {
-      return right_margin(10, label(text).text_align(canvas::right));
-   };
+		if (map_ok) {
+			std::string path = output_box.second->get_text() + "/" + io::File(settings::map_file).stem() + "/" + io::File(settings::saxs_file).stem();
+			output_box.second->set_text(path);
+			output_box.second->on_enter(path);
+		}
+	};
 
-   auto my_input = [=] (auto caption, auto input)
-   {
-      return bottom_margin(10, hgrid(grid, my_label(caption), input));
-   };
+	output_box.second->on_enter = [] (std::string_view text) {
+		 settings::general::output = text;
+		 std::cout << "output path was set to " << settings::general::output << std::endl;
+	};
 
-   auto ra = input_box("Excluded volume radius");
-   ra.second->set_text(std::to_string(settings::grid::rvol));
-   ra.second->on_text = [input = ra.second.get()] (std::string_view text)
-      {
-         try {
-            settings::grid::rvol = std::stod(std::string(text));
-         } catch (const std::exception&) {}
-      };
-
-   auto rh = input_box("Water radius");
-   rh.second->set_text(std::to_string(settings::grid::rvol));
-   rh.second->on_text = [input = rh.second.get()] (std::string_view text)
-      {
-         try {
-            settings::grid::rvol = std::stod(std::string(text));
-         } catch (const std::exception&) {}
-      };
-
-   return htile(
-               my_input("Atomic radius", ra.first), 
-               left_margin(20, my_input("Water radius", rh.first))
-          );
-}
-
-auto image_control(view& _view) {
-   auto radio_distance = radio_button("Distance histogram");
-   auto radio_intensity = radio_button("Scattering intensity");
-   auto radio_intensity_fit = radio_button("Scattering intensity fit");
-   auto radio_residuals = radio_button("Fit residuals");
-   radio_distance.select(true);
-
-   radio_distance.on_click = [&_view] (bool pressed) mutable {
-      if (pressed) {
-          *current_image = *image_distance;
-          current_image_selection = 1;
-          _view.refresh();
-      }
-   };
-
-   radio_intensity.on_click = [&_view] (bool pressed) mutable {
-      if (pressed) {
-          *current_image = *image_intensity;
-          current_image_selection = 2;
-          _view.refresh();
-      }
-   };
-
-   radio_intensity_fit.on_click = [&_view] (bool pressed) mutable {
-      if (pressed) {
-          *current_image = *image_intensity_fit;
-          current_image_selection = 3;
-          _view.refresh();
-      }
-   };
-
-   radio_residuals.on_click = [&_view] (bool pressed) mutable {
-      if (pressed) {
-          *current_image = *image_residuals;
-          current_image_selection = 4;
-          _view.refresh();
-      }
-   };
-
-   return group("Change the shown figure",
-            margin({10, 10, 20, 20},
-               top_margin(25,
-                  htile
-                  (
-                     top_margin(10, align_left(radio_distance)),
-                     top_margin(10, align_left(radio_intensity)),
-                     top_margin(10, align_left(radio_intensity_fit)),
-                     top_margin(10, align_left(radio_residuals))
-                  )
-               )
-            )
-         );
-}
-
-auto generate_button(view& _view) {
-   auto lbutton = button("Generate figures", 1.0, bgreen);
-   lbutton.on_click = [&_view] (bool pressed) mutable
-      {
-         if (pressed) {
-            data::Molecule protein(file_in);
-            protein.generate_new_hydration();
-            auto d = protein.get_histogram();
-            auto p = d->debye_transform();
-
-            // Distance plot
-            std::string path = "temp/gui/distance.png";
-            plots::PlotDistance d_plot(d.get(), path);
-            d_plot.save(path); 
-            image_distance = share(image("temp/gui/distance.png"));
-
-            // Debye scattering intensity plot
-            plots::PlotIntensity i_plot(p, plots::PlotOptions());
-            path = "temp/gui/log.png";
-            i_plot.save(path);
-            image_intensity = share(image("temp/gui/log.png"));
-
-            // Debye scattering intensity fit
-            std::string measurement_data = file_in.substr(0, file_in.find_last_of('.')) + ".rsr";
-            fitter::HydrationFitter fitter(measurement_data, std::move(d));
-            auto result = fitter.fit();
-
-            plots::PlotIntensityFit plot_f(fitter);
-            path = "temp/gui/log.png";
-            plot_f.save(path);
-            image_intensity_fit = share(image("temp/gui/log.png"));
-
-            plots::PlotIntensityFitResiduals plot_r(fitter);
-            path = "temp/gui/log.png";
-            plot_r.save(path);
-            image_residuals = share(image("temp/gui/log.png"));
-
-            if (current_image_selection == 1) {*current_image = *image_distance;} 
-            else if (current_image_selection == 2) {*current_image = *image_intensity;} 
-            else if (current_image_selection == 3) {*current_image = *image_intensity_fit;} 
-            else if (current_image_selection == 4) {*current_image = *image_residuals;} 
-
-            _view.refresh();
-         }
-      };
-   return lbutton;
-}
-
-auto make_controls(view& _view) {
-   image_intensity     = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/log.png").c_str()));
-   image_intensity_fit = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/log.png").c_str()));
-   image_residuals     = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/log.png").c_str()));
-   image_distance      = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/distance.png").c_str()));
-   current_image       = share(image(std::string(std::filesystem::current_path().string() + "/temp/gui/distance.png").c_str())); //! Must be assigned this way - otherwise compiler optimizations may remove later assignments
-   auto image_box = layer
-                        (
-                           margin
-                           (
-                              {10, 10, 10, 10},
-                              link(*current_image)
-                           ),
-                           box(bkd_color_accent)
-                        );
-
-    return vtile
-            (
-               margin({10, 5, 5, 10}, io_menu()),
-               margin({10, 5, 5, 10}, placement_strategy_menu()),
-               margin({10, 5, 5, 10}, widths_menu()),
-               margin({10, 5, 5, 10}, radii_menu()),
-               margin({10, 5, 5, 10}, toggle_menu(_view)),
-               htile
-               (
-                  margin({10, 20, 5, 10}, image_control(_view))
-               ),
-               left_margin(10, generate_button(_view)),
-               image_box
-            );
+	return gui::htile(
+		gui::align_left(
+			gui::layer(
+				gui::hgrid({0}, map_box.first),
+				link(map_box_bg)
+			)
+		),
+		gui::align_center(
+			gui::layer(
+				gui::hgrid({0}, saxs_box.first),
+				link(saxs_box_bg)
+			)
+		),
+		gui::align_right(gui::hgrid({0}, output_box.first))
+	);
 }
 
 int main(int argc, char* argv[]) {
-   app _app(argc, argv, "SAXS", "com.saxs.gui");
-   window _win(_app.name(), 15, rect{20, 20, 1000, 1500});
-   _win.on_close = [&_app]() { _app.stop(); };
+	gui::app app(argc, argv, "EM fitter", "com.saxs.gui");
+	gui::window win(app.name(), 15, gui::rect{20, 20, 1600, 1000});
+	win.on_close = [&app]() {app.stop();};
 
-   view _view(_win);
+	gui::view view(win);
+	auto background = gui::box(bg_color);
+	auto logo = gui::scale_element(0.2, gui::image(abs_path("temp/logo.png").c_str()));
+	auto settings = gui::vgrid(
+		{0},
+		io_menu(view)
+	);
 
-   _view.content
-   (
-      make_controls(_view),
-      background
-   );
+	view.content
+	(
+		settings,
+		gui::align_right_top(
+			gui::margin({10, 10, 10, 10}, logo)
+		),
+		background
+	);
 
-   _app.run();
-   return 0;
+	app.run();
+	return 0;
 }

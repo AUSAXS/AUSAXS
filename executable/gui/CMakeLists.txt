@@ -6,12 +6,7 @@
 cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(Buttons LANGUAGES C CXX)
 
-set(ELEMENTS_ROOT "${CMAKE_BINARY_DIR}/external/elements")
-if (NOT ELEMENTS_ROOT)
-   message(FATAL_ERROR "ELEMENTS_ROOT is not set")
-endif()
-
-# Make sure ELEMENTS_ROOT is an absolute path to add to the CMake module path
+set(ELEMENTS_ROOT "${elements_SOURCE_DIR}")
 get_filename_component(ELEMENTS_ROOT "${ELEMENTS_ROOT}" ABSOLUTE)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${ELEMENTS_ROOT}/cmake")
 

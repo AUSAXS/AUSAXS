@@ -70,8 +70,13 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/klytje/thread-pool
 )
 
+FetchContent_Declare(
+	elements
+	GIT_REPOSITORY https://github.com/cycfi/elements.git
+)
+
 set(CMAKE_CXX_STANDARD 20) # continue with C++20
-FetchContent_MakeAvailable(CLI11 BSThreadPool)
+FetchContent_MakeAvailable(CLI11 BSThreadPool elements)
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     FetchContent_MakeAvailable(backward)
 endif()

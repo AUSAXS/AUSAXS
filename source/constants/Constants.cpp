@@ -11,10 +11,24 @@ namespace constants {
         this->extensions = extensions;
     }
 
-    bool filetypes::detail::FileType::validate(const io::ExistingFile& path) const {
+    bool filetypes::detail::FileType::validate(const io::File& path) const {
+        if (!path.exists()) {return false;}
         std::string file_ext = utility::to_lowercase(path.extension()); 
         for (auto ext : extensions) {
             if (file_ext == ext) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool filetypes::detail::SettingsType::validate(const io::File& path) const {
+        static std::vector<std::string> valid_names = {"settings", "setting", "setup", "config"};
+
+        if (!path.exists()) {return false;}
+        auto filename = utility::to_lowercase(::io::File(path).stem());
+        for (const auto& e : valid_names) {
+            if (filename == e) {
                 return true;
             }
         }
@@ -180,7 +194,7 @@ unsigned int constants::charge::get_charge(atom_t atom) {
         case atom_t::Zn: return 30;
         case atom_t::W: return 74;
         case atom_t::M: return 0;
-        case atom_t::dummy: return 0;
+        case atom_t::dummy: return 1;
         default: throw std::runtime_error("constants::charge::get_charge: Unknown atom type");
     }
 }
