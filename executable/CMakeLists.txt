@@ -10,3 +10,5 @@ foreach(exec ${EXEC_SOURCE})
 		add_backward("${name}")
 	endif()	
 endforeach()
+
+add_subdirectory(gui)

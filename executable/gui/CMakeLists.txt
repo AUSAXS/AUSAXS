@@ -6,6 +6,14 @@
 cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(Buttons LANGUAGES C CXX)
 
+FetchContent_Declare(
+	elements
+	GIT_REPOSITORY https://github.com/cycfi/elements.git
+)
+
+set(CMAKE_CXX_STANDARD 20) # continue with C++20
+FetchContent_MakeAvailable(CLI11 BSThreadPool elements)
+
 set(ELEMENTS_ROOT "${elements_SOURCE_DIR}")
 get_filename_component(ELEMENTS_ROOT "${ELEMENTS_ROOT}" ABSOLUTE)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${ELEMENTS_ROOT}/cmake")
