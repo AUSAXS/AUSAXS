@@ -308,12 +308,25 @@ auto q_slider(gui::view& view) {
 	static auto qmin_bg = gui::box(bg_color);
 	static auto qmax_bg = gui::box(bg_color);
 
+	static auto quantized_logslider = [] (float value) {
+		static auto start = std::log10(constants::axes::q_vals.front());
+		static auto step = -start/100;
+		return std::pow(10, start + step*std::round(value*100));
+	};
+
+	static auto scientific_string = [] (float value) {
+		std::stringstream ss;
+		ss << std::setprecision(3) << std::scientific << value;
+		return ss.str();
+	};
+
 	qmin_slider.on_change = [&view] (float value) {
-		qmin_textbox.second->set_text(std::to_string(value));
+		auto val = quantized_logslider(value);
+		qmin_textbox.second->set_text(scientific_string(val));
 		if (!setup::saxs_dataset.empty()) {
 			unsigned int removed_elements = 0;
 			for (; removed_elements < setup::saxs_dataset.size(); ++removed_elements) {
-				if (value < setup::saxs_dataset.x(removed_elements) || setup::saxs_dataset.x(removed_elements) < qmax_slider.value()) {
+				if (val < setup::saxs_dataset.x(removed_elements) || setup::saxs_dataset.x(removed_elements) < qmax_slider.value()) {
 					break;
 				}
 			}
@@ -324,11 +337,12 @@ auto q_slider(gui::view& view) {
 	};
 
 	qmax_slider.on_change = [&view] (float value) {
-		qmax_textbox.second->set_text(std::to_string(value));
+		auto val = quantized_logslider(value);
+		qmax_textbox.second->set_text(scientific_string(val));
 		if (!setup::saxs_dataset.empty()) {
 			unsigned int removed_elements = 0;
 			for (; removed_elements < setup::saxs_dataset.size(); ++removed_elements) {
-				if (qmin_slider.value() < setup::saxs_dataset.x(removed_elements) || setup::saxs_dataset.x(removed_elements) < value) {
+				if (qmin_slider.value() < setup::saxs_dataset.x(removed_elements) || setup::saxs_dataset.x(removed_elements) < val) {
 					break;
 				}
 			}
@@ -417,6 +431,138 @@ auto q_slider(gui::view& view) {
 	);
 }
 
+auto alpha_level_slider(gui::view& view) {
+	static auto track = gui::basic_track<5, false>(gui::colors::black);
+	static auto thumb = gui::margin(
+		{1, 2, 1, 2},
+		gui::box(gui::colors::white_smoke)
+	);
+	static auto amin_slider = gui::slider(
+		gui::fixed_size(
+			{5, 30},
+			gui::box(gui::colors::light_gray)
+		),
+		gui::slider_labels<11>(
+			gui::slider_marks<20, 10*5, 10>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"
+		),
+		0.05
+	);
+
+	static auto amax_slider = gui::slider(
+		gui::fixed_size(
+			{5, 30},
+			gui::box(gui::colors::light_gray)
+		),
+		track,
+		0.8
+	);
+
+	static auto amin_textbox = gui::input_box("min level");
+	static auto amax_textbox = gui::input_box("max level");
+	static auto astep_textbox = gui::input_box("steps");
+	static auto amin_bg = gui::box(bg_color);
+	static auto amax_bg = gui::box(bg_color);
+	static auto astep_bg = gui::box(bg_color);
+
+	static auto pretty_printer = [] (float value) {
+		std::stringstream ss;
+		ss << std::setprecision(3) << value;
+		return ss.str();
+	};
+
+	amin_slider.on_change = [&view] (float value) {
+		amin_textbox.second->set_text(pretty_printer(value));
+	};
+
+	amax_slider.on_change = [&view] (float value) {
+		amax_textbox.second->set_text(pretty_printer(value));
+	};
+
+	amin_textbox.second->on_text = [] (std::string_view text) {
+		if (text.empty()) {
+			amin_bg = bg_color;
+		} else {
+			amin_bg = bg_color_accent;
+		}
+	};
+
+	amin_textbox.second->on_enter = [&view] (std::string_view text) {
+		try {
+			amin_slider.edit_value(std::stof(std::string(text)));
+			amin_bg = bg_color;
+			view.refresh(amin_slider);
+		} catch (std::exception&) {
+			amin_bg = bred;
+		}
+	};
+
+	amax_textbox.second->on_text = [] (std::string_view text) {
+		if (text.empty()) {
+			amax_bg = bg_color;
+		} else {
+			amax_bg = bg_color_accent;
+		}
+	};
+
+	amax_textbox.second->on_enter = [&view] (std::string_view text) {
+		try {
+			amax_slider.edit_value(std::stof(std::string(text)));
+			amax_bg = bg_color;
+			view.refresh(amax_slider);
+		} catch (std::exception&) {
+			amax_bg = bred;
+		}
+	};
+
+	return gui::vtile(
+		gui::margin(
+			{50, 0, 50, 0},
+			gui::layer(
+				amin_slider,
+				amax_slider
+			)
+		),
+		gui::layer(
+			gui::align_left(
+				gui::margin(
+					{50, 10, 50, 10},
+					gui::hsize(
+						100,
+						gui::layer(
+							gui::hgrid({0}, link(amin_textbox.first)),
+							link(amin_bg)
+						)
+					)
+				)
+			),
+			gui::align_center(
+				gui::margin(
+					{50, 10, 50, 10},
+					gui::hsize(
+						100,
+						gui::layer(
+							gui::hgrid({0}, link(astep_textbox.first)),
+							link(astep_bg)
+						)
+					)
+				)
+			),
+			gui::align_right(
+				gui::margin(
+					{50, 10, 50, 10},
+					gui::hsize(
+						100,
+						gui::layer(
+							gui::hgrid({0}, link(amax_textbox.first)),
+							link(amax_bg)
+						)
+					)
+				)
+			)
+		)
+	);
+}
+
 int main(int argc, char* argv[]) {
 	// set maximum qrange, user will be able to change this later
 	settings::axes::qmin = 0;
@@ -463,11 +609,23 @@ int main(int argc, char* argv[]) {
 				gui::label("Input & output")
 			),
 			io_menu(view),
-			gui::top_margin(
-				10,
-				gui::label("q-range")
-			),
-			q_slider(view)
+			gui::hgrid(
+				{0.5, 1.0},
+				gui::vtile(
+					gui::top_margin(
+						10,
+						gui::label("q-range")
+					),
+					q_slider(view)
+				),
+				gui::vtile(
+					gui::top_margin(
+						10,
+						gui::label("alpha levels")
+					),
+					alpha_level_slider(view)
+				)
+			)
 		)
 	);
 
