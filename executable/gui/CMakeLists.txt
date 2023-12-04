@@ -30,7 +30,9 @@ set(ELEMENTS_APP_TITLE "gui")
 set(ELEMENTS_APP_COPYRIGHT "Copyright (c) 2016-2020 Joel de Guzman")
 set(ELEMENTS_APP_ID "gui")
 set(ELEMENTS_APP_VERSION "1.0")
-set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/range_slider.cpp)
 #set(ELEMENTS_APP_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/source/gui/main.cpp)
 
 include(ElementsConfigApp)

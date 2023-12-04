@@ -4,6 +4,7 @@
 	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
 #include <elements.hpp>
+#include <range_slider.hpp>
 #include <algorithm>
 #include <random>
 #include <iostream>
@@ -282,7 +283,11 @@ auto q_slider(gui::view& view) {
 		{1, 2, 1, 2},
 		gui::box(gui::colors::white_smoke)
 	);
-	static auto qmin_slider = gui::slider(
+	static auto qslider = gui::range_slider(
+		gui::fixed_size(
+			{5, 30},
+			gui::box(gui::colors::light_gray)
+		),
 		gui::fixed_size(
 			{5, 30},
 			gui::box(gui::colors::light_gray)
@@ -290,16 +295,7 @@ auto q_slider(gui::view& view) {
 		gui::slider_labels<9>(
 			gui::slider_marks<20, 8*5, 8>(track), 0.8, "1e-4", "5e-4", "1e-3", "5e-3", "1e-2", "5e-2", "1e-1", "5e-1", "1e0"
 		),
-		0.1
-	);
-
-	static auto qmax_slider = gui::slider(
-		gui::fixed_size(
-			{5, 30},
-			gui::box(gui::colors::light_gray)
-		),
-		track,
-		0.9
+		{0.1, 0.5}
 	);
 
 	static auto qmin_textbox = gui::input_box("q_min");
@@ -308,45 +304,43 @@ auto q_slider(gui::view& view) {
 	static auto qmin_bg = gui::box(bg_color);
 	static auto qmax_bg = gui::box(bg_color);
 
-	static auto quantized_logslider = [] (float value) {
-		static auto start = std::log10(constants::axes::q_vals.front());
-		static auto step = -start/100;
-		return std::pow(10, start + step*std::round(value*100));
-	};
-
-	static auto scientific_string = [] (float value) {
-		std::stringstream ss;
-		ss << std::setprecision(3) << std::scientific << value;
-		return ss.str();
-	};
-
-	qmin_slider.on_change = [&view] (float value) {
-		auto val = quantized_logslider(value);
-		qmin_textbox.second->set_text(scientific_string(val));
+	qslider.on_change.first = [&view] (float value) {
+		qmin_textbox.second->set_text(std::to_string(value));
 		if (!setup::saxs_dataset.empty()) {
 			unsigned int removed_elements = 0;
-			for (; removed_elements < setup::saxs_dataset.size(); ++removed_elements) {
-				if (val < setup::saxs_dataset.x(removed_elements) || setup::saxs_dataset.x(removed_elements) < qmax_slider.value()) {
-					break;
-				}
+			for (unsigned int i = 0; i < setup::saxs_dataset.size(); ++i) {
+				auto x = setup::saxs_dataset.x(i);
+				removed_elements += !(value < x && x < qslider.value_second());
 			}
-			qinfo_box.set_text("note: skipping " + std::to_string(removed_elements) + " elements");
+			if (removed_elements != 0) {
+				qinfo_box.set_text("note: ignoring " + std::to_string(removed_elements) + " lines in SAXS file" 
+										+ std::string(std::min<int>(4-std::to_string(removed_elements).size(), 0), ' '));
+			} else {
+				qinfo_box.set_text("");
+			}
+		} else {
+			qinfo_box.set_text("");
 		}
 		view.refresh(qmin_textbox.first);
 		view.refresh(qinfo_box);
 	};
 
-	qmax_slider.on_change = [&view] (float value) {
-		auto val = quantized_logslider(value);
-		qmax_textbox.second->set_text(scientific_string(val));
+	qslider.on_change.second = [&view] (float value) {
+		qmax_textbox.second->set_text(std::to_string(value));
 		if (!setup::saxs_dataset.empty()) {
 			unsigned int removed_elements = 0;
-			for (; removed_elements < setup::saxs_dataset.size(); ++removed_elements) {
-				if (qmin_slider.value() < setup::saxs_dataset.x(removed_elements) || setup::saxs_dataset.x(removed_elements) < val) {
-					break;
-				}
+			for (unsigned int i = 0; i < setup::saxs_dataset.size(); ++i) {
+				auto x = setup::saxs_dataset.x(i);
+				removed_elements += !(qslider.value_first() < x && x < value);
 			}
-			qinfo_box.set_text("note: skipping " + std::to_string(removed_elements) + " elements");
+			if (removed_elements != 0) {
+				qinfo_box.set_text("note: ignoring " + std::to_string(removed_elements) + " lines in SAXS file" 
+										+ std::string(std::min<int>(4-std::to_string(removed_elements).size(), 0), ' '));
+			} else {
+				qinfo_box.set_text("");
+			}
+		} else {
+			qinfo_box.set_text("");
 		}
 		view.refresh(qmax_textbox.first);
 		view.refresh(qinfo_box);
@@ -362,9 +356,9 @@ auto q_slider(gui::view& view) {
 
 	qmin_textbox.second->on_enter = [&view] (std::string_view text) {
 		try {
-			qmin_slider.edit_value(std::stof(std::string(text)));
+			qslider.value_first(std::stof(std::string(text)));
 			qmin_bg = bg_color;
-			view.refresh(qmin_slider);
+			view.refresh(qslider);
 		} catch (std::exception&) {
 			qmin_bg = bred;
 		}
@@ -380,9 +374,9 @@ auto q_slider(gui::view& view) {
 
 	qmax_textbox.second->on_enter = [&view] (std::string_view text) {
 		try {
-			qmax_slider.edit_value(std::stof(std::string(text)));
+			qslider.value_second(std::stof(std::string(text)));
 			qmax_bg = bg_color;
-			view.refresh(qmax_slider);
+			view.refresh(qslider);
 		} catch (std::exception&) {
 			qmax_bg = bred;
 		}
@@ -392,8 +386,7 @@ auto q_slider(gui::view& view) {
 		gui::margin(
 			{50, 0, 50, 0},
 			gui::layer(
-				qmin_slider,
-				qmax_slider
+				link(qslider)
 			)
 		),
 		gui::layer(
@@ -433,11 +426,11 @@ auto q_slider(gui::view& view) {
 
 auto alpha_level_slider(gui::view& view) {
 	static auto track = gui::basic_track<5, false>(gui::colors::black);
-	static auto thumb = gui::margin(
-		{1, 2, 1, 2},
-		gui::box(gui::colors::white_smoke)
-	);
-	static auto amin_slider = gui::slider(
+	static auto aslider = gui::range_slider(
+		gui::fixed_size(
+			{5, 30},
+			gui::box(gui::colors::light_gray)
+		),
 		gui::fixed_size(
 			{5, 30},
 			gui::box(gui::colors::light_gray)
@@ -445,16 +438,7 @@ auto alpha_level_slider(gui::view& view) {
 		gui::slider_labels<11>(
 			gui::slider_marks<20, 10*5, 10>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"
 		),
-		0.05
-	);
-
-	static auto amax_slider = gui::slider(
-		gui::fixed_size(
-			{5, 30},
-			gui::box(gui::colors::light_gray)
-		),
-		track,
-		0.8
+		{0.05, 0.8}
 	);
 
 	static auto amin_textbox = gui::input_box("min level");
@@ -470,15 +454,17 @@ auto alpha_level_slider(gui::view& view) {
 		return ss.str();
 	};
 
-	amin_slider.on_change = [&view] (float value) {
+	aslider.on_change.first = [&view] (float value) {
 		amin_textbox.second->set_text(pretty_printer(value));
+		view.refresh(amin_textbox.first);
 	};
 
-	amax_slider.on_change = [&view] (float value) {
+	aslider.on_change.second = [&view] (float value) {
 		amax_textbox.second->set_text(pretty_printer(value));
+		view.refresh(amax_textbox.first);
 	};
 
-	amin_textbox.second->on_text = [] (std::string_view text) {
+	amin_textbox.second->on_text = [&view] (std::string_view text) {
 		if (text.empty()) {
 			amin_bg = bg_color;
 		} else {
@@ -488,15 +474,16 @@ auto alpha_level_slider(gui::view& view) {
 
 	amin_textbox.second->on_enter = [&view] (std::string_view text) {
 		try {
-			amin_slider.edit_value(std::stof(std::string(text)));
+			aslider.edit_value_first(std::stof(std::string(text)));
 			amin_bg = bg_color;
-			view.refresh(amin_slider);
+			view.refresh(aslider);
 		} catch (std::exception&) {
 			amin_bg = bred;
 		}
+		view.refresh(aslider);
 	};
 
-	amax_textbox.second->on_text = [] (std::string_view text) {
+	amax_textbox.second->on_text = [&view] (std::string_view text) {
 		if (text.empty()) {
 			amax_bg = bg_color;
 		} else {
@@ -506,20 +493,20 @@ auto alpha_level_slider(gui::view& view) {
 
 	amax_textbox.second->on_enter = [&view] (std::string_view text) {
 		try {
-			amax_slider.edit_value(std::stof(std::string(text)));
+			aslider.edit_value_second(std::stof(std::string(text)));
 			amax_bg = bg_color;
-			view.refresh(amax_slider);
+			view.refresh(aslider);
 		} catch (std::exception&) {
 			amax_bg = bred;
 		}
+		view.refresh(aslider);
 	};
 
 	return gui::vtile(
 		gui::margin(
 			{50, 0, 50, 0},
 			gui::layer(
-				amin_slider,
-				amax_slider
+				aslider
 			)
 		),
 		gui::layer(
@@ -561,6 +548,51 @@ auto alpha_level_slider(gui::view& view) {
 			)
 		)
 	);
+}
+
+auto make_start_button(gui::view& view) {
+	static auto start_button = gui::button("start");
+	static auto start_button_bg = gui::box(bgreen);
+	static auto progress_bar = gui::progress_bar(gui::rbox(gui::colors::black), gui::rbox(bgreen));
+
+	auto progress_bar_layout = share(
+		gui::margin(
+			{10, 100, 10, 100},
+			gui::align_center_middle(
+				link(progress_bar)
+			)
+		)
+	);
+
+	auto start_button_layout = share(
+		gui::margin(
+			{10, 100, 10, 100},
+			gui::align_center_middle(
+				gui::fixed_size(
+					{200, 100},
+					gui::layer(
+						link(start_button),
+						link(start_button_bg)
+					)
+				)
+			)
+		)
+	);
+
+	static auto content = gui::hold_any(start_button_layout);
+
+	start_button.on_click = [&view, progress_bar_layout] (bool click) {
+		if (click) {
+			std::cout << "##########################" << std::endl;
+			std::cout << "### starting EM fitter ###" << std::endl;
+			std::cout << "##########################" << std::endl;
+			start_button_bg = bg_color;
+			content = progress_bar_layout;
+			view.layout(content);
+		}
+	};
+
+	return link(content);
 }
 
 int main(int argc, char* argv[]) {
@@ -625,7 +657,8 @@ int main(int argc, char* argv[]) {
 					),
 					alpha_level_slider(view)
 				)
-			)
+			),
+			make_start_button(view)
 		)
 	);
 
