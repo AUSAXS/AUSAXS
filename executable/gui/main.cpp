@@ -41,6 +41,7 @@ auto perform_plot(const std::string& path) {
 
 namespace settings {
 	std::string map_file, saxs_file;
+	bool lock = false;
 }
 
 namespace setup {
@@ -516,7 +517,7 @@ auto alpha_level_slider(gui::view& view) {
 					gui::hsize(
 						100,
 						gui::layer(
-							gui::hgrid({0}, link(amin_textbox.first)),
+							link(amin_textbox.first),
 							link(amin_bg)
 						)
 					)
@@ -528,7 +529,7 @@ auto alpha_level_slider(gui::view& view) {
 					gui::hsize(
 						100,
 						gui::layer(
-							gui::hgrid({0}, link(astep_textbox.first)),
+							link(astep_textbox.first),
 							link(astep_bg)
 						)
 					)
@@ -540,7 +541,7 @@ auto alpha_level_slider(gui::view& view) {
 					gui::hsize(
 						100,
 						gui::layer(
-							gui::hgrid({0}, link(amax_textbox.first)),
+							link(amax_textbox.first),
 							link(amax_bg)
 						)
 					)
@@ -559,7 +560,10 @@ auto make_start_button(gui::view& view) {
 		gui::margin(
 			{10, 100, 10, 100},
 			gui::align_center_middle(
-				link(progress_bar)
+				gui::fixed_size(
+					{1000, 30},
+					link(progress_bar)
+				)
 			)
 		)
 	);
@@ -568,8 +572,8 @@ auto make_start_button(gui::view& view) {
 		gui::margin(
 			{10, 100, 10, 100},
 			gui::align_center_middle(
-				gui::fixed_size(
-					{200, 100},
+				gui::hsize(
+					200,
 					gui::layer(
 						link(start_button),
 						link(start_button_bg)
@@ -588,7 +592,9 @@ auto make_start_button(gui::view& view) {
 			std::cout << "##########################" << std::endl;
 			start_button_bg = bg_color;
 			content = progress_bar_layout;
+			settings::lock = true;
 			view.layout(content);
+			view.refresh(content);
 		}
 	};
 
