@@ -326,7 +326,7 @@ auto q_slider(gui::view& view) {
 		} else {
 			qinfo_box.set_text("");
 		}
-		view.refresh(qmin_textbox.first);
+		view.refresh(); //! perf
 		view.refresh(qinfo_box);
 	};
 
@@ -347,7 +347,7 @@ auto q_slider(gui::view& view) {
 		} else {
 			qinfo_box.set_text("");
 		}
-		view.refresh(qmax_textbox.first);
+		view.refresh(); //! perf
 		view.refresh(qinfo_box);
 	};
 
@@ -461,12 +461,12 @@ auto alpha_level_slider(gui::view& view) {
 
 	aslider.on_change.first = [&view] (float value) {
 		amin_textbox.second->set_text(pretty_printer(value));
-		view.refresh(amin_textbox.first);
+		view.refresh(); //! perf
 	};
 
 	aslider.on_change.second = [&view] (float value) {
 		amax_textbox.second->set_text(pretty_printer(value));
-		view.refresh(amax_textbox.first);
+		view.refresh(); //! perf
 	};
 
 	amin_textbox.second->on_text = [&view] (std::string_view text) {
@@ -555,6 +555,66 @@ auto alpha_level_slider(gui::view& view) {
 	);
 }
 
+auto make_misc_settings() {
+	auto hydrate = gui::check_box("Hydrate");
+	hydrate.value(true);
+	hydrate.on_click = [] (bool value) {
+		settings::em::hydrate = value;
+	};
+
+	auto hydrate_element = gui::vtile(
+		gui::align_center(
+			gui::label("Hydrate the dummy structure for each fit iteration. This will usually improve the fit substantially.")
+		),
+		gui::vspacer(5),
+		gui::align_center(
+			hydrate
+		)
+	);
+
+	static auto frequency = gui::input_box("Sample frequency");
+	static auto frequency_bg = gui::box(bg_color);
+	frequency.second->set_text(std::to_string(settings::em::sample_frequency));
+
+	frequency.second->on_text = [] (std::string_view text) {
+		if (text.empty()) {
+			frequency_bg = bg_color;
+		} else {
+			frequency_bg = bg_color_accent;
+		}
+	};
+
+	frequency.second->on_enter = [] (std::string_view text) {
+		try {
+			settings::em::sample_frequency = std::stof(std::string(text));
+			frequency_bg = bg_color;
+		} catch (std::exception&) {
+			std::cout << "invalid sample frequency input" << std::endl;
+			frequency_bg = bred;
+		}
+	};
+
+	return gui::htile(
+		gui::margin(
+			{50, 10, 50, 10},
+			gui::hsize(
+				100,
+				hydrate_element
+			)
+		),
+		gui::margin(
+			{50, 10, 50, 10},
+			gui::hsize(
+				100,
+				gui::layer(
+					link(frequency.first),
+					link(frequency_bg)
+				)
+			)
+		)
+	);
+}
+
 auto make_start_button(gui::view& view) {
 	static auto start_button = gui::button("start");
 	static auto start_button_bg = gui::box(bgreen);
@@ -572,7 +632,7 @@ auto make_start_button(gui::view& view) {
 		)
 	);
 
-	auto start_button_layout = share(
+	auto start_button_layout = gui::share(
 		gui::margin(
 			{10, 100, 10, 100},
 			gui::align_center_middle(
@@ -593,10 +653,8 @@ auto make_start_button(gui::view& view) {
 		if (!setup::saxs_dataset || !setup::map) {
 			std::cout << "no saxs data or map file was provided" << std::endl;
 			start_button_bg = bred;
-			view.refresh(start_button_bg);
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			start_button_bg = bg_color;
-			view.refresh(start_button_bg);
+			start_button_bg = bgreen;
 			return;
 		}
 
@@ -606,7 +664,6 @@ auto make_start_button(gui::view& view) {
 		start_button_bg = bg_color;
 		content = progress_bar_layout;
 
-		settings::lock = true;
 		view.layout(content);
 		view.refresh(content);
 	};
@@ -675,6 +732,7 @@ int main(int argc, char* argv[]) {
 				alpha_level_slider(view)
 			)
 		),
+		make_misc_settings(),
 		make_start_button(view)
 	);
 
