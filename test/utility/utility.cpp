@@ -4,7 +4,7 @@
 #include <plots/PlotDataset.h>
 #include <utility/Utility.h>
 #include <utility/StringUtils.h>
-#include <plots/all.h>
+#include <plots/All.h>
 
 TEST_CASE("plots", "[manual]") {
     std::vector<double> x = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
@@ -49,7 +49,7 @@ TEST_CASE("plots", "[manual]") {
         fit->figures.intensity = SimpleDataset(x, y2);
         fit->figures.intensity_interpolated = SimpleDataset(x, y2);
 
-        plots::PlotIntensityFit::quick_plot(fit, "figures/test/utility/plots/intensityfit.png");
+        plots::PlotIntensityFit::quick_plot(fit.get(), "figures/test/utility/plots/intensityfit.png");
     }
 }
 

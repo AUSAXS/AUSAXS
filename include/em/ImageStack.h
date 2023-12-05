@@ -7,6 +7,7 @@
 #include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
 #include <dataset/DatasetFwd.h>
+#include <utility/Observable.h>
 
 #include <functional>
 
@@ -16,16 +17,18 @@ namespace em {
      * @brief Extends the ImageStackBase class with fitting functionalities. 
      */
     class ImageStack : public ImageStackBase {
-        public: 
+        public:            
+            ImageStack() = default;
+
             /**
-             * @brief Constructor.
+             * @brief Create a new ImageStack from an input EM data file.
              * 
              * @param file Path to the input EM data file. 
              */
             ImageStack(const io::ExistingFile& file);
 
             /**
-             * @brief Constructor.
+             * @brief Create a new ImageStack from a list of images.
              * 
              * @param images The images for this stack.
              */
@@ -153,9 +156,17 @@ namespace em {
              */
             SimpleDataset get_fitted_water_factors_dataset() const;
 
+            /**
+             * @brief Get a new progress observer.
+             * 
+             * This will be notified of the progress of the fitting process in the range [0, 1].
+             */
+            auto get_progress_observer() {return progress.make_observer();}
+
         private: 
             std::vector<mini::FittedParameter> water_factors;   // If hydration is enabled, the fitted water scaling factors will be recorded here.
             std::vector<detail::ExtendedLandscape> evals;       // The evaluated points.
+            utility::Observable<double> progress;               // The progress of the fitting process.
 
             /**
              * @brief Update the cutoff sections that will be used.

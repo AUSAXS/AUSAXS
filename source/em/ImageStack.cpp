@@ -365,7 +365,6 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         } else {
             p->clear_grid();                                                                                // clear grid from previous iteration
-            std::cout << "\nVolume: " << p->get_volume_grid() << std::endl;
             auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
                 *constants::mass::density::protein                                                          
                 /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa
@@ -375,6 +374,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         }
 
         double val = fit->fval;
+        progress.notify(counter++/(settings::fit::max_iterations*1.25));
         if (settings::fit::verbose) {
             std::cout << "Step " << utility::print_element(counter++, 4) << ": Evaluated cutoff value " << utility::print_element(params[0], 8) << " with chi2 " << utility::print_element(val, 8) << std::flush << "\r";
         }

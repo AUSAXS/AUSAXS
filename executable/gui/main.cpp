@@ -5,12 +5,9 @@
 =============================================================================*/
 #include <elements.hpp>
 #include <range_slider.hpp>
-#include <algorithm>
-#include <random>
-#include <iostream>
-#include <memory>
 
 #include <data/Molecule.h>
+#include <em/ImageStack.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <plots/PlotDistance.h>
 #include <plots/PlotIntensity.h>
@@ -23,6 +20,12 @@
 
 #include <list>
 #include <bitset>
+#include <algorithm>
+#include <random>
+#include <iostream>
+#include <memory>
+#include <thread>
+#include <chrono>
 
 namespace gui = cycfi::elements;
 
@@ -45,7 +48,8 @@ namespace settings {
 }
 
 namespace setup {
-	SimpleDataset saxs_dataset;
+	std::unique_ptr<SimpleDataset> saxs_dataset;
+	std::unique_ptr<em::ImageStack> map;
 }
 
 auto io_menu(gui::view& view) {
@@ -217,7 +221,7 @@ auto io_menu(gui::view& view) {
 			std::cout << "invalid saxs file " << file.path() << std::endl;
 			saxs_box_bg = bred;
 			saxs_ok = false;
-			setup::saxs_dataset = SimpleDataset();
+			setup::saxs_dataset = nullptr;
 			return;
 		}
 
@@ -225,7 +229,7 @@ auto io_menu(gui::view& view) {
 		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
 		saxs_box_bg = bgreen;
 		saxs_ok = true;
-		setup::saxs_dataset = SimpleDataset(settings::saxs_file);
+		setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
 
 		if (map_ok) {
 		 	if (default_output) {
@@ -252,7 +256,7 @@ auto io_menu(gui::view& view) {
 				gui::hsize(
 					300,
 					gui::layer(
-						gui::hgrid({0}, map_box.first),
+						map_box.first,
 						link(map_box_bg)
 					)
 				)
@@ -262,7 +266,7 @@ auto io_menu(gui::view& view) {
 				gui::hsize(
 					300,
 					gui::layer(
-						gui::hgrid({0}, saxs_box.first),
+						saxs_box.first,
 						link(saxs_box_bg)
 					)
 				)
@@ -271,7 +275,7 @@ auto io_menu(gui::view& view) {
 				{50, 10, 50, 10},
 				gui::hsize(
 					300,
-					gui::hgrid({0}, output_box.first)
+					output_box.first
 				)
 			)
 		)
@@ -307,10 +311,10 @@ auto q_slider(gui::view& view) {
 
 	qslider.on_change.first = [&view] (float value) {
 		qmin_textbox.second->set_text(std::to_string(value));
-		if (!setup::saxs_dataset.empty()) {
+		if (setup::saxs_dataset) {
 			unsigned int removed_elements = 0;
-			for (unsigned int i = 0; i < setup::saxs_dataset.size(); ++i) {
-				auto x = setup::saxs_dataset.x(i);
+			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
+				auto x = setup::saxs_dataset->x(i);
 				removed_elements += !(value < x && x < qslider.value_second());
 			}
 			if (removed_elements != 0) {
@@ -328,10 +332,10 @@ auto q_slider(gui::view& view) {
 
 	qslider.on_change.second = [&view] (float value) {
 		qmax_textbox.second->set_text(std::to_string(value));
-		if (!setup::saxs_dataset.empty()) {
+		if (setup::saxs_dataset) {
 			unsigned int removed_elements = 0;
-			for (unsigned int i = 0; i < setup::saxs_dataset.size(); ++i) {
-				auto x = setup::saxs_dataset.x(i);
+			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
+				auto x = setup::saxs_dataset->x(i);
 				removed_elements += !(qslider.value_first() < x && x < value);
 			}
 			if (removed_elements != 0) {
@@ -397,7 +401,7 @@ auto q_slider(gui::view& view) {
 					gui::hsize(
 						100,
 						gui::layer(
-							gui::hgrid({0}, link(qmin_textbox.first)),
+							link(qmin_textbox.first),
 							link(qmin_bg)
 						)
 					)
@@ -415,7 +419,7 @@ auto q_slider(gui::view& view) {
 					gui::hsize(
 						100,
 						gui::layer(
-							gui::hgrid({0}, link(qmax_textbox.first)),
+							link(qmax_textbox.first),
 							link(qmax_bg)
 						)
 					)
@@ -586,16 +590,25 @@ auto make_start_button(gui::view& view) {
 	static auto content = gui::hold_any(start_button_layout);
 
 	start_button.on_click = [&view, progress_bar_layout] (bool click) {
-		if (click) {
-			std::cout << "##########################" << std::endl;
-			std::cout << "### starting EM fitter ###" << std::endl;
-			std::cout << "##########################" << std::endl;
+		if (!setup::saxs_dataset || !setup::map) {
+			std::cout << "no saxs data or map file was provided" << std::endl;
+			start_button_bg = bred;
+			view.refresh(start_button_bg);
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			start_button_bg = bg_color;
-			content = progress_bar_layout;
-			settings::lock = true;
-			view.layout(content);
-			view.refresh(content);
+			view.refresh(start_button_bg);
+			return;
 		}
+
+		std::cout << "##########################" << std::endl;
+		std::cout << "### starting EM fitter ###" << std::endl;
+		std::cout << "##########################" << std::endl;
+		start_button_bg = bg_color;
+		content = progress_bar_layout;
+
+		settings::lock = true;
+		view.layout(content);
+		view.refresh(content);
 	};
 
 	return link(content);
@@ -629,7 +642,7 @@ int main(int argc, char* argv[]) {
 		gui::align_center_bottom(
 			gui::margin(
 				{10, 10, 10, 10},
-				gui::label("Kristian Lytje & Jan Petersen")
+				gui::label("Kristian Lytje & Jan Skov Pedersen")
 			)
 		),
 		gui::align_right_bottom(
@@ -639,33 +652,30 @@ int main(int argc, char* argv[]) {
 			)
 		)
 	);
-	auto settings = gui::vgrid(
-		{0},
-		gui::vtile(
-			gui::top_margin(
-				10,
-				gui::label("Input & output")
-			),
-			io_menu(view),
-			gui::hgrid(
-				{0.5, 1.0},
-				gui::vtile(
-					gui::top_margin(
-						10,
-						gui::label("q-range")
-					),
-					q_slider(view)
+	auto settings = gui::vtile(
+		gui::top_margin(
+			10,
+			gui::label("Input & output")
+		),
+		io_menu(view),
+		gui::hgrid(
+			{0.5, 1.0},
+			gui::vtile(
+				gui::top_margin(
+					10,
+					gui::label("q-range")
 				),
-				gui::vtile(
-					gui::top_margin(
-						10,
-						gui::label("alpha levels")
-					),
-					alpha_level_slider(view)
-				)
+				q_slider(view)
 			),
-			make_start_button(view)
-		)
+			gui::vtile(
+				gui::top_margin(
+					10,
+					gui::label("alpha levels")
+				),
+				alpha_level_slider(view)
+			)
+		),
+		make_start_button(view)
 	);
 
 	view.content (
