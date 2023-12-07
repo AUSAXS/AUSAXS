@@ -4,6 +4,7 @@
 	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
 #include <elements.hpp>
+#include <nfd.hpp>
 
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
@@ -50,6 +51,43 @@ namespace setup {
 	std::unique_ptr<SimpleDataset> saxs_dataset;
 	std::unique_ptr<em::ImageStack> map;
 }
+
+auto make_button = [] (auto& text_field) {
+   static auto button = gui::button("");
+   static auto icon = gui::icon(gui::icons::floppy); //! change to folder icon
+
+   button.on_click = [&text_field] (bool) {
+      NFD_Init();
+      nfdchar_t* outPath;
+      nfdfilteritem_t filterItem[1] = {{"SAXS data files", "dat,scat"}};
+      nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
+      if (result == NFD_OKAY) {
+         std::cout << "User picked file: " << outPath << std::endl;
+         text_field.second->set_text(outPath);
+		 text_field.second->on_enter(outPath);
+         NFD_FreePath(outPath);
+      } else if (result == NFD_CANCEL) {
+         puts("User cancelled file selection.");
+      } else {
+         printf("Error: %s\n", NFD_GetError());
+      }
+      NFD_Quit();
+   };
+
+   return gui::htile(
+      gui::fixed_size(
+         { 30, 30 },
+         gui::layer(
+            gui::align_center_middle(
+               icon
+            ),
+            button
+         )
+      ),
+      gui::hspace(5),
+      link(text_field.first)
+   );
+};
 
 auto io_menu(gui::view& view) {
 	static auto saxs_box_bg = gui::box(bg_color);
@@ -248,6 +286,10 @@ auto io_menu(gui::view& view) {
 		std::cout << "output path was set to " << settings::general::output << std::endl;
 	};
 
+	auto map_box_field = make_button(map_box);
+	auto saxs_box_field = make_button(saxs_box);
+	auto output_box_field = make_button(output_box);
+
 	return gui::htile(
 		gui::htile(
 			gui::margin(
@@ -255,7 +297,7 @@ auto io_menu(gui::view& view) {
 				gui::hsize(
 					300,
 					gui::layer(
-						map_box.first,
+						map_box_field,
 						link(map_box_bg)
 					)
 				)
@@ -265,7 +307,7 @@ auto io_menu(gui::view& view) {
 				gui::hsize(
 					300,
 					gui::layer(
-						saxs_box.first,
+						saxs_box_field,
 						link(saxs_box_bg)
 					)
 				)
@@ -274,7 +316,7 @@ auto io_menu(gui::view& view) {
 				{50, 10, 50, 10},
 				gui::hsize(
 					300,
-					output_box.first
+					output_box_field
 				)
 			)
 		)
