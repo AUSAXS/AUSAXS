@@ -309,8 +309,25 @@ auto q_slider(gui::view& view) {
 	static auto qmin_bg = gui::box(bg_color);
 	static auto qmax_bg = gui::box(bg_color);
 
-	qslider.on_change.first = [&view] (float value) {
-		qmin_textbox.second->set_text(std::to_string(value));
+	auto pretty_printer = [] (float value) {
+		std::stringstream ss;
+		ss << std::setprecision(2) << std::scientific  << value;
+		return ss.str();
+	};
+
+	auto axis_inv_transform = [] (float value) {
+		static auto start = std::log10(constants::axes::q_vals.front());
+		static auto step = -start/100;
+		return std::pow(10, start + step*std::round(value*100));
+	};
+
+	auto axis_transform = [] (float value) {
+		return (std::log10(value) - std::log10(settings::axes::qmin))/(std::log10(settings::axes::qmax) - std::log10(settings::axes::qmin));
+	};
+
+	qslider.on_change.first = [&view, pretty_printer, axis_inv_transform] (float value) {
+		value = axis_inv_transform(value);
+		qmin_textbox.second->set_text(pretty_printer(value));
 		if (setup::saxs_dataset) {
 			unsigned int removed_elements = 0;
 			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
@@ -330,8 +347,9 @@ auto q_slider(gui::view& view) {
 		view.refresh(qinfo_box);
 	};
 
-	qslider.on_change.second = [&view] (float value) {
-		qmax_textbox.second->set_text(std::to_string(value));
+	qslider.on_change.second = [&view, pretty_printer, axis_inv_transform] (float value) {
+		value = axis_inv_transform(value);
+		qmax_textbox.second->set_text(pretty_printer(value));
 		if (setup::saxs_dataset) {
 			unsigned int removed_elements = 0;
 			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
@@ -359,9 +377,9 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmin_textbox.second->on_enter = [&view] (std::string_view text) {
+	qmin_textbox.second->on_enter = [&view, axis_transform] (std::string_view text) {
 		try {
-			qslider.value_first(std::stof(std::string(text)));
+			qslider.value_first(axis_transform(std::stof(std::string(text))));
 			qmin_bg = bg_color;
 			view.refresh(qslider);
 		} catch (std::exception&) {
@@ -377,9 +395,9 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmax_textbox.second->on_enter = [&view] (std::string_view text) {
+	qmax_textbox.second->on_enter = [&view, axis_transform] (std::string_view text) {
 		try {
-			qslider.value_second(std::stof(std::string(text)));
+			qslider.value_second(axis_transform(std::stof(std::string(text))));
 			qmax_bg = bg_color;
 			view.refresh(qslider);
 		} catch (std::exception&) {
@@ -453,18 +471,18 @@ auto alpha_level_slider(gui::view& view) {
 	static auto amax_bg = gui::box(bg_color);
 	static auto astep_bg = gui::box(bg_color);
 
-	static auto pretty_printer = [] (float value) {
+	auto pretty_printer = [] (float value) {
 		std::stringstream ss;
 		ss << std::setprecision(3) << value;
 		return ss.str();
 	};
 
-	aslider.on_change.first = [&view] (float value) {
+	aslider.on_change.first = [&view, pretty_printer] (float value) {
 		amin_textbox.second->set_text(pretty_printer(value));
 		view.refresh(); //! perf
 	};
 
-	aslider.on_change.second = [&view] (float value) {
+	aslider.on_change.second = [&view, pretty_printer] (float value) {
 		amax_textbox.second->set_text(pretty_printer(value));
 		view.refresh(); //! perf
 	};
@@ -555,6 +573,13 @@ auto alpha_level_slider(gui::view& view) {
 	);
 }
 
+auto make_tip(std::string text) {
+	return gui::layer(
+		gui::margin({20, 8, 20, 8}, gui::basic_text_box(text)), 
+		gui::panel{}
+	);
+}
+
 auto make_misc_settings() {
 	auto hydrate = gui::check_box("Hydrate");
 	hydrate.value(true);
@@ -562,18 +587,24 @@ auto make_misc_settings() {
 		settings::em::hydrate = value;
 	};
 
-	auto hydrate_element = gui::vtile(
-		gui::align_center(
-			gui::label("Hydrate the dummy structure for each fit iteration. This will usually improve the fit substantially.")
-		),
-		gui::vspacer(5),
-		gui::align_center(
-			hydrate
-		)
+	auto hydrate_tt = gui::tooltip(
+		hydrate,
+		make_tip("Hydrate the dummy structure for each fit iteration. This will usually improve the fit substantially.")
 	);
 
-	static auto frequency = gui::input_box("Sample frequency");
+	auto fixed_weights = gui::check_box("Fixed weights");
+	fixed_weights.value(false);
+	fixed_weights.on_click = [] (bool value) {
+		settings::em::fixed_weights = value;
+	};
+
+	auto fixed_weights_tt = gui::tooltip(
+		fixed_weights,
+		make_tip("Use fixed weights instead of map densities. This should only be used for maps with a large amount of noise close to the minimum.")
+	);
+
 	static auto frequency_bg = gui::box(bg_color);
+	auto frequency = gui::input_box("Sample frequency");
 	frequency.second->set_text(std::to_string(settings::em::sample_frequency));
 
 	frequency.second->on_text = [] (std::string_view text) {
@@ -594,24 +625,31 @@ auto make_misc_settings() {
 		}
 	};
 
-	return gui::htile(
-		gui::margin(
-			{50, 10, 50, 10},
-			gui::hsize(
-				100,
-				hydrate_element
-			)
-		),
-		gui::margin(
-			{50, 10, 50, 10},
-			gui::hsize(
-				100,
-				gui::layer(
-					link(frequency.first),
-					link(frequency_bg)
+	static auto frequency_element = gui::hsize(
+		200,
+		gui::tooltip(
+			gui::htile(
+				gui::align_right(
+					gui::layer(
+						gui::hsize(50, frequency.first),
+						link(frequency_bg)
+					)
+				),
+				gui::hspace(10),
+				gui::align_left(
+					gui::label("Sample frequency")
 				)
-			)
+			),
+			make_tip("The frequency of sampling the EM grid. Increasing this value will speed up the fit significantly, but will also reduce the accuracy.")
 		)
+	);
+
+	return gui::htile(
+		hydrate_tt,
+		gui::hspace(5),
+		fixed_weights_tt,
+		gui::hspace(5),
+		link(frequency_element)
 	);
 }
 
