@@ -129,5 +129,5 @@ namespace form_factor {
                     throw std::runtime_error("form_factor::storage::get_form_factor: Invalid form factor type (enum " + std::to_string(static_cast<int>(type)) + ")");
             }
         }
-    };
+    }
 }

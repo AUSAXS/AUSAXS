@@ -11,7 +11,7 @@ namespace settings {
 
         namespace reduced {
             extern double basis_q;    // The maximum q value for which the basis is generated.
-        };
+        }
     }
 }
 

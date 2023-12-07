@@ -4,6 +4,7 @@
 #include <hist/detail/CompactCoordinates.h>
 
 #include <memory>
+#include <mutex>
 
 namespace BS {
 	class thread_pool;

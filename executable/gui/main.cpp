@@ -4,7 +4,6 @@
 	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
 #include <elements.hpp>
-#include <range_slider.hpp>
 
 #include <data/Molecule.h>
 #include <em/ImageStack.h>
@@ -56,7 +55,7 @@ auto io_menu(gui::view& view) {
 	static auto saxs_box_bg = gui::box(bg_color);
 	static auto map_box_bg = gui::box(bg_color);
 	static auto output_box_bg = gui::box(bg_color);
-	static auto saxs_box = gui::input_box("pdb path");
+	static auto saxs_box = gui::input_box("saxs path");
 	static auto map_box = gui::input_box("map path");
 	static auto output_box = gui::input_box("output path");
 	static bool default_output = true;
@@ -298,7 +297,7 @@ auto q_slider(gui::view& view) {
 			gui::box(gui::colors::light_gray)
 		),
 		gui::slider_labels<9>(
-			gui::slider_marks<20, 8*5, 8>(track), 0.8, "1e-4", "5e-4", "1e-3", "5e-3", "1e-2", "5e-2", "1e-1", "5e-1", "1e0"
+			gui::slider_marks_log<20, 4>(track), 0.8, "1e-4", "1e-3", "1e-2", "1e-1", "1e0"
 		),
 		{0.1, 0.5}
 	);
@@ -315,18 +314,17 @@ auto q_slider(gui::view& view) {
 		return ss.str();
 	};
 
-	auto axis_inv_transform = [] (float value) {
-		static auto start = std::log10(constants::axes::q_vals.front());
-		static auto step = -start/100;
-		return std::pow(10, start + step*std::round(value*100));
+	auto axis_transform_inv = [] (float value) {
+		return (std::log10(value)-std::log10(constants::axes::q_axis.min))/(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min));
 	};
 
-	auto axis_transform = [] (float value) {
-		return (std::log10(value) - std::log10(settings::axes::qmin))/(std::log10(settings::axes::qmax) - std::log10(settings::axes::qmin));
+	auto axis_transform = [] (float x) {
+		double logy = x*(std::log10(constants::axes::q_axis.max)-std::log10(constants::axes::q_axis.min)) + std::log10(constants::axes::q_axis.min);
+		return std::pow(10, logy);
 	};
 
-	qslider.on_change.first = [&view, pretty_printer, axis_inv_transform] (float value) {
-		value = axis_inv_transform(value);
+	qslider.on_change.first = [&view, pretty_printer, axis_transform] (float value) {
+		value = axis_transform(value);
 		qmin_textbox.second->set_text(pretty_printer(value));
 		if (setup::saxs_dataset) {
 			unsigned int removed_elements = 0;
@@ -343,12 +341,12 @@ auto q_slider(gui::view& view) {
 		} else {
 			qinfo_box.set_text("");
 		}
-		view.refresh(); //! perf
+		view.refresh(qmax_textbox.first);
 		view.refresh(qinfo_box);
 	};
 
-	qslider.on_change.second = [&view, pretty_printer, axis_inv_transform] (float value) {
-		value = axis_inv_transform(value);
+	qslider.on_change.second = [&view, pretty_printer, axis_transform] (float value) {
+		value = axis_transform(value);
 		qmax_textbox.second->set_text(pretty_printer(value));
 		if (setup::saxs_dataset) {
 			unsigned int removed_elements = 0;
@@ -365,7 +363,7 @@ auto q_slider(gui::view& view) {
 		} else {
 			qinfo_box.set_text("");
 		}
-		view.refresh(); //! perf
+		view.refresh(qmin_textbox.first);
 		view.refresh(qinfo_box);
 	};
 
@@ -377,9 +375,9 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmin_textbox.second->on_enter = [&view, axis_transform] (std::string_view text) {
+	qmin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
 		try {
-			qslider.value_first(axis_transform(std::stof(std::string(text))));
+			qslider.value_first(axis_transform_inv(std::stof(std::string(text))));
 			qmin_bg = bg_color;
 			view.refresh(qslider);
 		} catch (std::exception&) {
@@ -395,9 +393,9 @@ auto q_slider(gui::view& view) {
 		}
 	};
 
-	qmax_textbox.second->on_enter = [&view, axis_transform] (std::string_view text) {
+	qmax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
 		try {
-			qslider.value_second(axis_transform(std::stof(std::string(text))));
+			qslider.value_second(axis_transform_inv(std::stof(std::string(text))));
 			qmax_bg = bg_color;
 			view.refresh(qslider);
 		} catch (std::exception&) {
@@ -477,14 +475,22 @@ auto alpha_level_slider(gui::view& view) {
 		return ss.str();
 	};
 
-	aslider.on_change.first = [&view, pretty_printer] (float value) {
-		amin_textbox.second->set_text(pretty_printer(value));
-		view.refresh(); //! perf
+	auto axis_transform = [] (float value) {
+		return value*10;
 	};
 
-	aslider.on_change.second = [&view, pretty_printer] (float value) {
-		amax_textbox.second->set_text(pretty_printer(value));
-		view.refresh(); //! perf
+	auto axis_transform_inv = [] (float value) {
+		return value/10;
+	};
+
+	aslider.on_change.first = [&view, pretty_printer, axis_transform] (float value) {
+		amin_textbox.second->set_text(pretty_printer(axis_transform(value)));
+		view.refresh(amin_textbox.first);
+	};
+
+	aslider.on_change.second = [&view, pretty_printer, axis_transform] (float value) {
+		amax_textbox.second->set_text(pretty_printer(axis_transform(value)));
+		view.refresh(amax_textbox.first);
 	};
 
 	amin_textbox.second->on_text = [&view] (std::string_view text) {
@@ -495,9 +501,9 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	amin_textbox.second->on_enter = [&view] (std::string_view text) {
+	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
 		try {
-			aslider.edit_value_first(std::stof(std::string(text)));
+			aslider.edit_value_first(axis_transform_inv(std::stof(std::string(text))));
 			amin_bg = bg_color;
 			view.refresh(aslider);
 		} catch (std::exception&) {
@@ -514,9 +520,9 @@ auto alpha_level_slider(gui::view& view) {
 		}
 	};
 
-	amax_textbox.second->on_enter = [&view] (std::string_view text) {
+	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
 		try {
-			aslider.edit_value_second(std::stof(std::string(text)));
+			aslider.edit_value_second(axis_transform_inv(std::stof(std::string(text))));
 			amax_bg = bg_color;
 			view.refresh(aslider);
 		} catch (std::exception&) {
@@ -645,17 +651,23 @@ auto make_misc_settings() {
 	);
 
 	return gui::htile(
-		hydrate_tt,
-		gui::hspace(5),
-		fixed_weights_tt,
-		gui::hspace(5),
-		link(frequency_element)
+		gui::margin(
+			{50, 10, 50, 10},
+			hydrate_tt
+		),
+		gui::margin(
+			{50, 10, 50, 10},
+			fixed_weights_tt
+		),
+		gui::margin(
+			{50, 10, 50, 10},
+			link(frequency_element)
+		)
 	);
 }
 
 auto make_start_button(gui::view& view) {
 	static auto start_button = gui::button("start");
-	static auto start_button_bg = gui::box(bgreen);
 	static auto progress_bar = gui::progress_bar(gui::rbox(gui::colors::black), gui::rbox(bgreen));
 
 	auto progress_bar_layout = share(
@@ -676,10 +688,7 @@ auto make_start_button(gui::view& view) {
 			gui::align_center_middle(
 				gui::hsize(
 					200,
-					gui::layer(
-						link(start_button),
-						link(start_button_bg)
-					)
+					link(start_button)
 				)
 			)
 		)
@@ -690,16 +699,13 @@ auto make_start_button(gui::view& view) {
 	start_button.on_click = [&view, progress_bar_layout] (bool click) {
 		if (!setup::saxs_dataset || !setup::map) {
 			std::cout << "no saxs data or map file was provided" << std::endl;
-			start_button_bg = bred;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			start_button_bg = bgreen;
 			return;
 		}
 
 		std::cout << "##########################" << std::endl;
 		std::cout << "### starting EM fitter ###" << std::endl;
 		std::cout << "##########################" << std::endl;
-		start_button_bg = bg_color;
 		content = progress_bar_layout;
 
 		view.layout(content);

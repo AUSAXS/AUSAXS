@@ -83,6 +83,7 @@ include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
 ############################################
 # when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
+	include_directories(~/projects/quasi-msys2/root)
 	add_definitions(-DCURL_STATICLIB)
 	set(OPENSSL_USE_STATIC_LIBS TRUE)
 	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.a")
