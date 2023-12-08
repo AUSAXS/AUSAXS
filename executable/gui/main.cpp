@@ -17,6 +17,7 @@
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 #include <utility/Limit2D.h>
+#include <utility/MultiThreading.h>
 
 #include <list>
 #include <bitset>
@@ -52,26 +53,25 @@ namespace setup {
 	std::unique_ptr<em::ImageStack> map;
 }
 
-auto make_button = [] (auto& text_field) {
-   static auto button = gui::button("");
-   static auto icon = gui::icon(gui::icons::floppy); //! change to folder icon
+auto make_file_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
+   auto button = gui::button("");
+   auto icon = gui::icon(gui::icons::floppy); //! change to folder icon
 
-   button.on_click = [&text_field] (bool) {
-      NFD_Init();
-      nfdchar_t* outPath;
-      nfdfilteritem_t filterItem[1] = {{"SAXS data files", "dat,scat"}};
-      nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 1, NULL);
-      if (result == NFD_OKAY) {
-         std::cout << "User picked file: " << outPath << std::endl;
-         text_field.second->set_text(outPath);
-		 text_field.second->on_enter(outPath);
-         NFD_FreePath(outPath);
-      } else if (result == NFD_CANCEL) {
-         puts("User cancelled file selection.");
-      } else {
-         printf("Error: %s\n", NFD_GetError());
-      }
-      NFD_Quit();
+   button.on_click = [&text_field, filter] (bool) {
+		NFD::Guard guard;
+		NFD::UniquePath output;
+	    nfdfilteritem_t filterItem[1] = {{filter.first.c_str(), filter.second.c_str()}};
+		auto result = NFD::OpenDialog(output, filterItem, 1);
+	    
+		if (result == NFD_OKAY) {
+        	std::cout << "User picked file: " << output.get() << std::endl;
+        	text_field.second->set_text(output.get());
+			text_field.second->on_enter(output.get());
+      	} else if (result == NFD_CANCEL) {
+        	puts("User cancelled file selection.");
+      	} else {
+        	printf("Error: %s\n", NFD_GetError());
+      	}
    };
 
    return gui::htile(
@@ -85,8 +85,49 @@ auto make_button = [] (auto& text_field) {
          )
       ),
       gui::hspace(5),
-      link(text_field.first)
+	  gui::layer(
+	      link(text_field.first),
+		  link(bg)
+	  )
    );
+};
+
+auto make_folder_dialog_button = [] (auto& text_field, auto& bg) {
+	auto button = gui::button("");
+	auto icon = gui::icon(gui::icons::floppy); //! change to folder icon
+
+	button.on_click = [&text_field] (bool) {
+		NFD::Guard guard;
+		NFD::UniquePath output;
+		auto result = NFD::PickFolder(output);
+		
+		if (result == NFD_OKAY) {
+			std::cout << "User picked ouput folder: " << output << std::endl;
+			text_field.second->set_text(output.get());
+			text_field.second->on_enter(output.get());
+		} else if (result == NFD_CANCEL) {
+			puts("User cancelled folder selection.");
+		} else {
+			printf("Error: %s\n", NFD_GetError());
+		}
+	};
+
+	return gui::htile(
+		gui::fixed_size(
+			{ 30, 30 },
+			gui::layer(
+				gui::align_center_middle(
+					icon
+				),
+				button
+			)
+		),
+		gui::hspace(5),
+		gui::layer(
+			link(text_field.first),
+			link(bg)
+		)
+	);
 };
 
 auto io_menu(gui::view& view) {
@@ -122,6 +163,7 @@ auto io_menu(gui::view& view) {
 
 		// only autocomplete if the last character is a '/' and there are less than 20 matches
 		if (text.back() != '/') {return;}
+		if (!std::filesystem::is_directory(text)) {return;}
 		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
 
 		std::list<std::string> matches;
@@ -169,19 +211,22 @@ auto io_menu(gui::view& view) {
 
 		settings::map_file = file.path();
 		std::cout << "map file was set to " << settings::map_file << std::endl;
+		setup::map = std::make_unique<em::ImageStack>(settings::map_file);
 		map_box_bg = bgreen;
 		map_ok = true;
 
-		if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
-		for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
-			io::File tmp(p.path().string());
-			if (constants::filetypes::saxs_data.validate(tmp)) {
-				settings::saxs_file = tmp.path();
-				saxs_box.second->set_text(tmp.path());
-				saxs_box.second->on_enter(tmp.path());
-			} else if (constants::filetypes::setting.validate(tmp)) {
-				std::cout << "discovered settings file " << tmp.path() << std::endl;
-				settings::read(tmp);
+		if (!saxs_ok) {
+			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
+			for (auto& p : std::filesystem::directory_iterator(file.directory().path())) {
+				io::File tmp(p.path().string());
+				if (constants::filetypes::saxs_data.validate(tmp)) {
+					settings::saxs_file = tmp.path();
+					saxs_box.second->set_text(tmp.path());
+					saxs_box.second->on_enter(tmp.path());
+				} else if (constants::filetypes::setting.validate(tmp)) {
+					std::cout << "discovered settings file " << tmp.path() << std::endl;
+					settings::read(tmp);
+				}
 			}
 		}
 
@@ -214,6 +259,7 @@ auto io_menu(gui::view& view) {
 
 		// only autocomplete if the last character is a '/' and there are less than 20 matches
 		if (text.back() != '/') {return;}
+		if (!std::filesystem::is_directory(text)) {return;}
 		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
 
 		std::list<std::string> matches;
@@ -277,7 +323,12 @@ auto io_menu(gui::view& view) {
 		}
 	};
 
-	output_box.second->on_text = [] (std::string_view) {
+	output_box.second->on_text = [] (std::string_view text) {
+		if (text.size() == 1) {
+			output_box_bg = bg_color_accent;
+		} else if (text.empty()) {
+			output_box_bg = bg_color;
+		}
 		default_output = false;
 	};
 
@@ -286,9 +337,9 @@ auto io_menu(gui::view& view) {
 		std::cout << "output path was set to " << settings::general::output << std::endl;
 	};
 
-	auto map_box_field = make_button(map_box);
-	auto saxs_box_field = make_button(saxs_box);
-	auto output_box_field = make_button(output_box);
+	auto map_box_field = make_file_dialog_button(map_box, map_box_bg, {"EM map", "map,ccp4,mrc"});
+	auto saxs_box_field = make_file_dialog_button(saxs_box, saxs_box_bg, {"SAXS data", "dat,scat"});
+	auto output_box_field = make_folder_dialog_button(output_box, output_box_bg);
 
 	return gui::htile(
 		gui::htile(
@@ -296,20 +347,14 @@ auto io_menu(gui::view& view) {
 				{50, 10, 50, 10},
 				gui::hsize(
 					300,
-					gui::layer(
-						map_box_field,
-						link(map_box_bg)
-					)
+					map_box_field
 				)
 			),
 			gui::margin(
 				{50, 10, 50, 10},
 				gui::hsize(
 					300,
-					gui::layer(
-						saxs_box_field,
-						link(saxs_box_bg)
-					)
+					saxs_box_field
 				)
 			),
 			gui::margin(
@@ -712,7 +757,7 @@ auto make_start_button(gui::view& view) {
 	static auto start_button = gui::button("start");
 	static auto progress_bar = gui::progress_bar(gui::rbox(gui::colors::black), gui::rbox(bgreen));
 
-	auto progress_bar_layout = share(
+	static auto progress_bar_layout = share(
 		gui::margin(
 			{10, 100, 10, 100},
 			gui::align_center_middle(
@@ -724,7 +769,7 @@ auto make_start_button(gui::view& view) {
 		)
 	);
 
-	auto start_button_layout = gui::share(
+	static auto start_button_layout = gui::share(
 		gui::margin(
 			{10, 100, 10, 100},
 			gui::align_center_middle(
@@ -738,29 +783,39 @@ auto make_start_button(gui::view& view) {
 
 	static auto content = gui::hold_any(start_button_layout);
 
-	start_button.on_click = [&view, progress_bar_layout] (bool click) {
+	start_button.on_click = [&view] (bool click) {
 		if (!setup::saxs_dataset || !setup::map) {
 			std::cout << "no saxs data or map file was provided" << std::endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 			return;
 		}
 
-		std::cout << "##########################" << std::endl;
-		std::cout << "### starting EM fitter ###" << std::endl;
-		std::cout << "##########################" << std::endl;
-		content = progress_bar_layout;
+		auto observer = setup::map->get_progress_observer();
+		observer->on_notify = [&view] (double progress) {
+			std::cout << "progress: " << progress << std::endl;
+			progress_bar.value(progress);
+			view.refresh(progress_bar);
+		};
 
+		content = progress_bar_layout;
 		view.layout(content);
-		view.refresh(content);
+		view.refresh();
+		utility::multi_threading::get_global_pool()->push_task([] () {setup::map->fit(settings::saxs_file);});
 	};
 
 	return link(content);
 }
 
 int main(int argc, char* argv[]) {
-	// set maximum qrange, user will be able to change this later
+    std::ios_base::sync_with_stdio(false);
 	settings::axes::qmin = 0;
 	settings::axes::qmax = 1;
+    settings::molecule::use_effective_charge = false;
+    settings::em::mass_axis = true;
+    settings::em::hydrate = true;
+    settings::fit::verbose = true;
+    settings::em::alpha_levels = {1, 10};
+    settings::hist::weighted_bins = true;
 
 	gui::app app(argc, argv, "EM fitter", "com.saxs.gui");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), gui::rect{20, 20, 1620, 1020});
