@@ -18,6 +18,7 @@
 #include <settings/All.h>
 #include <utility/Limit2D.h>
 #include <utility/MultiThreading.h>
+#include <fitter/FitReporter.h>
 
 #include <list>
 #include <bitset>
@@ -39,7 +40,9 @@ auto plot_names = std::vector<std::pair<std::string, std::string>>{
 	{"chi2_evaluated_points_full_mass", "χ²"},
 	{"chi2_evaluated_points_limited", "χ² reduced axes"},
 	{"chi2_near_minimum", "χ² near minimum"},
-	{"chi2_near_minimum_mass", "χ² near minimum"}
+	{"chi2_near_minimum_mass", "χ² near minimum"},
+	{"log", "log plot"},
+	{"loglog", "log-log plot"}
 };
 
 auto abs_path(const std::string& path) {
@@ -62,7 +65,7 @@ namespace setup {
 
 auto make_file_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
    auto button = gui::button("");
-   auto icon = gui::icon(gui::icons::floppy); //! change to folder icon
+   auto icon = gui::icon(gui::icons::folder_open_empty);
 
    button.on_click = [&text_field, filter] (bool) {
 		NFD::Guard guard;
@@ -101,7 +104,7 @@ auto make_file_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::st
 
 auto make_folder_dialog_button = [] (auto& text_field, auto& bg) {
 	auto button = gui::button("");
-	auto icon = gui::icon(gui::icons::floppy); //! change to folder icon
+	auto icon = gui::icon(gui::icons::folder_open_empty);
 
 	button.on_click = [&text_field] (bool) {
 		NFD::Guard guard;
@@ -421,14 +424,36 @@ auto q_slider(gui::view& view) {
 		return std::pow(10, logy);
 	};
 
-	qslider.on_change.first = [&view, pretty_printer, axis_transform] (float value) {
-		value = axis_transform(value);
-		qmin_textbox.second->set_text(pretty_printer(value));
-		if (setup::saxs_dataset) {
+	auto update_removed_counter = [&view] () {
+		static bool extend_wait = false;
+		static bool waiting = false;
+		static std::thread worker;
+
+		// extend wait period if the user is still moving the slider
+		if (waiting) {
+			extend_wait = true;
+			return;	
+		}
+
+		// a valid dataset must be present
+		if (!setup::saxs_dataset) {return;}
+
+		// ensure that the worker thread is finished and can be destructed
+		if (worker.joinable()) {
+			worker.join();
+		}
+
+		waiting = true;
+		worker = std::thread([&view] () {
+			do {
+				extend_wait = false;
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));			
+			} while (extend_wait);
+
 			unsigned int removed_elements = 0;
 			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
 				auto x = setup::saxs_dataset->x(i);
-				removed_elements += !(value < x && x < qslider.value_second());
+				removed_elements += !(qslider.value_first() < x && x < qslider.value_second());
 			}
 			if (removed_elements != 0) {
 				qinfo_box.set_text("note: ignoring " + std::to_string(removed_elements) + " lines in SAXS file" 
@@ -436,32 +461,24 @@ auto q_slider(gui::view& view) {
 			} else {
 				qinfo_box.set_text("");
 			}
-		} else {
-			qinfo_box.set_text("");
-		}
-		view.refresh(qmax_textbox.first);
+			view.refresh(qinfo_box);
+			waiting = false;
+		});
+	};
+
+	qslider.on_change.first = [&view, pretty_printer, axis_transform, update_removed_counter] (float value) {
+		value = axis_transform(value);
+		qmin_textbox.second->set_text(pretty_printer(value));
+		update_removed_counter();
+		view.refresh(qmin_textbox.first);
 		view.refresh(qinfo_box);
 	};
 
-	qslider.on_change.second = [&view, pretty_printer, axis_transform] (float value) {
+	qslider.on_change.second = [&view, pretty_printer, axis_transform, update_removed_counter] (float value) {
 		value = axis_transform(value);
 		qmax_textbox.second->set_text(pretty_printer(value));
-		if (setup::saxs_dataset) {
-			unsigned int removed_elements = 0;
-			for (unsigned int i = 0; i < setup::saxs_dataset->size(); ++i) {
-				auto x = setup::saxs_dataset->x(i);
-				removed_elements += !(qslider.value_first() < x && x < value);
-			}
-			if (removed_elements != 0) {
-				qinfo_box.set_text("note: ignoring " + std::to_string(removed_elements) + " lines in SAXS file" 
-										+ std::string(std::min<int>(4-std::to_string(removed_elements).size(), 0), ' '));
-			} else {
-				qinfo_box.set_text("");
-			}
-		} else {
-			qinfo_box.set_text("");
-		}
-		view.refresh(qmin_textbox.first);
+		update_removed_counter();
+		view.refresh(qmax_textbox.first);
 		view.refresh(qinfo_box);
 	};
 
@@ -788,16 +805,6 @@ auto make_start_button(gui::view& view) {
 		)
 	);
 
-	// auto result_viewer_layout = gui::margin(
-	// 	{10, 10, 10, 10},
-	// 	gui::align_center_middle(
-	// 		gui::fixed_size(
-	// 			{1000, 1000},
-	// 			gui::box(gui::colors::black)
-	// 		)
-	// 	)
-	// );
-
 	static auto deck = gui::deck_composite();
 	deck.push_back(gui::share(start_button_layout));
 	deck.push_back(gui::share(progress_bar_layout));
@@ -816,17 +823,30 @@ auto make_start_button(gui::view& view) {
 			view.refresh(deck);
 		};
 
+		settings::general::output = "output/em_fitter/emd_24889/simulated_SAXS/";
 		deck.select(1);
 		view.refresh();
 		worker = std::thread([&view] () {
-			setup::map->fit(settings::saxs_file);
+			auto res = setup::map->fit(settings::saxs_file);
+
+			// small animation to make the bar reach 100%
+			while (progress_bar.value() < 1) {
+				progress_bar.value(progress_bar.value() + 0.02);
+				view.refresh(deck);
+				std::this_thread::sleep_for(std::chrono::milliseconds(25));
+			}
+
+			// perform the plots
+			res->figures.data.save(settings::general::output + io::File(settings::saxs_file).stem() + ".dat");
+			res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
+			fitter::FitReporter::save(res.get(), settings::general::output + "report.txt");
 			perform_plot(settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(path.path().c_str());
+				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.25);
 			};
 
-			auto image_viewer_layout = gui::vnotebook(
+			auto chi2_landscape_pane = gui::vnotebook(
 				view,
 				gui::deck(
 					make_image_pane(settings::general::output + plot_names[0].first + ".png"),
@@ -840,6 +860,31 @@ auto make_start_button(gui::view& view) {
 				gui::tab(plot_names[2].second),
 				gui::tab(plot_names[3].second),
 				gui::tab(plot_names[4].second)
+			);
+
+			auto chi2_pane = gui::vnotebook(
+				view,
+				gui::deck(
+					make_image_pane(settings::general::output + plot_names[5].first + ".png"),
+					make_image_pane(settings::general::output + plot_names[6].first + ".png")
+				),
+				gui::tab("log"),
+				gui::tab("log-log")
+			);
+
+			auto image_viewer_layout = gui::margin(
+				{10, 10, 10, 10},
+				gui::align_center_middle(
+					gui::vnotebook(
+						view,
+						gui::deck(
+							chi2_pane,
+							chi2_landscape_pane
+						),
+						gui::tab("χ²"),
+						gui::tab("χ² landscape")
+					)
+				)
 			);
 
 			deck.push_back(gui::share(image_viewer_layout));
