@@ -34,12 +34,19 @@ auto constexpr bg_color_accent = gui::rgba(55, 55, 57, 255);
 auto constexpr bg_color = gui::rgba(35, 35, 37, 255);
 auto constexpr bgreen   = gui::colors::green.level(0.7).opacity(0.4);
 auto constexpr bred     = gui::colors::red.level(0.7).opacity(0.4);
+auto plot_names = std::vector<std::pair<std::string, std::string>>{
+	{"chi2_evaluated_points_full", "χ²"},
+	{"chi2_evaluated_points_full_mass", "χ²"},
+	{"chi2_evaluated_points_limited", "χ² reduced axes"},
+	{"chi2_near_minimum", "χ² near minimum"},
+	{"chi2_near_minimum_mass", "χ² near minimum"}
+};
 
 auto abs_path(const std::string& path) {
 	return std::filesystem::current_path().string() + "/" + path;
 }
 auto perform_plot(const std::string& path) {
-	std::string command = "python3 scripts/plot.py " + path;
+	std::string command = "python scripts/plot.py " + path;
 	std::system(command.c_str());
 };
 
@@ -332,8 +339,12 @@ auto io_menu(gui::view& view) {
 		default_output = false;
 	};
 
-	output_box.second->on_enter = [] (std::string_view text) {
+	output_box.second->on_enter = [&view] (std::string_view text) {
 		settings::general::output = text;
+		if (settings::general::output.back() != '/') {
+			settings::general::output += "/";
+			view.refresh(output_box.first);
+		}
 		std::cout << "output path was set to " << settings::general::output << std::endl;
 	};
 
@@ -757,32 +768,41 @@ auto make_start_button(gui::view& view) {
 	static auto start_button = gui::button("start");
 	static auto progress_bar = gui::progress_bar(gui::rbox(gui::colors::black), gui::rbox(bgreen));
 
-	static auto progress_bar_layout = share(
-		gui::margin(
-			{10, 100, 10, 100},
-			gui::align_center_middle(
-				gui::fixed_size(
-					{1000, 30},
-					link(progress_bar)
-				)
+	auto progress_bar_layout = gui::margin(
+		{10, 100, 10, 100},
+		gui::align_center_middle(
+			gui::fixed_size(
+				{1000, 30},
+				link(progress_bar)
 			)
 		)
 	);
 
-	static auto start_button_layout = gui::share(
-		gui::margin(
-			{10, 100, 10, 100},
-			gui::align_center_middle(
-				gui::hsize(
-					200,
-					link(start_button)
-				)
+	auto start_button_layout = gui::margin(
+		{10, 100, 10, 100},
+		gui::align_center_middle(
+			gui::hsize(
+				200,
+				link(start_button)
 			)
 		)
 	);
 
-	static auto content = gui::hold_any(start_button_layout);
+	// auto result_viewer_layout = gui::margin(
+	// 	{10, 10, 10, 10},
+	// 	gui::align_center_middle(
+	// 		gui::fixed_size(
+	// 			{1000, 1000},
+	// 			gui::box(gui::colors::black)
+	// 		)
+	// 	)
+	// );
 
+	static auto deck = gui::deck_composite();
+	deck.push_back(gui::share(start_button_layout));
+	deck.push_back(gui::share(progress_bar_layout));
+
+	static std::thread worker;
 	start_button.on_click = [&view] (bool click) {
 		if (!setup::saxs_dataset || !setup::map) {
 			std::cout << "no saxs data or map file was provided" << std::endl;
@@ -790,20 +810,44 @@ auto make_start_button(gui::view& view) {
 			return;
 		}
 
-		auto observer = setup::map->get_progress_observer();
-		observer->on_notify = [&view] (double progress) {
-			std::cout << "progress: " << progress << std::endl;
-			progress_bar.value(progress);
-			view.refresh(progress_bar);
+		static auto observer = setup::map->get_progress_observer();
+		observer->on_notify = [&view] (int progress) {
+			progress_bar.value(float(progress)/(2*settings::fit::max_iterations));
+			view.refresh(deck);
 		};
 
-		content = progress_bar_layout;
-		view.layout(content);
+		deck.select(1);
 		view.refresh();
-		utility::multi_threading::get_global_pool()->push_task([] () {setup::map->fit(settings::saxs_file);});
+		worker = std::thread([&view] () {
+			setup::map->fit(settings::saxs_file);
+			perform_plot(settings::general::output);
+
+			auto make_image_pane = [] (const io::File& path) {
+				return gui::image(path.path().c_str());
+			};
+
+			auto image_viewer_layout = gui::vnotebook(
+				view,
+				gui::deck(
+					make_image_pane(settings::general::output + plot_names[0].first + ".png"),
+					make_image_pane(settings::general::output + plot_names[1].first + ".png"),
+					make_image_pane(settings::general::output + plot_names[2].first + ".png"),
+					make_image_pane(settings::general::output + plot_names[3].first + ".png"),
+					make_image_pane(settings::general::output + plot_names[4].first + ".png")
+				),
+				gui::tab(plot_names[0].second),
+				gui::tab(plot_names[1].second),
+				gui::tab(plot_names[2].second),
+				gui::tab(plot_names[3].second),
+				gui::tab(plot_names[4].second)
+			);
+
+			deck.push_back(gui::share(image_viewer_layout));
+			deck.select(2);
+		});
 	};
 
-	return link(content);
+	return link(deck);
 }
 
 int main(int argc, char* argv[]) {

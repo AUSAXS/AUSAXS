@@ -374,7 +374,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
         }
 
         double val = fit->fval;
-        progress.notify(counter++/(settings::fit::max_iterations*1.25));
+        progress.notify(counter++);
         if (settings::fit::verbose) {
             std::cout << "Step " << utility::print_element(counter, 4) << ": Evaluated cutoff value " << utility::print_element(params[0], 8) << " with chi2 " << utility::print_element(val, 8) << std::flush << "\r";
         }

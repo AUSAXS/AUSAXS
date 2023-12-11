@@ -159,14 +159,15 @@ namespace em {
             /**
              * @brief Get a new progress observer.
              * 
-             * This will be notified of the progress of the fitting process in the range [0, 1].
+             * This will be notified of the progress of the fitting process in the form of a iteration counter.
+             * Typically this will be in the range [0, 2*max_iterations], though it can be higher for some datasets.
              */
             auto get_progress_observer() {return progress.make_observer();}
 
         private: 
             std::vector<mini::FittedParameter> water_factors;   // If hydration is enabled, the fitted water scaling factors will be recorded here.
             std::vector<detail::ExtendedLandscape> evals;       // The evaluated points.
-            utility::Observable<double> progress;               // The progress of the fitting process.
+            utility::Observable<int> progress;                  // The progress of the fitting process.
 
             /**
              * @brief Update the cutoff sections that will be used.
