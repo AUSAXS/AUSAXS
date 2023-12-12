@@ -21,9 +21,9 @@ void Fval::set_points(std::vector<Vector3<double>>&& points) {
 }
 
 void Fval::set_basis(const Basis3D& basis) {
-    ap = {2*M_PI/basis.x.x(), 0, 0};
-    bp = {0, 2*M_PI/basis.y.y(), 0};
-    cp = {0, 0, 2*M_PI/basis.z.z()};
+    ap = {2*constants::pi/basis.x.x(), 0, 0};
+    bp = {0, 2*constants::pi/basis.y.y(), 0};
+    cp = {0, 0, 2*constants::pi/basis.z.z()};
 }
 
 std::vector<Vector3<double>>& Fval::get_points() {
@@ -57,9 +57,9 @@ data::Molecule Fval::as_protein() {
 //     z_factors.reserve(points.size());
 
 //     for (const Vector3<double>& point : points) {
-//         std::complex<double> x_factor = std::polar(1.0, -2*M_PI*ap.x()*point.x());
-//         std::complex<double> y_factor = std::polar(1.0, -2*M_PI*bp.y()*point.y());
-//         std::complex<double> z_factor = std::polar(1.0, -2*M_PI*cp.z()*point.z());
+//         std::complex<double> x_factor = std::polar(1.0, -2*constants::pi*ap.x()*point.x());
+//         std::complex<double> y_factor = std::polar(1.0, -2*constants::pi*bp.y()*point.y());
+//         std::complex<double> z_factor = std::polar(1.0, -2*constants::pi*cp.z()*point.z());
 
 //         x_factors.push_back(x_factor);
 //         y_factors.push_back(y_factor);

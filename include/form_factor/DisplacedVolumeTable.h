@@ -2,7 +2,8 @@
 
 #include <constants/SI.h>
 #include <constants/vdwTable.h>
-#include <math/ConstMath.h>
+#include <math/ConstexprMath.h>
+#include <constants/ConstantsMath.h>
 
 #include <cmath>
 
@@ -11,7 +12,7 @@
 namespace constants::displaced_volume {
     namespace {
         constexpr double volume(double radius) {
-            return 4*M_PI/3*math::pow(radius, 3);
+            return 4*constants::pi/3*constexpr_math::pow(radius, 3);
         }
     }
 
@@ -43,7 +44,7 @@ namespace constants::displaced_volume {
         constexpr double OH = 23;
         constexpr double SH = 34.2;
 
-        constexpr double H = 0.00515*math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
+        constexpr double H = 0.00515*constexpr_math::pow(constants::SI::length::nm/constants::SI::length::A, 3);
         constexpr double C = 8.4;
         constexpr double N = 8.8;
         constexpr double O = 22.3;
@@ -66,6 +67,6 @@ namespace constants::displaced_volume {
         constexpr double S = volume(constants::radius::vdw::S);
     #endif
     constexpr double avg_vol = 50./3;
-    constexpr double OH2 = 2.98*math::pow(10, -23)*math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
+    constexpr double OH2 = 2.98*constexpr_math::pow(10., -23)*constexpr_math::pow(constants::SI::length::cm/constants::SI::length::A, 3);
     constexpr double Ar = volume(constants::radius::vdw::Ar);
 }

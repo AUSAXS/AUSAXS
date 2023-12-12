@@ -4,6 +4,7 @@
 #include <form_factor/FormFactorType.h>
 #include <form_factor/FormFactorTable.h>
 #include <form_factor/DisplacedVolumeTable.h>
+#include <math/ConstexprMath.h>
 
 #include <cmath>
 
@@ -18,14 +19,14 @@ namespace form_factor {
              * @brief Create a new excluded volume form factor with the given volume.
              */
             constexpr ExvFormFactor(double volume) {
-                // double s_to_q = M_PI*M_PI*constants::form_factor::s_to_q_factor;
+                // double s_to_q = constants::pi*constants::pi*constants::form_factor::s_to_q_factor;
                 double s_to_q = constants::form_factor::s_to_q_factor;
-                exponent = M_PI*std::pow(volume, 2./3)*s_to_q;
+                exponent = constants::pi*constexpr_math::pow(volume, 2./3)*s_to_q;
                 q0 = volume*constants::charge::density::water;
             }
 
             constexpr double evaluate_normalized(double q) const {
-                return std::exp(-exponent*q*q);
+                return constexpr_math::exp(-exponent*q*q);
             }
 
             constexpr double evaluate(double q) const {

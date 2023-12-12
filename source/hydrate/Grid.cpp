@@ -113,8 +113,8 @@ std::vector<Water> Grid::hydrate() {
 
     // assume the protein is a perfect sphere. then we want the number of water molecules to be proportional to the surface area
     double vol = get_volume(); // volume in cubic Ångström
-    double r = std::cbrt(3*vol/(4*M_PI)); // radius of the protein in Ångström
-    double area = 4*M_PI*std::pow(r, 2.5); // surface area of the protein in Ångström^2
+    double r = std::cbrt(3*vol/(4*constants::pi)); // radius of the protein in Ångström
+    double area = 4*constants::pi*std::pow(r, 2.5); // surface area of the protein in Ångström^2
     double target = settings::grid::water_scaling*area; // the target number of water molecules
 
     water_culler->set_target_count(target);
@@ -618,16 +618,16 @@ double Grid::get_volume() {
 
     // // assume perfect sphere
     // double vol = std::pow(width, 3)*volume; // volume in cubic Å
-    // double r = std::cbrt(3*vol/(4*M_PI));   // radius of the protein in Ångström
+    // double r = std::cbrt(3*vol/(4*constants::pi));   // radius of the protein in Ångström
 
     // // assume ellipsoid with axes r, r, 0.8r
     // double vol = std::pow(settings::grid::width, 3)*volume; // volume in cubic Å
-    // double r = std::cbrt(3*vol/(4*M_PI*0.8));   // radius of the protein in Ångström
+    // double r = std::cbrt(3*vol/(4*constants::pi*0.8));   // radius of the protein in Ångström
 
     // // since rvol is significantly larger than the Van der Waals radius, we must correct for this
     // // this has a significant volume contribution for small proteins
     // r -= (settings::grid::rvol - constants::radius::get_vdw_radius(constants::atom_t::C));
-    // return 0.8*4/3*M_PI*std::pow(r, 3); // volume in cubic Å
+    // return 0.8*4/3*constants::pi*std::pow(r, 3); // volume in cubic Å
     return volume*std::pow(settings::grid::width, 3);
 }
 

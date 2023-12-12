@@ -10,6 +10,7 @@
 #include <io/ExistingFile.h>
 #include <fitter/LinearFitter.h>
 #include <data/record/Water.h>
+#include <constants/ConstantsMath.h>
 
 #include <iostream>
 
@@ -40,5 +41,5 @@ void RigidBodyManager::optimize_step() {
 void RigidBodyManager::set_managers(const settings::rigidbody::BodySelectStrategyChoice& body_selector, const settings::rigidbody::TransformationStrategyChoice& transform, const settings::rigidbody::ParameterGenerationStrategyChoice& parameters) {
     this->body_selector = std::move(rigidbody::factory::create_selection_strategy(rigidbody.get(), body_selector));
     this->transform = std::move(rigidbody::factory::create_transform_strategy(rigidbody.get(), transform));
-    this->parameter_generator = std::move(rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, M_PI/3, parameters));
+    this->parameter_generator = std::move(rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3, parameters));
 }

@@ -14,12 +14,18 @@ set(fprofile "")
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
-add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1;_USE_MATH_DEFINES>")#;_GLIBCXX_DEBUG>")
-add_compile_options(
-	-Ofast ${fprofile} -fno-finite-math-only -pipe -mavx -fconstexpr-ops-limit=10000000000
-	"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
-	"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"
-)
+add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
+if (MSVC)
+	add_compile_options(
+		/O2 /ffinite-math /constexpr:steps10000000000
+	)
+elseif (UNIX)
+	add_compile_options(
+		-Ofast ${fprofile} -pipe -mavx -fconstexpr-ops-limit=10000000000
+		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
+		"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"
+	)
+endif()
 #add_link_options(
 #	"$<$<CONFIG:DEBUG>:--coverage>"
 #)
@@ -70,38 +76,32 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/klytje/thread-pool
 )
 
+FetchContent_Declare(
+	gcem
+	GIT_REPOSITORY https://github.com/kthohr/gcem.git
+)
+
 set(CMAKE_CXX_STANDARD 20) # continue with C++20
-FetchContent_MakeAvailable(CLI11 BSThreadPool)
+FetchContent_MakeAvailable(CLI11 BSThreadPool GCEM)
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     FetchContent_MakeAvailable(backward)
 endif()
-include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src)
+include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src ${gcem_SOURCE_DIR}/include)
 #add_compile_options("$<$<CONFIG:DEBUG>:-fopt-info-loop;-fopt-info-vec>")
 
 ############################################
 ##           Find and link CURL           ##
 ############################################
+find_package(CURL REQUIRED)
+find_package(OpenSSL COMPONENTS SSL REQUIRED)
+
 # when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
-	include_directories(~/projects/quasi-msys2/root)
-	add_definitions(-DCURL_STATICLIB)
-	set(OPENSSL_USE_STATIC_LIBS TRUE)
-	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.a")
-	find_package(CURL REQUIRED)
-	find_package(OpenSSL COMPONENTS Crypto SSL REQUIRED)
-	set(CURL -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
+	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
 
 # for linux we assume the users can figure out how to install missing packages by themselves
 elseif (UNIX)
-#	if (NOT BUILD_SHARED_LIBS)
-#		set(OPENSSL_USE_STATIC_LIBS TRUE)
-#		set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-#	endif()
-	find_package(CURL REQUIRED)
-	find_package(OpenSSL COMPONENTS SSL REQUIRED)
-#	link_libraries(-static -static-libgcc -static-libstdc++)
-#	set(CURL CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
-	set(CURL -static-libgcc -static-libstdc++ CURL::libcurl OpenSSL::SSL)
+	set(LIBS CURL::libcurl OpenSSL::SSL)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl -lgcov)
 	endif()
@@ -149,9 +149,9 @@ file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 #target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 #target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 #target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${CURL})
-#target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
-#target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${CURL})
+#target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${LIBS})
+#target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${LIBS})
+#target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${LIBS})
 #link_libraries(saxs_static)
 
 ### DOUBLE-COMPILED STATIC & SHARED LIBRARY APPROACH - SUPPORTS PROFILING ###
@@ -159,8 +159,8 @@ add_library(saxs_static STATIC ${SOURCE_FILES})
 add_library(saxs SHARED ${SOURCE_FILES})
 target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${CURL})
-target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${CURL})
+target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${LIBS})
+target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${LIBS})
 link_libraries(saxs_static)
 
 ############################################

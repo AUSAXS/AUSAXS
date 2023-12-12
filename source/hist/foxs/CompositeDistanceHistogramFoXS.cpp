@@ -4,6 +4,7 @@
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <settings/HistogramSettings.h>
+#include <constants/ConstantsMath.h>
 
 using namespace hist;
 
@@ -33,8 +34,8 @@ CompositeDistanceHistogramFoXS::~CompositeDistanceHistogramFoXS() = default;
 
 double CompositeDistanceHistogramFoXS::G_factor(double q) const {
     constexpr double rm = 1.58;
-    constexpr double c = rm*rm/(4*M_PI);
-    // constexpr double c = std::pow(4*M_PI/3, 3./2)*M_PI*1.62*1.62*constants::form_factor::s_to_q_factor;
+    constexpr double c = rm*rm/(4*constants::pi);
+    // constexpr double c = std::pow(4*constants::pi/3, 3./2)*constants::pi*1.62*1.62*constants::form_factor::s_to_q_factor;
     return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
 }
 

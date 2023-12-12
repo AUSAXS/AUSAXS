@@ -2,11 +2,12 @@
 
 #include <utility/SimpleMap.h>
 #include <residue/ResidueStorage.h>
+#include <constants/ConstantsMath.h>
 #include <constants/ConstantsFwd.h>
 #include <constants/Axes.h>
 #include <constants/SI.h>
 #include <io/IOFwd.h>
-#include <math/ConstMath.h>
+#include <math/ConstexprMath.h>
 
 #include <string>
 #include <cmath>
@@ -69,7 +70,7 @@ namespace constants {
         constexpr double cm = 1e-8; // Ångström --> cm
         constexpr double nm = 1e-1; // Ångström --> nm
 
-        constexpr double mL = math::pow(unit::cm, 3); // Ångström^3 --> mL
+        constexpr double mL = constexpr_math::pow(unit::cm, 3); // Ångström^3 --> mL
     }
 
     // The 1-symbol names of all amino acids. 

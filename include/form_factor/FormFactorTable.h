@@ -1,12 +1,14 @@
 #pragma once
 
+#include <constants/ConstantsMath.h>
+
 #include <array>
 #include <cmath>
 
 // Five-Gaussian form factor table values. See each nested namespace for the source.
 namespace constants::form_factor {
     namespace {
-        constexpr double s_to_q_factor = 1./(4*4*M_PI*M_PI); // q = 4πs --> s = q/(4pi)
+        constexpr double s_to_q_factor = 1./(4*4*constants::pi*constants::pi); // q = 4πs --> s = q/(4pi)
 
         /**
          * @brief Convert a Gaussian form factor from s to q.

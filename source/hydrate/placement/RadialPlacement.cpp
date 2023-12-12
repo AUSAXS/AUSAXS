@@ -16,13 +16,13 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
     std::vector<Vector3<int>> bins_5rh;
     std::vector<Vector3<int>> bins_7rh;
     std::vector<Vector3<double>> locs;
-    double ang = 2*M_PI/divisions;
+    double ang = 2*constants::pi/divisions;
 
     // we generate one octant of a sphere, and then reflect it to generate the rest
     // we do this to ensure the sphere is symmetric. If we simply generate it all at once, floating-point errors moves some of the bins around
     std::vector<Vector3<double>> sphere;
-    for (double theta = 0; theta <= M_PI*0.5; theta+=ang) {
-        for (double phi = 0; phi <= M_PI*0.5; phi+=ang) {
+    for (double theta = 0; theta <= constants::pi*0.5; theta+=ang) {
+        for (double phi = 0; phi <= constants::pi*0.5; phi+=ang) {
             double x = cos(phi)*sin(theta);
             double y = sin(phi)*sin(theta);
             double z = cos(theta);

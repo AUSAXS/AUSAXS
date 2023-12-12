@@ -5,7 +5,7 @@
 #include <settings/HistogramSettings.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
-#include <math/ConstMath.h>
+#include <math/ConstexprMath.h>
 
 #include <cmath>
 
@@ -34,7 +34,7 @@ void VectorDebyeTable::initialize(const T1& q, const T2& d) {
                 double qd2 = qd*qd;
                 index(i, j) = 1 - qd2*inv_6 + qd2*qd2*inv_120;
             } else {
-                // index(i, j) = math::fast::sin(qd)/qd;
+                // index(i, j) = constexpr_math::fast::sin(qd)/qd;
                 index(i, j) = std::sin(qd)/qd;
             }
         }

@@ -2,6 +2,7 @@
 #include <crystal/miller/Miller.h>
 #include <crystal/Fval.h>
 #include <settings/CrystalSettings.h>
+#include <constants/ConstantsMath.h>
 
 #include <math.h>
 #include <iostream>
@@ -115,7 +116,7 @@ std::vector<Miller> FibonacciMillers::pick_directions(std::vector<Miller>&& base
 
 int FibonacciMillers::estimate_n(double) const {
     throw std::runtime_error("Not implemented");
-    // return resolution/(2*M_PI)*phi;
+    // return resolution/(2*constants::pi)*phi;
     // return 1000;
 }
 
@@ -124,7 +125,7 @@ std::vector<Vector3<double>> FibonacciMillers::generate_fibonacci_sphere(int n) 
     std::vector<Vector3<double>> points(n);
 
     for (int i = 0; i < n; i++) {
-        double theta = 2*M_PI*i/phi;
+        double theta = 2*constants::pi*i/phi;
         double z = 1 - 2*(i + 0.5)/n;
         double r = sqrt(1 - z*z);
         points[i] = Vector3<double>(r*cos(theta), r*sin(theta), z);
