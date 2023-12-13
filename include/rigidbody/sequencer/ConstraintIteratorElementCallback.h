@@ -1,10 +1,10 @@
 #pragma once
 
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
 
 namespace rigidbody {
     namespace sequencer {
-        class ConstraintIteratorElement;
         class ConstraintIteratorElementCallback : public LoopElementCallback {
             public:
                 ConstraintIteratorElementCallback(ConstraintIteratorElement* caller);

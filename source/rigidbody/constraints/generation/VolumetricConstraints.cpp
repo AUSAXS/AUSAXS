@@ -11,13 +11,13 @@
 
 #include <limits>
 
-using namespace rigidbody;
+using namespace rigidbody::constraints;
 using namespace data;
 using namespace data::record;
 
 std::vector<DistanceConstraint> VolumetricConstraints::generate() const {
     if (settings::general::verbose) {console::print_info("\tGenerating simple constraints for rigid body optimization.");}
-    std::vector<rigidbody::DistanceConstraint> constraints;
+    std::vector<DistanceConstraint> constraints;
 
     auto& protein = *manager->protein;
     for (unsigned int ibody1 = 0; ibody1 < protein.get_bodies().size(); ibody1++) {

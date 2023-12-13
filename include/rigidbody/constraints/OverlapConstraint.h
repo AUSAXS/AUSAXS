@@ -4,7 +4,7 @@
 #include <hist/Histogram.h>
 #include <data/DataFwd.h>
 
-namespace rigidbody {
+namespace rigidbody::constraints {
 
     /**
      * @brief Overlap constraint. 

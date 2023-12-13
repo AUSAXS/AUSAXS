@@ -1,17 +1,14 @@
 #pragma once
 
+#include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <settings/RigidBodySettings.h>
 
 #include <memory>
 #include <vector>
 
 namespace rigidbody {
-    class RigidBody;
     namespace sequencer {
-        class ParameterElement;
-        class BodySelectElement;
-        class TransformElement;
-
         /**
          * @brief A loop element is a sequence element that repeats whatever is inside it a number of times.
          */

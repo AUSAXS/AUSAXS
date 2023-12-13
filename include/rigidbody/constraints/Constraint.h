@@ -1,6 +1,6 @@
 #pragma once
 
-namespace rigidbody {
+namespace rigidbody::constraints {
     /**
      * @brief Constraint. 
      * 

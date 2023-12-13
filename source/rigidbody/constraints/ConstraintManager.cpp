@@ -7,7 +7,7 @@
 #include <data/record/Atom.h>
 #include <Symbols.h>
 
-using namespace rigidbody;
+using namespace rigidbody::constraints;
 
 ConstraintManager::ConstraintManager(data::Molecule* protein) : protein(protein), overlap_constraint(protein) {
     auto generator = factory::generate_constraints(this);

@@ -2,6 +2,8 @@
 #include <utility/Exceptions.h>
 #include <utility/Limit.h>
 
+#include <algorithm>
+
 template<> std::string settings::io::detail::SettingRef<std::string>::get() const {return settingref;}
 template<> std::string settings::io::detail::SettingRef<double>::get() const {return std::to_string(settingref);}
 template<> std::string settings::io::detail::SettingRef<int>::get() const {return std::to_string(settingref);}

@@ -5,7 +5,7 @@
 #include <settings/HistogramSettings.h>
 #include <utility/Console.h>
 
-using namespace rigidbody;
+using namespace rigidbody::constraints;
 
 OverlapConstraint::OverlapConstraint() = default;
 

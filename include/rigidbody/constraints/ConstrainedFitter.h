@@ -30,12 +30,12 @@ namespace fitter {
              * 
              * Overwrites any existing constraints.
              */
-            void set_constraint_manager(std::shared_ptr<rigidbody::ConstraintManager> constraints);
+            void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
 
-            rigidbody::ConstraintManager* get_constraint_manager(); 
+            rigidbody::constraints::ConstraintManager* get_constraint_manager(); 
 
         private: 
-            std::shared_ptr<rigidbody::ConstraintManager> constraints = nullptr;
+            std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints = nullptr;
     };
 }
 

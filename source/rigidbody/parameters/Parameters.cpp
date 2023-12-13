@@ -5,7 +5,7 @@
 #include <math/Vector3.h>
 #include <Symbols.h>
 
-using namespace rigidbody;
+using namespace rigidbody::parameter;
 
 Parameters::Parameters(const data::Molecule* protein) : params(protein->body_size()) {
     const std::vector<data::Body>& bodies = protein->get_bodies();

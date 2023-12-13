@@ -3,7 +3,7 @@
 
 #include <random>
 
-using namespace rigidbody;
+using namespace rigidbody::parameter;
 
 RotationsOnly::RotationsOnly(int iterations, double length_start, double rad_start) : ParameterGenerationStrategy(iterations, length_start, rad_start) {}
 

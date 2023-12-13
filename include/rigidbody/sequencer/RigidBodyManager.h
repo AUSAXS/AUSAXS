@@ -1,13 +1,13 @@
 #pragma once
 
+#include <io/IOFwd.h>
+#include <rigidbody/detail/RigidbodyInternalFwd.h>
 #include <rigidbody/RigidBody.h>
 #include <settings/RigidBodySettings.h>
 
 #include <memory>
 
-namespace io {class ExistingFile;}
 namespace rigidbody {
-    class RigidBody;
     namespace sequencer {
         class RigidBodyManager : RigidBody {
             public:
@@ -23,7 +23,7 @@ namespace rigidbody {
                 );
 
             private:
-                rigidbody::detail::BestConf best;
+                detail::BestConf best;
                 void initialize();
         };
         extern std::unique_ptr<RigidBodyManager> rigidbody;

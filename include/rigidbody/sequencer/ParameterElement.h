@@ -1,12 +1,11 @@
 #pragma once
 
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <settings/RigidBodySettings.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
 
 namespace rigidbody {
     namespace sequencer {
-        class LoopElement;
-        class DecayElement;
         class ParameterElement : public LoopElementCallback {
             public:
                 ParameterElement(LoopElement* owner);

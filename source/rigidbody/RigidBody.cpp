@@ -29,6 +29,8 @@
 #include <Symbols.h>
 
 using namespace rigidbody;
+using namespace rigidbody::constraints;
+using namespace rigidbody::parameter;
 
 rigidbody::detail::BestConf::BestConf() = default;
 rigidbody::detail::BestConf::BestConf(std::shared_ptr<grid::Grid> grid, std::vector<data::record::Water> waters, double chi2) noexcept : grid(std::move(grid)), waters(std::move(waters)), chi2(chi2) {}

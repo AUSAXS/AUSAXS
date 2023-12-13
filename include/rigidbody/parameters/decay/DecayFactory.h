@@ -1,11 +1,11 @@
 #pragma once
 
+#include <settings/RigidBodySettings.h>
 #include <rigidbody/parameters/decay/DecayStrategy.h>
 
 #include <memory>
 
-namespace settings::rigidbody {enum class DecayStrategyChoice;}
-namespace rigidbody::parameters::factory {
+namespace rigidbody::factory {
     /**
      * @brief Prepare a decay class.
      */

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <rigidbody/selection/BodySelectStrategy.h>
+#include <settings/RigidBodySettings.h>
 
 #include <memory>
 
-namespace settings::rigidbody {enum class BodySelectStrategyChoice;}
 namespace rigidbody {
     namespace factory {
         /**

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <math/MathFwd.h>
 #include <utility/Concepts.h>
 #include <rigidbody/parameters/Parameter.h>
 
@@ -7,8 +8,7 @@
 #include <atomic>
 #include <random>
 
-template<numeric T> class Vector3;
-namespace rigidbody {    
+namespace rigidbody::parameter {    
     /**
      * @brief Thread-safe superclass for parameter generation strategies.
      */

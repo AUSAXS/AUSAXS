@@ -39,7 +39,7 @@ void RigidBodyManager::optimize_step() {
 }
 
 void RigidBodyManager::set_managers(const settings::rigidbody::BodySelectStrategyChoice& body_selector, const settings::rigidbody::TransformationStrategyChoice& transform, const settings::rigidbody::ParameterGenerationStrategyChoice& parameters) {
-    this->body_selector = std::move(rigidbody::factory::create_selection_strategy(rigidbody.get(), body_selector));
-    this->transform = std::move(rigidbody::factory::create_transform_strategy(rigidbody.get(), transform));
-    this->parameter_generator = std::move(rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3, parameters));
+    this->body_selector = rigidbody::factory::create_selection_strategy(rigidbody.get(), body_selector);
+    this->transform = rigidbody::factory::create_transform_strategy(rigidbody.get(), transform);
+    this->parameter_generator = rigidbody::factory::create_parameter_strategy(settings::rigidbody::iterations, 5, constants::pi/3, parameters);
 }

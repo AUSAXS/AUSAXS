@@ -1,10 +1,10 @@
 #pragma once
 
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
 
 namespace rigidbody {
     namespace sequencer {
-        class ParameterElement;
         class ParameterElementCallback : public LoopElementCallback {
             public:
                 ParameterElementCallback(ParameterElement* caller);

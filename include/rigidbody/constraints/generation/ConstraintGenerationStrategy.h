@@ -1,12 +1,11 @@
 #pragma once
 
+#include <rigidbody/detail/RigidbodyInternalFwd.h>
+
 #include <memory>
 #include <vector>
 
-namespace rigidbody {
-    class DistanceConstraint;
-    class ConstraintManager;
-
+namespace rigidbody::constraints {
     class ConstraintGenerationStrategy {
         public:
             ConstraintGenerationStrategy(const ConstraintManager* manager);

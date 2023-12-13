@@ -2,7 +2,7 @@
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 
-namespace rigidbody {
+namespace rigidbody::parameter {
     /**
      * @brief Thread-safe parameter generation strategy. The current step size scales linearly with the iteration number. 
      */

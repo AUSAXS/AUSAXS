@@ -4,7 +4,7 @@
 
 #include <random>
 
-using namespace rigidbody;
+using namespace rigidbody::parameter;
 
 ParameterGenerationStrategy::ParameterGenerationStrategy(int iterations, double length_start, double rad_start) : iterations(iterations) {
     std::random_device random;

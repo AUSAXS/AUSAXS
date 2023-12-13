@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace rigidbody {
+namespace rigidbody::parameter {
     /**
      * @brief A small structure for storing the current set of parameters. 
      */

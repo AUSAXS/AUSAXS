@@ -1,6 +1,6 @@
 #include <rigidbody/constraints/generation/NoConstraints.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 
-using namespace rigidbody;
+using namespace rigidbody::constraints;
 
-std::vector<rigidbody::DistanceConstraint> NoConstraints::generate() const {return {};}
+std::vector<DistanceConstraint> NoConstraints::generate() const {return {};}

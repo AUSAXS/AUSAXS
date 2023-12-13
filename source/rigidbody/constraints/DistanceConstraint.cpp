@@ -5,7 +5,7 @@
 #include <data/Body.h>
 #include <data/record/Atom.h>
 
-using namespace rigidbody;
+using namespace rigidbody::constraints;
 using namespace data;
 using namespace data::record;
 
@@ -54,7 +54,7 @@ DistanceConstraint::DistanceConstraint(data::Molecule* protein, const Atom& atom
     if (r_base > settings::rigidbody::bond_distance) {throw except::invalid_argument("Constraint::Constraint: The atoms being constrained are too far apart!");}
 }
 
-std::pair<rigidbody::DistanceConstraint::AtomLoc, rigidbody::DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const Atom& atom1, const Atom& atom2) const {
+std::pair<DistanceConstraint::AtomLoc, DistanceConstraint::AtomLoc> DistanceConstraint::find_host_bodies(const Atom& atom1, const Atom& atom2) const {
     int ibody1 = -1, ibody2 = -1;
     int iatom1 = -1, iatom2 = -1;
     for (unsigned int ibody = 0; ibody < protein->body_size(); ibody++) {
@@ -93,7 +93,7 @@ bool DistanceConstraint::operator==(const DistanceConstraint& constraint) const 
         && iatom2 == constraint.iatom2;
 }
 
-double rigidbody::DistanceConstraint::transform(double offset) {
+double DistanceConstraint::transform(double offset) {
     return offset*offset*offset*offset*10;
 }
 

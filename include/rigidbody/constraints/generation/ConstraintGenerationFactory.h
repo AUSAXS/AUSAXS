@@ -1,18 +1,18 @@
 #pragma once
 
+#include <settings/RigidBodySettings.h>
 #include <rigidbody/constraints/generation/ConstraintGenerationStrategy.h>
 
-namespace settings::rigidbody {enum class ConstraintGenerationStrategyChoice;}
 namespace rigidbody {
     namespace factory {
         /**
          * @brief Prepare a constraint generator. 
          */
-        std::unique_ptr<ConstraintGenerationStrategy> generate_constraints(const ConstraintManager* manager);
+        std::unique_ptr<constraints::ConstraintGenerationStrategy> generate_constraints(const constraints::ConstraintManager* manager);
 
         /**
          * @brief Prepare a constraint generator. 
          */
-        std::unique_ptr<ConstraintGenerationStrategy> generate_constraints(const ConstraintManager* manager, const settings::rigidbody::ConstraintGenerationStrategyChoice& choice);
+        std::unique_ptr<constraints::ConstraintGenerationStrategy> generate_constraints(const constraints::ConstraintManager* manager, const settings::rigidbody::ConstraintGenerationStrategyChoice& choice);
     }
 }

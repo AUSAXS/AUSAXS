@@ -2,7 +2,7 @@
 
 #include <rigidbody/transform/TransformStrategy.h>
 
-namespace rigidbody {
+namespace rigidbody::transform {
     /**
      * @brief ForceTransform. 
      * 
@@ -30,6 +30,6 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            void apply(const Matrix<double>& M, const Vector3<double>& t, DistanceConstraint& constraint) override;
+            void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) override;
     };
 }

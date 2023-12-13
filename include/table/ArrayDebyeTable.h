@@ -3,6 +3,7 @@
 #include <container/ArrayContainer2D.h>
 #include <constants/Constants.h>
 #include <table/DebyeTable.h>
+#include <math/ConstexprMath.h>
 
 #include <cmath>
 #include <vector>
@@ -84,7 +85,7 @@ namespace table {
                             double qd2 = qd*qd;
                             index(i, j) = 1 - qd2*inv_6 + qd2*qd2*inv_120;
                         } else {
-                            index(i, j) = std::sin(qd)/qd;
+                            index(i, j) = constexpr_math::sin(qd)/qd;
                         }
                     }
                 }

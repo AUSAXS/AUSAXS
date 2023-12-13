@@ -6,7 +6,7 @@
 #include <memory>
 #include <iostream>
 
-namespace rigidbody {
+namespace rigidbody::constraints {
     /**
      * This class is the glue that keeps separate bodies together during the optimization. Each constraint is between two individual atoms of two different bodies, and works by 
      * adding a new term to the chi-square which is a function of the distance between the two atoms. Thus the optimizer is penalized depending on how much it separates the two 

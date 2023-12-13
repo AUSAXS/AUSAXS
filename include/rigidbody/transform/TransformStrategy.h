@@ -1,17 +1,14 @@
 #pragma once
 
+#include <rigidbody/RigidbodyFwd.h>
+#include <rigidbody/detail/RigidbodyInternalFwd.h>
 #include <utility/Concepts.h>
 #include <math/MathFwd.h>
 
 #include <vector>
 #include <memory>
 
-class TransformGroup;
-class BackupBody;
-namespace rigidbody {
-    class DistanceConstraint;
-    class RigidBody;
-    
+namespace rigidbody::transform {
     /**
      * @brief TransformStrategy. 
      * 
@@ -39,7 +36,7 @@ namespace rigidbody {
              * @param t The translation vector. 
              * @param constraint The constraint to transform along.
              */
-            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, rigidbody::DistanceConstraint& constraint) = 0;
+            virtual void apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) = 0;
 
             /**
              * @brief Undo the previous transformation. 

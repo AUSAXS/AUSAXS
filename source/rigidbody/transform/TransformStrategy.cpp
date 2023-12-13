@@ -5,7 +5,7 @@
 
 #include <vector>
 
-using namespace rigidbody;
+using namespace rigidbody::transform;
 
 TransformStrategy::TransformStrategy(RigidBody* rigidbody) : rigidbody(rigidbody) {}
 

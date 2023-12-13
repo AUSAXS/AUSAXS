@@ -1,14 +1,12 @@
 #pragma once
 
+#include <rigidbody/detail/RigidbodyInternalFwd.h>
+#include <hydrate/GridFwd.h>
+#include <fitter/FitterFwd.h>
 #include <data/Molecule.h>
 
 #include <memory>
 
-namespace grid {class Grid;}
-namespace fitter {
-	class Fit;
-	class LinearFitter;
-}
 namespace rigidbody {
 	namespace detail {
 		struct BestConf {
@@ -22,10 +20,7 @@ namespace rigidbody {
 
 	}
 
-	namespace selection {class BodySelectStrategy;}
-	class ConstraintManager;
-	class TransformStrategy;
-	class ParameterGenerationStrategy;
+
 	class RigidBody : public data::Molecule {
 		public:
 			RigidBody(data::Molecule&& protein);
@@ -54,14 +49,14 @@ namespace rigidbody {
 			/**
 			 * @brief Get the constraint manager for this rigid body.
 			 */
-			std::shared_ptr<ConstraintManager> get_constraint_manager() const;
+			std::shared_ptr<constraints::ConstraintManager> get_constraint_manager() const;
 
 		protected:
-			std::shared_ptr<ConstraintManager> constraints = nullptr;
+			std::shared_ptr<constraints::ConstraintManager> constraints = nullptr;
 			std::shared_ptr<fitter::Fit> calibration = nullptr;
-			std::unique_ptr<rigidbody::selection::BodySelectStrategy> body_selector;
-			std::unique_ptr<TransformStrategy> transform;
-			std::unique_ptr<ParameterGenerationStrategy> parameter_generator;
+			std::unique_ptr<selection::BodySelectStrategy> body_selector;
+			std::unique_ptr<transform::TransformStrategy> transform;
+			std::unique_ptr<parameter::ParameterGenerationStrategy> parameter_generator;
 			std::shared_ptr<fitter::LinearFitter> fitter;
 
 			/**

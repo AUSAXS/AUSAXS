@@ -8,7 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace rigidbody {
+namespace rigidbody::constraints {
     class ConstraintManager {
         public:
             /**

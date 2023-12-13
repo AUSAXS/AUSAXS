@@ -1,6 +1,6 @@
 #include <rigidbody/parameters/Parameter.h>
 
-using namespace rigidbody;
+using namespace rigidbody::parameter;
 
 Parameter::Parameter() : dr(0, 0, 0), alpha(0), beta(0), gamma(0) {}
 

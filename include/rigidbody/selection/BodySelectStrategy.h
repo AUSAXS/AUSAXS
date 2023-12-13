@@ -1,10 +1,10 @@
 #pragma once
 
+#include <rigidbody/RigidbodyFwd.h>
+
 #include <utility>
 
 namespace rigidbody {
-    class RigidBody;
-
     namespace selection {
         /**
          * @brief This super-class defines the interface for the body selection strategies for the rigid-body optimization. 

@@ -4,16 +4,18 @@
 #include <settings/RigidBodySettings.h>
 #include <utility/Exceptions.h>
 
-std::unique_ptr<rigidbody::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body) {
+using namespace rigidbody;
+
+std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body) {
     return create_transform_strategy(body, settings::rigidbody::transform_strategy);
 }
 
-std::unique_ptr<rigidbody::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body, const settings::rigidbody::TransformationStrategyChoice& choice) {
+std::unique_ptr<transform::TransformStrategy> rigidbody::factory::create_transform_strategy(rigidbody::RigidBody* body, const settings::rigidbody::TransformationStrategyChoice& choice) {
     switch (choice) {
         case settings::rigidbody::TransformationStrategyChoice::RigidTransform:
-            return std::make_unique<rigidbody::RigidTransform>(body); 
+            return std::make_unique<transform::RigidTransform>(body); 
         case settings::rigidbody::TransformationStrategyChoice::SingleTransform:
-            return std::make_unique<rigidbody::SingleTransform>(body);
+            return std::make_unique<transform::SingleTransform>(body);
         default: 
             throw except::unknown_argument("rigidbody::factory::create_transform_strategy: Unkown TransformationStrategy. Did you forget to add it to the switch statement?");
     }

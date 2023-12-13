@@ -1,14 +1,10 @@
 #pragma once
 
 #include <settings/RigidBodySettings.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
 
 namespace rigidbody {
     namespace sequencer {
-        class LoopElement;
-        class ParameterElement;
-        class BodySelectElement;
-        class TransformElement;
-
         /**
          * @brief A callback class for the LoopElement class.
          * 

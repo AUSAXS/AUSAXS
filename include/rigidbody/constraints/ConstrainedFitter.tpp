@@ -18,12 +18,12 @@ double ConstrainedFitter<T>::chi2(const std::vector<double>& params) {
 }
 
 template<fitter::fitter_t T>
-void ConstrainedFitter<T>::set_constraint_manager(std::shared_ptr<rigidbody::ConstraintManager> constraints) {
+void ConstrainedFitter<T>::set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints) {
     this->constraints = constraints;
 }
 
 template<fitter::fitter_t T>
-rigidbody::ConstraintManager* ConstrainedFitter<T>::get_constraint_manager() {
+rigidbody::constraints::ConstraintManager* ConstrainedFitter<T>::get_constraint_manager() {
     #ifdef DEBUG
         if (constraints == nullptr) {throw except::nullptr_error("ConstrainedFitter::get_constraint_manager: Constraint manager is not set.");}
     #endif

@@ -13,13 +13,13 @@
 #include <functional>
 #include <numeric>
 
-using namespace rigidbody;
+using namespace rigidbody::transform;
 
 RigidTransform::RigidTransform(RigidBody* rigidbody) : TransformStrategy(rigidbody) {}
 
 RigidTransform::~RigidTransform() = default;
 
-void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, DistanceConstraint& constraint) {
+void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, constraints::DistanceConstraint& constraint) {
     auto group = get_connected(constraint);
     backup(group);
 
@@ -38,7 +38,7 @@ void RigidTransform::apply(const Matrix<double>& M, const Vector3<double>& t, Di
     }
 }
 
-TransformGroup RigidTransform::get_connected(const DistanceConstraint& pivot) {
+TransformGroup RigidTransform::get_connected(const constraints::DistanceConstraint& pivot) {
     // explore the graph of bodies connected to 'ibody'
     std::function<void(unsigned int, std::unordered_set<unsigned int>&)> explore_branch = [&] (unsigned int ibody, std::unordered_set<unsigned int>& indices) {
         // if we've already explored this branch, return
