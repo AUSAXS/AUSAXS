@@ -10,6 +10,8 @@ namespace detail {
      *        Supports the formats x | y | yerr and x | y | yerr | xerr.
      */
     struct DATReader : DatasetReader {
+        ~DATReader() override = default;
+
         /**
          * @brief Construct a dataset from a DAT file.
          * 

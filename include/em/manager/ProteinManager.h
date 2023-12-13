@@ -45,7 +45,7 @@ namespace em {
                 /**
                  * @brief Set the charge levels.
                  */
-                virtual void set_charge_levels(std::vector<double> levels) noexcept;
+                virtual void set_charge_levels(const std::vector<double>& levels) noexcept;
 
                 /**
                  * @brief Get the charge levels.

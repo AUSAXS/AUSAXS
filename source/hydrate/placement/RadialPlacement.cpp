@@ -8,6 +8,10 @@
 
 using namespace data::record;
 
+grid::RadialPlacement::RadialPlacement(Grid* grid) : PlacementStrategy(grid) {prepare_rotations();}
+
+grid::RadialPlacement::~RadialPlacement() = default;
+
 void grid::RadialPlacement::prepare_rotations(int divisions) {
     double width = grid->get_width();
 
@@ -74,8 +78,6 @@ void grid::RadialPlacement::prepare_rotations(int divisions) {
 }
 
 std::vector<grid::GridMember<Water>> grid::RadialPlacement::place() const {
-    auto bins = grid->get_bins();
-
     // we define a helper lambda
     std::vector<GridMember<Water>> placed_water; 
     placed_water.reserve(grid->a_members.size());
@@ -110,7 +112,7 @@ bool grid::RadialPlacement::collision_check(const Vector3<int>& loc, const Vecto
     int score = 0;
 
     // check if a location is out-of-bounds
-    auto is_out_of_bounds = [&bins, &score] (Vector3<int> v) {
+    auto is_out_of_bounds = [&bins] (Vector3<int> v) {
         if (v.x() < 0 || (int) bins.x() <= v.x() ) {return true;}
         if (v.y() < 0 || (int) bins.y() <= v.y() ) {return true;}
         if (v.z() < 0 || (int) bins.z() <= v.z() ) {return true;}

@@ -16,6 +16,7 @@ namespace crystal {
     class AllMillers : public MillerGenerationStrategy {
         public: 
             AllMillers(unsigned int h, unsigned int k, unsigned int l);
+            ~AllMillers() override = default;
 
             std::vector<Miller> generate() const override;
         private: 

@@ -20,6 +20,7 @@ namespace crystal {
         public:
             ReducedMillers();
             ReducedMillers(unsigned int h, unsigned int k, unsigned int l);
+            ~ReducedMillers() override = default;
 
             std::vector<Miller> generate() const override;
 

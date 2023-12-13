@@ -15,8 +15,8 @@ namespace grid {
      */
     class RadialPlacement : public PlacementStrategy {
         public:
-            RadialPlacement(Grid* grid) : PlacementStrategy(grid) {prepare_rotations();}
-            ~RadialPlacement() override = default;
+            RadialPlacement(Grid* grid);
+            ~RadialPlacement() override;
 
             void prepare_rotations(int divisions = 8);
 

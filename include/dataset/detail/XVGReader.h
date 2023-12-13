@@ -9,6 +9,8 @@ namespace detail {
      * @brief Contructs a dataset from a GROMACS XVG file.
      */
     struct XVGReader : DatasetReader {
+        ~XVGReader() override = default;
+
         /**
          * @brief Construct a dataset from a GROMACS XVG file.
          * 

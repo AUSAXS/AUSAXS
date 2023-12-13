@@ -378,7 +378,7 @@ std::vector<bool> Grid::remove_disconnected_atoms(unsigned int min) {
     return to_remove;
 }
 
-template <typename T, typename = std::enable_if_t<std::is_base_of<Atom, T>::value>>
+template <typename T, typename>
 std::vector<GridMember<T>> Grid::add(const std::vector<T>& atoms) {
     std::vector<GridMember<T>> v(atoms.size());
     unsigned int index = 0;

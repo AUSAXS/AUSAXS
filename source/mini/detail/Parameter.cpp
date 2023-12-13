@@ -3,6 +3,8 @@
 
 using namespace mini;
 
+Parameter::Parameter() noexcept = default;
+
 Parameter::Parameter(const std::string& name, const Limit& bounds) noexcept: name(name), bounds(bounds) {}
 
 Parameter::Parameter(const std::string& name, double guess) noexcept: Parameter(name, guess, {0, 0}) {}

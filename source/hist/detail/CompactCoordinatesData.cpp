@@ -151,8 +151,15 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m128 sv1 = _mm_load_ps(v1);
         __m128 sv2 = _mm_load_ps(v2);
         #if defined __SSE4_1__
-            __m128 diff = _mm_sub_ps(sv1, sv2);         // calculate the difference
-            return _mm_dp_ps(diff, diff, control);      // calculate the dot product, masked to only use the first three components
+            // slightly more efficient intrinsic. the weird switch is required with Clang
+            __m128 diff = _mm_sub_ps(sv1, sv2);
+            switch (control) {
+                case OutputControl::ALL:    return _mm_dp_ps(diff, diff, OutputControl::ALL);
+                case OutputControl::FIRST:  return _mm_dp_ps(diff, diff, OutputControl::FIRST);
+                case OutputControl::SECOND: return _mm_dp_ps(diff, diff, OutputControl::SECOND);
+                case OutputControl::THIRD:  return _mm_dp_ps(diff, diff, OutputControl::THIRD);
+                case OutputControl::FOURTH: return _mm_dp_ps(diff, diff, OutputControl::FOURTH);
+            }
         #else
             sv1[3] = sv2[3] = 0;                        // zero out the weights
             __m128 diff = _mm_sub_ps(sv1, sv2);         // calculate the difference
@@ -325,7 +332,13 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
         __m256 svv = _mm256_broadcast_ps(&sv);      // copy the first 128 bits to the second 128 bits
         __m256 sv12 = _mm256_set_m128(sv2, sv1);    // combine the two 128 bit registers
         __m256 diff = _mm256_sub_ps(svv, sv12);     // calculate the difference
-        return _mm256_dp_ps(diff, diff, control);   // calculate the dot product, masked to only use the first three components
+        switch (control) {
+            case OutputControl::ALL:    return _mm256_dp_ps(diff, diff, OutputControl::ALL);
+            case OutputControl::FIRST:  return _mm256_dp_ps(diff, diff, OutputControl::FIRST);
+            case OutputControl::SECOND: return _mm256_dp_ps(diff, diff, OutputControl::SECOND);
+            case OutputControl::THIRD:  return _mm256_dp_ps(diff, diff, OutputControl::THIRD);
+            case OutputControl::FOURTH: return _mm256_dp_ps(diff, diff, OutputControl::FOURTH);
+        }
     }
 
     EvaluatedResult CompactCoordinatesData::evaluate_avx(const CompactCoordinatesData& other) const {

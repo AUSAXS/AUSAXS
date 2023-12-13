@@ -194,7 +194,10 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 
             // check for intersections
             {
-                auto[a, b] = bounds_eq(bounds);
+                // structured binding not allowed due to Clang bug
+                auto tmp = bounds_eq(bounds);
+                auto& a = tmp.first;
+                auto& b = tmp.second;
                 auto fx = [&] (double x) {return a*x + b;};
 
                 // check for intersection from the left

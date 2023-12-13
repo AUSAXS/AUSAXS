@@ -3,7 +3,7 @@
 #include <fitter/Fitter.h>
 #include <fitter/FitPlots.h>
 #include <utility/Exceptions.h>
-#include <mini/Utility.h>
+#include <mini/All.h>
 
 #include <cmath>
 

@@ -13,7 +13,7 @@ namespace rigidbody::parameters::decay {
             /**
              * @brief Set the number of iterations required to reach an amplitude of 1/e.
              */
-            void set_characteristic_time(unsigned int iterations);
+            void set_characteristic_time(unsigned int iterations) override;
 
         private:
             double decay_rate;

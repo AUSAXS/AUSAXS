@@ -2,6 +2,9 @@
 #include <utility/Exceptions.h>
 #include <mini/detail/FittedParameter.h>
 
+#include <algorithm>
+#include <utility>
+
 using namespace mini;
 
 Result::Result(const FittedParameter& param, double fval, unsigned int fevals) noexcept : parameters({param}), fval(fval), fevals(fevals) {}

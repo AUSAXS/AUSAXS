@@ -54,17 +54,17 @@ namespace hist {
             /**
              * @brief Get the intensity profile for atom-atom interactions.
              */
-            virtual const ScatteringProfile get_profile_ax() const;
+            virtual const ScatteringProfile get_profile_ax() const override;
 
             /**
              * @brief Get the intensity profile for atom-water interactions.
              */
-            virtual const ScatteringProfile get_profile_xx() const;
+            virtual const ScatteringProfile get_profile_xx() const override;
 
             /**
              * @brief Get the intensity profile for water-water interactions.
              */
-            virtual const ScatteringProfile get_profile_wx() const;
+            virtual const ScatteringProfile get_profile_wx() const override;
 
         protected:
             double exv_factor(double q) const override;

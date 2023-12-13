@@ -15,20 +15,10 @@ namespace container {
             /**
              * @brief Get the value at index i, j, k. 
              */
-            constexpr T& index(unsigned int i, unsigned int j, unsigned int k) noexcept {return data[j + M*i];}
-
-            /**
-             * @brief Get the value at index i, j, k. 
-             */
-            constexpr const T& index(unsigned int i, unsigned int j, unsigned int k) const noexcept {return data[j + M*i];}
-
-             /**
-             * @brief Get the value at index i, j. 
-             */
             constexpr T& index(unsigned int i, unsigned int j) noexcept {return data[j + M*i];}
 
             /**
-             * @brief Get the value at index i, j. 
+             * @brief Get the value at index i, j, k. 
              */
             constexpr const T& index(unsigned int i, unsigned int j) const noexcept {return data[j + M*i];}
 

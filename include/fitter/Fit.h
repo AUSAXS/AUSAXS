@@ -12,7 +12,7 @@
 namespace fitter {
     class Fit : public mini::Result {
         public:
-            Fit() noexcept {}
+            Fit() noexcept = default;
 
             /**
              * @brief Constructor.
@@ -27,6 +27,8 @@ namespace fitter {
              * Create a new Fit object based on a minimizer result.
              */
             Fit(const mini::Result& res, double chi2, unsigned int dof) noexcept;
+
+            ~Fit() override = default;
             
             /**
              * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
@@ -57,6 +59,7 @@ namespace fitter {
     class EMFit : public Fit {
         public:
             using Fit::Fit;
+            ~EMFit() override = default;
 
             [[nodiscard]] std::string to_string() const noexcept override;
 

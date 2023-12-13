@@ -25,7 +25,7 @@ namespace data {
 			/**
 			 * @brief Default constructor. 
 			 */
-			Molecule() noexcept = default;
+			Molecule() noexcept;
 
 			/**
 			 * @brief Copy constructor.
@@ -107,7 +107,7 @@ namespace data {
 			 * 
 			 * @return The volume in Å^3.
 			 */
-			[[nodiscard]] virtual double get_volume_grid() const;
+			[[nodiscard]] double get_volume_grid() const;
 
 			/** 
 			 * @brief Calculate the center-mass coordinates.

@@ -15,7 +15,7 @@ class LUPDecomposition : public Decomposition {
         ~LUPDecomposition() override = default;
 
         // follows the C implementation from Wikipedia: https://en.wikipedia.org/wiki/LU_decomposition
-        void decompose();
+        void decompose() override;
 
         double determinant() const;
 

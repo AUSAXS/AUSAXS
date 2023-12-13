@@ -9,7 +9,8 @@ namespace rigidbody {
 
     class ConstraintGenerationStrategy {
         public:
-            ConstraintGenerationStrategy(const ConstraintManager* manager) : manager(manager) {}
+            ConstraintGenerationStrategy(const ConstraintManager* manager);
+            virtual ~ConstraintGenerationStrategy();
 
             /**
              * @brief Generate a constraint.

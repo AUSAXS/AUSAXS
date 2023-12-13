@@ -1,6 +1,8 @@
 #pragma once
 
 #include <mini/Minimizer.h>
+#include <mini/detail/Parameter.h>
+
 #include <concepts>
 
 namespace mini {

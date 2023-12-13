@@ -1,10 +1,10 @@
 #pragma once
 
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
+#include <settings/RigidBodySettings.h>
 
 #include <memory>
 
-namespace settings::rigidbody {enum class ParameterGenerationStrategyChoice;}
 namespace rigidbody {
     namespace factory {
         /**

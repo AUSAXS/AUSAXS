@@ -30,7 +30,7 @@ namespace mini {
              */
             mini::Landscape landscape(unsigned int evals) override;
 
-			void add_parameter(const Parameter& param);
+			void add_parameter(const Parameter& param) override;
 
 		private:
 			/**

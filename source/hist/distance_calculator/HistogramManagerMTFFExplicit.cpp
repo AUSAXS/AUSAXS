@@ -156,9 +156,19 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         }
     );
     pool->wait_for_tasks();
-    auto [p_aa, p_ax, p_xx] = p_pp_future.get();
-    auto [p_wa, p_wx] = p_hp_future.get();
+
+    // we cannot use structured bindings due to a Clang bug
+    // auto [p_aa, p_ax, p_xx] = p_pp_future.get();
+    // auto [p_wa, p_wx] = p_hp_future.get();
+    // auto p_ww = p_hh_future.get();
+    auto p3 = p_pp_future.get();
+    auto p2 = p_hp_future.get();
     auto p_ww = p_hh_future.get();
+    auto& p_aa = std::get<0>(p3);
+    auto& p_ax = std::get<1>(p3);
+    auto& p_xx = std::get<2>(p3);
+    auto& p_wa = std::get<0>(p2);
+    auto& p_wx = std::get<1>(p2);
 
     //###################//
     // SELF-CORRELATIONS //
@@ -192,13 +202,13 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         }
     }
 
-    pool->push_task([&](){p_aa.resize(max_bin);});
-    pool->push_task([&](){p_ax.resize(max_bin);});
-    pool->push_task([&](){p_xx.resize(max_bin);});
-    pool->push_task([&](){p_wa.resize(max_bin);});
-    pool->push_task([&](){p_wx.resize(max_bin);});
-    pool->push_task([&](){p_ww.resize(max_bin);});
-    pool->push_task([&](){p_tot.resize(max_bin);});
+    pool->push_task([&] () { p_aa.resize(max_bin); });
+    pool->push_task([&] () { p_ax.resize(max_bin); });
+    pool->push_task([&] () { p_xx.resize(max_bin); });
+    pool->push_task([&] () { p_wa.resize(max_bin); });
+    pool->push_task([&] () { p_wx.resize(max_bin); });
+    pool->push_task([&] () { p_ww.resize(max_bin); });
+    pool->push_task([&] () { p_tot.resize(max_bin); });
     pool->wait_for_tasks();
 
     if (settings::hist::use_foxs_method) {

@@ -354,7 +354,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
 
             // pointer cast is ok since the type should always be HydrationFitter when hydration is enabled
             std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}});
-            fitter->set_scattering_hist(std::move(p->get_histogram()));
+            fitter->set_scattering_hist(p->get_histogram());
 
             auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
                 *constants::mass::density::protein                                                          
@@ -368,7 +368,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
                 *constants::mass::density::protein                                                          
                 /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa
-            fitter->set_scattering_hist(std::move(p->get_histogram()));
+            fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
             evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         }

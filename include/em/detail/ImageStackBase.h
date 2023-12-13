@@ -20,6 +20,8 @@ namespace em {
      */
     class ImageStackBase {
         public:
+            ImageStackBase() = default;
+
             /**
              * @brief Constructor.
              * 

@@ -57,7 +57,7 @@ PlotIntensity& PlotIntensity::plot(observer_ptr<fitter::Fit> fit, const PlotOpti
     return plot(fit->figures.intensity, options);
 }
 
-PlotIntensity& PlotIntensity::plot_guinier_approx(observer_ptr<hist::ICompositeDistanceHistogram> data) {
+PlotIntensity& PlotIntensity::plot_guinier_approx(observer_ptr<hist::ICompositeDistanceHistogram>) {
     PlotOptions options;
     options.legend = "Guinier approx";
     options.xlabel = "$q$ [$\\AA^{-1}$]";

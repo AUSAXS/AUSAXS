@@ -10,7 +10,7 @@
 
 using namespace crystal;
 
-FibonacciMillers::FibonacciMillers(unsigned int h, unsigned int k, unsigned int l) : h(h), k(k), l(l) {}
+FibonacciMillers::FibonacciMillers(unsigned int h, unsigned int k, unsigned int l) : ReducedMillers(h, k, l) {}
 
 std::vector<Miller> FibonacciMillers::generate() const {
     std::vector<Miller> bases = pick_directions(generate_independent_bases(settings::crystal::reduced::basis_q));

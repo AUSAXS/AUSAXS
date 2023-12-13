@@ -50,7 +50,7 @@ namespace grid {
 			 */
 			Grid(Grid&& grid) noexcept;
 
-			~Grid();
+			virtual ~Grid();
 
 			/**
 			 * @brief Get the atomic radius of an atom in Å.

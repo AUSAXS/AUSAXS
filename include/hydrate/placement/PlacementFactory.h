@@ -2,6 +2,7 @@
 
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/detail/GridInternalFwd.h>
+#include <settings/GridSettings.h>
 
 #include <memory>
 

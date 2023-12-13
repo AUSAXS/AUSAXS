@@ -14,11 +14,11 @@ namespace crystal {
     class FibonacciMillers : public ReducedMillers {
         public:
             FibonacciMillers(unsigned int h, unsigned int k, unsigned int l);
+            ~FibonacciMillers() override = default;
 
             std::vector<Miller> generate() const override;
 
         private:
-            int h, k, l;
             static inline double phi = (1 + sqrt(5))/2;
 
             int estimate_n(double resolution) const;

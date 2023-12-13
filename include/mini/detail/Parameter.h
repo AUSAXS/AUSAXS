@@ -12,7 +12,7 @@ namespace mini {
      * @brief A representation of a parameter.
      */
     struct Parameter {
-        Parameter() noexcept {}
+        Parameter() noexcept;
 
         /**
          * @brief Create a Parameter with a guess value and bounds.

@@ -16,12 +16,12 @@ namespace signaller {
             /**
              * @brief Signal that the external state (i.e. position, rotation) of this object has changed. 
              */
-            virtual void external_change() const;
+            virtual void external_change() const override;
 
             /**
              * @brief Signal that the internal state (removed or added atoms) of this object has changed.
              */
-            virtual void internal_change() const;
+            virtual void internal_change() const override;
 
             /**
              * @brief Get the id of this signaller. 

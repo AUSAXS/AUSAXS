@@ -17,10 +17,12 @@ std::vector<double> ProteinManager::get_charge_levels() const noexcept {
     return charge_levels;
 }
 
-void ProteinManager::set_charge_levels(std::vector<double> levels) noexcept {
+void ProteinManager::set_charge_levels(const std::vector<double>& levels) noexcept {
+    auto tmp = levels;
+
     // make sure the last bin can contain all atoms
     if (std::abs(levels[levels.size()-1]) < 10000) {
-        levels.push_back(levels[0] < 0 ? -10000 : 10000);
+        tmp.push_back(levels[0] < 0 ? -10000 : 10000);
     } 
     charge_levels = levels;
 }

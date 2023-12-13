@@ -1,6 +1,5 @@
 #pragma once
 
-#include <math/detail/exp/exp.h>
 #include <constants/ConstantsMath.h>
 
 #include <gcem.hpp>

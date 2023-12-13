@@ -12,6 +12,8 @@ namespace detail {
      * @brief Abstract base class for constructing datasets from files.
      */
     struct DatasetReader {
+        virtual ~DatasetReader() = default;
+
         /**
          * @brief Construct a dataset from a file.
          * 

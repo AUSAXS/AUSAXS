@@ -30,6 +30,8 @@ using namespace hist;
 using namespace data;
 using namespace data::record;
 
+Molecule::Molecule() noexcept = default;
+
 Molecule::Molecule(std::vector<Body>&& bodies) : bodies(std::move(bodies)) {
     initialize();
 }
@@ -164,7 +166,7 @@ std::vector<Atom> Molecule::get_atoms() const {
             n++;
         }
     }
-    if (n != N) [[unlikely]] {throw except::size_error("Molecule::atoms: incorrect number of atoms. This should never happen.");}
+    if (n != static_cast<int>(N)) [[unlikely]] {throw except::size_error("Molecule::atoms: incorrect number of atoms. This should never happen.");}
     return atoms;
 }
 

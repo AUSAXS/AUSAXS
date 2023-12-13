@@ -52,7 +52,7 @@ namespace hist {
             /**
              * @brief Apply a scaling factor to the excluded volume partial distance histogram.
              */
-            void apply_excluded_volume_scaling_factor(double k);
+            void apply_excluded_volume_scaling_factor(double k) override;
 
             /**
              * @brief Get the partial distance histogram for atom-atom interactions.

@@ -10,7 +10,7 @@ namespace mini {
         /**
          * @brief Default constructor.
          */
-        Result() noexcept {}
+        Result() noexcept = default;
 
         /**
          * @brief Construct a Result. 
@@ -29,6 +29,8 @@ namespace mini {
          * @param fevals The number of function evaluations.
          */
         Result(const std::vector<FittedParameter>& params, double fval, unsigned int fevals) noexcept;
+
+        virtual ~Result() = default;
 
         /**
          * @brief Get a parameter based on its name from this result.
