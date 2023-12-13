@@ -3,16 +3,16 @@
 #include <crystal/miller/Miller.h>
 #include <math/Vector3.h>
 #include <data/DataFwd.h>
+#include <utility/UtilityFwd.h>
 
 #include <vector>
 #include <complex>
 
-class Basis3D;
 namespace crystal {
     class Fval {
         public: 
             Fval();
-            Fval(double h, double k, double l);
+            Fval(int h, int k, int l);
 
             static void set_points(std::vector<Vector3<double>>&& points);
 

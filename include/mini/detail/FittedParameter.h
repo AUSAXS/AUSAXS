@@ -1,14 +1,13 @@
 #pragma once
 
-#include <string>
-#include <vector>
-
+#include <mini/MiniFwd.h>
 #include <utility/Limit.h>
 #include <dataset/PointSet.h>
 
+#include <string>
+#include <vector>
+
 namespace mini {
-    struct Parameter;
-    
     struct FittedParameter {
         /**
          * @brief Default constructor.

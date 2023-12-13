@@ -35,7 +35,7 @@ Dataset2D& Multiset::get_data(unsigned int i) {
     return data[i];
 }
 
-unsigned int Multiset::size() const {
+std::size_t Multiset::size() const {
     return data.size();
 }
 

@@ -1,16 +1,17 @@
 #pragma once
 
+#include<cstddef>
 #include <concepts>
 
 template <typename T>
 class SliceIterator {
-    using iterator_category = std::random_access_iterator_tag;
-    using difference_type = std::ptrdiff_t;
-    using value_type = T;
-    using pointer = T*;
-    using reference = T&;
-
     public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = T;
+        using pointer = T*;
+        using reference = T&;
+
         SliceIterator() : m_ptr(nullptr), step(0) {}
         SliceIterator(pointer ptr, unsigned int step) : m_ptr(ptr), step(step) {}
 

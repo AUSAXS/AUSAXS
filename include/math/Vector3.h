@@ -7,6 +7,7 @@
 #include <utility/Exceptions.h>
 
 #include <initializer_list>
+#include <array>
 
 template<numeric T> 
 class Vector3 {
@@ -215,8 +216,8 @@ Vector3<Q> operator*(const Matrix<T>& M, const Vector3<Q>& v) {
     #endif
 
     Vector3<Q> w;
-    for (size_t row = 0; row < v.size(); ++row) {
-        for (size_t col = 0; col < M.M; ++col) {
+    for (unsigned int row = 0; row < v.size(); ++row) {
+        for (unsigned int col = 0; col < M.M; ++col) {
 			w[row] += M.index(row, col) * v[col];
         }
     }

@@ -1,13 +1,12 @@
 #pragma once
 
 #include <data/DataFwd.h>
+#include <hydrate/GridFwd.h>
+#include <hydrate/detail/GridInternalFwd.h>
 
 #include <vector>
 
 namespace grid {    
-    template<typename T> class GridMember;
-    class Grid;
-    
     /**
      * @brief This class defines the strategy used to remove some of the water molecules. See its subclasses for more information on how this is done. 
      */

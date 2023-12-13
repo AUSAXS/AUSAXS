@@ -1,16 +1,15 @@
 #pragma once
 
+#include <fitter/FitterFwd.h>
+#include <fitter/FitPlots.h>
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
-#include <fitter/FitPlots.h>
 #include <dataset/SimpleDataset.h>
 
 #include <string>
 #include <vector>
 
 namespace fitter {
-    class Fitter;
-
     class Fit : public mini::Result {
         public:
             Fit() noexcept {}
@@ -27,7 +26,7 @@ namespace fitter {
              * 
              * Create a new Fit object based on a minimizer result.
              */
-            Fit(const mini::Result& res, double chi2, double dof) noexcept;
+            Fit(const mini::Result& res, double chi2, unsigned int dof) noexcept;
             
             /**
              * @brief Add the parameters from another fit to this one. Each parameter will count as an additional degree of freedom. 
@@ -44,8 +43,6 @@ namespace fitter {
              */
             void add_plots(Fitter& fitter);
 
-            bool operator==(const Fit& other) const;
-
             /**
              * @brief Get a string representation of this object. 
              */
@@ -57,12 +54,13 @@ namespace fitter {
             unsigned int dof;
     };
 
-    struct EMFit : public Fit {
-        using Fit::Fit;
+    class EMFit : public Fit {
+        public:
+            using Fit::Fit;
 
-        [[nodiscard]] std::string to_string() const noexcept override;
+            [[nodiscard]] std::string to_string() const noexcept override;
 
-        double level;
+            double level;
     };
 
     template<typename C>

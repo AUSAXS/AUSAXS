@@ -1,7 +1,8 @@
 #pragma once
 
-#include <dataset/SimpleDataset.h>
+#include <fitter/FitterFwd.h>
 #include <fitter/Fit.h>
+#include <dataset/SimpleDataset.h>
 #include <mini/Minimizer.h>
 
 #include <string>
@@ -9,8 +10,6 @@
 #include <memory>
 
 namespace fitter {
-    class FitPlots;
-
     class Fitter {
         public:
             virtual ~Fitter() {}

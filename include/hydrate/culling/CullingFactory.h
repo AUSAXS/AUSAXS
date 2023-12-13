@@ -1,10 +1,11 @@
 #pragma once
 
 #include <hydrate/culling/CullingStrategy.h>
+#include <hydrate/detail/GridInternalFwd.h>
+
 
 #include <memory>
 
-namespace settings::grid {enum class CullingStrategy;}
 namespace grid {
     namespace factory {
         /**

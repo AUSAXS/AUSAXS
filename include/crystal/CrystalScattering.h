@@ -1,15 +1,14 @@
 #pragma once
 
 #include <math/Vector3.h>
+#include <crystal/CrystalFwd.h>
+#include <hydrate/GridFwd.h>
+#include <dataset/DatasetFwd.h>
 
 #include <memory>
 #include <vector>
 
-namespace grid {class Grid;}
-class SimpleDataset;
 namespace crystal {
-    class MillerGenerationStrategy;
-    class Fval;
     class CrystalScattering {
         public: 
             CrystalScattering(const grid::Grid& grid);

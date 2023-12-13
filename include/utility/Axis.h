@@ -33,7 +33,7 @@ class Axis {
 		 * @param xmax The maximum value spanned by this axis. 
 		 * @param bins The number of equidistant bins. 
 		 */
-		constexpr Axis(double xmin, double xmax, int bins) noexcept : bins(bins), min(xmin), max(xmax)  {}
+		constexpr Axis(double xmin, double xmax, int bins) noexcept : bins(bins), min(xmin), max(xmax) {}
 
 		/**
 		 * @brief List initializer. 

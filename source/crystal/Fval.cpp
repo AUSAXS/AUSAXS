@@ -10,7 +10,7 @@
 using namespace crystal;
 
 Fval::Fval() = default;
-Fval::Fval(double h, double k, double l) : hkl(h, k, l) {
+Fval::Fval(int h, int k, int l) : hkl(h, k, l) {
     q = Q();
     qlength = q.norm();
     fval = F();

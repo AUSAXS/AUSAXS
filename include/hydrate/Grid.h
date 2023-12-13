@@ -1,20 +1,18 @@
 #pragma once
 
 #include <hydrate/GridObj.h>
+#include <hydrate/detail/GridInternalFwd.h>
 #include <utility/Axis3D.h>
 #include <data/DataFwd.h>
 #include <io/IOFwd.h>
 #include <math/Vector3.h>
+#include <constants/ConstantsFwd.h>
 
 #include <list>
 #include <vector>
 #include <memory>
 
-namespace constants {enum class atom_t;}
 namespace grid {
-	template<typename T> class GridMember;
-	class PlacementStrategy;
-	class CullingStrategy;
 	class Grid {
 		public:
 			/**

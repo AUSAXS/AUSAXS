@@ -1,10 +1,10 @@
 #pragma once
 
 #include <hydrate/placement/PlacementStrategy.h>
+#include <hydrate/detail/GridInternalFwd.h>
 
 #include <memory>
 
-namespace settings::grid {enum class PlacementStrategy;}
 namespace grid {
     namespace factory {
         /**

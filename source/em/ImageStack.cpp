@@ -113,10 +113,10 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    SimpleDataset avg = chi2_landscape.rolling_average(7);  // impose a moving average filter 
-    avg = avg.interpolate(5);                               // interpolate more points
+    SimpleDataset avg = chi2_landscape.rolling_average(7);                          // impose a moving average filter 
+    avg = avg.interpolate(5);                                                       // interpolate more points
     double spacing = avg.x(1)-avg.x(0); 
-    auto minima = avg.find_minima(0.1*avg.size(), 0.1);     // find all minima. they should be fairly spaced out (10% seems reasonable?)
+    auto minima = avg.find_minima(static_cast<unsigned int>(0.1*avg.size()), 0.1);  // find all minima. they should be fairly spaced out (10% seems reasonable?)
     min_abs = avg.find_minimum();
 
     // remove minima that are too far away from the absolute minimum
@@ -259,7 +259,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             if (settings::em::mass_axis) {
                 Dataset mass_cutoff(0, 2);
                 // skip the first few points since they are used for calibration
-                for (unsigned int i = this->evals.size() - area.size(); i < this->evals.size(); ++i) {
+                for (int i = static_cast<int>(this->evals.size() - area.size()); i < static_cast<int>(this->evals.size()); ++i) {
                     mass_cutoff.push_back({this->evals[i].cutoff, this->evals[i].mass});
                 }
                 mass_cutoff.sort_x();
@@ -310,7 +310,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
     std::unique_ptr<fitter::EMFit> emfit = std::make_unique<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;
-    emfit->fevals = evals.evals.size();
+    emfit->fevals = static_cast<unsigned int>(evals.evals.size());
     emfit->level = to_level(min_abs.x);
     if (settings::em::save_pdb) {
         auto temp_protein = get_protein_manager()->get_protein(min_abs.x);

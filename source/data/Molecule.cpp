@@ -155,7 +155,7 @@ observer_ptr<grid::Grid> Molecule::create_grid() const {
 }
 
 std::vector<Atom> Molecule::get_atoms() const {
-    int N = std::accumulate(bodies.begin(), bodies.end(), 0, [] (double sum, const Body& body) {return sum + body.get_atoms().size();});
+    std::size_t N = std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) { return sum + body.get_atoms().size(); });
     std::vector<Atom> atoms(N);
     int n = 0; // current index
     for (const auto& body : bodies) {
@@ -240,15 +240,15 @@ void Molecule::clear_hydration() {
     signal_modified_hydration_layer();
 }
 
-unsigned int Molecule::body_size() const {
+std::size_t Molecule::body_size() const {
     return bodies.size();
 }
 
-unsigned int Molecule::atom_size() const {
-    return std::accumulate(bodies.begin(), bodies.end(), 0, [] (unsigned int sum, const Body& body) {return sum + body.get_atoms().size();});
+std::size_t Molecule::atom_size() const {
+    return std::accumulate(bodies.begin(), bodies.end(), std::size_t{ 0 }, [] (std::size_t sum, const Body& body) {return sum + body.get_atoms().size(); });
 }
 
-unsigned int Molecule::water_size() const {
+std::size_t Molecule::water_size() const {
     return hydration_atoms.size();
 }
 
@@ -290,7 +290,7 @@ void Molecule::update_effective_charge(double scaling) {
     std::cout << "Molecule volume: " << get_volume_grid() << std::endl;
 
     // number of atoms
-    unsigned int N = atom_size();
+    std::size_t N = atom_size();
     double charge_per_atom = -displaced_charge/N;
     if (settings::general::verbose) {
         std::cout << "Total displaced charge: " << displaced_charge << std::endl;
@@ -374,7 +374,7 @@ void Molecule::generate_unit_cell() {
 
 void Molecule::remove_disconnected_atoms(double min_percent) {
     if (grid == nullptr) {create_grid();}
-    int min = min_percent*atom_size();
+    int min = static_cast<int>(std::round(min_percent*atom_size()));
     auto to_remove = grid->remove_disconnected_atoms(min);
 
     // sanity check

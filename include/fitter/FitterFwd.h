@@ -6,4 +6,5 @@ namespace fitter {
     class HydrationFitter;
     class Fit;
     class EMFit;
+    struct FitPlots;
 }

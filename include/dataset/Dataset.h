@@ -170,7 +170,7 @@ class Dataset : public Matrix<double> {
          * @param min_spacing The minimum spacing between minima.
          * @param prominence The minimum prominence of a minima as a percentage of the largest prominence. Higher values will result in fewer minima.
          */
-        std::vector<unsigned int> find_minima(double min_spacing = 0, double prominence = 0) const;
+        std::vector<unsigned int> find_minima(unsigned int min_spacing = 0, double prominence = 0) const;
 
         /**
          * @brief Find the indices of minima in the dataset.
@@ -178,7 +178,7 @@ class Dataset : public Matrix<double> {
          * @param min_spacing The minimum spacing between minima.
          * @param prominence The minimum prominence of a minima as a percentage of the largest prominence. Higher values will result in fewer minima. 
          */
-        std::vector<unsigned int> find_maxima(double min_spacing = 0, double prominence = 0) const;
+        std::vector<unsigned int> find_maxima(unsigned int min_spacing = 0, double prominence = 0) const;
 
         /**
          * @brief Append another dataset with the same number of rows to this one.

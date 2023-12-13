@@ -1,13 +1,13 @@
 #pragma once
 
 #include <utility/Concepts.h>
+#include <utility/UtilityFwd.h>
+#include <math/MathFwd.h>
+#include <io/IOFwd.h>
 
 #include <vector>
 #include <utility>
 
-template<numeric T> class Vector3;
-class Basis3D;
-namespace io {class ExistingFile;}
 namespace crystal::io {
     struct CrystalReader {
         virtual ~CrystalReader() = default;

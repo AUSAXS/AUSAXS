@@ -209,15 +209,15 @@ namespace data {
 
 			std::shared_ptr<signaller::Signaller> get_signaller() const;
 
-			[[nodiscard]] unsigned int get_id() const;
+			[[nodiscard]] int get_id() const;
 
 			/**
 			 * @brief Get the total number of constituent atoms, excluding hydration. 
 			 */
-			[[nodiscard]] unsigned int atom_size() const;
+			[[nodiscard]] std::size_t atom_size() const;
 
 		private:
-			unsigned int uid;                     		// A unique identifier for this body
+			int uid;                     				// A unique identifier for this body
 			bool updated_charge = false;          		// True if the effective charge of each atom has been updated to reflect the volume they occupy, false otherwise
 			bool centered = false;                		// True if this object is centered, false otherwise
 			inline static unsigned int uid_counter = 0; // The unique counter. 

@@ -57,7 +57,7 @@ std::unique_ptr<Dataset> detail::XVGReader::construct(const io::ExistingFile& pa
             vals[i] = std::stod(tokens[i]);
         }
         row_data.push_back(vals);
-        col_number.push_back(vals.size());
+        col_number.push_back(static_cast<unsigned int>(vals.size()));
     }
 
     unsigned int mode = stats::mode(col_number);

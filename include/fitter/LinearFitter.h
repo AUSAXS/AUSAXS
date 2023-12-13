@@ -1,11 +1,11 @@
 #pragma once
 
-#include <fitter/Fitter.h>
-#include <utility/observer_ptr.h>
 #include <hist/HistFwd.h>
 #include <io/IOFwd.h>
+#include <utility/UtilityFwd.h>
+#include <fitter/Fitter.h>
+#include <utility/observer_ptr.h>
 
-class Limit;
 namespace fitter {
 
 	/**

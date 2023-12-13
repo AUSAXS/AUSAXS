@@ -16,8 +16,9 @@ check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
 if (MSVC)
+	add_compile_definitions("NOMINMAX")
 	add_compile_options(
-		/O2 /ffinite-math /constexpr:steps10000000000
+		 /fp:fast /constexpr:steps10000000000 #/O2
 	)
 elseif (UNIX)
 	add_compile_options(

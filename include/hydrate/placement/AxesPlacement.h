@@ -1,9 +1,9 @@
 #pragma once
 
+#include <math/MathFwd.h>
 #include <utility/Concepts.h>
 #include <hydrate/placement/PlacementStrategy.h>
 
-template<numeric T> class Vector3;
 namespace grid {
     /**
      * @brief This strategy iterates through all atoms and attempts to place a water molecule at x±r, y±r, and z±r. 

@@ -1,12 +1,12 @@
 #pragma once
 
+#include <io/IOFwd.h>
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Evaluation.h>
 #include <math/Matrix.h>
 
 #include <string>
 
-namespace io {class ExistingFile;}
 namespace mini {
     struct RegularLandscape : Landscape {
         RegularLandscape(const Landscape& l);

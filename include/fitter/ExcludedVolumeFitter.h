@@ -4,11 +4,9 @@
 
 #include <io/IOFwd.h>
 #include <data/DataFwd.h>
+#include <fitter/FitterFwd.h>
 
 namespace fitter {
-    class Fit;
-    class FitPlots;
-
     /**
      * @brief Fit an intensity curve to a dataset. 
      * 

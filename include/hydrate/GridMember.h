@@ -10,7 +10,7 @@ namespace grid {
      * @brief This class is used internally in Grid for storing all information about a particular member atom. 
      */
     template<typename T>
-    struct GridMember {
+    class GridMember {
         public:
             GridMember() = default;
 

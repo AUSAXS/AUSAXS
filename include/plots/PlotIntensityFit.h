@@ -1,15 +1,10 @@
 #pragma once
 
+#include <fitter/FitterFwd.h>
 #include <plots/Plot.h>
 #include <utility/observer_ptr.h>
 
-namespace fitter {
-	class LinearFitter;
-	class Fit;
-	class FitPlots;
-}
 namespace plots {
-
 	/**
 	 * @brief Plot both the measured and fitted scattering curve. 
 	 * Remember to set the correct ScatteringPlot with the optimized values in the fitter before using this class. 

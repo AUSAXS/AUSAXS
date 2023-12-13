@@ -1,12 +1,11 @@
 #pragma once
 
+#include <io/IOFwd.h>
+#include <fitter/FitterFwd.h>
 #include <fitter/LinearFitter.h>
 #include <mini/detail/Parameter.h>
-#include <io/IOFwd.h>
 
 namespace fitter {
-    class FitPlots;
-
     /**
      * @brief Fit an intensity curve to a dataset. 
      * 

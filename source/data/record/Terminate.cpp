@@ -1,9 +1,12 @@
+#pragma warning(disable:4996) // disable sscanf deprecation warning on MSVC
+
 #include <data/record/Terminate.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 
 #include <string>
 #include <iomanip>
+#include <sstream>
 
 using namespace data::record;
 using std::left, std::right, std::setw;
@@ -54,7 +57,7 @@ void Terminate::parse_pdb(const std::string& s) {
         this->chainID = chainID;
         this->resSeq = std::stoi(resSeq);
         this->iCode = iCode;
-    } catch (const std::exception& e) { // catch conversion errors and output a more meaningful error message
+    } catch (const std::exception&) { // catch conversion errors and output a more meaningful error message
         throw except::parse_error("Terminate::parse_pdb: Invalid field values in line \"" + s + "\".");
     }
 

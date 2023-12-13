@@ -1,3 +1,5 @@
+#pragma warning(disable:4996) // disable sscanf deprecation warning on MSVC
+
 #include <data/record/Atom.h>
 #include <constants/Constants.h>
 #include <utility/Utility.h>
@@ -40,7 +42,7 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         #ifdef DEBUG
             try {
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-            } catch (const except::base& e) {
+            } catch (const except::base&) {
             throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
             }
         #endif
@@ -52,7 +54,7 @@ Atom::Atom() : uid(uid_counter++) {}
 
 void Atom::parse_pdb(const std::string& str) {
     auto s = utility::remove_all(str, "\n\r"); // remove any newline or carriage return
-    int pad_size = 81 - s.size();
+    int pad_size = 81 - static_cast<int>(s.size());
     if (pad_size < 0) {
         console::print_warning("Warning in Atom::parse_pdb: Line is longer than 80 characters. Truncating.");
         std::cout << "\"" << s << "\"" << std::endl;
@@ -113,7 +115,7 @@ void Atom::parse_pdb(const std::string& str) {
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
         if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
         this->charge = charge;
-    } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
+    } catch (const except::base&) { // catch conversion errors and output a more meaningful error message
         console::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
         throw;
     }
@@ -122,7 +124,7 @@ void Atom::parse_pdb(const std::string& str) {
     #ifdef DEBUG
         try {
             effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-        } catch (const except::base& e) {
+        } catch (const except::base&) {
         throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
         }
     #endif
@@ -185,7 +187,7 @@ void Atom::set_element(constants::atom_t element) {
     #ifdef DEBUG
         try {
             constants::mass::get_mass(element);
-        } catch (const std::exception& e) {
+        } catch (const std::exception&) {
             throw except::invalid_argument("Atom::set_element: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
         }
     #endif
@@ -219,7 +221,7 @@ double Atom::get_mass() const {
         #ifdef DEBUG
             try {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);
-            } catch (const std::exception& e) {
+            } catch (const std::exception&) {
                 throw except::invalid_argument("Atom::get_mass: The mass of element " + constants::symbols::write_element_string(element) + " is not defined.");
             }
         #endif

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mini/MiniFwd.h>
 #include <utility/Limit.h>
 
 #include <string>
@@ -7,8 +8,6 @@
 #include <optional>
 
 namespace mini {
-    struct FittedParameter;
-
     /**
      * @brief A representation of a parameter.
      */

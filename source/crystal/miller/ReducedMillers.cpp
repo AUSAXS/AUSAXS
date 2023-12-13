@@ -34,12 +34,13 @@ std::vector<Miller> ReducedMillers::generate() const {
 
 std::vector<Miller> ReducedMillers::generate_independent_bases(double limit) const {
     if (limit < 0) {limit = settings::crystal::reduced::basis_q;}
-    double limit2 = limit*limit;
+    int limit2 = static_cast<int>(std::round(limit*limit));
+    int ilimit = static_cast<int>(std::round(limit));
 
     std::vector<Miller> millers;
-    for (int h = -limit; h <= limit; h++) {
-        for (int k = -limit; k <= limit; k++) {
-            for (int l = -limit; l <= limit; l++) {
+    for (int h = -ilimit; h <= ilimit; h++) {
+        for (int k = -ilimit; k <= ilimit; k++) {
+            for (int l = -ilimit; l <= ilimit; l++) {
                 if (h*h + k*k + l*l <= limit2) {
                     millers.emplace_back(h, k, l);
                 }

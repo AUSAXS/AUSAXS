@@ -2,6 +2,8 @@
 #include <em/detail/header/data/DummyData.h>
 #include <utility/Axis3D.h>
 
+#include <iostream>
+
 using namespace em::detail::header;
 
 DummyHeader::DummyHeader() : MapHeader(std::make_unique<DummyData>()) {}

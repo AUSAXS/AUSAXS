@@ -29,6 +29,6 @@ void Header::remove(const std::string& type) {
     contents = std::move(new_contents);
 }
 
-unsigned int Header::size() const {return contents.size();}
+std::size_t Header::size() const {return contents.size();}
 
 bool Header::operator==(const Header& rhs) const = default;

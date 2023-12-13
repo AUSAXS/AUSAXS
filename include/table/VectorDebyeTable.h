@@ -29,12 +29,12 @@ namespace table {
             /**
              * @brief Get the size of the table in the q-direction. 
              */
-            [[nodiscard]] unsigned int size_q() const noexcept override;
+            [[nodiscard]] std::size_t size_q() const noexcept override;
 
             /**
              * @brief Get the size of the table in the d-direction. 
              */
-            [[nodiscard]] unsigned int size_d() const noexcept override;
+            [[nodiscard]] std::size_t size_d() const noexcept override;
 
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.

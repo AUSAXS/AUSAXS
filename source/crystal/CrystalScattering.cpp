@@ -95,7 +95,7 @@ void CrystalScattering::save_checkpoint(unsigned int stop, const std::vector<Fva
     checkpoint_file.write(reinterpret_cast<const char*>(&stop), sizeof(stop));
 
     // we also save the total size of the fvals vector so we can make a simple consistency check when loading
-    unsigned int fvals_size = fvals.size();
+    std::size_t fvals_size = fvals.size();
     checkpoint_file.write(reinterpret_cast<const char*>(&fvals_size), sizeof(fvals_size));
 
     // finally we write the first 'stop' elements of the fvals vector
@@ -118,7 +118,7 @@ unsigned int CrystalScattering::load_checkpoint(std::vector<Fval>& fvals) {
     if (stop > fvals.size()) {throw except::unexpected("CrystalScattering::load_checkpoint: incompatible checkpoint file. Did you change the settings?.");}
 
     // then we read the previous size of the fvals vector
-    unsigned int fvals_size = 0;
+    std::size_t fvals_size = 0;
     checkpoint_file.read(reinterpret_cast<char*>(&fvals_size), sizeof(fvals_size));
     if (fvals_size != fvals.size()) {throw except::unexpected("CrystalScattering::load_checkpoint: incompatible checkpoint file. Did you change the settings?.");}
 
@@ -152,7 +152,7 @@ SimpleDataset CrystalScattering::calculate() const {
     auto dispatcher = [&] () {
         while (true) {
             unsigned int start = index.fetch_add(1000);
-            unsigned int end = std::min<unsigned int>(start + 1000, millers.size());
+            unsigned int end = std::min<unsigned int>(start + 1000, static_cast<unsigned int>(millers.size()));
             if (start >= millers.size() || interrupt_signal) {
                 index = std::min(index.load(), end);
                 break;

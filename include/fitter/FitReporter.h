@@ -1,12 +1,12 @@
 #pragma once
 
+#include <io/IOFwd.h>
 #include <fitter/Fit.h>
 #include <utility/observer_ptr.h>
 
 #include <string>
 #include <functional>
 
-namespace io {class File;}
 namespace fitter {
     class FitReporter {
         public:

@@ -1,12 +1,11 @@
 #pragma once
 
 #include <math/Vector3.h>
+#include <hydrate/GridFwd.h>
 
 #include <vector>
 
 namespace grid {
-    class Grid;
-
     /**
      * @brief Iterates through all placed water molecules, rejecting all but the nth, where n is determined from the desired number of water molecules. 
      */

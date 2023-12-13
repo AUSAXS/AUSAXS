@@ -50,7 +50,7 @@ namespace data::record {
 			/**
 			 * @brief Get the number of header lines.
 			 */
-			unsigned int size() const;
+			std::size_t size() const;
 
 			bool operator==(const Footer& rhs) const;
 

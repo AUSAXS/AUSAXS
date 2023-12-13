@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 struct MovingAverage {
     public: 
@@ -50,9 +50,9 @@ struct MovingAverage {
 
         template<typename T>
         static std::vector<double> weighted_average(const T& data, std::vector<double> weights) {
-            unsigned int window_size = weights.size();
+            std::size_t window_size = weights.size();
             std::vector<double> averages(data.size());
-            unsigned int mid = (weights.size()-1)/2;
+            unsigned int mid = static_cast<unsigned int>((weights.size()-1)/2);
 
             auto average = [&data, &weights, &mid] (unsigned int index, int steps) {
                 double sum = 0;
@@ -64,7 +64,7 @@ struct MovingAverage {
                 return sum/w_sum;
             };
 
-            unsigned int steps = (window_size-1)/2;
+            unsigned int steps = static_cast<unsigned int>((window_size-1)/2);
             for (unsigned int i = steps; i < data.size() - steps; i++) {
                 averages[i] = average(i, steps);
             }

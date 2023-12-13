@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
-
 #include <dataset/SimpleDataset.h>
 #include <plots/PlotOptions.h>
-#include <mini/detail/Evaluation.h> // No forward declaration since the primary function of this class is to forward this object to the user
+#include <mini/detail/Evaluation.h>
+
+#include <vector>
 
 namespace mini {
     class Landscape : public plots::Plottable {
@@ -29,8 +29,6 @@ namespace mini {
             void append(const Landscape& evals);
 
             std::string to_string() const;
-
-            bool operator==(const Landscape& other) const;
 
             std::vector<Evaluation> evals;
     };    

@@ -186,6 +186,6 @@ const record::Atom& Body::get_atom(unsigned int index) const {return file.protei
 
 data::detail::AtomCollection& Body::get_file() {return file;}
 
-unsigned int Body::get_id() const {return uid;}
+int Body::get_id() const {return uid;}
 
-unsigned int Body::atom_size() const {return file.protein_atoms.size();}
+std::size_t Body::atom_size() const {return file.protein_atoms.size();}

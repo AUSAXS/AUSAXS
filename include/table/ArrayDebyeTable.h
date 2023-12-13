@@ -35,22 +35,22 @@ namespace table {
             /**
              * @brief Get the size of the table in the q-direction. 
              */
-            [[nodiscard]] constexpr unsigned int size_q() const noexcept override {return ArrayContainer2D::N;}
+            [[nodiscard]] constexpr std::size_t size_q() const noexcept override {return ArrayContainer2D::N;}
 
             /**
              * @brief Get the size of the table in the d-direction. 
              */
-            [[nodiscard]] constexpr unsigned int size_d() const noexcept override {return ArrayContainer2D::M;}
+            [[nodiscard]] constexpr std::size_t size_d() const noexcept override {return ArrayContainer2D::M;}
 
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] std::array<constants::axes::d_type, constants::axes::d_axis.bins>::const_iterator begin(unsigned int q_index) const override {return ArrayContainer2D::begin(q_index);}
+            [[nodiscard]] const constants::axes::d_type* begin(unsigned int q_index) const override {return &ArrayContainer2D::index(q_index, 0);}
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] std::array<constants::axes::d_type, constants::axes::d_axis.bins>::const_iterator end(unsigned int q_index) const override {return ArrayContainer2D::end(q_index);}
+            [[nodiscard]] const constants::axes::d_type* end(unsigned int q_index) const override {return &ArrayContainer2D::index(q_index, size_d());}
 
             /**
              * @brief Get the default table. 

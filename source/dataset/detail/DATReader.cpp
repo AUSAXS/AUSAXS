@@ -59,7 +59,7 @@ std::unique_ptr<Dataset> detail::DATReader::construct(const io::ExistingFile& pa
             vals[i] = std::stod(tokens[i]);
         }
         row_data.push_back(vals);
-        col_number.push_back(vals.size());
+        col_number.push_back(static_cast<unsigned int>(vals.size()));
     }
 
     // determine the most common number of columns, since that will likely be the data

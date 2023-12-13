@@ -14,7 +14,7 @@ Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(re
     add_plots(fitter);
 }
 
-Fit::Fit(const mini::Result& res, double chi2, double dof) noexcept : Result(res), dof(dof) {
+Fit::Fit(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
     fval = chi2;
 }
 
@@ -33,8 +33,6 @@ void Fit::add_fit(std::shared_ptr<Fit> fit) noexcept {
         dof--;
     }
 }
-
-bool Fit::operator==(const Fit& other) const = default;
 
 std::string Fit::to_string() const noexcept {
     std::stringstream ss;

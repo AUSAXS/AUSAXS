@@ -6,6 +6,7 @@
 #include <form_factor/PrecalculatedExvFormFactorProduct.h>
 #include <settings/HistogramSettings.h>
 #include <constants/ConstantsMath.h>
+#include <math/ConstexprMath.h>
 
 using namespace hist;
 
@@ -38,7 +39,7 @@ CompositeDistanceHistogramFFExplicit::~CompositeDistanceHistogramFFExplicit() = 
 double CompositeDistanceHistogramFFExplicit::exv_factor(double q) const {
     // G(q) factor from CRYSOL
     constexpr double rm = 1.62;
-    constexpr double c = std::pow(4*constants::pi/3, 3./2)*constants::pi*rm*rm*constants::form_factor::s_to_q_factor;
+    constexpr double c = constexpr_math::pow(4*constants::pi/3, 3./2)*constants::pi*rm*rm*constants::form_factor::s_to_q_factor;
     return std::pow(cx, 3)*std::exp(-c*(cx*cx - 1)*q*q);
 }
 

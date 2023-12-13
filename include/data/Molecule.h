@@ -5,14 +5,13 @@
 #include <math/MathFwd.h>
 #include <io/ExistingFile.h>
 #include <utility/observer_ptr.h>
+#include <dataset/DatasetFwd.h>
+#include <fitter/FitterFwd.h>
+#include <hydrate/GridFwd.h>
 
 #include <string>
 #include <vector>
 #include <memory>
-
-class SimpleDataset;
-namespace fitter {class Fit;}
-namespace grid {class Grid;}
 
 namespace data {
 	/**
@@ -247,17 +246,17 @@ namespace data {
 			/**
 			 * @brief Get the number of constituent bodies. 
 			 */
-			[[nodiscard]] unsigned int body_size() const;
+			[[nodiscard]] std::size_t body_size() const;
 
 			/**
 			 * @brief Get the total number of constituent atoms, excluding hydration. 
 			 */
-			[[nodiscard]] unsigned int atom_size() const;
+			[[nodiscard]] std::size_t atom_size() const;
 
 			/**
 			 * @brief Get the total number of water molecules.
 			 */
-			[[nodiscard]] unsigned int water_size() const;
+			[[nodiscard]] std::size_t water_size() const;
 
 			/**
 			 * @brief Bind the signaller objects in each body to the histogram manager. 

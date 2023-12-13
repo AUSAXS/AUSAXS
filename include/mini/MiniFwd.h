@@ -1,7 +1,7 @@
 #pragma once
 
 namespace mini {
-    class Parameter;
-    class FittedParameter;
+    struct Parameter;
+    struct FittedParameter;
     class Landscape;
 }

@@ -30,15 +30,15 @@ std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
     double xscale = map_axes.x.width();
     double yscale = map_axes.y.width();
     double zscale = map_axes.z.width();
-    unsigned int step = settings::em::sample_frequency;
+    int step = static_cast<int>(settings::em::sample_frequency);
     
     // define a weight function for more efficient switching. 
     auto weight = settings::em::fixed_weights ? 
         [] (float) {return 1.0f;} :     // fixed weights enabled - all voxels have the same weight of 1
         [] (float val) {return val;};   // fixed weights disabled - voxels have a weight equal to their density
     
-    for (unsigned int x = 0; x < N; x += step) {
-        for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
+    for (int x = 0; x < static_cast<int>(N); x += step) {
+        for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             float val = index(x, y);
             if (val < cutoff) {
                 continue;
@@ -51,9 +51,9 @@ std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
 
 unsigned int Image::count_voxels(double cutoff) const {
     unsigned int count = 0;
-    unsigned int step = settings::em::sample_frequency;
-    for (unsigned int x = 0; x < N; x += step) {
-        for (unsigned int y = bounds[x].min; y < bounds[x].max; y += step) {
+    int step = static_cast<int>(settings::em::sample_frequency);
+    for (int x = 0; x < static_cast<int>(N); x += step) {
+        for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             if (index(x, y) >= cutoff) {
                 count++;
             }

@@ -2,6 +2,7 @@
 #include <utility/Exceptions.h>
 
 #include <unordered_map>
+#include <iostream>
 
 using namespace em::detail::header;
 

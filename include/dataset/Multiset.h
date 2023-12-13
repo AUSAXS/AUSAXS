@@ -34,7 +34,7 @@ class Multiset {
         /**
          * @brief Get the number of Datasets contained in this Multiset. 
          */
-        unsigned int size() const;
+        std::size_t size() const;
 
         /**
          * @brief Check if this Multifram is empty.

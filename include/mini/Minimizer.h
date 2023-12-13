@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mini/MiniFwd.h>
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
 
@@ -9,7 +10,6 @@
 #include <functional>
 
 namespace mini {
-    class Parameter;
     enum class type {
         BFGS,
         DLIB_GLOBAL,
