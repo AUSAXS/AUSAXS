@@ -7,12 +7,12 @@
 #include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
 #include <dataset/DatasetFwd.h>
+#include <em/detail/EMInternalFwd.h>
 #include <utility/Observable.h>
 
 #include <functional>
 
 namespace em {
-    namespace detail {class ExtendedLandscape;}
     /**
      * @brief Extends the ImageStackBase class with fitting functionalities. 
      */

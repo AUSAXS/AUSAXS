@@ -1,5 +1,6 @@
 #pragma once
 
+#include <em/detail/EMInternalFwd.h>
 #include <data/DataFwd.h>
 #include <hist/HistFwd.h>
 #include <utility/observer_ptr.h>
@@ -8,8 +9,6 @@
 #include <vector>
 
 namespace em {
-    class ImageStackBase;
-
     namespace managers {
         /**
          * @brief A helper class for the ImageStack. 
@@ -26,7 +25,7 @@ namespace em {
                 /**
                  * @brief Destructor.
                  */
-                virtual ~ProteinManager() = default;
+                virtual ~ProteinManager();
 
                 /**
                  * @brief Get the Protein backing this object. 

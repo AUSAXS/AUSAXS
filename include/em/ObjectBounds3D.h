@@ -1,9 +1,10 @@
 #pragma once
 
+#include <em/EMFwd.h>
+
 #include <vector>
 
 namespace em {
-    class ObjectBounds2D;
     class ObjectBounds3D {
         public: 
             ObjectBounds3D(unsigned int size_x, unsigned int size_y, unsigned int size_z);

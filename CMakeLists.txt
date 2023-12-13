@@ -18,7 +18,7 @@ add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBU
 if (MSVC)
 	add_compile_definitions("NOMINMAX")
 	add_compile_options(
-		 /fp:fast /constexpr:steps10000000000 #/O2
+		 /fp:fast /constexpr:steps10000000000 /Zm500 #/O2
 	)
 elseif (UNIX)
 	add_compile_options(

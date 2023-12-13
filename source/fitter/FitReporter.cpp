@@ -78,7 +78,7 @@ std::function<std::string(std::string)> FitReporter::get_title_reporter(const st
             std::string output;
             output += "\n+----------------------------------------------------------+";
 
-            int spaces = (60 - title.size())/2 - 1;
+            int spaces = static_cast<int>((60 - title.size())/2 - 1);
             std::string spacing(spaces, ' ');
             output += "\n|" + spacing + title + (title.size() % 2 == 0 ? spacing : spacing + " ") + "|\n";
             return output;

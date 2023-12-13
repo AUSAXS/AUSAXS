@@ -25,7 +25,7 @@
 
 using namespace em;
 
-ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(images.size()) {    
+ImageStackBase::ImageStackBase(const std::vector<Image>& images) : size_x(images[0].N), size_y(images[0].M), size_z(static_cast<unsigned int>(images.size())) {    
     data = images;
     for (unsigned int z = 0; z < size_z; ++z) {
         if (image(z).N != size_x || image(z).M != size_y) {throw except::invalid_argument("ImageStackBase::ImageStackBase: All images must have the same dimensions.");}
@@ -79,7 +79,7 @@ observer_ptr<data::Molecule> ImageStackBase::get_protein(double cutoff) const {
 }
 
 unsigned int ImageStackBase::count_voxels(double cutoff) const {
-    return std::accumulate(data.begin(), data.end(), 0, [&cutoff] (double sum, const Image& im) {return sum + im.count_voxels(cutoff);});
+    return std::accumulate(data.begin(), data.end(), 0u, [&cutoff] (unsigned int sum, const Image& im) {return sum + im.count_voxels(cutoff);});
 }
 
 template<numeric T>

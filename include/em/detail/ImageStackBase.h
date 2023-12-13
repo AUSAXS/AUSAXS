@@ -1,22 +1,20 @@
 #pragma once
 
-#include <em/detail/header/MapHeader.h>
-#include <em/Image.h>
+#include <em/EMFwd.h>
+#include <em/detail/EMInternalFwd.h>
 #include <hist/HistFwd.h>
 #include <data/DataFwd.h>
 #include <fitter/FitterFwd.h>
 #include <io/IOFwd.h>
 #include <utility/observer_ptr.h>
+#include <em/Image.h>
+#include <em/detail/header/MapHeader.h>
 
 #include <vector>
 #include <string>
 #include <memory>
 
 namespace em {
-    class ObjectBounds3D;
-    namespace managers {class ProteinManager;}
-    class EMHistogramManager;
-
     /**
      * @brief A representation of a stack of images. 
      */
