@@ -1,5 +1,6 @@
 #include <utility/StringUtils.h>
 
+#include <algorithm>
 #include <sstream>
 
 std::string utility::remove_quotation_marks(std::string s) {

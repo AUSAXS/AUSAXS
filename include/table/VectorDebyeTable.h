@@ -56,6 +56,23 @@ namespace table {
              */
             [[nodiscard]] constants::axes::d_type*  end(unsigned int q_index);
 
+            /**
+             * @brief Get the default table.
+             */
+            [[nodiscard]] static const VectorDebyeTable& get_default_table();
+
+            /**
+             * @brief Check if the two vectors are compatible with the default table. 
+             *        Note that this check is only performed in debug mode.
+             */
+            static void check_default(const std::vector<double>& q, const std::vector<constants::axes::d_type>& d);
+
+            /**
+             * @brief Check if the vector is compatible with the default table. 
+             *        Note that this check is only performed in debug mode.
+             */
+            static void check_default(const std::vector<constants::axes::d_type>& d);
+
         private: 
             /**
              * @brief Initialize this class for the given input. 

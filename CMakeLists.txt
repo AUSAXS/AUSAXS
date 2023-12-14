@@ -21,6 +21,7 @@ if (MSVC)
 		 /fp:fast /constexpr:steps10000000000 /Zm500 #/O2
 	)
 elseif (UNIX)
+	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays
 	add_compile_options(
 		-Ofast ${fprofile} -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
