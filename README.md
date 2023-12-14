@@ -12,14 +12,14 @@ step 2: kig på bidraget af hydreringen til intensiteten
 
 # Installation
 ## Compile from source
-The software can easily be compiled from source with only a few steps.
+The software can easily be compiled from source with only a few steps. Both GCC and Clang v15+ are supported, though GCC is the preferred option for optimal efficiency. 
 
 ### Linux
 1. Make sure you have the prerequisites installed  
 `apt-get install cmake make g++ libcurl4-openssl-dev`
 
 2. Clone this repository  
-`git clone https://github.com/klytje/SAXS.git`.
+`git clone https://github.com/klytje/AUSAXS.git`.
 
 3. Run the build command  
 `make build`
@@ -75,15 +75,20 @@ Precompiled binaries are available **here**.
 *	When calculating the volume of the acids, the calculation is simply delegated to each individual body. However, if an amino acid happens to be cut in two halves in two different bodies, its volume is counted twice. 
 
 # Dependencies
-*	Elements (currently manual install)
+Manual dependencies:
 *	CURL
-*	OpenSSL (CURL)
-*	backward-cpp (can be removed in production)
-	*	binutils-dev
-*	BSThreadPool (currently manual install)
+*	OpenSSL
+
+The following are automatically fetched by CMake:
+*	Elements
+	*	Native File Dialog Extended
+*	Generalized Constant Expression Math
+*	BSThreadPool
 *	CLI11
 *	dlib
-*	Catch2
+*	Catch2 (testing only)
+*	backward-cpp (debug only)
+	*	binutils-dev
 
 # Other personal notes
 ## Articles
