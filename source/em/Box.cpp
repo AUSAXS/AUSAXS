@@ -83,7 +83,7 @@ CoordinateSystem Box::spanning_coordinate_system() const {
 void Box::distances() const {
     // generous sizes - 2000Å should be enough for just about any structure
     double width = 1;
-    Axis axes(0, 5000, static_cast<unsigned int>(5000/width)); 
+    Axis axes(0, 5000, static_cast<int>(std::round(5000/width))); 
     std::vector<double> p_pp(axes.bins, 0);
 
     // create a more compact representation of the coordinates
@@ -105,7 +105,7 @@ void Box::distances() const {
             float dy = data_p[4*i+1] - data_p[4*j+1];
             float dz = data_p[4*i+2] - data_p[4*j+2];
             float dist = sqrt(dx*dx + dy*dy + dz*dz);
-            p_pp.at(static_cast<unsigned int>(std::round(dist/width))) += 2*weight;
+            p_pp.at(static_cast<int>(std::round(dist/width))) += 2*weight;
             // p_pp[dist/width] += 2*weight;
         }
     }

@@ -1,3 +1,7 @@
+#ifdef (_MSC_VER)
+    #pragma warning(disable:4996) // disable fopen deprecation warning on MSVC
+#endif
+
 #include <utility/Curl.h>
 #include <utility/Console.h>
 #include <io/File.h>

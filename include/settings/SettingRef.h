@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <exception>
+#include <stdexcept>
 
 namespace settings {
     namespace io {

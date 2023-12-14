@@ -152,7 +152,7 @@ SimpleDataset CrystalScattering::calculate() const {
     auto dispatcher = [&] () {
         while (true) {
             unsigned int start = index.fetch_add(1000);
-            unsigned int end = std::min<unsigned int>(start + 1000, static_cast<unsigned int>(millers.size()));
+            unsigned int end = std::min<unsigned int>(start + 1000, millers.size());
             if (start >= millers.size() || interrupt_signal) {
                 index = std::min(index.load(), end);
                 break;

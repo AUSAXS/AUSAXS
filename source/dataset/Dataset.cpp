@@ -24,7 +24,7 @@ Dataset::Dataset(Dataset&& d) = default;
 
 Dataset::Dataset(Matrix&& m) : Matrix(std::move(m)) {}
 
-Dataset::Dataset(const std::vector<std::string>& col_names) : Matrix(0, static_cast<unsigned int>(col_names.size())), names(col_names) {}
+Dataset::Dataset(const std::vector<std::string>& col_names) : Matrix(0, col_names.size()), names(col_names) {}
 
 Dataset::Dataset(const std::vector<std::vector<double>>& cols, const std::vector<std::string>& col_names) : Matrix(cols), names(col_names) {}
 
@@ -211,7 +211,7 @@ Dataset Dataset::interpolate(unsigned int n) const {
 
 Dataset Dataset::interpolate(const std::vector<double>& newx) const {
     math::CubicSpline spline(x(), y());
-    Matrix interpolated(static_cast<unsigned int>(newx.size()), 2);
+    Matrix interpolated(newx.size(), 2);
     for (unsigned int i = 0; i < newx.size(); i++) {
         double x = newx[i];
         double y = spline.spline(x);

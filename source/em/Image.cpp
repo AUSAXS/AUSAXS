@@ -51,7 +51,7 @@ std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
 
 unsigned int Image::count_voxels(double cutoff) const {
     unsigned int count = 0;
-    int step = static_cast<int>(settings::em::sample_frequency);
+    int step = settings::em::sample_frequency;
     for (int x = 0; x < static_cast<int>(N); x += step) {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             if (index(x, y) >= cutoff) {

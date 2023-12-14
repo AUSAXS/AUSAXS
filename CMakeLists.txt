@@ -18,7 +18,9 @@ add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBU
 if (MSVC)
 	add_compile_definitions("NOMINMAX")
 	add_compile_options(
-		 /fp:fast /constexpr:steps10000000000 /Zm500 #/O2
+		/fp:fast /constexpr:steps10000000000 /Zm500 
+		/wd4267 # disable size_t --> int, unsigned int conversions
+		/wd4244 # disable double --> float,int conversions
 	)
 elseif (UNIX)
 	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays

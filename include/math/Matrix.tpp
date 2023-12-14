@@ -29,7 +29,7 @@ Matrix<Q>::Matrix(std::initializer_list<std::initializer_list<Q>> l) : N(l.size(
 }
 
 template<numeric Q>
-Matrix<Q>::Matrix(const std::vector<std::vector<Q>>& cols) : N(static_cast<unsigned int>(cols[0].size())), M(static_cast<unsigned int>(cols.size())), data(N*M) {
+Matrix<Q>::Matrix(const std::vector<std::vector<Q>>& cols) : N(cols[0].size()), M(cols.size()), data(N*M) {
     for (unsigned int col = 0; col < M; col++) {
         #ifdef DEBUG
             if (cols[col].size() != N) [[unlikely]] {throw except::invalid_argument("Matrix::Matrix: columns must be of equal size!");}
@@ -54,7 +54,7 @@ Matrix<Q>::~Matrix() = default;
 
 template<numeric Q>
 void Matrix<Q>::push_back(const std::vector<double>& r) {
-    compatibility_check_M(static_cast<unsigned int>(r.size()));
+    compatibility_check_M(r.size());
     extend(1);
     row(N-1) = r;
 }

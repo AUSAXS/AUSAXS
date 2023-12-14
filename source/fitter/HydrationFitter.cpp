@@ -119,7 +119,7 @@ SimpleDataset HydrationFitter::plot_residuals() {
 
     // calculate the residuals
     std::vector<double> residuals(data.size());
-    for (unsigned int i = 0; i < static_cast<unsigned int>(data.size()); ++i) {
+    for (int i = 0; i < static_cast<int>(data.size()); ++i) {
         residuals[i] = ((data.y(i) - (a*Im[i]+b))/data.yerr(i));
     }
 
@@ -145,7 +145,7 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
 
     // calculate chi2
     double chi = 0;
-    for (unsigned int i = 0; i < static_cast<unsigned int>(data.size()); i++) {
+    for (int i = 0; i < static_cast<int>(data.size()); i++) {
         double v = (data.y(i) - (a*Im[i]+b))/data.yerr(i);
         chi += v*v;
     }

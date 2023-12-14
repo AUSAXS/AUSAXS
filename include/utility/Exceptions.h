@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <exception>
 
 /**
  * @brief This namespace contains all custom exceptions for this project. 

@@ -113,10 +113,10 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    SimpleDataset avg = chi2_landscape.rolling_average(7);                          // impose a moving average filter 
-    avg = avg.interpolate(5);                                                       // interpolate more points
+    SimpleDataset avg = chi2_landscape.rolling_average(7);                              // impose a moving average filter 
+    avg = avg.interpolate(5);                                                           // interpolate more points
     double spacing = avg.x(1)-avg.x(0); 
-    auto minima = avg.find_minima(static_cast<unsigned int>(0.1*avg.size()), 0.1);  // find all minima. they should be fairly spaced out (10% seems reasonable?)
+    auto minima = avg.find_minima(static_cast<int>(std::round(0.1*avg.size()), 0.1));   // find all minima. they should be fairly spaced out (10% seems reasonable?)
     min_abs = avg.find_minimum();
 
     // remove minima that are too far away from the absolute minimum
@@ -292,8 +292,8 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     if (settings::em::plot_landscapes && settings::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
-        for (unsigned int i = 0; i < this->evals.size(); i++) {
-            for (unsigned int j = 0; j < this->evals[i].strip.evals.size(); j++) {
+        for (int i = 0; i < this->evals.size(); i++) {
+            for (int j = 0; j < this->evals[i].strip.evals.size(); j++) {
                 double x = this->evals[i].cutoff;
                 double y = this->evals[i].strip.evals[j].vals.front();
                 double z = this->evals[i].strip.evals[j].fval;
@@ -310,7 +310,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
     std::unique_ptr<fitter::EMFit> emfit = std::make_unique<EMFit>(*fitter, res, res.fval);
     emfit->evaluated_points = evals;
-    emfit->fevals = static_cast<unsigned int>(evals.evals.size());
+    emfit->fevals = evals.evals.size();
     emfit->level = to_level(min_abs.x);
     if (settings::em::save_pdb) {
         auto temp_protein = get_protein_manager()->get_protein(min_abs.x);

@@ -33,11 +33,11 @@ SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
 
 SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(std::cref(h.get_counts()), h.get_axis().as_vector()) {}
 
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(static_cast<unsigned int>(x.size())) {initialize(x, y, yerr);}
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(x.size()) {initialize(x, y, yerr);}
 
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(static_cast<unsigned int>(x.size())) {initialize(x, y);}
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y) : SimpleDataset(x.size()) {initialize(x, y);}
 
-SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) : SimpleDataset(static_cast<unsigned int>(x.size())) {
+SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, std::string xlabel, std::string ylabel) : SimpleDataset(x.size()) {
     initialize(x, y);
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err"});
 }

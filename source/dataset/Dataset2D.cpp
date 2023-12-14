@@ -11,7 +11,7 @@ Dataset2D::Dataset2D() noexcept : SimpleDataset(0, 4) {}
 
 Dataset2D::Dataset2D(unsigned int rows) noexcept : SimpleDataset(rows, 4) {}
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Dataset2D(static_cast<unsigned int>(x.size())) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y) noexcept : Dataset2D(x.size()) {
     for (unsigned int i = 0; i < x.size(); i++) {
         row(i) = {x[i], y[i], 0, 0};
     }
@@ -21,13 +21,13 @@ Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::string x
     set_col_names({xlabel, ylabel, std::string(ylabel)+"err", std::string(xlabel)+"err"});
 }
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(static_cast<unsigned int>(x.size())) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
     for (unsigned int i = 0; i < x.size(); i++) {
         row(i) = {x[i], y[i], yerr[i], 0};
     }
 }
 
-Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset2D(static_cast<unsigned int>(x.size())) {
+Dataset2D::Dataset2D(std::vector<double> x, std::vector<double> y, std::vector<double> xerr, std::vector<double> yerr) noexcept : Dataset2D(x.size()) {
     for (unsigned int i = 0; i < x.size(); i++) {
         row(i) = {x[i], y[i], yerr[i], xerr[i]};
     }

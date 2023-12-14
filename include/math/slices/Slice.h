@@ -198,7 +198,7 @@ class MutableSlice : public Slice<T, std::vector<T>&> {
 
         template<container_type Q>
         MutableSlice& operator=(const Q& rhs) {
-            this->validate_sizes(static_cast<unsigned int>(rhs.size()));
+            this->validate_sizes(rhs.size());
             for (unsigned int i = 0; i < this->size(); i++) {
                 (*this)[i] = rhs[i];
             }
