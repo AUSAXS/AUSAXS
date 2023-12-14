@@ -12,7 +12,7 @@ step 2: kig på bidraget af hydreringen til intensiteten
 
 # Installation
 ## Compile from source
-The software can easily be compiled from source with only a few steps. Both GCC and Clang v15+ are supported, though GCC is the preferred option for optimal efficiency. 
+The software can easily be compiled from source with only a few steps. GCC, Clang v15+, and MSVC are supported, though GCC is the preferred option for optimal efficiency.
 
 ### Linux
 1. Make sure you have the prerequisites installed  
