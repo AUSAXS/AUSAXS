@@ -6,6 +6,8 @@
 cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(EMGUI LANGUAGES C CXX)
 
+add_compile_options("/permissive")
+set(CMAKE_CXX_STANDARD 20)
 FetchContent_Declare(
 	elements
 	GIT_REPOSITORY https://github.com/cycfi/elements.git
@@ -16,9 +18,7 @@ FetchContent_Declare(
 	nfd
 	GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
 )
-
-set(CMAKE_CXX_STANDARD 20) # continue with C++20
-FetchContent_MakeAvailable(CLI11 elements nfd)
+FetchContent_MakeAvailable(elements CLI11 nfd)
 link_libraries(nfd)
 
 set(ELEMENTS_ROOT "${elements_SOURCE_DIR}")

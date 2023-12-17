@@ -30,6 +30,14 @@ The software can easily be compiled from source with only a few steps. GCC, Clan
 ## Download precompiled binaries
 Precompiled binaries are available **here**. 
 
+### Windows
+1. Make sure CURL and OpenSSL are available on your system, e.g. through vcpkg
+
+2. Download or clone this repository
+`git clone https://github.com/klytje/AUSAXS.git`.
+
+3. Compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory. 
+
 # Design philosophy
 
 # Todo

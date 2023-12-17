@@ -1,4 +1,4 @@
-#ifdef (_MSC_VER)
+#ifdef _MSC_VER
     #pragma warning(disable:4996) // disable sscanf deprecation warning on MSVC
 #endif
 
