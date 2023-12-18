@@ -6,7 +6,6 @@
 cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(EMGUI LANGUAGES C CXX)
 
-add_compile_options("/permissive")
 set(CMAKE_CXX_STANDARD 20)
 FetchContent_Declare(
 	elements

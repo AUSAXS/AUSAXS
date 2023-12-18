@@ -86,7 +86,7 @@
                                 double qd2 = qd*qd;
                                 index(i, j) = 1 - qd2*inv_6 + qd2*qd2*inv_120;
                             } else {
-                                index(i, j) = constexpr_math::sin(qd)/qd;
+                                index(i, j) = std::sin(qd)/qd; // note: must be std::sin, not constexpr_math::sin, otherwise the memory usage explodes >16GB
                             }
                         }
                     }
