@@ -16,6 +16,7 @@ namespace hist {
 	class HistogramManager : public IHistogramManager {
 		public:
 			HistogramManager(observer_ptr<const data::Molecule> protein); 
+			HistogramManager(const data::Molecule& protein); 
 
 			virtual ~HistogramManager();
 

@@ -21,6 +21,9 @@ HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const
 }
 
 template<bool use_weighted_distribution>
+HistogramManager<use_weighted_distribution>::HistogramManager(const data::Molecule& protein) : HistogramManager(&protein) {}
+
+template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::~HistogramManager() = default;
 
 template<bool use_weighted_distribution>

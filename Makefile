@@ -186,7 +186,7 @@ em_fit/%: build/bin/em_fitter
 	for map in $${emmaps}; do\
 		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 		echo "Fitting " $${path} "..."; \
-		$< $${path} $${measurement} ${options}; \
+		valgrind --track-origins=yes --log-file="valgrind.txt" $< $${path} $${measurement} ${options}; \
 		make plot/output/em_fitter/$*/$$(basename "$${measurement}" .dat); \
 		sleep 1; \
 	done
@@ -403,7 +403,8 @@ buildstatic:
 
 winbuild: 
 	@ mkdir -p winbuild;
-	@ cd winbuild; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-mingw.cmake -DBUILD_SHARED_LIBS=OFF ../ 
+	@ cd winbuild; ~/projects/mxe/usr/bin/x86_64-w64-mingw32.static-cmake ../
+#	@ cd winbuild; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-mxe-mingw.cmake -DBUILD_SHARED_LIBS=OFF ../ 
 
 winbuild/bin/%: $(source) $(include) executable/%.cpp
 	@ cmake --build winbuild/ --target $(*F) -j${cmake_threads}

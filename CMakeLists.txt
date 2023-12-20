@@ -15,13 +15,23 @@ include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
-if (MSVC)
-	add_compile_definitions("NOMINMAX")
-	add_compile_options(
-		/fp:fast /constexpr:steps10000000000 /Zm500 
-		/wd4267 # disable size_t --> int, unsigned int conversions
-		/wd4244 # disable double --> float,int conversions
-	)
+if (WIN32)
+	if (MSVC)
+		add_compile_definitions("NOMINMAX")
+		add_compile_options(
+			/fp:fast /constexpr:steps10000000000 /Zm500 
+			/wd4267 # disable size_t --> int, unsigned int conversions
+			/wd4244 # disable double --> float,int conversions
+		)
+	elseif (MINGW)
+		add_compile_options(
+			-Ofast ${fprofile} -pipe -mavx
+			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
+			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
+			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
+			"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"	
+		)
+	endif()
 elseif (UNIX)
 	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays
 	add_compile_options(

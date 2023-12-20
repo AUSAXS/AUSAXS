@@ -30,6 +30,7 @@ int main(int argc, char const *argv[]) {
     settings::grid::exv_radius = 0.5;
     hist::CompositeDistanceHistogramFFGrid::regenerate_table();
     data::Molecule molecule(pdb);
+
     auto mtffg1  = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
     auto mtffavg = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFAvg<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
     auto mtffexp = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFExplicit<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();

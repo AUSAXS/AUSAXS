@@ -159,6 +159,7 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
                 case OutputControl::SECOND: return _mm_dp_ps(diff, diff, OutputControl::SECOND);
                 case OutputControl::THIRD:  return _mm_dp_ps(diff, diff, OutputControl::THIRD);
                 case OutputControl::FOURTH: return _mm_dp_ps(diff, diff, OutputControl::FOURTH);
+                default: throw std::runtime_error("Invalid OutputControl");
             }
         #else
             sv1[3] = sv2[3] = 0;                        // zero out the weights
@@ -338,6 +339,7 @@ OctoEvaluatedResultRounded CompactCoordinatesData::evaluate_rounded_scalar(const
             case OutputControl::SECOND: return _mm256_dp_ps(diff, diff, OutputControl::SECOND);
             case OutputControl::THIRD:  return _mm256_dp_ps(diff, diff, OutputControl::THIRD);
             case OutputControl::FOURTH: return _mm256_dp_ps(diff, diff, OutputControl::FOURTH);
+            default: throw std::runtime_error("Invalid OutputControl");
         }
     }
 
