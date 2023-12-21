@@ -58,17 +58,17 @@ namespace hist {
             /**
              * @brief Get the intensity profile for atom-atom interactions.
              */
-            virtual const ScatteringProfile get_profile_aa() const override;
+            virtual ScatteringProfile get_profile_aa() const override;
 
             /**
              * @brief Get the intensity profile for atom-water interactions.
              */
-            virtual const ScatteringProfile get_profile_aw() const override;
+            virtual ScatteringProfile get_profile_aw() const override;
 
             /**
              * @brief Get the intensity profile for water-water interactions.
              */
-            virtual const ScatteringProfile get_profile_ww() const override;
+            virtual ScatteringProfile get_profile_ww() const override;
 
         private:
             mutable Distribution1D p_aa;

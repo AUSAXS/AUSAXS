@@ -186,7 +186,7 @@ em_fit/%: build/bin/em_fitter
 	for map in $${emmaps}; do\
 		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 		echo "Fitting " $${path} "..."; \
-		valgrind --track-origins=yes --log-file="valgrind.txt" $< $${path} $${measurement} ${options}; \
+		$< $${path} $${measurement} ${options}; \
 		make plot/output/em_fitter/$*/$$(basename "$${measurement}" .dat); \
 		sleep 1; \
 	done
@@ -283,26 +283,13 @@ consistency/%: build/bin/consistency
 		$< $${map};\
 	done
 
-# usage: make fit_consistency/2epe res=10
-# Check the consistency of the program. 
-# The wildcard should be the name of both a measurement file and an associated PDB structure file. 
-# A simulated EM map must be available. The resolution can be specified with the "res" argument. 
-fit_consistency/%: build/bin/fit_consistency
-	@ structure=$$(find data/ -name "$*.pdb"); \
-	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
-	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
-	$< $${emmap} $${structure} $${measurement}
-
-# usage: make fit_consistency2/2epe res=10
-# Check the consitency of the program.
-# The wildcard should be the name of a PDB structure file. 
-# A simulated EM map must be present available with the given resolution. 
-# A measurement will be simulated from the PDB structure, and fitted to the EM map. 
-fit_consistency2/%: build/bin/fit_consistency2
-	@ structure=$$(find data/ -name "$*.pdb"); \
-	emmap=$$(find sim/ -name "$*_${res}.ccp4" -or -name "$*_${res}.mrc"); \
-	echo "$< $${emmap} $${structure}"; \
-	$< $${emmap} $${structure}
+em_fitter_test/%: build/bin/em_fitter_test
+	@ map=$$(find data/ -name "$*.map" -or -name "$*.ccp4" -or -name "$*.mrc"); \
+	folder=$$(dirname $${map}); \
+	structure=$$(find $${folder}/ -name "*.pdb" -or -name "*.ent"); \
+	echo "Fitting $${structure} to $${map} ..."; \
+	$< $${map} $${structure} ${options}; \
+	make plot/output/em_fitter_test/$*/$$(basename "$${structure}" .dat); \
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

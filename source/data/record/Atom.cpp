@@ -115,11 +115,20 @@ void Atom::parse_pdb(const std::string& str) {
         set_coordinates({std::stod(x), std::stod(y), std::stod(z)});
         if (occupancy.empty()) {this->occupancy = 1;} else {this->occupancy = std::stod(occupancy);}
         if (tempFactor.empty()) {this->tempFactor = 0;} else {this->tempFactor = std::stod(tempFactor);}
-        if (element.empty()) {set_element(name.substr(0, 1));} else {set_element(element);} // the backup plan is to use the first character of "name"
+        if (element.empty()) {
+            // if the element is not set, we can try to infer it from the name
+            if (auto s = name.substr(0, 1); !std::isdigit(s[0])) [[likely]] {
+                set_element(s);
+            } else {
+                set_element(name.substr(1, 1)); // sometimes the first character is a number
+            }
+        } else {
+            set_element(element);
+        }
         this->charge = charge;
-    } catch (const except::base&) { // catch conversion errors and output a more meaningful error message
+    } catch (const except::base& e) { // catch conversion errors and output a more meaningful error message
         console::print_warning("Atom::parse_pdb: Invalid field values in line \"" + s + "\".");
-        throw;
+        throw e;
     }
 
     // use a try-catch block to throw more sensible errors

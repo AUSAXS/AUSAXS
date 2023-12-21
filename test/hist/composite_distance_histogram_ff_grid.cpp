@@ -24,6 +24,7 @@ TEST_CASE("CompositeDistanceHistogramFFGrid::volumes") {
         protein.clear_grid();
         volumes.push_back(protein.get_volume_grid());
         rxs.push_back(rx);
+
         // hist::CompositeDistanceHistogramFFGrid::regenerate_table();
         // auto h = hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
         // auto h_cast = static_cast<hist::CompositeDistanceHistogramFFGrid*>(h.get());

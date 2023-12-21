@@ -90,9 +90,13 @@ void Molecule::translate(const Vector3<double>& v) {
 
 SimpleDataset Molecule::simulate_dataset(bool add_noise) const {
     SimpleDataset data = get_histogram()->debye_transform();
+    data.save(settings::general::output + "temp1.dat");
     data.reduce(settings::fit::N, true);
+    data.save(settings::general::output + "temp2.dat");
     data.simulate_errors();
+    data.save(settings::general::output + "temp3.dat");
     if (add_noise) {data.simulate_noise();}
+    data.save(settings::general::output + "temp4.dat");
     return data;
 }
 

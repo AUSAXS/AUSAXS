@@ -19,16 +19,16 @@ namespace hist {
             /**
              * @brief Get the intensity profile for atom-atom interactions.
              */
-            virtual const ScatteringProfile get_profile_ax() const = 0;
+            virtual ScatteringProfile get_profile_ax() const = 0;
 
             /**
              * @brief Get the intensity profile for atom-water interactions.
              */
-            virtual const ScatteringProfile get_profile_xx() const = 0;
+            virtual ScatteringProfile get_profile_xx() const = 0;
 
             /**
              * @brief Get the intensity profile for water-water interactions.
              */
-            virtual const ScatteringProfile get_profile_wx() const = 0;
+            virtual ScatteringProfile get_profile_wx() const = 0;
     };
 }

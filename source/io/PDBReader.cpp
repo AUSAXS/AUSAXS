@@ -1,5 +1,4 @@
 #include <io/PDBReader.h>
-#include <io/Reader.h>
 #include <data/detail/AtomCollection.h>
 #include <io/ExistingFile.h>
 #include <data/record/Terminate.h>

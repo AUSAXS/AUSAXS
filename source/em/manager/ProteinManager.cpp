@@ -24,5 +24,5 @@ void ProteinManager::set_charge_levels(const std::vector<double>& levels) noexce
     if (std::abs(levels[levels.size()-1]) < 10000) {
         tmp.push_back(levels[0] < 0 ? -10000 : 10000);
     } 
-    charge_levels = levels;
+    charge_levels = tmp;
 }

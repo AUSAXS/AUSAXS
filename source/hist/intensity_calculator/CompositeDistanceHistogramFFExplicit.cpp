@@ -173,7 +173,7 @@ ScatteringProfile CompositeDistanceHistogramFFExplicit::debye_transform() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_ax() const {
+ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_ax() const {
     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -192,7 +192,7 @@ const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_ax() c
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_xx() const {
+ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_xx() const {
     const auto& ff_xx_table = form_factor::storage::exv::get_precalculated_form_factor_table();
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
@@ -211,7 +211,7 @@ const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_xx() c
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_wx() const {
+ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_wx() const {
     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);

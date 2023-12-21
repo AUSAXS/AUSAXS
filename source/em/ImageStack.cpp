@@ -292,8 +292,8 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     if (settings::em::plot_landscapes && settings::em::hydrate) {
         mini::Landscape l;
         l.evals.reserve(1000);
-        for (int i = 0; i < this->evals.size(); i++) {
-            for (int j = 0; j < this->evals[i].strip.evals.size(); j++) {
+        for (int i = 0; i < static_cast<int>(this->evals.size()); ++i) {
+            for (int j = 0; j < static_cast<int>(this->evals[i].strip.evals.size()); ++j) {
                 double x = this->evals[i].cutoff;
                 double y = this->evals[i].strip.evals[j].vals.front();
                 double z = this->evals[i].strip.evals[j].fval;

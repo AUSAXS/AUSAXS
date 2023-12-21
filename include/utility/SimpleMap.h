@@ -1,12 +1,12 @@
 #pragma once
 
+#include <utility/StringUtils.h>
+#include <utility/Exceptions.h>
+
 #include <map>
 #include <unordered_map>
 #include <string>
 #include <iostream>
-
-#include <utility/StringUtils.h>
-#include <utility/Exceptions.h>
 
 namespace saxs {
     namespace detail {

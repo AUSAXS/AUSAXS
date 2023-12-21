@@ -82,7 +82,7 @@ ScatteringProfile CompositeDistanceHistogramFoXS::debye_transform() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
+ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -100,7 +100,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ax() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
+ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -117,7 +117,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_xx() const {
     }
     return ScatteringProfile(Iq, debye_axis);}
 
-const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
+ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -134,7 +134,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_wx() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
+ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -151,7 +151,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aa() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
+ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin
@@ -167,7 +167,7 @@ const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_aw() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
-const ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ww() const {
+ScatteringProfile CompositeDistanceHistogramFoXS::get_profile_ww() const {
     auto sinqd_table = get_sinc_table();
     Axis debye_axis = constants::axes::q_axis.sub_axis(settings::axes::qmin, settings::axes::qmax);
     unsigned int q0 = constants::axes::q_axis.get_bin(settings::axes::qmin); // account for a possibly different qmin

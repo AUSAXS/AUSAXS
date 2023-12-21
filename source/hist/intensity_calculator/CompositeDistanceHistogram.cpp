@@ -68,14 +68,14 @@ auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::De
     return ScatteringProfile(Iq, debye_axis);
 };
 
-const ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
+ScatteringProfile CompositeDistanceHistogram::get_profile_aa() const {
     return partial_profile(get_aa_counts(), get_sinc_table());
 }
 
-const ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
+ScatteringProfile CompositeDistanceHistogram::get_profile_aw() const {
     return partial_profile(get_aw_counts(), get_sinc_table())*2;
 }
 
-const ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {
+ScatteringProfile CompositeDistanceHistogram::get_profile_ww() const {
     return partial_profile(get_ww_counts(), get_sinc_table());
 }

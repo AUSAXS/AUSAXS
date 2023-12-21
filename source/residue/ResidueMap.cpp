@@ -2,6 +2,7 @@
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
 #include <constants/Constants.h>
+#include <settings/MoleculeSettings.h>
 
 #include <string>
 #include <iostream>
@@ -66,7 +67,11 @@ constants::atomic_group_t ResidueMap::get_atomic_group(const std::string& atom_n
     auto key = AtomKey(atom_name, atom_type);
     if (!map.contains(key)) {
         if (key.atom == constants::atom_t::H) {return constants::atomic_group_t::unknown;}
-        throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
+        if (settings::molecule::throw_on_unknown_atom) {
+            throw except::map_error("ResidueMap::get_atomic_group: Key " + atom_name + " not found in map.");
+        } else {
+            return constants::atomic_group_t::unknown;
+        }
     }
     int hydrogens = map.at(key);
     return constants::symbols::get_atomic_group(atom_type, hydrogens);

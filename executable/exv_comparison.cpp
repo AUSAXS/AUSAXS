@@ -1,6 +1,10 @@
 #include <CLI/CLI.hpp>
 
 #include <data/Molecule.h>
+#include <data/Body.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
+#include <hydrate/Grid.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/HistogramManagerMTFFAvg.h>
@@ -31,8 +35,8 @@ int main(int argc, char const *argv[]) {
     hist::CompositeDistanceHistogramFFGrid::regenerate_table();
     data::Molecule molecule(pdb);
 
-    auto mtffg1  = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
-    auto mtffavg = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFAvg<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
+    auto mtffg1  = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFGrid    <true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
+    auto mtffavg = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFAvg     <true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
     auto mtffexp = static_cast<hist::ICompositeDistanceHistogramExv*>(hist::HistogramManagerMTFFExplicit<true>(molecule).calculate_all().get())->get_profile_xx().as_dataset();
 
     settings::grid::exv_radius = 1;
@@ -70,9 +74,10 @@ int main(int argc, char const *argv[]) {
     //### CHECK FOR PRESENCE OF EXTERNAL DATA IN OUTPUT FOLDER ###//
     io::File crysol(settings::general::output + "crysol.dat");
     io::File foxs(settings::general::output + "foxs_xx.dat");
-    io::File gromacs(settings::general::output + "gromacs_exv.xvg");
+    io::File gromacs_prot_pdb(settings::general::output + "prot+solvlayer_0.pdb");
+    io::File gromacs_exv_pdb(settings::general::output + "excludedvolume_0.pdb");
 
-    if (!crysol.exists() || !foxs.exists() || !gromacs.exists()) {
+    if (!crysol.exists() || !foxs.exists() || !gromacs_prot_pdb.exists() || !gromacs_exv_pdb.exists()) {
         std::cout << "External data not found in output folder. Skipping external comparison." << std::endl;
         return 0;
     }
@@ -83,8 +88,29 @@ int main(int argc, char const *argv[]) {
         Dataset tmp(crysol);
         crysol_data = SimpleDataset(tmp.x(), tmp.col(3));
     }
-    auto foxs_data    = SimpleDataset(foxs);
-    auto gromacs_data = SimpleDataset(gromacs);
+    auto foxs_data = SimpleDataset(foxs);
+
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::throw_on_unknown_atom = false;
+    SimpleDataset gromacs_data;
+    {
+        data::Molecule gromacs_x(gromacs_exv_pdb);
+        data::Molecule gromacs_p(gromacs_prot_pdb);
+        gromacs_p.clear_hydration();
+
+        std::vector<data::record::Water> waters;
+        waters.reserve(gromacs_x.get_waters().size());
+        auto grid = gromacs_p.get_grid();
+        grid->expand_volume();
+        for (auto& w : gromacs_x.get_waters()) {
+            auto p = grid->to_bins_bounded(w.get_coordinates());
+            if (grid->grid.is_atom_area_or_volume(p.x(), p.y(), p.z())) {
+                waters.push_back(w);
+            }
+        }
+        data::Molecule gromacs(std::vector<data::record::Atom>{}, waters);
+        gromacs_data = gromacs.get_histogram()->debye_transform().as_dataset();
+    }
 
     crysol_data.normalize();
     foxs_data.normalize();

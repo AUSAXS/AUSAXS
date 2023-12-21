@@ -20,10 +20,10 @@ namespace hist {
             virtual void apply_water_scaling_factor(double k) = 0;
             void reset_water_scaling_factor() {apply_water_scaling_factor(1);}
 
-            virtual const ScatteringProfile get_profile_aa() const = 0;
+            virtual ScatteringProfile get_profile_aa() const = 0;
 
-            virtual const ScatteringProfile get_profile_aw() const = 0;
+            virtual ScatteringProfile get_profile_aw() const = 0;
 
-            virtual const ScatteringProfile get_profile_ww() const = 0;
+            virtual ScatteringProfile get_profile_ww() const = 0;
     };
 }

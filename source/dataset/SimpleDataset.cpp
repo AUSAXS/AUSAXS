@@ -7,6 +7,7 @@
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
 #include <hist/Histogram.h>
+#include <settings/GeneralSettings.h>
 
 #include <vector>
 #include <string>
@@ -31,7 +32,7 @@ SimpleDataset::SimpleDataset(const Dataset& d) : SimpleDataset(d.size()) {
     }
 }
 
-SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(std::cref(h.get_counts()), h.get_axis().as_vector()) {}
+SimpleDataset::SimpleDataset(const hist::Histogram& h) : SimpleDataset(h.as_dataset()) {}
 
 SimpleDataset::SimpleDataset(const std::vector<double>& x, const std::vector<double>& y, const std::vector<double>& yerr) : SimpleDataset(x.size()) {initialize(x, y, yerr);}
 
@@ -74,7 +75,13 @@ void SimpleDataset::initialize(const std::vector<double>& x, const std::vector<d
 }
 
 void SimpleDataset::reduce(unsigned int target, bool log) {
-    if (size() < target) {throw except::invalid_operation("SimpleDataset::reduce: Target cannot be larger than the size of the data set. (" + std::to_string(target) + " > " + std::to_string(size()) + ")");}
+    if (size() < target) {
+        if (settings::general::verbose) {
+            console::print_warning("Warning in SimpleDataset::reduce: Dataset is already smaller than target size.");
+        } 
+        return;
+    }
+
     Matrix<double> reduced(0, M);
 
     if (log) {
@@ -223,7 +230,9 @@ void SimpleDataset::simulate_noise() {
 
 void SimpleDataset::simulate_errors() {
     if (size() == 0) {
-        console::print_warning("Warning in SimpleDataset::simulate_errors: Dataset is empty.");
+        if (settings::general::verbose) {
+            console::print_warning("Warning in SimpleDataset::simulate_errors: Dataset is empty.");
+        }
         return;
     }
     double y0 = y(0);
@@ -233,7 +242,7 @@ void SimpleDataset::simulate_errors() {
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y*x, 0.85);});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return std::pow(y, 0.15)*std::pow(y0, 0.35)*std::pow(x, -0.85)/10000 + std::pow(x, 5)/100;});
     // std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double y, double x) {return y/x*1e-4 + 1e-4;});
-    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double, double x) {return y0/std::pow(x, 1.2)*1e-5 + 1e-4*y0;});    
+    std::transform(y.begin(), y.end(), x.begin(), yerr.begin(), [&y0] (double, double x) {return y0*(1 + 0.1/std::pow(x, 1.2))*1e-4;});
 }
 
 Point2D SimpleDataset::get_point(unsigned int index) const {
@@ -243,7 +252,9 @@ Point2D SimpleDataset::get_point(unsigned int index) const {
 
 Point2D SimpleDataset::find_minimum() const {
     if (size() == 0) {
-        console::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
+        if (settings::general::verbose) {
+            console::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
+        }
         return Point2D(0, 0, 0);
     }
     
