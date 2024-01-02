@@ -11,9 +11,10 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 #include <em/manager/ProteinManager.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
 int main(int argc, char const *argv[]) {
+    settings::hist::weighted_bins = false;
     settings::molecule::use_effective_charge = false;
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
