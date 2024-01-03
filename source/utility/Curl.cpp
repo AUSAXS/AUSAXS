@@ -24,6 +24,6 @@ void curl::download(const std::string& url, const io::File& path) {
         console::print_success("\tSuccessfully downloaded " + url + " to " + path);
     } else {
         console::print_warning("\tFailed to download " + url);
-        exit(1);
+        throw std::runtime_error("Failed to download " + url);
     }
 }

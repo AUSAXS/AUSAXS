@@ -1,8 +1,8 @@
 #include <curl/curl.h>
+#include <io/IOFwd.h>
 
 #include <string>
 
-namespace io {class File;}
 namespace curl {
     /**
      * @brief Download the given URL as a file. 

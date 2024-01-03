@@ -27,14 +27,15 @@ int main(int argc, char const *argv[]) {
     app.add_option("--threads,-t", settings::general::threads, "Number of threads to use.")->default_val(settings::general::threads);
     app.add_option("--qmin", settings::axes::qmin, "Lower limit on used q values from measurement file.");
     app.add_option("--qmax", settings::axes::qmax, "Upper limit on used q values from measurement file.");
-    app.add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance.");
+    app.add_option("--levelmin", settings::em::alpha_levels.min, "Lower limit on the alpha levels to use for the EM map. Note that lowering this limit severely impacts the performance and memory load.");
     app.add_option("--levelmax", settings::em::alpha_levels.max, "Upper limit on the alpha levels to use for the EM map. Increasing this limit improves the performance.");
     app.add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     app.add_option("--max-iterations", settings::fit::max_iterations, "Maximum number of iterations to perform. This is only approximate.");
-    app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Whether to hydrate the protein before fitting.");
-    app.add_flag("--fixed-weight,!--no-fixed-weight", settings::em::fixed_weights, "Whether to use a fixed weight for the fit.");
-    app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Whether to print the progress of the fit to the console.");
-    app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
+    app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
+    app.add_flag("--implicit-hydrogens,!--no-implicit-hydrogens", settings::molecule::implicit_hydrogens, "Add implicit hydrogens to the protein.");
+    app.add_flag("--fixed-weight,!--no-fixed-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
+    app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Print the progress of the fit to the console.");
+    app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Use weighted bins for the distance histograms.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
 
     //###################//

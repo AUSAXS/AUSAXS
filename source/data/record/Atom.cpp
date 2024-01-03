@@ -41,14 +41,19 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
 
         // use a try-catch block to throw more sensible errors
-        #ifdef DEBUG
-            try {
+        if (settings::molecule::implicit_hydrogens) {
+            #ifdef DEBUG
+                try {
+                    effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+                } catch (const except::base&) {
+                throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
+                }
+            #else
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-            } catch (const except::base&) {
-            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
-            }
-        #endif
-        effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+            #endif
+        } else {
+            effective_charge = constants::charge::get_charge(this->element);
+        }
         uid = uid_counter++;
 }
 
@@ -132,15 +137,20 @@ void Atom::parse_pdb(const std::string& str) {
     }
 
     // use a try-catch block to throw more sensible errors
-    #ifdef DEBUG
-        try {
+    if (settings::molecule::implicit_hydrogens) {
+        #ifdef DEBUG
+            try {
+                effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+            } catch (const except::base&) {
+            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+            }
+        #else 
             effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
-        } catch (const except::base&) {
-        throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
-        }
-    #endif
+        #endif
+    } else {
+        effective_charge = constants::charge::get_charge(this->element);
+    }
     atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
-    effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
 }
 
 using std::left, std::right, std::setw;
@@ -228,7 +238,7 @@ std::string Atom::get_recName() const {return recName;}
 constants::atomic_group_t Atom::get_atomic_group() const {return atomic_group;}
 
 double Atom::get_mass() const {
-    if (settings::molecule::use_effective_charge) {
+    if (settings::molecule::implicit_hydrogens) {
         #ifdef DEBUG
             try {
                 return constants::mass::get_mass(element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element)*constants::mass::get_mass(constants::atom_t::H);

@@ -17,6 +17,7 @@ int main(int argc, char const *argv[]) {
     settings::em::alpha_levels = {1, 10};
     settings::hist::weighted_bins = true;
     settings::molecule::use_effective_charge = true;
+    settings::molecule::implicit_hydrogens = true;
 
     // check that we have all three arguments
     if (argc != 3) {

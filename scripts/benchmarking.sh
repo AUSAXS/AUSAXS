@@ -1,8 +1,6 @@
 #!/bin/bash
 
 index=13;
-iterations=100
-
 #	Index	Name		Count
 #	0		SASDPT4		1960
 #	1		SASDPP4		2000
@@ -17,7 +15,8 @@ iterations=100
 #	10		SASDPR4		12376
 #	11		SASDEL9		16640
 #	12		SASDPQ4		18792
-#	13		A2M_native	43652
+#	13		SASDA45		?
+#	14		A2M_native	43652
 
 pdbs=(
 	data/consensus/SASDPT4/SASDPT4_stripped.pdb
@@ -33,6 +32,7 @@ pdbs=(
 	data/consensus/SASDPR4/SASDPR4_stripped.pdb
 	data/SASDEL9/SASDEL9_stripped.pdb
 	data/consensus/SASDPQ4/SASDPQ4_stripped.pdb
+	data/SASDA45/SASDA45_stripped.pdb
 	data/A2M_native/A2M_native_stripped.pdb
 )
 
@@ -50,6 +50,7 @@ dats=(
 	data/consensus/SASDPR4/SASDPR4.dat
 	data/SASDEL9/SASDEL9.dat
 	data/consensus/SASDPQ4/SASDPQ4.dat
+	data/SASDA45/SASDA45.dat
 	data/A2M_native/A2M_native.dat
 )
 
@@ -67,12 +68,13 @@ pathnames=(
 	SASDPR4
 	SASDEL9
 	SASDPQ4
+	SASDA45
 	A2M_native
 )
 
 generate_stripped() {
 	for ((i=0; i<14; i++)); do
-		eval "grep 'ATOM' $(dirname "${pdbs[i]}")/${pathnames[i]}.pdb > $(dirname "${pdbs[i]}")/${pathnames[i]}_stripped.pdb"
+		eval "grep -v ' H ' $(dirname "${pdbs[i]}")/${pathnames[i]}.pdb | grep -v 'H$' | grep -v 'OW' | grep 'ATOM  ' > $(dirname "${pdbs[i]}")/${pathnames[i]}_stripped.pdb"
 	done
 }
 
@@ -99,12 +101,15 @@ crysol_bench_all() {
 }
 
 crysol_bench() {
-	cp "${dats[i]}" "temp/crysol"
-	cp "${pdbs[i]}" "temp/crysol"
-	pdb_filename=$(basename "${pdbs[i]}")
-	dat_filename=$(basename "${dats[i]}")
-	cd "temp/crysol"
-	eval "$hyperfine_cmd --runs $iterations --command-name crysol --export-json ../../test/benchmarks/$pathname/crysol.json 'crysol $dat $pdb --constant --implicit-hydrogen 1'"
+	mkdir -p "test/benchmarks/$pathname"
+	mkdir -p "temp/crysol/$pathname"
+	cp "$dat" "temp/crysol/$pathname"
+	cp "$pdb" "temp/crysol/$pathname"
+	pdb_filename=$(basename "$pdb")
+	dat_filename=$(basename "$dat")
+	cd "temp/crysol/$pathname"
+	eval "$hyperfine_cmd --command-name crysol --export-json ../../../test/benchmarks/$pathname/crysol.json 'crysol $dat_filename $pdb_filename --constant --implicit-hydrogen 1'"
+	cd "../../.."
 }
 
 pepsi_bench_all() {
@@ -167,7 +172,7 @@ ausaxs_bench_st() {
 hyperfine_serial_cmd="hyperfine --warmup 0 --time-unit second"
 export map="data/emd_24889/emd_24889.map"
 export mapdat="data/SASDJG5/SASDJG5.dat"
-pathname="SASDJG5_serial"
+#pathname="SASDJG5_serial"
 export min=4
 export max=5
 export steps=100
