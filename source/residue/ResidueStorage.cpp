@@ -92,7 +92,7 @@ void ResidueStorage::download_residue(const std::string& name) {
         // write the residue to the master file
         write_residue(name);
     } else {
-        throw except::map_error("ResidueStorage::download_residue: Invalid residue name: \"" + name + "\"");
+        throw except::io_error("ResidueStorage::download_residue: Invalid residue name: \"" + name + "\"; expected a 2-3 letter code.");
     }
 }
 

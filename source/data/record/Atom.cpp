@@ -38,7 +38,6 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
         set_temperature_factor(tempFactor);
         set_element(element);
         set_charge(charge);
-        atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
 
         // use a try-catch block to throw more sensible errors
         if (settings::molecule::implicit_hydrogens) {
@@ -50,9 +49,11 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
                 }
             #else
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+                atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
             #endif
         } else {
             effective_charge = constants::charge::get_charge(this->element);
+            atomic_group = constants::atomic_group_t::unknown;
         }
         uid = uid_counter++;
 }
@@ -146,11 +147,12 @@ void Atom::parse_pdb(const std::string& str) {
             }
         #else 
             effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+            atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
         #endif
     } else {
         effective_charge = constants::charge::get_charge(this->element);
+        atomic_group = constants::atomic_group_t::unknown;
     }
-    atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
 }
 
 using std::left, std::right, std::setw;

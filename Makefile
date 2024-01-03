@@ -289,7 +289,7 @@ em_fitter_test/%: build/bin/em_fitter_test
 	structure=$$(find $${folder}/ -name "*.pdb" -or -name "*.ent"); \
 	echo "Fitting $${structure} to $${map} ..."; \
 	$< $${map} $${structure} ${options}; \
-	make plot/output/em_fitter_test/$*/$$(basename "$${structure}" .dat); \
+	make plot/output/em_fitter_test/$*/$$(basename "$${structure}" $$(suffix "$${structure}")); \
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

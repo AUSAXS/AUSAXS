@@ -14,10 +14,10 @@ int main(int argc, char const *argv[]) {
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
     settings::fit::verbose = true;
-    settings::em::alpha_levels = {1, 10};
+    settings::em::alpha_levels = {3, 13};
     settings::hist::weighted_bins = true;
     settings::molecule::use_effective_charge = true;
-    settings::molecule::implicit_hydrogens = true;
+    settings::molecule::implicit_hydrogens = false;
 
     // check that we have all three arguments
     if (argc != 3) {
