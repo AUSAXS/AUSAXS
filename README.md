@@ -94,11 +94,3 @@ The following are automatically fetched by CMake:
 *	Catch2 (testing only)
 *	backward-cpp (debug only)
 	*	binutils-dev
-
-# Other personal notes
-## Articles
-*	Joachim (Jochen) Hub - molecular dynamics
-*	Aquaporin DDM
-*	B. Jacrot rep prog phys ~ 1980
-*	Peter Zipper ~1980
-*	ATSAS Crysol
