@@ -116,7 +116,8 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     SimpleDataset avg = chi2_landscape.rolling_average(7);                              // impose a moving average filter 
     avg = avg.interpolate(5);                                                           // interpolate more points
     double spacing = avg.x(1)-avg.x(0); 
-    auto minima = avg.find_minima(static_cast<int>(std::round(0.1*avg.size()), 0.1));   // find all minima. they should be fairly spaced out (10% seems reasonable?)
+    std::cout << "AVG SIZE: " << avg.size() << std::endl;
+    auto minima = avg.find_minima(static_cast<int>(0.1*avg.size()), 0.1);               // find all minima. they should be fairly spaced out (10% seems reasonable?)
     min_abs = avg.find_minimum();
 
     // remove minima that are too far away from the absolute minimum

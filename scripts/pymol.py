@@ -59,7 +59,7 @@ def snapshot():
 
 	global counter
 	counter += 1
-	cmd.png(filename+"_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=1)
+	cmd.png(filename+"_"+str(counter)+".png", width=1000, height=1000, dpi=600, ray=1)
 
 # pymol doesn't seem to be able to parse arguments correctly, so we need a separate method for when we cannot use ray
 @cmd.extend
@@ -68,4 +68,4 @@ def drawshot():
 	counter += 1
 	cmd.set("opaque_background", "on")
 #	cmd.draw()
-	cmd.png("temp_"+str(counter)+".png", width=1000, height=1000, dpi=300, ray=0)
+	cmd.png("temp_"+str(counter)+".png", width=1000, height=1000, dpi=600, ray=0)

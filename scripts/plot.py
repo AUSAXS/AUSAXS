@@ -16,13 +16,14 @@ params = {
     'ytick.labelsize':11
 }
 
+title=""
 match len(sys.argv):
     case 1: 
         if os.path.exists("output"):
             folder = "output"
-        else: 
-            print(help)
-            exit(0)
+        else:
+            folder = "."
+
     case 2:
         if (sys.argv[1] == "-h" or sys.argv[1] == "--help"):
             print("Plotting tool for the .plot files from AUSAXS.")
@@ -33,6 +34,7 @@ match len(sys.argv):
             if not os.path.exists(folder):
                 print(f"Folder {sys.argv[1]} does not exist.")
                 exit(1)
+
     case 3: # secret option to change matplotlib parameters
         folder = sys.argv[1]
         if not os.path.exists(folder):
@@ -56,6 +58,11 @@ match len(sys.argv):
                 'xtick.labelsize': 18,
                 'ytick.labelsize': 18
             }
+    
+    case 4:
+        folder = sys.argv[1]
+        if sys.argv[2] == "--logtitle":
+            title=sys.argv[3]
             
     case _:
         print(help)
@@ -85,4 +92,4 @@ for currentpath, folders, files in os.walk(folder):
             report_file = os.path.join(currentpath, file)
     
     if fit_file != "" and dat_file != "" and report_file != "":
-        plot_intensity_fit(dat_file, fit_file, report_file)
+        plot_intensity_fit(dat_file, fit_file, report_file, title)

@@ -10,8 +10,8 @@
         Connect all local maxima with a line. This is essentially what we're doing now anyway, except we're doing it in a more complicated roundabout way.
 */
 
-#define DEBUG_PLOT false
-#define DEBUG_OUTPUT false
+#define DEBUG_PLOT true
+#define DEBUG_OUTPUT true
 #define DEBUG_PRINT(x) if (DEBUG_OUTPUT) {std::cout << x << std::endl;}
 
 std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {
@@ -23,7 +23,7 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 		plots::PlotDataset plot;
 		{
 			SimpleDataset data(x, y);
-			plot.plot(data);
+			plot.plot(data, plots::PlotOptions());
 		}
 	#endif
 
@@ -131,22 +131,6 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     }
     DEBUG_PRINT("Found " + std::to_string(local_minima.size()) + " local minima.");
 
-    // now we want to filter out the ones that are too close to each other
-    if (min_spacing > 0) {
-        std::vector<unsigned int> filtered_minima;
-        for (int i : local_minima) {
-            if (filtered_minima.empty()) {
-                filtered_minima.push_back(i);
-            } else {
-                if (min_spacing <= i - filtered_minima.back()) {
-                    filtered_minima.push_back(i);
-                }
-            }
-        }
-        local_minima = std::move(filtered_minima);
-    }
-    DEBUG_PRINT("After filtering spacing " + std::to_string(local_minima.size()) + " local minima are left.");
-
     //######################################################//
     //###                ESTIMATE BOUNDS                 ###//
     //######################################################//
@@ -226,13 +210,11 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
 
                     // bounds
     				SimpleDataset dummy1({x[bounds.min], x[bounds.max]}, {y[bounds.min], y[bounds.max]});
-    				dummy1.add_plot_options({{"color", style::color::green}, {"lw", 0.5}, {"zorder", 0}});
-                    plot.plot(dummy1);
+                    plot.plot(dummy1, plots::PlotOptions({{"color", style::color::green}, {"lw", 0.5}, {"zorder", 0}}));
 
                     // prominence
                     SimpleDataset dummy2({x[index], x[index]}, {y[index], y[index] + calc_prominence(bound, x[index], y[index])});
-                    dummy2.add_plot_options({{"color", style::color::green}, {"lw", 0.5}, {"zorder", 0}});
-                    plot.plot(dummy2);
+                    plot.plot(dummy2, plots::PlotOptions({{"color", style::color::green}, {"lw", 0.5}, {"zorder", 0}}));
                 }
 			#endif
         }
@@ -299,9 +281,9 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     }
 
     //######################################################//
-    //###                FILTER PROMINENCE               ###//
+    //###        FILTER PROMINENCE & MIN_SPACING         ###//
     //######################################################//
-    if (min_prominence > 0) {
+    if (0 < min_prominence) {
         // calculate all prominences
         DEBUG_PRINT("\nCalculating prominences.");
         std::vector<double> prominences(local_minima.size());
@@ -411,6 +393,26 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
         local_minima_bounds = std::move(filtered_bounds);
     }
 
+    // now we want to filter out the ones that are too close to each other
+    if (0 != min_spacing) {
+        std::vector<unsigned int> filtered_minima = {local_minima.front()};
+        for (int i : local_minima) {
+            std::cout << min_spacing << " <= " << i << " - " << filtered_minima.back() << std::endl;
+            if (min_spacing <= i - filtered_minima.back()) {
+                filtered_minima.push_back(i);
+                std::cout << "\tyes" << std::endl;
+            } else {
+                if (y[i] < y[filtered_minima.back()]) {
+                    filtered_minima.back() = i;
+                }
+                std::cout << "\tno, but new minima is better, replacing" << std::endl;
+            }
+            std::cout << "\tno" << std::endl;
+        }
+        local_minima = std::move(filtered_minima);
+    }
+    DEBUG_PRINT("After filtering spacing " + std::to_string(local_minima.size()) + " local minima are left.");
+
     #if DEBUG_OUTPUT
         std::cout << "\nAfter filtering prominences " << local_minima.size() << " local minima are left." << std::endl;
         for (int i : local_minima) {
@@ -433,13 +435,11 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
                     bound.max == size-1 && y[bound.max] < y[bound.min] ? y[bound.min] : y[bound.max]
                 }
             );
-            dummy1.add_plot_options({{"color", style::color::red}, {"ls", style::line::dashed}, {"lw", 1}, {"zorder", 0}});
-            plot.plot(dummy1);
+            plot.plot(dummy1, plots::PlotOptions({{"color", style::color::red}, {"ls", style::line::dashed}, {"lw", 1}, {"zorder", 0}}));
 
             // prominence
             SimpleDataset dummy2({x[index], x[index]}, {y[index], y[index] + calc_prominence(bound, x[index], y[index])});
-            dummy2.add_plot_options({{"color", style::color::red}, {"ls", style::line::dashed}, {"lw", 1}, {"zorder", 0}});
-            plot.plot(dummy2);
+            plot.plot(dummy2, plots::PlotOptions({{"color", style::color::red}, {"ls", style::line::dashed}, {"lw", 1}, {"zorder", 0}}));
         }
         plot.save("temp/temp/local_minima.png");
     #endif

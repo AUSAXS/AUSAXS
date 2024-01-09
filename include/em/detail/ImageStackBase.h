@@ -134,7 +134,6 @@ namespace em {
              * @brief Determines the minimum bounds necessariy to describe the map for the given cutoff.
              * 
              * @param min_val The smallest possible value. Must be positive.
-             * TODO Determine a better, more dynamic approach to determining this minimum. 
              */
             void set_minimum_bounds(double min_val);
 

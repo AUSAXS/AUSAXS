@@ -139,11 +139,12 @@ viewmap/%:
 	if [ $${file} ]; then \
 		folder=$$(dirname $${file}); \
 		pdb=$$(find $${folder} -name "*.pdb" -or -name "*.ent"); \
-		$(pymol) $${file} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
+		$(pymol) $${file} $${pdb} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
 	else \
 		echo "File \"$*\" not found."; \
 	fi
 #		$(pymol) $${file} $${pdb} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
+#		$(pymol) $${file} -r scripts/pymol.py -d "isomesh mesh, $*, 3; color black, mesh; bg_color white"; \
 #	fi
 
 res := 10
@@ -187,7 +188,7 @@ em_fit/%: build/bin/em_fitter
 		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
 		echo "Fitting " $${path} "..."; \
 		$< $${path} $${measurement} ${options}; \
-		make plot/output/em_fitter/$*/$$(basename "$${measurement}" .dat); \
+		make plot/output/em_fitter/$*; \
 		sleep 1; \
 	done
 
@@ -289,7 +290,7 @@ em_fitter_test/%: build/bin/em_fitter_test
 	structure=$$(find $${folder}/ -name "*.pdb" -or -name "*.ent"); \
 	echo "Fitting $${structure} to $${map} ..."; \
 	$< $${map} $${structure} ${options}; \
-	make plot/output/em_fitter_test/$*/$$(basename "$${structure}" $$(suffix "$${structure}")); \
+	make plot/output/em_fitter_test/$*
 
 # Rebin a SAXS measurement file. This will dramatically reduce the number of data points. 
 # The wildcard should be the name of a SAXS measurement file. 

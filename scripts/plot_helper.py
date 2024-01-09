@@ -478,7 +478,7 @@ def plot_file(file: str):
 
     path = file.rsplit('.', 1)[0]
     plt.tight_layout()
-    plt.savefig(path, dpi=300)
+    plt.savefig(path, dpi=600)
     plt.close()
 
     # delete the .plot file
@@ -486,7 +486,7 @@ def plot_file(file: str):
 
     return
 
-def plot_intensity_fit(data_file, fit_file, report_file):
+def plot_intensity_fit(data_file, fit_file, report_file, title=""):
     """Plots an intensity fit."""
     data = np.loadtxt(data_file, skiprows=1)
     fit = np.loadtxt(fit_file, skiprows=1, usecols=[0, 1])
@@ -519,17 +519,21 @@ def plot_intensity_fit(data_file, fit_file, report_file):
     ax[0].set_ylabel("I(q)")
     ax[0].legend()
     ax[0].semilogy()
-    ax[0].set_title(os.path.basename(data_file.split('.')[0]))
+    if title != "":
+        ax[0].set_title(title)
+    else: 
+        ax[0].set_title(os.path.basename(os.path.abspath(data_file.split('.')[0])))
 
     ax[1].axhline(0, color='k', lw=0.5)
     ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.')
     ax[1].set_xlabel("q")
     ax[1].set_ylabel("Residuals")
 
-    fig.savefig(os.path.dirname(data_file) + '/log.png', dpi=300)
+    plt.tight_layout()
+    fig.savefig(os.path.dirname(data_file) + '/log.png', dpi=600)
     print("Plotted log.png")
 
     ax[0].semilogx()
-    fig.savefig(os.path.dirname(data_file) + '/loglog.png', dpi=300)
+    fig.savefig(os.path.dirname(data_file) + '/loglog.png', dpi=600)
     print("Plotted loglog.png")
     return

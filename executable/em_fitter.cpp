@@ -79,7 +79,5 @@ int main(int argc, char const *argv[]) {
 
     res->figures.data.save(settings::general::output + mfile.stem() + ".scat");
     res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
-    plots::PlotIntensityFit::quick_plot(res.get(), settings::general::output + "intensity_fit." + settings::plots::format);
-    plots::PlotIntensityFitResiduals::quick_plot(res.get(), settings::general::output + "residuals." + settings::plots::format);
     return 0;
 }
