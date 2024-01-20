@@ -11,6 +11,7 @@ figures/*
 output/*
 data/*
 perf.*
+cmake/src
 CMakeFiles
 lib
 valgrind.txt

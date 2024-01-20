@@ -127,6 +127,7 @@ int main(int argc, char const *argv[]) {
         auto Iq =  get_profile_xx(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein_6lyz_exv).calculate_all().get())).as_dataset();
         auto Iqw = get_profile_xx(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&protein_6lyz_exv).calculate_all().get())).as_dataset();
 
+        hist::WeightedDistribution::reset();
         data::Molecule protein_6lyz("test/files/6lyz.pdb");
         auto Iq2 =  get_profile_aa(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<false>(&protein_6lyz).calculate_all().get())).as_dataset();
         auto Iqw2 = get_profile_aa(static_cast<hist::CompositeDistanceHistogramFFGrid*>(hist::HistogramManagerMTFFGrid<true>(&protein_6lyz).calculate_all().get())).as_dataset();
@@ -143,8 +144,8 @@ int main(int argc, char const *argv[]) {
             width = ss.str();
         }
 
-        Iq.save(  "output/bin_size_analysis/files/unweighted_structured_" + width + ".dat");
-        Iqw.save( "output/bin_size_analysis/files/weighted_structured_"   + width + ".dat");
+        Iq.save(  "output/bin_size_analysis/files/unweighted_structured_"   + width + ".dat");
+        Iqw.save( "output/bin_size_analysis/files/weighted_structured_"     + width + ".dat");
         Iq2.save( "output/bin_size_analysis/files/unweighted_unstructured_" + width + ".dat");
         Iqw2.save("output/bin_size_analysis/files/weighted_unstructured_"   + width + ".dat");
     } else {

@@ -22,7 +22,9 @@ Dataset::Dataset(const Dataset& d) = default;
 
 Dataset::Dataset(Dataset&& d) = default;
 
-Dataset::Dataset(Matrix&& m) : Matrix(std::move(m)) {}
+Dataset::Dataset(Matrix&& m) : Matrix(std::move(m)) {
+    set_default_names();
+}
 
 Dataset::Dataset(const std::vector<std::string>& col_names) : Matrix(0, col_names.size()), names(col_names) {}
 

@@ -118,7 +118,7 @@ std::string constants::symbols::write_element_string(atom_t atom) {
         case atom_t::Zn: return "Zn";
         case atom_t::W: return "W";
         case atom_t::M: return "M";
-        case atom_t::dummy: return "dummy";
+        case atom_t::dummy: return "#";
         default: throw std::runtime_error("constants::symbols::write_element_string: Unknown atom type");
     }
 }

@@ -11,4 +11,6 @@ foreach(exec ${EXEC_SOURCE})
 	endif()	
 endforeach()
 
-add_subdirectory(gui)
+if (GUI)
+	add_subdirectory(gui)
+endif()

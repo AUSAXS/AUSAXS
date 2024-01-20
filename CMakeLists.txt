@@ -10,6 +10,7 @@ project(SAXS VERSION 0.0)
 #set(fprofile "-fprofile-use=${CMAKE_BINARY_DIR}/profiling" "-fprofile-correction")
 #add_link_options(-lgcov --coverage)
 set(fprofile "")
+set(GUI FALSE)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
@@ -25,21 +26,21 @@ if (WIN32)
 		)
 	elseif (MINGW)
 		add_compile_options(
-			-Ofast ${fprofile} -pipe -mavx
+			-Ofast ${fprofile} -pipe -msse4.1
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
-			"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"	
+			"$<$<CONFIG:RELEASE>:-march=x86-64>"#-march=x86-64>"	
 		)
 	endif()
 elseif (UNIX)
-	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays
+#	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays
 	add_compile_options(
-		-Ofast ${fprofile} -pipe -mavx
+		-Ofast ${fprofile} -pipe -msse4.1
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
-		"$<$<CONFIG:RELEASE>:-march=native>"#-march=x86-64>"
+		"$<$<CONFIG:RELEASE>:-march=x86-64>"#-march=x86-64>"
 	)
 endif()
 #add_link_options(
@@ -108,15 +109,22 @@ include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src ${gcem_SOURCE_DIR
 ############################################
 ##           Find and link CURL           ##
 ############################################
-find_package(CURL REQUIRED)
-find_package(OpenSSL COMPONENTS SSL REQUIRED)
-
 # when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
-	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
+	set(OPENSSL_USE_STATIC_LIBS TRUE)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+	set(OPENSSL_ROOT_DIR "/usr/x86_64-w64-mingw32/usr/local/lib64")
+	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.dll.a")
+	link_libraries(${CURL_LIBRARY})
+	find_package(CURL REQUIRED)
+	find_package(OpenSSL COMPONENTS SSL REQUIRED)
+	set(LIBS -static gcc stdc++ winpthread OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
+#	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
 
 # for linux we assume the users can figure out how to install missing packages by themselves
 elseif (UNIX)
+	find_package(CURL REQUIRED)
+	find_package(OpenSSL COMPONENTS SSL REQUIRED)
 	set(LIBS CURL::libcurl OpenSSL::SSL)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl -lgcov)
@@ -148,36 +156,36 @@ file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 
 ### SINGLE-COMPILED OBJECT LIBRARY APPROACH ###
-#add_library(objlib OBJECT ${SOURCE_FILES})
-#set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
+add_library(objlib OBJECT ${SOURCE_FILES})
+set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
 
-#add_library(saxs_static STATIC $<TARGET_OBJECTS:objlib>)
-#add_library(saxs SHARED $<TARGET_OBJECTS:objlib>)
-#set_target_properties(saxs_static PROPERTIES 
-#	OUTPUT_NAME saxs_static
-#	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
-#)
-#set_target_properties(saxs 
-#	PROPERTIES OUTPUT_NAME saxs
-#	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
-#)
+add_library(ausaxs_static STATIC $<TARGET_OBJECTS:objlib>)
+add_library(ausaxs SHARED $<TARGET_OBJECTS:objlib>)
+set_target_properties(ausaxs_static PROPERTIES 
+	OUTPUT_NAME ausaxs_static
+	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+)
+set_target_properties(ausaxs 
+	PROPERTIES OUTPUT_NAME ausaxs
+	INTERPROCEDURAL_OPTIMIZATION ${LTO_SUPPORTED}
+)
 
-#target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${LIBS})
-#target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${LIBS})
-#target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${LIBS})
-#link_libraries(saxs_static)
+target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${LIBS})
+target_link_libraries(ausaxs CLI11::CLI11 dlib::dlib ${LIBS})
+target_link_libraries(ausaxs_static CLI11::CLI11 dlib::dlib ${LIBS})
+link_libraries(ausaxs_static)
 
 ### DOUBLE-COMPILED STATIC & SHARED LIBRARY APPROACH - SUPPORTS PROFILING ###
-add_library(saxs_static STATIC ${SOURCE_FILES})
-add_library(saxs SHARED ${SOURCE_FILES})
-target_include_directories(saxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_include_directories(saxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(saxs CLI11::CLI11 dlib::dlib ${LIBS})
-target_link_libraries(saxs_static CLI11::CLI11 dlib::dlib ${LIBS})
-link_libraries(saxs_static)
+#add_library(ausaxs_static STATIC ${SOURCE_FILES})
+#add_library(ausaxs SHARED ${SOURCE_FILES})
+#target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+#target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
+#target_link_libraries(ausaxs CLI11::CLI11 dlib::dlib ${LIBS})
+#target_link_libraries(ausaxs_static CLI11::CLI11 dlib::dlib ${LIBS})
+#link_libraries(ausaxs_static)
 
 ############################################
 ##             Unit Testing               ##

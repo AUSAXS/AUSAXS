@@ -383,7 +383,7 @@ build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) buil
 .PHONY: build winbuild
 build: 
 	@ mkdir -p build; 
-	@ cd build; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-gcc.cmake ../ $(ARGS)
+	@ cd build; cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/TC-gcc.cmake ../ $(ARGS)
 
 buildstatic: 
 	@ mkdir -p build; 
@@ -391,8 +391,7 @@ buildstatic:
 
 winbuild: 
 	@ mkdir -p winbuild;
-	@ cd winbuild; ~/projects/mxe/usr/bin/x86_64-w64-mingw32.static-cmake ../
-#	@ cd winbuild; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-mxe-mingw.cmake -DBUILD_SHARED_LIBS=OFF ../ 
+	@ cd winbuild; cmake -DCMAKE_TOOLCHAIN_FILE=cmake/TC-mingw.cmake -DBUILD_SHARED_LIBS=ON ../ 
 
 winbuild/bin/%: $(source) $(include) executable/%.cpp
 	@ cmake --build winbuild/ --target $(*F) -j${cmake_threads}
