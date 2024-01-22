@@ -7,16 +7,16 @@
 #include <data/Molecule.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <utility/Utility.h>
+#include <utility/MultiThreading.h>
 
 using namespace data;
 using namespace data::record;
 
-void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int _return_status, double* _return_Iq) {
-    std::ios_base::sync_with_stdio(false);
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::hist::weighted_bins = true;
+    settings::hist::weighted_bins = false;
     settings::axes::qmax = 1;
 
     std::vector<double> q(_q, _q+_nq);
@@ -25,9 +25,9 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     std::vector<double> z(_z, _z+_nc);
     std::vector<double> w(_w, _w+_nc);
 
-    _return_status = 1;
+    *_return_status = 1;
     if (q.front() < constants::axes::q_axis.min || constants::axes::q_axis.max < q.back()) {
-        _return_status = 2;
+        *_return_status = 2;
         return;
     }
 
@@ -49,5 +49,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     for (unsigned int i = 0; i < _nq; ++i) {
         _return_Iq[i] = res.y(i);
     }
-    _return_status = 0;
+    *_return_status = 0;
+
+    std::cout << "Successfully calculated I(q) for " << _nc << " atoms and " << _nq << " q values." << std::endl;
 }

@@ -4,6 +4,7 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
+#include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <settings/GeneralSettings.h>
 #include <constants/Constants.h>
@@ -34,8 +35,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    auto calc_pp = [&data_a, data_a_size] (int imin, int imax) {
-        GenericDistribution1D_t p_pp(constants::axes::d_axis.bins, 0);
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_pp_all(constants::axes::d_axis.bins, 0);
+    auto calc_pp = [&data_a, &p_pp_all, data_a_size] (int imin, int imax) {
+        auto& p_pp = p_pp_all.get();
         for (int i = imin; i < imax; ++i) {
             int j = i+1;
             for (; j+7 < data_a_size; j+=8) {
@@ -53,8 +55,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         return p_pp;
     };
 
-    auto calc_hh = [&data_w, data_w_size] (int imin, int imax) {
-        GenericDistribution1D_t p_hh(constants::axes::d_axis.bins, 0);
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_hh_all(constants::axes::d_axis.bins, 0);
+    auto calc_hh = [&data_w, &p_hh_all, data_w_size] (int imin, int imax) {
+        auto& p_hh = p_hh_all.get();
         for (int i = imin; i < imax; ++i) {
             int j = i+1;
             for (; j+7 < data_w_size; j+=8) {
@@ -72,8 +75,9 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         return p_hh;
     };
 
-    auto calc_hp = [&data_w, &data_a, data_a_size] (int imin, int imax) {
-        GenericDistribution1D_t p_hp(constants::axes::d_axis.bins, 0);
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_hp_all(constants::axes::d_axis.bins, 0);
+    auto calc_hp = [&data_w, &data_a, &p_hp_all, data_a_size] (int imin, int imax) {
+        auto& p_hp = p_hp_all.get();
         for (int i = imin; i < imax; ++i) {
             int j = 0;
             for (; j+7 < data_a_size; j+=8) {
@@ -97,54 +101,26 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     int job_size = settings::general::detail::job_size;
     BS::multi_future<GenericDistribution1D_t> pp;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        pp.push_back(pool->submit(calc_pp, i, std::min<int>(i+job_size, (int) data_a_size)));
+        pp.push_back(pool->submit_task(
+            [&calc_pp, &i, &job_size, &data_a_size] () {return calc_pp(i, std::min<int>(i+job_size, (int) data_a_size));}
+        ));
     }
     BS::multi_future<GenericDistribution1D_t> hh;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        hh.push_back(pool->submit(calc_hh, i, std::min<int>(i+job_size, (int) data_w_size)));
+        hh.push_back(pool->submit_task(
+            [&calc_hh, &i, &job_size, &data_w_size] () {return calc_hh(i, std::min<int>(i+job_size, (int) data_w_size));}
+        ));
     }
     BS::multi_future<GenericDistribution1D_t> hp;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        hp.push_back(pool->submit(calc_hp, i, std::min<int>(i+job_size, (int) data_w_size)));
+        hp.push_back(pool->submit_task(
+            [&calc_hp, &i, &job_size, &data_w_size] () {return calc_hp(i, std::min<int>(i+job_size, (int) data_w_size));}
+        ));
     }
 
-    //#################//
-    // COLLECT RESULTS //
-    //#################//
-    auto p_pp_future = pool->submit(
-        [&](){
-            GenericDistribution1D_t p_pp(constants::axes::d_axis.bins, 0);
-            for (const auto& tmp : pp.get()) {
-                std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<>());
-            }
-            return p_pp;
-        }
-    );
-
-    auto p_hp_future = pool->submit(
-        [&](){
-            GenericDistribution1D_t p_hp(constants::axes::d_axis.bins, 0);
-            for (const auto& tmp : hp.get()) {
-                std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<>());
-            }
-            return p_hp;
-        }
-    );
-
-    auto p_hh_future = pool->submit(
-        [&](){
-            GenericDistribution1D_t p_hh(constants::axes::d_axis.bins, 0);
-            for (const auto& tmp : hh.get()) {
-                std::transform(p_hh.begin(), p_hh.end(), tmp.begin(), p_hh.begin(), std::plus<>());
-            }
-            return p_hh;            
-        }
-    );
-
-    pool->wait_for_tasks();
-    auto p_pp = p_pp_future.get();
-    auto p_hp = p_hp_future.get();
-    auto p_hh = p_hh_future.get();
+    auto p_pp = p_pp_all.merge();
+    auto p_hh = p_hh_all.merge();
+    auto p_hp = p_hp_all.merge();
 
     //###################//
     // SELF-CORRELATIONS //
@@ -152,8 +128,8 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     p_pp.index(0) = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
     p_hh.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
-    // calculate p_tot    
-    Distribution1D p_tot(constants::axes::d_axis.bins, 0);
+    // calculate p_tot
+    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins, 0);
     for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_pp.index(i) + p_hh.index(i) + 2*p_hp.index(i);}
 
     // downsize our axes to only the relevant area

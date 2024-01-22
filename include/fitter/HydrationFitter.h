@@ -132,7 +132,7 @@ namespace fitter {
 			 */
 			[[nodiscard]] observer_ptr<hist::ICompositeDistanceHistogram> get_scattering_hist();
 
-            mini::type fit_type = mini::type::BFGS;
+            mini::type fit_type = mini::type::DEFAULT;
         protected:
             /**
              * @brief Calculate chi2 for a given choice of parameters @a params.

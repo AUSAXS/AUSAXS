@@ -2,6 +2,7 @@
 
 #include <container/Container2D.h>
 #include <constants/Axes.h>
+#include <hist/distribution/detail/Entry.h>
 
 namespace hist {
     class Distribution2D;
@@ -12,10 +13,10 @@ namespace hist {
      *        distribution will be tracked by the WeightedDistribution class, which may add
      *        a significant overhead compared to a pure Distribution1D class.
      */
-    class WeightedDistribution2D : public container::Container2D<constants::axes::d_type> {
+    class WeightedDistribution2D : public container::Container2D<detail::Entry> {
         public:
             using Container2D::Container2D;
-            WeightedDistribution2D(Distribution2D&& other);
+            WeightedDistribution2D(Distribution2D& other);
 
             /**
              * @brief Add a value for a given distance.

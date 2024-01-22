@@ -2,6 +2,7 @@
 
 #include <utility/Axis.h>
 #include <hist/distribution/Distribution1D.h>
+#include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/Histogram.h>
 #include <hist/HistFwd.h>
 #include <table/DebyeTable.h>
@@ -59,10 +60,10 @@ namespace hist {
              * @brief Use a weighted sinc table for the Debye transform.
              *        The weights are extracted from the WeightedHistogram struct, which automatically keeps track of all WeightedDistribution counts. 
              */
-            void use_weighted_sinc_table();
+            void use_weighted_sinc_table(const std::vector<double>& weights);
 
         private:
-            std::unique_ptr<table::DebyeTable> weighted_sinc_table;// the weighted sinc table
+            std::unique_ptr<table::DebyeTable> weighted_sinc_table;     // the weighted sinc table
             bool use_weighted_table = false;                            // whether to use the weighted sinc table
 
             void initialize();

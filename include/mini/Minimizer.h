@@ -11,12 +11,17 @@
 
 namespace mini {
     enum class type {
-        BFGS,
-        DLIB_GLOBAL,
         GOLDEN,
         MINIMUM_EXPLORER,
         SCAN,
-        LIMITED_SCAN
+        LIMITED_SCAN,
+        #if defined(DLIB_AVAILABLE)
+            DLIB_GLOBAL,
+            BFGS,
+            DEFAULT=BFGS
+        #else
+            DEFAULT=GOLDEN
+        #endif
     };
 
     /**

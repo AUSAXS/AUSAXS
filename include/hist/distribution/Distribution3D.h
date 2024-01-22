@@ -6,8 +6,6 @@
 #include <cmath>
 
 namespace hist {
-    class WeightedDistribution3D;
-
     /**
      * @brief This is a small wrapper around the Container3D class, indicating that the data
      *        is distributed along the constants::axes::d_vals axis.
@@ -15,7 +13,6 @@ namespace hist {
     class Distribution3D : public container::Container3D<constants::axes::d_type> {
         public:
             using Container3D::Container3D;
-            Distribution3D(WeightedDistribution3D&& other);
 
             void add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value);
             void add(unsigned int x, unsigned int y, int32_t i, constants::axes::d_type value);

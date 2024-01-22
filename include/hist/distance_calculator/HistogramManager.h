@@ -32,10 +32,5 @@ namespace hist {
 
 		protected:
 			observer_ptr<const data::Molecule> protein; // pointer to the parent Protein
-
-			/**
-			 * @brief Perform the additional initialization steps required to prepare this class.
-			 */
-			void initialize() const;
     };
 }

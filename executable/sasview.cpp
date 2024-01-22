@@ -21,6 +21,7 @@ int main(int argc, char const *argv[]) {
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::hist::weighted_bins = true;
     settings::axes::qmax = 1;
 
     // check args
@@ -58,7 +59,10 @@ int main(int argc, char const *argv[]) {
     Molecule protein(atoms);
     auto dist = protein.get_histogram();
     plots::PlotHistogram::quick_plot(*dist.get(), {}, "histogram.png");
-    auto hist = protein.get_histogram()->debye_transform();
-    hist.as_dataset().interpolate(q).save(argv[3]);
+    auto Iq = protein.get_histogram()->debye_transform();
+    for (unsigned int i = 0; i < Iq.size(); ++i) {
+        Iq[i] /= std::exp(-constants::axes::q_vals[i]*constants::axes::q_vals[i]);
+    }
+    Iq.as_dataset().interpolate(q).save(argv[3]);
     return 1;
 }

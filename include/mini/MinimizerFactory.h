@@ -15,20 +15,22 @@ namespace mini {
     namespace detail {
         inline std::shared_ptr<Minimizer> create_minimizer(type t) {
             switch (t) {
-            case type::DLIB_GLOBAL:
-                return std::make_shared<dlibMinimizer<type::DLIB_GLOBAL>>();
-            case type::BFGS:
-                return std::make_shared<dlibMinimizer<type::BFGS>>();
-            case type::GOLDEN:
-                return std::make_shared<Golden>();
-            case type::MINIMUM_EXPLORER:
-                return std::make_shared<MinimumExplorer>();
-            case type::SCAN:
-                return std::make_shared<Scan>();
-            case type::LIMITED_SCAN:
-                return std::make_shared<LimitedScan>();
-            default:
-                throw except::invalid_argument("all::create_minimizer: Unknown minimizer type.");
+                #if defined(DLIB_AVAILABLE)
+                    case type::DLIB_GLOBAL:
+                        return std::make_shared<dlibMinimizer<type::DLIB_GLOBAL>>();
+                    case type::BFGS:
+                        return std::make_shared<dlibMinimizer<type::BFGS>>();
+                #endif
+                case type::GOLDEN:
+                    return std::make_shared<Golden>();
+                case type::MINIMUM_EXPLORER:
+                    return std::make_shared<MinimumExplorer>();
+                case type::SCAN:
+                    return std::make_shared<Scan>();
+                case type::LIMITED_SCAN:
+                    return std::make_shared<LimitedScan>();
+                default:
+                    throw except::invalid_argument("all::create_minimizer: Unknown minimizer type.");
             }
         }
     }

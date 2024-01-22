@@ -15,7 +15,7 @@
 
 using namespace fitter;
 
-ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : HydrationFitter(), fit_type(mini::type::BFGS) {
+ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::unique_ptr<hist::ICompositeDistanceHistogram> h) : HydrationFitter(), fit_type(mini::type::DEFAULT) {
     HydrationFitter hfit(input, std::move(h));
     auto hres = hfit.fit();
     double c = hres->get_parameter("c").value;
@@ -25,7 +25,7 @@ ExcludedVolumeFitter::ExcludedVolumeFitter(const io::ExistingFile& input, std::u
 }
 
 std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
-    fit_type = mini::type::DLIB_GLOBAL;
+    fit_type = mini::type::DEFAULT;
     settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess);
@@ -54,7 +54,7 @@ std::shared_ptr<Fit> ExcludedVolumeFitter::fit() {
 }
 
 double ExcludedVolumeFitter::fit_chi2_only() {
-    fit_type = mini::type::DLIB_GLOBAL;
+    fit_type = mini::type::DEFAULT;
     settings::general::verbose = false;
     std::function<double(std::vector<double>)> f = std::bind(&ExcludedVolumeFitter::chi2, this, std::placeholders::_1);
     auto mini = mini::create_minimizer(fit_type, f, guess);

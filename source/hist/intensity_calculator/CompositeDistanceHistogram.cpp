@@ -10,10 +10,10 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::WeightedDistribution1D&& p_aa, 
     hist::WeightedDistribution1D&& p_aw, 
     hist::WeightedDistribution1D&& p_ww, 
-    hist::Distribution1D&& p_tot, 
+    hist::WeightedDistribution1D&& p_tot, 
     const Axis& axis
-) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {
-    use_weighted_sinc_table();
+) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(p_aa.get_bins()), p_aw(p_aw.get_bins()), p_ww(p_ww.get_bins()) {
+    use_weighted_sinc_table(p_tot.get_weights());
 }
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(

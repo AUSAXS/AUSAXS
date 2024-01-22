@@ -18,7 +18,7 @@ namespace hist {
                 hist::WeightedDistribution1D&& p_aa, 
                 hist::WeightedDistribution1D&& p_aw, 
                 hist::WeightedDistribution1D&& p_ww, 
-                hist::Distribution1D&& p_tot, 
+                hist::WeightedDistribution1D&& p_tot, 
                 const Axis& axis
             );
 

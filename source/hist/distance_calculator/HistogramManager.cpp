@@ -8,7 +8,6 @@
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
-#include <hist/distribution/WeightedDistribution.h>
 #include <settings/HistogramSettings.h>
 #include <constants/Constants.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
@@ -16,9 +15,7 @@
 using namespace hist;
 
 template<bool use_weighted_distribution>
-HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {
-    initialize();
-}
+HistogramManager<use_weighted_distribution>::HistogramManager(observer_ptr<const data::Molecule> protein) : IHistogramManager(protein), protein(protein) {}
 
 template<bool use_weighted_distribution>
 HistogramManager<use_weighted_distribution>::HistogramManager(const data::Molecule& protein) : HistogramManager(&protein) {}
@@ -28,12 +25,6 @@ HistogramManager<use_weighted_distribution>::~HistogramManager() = default;
 
 template<bool use_weighted_distribution>
 std::unique_ptr<DistanceHistogram> HistogramManager<use_weighted_distribution>::calculate() {return calculate_all();}
-
-template<>
-void HistogramManager<true>::initialize() const {hist::WeightedDistribution::reset();}
-
-template<>
-void HistogramManager<false>::initialize() const {}
 
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {
@@ -103,7 +94,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     p_hh.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
 
     // calculate p_tot
-    Distribution1D p_tot(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins, 0);
     for (int i = 0; i < (int) p_pp.size(); ++i) {p_tot.index(i) = p_pp.index(i) + p_hh.index(i) + 2*p_hp.index(i);}
 
     // downsize our axes to only the relevant area

@@ -4,6 +4,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE RELEASE)
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 
 project(SAXS VERSION 0.0)
 #set(fprofile "-fprofile-generate=${CMAKE_BINARY_DIR}/profiling")
@@ -11,6 +13,7 @@ project(SAXS VERSION 0.0)
 #add_link_options(-lgcov --coverage)
 set(fprofile "")
 set(GUI FALSE)
+set(DLIB FALSE)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
@@ -26,21 +29,21 @@ if (WIN32)
 		)
 	elseif (MINGW)
 		add_compile_options(
-			-Ofast ${fprofile} -pipe -msse4.1
+			-Ofast ${fprofile} -pipe -mavx
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
-			"$<$<CONFIG:RELEASE>:-march=x86-64>"#-march=x86-64>"	
+			"$<$<CONFIG:RELEASE>:-march=x86-64>"
 		)
 	endif()
 elseif (UNIX)
 #	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays
 	add_compile_options(
-		-Ofast ${fprofile} -pipe -msse4.1
+		-Ofast ${fprofile} -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
-		"$<$<CONFIG:RELEASE>:-march=x86-64>"#-march=x86-64>"
+		"$<$<CONFIG:RELEASE>:-march=x86-64>"
 	)
 endif()
 #add_link_options(
@@ -52,28 +55,32 @@ endif()
 ############################################
 include(FetchContent)
 #set(FETCHCONTENT_UPDATES_DISCONNECT ON)
-FetchContent_Declare(
-	dlib
-	GIT_REPOSITORY https://github.com/davisking/dlib
-	GIT_TAG v19.24.2
-	GIT_PROGRESS TRUE
-)
+if (DLIB)
+	FetchContent_Declare(
+		dlib
+		GIT_REPOSITORY https://github.com/davisking/dlib
+		GIT_TAG v19.24.2
+		GIT_PROGRESS TRUE
+	)
 
-# tell dlib not to link with various unnecessary libraries
-SET(DLIB_NO_GUI_SUPPORT TRUE)
-SET(DLIB_JPEG_SUPPORT OFF)
-SET(DLIB_LINK_WITH_SQLITE3 OFF)
-SET(DLIB_USE_BLAS OFF)
-SET(DLIB_USE_LAPACK OFF)
-SET(DLIB_USE_CUDA OFF)
-SET(DLIB_PNG_SUPPORT OFF)
-SET(DLIB_GIF_SUPPORT OFF)
-SET(DLIB_WEBP_SUPPORT OFF)
-SET(DLIB_USE_FFTW OFF)
-SET(DLIB_USE_MKL_FFT OFF)
-SET(DLIB_USE_FFMPEG OFF)
-set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
-FetchContent_MakeAvailable(dlib)
+	# tell dlib not to link with various unnecessary libraries
+	SET(DLIB_NO_GUI_SUPPORT TRUE)
+	SET(DLIB_JPEG_SUPPORT OFF)
+	SET(DLIB_LINK_WITH_SQLITE3 OFF)
+	SET(DLIB_USE_BLAS OFF)
+	SET(DLIB_USE_LAPACK OFF)
+	SET(DLIB_USE_CUDA OFF)
+	SET(DLIB_PNG_SUPPORT OFF)
+	SET(DLIB_GIF_SUPPORT OFF)
+	SET(DLIB_WEBP_SUPPORT OFF)
+	SET(DLIB_USE_FFTW OFF)
+	SET(DLIB_USE_MKL_FFT OFF)
+	SET(DLIB_USE_FFMPEG OFF)
+	set(CMAKE_CXX_STANDARD 17) # dlib must be compiled with C++17
+	FetchContent_MakeAvailable(dlib)
+	set(CMAKE_CXX_STANDARD 20) # continue with C++20	
+	add_compile_definitions("DLIB_AVAILABLE")
+endif()
 
 FetchContent_Declare(
 	CLI11
@@ -89,21 +96,20 @@ FetchContent_Declare(
 )
 
 FetchContent_Declare(
-	BSThreadPool
-	GIT_REPOSITORY https://github.com/klytje/thread-pool
+	thread_pool
+	GIT_REPOSITORY https://github.com/bshoshany/thread-pool
 )
 
 FetchContent_Declare(
 	gcem
-	GIT_REPOSITORY https://github.com/kthohr/gcem.git
+	GIT_REPOSITORY https://github.com/kthohr/gcem
 )
 
-set(CMAKE_CXX_STANDARD 20) # continue with C++20
-FetchContent_MakeAvailable(CLI11 BSThreadPool GCEM)
+FetchContent_MakeAvailable(CLI11 thread_pool GCEM)
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     FetchContent_MakeAvailable(backward)
 endif()
-include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src ${gcem_SOURCE_DIR}/include)
+include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include)
 #add_compile_options("$<$<CONFIG:DEBUG>:-fopt-info-loop;-fopt-info-vec>")
 
 ############################################
@@ -111,21 +117,22 @@ include_directories(${CMAKE_BINARY_DIR}/_deps/bsthreadpool-src ${gcem_SOURCE_DIR
 ############################################
 # when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
+	add_compile_definitions("CURL_STATICLIB")
 	set(OPENSSL_USE_STATIC_LIBS TRUE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 	set(OPENSSL_ROOT_DIR "/usr/x86_64-w64-mingw32/usr/local/lib64")
-	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.dll.a")
+	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.a")
 	link_libraries(${CURL_LIBRARY})
-	find_package(CURL REQUIRED)
+	include_directories("/usr/x86_64-w64-mingw32/usr/local/include")
+#	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS SSL REQUIRED)
-	set(LIBS -static gcc stdc++ winpthread OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
+	set(LIBS -static gcc stdc++ OpenSSL::SSL winpthread ws2_32 libwldap32.a crypt32)
 #	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
 
 # for linux we assume the users can figure out how to install missing packages by themselves
 elseif (UNIX)
 	find_package(CURL REQUIRED)
-	find_package(OpenSSL COMPONENTS SSL REQUIRED)
-	set(LIBS CURL::libcurl OpenSSL::SSL)
+	set(LIBS CURL::libcurl)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		link_libraries(-lbfd -ldl -lgcov)
 	endif()
@@ -173,9 +180,12 @@ set_target_properties(ausaxs
 target_include_directories(objlib PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-target_link_libraries(objlib CLI11::CLI11 dlib::dlib ${LIBS})
-target_link_libraries(ausaxs CLI11::CLI11 dlib::dlib ${LIBS})
-target_link_libraries(ausaxs_static CLI11::CLI11 dlib::dlib ${LIBS})
+if (DLIB)
+	target_link_libraries(objlib dlib::dlib)
+endif()
+target_link_libraries(objlib CLI11::CLI11 ${LIBS})
+target_link_libraries(ausaxs ${LIBS})
+target_link_libraries(ausaxs_static ${LIBS})
 link_libraries(ausaxs_static)
 
 ### DOUBLE-COMPILED STATIC & SHARED LIBRARY APPROACH - SUPPORTS PROFILING ###

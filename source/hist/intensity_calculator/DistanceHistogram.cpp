@@ -1,6 +1,5 @@
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <hist/distribution/WeightedDistribution.h>
 #include <hist/Histogram.h>
 #include <table/ArrayDebyeTable.h>
 #include <table/VectorDebyeTable.h>
@@ -16,8 +15,8 @@ DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& a
     initialize();
 }
 
-DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(std::move(p_tot.get_data()), axis) {
-    use_weighted_sinc_table();
+DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(p_tot.get_bins(), axis) {
+    use_weighted_sinc_table(p_tot.get_weights());
     initialize();
 }
 
@@ -30,9 +29,8 @@ observer_ptr<const table::DebyeTable> DistanceHistogram::get_sinc_table() const 
     return &table::ArrayDebyeTable::get_default_table();
 }
 
-void DistanceHistogram::use_weighted_sinc_table() {
-    auto weighted_bins = hist::WeightedDistribution::get_weighted_bins();
-    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(table::VectorDebyeTable(weighted_bins));
+void DistanceHistogram::use_weighted_sinc_table(const std::vector<double>& weights) {
+    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(table::VectorDebyeTable(weights));
     use_weighted_table = true;
 }
 
