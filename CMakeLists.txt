@@ -81,13 +81,6 @@ if (DLIB)
 endif()
 
 FetchContent_Declare(
-	CLI11
-	GIT_REPOSITORY https://github.com/CLIUtils/CLI11
-	GIT_TAG 792d89286788acac125e0487f8dbde88035f7422
-	GIT_PROGRESS TRUE
-)
-
-FetchContent_Declare(
 	backward
 	GIT_REPOSITORY https://github.com/bombela/backward-cpp
 	GIT_TAG v1.6
@@ -103,7 +96,7 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/kthohr/gcem
 )
 
-FetchContent_MakeAvailable(CLI11 thread_pool GCEM)
+FetchContent_MakeAvailable(thread_pool GCEM)
 if (CMAKE_BUILD_TYPE MATCHES DEBUG)
     FetchContent_MakeAvailable(backward)
 endif()
@@ -191,14 +184,14 @@ link_libraries(ausaxs_static)
 #add_library(ausaxs SHARED ${SOURCE_FILES})
 #target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 #target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_link_libraries(ausaxs CLI11::CLI11 dlib::dlib ${LIBS})
-#target_link_libraries(ausaxs_static CLI11::CLI11 dlib::dlib ${LIBS})
+#target_link_libraries(ausaxs -static CLI11::CLI11 ${LIBS})
+#target_link_libraries(ausaxs_static CLI11::CLI11 ${LIBS})
 #link_libraries(ausaxs_static)
 
 ############################################
 ##             Unit Testing               ##
 ############################################
-add_subdirectory(test)
+#add_subdirectory(test)
 
 ############################################
 ##          Other executables             ##

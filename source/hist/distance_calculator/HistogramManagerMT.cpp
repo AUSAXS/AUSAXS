@@ -7,7 +7,7 @@
 #include <container/ThreadLocalWrapper.h>
 #include <data/Molecule.h>
 #include <settings/GeneralSettings.h>
-#include <constants/Constants.h>
+#include <constants/Axes.h>
 #include <utility/MultiThreading.h>
 
 using namespace hist;
@@ -35,64 +35,61 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_pp_all(constants::axes::d_axis.bins, 0);
-    auto calc_pp = [&data_a, &p_pp_all, data_a_size] (int imin, int imax) {
-        auto& p_pp = p_pp_all.get();
-        for (int i = imin; i < imax; ++i) {
-            int j = i+1;
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aa_all(constants::axes::d_axis.bins, 0);
+    auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
+        auto& p_aa = p_aa_all.get();
+        for (int i = imin; i < imax; ++i) { // atom
+            int j = i+1;                    // atom
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
+                evaluate8<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
+                evaluate4<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
+                evaluate1<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
             }
         }
-        return p_pp;
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_hh_all(constants::axes::d_axis.bins, 0);
-    auto calc_hh = [&data_w, &p_hh_all, data_w_size] (int imin, int imax) {
-        auto& p_hh = p_hh_all.get();
-        for (int i = imin; i < imax; ++i) {
-            int j = i+1;
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins, 0);
+    auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
+        auto& p_ww = p_ww_all.get();
+        for (int i = imin; i < imax; ++i) { // water
+            int j = i+1;                    // water
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
+                evaluate8<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
+                evaluate4<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
+                evaluate1<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
             }
         }
-        return p_hh;
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_hp_all(constants::axes::d_axis.bins, 0);
-    auto calc_hp = [&data_w, &data_a, &p_hp_all, data_a_size] (int imin, int imax) {
-        auto& p_hp = p_hp_all.get();
-        for (int i = imin; i < imax; ++i) {
-            int j = 0;
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins, 0);
+    auto calc_aw = [&data_w, &data_a, &p_aw_all, data_a_size] (int imin, int imax) {
+        auto& p_aw = p_aw_all.get();
+        for (int i = imin; i < imax; ++i) { // atom
+            int j = 0;                      // water
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
+                evaluate8<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
+                evaluate4<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
+                evaluate1<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
             }
         }
-        return p_hp;
     };
 
     //##############//
@@ -102,35 +99,35 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     BS::multi_future<GenericDistribution1D_t> pp;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
         pp.push_back(pool->submit_task(
-            [&calc_pp, &i, &job_size, &data_a_size] () {return calc_pp(i, std::min<int>(i+job_size, (int) data_a_size));}
+            [&calc_aa, &i, &job_size, data_a_size] () {return calc_aa(i, std::min(i+job_size, data_a_size));}
         ));
     }
     BS::multi_future<GenericDistribution1D_t> hh;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
         hh.push_back(pool->submit_task(
-            [&calc_hh, &i, &job_size, &data_w_size] () {return calc_hh(i, std::min<int>(i+job_size, (int) data_w_size));}
+            [&calc_ww, &i, &job_size, data_a_size] () {return calc_ww(i, std::min(i+job_size, data_a_size));}
         ));
     }
     BS::multi_future<GenericDistribution1D_t> hp;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
         hp.push_back(pool->submit_task(
-            [&calc_hp, &i, &job_size, &data_w_size] () {return calc_hp(i, std::min<int>(i+job_size, (int) data_w_size));}
+            [&calc_aw, &i, &job_size, data_w_size] () {return calc_aw(i, std::min(i+job_size, data_w_size));}
         ));
     }
 
-    auto p_pp = p_pp_all.merge();
-    auto p_hh = p_hh_all.merge();
-    auto p_hp = p_hp_all.merge();
+    auto p_aa = p_aa_all.merge();
+    auto p_ww = p_ww_all.merge();
+    auto p_aw = p_aw_all.merge();
 
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    p_pp.index(0) = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
-    p_hh.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_aa.index(0) = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_ww.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins, 0);
-    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_pp.index(i) + p_hh.index(i) + 2*p_hp.index(i);}
+    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
@@ -140,14 +137,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
             break;
         }
     }
-    p_pp.resize(max_bin);
-    p_hh.resize(max_bin);
-    p_hp.resize(max_bin);
+    p_aa.resize(max_bin);
+    p_ww.resize(max_bin);
+    p_aw.resize(max_bin);
     p_tot.resize(max_bin);
     return std::make_unique<CompositeDistanceHistogram>(
-        std::move(p_pp), 
-        std::move(p_hp), 
-        std::move(p_hh), 
+        std::move(p_aa), 
+        std::move(p_aw), 
+        std::move(p_ww), 
         std::move(p_tot), 
         Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
     );

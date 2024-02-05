@@ -9,7 +9,7 @@
 #include <hist/detail/CompactCoordinates.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <settings/HistogramSettings.h>
-#include <constants/Constants.h>
+#include <constants/Axes.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 
 using namespace hist;
@@ -30,9 +30,9 @@ template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
 
-    GenericDistribution1D_t p_pp(constants::axes::d_axis.bins, 0);
-    GenericDistribution1D_t p_hh(constants::axes::d_axis.bins, 0);
-    GenericDistribution1D_t p_hp(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_aa(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_ww(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_aw(constants::axes::d_axis.bins, 0);
 
     hist::detail::CompactCoordinates data_a(protein->get_bodies());
     hist::detail::CompactCoordinates data_w = hist::detail::CompactCoordinates(protein->get_waters());
@@ -43,15 +43,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     for (int i = 0; i < data_a_size; ++i) {
         int j = i+1;
         for (; j+7 < data_a_size; j+=8) {
-            evaluate8<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
+            evaluate8<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
         }
 
         for (; j+3 < data_a_size; j+=4) {
-            evaluate4<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
+            evaluate4<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
         }
 
         for (; j < data_a_size; ++j) {
-            evaluate1<use_weighted_distribution, 2>(p_pp, data_a, data_a, i, j);
+            evaluate1<use_weighted_distribution, 2>(p_aa, data_a, data_a, i, j);
         }
     }
 
@@ -60,15 +60,15 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
         {
             int j = i+1;
             for (; j+7 < data_w_size; j+=8) {
-                evaluate8<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
+                evaluate8<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j+3 < data_w_size; j+=4) {
-                evaluate4<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
+                evaluate4<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
             }
 
             for (; j < data_w_size; ++j) {
-                evaluate1<use_weighted_distribution, 2>(p_hh, data_w, data_w, i, j);
+                evaluate1<use_weighted_distribution, 2>(p_ww, data_w, data_w, i, j);
             }
         }
         
@@ -76,26 +76,26 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
         {
             int j = 0;
             for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
+                evaluate8<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
             }
 
             for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
+                evaluate4<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
             }
 
             for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_hp, data_w, data_a, i, j);
+                evaluate1<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
             }
         }
     }
 
     // add self-correlation
-    p_pp.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
-    p_hh.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
+    p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + std::pow(val.value.w, 2);}));
 
     // calculate p_tot
     GenericDistribution1D_t p_tot(constants::axes::d_axis.bins, 0);
-    for (int i = 0; i < (int) p_pp.size(); ++i) {p_tot.index(i) = p_pp.index(i) + p_hh.index(i) + 2*p_hp.index(i);}
+    for (int i = 0; i < (int) p_aa.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
 
     // downsize our axes to only the relevant area
     int max_bin = 10; // minimum size is 10
@@ -106,14 +106,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
         }
     }
 
-    p_pp.resize(max_bin);
-    p_hh.resize(max_bin);
-    p_hp.resize(max_bin);
+    p_aa.resize(max_bin);
+    p_ww.resize(max_bin);
+    p_aw.resize(max_bin);
     p_tot.resize(max_bin);
     return std::make_unique<CompositeDistanceHistogram>(
-        std::move(p_pp), 
-        std::move(p_hp), 
-        std::move(p_hh), 
+        std::move(p_aa), 
+        std::move(p_aw), 
+        std::move(p_ww), 
         std::move(p_tot), 
         Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
     );
