@@ -101,23 +101,20 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     // SUBMIT TASKS //
     //##############//
     int job_size = settings::general::detail::job_size;
-    BS::multi_future<GenericDistribution3D_t> aa;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        aa.push_back(pool->submit_task(
-            [&calc_aa, &data_a, i, job_size, data_a_size] () {return calc_aa(i, std::min(i+job_size, data_a_size));}
-        ));
+        pool->detach_task(
+            [&calc_aa, &data_a, i, job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
+        );
     }
-    BS::multi_future<GenericDistribution2D_t> aw;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        aw.push_back(pool->submit_task(
-            [&calc_aw, &data_a, &data_w, i, job_size, data_a_size] () {return calc_aw(i, std::min(i+job_size, data_a_size));}
-        ));
+        pool->detach_task(
+            [&calc_aw, &data_a, &data_w, i, job_size, data_a_size] () {calc_aw(i, std::min(i+job_size, data_a_size));}
+        );
     }
-    BS::multi_future<GenericDistribution1D_t> ww;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        ww.push_back(pool->submit_task(
-            [&calc_ww, &data_w, i, job_size, data_w_size] () {return calc_ww(i, std::min(i+job_size, data_w_size));}
-        ));
+        pool->detach_task(
+            [&calc_ww, &data_w, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
+        );
     }
 
     pool->wait();
@@ -154,9 +151,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
             break;
         }
     }
-    p_aa.resize(max_bin);
-    p_aw.resize(max_bin);
-    p_ww.resize(max_bin);
+
+    pool->detach_task([&p_aa, max_bin] () { p_aa.resize(max_bin); });
+    pool->detach_task([&p_aw, max_bin] () { p_aw.resize(max_bin); });
+    pool->detach_task([&p_ww, max_bin] () { p_ww.resize(max_bin); });
+    pool->wait();
 
     // multiply the excluded volume charge onto the excluded volume bins
     double Z_exv_avg = this->protein->get_volume_grid()*constants::charge::density::water/this->protein->atom_size();
@@ -169,6 +168,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
+        std::move(p_tot),
         Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
     );
 }

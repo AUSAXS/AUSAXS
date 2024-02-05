@@ -6,7 +6,7 @@
 
 using namespace hist;
 
-WeightedDistribution1D::WeightedDistribution1D(Distribution1D& other) : Container1D(other.size()) {
+WeightedDistribution1D::WeightedDistribution1D(const Distribution1D& other) : Container1D(other.size()) {
     for (int i = 0; i < other.size(); i++) {
         index(i).count = other.index(i);
     }

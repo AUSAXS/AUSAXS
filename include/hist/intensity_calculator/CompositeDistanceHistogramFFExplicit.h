@@ -34,9 +34,11 @@ namespace hist {
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot,
                 const Axis& axis
             );
 
+            // @copydoc CompositeDistanceHistogramFFExplicit(Distribution3D&&, Distribution3D&&, Distribution3D&&, Distribution2D&&, Distribution2D&&, Distribution1D&&, Distribution1D&&, const Axis&)
             CompositeDistanceHistogramFFExplicit(
                 hist::WeightedDistribution3D&& p_aa, 
                 hist::WeightedDistribution3D&& p_ax, 
@@ -44,11 +46,13 @@ namespace hist {
                 hist::WeightedDistribution2D&& p_aw, 
                 hist::WeightedDistribution2D&& p_wx, 
                 hist::WeightedDistribution1D&& p_ww, 
+                hist::WeightedDistribution1D&& p_tot,
                 const Axis& axis
             );
 
             ~CompositeDistanceHistogramFFExplicit() override;
 
+            // @copydoc DistanceHistogram::debye_transform() const
             ScatteringProfile debye_transform() const override;
 
             /**
@@ -67,6 +71,7 @@ namespace hist {
             virtual ScatteringProfile get_profile_wx() const override;
 
         protected:
+            // @copydoc CompositeDistanceHistogramFFAvgBase::exv_factor(double) const
             double exv_factor(double q) const override;
 
         private:

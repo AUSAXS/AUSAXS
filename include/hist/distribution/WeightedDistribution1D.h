@@ -14,7 +14,7 @@ namespace hist {
     class WeightedDistribution1D : public container::Container1D<detail::Entry> {
         public:
             using Container1D::Container1D;
-            WeightedDistribution1D(Distribution1D& other);
+            WeightedDistribution1D(const Distribution1D& other);
 
             std::vector<constants::axes::d_type> get_bins() const;
 

@@ -96,25 +96,23 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     // SUBMIT TASKS //
     //##############//
     int job_size = settings::general::detail::job_size;
-    BS::multi_future<GenericDistribution1D_t> pp;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        pp.push_back(pool->submit_task(
-            [&calc_aa, &i, &job_size, data_a_size] () {return calc_aa(i, std::min(i+job_size, data_a_size));}
-        ));
+        pool->detach_task(
+            [&calc_aa, &i, &job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
+        );
     }
-    BS::multi_future<GenericDistribution1D_t> hh;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        hh.push_back(pool->submit_task(
-            [&calc_ww, &i, &job_size, data_a_size] () {return calc_ww(i, std::min(i+job_size, data_a_size));}
-        ));
+        pool->detach_task(
+            [&calc_ww, &i, &job_size, data_a_size] () {calc_ww(i, std::min(i+job_size, data_a_size));}
+        );
     }
-    BS::multi_future<GenericDistribution1D_t> hp;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        hp.push_back(pool->submit_task(
-            [&calc_aw, &i, &job_size, data_w_size] () {return calc_aw(i, std::min(i+job_size, data_w_size));}
-        ));
+        pool->detach_task(
+            [&calc_aw, &i, &job_size, data_w_size] () {calc_aw(i, std::min(i+job_size, data_w_size));}
+        );
     }
 
+    pool->wait();
     auto p_aa = p_aa_all.merge();
     auto p_ww = p_ww_all.merge();
     auto p_aw = p_aw_all.merge();

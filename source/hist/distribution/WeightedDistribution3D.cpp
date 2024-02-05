@@ -6,7 +6,7 @@
 
 using namespace hist;
 
-WeightedDistribution3D::WeightedDistribution3D(Distribution3D& other) : Container3D(other.size_x(), other.size_y(), other.size_z()) {
+WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Container3D(other.size_x(), other.size_y(), other.size_z()) {
     // std::transform(other.begin(), other.end(), begin(), begin(), [] (const auto& val1, auto& val2) {return val2.count = val2;});
     for (int x = 0; x < other.size_x(); x++) {
         for (int y = 0; y < other.size_y(); y++) {

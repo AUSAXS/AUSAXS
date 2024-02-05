@@ -113,26 +113,23 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
     // SUBMIT TASKS //
     //##############//
     int job_size = settings::general::detail::job_size;
-    BS::multi_future<std::tuple<GenericDistribution3D_t, GenericDistribution3D_t, GenericDistribution3D_t>> pp;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        pp.push_back(pool->submit_task(
-            [&calc_aa, &i, &job_size, data_a_size] () {return calc_aa(i, std::min(i+job_size, data_a_size));}
-        ));
+        pool->detach_task(
+            [&calc_aa, &i, &job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
+        );
     }
-    BS::multi_future<std::tuple<GenericDistribution2D_t, GenericDistribution2D_t>> hp;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
-        hp.push_back(pool->submit_task(
-            [&calc_wa, i, job_size, data_a_size] () {return calc_wa(i, std::min(i+job_size, data_a_size));}
-        )); 
+        pool->detach_task(
+            [&calc_wa, i, job_size, data_a_size] () {calc_wa(i, std::min(i+job_size, data_a_size));}
+        ); 
     }
-    BS::multi_future<GenericDistribution1D_t> hh;
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
-        hh.push_back(pool->submit_task(
-            [&calc_ww, i, job_size, data_w_size] () {return calc_ww(i, std::min(i+job_size, data_w_size));}
-        ));
+        pool->detach_task(
+            [&calc_ww, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
+        );
     }
 
-    pool->wait_for_tasks();
+    pool->wait();
     auto p_aa = p_aa_all.merge();
     auto p_ax = p_ax_all.merge();
     auto p_xx = p_xx_all.merge();
@@ -172,14 +169,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
         }
     }
 
-    pool->push_task([&] () { p_aa.resize(max_bin); });
-    pool->push_task([&] () { p_ax.resize(max_bin); });
-    pool->push_task([&] () { p_xx.resize(max_bin); });
-    pool->push_task([&] () { p_wa.resize(max_bin); });
-    pool->push_task([&] () { p_wx.resize(max_bin); });
-    pool->push_task([&] () { p_ww.resize(max_bin); });
-    pool->push_task([&] () { p_tot.resize(max_bin); });
-    pool->wait_for_tasks();
+    pool->detach_task([&p_aa, max_bin] () { p_aa.resize(max_bin); });
+    pool->detach_task([&p_ax, max_bin] () { p_ax.resize(max_bin); });
+    pool->detach_task([&p_xx, max_bin] () { p_xx.resize(max_bin); });
+    pool->detach_task([&p_wa, max_bin] () { p_wa.resize(max_bin); });
+    pool->detach_task([&p_wx, max_bin] () { p_wx.resize(max_bin); });
+    pool->detach_task([&p_ww, max_bin] () { p_ww.resize(max_bin); });
+    pool->detach_task([&p_tot, max_bin] () { p_tot.resize(max_bin); });
+    pool->wait();
 
     if (settings::hist::use_foxs_method) {
         return std::make_unique<CompositeDistanceHistogramFoXS>(
@@ -189,6 +186,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             std::move(p_wa), 
             std::move(p_wx), 
             std::move(p_ww),
+            std::move(p_tot),
             Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
         );
     } else {
@@ -199,6 +197,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
             std::move(p_wa), 
             std::move(p_wx), 
             std::move(p_ww),
+            std::move(p_tot),
             Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
         );
     }

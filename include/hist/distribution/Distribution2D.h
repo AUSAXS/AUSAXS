@@ -1,6 +1,7 @@
 #pragma once
 
 #include <container/Container2D.h>
+#include <hist/distribution/WeightedDistribution2D.h>
 #include <constants/Axes.h>
 
 namespace hist {
@@ -11,6 +12,7 @@ namespace hist {
     class Distribution2D : public container::Container2D<constants::axes::d_type> {
         public:
             using Container2D::Container2D;
+            Distribution2D(const WeightedDistribution2D& other);
 
             /**
              * @brief Add a value for a given distance.

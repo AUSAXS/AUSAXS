@@ -16,7 +16,7 @@ namespace hist {
     class WeightedDistribution3D : public container::Container3D<detail::Entry> {
         public:
             using Container3D::Container3D;
-            WeightedDistribution3D(Distribution3D& other);
+            WeightedDistribution3D(const Distribution3D& other);
 
             /**
              * @brief Add a value for a given distance.

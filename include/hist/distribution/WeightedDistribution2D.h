@@ -16,7 +16,7 @@ namespace hist {
     class WeightedDistribution2D : public container::Container2D<detail::Entry> {
         public:
             using Container2D::Container2D;
-            WeightedDistribution2D(Distribution2D& other);
+            WeightedDistribution2D(const Distribution2D& other);
 
             /**
              * @brief Add a value for a given distance.

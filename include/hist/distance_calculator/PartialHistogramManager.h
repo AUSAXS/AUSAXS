@@ -58,11 +58,6 @@ namespace hist {
 			void initialize();
 
 			/**
-			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
-			 */
-			void calc_pp(unsigned int n, unsigned int m);
-
-			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 */
 			void calc_hp(unsigned int index);

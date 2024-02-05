@@ -30,12 +30,19 @@ namespace hist {
 
             virtual ~DistanceHistogram() override;
 
+            /**
+             * @brief Perform the Fourier transform through the Debye equation.
+             */
             virtual ScatteringProfile debye_transform() const;
 
-            // virtual SimpleDataset debye_transform(const std::vector<double>& q) const;
-
+            /**
+             * @brief Get the distance axis describing the current histogram.
+             */
             const std::vector<double>& get_d_axis() const;
 
+            /**
+             * @brief Get the q axis used for the Fourier transform. 
+             */
             static const std::vector<double>& get_q_axis();
 
             /**
@@ -43,13 +50,11 @@ namespace hist {
              */
             virtual const std::vector<double>& get_total_counts() const;
 
-            /**
-             * @brief Get the total histogram counts. Equivalent to get_counts().
-             */
+            // @copydoc get_total_counts() const
             std::vector<double>& get_total_counts();
 
         protected:
-            std::vector<double> d_axis; // the distance axis
+            std::vector<double> d_axis; // The distance axis.
 
             /**
              * @brief Get the sinc(x) lookup table for the Debye transform.

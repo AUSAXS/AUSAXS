@@ -37,6 +37,7 @@ namespace hist {
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot, 
                 const Axis& axis
             );
 
@@ -59,6 +60,7 @@ namespace hist {
                 hist::WeightedDistribution2D&& p_aw, 
                 hist::WeightedDistribution2D&& p_wx, 
                 hist::WeightedDistribution1D&& p_ww, 
+                hist::WeightedDistribution1D&& p_tot, 
                 const Axis& axis
             );
 

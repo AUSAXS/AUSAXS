@@ -174,10 +174,10 @@ target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PR
 if (DLIB)
 	target_link_libraries(objlib dlib::dlib)
 endif()
-target_link_libraries(objlib CLI11::CLI11 ${LIBS})
+target_link_libraries(objlib ${LIBS})
 target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
-link_libraries(ausaxs_static)
+link_libraries(ausaxs)
 
 ### DOUBLE-COMPILED STATIC & SHARED LIBRARY APPROACH - SUPPORTS PROFILING ###
 #add_library(ausaxs_static STATIC ${SOURCE_FILES})

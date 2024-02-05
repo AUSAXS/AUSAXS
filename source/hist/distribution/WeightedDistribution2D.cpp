@@ -6,7 +6,7 @@
 
 using namespace hist;
 
-WeightedDistribution2D::WeightedDistribution2D(Distribution2D& other) : Container2D(other.size_x(), other.size_y()) {
+WeightedDistribution2D::WeightedDistribution2D(const Distribution2D& other) : Container2D(other.size_x(), other.size_y()) {
     for (int x = 0; x < other.size_x(); x++) {
         for (int y = 0; y < other.size_y(); y++) {
             index(x, y).count = other.index(x, y);

@@ -30,18 +30,22 @@ namespace hist {
                 hist::WeightedDistribution3D&& p_aa, 
                 hist::WeightedDistribution2D&& p_aw, 
                 hist::WeightedDistribution1D&& p_ww, 
+                hist::WeightedDistribution1D&& p_tot,
                 const Axis& axis
             );
 
+            // @copydoc CompositeDistanceHistogramFFAvgBase(WeightedDistribution3D&&, WeightedDistribution2D&&, WeightedDistribution1D&&, WeightedDistribution1D&&, const Axis&)
             CompositeDistanceHistogramFFAvgBase(
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot,
                 const Axis& axis
             );
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;
 
+            // @copydoc DistanceHistogram::debye_transform() const
             virtual ScatteringProfile debye_transform() const override;
 
             /**
@@ -140,7 +144,7 @@ namespace hist {
             mutable Distribution1D p_ww;
 
             /**
-             * @brief Get the multiplicative factor for the excluded volume form factor.
+             * @brief Get the q-dependent multiplicative factor for the excluded volume form factor.
              */
             virtual double exv_factor(double q) const;
     };
