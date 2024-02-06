@@ -4,7 +4,6 @@
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <vector>
 #include <memory>
 
 namespace hist {

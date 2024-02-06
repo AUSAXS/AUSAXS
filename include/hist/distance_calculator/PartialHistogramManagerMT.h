@@ -1,15 +1,16 @@
 #pragma once
 
+#include "hist/distribution/GenericDistribution1D.h"
 #include <hist/distance_calculator/PartialHistogramManager.h>
+#include <hist/detail/MasterHistogram.h>
 #include <hist/detail/CompactCoordinates.h>
+#include <container/ThreadLocalWrapper.h>
+#include <container/Container1D.h>
+#include <container/Container2D.h>
 
 #include <memory>
 #include <mutex>
 
-namespace BS {
-	class thread_pool;
-	template <typename T> class multi_future;
-}
 namespace hist {
 	/**
 	 * @brief A multi-threaded smart distance calculator.
@@ -32,6 +33,9 @@ namespace hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
+			container::ThreadLocalWrapper<container::Container2D<typename GenericDistribution1D<use_weighted_distribution>::type>> partials_pp_all;
+			container::ThreadLocalWrapper<container::Container1D<typename GenericDistribution1D<use_weighted_distribution>::type>> partials_hp_all;
+			container::ThreadLocalWrapper<typename GenericDistribution1D<use_weighted_distribution>::type> partials_hh_all;
 			std::mutex master_hist_mutex;
 
 			/**
@@ -50,25 +54,25 @@ namespace hist {
 			 * @brief Calculate the self-correlation of a body.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			BS::multi_future<std::vector<double>> calc_self_correlation(unsigned int index);
+			void calc_self_correlation(unsigned int index);
 
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			BS::multi_future<std::vector<double>> calc_pp(unsigned int n, unsigned int m);
+			void calc_pp(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			BS::multi_future<std::vector<double>> calc_hp(unsigned int index);
+			void calc_hp(unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			BS::multi_future<std::vector<double>> calc_hh();
+			void calc_hh();
 
 			void combine_self_correlation(unsigned int index, BS::multi_future<std::vector<double>>& futures);
 

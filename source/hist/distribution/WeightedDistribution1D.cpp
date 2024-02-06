@@ -12,6 +12,12 @@ WeightedDistribution1D::WeightedDistribution1D(const Distribution1D& other) : Co
     }
 }
 
+WeightedDistribution1D::WeightedDistribution1D(const std::vector<constants::axes::d_type>& bins) : WeightedDistribution1D(Distribution1D(bins)) {}
+
+std::vector<constants::axes::d_type> WeightedDistribution1D::as_vector() const {
+    return get_bins();
+}
+
 void WeightedDistribution1D::add(float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(i).count += value;

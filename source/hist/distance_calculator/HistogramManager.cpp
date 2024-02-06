@@ -29,7 +29,6 @@ std::unique_ptr<DistanceHistogram> HistogramManager<use_weighted_distribution>::
 template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-
     GenericDistribution1D_t p_aa(constants::axes::d_axis.bins, 0);
     GenericDistribution1D_t p_ww(constants::axes::d_axis.bins, 0);
     GenericDistribution1D_t p_aw(constants::axes::d_axis.bins, 0);

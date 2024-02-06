@@ -11,26 +11,18 @@
 #include <container/ThreadLocalWrapper.h>
 
 #include <mutex>
-#include <list>
 
 using namespace hist;
 
 template<bool use_weighted_distribution> 
-PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) : PartialHistogramManager<use_weighted_distribution>(protein) {}
+PartialHistogramManagerMT<use_weighted_distribution>::PartialHistogramManagerMT(observer_ptr<const data::Molecule> protein) 
+    : PartialHistogramManager<use_weighted_distribution>(protein), partials_pp_all(this->body_size, this->body_size), partials_hp_all(this->body_size) {}
 
 template<bool use_weighted_distribution> 
 PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT() = default;
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate() {
-    std::vector<BS::multi_future<std::vector<double>>> futures_self_corr;
-    std::vector<BS::multi_future<std::vector<double>>> futures_pp;
-    std::vector<BS::multi_future<std::vector<double>>> futures_hp;
-    BS::multi_future<std::vector<double>> futures_hh;
-    futures_self_corr.reserve(this->body_size);
-    futures_pp.reserve(this->body_size*(this->body_size-1)/2);
-    futures_hp.reserve(this->body_size);
-
     const std::vector<bool>& externally_modified = this->statemanager->get_externally_modified_bodies();
     const std::vector<bool>& internally_modified = this->statemanager->get_internally_modified_bodies();
     const bool hydration_modified = this->statemanager->get_modified_hydration();
@@ -47,7 +39,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 
             // if the internal state was modified, we have to recalculate the self-correlation
             if (internally_modified[i]) {
-                futures_self_corr.push_back(calc_self_correlation(i));
+                calc_self_correlation(i);
             }
 
             // if the external state was modified, we have to update the coordinate representations for later calculations
@@ -202,14 +194,21 @@ void PartialHistogramManagerMT<use_weighted_distribution>::initialize() {
 }
 
 template<bool use_weighted_distribution> 
-BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
     update_compact_representation_body(index);
 
     // calculate internal distances between atoms
-    static auto calc_internal = [] (const detail::CompactCoordinates& coords, unsigned int pp_size, unsigned int imin, unsigned int imax) {
-        GenericDistribution1D_t p_pp(pp_size, 0);
+    static auto calc_internal = [] (
+        container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_pp_all, 
+        unsigned int index, 
+        const detail::CompactCoordinates& coords, 
+        unsigned int pp_size, 
+        unsigned int imin, 
+        unsigned int imax
+    ) -> void {
+        auto& p_pp = p_pp_all.get().index(index, index);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < coords.size(); j+=8) {
@@ -224,32 +223,46 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_dis
                 evaluate1<use_weighted_distribution, 2>(p_pp, coords, coords, i, j);
             }
         }
-        return p_pp.get_data();
     };
 
     // calculate self correlation
-    static auto calc_self = [] (const detail::CompactCoordinates& coords, unsigned int pp_size) {
-        GenericDistribution1D_t p_pp(pp_size, 0);
+    static auto calc_self = [] (
+        container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_pp_all,
+        unsigned int index,
+        const detail::CompactCoordinates& coords, 
+        unsigned int pp_size
+    ) -> void {
+        auto& p_pp = p_pp_all.get().index(index, index);
         p_pp.add(0, std::accumulate(coords.get_data().begin(), coords.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
-        return p_pp.get_data();
     };
 
-    BS::multi_future<std::vector<double>> futures_self_corr;
     unsigned int atom_size = this->protein->atom_size();
     for (unsigned int i = 0; i < atom_size; i += settings::general::detail::job_size) {
-        futures_self_corr.push_back(pool->submit(calc_internal, std::cref(this->coords_p[index]), this->master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, atom_size)));
+        pool->detach_task(
+            [this, i, index, atom_size] () {calc_internal(this->partials_pp_all, index, this->coords_p[index], this->master.get_axis().bins, i, std::min(i+settings::general::detail::job_size, atom_size));}
+        );
     }
-    futures_self_corr.push_back(pool->submit(calc_self, std::cref(this->coords_p[index]), this->master.get_axis().bins));
-    return futures_self_corr;
+    pool->detach_task(
+        [this, index] () {calc_self(this->partials_pp_all, index, this->coords_p[index], this->master.get_axis().bins);}
+    );
 }
 
 template<bool use_weighted_distribution> 
-BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_distribution>::calc_pp(unsigned int n, unsigned int m) {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_pp(unsigned int n, unsigned int m) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
 
-    static auto calc_pp = [] (const detail::CompactCoordinates& coords_n, const detail::CompactCoordinates& coords_m, unsigned int pp_size, unsigned int imin, unsigned int imax) {
-        GenericDistribution1D_t p_pp(pp_size, 0);
+    static auto calc_pp = [] (
+        container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_pp_all,
+        unsigned int n,
+        unsigned int m,
+        const detail::CompactCoordinates& coords_n, 
+        const detail::CompactCoordinates& coords_m, 
+        unsigned int pp_size, 
+        unsigned int imin, 
+        unsigned int imax
+    ) -> void {
+        auto& p_pp = p_pp_all.get().index(n, m);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
             for (; j+7 < coords_m.size(); j+=8) {
@@ -264,24 +277,31 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_dis
                 evaluate1<use_weighted_distribution, 2>(p_pp, coords_n, coords_m, i, j);
             }
         }
-        return p_pp.get_data();
     };
 
-    BS::multi_future<std::vector<double>> futures_pp;
     detail::CompactCoordinates& coords_n = this->coords_p[n];
     for (unsigned int i = 0; i < coords_n.size(); i += settings::general::detail::job_size) {
-        futures_pp.push_back(pool->submit(calc_pp, std::cref(this->coords_p[n]), std::cref(this->coords_p[m]), this->master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, coords_n.size())));
+        pool->detach_task(
+            [this, n, m, i] () {calc_pp(this->partials_pp_all, n, m, this->coords_p[n], this->coords_p[m], this->master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, coords_n.size()));}
+        );
     }
-    return futures_pp;
 }
 
 template<bool use_weighted_distribution> 
-BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_distribution>::calc_hp(unsigned int index) {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_hp(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
 
-    static auto calc_hp = [] (const detail::CompactCoordinates& coords_i, const detail::CompactCoordinates& coords_h, unsigned int hp_size, unsigned int imin, unsigned int imax) {
-        GenericDistribution1D_t p_hp(hp_size, 0);
+    static auto calc_hp = [] (
+        container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_hp_all,
+        unsigned int index,
+        const detail::CompactCoordinates& coords_i, 
+        const detail::CompactCoordinates& coords_h, 
+        unsigned int hp_size, 
+        unsigned int imin, 
+        unsigned int imax
+    ) -> void {
+        auto& p_hp = p_hp_all.get().index(index, index);
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = 0;
             for (; j+7 < coords_h.size(); j+=8) {
@@ -296,24 +316,31 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_dis
                 evaluate1<use_weighted_distribution, 1>(p_hp, coords_i, coords_h, i, j);
             }
         }
-        return p_hp.get_data();
     };
 
-    BS::multi_future<std::vector<double>> futures_hp;
     detail::CompactCoordinates& coords = this->coords_p[index];
     for (unsigned int i = 0; i < coords.size(); i += settings::general::detail::job_size) {
-        futures_hp.push_back(pool->submit(calc_hp, std::cref(this->coords_p[index]), std::cref(this->coords_h), this->master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, coords.size())));
+        pool->detach_task(
+            [this, index, i] () {
+                calc_hp(this->partials_hp_all, index, this->coords_p[index], this->coords_h, this->master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, this->coords.size()));
+            }
+        );
     }
-    return futures_hp;
 }
 
 template<bool use_weighted_distribution> 
-BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_distribution>::calc_hh() {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_hh() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
 
-    static auto calc_hh = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size, unsigned int imin, unsigned int imax) {
-        GenericDistribution1D_t p_hh(hh_size, 0);
+    static auto calc_hh = [] (
+        container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_hh_all,
+        const detail::CompactCoordinates& coords_h, 
+        unsigned int hh_size, 
+        unsigned int imin, 
+        unsigned int imax
+    ) -> void {
+        auto& p_hh = p_hh_all.get();
         for (unsigned int i = imin; i < imax; ++i) {
             unsigned int j = i+1;
             for (; j+7 < coords_h.size(); j+=8) {
@@ -328,22 +355,27 @@ BS::multi_future<std::vector<double>> PartialHistogramManagerMT<use_weighted_dis
                 evaluate1<use_weighted_distribution, 2>(p_hh, coords_h, coords_h, i, j);
             }
         }
-        return p_hh.get_data();
     };
 
     // calculate self correlation
-    static auto calc_self = [] (const detail::CompactCoordinates& coords_h, unsigned int hh_size) {
-        GenericDistribution1D_t p_hh(hh_size, 0);
+    static auto calc_self = [] (
+        container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_hh_all,
+        const detail::CompactCoordinates& coords_h, 
+        unsigned int hh_size
+    ) -> void {
+        auto& p_hh = p_hh_all.get();
         p_hh.add(0, std::accumulate(coords_h.get_data().begin(), coords_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
         return p_hh.get_data();
     };
 
-    BS::multi_future<std::vector<double>> futures_hh;
     for (unsigned int i = 0; i < this->coords_h.size(); i += settings::general::detail::job_size) {
-        futures_hh.push_back(pool->submit(calc_hh, std::cref(this->coords_h), this->master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, this->coords_h.size())));
+        pool->detach_task(
+            [this, i] () {calc_hh(this->partials_hh_all, this->coords_h, this->master.get_axis().bins, i, std::min<int>(i+settings::general::detail::job_size, this->coords_h.size()));}
+        );
     }
-    futures_hh.push_back(pool->submit(calc_self, std::cref(this->coords_h), this->master.get_axis().bins));
-    return futures_hh;
+    pool->detach_task(
+        [this] () {calc_self(this->partials_hh_all, this->coords_h, this->master.get_axis().bins);}
+    );
 }
 
 template<bool use_weighted_distribution> 
@@ -365,14 +397,8 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_self_correlat
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_pp(unsigned int n, unsigned int m, BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_pp(this->master.get_axis().bins, 0);
+    auto p_pp = partials_pp_all.merge().as_vector();
 
-    // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& tmp : futures.get()) {
-        std::transform(p_pp.begin(), p_pp.end(), tmp.begin(), p_pp.begin(), std::plus<>());
-    }
-
-    // update the master histogram
     master_hist_mutex.lock();
     this->master -= this->partials_pp.index(n, m);
     this->partials_pp.index(n, m).get_counts() = std::move(p_pp);
@@ -382,35 +408,23 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_pp(unsigned i
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_hp(unsigned int index, BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_hp(this->master.get_axis().bins, 0);
+    auto p_hp = partials_hp_all.merge().as_vector();
 
-    // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& tmp : futures.get()) {
-        std::transform(p_hp.begin(), p_hp.end(), tmp.begin(), p_hp.begin(), std::plus<>());
-    }
-
-    // update the master histogram
     master_hist_mutex.lock();
-    this->master -= this->partials_hp.index(index)*2; // subtract the previous hydration histogram
+    this->master -= this->partials_hp.index(index)*2;
     this->partials_hp.index(index).get_counts() = std::move(p_hp);
-    this->master += this->partials_hp.index(index)*2; // add the new hydration histogram
+    this->master += this->partials_hp.index(index)*2;
     master_hist_mutex.unlock();
 }
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_hh(BS::multi_future<std::vector<double>>& futures) {
-    std::vector<double> p_hh(this->master.get_axis().bins, 0);
+    auto p_hh = partials_hh_all.merge().as_vector();
 
-    // iterate through all partial results. Each partial result is from a different thread calculation
-    for (auto& tmp : futures.get()) {
-        std::transform(p_hh.begin(), p_hh.end(), tmp.begin(), p_hh.begin(), std::plus<>());
-    }
-
-    // update the master histogram
     master_hist_mutex.lock();
-    this->master -= this->partials_hh; // subtract the previous hydration histogram
+    this->master -= this->partials_hh;
     this->partials_hh.get_counts() = std::move(p_hh);
-    this->master += this->partials_hh; // add the new hydration histogram
+    this->master += this->partials_hh;
     master_hist_mutex.unlock();
 }
 

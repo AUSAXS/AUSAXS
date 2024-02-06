@@ -4,6 +4,7 @@
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <data/state/StateManager.h>
+#include <data/Molecule.h>
 #include <settings/HistogramSettings.h>
 #include <constants/Axes.h>
 
@@ -11,7 +12,7 @@ using namespace hist;
 
 template<bool use_weighted_distribution> 
 PartialHistogramManager<use_weighted_distribution>::PartialHistogramManager(observer_ptr<const data::Molecule> protein) 
-    : HistogramManager<use_weighted_distribution>(protein), coords_p(this->body_size), partials_pp(this->body_size, this->body_size), partials_hp(this->body_size) {}
+    : HistogramManager<use_weighted_distribution>(protein), partials_pp(this->body_size, this->body_size), partials_hp(this->body_size), coords_p(this->body_size) {}
 
 template<bool use_weighted_distribution> 
 PartialHistogramManager<use_weighted_distribution>::~PartialHistogramManager() = default;
@@ -22,7 +23,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
     const std::vector<bool> internally_modified = this->statemanager->get_internally_modified_bodies();
 
     // check if the object has already been initialized
-    if (master.get_counts().size() == 0) [[unlikely]] {
+    if (this->master.get_counts().size() == 0) [[unlikely]] {
         initialize(); 
     } 
     
@@ -34,14 +35,14 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
                 calc_self_correlation(i);
             } else if (externally_modified[i]) {
                 // if the external state was modified, we have to update the coordinate representations
-                coords_p[i] = detail::CompactCoordinates(this->protein->get_body(i));
+                this->coords_p[i] = detail::CompactCoordinates(this->protein->get_body(i));
             }
         }
     }
 
     // check if the hydration layer was modified
     if (this->statemanager->get_modified_hydration()) {
-        coords_h = detail::CompactCoordinates(this->protein->get_waters()); // if so, first update the compact coordinate representation
+        this->coords_h = detail::CompactCoordinates(this->protein->get_waters()); // if so, first update the compact coordinate representation
         calc_hh(); // then update the partial histogram
 
         // iterate through the lower triangle
@@ -69,8 +70,8 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
         }
     }
     this->statemanager.reset();
-    Distribution1D p = master.get_counts();
-    return std::make_unique<DistanceHistogram>(std::move(p), master.get_axis());
+    Distribution1D p = this->master.get_counts();
+    return std::make_unique<DistanceHistogram>(std::move(p), this->master.get_axis());
 }
 
 template<bool use_weighted_distribution> 
@@ -83,7 +84,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighte
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
     GenericDistribution1D_t p_hh = partials_hh.get_counts();
-    GenericDistribution1D_t p_pp = master.base.get_counts();
+    GenericDistribution1D_t p_pp = this->master.base.get_counts();
     GenericDistribution1D_t p_hp(bins, 0);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < this->body_size; i++) {
@@ -126,7 +127,7 @@ void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(u
     detail::CompactCoordinates current(this->protein->get_body(index));
 
     // calculate internal distances between atoms
-    GenericDistribution1D_t p_pp(master.get_axis().bins, 0);
+    GenericDistribution1D_t p_pp(this->master.get_axis().bins, 0);
     for (unsigned int i = 0; i < current.size(); i++) {
         unsigned int j = i+1;
         for (; j+7 < current.size(); j+=8) {
@@ -146,20 +147,46 @@ void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(u
     p_pp.add(0, std::accumulate(current.get_data().begin(), current.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
 
     // store the coordinates for later
-    coords_p[index] = std::move(current);
+    this->coords_p[index] = std::move(current);
 
-    master.base -= partials_pp.index(index, index);
-    master -= partials_pp.index(index, index);
-    partials_pp.index(index, index).get_counts() = std::move(p_pp.get_data());
-    master += partials_pp.index(index, index);
-    master.base += partials_pp.index(index, index);
+    this->master.base -= partials_pp.index(index, index);
+    this->master -= partials_pp.index(index, index);
+    partials_pp.index(index, index).get_counts() = std::move(p_pp.as_vector());
+    this->master += partials_pp.index(index, index);
+    this->master.base += partials_pp.index(index, index);
+}
+
+template<bool use_weighted_distribution> 
+void PartialHistogramManager<use_weighted_distribution>::calc_pp(unsigned int n, unsigned int m) {
+    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
+    detail::CompactCoordinates& coords_n = this->coords_p[n];
+    detail::CompactCoordinates& coords_m = this->coords_p[m];
+
+    GenericDistribution1D_t p_pp(this->master.get_axis().bins, 0);
+    for (unsigned int i = 0; i < coords_n.size(); i++) {
+        unsigned int j = 0;
+        for (; j+7 < coords_m.size(); j+=8) {
+            evaluate8<use_weighted_distribution, 2>(p_pp, coords_n, coords_m, i, j);
+        }
+
+        for (; j+3 < coords_m.size(); j+=4) {
+            evaluate4<use_weighted_distribution, 2>(p_pp, coords_n, coords_m, i, j);
+        }
+
+        for (; j < coords_m.size(); ++j) {
+            evaluate1<use_weighted_distribution, 2>(p_pp, coords_n, coords_m, i, j);
+        }
+    }
+    this->master -= partials_pp.index(n, m);
+    partials_pp.index(n, m).get_counts() = std::move(p_pp.as_vector());
+    this->master += partials_pp.index(n, m);
 }
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::initialize() {
     const Axis& axis = constants::axes::d_axis; 
     std::vector<double> p_base(axis.bins, 0);
-    master = detail::MasterHistogram(p_base, axis);
+    this->master = detail::MasterHistogram(p_base, axis);
 
     partials_hh = detail::PartialHistogram(axis);
     for (unsigned int n = 0; n < this->body_size; n++) {
@@ -176,56 +203,56 @@ void PartialHistogramManager<use_weighted_distribution>::initialize() {
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_hp(unsigned int index) {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    detail::CompactCoordinates& coords = coords_p[index];
+    detail::CompactCoordinates& coords = this->coords_p[index];
 
-    GenericDistribution1D_t p_hp(master.get_axis().bins, 0);
+    GenericDistribution1D_t p_hp(this->master.get_axis().bins, 0);
     for (unsigned int i = 0; i < coords.size(); i++) {
         unsigned int j = 0;
-        for (; j+7 < coords_h.size(); j+=8) {
-            evaluate8<use_weighted_distribution, 1>(p_hp, coords, coords_h, i, j);
+        for (; j+7 < this->coords_h.size(); j+=8) {
+            evaluate8<use_weighted_distribution, 1>(p_hp, coords, this->coords_h, i, j);
         }
 
-        for (; j+3 < coords_h.size(); j+=4) {
-            evaluate4<use_weighted_distribution, 1>(p_hp, coords, coords_h, i, j);
+        for (; j+3 < this->coords_h.size(); j+=4) {
+            evaluate4<use_weighted_distribution, 1>(p_hp, coords, this->coords_h, i, j);
         }
 
-        for (; j < coords_h.size(); ++j) {
-            evaluate1<use_weighted_distribution, 1>(p_hp, coords, coords_h, i, j);
+        for (; j < this->coords_h.size(); ++j) {
+            evaluate1<use_weighted_distribution, 1>(p_hp, coords, this->coords_h, i, j);
         }
     }
 
-    master -= partials_hp.index(index)*2; // subtract the previous hydration histogram
-    partials_hp.index(index).get_counts() = std::move(p_hp.get_data());
-    master += partials_hp.index(index)*2; // add the new hydration histogram
+    this->master -= partials_hp.index(index)*2; // subtract the previous hydration histogram
+    partials_hp.index(index).get_counts() = std::move(p_hp.as_vector());
+    this->master += partials_hp.index(index)*2; // add the new hydration histogram
 }
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManager<use_weighted_distribution>::calc_hh() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-    GenericDistribution1D_t p_hh(master.get_axis().bins, 0);
+    GenericDistribution1D_t p_hh(this->master.get_axis().bins, 0);
 
     // calculate internal distances for the hydration layer
-    for (unsigned int i = 0; i < coords_h.size(); i++) {
+    for (unsigned int i = 0; i < this->coords_h.size(); i++) {
         unsigned int j = i+1;
-        for (; j+7 < coords_h.size(); j+=8) {
-            evaluate8<use_weighted_distribution, 2>(p_hh, coords_h, coords_h, i, j);
+        for (; j+7 < this->coords_h.size(); j+=8) {
+            evaluate8<use_weighted_distribution, 2>(p_hh, this->coords_h, this->coords_h, i, j);
         }
 
-        for (; j+3 < coords_h.size(); j+=4) {
-            evaluate4<use_weighted_distribution, 2>(p_hh, coords_h, coords_h, i, j);
+        for (; j+3 < this->coords_h.size(); j+=4) {
+            evaluate4<use_weighted_distribution, 2>(p_hh, this->coords_h, this->coords_h, i, j);
         }
 
-        for (; j < coords_h.size(); ++j) {
-            evaluate1<use_weighted_distribution, 2>(p_hh, coords_h, coords_h, i, j);
+        for (; j < this->coords_h.size(); ++j) {
+            evaluate1<use_weighted_distribution, 2>(p_hh, this->coords_h, this->coords_h, i, j);
         }
     }
 
     // calculate self-correlation
-    p_hh.add(0, std::accumulate(coords_h.get_data().begin(), coords_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
+    p_hh.add(0, std::accumulate(this->coords_h.get_data().begin(), this->coords_h.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
 
-    master -= partials_hh; // subtract the previous hydration histogram
-    partials_hh.get_counts() = std::move(p_hh.get_data());
-    master += partials_hh; // add the new hydration histogram
+    this->master -= partials_hh; // subtract the previous hydration histogram
+    partials_hh.get_counts() = std::move(p_hh.as_vector());
+    this->master += partials_hh; // add the new hydration histogram
 }
 
 template class hist::PartialHistogramManager<true>;

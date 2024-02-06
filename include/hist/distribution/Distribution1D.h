@@ -17,6 +17,11 @@ namespace hist {
             Distribution1D(const WeightedDistribution1D& other);
 
             /**
+             * @brief Convert this distribution to a vector format. 
+             */
+            std::vector<constants::axes::d_type> as_vector() const;
+
+            /**
              * @brief Add a value for a given distance.
              */
             void add(float distance, constants::axes::d_type value);

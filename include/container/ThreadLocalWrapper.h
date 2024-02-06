@@ -11,12 +11,17 @@ namespace container {
      * @brief A simple wrapper around T to keep track of the thread-local instances of T.
      *        This allows access to all the thread-local data from any single thread.
      *        Note that it is assumed that all threads have a longer lifetime than this class.
+     *        
+     *        ! Making a static instance of this class will cause Windows DLL to deadlock when the program is closed.
+     *        ? This is probably due to the threads owning the data no longer existing when this class is destroyed, combined with the FreeLibrary locking the system resources necessary for C++ to solve this. 
      */
     template <typename T>
     class ThreadLocalWrapper {
         public:
             /**
              * @brief Create a wrapper around T, and create a thread-local instance of T for each thread using the given arguments.
+             * 
+             * ! This constructor *must* be called from the main thread, otherwise it will not receive its own thread-local instance.
              */
             template <typename... Args>
             ThreadLocalWrapper(Args&&... args) {

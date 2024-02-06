@@ -1,6 +1,8 @@
 .vscode
 .vs
 .devcontainer
+.cache
+
 build
 out
 winbuild

@@ -44,18 +44,24 @@ namespace hist {
 			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-			detail::MasterHistogram master;                       			// the current total histogram
-			std::vector<detail::CompactCoordinates> coords_p;   			// a compact representation of the relevant data from the managed bodies
-			detail::CompactCoordinates coords_h;                			// a compact representation of the hydration data
+            detail::MasterHistogram master;                     			// the current total histogram
+            std::vector<detail::CompactCoordinates> coords_p;   			// a compact representation of the relevant data from the managed bodies
+            detail::CompactCoordinates coords_h;                			// a compact representation of the hydration data
 			container::Container2D<detail::PartialHistogram> partials_pp; 	// the partial histograms
 			container::Container1D<detail::HydrationHistogram> partials_hp;	// the partial hydration-atom histograms
 			detail::HydrationHistogram partials_hh;               			// the partial histogram for the hydration layer
 
+		private:
 			/**
 			 * @brief Initialize this object. The internal distances between atoms in each body is constant and cannot change. 
 			 *        They are unaffected by both rotations and translations, and so we precalculate them. 
 			 */
 			void initialize();
+
+			/**
+			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
+			 */
+			void calc_pp(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.

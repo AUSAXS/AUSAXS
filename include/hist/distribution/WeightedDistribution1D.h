@@ -15,9 +15,22 @@ namespace hist {
         public:
             using Container1D::Container1D;
             WeightedDistribution1D(const Distribution1D& other);
+            WeightedDistribution1D(const std::vector<constants::axes::d_type>& bins);
 
+            /**
+             * @brief Convert this distribution to a vector format. 
+             *        This is equivalent to get_bins() for this class. 
+             */
+            std::vector<constants::axes::d_type> as_vector() const;
+
+            /**
+             * @brief Extract the bins from this distribution.
+             */
             std::vector<constants::axes::d_type> get_bins() const;
 
+            /**
+             * @brief Extract the weights from this distribution.
+             */
             std::vector<double> get_weights() const;
 
             /**
