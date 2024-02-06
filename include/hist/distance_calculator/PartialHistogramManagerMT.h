@@ -33,9 +33,10 @@ namespace hist {
 			std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		private:
-			container::ThreadLocalWrapper<container::Container2D<typename GenericDistribution1D<use_weighted_distribution>::type>> partials_pp_all;
-			container::ThreadLocalWrapper<container::Container1D<typename GenericDistribution1D<use_weighted_distribution>::type>> partials_hp_all;
-			container::ThreadLocalWrapper<typename GenericDistribution1D<use_weighted_distribution>::type> partials_hh_all;
+		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
+			container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>> partials_pp_all;
+			container::ThreadLocalWrapper<container::Container1D<GenericDistribution1D_t>> partials_hp_all;
+			container::ThreadLocalWrapper<GenericDistribution1D_t> partials_hh_all;
 			std::mutex master_hist_mutex;
 
 			/**
@@ -74,13 +75,13 @@ namespace hist {
 			 */
 			void calc_hh();
 
-			void combine_self_correlation(unsigned int index, BS::multi_future<std::vector<double>>& futures);
+			void combine_self_correlation(unsigned int index);
 
-			void combine_pp(unsigned int n, unsigned int m, BS::multi_future<std::vector<double>>& futures);
+			void combine_pp(unsigned int n, unsigned int m);
 
-			void combine_hp(unsigned int index, BS::multi_future<std::vector<double>>& futures);
+			void combine_hp(unsigned int index);
 
-			void combine_hh(BS::multi_future<std::vector<double>>& futures);
+			void combine_hh();
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.

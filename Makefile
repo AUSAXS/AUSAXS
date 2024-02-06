@@ -267,7 +267,7 @@ intensity_fit/%: build/bin/intensity_fitter
 	for pdb in $${structure}; do\
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
-		$< $${measurement} $${pdb} ${options};\
+		valgrind --track-origins=yes --log-file="valgrind.txt" $< $${measurement} $${pdb} ${options};\
 		make plot/output/intensity_fitter/$*;\
 	done
 #		make plot_fits/$*;\
@@ -383,11 +383,11 @@ build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) buil
 .PHONY: build winbuild
 build: 
 	@ mkdir -p build; 
-	@ cd build; cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/TC-gcc.cmake ../ $(ARGS)
+	@ cd build; cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_TOOLCHAIN_FILE=cmake/TC-gcc.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ../ $(ARGS)
 
 buildstatic: 
 	@ mkdir -p build; 
-	@ cd build; cmake -DBUILD_SHARED_LIBS=OFF ../ 
+	@ cd build; cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ../ 
 
 winbuild: 
 	@ mkdir -p winbuild;
