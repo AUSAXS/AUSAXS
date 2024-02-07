@@ -54,6 +54,25 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         }
     };
 
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins, 0);
+    auto calc_aw = [&data_w, &data_a, &p_aw_all, data_a_size] (int imin, int imax) {
+        auto& p_aw = p_aw_all.get();
+        for (int i = imin; i < imax; ++i) { // water
+            int j = 0;                      // atom
+            for (; j+7 < data_a_size; j+=8) {
+                evaluate8<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
+            }
+
+            for (; j+3 < data_a_size; j+=4) {
+                evaluate4<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
+            }
+
+            for (; j < data_a_size; ++j) {
+                evaluate1<use_weighted_distribution, 1>(p_aw, data_w, data_a, i, j);
+            }
+        }
+    };
+    
     container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins, 0);
     auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
         auto& p_ww = p_ww_all.get();
@@ -73,49 +92,30 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins, 0);
-    auto calc_aw = [&data_w, &data_a, &p_aw_all, data_a_size] (int imin, int imax) {
-        auto& p_aw = p_aw_all.get();
-        for (int i = imin; i < imax; ++i) { // atom
-            int j = 0;                      // water
-            for (; j+7 < data_a_size; j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
-            }
-
-            for (; j+3 < data_a_size; j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
-            }
-
-            for (; j < data_a_size; ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_aw, data_a, data_w, i, j);
-            }
-        }
-    };
-
     //##############//
     // SUBMIT TASKS //
     //##############//
     int job_size = settings::general::detail::job_size;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
         pool->detach_task(
-            [&calc_aa, &i, &job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
+            [&calc_aa, i, job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
         );
     }
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
         pool->detach_task(
-            [&calc_ww, &i, &job_size, data_a_size] () {calc_ww(i, std::min(i+job_size, data_a_size));}
+            [&calc_aw, i, job_size, data_w_size] () {calc_aw(i, std::min(i+job_size, data_w_size));}
         );
     }
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
         pool->detach_task(
-            [&calc_aw, &i, &job_size, data_w_size] () {calc_aw(i, std::min(i+job_size, data_w_size));}
+            [&calc_ww, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
         );
     }
 
     pool->wait();
     auto p_aa = p_aa_all.merge();
-    auto p_ww = p_ww_all.merge();
     auto p_aw = p_aw_all.merge();
+    auto p_ww = p_ww_all.merge();
 
     //###################//
     // SELF-CORRELATIONS //

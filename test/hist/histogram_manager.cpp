@@ -77,6 +77,7 @@ bool compare_hist(Vector<double> p1, Vector<double> p2) {
 }
 
 TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
+    settings::molecule::implicit_hydrogens = false;
     settings::molecule::use_effective_charge = false;
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
 
@@ -264,7 +265,7 @@ TEST_CASE_METHOD(analytical_histogram, "HistogramManager::calculate_all") {
     }
 
     SECTION("real data with hydration") {
-        settings::molecule::use_effective_charge = false;
+//        settings::molecule::implicit_hydrogens = false;
 
         // create the atom, and perform a sanity check on our extracted list
         Molecule protein("test/files/2epe.pdb");

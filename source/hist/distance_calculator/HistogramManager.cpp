@@ -38,7 +38,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     int data_a_size = (int) data_a.size();
     int data_w_size = (int) data_w.size();
 
-    // calculate p-p distances
+    // calculate aa distances
     for (int i = 0; i < data_a_size; ++i) {
         int j = i+1;
         for (; j+7 < data_a_size; j+=8) {
@@ -55,7 +55,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
     }
 
     for (int i = 0; i < data_w_size; ++i) {
-        // calculate h-h distances
+        // calculate ww distances
         {
             int j = i+1;
             for (; j+7 < data_w_size; j+=8) {
@@ -71,7 +71,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManager<use_weighted_distr
             }
         }
         
-        // calculate h-p distances
+        // calculate aw distances
         {
             int j = 0;
             for (; j+7 < data_a_size; j+=8) {

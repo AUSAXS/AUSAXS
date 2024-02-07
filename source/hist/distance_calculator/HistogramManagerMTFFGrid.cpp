@@ -163,11 +163,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     }
 
     // ensure that our new vectors are compatible with those from the base class
+    // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
     auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
+    GenericDistribution1D_t p_tot = hist::Distribution1D(std::move(cast_res->get_counts())); // manual cast necessary here to allow another implicit cast to WeightedDistribution1D
     GenericDistribution3D_t p_aa = std::move(cast_res->get_aa_counts_ff());
     GenericDistribution2D_t p_aw = std::move(cast_res->get_aw_counts_ff());
     GenericDistribution1D_t p_ww = std::move(cast_res->get_ww_counts_ff());
-    GenericDistribution1D_t p_tot = hist::Distribution1D(std::move(cast_res->get_counts())); // manual cast necessary here to allow another implicit cast to WeightedDistribution1D
 
     if (base_res->get_axis().bins < max_bin) {
         p_aa.resize(max_bin);

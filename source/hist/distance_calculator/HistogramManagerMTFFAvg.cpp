@@ -103,17 +103,17 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     int job_size = settings::general::detail::job_size;
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
         pool->detach_task(
-            [&calc_aa, &data_a, i, job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
+            [&calc_aa, i, job_size, data_a_size] () {calc_aa(i, std::min(i+job_size, data_a_size));}
         );
     }
     for (int i = 0; i < (int) data_a_size; i+=job_size) {
         pool->detach_task(
-            [&calc_aw, &data_a, &data_w, i, job_size, data_a_size] () {calc_aw(i, std::min(i+job_size, data_a_size));}
+            [&calc_aw, i, job_size, data_a_size] () {calc_aw(i, std::min(i+job_size, data_a_size));}
         );
     }
     for (int i = 0; i < (int) data_w_size; i+=job_size) {
         pool->detach_task(
-            [&calc_ww, &data_w, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
+            [&calc_ww, i, job_size, data_w_size] () {calc_ww(i, std::min(i+job_size, data_w_size));}
         );
     }
 

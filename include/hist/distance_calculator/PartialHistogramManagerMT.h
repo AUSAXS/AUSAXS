@@ -34,9 +34,9 @@ namespace hist {
 
 		private:
 		    using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
-			container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>> partials_pp_all;
-			container::ThreadLocalWrapper<container::Container1D<GenericDistribution1D_t>> partials_hp_all;
-			container::ThreadLocalWrapper<GenericDistribution1D_t> partials_hh_all;
+			container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>> partials_aa_all;
+			container::ThreadLocalWrapper<container::Container1D<GenericDistribution1D_t>> partials_aw_all;
+			container::ThreadLocalWrapper<GenericDistribution1D_t> partials_ww_all;
 			std::mutex master_hist_mutex;
 
 			/**
@@ -67,7 +67,7 @@ namespace hist {
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_hp(unsigned int index);
+			void calc_aw(unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
@@ -79,7 +79,7 @@ namespace hist {
 
 			void combine_pp(unsigned int n, unsigned int m);
 
-			void combine_hp(unsigned int index);
+			void combine_aw(unsigned int index);
 
 			void combine_hh();
 

@@ -191,7 +191,7 @@ link_libraries(ausaxs)
 ############################################
 ##             Unit Testing               ##
 ############################################
-#add_subdirectory(test)
+add_subdirectory(test)
 
 ############################################
 ##          Other executables             ##

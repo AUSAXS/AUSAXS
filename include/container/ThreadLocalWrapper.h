@@ -37,6 +37,9 @@ namespace container {
              */
             T& get() {return data.at(std::this_thread::get_id());}
 
+            // @copydoc get()
+            const T& get() const {return data.at(std::this_thread::get_id());}
+
             /**
              * @brief Get the thread-local instances of the wrapped type for all threads.
              */
@@ -55,14 +58,17 @@ namespace container {
              * @brief Merge all thread-local instances of the wrapped type into a single instance.
              */
             T merge() const {
-                T result;
+                T result = get();
+                auto this_id = std::this_thread::get_id();
                 if constexpr (std::ranges::range<T>) {
                     for (const auto& [id, t] : data) {
+                        if (id == this_id) {continue;}
                         std::transform(t.begin(), t.end(), result.begin(), result.begin(), std::plus<>());
                     }
                     return result;
                 } else {
                     for (const auto& [id, t] : data) {
+                        if (id == this_id) {continue;}
                         result += t;
                     }
                     return result;

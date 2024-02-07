@@ -16,7 +16,7 @@ namespace hist {
 	 * 1 x
 	 *   1 2 3 4
 	 * The self-correlation partials are marked with an 'x'. They are constant and are thus precalculated when this class is initialized. 
-	 * The upper and lower triangle are symmetric, and we can thus just calculate one of them and double the result. After all partials are initially
+	 * The uaaer and lower triangle are symmetric, and we can thus just calculate one of them and double the result. After all partials are initially
 	 * generated, this class recalculates them whenever a body has changed. If body 2 is moved, the partials (1, 2), (2, 3), and (2, 4) must be recalculated. 
 	 * 
 	 * This is further complicated by the presence of the hydration layer. Since this does not belong to any individual body, it can be viewed as 
@@ -45,11 +45,11 @@ namespace hist {
 
 		protected:
             detail::MasterHistogram master;                     			// the current total histogram
-            std::vector<detail::CompactCoordinates> coords_p;   			// a compact representation of the relevant data from the managed bodies
-            detail::CompactCoordinates coords_h;                			// a compact representation of the hydration data
-			container::Container2D<detail::PartialHistogram> partials_pp; 	// the partial histograms
-			container::Container1D<detail::HydrationHistogram> partials_hp;	// the partial hydration-atom histograms
-			detail::HydrationHistogram partials_hh;               			// the partial histogram for the hydration layer
+            std::vector<detail::CompactCoordinates> coords_a;   			// a compact representation of the relevant data from the managed bodies
+            detail::CompactCoordinates coords_w;                			// a compact representation of the hydration data
+			container::Container2D<detail::PartialHistogram> partials_aa; 	// the partial histograms
+			container::Container1D<detail::HydrationHistogram> partials_aw;	// the partial hydration-atom histograms
+			detail::HydrationHistogram partials_ww;               			// the partial histogram for the hydration layer
 
 		private:
 			/**
@@ -61,17 +61,17 @@ namespace hist {
 			/**
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 */
-			void calc_pp(unsigned int n, unsigned int m);
+			void calc_aa(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
 			 */
-			void calc_hp(unsigned int index);
+			void calc_aw(unsigned int index);
 
 			/**
 			 * @brief Calculate the hydration-hydration distances. 
 			 */
-			void calc_hh();
+			void calc_ww();
 
 			/**
 			 * @brief Calculate the self-correlation of a body. 
