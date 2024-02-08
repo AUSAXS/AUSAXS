@@ -90,6 +90,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
     }
 
     // merge the partial results from each thread and add it to the master histogram
+    pool->wait(); // we have to wait for all calculations to finish before we can merge them
     {
         if (hydration_modified) {
             pool->detach_task(
@@ -114,8 +115,8 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
         }
     }
 
-    this->statemanager->reset();
     pool->wait();
+    this->statemanager->reset();
     Distribution1D p = this->master.get_counts();
     return std::make_unique<DistanceHistogram>(std::move(p), this->master.get_axis());
 }
@@ -193,6 +194,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::initialize() {
         }
     }
 
+    pool->wait();
     for (unsigned int i = 0; i < this->body_size; ++i) {
         pool->detach_task(
             [this, i] () {combine_self_correlation(i);}
@@ -302,8 +304,8 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(unsigned int 
         unsigned int imax
     ) -> void {
         auto& p_aw = p_aw_all.get().index(index);
-        for (unsigned int i = imin; i < imax; ++i) {
-            unsigned int j = 0;
+        for (unsigned int i = imin; i < imax; ++i) { // atom
+            unsigned int j = 0;                      // water
             for (; j+7 < coords_w.size(); j+=8) {
                 evaluate8<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
             }
