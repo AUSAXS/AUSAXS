@@ -32,7 +32,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     }
 
     std::vector<Atom> atoms(_nc);
-    for (unsigned int i = 0; i < _nc; ++i) {
+    for (int i = 0; i < _nc; ++i) {
         atoms[i] = Atom({x[i], y[i], z[i]}, w[i], constants::atom_t::dummy, "", i);
     }
 
@@ -46,7 +46,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     }
 
     auto res = Iq.as_dataset().interpolate(q);
-    for (unsigned int i = 0; i < _nq; ++i) {
+    for (int i = 0; i < _nq; ++i) {
         _return_Iq[i] = res.y(i);
     }
     *_return_status = 0;

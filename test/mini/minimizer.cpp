@@ -1,7 +1,6 @@
+#include "plots/PlotOptions.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include <dlib/optimization.h>
-#include <dlib/global_optimization.h>
 
 #include <mini/detail/Parameter.h>
 
@@ -58,11 +57,9 @@ TEST_CASE("1d_landscape", "[manual]") {
 
     SimpleDataset evaluations = mini.get_evaluated_points().as_dataset();
     SimpleDataset landscape = mini.landscape().as_dataset();
-    landscape.add_plot_options(style::draw::line, {{"color", style::color::black}});
-    evaluations.add_plot_options(style::draw::points, {{"color", style::color::orange}});
 
-    plots::PlotDataset plot(landscape);
-    plot.plot(evaluations);
+    plots::PlotDataset plot(landscape, plots::PlotOptions(style::draw::line, {{"color", style::color::black}}));
+    plot.plot(evaluations, plots::PlotOptions(style::draw::points, {{"color", style::color::orange}}));
     plot.save("figures/test/minimizer/golden_test.pdf");
 }
 
@@ -142,6 +139,10 @@ TEST_CASE("scan_minimizer") {
 //     // SECTION("problem18") {ExplorerTest1D(problem18);}
 // }
 
+#ifdef DLIB_AVAILABLE
+#include <dlib/optimization.h>
+#include <dlib/global_optimization.h>
+
 typedef dlib::matrix<double,0,1> column_vector;
 TEST_CASE("dlib") {
     auto dlibTest1D = [] (const TestFunction& test, mini::type type) {
@@ -190,13 +191,16 @@ TEST_CASE("dlib") {
         SECTION("Rosenbrock") {dlibTest2D(Rosenbrock, mini::type::DLIB_GLOBAL);}
     }
 }
+#endif
 
 TEST_CASE("create_minimizer") {
-    SECTION("dlib") {
-        auto dlib = mini::create_minimizer(mini::type::BFGS, problem04.function, {"a", problem04.bounds[0]});
-        auto res = dlib->minimize();
-        CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], dlib->tol));
-    }
+    #ifdef DLIB_AVAILABLE
+        SECTION("dlib") {
+            auto dlib = mini::create_minimizer(mini::type::BFGS, problem04.function, {"a", problem04.bounds[0]});
+            auto res = dlib->minimize();
+            CHECK_THAT(res.get_parameter("a").value, Catch::Matchers::WithinAbs(problem04.min[0], dlib->tol));
+        }
+    #endif
 
     SECTION("golden") {
         auto golden = mini::create_minimizer(mini::type::GOLDEN, problem04.function, {"a", problem04.bounds[0]});

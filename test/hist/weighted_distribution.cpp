@@ -10,7 +10,6 @@
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
-#include <hist/distribution/WeightedDistribution.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/WeightedDistribution2D.h>
 #include <hist/distribution/WeightedDistribution3D.h>
@@ -29,20 +28,20 @@
 #include <table/ArrayDebyeTable.h>
 
 #include "../test/hist/hist_test_helper.h"
+#include "constants/Axes.h"
 
 using namespace hist;
 using namespace data;
 using namespace data::record;
 
 TEST_CASE("WeightedDistribution: tracks content") {
-    hist::WeightedDistribution::reset();
     SECTION("simple") {
         hist::WeightedDistribution1D p(10, 0);
         auto width = constants::axes::d_axis.width();
         p.add(0, 1);
         p.add(width/2, 2);
 
-        auto weighted_bins = WeightedDistribution::get_weighted_bins();
+        auto weighted_bins = p.get_weighted_axis();
         REQUIRE(weighted_bins[0] == 0);
         REQUIRE(weighted_bins[1] == width/2);
         REQUIRE(weighted_bins[2] == 2*width);
@@ -55,7 +54,7 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(width/2, 2);
         p.add(3*width/4, 4);
 
-        auto weighted_bins = WeightedDistribution::get_weighted_bins();
+        auto weighted_bins = p.get_weighted_axis();
         REQUIRE(weighted_bins[0] == 0);
         REQUIRE(weighted_bins[1] == 2.5*width/4);
         REQUIRE(weighted_bins[2] == 2*width);
@@ -68,7 +67,7 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(1, width/2, 2);
         p.add(2, 3*width/4, 4);
 
-        auto weighted_bins = WeightedDistribution::get_weighted_bins();
+        auto weighted_bins = p.get_weighted_axis();
         REQUIRE(weighted_bins[0] == 0);
         REQUIRE(weighted_bins[1] == 2.5*width/4);
         REQUIRE(weighted_bins[2] == 2*width);
@@ -81,7 +80,7 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(1, 1, width/2, 2);
         p.add(2, 2, 3*width/4, 4);
 
-        auto weighted_bins = WeightedDistribution::get_weighted_bins();
+        auto weighted_bins = p.get_weights();
         REQUIRE(weighted_bins[0] == 0);
         REQUIRE(weighted_bins[1] == 2.5*width/4);
         REQUIRE(weighted_bins[2] == 2*width);
@@ -108,7 +107,7 @@ TEST_CASE("sinc_table") {
     auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
 
     DistanceHistogramDebug temp;
-    auto bins = WeightedDistribution::get_weighted_bins();
+    const auto& bins = constants::axes::d_vals;
     auto table = temp.get_sinc_table();
     for (unsigned int q = 0; q < table->size_q(); ++q) {
         std::vector<double> sinc(20);
@@ -135,15 +134,15 @@ TEST_CASE("distance_calculators") {
     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
     Molecule protein(a);
 
-    auto check_default = [] () {
-        auto p = WeightedDistribution::get_weighted_bins();
+    auto check_default = [] (const auto& hist) {
+        auto p = hist->get_d_axis();
         for (unsigned int i = 0; i < 20; ++i) {
             if (p[i] != constants::axes::d_vals[i]) {return false;}
         }
         return true;
     };
-    auto check_exact = [] () {
-        auto p = WeightedDistribution::get_weighted_bins();
+    auto check_exact = [] (const auto& hist) {
+        auto p = hist->get_d_axis();
         for (auto e : d_exact) {
             if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {return false;}
         }
@@ -151,60 +150,32 @@ TEST_CASE("distance_calculators") {
     };
 
     { // hm
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::HistogramManager<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::HistogramManager<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::HistogramManager<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::HistogramManager<true>(&protein).calculate_all()));
     }
     { // hm_mt
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::HistogramManagerMT<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::HistogramManagerMT<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::HistogramManagerMT<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::HistogramManagerMT<true>(&protein).calculate_all()));
     }
     { // hm_mt_ff_avg
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::HistogramManagerMTFFAvg<true>(&protein).calculate_all()));
     }
     { // hm_mt_ff_explicit
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::HistogramManagerMTFFExplicit<true>(&protein).calculate_all()));
     }
     { // hm_mt_ff_grid
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all()));
     }
     { // phm
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::PartialHistogramManager<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::PartialHistogramManager<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::PartialHistogramManager<true>(&protein).calculate_all()));
     }
     { // phm_mt
-        WeightedDistribution::reset();
-        REQUIRE(check_default());
-        hist::PartialHistogramManagerMT<false>(&protein).calculate_all();
-        REQUIRE(check_default());
-        hist::PartialHistogramManagerMT<true>(&protein).calculate_all();
-        REQUIRE(check_exact());
+        REQUIRE(check_default(hist::PartialHistogramManagerMT<false>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::PartialHistogramManagerMT<true>(&protein).calculate_all()));
     }
 }
 
@@ -403,10 +374,11 @@ TEST_CASE("real_comparison", "[manual]") {
 
     data::Molecule protein("test/files/LAR1-2.pdb");
     auto Iq1 = hist::HistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
-    auto Iq2 = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    auto hist = hist::HistogramManagerMT<true>(&protein).calculate_all();
+    auto Iq2 = hist->debye_transform();
 
     unsigned int counter = 0;
-    auto weighted_bins = WeightedDistribution::get_weighted_bins();
+    auto weighted_bins = hist->get_d_axis();
     for (unsigned int i = 0; i < weighted_bins.size(); ++i) {
         if (weighted_bins[i] != constants::axes::d_vals[i]) {
             counter++;

@@ -1,7 +1,12 @@
 #pragma once
 
+#include "constants/Axes.h"
+#include "utility/Utility.h"
 #include <data/Molecule.h>
 #include <utility/Concepts.h>
+
+#include <iostream>
+#include <cmath>
 
 /**
  * @brief Debug molecule that allows scaling the volume.

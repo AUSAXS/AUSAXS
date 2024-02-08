@@ -49,12 +49,12 @@ namespace table {
             /**
              * @brief Get an iterator to the beginning of the d-values for the given q-index.
              */
-            [[nodiscard]] constants::axes::d_type*  begin(unsigned int q_index);
+            [[nodiscard]] constants::axes::d_type* begin(unsigned int q_index);
 
             /**
              * @brief Get an iterator to the end of the d-values for the given q-index.
              */
-            [[nodiscard]] constants::axes::d_type*  end(unsigned int q_index);
+            [[nodiscard]] constants::axes::d_type* end(unsigned int q_index);
 
             /**
              * @brief Get the default table.

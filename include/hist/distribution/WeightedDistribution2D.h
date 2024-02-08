@@ -22,5 +22,10 @@ namespace hist {
              * @brief Add a value for a given distance.
              */
             void add(int x, float distance, constants::axes::d_type value);
+
+            /**
+             * @brief Extract the weights from this distribution.
+             */
+            std::vector<double> get_weighted_axis() const;
     };
 }

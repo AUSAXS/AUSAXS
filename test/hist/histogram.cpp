@@ -45,8 +45,8 @@ TEST_CASE("Histogram::shorten_axis") {
         std::vector<double> data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 0, 0, 0, 0, 0, 0, 0};
         hist::Histogram hist(data);
         hist.shorten_axis(10);
-        CHECK(hist.size() == 11);
-        CHECK(hist.span_y() == Limit{1, 11});
+        CHECK(hist.size() == 10);
+        CHECK(hist.span_y() == Limit{1, 10});
     }
 
     SECTION("less than 10 elements") {

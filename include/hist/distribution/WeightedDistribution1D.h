@@ -26,12 +26,12 @@ namespace hist {
             /**
              * @brief Extract the bins from this distribution.
              */
-            std::vector<constants::axes::d_type> get_bins() const;
+            std::vector<constants::axes::d_type> get_content() const;
 
             /**
              * @brief Extract the weights from this distribution.
              */
-            std::vector<double> get_weights() const;
+            std::vector<double> get_weighted_axis() const;
 
             /**
              * @brief Add a value for a given distance.

@@ -5,7 +5,7 @@
 
 using namespace hist;
 
-Distribution1D::Distribution1D(const WeightedDistribution1D& other) : container::Container1D<constants::axes::d_type>(other.get_bins()) {}
+Distribution1D::Distribution1D(const WeightedDistribution1D& other) : container::Container1D<constants::axes::d_type>(other.get_content()) {}
 
 std::vector<constants::axes::d_type> Distribution1D::as_vector() const {
     return this->data;

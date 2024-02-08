@@ -15,27 +15,27 @@ WeightedDistribution1D::WeightedDistribution1D(const Distribution1D& other) : Co
 WeightedDistribution1D::WeightedDistribution1D(const std::vector<constants::axes::d_type>& bins) : WeightedDistribution1D(Distribution1D(bins)) {}
 
 std::vector<constants::axes::d_type> WeightedDistribution1D::as_vector() const {
-    return get_bins();
+    return get_content();
 }
 
 void WeightedDistribution1D::add(float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(i).count += value;
-    index(i).content += distance;
+    index(i).add(distance);
 }
 
-std::vector<constants::axes::d_type> WeightedDistribution1D::get_bins() const {
+std::vector<constants::axes::d_type> WeightedDistribution1D::get_content() const {
     Distribution1D bins(size());
     for (std::size_t i = 0; i < size(); i++) {
-        bins.index(i) = index(i).count;
+        bins.index(i) = index(i).content;
     }
     return bins;
 }
 
-std::vector<double> WeightedDistribution1D::get_weights() const {
+std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
     Distribution1D weights(size());
     for (std::size_t i = 0; i < size(); i++) {
-        weights.index(i) = index(i).content;
+        weights.index(i) = index(i).content/(!index(i).count + index(i).count); // avoid division by zero
     }
     return weights;
 }

@@ -15,9 +15,9 @@ DistanceHistogram::DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& a
     initialize();
 }
 
-DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(p_tot.get_bins(), axis) {
-    use_weighted_sinc_table(p_tot.get_weights());
-    initialize();
+DistanceHistogram::DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis) : Histogram(p_tot.get_content(), axis) {
+    initialize(p_tot.get_weighted_axis());
+    use_weighted_sinc_table();
 }
 
 DistanceHistogram::DistanceHistogram(std::unique_ptr<ICompositeDistanceHistogram> cdh) : Histogram(std::move(cdh->get_counts()), cdh->get_axis()) {
@@ -29,12 +29,17 @@ observer_ptr<const table::DebyeTable> DistanceHistogram::get_sinc_table() const 
     return &table::ArrayDebyeTable::get_default_table();
 }
 
-void DistanceHistogram::use_weighted_sinc_table(const std::vector<double>& weights) {
-    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(table::VectorDebyeTable(weights));
+void DistanceHistogram::use_weighted_sinc_table() {
+    weighted_sinc_table = std::make_unique<table::VectorDebyeTable>(table::VectorDebyeTable(d_axis));
     use_weighted_table = true;
 }
 
 DistanceHistogram::~DistanceHistogram() = default;
+
+void DistanceHistogram::initialize(std::vector<double>&& d_axis) {
+    this->d_axis = std::move(d_axis);
+    d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
+}
 
 void DistanceHistogram::initialize() {
     d_axis = axis.as_vector();

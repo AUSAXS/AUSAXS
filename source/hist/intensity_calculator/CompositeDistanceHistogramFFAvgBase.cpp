@@ -17,9 +17,7 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHisto
     hist::WeightedDistribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot,
     const Axis& axis
-) : ICompositeDistanceHistogramExv(hist::Distribution1D(axis.bins, 0), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {
-    use_weighted_sinc_table(p_tot.get_weights());
-}
+) : ICompositeDistanceHistogramExv(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(

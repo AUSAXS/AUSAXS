@@ -117,11 +117,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManager(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManagerMT(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }
@@ -168,11 +168,11 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManager(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManager<false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
         {
-            auto Iq = hist::PartialHistogramManagerMT(&protein).calculate_all()->debye_transform();
+            auto Iq = hist::PartialHistogramManagerMT<false>(&protein).calculate_all()->debye_transform();
             REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
         }
     }

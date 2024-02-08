@@ -63,14 +63,14 @@ namespace hist {
 
             /**
              * @brief Use a weighted sinc table for the Debye transform.
-             *        The weights are extracted from the WeightedHistogram struct, which automatically keeps track of all WeightedDistribution counts. 
              */
-            void use_weighted_sinc_table(const std::vector<double>& weights);
+            void use_weighted_sinc_table();
 
         private:
             std::unique_ptr<table::DebyeTable> weighted_sinc_table;     // the weighted sinc table
             bool use_weighted_table = false;                            // whether to use the weighted sinc table
 
             void initialize();
+            void initialize(std::vector<double>&& d_axis);
     };
 }
