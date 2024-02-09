@@ -38,7 +38,7 @@ DistanceHistogram::~DistanceHistogram() = default;
 
 void DistanceHistogram::initialize(std::vector<double>&& d_axis) {
     this->d_axis = std::move(d_axis);
-    d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
+    this->d_axis[0] = 0; // fix the first bin to 0 since it primarily contains self-correlation terms
 }
 
 void DistanceHistogram::initialize() {

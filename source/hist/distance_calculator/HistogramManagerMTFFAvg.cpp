@@ -125,12 +125,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    for (int i = 0; i < data_a_size; ++i) {p_aa.index(data_a.get_ff_type(i), data_a.get_ff_type(i), 0) += std::pow(data_a[i].value.w, 2);}
-    p_aa.index(form_factor::exv_bin, form_factor::exv_bin, 0) = data_a_size;
-    p_ww.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);});
+    for (int i = 0; i < data_a_size; ++i) {
+        p_aa.add(data_a.get_ff_type(i), data_a.get_ff_type(i), 0, std::pow(data_a[i].value.w, 2));
+    }
+    p_aa.add(form_factor::exv_bin, form_factor::exv_bin, 0, data_a_size);
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& data) {return sum + std::pow(data.value.w, 2);}));
 
     // this is counter-intuitive, but splitting the loop into separate parts is likely faster since it allows both SIMD optimizations and better cache usage
-    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
     {   // sum all elements to the total
         for (unsigned int ff1 = 0; ff1 < form_factor::get_count_without_excluded_volume(); ++ff1) {
             for (unsigned int ff2 = 0; ff2 < form_factor::get_count_without_excluded_volume(); ++ff2) {

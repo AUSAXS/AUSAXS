@@ -113,18 +113,18 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     }
 
     pool->wait();
-    auto p_aa = p_aa_all.merge();
-    auto p_aw = p_aw_all.merge();
-    auto p_ww = p_ww_all.merge();
+    GenericDistribution1D_t p_aa = p_aa_all.merge();
+    GenericDistribution1D_t p_aw = p_aw_all.merge();
+    GenericDistribution1D_t p_ww = p_ww_all.merge();
 
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    p_aa.index(0) = std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
-    p_ww.index(0) = std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} );
+    p_aa.add(0, std::accumulate(data_a.get_data().begin(), data_a.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} ));
+    p_ww.add(0, std::accumulate(data_w.get_data().begin(), data_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;} ));
 
     // calculate p_tot
-    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins, 0);
+    GenericDistribution1D_t p_tot(constants::axes::d_axis.bins);
     for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot.index(i) = p_aa.index(i) + p_ww.index(i) + 2*p_aw.index(i);}
 
     // downsize our axes to only the relevant area

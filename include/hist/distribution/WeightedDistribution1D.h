@@ -2,7 +2,7 @@
 
 #include <container/Container1D.h>
 #include <constants/Axes.h>
-#include <hist/distribution/detail/Entry.h>
+#include <hist/distribution/detail/WeightedEntry.h>
 
 namespace hist {
     class Distribution1D;
@@ -11,7 +11,7 @@ namespace hist {
      * @brief This is a small wrapper around the Container1D class, indicating that the data
      *        is distributed along the constants::axes::d_vals axis.
      */
-    class WeightedDistribution1D : public container::Container1D<detail::Entry> {
+    class WeightedDistribution1D : public container::Container1D<detail::WeightedEntry> {
         public:
             using Container1D::Container1D;
             WeightedDistribution1D(const Distribution1D& other);

@@ -20,6 +20,7 @@ namespace hist {
     class DistanceHistogram : public Histogram {
         public: 
             DistanceHistogram();
+            DistanceHistogram(DistanceHistogram&& other) = default;
             DistanceHistogram(hist::Distribution1D&& p_tot, const Axis& axis);
             DistanceHistogram(hist::WeightedDistribution1D&& p_tot, const Axis& axis);
 

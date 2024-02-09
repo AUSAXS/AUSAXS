@@ -11,7 +11,7 @@ WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Co
     for (std::size_t x = 0; x < other.size_x(); x++) {
         for (std::size_t y = 0; y < other.size_y(); y++) {
             for (std::size_t z = 0; z < other.size_z(); z++) {
-                index(x, y, z).count = other.index(x, y, z);
+                index(x, y, z).value = other.index(x, y, z);
             }
         }
     }
@@ -19,8 +19,7 @@ WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Co
 
 void WeightedDistribution3D::add(int x, int y, float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
-    index(x, y, i) += value;
-    index(x, y, i).add(distance);
+    index(x, y, i).add(distance, value);
 }
 
 std::vector<double> WeightedDistribution3D::get_weights() const {
@@ -29,11 +28,11 @@ std::vector<double> WeightedDistribution3D::get_weights() const {
         unsigned int count = 0;
         for (std::size_t x = 0; x < size_x(); x++) {
             for (std::size_t y = 0; y < size_y(); y++) {
-                weights[z] = index(x, y, z).content;
+                weights[z] += index(x, y, z).bin_center;
                 count += index(x, y, z).count;
             }
         }
-        weights[z] /= (!count + count); // avoid division by zero
+        weights[z] = !weights[z]*constants::axes::d_vals[z] + weights[z]/(!count + count); // avoid division by zero
     }
     return weights;
 }

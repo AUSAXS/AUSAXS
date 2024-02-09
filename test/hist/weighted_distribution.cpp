@@ -29,6 +29,7 @@
 
 #include "../test/hist/hist_test_helper.h"
 #include "constants/Axes.h"
+#include "hist/intensity_calculator/DistanceHistogram.h"
 
 using namespace hist;
 using namespace data;
@@ -42,9 +43,9 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(width/2, 2);
 
         auto weighted_bins = p.get_weighted_axis();
-        REQUIRE(weighted_bins[0] == 0);
-        REQUIRE(weighted_bins[1] == width/2);
-        REQUIRE(weighted_bins[2] == 2*width);
+        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(width/2, 1e-3));
+        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
     }
 
     SECTION("WeightedDistribution1D") {
@@ -55,9 +56,9 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(3*width/4, 4);
 
         auto weighted_bins = p.get_weighted_axis();
-        REQUIRE(weighted_bins[0] == 0);
-        REQUIRE(weighted_bins[1] == 2.5*width/4);
-        REQUIRE(weighted_bins[2] == 2*width);
+        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
+        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
     }
 
     SECTION("WeightedDistribution2D") {
@@ -68,9 +69,9 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(2, 3*width/4, 4);
 
         auto weighted_bins = p.get_weighted_axis();
-        REQUIRE(weighted_bins[0] == 0);
-        REQUIRE(weighted_bins[1] == 2.5*width/4);
-        REQUIRE(weighted_bins[2] == 2*width);
+        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
+        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
     }
 
     SECTION("WeightedDistribution3D") {
@@ -81,21 +82,21 @@ TEST_CASE("WeightedDistribution: tracks content") {
         p.add(2, 2, 3*width/4, 4);
 
         auto weighted_bins = p.get_weights();
-        REQUIRE(weighted_bins[0] == 0);
-        REQUIRE(weighted_bins[1] == 2.5*width/4);
-        REQUIRE(weighted_bins[2] == 2*width);
+        REQUIRE_THAT(weighted_bins[0], Catch::Matchers::WithinAbs(0, 1e-3));
+        REQUIRE_THAT(weighted_bins[1], Catch::Matchers::WithinAbs(2.5*width/4, 1e-3));
+        REQUIRE_THAT(weighted_bins[2], Catch::Matchers::WithinAbs(2*width, 1e-3));
     }
 }
 
-struct DistanceHistogramDebug : public hist::DistanceHistogram {
-    using hist::DistanceHistogram::DistanceHistogram;
-    auto get_sinc_table() {
-        use_weighted_sinc_table();
-        return hist::DistanceHistogram::get_sinc_table();
-    }
+class DistanceHistogramDebug : public DistanceHistogram {
+    public:
+        DistanceHistogramDebug(DistanceHistogram&& other) : DistanceHistogram(std::move(other)) {}
+        auto get_sinc_table() const {return DistanceHistogram::get_sinc_table();}
 };
-TEST_CASE("sinc_table") {
+
+TEST_CASE("WeightedDistribution: sinc_table") {
     settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
@@ -104,11 +105,11 @@ TEST_CASE("sinc_table") {
     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
     Molecule protein(a);
 
-    auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    auto hist = hist::HistogramManagerMT<true>(&protein).calculate_all();
+    auto Iq = hist->debye_transform();
 
-    DistanceHistogramDebug temp;
     const auto& bins = constants::axes::d_vals;
-    auto table = temp.get_sinc_table();
+    auto table = DistanceHistogramDebug(std::move(hist)).get_sinc_table();
     for (unsigned int q = 0; q < table->size_q(); ++q) {
         std::vector<double> sinc(20);
         for (unsigned int d = 0; d < 20; ++d) {
@@ -124,7 +125,7 @@ TEST_CASE("sinc_table") {
     }
 }
 
-TEST_CASE("distance_calculators") {
+TEST_CASE("WeightedDistribution: distance_calculators") {
     settings::molecule::use_effective_charge = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -387,8 +388,7 @@ TEST_CASE("real_comparison", "[manual]") {
     REQUIRE(counter != 0);
 
     {
-        DistanceHistogramDebug temp;
-        auto table = temp.get_sinc_table();
+        auto table = DistanceHistogramDebug(std::move(hist)).get_sinc_table();
         counter = 0;
         const auto& default_table = table::ArrayDebyeTable::get_default_table();
         REQUIRE(table->size_q() == default_table.size_q());
