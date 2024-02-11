@@ -21,6 +21,10 @@ std::vector<constants::axes::d_type> WeightedDistribution1D::as_vector() const {
     return get_content();
 }
 
+void WeightedDistribution1D::add_index(int32_t i, const detail::WeightedEntry& value) {
+    index(i) += value;
+}
+
 void WeightedDistribution1D::add(float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(i).add(distance, value);

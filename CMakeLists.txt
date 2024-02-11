@@ -97,10 +97,8 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(thread_pool GCEM)
-if (CMAKE_BUILD_TYPE MATCHES DEBUG)
-    FetchContent_MakeAvailable(backward)
-endif()
-include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include)
+FetchContent_MakeAvailable(backward)
+include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include ${backward_SOURCE_DIR})
 #add_compile_options("$<$<CONFIG:DEBUG>:-fopt-info-loop;-fopt-info-vec>")
 
 ############################################
@@ -174,7 +172,6 @@ target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PR
 if (DLIB)
 	target_link_libraries(objlib dlib::dlib)
 endif()
-target_link_libraries(objlib ${LIBS})
 target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
 link_libraries(ausaxs)

@@ -267,7 +267,7 @@ intensity_fit/%: build/bin/intensity_fitter
 	for pdb in $${structure}; do\
 		echo "Fitting " $${pdb} " ...";\
 		sleep 1;\
-		valgrind --track-origins=yes --log-file="valgrind.txt" $< $${measurement} $${pdb} ${options};\
+		$< $${measurement} $${pdb} ${options};\
 		make plot/output/intensity_fitter/$*;\
 	done
 #		make plot_fits/$*;\

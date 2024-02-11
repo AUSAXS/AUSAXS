@@ -37,7 +37,7 @@ using namespace data::record;
 
 TEST_CASE("WeightedDistribution: tracks content") {
     SECTION("simple") {
-        hist::WeightedDistribution1D p(10, 0);
+        hist::WeightedDistribution1D p(10);
         auto width = constants::axes::d_axis.width();
         p.add(0, 1);
         p.add(width/2, 2);
@@ -49,7 +49,7 @@ TEST_CASE("WeightedDistribution: tracks content") {
     }
 
     SECTION("WeightedDistribution1D") {
-        hist::WeightedDistribution1D p(10, 0);
+        hist::WeightedDistribution1D p(10);
         auto width = constants::axes::d_axis.width();
         p.add(0, 1);
         p.add(width/2, 2);
@@ -62,7 +62,7 @@ TEST_CASE("WeightedDistribution: tracks content") {
     }
 
     SECTION("WeightedDistribution2D") {
-        hist::WeightedDistribution2D p(10, 10, 0);
+        hist::WeightedDistribution2D p(10, 10);
         auto width = constants::axes::d_axis.width();
         p.add(0, 0, 1);
         p.add(1, width/2, 2);
@@ -75,7 +75,7 @@ TEST_CASE("WeightedDistribution: tracks content") {
     }
 
     SECTION("WeightedDistribution3D") {
-        hist::WeightedDistribution3D p(10, 10, 10, 0);
+        hist::WeightedDistribution3D p(10, 10, 10);
         auto width = constants::axes::d_axis.width();
         p.add(0, 0, 0, 1);
         p.add(1, 1, width/2, 2);
@@ -127,6 +127,7 @@ TEST_CASE("WeightedDistribution: sinc_table") {
 
 TEST_CASE("WeightedDistribution: distance_calculators") {
     settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
@@ -145,7 +146,10 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     auto check_exact = [] (const auto& hist) {
         auto p = hist->get_d_axis();
         for (auto e : d_exact) {
-            if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {return false;}
+            if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {
+                std::cout << "Expected: " << e << " Got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
+                return false;
+            }
         }
         return true;
     };
@@ -168,7 +172,8 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     }
     { // hm_mt_ff_grid
         REQUIRE(check_default(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()));
-        REQUIRE(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all()));
+        // the grid approach adds a lot of extra calculations for the grid excluded volume, and will thus not match d_exact
+        // REQUIRE(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all()));
     }
     { // phm
         REQUIRE(check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()));

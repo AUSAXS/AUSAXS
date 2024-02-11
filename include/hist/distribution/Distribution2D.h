@@ -15,6 +15,12 @@ namespace hist {
             Distribution2D(const WeightedDistribution2D& other);
 
             /**
+             * @brief Get a bin value from this distribution.
+             */
+            constants::axes::d_type& get_content(int i, int j);
+            const constants::axes::d_type& get_content(int i, int j) const; // @copydoc get_content(int i, int j)
+
+            /**
              * @brief Add a value for a given distance.
              */
             void add(unsigned int x, float distance, constants::axes::d_type value);

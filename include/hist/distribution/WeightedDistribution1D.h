@@ -43,6 +43,7 @@ namespace hist {
              * @brief Add a value for a given distance.
              */
             void add(float distance, constants::axes::d_type value);
+            void add_index(int32_t i, const detail::WeightedEntry& value); // @copydoc add(float distance, constants::axes::d_type value)
 
             WeightedDistribution1D& operator+=(const WeightedDistribution1D& other);
             WeightedDistribution1D& operator-=(const WeightedDistribution1D& other);

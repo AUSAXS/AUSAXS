@@ -1,3 +1,4 @@
+#include "hist/distribution/Distribution1D.h"
 #include <hist/distance_calculator/HistogramManagerMTFFGrid.h>
 #include <hist/detail/CompactCoordinatesFF.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
@@ -49,7 +50,6 @@ template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weighted_distribution>::calculate_all() {
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
     using GenericDistribution2D_t = typename hist::GenericDistribution2D<use_weighted_distribution>::type;
-    using GenericDistribution3D_t = typename hist::GenericDistribution3D<use_weighted_distribution>::type;
     auto pool = utility::multi_threading::get_global_pool();
 
     auto base_res = HistogramManagerMTFFAvg<use_weighted_distribution>::calculate_all(); // make sure everything is initialized
@@ -144,19 +144,19 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     }
 
     pool->wait();
-    auto p_xx = p_xx_all.merge();
-    auto p_ax = p_ax_all.merge();
-    auto p_wx = p_wx_all.merge();
+    GenericDistribution1D_t p_xx_generic = p_xx_all.merge();
+    GenericDistribution2D_t p_ax_generic = p_ax_all.merge();
+    GenericDistribution1D_t p_wx_generic = p_wx_all.merge();
 
     //###################//
     // SELF-CORRELATIONS //
     //###################//
-    p_xx.add(0, data_x_size);
+    p_xx_generic.add(0, data_x_size);
 
     // downsize our axes to only the relevant area
     unsigned int max_bin = 10; // minimum size is 10
-    for (int i = p_xx.size()-1; i >= 10; i--) {
-        if (p_xx.index(i) != 0) {
+    for (int i = p_xx_generic.size()-1; i >= 10; i--) {
+        if (p_xx_generic.index(i) != 0) {
             max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
             break;
         }
@@ -166,10 +166,23 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     // also note that the order matters here, since we move data away from the cast_res object. Thus p_tot *must* be moved first. 
     auto cast_res = static_cast<CompositeDistanceHistogramFFAvg*>(base_res.get());
     GenericDistribution1D_t p_tot = hist::Distribution1D(std::move(cast_res->get_counts())); // manual cast necessary here to allow another implicit cast to WeightedDistribution1D
-    GenericDistribution3D_t p_aa = std::move(cast_res->get_aa_counts_ff());
-    GenericDistribution2D_t p_aw = std::move(cast_res->get_aw_counts_ff());
-    GenericDistribution1D_t p_ww = std::move(cast_res->get_ww_counts_ff());
+    Distribution3D p_aa = std::move(cast_res->get_aa_counts_ff());
+    Distribution2D p_aw = std::move(cast_res->get_aw_counts_ff());
+    Distribution1D p_ww = std::move(cast_res->get_ww_counts_ff());
 
+    // update p_tot
+    p_tot.resize(max_bin);
+    for (int i = 0; i < (int) max_bin; ++i) {
+        p_tot.add_index(i, p_wx_generic.index(i));
+        p_tot.add_index(i, p_xx_generic.index(i));
+    }
+    for (int i = 0; i < (int) p_ax_generic.size_x(); ++i) {
+        for (int j = 0; j < (int) max_bin; ++j) {
+            p_tot.add_index(j, p_ax_generic.index(i, j));
+        }
+    }
+
+    // downsize the axes to only the relevant area
     if (base_res->get_axis().bins < max_bin) {
         p_aa.resize(max_bin);
         p_aw.resize(max_bin);
@@ -177,6 +190,11 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     } else {
         max_bin = base_res->get_axis().bins; // make sure we overwrite anything which may already be stored
     }
+
+    // redefine the distributions without weights
+    Distribution2D p_ax = p_ax_generic;
+    Distribution1D p_wx = p_wx_generic;
+    Distribution1D p_xx = p_xx_generic;
 
     for (unsigned int i = 0; i < p_aa.size_x(); ++i) {
         std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, p_aa.begin(i, form_factor::exv_bin));

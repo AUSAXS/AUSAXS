@@ -4,8 +4,6 @@
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <constants/Axes.h>
 
-#include <cmath>
-
 namespace hist {
     /**
      * @brief This is a small wrapper around the Container1D class, indicating that the data
@@ -36,11 +34,7 @@ namespace hist {
              * @brief Add a value for a given distance.
              */
             void add(float distance, constants::axes::d_type value);
-
-            /**
-             * @brief Add a value for a given distance.
-             */
-            void add(int32_t i, constants::axes::d_type value);
+            void add_index(int32_t i, constants::axes::d_type value); // @copydoc add(float distance, constants::axes::d_type value)
 
             Distribution1D& operator+=(const Distribution1D& other);
             Distribution1D& operator-=(const Distribution1D& other);
