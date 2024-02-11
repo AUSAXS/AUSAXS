@@ -15,7 +15,7 @@ namespace hist {
             /**
              * @brief Add the distance to this bin, and increase the counter by one.
              */
-            void add(double distance, double value);
+            void add(float distance, double value);
 
             WeightedEntry operator+(const WeightedEntry& other) const;
 

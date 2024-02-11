@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hist/distribution/WeightedDistribution1D.h"
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <container/Container1D.h>
@@ -15,10 +16,10 @@ namespace hist {
             CompositeDistanceHistogram() = default;
 
             CompositeDistanceHistogram(
-                hist::WeightedDistribution1D&& p_aa, 
-                hist::WeightedDistribution1D&& p_aw, 
-                hist::WeightedDistribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot, 
+                hist::Distribution1D&& p_aa, 
+                hist::Distribution1D&& p_aw, 
+                hist::Distribution1D&& p_ww, 
+                hist::Distribution1D&& p_tot, 
                 const Axis& axis
             );
 
@@ -26,7 +27,7 @@ namespace hist {
                 hist::Distribution1D&& p_aa, 
                 hist::Distribution1D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
-                hist::Distribution1D&& p_tot, 
+                hist::WeightedDistribution1D&& p_tot, 
                 const Axis& axis
             );
 

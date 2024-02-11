@@ -24,12 +24,12 @@ CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
 ) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}
 
 CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
-    hist::WeightedDistribution3D&& p_aa, 
-    hist::WeightedDistribution3D&& p_ax, 
-    hist::WeightedDistribution3D&& p_xx, 
-    hist::WeightedDistribution2D&& p_aw, 
-    hist::WeightedDistribution2D&& p_wx, 
-    hist::WeightedDistribution1D&& p_ww, 
+    hist::Distribution3D&& p_aa, 
+    hist::Distribution3D&& p_ax, 
+    hist::Distribution3D&& p_xx, 
+    hist::Distribution2D&& p_aw, 
+    hist::Distribution2D&& p_wx, 
+    hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot,
     const Axis& axis
 ) : CompositeDistanceHistogramFFAvg(std::move(p_aa), std::move(p_aw), std::move(p_ww), std::move(p_tot), axis), cp_ax(std::move(p_ax)), cp_xx(std::move(p_xx)), cp_wx(std::move(p_wx)) {}

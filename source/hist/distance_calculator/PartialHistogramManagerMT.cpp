@@ -1,4 +1,3 @@
-#include "data/Molecule.h"
 #include <hist/distance_calculator/PartialHistogramManagerMT.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution1D.h>
@@ -7,6 +6,7 @@
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
+#include <data/Molecule.h>
 #include <constants/Axes.h>
 #include <utility/MultiThreading.h>
 #include <container/ThreadLocalWrapper.h>
@@ -30,7 +30,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
     auto pool = utility::multi_threading::get_global_pool();
 
     // check if the object has already been initialized
-    if (this->master.get_counts().size() == 0) [[unlikely]] {
+    if (this->master.size() == 0) [[unlikely]] {
         initialize(); 
     }
 
@@ -117,8 +117,8 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 
     pool->wait();
     this->statemanager->reset();
-    Distribution1D p = this->master.get_counts();
-    return std::make_unique<DistanceHistogram>(std::move(p), this->master.get_axis());
+    GenericDistribution1D_t p = this->master;
+    return std::make_unique<DistanceHistogram>(std::move(p), this->master.axis);
 }
 
 template<bool use_weighted_distribution> 
@@ -135,28 +135,34 @@ template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate_all() {
     auto total = calculate();
     total->shorten_axis();
-    unsigned int bins = total->get_axis().bins;
+    int bins = total->get_axis().bins;
+
+    // determine p_tot
+    GenericDistribution1D_t p_tot(bins);
+    for (int i = 0; i < bins; i++) {
+        p_tot.index(i) = this->master.index(i);
+    }
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    GenericDistribution1D_t p_hh = this->partials_ww.get_counts();
-    GenericDistribution1D_t p_pp = this->master.base.get_counts();
-    GenericDistribution1D_t p_aw(bins, 0);
+    GenericDistribution1D_t p_hh = this->partials_ww;
+    GenericDistribution1D_t p_pp = this->master.base;
+    GenericDistribution1D_t p_aw(bins);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < this->body_size; ++i) {
         for (unsigned int j = 0; j <= i; ++j) {
-            detail::PartialHistogram& current = this->partials_aa.index(i, j);
+            GenericDistribution1D_t& current = this->partials_aa.index(i, j);
 
             // iterate through each entry in the partial histogram
-            std::transform(p_pp.begin(), p_pp.end(), current.get_counts().begin(), p_pp.begin(), std::plus<>());
+            std::transform(p_pp.begin(), p_pp.end(), current.begin(), p_pp.begin(), std::plus<>());
         }
     }
 
     // iterate through all partial hydration-protein histograms
     for (unsigned int i = 0; i < this->body_size; ++i) {
-        detail::PartialHistogram& current = this->partials_aw.index(i);
+        GenericDistribution1D_t& current = this->partials_aw.index(i);
 
         // iterate through each entry in the partial histogram
-        std::transform(p_aw.begin(), p_aw.end(), current.get_counts().begin(), p_aw.begin(), std::plus<>());
+        std::transform(p_aw.begin(), p_aw.end(), current.begin(), p_aw.begin(), std::plus<>());
     }
 
     // p_aw is already resized
@@ -167,7 +173,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<use_weigh
         std::move(p_pp), 
         std::move(p_aw), 
         std::move(p_hh), 
-        std::move(total->get_counts()), 
+        std::move(p_tot), 
         total->get_axis()
     );
 }
@@ -177,20 +183,20 @@ void PartialHistogramManagerMT<use_weighted_distribution>::initialize() {
     auto pool = utility::multi_threading::get_global_pool();
     const Axis& axis = constants::axes::d_axis; 
     std::vector<double> p_base(axis.bins, 0);
-    this->master = detail::MasterHistogram(p_base, axis);
+    this->master = detail::MasterHistogram<use_weighted_distribution>(p_base, axis);
     this->partials_aa_all = container::Container2D<GenericDistribution1D_t>(this->body_size, this->body_size, axis.bins);
     this->partials_aw_all = container::Container1D<GenericDistribution1D_t>(this->body_size, axis.bins);
-    this->partials_ww_all = GenericDistribution1D_t(axis.bins, 0);
+    this->partials_ww_all = GenericDistribution1D_t(axis.bins);
 
-    this->partials_ww = detail::PartialHistogram(axis);
+    this->partials_ww = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
     for (unsigned int i = 0; i < this->body_size; ++i) {
-        this->partials_aw.index(i) = detail::PartialHistogram(axis);
-        this->partials_aa.index(i, i) = detail::PartialHistogram(axis);
+        this->partials_aw.index(i) = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
+        this->partials_aa.index(i, i) = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
         
         calc_self_correlation(i);
 
         for (unsigned int j = 0; j < i; ++j) {
-            this->partials_aa.index(i, j) = detail::PartialHistogram(axis);
+            this->partials_aa.index(i, j) = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
         }
     }
 
@@ -307,15 +313,15 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(unsigned int 
         for (unsigned int i = imin; i < imax; ++i) { // atom
             unsigned int j = 0;                      // water
             for (; j+7 < coords_w.size(); j+=8) {
-                evaluate8<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
+                evaluate8<use_weighted_distribution, 2>(p_aw, coords_i, coords_w, i, j);
             }
 
             for (; j+3 < coords_w.size(); j+=4) {
-                evaluate4<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
+                evaluate4<use_weighted_distribution, 2>(p_aw, coords_i, coords_w, i, j);
             }
 
             for (; j < coords_w.size(); ++j) {
-                evaluate1<use_weighted_distribution, 1>(p_aw, coords_i, coords_w, i, j);
+                evaluate1<use_weighted_distribution, 2>(p_aw, coords_i, coords_w, i, j);
             }
         }
     };
@@ -378,7 +384,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_hh() {
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_self_correlation(unsigned int index) {
-    GenericDistribution1D_t p_pp(this->master.get_axis().bins, 0);
+    GenericDistribution1D_t p_pp(this->master.axis.bins);
     for (auto& tmp : this->partials_aa_all.get_all()) { // std::reference_wrapper<container::Container2D<GenericDistribution1D_t>>
         std::transform(p_pp.begin(), p_pp.end(), tmp.get().index(index, index).begin(), p_pp.begin(), std::plus<>());
     }
@@ -386,14 +392,14 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_self_correlat
 
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(index, index);
-    this->partials_aa.index(index, index).get_counts() = std::move(v);
+    this->partials_aa.index(index, index) = std::move(v);
     this->master += this->partials_aa.index(index, index);
     master_hist_mutex.unlock();
 }
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_pp(unsigned int n, unsigned int m) {
-    GenericDistribution1D_t p_pp(this->master.get_axis().bins, 0);
+    GenericDistribution1D_t p_pp(this->master.axis.bins);
     for (auto& tmp : this->partials_aa_all.get_all()) { // std::reference_wrapper<container::Container2D<GenericDistribution1D_t>>
         std::transform(p_pp.begin(), p_pp.end(), tmp.get().index(n, m).begin(), p_pp.begin(), std::plus<>());
     }
@@ -401,29 +407,29 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_pp(unsigned i
 
     master_hist_mutex.lock();
     this->master -= this->partials_aa.index(n, m);
-    this->partials_aa.index(n, m).get_counts() = std::move(v);
+    this->partials_aa.index(n, m) = std::move(v);
     this->master += this->partials_aa.index(n, m);
     master_hist_mutex.unlock();
 }
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_aw(unsigned int index) {
-    GenericDistribution1D_t p_aw(this->master.get_axis().bins, 0);
+    GenericDistribution1D_t p_aw(this->master.axis.bins);
     for (auto& tmp : this->partials_aw_all.get_all()) {
         std::transform(p_aw.begin(), p_aw.end(), tmp.get().index(index).begin(), p_aw.begin(), std::plus<>());
     }
     auto v = p_aw.as_vector();
 
     master_hist_mutex.lock();
-    this->master -= this->partials_aw.index(index)*2;
-    this->partials_aw.index(index).get_counts() = std::move(v);
-    this->master += this->partials_aw.index(index)*2;
+    this->master -= this->partials_aw.index(index);
+    this->partials_aw.index(index) = std::move(v);
+    this->master += this->partials_aw.index(index);
     master_hist_mutex.unlock();
 }
 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::combine_hh() {
-    GenericDistribution1D_t p_hh(this->master.get_axis().bins, 0);
+    GenericDistribution1D_t p_hh(this->master.axis.bins);
     for (auto& tmp : this->partials_ww_all.get_all()) {
         std::transform(p_hh.begin(), p_hh.end(), tmp.get().begin(), p_hh.begin(), std::plus<>());
     }
@@ -431,7 +437,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_hh() {
 
     master_hist_mutex.lock();
     this->master -= this->partials_ww;
-    this->partials_ww.get_counts() = std::move(v);
+    this->partials_ww = std::move(v);
     this->master += this->partials_ww;
     master_hist_mutex.unlock();
 }

@@ -19,14 +19,20 @@ namespace hist {
 
             /**
              * @brief Convert this distribution to a vector format. 
-             *        This is equivalent to get_bins() for this class. 
+             *        This is equivalent to get_content() for this class. 
              */
             std::vector<constants::axes::d_type> as_vector() const;
 
             /**
-             * @brief Extract the bins from this distribution.
+             * @brief Get the bin values from this distribution.
              */
             std::vector<constants::axes::d_type> get_content() const;
+
+            /**
+             * @brief Get a bin value from this distribution.
+             */
+            constants::axes::d_type& get_content(int i);
+            const constants::axes::d_type& get_content(int i) const; // @copydoc get_content(int i)
 
             /**
              * @brief Extract the weights from this distribution.
@@ -37,5 +43,8 @@ namespace hist {
              * @brief Add a value for a given distance.
              */
             void add(float distance, constants::axes::d_type value);
+
+            WeightedDistribution1D& operator+=(const WeightedDistribution1D& other);
+            WeightedDistribution1D& operator-=(const WeightedDistribution1D& other);
     };
 }

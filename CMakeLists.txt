@@ -30,7 +30,7 @@ if (WIN32)
 			-Ofast ${fprofile} -pipe -mavx
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
+			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 			"$<$<CONFIG:RELEASE>:-march=x86-64>"
 		)
 	endif()
@@ -40,7 +40,7 @@ elseif (UNIX)
 		-Ofast ${fprofile} -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
-		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-Wno-nested-anon-types;-march=native>"
+		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 		"$<$<CONFIG:RELEASE>:-march=x86-64>"
 	)
 endif()

@@ -27,9 +27,9 @@ namespace hist {
              * @param axis Distance axis
              */
             CompositeDistanceHistogramFFAvgBase(
-                hist::WeightedDistribution3D&& p_aa, 
-                hist::WeightedDistribution2D&& p_aw, 
-                hist::WeightedDistribution1D&& p_ww, 
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot,
                 const Axis& axis
             );

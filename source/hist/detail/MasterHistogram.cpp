@@ -2,14 +2,23 @@
 
 using namespace hist::detail;
 
-MasterHistogram::MasterHistogram(const std::vector<double>& p_base, const Axis& axis) : Histogram(p_base, axis), base(std::move(p_base)) {}
+template<bool use_weighted_distribution> 
+MasterHistogram<use_weighted_distribution>::MasterHistogram() = default;
 
-MasterHistogram& MasterHistogram::operator+=(const PartialHistogram& rhs) {
-    p += Vector(rhs.get_counts());
+template<bool use_weighted_distribution> 
+MasterHistogram<use_weighted_distribution>::MasterHistogram(const std::vector<double>& p_base, const Axis& axis) : GenericDistribution1D_t(p_base), base(std::move(p_base)), axis(axis) {}
+
+template<bool use_weighted_distribution>
+MasterHistogram<use_weighted_distribution>& MasterHistogram<use_weighted_distribution>::operator+=(const GenericDistribution1D_t& rhs) {
+    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
+    return *this; 
+}
+
+template<bool use_weighted_distribution> 
+MasterHistogram<use_weighted_distribution>& MasterHistogram<use_weighted_distribution>::operator-=(const GenericDistribution1D_t& rhs) {
+    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
     return *this;
 }
 
-MasterHistogram& MasterHistogram::operator-=(const PartialHistogram& rhs) {
-    p -= Vector(rhs.get_counts());
-    return *this;
-}
+template class hist::detail::MasterHistogram<true>;
+template class hist::detail::MasterHistogram<false>;

@@ -12,9 +12,9 @@ CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHisto
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
-    hist::WeightedDistribution3D&& p_aa, 
-    hist::WeightedDistribution2D&& p_aw, 
-    hist::WeightedDistribution1D&& p_ww, 
+    hist::Distribution3D&& p_aa, 
+    hist::Distribution2D&& p_aw, 
+    hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot,
     const Axis& axis
 ) : ICompositeDistanceHistogramExv(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}

@@ -1,23 +1,29 @@
 #pragma once
 
+#include <hist/distribution/GenericDistribution1D.h>
 #include <hist/Histogram.h>
+#include <utility/Axis.h>
 
 #include <vector>
 
 namespace hist::detail {
-    /**
-     * @brief Simple data containers defined for clarity.  
-     */
-    typedef Histogram PartialHistogram;
-    typedef Histogram HydrationHistogram;
+    // Simple typedef for clarity.
+    template<bool use_weighted_distribution>
+    using PartialHistogram = GenericDistribution1D<use_weighted_distribution>::type;
+
+    // Simple typedef for clarity.
+    template<bool use_weighted_distribution>
+    using HydrationHistogram = GenericDistribution1D<use_weighted_distribution>::type;
 
     /**
      * @brief We also define the MasterHistogram type, which is identical to a PartialHistogram. 
      *        We do this to make += and -= well-defined operations. 
      */
-    class MasterHistogram : public Histogram {
+    template<bool use_weighted_distribution>
+    class MasterHistogram : public GenericDistribution1D<use_weighted_distribution>::type {
+        using GenericDistribution1D_t = typename GenericDistribution1D<use_weighted_distribution>::type;
         public: 
-            MasterHistogram() {}
+            MasterHistogram();
 
             /**
              * @brief Create a new Master Histogram. 
@@ -29,15 +35,16 @@ namespace hist::detail {
             /**
              * @brief Add a PartialHistogram to the MasterHistogram. 
              */
-            MasterHistogram& operator+=(const PartialHistogram& rhs);
+            MasterHistogram& operator+=(const GenericDistribution1D_t& rhs);
 
             /**
              * @brief Subtract a PartialHistogram from the MasterHistogram. We have to use a lambda since the standard std::minus would
              *        reverse the order of the entries.
              */
-            MasterHistogram& operator-=(const PartialHistogram& rhs);
+            MasterHistogram& operator-=(const GenericDistribution1D_t& rhs);
 
             // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
-            Histogram base;
+            GenericDistribution1D<use_weighted_distribution>::type base;
+            Axis axis;
     };
 }

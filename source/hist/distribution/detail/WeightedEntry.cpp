@@ -5,7 +5,7 @@ using namespace hist::detail;
 WeightedEntry::WeightedEntry() = default;
 WeightedEntry::WeightedEntry(constants::axes::d_type value, unsigned int count, double bin_center) : value(value), count(count), bin_center(bin_center) {}
 
-void WeightedEntry::add(double distance, double value) {
+void WeightedEntry::add(float distance, double value) {
     ++count;
     bin_center += distance;
     this->value += value;

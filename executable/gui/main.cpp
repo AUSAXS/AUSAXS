@@ -4,6 +4,7 @@
 	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
 #include <elements.hpp>
+#include <filesystem>
 #include <nfd.hpp>
 
 #include <data/Molecule.h>

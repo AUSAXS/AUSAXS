@@ -1,9 +1,11 @@
 #include "constants/Axes.h"
+#include <algorithm>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution1D.h>
 #include <constants/Constants.h>
 
 #include <cmath>
+#include <vector>
 
 using namespace hist;
 
@@ -22,17 +24,22 @@ std::vector<constants::axes::d_type> WeightedDistribution1D::as_vector() const {
 void WeightedDistribution1D::add(float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(i).add(distance, value);
-
-    std::cout << "WeightedDistribution1D::add: " << i << " " << distance << " " << value << std::endl;
-    std::cout << "\t" << index(i).value << " " << index(i).count << " " << index(i).bin_center << std::endl;
 }
 
 std::vector<constants::axes::d_type> WeightedDistribution1D::get_content() const {
-    Distribution1D bins(size());
+    std::vector<constants::axes::d_type> result(size());
     for (std::size_t i = 0; i < size(); i++) {
-        bins.index(i) = index(i).value;
+        result[i] = index(i).value;
     }
-    return bins;
+    return result;
+}
+
+constants::axes::d_type& WeightedDistribution1D::get_content(int i) {
+    return index(i).value;
+}
+
+const constants::axes::d_type& WeightedDistribution1D::get_content(int i) const {
+    return index(i).value;
 }
 
 std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
@@ -41,4 +48,14 @@ std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
         weights.index(i) = (!index(i).bin_center*constants::axes::d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count); // avoid division by zero
     }
     return weights;
+}
+
+WeightedDistribution1D& WeightedDistribution1D::operator+=(const WeightedDistribution1D& rhs) {
+    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
+    return *this;
+}
+
+WeightedDistribution1D& WeightedDistribution1D::operator-=(const WeightedDistribution1D& rhs) {
+    std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::minus<>());
+    return *this;
 }

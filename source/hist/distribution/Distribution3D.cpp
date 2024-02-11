@@ -8,7 +8,7 @@ Distribution3D::Distribution3D(const WeightedDistribution3D& other) : container:
     for (std::size_t x = 0; x < size_x(); x++) {
         for (std::size_t y = 0; y < size_y(); y++) {
             for (std::size_t z = 0; z < size_z(); z++) {
-                index(x, y, z) = other.index(x, y, z).count;
+                index(x, y, z) = other.index(x, y, z).value;
             }
         }
     }

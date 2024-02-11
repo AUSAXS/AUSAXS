@@ -40,12 +40,12 @@ namespace hist {
 
             // @copydoc CompositeDistanceHistogramFFExplicit(Distribution3D&&, Distribution3D&&, Distribution3D&&, Distribution2D&&, Distribution2D&&, Distribution1D&&, Distribution1D&&, const Axis&)
             CompositeDistanceHistogramFFExplicit(
-                hist::WeightedDistribution3D&& p_aa, 
-                hist::WeightedDistribution3D&& p_ax, 
-                hist::WeightedDistribution3D&& p_xx, 
-                hist::WeightedDistribution2D&& p_aw, 
-                hist::WeightedDistribution2D&& p_wx, 
-                hist::WeightedDistribution1D&& p_ww, 
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww, 
                 hist::WeightedDistribution1D&& p_tot,
                 const Axis& axis
             );

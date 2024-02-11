@@ -22,6 +22,17 @@ namespace hist {
             std::vector<constants::axes::d_type> as_vector() const;
 
             /**
+             * @brief Get the bin values from this distribution.
+             */
+            const std::vector<constants::axes::d_type>& get_content() const;
+
+            /**
+             * @brief Get a bin value from this distribution.
+             */
+            constants::axes::d_type& get_content(int i);
+            const constants::axes::d_type& get_content(int i) const; // @copydoc get_content(int i)
+
+            /**
              * @brief Add a value for a given distance.
              */
             void add(float distance, constants::axes::d_type value);
@@ -30,5 +41,8 @@ namespace hist {
              * @brief Add a value for a given distance.
              */
             void add(int32_t i, constants::axes::d_type value);
+
+            Distribution1D& operator+=(const Distribution1D& other);
+            Distribution1D& operator-=(const Distribution1D& other);
     };
 }

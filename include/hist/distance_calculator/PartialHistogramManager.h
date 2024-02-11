@@ -44,12 +44,12 @@ namespace hist {
 			virtual std::unique_ptr<ICompositeDistanceHistogram> calculate_all() override;
 
 		protected:
-            detail::MasterHistogram master;                     			// the current total histogram
-            std::vector<detail::CompactCoordinates> coords_a;   			// a compact representation of the relevant data from the managed bodies
-            detail::CompactCoordinates coords_w;                			// a compact representation of the hydration data
-			container::Container2D<detail::PartialHistogram> partials_aa; 	// the partial histograms
-			container::Container1D<detail::HydrationHistogram> partials_aw;	// the partial hydration-atom histograms
-			detail::HydrationHistogram partials_ww;               			// the partial histogram for the hydration layer
+            detail::MasterHistogram<use_weighted_distribution> master;									// the current total histogram
+            std::vector<detail::CompactCoordinates> coords_a;   										// a compact representation of the relevant data from the managed bodies
+            detail::CompactCoordinates coords_w;                										// a compact representation of the hydration data
+			container::Container2D<detail::PartialHistogram<use_weighted_distribution>> partials_aa; 	// the partial histograms
+			container::Container1D<detail::HydrationHistogram<use_weighted_distribution>> partials_aw;	// the partial hydration-atom histograms
+			detail::HydrationHistogram<use_weighted_distribution> partials_ww;               			// the partial histogram for the hydration layer
 
 		private:
 			/**

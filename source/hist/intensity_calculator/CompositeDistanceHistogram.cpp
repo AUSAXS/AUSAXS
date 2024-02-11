@@ -7,9 +7,9 @@
 using namespace hist;
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(
-    hist::WeightedDistribution1D&& p_aa, 
-    hist::WeightedDistribution1D&& p_aw, 
-    hist::WeightedDistribution1D&& p_ww, 
+    hist::Distribution1D&& p_aa, 
+    hist::Distribution1D&& p_aw, 
+    hist::Distribution1D&& p_ww, 
     hist::WeightedDistribution1D&& p_tot, 
     const Axis& axis
 ) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(p_aa), p_aw(p_aw), p_ww(p_ww) {}

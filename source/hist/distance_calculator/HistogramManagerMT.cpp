@@ -35,7 +35,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     //########################//
     // PREPARE MULTITHREADING //
     //########################//
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aa_all(constants::axes::d_axis.bins, 0);
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aa_all(constants::axes::d_axis.bins);
     auto calc_aa = [&data_a, &p_aa_all, data_a_size] (int imin, int imax) {
         auto& p_aa = p_aa_all.get();
         for (int i = imin; i < imax; ++i) { // atom
@@ -54,7 +54,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         }
     };
 
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins, 0);
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_aw_all(constants::axes::d_axis.bins);
     auto calc_aw = [&data_w, &data_a, &p_aw_all, data_a_size] (int imin, int imax) {
         auto& p_aw = p_aw_all.get();
         for (int i = imin; i < imax; ++i) { // water
@@ -73,7 +73,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
         }
     };
     
-    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins, 0);
+    container::ThreadLocalWrapper<GenericDistribution1D_t> p_ww_all(constants::axes::d_axis.bins);
     auto calc_ww = [&data_w, &p_ww_all, data_w_size] (int imin, int imax) {
         auto& p_ww = p_ww_all.get();
         for (int i = imin; i < imax; ++i) { // water
