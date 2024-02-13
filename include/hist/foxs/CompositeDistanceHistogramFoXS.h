@@ -8,27 +8,43 @@
 #include <hist/distribution/WeightedDistribution2D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
 
-#include <vector>
-
 namespace hist {
     /**
-     * @brief A class containing multiple partial distance histograms for multiple form factors. 
+     * @brief An alternative to CompositeDistanceHistogramFFExplicit that uses the same form factors as FoXS. 
      */
     class CompositeDistanceHistogramFoXS : public CompositeDistanceHistogramFFAvg {
         public: 
-            CompositeDistanceHistogramFoXS();
+            /**
+             * @brief Create an unweighted composite distance histogram with form factors.
+             * 
+             * @param p_aa The partial distance histogram for atom-atom interactions
+             * @param p_ax The partial distance histogram for atom-excluded volume interactions
+             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions
+             * @param p_aw The partial distance histogram for atom-water interactions
+             * @param p_wx The partial distance histogram for water-excluded volume interactions
+             * @param p_ww The partial distance histogram for water-water interactions
+             * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
+             */
+            CompositeDistanceHistogramFoXS(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww,
+                hist::Distribution1D&& p_tot
+            );
 
             /**
-             * @brief Construct a new Composite Distance Histogram FF object
+             * @brief Create a weighted composite distance histogram with form factors.
              * 
-             * @param p_aa Partial distance histogram for atom-atom interactions
-             * @param p_ax Partial distance histogram for atom-excluded volume interactions
-             * @param p_xx Partial distance histogram for excluded volume-excluded volume interactions
-             * @param p_aw Partial distance histogram for atom-water interactions
-             * @param p_wx Partial distance histogram for water-excluded volume interactions
-             * @param p_ww Partial distance histogram for water-water interactions
-             * @param p_tot Total distance histogram
-             * @param axis Distance axis
+             * @param p_aa The partial distance histogram for atom-atom interactions
+             * @param p_ax The partial distance histogram for atom-excluded volume interactions
+             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions
+             * @param p_aw The partial distance histogram for atom-water interactions
+             * @param p_wx The partial distance histogram for water-excluded volume interactions
+             * @param p_ww The partial distance histogram for water-water interactions
+             * @param p_tot The total distance histogram. This is only used to extract the bin centers.
              */
             CompositeDistanceHistogramFoXS(
                 hist::Distribution3D&& p_aa, 
@@ -37,36 +53,12 @@ namespace hist {
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww, 
-                hist::Distribution1D&& p_tot, 
-                const Axis& axis
-            );
-
-            /**
-             * @brief Construct a new Composite Distance Histogram FF object
-             * 
-             * @param p_aa Partial distance histogram for atom-atom interactions
-             * @param p_ax Partial distance histogram for atom-excluded volume interactions
-             * @param p_xx Partial distance histogram for excluded volume-excluded volume interactions
-             * @param p_aw Partial distance histogram for atom-water interactions
-             * @param p_wx Partial distance histogram for water-excluded volume interactions
-             * @param p_ww Partial distance histogram for water-water interactions
-             * @param p_tot Total distance histogram
-             * @param axis Distance axis
-             */
-            CompositeDistanceHistogramFoXS(
-                hist::WeightedDistribution3D&& p_aa, 
-                hist::WeightedDistribution3D&& p_ax, 
-                hist::WeightedDistribution3D&& p_xx, 
-                hist::WeightedDistribution2D&& p_aw, 
-                hist::WeightedDistribution2D&& p_wx, 
-                hist::WeightedDistribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot, 
-                const Axis& axis
+                hist::WeightedDistribution1D&& p_tot
             );
 
             ~CompositeDistanceHistogramFoXS() override;
 
-            ScatteringProfile debye_transform() const override;
+            ScatteringProfile debye_transform() const override; // @copydoc DistanceHistogram::debye_transform() const
 
             /**
              * @brief Get the intensity profile for atom-atom interactions.

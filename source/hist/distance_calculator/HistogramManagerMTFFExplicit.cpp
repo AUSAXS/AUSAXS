@@ -180,27 +180,25 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFExplicit<use_we
 
     if (settings::hist::use_foxs_method) {
         return std::make_unique<CompositeDistanceHistogramFoXS>(
-            std::move(p_aa), 
-            std::move(p_ax), 
-            std::move(p_xx),
-            std::move(p_wa), 
-            std::move(p_wx), 
-            std::move(p_ww),
-            std::move(p_tot),
-            Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
-        );
-    } else {
-        return std::make_unique<CompositeDistanceHistogramFFExplicit>(
-            std::move(p_aa), 
-            std::move(p_ax), 
-            std::move(p_xx),
-            std::move(p_wa), 
-            std::move(p_wx), 
-            std::move(p_ww),
-            std::move(p_tot),
-            Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+            std::move(Distribution3D(p_aa)), 
+            std::move(Distribution3D(p_ax)), 
+            std::move(Distribution3D(p_xx)),
+            std::move(Distribution2D(p_wa)), 
+            std::move(Distribution2D(p_wx)), 
+            std::move(Distribution1D(p_ww)),
+            std::move(p_tot)
         );
     }
+
+    return std::make_unique<CompositeDistanceHistogramFFExplicit>(
+        std::move(Distribution3D(p_aa)), 
+        std::move(Distribution3D(p_ax)), 
+        std::move(Distribution3D(p_xx)),
+        std::move(Distribution2D(p_wa)), 
+        std::move(Distribution2D(p_wx)), 
+        std::move(Distribution1D(p_ww)),
+        std::move(p_tot)
+    );
 }
 
 template class hist::HistogramManagerMTFFExplicit<false>;

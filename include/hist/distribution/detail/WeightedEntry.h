@@ -1,6 +1,7 @@
 #pragma once
 
 #include <constants/Axes.h>
+#include <iosfwd>
 
 namespace hist {
     namespace detail {
@@ -34,6 +35,8 @@ namespace hist {
             friend WeightedEntry operator*(double factor, const WeightedEntry& entry) {
                 return entry*factor;
             }
+
+            friend std::ostream& operator<<(std::ostream& os, const WeightedEntry& entry);
 
             constants::axes::d_type value = 0;
             unsigned int count = 0;

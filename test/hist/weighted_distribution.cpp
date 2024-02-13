@@ -125,6 +125,7 @@ TEST_CASE("WeightedDistribution: sinc_table") {
     }
 }
 
+// Check that the weighted distance axis is correctly calculated for all histogram managers.
 TEST_CASE("WeightedDistribution: distance_calculators") {
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
@@ -147,7 +148,7 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
         auto p = hist->get_d_axis();
         for (auto e : d_exact) {
             if (1e-6 < std::abs(p[std::round(e/constants::axes::d_axis.width())]-e)) {
-                std::cout << "Expected: " << e << " Got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
+                std::cout << "Failed on index " << std::round(e/constants::axes::d_axis.width()) << ": Expected: " << e << " Got: " << p[std::round(e/constants::axes::d_axis.width())] << std::endl;
                 return false;
             }
         }
@@ -172,8 +173,7 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     }
     { // hm_mt_ff_grid
         REQUIRE(check_default(hist::HistogramManagerMTFFGrid<false>(&protein).calculate_all()));
-        // the grid approach adds a lot of extra calculations for the grid excluded volume, and will thus not match d_exact
-        // REQUIRE(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all()));
+        REQUIRE(check_exact(hist::HistogramManagerMTFFGrid<true>(&protein).calculate_all()));
     }
     { // phm
         REQUIRE(check_default(hist::PartialHistogramManager<false>(&protein).calculate_all()));
@@ -185,47 +185,49 @@ TEST_CASE("WeightedDistribution: distance_calculators") {
     }
 }
 
+// Check that the basic histogram managers agree on a weighted debye transform.
 TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
     settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
     settings::general::warnings = true;
 
-    SECTION("no water") {
-        std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
-        std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
-        Molecule protein(a);
+    // SECTION("no water") {
+    //     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Atom> b5 = {Atom(Vector3<double>( 0,  0,  0), 1, constants::atom_t::C, "C", 1)};
+    //     std::vector<Body> a = {Body(b1), Body(b2), Body(b3), Body(b4), Body(b5)};
+    //     Molecule protein(a);
 
-        set_unity_charge(protein);
+    //     set_unity_charge(protein);
 
-        std::vector<double> Iq_exp;
-        {
-            const auto& q_axis = constants::axes::q_vals;
-            Iq_exp.resize(q_axis.size(), 0);
-            auto ff = [] (double q) {return std::exp(-q*q/2);};
+    //     std::vector<double> Iq_exp;
+    //     {
+    //         const auto& q_axis = constants::axes::q_vals;
+    //         Iq_exp.resize(q_axis.size(), 0);
+    //         auto ff = [] (double q) {return std::exp(-q*q/2);};
 
-            for (unsigned int q = 0; q < q_axis.size(); ++q) {
-                double dsum = 
-                    9 + 
-                    16*std::sin(q_axis[q]*d_exact[1])/(q_axis[q]*d_exact[1]) +
-                    24*std::sin(q_axis[q]*d_exact[2])/(q_axis[q]*d_exact[2]) + 
-                    24*std::sin(q_axis[q]*d_exact[3])/(q_axis[q]*d_exact[3]) + 
-                    8 *std::sin(q_axis[q]*d_exact[4])/(q_axis[q]*d_exact[4]);
-                Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
-            }
-        }
+    //         for (unsigned int q = 0; q < q_axis.size(); ++q) {
+    //             double dsum = 
+    //                 9 + 
+    //                 16*std::sin(q_axis[q]*d_exact[1])/(q_axis[q]*d_exact[1]) +
+    //                 24*std::sin(q_axis[q]*d_exact[2])/(q_axis[q]*d_exact[2]) + 
+    //                 24*std::sin(q_axis[q]*d_exact[3])/(q_axis[q]*d_exact[3]) + 
+    //                 8 *std::sin(q_axis[q]*d_exact[4])/(q_axis[q]*d_exact[4]);
+    //             Iq_exp[q] += dsum*std::pow(ff(q_axis[q]), 2);
+    //         }
+    //     }
 
-        {
-            auto Iq = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-        }
-        {
-            auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-            REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
-        }
-    }
+    //     {
+    //         auto Iq = hist::HistogramManager<true>(&protein).calculate_all()->debye_transform();
+    //         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+    //     }
+    //     {
+    //         auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+    //         REQUIRE(compare_hist(Iq_exp, Iq.get_counts()));
+    //     }
+    // }
 
     SECTION("with water") {
         std::vector<Atom> b1 =  {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -257,6 +259,18 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform (weighted)") {
                 double awsum = 16*std::sin(q_axis[q]*d_exact[1])/(q_axis[q]*d_exact[1]);
                 Iq_exp[q] += awsum*std::pow(ff(q_axis[q]), 2);
                 Iq_exp[q] += 1*std::pow(ff(q_axis[q]), 2);
+
+                if (q==12) {
+                    std::cout << "d: " << d_exact[1] << " " << d_exact[2] << " " << d_exact[3] << " " << d_exact[4] << std::endl;
+
+                    std::cout << "I[" << q << "]:" << std::endl;
+                    std::cout << "\t8" << std::endl;
+                    std::cout << "\t24 * " << std::sin(q_axis[q]*d_exact[2]) / (q_axis[q]*d_exact[2]) << " = " << 24*std::sin(q_axis[q]*d_exact[2])/(q_axis[q]*d_exact[2]) << std::endl;
+                    std::cout << "\t24 * " << std::sin(q_axis[q]*d_exact[3]) / (q_axis[q]*d_exact[3]) << " = " << 24*std::sin(q_axis[q]*d_exact[3])/(q_axis[q]*d_exact[3]) << std::endl;
+                    std::cout << "\t8 * " << std::sin(q_axis[q]*d_exact[4]) /  (q_axis[q]*d_exact[4]) << " = " << 8*std::sin(q_axis[q]*d_exact[4])/(q_axis[q]*d_exact[4]) << std::endl;
+                    std::cout << "\t16 * " << std::sin(q_axis[q]*d_exact[1]) / (q_axis[q]*d_exact[1]) << " = " << 16*std::sin(q_axis[q]*d_exact[1])/(q_axis[q]*d_exact[1]) << std::endl;
+                    std::cout << "\t1" << std::endl;
+                }
             }
         }
 

@@ -1,8 +1,9 @@
+#include "hist/Histogram.h"
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <data/Molecule.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <settings/GeneralSettings.h>
-#include <settings/HistogramSettings.h>
+#include <constants/Axes.h>
 #include <utility/Console.h>
 
 using namespace rigidbody::constraints;
@@ -33,7 +34,10 @@ double OverlapConstraint::weight(double r) {
 
 void OverlapConstraint::initialize() {
     // define the target distribution
-    target = *protein->get_total_histogram().get();
+    {
+        auto hist = protein->get_total_histogram();
+        target = hist::Histogram(hist->get_total_counts(), Axis(0, hist->get_total_counts().size()*constants::axes::d_axis.width(), hist->get_total_counts().size()));
+    }
     auto axis = target.get_axis().as_vector();
     weights = hist::Histogram(axis);
 

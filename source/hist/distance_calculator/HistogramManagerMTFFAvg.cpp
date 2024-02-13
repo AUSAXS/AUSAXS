@@ -157,6 +157,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     pool->detach_task([&p_aa, max_bin] () { p_aa.resize(max_bin); });
     pool->detach_task([&p_aw, max_bin] () { p_aw.resize(max_bin); });
     pool->detach_task([&p_ww, max_bin] () { p_ww.resize(max_bin); });
+    pool->detach_task([&p_tot, max_bin] () { p_tot.resize(max_bin); });
     pool->wait();
 
     // multiply the excluded volume charge onto the excluded volume bins
@@ -166,12 +167,12 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFAvg<use_weighte
     }
     std::transform(p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), p_aa.end(form_factor::exv_bin, form_factor::exv_bin), p_aa.begin(form_factor::exv_bin, form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg*Z_exv_avg;});
     std::transform(p_aw.begin(form_factor::exv_bin), p_aw.end(form_factor::exv_bin), p_aw.begin(form_factor::exv_bin), [Z_exv_avg] (auto val) {return val*Z_exv_avg;});
+
     return std::make_unique<CompositeDistanceHistogramFFAvg>(
-        std::move(p_aa), 
-        std::move(p_aw), 
-        std::move(p_ww), 
-        std::move(p_tot),
-        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+        std::move(Distribution3D(p_aa)), 
+        std::move(Distribution2D(p_aw)), 
+        std::move(Distribution1D(p_ww)), 
+        std::move(p_tot)
     );
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hist/distribution/WeightedDistribution1D.h"
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/distribution/GenericDistribution2D.h>
@@ -10,37 +11,44 @@
 
 namespace hist {
     /**
-     * @brief A class containing multiple partial distance histograms for multiple form factors. 
+     * @brief A class containing partial distance histograms for the different types of interactions and atomic types. 
+     *        Beyond the functionality of CompositeDistanceHistogram, this class also uses individual form factors for each atomic type.
+     *        An average form factor is used for the excluded volume.
+     *        For more information, see CompositeDistanceHistogram.
+     * 
+     * @tparam FormFactorTableType The form factor lookup table to use.
      */
     template<typename FormFactorTableType>
     class CompositeDistanceHistogramFFAvgBase : public ICompositeDistanceHistogramExv {
         public: 
-            CompositeDistanceHistogramFFAvgBase();
+            /**
+             * @brief Create an unweighted composite distance histogram with form factors.
+             * 
+             * @param p_aa The partial distance histogram for atom-atom interactions.
+             * @param p_aw The partial distance histogram for atom-water interactions.
+             * @param p_ww The partial distance histogram for water-water interactions.
+             * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
+             */
+            CompositeDistanceHistogramFFAvgBase(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution1D&& p_ww,
+                hist::Distribution1D&& p_tot
+            );
 
             /**
-             * @brief Construct a new Composite Distance Histogram FF object
+             * @brief Create a weighted composite distance histogram with form factors.
              * 
-             * @param p_aa Partial distance histogram for atom-atom interactions
-             * @param p_aw Partial distance histogram for atom-water interactions
-             * @param p_ww Partial distance histogram for water-water interactions
-             * @param p_tot Total distance histogram
-             * @param axis Distance axis
+             * @param p_aa The partial distance histogram for atom-atom interactions.
+             * @param p_aw The partial distance histogram for atom-water interactions.
+             * @param p_ww The partial distance histogram for water-water interactions.
+             * @param p_tot The total distance histogram. This is only used to extract the bin centers. 
              */
             CompositeDistanceHistogramFFAvgBase(
                 hist::Distribution3D&& p_aa, 
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot,
-                const Axis& axis
-            );
-
-            // @copydoc CompositeDistanceHistogramFFAvgBase(WeightedDistribution3D&&, WeightedDistribution2D&&, WeightedDistribution1D&&, WeightedDistribution1D&&, const Axis&)
-            CompositeDistanceHistogramFFAvgBase(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution1D&& p_ww, 
-                hist::Distribution1D&& p_tot,
-                const Axis& axis
+                hist::WeightedDistribution1D&& p_tot
             );
 
             virtual ~CompositeDistanceHistogramFFAvgBase() override;

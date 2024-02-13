@@ -8,25 +8,20 @@
 using namespace hist;
 
 template<typename FormFactorTableType>
-CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase() = default;
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
+    hist::Distribution3D&& p_aa, 
+    hist::Distribution2D&& p_aw, 
+    hist::Distribution1D&& p_ww,
+    hist::Distribution1D&& p_tot
+) : ICompositeDistanceHistogramExv(std::move(p_tot)), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 
     hist::Distribution1D&& p_ww, 
-    hist::WeightedDistribution1D&& p_tot,
-    const Axis& axis
-) : ICompositeDistanceHistogramExv(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
-
-template<typename FormFactorTableType>
-CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
-    hist::Distribution3D&& p_aa, 
-    hist::Distribution2D&& p_aw, 
-    hist::Distribution1D&& p_ww, 
-    hist::Distribution1D&& p_tot,
-    const Axis& axis
-) : ICompositeDistanceHistogramExv(std::move(p_tot), axis), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
+    hist::WeightedDistribution1D&& p_tot
+) : ICompositeDistanceHistogramExv(std::move(p_tot)), cp_aa(std::move(p_aa)), cp_aw(std::move(p_aw)), cp_ww(std::move(p_ww)) {}
 
 template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::~CompositeDistanceHistogramFFAvgBase() = default;
@@ -81,11 +76,11 @@ ScatteringProfile CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::deby
 
 template<typename FormFactorTableType>
 const std::vector<double>& CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::get_counts() const {
-    p = std::vector<double>(axis.bins, 0);
+    p = std::vector<double>(DistanceHistogram::get_counts().size(), 0);
     auto& p_pp = get_aa_counts();
     auto& p_hp = get_aw_counts();
     auto& p_hh = get_ww_counts();
-    for (unsigned int i = 0; i < axis.bins; ++i) {
+    for (unsigned int i = 0; i < p.size(); ++i) {
         p[i] = p_pp.index(i) + 2*cw*p_hp.index(i) + cw*cw*p_hh.index(i);
     }
     return p.data;

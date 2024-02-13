@@ -10,17 +10,15 @@ CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
     hist::Distribution1D&& p_aw, 
     hist::Distribution1D&& p_ww, 
-    hist::WeightedDistribution1D&& p_tot, 
-    const Axis& axis
-) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(p_aa), p_aw(p_aw), p_ww(p_ww) {}
+    hist::WeightedDistribution1D&& p_tot
+) : ICompositeDistanceHistogram(std::move(p_tot)), p_aa(p_aa), p_aw(p_aw), p_ww(p_ww) {}
 
 CompositeDistanceHistogram::CompositeDistanceHistogram(
     hist::Distribution1D&& p_aa, 
     hist::Distribution1D&& p_aw, 
     hist::Distribution1D&& p_ww, 
-    hist::Distribution1D&& p_tot, 
-    const Axis& axis
-) : ICompositeDistanceHistogram(std::move(p_tot), axis), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
+    hist::Distribution1D&& p_tot
+) : ICompositeDistanceHistogram(std::move(p_tot)), p_aa(std::move(p_aa)), p_aw(std::move(p_aw)), p_ww(std::move(p_ww)) {}
 
 CompositeDistanceHistogram::~CompositeDistanceHistogram() = default;
 
@@ -50,7 +48,7 @@ Distribution1D& CompositeDistanceHistogram::get_ww_counts() {
 
 void CompositeDistanceHistogram::apply_water_scaling_factor(double k) {
     auto& p_tot = get_total_counts();
-    for (unsigned int i = 0; i < get_axis().bins; ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
+    for (unsigned int i = 0; i < p_tot.size(); ++i) {p_tot[i] = p_aa.index(i) + 2*k*p_aw.index(i) + k*k*p_ww.index(i);}
 }
 
 auto partial_profile = [] (const Distribution1D& p, observer_ptr<const table::DebyeTable> sinqd_table) {

@@ -1,5 +1,7 @@
 #include <hist/distribution/detail/WeightedEntry.h>
 
+#include <iostream>
+
 using namespace hist::detail;
 
 WeightedEntry::WeightedEntry() = default;
@@ -35,4 +37,9 @@ WeightedEntry& WeightedEntry::operator-=(const WeightedEntry& other) {
 
 bool WeightedEntry::operator==(double other) const {
     return value == other;
+}
+
+std::ostream& hist::detail::operator<<(std::ostream& os, const WeightedEntry& entry) {
+    os << "WeightedEntry(" << entry.value << ", " << entry.count << ", " << entry.bin_center << ")";
+    return os;
 }

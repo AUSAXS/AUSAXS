@@ -1,3 +1,5 @@
+#include "hist/distribution/detail/WeightedEntry.h"
+#include <algorithm>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
 #include <hist/distribution/GenericDistribution1D.h>
@@ -71,8 +73,18 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
         }
     }
     this->statemanager.reset();
-    GenericDistribution1D_t p = this->master;
-    return std::make_unique<DistanceHistogram>(std::move(p), this->master.axis);
+
+    // downsize our axes to only the relevant area
+    GenericDistribution1D_t p_tot = this->master;
+    int max_bin = 10; // minimum size is 10
+    for (int i = (int) p_tot.size()-1; i >= 10; i--) {
+        if (p_tot.index(i) != 0) {
+            max_bin = i+1; // +1 since we usually use this for looping (i.e. i < max_bin)
+            break;
+        }
+    }
+    p_tot.resize(max_bin);
+    return std::make_unique<DistanceHistogram>(std::move(p_tot));
 }
 
 template<bool use_weighted_distribution> 
@@ -80,8 +92,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighte
     using GenericDistribution1D_t = typename hist::GenericDistribution1D<use_weighted_distribution>::type;
 
     auto total = calculate();
-    total->shorten_axis();
-    int bins = total->get_axis().bins;
+    int bins = total->get_total_counts().size();
 
     // determine p_tot
     GenericDistribution1D_t p_tot(bins);
@@ -90,8 +101,8 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighte
     }
 
     // after calling calculate(), everything is already calculated, and we only have to extract the individual contributions
-    Distribution1D p_ww = partials_ww;
-    Distribution1D p_aa = this->master.base;
+    Distribution1D p_ww = Distribution1D(partials_ww);
+    Distribution1D p_aa = Distribution1D(this->master.base);
     Distribution1D p_aw(bins);
     // iterate through all partial histograms in the upper triangle
     for (unsigned int i = 0; i < this->body_size; i++) {
@@ -123,8 +134,7 @@ std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManager<use_weighte
         std::move(p_aa), 
         std::move(p_aw), 
         std::move(p_ww), 
-        std::move(p_tot), 
-        total->get_axis()
+        std::move(p_tot)
     );
 }
 
@@ -158,7 +168,7 @@ void PartialHistogramManager<use_weighted_distribution>::calc_self_correlation(u
 
     this->master.base -= partials_aa.index(index, index);
     this->master -= partials_aa.index(index, index);
-    partials_aa.index(index, index) = std::move(p_aa.as_vector());
+    partials_aa.index(index, index) = std::move(p_aa);
     this->master += partials_aa.index(index, index);
     this->master.base += partials_aa.index(index, index);
 }
@@ -184,8 +194,9 @@ void PartialHistogramManager<use_weighted_distribution>::calc_aa(unsigned int n,
             evaluate1<use_weighted_distribution, 2>(p_aa, coords_n, coords_m, i, j);
         }
     }
+
     this->master -= partials_aa.index(n, m);
-    partials_aa.index(n, m) = std::move(p_aa.as_vector());
+    partials_aa.index(n, m) = std::move(p_aa);
     this->master += partials_aa.index(n, m);
 }
 
@@ -229,7 +240,7 @@ void PartialHistogramManager<use_weighted_distribution>::calc_aw(unsigned int in
     }
 
     this->master -= partials_aw.index(index); // subtract the previous hydration histogram
-    partials_aw.index(index) = std::move(p_aw.as_vector());
+    partials_aw.index(index) = std::move(p_aw);
     this->master += partials_aw.index(index); // add the new hydration histogram
 }
 
@@ -258,7 +269,7 @@ void PartialHistogramManager<use_weighted_distribution>::calc_ww() {
     p_ww.add(0, std::accumulate(this->coords_w.get_data().begin(), this->coords_w.get_data().end(), 0.0, [](double sum, const hist::detail::CompactCoordinatesData& val) {return sum + val.value.w*val.value.w;}));
 
     this->master -= partials_ww; // subtract the previous hydration histogram
-    partials_ww = std::move(p_ww.as_vector());
+    partials_ww = std::move(p_ww);
     this->master += partials_ww; // add the new hydration histogram
 }
 

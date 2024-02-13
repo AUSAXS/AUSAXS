@@ -12,7 +12,7 @@ namespace hist {
     class Distribution2D : public container::Container2D<constants::axes::d_type> {
         public:
             using Container2D::Container2D;
-            Distribution2D(const WeightedDistribution2D& other);
+            explicit Distribution2D(const WeightedDistribution2D& other);
 
             /**
              * @brief Get a bin value from this distribution.

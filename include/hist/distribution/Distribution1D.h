@@ -12,7 +12,7 @@ namespace hist {
     class Distribution1D : public container::Container1D<constants::axes::d_type> {
         public:
             using Container1D::Container1D;
-            Distribution1D(const WeightedDistribution1D& other);
+            explicit Distribution1D(const WeightedDistribution1D& other);
 
             /**
              * @brief Convert this distribution to a vector format. 

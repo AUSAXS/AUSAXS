@@ -5,6 +5,7 @@
 namespace hist {
     class ICompositeDistanceHistogram : public hist::DistanceHistogram {
         public:
+            ICompositeDistanceHistogram() = default;
             using hist::DistanceHistogram::DistanceHistogram;
             virtual ~ICompositeDistanceHistogram() = default;
 

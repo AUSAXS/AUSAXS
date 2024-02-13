@@ -50,6 +50,8 @@ std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
     Distribution1D weights(size());
     for (std::size_t i = 0; i < size(); i++) {
         weights.index(i) = (!index(i).bin_center*constants::axes::d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count); // avoid division by zero
+        if (index(i).count != 0)
+            std::cout << "weights.index(i) = " << index(i).bin_center << " / " << index(i).count << " = " << weights.index(i) << std::endl;
     }
     return weights;
 }

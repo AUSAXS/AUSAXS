@@ -12,8 +12,8 @@ PlotDistance::PlotDistance(observer_ptr<hist::ICompositeDistanceHistogram> d, co
 }
 
 void PlotDistance::quick_plot(observer_ptr<hist::ICompositeDistanceHistogram> d, const io::File& path) {
-    auto distances = d->get_axis().as_vector();
-    SimpleDataset p(distances, d->get_counts());
+    auto distances = d->get_d_axis();
+    SimpleDataset p(distances, d->get_total_counts());
     SimpleDataset pp(distances, d->get_aa_counts());
     SimpleDataset ph(distances, d->get_aw_counts());
     SimpleDataset hh(distances, d->get_ww_counts());

@@ -139,13 +139,22 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMT<use_weighted_dis
     p_ww.resize(max_bin);
     p_aw.resize(max_bin);
     p_tot.resize(max_bin);
-    return std::make_unique<CompositeDistanceHistogram>(
-        std::move(p_aa), 
-        std::move(p_aw), 
-        std::move(p_ww), 
-        std::move(p_tot), 
-        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
-    );
+
+    if constexpr (use_weighted_distribution) {
+        return std::make_unique<CompositeDistanceHistogram>(
+            std::move(Distribution1D(p_aa)), 
+            std::move(Distribution1D(p_aw)), 
+            std::move(Distribution1D(p_ww)), 
+            std::move(p_tot)
+        );
+    } else {
+        return std::make_unique<CompositeDistanceHistogram>(
+            std::move(p_aa), 
+            std::move(p_aw), 
+            std::move(p_ww), 
+            std::move(p_tot)
+        );
+    }
 }
 
 template class hist::HistogramManagerMT<false>;

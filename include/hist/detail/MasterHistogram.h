@@ -4,8 +4,6 @@
 #include <hist/Histogram.h>
 #include <utility/Axis.h>
 
-#include <vector>
-
 namespace hist::detail {
     // Simple typedef for clarity.
     template<bool use_weighted_distribution>
@@ -44,7 +42,7 @@ namespace hist::detail {
             MasterHistogram& operator-=(const GenericDistribution1D_t& rhs);
 
             // The base part of the histogram which will never change. This contains all internal distances between atoms in each individual body.
-            GenericDistribution1D<use_weighted_distribution>::type base;
+            GenericDistribution1D_t base;
             Axis axis;
     };
 }

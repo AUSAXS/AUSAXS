@@ -170,11 +170,14 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     Distribution2D p_aw = std::move(cast_res->get_aw_counts_ff());
     Distribution1D p_ww = std::move(cast_res->get_ww_counts_ff());
 
+    // either xx or ww are largest of all components
+    max_bin = std::max<unsigned int>(max_bin, p_tot.size());
+
     // update p_tot
     p_tot.resize(max_bin);
     for (int i = 0; i < (int) max_bin; ++i) {
         p_tot.add_index(i, p_wx_generic.index(i));
-        p_tot.add_index(i, p_xx_generic.index(i));
+        // p_tot.add_index(i, p_xx_generic.index(i)); // we specifically do not add this to avoid polluting the bin center calculation
     }
     for (int i = 0; i < (int) p_ax_generic.size_x(); ++i) {
         for (int j = 0; j < (int) max_bin; ++j) {
@@ -183,18 +186,18 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
     }
 
     // downsize the axes to only the relevant area
-    if (base_res->get_axis().bins < max_bin) {
+    if (base_res->get_d_axis().size() < max_bin) {
         p_aa.resize(max_bin);
         p_aw.resize(max_bin);
         p_ww.resize(max_bin);
     } else {
-        max_bin = base_res->get_axis().bins; // make sure we overwrite anything which may already be stored
+        max_bin = base_res->get_d_axis().size(); // make sure we overwrite anything which may already be stored
     }
 
     // redefine the distributions without weights
-    Distribution2D p_ax = p_ax_generic;
-    Distribution1D p_wx = p_wx_generic;
-    Distribution1D p_xx = p_xx_generic;
+    Distribution2D p_ax = Distribution2D(p_ax_generic);
+    Distribution1D p_wx = Distribution1D(p_wx_generic);
+    Distribution1D p_xx = Distribution1D(p_xx_generic);
 
     for (unsigned int i = 0; i < p_aa.size_x(); ++i) {
         std::move(p_ax.begin(i), p_ax.begin(i)+max_bin, p_aa.begin(i, form_factor::exv_bin));
@@ -207,7 +210,7 @@ std::unique_ptr<ICompositeDistanceHistogram> HistogramManagerMTFFGrid<use_weight
         std::move(p_aw), 
         std::move(p_ww), 
         std::move(p_tot),
-        Axis(0, max_bin*constants::axes::d_axis.width(), max_bin)
+        std::move(p_xx_generic)
     );
 }
 

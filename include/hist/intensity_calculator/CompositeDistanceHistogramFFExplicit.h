@@ -5,27 +5,46 @@
 #include <hist/distribution/GenericDistribution2D.h>
 #include <hist/distribution/GenericDistribution3D.h>
 
-#include <vector>
-
 namespace hist {
     /**
-     * @brief A class containing multiple partial distance histograms for multiple form factors. 
+     * @brief A class containing partial distance histograms for the different types of interactions and atomic types. 
+     *        Beyond the functionality of CompositeDistanceHistogram, this class also uses individual form factors for each atomic type.
+     *        Unique exluded volume form factors are used for each atomic type.
+     *        For more information, see CompositeDistanceHistogram.
      */
     class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg {
         public: 
-            CompositeDistanceHistogramFFExplicit();
+            /**
+             * @brief Create a new unweighted composite distance histogram with form factors.
+             * 
+             * @param p_aa The partial distance histogram for atom-atom interactions.
+             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
+             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
+             * @param p_aw The partial distance histogram for atom-water interactions.
+             * @param p_wx The partial distance histogram for water-excluded volume interactions.
+             * @param p_ww The partial distance histogram for water-water interactions.
+             * @param p_tot The total distance histogram. This is only used for determining the maximum distance.
+             */
+            CompositeDistanceHistogramFFExplicit(
+                hist::Distribution3D&& p_aa, 
+                hist::Distribution3D&& p_ax, 
+                hist::Distribution3D&& p_xx, 
+                hist::Distribution2D&& p_aw, 
+                hist::Distribution2D&& p_wx, 
+                hist::Distribution1D&& p_ww,
+                hist::Distribution1D&& p_tot
+            );
 
             /**
-             * @brief Construct a new Composite Distance Histogram FF object
+             * @brief Create a new weighted composite distance histogram with form factors.
              * 
-             * @param p_aa Partial distance histogram for atom-atom interactions
-             * @param p_ax Partial distance histogram for atom-excluded volume interactions
-             * @param p_xx Partial distance histogram for excluded volume-excluded volume interactions
-             * @param p_aw Partial distance histogram for atom-water interactions
-             * @param p_wx Partial distance histogram for water-excluded volume interactions
-             * @param p_ww Partial distance histogram for water-water interactions
-             * @param p_tot Total distance histogram
-             * @param axis Distance axis
+             * @param p_aa The partial distance histogram for atom-atom interactions.
+             * @param p_ax The partial distance histogram for atom-excluded volume interactions.
+             * @param p_xx The partial distance histogram for excluded volume-excluded volume interactions.
+             * @param p_aw The partial distance histogram for atom-water interactions.
+             * @param p_wx The partial distance histogram for water-excluded volume interactions.
+             * @param p_ww The partial distance histogram for water-water interactions.
+             * @param p_tot The total distance histogram. This is only used to extract the bin centers.
              */
             CompositeDistanceHistogramFFExplicit(
                 hist::Distribution3D&& p_aa, 
@@ -34,20 +53,7 @@ namespace hist {
                 hist::Distribution2D&& p_aw, 
                 hist::Distribution2D&& p_wx, 
                 hist::Distribution1D&& p_ww, 
-                hist::Distribution1D&& p_tot,
-                const Axis& axis
-            );
-
-            // @copydoc CompositeDistanceHistogramFFExplicit(Distribution3D&&, Distribution3D&&, Distribution3D&&, Distribution2D&&, Distribution2D&&, Distribution1D&&, Distribution1D&&, const Axis&)
-            CompositeDistanceHistogramFFExplicit(
-                hist::Distribution3D&& p_aa, 
-                hist::Distribution3D&& p_ax, 
-                hist::Distribution3D&& p_xx, 
-                hist::Distribution2D&& p_aw, 
-                hist::Distribution2D&& p_wx, 
-                hist::Distribution1D&& p_ww, 
-                hist::WeightedDistribution1D&& p_tot,
-                const Axis& axis
+                hist::WeightedDistribution1D&& p_tot
             );
 
             ~CompositeDistanceHistogramFFExplicit() override;
