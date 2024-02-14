@@ -38,9 +38,9 @@ TEST_CASE("ThreadLocalWrapper::ops") {
     const auto& pool = utility::multi_threading::get_global_pool();
     ThreadLocalWrapper<int> wrapper(0);
     for (unsigned int i = 0; i < 100; ++i) {
-        pool->push_task([&wrapper](){wrapper.get() += 1;});
+        pool->detach_task([&wrapper](){wrapper.get() += 1;});
     }
-    pool->wait_for_tasks();
+    pool->wait();
     auto merged = wrapper.merge();
     CHECK(merged == 100);
 }

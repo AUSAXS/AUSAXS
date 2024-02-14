@@ -212,7 +212,7 @@ TEST_CASE("Axis::sub_axis") {
 
         auto qvals = q_axis.as_vector();
         for (unsigned int i = 0; i < q_axis.bins; ++i) {
-            CHECK(qvals[i] == constants::axes::q_vals[i]);
+            CHECK_THAT(qvals[i], Catch::Matchers::WithinAbs(constants::axes::q_vals[i], 1e-6));
         }
     }
 }

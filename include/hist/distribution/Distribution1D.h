@@ -32,9 +32,27 @@ namespace hist {
 
             /**
              * @brief Add a value for a given distance.
+             * 
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
              */
             void add(float distance, constants::axes::d_type value);
-            void add_index(int32_t i, constants::axes::d_type value); // @copydoc add(float distance, constants::axes::d_type value)
+
+            /**
+             * @brief Add twice the value for a given distance.
+             * 
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
+             */
+            void add2(float distance, constants::axes::d_type value);
+
+            /**
+             * @brief Add a value for a given index.
+             * 
+             * @param i The index to add the value to.
+             * @param value The value to add.
+             */
+            void add_index(int32_t i, constants::axes::d_type value);
 
             Distribution1D& operator+=(const Distribution1D& other);
             Distribution1D& operator-=(const Distribution1D& other);

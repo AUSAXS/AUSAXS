@@ -6,38 +6,41 @@
 #include <fstream>
 #include <iostream>
 
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Water.h>
+#include <data/record/Water.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 #include <utility/Utility.h>
 #include <fitter/LinearFitter.h>
 #include <settings/All.h>
 #include <fitter/HydrationFitter.h>
-#include <hist/HistogramManager.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <hist/distance_calculator/HistogramManager.h>
+#include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 
+using namespace data;
+using namespace data::record;
 using std::cout, std::endl, std::vector, std::shared_ptr;
 
 struct fixture {
     fixture() {
-        settings::protein::center = false;
-        settings::protein::use_effective_charge = false;
+        settings::molecule::center = false;
+        settings::molecule::use_effective_charge = false;
+        settings::molecule::implicit_hydrogens = false;
     }
 
-    Atom a1 = Atom(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0");
-    Atom a2 = Atom(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "0");
-    Atom a3 = Atom(3, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0");
-    Atom a4 = Atom(4, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "0");
-    Atom a5 = Atom(5, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0");
-    Atom a6 = Atom(6, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "0");
-    Atom a7 = Atom(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0");
-    Atom a8 = Atom(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "0");
+    Atom a1 = Atom(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
+    Atom a2 = Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "0");
+    Atom a3 = Atom(3, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0");
+    Atom a4 = Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "0");
+    Atom a5 = Atom(5, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0");
+    Atom a6 = Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "0");
+    Atom a7 = Atom(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0");
+    Atom a8 = Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "0");
     
-    Water w1 = Water(1, "O", "", "HOH", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "O", "0");
-    Water w2 = Water(2, "O", "", "HOH", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "O", "0");    
+    Water w1 = Water(1, "O", "", "HOH", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::O, "0");
+    Water w2 = Water(2, "O", "", "HOH", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::O, "0");    
 
     vector<Atom> b1 = {a1, a2};
     vector<Atom> b2 = {a3, a4};
@@ -615,12 +618,11 @@ TEST_CASE("histogram") {
 //     Protein protein = Protein(ap);
 // };
 
-#include <hist/HistogramManager.h>
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
-#include <hist/detail/HistogramManagerFactory.h>
+#include <hist/distance_calculator/HistogramManagerFactory.h>
 TEST_CASE_METHOD(fixture, "Protein::bind_body_signallers") {
-    Protein protein = Protein(bodies, {});
+    Molecule protein = Protein(bodies, {});
     settings::general::verbose = false;
 
     SECTION("at construction") {

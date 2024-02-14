@@ -15,6 +15,11 @@ namespace hist {
     class CompositeDistanceHistogramFFExplicit : public CompositeDistanceHistogramFFAvg {
         public: 
             /**
+             * @brief Default constructor.
+             */
+            CompositeDistanceHistogramFFExplicit();
+
+            /**
              * @brief Create a new unweighted composite distance histogram with form factors.
              * 
              * @param p_aa The partial distance histogram for atom-atom interactions.

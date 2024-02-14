@@ -20,8 +20,21 @@ namespace hist {
 
             /**
              * @brief Add a value for a given distance.
+             * 
+             * @param x The first form factor index.
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
              */
-            void add(int x, float distance, constants::axes::d_type value);
+            void add(unsigned int x, float distance, constants::axes::d_type value);
+
+            /**
+             * @brief Add twice the value for a given distance.
+             * 
+             * @param x The first form factor index.
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
+             */
+            void add2(unsigned int x, float distance, constants::axes::d_type value);
 
             /**
              * @brief Extract the weights from this distribution.

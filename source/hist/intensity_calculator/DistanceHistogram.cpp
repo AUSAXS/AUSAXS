@@ -61,17 +61,6 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     for (unsigned int q = q0; q < q0+debye_axis.bins; ++q) { // iterate through all q values
         Iq[q-q0] = std::inner_product(p.begin(), p.end(), sinqd_table->begin(q), 0.0);
         Iq[q-q0] *= std::exp(-q_axis[q]*q_axis[q]); // form factor
-        if (q==12) {
-            double I = 0;
-            for (unsigned int i = 0; i < p.size(); ++i) {
-                if (p[i] == 0) continue;
-                std::cout << "i = " << i << std::endl;
-                std::cout << "\tp = " << p[i] << std::endl;
-                std::cout << "\td = " << d_axis[i] << std::endl;
-                std::cout << "\tsinqd_table = " << sinqd_table->begin(q)[i] << std::endl;
-                std::cout << "\tIq = " << p[i]*sinqd_table->begin(q)[i] << std::endl;
-            }
-        }
     }
     return ScatteringProfile(Iq, debye_axis);
 }

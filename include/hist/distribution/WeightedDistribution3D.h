@@ -19,9 +19,24 @@ namespace hist {
             WeightedDistribution3D(const Distribution3D& other);
 
             /**
-             * @brief Add a value for a given distance.
+             * @brief Add twice the value for a given distance.
+             * 
+             * @param x The first form factor index.
+             * @param y The second form factor index.
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
              */
-            void add(int x, int y, float distance, constants::axes::d_type value);
+            void add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value);
+
+            /**
+             * @brief Add twice the value for a given distance.
+             * 
+             * @param x The first form factor index.
+             * @param y The second form factor index.
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
+             */
+            void add2(unsigned int x, unsigned int y, float distance, constants::axes::d_type value);
 
             /**
              * @brief Extract the weights from this distribution.

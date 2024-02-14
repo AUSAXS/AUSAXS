@@ -30,7 +30,7 @@ hist::CompositeDistanceHistogram generate_random(unsigned int size) {
         p.index(i) = p_pp.index(i) + 2*p_hp.index(i) + p_hh.index(i);
     }
     Axis axis(1, 10, size);
-    return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p), axis);
+    return hist::CompositeDistanceHistogram(std::move(p_pp), std::move(p_hp), std::move(p_hh), std::move(p));
 }
 
 TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
@@ -46,6 +46,7 @@ TEST_CASE("CompositeDistanceHistogram::reset_water_scaling_factor") {
 TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
     settings::general::warnings = false;
     settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
 
     // the following just describes the eight corners of a cube centered at origo, with an additional atom at the very middle
     std::vector<Atom> b1 =   {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1),  Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -77,8 +78,9 @@ TEST_CASE("CompositeDistanceHistogram::apply_water_scaling_factor") {
 }
 
 TEST_CASE("CompositeDistanceHistogram::debye_transform") {
-    settings::molecule::use_effective_charge = false;
     settings::general::warnings = true;
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
 
     SECTION("no water") {
         std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -188,7 +190,7 @@ TEST_CASE("qmin & qmax") {
 
         auto start = Iqf.get_axis().get_bin(settings::axes::qmin);
         auto end = Iqf.get_axis().get_bin(settings::axes::qmax);
-        std::vector<double> Iqf_r(Iqf.get_counts().begin()+start, Iqf.get_counts().begin()+end+1);
+        std::vector<double> Iqf_r(Iqf.get_counts().begin()+start, Iqf.get_counts().begin()+end);
         REQUIRE(compare_hist(Iqf_r, Iqr));
     }
 }

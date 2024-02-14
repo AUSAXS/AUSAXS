@@ -28,6 +28,10 @@ void Distribution1D::add(float distance, constants::axes::d_type value) {
     index(std::round(distance)) += value;
 }
 
+void Distribution1D::add2(float distance, constants::axes::d_type value) {
+    index(std::round(distance)) += 2*value;
+}
+
 void Distribution1D::add_index(int32_t i, constants::axes::d_type value) {
     index(i) += value;
 }

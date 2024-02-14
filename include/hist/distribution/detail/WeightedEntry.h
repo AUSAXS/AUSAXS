@@ -18,29 +18,24 @@ namespace hist {
              */
             void add(float distance, double value);
 
+            /**
+             * @brief Add twice the distance to this bin, and increase the counter by two.
+             */
+            void add2(float distance, double value);
+
             WeightedEntry operator+(const WeightedEntry& other) const;
-
             WeightedEntry& operator+=(const WeightedEntry& other);
-
             WeightedEntry operator-(const WeightedEntry& other) const;
-
             WeightedEntry& operator-=(const WeightedEntry& other);
-
             bool operator==(double other) const;
-
-            friend WeightedEntry operator*(const WeightedEntry& entry, double factor) {
-                return WeightedEntry(entry.value*factor, entry.count, entry.bin_center*factor);
-            }
-
-            friend WeightedEntry operator*(double factor, const WeightedEntry& entry) {
-                return entry*factor;
-            }
-
-            friend std::ostream& operator<<(std::ostream& os, const WeightedEntry& entry);
-
+            
             constants::axes::d_type value = 0;
             unsigned int count = 0;
             double bin_center = 0;
         };
+
+        WeightedEntry operator*(const WeightedEntry& entry, double factor);
+        WeightedEntry operator*(double factor, const WeightedEntry& entry);
+        std::ostream& operator<<(std::ostream& os, const WeightedEntry& entry);
     }
 }

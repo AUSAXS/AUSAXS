@@ -10,6 +10,8 @@
 
 using namespace hist;
 
+CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit() = default;
+
 CompositeDistanceHistogramFFExplicit::CompositeDistanceHistogramFFExplicit(
     hist::Distribution3D&& p_aa, 
     hist::Distribution3D&& p_ax, 

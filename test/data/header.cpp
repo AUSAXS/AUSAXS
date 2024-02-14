@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Header.h>
+#include <data/record/Header.h>
 #include <settings/All.h>
+
+using namespace data::record;
 
 TEST_CASE("Header::get_type") {
     Header header;

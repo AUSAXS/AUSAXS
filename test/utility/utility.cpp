@@ -4,6 +4,7 @@
 #include <plots/PlotDataset.h>
 #include <utility/Utility.h>
 #include <utility/StringUtils.h>
+#include <settings/GeneralSettings.h>
 #include <plots/All.h>
 
 TEST_CASE("plots", "[manual]") {
@@ -49,7 +50,7 @@ TEST_CASE("plots", "[manual]") {
         fit->figures.intensity = SimpleDataset(x, y2);
         fit->figures.intensity_interpolated = SimpleDataset(x, y2);
 
-        plots::PlotIntensityFit::quick_plot(fit.get(), "figures/test/utility/plots/intensityfit.png");
+        plots::PlotIntensityFit::quick_plot(fit.get(), settings::general::output + "test/utility/plots/intensityfit.png");
     }
 }
 

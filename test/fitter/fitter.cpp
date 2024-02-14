@@ -1,31 +1,34 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <iostream>
-
 #include <em/ImageStack.h>
-#include <plots/all.h>
+#include <plots/All.h>
 #include <fitter/FitReporter.h>
 #include <utility/Utility.h>
 #include <settings/All.h>
 #include <hist/Histogram.h>
-#include <data/Protein.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Water.h>
+#include <data/record/Water.h>
 #include <em/detail/ExtendedLandscape.h>
 #include <fitter/ExcludedVolumeFitter.h>
 #include <mini/detail/FittedParameter.h>
 
+#include <iostream>
+
+using namespace data;
+
 TEST_CASE("consistency_check", "[slow],[manual]") {
     unsigned int repeats = 100;
 
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::em::sample_frequency = 2;
     // setting::axes::qmax = 0.4;
 
     // prepare measured data
-    Protein protein("data/A2M/native.pdb");
-    SimpleDataset data = protein.get_histogram().calc_debye_scattering_intensity();
+    Molecule protein("data/A2M/native.pdb");
+    SimpleDataset data = protein.get_histogram()->debye_transform();
     data.reduce(settings::fit::N, true);
     data.limit_x(Limit(settings::axes::qmin, settings::axes::qmax));
     data.simulate_errors();
@@ -34,23 +37,23 @@ TEST_CASE("consistency_check", "[slow],[manual]") {
     em::ImageStack image("sim/native_23.ccp4");
     auto hist = protein.get_histogram();
 
-    hist::Histogram optimal_vals;
+    std::vector<double> optimal_vals;
     for (unsigned int i = 0; i < repeats; i++) {
-        auto fit = image.fit(hist);
-        optimal_vals.p.push_back(fit->get_parameter("cutoff").value);
+        auto fit = image.fit(std::move(hist));
+        optimal_vals.push_back(fit->get_parameter("cutoff").value);
     }
-    optimal_vals.generate_axis();
+    hist::Histogram h(optimal_vals);
+    h.generate_axis();
 
-    plots::PlotHistogram plot(optimal_vals);
-    plot.save("figures/test/fitter/consistency_check.pdf");
+    plots::PlotHistogram::quick_plot(h, {}, settings::general::output + "/test/fitter/consistency_check.png");
 }
 
 TEST_CASE("excluded_volume") {
-    settings::protein::use_effective_charge = true;
+    settings::molecule::use_effective_charge = true;
 
     SECTION("simple") {
         std::string mfile = "test/files/2epe.dat";
-        Protein protein("test/files/2epe.pdb");
+        Molecule protein("test/files/2epe.pdb");
 
         fitter::HydrationFitter fitter(mfile, protein.get_histogram());
         auto fit1 = fitter.fit();

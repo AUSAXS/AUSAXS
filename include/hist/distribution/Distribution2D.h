@@ -22,8 +22,29 @@ namespace hist {
 
             /**
              * @brief Add a value for a given distance.
+             * 
+             * @param x The form factor index. 
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
              */
             void add(unsigned int x, float distance, constants::axes::d_type value);
+
+            /**
+             * @brief Add twice the value for a given distance.
+             * 
+             * @param x The form factor index. 
+             * @param distance The distance to add the value to.
+             * @param value The value to add.
+             */
+            void add2(unsigned int x, float distance, constants::axes::d_type value);
+
+            /**
+             * @brief Add a value for a given index.
+             * 
+             * @param x The form factor index. 
+             * @param i The index to add the value to.
+             * @param value The value to add.
+             */
             void add(unsigned int x, int32_t i, constants::axes::d_type value);
     };
 }

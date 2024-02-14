@@ -1,10 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Protein.h>
-#include <data/Water.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Record.h>
+#include <data/record/Water.h>
+#include <data/record/Record.h>
 #include <utility/Console.h>
 #include <settings/All.h>
 
@@ -15,6 +15,9 @@
 #include <iostream>
 
 using std::cout, std::endl, std::vector;
+
+using namespace data;
+using namespace data::record;
 
 bool compare_files(std::string p1, std::string p2) {
     std::ifstream f1(p1, std::ifstream::binary);
@@ -118,9 +121,9 @@ TEST_CASE("pdb_input") {
     pdb_file.close();
 
     // check PDB io
-    Protein* protein = new Protein("temp/io/temp.pdb");
+    std::unique_ptr<Molecule> protein = std::make_unique<Molecule>("temp/io/temp.pdb");
     protein->save("temp/io/temp2.pdb");
-    protein = new Protein("temp/io/temp2.pdb");
+    protein = std::make_unique<Molecule>("temp/io/temp2.pdb");
     vector<Atom> atoms = protein->get_atoms();
     Atom a = atoms[0];
 
@@ -136,7 +139,7 @@ TEST_CASE("pdb_input") {
     CHECK(a.coords.y() == 3.2);
     CHECK(a.coords.z() == 4.3);
     CHECK(a.occupancy == 0.50);
-    CHECK(a.element == "C");
+    CHECK(a.element == constants::atom_t::C);
     CHECK(a.resName == "ARG");
 
     remove("temp/io/temp.pdb");
@@ -155,9 +158,9 @@ TEST_CASE("xml input", "[broken]") {
         \n</PDBx:atom_site>" << endl;
     xml_file.close();
 
-    Protein* protein = new Protein("temp.xml");
+    Molecule* protein = new Molecule("temp.xml");
     protein->save("temp2.xml");
-    protein = new Protein("temp2.xml");
+    protein = new Molecule("temp2.xml");
     const vector<Water>& atoms = protein->get_waters();
     const Water a = atoms[0];
 
@@ -169,7 +172,7 @@ TEST_CASE("xml input", "[broken]") {
     CHECK(a.coords.y() == 3.2);
     CHECK(a.coords.z() == 4.3);
     CHECK(a.occupancy == 0.50);
-    CHECK(a.element == "O");
+    CHECK(a.element == constants::atom_t::O);
     CHECK(a.resName == "HOH");
 
     remove("temp.xml");
@@ -182,7 +185,8 @@ TEST_CASE("xml input", "[broken]") {
  */
 TEST_CASE("real_data", "[files],[broken]") {
     settings::general::verbose = false;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
     for (const auto& file : std::filesystem::recursive_directory_iterator("data")) { // loop over all files in the data/ directory
         if (file.path().extension() != ".pdb") {
             continue;
@@ -195,7 +199,7 @@ TEST_CASE("real_data", "[files],[broken]") {
 
         cout << "Testing " << file.path().stem() << endl;
         std::string filename = "temp/io/" + file.path().stem().string() + ".pdb";
-        Protein protein(file.path().string());
+        Molecule protein(file.path().string());
         protein.save(filename);
         bool success = compare_files(file.path().string(), filename);
         if (success) {
@@ -206,9 +210,9 @@ TEST_CASE("real_data", "[files],[broken]") {
 }
 
 TEST_CASE("protein_io") {
-    Protein protein("test/files/2epe.pdb");
+    Molecule protein("test/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
-    Protein protein2("temp/io/temp.pdb");
+    Molecule protein2("temp/io/temp.pdb");
     auto atoms1 = protein.get_atoms();
     auto atoms2 = protein2.get_atoms();
 
@@ -245,25 +249,25 @@ TEST_CASE("file_copied_correctly") {
 TEST_CASE("write_into_multiple_files") {
     std::vector<Atom> atoms(101000);
     for (unsigned int i = 0; i < atoms.size(); i++) {
-        atoms[i] = Atom({1,2,3}, 1, "C", "LYS", i);
+        atoms[i] = Atom({1,2,3}, 1, constants::atom_t::C, "LYS", i);
     }
     std::vector<Water> waters(100);
     for (unsigned int i = 0; i < waters.size(); i++) {
-        waters[i] = Water({1,2,3}, 1, "O", "HOH", i);
+        waters[i] = Water({1,2,3}, 1, constants::atom_t::O, "HOH", i);
     }
 
-    Protein protein(atoms, waters);
+    Molecule protein(atoms, waters);
     protein.save("temp/io/temp.pdb");
     
     REQUIRE(std::filesystem::exists("temp/io/temp_1.pdb"));
     REQUIRE(std::filesystem::exists("temp/io/temp_2.pdb"));
 
     // first file
-    Protein protein2("temp/io/temp_1.pdb");
+    Molecule protein2("temp/io/temp_1.pdb");
     REQUIRE(protein2.get_body(0).atom_size() == 100000);
     REQUIRE(protein2.get_body(0).get_atoms().back().serial == 99999);
 
-    Protein protein3("temp/io/temp_2.pdb");
+    Molecule protein3("temp/io/temp_2.pdb");
     REQUIRE(protein3.get_body(0).atom_size() == 1000);
     for (int i = 0; i < 1000; i++) {
         REQUIRE(protein3.get_body(0).get_atom(i).serial == i);
@@ -303,21 +307,21 @@ TEST_CASE("can_parse_hydrogens") {
     Atom atom;
     atom.parse_pdb(val[7]);
     REQUIRE(atom.name == "HG11");
-    REQUIRE(atom.element == "H");
+    REQUIRE(atom.element == constants::atom_t::H);
     REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-3.508, 1e-6));
     REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.011, 1e-6));
     REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-12.716, 1e-6));
 
     atom.parse_pdb(val[8]);
     REQUIRE(atom.name == "HG12");
-    REQUIRE(atom.element == "H");
+    REQUIRE(atom.element == constants::atom_t::H);
     REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-4.289, 1e-6));
     REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.438, 1e-6));
     REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-14.237, 1e-6));
 
     atom.parse_pdb(val[9]);
     REQUIRE(atom.name == "HG13");
-    REQUIRE(atom.element == "H");
+    REQUIRE(atom.element == constants::atom_t::H);
     REQUIRE_THAT(atom.coords.x(), Catch::Matchers::WithinAbs(-2.612, 1e-6));
     REQUIRE_THAT(atom.coords.y(), Catch::Matchers::WithinAbs(4.760, 1e-6));
     REQUIRE_THAT(atom.coords.z(), Catch::Matchers::WithinAbs(-13.992, 1e-6));

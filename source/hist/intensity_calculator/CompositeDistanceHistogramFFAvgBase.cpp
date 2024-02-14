@@ -8,6 +8,9 @@
 using namespace hist;
 
 template<typename FormFactorTableType>
+CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase() = default;
+
+template<typename FormFactorTableType>
 CompositeDistanceHistogramFFAvgBase<FormFactorTableType>::CompositeDistanceHistogramFFAvgBase(
     hist::Distribution3D&& p_aa, 
     hist::Distribution2D&& p_aw, 

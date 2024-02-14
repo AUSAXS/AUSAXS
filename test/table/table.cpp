@@ -7,14 +7,14 @@ using namespace table;
 TEST_CASE("Table::Table") {
     SECTION("default") {
         Table table;
-        CHECK(table.N == 0);
-        CHECK(table.M == 0);
+        CHECK(table.size_x() == 0);
+        CHECK(table.size_y() == 0);
     }
 
     SECTION("N, M") {
         Table table(3, 4);
-        CHECK(table.N == 3);
-        CHECK(table.M == 4);
+        CHECK(table.size_x() == 3);
+        CHECK(table.size_y() == 4);
     }
 }
 

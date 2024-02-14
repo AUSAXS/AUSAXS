@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-#include <utility/Constants.h>
+#include <constants/Constants.h>
 
 /**
  * @brief The old version of the Constants.h file. This is used for testing the new version.
@@ -303,7 +303,7 @@ TEST_CASE("parse_single") {
     auto GLY2 = hydrogen_atoms::glycine::get;
 
     for (const auto& [atom, num] : GLY2) {
-        REQUIRE(num == GLY.get(atom, std::string(1, atom[0])));
+        REQUIRE(num == GLY.get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));
     }
 }
 
@@ -315,7 +315,7 @@ TEST_CASE("parse_all") {
     for (const auto& [acid, atom_map] : hydrogen_atoms::get) {
         for (const auto& [atom, num_hydrogens] : atom_map) {
             SECTION(acid + " " + atom) {
-                CHECK(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).get(atom, std::string(1, atom[0])));
+                CHECK(hydrogen_atoms::get.at(acid).at(atom) == constants::hydrogen_atoms::residues.get(acid).get(atom, constants::symbols::parse_element_string(std::string(1, atom[0]))));
             }
         }
     }

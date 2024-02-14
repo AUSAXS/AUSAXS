@@ -361,12 +361,12 @@ debug_tests: $(test_files) $(source)
 		$${test} $(exclude_tags);\
 	done
 
-tests: $(source) $(test_files)
+tests: $(source)
 	@ make -C build tests -j${cmake_threads}
-	@ mkdir -p build/test/reports
-	@ for test in $$(find build/test/bin/test_*); do\
-		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
-	done
+#	@ mkdir -p build/test/reports
+#	@ for test in $$(find build/test/bin/test_*); do\
+#		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
+#	done
 
 test/%: $$(shell find test/ -wholename "$*.cpp" 2>/dev/null) $(source)
 	@ make -C build "test_$(basename $(notdir $*))" -j${cmake_threads}

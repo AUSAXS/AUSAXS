@@ -30,6 +30,11 @@ void WeightedDistribution1D::add(float distance, constants::axes::d_type value) 
     index(i).add(distance, value);
 }
 
+void WeightedDistribution1D::add2(float distance, constants::axes::d_type value) {
+    int i = std::round(distance*constants::axes::d_inv_width);
+    index(i).add2(distance, value);
+}
+
 std::vector<constants::axes::d_type> WeightedDistribution1D::get_content() const {
     std::vector<constants::axes::d_type> result(size());
     for (std::size_t i = 0; i < size(); i++) {
@@ -50,8 +55,6 @@ std::vector<double> WeightedDistribution1D::get_weighted_axis() const {
     Distribution1D weights(size());
     for (std::size_t i = 0; i < size(); i++) {
         weights.index(i) = (!index(i).bin_center*constants::axes::d_vals[i] + index(i).bin_center)/(!index(i).count + index(i).count); // avoid division by zero
-        if (index(i).count != 0)
-            std::cout << "weights.index(i) = " << index(i).bin_center << " / " << index(i).count << " = " << weights.index(i) << std::endl;
     }
     return weights;
 }

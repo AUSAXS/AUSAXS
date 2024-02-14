@@ -13,6 +13,7 @@ Distribution2D::Distribution2D(const WeightedDistribution2D& other) : container:
 }
 
 void Distribution2D::add(unsigned int x, float distance, constants::axes::d_type value) {index(x, std::round(distance)) += value;}
+void Distribution2D::add2(unsigned int x, float distance, constants::axes::d_type value) {index(x, std::round(distance)) += 2*value;}
 void Distribution2D::add(unsigned int x, int32_t i, constants::axes::d_type value) {index(x, i) += value;}
 
 constants::axes::d_type& Distribution2D::get_content(int i, int j) {return index(i, j);}

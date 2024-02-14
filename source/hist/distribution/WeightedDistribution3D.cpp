@@ -17,9 +17,14 @@ WeightedDistribution3D::WeightedDistribution3D(const Distribution3D& other) : Co
     }
 }
 
-void WeightedDistribution3D::add(int x, int y, float distance, constants::axes::d_type value) {
+void WeightedDistribution3D::add(unsigned int x, unsigned int y, float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(x, y, i).add(distance, value);
+}
+
+void WeightedDistribution3D::add2(unsigned int x, unsigned int y, float distance, constants::axes::d_type value) {
+    int i = std::round(distance*constants::axes::d_inv_width);
+    index(x, y, i).add2(distance, value);
 }
 
 std::vector<double> WeightedDistribution3D::get_weights() const {

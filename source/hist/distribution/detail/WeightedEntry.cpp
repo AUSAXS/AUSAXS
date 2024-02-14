@@ -13,6 +13,12 @@ void WeightedEntry::add(float distance, double value) {
     this->value += value;
 }
 
+void WeightedEntry::add2(float distance, double value) {
+    count += 2;
+    bin_center += 2*distance;
+    this->value += 2*value;
+}
+
 WeightedEntry WeightedEntry::operator+(const WeightedEntry& other) const {
     return WeightedEntry(value + other.value, count + other.count, bin_center + other.bin_center);
 }
@@ -37,6 +43,14 @@ WeightedEntry& WeightedEntry::operator-=(const WeightedEntry& other) {
 
 bool WeightedEntry::operator==(double other) const {
     return value == other;
+}
+
+WeightedEntry hist::detail::operator*(const WeightedEntry& entry, double factor) {
+    return WeightedEntry(entry.value*factor, factor*entry.count, entry.bin_center*factor);
+}
+
+WeightedEntry hist::detail::operator*(double factor, const WeightedEntry& entry) {
+    return entry*factor;
 }
 
 std::ostream& hist::detail::operator<<(std::ostream& os, const WeightedEntry& entry) {
