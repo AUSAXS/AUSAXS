@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <regex>
+#include <iostream>
 
 using namespace residue;
 using namespace residue::detail;

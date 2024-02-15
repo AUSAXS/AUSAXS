@@ -1,10 +1,10 @@
 #pragma once
 
 #include <data/DataFwd.h>
+#include <io/IOFwd.h>
 
 #include <fstream>
 
-namespace io {class File;}
 namespace io {
     /**
      * @brief This class can write .xyz trajectory files.

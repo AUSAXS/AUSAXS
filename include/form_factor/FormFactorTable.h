@@ -3,7 +3,6 @@
 #include <constants/ConstantsMath.h>
 
 #include <array>
-#include <cmath>
 
 // Five-Gaussian form factor table values. See each nested namespace for the source.
 namespace constants::form_factor {

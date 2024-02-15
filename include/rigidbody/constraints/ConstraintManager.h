@@ -5,7 +5,6 @@
 #include <data/DataFwd.h>
 
 #include <vector>
-#include <memory>
 #include <unordered_map>
 
 namespace rigidbody::constraints {

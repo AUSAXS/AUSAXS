@@ -1,6 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <data/Record.h>
+#include <data/record/Record.h>
+
+using namespace data::record;
 
 TEST_CASE("Record::get_type") {
     CHECK(Record::get_type("ATOM") == RecordType::ATOM);

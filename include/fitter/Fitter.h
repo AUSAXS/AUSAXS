@@ -5,7 +5,6 @@
 #include <dataset/SimpleDataset.h>
 #include <mini/Minimizer.h>
 
-#include <string>
 #include <vector>
 #include <memory>
 

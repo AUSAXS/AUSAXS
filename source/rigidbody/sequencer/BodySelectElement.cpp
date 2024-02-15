@@ -1,5 +1,7 @@
 #include <rigidbody/sequencer/BodySelectElement.h>
 
+#include <iostream>
+
 using namespace rigidbody::sequencer;
 
 BodySelectElement::BodySelectElement(LoopElement* owner) : LoopElementCallback(owner), strategy(settings::rigidbody::body_select_strategy) {}

@@ -3,7 +3,6 @@
 #include <constants/ConstantsMath.h>
 
 #include <gcem.hpp>
-#include <cmath>
 
 namespace gcem {
     namespace fast {

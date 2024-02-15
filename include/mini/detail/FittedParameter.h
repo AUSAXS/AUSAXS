@@ -5,7 +5,6 @@
 #include <dataset/PointSet.h>
 
 #include <string>
-#include <vector>
 
 namespace mini {
     struct FittedParameter {

@@ -2,8 +2,6 @@
 
 #include <io/IOFwd.h>
 
-#include <string>
-
 namespace io::detail {
     /**
      * @brief Virtual super-class for all data file readers. 

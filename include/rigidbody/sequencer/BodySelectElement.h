@@ -4,8 +4,6 @@
 #include <rigidbody/sequencer/LoopElementCallback.h>
 #include <settings/RigidBodySettings.h>
 
-#include <iostream>
-
 namespace rigidbody {
     namespace sequencer {
         class BodySelectElement : public LoopElementCallback {

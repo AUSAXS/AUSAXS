@@ -4,26 +4,29 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
 #include <rigidbody/constraints/ConstraintManager.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <data/BodySplitter.h>
 #include <rigidbody/RigidBody.h>
 #include <io/ExistingFile.h>
 #include <settings/RigidBodySettings.h>
-#include <settings/ProteinSettings.h>
+#include <settings/MoleculeSettings.h>
 #include <settings/GeneralSettings.h>
+
+using namespace data;
+using namespace data::record;
 
 TEST_CASE("LinearConstraints::generate") {
     settings::general::verbose = false;
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::Linear;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
 
     SECTION("simple") {
         int distance = settings::rigidbody::bond_distance;
-        Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, "C", "C", 1);
-        Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, "C", "C", 1);
-        Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, "C", "C", 1);
-        Atom a4 = Atom(Vector3<double>(0, 0, 3*distance), 1, "C", "C", 1);
+        Atom a1 = Atom(Vector3<double>(0, 0, 0*distance), 1, constants::atom_t::C, "C", 1);
+        Atom a2 = Atom(Vector3<double>(0, 0, 1*distance), 1, constants::atom_t::C, "C", 1);
+        Atom a3 = Atom(Vector3<double>(0, 0, 2*distance), 1, constants::atom_t::C, "C", 1);
+        Atom a4 = Atom(Vector3<double>(0, 0, 3*distance), 1, constants::atom_t::C, "C", 1);
 
         Body b1 = Body(std::vector<Atom>{a1});
         Body b2 = Body(std::vector<Atom>{a2});

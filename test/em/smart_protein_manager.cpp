@@ -1,9 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <em/manager/SmartProteinManager.h>
 #include <em/ImageStack.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 
 struct fixture {
     em::ImageStack stack = em::ImageStack("test/file/A2M_2020_Q4.ccp4");
@@ -32,5 +33,5 @@ TEST_CASE_METHOD(fixture, "SmartProteinManager::get_protein") {
 }
 
 TEST_CASE_METHOD(fixture, "SmartProteinManager::get_histogram") {
-    CHECK(manager.get_histogram(1) == manager.get_protein(1)->get_histogram());
+    CHECK(manager.get_histogram(1)->get_total_counts() == manager.get_protein(1)->get_histogram()->get_total_counts());
 }

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <string>
+#include <io/IOFwd.h>
 
-namespace io {class File;}
 namespace io::detail {
     /**
      * @brief Virtual super-class for all data file writers. 

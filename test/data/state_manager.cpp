@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
-#include <data/Protein.h>
 #include <data/Body.h>
 #include <data/state/StateManager.h>
 #include <data/state/Signaller.h>
@@ -9,6 +8,8 @@
 #include <data/state/UnboundSignaller.h>
 
 #include <memory>
+
+using namespace state;
 
 struct fixture {
     fixture() : manager(5) {

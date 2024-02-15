@@ -3,8 +3,6 @@
 #include <mini/Minimizer.h>
 #include <mini/detail/Parameter.h>
 
-#include <concepts>
-
 #if defined(DLIB_AVAILABLE)
     namespace mini {
         struct column_vector;

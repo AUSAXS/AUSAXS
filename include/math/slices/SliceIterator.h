@@ -1,7 +1,7 @@
 #pragma once
 
 #include<cstddef>
-#include <concepts>
+#include<iterator>
 
 template <typename T>
 class SliceIterator {

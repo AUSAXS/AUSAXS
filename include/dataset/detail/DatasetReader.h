@@ -3,7 +3,6 @@
 #include <io/ExistingFile.h>
 
 #include <memory>
-#include <string>
 
 class Dataset;
 

@@ -3,7 +3,6 @@
 #include <rigidbody/constraints/Constraint.h>
 #include <data/DataFwd.h>
 
-#include <memory>
 #include <iostream>
 
 namespace rigidbody::constraints {

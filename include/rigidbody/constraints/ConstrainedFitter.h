@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <memory>
-#include <concepts>
 
 namespace fitter {
     template<typename C>

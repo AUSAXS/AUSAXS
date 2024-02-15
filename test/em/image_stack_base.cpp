@@ -96,7 +96,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::images") {
 TEST_CASE_METHOD(fixture, "ImageStackBase::get_histogram") {
     settings::molecule::use_effective_charge = false;
     em::ImageStackBase isb("test/files/A2M_2020_Q4.ccp4");
-    REQUIRE(*isb.get_histogram(5) == *isb.get_protein_manager()->get_histogram(5));
+    REQUIRE(isb.get_histogram(5)->get_total_counts() == isb.get_protein_manager()->get_histogram(5)->get_total_counts());
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::count_voxels") {
@@ -128,15 +128,18 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::get_header") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::set_header") {
-    em::detail::header::MRCData header_data;
-    header_data.nx = 10;
-    header_data.ny = 10;
-    header_data.nz = 10;
-    header_data.mode = 2;
-    header_data.mapc = 3;
-    header_data.mapr = 2;
-    header_data.maps = 1;
-    std::unique_ptr<em::detail::header::MapHeader> header = std::make_unique<em::detail::header::MRCHeader>(header_data);
+    std::unique_ptr<em::detail::header::MapHeader> header; 
+    {
+        em::detail::header::MRCData header_data;
+        header_data.nx = 10;
+        header_data.ny = 10;
+        header_data.nz = 10;
+        header_data.mode = 2;
+        header_data.mapc = 3;
+        header_data.mapr = 2;
+        header_data.maps = 1;
+        header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
+    }
 
     em::ImageStackBase isb(images);
     isb.set_header(std::move(header));

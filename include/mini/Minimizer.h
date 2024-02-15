@@ -4,9 +4,7 @@
 #include <mini/detail/Landscape.h>
 #include <mini/detail/Result.h>
 
-#include <string>
 #include <vector>
-#include <map>
 #include <functional>
 
 namespace mini {

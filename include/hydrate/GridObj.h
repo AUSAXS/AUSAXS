@@ -4,8 +4,6 @@
 #include <math/MathFwd.h>
 #include <container/Container3D.h>
 
-#include <vector>
-
 namespace grid {
     namespace detail {
         /**

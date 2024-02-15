@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <string>
-
 #include <settings/SettingRef.h>
 #include <settings/SettingsIORegistry.h>
+
+#include <vector>
+#include <string>
 
 namespace settings {
     namespace rigidbody {

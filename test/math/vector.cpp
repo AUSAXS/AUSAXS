@@ -2,19 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <random>
-
 #include <math/Vector.h>
-
-static Vector<double> GenRandVector(int m) {
-    Vector<double> v(m);
-    for (int i = 0; i < m; i++)
-        v[i] = rand() % 100;
-    return v;
-}
 
 TEST_CASE("basic operations") {
     Vector<double> x = {1, 2, 3, 4};

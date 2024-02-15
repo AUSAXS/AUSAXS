@@ -3,10 +3,8 @@
 #include <utility/StringUtils.h>
 #include <utility/Exceptions.h>
 
-#include <map>
 #include <unordered_map>
 #include <string>
-#include <iostream>
 
 namespace saxs {
     namespace detail {

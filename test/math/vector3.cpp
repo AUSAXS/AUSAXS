@@ -2,12 +2,10 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 
-#include <vector>
-#include <string>
-#include <iostream>
-#include <random>
-
 #include <math/Vector3.h>
+
+#include <string>
+
 
 static Vector<double> GenRandVector(int m) {
     Vector<double> v(m);

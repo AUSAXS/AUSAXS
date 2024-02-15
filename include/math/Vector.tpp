@@ -4,7 +4,6 @@
 #include <utility/Exceptions.h>
 
 #include <functional>
-#include <iostream>
 #include <algorithm>
 #include <numeric>
 #include <sstream>

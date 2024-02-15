@@ -11,17 +11,14 @@
 #include <rigidbody/transform/TransformGroup.h>
 #include <fitter/HydrationFitter.h>
 #include <data/BodySplitter.h>
-#include <data/Protein.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/Water.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
 #include <hydrate/GridObj.h>
 #include <settings/All.h>
 
-#include <unordered_map>
-#include <unordered_set>
-
+using namespace data;
 using namespace rigidbody;
 
 TEST_CASE("RigidBody::optimize") {}
@@ -32,8 +29,8 @@ TEST_CASE("RigidBody::get_constraint_manager") {}
 // test that we can consistently fit the same protein
 TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
     settings::general::verbose = false;
-    Protein protein_2epe("test/files/2epe.pdb");
-    Protein protein_LAR12("test/files/LAR1-2.pdb");
+    Molecule protein_2epe("test/files/2epe.pdb");
+    Molecule protein_LAR12("test/files/LAR1-2.pdb");
     protein_2epe.generate_new_hydration();
     protein_LAR12.generate_new_hydration();
 
@@ -41,7 +38,7 @@ TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
         fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
-        fitter.set_scattering_hist(protein_LAR12.get_histogram());
+        fitter.set_scattering_hist(std::move(protein_LAR12.get_histogram()));
         double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 

@@ -3,8 +3,6 @@
 #include <plots/Plot.h>
 #include <utility/observer_ptr.h>
 
-#include <memory>
-
 namespace fitter {
 	class LinearFitter;
 	class Fit;

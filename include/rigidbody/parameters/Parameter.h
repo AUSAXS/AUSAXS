@@ -2,9 +2,6 @@
 
 #include <math/Vector3.h>
 
-#include <unordered_map>
-#include <vector>
-
 namespace rigidbody::parameter {
     /**
      * @brief A small structure for storing a single set of parameters. 

@@ -9,9 +9,7 @@
 #include <data/DataFwd.h>
 
 #include <array>
-#include <string_view>
 #include <stdexcept>
-#include <cmath>
 
 namespace form_factor {
     class FormFactor {

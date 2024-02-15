@@ -3,7 +3,6 @@
 #include <mini/Scan.h>
 
 #include <limits>
-#include <list>
 
 namespace mini {
     /**

@@ -1,5 +1,7 @@
 #include <rigidbody/sequencer/TransformElement.h>
 
+#include <iostream>
+
 using namespace rigidbody::sequencer;
 
 TransformElement::TransformElement(LoopElement* owner) : LoopElementCallback(owner), strategy(settings::rigidbody::transform_strategy) {}

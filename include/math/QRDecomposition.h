@@ -6,7 +6,7 @@
 #include <math/slices/Slice.h>
 
 // QR decomposition by Gram-Schmidt orthogonalization
-[[deprecated]] class QRDecomposition : public Decomposition {
+ class QRDecomposition : public Decomposition {
 	public: 
 		QRDecomposition(const Matrix<double>& A) : Q(A) {decompose();}
 

@@ -5,8 +5,6 @@
 #include <form_factor/FormFactor.h>
 #include <container/ArrayContainer2D.h>
 
-#include <vector>
-
 namespace form_factor {
     template<typename T>
     concept FormFactorType = requires(T t, double q) {

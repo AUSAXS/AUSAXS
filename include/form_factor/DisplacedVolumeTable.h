@@ -5,8 +5,6 @@
 #include <math/ConstexprMath.h>
 #include <constants/ConstantsMath.h>
 
-#include <cmath>
-
 #define TRAUBE_FF false
 #define PONTIUS_FF true
 namespace constants::displaced_volume {

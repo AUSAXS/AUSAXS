@@ -5,8 +5,6 @@
 #include <constants/ConstantsFwd.h>
 
 #include <string>
-#include <vector>
-#include <memory>
 
 namespace data::record {
     class Atom : public Record {

@@ -6,7 +6,6 @@
 #include <math/MathFwd.h>
 
 #include <vector>
-#include <memory>
 
 namespace rigidbody::transform {
     /**

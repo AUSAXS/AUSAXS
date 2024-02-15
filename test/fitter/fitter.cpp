@@ -15,8 +15,6 @@
 #include <fitter/ExcludedVolumeFitter.h>
 #include <mini/detail/FittedParameter.h>
 
-#include <iostream>
-
 using namespace data;
 
 TEST_CASE("consistency_check", "[slow],[manual]") {

@@ -3,8 +3,6 @@
 #include <plots/Plot.h>
 #include <dataset/DatasetFwd.h>
 
-#include <concepts>
-
 namespace plots {
 	class PlotOptions;
 

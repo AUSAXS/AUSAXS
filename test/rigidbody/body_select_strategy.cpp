@@ -5,26 +5,28 @@
 #include <rigidbody/selection/RandomConstraintSelect.h>
 #include <rigidbody/selection/RandomSelect.h>
 #include <rigidbody/selection/SequentialSelect.h>
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <data/Body.h>
 #include <rigidbody/RigidBody.h>
 
+using namespace data;
+using namespace data::record;
 using namespace rigidbody;
 
 TEST_CASE("BodySelectStrategy::next") {
-    std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, "C", "C", 1)};
-    std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, "C", "C", 1)};
-    std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, "C", "C", 1)};
-    std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, "C", "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, "C", "C", 1)};
+    std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::C, "C", 1)};
+    std::vector<Atom> b4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::C, "C", 1)};
     std::vector<Body> atoms = {Body(b1), Body(b2), Body(b3), Body(b4)};
-    RigidBody rigidbody({atoms, {}});
+    RigidBody rigidbody(Molecule{atoms});
     auto manager = rigidbody.get_constraint_manager();
 
     // add a varying number of constraints to each body
     for (unsigned int i = 0; i < rigidbody.body_size(); i++) {
         for (unsigned int j = i+1; j < rigidbody.body_size(); j++) {
             for (unsigned int k = j; k < 5; k++) {
-                manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, i, j, 0, 0));
+                manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, i, j, 0, 0));
             }
         }
     }

@@ -9,7 +9,7 @@ TEST_CASE("RotationsOnly::next") {
     int iterations = 10;
     double length_start = GENERATE(1, 2, 3);
     double rad_start = GENERATE(1, 2, 3);
-    rigidbody::RotationsOnly ro(iterations, length_start, rad_start);
+    rigidbody::parameter::RotationsOnly ro(iterations, length_start, rad_start);
 
     for (int i = 0; i < iterations; i++) {
         auto p = ro.next();

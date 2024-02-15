@@ -15,18 +15,16 @@
 
 #include <vector>
 #include <string>
-#include <fstream>
 #include <iostream>
 
-using std::cout, std::endl, std::vector, std::shared_ptr;
 using namespace data::record;
 using namespace data;
 
 struct fixture {
-    vector<Atom> a = {Atom(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                      Atom(3, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                      Atom(5, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
-                      Atom(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0"), Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1,  1), 1, 0, constants::atom_t::C, "0")
+    std::vector<Atom> a = {Atom(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
+                           Atom(3, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
+                           Atom(5, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
+                           Atom(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0"), Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1,  1), 1, 0, constants::atom_t::C, "0")
     };
     Body body = Body(a);
 };
@@ -100,10 +98,10 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 }
 
 TEST_CASE("Body::save") {
-    vector<Atom> a = {Atom(1, "C"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                      Atom(3, "O"  , "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::O, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
-                      Atom(5, "N"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::N, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
-                      Atom(7, "OXT", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::O, "0"), Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1,  1), 1, 0, constants::atom_t::C, "0")};
+    std::vector<Atom> a = {Atom(1, "C"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
+                           Atom(3, "O"  , "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::O, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
+                           Atom(5, "N"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::N, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
+                           Atom(7, "OXT", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::O, "0"), Atom(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1,  1), 1, 0, constants::atom_t::C, "0")};
     Body body(a, {});
 
     body.save("temp/body_io.pdb");
@@ -233,9 +231,9 @@ TEST_CASE("Body::rotate") {
 
     SECTION("Vector3<double>&, double") {
         SECTION("simple") {
-            vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), 
-                              Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), 
-                              Atom(Vector3<double>(0, 0, 1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), 
+                                   Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), 
+                                   Atom(Vector3<double>(0, 0, 1), 1, constants::atom_t::C, "C", 1)};
             Body body(a, {});
 
             Vector3<double> axis = {0, 1, 0};
@@ -252,10 +250,10 @@ TEST_CASE("Body::rotate") {
         }
 
         SECTION("complex") {
-            vector<Atom> a = {Atom(Vector3<double>(0, 2, 1), 1, constants::atom_t::C, "C", 1), 
-                              Atom(Vector3<double>(5, 1, 3), 1, constants::atom_t::C, "C", 1), 
-                              Atom(Vector3<double>(6, 1, 4), 1, constants::atom_t::C, "C", 1),
-                              Atom(Vector3<double>(3, 7, 2), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> a = {Atom(Vector3<double>(0, 2, 1), 1, constants::atom_t::C, "C", 1), 
+                                   Atom(Vector3<double>(5, 1, 3), 1, constants::atom_t::C, "C", 1), 
+                                   Atom(Vector3<double>(6, 1, 4), 1, constants::atom_t::C, "C", 1),
+                                   Atom(Vector3<double>(3, 7, 2), 1, constants::atom_t::C, "C", 1)};
             Body body(a, {});
 
             Vector3<double> axis = {0.5, 2, 1};
@@ -269,9 +267,9 @@ TEST_CASE("Body::rotate") {
 
     SECTION("double, double, double, ") {
         SECTION("simple") {
-            vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), 
-                              Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), 
-                              Atom(Vector3<double>(0, 0, 1), 1, constants::atom_t::C, "C", 1)};
+            std::vector<Atom> a = {Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), 
+                                   Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), 
+                                   Atom(Vector3<double>(0, 0, 1), 1, constants::atom_t::C, "C", 1)};
             Body body(a, {});
 
             body.rotate(0, M_PI_2, 0);
@@ -376,12 +374,12 @@ TEST_CASE("grid") {
         constants::radius::set_dummy_radius(1);
         // settings::grid::ra = 1;
         // settings::grid::rh = 1;
-        vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::dummy, "C", 1)};
-        vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::dummy, "C", 1)};
-        vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::dummy, "C", 1)};
-        vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::dummy, "C", 1)};
+        std::vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::dummy, "C", 1)};
+        std::vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::dummy, "C", 1)};
+        std::vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::dummy, "C", 1)};
+        std::vector<Atom> a4 = {Atom(Vector3<double>( 1, -1,  1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>( 1, 1,  1), 1, constants::atom_t::dummy, "C", 1)};
         Body b1(a1), b2(a2), b3(a3), b4(a4);
-        vector<Body> bodies = {b1, b2, b3, b4};
+        std::vector<Body> bodies = {b1, b2, b3, b4};
         grid::Grid grid(Limit3D(-5, 5, -5, 5, -5, 5));
 
         grid.add(&b1);

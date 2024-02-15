@@ -9,7 +9,6 @@
 
 #include <memory>
 #include <functional>
-#include <concepts>
 
 namespace mini {
     namespace detail {

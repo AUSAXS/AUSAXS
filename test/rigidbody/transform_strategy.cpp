@@ -6,36 +6,37 @@
 #include <rigidbody/transform/SingleTransform.h>
 #include <rigidbody/transform/TransformGroup.h>
 
-#include <data/Atom.h>
+#include <data/record/Atom.h>
 #include <data/Body.h>
-#include <data/Water.h>
 #include <rigidbody/RigidBody.h>
 #include <math/MatrixUtils.h>
 #include <settings/All.h>
-
 #include <unordered_set>
+
+using namespace data;
+using namespace data::record;
 
 using namespace rigidbody;
 
 struct fixture {
-    Atom a1 =   Atom(1,  "C1", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "0");
-    Atom a2 =   Atom(2,  "C2", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "0");
+    Atom a1 =  Atom(1,  "C1", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
+    Atom a2 =  Atom(2,  "C2", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "0");
     Body b1 = Body({a1, a2});
 
-    Atom a3 =   Atom(3,  "C3", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "0");
-    Atom a4 =   Atom(4,  "C4", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "0");
+    Atom a3 =  Atom(3,  "C3", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0");
+    Atom a4 =  Atom(4,  "C4", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "0");
     Body b2 = Body({a3, a4});
 
-    Atom a5 =   Atom(5,  "C5", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "0");
-    Atom a6 =   Atom(6,  "C6", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "0");
+    Atom a5 =  Atom(5,  "C5", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0");
+    Atom a6 =  Atom(6,  "C6", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "0");
     Body b3 = Body({a5, a6});
 
-    Atom a7 =   Atom(7,  "C7", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "0");
-    Atom a8 =   Atom(8,  "C8", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "0");
+    Atom a7 =  Atom(7,  "C7", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0");
+    Atom a8 =  Atom(8,  "C8", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "0");
     Body b4 = Body({a7, a8});
 
-    Atom a9 =   Atom(9,  "C9", "", "LYS", "", 1, "", Vector3<double>( 0,  0,  0), 1, 0, "C", "0");
-    Atom a10 = Atom(10, "C10", "", "LYS", "", 1, "", Vector3<double>( 0,  0,  2), 1, 0, "C", "0");
+    Atom a9 =  Atom(9,  "C9", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  0), 1, 0, constants::atom_t::C, "0");
+    Atom a10 = Atom(10, "C10", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  2), 1, 0, constants::atom_t::C, "0");
     Body b5 = Body({a9, a10});
 
     std::vector<Body> bodies = {b1, b2, b3, b4, b5};
@@ -43,7 +44,7 @@ struct fixture {
 
 TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
     settings::grid::scaling = 2;
 
@@ -51,13 +52,13 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
         RigidBody rigidbody(bodies);
         auto manager = rigidbody.get_constraint_manager();
 
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0 <-- this one
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0 <-- this one
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
 
         // translate
-        rigidbody::SingleTransform transform(&rigidbody);
+        rigidbody::transform::SingleTransform transform(&rigidbody);
         transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(0,  1, -1));
@@ -76,20 +77,20 @@ TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
 
     SECTION("RigidTransform::apply") {
         // generate an easier constraint to test the apply function on
-        Atom a11 = Atom(11,  "C11", "", "LYS", "", 1, "", Vector3<double>(3,  1, -1), 1, 0, "C", "0");
-        Atom a12 = Atom(12,  "C12", "", "LYS", "", 1, "", Vector3<double>(3, -1,  1), 1, 0, "C", "0");
+        Atom a11 = Atom(11,  "C11", "", "LYS", 'A', 1, "", Vector3<double>(3,  1, -1), 1, 0, constants::atom_t::C, "0");
+        Atom a12 = Atom(12,  "C12", "", "LYS", 'A', 1, "", Vector3<double>(3, -1,  1), 1, 0, constants::atom_t::C, "0");
         Body b6({a11, a12});
         RigidBody rigidbody(std::vector<Body>{b1, b2, b3, b4, b5, b6});
         auto manager = rigidbody.get_constraint_manager();
 
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0 <-- first this one
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 5, 1, 0)); // 1 <-- then this one
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 5, 2, 1, 0)); // 2
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 3
-        manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 4
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0 <-- first this one
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 1, 5, 1, 0)); // 1 <-- then this one
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 5, 2, 1, 0)); // 2
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 3
+        manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 4
 
         // single-body translate
-        rigidbody::RigidTransform transform(&rigidbody);
+        rigidbody::transform::RigidTransform transform(&rigidbody);
         transform.apply(Matrix<double>::identity(3), Vector3<double>(1, 0, 0), manager->distance_constraints[0]);
         CHECK(rigidbody.get_body(0).get_atom(0).coords == Vector3<double>(0, -1, -1));
         CHECK(rigidbody.get_body(0).get_atom(1).coords == Vector3<double>(0,  1, -1));
@@ -143,11 +144,11 @@ auto vector_contains = [] (std::vector<unsigned int> vec, std::vector<unsigned i
 
 TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::protein::use_effective_charge = false;
+    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
     SECTION("get_connected") {
-        struct TestRigidTransform : public RigidTransform {
+        struct TestRigidTransform : public transform::RigidTransform {
             using RigidTransform::RigidTransform;
             using RigidTransform::get_connected;
         };
@@ -156,10 +157,10 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
             RigidBody rigidbody(bodies);
             auto manager = rigidbody.get_constraint_manager();
 
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
 
             TestRigidTransform transform(&rigidbody);
 
@@ -182,20 +183,20 @@ TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
         }
 
         SECTION("complex") {
-            Body b6({Atom(Vector3<double>(0, 1, 0), 1, "C", "C", 1), Atom(Vector3<double>(0, 2, 0), 1, "C", "C", 1)});
-            Body b7({Atom(Vector3<double>(0, 3, 0), 1, "C", "C", 1), Atom(Vector3<double>(0, 4, 0), 1, "C", "C", 1)});
-            Body b8({Atom(Vector3<double>(1, 0, 0), 1, "C", "C", 1), Atom(Vector3<double>(2, 0, 0), 1, "C", "C", 1)});
+            Body b6({Atom(Vector3<double>(0, 1, 0), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(0, 2, 0), 1, constants::atom_t::C, "C", 1)});
+            Body b7({Atom(Vector3<double>(0, 3, 0), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(0, 4, 0), 1, constants::atom_t::C, "C", 1)});
+            Body b8({Atom(Vector3<double>(1, 0, 0), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(2, 0, 0), 1, constants::atom_t::C, "C", 1)});
             bodies = {b1, b2, b3, b4, b5, b6, b7, b8};
             RigidBody rigidbody(bodies);
             auto manager = rigidbody.get_constraint_manager();
 
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 5, 0, 0)); // 4
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 5, 6, 0, 0)); // 5
-            manager->add_constraint(rigidbody::DistanceConstraint(&rigidbody, 3, 7, 0, 0)); // 6
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 0, 1, 0, 0)); // 0
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 1, 2, 0, 0)); // 1
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 2, 3, 0, 0)); // 2
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 4, 0, 0)); // 3
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 5, 0, 0)); // 4
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 5, 6, 0, 0)); // 5
+            manager->add_constraint(rigidbody::constraints::DistanceConstraint(&rigidbody, 3, 7, 0, 0)); // 6
 
             //             5 - 6            //
             //             |                //

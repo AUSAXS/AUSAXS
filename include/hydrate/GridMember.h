@@ -3,8 +3,6 @@
 #include <math/Vector3.h>
 #include <constants/Constants.h>
 
-#include <vector>
-
 namespace grid {
     /**
      * @brief This class is used internally in Grid for storing all information about a particular member atom. 

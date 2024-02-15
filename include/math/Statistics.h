@@ -5,12 +5,6 @@
 
 #include <vector>
 #include <algorithm>
-#include <numeric>
-#include <type_traits>
-#include <initializer_list>
-#include <math.h>
-#include <iostream>
-#include <concepts>
 
 namespace stats {
     /**

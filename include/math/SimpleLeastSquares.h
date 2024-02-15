@@ -1,11 +1,10 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <memory>
-
 #include <fitter/Fit.h>
 #include <fitter/Fitter.h>
+
+#include <vector>
+#include <memory>
 
 namespace fitter {
     /**

@@ -2,7 +2,6 @@
 
 #include <rigidbody/detail/RigidbodyInternalFwd.h>
 
-#include <memory>
 #include <vector>
 
 namespace rigidbody::constraints {

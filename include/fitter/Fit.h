@@ -7,7 +7,6 @@
 #include <dataset/SimpleDataset.h>
 
 #include <string>
-#include <vector>
 
 namespace fitter {
     class Fit : public mini::Result {

@@ -8,7 +8,7 @@ struct fixture {
     fixture() : sm(5) {
         sm.reset();
     }
-    StateManager sm;
+    state::StateManager sm;
 };
 
 TEST_CASE_METHOD(fixture, "UnboundSignaller::external_change") {

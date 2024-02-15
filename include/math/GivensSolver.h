@@ -5,7 +5,6 @@
 #include <math/LinearSolver.h>
 
 #include <math.h>
-#include <iostream>
 
 class GivensSolver : public LinearSolver {
 public:

@@ -5,7 +5,6 @@
 #include <data/DataFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <vector>
 #include <list>
 
 namespace hist {class Histogram2D;}

@@ -11,7 +11,6 @@
 #include <em/detail/header/MapHeader.h>
 
 #include <vector>
-#include <string>
 #include <memory>
 
 namespace em {

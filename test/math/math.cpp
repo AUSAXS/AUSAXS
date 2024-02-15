@@ -1,3 +1,4 @@
+#include "plots/PlotOptions.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
@@ -15,9 +16,7 @@
 #include <plots/PlotDataset.h>
 
 #include <vector>
-#include <string>
 #include <iostream>
-#include <random>
 
 using std::cout, std::endl;
 
@@ -149,11 +148,9 @@ TEST_CASE("cubic_spline", "[manual],[math]") {
 
     SimpleDataset original(x, y);
     SimpleDataset interpolated(newx, newy);
-    original.add_plot_options(style::draw::points, {{"color", style::color::black}});
-    interpolated.add_plot_options(style::draw::line, {{"color", style::color::red}});
 
-    plots::PlotDataset plot(original);
-    plot.plot(interpolated);
+    plots::PlotDataset plot(original, plots::PlotOptions(style::draw::points, {{"color", style::color::black}}));
+    plot.plot(interpolated, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}));
     plot.save("temp/cubicspline.png");
 }
 

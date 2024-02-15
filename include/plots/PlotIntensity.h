@@ -8,8 +8,6 @@
 #include <dataset/DatasetFwd.h>
 #include <utility/observer_ptr.h>
 
-#include <memory>
-
 namespace plots {
 	class PlotIntensity : public Plot {
 		public:

@@ -1,14 +1,12 @@
 #pragma once
 
-#include <iterator>
-#include <initializer_list>
-#include <concepts>
-
 #include <Symbols.h>
 #include <utility/Concepts.h>
 #include <math/slices/Slice.h>
 #include <utility/Exceptions.h>
 #include <math/Vector.h>
+
+#include <initializer_list>
 
 /**
  * @brief Representation of a matrix. 
