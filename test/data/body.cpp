@@ -356,7 +356,8 @@ TEST_CASE_METHOD(fixture, "Body::atom_size") {
     CHECK(Body().atom_size() == 0);
 }
 
-TEST_CASE("grid") {
+// TODO: move to grid tests instead
+TEST_CASE("body_grid") {
     SECTION("single") {
         Body b({Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)});
         grid::Grid g(Limit3D(-2, 2, -2, 2, -2, 2));
@@ -372,8 +373,6 @@ TEST_CASE("grid") {
 
     SECTION("multiple") {
         constants::radius::set_dummy_radius(1);
-        // settings::grid::ra = 1;
-        // settings::grid::rh = 1;
         std::vector<Atom> a1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::dummy, "C", 1)};
         std::vector<Atom> a2 = {Atom(Vector3<double>( 1, -1, -1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>( 1, 1, -1), 1, constants::atom_t::dummy, "C", 1)};
         std::vector<Atom> a3 = {Atom(Vector3<double>(-1, -1,  1), 1, constants::atom_t::dummy, "C", 1), Atom(Vector3<double>(-1, 1,  1), 1, constants::atom_t::dummy, "C", 1)};
@@ -424,8 +423,6 @@ TEST_CASE("grid") {
     }
 
     SECTION("real data") {
-        // settings::grid::ra = 1;
-        // settings::grid::rh = 1;
         Molecule protein = rigidbody::BodySplitter::split("test/files/2epe.pdb", {9, 99});
         unsigned int N = protein.get_atoms().size();
         auto grid = protein.get_grid();

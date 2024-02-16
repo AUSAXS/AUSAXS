@@ -179,8 +179,9 @@ TEST_CASE("Axis::get_bin_value") {
 
     SECTION("d_axis") {
         auto& d_axis = constants::axes::d_axis;
+        double spacing = constants::axes::d_vals[1] - constants::axes::d_vals[0];
         for (unsigned int i = 0; i < d_axis.bins; ++i) {
-            CHECK_THAT(d_axis.get_bin_value(i), Catch::Matchers::WithinAbs(0.5*i, 1e-6));
+            CHECK_THAT(d_axis.get_bin_value(i), Catch::Matchers::WithinAbs(spacing*i, 1e-6));
         }
     }
 }

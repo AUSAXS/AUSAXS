@@ -24,7 +24,7 @@ namespace container {
             T& operator()(unsigned int i, unsigned int j, unsigned int k) {
                 #if (SAFE_MATH)
                     if (i >= N || j >= M || k >= L) {
-                        throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
+                        throw except::out_of_bounds("Container3D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
                     }
                 #endif
                 return data[k + L*(j + M*i)];
@@ -36,7 +36,7 @@ namespace container {
             const T& operator()(unsigned int i, unsigned int j, unsigned int k) const {
                 #if (SAFE_MATH)
                     if (i >= N || j >= M || k >= L) {
-                        throw except::out_of_bounds("Container2D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
+                        throw except::out_of_bounds("Container3D::operator: Index out of bounds (" + std::to_string(N) + ", " + std::to_string(M) + ", " + std::to_string(L) + ") <= (" + std::to_string(i) + ", " + std::to_string(j) + ", " + std::to_string(k) + ")");
                     }
                 #endif
                 return data[k + L*(j + M*i)];

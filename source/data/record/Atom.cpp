@@ -142,8 +142,9 @@ void Atom::parse_pdb(const std::string& str) {
         #ifdef DEBUG
             try {
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+                atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
             } catch (const except::base&) {
-            throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+                throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
             }
         #else 
             effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);

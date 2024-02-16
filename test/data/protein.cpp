@@ -253,9 +253,12 @@ TEST_CASE_METHOD(fixture, "Protein::generate_new_hydration") {
     settings::general::verbose = false;
 
     SECTION("generates new waters") {
+        // the molecule is really small, so we have to make sure there's enough space for the waters
+        settings::grid::scaling = 5;
         Molecule protein(bodies);
         protein.generate_new_hydration();
         REQUIRE(protein.water_size() != 0);
+        settings::grid::scaling = 0.25;
     }
 
     // we want to check that the hydration shells are consistent for fitting purposes

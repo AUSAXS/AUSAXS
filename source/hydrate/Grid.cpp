@@ -427,9 +427,9 @@ const GridMember<Water>& Grid::add(const Water& water, bool expand) {
 
     // sanity check
     #if DEBUG
-        if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins) [[unlikely]] {
+        if (x >= (int) axes.x.bins || y >= (int) axes.y.bins || z >= (int) axes.z.bins || x < 0 || y < 0 || z < 0) [[unlikely]] {
             throw except::out_of_bounds("Grid::add: Atom is located outside the grid!\nBin location: " + loc.to_string() + "\n: " + axes.to_string() + "\nReal location: " + water.coords.to_string());
-        }
+        } 
 
         if (!(grid.index(x, y, z) == detail::EMPTY || grid.index(x, y, z) == detail::W_CENTER || grid.index(x, y, z) == detail::VOLUME)) {
             throw except::invalid_operation("Grid::add: Attempting to add a water molecule to a non-empty location (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
@@ -544,8 +544,9 @@ void Grid::remove(const std::vector<Atom>& atoms) {
     // clean up the grid
     for (auto& atom : removed_atoms) {
         deflate_volume(atom);
-        grid.index(atom.get_bin_loc()) = detail::EMPTY;
-        volume--;
+        auto& bin = grid.index(atom.get_bin_loc());
+        volume -= grid.is_atom_center(bin); // bin may in rare cases contain two atoms, so we need to check
+        bin = detail::EMPTY;
     }
 }
 
