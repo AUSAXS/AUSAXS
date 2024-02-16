@@ -30,7 +30,7 @@ RecordType Terminate::get_type() const {return RecordType::TERMINATE;}
 std::string Terminate::get() const {return as_pdb();}
 
 void Terminate::parse_pdb(const std::string& s) {
-    if (s.size() < 28) {return;} // sometimes the terminate record consists only of "TER   "
+    if (s.size() < 26) {return;} // sometimes the terminate record consists only of "TER   "
 
     // http://www.wwpdb.org/documentation/file-format-content/format33/sect9.html#TER
 
@@ -62,10 +62,6 @@ void Terminate::parse_pdb(const std::string& s) {
     } catch (const std::exception&) { // catch conversion errors and output a more meaningful error message
         throw except::parse_error("Terminate::parse_pdb: Invalid field values in line \"" + s + "\".");
     }
-
-    // DEBUG OUTPUT
-    // cout << s << endl;
-    // cout << this->as_pdb() << endl;
 }
 
 std::string Terminate::as_pdb() const {

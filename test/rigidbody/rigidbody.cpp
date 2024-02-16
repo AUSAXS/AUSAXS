@@ -1,3 +1,4 @@
+#include "hist/intensity_calculator/ICompositeDistanceHistogram.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -10,6 +11,8 @@
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/transform/TransformGroup.h>
 #include <fitter/HydrationFitter.h>
+#include <data/record/Atom.h>
+#include <data/record/Water.h>
 #include <data/BodySplitter.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
@@ -38,24 +41,24 @@ TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
         fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
         double chi2 = fitter.fit()->fval;
 
-        fitter.set_scattering_hist(std::move(protein_LAR12.get_histogram()));
+        fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
         double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
-        fitter.set_scattering_hist(protein_2epe.get_histogram());
+        fitter.set_scattering_hist(protein_2epe.get_total_histogram());
         _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
 
     SECTION("simple_intensity_fitter") {
-        fitter::LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
+        fitter::LinearFitter fitter("test/files/2epe.dat", protein_2epe.get_total_histogram());
         double chi2 = fitter.fit()->fval;
 
-        fitter.set_scattering_hist(protein_LAR12.get_histogram());
+        fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
         double _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));
 
-        fitter.set_scattering_hist(protein_2epe.get_histogram());
+        fitter.set_scattering_hist(protein_2epe.get_total_histogram());
         _chi2 = fitter.fit()->fval;
         REQUIRE_THAT(chi2, Catch::Matchers::WithinRel(_chi2));
     }
@@ -64,37 +67,37 @@ TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
 // manually check the method of rigidbody::RigidBody::optimize
 TEST_CASE("RigidBody_iteration_step") {
     settings::general::verbose = false;
-    auto validate_single_step = [] (Protein& protein) {
+    auto validate_single_step = [] (Molecule& protein) {
         protein.generate_new_hydration();
 
         // fit the protein
         fitter::HydrationFitter fitter("test/files/2epe.dat", protein.get_histogram());
         auto chi2 = fitter.fit()->fval;
 
-        Body&                       body = protein.get_body(0);
-        std::shared_ptr<grid::Grid> grid = protein.get_grid();
-        Body                        old_body(body);
-        grid::Grid                  old_grid = *protein.get_grid();
-        Protein                     old_protein(protein);
+        Body&       body = protein.get_body(0);
+        auto        grid = protein.get_grid();
+        Body        old_body(body);
+        grid::Grid  old_grid = *protein.get_grid();
+        Molecule    old_protein(protein);
 
         //####################################//
         //### do one step of rigidbody opt ###//
         //####################################//
         grid->remove(&body);
-        body.translate(Vector3<double>(0, 0, 10));              // translate the body
-        body.rotate(Vector3<double>(0, 0, 1), 0.1);             // rotate the body
+        body.translate(Vector3<double>(0, 0, 10));          // translate the body
+        body.rotate(Vector3<double>(0, 0, 1), 0.1); // rotate the body
         grid->add(&body);
-        protein.generate_new_hydration();                       // generate a new hydration shell
-        fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
-        auto _chi2 = fitter.fit()->fval;                        // fit the protein
+        protein.generate_new_hydration();                             // generate a new hydration shell
+        fitter.set_scattering_hist(protein.get_total_histogram());  // update the scattering histogram to reflect the new body positions
+        auto _chi2 = fitter.fit()->fval;                      // fit the protein
         CHECK_THAT(chi2, !Catch::Matchers::WithinRel(_chi2));   // chi2 should be different
 
         //######################################//
         //### reset the state of the protein ###//
         //######################################//
-        protein.set_grid(old_grid);                             // reset the grid
-        body = std::move(old_body);                             // reset the body
-        grid = protein.get_grid();                              // reset the grid pointer
+        protein.set_grid(old_grid); // reset the grid
+        body = std::move(old_body); // reset the body
+        grid = protein.get_grid();  // reset the grid pointer
 
         // check that the grid is exactly identical
         auto axes = grid->get_axes();
@@ -164,13 +167,13 @@ TEST_CASE("RigidBody_iteration_step") {
         for (unsigned int i = 0; i < axes.x.bins; i++) {
             for (unsigned int j = 0; j < axes.y.bins; j++) {
                 for (unsigned int k = 0; k < axes.z.bins; k++) {
-                    if (grid->grid.index(i, j, k) == grid::GridObj::H_CENTER) {
+                    if (grid->grid.index(i, j, k) == grid::detail::State::W_CENTER) {
                         std::cout << "Failed on (i, j, k) = (" << i << ", j " << j << ", k " << k << ")" << std::endl;
-                        REQUIRE(grid->grid.index(i, j, k) != grid::GridObj::H_CENTER);
+                        REQUIRE(grid->grid.index(i, j, k) != grid::detail::State::W_CENTER);
                     }
-                    if (grid->grid.index(i, j, k) == grid::GridObj::H_AREA) {
+                    if (grid->grid.index(i, j, k) == grid::detail::State::W_AREA) {
                         std::cout << "Failed on (i, j, k) = (" << i << ", j " << j << ", k " << k << ")" << std::endl;
-                        REQUIRE(grid->grid.index(i, j, k) != grid::GridObj::H_AREA);
+                        REQUIRE(grid->grid.index(i, j, k) != grid::detail::State::W_AREA);
                     }
                 }
             }
@@ -180,9 +183,9 @@ TEST_CASE("RigidBody_iteration_step") {
         //################################################//
         //### check that the protein has been reverted ###//
         //################################################//
-        protein.generate_new_hydration();                       // generate a new hydration shell
-        fitter.set_scattering_hist(protein.get_histogram());    // update the scattering histogram to reflect the new body positions
-        _chi2 = fitter.fit()->fval;                             // fit the protein
+        protein.generate_new_hydration();                               // generate a new hydration shell
+        fitter.set_scattering_hist(protein.get_total_histogram());    // update the scattering histogram to reflect the new body positions
+        _chi2 = fitter.fit()->fval;                                     // fit the protein
         CHECK_THAT(chi2, Catch::Matchers::WithinRel(_chi2));    // chi2 should be the same
 
         // check that the waters are the same
@@ -215,22 +218,22 @@ TEST_CASE("RigidBody_iteration_step") {
     };
 
     SECTION("simple") {
-        Atom a1(1, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1, -1), 1, 0, "C", "");
-        Atom a2(2, "C", "", "LYS", "", 1, "", Vector3<double>(-1, -1,  1), 1, 0, "C", "");
-        Atom a3(3, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1, -1), 1, 0, "C", "");
-        Atom a4(4, "C", "", "LYS", "", 1, "", Vector3<double>(-1,  1,  1), 1, 0, "C", "");
-        Atom a5(5, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1, -1), 1, 0, "C", "");
-        Atom a6(6, "C", "", "LYS", "", 1, "", Vector3<double>( 1, -1,  1), 1, 0, "C", "");
-        Atom a7(7, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1, -1), 1, 0, "C", "");
-        Atom a8(8, "C", "", "LYS", "", 1, "", Vector3<double>( 1,  1,  1), 1, 0, "C", "");
+        record::Atom a1(1, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "");
+        record::Atom a2(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "");
+        record::Atom a3(3, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "");
+        record::Atom a4(4, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "");
+        record::Atom a5(5, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "");
+        record::Atom a6(6, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "");
+        record::Atom a7(7, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "");
+        record::Atom a8(8, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "");
 
-        Body b1(std::vector<Atom>{a1, a2});
-        Body b2(std::vector<Atom>{a3, a4});
-        Body b3(std::vector<Atom>{a5, a6});
-        Body b4(std::vector<Atom>{a7, a8});
+        Body b1(std::vector<record::Atom>{a1, a2});
+        Body b2(std::vector<record::Atom>{a3, a4});
+        Body b3(std::vector<record::Atom>{a5, a6});
+        Body b4(std::vector<record::Atom>{a7, a8});
         std::vector<Body> ap = {b1, b2, b3, b4};
-        Protein protein(ap);
-        grid::Grid grid(Axis3D(-20, 20, -20, 20, -20, 20, 1));
+        Molecule protein(ap);
+        grid::Grid grid({-20, 20, -20, 20, -20, 20});
         grid.add(protein.get_atoms());
         protein.set_grid(grid);
 
@@ -238,7 +241,7 @@ TEST_CASE("RigidBody_iteration_step") {
     }
 
     SECTION("real data") {
-        Protein protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
+        Molecule protein = BodySplitter::split("data/lysozyme/2epe.pdb", {9, 99});
         REQUIRE(protein.body_size() == 3);
         validate_single_step(protein);
     }
@@ -260,7 +263,7 @@ TEST_CASE("can_find_optimal_conformation") {
         body.transform->apply(matrix::rotation_matrix({0, 1, 0}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
         body.transform->apply(matrix::rotation_matrix({0, 0, 1}, M_PI),   {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
         body.transform->apply(matrix::rotation_matrix({1, 0, 0}, M_PI_4), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
-        auto hist = body.get_histogram().calc_debye_scattering_intensity();
+        auto hist = body.get_histogram()->debye_transform().as_dataset();
         hist.reduce(100);
         hist.simulate_errors();
         hist.simulate_noise();
@@ -276,7 +279,7 @@ TEST_CASE("can_find_optimal_conformation") {
         body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
         body.transform->apply(matrix::rotation_matrix({1, 0, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[1]);
         body.transform->apply(matrix::rotation_matrix({0, 1, 1}, M_PI_2), {0, 0, 0}, body.get_constraint_manager()->distance_constraints[2]);
-        auto hist = body.get_histogram().calc_debye_scattering_intensity();
+        auto hist = body.get_histogram()->debye_transform().as_dataset();
         hist.reduce(100);
         hist.simulate_errors();
         hist.simulate_noise();
@@ -292,7 +295,7 @@ TEST_CASE("can_find_optimal_conformation") {
         body.transform->apply(matrix::rotation_matrix({1, 1, 1}, M_PI_2), {10, 0, 0}, body.get_constraint_manager()->distance_constraints[0]);
         body.transform->apply(matrix::rotation_matrix({1, 0, 1}, 0), {0, 10, 0},      body.get_constraint_manager()->distance_constraints[1]);
         body.transform->apply(matrix::rotation_matrix({0, 1, 1}, 0), {0, 0, 10},      body.get_constraint_manager()->distance_constraints[2]);
-        auto hist = body.get_histogram().calc_debye_scattering_intensity();
+        auto hist = body.get_histogram()->debye_transform().as_dataset();
         hist.reduce(100);
         hist.simulate_errors();
         hist.simulate_noise();

@@ -6,6 +6,8 @@
 #include <constants/Constants.h>
 #include <settings/HistogramSettings.h>
 
+#include <iostream>
+
 TEST_CASE("Axis::Axis") {
     SECTION("default") {
         Axis axis;

@@ -354,6 +354,13 @@ double SimpleDataset::weighted_mean_error() const {
     return stats::weighted_mean_error(yerr());
 }
 
-bool SimpleDataset::operator==(const SimpleDataset& other) const = default;
+// bool SimpleDataset::operator==(const SimpleDataset& other) const = default;
+
+bool SimpleDataset::operator==(const SimpleDataset& other) const {
+    if (size() != other.size()) {return false;}
+    if (this->data != other.data) {return false;}
+    return true;
+}
+
 SimpleDataset& SimpleDataset::operator=(const SimpleDataset& other) = default;
 SimpleDataset& SimpleDataset::operator=(SimpleDataset&& other) noexcept = default;

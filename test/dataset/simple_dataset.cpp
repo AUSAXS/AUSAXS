@@ -1,3 +1,4 @@
+#include "settings/GeneralSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -10,6 +11,7 @@ struct fixture {
 };
 
 TEST_CASE("SimpleDataset::SimpleDataset") {
+    settings::general::verbose = false;
     SECTION("default constructor") {
         SimpleDataset dataset;
         CHECK(dataset.size() == 0);
@@ -75,6 +77,7 @@ TEST_CASE_METHOD(fixture, "SimpleDataset::yerr") {
 }
 
 TEST_CASE("SimpleDataset::load") {
+    settings::general::verbose = false;
     SECTION("simple") {
         SimpleDataset dataset(
             std::vector<double>{0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10}, 
@@ -110,6 +113,7 @@ TEST_CASE("SimpleDataset::load") {
 }
 
 TEST_CASE("SimpleDataset::save") {
+    settings::general::verbose = false;
     SECTION("same contents") {
         SimpleDataset data("test/files/2epe.dat");
         auto data2 = data;
@@ -414,6 +418,7 @@ TEST_CASE_METHOD(fixture, "SimpleDataset::get_point") {
 }
 
 TEST_CASE("SimpleDataset::find_minimum") {
+    settings::general::verbose = false;
     SECTION("simple") {
         SimpleDataset dataset(
             std::vector<double>{1, 2, 3, 4, 5}, 

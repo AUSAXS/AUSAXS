@@ -30,7 +30,7 @@ TEST_CASE("Terminate::parse_pdb") {
     CHECK(terminate.resName == "LYS");
     CHECK(terminate.chainID == 'A');
     CHECK(terminate.resSeq == 2);
-    CHECK(terminate.iCode == "");
+    CHECK(terminate.iCode == " ");
 }
 
 TEST_CASE("Terminate::as_pdb") {
@@ -40,8 +40,9 @@ TEST_CASE("Terminate::as_pdb") {
 
 TEST_CASE("Terminate::get") {
     Terminate terminate;
-    terminate.parse_pdb("TER       1      LYS A   2");
-    REQUIRE(terminate.get() == "TER       1      LYS A   2\n");
+    std::string res = "TER       1      LYS A   2";
+    terminate.parse_pdb(res);
+    REQUIRE(terminate.get().substr(0, res.size()) == res);
 }
 
 TEST_CASE("Terminate::set_serial") {

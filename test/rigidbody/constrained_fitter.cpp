@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <rigidbody/constraints/ConstrainedFitter.h>
+#include <hist//intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/HydrationFitter.h>
 #include <rigidbody/RigidBody.h>
 #include <math/Vector3.h>

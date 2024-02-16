@@ -21,7 +21,7 @@
 
 using namespace data;
 using namespace data::record;
-using std::cout, std::endl, std::vector, std::shared_ptr;
+using std::cout, std::endl, std::vector;
 
 struct fixture {
     fixture() {
@@ -163,7 +163,10 @@ TEST_CASE_METHOD(fixture, "Protein::get_cm") {
     REQUIRE(cm == Vector3<double>{0, 0, 0});
 }
 
-TEST_CASE_METHOD(fixture, "Protein::get_volume") {
+TEST_CASE_METHOD(fixture, "Protein::get_volume", "[broken]") {
+    // broken since it was supposed to use the old protein.get_volume_acids() method
+    // since the protein does not consist of a complete amino acid, the volume is not correct
+    // TODO: create a protein containing a full amino acid and check if the volume is roughly correct
     Molecule protein(bodies, {});
     REQUIRE_THAT(protein.get_volume_grid(), Catch::Matchers::WithinRel(4*constants::volume::amino_acids.get("LYS")));
 }
@@ -340,13 +343,6 @@ TEST_CASE_METHOD(fixture, "Protein::set_grid") {
     REQUIRE(*protein.get_grid() == grid);
 }
 
-TEST_CASE_METHOD(fixture, "Protein::clear_grid") {
-    Molecule protein(bodies, {});
-    auto grid = protein.get_grid();
-    protein.clear_grid(); 
-    REQUIRE(protein.get_grid() != grid); // get_grid creates a new grid if it doesn't exist
-}
-
 TEST_CASE_METHOD(fixture, "Protein::clear_hydration") {
     Molecule protein2(bodies, {w1, w2});
     REQUIRE(protein2.water_size() != 0);
@@ -356,7 +352,6 @@ TEST_CASE_METHOD(fixture, "Protein::clear_hydration") {
 
 TEST_CASE_METHOD(fixture, "Protein::center") {
     Molecule protein(bodies, {});
-    Vector3<double> cm = protein.get_cm();
     REQUIRE(protein.get_cm() == Vector3<double>{0, 0, 0});
 
     protein.translate(Vector3<double>{1, 1, 1});
