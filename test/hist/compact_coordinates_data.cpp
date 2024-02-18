@@ -146,7 +146,7 @@ void octo_tests(std::function<OctoEvaluatedResult(const DebugData&, const DebugD
         CHECK_THAT(result.distance.fifth,  Catch::Matchers::WithinAbs(std::sqrt(48), 1e-6));
         CHECK_THAT(result.distance.sixth,  Catch::Matchers::WithinAbs(std::sqrt(75), 1e-6));
         CHECK_THAT(result.distance.seventh,Catch::Matchers::WithinAbs(std::sqrt(108), 1e-6));
-        CHECK_THAT(result.distance.eighth, Catch::Matchers::WithinAbs(std::sqrt(147), 1e-6));
+        CHECK_THAT(result.distance.eighth, Catch::Matchers::WithinAbs(std::sqrt(147), 1e-5)); // float accuracy loss
         CHECK(result.weight.first == 8);
         CHECK(result.weight.second == 16);
         CHECK(result.weight.third == 32);

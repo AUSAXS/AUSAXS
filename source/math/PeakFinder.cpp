@@ -10,8 +10,8 @@
         Connect all local maxima with a line. This is essentially what we're doing now anyway, except we're doing it in a more complicated roundabout way.
 */
 
-#define DEBUG_PLOT true
-#define DEBUG_OUTPUT true
+#define DEBUG_PLOT false
+#define DEBUG_OUTPUT false
 #define DEBUG_PRINT(x) if (DEBUG_OUTPUT) {std::cout << x << std::endl;}
 
 std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const std::vector<double>& y, unsigned int min_spacing, double min_prominence) {

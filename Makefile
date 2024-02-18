@@ -362,14 +362,21 @@ debug_tests: $(test_files) $(source)
 	done
 
 tests-console: $(source)
-	@ make -C build tests -j${cmake_threads}
+	@ make -C build tests -j${cmake_threads} --no-print-directory
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags) --reporter console;\
 	done
 
+tests-html: $(source)
+	@ make -C build tests -j${cmake_threads} --no-print-directory
+	@ mkdir -p build/test/reports
+	@ for test in $$(find build/test/bin/test_*); do\
+		$${test} $(exclude_tags) --reporter html --out build/test/report.html;\
+	done
+
 tests: $(source)
-	@ make -C build tests -j${cmake_threads}
+	@ make -C build tests -j${cmake_threads} --no-print-directory
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\

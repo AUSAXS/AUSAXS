@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <dataset/detail/DATReader.h>
 #include <dataset/detail/XVGReader.h>
@@ -102,6 +103,13 @@ TEST_CASE("DATReader::construct") {
     }
 }
 
+auto vec_approx = [](const auto& v1, const auto& v2) {
+    REQUIRE(v1.size() == v2.size());
+    for (unsigned int i = 0; i < v1.size(); i++) {
+        CHECK_THAT(v1[i], Catch::Matchers::WithinAbs(v2[i], 1e-6));
+    }
+};
+
 TEST_CASE("XVGReader::construct") {
     settings::general::verbose = false;
     std::string test_file = "temp/dataset/dat_test.dat";
@@ -121,27 +129,27 @@ TEST_CASE("XVGReader::construct") {
             // default M
             auto data = detail::XVGReader().construct(test_file, 0);
             REQUIRE(data->M == 3);
-            CHECK(data->col(0) == Vector<double>({0.01, 0.02, 0.03}));
-            CHECK(data->col(1) == Vector<double>({1,    2,    3}));
-            CHECK(data->col(2) == Vector<double>({10,   20,   30}));
+            vec_approx(data->col(0), std::vector<double>({0.01, 0.02, 0.03}));
+            vec_approx(data->col(1), std::vector<double>({1, 2, 3}));
+            vec_approx(data->col(2), std::vector<double>({10, 20, 30}));
 
             // M = 1
             auto data1 = detail::XVGReader().construct(test_file, 1);
             REQUIRE(data1->M == 1);
-            CHECK(data1->col(0) == Vector<double>({0.01, 0.02, 0.03}));
+            vec_approx(data1->col(0), std::vector<double>({0.01, 0.02, 0.03}));
 
             // M = 2
             auto data2 = detail::XVGReader().construct(test_file, 2);
             REQUIRE(data2->M == 2);
-            CHECK(data2->col(0) == Vector<double>({0.01, 0.02, 0.03}));
-            CHECK(data2->col(1) == Vector<double>({1,    2,    3}));
+            vec_approx(data2->col(0), std::vector<double>({0.01, 0.02, 0.03}));
+            vec_approx(data2->col(1), std::vector<double>({1,    2,    3}));
 
             // M = 3
             auto data3 = detail::XVGReader().construct(test_file, 3);
             REQUIRE(data3->M == 3);
-            CHECK(data3->col(0) == Vector<double>({0.01, 0.02, 0.03}));
-            CHECK(data3->col(1) == Vector<double>({1,    2,    3}));
-            CHECK(data3->col(2) == Vector<double>({10,   20,   30}));
+            vec_approx(data3->col(0), std::vector<double>({0.01, 0.02, 0.03}));
+            vec_approx(data3->col(1), std::vector<double>({1,    2,    3}));
+            vec_approx(data3->col(2), std::vector<double>({10,   20,   30}));
         }
     }
 
@@ -164,36 +172,36 @@ TEST_CASE("XVGReader::construct") {
             // default M
             auto data = detail::XVGReader().construct(test_file, 0);
             REQUIRE(data->M == 4);
-            CHECK(data->col(0) == Vector<double>({0.01, 0.02, 0.03, 0.04}));
-            CHECK(data->col(1) == Vector<double>({1,    2,    3,    4}));
-            CHECK(data->col(2) == Vector<double>({10,   20,   30,   40}));
-            CHECK(data->col(3) == Vector<double>({100,  200,  300,  400}));
+            vec_approx(data->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
+            vec_approx(data->col(1), std::vector<double>({1,    2,    3,    4}));
+            vec_approx(data->col(2), std::vector<double>({10,   20,   30,   40}));
+            vec_approx(data->col(3), std::vector<double>({100,  200,  300,  400}));
 
             // M = 1
             auto data1 = detail::XVGReader().construct(test_file, 1);
             REQUIRE(data1->M == 1);
-            CHECK(data->col(0) == Vector<double>({0.01, 0.02, 0.03, 0.04}));
+            vec_approx(data1->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
 
             // M = 2
             auto data2 = detail::XVGReader().construct(test_file, 2);
             REQUIRE(data2->M == 2);
-            CHECK(data2->col(0) == Vector<double>({0.01, 0.02, 0.03, 0.04}));
-            CHECK(data2->col(1) == Vector<double>({1,    2,    3,    4}));
+            vec_approx(data2->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
+            vec_approx(data2->col(1), std::vector<double>({1,    2,    3,    4}));
 
             // M = 3
             auto data3 = detail::XVGReader().construct(test_file, 3);
             REQUIRE(data3->M == 3);
-            CHECK(data3->col(0) == Vector<double>({0.01, 0.02, 0.03, 0.04}));
-            CHECK(data3->col(1) == Vector<double>({1,    2,    3,    4}));
-            CHECK(data3->col(2) == Vector<double>({10,   20,   30,   40}));
+            vec_approx(data3->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
+            vec_approx(data3->col(1), std::vector<double>({1,    2,    3,    4}));
+            vec_approx(data3->col(2), std::vector<double>({10,   20,   30,   40}));
 
             // M = 4
             auto data4 = detail::XVGReader().construct(test_file, 4);
             REQUIRE(data4->M == 4);
-            CHECK(data4->col(0) == Vector<double>({0.01, 0.02, 0.03, 0.04}));
-            CHECK(data4->col(1) == Vector<double>({1,    2,    3,    4}));
-            CHECK(data4->col(2) == Vector<double>({10,   20,   30,   40}));
-            CHECK(data4->col(3) == Vector<double>({100,  200,  300,  400}));
+            vec_approx(data4->col(0), std::vector<double>({0.01, 0.02, 0.03, 0.04}));
+            vec_approx(data4->col(1), std::vector<double>({1,    2,    3,    4}));
+            vec_approx(data4->col(2), std::vector<double>({10,   20,   30,   40}));
+            vec_approx(data4->col(3), std::vector<double>({100,  200,  300,  400}));
         }
     }
 }

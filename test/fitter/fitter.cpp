@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <em/ImageStack.h>
 #include <plots/All.h>
@@ -33,10 +34,10 @@ TEST_CASE("consistency_check", "[slow],[manual]") {
 
     // prepare fit data
     em::ImageStack image("sim/native_23.ccp4");
-    auto hist = protein.get_histogram();
 
     std::vector<double> optimal_vals;
     for (unsigned int i = 0; i < repeats; i++) {
+        auto hist = protein.get_histogram();
         auto fit = image.fit(std::move(hist));
         optimal_vals.push_back(fit->get_parameter("cutoff").value);
     }
@@ -48,8 +49,15 @@ TEST_CASE("consistency_check", "[slow],[manual]") {
 
 TEST_CASE("excluded_volume") {
     settings::molecule::use_effective_charge = true;
+    settings::hist::histogram_manager = GENERATE(
+        settings::hist::HistogramManagerChoice::HistogramManager, 
+        settings::hist::HistogramManagerChoice::PartialHistogramManager,
+        settings::hist::HistogramManagerChoice::PartialHistogramManagerMT,
+        settings::hist::HistogramManagerChoice::HistogramManagerMT
+    );
 
-    SECTION("simple") {
+    //! broken because bodies are not registered to the signaller at time of call?
+    SECTION("simple, " + std::to_string(static_cast<int>(settings::hist::histogram_manager))) {
         std::string mfile = "test/files/2epe.dat";
         Molecule protein("test/files/2epe.pdb");
 
@@ -64,7 +72,7 @@ TEST_CASE("excluded_volume") {
         protein.update_effective_charge(1.0);
         fitter.set_scattering_hist(protein.get_histogram());
         fit2 = fitter.fit();
-        REQUIRE(fit1->fval == fit2->fval);
+        REQUIRE_THAT(fit1->fval, Catch::Matchers::WithinAbs(fit2->fval, 1e-6));
     }
 
 }
