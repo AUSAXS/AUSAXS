@@ -17,6 +17,7 @@
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <hist/detail/CompactCoordinates.h>
 #include <constants/Constants.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>
@@ -263,25 +264,45 @@ Water& Molecule::get_waters(unsigned int i) {return hydration_atoms[i];}
 const Water& Molecule::get_water(unsigned int i) const {return hydration_atoms[i];}
 
 std::vector<double> Molecule::debye_transform() const {
-    std::vector<Atom> atoms = get_atoms();
+    auto data = hist::detail::CompactCoordinates(get_bodies());
     auto& q_axis = constants::axes::q_vals;
+
+    auto contribution = [] (double qr, float w) -> double {
+        if (qr < 1e-9) {
+            return w;
+        } else {
+            return w*std::sin(qr)/qr;
+        }
+    };
 
     std::vector<double> I;
     I.reserve(q_axis.size());
     for (const auto& q : q_axis) {
         double sum = 0;
-        for (const auto& atom_i : atoms) {
-            for (const auto& atom_j : atoms) {
-                double fi = atom_i.get_effective_charge()*atom_i.get_occupancy();
-                double fj = atom_j.get_effective_charge()*atom_j.get_occupancy();
-                double qr = q*atom_i.distance(atom_j);
-                if (qr < 1e-9) {
-                    sum += fi*fj;
-                } else {
-                    sum += fi*fj*std::sin(qr)/qr;
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            unsigned int j = i+1;
+            for (; j+7 < data.size(); j+=8) {
+                auto res = data[i].evaluate(data[j], data[j+1], data[j+2], data[j+3], data[j+4], data[j+5], data[j+6], data[j+7]);
+                for (unsigned int k = 0; k < 8; ++k) {
+                    sum += contribution(q*res.distances[k], 2*res.weights[k]);
                 }
             }
+
+            for (; j+3 < data.size(); j+=4) {
+                auto res = data[i].evaluate(data[j], data[j+1], data[j+2], data[j+3]);
+                for (unsigned int k = 0; k < 4; ++k) {
+                    sum += contribution(q*res.distances[k], 2*res.weights[k]);
+                }
+            }
+
+            for (; j < data.size(); ++j) {
+                auto res = data[i].evaluate(data[j]);
+                    sum += contribution(q*res.distance, 2*res.weight);
+            }
+
+            sum += std::pow(data[i].value.w, 2);
         }
+
         sum *= std::exp(-q*q);
         I.push_back(sum);
     }

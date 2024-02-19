@@ -23,7 +23,7 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
         );
 
         SECTION(false_file) {
-            auto hist = data::Molecule("test/files/" + std::string(false_file) + ".pdb").get_histogram();
+            auto hist = data::Molecule(settings::general::output + "test/files/" + std::string(false_file) + ".pdb").get_histogram();
             REQUIRE_FALSE(hist->is_highly_ordered());
         }
     }
@@ -36,7 +36,7 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
         );
 
         SECTION(true_file) {
-            auto hist = data::Molecule("test/files/" + std::string(true_file) + ".pdb").get_histogram(); 
+            auto hist = data::Molecule(settings::general::output + "test/files/" + std::string(true_file) + ".pdb").get_histogram(); 
             REQUIRE(hist->is_highly_ordered());
         }
     }
@@ -48,15 +48,17 @@ TEST_CASE("DistanceHistogram: check relative errors") {
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = true;
 
+    // only use small-ish files here
     auto file = GENERATE(
         "2epe",
         "6lyz",
         "LAR1-2",
-        "SASDJQ4",
-        "6lyz_exv"
+        "diamond",
+        "c60"
     );
 
-    SECTION("") {
+    SECTION(file) {
+        std::cout << file << std::endl;
         auto protein = data::Molecule("test/files/" + std::string(file) + ".pdb");
         protein.clear_hydration();
         auto hist = protein.get_histogram();
@@ -70,12 +72,7 @@ TEST_CASE("DistanceHistogram: check relative errors") {
 
         for (unsigned int i = 0; i < I_estimated.size(); ++i) {
             auto rel_error = std::abs(I_estimated[i] - I_exact[i]) / I_exact[i];
-            if (rel_error > 0.01) {
-                std::cout << "Relative error on index " + std::to_string(i) + ": " << rel_error << std::endl;
-                std::cout << "\tEstimated " << I_estimated[i] << std::endl;
-                std::cout << "\tExact     " << I_exact[i] << std::endl;
-            }
-            REQUIRE(rel_error < 0.1);
+            REQUIRE(rel_error < 0.01);
         }
     }
 }

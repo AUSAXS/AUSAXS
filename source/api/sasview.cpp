@@ -34,10 +34,10 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
 
     Molecule protein(atoms);
     auto dist = protein.get_histogram();
-    if (dist->is_highly_ordered()) {
-        *_return_status = 2;
-        return;
-    }
+    // if (dist->is_highly_ordered()) {
+    //     *_return_status = 2;
+    //     return;
+    // }
 
     auto Iq = dist->debye_transform(q);
 

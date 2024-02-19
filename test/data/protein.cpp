@@ -209,7 +209,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
                 REQUIRE(false);
             }
         }
-        CHECK(true);
+        SUCCEED();
     }
 
     SECTION("compare_debye_real") {
@@ -227,6 +227,7 @@ TEST_CASE_METHOD(fixture, "Protein::get_histogram") {
                 REQUIRE(false);
             }
         }
+        SUCCEED();
     }
 }
 

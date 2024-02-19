@@ -1,9 +1,6 @@
 set(CMAKE_CXX_STANDARD 20)
 
-# Reset the compile options for the test files
 set(CMAKE_CXX_FLAGS "")
-
-# Set the desired compile options for the test files
 set(CMAKE_CXX_FLAGS_TEST
     "-Os -Wpedantic -Wall -Wextra"
     CACHE STRING "Flags used by the C++ compiler during test builds."
