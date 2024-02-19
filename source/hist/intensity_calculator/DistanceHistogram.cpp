@@ -1,3 +1,4 @@
+#include "constants/Axes.h"
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
 #include <hist/Histogram.h>
@@ -65,6 +66,23 @@ ScatteringProfile DistanceHistogram::debye_transform() const {
     return ScatteringProfile(Iq, debye_axis);
 }
 
+SimpleDataset DistanceHistogram::debye_transform(const std::vector<double>& q) const {
+    // if the q values are within the default range, we can just interpolate them for better performance
+    if (constants::axes::q_axis.min < q.front() && q.back() < constants::axes::q_axis.max) {
+        return debye_transform().as_dataset().interpolate(q);
+    }
+
+    auto sinqd_table = table::VectorDebyeTable(d_axis, q);
+
+    // calculate the scattering intensity based on the Debye equation
+    std::vector<double> Iq(q.size(), 0);
+    for (unsigned int i = 0; i < q.size(); ++i) { // iterate through all q values
+        Iq[i] = std::inner_product(p.begin(), p.end(), sinqd_table.begin(i), 0.0);
+        Iq[i] *= std::exp(-q[i]*q[i]); // form factor
+    }
+    return SimpleDataset(q, Iq);
+}
+
 const std::vector<double>& DistanceHistogram::get_d_axis() const {return d_axis;}
 
 const std::vector<double>& DistanceHistogram::get_q_axis() {
@@ -75,3 +93,18 @@ const std::vector<double>& DistanceHistogram::get_q_axis() {
 const std::vector<double>& DistanceHistogram::get_total_counts() const {return get_counts();}
 
 std::vector<double>& DistanceHistogram::get_total_counts() {return get_counts();}
+
+bool DistanceHistogram::is_highly_ordered() const {
+    // count the number of 'spikes', defined as points that are at least 50% larger than their neighbours
+    // also count the number of bins with non-zero counts
+    unsigned int peaks = 0;
+    unsigned int non_zero = 0;
+    for (unsigned int i = 1; i < p.size()-1; ++i) {
+        if (p[i] == 0) {continue;}
+        if (p[i] > 1.5*p[i-1] && p[i] > 1.5*p[i+1]) {++peaks;}
+        ++non_zero;
+    }
+
+    // if the number of peaks is at least 25% of the number of non-zero bins, we consider the structure to be highly ordered
+    return peaks > non_zero*0.25;
+}

@@ -10,8 +10,6 @@
 #include <math/ConstexprMath.h>
 
 #include <string>
-#include <cmath>
-#include <array>
 
 /**
  * @brief This namespace contains all constants used in this project. 

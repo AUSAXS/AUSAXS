@@ -1,5 +1,6 @@
 #pragma once
 
+#include "dataset/SimpleDataset.h"
 #include <utility/Axis.h>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/WeightedDistribution1D.h>
@@ -55,6 +56,15 @@ namespace hist {
             virtual ScatteringProfile debye_transform() const;
 
             /**
+             * @brief Perform the Fourier transform through the Debye equation.
+             *        If the given q-axis is within the range of the default q-axis, they will be interpolated for better efficiency. 
+             *        If not, a size q*d sinc(x) lookup table will be calculated for every call to this function.
+             *
+             * @param q The q values at which to evaluate the scattering. 
+             */
+            virtual SimpleDataset debye_transform(const std::vector<double>& q) const;
+
+            /**
              * @brief Get the distance axis describing the current histogram.
              */
             const std::vector<double>& get_d_axis() const;
@@ -69,6 +79,12 @@ namespace hist {
              */
             virtual const std::vector<double>& get_total_counts() const;
             std::vector<double>& get_total_counts(); // @copydoc get_total_counts() const
+
+            /**
+             * @brief Determine if the structure represented by this histogram is highly ordered.
+             *        This is done by estimating the number of peaks in the histogram and comparing it to the number of bins.             
+             */
+            bool is_highly_ordered() const;
 
         protected:
             std::vector<double> d_axis;                             // The distance axis.

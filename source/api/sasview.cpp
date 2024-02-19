@@ -13,7 +13,9 @@ using namespace data;
 using namespace data::record;
 
 void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double* _w, int _nq, int _nc, int* _return_status, double* _return_Iq) {
-    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManager;
+    *_return_status = 1; // default state is error since we don't trust the input enough to assume success
+
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     settings::hist::weighted_bins = false;
@@ -25,12 +27,6 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     std::vector<double> z(_z, _z+_nc);
     std::vector<double> w(_w, _w+_nc);
 
-    *_return_status = 1;
-    if (q.front() < constants::axes::q_axis.min || constants::axes::q_axis.max < q.back()) {
-        *_return_status = 2;
-        return;
-    }
-
     std::vector<Atom> atoms(_nc);
     for (int i = 0; i < _nc; ++i) {
         atoms[i] = Atom({x[i], y[i], z[i]}, w[i], constants::atom_t::dummy, "", i);
@@ -38,18 +34,21 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
 
     Molecule protein(atoms);
     auto dist = protein.get_histogram();
-    auto Iq = protein.get_histogram()->debye_transform();
+    if (dist->is_highly_ordered()) {
+        *_return_status = 2;
+        return;
+    }
+
+    auto Iq = dist->debye_transform(q);
+
+    if ((int) Iq.size() != _nq) {
+        *_return_status = 3;
+        return;
+    }
 
     // remove the form factor applied by the debye transform
     for (unsigned int i = 0; i < Iq.size(); ++i) {
-        Iq[i] /= std::exp(-constants::axes::q_vals[i]*constants::axes::q_vals[i]);
-    }
-
-    auto res = Iq.as_dataset().interpolate(q);
-    for (int i = 0; i < _nq; ++i) {
-        _return_Iq[i] = res.y(i);
+        _return_Iq[i] =  Iq.y(i) / std::exp(-constants::axes::q_vals[i]*constants::axes::q_vals[i]);
     }
     *_return_status = 0;
-
-    std::cout << "Successfully calculated I(q) for " << _nc << " atoms and " << _nq << " q values." << std::endl;
 }

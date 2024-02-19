@@ -1,6 +1,7 @@
 #pragma once
 
 #include <plots/Plot.h>
+#include <utility/observer_ptr.h>
 
 namespace hist {class Histogram;}
 namespace plots {
@@ -13,11 +14,6 @@ namespace plots {
 
 			virtual ~PlotHistogram();
 
-			/**
-			 * @brief Copy constructor.
-			 * 
-			 * @param h The Histogram to be plotted. 
-			 */
 			PlotHistogram(const hist::Histogram& h, const plots::PlotOptions& options);
 
 			PlotHistogram& plot(const hist::Histogram& hist, const plots::PlotOptions& options);

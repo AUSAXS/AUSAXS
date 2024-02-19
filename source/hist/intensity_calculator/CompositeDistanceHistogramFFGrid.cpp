@@ -1,4 +1,5 @@
 #include "hist/intensity_calculator/CompositeDistanceHistogramFFAvg.h"
+#include "utility/Exceptions.h"
 #include <hist/intensity_calculator/CompositeDistanceHistogramFFGrid.h>
 #include <form_factor/PrecalculatedFormFactorProduct.h>
 #include <form_factor/ExvFormFactor.h>
@@ -106,6 +107,10 @@ ScatteringProfile CompositeDistanceHistogramFFGrid::debye_transform() const {
         Iq[q-q0] += cw*cw*ww_sum*ff_table.index(form_factor::water_bin, form_factor::water_bin).evaluate(q);
     }
     return ScatteringProfile(Iq, debye_axis);
+}
+
+SimpleDataset CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>&) const {
+    throw except::not_implemented("CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>& q) const");
 }
 
 ScatteringProfile CompositeDistanceHistogramFFGrid::get_profile_xx() const {

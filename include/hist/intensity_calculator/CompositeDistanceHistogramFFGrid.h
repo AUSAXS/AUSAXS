@@ -56,7 +56,11 @@ namespace hist {
              */
             static void regenerate_table() {ff_table = generate_table();}
 
-            virtual ScatteringProfile debye_transform() const override; // @copydoc DistanceHistogram::debye_transform() const
+            // @copydoc DistanceHistogram::debye_transform() const
+            virtual ScatteringProfile debye_transform() const override;
+
+            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
+            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
 
             /**
              * @brief Get the intensity profile for atom-water interactions.

@@ -218,7 +218,7 @@ TEST_CASE_METHOD(fixture, "Body::translate") {
     SECTION("informs manager") {
         auto protein = Molecule({body});
         auto manager = protein.get_histogram_manager()->get_state_manager();
-        manager->reset();
+        manager->reset_to_false();
         protein.get_body(0).translate(Vector3<double>(10, 0, 0));
         CHECK(protein.get_body(0).get_atom(0).coords == Vector3<double>(9, -1, -1));
         CHECK(protein.get_body(0).get_atom(1).coords == Vector3<double>(9, 1, -1));
@@ -332,7 +332,7 @@ TEST_CASE("Body::get_file") {
 TEST_CASE_METHOD(fixture, "Body::state") {
     auto protein = Molecule({body});
     auto manager = protein.get_histogram_manager()->get_state_manager();
-    manager->reset();
+    manager->reset_to_false();
 
     SECTION("Body::changed_external_state") {
         protein.get_body(0).changed_external_state();

@@ -13,7 +13,7 @@ using namespace state;
 
 struct fixture {
     fixture() : manager(5) {
-        manager.reset();
+        manager.reset_to_false();
     }
     StateManager manager;
 };
@@ -70,7 +70,7 @@ TEST_CASE_METHOD(fixture, "StateManager::modified_hydration_layer") {
 TEST_CASE("StateManager::reset") {
     unsigned int size = 5;
     StateManager manager(size);
-    manager.reset();
+    manager.reset_to_false();
     CHECK(manager.get_externally_modified_bodies() == std::vector{false, false, false, false, false});
     CHECK(manager.get_internally_modified_bodies() == std::vector{false, false, false, false, false});
     CHECK(manager.get_modified_hydration() == false);

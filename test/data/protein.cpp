@@ -630,7 +630,7 @@ TEST_CASE_METHOD(fixture, "Protein::bind_body_signallers") {
             CHECK(manager->get_probe(i) == bodies[i].get_signaller());
         }
 
-        manager->reset();
+        manager->reset_to_false();
         for (unsigned int i = 0; i < bodies.size(); ++i) {
             bodies[i].changed_external_state();
             CHECK(manager->is_externally_modified(i));
@@ -653,7 +653,7 @@ TEST_CASE_METHOD(fixture, "Protein::bind_body_signallers") {
 TEST_CASE_METHOD(fixture, "Protein::signal_modified_hydration_layer") {
     Molecule protein(bodies, {});
     auto manager = protein.get_histogram_manager()->get_state_manager();
-    manager->reset();
+    manager->reset_to_false();
     REQUIRE(manager->get_modified_hydration() == false);
 
     protein.signal_modified_hydration_layer();

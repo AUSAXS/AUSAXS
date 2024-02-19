@@ -21,6 +21,10 @@ VectorDebyeTable::VectorDebyeTable(const std::array<constants::axes::d_type, con
     initialize(constants::axes::q_vals, d);
 }
 
+VectorDebyeTable::VectorDebyeTable(const std::vector<constants::axes::d_type>& d, const std::vector<double>& q) : Table(q.size(), d.size()) {
+    initialize(q, d);
+}
+
 template<container_type T1, container_type T2>
 void VectorDebyeTable::initialize(const T1& q, const T2& d) {
     constexpr double tolerance = 1e-3;  // The minimum x-value where sin(x)/x is replaced by its Taylor-series.

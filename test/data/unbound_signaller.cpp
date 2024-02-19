@@ -6,7 +6,7 @@
 
 struct fixture {
     fixture() : sm(5) {
-        sm.reset();
+        sm.reset_to_false();
     }
     state::StateManager sm;
 };

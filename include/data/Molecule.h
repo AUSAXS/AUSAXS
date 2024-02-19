@@ -237,9 +237,8 @@ namespace data {
 			observer_ptr<grid::Grid> create_grid() const;
 
 			/**
-			 * @brief Calculate the Debye scattering intensity for this molecule. Does not include hydration atoms. 
-			 *        This explicitly calculates each term in the double-sum. For a far more efficient approach, 
-			 *        create a ScatteringHistogram and call its equivalent method instead. 
+			 * @brief Calculate the exact Debye scattering intensity for this molecule without accounting for the hydration layer. A simple exp(-q*q) is used as the form factor. 
+			 *        This explicitly evaluates each term in the double-sum. For a far more efficient approach, create a ScatteringHistogram and call its equivalent method instead. 
 			 */
 			[[nodiscard]] std::vector<double> debye_transform() const;
 

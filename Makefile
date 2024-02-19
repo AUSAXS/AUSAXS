@@ -351,7 +351,7 @@ tags := ""
 exclude_tags := "~[broken] ~[manual] ~[slow] ~[disable]"
 test_files = $(addprefix test/, $(shell find test/ -name "*.cpp" -printf "%P "))
 
-memtest/%: $$(shell find tests/ -name "$*.cpp" 2>/dev/null)
+memtest/%: | $$(shell find test -wholename "*/$$*.cpp") $(source)
 	@ make -C build "test_$*" -j${cmake_threads}
 	valgrind --track-origins=yes --log-file="valgrind.txt" build/test/bin/test_$* ~[slow] ~[broken] ${tags}
 
@@ -361,28 +361,29 @@ debug_tests: $(test_files) $(source)
 		$${test} $(exclude_tags);\
 	done
 
-tests-console: $(source)
+tests-console: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
+		echo "##### Running tests from $$(basename $${test}) #####";\
 		$${test} $(exclude_tags) --reporter console;\
 	done
 
-tests-html: $(source)
+tests-html: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags) --reporter html --out build/test/report.html;\
 	done
 
-tests: $(source)
+tests: | $(source)
 	@ make -C build tests -j${cmake_threads} --no-print-directory
 	@ mkdir -p build/test/reports
 	@ for test in $$(find build/test/bin/test_*); do\
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%: $$(shell find test -wholename "*/$$*.cpp") $(source)
+test/%: | $$(shell find test -wholename "*/$$*.cpp") $(source)
 	@ make -C build "test_$(basename $(notdir $*))" -j${cmake_threads}
 	build/test/bin/test_$(basename $(notdir $*)) ~[slow] ~[broken] ${tags}
 .PHONY: test/$(basename $(notdir $(test_files)))

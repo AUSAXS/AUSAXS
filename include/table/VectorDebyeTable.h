@@ -22,6 +22,11 @@ namespace table {
             VectorDebyeTable(const std::array<constants::axes::d_type, constants::axes::d_axis.bins>& d);
 
             /**
+             * @brief Initialize a new runtime sinc lookup table for the given d-axis and q-axis. 
+             */
+            VectorDebyeTable(const std::vector<constants::axes::d_type>& d, const std::vector<double>& q);
+
+            /**
              * @brief Look up a value in the table based on indices. This is a constant-time operation. 
              */
             [[nodiscard]] double lookup(unsigned int q_index, unsigned int d_index) const override;

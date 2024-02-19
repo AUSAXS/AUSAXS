@@ -1,3 +1,5 @@
+#include "settings/GeneralSettings.h"
+#include "utility/Console.h"
 #include <hist/distance_calculator/HistogramManagerFactory.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/distance_calculator/HistogramManagerMT.h>
@@ -19,6 +21,10 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
 
 std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_manager(observer_ptr<const data::Molecule> protein, const settings::hist::HistogramManagerChoice& choice, bool use_weighted_distribution) {
     if (use_weighted_distribution) {
+        if (settings::general::verbose) {
+            console::print_info("Using weighted bins.");
+        }
+
         switch (choice) {
             case settings::hist::HistogramManagerChoice::HistogramManager: 
                 return std::make_unique<HistogramManager<true>>(protein);

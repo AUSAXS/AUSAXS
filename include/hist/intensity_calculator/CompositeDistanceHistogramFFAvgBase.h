@@ -61,6 +61,9 @@ namespace hist {
             // @copydoc DistanceHistogram::debye_transform() const
             virtual ScatteringProfile debye_transform() const override;
 
+            // @copydoc DistanceHistogram::debye_transform(const std::vector<double>&) const
+            virtual SimpleDataset debye_transform(const std::vector<double>& q) const override;
+
             /**
              * @brief Apply a scaling factor to the water partial distance histogram.
              */

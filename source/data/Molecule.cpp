@@ -74,7 +74,7 @@ Molecule::Molecule(const std::vector<std::string>& input) {
 Molecule::~Molecule() = default;
 
 void Molecule::initialize() {
-    set_histogram_manager(hist::factory::construct_histogram_manager(this));
+    set_histogram_manager(hist::factory::construct_histogram_manager(this, settings::hist::weighted_bins));
     if (!centered && settings::molecule::center) {center();} // Centering *must* happen before generating the grid in 'update_effective_charge'!
     if (!updated_charge && settings::molecule::use_effective_charge) {update_effective_charge();}
 }
@@ -278,10 +278,11 @@ std::vector<double> Molecule::debye_transform() const {
                 if (qr < 1e-9) {
                     sum += fi*fj;
                 } else {
-                    sum += fi*fj*sin(qr)/qr;
+                    sum += fi*fj*std::sin(qr)/qr;
                 }
             }
         }
+        sum *= std::exp(-q*q);
         I.push_back(sum);
     }
     return I;

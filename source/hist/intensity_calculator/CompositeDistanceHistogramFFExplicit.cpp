@@ -171,6 +171,10 @@ ScatteringProfile CompositeDistanceHistogramFFExplicit::debye_transform() const 
     return ScatteringProfile(Iq, debye_axis);
 }
 
+SimpleDataset CompositeDistanceHistogramFFExplicit::debye_transform(const std::vector<double>&) const {
+    throw except::not_implemented("CompositeDistanceHistogramFFGrid::debye_transform(const std::vector<double>& q) const");
+}
+
 ScatteringProfile CompositeDistanceHistogramFFExplicit::get_profile_ax() const {
     const auto& ff_ax_table = form_factor::storage::cross::get_precalculated_form_factor_table();
     auto sinqd_table = get_sinc_table();

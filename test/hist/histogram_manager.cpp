@@ -333,7 +333,7 @@ TEST_CASE("PartialHistogramManager::get_probe") {
     CHECK(phm.get_probe(0) == sm->get_probe(0)); 
 
     // check that it links to the state manager
-    sm->reset();
+    sm->reset_to_false();
     phm.get_probe(0)->external_change();
     CHECK(sm->is_externally_modified(0));
 }
@@ -342,7 +342,7 @@ TEST_CASE("PartialHistogramManager::signal_modified_hydration_layer") {
     Molecule protein("test/files/2epe.pdb");
     auto phm = hist::PartialHistogramManager<false>(&protein);
     auto sm = phm.get_state_manager();
-    sm->reset();
+    sm->reset_to_false();
     phm.signal_modified_hydration_layer();
     CHECK(sm->get_modified_hydration());
 }
