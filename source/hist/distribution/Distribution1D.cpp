@@ -36,6 +36,10 @@ void Distribution1D::add_index(int32_t i, constants::axes::d_type value) {
     index(i) += value;
 }
 
+void Distribution1D::clear(int32_t i) {
+    index(i) = 0;
+}
+
 Distribution1D& Distribution1D::operator+=(const Distribution1D& rhs) {
     std::transform(this->begin(), this->end(), rhs.begin(), this->begin(), std::plus<>());
     return *this;

@@ -325,7 +325,7 @@ namespace data {
 
 			// grid is mutable because it is lazily initialized - all methods doing anything but initialization are not const
 			mutable std::unique_ptr<grid::Grid> grid; // The grid representation of this body
-			std::unique_ptr<hist::IHistogramManager> phm ;
+			std::unique_ptr<hist::IHistogramManager> phm;
 			std::unique_ptr<hist::ICompositeDistanceHistogram> histogram; // An object representing the distances between atoms
 
 			void initialize();

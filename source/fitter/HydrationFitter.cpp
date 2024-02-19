@@ -53,8 +53,8 @@ std::shared_ptr<Fit> HydrationFitter::fit() {
 
     // update fitter object
     fitted = std::make_shared<Fit>(res, res.fval, data.size()-1); // start with the fit performed here
-    fitted->add_fit(ab_fit);                                      // add the a,b inner fit
-    fitted->add_plots(*this);                                     // make the result plottable
+    fitted->add_fit(ab_fit);                                  // add the a,b inner fit
+    fitted->add_plots(*this);                             // make the result plottable
     fitted->evaluated_points = mini->get_evaluated_points();      // add the evaluated points
     return fitted;
 }

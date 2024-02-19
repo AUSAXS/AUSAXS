@@ -11,11 +11,9 @@
 #include <dataset/Dataset2D.h>
 #include <settings/EMSettings.h>
 
-#include <iostream>
-#include <fstream>
-
 using namespace fitter;
 
+LinearFitter::LinearFitter() = default;
 LinearFitter::LinearFitter(LinearFitter&& other) : fitted(std::move(other.fitted)), data(std::move(other.data)), I0(other.I0), h(std::move(other.h)) {}
 LinearFitter::LinearFitter(const io::ExistingFile& input) {setup(input);}
 LinearFitter::LinearFitter(const io::ExistingFile& input, std::unique_ptr<hist::DistanceHistogram> h) : h(std::move(h)) {setup(input);}

@@ -29,14 +29,14 @@ namespace state {
 			 * 
 			 * @param i index of the body. 
 			 */
-			void internally_modified(const int i);
+			void internally_modified(unsigned int i);
 
 			/**
 			 * @brief Mark that the protein atoms of a body was externally modified.
 			 * 
 			 * @param i index of the body. 
 			 */
-			void externally_modified(const int i);
+			void externally_modified(unsigned int i);
 
 			/**
 			 * @brief Mark that the hydration atoms of a body was modified.
@@ -46,8 +46,9 @@ namespace state {
 
 			/**
 			 * @brief Reset all marks to false.
+			 * ? The awkard name is to avoid accidental collisions with the reset method of smart pointers. 
 			 */
-			void reset();
+			void reset_to_false();
 
 			/**
 			 * @brief Get a pointer to the @a ith probe so it can be dispatched to other classes.
@@ -86,8 +87,13 @@ namespace state {
 			 */
 			bool get_modified_hydration() const;
 
+			/**
+			 * @brief Get the number of bodies being managed. 
+			 */
+			[[nodiscard]] std::size_t size() const;
+
 		private:
-			const int size;
+			std::size_t _size;
 			std::vector<bool> _externally_modified;
 			std::vector<bool> _internally_modified;
 			bool _modified_hydration;

@@ -19,7 +19,7 @@ namespace fitter {
 	 */
 	class LinearFitter : public Fitter {
 		protected: 
-			LinearFitter() = default;
+			LinearFitter();
 
 		public: 
             LinearFitter(LinearFitter&& other);

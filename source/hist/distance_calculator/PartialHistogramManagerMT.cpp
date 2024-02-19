@@ -3,6 +3,7 @@
 #include <hist/distribution/GenericDistribution1D.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <numeric>
 #include <settings/GeneralSettings.h>
 #include <settings/HistogramSettings.h>
 #include <data/state/StateManager.h>
@@ -24,8 +25,8 @@ PartialHistogramManagerMT<use_weighted_distribution>::~PartialHistogramManagerMT
 
 template<bool use_weighted_distribution> 
 std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate() {
-    const std::vector<bool>& externally_modified = this->statemanager->get_externally_modified_bodies();
-    const std::vector<bool>& internally_modified = this->statemanager->get_internally_modified_bodies();
+    const auto& externally_modified = this->statemanager->get_externally_modified_bodies();
+    const auto& internally_modified = this->statemanager->get_internally_modified_bodies();
     const bool hydration_modified = this->statemanager->get_modified_hydration();
     auto pool = utility::multi_threading::get_global_pool();
 
@@ -43,19 +44,10 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
                 calc_self_correlation(i);
             }
 
-            // if the external state was modified, we have to update the coordinate representations for later calculations
+            // if the external state was modified, we have to update the coordinate representations for later calculations (implicitly done in calc_self_correlation)
             else if (externally_modified[i]) {
                 pool->detach_task(
                     [this, i] () {update_compact_representation_body(i);}
-                );
-            }
-        }
-
-        // merge the partial results from each thread and add it to the master histogram
-        for (unsigned int i = 0; i < this->body_size; ++i) {
-            if (internally_modified[i]) {
-                pool->detach_task(
-                    [this, i] () {combine_self_correlation(i);}
                 );
             }
         }
@@ -71,7 +63,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
 
     // check if the hydration layer was modified
     if (hydration_modified) {
-        calc_hh();
+        calc_ww();
     }
 
     // iterate through the lower triangle and check if either of each pair of bodies was modified
@@ -79,7 +71,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
         for (unsigned int j = 0; j < i; ++j) {
             if (externally_modified[i] || externally_modified[j]) {
                 // one of the bodies was modified, so we recalculate its partial histogram
-                calc_pp(i, j);
+                calc_aa(i, j);
             }
         }
 
@@ -94,15 +86,21 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
     {
         if (hydration_modified) {
             pool->detach_task(
-                [this] () {combine_hh();}
+                [this] () {combine_ww();}
             );
         }
 
         for (unsigned int i = 0; i < this->body_size; ++i) {
+            if (internally_modified[i]) {
+                pool->detach_task(
+                    [this, i] () {combine_self_correlation(i);}
+                );
+            }
+
             for (unsigned int j = 0; j < i; ++j) {
                 if (externally_modified[i] || externally_modified[j]) {
                     pool->detach_task(
-                        [this, i, j] () {combine_pp(i, j);}
+                        [this, i, j] () {combine_aa(i, j);}
                     );
                 }
             }
@@ -116,7 +114,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
     }
 
     pool->wait();
-    this->statemanager->reset();
+    this->statemanager->reset_to_false();
 
     // downsize our axes to only the relevant area
     GenericDistribution1D_t p_tot = this->master;
@@ -128,20 +126,21 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManagerMT<use_weighted_distri
         }
     }
     p_tot.resize(max_bin);
+
     return std::make_unique<DistanceHistogram>(std::move(p_tot));
 }
 
-template<bool use_weighted_distribution> 
+template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_body(unsigned int index) {
     this->coords_a[index] = detail::CompactCoordinates(this->protein->get_body(index));
 }
 
-template<bool use_weighted_distribution> 
+template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::update_compact_representation_water() {
     this->coords_w = detail::CompactCoordinates(this->protein->get_waters());
 }
 
-template<bool use_weighted_distribution> 
+template<bool use_weighted_distribution>
 std::unique_ptr<ICompositeDistanceHistogram> PartialHistogramManagerMT<use_weighted_distribution>::calculate_all() {
     auto total = calculate();
     int bins = total->get_total_counts().size();
@@ -229,6 +228,9 @@ template<bool use_weighted_distribution>
 void PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation(unsigned int index) {
     auto pool = utility::multi_threading::get_global_pool();
     update_compact_representation_body(index);
+    for (auto& tmp : this->partials_aa_all.get_all()) {
+        tmp.get().index(index, index) = GenericDistribution1D_t(this->master.axis.bins);
+    }
 
     // calculate internal distances between atoms
     static auto calc_internal = [] (
@@ -277,8 +279,11 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_self_correlation
 }
 
 template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::calc_pp(unsigned int n, unsigned int m) {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_aa(unsigned int n, unsigned int m) {
     auto pool = utility::multi_threading::get_global_pool();
+    for (auto& tmp : this->partials_aa_all.get_all()) {
+        tmp.get().index(n, m) = GenericDistribution1D_t(this->master.axis.bins);
+    }
 
     static auto calc_pp = [] (
         container::ThreadLocalWrapper<container::Container2D<GenericDistribution1D_t>>& p_pp_all,
@@ -317,6 +322,9 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_pp(unsigned int 
 template<bool use_weighted_distribution> 
 void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(unsigned int index) {
     auto pool = utility::multi_threading::get_global_pool();
+    for (auto& tmp : this->partials_aw_all.get_all()) {
+        tmp.get().index(index) = GenericDistribution1D_t(this->master.axis.bins);
+    }
 
     static auto calc_aw = [] (
         container::ThreadLocalWrapper<container::Container1D<GenericDistribution1D_t>>& p_aw_all,
@@ -354,8 +362,11 @@ void PartialHistogramManagerMT<use_weighted_distribution>::calc_aw(unsigned int 
 }
 
 template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::calc_hh() {
+void PartialHistogramManagerMT<use_weighted_distribution>::calc_ww() {
     auto pool = utility::multi_threading::get_global_pool();
+    for (auto& tmp : this->partials_ww_all.get_all()) {
+        tmp.get() = GenericDistribution1D_t(this->master.axis.bins);
+    }
 
     static auto calc_hh = [] (
         container::ThreadLocalWrapper<GenericDistribution1D_t>& p_hh_all,
@@ -414,7 +425,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_self_correlat
 }
 
 template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::combine_pp(unsigned int n, unsigned int m) {
+void PartialHistogramManagerMT<use_weighted_distribution>::combine_aa(unsigned int n, unsigned int m) {
     GenericDistribution1D_t p_pp(this->master.axis.bins);
     for (auto& tmp : this->partials_aa_all.get_all()) { // std::reference_wrapper<container::Container2D<GenericDistribution1D_t>>
         std::transform(p_pp.begin(), p_pp.end(), tmp.get().index(n, m).begin(), p_pp.begin(), std::plus<>());
@@ -442,7 +453,7 @@ void PartialHistogramManagerMT<use_weighted_distribution>::combine_aw(unsigned i
 }
 
 template<bool use_weighted_distribution> 
-void PartialHistogramManagerMT<use_weighted_distribution>::combine_hh() {
+void PartialHistogramManagerMT<use_weighted_distribution>::combine_ww() {
     GenericDistribution1D_t p_hh(this->master.axis.bins);
     for (auto& tmp : this->partials_ww_all.get_all()) {
         std::transform(p_hh.begin(), p_hh.end(), tmp.get().begin(), p_hh.begin(), std::plus<>());

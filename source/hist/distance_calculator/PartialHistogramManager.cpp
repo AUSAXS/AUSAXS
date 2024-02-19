@@ -1,4 +1,3 @@
-#include "hist/distribution/detail/WeightedEntry.h"
 #include <algorithm>
 #include <hist/distance_calculator/PartialHistogramManager.h>
 #include <hist/distance_calculator/detail/TemplateHelpers.h>
@@ -72,7 +71,7 @@ std::unique_ptr<DistanceHistogram> PartialHistogramManager<use_weighted_distribu
             }
         }
     }
-    this->statemanager.reset();
+    this->statemanager->reset_to_false();
 
     // downsize our axes to only the relevant area
     GenericDistribution1D_t p_tot = this->master;

@@ -54,6 +54,13 @@ namespace hist {
              */
             void add_index(int32_t i, constants::axes::d_type value);
 
+            /**
+             * @brief Clear the value for a given distance.
+             * 
+             * @param distance The index to clear.
+             */
+            void clear(int32_t i);
+
             Distribution1D& operator+=(const Distribution1D& other);
             Distribution1D& operator-=(const Distribution1D& other);
     };

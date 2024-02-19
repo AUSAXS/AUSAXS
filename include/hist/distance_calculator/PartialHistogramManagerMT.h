@@ -61,7 +61,7 @@ namespace hist {
 			 * @brief Calculate the atom-atom distances between body @a n and @a m. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_pp(unsigned int n, unsigned int m);
+			void calc_aa(unsigned int n, unsigned int m);
 
 			/**
 			 * @brief Calculate the hydration-atom distances between the hydration layer and body @a index.
@@ -73,15 +73,15 @@ namespace hist {
 			 * @brief Calculate the hydration-hydration distances. 
 			 * 		  This only adds jobs to the thread pool, and does not wait for them to complete.
 			 */
-			void calc_hh();
+			void calc_ww();
 
 			void combine_self_correlation(unsigned int index);
 
-			void combine_pp(unsigned int n, unsigned int m);
+			void combine_aa(unsigned int n, unsigned int m);
 
 			void combine_aw(unsigned int index);
 
-			void combine_hh();
+			void combine_ww();
 
 			/**
 			 * @brief Update the compact representation of the coordinates of body @a index.

@@ -55,6 +55,16 @@ namespace container {
             std::size_t size() const {return data.size();}
 
             /**
+             * @brief Reinitialize all thread-local instances of the wrapped type using the given arguments.
+             */
+            template <typename... Args>
+            void reinitialize_all(Args&&... args) {
+                for (auto& e : data) {
+                    e.second = T(args...);
+                }
+            }
+
+            /**
              * @brief Merge all thread-local instances of the wrapped type into a single instance.
              */
             T merge() const {

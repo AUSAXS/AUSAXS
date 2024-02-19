@@ -1,4 +1,5 @@
 #include "constants/Axes.h"
+#include "hist/distribution/detail/WeightedEntry.h"
 #include <algorithm>
 #include <hist/distribution/WeightedDistribution1D.h>
 #include <hist/distribution/Distribution1D.h>
@@ -33,6 +34,10 @@ void WeightedDistribution1D::add(float distance, constants::axes::d_type value) 
 void WeightedDistribution1D::add2(float distance, constants::axes::d_type value) {
     int i = std::round(distance*constants::axes::d_inv_width);
     index(i).add2(distance, value);
+}
+
+void WeightedDistribution1D::clear(int32_t i) {
+    index(i) = detail::WeightedEntry();
 }
 
 std::vector<constants::axes::d_type> WeightedDistribution1D::get_content() const {

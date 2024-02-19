@@ -64,6 +64,13 @@ namespace hist {
              */
             void add_index(int32_t i, const detail::WeightedEntry& value);
 
+            /**
+             * @brief Clear the value for a given distance.
+             * 
+             * @param distance The index to clear.
+             */
+            void clear(int32_t i);
+
             WeightedDistribution1D& operator+=(const WeightedDistribution1D& other);
             WeightedDistribution1D& operator-=(const WeightedDistribution1D& other);
     };
