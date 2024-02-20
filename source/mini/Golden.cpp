@@ -76,6 +76,5 @@ Result Golden::minimize_override() {
 void Golden::add_parameter(const Parameter& param) {
     if (!param.has_bounds()) {throw except::invalid_argument("Golden::add_parameter: The parameter must be supplied with limits for this minimizer.");}
     if (!parameters.empty()) {throw except::invalid_operation("Golden::add_parameter: This minimizer only supports 1D problems.");}
-    if (param.has_guess()) {debug_print("Warning in Golden::add_parameter: Guess value will be ignored.");}
     parameters.push_back(param);
 }

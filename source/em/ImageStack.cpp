@@ -1,3 +1,4 @@
+#include "settings/EMSettings.h"
 #include <em/ImageStack.h>
 #include <settings/All.h>
 #include <plots/All.h>
@@ -113,18 +114,38 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    SimpleDataset avg = chi2_landscape.rolling_average(7);                              // impose a moving average filter 
-    avg = avg.interpolate(5);                                                           // interpolate more points
-    double spacing = avg.x(1)-avg.x(0); 
-    std::cout << "AVG SIZE: " << avg.size() << std::endl;
-    auto minima = avg.find_minima(static_cast<int>(0.1*avg.size()), 0.1);               // find all minima. they should be fairly spaced out (10% seems reasonable?)
-    min_abs = avg.find_minimum();
+    Dataset avg_int; // cutoff, chi2, mass
+    {
+        auto ra = chi2_landscape.rolling_average(7).interpolate(5);  // impose a moving average filter
+        avg_int = Dataset(ra.size(), 3);
+        avg_int.set_col_names({"cutoff", "chi2", "mass"});
+        avg_int.col("cutoff") = ra.x();
+        avg_int.col("chi2") = ra.y();
+    }
+
+    double spacing = avg_int.x(1)-avg_int.x(0); 
+    auto minima = avg_int.find_minima(static_cast<int>(0.1*avg_int.size()), 0.1);   // find all minima. they should be fairly spaced out (10% seems reasonable?)
+
+    {   // find the absolute minimum in the smoothed landscape
+        auto tmp = avg_int.find_minimum(1);
+        min_abs = {tmp[0], tmp[1], tmp[2]};
+    }
+
+    // prepare the mass axis
+    if (settings::em::mass_axis) {
+        Dataset data(this->evals.size(), 2);
+        for (unsigned int i = 0; i < this->evals.size(); ++i) {
+            data[i] = {this->evals[i].cutoff, this->evals[i].mass};
+        }
+        avg_int.col("mass") = data.interpolate(avg_int.x()).y();
+        std::cout << "INTERPOLATE" << std::endl;
+    } 
 
     // remove minima that are too far away from the absolute minimum
     {
         std::vector<unsigned int> to_keep;
         for (auto m : minima) {
-            if (avg.y(m) < min_abs.y*2) {to_keep.push_back(m);}
+            if (avg_int.y(m) < min_abs.y*2) {to_keep.push_back(m);}
         }
         minima = std::move(to_keep);
     }
@@ -138,14 +159,17 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         unsigned int enumerate = 0;
         std::string info;
         for (auto m : minima) {
-            if (avg.x(m) == min_abs.x) {continue;}
-            auto temp_protein = get_protein_manager()->get_protein(avg.x(m));
+            if (avg_int.x(m) == min_abs.x) {continue;}
+            auto temp_protein = get_protein_manager()->get_protein(avg_int.x(m));
             if (settings::em::hydrate) {
                 temp_protein->clear_grid();
                 temp_protein->generate_new_hydration();
             }
             temp_protein->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
-            info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(avg.x(m))) + " " + std::to_string(avg.y(m)) + "\n";
+            info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(avg_int.x(m))) + " " + std::to_string(avg_int.y(m)) + "\n";
+            if (settings::em::mass_axis) {
+                info += "  Estimated mass = " + std::to_string(avg_int.col("mass")[m]) + " kDa\n";
+            }
         }
         std::ofstream out(settings::general::output + "models/info.txt");
         out << info;
@@ -155,8 +179,8 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         // plot evaluated points around the minimum
         { 
             // plot the minimum in blue
-            SimpleDataset p_min, chi2_copy = chi2_landscape, avg_copy = avg;
-            for (auto m : minima) {p_min.push_back(to_level(avg.x(m)), avg.y(m));}
+            SimpleDataset p_min, chi2_copy = chi2_landscape, avg_copy = avg_int;
+            for (auto m : minima) {p_min.push_back(to_level(avg_int.x(m)), avg_int.y(m));}
 
             // convert cutoff to std levels
             for (unsigned int i = 0; i < chi2_copy.size(); ++i) {
@@ -199,18 +223,15 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 mass_cutoff.sort_x();
                 mass_cutoff = mass_cutoff.interpolate(l.x());
 
-                // interpolate the minimum values
-                std::vector<double> minima_mass;
-                for (auto m : minima) {minima_mass.push_back(mass_cutoff.interpolate_y(avg.x(m)));}
-
                 // create chi2 / mass dataset
-                l.x() = mass_cutoff.y();
+                SimpleDataset chi2_mass(avg_int.col("mass"), avg_int.col("chi2"));
 
                 // make the plot
                 plots::PlotDataset plot;
-                plot.plot(l, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}));
-                for (auto m : minima_mass) {
-                    plot.vline(m, plots::PlotOptions(style::draw::line, {{"ls", style::line::dashed}, {"color", style::color::red}}));
+                plot.plot(chi2_mass, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}));
+                plot.plot(mass_cutoff, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}}));
+                for (auto m : minima) {
+                    plot.vline(avg_int.col("mass")[m], plots::PlotOptions(style::draw::line, {{"ls", style::line::dashed}, {"color", style::color::red}}));
                 }
                 plot.save(settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);
             }
@@ -269,7 +290,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 area.x() = mass_cutoff.y();
 
                 // interpolate start point
-                p_start.x(0) = mass_cutoff.interpolate_y(p_start.x(0));
+                p_start.x(0) = mass_cutoff.interpolate_x(p_start.x(0), 1);
 
                 // make the plot
                 plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}))
@@ -313,6 +334,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min_abs.x);
+    if (settings::em::mass_axis) {emfit->mass = avg_int.interpolate_x(min_abs.x, 2);}
     if (settings::em::save_pdb) {
         auto temp_protein = get_protein_manager()->get_protein(min_abs.x);
         if (settings::em::hydrate) {
@@ -345,10 +367,9 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     std::function<double(std::vector<double>)> chi2 = [this, fitter] (const std::vector<double>& params) {
         static unsigned int counter = 0;
         static double last_c = 5;
-        auto p = get_protein_manager()->get_protein(params[0]);
-        // p->remove_disconnected_atoms();
 
         std::shared_ptr<Fit> fit;
+        auto p = get_protein_manager()->get_protein(params[0]);
         if (settings::em::hydrate) {
             p->clear_grid();                // clear grid from previous iteration
             p->generate_new_hydration();    // generate a new hydration layer

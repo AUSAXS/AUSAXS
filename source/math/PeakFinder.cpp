@@ -397,17 +397,17 @@ std::vector<unsigned int> math::find_minima(const std::vector<double>& x, const 
     if (0 != min_spacing) {
         std::vector<unsigned int> filtered_minima = {local_minima.front()};
         for (int i : local_minima) {
-            std::cout << min_spacing << " <= " << i << " - " << filtered_minima.back() << std::endl;
+            DEBUG_PRINT(min_spacing << " <= " << i << " - " << filtered_minima.back());
             if (min_spacing <= i - filtered_minima.back()) {
                 filtered_minima.push_back(i);
-                std::cout << "\tyes" << std::endl;
+                DEBUG_PRINT("\tyes");
             } else {
                 if (y[i] < y[filtered_minima.back()]) {
                     filtered_minima.back() = i;
                 }
-                std::cout << "\tno, but new minima is better, replacing" << std::endl;
+                DEBUG_PRINT("\tno, but new minima is better, replacing");
             }
-            std::cout << "\tno" << std::endl;
+            DEBUG_PRINT("\tno");
         }
         local_minima = std::move(filtered_minima);
     }

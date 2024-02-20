@@ -62,12 +62,12 @@ class Dataset : public Matrix<double> {
         /**
          * @brief Get a column based on its name. 
          */
-        [[nodiscard]] MutableColumn<double> col(const std::string& column);
+        [[nodiscard]] MutableColumn<double> col(std::string_view column);
 
         /**
          * @brief Get a column based on its name. 
          */
-        [[nodiscard]] const ConstColumn<double> col(const std::string& column) const;
+        [[nodiscard]] const ConstColumn<double> col(std::string_view column) const;
 
         /**
          * @brief Get a column based on its index.
@@ -139,20 +139,19 @@ class Dataset : public Matrix<double> {
 
         /**
          * @brief Interpolate @a num points between each pair of points in the dataset.
-         *        All data but the x and y columns will be discarded.
          */
         [[nodiscard]] Dataset interpolate(unsigned int num) const;
 
         /**
          * @brief Interpolate points to match the given x-values.
-         *        All data but the x and y columns will be discarded.
          */
         [[nodiscard]] Dataset interpolate(const std::vector<double>& newx) const;
 
         /**
-         * @brief Get the interpolated y-value for the given x-value.
+         * @brief Get the interpolated value of column @a col for the given x-value.
+         *        This is not suitable for looping. Use instead the interpolate(const std::vector<double>&) method.
          */
-        [[nodiscard]] double interpolate_y(double x) const;
+        [[nodiscard]] double interpolate_x(double x, unsigned int col) const;
 
         /**
          * @brief Get the weighted rolling average of this dataset. 
@@ -163,6 +162,11 @@ class Dataset : public Matrix<double> {
          * @return A new (x, y) dataset with the rolling average. 
          */
         [[nodiscard]] Dataset rolling_average(unsigned int window) const;
+
+        /**
+         * @brief Get the entry with the smallest value in column @a col.
+         */
+        std::vector<double> find_minimum(unsigned int col) const;
 
         /**
          * @brief Find the indices of minima in the dataset.

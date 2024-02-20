@@ -54,7 +54,10 @@ std::string Fit::to_string() const noexcept {
 std::string EMFit::to_string() const noexcept {
     std::stringstream ss;
     ss << Fit::to_string();
-    ss << "\n| Cutoff corresponds to PyMOL level " << utility::print_element(level, 12) << "           |";
-    ss << "\n+----------------------------------------------------------+";
+
+                    ss << "\n| Cutoff corresponds to PyMOL level " << utility::print_element(level, 12) << "           |";
+    if (mass != 0) {ss << "\n|                  and to a mass of " << utility::print_element(mass, 12)  << " kDa       |";}
+                    ss << "\n+-----------------------------------"                  "------------"                  "-----------+";
+
     return ss.str();
 }

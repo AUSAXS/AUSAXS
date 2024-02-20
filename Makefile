@@ -383,10 +383,10 @@ tests: | $(source)
 		$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml;\
 	done
 
-test/%: | $$(shell find test -wholename "*/$$*.cpp") $(source)
+runtest/%: | $$(shell find test -wholename "*/$$*.cpp") $(source)
 	@ make -C build "test_$(basename $(notdir $*))" -j${cmake_threads}
 	build/test/bin/test_$(basename $(notdir $*)) ~[slow] ~[broken] ${tags}
-.PHONY: test/$(basename $(notdir $(test_files)))
+.PHONY: runtest/$(basename $(notdir $(test_files)))
 
 # special build target for our tests since they obviously depend on themselves, which is not included in $(source_files)
 build/test/%: $$(shell find source/ -print) $(shell find test -name *%.cpp) build/Makefile

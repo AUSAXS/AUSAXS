@@ -200,12 +200,19 @@ void PartialHistogramManagerMT<use_weighted_distribution>::initialize() {
     const Axis& axis = constants::axes::d_axis; 
     std::vector<double> p_base(axis.bins, 0);
     this->master = detail::MasterHistogram<use_weighted_distribution>(p_base, axis);
-    this->partials_aa_all = container::Container2D<GenericDistribution1D_t>(this->body_size, this->body_size, axis.bins);
+    this->partials_aa_all = container::Container2D<GenericDistribution1D_t>(this->body_size, this->body_size);
     this->partials_aw_all = container::Container1D<GenericDistribution1D_t>(this->body_size, axis.bins);
     this->partials_ww_all = GenericDistribution1D_t(axis.bins);
 
     this->partials_ww = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
     for (unsigned int i = 0; i < this->body_size; ++i) {
+        for (auto& tmp : this->partials_aa_all.get_all()) {
+            tmp.get().index(i, i) = GenericDistribution1D_t(this->master.axis.bins);
+            for (unsigned int j = 0; j < i; ++j) {
+                tmp.get().index(i, j) = GenericDistribution1D_t(this->master.axis.bins);
+            }
+        }
+
         this->partials_aw.index(i) = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
         this->partials_aa.index(i, i) = detail::PartialHistogram<use_weighted_distribution>(axis.bins);
         

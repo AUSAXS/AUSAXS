@@ -6,10 +6,12 @@
 #include <dataset/Dataset.h>
 #include <utility/Exceptions.h>
 #include <utility/StringUtils.h>
+#include <utility/Console.h>
 #include <dataset/DatasetFactory.h>
 #include <dataset/SimpleDataset.h>
 #include <mini/detail/FittedParameter.h>
 #include <mini/detail/Evaluation.h>
+#include <settings/GeneralSettings.h>
 
 #include <vector>
 #include <string>
@@ -92,22 +94,22 @@ void Dataset::limit_y(const Limit& limits) {
 void Dataset::limit_x(double min, double max) {limit_x({min, max});}
 void Dataset::limit_y(double min, double max) {limit_y({min, max});}
 
-MutableColumn<double> Dataset::col(const std::string& column) {
+MutableColumn<double> Dataset::col(std::string_view column) {
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
             return col(i);
         }
     }
-    throw except::invalid_operation("Dataset::col: Column \"" + column + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
+    throw except::invalid_operation("Dataset::col: Column \"" + std::string(column) + "\" not found. Available columns:\n\t" + utility::join(names, "\n\t"));
 }
 
-const ConstColumn<double> Dataset::col(const std::string& column) const {
+const ConstColumn<double> Dataset::col(std::string_view column) const {
     for (unsigned int i = 0; i < names.size(); ++i) {
         if (names[i] == column) {
             return col(i);
         }
     }
-    throw except::invalid_operation("Dataset::col: Column \"" + column + "\" not found. Available columns: " + utility::join(names, "\n"));
+    throw except::invalid_operation("Dataset::col: Column \"" + std::string(column) + "\" not found. Available columns: " + utility::join(names, "\n"));
 }
 
 MutableColumn<double> Dataset::col(unsigned int index) {
@@ -193,37 +195,74 @@ Dataset Dataset::rolling_average(unsigned int window_size) const {
 }
 
 Dataset Dataset::interpolate(unsigned int n) const {
-    math::CubicSpline spline(x(), y());
-    Matrix interpolated(size()*(n+1)-n-1, 2);
+    Matrix interpolated(size()*(n+1)-n-1, M);
+
+    std::vector<math::CubicSpline> splines;
+    for (unsigned int col_index = 1; col_index < M; ++col_index) {
+        splines.push_back(math::CubicSpline(x(), col(col_index)));
+    }
+
     for (unsigned int i = 0; i < size()-1; i++) {
         double x = this->x(i);
-        double y = this->y(i);
-        interpolated[i*(n+1)] = {x, y}; 
+        interpolated[i*(n+1)] = row(i);
 
         double x_next = this->x(i+1);
         double step = (x_next - x)/(n+1);
         for (unsigned int j = 0; j < n; j++) {
-            double x_new = x + (j+1)*step;
-            double y_new = spline.spline(x_new);
-            interpolated[i*(n+1) + j + 1] = {x_new, y_new};
+            std::vector<double> row_new(M);
+            row_new[0] = x + (j+1)*step;;
+            for (unsigned int k = 1; k < M; k++) {
+                row_new[k] = splines[k-1].spline(row_new[0]);
+            }
+            interpolated[i*(n+1) + j + 1] = row_new;
         }
     }
     return interpolated;
 }
 
+std::vector<double> Dataset::find_minimum(unsigned int col_i) const {
+    if (size() == 0) {
+        if (settings::general::verbose) {
+            console::print_warning("Warning in Dataset::find_minimum: Dataset is empty.");
+        }
+        return std::vector<double>(M, 0);
+    }
+    
+    unsigned int min_index = 0;
+    double min_value = y(0);
+    for (unsigned int i = 1; i < size(); i++) {
+        if (col(col_i)[i] < min_value) {
+            min_index = i;
+            min_value = col(col_i)[i];
+        }
+    }
+    return row(min_index);
+}
+
 Dataset Dataset::interpolate(const std::vector<double>& newx) const {
-    math::CubicSpline spline(x(), y());
-    Matrix interpolated(newx.size(), 2);
+    Matrix interpolated(newx.size(), M);
+
+    std::vector<math::CubicSpline> splines;
+    for (unsigned int col_index = 1; col_index < M; ++col_index) {
+        splines.push_back(math::CubicSpline(x(), col(col_index)));
+    }
+
     for (unsigned int i = 0; i < newx.size(); i++) {
-        double x = newx[i];
-        double y = spline.spline(x);
-        interpolated[i] = {x, y}; 
+        std::vector<double> row_new(M);
+        row_new[0] = newx[i];
+        std::cout << row_new[0];
+        for (unsigned int j = 0; j < splines.size(); j++) {
+            row_new[1+j] = splines[j].spline(newx[i]);
+            std::cout << " " << row_new[1+j];
+        }
+        std::cout << std::endl;
+        interpolated[i] = row_new;
     }
     return interpolated;
 }
 
-double Dataset::interpolate_y(double x) const {
-    math::CubicSpline spline(this->x(), y());
+double Dataset::interpolate_x(double x, unsigned int col_index) const {
+    math::CubicSpline spline(this->x(), col(col_index));
     return spline.spline(x);
 }
 

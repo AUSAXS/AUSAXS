@@ -58,14 +58,14 @@ int main(int argc, char const *argv[]) {
         if (constants::filetypes::em_map.validate(mfile)) {
             std::swap(mapfile, mfile);
         } else {
-            throw except::invalid_argument("Unknown EM extensions: " + mapfile + " and " + mfile);
+            throw except::invalid_argument("Unknown EM extensions: \"" + mapfile + "\" and \"" + mfile + "\"");
         }
     }
     if (!constants::filetypes::saxs_data.validate(mfile)) {
-        throw except::invalid_argument("Unknown SAXS data extension: " + mfile);
+        throw except::invalid_argument("Unknown SAXS data extension: \"" + mfile + "\"");
     }
 
-    std::cout << "Performing EM fit with map " << mapfile << " and measurement " << mfile << std::endl;
+    std::cout << "Performing EM fit with map \"" << mapfile << "\" and measurement \"" << mfile << "\"" << std::endl;
     em::ImageStack map(mapfile); 
 
     // Fit the measurements to the EM density map.

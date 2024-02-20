@@ -12,7 +12,7 @@ bool settings::general::keep_hydrogens = false;
 bool settings::general::supplementary_plots = true;
 
 namespace settings::general::detail {
-    unsigned int job_size = 200; // The number of atoms to process in each job.
+    unsigned int job_size = 800; // The number of atoms to process in each job.
 };
 
 namespace settings::general::io {

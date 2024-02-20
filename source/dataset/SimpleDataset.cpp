@@ -1,3 +1,4 @@
+#include "dataset/Dataset.h"
 #include <math/SimpleLeastSquares.h>
 #include <math/Statistics.h>
 #include <dataset/SimpleDataset.h>
@@ -11,7 +12,6 @@
 
 #include <vector>
 #include <string>
-#include <fstream>
 #include <random>
 
 SimpleDataset::SimpleDataset() noexcept : SimpleDataset(0) {}
@@ -251,22 +251,8 @@ Point2D SimpleDataset::get_point(unsigned int index) const {
 }
 
 Point2D SimpleDataset::find_minimum() const {
-    if (size() == 0) {
-        if (settings::general::verbose) {
-            console::print_warning("Warning in SimpleDataset::find_minimum: Dataset is empty.");
-        }
-        return Point2D(0, 0, 0);
-    }
-    
-    unsigned int min_index = 0;
-    double min_value = y(0);
-    for (unsigned int i = 1; i < size(); i++) {
-        if (y(i) < min_value) {
-            min_index = i;
-            min_value = y(i);
-        }
-    }
-    return get_point(min_index);
+    auto res = Dataset::find_minimum(1);
+    return Point2D(res[0], res[1], res[2]);
 }
 
 void SimpleDataset::push_back(const Point2D& point) noexcept {

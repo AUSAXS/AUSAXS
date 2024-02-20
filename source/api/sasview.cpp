@@ -18,7 +18,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
     settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
-    settings::hist::weighted_bins = false;
+    settings::hist::weighted_bins = true;
     settings::axes::qmax = 1;
 
     std::vector<double> q(_q, _q+_nq);
@@ -48,7 +48,7 @@ void evaluate_sans_debye(double* _q, double* _x, double* _y, double* _z, double*
 
     // remove the form factor applied by the debye transform
     for (unsigned int i = 0; i < Iq.size(); ++i) {
-        _return_Iq[i] =  Iq.y(i) / std::exp(-constants::axes::q_vals[i]*constants::axes::q_vals[i]);
+        _return_Iq[i] =  Iq.y(i) / std::exp(-std::pow(Iq.x(i), 2));
     }
     *_return_status = 0;
 }

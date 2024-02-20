@@ -1,3 +1,4 @@
+#include "settings/GeneralSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -16,6 +17,7 @@ struct fixture {
 };
 
 TEST_CASE("Dataset::Dataset") {
+    settings::general::verbose = false;
     SECTION("default") {
         Dataset dataset;
         CHECK(dataset.size() == 0);
@@ -128,6 +130,8 @@ TEST_CASE_METHOD(fixture, "Dataset::empty") {
 }
 
 TEST_CASE("Dataset::save") {
+    settings::general::verbose = false;
+
     Dataset dataset({
         std::vector<double>{0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10}, 
         std::vector<double>{1,    2,    3,    4,    5,    6,    7,    8,    9,    10}
@@ -176,13 +180,13 @@ TEST_CASE("Dataset::interpolate") {
         std::vector<double> x, y;
         for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
             x.push_back(xx);
-            y.push_back(sin(xx));
+            y.push_back(std::sin(xx));
         }
 
         Dataset data({x, y});
         data = data.interpolate(5);
         for (unsigned int i = 0; i < data.size(); i++) {
-            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(sin(data.x(i)), 1e-3));
+            CHECK_THAT(data.y(i), Catch::Matchers::WithinAbs(std::sin(data.x(i)), 1e-3));
         }
     }
 
@@ -190,14 +194,14 @@ TEST_CASE("Dataset::interpolate") {
         std::vector<double> x1, y1, x2;
         for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
             x1.push_back(xx);
-            y1.push_back(sin(xx));
+            y1.push_back(std::sin(xx));
             x2.push_back(xx + 0.025);
         }
 
         Dataset data1({x1, y1});
         auto data2 = data1.interpolate(x2);
         for (unsigned int i = 0; i < data2.size(); i++) {
-            CHECK_THAT(data2.y(i), Catch::Matchers::WithinAbs(sin(data2.x(i)), 1e-3));
+            CHECK_THAT(data2.y(i), Catch::Matchers::WithinAbs(std::sin(data2.x(i)), 1e-3));
         }
     }
 
@@ -205,12 +209,32 @@ TEST_CASE("Dataset::interpolate") {
         std::vector<double> x1, y1;
         for (double xx = 0; xx < 2*M_PI; xx += 0.05) {
             x1.push_back(xx);
-            y1.push_back(sin(xx));
+            y1.push_back(std::sin(xx));
         }
 
         Dataset data1({x1, y1});
         for (unsigned int i = 0; i < data1.size(); i++) {
-            CHECK_THAT(data1.interpolate_y(data1.x(i)+0.025), Catch::Matchers::WithinAbs(sin(data1.x(i)+0.025), 1e-3));
+            CHECK_THAT(data1.interpolate_x(data1.x(i)+0.025, 1), Catch::Matchers::WithinAbs(std::sin(data1.x(i)+0.025), 1e-3));
+        }
+    }
+
+    SECTION("multiple columns") {
+        std::vector<double> x1, y1, x2, y2;
+        for (double x = 0; x < 2*M_PI; x += 0.05) {
+            x1.push_back(x);
+            x2.push_back(x + 0.025);
+            y1.push_back(std::sin(x));
+            y2.push_back(std::cos(x));
+        }
+
+        Dataset data({x1, y1, y2});
+        auto data3 = data.interpolate(x2);
+        REQUIRE(data3.x() == x2);
+        for (unsigned int i = 0; i < data3.size(); i++) {
+            CHECK_THAT(data3.col(1)[i], Catch::Matchers::WithinAbs(std::sin(data3.x(i)), 1e-3));
+            CHECK_THAT(data3.col(2)[i], Catch::Matchers::WithinAbs(std::cos(data3.x(i)), 1e-3));
+            CHECK_THAT(data.interpolate_x(data3.x(i), 1), Catch::Matchers::WithinAbs(std::sin(data3.x(i)), 1e-3));
+            CHECK_THAT(data.interpolate_x(data3.x(i), 2), Catch::Matchers::WithinAbs(std::cos(data3.x(i)), 1e-3));
         }
     }
 }
@@ -312,6 +336,8 @@ TEST_CASE_METHOD(fixture, "Dataset::append") {
 }
 
 TEST_CASE_METHOD(fixture, "Dataset::limit_x") {
+    settings::general::verbose = false;
+
     SECTION("simple") {
         Limit limit(0.5, 5);
         dataset.limit_x(limit);
@@ -373,6 +399,7 @@ TEST_CASE("Dataset::sort_x") {
 
 std::string generate_SASDJG5_dataset();
 TEST_CASE("Dataset::find_minima") {
+    settings::general::verbose = false;
     SECTION("empty") {
         Dataset data;
         std::vector<unsigned int> minima = data.find_minima();
@@ -463,6 +490,7 @@ TEST_CASE("Dataset::find_minima") {
 }
 
 TEST_CASE("Dataset::find_maxima") {
+    settings::general::verbose = false;
     SECTION("actual data") {
         auto file = generate_SASDJG5_dataset();
         Dataset data(file);
