@@ -23,7 +23,7 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
         );
 
         SECTION(false_file) {
-            auto hist = data::Molecule(settings::general::output + "test/files/" + std::string(false_file) + ".pdb").get_histogram();
+            auto hist = data::Molecule("test/files/" + std::string(false_file) + ".pdb").get_histogram();
             REQUIRE_FALSE(hist->is_highly_ordered());
         }
     }
@@ -36,7 +36,7 @@ TEST_CASE("DistanceHistogram::is_highly_ordered") {
         );
 
         SECTION(true_file) {
-            auto hist = data::Molecule(settings::general::output + "test/files/" + std::string(true_file) + ".pdb").get_histogram(); 
+            auto hist = data::Molecule("test/files/" + std::string(true_file) + ".pdb").get_histogram(); 
             REQUIRE(hist->is_highly_ordered());
         }
     }

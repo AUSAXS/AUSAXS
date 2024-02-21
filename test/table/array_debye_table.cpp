@@ -5,6 +5,8 @@
 #include <utility/Utility.h>
 #include <constants/Constants.h>
 
+#include <cmath>
+
 auto& debye_table = table::ArrayDebyeTable::get_default_table();
 auto& q = constants::axes::q_vals;
 auto& d = constants::axes::d_vals;

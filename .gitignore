@@ -30,3 +30,5 @@ callgrind.*
 *.mrc
 *.cif
 **/__pycache__
+
+!test/files/*
