@@ -1,4 +1,5 @@
 #include "settings/EMSettings.h"
+#include "settings/HistogramSettings.h"
 #include <em/ImageStack.h>
 #include <settings/All.h>
 #include <plots/All.h>
@@ -60,38 +61,47 @@ std::unique_ptr<fitter::EMFit> ImageStack::fit_helper(std::shared_ptr<fitter::Li
 }
 
 std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitter, mini::Parameter& param) {
+    //##########################################################//
+    //###                       SETUP                        ###//
+    //##########################################################//
+    settings::molecule::center = false; // do not center the dummy proteins
+    if (settings::em::plot_landscapes && settings::em::hydrate) {
+        std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN);
+    }
+
     update_charge_levels(*param.bounds);
     set_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
+    unsigned int dof = fitter->dof();
 
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
     //##########################################################//
     mini::LimitedScan minimizer(f, param, settings::fit::max_iterations);
     minimizer.set_limit(5, true);
-    SimpleDataset chi2_landscape;
+    SimpleDataset chi2_data;
     {
         auto l = minimizer.landscape(settings::fit::max_iterations);
         evals.append(l);
-        chi2_landscape = l.as_dataset();
+        chi2_data = l.as_dataset();
     }
 
-    chi2_landscape.sort_x();
-    auto min_abs = chi2_landscape.find_minimum();
+    chi2_data.sort_x();
+    auto min_abs = chi2_data.find_minimum();
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
     //##########################################################//
-    chi2_landscape.limit_y(0, min_abs.y*5);     // focus on the area near the absolute minimum
-    if (chi2_landscape.size_rows() < 10) {      // if we have too few points after imposing the limit, we must sample some more
-        Limit bounds;                           // first we determine the bounds of the area we want to sample
-        if (chi2_landscape.size_rows() < 3) {   // if we only have one or two points, sample the area between the neighbouring points
+    chi2_data.limit_y(0, min_abs.y*5);  // focus on the area near the absolute minimum
+    if (chi2_data.size_rows() < 10) {       // if we have too few points after imposing the limit, we must sample some more
+        Limit bounds;                       // first we determine the bounds of the area we want to sample
+        if (chi2_data.size_rows() < 3) {    // if we only have one or two points, sample the area between the neighbouring points
             double s = (param.bounds->max - param.bounds->min)/settings::fit::max_iterations;
             bounds = {min_abs.x - s, min_abs.x + s};
         }
         else { // otherwise just use the new bounds of the limited landscape
-            bounds = chi2_landscape.span_x();
+            bounds = chi2_data.span_x();
         }
 
         // prepare a new minimizer with the new bounds
@@ -100,13 +110,13 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         {
             auto l = mini2.landscape(settings::fit::max_iterations/2);
             evals.append(l);
-            chi2_landscape = l.as_dataset();
+            chi2_data = l.as_dataset();
         }
-        chi2_landscape.sort_x();
-        min_abs = chi2_landscape.find_minimum();
-        chi2_landscape.limit_y(0, min_abs.y*5);
+        chi2_data.sort_x();
+        min_abs = chi2_data.find_minimum();
+        chi2_data.limit_y(0, min_abs.y*5);
 
-        if (chi2_landscape.size_rows() < 10) {
+        if (chi2_data.size_rows() < 10) {
             throw except::unexpected("ImageStack::fit: Could not sample enough points around the minimum. Function varies too much.");
         }
     }
@@ -114,38 +124,38 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###         AVERAGE & INTERPLATE MORE POINTS           ###//
     //##########################################################//
-    Dataset avg_int; // cutoff, chi2, mass
+    Dataset data_avg_int; // cutoff, chi2, mass
     {
-        auto ra = chi2_landscape.rolling_average(7).interpolate(5);  // impose a moving average filter
-        avg_int = Dataset(ra.size(), 3);
-        avg_int.set_col_names({"cutoff", "chi2", "mass"});
-        avg_int.col("cutoff") = ra.x();
-        avg_int.col("chi2") = ra.y();
+        auto ra = chi2_data.rolling_average(7).interpolate(5); // impose a moving average filter
+        data_avg_int = Dataset(ra.size(), 3);
+        data_avg_int.set_col_names({"cutoff", "chi2", "mass"});
+        data_avg_int.col("cutoff") = ra.x();
+        data_avg_int.col("chi2") = ra.y();
     }
 
-    double spacing = avg_int.x(1)-avg_int.x(0); 
-    auto minima = avg_int.find_minima(static_cast<int>(0.1*avg_int.size()), 0.1);   // find all minima. they should be fairly spaced out (10% seems reasonable?)
+    double spacing = data_avg_int.x(1)-data_avg_int.x(0); 
+    auto minima = data_avg_int.find_minima(static_cast<int>(0.1*data_avg_int.size()), 0.1); // find all minima. they should be fairly spaced out (10% seems reasonable?)
 
     {   // find the absolute minimum in the smoothed landscape
-        auto tmp = avg_int.find_minimum(1);
+        auto tmp = data_avg_int.find_minimum(1);
         min_abs = {tmp[0], tmp[1], tmp[2]};
     }
 
     // prepare the mass axis
     if (settings::em::mass_axis) {
-        Dataset data(this->evals.size(), 2);
+        Dataset mass_data(this->evals.size(), 2);
         for (unsigned int i = 0; i < this->evals.size(); ++i) {
-            data[i] = {this->evals[i].cutoff, this->evals[i].mass};
+            mass_data[i] = {this->evals[i].cutoff, this->evals[i].mass};
         }
-        avg_int.col("mass") = data.interpolate(avg_int.x()).y();
-        std::cout << "INTERPOLATE" << std::endl;
+        mass_data.sort_x();
+        data_avg_int.col("mass") = mass_data.interpolate(data_avg_int.x()).y();
     } 
 
     // remove minima that are too far away from the absolute minimum
     {
         std::vector<unsigned int> to_keep;
         for (auto m : minima) {
-            if (avg_int.y(m) < min_abs.y*2) {to_keep.push_back(m);}
+            if (data_avg_int.y(m) < min_abs.y*2) {to_keep.push_back(m);}
         }
         minima = std::move(to_keep);
     }
@@ -159,16 +169,16 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         unsigned int enumerate = 0;
         std::string info;
         for (auto m : minima) {
-            if (avg_int.x(m) == min_abs.x) {continue;}
-            auto temp_protein = get_protein_manager()->get_protein(avg_int.x(m));
+            if (data_avg_int.x(m) == min_abs.x) {continue;}
+            auto temp_protein = get_protein_manager()->get_protein(data_avg_int.x(m));
             if (settings::em::hydrate) {
                 temp_protein->clear_grid();
                 temp_protein->generate_new_hydration();
             }
             temp_protein->save(settings::general::output + "models/model_" + std::to_string(++enumerate) + ".pdb");
-            info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(avg_int.x(m))) + " " + std::to_string(avg_int.y(m)) + "\n";
+            info += "Model " + std::to_string(enumerate) + ": (σ, χ²) = " + std::to_string(to_level(data_avg_int.x(m))) + " " + std::to_string(data_avg_int.y(m)) + "\n";
             if (settings::em::mass_axis) {
-                info += "  Estimated mass = " + std::to_string(avg_int.col("mass")[m]) + " kDa\n";
+                info += "  Estimated mass = " + std::to_string(data_avg_int.col("mass")[m]) + " kDa\n";
             }
         }
         std::ofstream out(settings::general::output + "models/info.txt");
@@ -176,65 +186,67 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     if (settings::general::supplementary_plots) {
-        // plot evaluated points around the minimum
-        { 
+        { // make a nice plot of the landscape within some range of the minimum; this is often nicer to look at than the full landscape due to the reduced y-range
             // plot the minimum in blue
-            SimpleDataset p_min, chi2_copy = chi2_landscape, avg_copy = avg_int;
-            for (auto m : minima) {p_min.push_back(to_level(avg_int.x(m)), avg_int.y(m));}
+            SimpleDataset p_min, chi2_copy = chi2_data, avg_copy = data_avg_int;
+            for (auto m : minima) {p_min.push_back(to_level(data_avg_int.x(m)), data_avg_int.y(m)/dof);}
 
-            // convert cutoff to std levels
+            // convert cutoff to std levels & normalize chi2
             for (unsigned int i = 0; i < chi2_copy.size(); ++i) {
                 chi2_copy.x(i) = to_level(chi2_copy.x(i));
+                chi2_copy.y(i) /= dof;
             }
             for (unsigned int i = 0; i < avg_copy.size(); ++i) {
                 avg_copy.x(i) = to_level(avg_copy.x(i));
+                avg_copy.y(i) /= dof;
             }
 
             // prepare rest of the plot
-            plots::PlotDataset plot(avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}}));
+            plots::PlotDataset plot(avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi_r^2$"}}));
             plot.plot(chi2_copy, plots::PlotOptions(style::draw::points, {}));
-            plot.plot(p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 9}}));
+            plot.plot(p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 12}}));
             plot.save(settings::general::output + "chi2_evaluated_points_limited." + settings::plots::format);
+
+            if (settings::em::mass_axis) {
+                // create chi2 / mass dataset
+                SimpleDataset mass_avg_copy(data_avg_int.col("mass"), data_avg_int.col("chi2")/dof);
+
+                SimpleDataset mass_p_min;
+                for (auto m : minima) {mass_p_min.push_back(data_avg_int.col("mass")[m], data_avg_int.col("chi2")[m]/dof);}
+
+                // make the plot
+                plots::PlotDataset plot_mass(mass_avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}));
+                plot_mass.plot(SimpleDataset(data_avg_int.interpolate(chi2_data.x()).col(2), chi2_copy.y()), plots::PlotOptions(style::draw::points, {}));
+                plot_mass.plot(mass_p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 12}}));
+                plot_mass.save(settings::general::output + "chi2_evaluated_points_limited_mass." + settings::plots::format);
+            }
         }
 
-        // plot all evaluated points
-        { 
+        { // plot all evaluated points
             auto l = evals.as_dataset();
             l.sort_x();            
             {
                 auto l_copy = l;
                 for (unsigned int i = 0; i < l_copy.size(); ++i) {
                     l_copy.x(i) = to_level(l_copy.x(i));
+                    l_copy.y(i) /= dof;
                 }
 
                 plots::PlotDataset::quick_plot(
                     l_copy, 
-                    plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi^2$"}}), 
+                    plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi_r^2$"}}), 
                     settings::general::output + "chi2_evaluated_points_full." + settings::plots::format
                 );
             }
 
             // plot with mass axis
-            if (settings::em::mass_axis) {
-                Dataset mass_cutoff(0, 2);
-                for (auto& eval : this->evals) {
-                    mass_cutoff.push_back({eval.cutoff, eval.mass});
-                }
-                mass_cutoff.sort_x();
-                mass_cutoff = mass_cutoff.interpolate(l.x());
-
-                // create chi2 / mass dataset
-                SimpleDataset chi2_mass(avg_int.col("mass"), avg_int.col("chi2"));
-
-                // make the plot
-                plots::PlotDataset plot;
-                plot.plot(chi2_mass, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}));
-                plot.plot(mass_cutoff, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}}));
-                for (auto m : minima) {
-                    plot.vline(avg_int.col("mass")[m], plots::PlotOptions(style::draw::line, {{"ls", style::line::dashed}, {"color", style::color::red}}));
-                }
-                plot.save(settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format);
-            }
+            // if (settings::em::mass_axis) {
+            //     plots::PlotDataset::quick_plot(
+            //         mass_data,
+            //         plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}),
+            //         settings::general::output + "chi2_evaluated_points_full_mass." + settings::plots::format
+            //     );
+            // }
         }
     }
 
@@ -252,25 +264,26 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         mini::MinimumExplorer explorer(f, param, settings::fit::max_iterations);
         res = explorer.minimize();
 
-        SimpleDataset area;
-        {
-            auto l = explorer.landscape();
-            evals.append(l);
-            area = l.as_dataset();
-        }
-
-        // Plot evaluated points near the minimum
+        // plot evaluated points near the minimum
         if (settings::general::supplementary_plots) {
+            SimpleDataset area;
+            {
+                auto l = explorer.landscape();
+                evals.append(l);
+                area = l.as_dataset();
+                area.y() = area.y()/dof;
+            }
+
             // calculate the mean & standard deviation of the sampled points
             double mu = area.mean();
             double sigma = area.std();
 
             // plot the starting point in blue
             SimpleDataset p_start;
-            p_start.push_back(min_abs.x, min_abs.y);
+            p_start.push_back(min_abs.x, min_abs.y/dof);
 
             // do the actual plotting
-            plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi^2$"}}))
+            plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi_r^2$"}}))
                 .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                 .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                 .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
@@ -293,7 +306,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 p_start.x(0) = mass_cutoff.interpolate_x(p_start.x(0), 1);
 
                 // make the plot
-                plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi^2$"}}))
+                plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}))
                     .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                     .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                     .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
@@ -323,7 +336,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             }
         }
         l.add_plot_options({{"xlabel", "cutoff"}, {"ylabel", "c"}, {"zlabel", "$\\chi^2$"}});
-        plots::PlotLandscape::quick_plot(l, settings::general::output + "chi2_landscape." + settings::plots::format);
+        plots::PlotLandscape::quick_plot(l, settings::general::output + "chi2_data." + settings::plots::format);
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
@@ -334,7 +347,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     emfit->evaluated_points = evals;
     emfit->fevals = evals.evals.size();
     emfit->level = to_level(min_abs.x);
-    if (settings::em::mass_axis) {emfit->mass = avg_int.interpolate_x(min_abs.x, 2);}
+    if (settings::em::mass_axis) {emfit->mass = data_avg_int.interpolate_x(min_abs.x, 2);}
     if (settings::em::save_pdb) {
         auto temp_protein = get_protein_manager()->get_protein(min_abs.x);
         if (settings::em::hydrate) {
@@ -355,12 +368,6 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
     // double re2 = pow(constants::radius::electron*constants::unit::cm, 2); // squared scattering length
     // double I0 = DrhoV2*re2*c/m;
     // fitter.normalize_intensity(I0);
-
-    // fit function
-    settings::molecule::center = false;   // do not center the protein - this may cause issues
-    if (settings::em::plot_landscapes && settings::em::hydrate) {
-        std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN);
-    }
 
     // fitter is captured by value to guarantee its lifetime will be the same as the lambda
     // 'this' is ok since prepare_function is private and thus only used within the class itself

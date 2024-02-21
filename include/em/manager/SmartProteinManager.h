@@ -63,5 +63,10 @@ namespace em::managers {
              * @brief Generate a new Protein for a given cutoff. 
              */
             std::unique_ptr<data::Molecule> generate_protein(double cutoff) const;
+
+            /**
+             * @brief Enable or disable the histogram manager initialization for generated proteins.
+             */
+            void toggle_histogram_manager(bool state);
     };
 }

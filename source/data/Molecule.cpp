@@ -334,16 +334,12 @@ void Molecule::center() {
 }
 
 void Molecule::signal_modified_hydration_layer() const {
-    #if DEBUG
-        if (phm == nullptr) [[unlikely]] {throw except::nullptr_error("Molecule::signal_modified_hydration_layer: Somehow the histogram manager has not been initialized.");}
-    #endif
+    if (phm == nullptr) {return;}
     phm->signal_modified_hydration_layer();
 }
 
 void Molecule::bind_body_signallers() {
-    #if DEBUG
-        if (phm == nullptr) [[unlikely]] {throw except::nullptr_error("Molecule::bind_body_signallers: Somehow the histogram manager has not been initialized.");}
-    #endif
+    if (phm == nullptr) {return;}
     for (unsigned int i = 0; i < bodies.size(); i++) {
         bodies[i].register_probe(phm->get_probe(i));
     }

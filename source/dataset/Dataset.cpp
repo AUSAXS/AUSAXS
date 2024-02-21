@@ -250,12 +250,9 @@ Dataset Dataset::interpolate(const std::vector<double>& newx) const {
     for (unsigned int i = 0; i < newx.size(); i++) {
         std::vector<double> row_new(M);
         row_new[0] = newx[i];
-        std::cout << row_new[0];
         for (unsigned int j = 0; j < splines.size(); j++) {
             row_new[1+j] = splines[j].spline(newx[i]);
-            std::cout << " " << row_new[1+j];
         }
-        std::cout << std::endl;
         interpolated[i] = row_new;
     }
     return interpolated;

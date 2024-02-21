@@ -10,6 +10,7 @@ namespace settings {
 
 namespace settings::hist {
     enum class HistogramManagerChoice {
+        None,                                // No histogram manager. This is only used to avoid performing an expensive constructor when the manager is not needed.
         HistogramManager,                    // A simple manager that recalculates the entire histogram every time.
         HistogramManagerMT,                  // A multithreaded implementation of the simple manager.
         HistogramManagerMTFFAvg,             // A multithreaded implementation of the simple manager that uses precalculated form factor products and an average for the excluded volume.

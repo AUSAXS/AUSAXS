@@ -36,6 +36,8 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<PartialHistogramManagerMT<true>>(protein);
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<true>>(protein);
+            case settings::hist::HistogramManagerChoice::None:
+                return nullptr;
             default:
                 throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
         }
@@ -57,6 +59,8 @@ std::unique_ptr<hist::IHistogramManager> hist::factory::construct_histogram_mana
                 return std::make_unique<PartialHistogramManagerMT<false>>(protein);
             // case settings::hist::HistogramManagerChoice::DebugManager:
             //     return std::make_unique<DebugManager<false>>(protein);
+            case settings::hist::HistogramManagerChoice::None:
+                return nullptr;
             default:
                 throw except::unknown_argument("hist::factory::construct_histogram_manager: Unkown HistogramManagerChoice. Did you forget to add it to the switch statement?");
         }

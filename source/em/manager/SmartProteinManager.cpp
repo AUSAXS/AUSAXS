@@ -1,14 +1,13 @@
 #include <em/manager/SmartProteinManager.h>
+#include <em/detail/ImageStackBase.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <data/Molecule.h>
+#include <data/record/Water.h>
 #include <data/record/Atom.h>
+#include <data/Molecule.h>
 #include <data/Body.h>
 #include <utility/Console.h>
-#include <em/detail/ImageStackBase.h>
+#include <settings/HistogramSettings.h>
 #include <settings/EMSettings.h>
-#include <em/Image.h>
-#include <data/record/Water.h>
-#include <Symbols.h>
 
 #include <vector>
 #include <functional>
@@ -61,7 +60,7 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
 
-    while (compare_func(atoms[atom_index].occupancy, cutoff)) {atom_index++;} // search for first atom with charge larger than the cutoff
+    while (compare_func(atoms[atom_index].occupancy, cutoff)) {++atom_index;} // search for first atom with charge larger than the cutoff
     while (compare_func(charge, cutoff)) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
     while (atom_index < atoms.size()) {
         if (compare_func(atoms[atom_index].occupancy, charge)) {
@@ -87,15 +86,26 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
     current_atoms.resize(current_index);
     bodies[charge_index] = Body(current_atoms);
 
-    return std::make_unique<data::Molecule>(bodies);
+    return std::make_unique<data::Molecule>(std::move(bodies));
+}
+
+void SmartProteinManager::toggle_histogram_manager(bool state) {
+    static settings::hist::HistogramManagerChoice previous = settings::hist::histogram_manager;
+    if (state) {
+        settings::hist::histogram_manager = previous;
+    } else {
+        previous = settings::hist::histogram_manager;
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::None;
+    }
 }
 
 void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->atom_size() == 0) {
+        toggle_histogram_manager(true);
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
-
         previous_cutoff = cutoff;
+        toggle_histogram_manager(false);
         return;
     }
 
