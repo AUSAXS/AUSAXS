@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utility/Concepts.h>
-#include <Symbols.h>
 
 #include <initializer_list>
 #include <vector>

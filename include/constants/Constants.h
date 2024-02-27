@@ -4,6 +4,7 @@
 #include <residue/ResidueStorage.h>
 #include <constants/ConstantsMath.h>
 #include <constants/ConstantsFwd.h>
+#include <constants/Version.h>
 #include <constants/Axes.h>
 #include <constants/SI.h>
 #include <io/IOFwd.h>

@@ -23,7 +23,6 @@
 #include <hydrate/GridMember.h>
 #include <hydrate/placement/PlacementStrategy.h>
 #include <hydrate/culling/CullingStrategy.h>
-#include <Symbols.h>
 
 #include <numeric>
 

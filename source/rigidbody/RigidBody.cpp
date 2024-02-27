@@ -10,10 +10,6 @@
 #include <utility/Exceptions.h>
 #include <utility/Console.h>
 #include <io/XYZWriter.h>
-#include <plots/PlotIntensityFit.h>
-#include <plots/PlotDistance.h>
-#include <settings/RigidBodySettings.h>
-#include <settings/GeneralSettings.h>
 #include <fitter/HydrationFitter.h>
 #include <fitter/LinearFitter.h>
 #include <fitter/Fit.h>
@@ -26,7 +22,10 @@
 #include <data/Body.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
-#include <Symbols.h>
+#include <settings/RigidBodySettings.h>
+#include <settings/GeneralSettings.h>
+#include <plots/PlotIntensityFit.h>
+#include <plots/PlotDistance.h>
 
 using namespace rigidbody;
 using namespace rigidbody::constraints;

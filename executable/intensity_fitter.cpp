@@ -50,6 +50,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("Hidden");
     app.add_flag("--save_exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("Hidden");
     CLI11_PARSE(app, argc, argv);
+    std::cout << "Running AUSAXS " << constants::version << std::endl;
 
     //###################//
     //### PARSE INPUT ###//

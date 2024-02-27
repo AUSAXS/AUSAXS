@@ -10,13 +10,13 @@ project(SAXS VERSION 0.0)
 #set(fprofile "-fprofile-use=${CMAKE_BINARY_DIR}/profiling" "-fprofile-correction")
 #add_link_options(-lgcov --coverage)
 set(fprofile "")
-set(GUI FALSE)
+set(GUI TRUE)
 set(DLIB FALSE)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
-add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")#;_GLIBCXX_DEBUG>")
+add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
 if (WIN32)
 	if (MSVC)
 		add_compile_definitions("NOMINMAX")
@@ -52,7 +52,6 @@ endif()
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
-#set(FETCHCONTENT_UPDATES_DISCONNECT ON)
 if (DLIB)
 	FetchContent_Declare(
 		dlib
@@ -96,10 +95,8 @@ FetchContent_Declare(
 	GIT_REPOSITORY https://github.com/kthohr/gcem
 )
 
-FetchContent_MakeAvailable(thread_pool GCEM)
-FetchContent_MakeAvailable(backward)
+FetchContent_MakeAvailable(thread_pool GCEM backward)
 include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include ${backward_SOURCE_DIR})
-#add_compile_options("$<$<CONFIG:DEBUG>:-fopt-info-loop;-fopt-info-vec>")
 
 ############################################
 ##           Find and link CURL           ##
@@ -134,7 +131,7 @@ endif()
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	set(sim3a_Doxygen "${CMAKE_BINARY_DIR}/saxs.dox")
-	configure_file(${CMAKE_SOURCE_DIR}/saxs.dox.in ${sim3a_Doxygen} @ONLY)
+	configure_file(${CMAKE_SOURCE_DIR}/docs/saxs.dox.in ${sim3a_Doxygen} @ONLY)
 	add_custom_target(
 		doc
 		${DOXYGEN_EXECUTABLE} ${sim3a_Doxygen}

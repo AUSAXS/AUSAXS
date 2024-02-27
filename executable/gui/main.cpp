@@ -3,8 +3,8 @@
 
 	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
+#include "settings/FitSettings.h"
 #include <elements.hpp>
-#include <filesystem>
 #include <nfd.hpp>
 
 #include <data/Molecule.h>
@@ -15,20 +15,19 @@
 #include <plots/PlotIntensityFit.h>
 #include <plots/PlotIntensityFitResiduals.h>
 #include <constants/Constants.h>
+#include <constants/Version.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <settings/All.h>
 #include <utility/Limit2D.h>
 #include <utility/MultiThreading.h>
 #include <fitter/FitReporter.h>
 
-#include <list>
-#include <bitset>
+#include <filesystem>
 #include <algorithm>
-#include <random>
 #include <iostream>
 #include <memory>
 #include <thread>
-#include <chrono>
+#include <bitset>
 
 namespace gui = cycfi::elements;
 
@@ -140,6 +139,13 @@ auto make_folder_dialog_button = [] (auto& text_field, auto& bg) {
 		)
 	);
 };
+
+auto make_tip(std::string text) {
+	return gui::layer(
+		gui::margin({20, 8, 20, 8}, gui::basic_text_box(text)), 
+		gui::panel{}
+	);
+}
 
 auto io_menu(gui::view& view) {
 	static auto saxs_box_bg = gui::box(bg_color);
@@ -406,7 +412,7 @@ auto q_slider(gui::view& view) {
 
 	static auto qmin_textbox = gui::input_box("q_min");
 	static auto qmax_textbox = gui::input_box("q_max");
-	static auto qinfo_box = gui::label("test");
+	static auto qinfo_box = gui::label("");
 	static auto qmin_bg = gui::box(bg_color);
 	static auto qmax_bg = gui::box(bg_color);
 
@@ -573,7 +579,7 @@ auto alpha_level_slider(gui::view& view) {
 			gui::box(gui::colors::light_gray)
 		),
 		gui::slider_labels<11>(
-			gui::slider_marks<20, 10*5, 10>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"
+			gui::slider_marks_lin<20, 10, 5>(track), 0.8, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"
 		),
 		{0.05, 0.8}
 	);
@@ -584,6 +590,11 @@ auto alpha_level_slider(gui::view& view) {
 	static auto amin_bg = gui::box(bg_color);
 	static auto amax_bg = gui::box(bg_color);
 	static auto astep_bg = gui::box(bg_color);
+
+	auto astep_tt = gui::tooltip(
+		link(astep_textbox.first),
+		make_tip("The requested number of fit evaluations. This is only used as a guideline.")
+	);
 
 	auto pretty_printer = [] (float value) {
 		std::stringstream ss;
@@ -610,7 +621,7 @@ auto alpha_level_slider(gui::view& view) {
 	};
 
 	amin_textbox.second->on_text = [&view] (std::string_view text) {
-		if (text.empty()) {
+		if (text.empty()) {			
 			amin_bg = bg_color;
 		} else {
 			amin_bg = bg_color_accent;
@@ -619,7 +630,7 @@ auto alpha_level_slider(gui::view& view) {
 
 	amin_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
 		try {
-			aslider.edit_value_first(axis_transform_inv(std::stof(std::string(text))));
+			aslider.value_first(axis_transform_inv(std::stof(std::string(text))));
 			amin_bg = bg_color;
 			view.refresh(aslider);
 		} catch (std::exception&) {
@@ -638,7 +649,7 @@ auto alpha_level_slider(gui::view& view) {
 
 	amax_textbox.second->on_enter = [&view, axis_transform_inv] (std::string_view text) {
 		try {
-			aslider.edit_value_second(axis_transform_inv(std::stof(std::string(text))));
+			aslider.value_second(axis_transform_inv(std::stof(std::string(text))));
 			amax_bg = bg_color;
 			view.refresh(aslider);
 		} catch (std::exception&) {
@@ -647,11 +658,29 @@ auto alpha_level_slider(gui::view& view) {
 		view.refresh(aslider);
 	};
 
+	astep_textbox.second->on_text = [&view] (std::string_view text) {
+		if (text.empty()) {
+			astep_bg = bg_color;
+		} else {
+			astep_bg = bg_color_accent;
+		}
+	};
+
+	astep_textbox.second->on_enter = [&view] (std::string_view text) {
+		try {
+			settings::fit::max_iterations = std::stof(std::string(text));
+			astep_bg = bg_color;
+		} catch (std::exception&) {
+			astep_bg = bred;
+		}
+		view.refresh(astep_textbox.first);
+	};
+
 	return gui::vtile(
 		gui::margin(
 			{50, 0, 50, 0},
 			gui::layer(
-				aslider
+				link(aslider)
 			)
 		),
 		gui::layer(
@@ -673,7 +702,7 @@ auto alpha_level_slider(gui::view& view) {
 					gui::hsize(
 						100,
 						gui::layer(
-							link(astep_textbox.first),
+							astep_tt,
 							link(astep_bg)
 						)
 					)
@@ -692,13 +721,6 @@ auto alpha_level_slider(gui::view& view) {
 				)
 			)
 		)
-	);
-}
-
-auto make_tip(std::string text) {
-	return gui::layer(
-		gui::margin({20, 8, 20, 8}, gui::basic_text_box(text)), 
-		gui::panel{}
 	);
 }
 
@@ -811,7 +833,7 @@ auto make_start_button(gui::view& view) {
 	deck.push_back(gui::share(progress_bar_layout));
 
 	static std::thread worker;
-	start_button.on_click = [&view] (bool click) {
+	start_button.on_click = [&view] (bool) {
 		if (!setup::saxs_dataset || !setup::map) {
 			std::cout << "no saxs data or map file was provided" << std::endl;
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -924,7 +946,7 @@ int main(int argc, char* argv[]) {
 		gui::align_left_bottom(
 			gui::margin(
 				{10, 10, 10, 10},
-				gui::label("v0.0.1")
+				gui::label(constants::version)
 			)
 		),
 		gui::align_center_bottom(
@@ -941,7 +963,7 @@ int main(int argc, char* argv[]) {
 		)
 	);
 	auto settings = gui::vtile(
-		gui::top_margin(
+		gui::margin_top(
 			10,
 			gui::label("Input & output")
 		),
@@ -949,14 +971,14 @@ int main(int argc, char* argv[]) {
 		gui::hgrid(
 			{0.5, 1.0},
 			gui::vtile(
-				gui::top_margin(
+				gui::margin_top(
 					10,
 					gui::label("q-range")
 				),
 				q_slider(view)
 			),
 			gui::vtile(
-				gui::top_margin(
+				gui::margin_top(
 					10,
 					gui::label("alpha levels")
 				),

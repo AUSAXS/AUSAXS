@@ -1,5 +1,3 @@
-#include "settings/EMSettings.h"
-#include "settings/HistogramSettings.h"
 #include <em/ImageStack.h>
 #include <settings/All.h>
 #include <plots/All.h>
@@ -17,6 +15,8 @@
 #include <constants/Constants.h>
 #include <hist/intensity_calculator/DistanceHistogram.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <settings/EMSettings.h>
+#include <settings/HistogramSettings.h>
 
 #include <fstream>
 
@@ -220,6 +220,14 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 plot_mass.plot(mass_p_min, plots::PlotOptions(style::draw::points, {{"color", style::color::blue}, {"s", 12}}));
                 plot_mass.save(settings::general::output + "chi2_evaluated_points_limited_mass." + settings::plots::format);
             }
+
+            if (settings::em::hydrate) {
+                plots::PlotDataset::quick_plot(
+                    get_fitted_water_factors_dataset(),
+                    plots::PlotOptions(style::draw::points, {{"xlabel", "Iteration"}, {"ylabel", "Scaling factor"}}),
+                    settings::general::output + "water_factors." + settings::plots::format
+                );
+            }
         }
 
         { // plot all evaluated points
@@ -391,6 +399,7 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             fit = fitter->fit();                                                                            // do the fit
             water_factors.push_back(fit->get_parameter("c"));                                               // record c value
             last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
+            if (last_c < 0.05) {last_c = 0;}                                                                // ensure that we consider the possibility of no hydration for small c
             evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
         } else {
             p->clear_grid();                                                                                // clear grid from previous iteration

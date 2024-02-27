@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Symbols.h>
 #include <utility/Concepts.h>
 #include <math/slices/SliceIterator.h>
 #include <math/Vector.h>

@@ -3,7 +3,6 @@
 #include <data/Body.h>
 #include <utility/Exceptions.h>
 #include <math/Vector3.h>
-#include <Symbols.h>
 
 using namespace rigidbody::parameter;
 

@@ -41,7 +41,8 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--center,!--no-center", settings::protein::center, "Decides whether the protein will be centered. Default: true.");
     app.add_flag("--effective-charge,!--no-effective-charge", settings::protein::use_effective_charge, "Decides whether the protein will be centered. Default: true.");
     CLI11_PARSE(app, argc, argv);
-    
+    std::cout << "Running AUSAXS " << constants::version << std::endl;
+
     //###################//
     //### PARSE INPUT ###//
     //###################//

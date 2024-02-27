@@ -1,7 +1,6 @@
 #include <rigidbody/constraints/ConstrainedFitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
 #include <utility/Exceptions.h>
-#include <Symbols.h>
 
 using namespace fitter;
 

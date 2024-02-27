@@ -1,11 +1,8 @@
 #include <crystal/Fval.h>
 #include <utility/Basis3D.h>
-#include <Symbols.h>
 #include <data/Molecule.h>
 #include <data/record/Atom.h>
 #include <constants/Constants.h>
-
-#include <cmath>
 
 using namespace crystal;
 

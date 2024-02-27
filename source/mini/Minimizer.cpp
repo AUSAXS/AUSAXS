@@ -1,3 +1,4 @@
+#include "settings/GeneralSettings.h"
 #include <mini/Minimizer.h>
 #include <mini/detail/Evaluation.h>
 #include <mini/detail/Parameter.h>
@@ -110,7 +111,7 @@ mini::Landscape Minimizer::landscape(unsigned int bins) {
 
         // sanity check
         if (std::isnan(fval) || std::isinf(fval)) {
-            debug_print("Warning in Minimizer::landscape: Function value is nan or inf and will be skipped.");
+            if (settings::general::verbose) {std::cout << "Warning in Minimizer::landscape: Function value is nan or inf and will be skipped." << std::endl;}
             index--;
             continue;
         }

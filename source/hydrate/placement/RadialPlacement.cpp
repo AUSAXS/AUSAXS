@@ -1,4 +1,3 @@
-#include <Symbols.h>
 #include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/Grid.h>
 #include <hydrate/GridMember.h>

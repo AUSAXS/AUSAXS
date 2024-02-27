@@ -1,4 +1,3 @@
-#include <Symbols.h>
 #include <hydrate/culling/ClusterCulling.h>
 #include <hydrate/GridMember.h>
 #include <hydrate/Grid.h>

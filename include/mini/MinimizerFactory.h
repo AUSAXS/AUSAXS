@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Symbols.h>
 #include <mini/dlibMinimizer.h>
 #include <mini/Golden.h>
 #include <mini/MinimumExplorer.h>

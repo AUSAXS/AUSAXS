@@ -2,10 +2,9 @@
 #include <rigidbody/constraints/generation/ConstraintGenerationFactory.h>
 #include <rigidbody/constraints/DistanceConstraint.h>
 #include <rigidbody/constraints/OverlapConstraint.h>
+#include <data/record/Atom.h>
 #include <data/Molecule.h>
 #include <data/Body.h>
-#include <data/record/Atom.h>
-#include <Symbols.h>
 
 using namespace rigidbody::constraints;
 

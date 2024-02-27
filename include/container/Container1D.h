@@ -1,7 +1,6 @@
 #pragma once
 
 #include <utility/Exceptions.h>
-#include <Symbols.h>
 
 #include <vector>
 
