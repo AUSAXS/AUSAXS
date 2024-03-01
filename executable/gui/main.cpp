@@ -3,7 +3,6 @@
 
 	Distributed under the MIT License (https://opensource.org/licenses/MIT)
 =============================================================================*/
-#include "settings/FitSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
@@ -21,6 +20,8 @@
 #include <utility/Limit2D.h>
 #include <utility/MultiThreading.h>
 #include <fitter/FitReporter.h>
+#include <shell/Command.h>
+#include <logo.h>
 
 #include <filesystem>
 #include <algorithm>
@@ -48,9 +49,38 @@ auto plot_names = std::vector<std::pair<std::string, std::string>>{
 auto abs_path(const std::string& path) {
 	return std::filesystem::current_path().string() + "/" + path;
 }
+
+shell::Command get_plotter_cmd() {
+	#ifdef _WIN32
+		// first check if plot.exe is available in the path
+		auto res = shell::Command("where plot").mute().execute();
+		bool plot_exe_available = res.exit_code == 0;
+		if (plot_exe_available) {
+			return shell::Command(res.out);
+		}
+
+		// if not, check if python & the python script is available
+		bool python_available = shell::Command("python --version").mute().execute();
+		bool python_script_available = io::File("scripts/plot.py").exists();
+		if (python_available && python_script_available) {
+			return shell::Command("python scripts/plot.py");
+		}
+	#elif defined(__linux__)
+		// check if python & the python script is available
+		bool python_available = shell::Command("python3 --version").mute().execute().exit_code == 0;
+		bool python_script_available = io::File("scripts/plot.py").exists();
+		if (python_available && python_script_available) {
+			return shell::Command("python3 scripts/plot.py");
+		}
+	#elif defined (__APPLE__)
+		throw std::runtime_error("macOS is not currently supported");
+	#endif
+
+	throw std::runtime_error("No plotting utility was found. Please ensure the plot executable is available in the current directory or system path, or that python is installed and the plot.py script is available in the script/ directory.");
+}
+
 auto perform_plot(const std::string& path) {
-	std::string command = "python scripts/plot.py " + path;
-	std::system(command.c_str());
+	get_plotter_cmd().append(path).execute();
 };
 
 namespace settings {
@@ -918,6 +948,7 @@ auto make_start_button(gui::view& view) {
 	return link(deck);
 }
 
+#include <logo.h>
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 	settings::axes::qmin = 0;
@@ -928,6 +959,12 @@ int main(int argc, char* argv[]) {
     settings::fit::verbose = true;
     settings::em::alpha_levels = {1, 10};
     settings::hist::weighted_bins = true;
+
+	// generate the logo file on disk
+	auto logo_path = resources::generate_logo_file();
+
+	// check if the plotter is available
+	perform_plot("output/em_fitter/SASDDD3/emd_0560");
 
 	gui::app app(argc, argv, "EM fitter", "com.saxs.gui");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), gui::rect{20, 20, 1620, 1020});
@@ -946,7 +983,7 @@ int main(int argc, char* argv[]) {
 		gui::align_left_bottom(
 			gui::margin(
 				{10, 10, 10, 10},
-				gui::label(constants::version)
+				gui::label(std::string(constants::version))
 			)
 		),
 		gui::align_center_bottom(
@@ -958,7 +995,7 @@ int main(int argc, char* argv[]) {
 		gui::align_right_bottom(
 			gui::margin(
 				{10, 10, 10, 10},
-				gui::scale_element(0.15, gui::image(abs_path("temp/logo.png").c_str()))
+				gui::scale_element(0.15, gui::image(abs_path(logo_path).c_str()))
 			)
 		)
 	);

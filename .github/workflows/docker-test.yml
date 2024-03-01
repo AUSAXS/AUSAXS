@@ -7,23 +7,21 @@ on: [workflow_dispatch]
 #      - master
 
 jobs:
-  test:
+  runner:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.actor }}/saxs:latest
-      options: --user root
-      credentials:
-         username: ${{ github.actor }}
-         password: ${{ secrets.CR_PAT }}
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-        
-      - name: Run tests
+        uses: actions/checkout@v4
+       
+      - build: Build the library
         run: |
-          make build
-          make tests
+          mkdir build
+          cmake -S . -B build
+          cmake --build build --target ausaxs -j $(nproc)
+        
+      - name: Build tests
+        run:
+          cmake --build build --target tests -j $(nproc)
           
       - name: Generate test report
         uses: mikepenz/action-junit-report@v3

@@ -19,6 +19,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(elements CLI11 nfd)
 link_libraries(nfd)
+include_directories(resources)
 
 set(ELEMENTS_ROOT "${elements_SOURCE_DIR}")
 get_filename_component(ELEMENTS_ROOT "${ELEMENTS_ROOT}" ABSOLUTE)

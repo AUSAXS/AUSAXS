@@ -11,7 +11,7 @@ project(SAXS VERSION 0.0)
 #add_link_options(-lgcov --coverage)
 set(fprofile "")
 set(GUI TRUE)
-set(DLIB FALSE)
+set(DLIB TRUE)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
@@ -168,6 +168,8 @@ target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "
 target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
 if (DLIB)
 	target_link_libraries(objlib dlib::dlib)
+	target_link_libraries(ausaxs dlib::dlib)
+	target_link_libraries(ausaxs_static dlib::dlib)
 endif()
 target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
