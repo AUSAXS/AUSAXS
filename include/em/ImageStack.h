@@ -39,6 +39,8 @@ namespace em {
             /**
              * @brief Get the mass corresponding to the given cutoff level. 
              * 
+             * Complexity: O(n) where n is the number of atoms in the stack, with a significant prefactor. 
+             * 
              * @return The mass in kDa.
              */
             double get_mass(double cutoff) const; 

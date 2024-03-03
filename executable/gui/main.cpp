@@ -38,8 +38,8 @@ auto constexpr bgreen   = gui::colors::green.level(0.7).opacity(0.4);
 auto constexpr bred     = gui::colors::red.level(0.7).opacity(0.4);
 auto plot_names = std::vector<std::pair<std::string, std::string>>{
 	{"chi2_evaluated_points_full", "χ²"},
-	{"chi2_evaluated_points_full_mass", "χ²"},
 	{"chi2_evaluated_points_limited", "χ² reduced axes"},
+	{"chi2_evaluated_points_limited_mass", "χ² reduced axes"},
 	{"chi2_near_minimum", "χ² near minimum"},
 	{"chi2_near_minimum_mass", "χ² near minimum"},
 	{"log", "log plot"},
@@ -437,7 +437,7 @@ auto q_slider(gui::view& view) {
 		gui::slider_labels<9>(
 			gui::slider_marks_log<20, 4>(track), 0.8, "1e-4", "1e-3", "1e-2", "1e-1", "1e0"
 		),
-		{0.1, 0.5}
+		{0, 1}
 	);
 
 	static auto qmin_textbox = gui::input_box("q_min");
@@ -616,6 +616,8 @@ auto alpha_level_slider(gui::view& view) {
 
 	static auto amin_textbox = gui::input_box("min level");
 	static auto amax_textbox = gui::input_box("max level");
+	static auto amin_infobox = gui::label("          ");
+	static auto amax_infobox = gui::label("          ");
 	static auto astep_textbox = gui::input_box("steps");
 	static auto amin_bg = gui::box(bg_color);
 	static auto amax_bg = gui::box(bg_color);
@@ -640,13 +642,67 @@ auto alpha_level_slider(gui::view& view) {
 		return value/10;
 	};
 
-	aslider.on_change.first = [&view, pretty_printer, axis_transform] (float value) {
+	auto update_mass_range = [&view, axis_transform] () {
+		static std::pair<double, double> values = {-1, -1};
+		static bool extend_wait = false;
+		static bool waiting = false;
+		static std::thread worker;
+
+		// extend wait period if the user is still moving the slider
+		if (waiting) {
+			extend_wait = true;
+			return;	
+		}
+
+		// a valid map must be present
+		if (!setup::map) {return;}
+
+		// ensure that the worker thread is finished and can be destructed
+		if (worker.joinable()) {
+			worker.join();
+		}
+
+		waiting = true;
+		worker = std::thread([&view, axis_transform] () {
+			do {
+				extend_wait = false;
+				std::this_thread::sleep_for(std::chrono::milliseconds(500));			
+			} while (extend_wait);
+
+			if (aslider.value_first() != values.first) {
+				values.first = aslider.value_first();
+				double mass_min = setup::map->get_mass(setup::map->from_level(axis_transform(values.first)));
+				std::stringstream ss;
+				ss << std::setprecision(3) << mass_min;
+				amin_infobox.set_text("mass: " + ss.str() + " kDa");
+				view.refresh(amin_infobox);
+				view.refresh(amin_textbox.first);
+			}
+
+			if (aslider.value_second() != values.second) {
+				values.second = aslider.value_second();
+				double mass_max = setup::map->get_mass(setup::map->from_level(axis_transform(values.second)));
+				std::stringstream ss;
+				ss << std::setprecision(3) << mass_max;
+				amax_infobox.set_text("mass: " + ss.str() + " kDa");
+				view.refresh(amax_infobox);
+				view.refresh(amax_textbox.first);
+			}
+
+			waiting = false;
+			return;
+		});
+	};
+
+	aslider.on_change.first = [&view, pretty_printer, axis_transform, update_mass_range] (float value) {
 		amin_textbox.second->set_text(pretty_printer(axis_transform(value)));
+		update_mass_range();
 		view.refresh(amin_textbox.first);
 	};
 
-	aslider.on_change.second = [&view, pretty_printer, axis_transform] (float value) {
+	aslider.on_change.second = [&view, pretty_printer, axis_transform, update_mass_range] (float value) {
 		amax_textbox.second->set_text(pretty_printer(axis_transform(value)));
+		update_mass_range();
 		view.refresh(amax_textbox.first);
 	};
 
@@ -717,11 +773,17 @@ auto alpha_level_slider(gui::view& view) {
 			gui::align_left(
 				gui::margin(
 					{50, 10, 50, 10},
-					gui::hsize(
-						100,
-						gui::layer(
-							link(amin_textbox.first),
-							link(amin_bg)
+					gui::vtile(
+						gui::hsize(
+							100,
+							gui::layer(
+								link(amin_textbox.first),
+								link(amin_bg)
+							)
+						),
+						gui::margin_top(
+							2,
+							link(amin_infobox)
 						)
 					)
 				)
@@ -741,11 +803,17 @@ auto alpha_level_slider(gui::view& view) {
 			gui::align_right(
 				gui::margin(
 					{50, 10, 50, 10},
-					gui::hsize(
-						100,
-						gui::layer(
-							link(amax_textbox.first),
-							link(amax_bg)
+					gui::vtile(
+						gui::hsize(
+							100,
+							gui::layer(
+								link(amax_textbox.first),
+								link(amax_bg)
+							)
+						),
+						gui::margin_top(
+							2,
+							link(amax_infobox)
 						)
 					)
 				)

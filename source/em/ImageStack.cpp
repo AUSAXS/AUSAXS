@@ -31,6 +31,7 @@ ImageStack::~ImageStack() = default;
 
 double ImageStack::get_mass(double cutoff) const {
     auto p = get_protein_manager()->get_protein(cutoff);
+    p->clear_grid();
     return p->excluded_volume_mass()/1e3;
 }
 
