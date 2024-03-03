@@ -96,6 +96,11 @@ namespace em {
              */
             std::string to_string() const;
 
+            /**
+             * @brief Get the data of this image. 
+             */
+            const Matrix<float>& get_data() const;
+
             unsigned int N; // The number of rows.  
             unsigned int M; // The number of columns.
         private:

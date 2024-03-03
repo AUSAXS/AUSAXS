@@ -14,6 +14,10 @@ Image::Image(const Matrix<float>& data) : N(data.N), M(data.M), data(data), boun
 
 Image::Image(const Matrix<float>& data, observer_ptr<em::detail::header::MapHeader> header, unsigned int layer) : N(data.N), M(data.M), header(header), data(data), z(layer), bounds(N, M) {}
 
+const Matrix<float>& Image::get_data() const {
+    return data;
+}
+
 void Image::set_z(unsigned int z) {this->z = z;}
 
 unsigned int Image::get_z() const {return z;}

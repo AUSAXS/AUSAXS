@@ -81,7 +81,10 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
     unsigned int dof = fitter->dof();
 
-    if (settings::general::verbose) {std::cout << "The mass range [" << std::setw(8) << get_mass(param.bounds->min) << ", " << std::setw(8) << get_mass(param.bounds->max) << "] kDa will be scanned." << std::endl;}
+    if (settings::general::verbose) {
+        std::cout << "The mass range [" << std::left << std::setw(8) << get_mass(param.bounds->min) 
+                                << ", " << std::left << std::setw(8) << get_mass(param.bounds->max) << "] kDa will be scanned." << std::endl;
+    }
 
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
