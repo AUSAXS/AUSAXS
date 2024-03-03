@@ -117,6 +117,10 @@ double Molecule::absolute_mass() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.absolute_mass();});
 }
 
+double Molecule::excluded_volume_mass() const {
+    return get_volume_grid()*constants::SI::volume::A3*constants::mass::density::protein/constants::SI::mass::u;
+}
+
 double Molecule::total_atomic_charge() const {
     return std::accumulate(bodies.begin(), bodies.end(), 0.0, [] (double sum, const Body& body) {return sum + body.total_atomic_charge();});
 }

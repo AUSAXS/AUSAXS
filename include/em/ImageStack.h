@@ -37,6 +37,13 @@ namespace em {
             ~ImageStack() override;
 
             /**
+             * @brief Get the mass corresponding to the given cutoff level. 
+             * 
+             * @return The mass in kDa.
+             */
+            double get_mass(double cutoff) const; 
+
+            /**
              * @brief Fit the cutoff value with the input experimental data file. 
              * 
              * @param file Path to the measurement file. 

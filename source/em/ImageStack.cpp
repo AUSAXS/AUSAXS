@@ -29,6 +29,11 @@ ImageStack::ImageStack(const std::vector<Image>& images) : ImageStackBase(images
 
 ImageStack::~ImageStack() = default;
 
+double ImageStack::get_mass(double cutoff) const {
+    auto p = get_protein_manager()->get_protein(cutoff);
+    return p->excluded_volume_mass()/1e3;
+}
+
 std::unique_ptr<EMFit> ImageStack::fit(std::unique_ptr<hist::ICompositeDistanceHistogram> h) {
     Limit lim = {from_level(settings::em::alpha_levels.min), from_level(settings::em::alpha_levels.max)};
     mini::Parameter param("cutoff", lim.center(), lim);
@@ -74,6 +79,8 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     auto f = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
     unsigned int dof = fitter->dof();
+
+    if (settings::general::verbose) {std::cout << "The mass range [" << std::setw(8) << get_mass(param.bounds->min) << ", " << std::setw(8) << get_mass(param.bounds->max) << "] kDa will be scanned." << std::endl;}
 
     //##########################################################//
     //###                DETERMINE LANDSCAPE                 ###//
@@ -231,19 +238,33 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         }
 
         { // plot all evaluated points
-            auto l = evals.as_dataset();
-            l.sort_x();            
-            {
-                auto l_copy = l;
-                for (unsigned int i = 0; i < l_copy.size(); ++i) {
-                    l_copy.x(i) = to_level(l_copy.x(i));
-                    l_copy.y(i) /= dof;
+            { // chi2 landscape
+                auto l = evals.as_dataset();
+                l.sort_x();
+                for (unsigned int i = 0; i < l.size(); ++i) {
+                    l.x(i) = to_level(l.x(i));
+                    l.y(i) /= dof;
                 }
 
                 plots::PlotDataset::quick_plot(
-                    l_copy, 
+                    l, 
                     plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi_r^2$"}}), 
                     settings::general::output + "chi2_evaluated_points_full." + settings::plots::format
+                );
+            }
+
+            { // volume as a function of cutoff
+                SimpleDataset volume_data(this->evals.size()); 
+                for (unsigned int i = 0; i < this->evals.size(); ++i) {
+                    volume_data.x(i) = to_level(this->evals[i].cutoff);
+                    volume_data.y(i) = this->evals[i].mass;
+                }
+                volume_data.sort_x();
+
+                plots::PlotDataset::quick_plot(
+                    volume_data, 
+                    plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "Volume [Å³]"}, {"title", "Volume as a function of cutoff"}}), 
+                    settings::general::output + "volume." + settings::plots::format
                 );
             }
 
@@ -393,22 +414,17 @@ std::function<double(std::vector<double>)> ImageStack::prepare_function(std::sha
             std::static_pointer_cast<HydrationFitter>(fitter)->set_guess(mini::Parameter{"c", last_c, {0, 200}});
             fitter->set_scattering_hist(p->get_histogram());
 
-            auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
-                *constants::mass::density::protein                                                          
-                /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa
-            fit = fitter->fit();                                                                            // do the fit
-            water_factors.push_back(fit->get_parameter("c"));                                               // record c value
-            last_c = fit->get_parameter("c").value;                                                         // update c for next iteration
-            if (last_c < 0.05) {last_c = 0;}                                                                // ensure that we consider the possibility of no hydration for small c
-            evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
+            auto mass = p->excluded_volume_mass()/1e3; // mass in kDa
+            fit = fitter->fit();                                // do the fit
+            water_factors.push_back(fit->get_parameter("c"));   // record c value
+            last_c = fit->get_parameter("c").value;             // update c for next iteration
+            evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(fit->evaluated_points)));  // record evaluated points
         } else {
-            p->clear_grid();                                                                                // clear grid from previous iteration
-            auto mass = p->get_volume_grid()*constants::SI::volume::A3                                      // essentially free to calculate, so we always do it
-                *constants::mass::density::protein                                                          
-                /constants::SI::mass::u/1e3;                                                                // conversion factor to get mass in kDa
+            p->clear_grid();                                    // clear grid from previous iteration
+            auto mass = p->excluded_volume_mass()/1e3;          // mass in kDa
             fitter->set_scattering_hist(p->get_histogram());
             fit = fitter->fit();
-            evals.push_back(detail::ExtendedLandscape(params[0], mass, std::move(fit->evaluated_points)));  // record evaluated points
+            evals.push_back(detail::ExtendedLandscape(params[0], mass, p->get_volume_grid(), std::move(fit->evaluated_points)));  // record evaluated points
         }
 
         double val = fit->fval;

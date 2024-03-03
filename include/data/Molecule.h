@@ -127,6 +127,14 @@ namespace data {
 			[[nodiscard]] double absolute_mass() const;
 
 			/**
+			 * @brief Get the excluded volume mass of this molecule.
+			 * 		  This is the excluded volume of the molecule times the average protein mass density. 
+			 * 
+			 * @return The excluded volume mass in Da.
+			 */
+			[[nodiscard]] double excluded_volume_mass() const;
+
+			/**
 			 * @brief Get the total atomic charge. 
 			 */
 			[[nodiscard]] double total_atomic_charge() const;

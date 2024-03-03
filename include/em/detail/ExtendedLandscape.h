@@ -14,9 +14,9 @@ namespace em {
             /**
              * @brief Constructor.
              */
-            ExtendedLandscape(double cutoff, double mass, mini::Landscape&& l) : cutoff(cutoff), mass(mass), strip(std::move(l)) {}
+            ExtendedLandscape(double cutoff, double mass, double volume, mini::Landscape&& l) : cutoff(cutoff), mass(mass), volume(volume), strip(std::move(l)) {}
 
-            double cutoff, mass;
+            double cutoff, mass, volume;
             mini::Landscape strip;
         };
     }
