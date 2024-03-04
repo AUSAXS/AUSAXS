@@ -10,8 +10,7 @@
 #include <data/record/Atom.h>
 #include <data/record/Water.h>
 #include <hydrate/Grid.h>
-#include <settings/MoleculeSettings.h>
-#include <settings/GridSettings.h>
+#include <settings/All.h>
 #include <utility/Utility.h>
 
 using namespace hist;
@@ -114,6 +113,7 @@ TEST_CASE("HistogramManagerMTFFGrid::calculate") {
     }
 
     SECTION("actual data") {
+        settings::general::verbose = false;
         settings::grid::width = 1;
         settings::grid::exv_radius = 1;
         Molecule protein("test/files/LAR1-2.pdb");

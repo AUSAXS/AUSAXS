@@ -7,7 +7,7 @@
 namespace rigidbody {
     namespace selection {
         /**
-         * @brief Thread-safe body selection strategy. The next body is randomly selected.
+         * @brief Thread-safe body selection strategy. The next constraint is randomly selected, with the body being the one to which the constraint is connected.
          */
         class RandomConstraintSelect : public BodySelectStrategy {
             public: 

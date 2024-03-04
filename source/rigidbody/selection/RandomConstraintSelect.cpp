@@ -19,10 +19,13 @@ RandomConstraintSelect::~RandomConstraintSelect() = default;
 
 std::pair<unsigned int, unsigned int> RandomConstraintSelect::next() {
     unsigned int iconstraint = distribution(generator);
-    auto constraint = rigidbody->get_constraint_manager()->distance_constraints[iconstraint];
+    const auto& constraint = rigidbody->get_constraint_manager()->distance_constraints[iconstraint];
     unsigned int ibody = constraint.ibody1;
+
+    // find the index of the constraint in the list of constraints for the body
     for (unsigned int i = 0; i < rigidbody->get_constraint_manager()->distance_constraints_map.at(ibody).size(); i++) {
-        if (rigidbody->get_constraint_manager()->distance_constraints_map.at(ibody).at(i) == &constraint) {
+        // address comparison since the DistanceConstraint comparison operator is a weak equality comparing only its contents
+        if (&rigidbody->get_constraint_manager()->distance_constraints_map.at(ibody).at(i).get() == &constraint) {
             return std::make_pair(ibody, i);
         }
     }

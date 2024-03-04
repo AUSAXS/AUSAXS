@@ -13,6 +13,7 @@ using namespace data;
 using namespace data::record;
 
 TEST_CASE("CompositeDistanceHistogramFFGrid::volumes") {
+    settings::general::verbose = false;
     data::Molecule protein("test/files/2epe.pdb");
     auto V = protein.get_volume_grid();
 

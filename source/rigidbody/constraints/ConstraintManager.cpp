@@ -50,13 +50,11 @@ void ConstraintManager::generate_constraint_map() {
     #endif
 
     for (unsigned int i = 0; i < protein->body_size(); i++) {
-        distance_constraints_map[i] = std::vector<DistanceConstraint*>();
+        distance_constraints_map[i] = std::vector<std::reference_wrapper<DistanceConstraint>>();
     }
 
     for (auto& constraint : distance_constraints) {
-        distance_constraints_map.at(constraint.ibody1).push_back(&constraint);
-        distance_constraints_map.at(constraint.ibody2).push_back(&constraint);
+        distance_constraints_map.at(constraint.ibody1).push_back(std::ref(constraint));
+        distance_constraints_map.at(constraint.ibody2).push_back(std::ref(constraint));
     }
 }
-
-bool ConstraintManager::operator==(const ConstraintManager& other) const = default;

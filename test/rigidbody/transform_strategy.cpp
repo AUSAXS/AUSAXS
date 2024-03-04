@@ -1,3 +1,4 @@
+#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 
 #include <rigidbody/constraints/DistanceConstraint.h>
@@ -19,32 +20,41 @@ using namespace data::record;
 using namespace rigidbody;
 
 struct fixture {
-    Atom a1 =  Atom(1,  "C1", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
-    Atom a2 =  Atom(2,  "C2", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "0");
-    Body b1 = Body({a1, a2});
+    fixture() {
+        settings::molecule::implicit_hydrogens = false;
+        settings::molecule::use_effective_charge = false;
+        settings::molecule::center = false;
 
-    Atom a3 =  Atom(3,  "C3", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0");
-    Atom a4 =  Atom(4,  "C4", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "0");
-    Body b2 = Body({a3, a4});
+        a1 =  Atom(1,  "C1", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0");
+        a2 =  Atom(2,  "C2", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1, -1), 1, 0, constants::atom_t::C, "0");
+        b1 = Body({a1, a2});
 
-    Atom a5 =  Atom(5,  "C5", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0");
-    Atom a6 =  Atom(6,  "C6", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "0");
-    Body b3 = Body({a5, a6});
+        a3 =  Atom(3,  "C3", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::C, "0");
+        a4 =  Atom(4,  "C4", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1, -1), 1, 0, constants::atom_t::C, "0");
+        b2 = Body({a3, a4});
 
-    Atom a7 =  Atom(7,  "C7", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0");
-    Atom a8 =  Atom(8,  "C8", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "0");
-    Body b4 = Body({a7, a8});
+        a5 =  Atom(5,  "C5", "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::C, "0");
+        a6 =  Atom(6,  "C6", "", "LYS", 'A', 1, "", Vector3<double>(-1,  1,  1), 1, 0, constants::atom_t::C, "0");
+        b3 = Body({a5, a6});
 
-    Atom a9 =  Atom(9,  "C9", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  0), 1, 0, constants::atom_t::C, "0");
-    Atom a10 = Atom(10, "C10", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  2), 1, 0, constants::atom_t::C, "0");
-    Body b5 = Body({a9, a10});
+        a7 =  Atom(7,  "C7", "", "LYS", 'A', 1, "", Vector3<double>( 1, -1,  1), 1, 0, constants::atom_t::C, "0");
+        a8 =  Atom(8,  "C8", "", "LYS", 'A', 1, "", Vector3<double>( 1,  1,  1), 1, 0, constants::atom_t::C, "0");
+        b4 = Body({a7, a8});
 
-    std::vector<Body> bodies = {b1, b2, b3, b4, b5};
+        a9 =  Atom(9,  "C9", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  0), 1, 0, constants::atom_t::C, "0");
+        a10 = Atom(10, "C10", "", "LYS", 'A', 1, "", Vector3<double>( 0,  0,  2), 1, 0, constants::atom_t::C, "0");
+        b5 = Body({a9, a10});
+
+        bodies = {b1, b2, b3, b4, b5};
+    }
+
+    Atom a1, a2, a3, a4, a5, a6, a7, a8, a9, a10;
+    Body b1, b2, b3, b4, b5;
+    std::vector<Body> bodies;
 };
 
 TEST_CASE_METHOD(fixture, "TransformStrategy::apply") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
     settings::grid::scaling = 2;
 
@@ -144,7 +154,6 @@ auto vector_contains = [] (std::vector<unsigned int> vec, std::vector<unsigned i
 
 TEST_CASE_METHOD(fixture, "RigidTransform::get_connected") {
     settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None;
-    settings::molecule::use_effective_charge = false;
     settings::general::verbose = false;
 
     SECTION("get_connected") {

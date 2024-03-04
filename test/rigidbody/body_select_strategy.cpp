@@ -9,12 +9,14 @@
 #include <data/Body.h>
 #include <rigidbody/RigidBody.h>
 #include <settings/MoleculeSettings.h>
+#include <settings/GeneralSettings.h>
 
 using namespace data;
 using namespace data::record;
 using namespace rigidbody;
 
 TEST_CASE("BodySelectStrategy::next") {
+    settings::general::verbose = false;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
     std::vector<Atom> b1 = {Atom(Vector3<double>(-1, -1, -1), 1, constants::atom_t::C, "C", 1), Atom(Vector3<double>(-1, 1, -1), 1, constants::atom_t::C, "C", 1)};
@@ -39,7 +41,7 @@ TEST_CASE("BodySelectStrategy::next") {
         std::unordered_map<unsigned int, std::unordered_map<unsigned int, unsigned int>> count;
 
         // count how many times each body and constraint is selected
-        unsigned int iterations = 1000;
+        unsigned int iterations = 10000;
         for (unsigned int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint] = strat->next();
             if (ibody >= rigidbody.body_size()) {
@@ -94,7 +96,7 @@ TEST_CASE("BodySelectStrategy::next") {
         std::unordered_map<unsigned int, unsigned int> count;
 
         // count how many times each constraint is selected
-        unsigned int iterations = 1000;
+        unsigned int iterations = 10000;
         for (unsigned int i = 0; i < iterations; i++) {
             auto[ibody, iconstraint] = strat->next();
             if (ibody >= rigidbody.body_size()) {
@@ -105,11 +107,17 @@ TEST_CASE("BodySelectStrategy::next") {
                 std::cout << "Strategy selected a constraint outside the allowed range. Number: " << iconstraint << std::endl;
                 REQUIRE(false);
             }
-            count[iconstraint]++;
+
+            const auto& constraint = rigidbody.get_constraint_manager()->distance_constraints_map.at(ibody).at(iconstraint);
+            for (unsigned int j = 0; j < rigidbody.get_constraint_manager()->distance_constraints.size(); j++) {
+                if (&rigidbody.get_constraint_manager()->distance_constraints[j] == &constraint.get()) {
+                    count[j]++;
+                }
+            }
         }
 
         for (unsigned int i = 0; i < rigidbody.get_constraint_manager()->distance_constraints.size(); i++) {
-            REQUIRE(count[i] > 0.8*iterations/rigidbody.body_size());
+            REQUIRE(count[i] > 0.8*iterations/rigidbody.get_constraint_manager()->distance_constraints.size());
         }
     }
 }

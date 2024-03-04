@@ -24,13 +24,14 @@
 using namespace data;
 using namespace rigidbody;
 
+// TODO: make more tests for the RigidBody class
 TEST_CASE("RigidBody::optimize") {}
 TEST_CASE("RigidBody::apply_calibration") {}
 TEST_CASE("RigidBody::update_fitter") {}
 TEST_CASE("RigidBody::get_constraint_manager") {}
 
 // test that we can consistently fit the same protein
-TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
+TEST_CASE("RigidBody: reusable fitter", "[files]") {
     settings::general::verbose = false;
     Molecule protein_2epe("test/files/2epe.pdb");
     Molecule protein_LAR12("test/files/LAR1-2.pdb");
@@ -65,7 +66,7 @@ TEST_CASE("RigidBody_can_reuse_fitter", "[files]") {
 }
 
 // manually check the method of rigidbody::RigidBody::optimize
-TEST_CASE("RigidBody_iteration_step") {
+TEST_CASE("RigidBody: run iteration step") {
     settings::general::verbose = false;
     auto validate_single_step = [] (Molecule& protein) {
         protein.generate_new_hydration();
@@ -253,7 +254,7 @@ class RigidBodyTest : public RigidBody {
         using RigidBody::transform;
 };
 
-TEST_CASE("can_find_optimal_conformation") {
+TEST_CASE("RigidBody: check optimal conformation") {
     settings::grid::cubic = true;
     settings::grid::scaling = 2;
     settings::rigidbody::iterations = 1000;

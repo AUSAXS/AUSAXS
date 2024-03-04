@@ -46,7 +46,7 @@ std::vector<DistanceConstraint> LinearConstraints::generate() const {
 
         constraints.emplace_back(manager->protein, ibody1, ibody2, min_atom1, min_atom2);
         if (settings::general::verbose) {
-            std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.get_atom(min_atom1).name << " and " << body2.get_atom(min_atom2).name << std::endl;
+            std::cout << "\tConstraint created between bodies " << ibody1 << " and " << ibody2 << " on atoms " << body1.get_atom(min_atom1).get_group_name() << " and " << body2.get_atom(min_atom2).get_group_name() << std::endl;
         }
     }
 

@@ -75,7 +75,7 @@ bool compare_files(std::string p1, std::string p2) {
     return false;
 }
 
-TEST_CASE("body_file") {
+TEST_CASE("io: body file") {
     settings::general::verbose = false;
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "REMARK ONE" << endl;
@@ -109,7 +109,7 @@ TEST_CASE("body_file") {
     remove("temp/io/temp2.pdb");
 }
 
-TEST_CASE("pdb_input") {
+TEST_CASE("io: pdb input") {
     settings::general::verbose = false;
     settings::grid::scaling = 2;
     std::ofstream pdb_file("temp/io/temp.pdb");
@@ -146,7 +146,7 @@ TEST_CASE("pdb_input") {
     remove("temp/io/temp2.pdb");
 }
 
-TEST_CASE("xml input", "[broken]") {
+TEST_CASE("io: xml input", "[broken]") {
     std::ofstream xml_file("temp.xml");
     xml_file << "<PDBx:atom_site id=\"1\"> \
         \n    <PDBx:Cartn_x>2.1</PDBx:Cartn_x> \
@@ -183,7 +183,7 @@ TEST_CASE("xml input", "[broken]") {
  * @brief Load and copy each file in the data/ folder, and then compare the two files line-by-line.
  *        This is probably one of the strongest tests we can make for i/o
  */
-TEST_CASE("real_data", "[files],[broken]") {
+TEST_CASE("io: real data", "[files],[broken]") {
     settings::general::verbose = false;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
@@ -209,7 +209,7 @@ TEST_CASE("real_data", "[files],[broken]") {
     }
 }
 
-TEST_CASE("protein_io") {
+TEST_CASE("io: protein") {
     Molecule protein("test/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
     Molecule protein2("temp/io/temp.pdb");
@@ -231,7 +231,7 @@ TEST_CASE("protein_io") {
     remove("temp/io/temp.pdb");
 }
 
-TEST_CASE("file_copied_correctly") {
+TEST_CASE("io: body copying") {
     Body body("test/files/2epe.pdb");
     CHECK(!body.get_file().header.get().empty());
     CHECK(!body.get_file().footer.get().empty());
@@ -246,7 +246,7 @@ TEST_CASE("file_copied_correctly") {
     CHECK(!body3.get_file().footer.get().empty());
 }
 
-TEST_CASE("write_into_multiple_files") {
+TEST_CASE("io: writing multifile pdb") {
     std::vector<Atom> atoms(101000);
     for (unsigned int i = 0; i < atoms.size(); i++) {
         atoms[i] = Atom({1,2,3}, 1, constants::atom_t::C, "LYS", i);
@@ -280,7 +280,7 @@ TEST_CASE("write_into_multiple_files") {
 }
 
 #include <em/ImageStack.h>
-TEST_CASE("em_write_into_multiple_files", "[broken]") {
+TEST_CASE("io: writing em multifile pdb", "[broken]") {
     em::ImageStack image("data/Gregers_cryo/Gregers_cryo.mrc");
     image.get_protein(0.1)->save("temp/io/temp.pdb");
 }

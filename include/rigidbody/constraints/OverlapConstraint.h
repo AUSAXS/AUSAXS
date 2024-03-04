@@ -1,7 +1,8 @@
 #pragma once
 
 #include <rigidbody/constraints/Constraint.h>
-#include <hist/Histogram.h>
+#include <hist/intensity_calculator/DistanceHistogram.h>
+#include <utility/observer_ptr.h>
 #include <data/DataFwd.h>
 
 namespace rigidbody::constraints {
@@ -34,9 +35,10 @@ namespace rigidbody::constraints {
             static double weight(double r);
 
         private: 
-            data::Molecule* protein;
-            hist::Histogram target;
-            hist::Histogram weights;
+            observer_ptr<data::Molecule> protein;
+            std::vector<double> target;
+            std::vector<double> weights;
+            std::vector<double> axis;
 
             /**
              * @brief Initialize the target distribution.

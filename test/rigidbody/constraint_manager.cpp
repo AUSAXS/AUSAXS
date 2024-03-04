@@ -38,6 +38,7 @@ struct fixture {
 };
 
 TEST_CASE_METHOD(fixture, "ConstraintManager::ConstraintManager") {
+    settings::general::verbose = false;
     Molecule protein(ap);
     SECTION("Protein*") {
         constraints::ConstraintManager cm(&protein);
@@ -46,6 +47,7 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::ConstraintManager") {
 }
 
 TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
+    settings::general::verbose = false;
     Molecule protein(ap);
     SECTION("OverlapConstraint&&") {
         constraints::ConstraintManager cm(&protein);
@@ -95,10 +97,11 @@ TEST_CASE_METHOD(fixture, "ConstraintManager::add_constraint") {
 }
 
 TEST_CASE_METHOD(fixture, "ConstraintManager::evaluate") {
+    settings::general::verbose = false;
     Molecule protein(ap);
     SECTION("returns chi2 contribution of all constraints") {
         constraints::ConstraintManager cm(&protein);
-        CHECK(cm.evaluate() == 0);
+        REQUIRE(cm.evaluate() == 0);
 
         constraints::OverlapConstraint oc(&protein);
         constraints::DistanceConstraint dc1(&protein, a1, a3);

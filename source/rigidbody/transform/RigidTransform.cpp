@@ -50,10 +50,10 @@ TransformGroup RigidTransform::get_connected(const constraints::DistanceConstrai
 
         // explore all bodies connected to this body
         for (const auto& constraint : rigidbody->get_constraint_manager()->distance_constraints_map[ibody]) {
-            if (constraint->ibody1 == ibody) {
-                explore_branch(constraint->ibody2, indices);
+            if (constraint.get().ibody1 == ibody) {
+                explore_branch(constraint.get().ibody2, indices);
             } else {
-                explore_branch(constraint->ibody1, indices);
+                explore_branch(constraint.get().ibody1, indices);
             }
         }
         return;

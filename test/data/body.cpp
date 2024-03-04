@@ -54,6 +54,7 @@ struct multiple_fixture {
 };
 
 TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
+    settings::general::verbose = false;
     SECTION("ExistingFile&") {
         io::ExistingFile ef("test/files/2epe.pdb");
         Body b(ef);
@@ -98,6 +99,7 @@ TEST_CASE_METHOD(multiple_fixture, "Body::Body") {
 }
 
 TEST_CASE("Body::save") {
+    settings::general::verbose = false;
     std::vector<Atom> a = {Atom(1, "C"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1, -1), 1, 0, constants::atom_t::C, "0"), Atom(2, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1, -1), 1, 0, constants::atom_t::C, "0"),
                            Atom(3, "O"  , "", "LYS", 'A', 1, "", Vector3<double>( 1, -1, -1), 1, 0, constants::atom_t::O, "0"), Atom(4, "C", "", "LYS", 'A', 1, "", Vector3<double>( 1, 1, -1), 1, 0, constants::atom_t::C, "0"),
                            Atom(5, "N"  , "", "LYS", 'A', 1, "", Vector3<double>(-1, -1,  1), 1, 0, constants::atom_t::N, "0"), Atom(6, "C", "", "LYS", 'A', 1, "", Vector3<double>(-1, 1,  1), 1, 0, constants::atom_t::C, "0"),
@@ -143,7 +145,6 @@ TEST_CASE_METHOD(fixture, "Body::get_cm") {
 
 TEST_CASE_METHOD(fixture, "Body::molar_mass") {
     CHECK_THAT(body.molar_mass(), Catch::Matchers::WithinRel(8*constants::mass::get_mass(constants::atom_t::C)*constants::Avogadro, 1e-6));
-    console::print_warning("Check definition of molar mass.");
 }
 
 TEST_CASE_METHOD(fixture, "Body::absolute_mass") {
@@ -423,6 +424,7 @@ TEST_CASE("body_grid") {
     }
 
     SECTION("real data") {
+        settings::general::verbose = false;
         Molecule protein = rigidbody::BodySplitter::split("test/files/2epe.pdb", {9, 99});
         unsigned int N = protein.get_atoms().size();
         auto grid = protein.get_grid();

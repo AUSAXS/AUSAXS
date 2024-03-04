@@ -237,21 +237,21 @@ TEST_CASE("CompositeDistanceHistogram::debye_transform") {
 }
 
 TEST_CASE("qmin & qmax") {
+    settings::general::verbose = false;
     Molecule protein("test/files/2epe.pdb");
-    {
-        auto Iqf = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
-        settings::axes::qmin = 1e-2;
-        settings::axes::qmax = 0.7;
-        auto Iqr = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+    auto Iqf = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
+    settings::axes::qmin = 1e-2;
+    settings::axes::qmax = 0.7;
+    auto Iqr = hist::HistogramManager<false>(&protein).calculate_all()->debye_transform();
 
-        auto start = Iqf.get_axis().get_bin(settings::axes::qmin);
-        auto end = Iqf.get_axis().get_bin(settings::axes::qmax);
-        std::vector<double> Iqf_r(Iqf.get_counts().begin()+start, Iqf.get_counts().begin()+end);
-        REQUIRE(compare_hist(Iqf_r, Iqr));
-    }
+    auto start = Iqf.get_axis().get_bin(settings::axes::qmin);
+    auto end = Iqf.get_axis().get_bin(settings::axes::qmax);
+    std::vector<double> Iqf_r(Iqf.get_counts().begin()+start, Iqf.get_counts().begin()+end);
+    REQUIRE(compare_hist(Iqf_r, Iqr));
 }
 
 TEST_CASE("CompositeDistanceHistogram::get_profile") {
+    settings::general::verbose = false;
     data::Molecule protein("test/files/2epe.pdb");
     auto hist = hist::HistogramManager<false>(&protein).calculate_all();
     auto Iq = hist->debye_transform();

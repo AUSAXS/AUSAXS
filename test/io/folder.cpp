@@ -52,7 +52,7 @@ TEST_CASE("Folder::exists") {
 
 TEST_CASE("Folder::create") {
     SECTION("simple") {
-        std::string path = "dummy";
+        std::string path = "___dummy";
         io::Folder folder(path);
         folder.create();
         CHECK(folder.exists());

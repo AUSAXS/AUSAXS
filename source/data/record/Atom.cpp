@@ -44,8 +44,9 @@ Atom::Atom(int serial, const std::string& name, const std::string& altLoc, const
             #ifdef DEBUG
                 try {
                     effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
+                    atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
                 } catch (const except::base&) {
-                throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
+                throw except::invalid_argument("Atom::Atom: Could not set effective charge or determine atomic group. Unknown element, residual or atom: (" + constants::symbols::write_element_string(element) + ", " + resName + ", " + name + ")");
                 }
             #else
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
@@ -144,7 +145,7 @@ void Atom::parse_pdb(const std::string& str) {
                 effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);
                 atomic_group = constants::symbols::get_atomic_group(get_residue_name(), get_group_name(), get_element());
             } catch (const except::base&) {
-                throw except::invalid_argument("Atom::Atom: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
+                throw except::invalid_argument("Atom::parse_pdb: Could not set effective charge. Unknown element, residual or atom: (" + element + ", " + resName + ", " + name + ")");
             }
         #else 
             effective_charge = constants::charge::get_charge(this->element) + constants::hydrogen_atoms::residues.get(this->resName).get(this->name, this->element);

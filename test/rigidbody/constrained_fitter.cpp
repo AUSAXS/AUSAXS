@@ -40,7 +40,7 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
     CHECK(fitter.get_constraint_manager() == nullptr);
     fitter.set_constraint_manager(protein.get_constraint_manager());
-    CHECK(*fitter.get_constraint_manager() == *protein.get_constraint_manager());
+    CHECK(fitter.get_constraint_manager() == protein.get_constraint_manager().get());
 }
 
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {

@@ -1,3 +1,4 @@
+#include "settings/MoleculeSettings.h"
 #include <residue/ResidueStorage.h>
 #include <residue/ResidueMap.h>
 #include <io/ExistingFile.h>

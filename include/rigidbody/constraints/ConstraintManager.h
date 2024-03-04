@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <functional>
 
 namespace rigidbody::constraints {
     class ConstraintManager {
@@ -29,12 +30,10 @@ namespace rigidbody::constraints {
              */
             double evaluate() const;
 
-            bool operator==(const ConstraintManager& other) const;
-
             data::Molecule* protein = nullptr;
-            OverlapConstraint overlap_constraint;                                                        // The overlap constraint
-            std::vector<DistanceConstraint> distance_constraints;                                        // All distance constraints
-			std::unordered_map<unsigned int, std::vector<DistanceConstraint*>> distance_constraints_map; // Maps a body index to all its constraints
+            OverlapConstraint overlap_constraint;                                                                               // The overlap constraint
+            std::vector<DistanceConstraint> distance_constraints;                                                               // All distance constraints
+			std::unordered_map<unsigned int, std::vector<std::reference_wrapper<DistanceConstraint>>> distance_constraints_map; // Maps a body index to all its constraints
 
         private:
             /**

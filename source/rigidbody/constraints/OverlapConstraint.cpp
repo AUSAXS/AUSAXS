@@ -18,11 +18,11 @@ OverlapConstraint::OverlapConstraint(data::Molecule* protein) {
 OverlapConstraint::~OverlapConstraint() = default;
 
 double OverlapConstraint::evaluate() const {
-    if (target.size() == 0) [[unlikely]] {return 0;}
-    auto distances = protein->get_histogram()->get_d_axis();
+    if (target.empty()) [[unlikely]] {return 0;}
+    auto current = protein->get_total_histogram()->get_total_counts();
     double chi2 = 0;
-    for (unsigned int i = 0; i < target.size(); i++) {
-        chi2 += std::pow((distances[i] - target[i])*weights[i], 2);
+    for (unsigned int i = 1; i < target.size(); i++) { // skip the self-correlation bin
+        chi2 += std::pow((current[i] - target[i])*weights[i], 2);
     }
     // std::cout << "Overlap constraint: " << chi2 << std::endl;
     return chi2;
@@ -34,12 +34,10 @@ double OverlapConstraint::weight(double r) {
 
 void OverlapConstraint::initialize() {
     // define the target distribution
-    {
-        auto hist = protein->get_total_histogram();
-        target = hist::Histogram(hist->get_total_counts(), Axis(0, hist->get_total_counts().size()*constants::axes::d_axis.width(), hist->get_total_counts().size()));
-    }
-    auto axis = target.get_axis().as_vector();
-    weights = hist::Histogram(axis);
+    auto hist = protein->get_histogram();
+    target = hist->get_total_counts();
+    axis = hist->get_d_axis();
+    weights.resize(axis.size());
 
     // calculate the weights and reduce their precision
     for (unsigned int i = 0; i < axis.size(); ++i) {

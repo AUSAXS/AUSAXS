@@ -58,7 +58,6 @@ TEST_CASE("DistanceHistogram: check relative errors") {
     );
 
     SECTION(file) {
-        std::cout << file << std::endl;
         auto protein = data::Molecule("test/files/" + std::string(file) + ".pdb");
         protein.clear_hydration();
         auto hist = protein.get_histogram();

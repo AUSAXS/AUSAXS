@@ -97,7 +97,7 @@ bool RigidBody::optimize_step(detail::BestConf& best) {
 
     // select a body to be modified this iteration
     auto [ibody, iconstraint] = body_selector->next();
-    DistanceConstraint& constraint = *constraints->distance_constraints_map.at(ibody).at(iconstraint);
+    DistanceConstraint& constraint = constraints->distance_constraints_map.at(ibody).at(iconstraint).get();
     Parameter param = parameter_generator->next();
 
     Matrix R = matrix::rotation_matrix(param.alpha, param.beta, param.gamma);

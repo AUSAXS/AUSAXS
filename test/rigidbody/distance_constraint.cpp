@@ -1,3 +1,4 @@
+#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -26,10 +27,14 @@ struct fixture {
     Body b3 = Body(std::vector<Atom>{a5, a6});
     Body b4 = Body(std::vector<Atom>{a7, a8});
     std::vector<Body> ap = {b1, b2, b3, b4};
-    Molecule protein = Molecule(ap);
 };
 
 TEST_CASE_METHOD(fixture, "DistanceConstraint::DistanceConstraint") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
+    Molecule protein = Molecule(ap);
+
     SECTION("Protein*, uint, uint, uint, uint") {
         constraints::DistanceConstraint c(&protein, 2, 0, 1, 1);
         CHECK(c.ibody1 == 2);
@@ -66,6 +71,11 @@ TEST_CASE_METHOD(fixture, "DistanceConstraint::DistanceConstraint") {
 }
 
 TEST_CASE_METHOD(fixture, "DistanceConstraint::evaluate") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
+    Molecule protein = Molecule(ap);
+
     SECTION("relaxed") {
         constraints::DistanceConstraint c13(&protein, a1, a3);
         constraints::DistanceConstraint c24(&protein, a2, a4);
@@ -107,6 +117,11 @@ TEST_CASE_METHOD(fixture, "DistanceConstraint::evaluate") {
 }
 
 TEST_CASE_METHOD(fixture, "DistanceConstraint::operator==") {
+    settings::molecule::implicit_hydrogens = false;
+    settings::molecule::use_effective_charge = false;
+    settings::molecule::center = false;
+    Molecule protein = Molecule(ap);
+
     constraints::DistanceConstraint c1(&protein, a1, a3);
     constraints::DistanceConstraint c2(&protein, a1, a3);
     constraints::DistanceConstraint c3(&protein, a1, a4);

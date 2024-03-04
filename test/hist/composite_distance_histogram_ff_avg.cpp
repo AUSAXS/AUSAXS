@@ -186,6 +186,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
     }
 
     SECTION("real data") {
+        settings::general::verbose = false;
         DebugMolecule protein("test/files/2epe.pdb");
         double ZX = protein.get_volume_grid()*constants::charge::density::water/protein.atom_size();
         double ZC = 6;
@@ -209,6 +210,7 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 }
 
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
+    settings::general::verbose = false;
     data::Molecule protein("test/files/2epe.pdb");
     auto hist_data = hist::HistogramManagerMTFFAvg<false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFAvg*>(hist_data.get());
