@@ -1,3 +1,4 @@
+#include "settings/MoleculeSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -104,20 +105,19 @@ TEST_CASE("io: body file") {
     Body body2("temp/io/temp2.pdb");
     auto file3 = body2.get_file();
     REQUIRE(file3.header.size() == 2);
-
-    remove("temp/io/temp.pdb");
-    remove("temp/io/temp2.pdb");
 }
 
 TEST_CASE("io: pdb input") {
+    settings::molecule::center = false;
     settings::general::verbose = false;
     settings::grid::scaling = 2;
+
     std::ofstream pdb_file("temp/io/temp.pdb");
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
     pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;
     pdb_file << "TER       3      ARG A 129                                                     " << endl;
-    pdb_file << "HETATM    4  O   HOH A 130      31.117   3.049  35.879  0.94 34.19           O " << endl;
-    pdb_file << "HETATM    5  O   HOH A 131      31.117   3.049  35.879  0.94 34.19           O " << endl;
+    pdb_file << "HETATM    4  O   HOH A 130      30.117  29.049  34.879  0.94 34.19           O " << endl;
+    pdb_file << "HETATM    5  O   HOH A 131      31.117  30.049  35.879  0.94 34.19           O " << endl;
     pdb_file.close();
 
     // check PDB io
@@ -141,9 +141,6 @@ TEST_CASE("io: pdb input") {
     CHECK(a.occupancy == 0.50);
     CHECK(a.element == constants::atom_t::C);
     CHECK(a.resName == "ARG");
-
-    remove("temp/io/temp.pdb");
-    remove("temp/io/temp2.pdb");
 }
 
 TEST_CASE("io: xml input", "[broken]") {
@@ -174,9 +171,6 @@ TEST_CASE("io: xml input", "[broken]") {
     CHECK(a.occupancy == 0.50);
     CHECK(a.element == constants::atom_t::O);
     CHECK(a.resName == "HOH");
-
-    remove("temp.xml");
-    remove("temp2.xml");
 }
 
 /**
@@ -202,14 +196,15 @@ TEST_CASE("io: real data", "[files],[broken]") {
         Molecule protein(file.path().string());
         protein.save(filename);
         bool success = compare_files(file.path().string(), filename);
-        if (success) {
-            remove(filename.c_str());
-        }
         CHECK(success);
     }
 }
 
 TEST_CASE("io: protein") {
+    settings::molecule::center = false;
+    settings::molecule::use_effective_charge = false;
+    settings::general::verbose = false;
+
     Molecule protein("test/files/2epe.pdb");
     protein.save("temp/io/temp.pdb");
     Molecule protein2("temp/io/temp.pdb");
@@ -225,10 +220,14 @@ TEST_CASE("io: protein") {
     auto waters2 = protein2.get_waters();
     REQUIRE(waters1.size() == waters2.size());
     for (unsigned int i = 0; i < waters1.size(); i++) {
-        REQUIRE(waters1[i].equals_content(waters2[i]));
+        waters2[i].set_chainID(waters1[i].get_chainID()); // we always use a new chainID for the hydration
+        bool equal = waters1[i].equals_content(waters2[i]);
+        if (!equal) {
+            std::cout << waters1[i].as_pdb() << std::endl;
+            std::cout << waters2[i].as_pdb() << std::endl;
+        }
+        REQUIRE(equal);
     }
-
-    remove("temp/io/temp.pdb");
 }
 
 TEST_CASE("io: body copying") {
@@ -247,6 +246,8 @@ TEST_CASE("io: body copying") {
 }
 
 TEST_CASE("io: writing multifile pdb") {
+    settings::molecule::implicit_hydrogens = false;
+
     std::vector<Atom> atoms(101000);
     for (unsigned int i = 0; i < atoms.size(); i++) {
         atoms[i] = Atom({1,2,3}, 1, constants::atom_t::C, "LYS", i);
@@ -257,17 +258,17 @@ TEST_CASE("io: writing multifile pdb") {
     }
 
     Molecule protein(atoms, waters);
-    protein.save("temp/io/temp.pdb");
+    protein.save("temp/io/temp_multifile.pdb");
     
-    REQUIRE(std::filesystem::exists("temp/io/temp_1.pdb"));
-    REQUIRE(std::filesystem::exists("temp/io/temp_2.pdb"));
+    REQUIRE(std::filesystem::exists("temp/io/temp_multifile_part1.pdb"));
+    REQUIRE(std::filesystem::exists("temp/io/temp_multifile_part2.pdb"));
 
     // first file
-    Molecule protein2("temp/io/temp_1.pdb");
+    Molecule protein2("temp/io/temp_multifile_part1.pdb");
     REQUIRE(protein2.get_body(0).atom_size() == 100000);
     REQUIRE(protein2.get_body(0).get_atoms().back().serial == 99999);
 
-    Molecule protein3("temp/io/temp_2.pdb");
+    Molecule protein3("temp/io/temp_multifile_part2.pdb");
     REQUIRE(protein3.get_body(0).atom_size() == 1000);
     for (int i = 0; i < 1000; i++) {
         REQUIRE(protein3.get_body(0).get_atom(i).serial == i);

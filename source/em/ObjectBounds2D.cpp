@@ -42,6 +42,6 @@ bool ObjectBounds2D::empty() const {return bounded_area() == N;}
 
 unsigned int ObjectBounds2D::bounded_area() const {return std::accumulate(bounds.begin(), bounds.end(), 0u, [] (unsigned int area, const Limit& limit) {return area += static_cast<unsigned int>(limit.max+1 - limit.min);});}
 
-unsigned int ObjectBounds2D::total_area() const {return N*(M+1);}
+unsigned int ObjectBounds2D::total_area() const {return N*M;}
 
 bool ObjectBounds2D::operator==(const ObjectBounds2D& other) const = default;

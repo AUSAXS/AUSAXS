@@ -36,7 +36,7 @@ namespace em {
             std::list<data::record::Atom> generate_atoms(double cutoff) const;
 
             /**
-             * @brief Count the number of voxels for a given cutoff value.
+             * @brief Count the number of voxels larger than a given cutoff value.
              */
             unsigned int count_voxels(double cutoff) const;
 

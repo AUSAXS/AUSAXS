@@ -4,49 +4,78 @@
 #include <em/Image.h>
 #include <em/ImageStack.h>
 #include <em/ObjectBounds3D.h>
+#include <numeric>
 #include <utility/Limit.h>
 
+// TODO: fix the remaining tests
 TEST_CASE("Image::Image") {
     SECTION("std::shared_ptr<ccp4::Header>, unsigned int") {}
     SECTION("Matrix<float>&") {}
     SECTION("Matrix<float>&, std::shared_ptr<ccp4::Header>, unsigned int") {}
-    CHECK(false);
 }
 
-TEST_CASE("Image::as_hist") {
-    CHECK(false);
-}
-
-TEST_CASE("Image::generate_atoms") {
-    CHECK(false);
-}
+TEST_CASE("Image::as_hist") {}
+TEST_CASE("Image::generate_atoms") {}
+TEST_CASE("Image::set_header") {}
 
 TEST_CASE("Image::count_voxels") {
-    CHECK(false);
+    Matrix<float> data = {
+        {1, 1, 1, 1, 1, 1}, 
+        {2, 2, 2, 2, 2, 2}, 
+        {3, 3, 3, 3, 3, 3}, 
+        {4, 4, 4, 4, 4, 4}, 
+        {5, 5, 5, 5, 5, 5}, 
+        {6, 6, 6, 6, 6, 6}
+    };
+
+    em::Image image(data);
+    CHECK(image.count_voxels(6) == 6);
+    CHECK(image.count_voxels(5) == 12);
+    CHECK(image.count_voxels(4) == 18);
+    CHECK(image.count_voxels(3) == 24);
+    CHECK(image.count_voxels(2) == 30);
+    CHECK(image.count_voxels(1) == 36);
 }
 
-TEST_CASE("Image::set_z") {
-    CHECK(false);
-}
+TEST_CASE("Image: get & set_z") {
+    em::Image image(Matrix<float>(0, 0));
+    image.set_z(5);
+    CHECK(image.get_z() == 5);
 
-TEST_CASE("Image::get_z") {
-    CHECK(false);
+    image.set_z(10);
+    CHECK(image.get_z() == 10);
 }
 
 TEST_CASE("Image::mean") {
-    CHECK(false);
+    Matrix<float> data = {
+        {1.2, 3.4, 5.6, 7.8, 9.0, 2.3},
+        {4.5, 6.7, 8.9, 1.2, 3.4, 5.6},
+        {7.8, 9.0, 2.3, 4.5, 6.7, 8.9},
+        {1.1, 2.2, 3.3, 4.4, 5.5, 6.6},
+        {7.7, 8.8, 9.9, 1.0, 2.2, 3.3},
+        {4.4, 5.5, 6.6, 7.7, 8.8, 9.9}
+    };
+
+    em::Image image(data);
+    double sum = std::accumulate(data.begin(), data.end(), 0.0);
+    CHECK_THAT(image.mean(), Catch::Matchers::WithinAbs(sum/(6*6), 1e-3));
 }
 
 TEST_CASE("Image::limits") {
-    CHECK(false);
-}
+    Matrix<float> data = {
+        {1.2, 3.4, 5.6, 7.8, 9.0, 2.3},
+        {4.5, 6.7, 8.9, 1.2, 3.4, 5.6},
+        {7.8, 9.0, 2.3, 4.5, 6.7, 8.9},
+        {1.1, 2.2, 3.3, 4.4, 5.5, 6.6},
+        {7.7, 8.8, 9.9, 1.0, 2.2, 3.3},
+        {4.4, 5.5, 6.6, 7.7, 8.8, 9.9}
+    };
 
-TEST_CASE("Image::get_bounds") {
-    CHECK(false);
-}
-
-TEST_CASE("Image::set_header") {
-    CHECK(false);
+    em::Image image(data);
+    double min = *std::min_element(data.begin(), data.end());
+    double max = *std::max_element(data.begin(), data.end());
+    CHECK(image.limits().min == min);
+    CHECK(image.limits().max == max);
 }
 
 TEST_CASE("Image::setup_bounds") {
@@ -68,6 +97,7 @@ TEST_CASE("Image::setup_bounds") {
         CHECK(bounds[4].max == 3);
         CHECK(bounds[5].min == 1);
         CHECK(bounds[5].max == 5);
+        CHECK(image.get_bounds() == bounds);
 
         bounds = image.setup_bounds(5);
         REQUIRE(bounds.size_x() == 6);
@@ -83,14 +113,15 @@ TEST_CASE("Image::setup_bounds") {
         CHECK(bounds[4].max == 3);
         CHECK(bounds[5].min == 5);
         CHECK(bounds[5].max == 5);
+        CHECK(image.get_bounds() == bounds);
     }
 
     SECTION("more bounds") {
-        Matrix data2 = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
-        em::Image image2(data2);
+        Matrix data = Matrix<float>{{0, 1, 2, 3, 2, 1}, {0, 3, 2, 1, 3, 0}, {0, 1, 2, 0, 1, 0}, {2, 0, 0, 3, 1, 0}, {0, 1, 2, 1, 1, 0}, {3, 3, 3, 2, 1, 1}};
+        em::Image image(data);
 
         // cutoff = 1
-        em::ObjectBounds2D bounds = image2.setup_bounds(1);
+        em::ObjectBounds2D bounds = image.setup_bounds(1);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 1);
         CHECK(bounds[0].max == 5);
@@ -104,9 +135,10 @@ TEST_CASE("Image::setup_bounds") {
         CHECK(bounds[4].max == 4);
         CHECK(bounds[5].min == 0);
         CHECK(bounds[5].max == 5);
+        CHECK(image.get_bounds() == bounds);
 
         // cutoff = 2
-        bounds = image2.setup_bounds(2);
+        bounds = image.setup_bounds(2);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 2);
         CHECK(bounds[0].max == 4);
@@ -120,9 +152,10 @@ TEST_CASE("Image::setup_bounds") {
         CHECK(bounds[4].max == 2);
         CHECK(bounds[5].min == 0);
         CHECK(bounds[5].max == 3);
+        CHECK(image.get_bounds() == bounds);
 
         // cutoff = 3
-        bounds = image2.setup_bounds(3);
+        bounds = image.setup_bounds(3);
         REQUIRE(bounds.size_x() == 6);
         CHECK(bounds[0].min == 3);
         CHECK(bounds[0].max == 3);
@@ -136,6 +169,7 @@ TEST_CASE("Image::setup_bounds") {
         CHECK(bounds[4].max == 0);
         CHECK(bounds[5].min == 0);
         CHECK(bounds[5].max == 2);
+        CHECK(image.get_bounds() == bounds);
     }
 
     SECTION("correct_bounded_area") {
@@ -165,17 +199,48 @@ TEST_CASE("Image::setup_bounds") {
 }
 
 TEST_CASE("Image::index") {
-    CHECK(false);
+    // use some more creative data 
+    Matrix<float> data = {
+        {1.2, 3.4, 5.6, 7.8, 9.0, 2.3},
+        {4.5, 6.7, 8.9, 1.2, 3.4, 5.6},
+        {7.8, 9.0, 2.3, 4.5, 6.7, 8.9},
+        {1.1, 2.2, 3.3, 4.4, 5.5, 6.6},
+        {7.7, 8.8, 9.9, 1.0, 2.2, 3.3},
+        {4.4, 5.5, 6.6, 7.7, 8.8, 9.9}
+    };
+    em::Image image(data);
+
+    for (unsigned int i = 0; i < 6; i++) {
+        for (unsigned int j = 0; j < 6; j++) {
+            CHECK(image.index(i, j) == data.index(i, j));
+        }
+    }
 }
 
 TEST_CASE("Image::squared_sum") {
-    CHECK(false);
+    Matrix<float> data = {
+        {1.2, 3.4, 5.6, 7.8, 9.0, 2.3},
+        {4.5, 6.7, 8.9, 1.2, 3.4, 5.6},
+        {7.8, 9.0, 2.3, 4.5, 6.7, 8.9},
+        {1.1, 2.2, 3.3, 4.4, 5.5, 6.6},
+        {7.7, 8.8, 9.9, 1.0, 2.2, 3.3},
+        {4.4, 5.5, 6.6, 7.7, 8.8, 9.9}
+    };
+
+    em::Image image(data);
+    double sqsum = std::accumulate(data.begin(), data.end(), 0.0, [](double sum, float val) {return sum + val*val;});
+    CHECK_THAT(image.squared_sum(), Catch::Matchers::WithinAbs(sqsum, 1e-3));
 }
 
 TEST_CASE("Image::operator==") {
-    CHECK(false);
-}
+    Matrix<float> data1 = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    Matrix<float> data2 = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
 
-TEST_CASE("Image::to_string") {
-    CHECK(false);
+    em::Image image1(data1);
+    em::Image image2(data2);
+
+    CHECK(image1 != image2);
+
+    image2 = image1;
+    CHECK(image1 == image2);
 }

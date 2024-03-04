@@ -2,8 +2,8 @@
 #include <settings/SettingsIORegistry.h>
 
 bool settings::molecule::center = true;
-bool settings::molecule::use_effective_charge = true;
 bool settings::molecule::implicit_hydrogens = true;
+bool settings::molecule::use_effective_charge = true;
 
 #if DEBUG
     bool settings::molecule::throw_on_unknown_atom = true;
