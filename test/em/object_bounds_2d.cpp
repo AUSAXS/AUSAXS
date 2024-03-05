@@ -90,15 +90,15 @@ TEST_CASE("ObjectBounds2D::bounded_area") {
 
 TEST_CASE("ObjectBounds2D::total_area") {
     em::ObjectBounds2D bounds = em::ObjectBounds2D(2, 5);
-    CHECK(bounds.total_area() == 12);
+    CHECK(bounds.total_area() == 10);
 
     bounds.set_bounds(0, Limit(0, 1));
     bounds.set_bounds(1, Limit(1, 1));
-    CHECK(bounds.total_area() == 12);
+    CHECK(bounds.total_area() == 10);
 
     bounds.set_bounds(0, Limit(0, 5));
     bounds.set_bounds(1, Limit(3, 5));
-    CHECK(bounds.total_area() == 12);
+    CHECK(bounds.total_area() == 10);
 }
 
 TEST_CASE("ObjectBounds2D::operator==") {

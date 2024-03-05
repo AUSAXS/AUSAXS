@@ -1,7 +1,4 @@
-#include "settings/MoleculeSettings.h"
 #include <CLI/CLI.hpp>
-
-#include <iostream>
 
 #include <plots/All.h>
 #include <em/ImageStack.h>
@@ -10,10 +7,10 @@
 #include <settings/All.h>
 #include <constants/Constants.h>
 
+#include <iostream>
+
 int main(int argc, char const *argv[]) {
     std::ios_base::sync_with_stdio(false);
-    settings::molecule::use_effective_charge = false;
-    settings::molecule::implicit_hydrogens = false;
     settings::em::mass_axis = true;
     settings::em::hydrate = true;
     settings::fit::verbose = true;
@@ -34,7 +31,7 @@ int main(int argc, char const *argv[]) {
     app.add_option("--frequency", settings::em::sample_frequency, "Sampling frequency of the EM map.");
     app.add_option("--max-iterations", settings::fit::max_iterations, "Maximum number of iterations to perform. This is only approximate.");
     app.add_flag("--hydrate,!--no-hydrate", settings::em::hydrate, "Generate a hydration shell for the protein before fitting.");
-    app.add_flag("--fixed-weight,!--no-fixed-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
+    app.add_flag("--fixed-weight,!--dynamic-weight", settings::em::fixed_weights, "Use a fixed weight for the fit.");
     app.add_flag("--verbose,!--quiet", settings::fit::verbose, "Print the progress of the fit to the console.");
     app.add_flag("--weighted-bins, --!no-weighted-bins", settings::hist::weighted_bins, "Use weighted bins for the distance histograms.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     CLI11_PARSE(app, argc, argv);

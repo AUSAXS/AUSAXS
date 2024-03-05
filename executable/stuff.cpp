@@ -37,6 +37,31 @@
 
 #include <cassert>
 
+// fix test
+int main(int argc, char const *argv[]) {
+    settings::general::verbose = true;
+
+    data::Molecule protein_2epe("test/files/2epe.pdb");
+    data::Molecule protein_LAR12("test/files/LAR1-2.pdb");
+    protein_2epe.generate_new_hydration();
+    protein_LAR12.generate_new_hydration();
+
+    fitter::HydrationFitter fitter("test/files/2epe.dat", protein_2epe.get_histogram());
+    double chi2 = fitter.fit()->fval;
+
+    std::cout << "chi2: " << chi2 << std::endl;
+
+    fitter.set_scattering_hist(protein_LAR12.get_total_histogram());
+    double _chi2 = fitter.fit()->fval;
+
+    std::cout << "chi2 " << _chi2 << std::endl;
+
+    fitter.set_scattering_hist(protein_2epe.get_total_histogram());
+    _chi2 = fitter.fit()->fval;
+
+    std::cout << "chi2 " << _chi2 << std::endl;
+}
+
 // generate histogram over charge values in EM map
 // int main(int argc, char const *argv[]) {
 //     std::string map = argv[1];
@@ -59,68 +84,68 @@
 //     plots::PlotHistogram::quick_plot(dataset, plots::PlotOptions(style::draw::points, {{"logy", true}}), "output/stuff/charge_hist.png");
 // }
 
-int main(int argc, char const *argv[]) {
-    settings::molecule::center = false;
-    settings::molecule::use_effective_charge = false; 
-    settings::general::threads = 6;
-    settings::em::hydrate = false;
-    settings::em::fixed_weights = true;
+// int main(int argc, char const *argv[]) {
+//     settings::molecule::center = false;
+//     settings::molecule::use_effective_charge = false; 
+//     settings::general::threads = 6;
+//     settings::em::hydrate = false;
+//     settings::em::fixed_weights = true;
 
-    // generate big sphere
-    auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
-    grid::Grid grid(lims);
-    double radius = 25;
-    double radius2 = radius*radius;
-    auto axes = grid.get_axes();
-    Vector3<double> center = grid.to_xyz(grid.get_center());
-    std::cout << center << std::endl;
-    for (unsigned int i = 0; i < axes.x.bins; ++i) {
-        for (unsigned int j = 0; j < axes.y.bins; ++j) {
-            for (unsigned int k = 0; k < axes.z.bins; ++k) {
-                if (grid.to_xyz(i, j, k).distance2(center) < radius2) {
-                    grid.grid.index(i, j, k) = grid::detail::VOLUME;
-                }
-            }
-        }
-    }
-    auto loc = "temp/test/em/sphere.pdb";
-    grid.save(loc);
+//     // generate big sphere
+//     auto lims = Limit3D(-50, 50, -50, 50, -50, 50);
+//     grid::Grid grid(lims);
+//     double radius = 25;
+//     double radius2 = radius*radius;
+//     auto axes = grid.get_axes();
+//     Vector3<double> center = grid.to_xyz(grid.get_center());
+//     std::cout << center << std::endl;
+//     for (unsigned int i = 0; i < axes.x.bins; ++i) {
+//         for (unsigned int j = 0; j < axes.y.bins; ++j) {
+//             for (unsigned int k = 0; k < axes.z.bins; ++k) {
+//                 if (grid.to_xyz(i, j, k).distance2(center) < radius2) {
+//                     grid.grid.index(i, j, k) = grid::detail::VOLUME;
+//                 }
+//             }
+//         }
+//     }
+//     auto loc = "temp/test/em/sphere.pdb";
+//     grid.save(loc);
 
-    data::Molecule protein(loc);
-    auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
-    Iq.as_dataset().save("temp/test/em/sphere_Iq.dat");
+//     data::Molecule protein(loc);
+//     auto Iq = hist::HistogramManagerMT<true>(&protein).calculate_all()->debye_transform();
+//     Iq.as_dataset().save("temp/test/em/sphere_Iq.dat");
 
-    std::unique_ptr<em::detail::header::MRCHeader> header;
-    {
-        em::detail::header::MRCData header_data;
-        header_data.cella_x = axes.x.span();
-        header_data.cella_y = axes.y.span();
-        header_data.cella_z = axes.z.span();
-        header_data.nx = axes.x.bins;
-        header_data.ny = axes.y.bins;
-        header_data.nz = axes.z.bins;
-        header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
-    }
+//     std::unique_ptr<em::detail::header::MRCHeader> header;
+//     {
+//         em::detail::header::MRCData header_data;
+//         header_data.cella_x = axes.x.span();
+//         header_data.cella_y = axes.y.span();
+//         header_data.cella_z = axes.z.span();
+//         header_data.nx = axes.x.bins;
+//         header_data.ny = axes.y.bins;
+//         header_data.nz = axes.z.bins;
+//         header = std::make_unique<em::detail::header::MRCHeader>(std::move(header_data));
+//     }
 
-    std::vector<em::Image> images(lims.z.span()/settings::grid::width, Matrix<float>(0, 0));
-    for (unsigned int k = 0; k < images.size(); ++k) {
-        Matrix<float> data(axes.x.bins, axes.y.bins);
-        for (unsigned int i = 0; i < axes.x.bins; ++i) {
-            for (unsigned int j = 0; j < axes.y.bins; ++j) {
-                double dist = std::sqrt(grid.to_xyz(i, j, k).distance2(center));
-                data.index(i, j) = radius/dist;
-            }
-        }
-        data.index(50, 50) = 2*data.index(50, 51);
-        images[k] = em::Image(data, header.get(), k);
-    }
+//     std::vector<em::Image> images(lims.z.span()/settings::grid::width, Matrix<float>(0, 0));
+//     for (unsigned int k = 0; k < images.size(); ++k) {
+//         Matrix<float> data(axes.x.bins, axes.y.bins);
+//         for (unsigned int i = 0; i < axes.x.bins; ++i) {
+//             for (unsigned int j = 0; j < axes.y.bins; ++j) {
+//                 double dist = std::sqrt(grid.to_xyz(i, j, k).distance2(center));
+//                 data.index(i, j) = radius/dist;
+//             }
+//         }
+//         data.index(50, 50) = 2*data.index(50, 51);
+//         images[k] = em::Image(data, header.get(), k);
+//     }
 
-    em::ImageStack stack(images);
-    // auto[fit, landscape] = stack.cutoff_scan_fit(100, std::move(Iq));
-    auto fit = stack.fit("temp/test/em/sphere_Iq.dat");
-    // plots::PlotLandscape::quick_plot(landscape, "temp/test/em/sphere_landscape.png");
-    std::cout << fit->fval/fit->dof << std::endl;
-}
+//     em::ImageStack stack(images);
+//     // auto[fit, landscape] = stack.cutoff_scan_fit(100, std::move(Iq));
+//     auto fit = stack.fit("temp/test/em/sphere_Iq.dat");
+//     // plots::PlotLandscape::quick_plot(landscape, "temp/test/em/sphere_landscape.png");
+//     std::cout << fit->fval/fit->dof << std::endl;
+// }
 
 // int main(int argc, char const *argv[]) {
 //     auto exact = [] (const data::Molecule& molecule, double exv_radius) {

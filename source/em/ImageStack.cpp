@@ -70,7 +70,6 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     //##########################################################//
     //###                       SETUP                        ###//
     //##########################################################//
-    settings::molecule::center = false; // do not center the dummy proteins
     if (settings::em::plot_landscapes && settings::em::hydrate) {
         std::static_pointer_cast<HydrationFitter>(fitter)->set_algorithm(mini::type::SCAN);
     }

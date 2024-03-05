@@ -1,4 +1,5 @@
 #include "settings/GeneralSettings.h"
+#include "settings/HistogramSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -41,6 +42,8 @@ Matrix<float> dummy_image3 = {
 
 struct fixture {
     fixture() {
+        settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT;
+
         images.emplace_back(dummy_image1);
         images.emplace_back(dummy_image2);
         images.emplace_back(dummy_image3);

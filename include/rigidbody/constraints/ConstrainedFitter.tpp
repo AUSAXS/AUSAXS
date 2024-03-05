@@ -9,8 +9,6 @@ ConstrainedFitter<T>::ConstrainedFitter(ConstrainedFitter<T>&& other) : T(std::m
 
 template<fitter::fitter_t T>
 double ConstrainedFitter<T>::chi2(const std::vector<double>& params) {
-    std::cout << "T chi: " << T::chi2(params) << std::endl;
-    std::cout << "Constraints: " << constraints->evaluate() << std::endl;
     return T::chi2(params) + constraints->evaluate();
 }
 
