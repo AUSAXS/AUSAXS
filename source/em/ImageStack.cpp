@@ -289,6 +289,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     // if hydration is enabled, the chi2 will oscillate heavily around the minimum
     // we therefore want to sample the area near the minimum to get an average
     mini::Result res;
+    update_charge_levels({from_level(to_level(min_abs.x)-0.5), from_level(to_level(min_abs.x)+0.5)});
     if (settings::em::hydrate) {
         // reset evaluated points
         this->evals.clear();
