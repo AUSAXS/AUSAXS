@@ -1,3 +1,4 @@
+#include "settings/GeneralSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
@@ -166,6 +167,7 @@ TEST_CASE_METHOD(fixture, "ImageStackBase::size") {
 }
 
 TEST_CASE_METHOD(fixture, "ImageStackBase::save") {
+    settings::general::verbose = false;
     io::File file("test/temp/ImageStackBase.save.pdb");
     em::ImageStackBase isb(images);
 

@@ -1,3 +1,4 @@
+#include "settings/RigidBodySettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
@@ -44,9 +45,10 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::constraint_manager") {
 }
 
 TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
-    settings::general::verbose = false;
+    settings::general::verbose = true;
     settings::molecule::use_effective_charge = false;
     settings::molecule::implicit_hydrogens = false;
+    settings::rigidbody::constraint_generation_strategy = settings::rigidbody::ConstraintGenerationStrategyChoice::None; // make sure there's no other distance constraints
     RigidBody protein(ap);
 
     fitter::ConstrainedFitter<fitter::HydrationFitter> fitter("test/files/2epe.dat", protein.get_histogram());
@@ -54,7 +56,7 @@ TEST_CASE_METHOD(fixture, "ConstrainedFitter::chi2") {
     double chi2 = fitter.fit()->fval;
 
     constraints::DistanceConstraint constraint(&protein, a1, a3);
-    protein.get_body(0).translate(Vector3<double>(1, 0, 0));
+    protein.get_body(0).translate(Vector3<double>(-1, 0, 0));
     fitter.get_constraint_manager()->add_constraint(std::move(constraint));
     double chi2c = fitter.fit()->fval;
 

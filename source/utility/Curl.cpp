@@ -5,6 +5,7 @@
 #include <utility/Curl.h>
 #include <utility/Console.h>
 #include <io/File.h>
+#include <settings/GeneralSettings.h>
 
 void curl::download(const std::string& url, const io::File& path) {
     CURL *curl;
@@ -21,9 +22,9 @@ void curl::download(const std::string& url, const io::File& path) {
     }
 
     if (res == CURLE_OK) {
-        console::print_success("\tSuccessfully downloaded " + url + " to " + path);
-    } else {
-        console::print_warning("\tFailed to download " + url);
-        throw std::runtime_error("Failed to download " + url);
+        if (settings::general::verbose) {console::print_success("\tSuccessfully downloaded " + url + " to " + path);}
+        return;
     }
+    console::print_warning("\tFailed to download " + url);
+    throw std::runtime_error("Failed to download " + url);
 }

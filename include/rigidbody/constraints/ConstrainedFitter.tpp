@@ -9,6 +9,8 @@ ConstrainedFitter<T>::ConstrainedFitter(ConstrainedFitter<T>&& other) : T(std::m
 
 template<fitter::fitter_t T>
 double ConstrainedFitter<T>::chi2(const std::vector<double>& params) {
+    std::cout << "T chi: " << T::chi2(params) << std::endl;
+    std::cout << "Constraints: " << constraints->evaluate() << std::endl;
     return T::chi2(params) + constraints->evaluate();
 }
 
@@ -18,6 +20,6 @@ void ConstrainedFitter<T>::set_constraint_manager(std::shared_ptr<rigidbody::con
 }
 
 template<fitter::fitter_t T>
-rigidbody::constraints::ConstraintManager* ConstrainedFitter<T>::get_constraint_manager() {
+observer_ptr<rigidbody::constraints::ConstraintManager> ConstrainedFitter<T>::get_constraint_manager() {
     return this->constraints.get();
 }

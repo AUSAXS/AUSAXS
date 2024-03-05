@@ -8,8 +8,9 @@ using namespace em::managers;
 ProteinManager::~ProteinManager() = default;
 
 ProteinManager::ProteinManager(observer_ptr<const em::ImageStackBase> images) : images(images) {
-    double max = images->from_level(5);
-    Axis axis(0, max, settings::em::charge_levels);
+    double max = images->from_level(settings::em::alpha_levels.max);
+    double min = images->from_level(settings::em::alpha_levels.min);
+    Axis axis(min, max, settings::em::charge_levels);
     set_charge_levels(axis.as_vector());
 }
 
@@ -21,8 +22,8 @@ void ProteinManager::set_charge_levels(const std::vector<double>& levels) noexce
     auto tmp = levels;
 
     // make sure the last bin can contain all atoms
-    if (std::abs(levels[levels.size()-1]) < 10000) {
-        tmp.push_back(levels[0] < 0 ? -10000 : 10000);
+    if (std::abs(levels.back()) < 10000) {
+        tmp.push_back(levels.front() < 0 ? -10000 : 10000);
     } 
     charge_levels = tmp;
 }

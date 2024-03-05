@@ -2,6 +2,7 @@
 
 #include <fitter/Fitter.h>
 #include <rigidbody/constraints/ConstraintManager.h>
+#include <utility/observer_ptr.h>
 
 #include <vector>
 #include <memory>
@@ -31,7 +32,7 @@ namespace fitter {
              */
             void set_constraint_manager(std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints);
 
-            rigidbody::constraints::ConstraintManager* get_constraint_manager(); 
+            observer_ptr<rigidbody::constraints::ConstraintManager> get_constraint_manager(); 
 
         private: 
             std::shared_ptr<rigidbody::constraints::ConstraintManager> constraints = nullptr;

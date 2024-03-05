@@ -21,7 +21,7 @@ namespace em::managers {
             /**
              * @brief Destructor.
              */
-            virtual ~SmartProteinManager() = default;
+            virtual ~SmartProteinManager();
 
             /**
              * @brief Get the histogram for a given cutoff.
@@ -67,6 +67,6 @@ namespace em::managers {
             /**
              * @brief Enable or disable the histogram manager initialization for generated proteins.
              */
-            void toggle_histogram_manager(bool state);
+            void toggle_histogram_manager_init(bool state);
     };
 }

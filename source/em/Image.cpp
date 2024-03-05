@@ -44,10 +44,14 @@ std::list<data::record::Atom> Image::generate_atoms(double cutoff) const {
     for (int x = 0; x < static_cast<int>(N); x += step) {
         for (int y = static_cast<int>(bounds[x].min); y < static_cast<int>(bounds[x].max); y += step) {
             float val = index(x, y);
-            if (val < cutoff) {
-                continue;
-            }
-            atoms.push_back(data::record::Atom(0, "C", "", "LYS", ' ', 0, "", {x*xscale, y*yscale, z*zscale}, weight(val), 0, constants::atom_t::dummy, ""));
+            if (val < cutoff) {continue;}
+            data::record::Atom atom;
+            atom.coords = {x*xscale, y*yscale, z*zscale};
+            atom.element = constants::atom_t::dummy;
+            atom.occupancy = 1;
+            atom.effective_charge = weight(val); // weight in debye calculation is effective_charge * occupancy
+            atom.tempFactor = val;               // hijacking the tempFactor field to store the original density value
+            atoms.push_back(atom);
         }
     }
     return atoms;

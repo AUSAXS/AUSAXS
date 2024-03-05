@@ -18,6 +18,7 @@
 #include <constants/Constants.h>
 
 #include "../test/hist/hist_test_helper.h"
+#include "settings/GeneralSettings.h"
 
 using namespace data::record;
 using namespace data;
@@ -212,6 +213,8 @@ TEST_CASE("CompositeDistanceHistogramFFAvg::debye_transform") {
 }
 
 TEST_CASE("CompositeDistanceHistogramFFAvg::get_profile") {
+    settings::general::verbose = false;
+
     data::Molecule protein("test/files/2epe.pdb");
     auto hist_data = hist::HistogramManagerMTFFExplicit<false>(&protein).calculate_all();
     auto hist = static_cast<hist::CompositeDistanceHistogramFFExplicit*>(hist_data.get());

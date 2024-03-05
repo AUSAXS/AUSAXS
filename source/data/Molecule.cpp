@@ -1,3 +1,4 @@
+#include "utility/Exceptions.h"
 #include <data/Molecule.h>
 #include <data/record/Water.h>
 #include <data/record/Atom.h>

@@ -1,7 +1,7 @@
-#include "em/detail/header/MRCHeader.h"
-#include "em/detail/header/data/MRCData.h"
+#include "settings/HistogramSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <data/state/StateManager.h>
 #include <data/Molecule.h>
@@ -16,6 +16,7 @@
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
+#include <em/detail/header/MRCHeader.h>
 #include <settings/All.h>
 
 #include <iostream>
@@ -23,6 +24,8 @@
 using namespace data;
 
 TEST_CASE("partial_histogram_manager_works") {
+    settings::molecule::use_effective_charge = false;
+
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
     auto phm = protein.get_histogram_manager();
@@ -35,6 +38,8 @@ TEST_CASE("partial_histogram_manager_works") {
 }
 
 TEST_CASE("protein_manager") {
+    settings::molecule::use_effective_charge = false;
+
     std::vector<Body> bodies(5);
     Molecule protein(bodies);
 
@@ -73,6 +78,7 @@ TEST_CASE("protein_manager") {
 }
 
 TEST_CASE("em_partial_histogram_manager") {
+    settings::hist::histogram_manager = settings::hist::HistogramManagerChoice::HistogramManagerMT; // don't use the phm since it eats too much memory
     settings::molecule::use_effective_charge = false;
 
     auto compare = [] (std::shared_ptr<em::managers::ProteinManager> manager1, std::shared_ptr<em::managers::ProteinManager> manager2, double cutoff) {
@@ -99,6 +105,11 @@ TEST_CASE("em_partial_histogram_manager") {
     };
 
     SECTION("basic functionality works") {
+        settings::em::fixed_weights = GENERATE(true, false);
+        settings::em::fixed_weights = false;
+        settings::molecule::implicit_hydrogens = false;
+        settings::molecule::center = false;
+
         std::shared_ptr<em::detail::header::MRCHeader> header;
         {
             em::detail::header::MRCData data;
@@ -110,7 +121,6 @@ TEST_CASE("em_partial_histogram_manager") {
         em::Image image(data, header.get(), 0);
         em::ImageStack images({image});
 
-        settings::em::fixed_weights = false;
         auto manager = em::factory::create_manager(&images);
         manager->set_charge_levels({2, 4, 6, 8});
         auto protein = manager->get_protein(0);

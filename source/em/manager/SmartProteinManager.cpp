@@ -16,6 +16,8 @@ using namespace em::managers;
 using namespace data;
 using namespace data::record;
 
+SmartProteinManager::~SmartProteinManager() = default;
+
 std::unique_ptr<hist::ICompositeDistanceHistogram> SmartProteinManager::get_histogram(double cutoff) {
     update_protein(cutoff);
     return protein->get_histogram();
@@ -49,21 +51,19 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
         throw except::out_of_bounds("SmartProteinManager::generate_protein: charge_levels is empty.");
     }
 
-    std::function<bool(double, double)> compare_positive = [] (double v1, double v2) {return v1 < v2;};
-    std::function<bool(double, double)> compare_negative = [] (double v1, double v2) {return v1 > v2;};
-    std::function<bool(double, double)> compare_func = 0 <= cutoff ? compare_positive : compare_negative;
+    std::function<bool(double, double)> compare_func = 0 <= cutoff ? [] (double v1, double v2) {return v1 < v2;} : [] (double v1, double v2) {return v1 > v2;};
 
     // sort vector so we can slice it into levels of charge density
-    auto comparator = [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.occupancy, atom2.occupancy);};
+    auto comparator = [&compare_func] (const Atom& atom1, const Atom& atom2) {return compare_func(atom1.tempFactor, atom2.tempFactor);};
     std::sort(atoms.begin(), atoms.end(), comparator);
 
     unsigned int charge_index = 0, atom_index = 0, current_index = 0;
     double charge = charge_levels[charge_index]; // initialize charge
 
-    while (compare_func(atoms[atom_index].occupancy, cutoff)) {++atom_index;} // search for first atom with charge larger than the cutoff
+    while (compare_func(atoms[atom_index].tempFactor, cutoff)) {++atom_index;} // search for first atom with charge larger than the cutoff
     while (compare_func(charge, cutoff)) {charge = charge_levels[++charge_index];} // search for first charge level larger than the cutoff 
     while (atom_index < atoms.size()) {
-        if (compare_func(atoms[atom_index].occupancy, charge)) {
+        if (compare_func(atoms[atom_index].tempFactor, charge)) {
             current_atoms[current_index++] = atoms[atom_index++];
         } else {
             // create the body for this charge bin
@@ -89,7 +89,7 @@ std::unique_ptr<data::Molecule> SmartProteinManager::generate_protein(double cut
     return std::make_unique<data::Molecule>(std::move(bodies));
 }
 
-void SmartProteinManager::toggle_histogram_manager(bool state) {
+void SmartProteinManager::toggle_histogram_manager_init(bool state) {
     static settings::hist::HistogramManagerChoice previous = settings::hist::histogram_manager;
     if (state) {
         settings::hist::histogram_manager = previous;
@@ -101,11 +101,11 @@ void SmartProteinManager::toggle_histogram_manager(bool state) {
 
 void SmartProteinManager::update_protein(double cutoff) {
     if (protein == nullptr || protein->atom_size() == 0) {
-        toggle_histogram_manager(true);
+        toggle_histogram_manager_init(true);
         protein = generate_protein(cutoff); 
         protein->bind_body_signallers();
         previous_cutoff = cutoff;
-        toggle_histogram_manager(false);
+        toggle_histogram_manager_init(false);
         return;
     }
 
