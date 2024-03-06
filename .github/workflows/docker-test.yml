@@ -20,8 +20,8 @@ jobs:
       - name: Build the library
         run: |
           mkdir build
-          cmake -S . -B build
-          cmake -DGUI=OFF --build build --target ausaxs -j $(nproc)
+          cmake -DGUI=OFF -S . -B build
+          cmake --build build --target ausaxs -j $(nproc)
         
       - name: Build tests
         run:
