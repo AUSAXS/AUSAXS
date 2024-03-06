@@ -10,8 +10,8 @@ project(SAXS VERSION 0.0)
 #set(fprofile "-fprofile-use=${CMAKE_BINARY_DIR}/profiling" "-fprofile-correction")
 #add_link_options(-lgcov --coverage)
 set(fprofile "")
-set(GUI TRUE)
-set(DLIB TRUE)
+option(GUI "Enable GUI executables" ON)
+option(DLIB "Download and use the dlib minimizers" ON)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
