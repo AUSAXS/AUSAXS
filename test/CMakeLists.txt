@@ -38,5 +38,10 @@ foreach(test ${TEST_SRC})
 		add_backward("${name}")
 	endif()	
 	add_dependencies(tests "${name}")
-	catch_discover_tests("${name}" TEST_SPEC "~[slow] ~[broken] ~[manual]" WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/..")
+	catch_discover_tests("${name}" 
+		TEST_SPEC "~[slow] ~[broken] ~[manual]" 
+		WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+		REPORTER junit
+		OUTPUT_DIR build/test/reports
+	)
 endforeach()

@@ -26,6 +26,9 @@ jobs:
       - name: Build tests
         run:
           cmake --build build --target tests -j $(nproc)
+      
+      - name: Run tests
+      	  make tests
           
       - name: Generate test report
         uses: mikepenz/action-junit-report@v3
