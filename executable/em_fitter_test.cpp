@@ -19,6 +19,7 @@ int main(int argc, char const *argv[]) {
     settings::molecule::use_effective_charge = true;
     settings::molecule::implicit_hydrogens = true;
     settings::em::fixed_weights = true;
+    settings::general::threads /= 2;
 
     // check that we have all three arguments
     if (argc != 3) {
@@ -34,6 +35,7 @@ int main(int argc, char const *argv[]) {
     // load the map and protein
     data::Molecule protein(pdbfile);
     settings::molecule::use_effective_charge = false;
+    settings::molecule::implicit_hydrogens = false;
     em::ImageStack map(mapfile); 
 
     // simulate saxs data from protein
