@@ -16,6 +16,8 @@ option(DLIB "Download and use the dlib minimizers" ON)
 include(CheckIPOSupported)
 check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
 if (WIN32)
 	if (MSVC)
