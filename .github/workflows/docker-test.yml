@@ -12,6 +12,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Install prerequisites
+        run: |
+          sudo apt-get install libcurl-dev
        
       - name: Build the library
         run: |
