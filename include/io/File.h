@@ -2,7 +2,7 @@
 
 #include <io/Folder.h>
 
-#include <string>
+#include <string_view>
 #include <ostream>
 
 namespace io {
@@ -12,6 +12,8 @@ namespace io {
 
             File(const io::Folder& folder, std::string_view name, std::string_view extension);
 
+            File(std::string_view path);
+
             File(const char* path);
 
             File(const std::string& path);
@@ -20,24 +22,22 @@ namespace io {
 
             [[nodiscard]] std::string path() const;
 
-            void operator=(const std::string& path);
-
             [[nodiscard]] operator std::string() const;
 
             /**
              * @brief Replace the extension of the file.
              */
-            File& replace_extension(const std::string& extension) noexcept;
+            File& replace_extension(std::string_view extension) noexcept;
 
             /**
              * @brief Append to the name of the file.
              */
-            File& append(const std::string& name) noexcept;
+            File& append(std::string_view name) noexcept;
 
             /**
              * @brief Append to the name of the file.
              */
-            [[nodiscard]] File append(const std::string& name) const noexcept;
+            [[nodiscard]] File append(std::string_view name) const noexcept;
 
             /**
              * @brief Get the stem of the file.
@@ -60,14 +60,14 @@ namespace io {
             [[nodiscard]] std::string& extension() noexcept;
 
             /**
-             * @brief Get the extension of the file.
+             * @brief Get the extension of the file, including the dot. 
              */
             [[nodiscard]] const std::string& extension() const noexcept;
 
             /**
              * @brief Create this file with the given contents.
              */
-            void create(const std::string& contents = "") const; 
+            void create(std::string_view contents = "") const; 
 
             /**
              * @brief Remove this file.
@@ -82,7 +82,7 @@ namespace io {
             /**
              * @brief Split a path into a directory, filename and extension.
              */
-            static std::tuple<std::string, std::string, std::string> split(const std::string& path);
+            static std::tuple<std::string, std::string, std::string> split(std::string_view path);
 
         private:
             Folder dir;

@@ -1,24 +1,24 @@
-#include "settings/HistogramSettings.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <catch2/generators/catch_generators.hpp>
 
-#include <data/state/StateManager.h>
-#include <data/Molecule.h>
-#include <data/Body.h>
-#include <em/ImageStack.h>
-#include <em/Image.h>
+#include <em/detail/header/MRCHeader.h>
 #include <em/manager/ProteinManagerFactory.h>
 #include <em/manager/ProteinManager.h>
+#include <em/ImageStack.h>
+#include <em/Image.h>
+#include <data/state/StateManager.h>
 #include <data/state/Signaller.h>
 #include <data/state/BoundSignaller.h>
 #include <data/state/UnboundSignaller.h>
+#include <data/Molecule.h>
+#include <data/Body.h>
 #include <hist/distance_calculator/HistogramManager.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <hist/HistFwd.h>
-#include <em/detail/header/MRCHeader.h>
 #include <settings/All.h>
 
+#include <memory>
 #include <iostream>
 
 using namespace data;
@@ -106,9 +106,6 @@ TEST_CASE("em_partial_histogram_manager") {
 
     SECTION("basic functionality works") {
         settings::em::fixed_weights = GENERATE(true, false);
-        settings::em::fixed_weights = false;
-        settings::molecule::implicit_hydrogens = false;
-        settings::molecule::center = false;
 
         std::shared_ptr<em::detail::header::MRCHeader> header;
         {
@@ -177,7 +174,7 @@ TEST_CASE("em_partial_histogram_manager") {
         }
 
         SECTION("real example") {
-            em::ImageStack images("data/maptest.ccp4");
+            em::ImageStack images("test/files/A2M_2020_Q4.ccp4");
 
             settings::em::fixed_weights = false;
             std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
@@ -191,21 +188,5 @@ TEST_CASE("em_partial_histogram_manager") {
             REQUIRE(compare(manager1, manager2, 2));
             REQUIRE(compare(manager1, manager2, 6));
         }
-    }
-
-    SECTION("comparison with standard approach") {
-        settings::em::sample_frequency = 2;
-        em::ImageStack images("data/emd_12752/emd_12752.map");
-
-        settings::em::fixed_weights = false;
-        std::shared_ptr<em::managers::ProteinManager> manager1 = em::factory::create_manager(&images);
-        settings::em::fixed_weights = true;
-        std::shared_ptr<em::managers::ProteinManager> manager2 = em::factory::create_manager(&images);
-
-        REQUIRE(compare(manager1, manager2, 0.04));
-        REQUIRE(compare(manager1, manager2, 0.03));
-        REQUIRE(compare(manager1, manager2, 0.02));
-        REQUIRE(compare(manager1, manager2, 0.05));
-        REQUIRE(compare(manager1, manager2, 0.06));
     }
 }

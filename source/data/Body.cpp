@@ -9,7 +9,6 @@
 #include <math/Vector3.h>
 
 #include <vector>
-#include <map>
 #include <utility>
 #include <algorithm>
 #include <numeric>

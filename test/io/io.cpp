@@ -78,7 +78,10 @@ bool compare_files(std::string p1, std::string p2) {
 
 TEST_CASE("io: body file") {
     settings::general::verbose = false;
-    std::ofstream pdb_file("temp/io/temp.pdb");
+    io::File path("temp/io/temp.pdb");
+    path.create();
+
+    std::ofstream pdb_file(path);
     pdb_file << "REMARK ONE" << endl;
     pdb_file << "REMARK TWO" << endl;
     pdb_file << "CRYST1 THREE" << endl;
@@ -89,7 +92,7 @@ TEST_CASE("io: body file") {
     pdb_file << "MASTER FOUR" << endl;
     pdb_file.close();
 
-    Body body("temp/io/temp.pdb");
+    Body body(path);
     auto& file = body.get_file();
     REQUIRE(file.header.size() == 3);
     REQUIRE(file.footer.size() == 1);
@@ -101,6 +104,7 @@ TEST_CASE("io: body file") {
     auto& file2 = body.get_file();
     REQUIRE(file2.header.size() == 2);
 
+    path = "temp/io/temp2.pdb";
     body.save("temp/io/temp2.pdb");
     Body body2("temp/io/temp2.pdb");
     auto file3 = body2.get_file();
@@ -112,7 +116,10 @@ TEST_CASE("io: pdb input") {
     settings::general::verbose = false;
     settings::grid::scaling = 2;
 
-    std::ofstream pdb_file("temp/io/temp.pdb");
+    io::File path("temp/io/temp.pdb");
+    path.create();
+
+    std::ofstream pdb_file(path);
     pdb_file << "ATOM      1  CB  ARG A 129         2.1     3.2     4.3  0.50 42.04           C " << endl;
     pdb_file << "ATOM      2  CB  ARG A 129         3.2     4.3     5.4  0.50 42.04           C " << endl;
     pdb_file << "TER       3      ARG A 129                                                     " << endl;
@@ -121,9 +128,10 @@ TEST_CASE("io: pdb input") {
     pdb_file.close();
 
     // check PDB io
-    std::unique_ptr<Molecule> protein = std::make_unique<Molecule>("temp/io/temp.pdb");
-    protein->save("temp/io/temp2.pdb");
-    protein = std::make_unique<Molecule>("temp/io/temp2.pdb");
+    std::unique_ptr<Molecule> protein = std::make_unique<Molecule>(path);
+    path = "temp/io/temp2.pdb";
+    protein->save(path);
+    protein = std::make_unique<Molecule>(path);
     vector<Atom> atoms = protein->get_atoms();
     Atom a = atoms[0];
 

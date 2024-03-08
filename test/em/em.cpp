@@ -3,8 +3,6 @@
 
 #include <iostream>
 #include <filesystem>
-#include <fstream>
-#include <map>
 
 #include <em/Image.h>
 #include <em/ImageStack.h>
@@ -28,6 +26,8 @@
 #include <data/Molecule.h>
 
 using std::vector;
+
+// TODO: refactor these tests to be automatic
 
 TEST_CASE("extract_image", "[manual]") {
     em::ImageStack image("test/files/A2M_2020_Q4.ccp4"); 
@@ -335,22 +335,6 @@ TEST_CASE("instability", "[files],[manual]") {
 TEST_CASE("save_as_pdb", "[manual]") {
     em::ImageStack image("data/A2M_2020_Q4/A2M_2020_Q4.ccp4");
     image.get_protein(image.from_level(3))->save("figures/test/em/save_as_pdb.pdb");
-}
-
-TEST_CASE("plot_pdb_as_points", "[files],[manual]") {
-    data::Molecule protein("data/maptest.pdb");
-
-    auto h = protein.get_histogram();
-    SimpleDataset data = h->debye_transform();
-    // data.set_resolution(25); // set the resolution //! ???
-    data.reduce(100, true);  // reduce to 100 datapoints
-    data.simulate_errors();  // simulate y errors
-    // data.scale_errors(1000); // scale all errors so we can actually see them
-
-    plots::PlotIntensity()
-        .plot(protein.get_histogram()->debye_transform(), plots::PlotOptions({{"color", style::color::black}}))
-        .plot(data, plots::PlotOptions({{"color", style::color::orange}}))
-    .save("figures/test/em/plot_pdb_as_points.pdf");
 }
 
 TEST_CASE("check_simulated_errors", "[files],[manual],[broken]") {

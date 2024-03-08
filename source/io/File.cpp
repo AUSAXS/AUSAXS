@@ -8,30 +8,29 @@ using namespace io;
 
 File::File(const io::Folder& folder, std::string_view name, std::string_view extension) : dir(folder), name(name), ext(extension) {}
 
-File::File(const char* path) : File(std::string(path)) {}
-
-File::File(const std::string& path) {
+File::File(std::string_view path) {
     if (path.empty()) {return;}
-    *this = path;
-}
 
-std::tuple<std::string, std::string, std::string> File::split(const std::string& path) {
-    auto p = std::filesystem::path(path);
-    return std::make_tuple(p.parent_path().string(), p.stem().string(), p.extension().string());
-}
-
-void File::operator=(const std::string& path) {
     auto [dir, file, ext] = split(path);
     this->dir = std::move(dir);
     this->name = std::move(file);
     this->ext = std::move(ext);
 }
 
+File::File(const char* path) : File(std::string_view(path)) {}
+
+File::File(const std::string& path) : File(std::string_view(path)) {}
+
+std::tuple<std::string, std::string, std::string> File::split(std::string_view path) {
+    auto p = std::filesystem::path(path);
+    return std::make_tuple(p.parent_path().string(), p.stem().string(), p.extension().string());
+}
+
 File::operator std::string() const {
     return dir.path() + "/" + name + ext;
 }
 
-File& File::replace_extension(const std::string& extension) noexcept {
+File& File::replace_extension(std::string_view extension) noexcept {
     if (extension.front() == '.') {
         ext = extension.substr(1);
     } else {
@@ -40,12 +39,12 @@ File& File::replace_extension(const std::string& extension) noexcept {
     return *this;
 }
 
-File& File::append(const std::string& name) noexcept {
+File& File::append(std::string_view name) noexcept {
     this->name += name;
     return *this;
 }
 
-io::File File::append(const std::string& name) const noexcept {
+io::File File::append(std::string_view name) const noexcept {
     auto file = *this;
     file.append(name);
     return file;
@@ -61,7 +60,7 @@ const std::string& File::extension() const noexcept {return ext;}
 
 std::string File::stem() const noexcept {return name;}
 
-void File::create(const std::string& contents) const {
+void File::create(std::string_view contents) const {
     if (!dir.exists()) {dir.create();}
     std::ofstream file(*this);
 

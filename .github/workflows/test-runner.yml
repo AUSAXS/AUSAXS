@@ -1,11 +1,6 @@
 name: Run tests
 on: [workflow_dispatch]
 
-#on:
-#  push:
-#    branches:
-#      - master
-
 jobs:
   runner:
     runs-on: ubuntu-latest
