@@ -9,7 +9,7 @@
 
 # Installation
 ## Compile from source
-The software can easily be compiled from source with only a few steps. GCC, Clang v15+, and MSVC are supported, though GCC is the preferred option for optimal efficiency.
+The software can easily be compiled from source with only a few steps. GCC v11+, Clang v15+, and MSVC 2022+ are supported, though GCC is the preferred option for optimal efficiency.
 
 ### Linux
 1. Make sure you have the prerequisites installed  
@@ -49,3 +49,6 @@ The following are automatically fetched by CMake:
 *	[dlib](https://github.com/davisking/dlib), for their fitting routine. 
 *	[Catch2](https://github.com/catchorg/Catch2), for running tests.
 *	[backward-cpp](https://github.com/bombela/backward-cpp), for better stacktraces in debug builds. 
+
+# Disclaimer
+This project was supported by grant 1026-00209B from the Independent Research Fund Denmark. 
