@@ -10,6 +10,8 @@ double settings::crystal::grid_expansion = 3;
 
 double settings::crystal::reduced::basis_q = 3;
 
+bool settings::crystal::detail::use_checkpointing = true;
+
 namespace settings::crystal::io {
     settings::io::SettingSection grid_settings("Crystal", { 
         settings::io::create(h, "h"),

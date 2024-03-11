@@ -35,8 +35,6 @@
 #include <em/detail/header/MRCHeader.h>
 #include <em/detail/header/data/MRCData.h>
 
-#include <cassert>
-
 // fix test
 int main(int argc, char const *argv[]) {
     settings::general::verbose = true;

@@ -22,6 +22,8 @@ namespace io {
 
             [[nodiscard]] std::string path() const;
 
+            [[nodiscard]] std::string absolute_path() const;
+
             [[nodiscard]] operator std::string() const;
 
             /**

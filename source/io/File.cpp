@@ -74,6 +74,8 @@ void File::remove() const {
 
 std::string File::path() const {return std::string(*this);}
 
+std::string File::absolute_path() const {return std::filesystem::absolute(path()).string();}
+
 bool File::exists() const noexcept {
     return std::filesystem::exists(path());
 }

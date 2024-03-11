@@ -99,6 +99,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
     chi2_data.sort_x();
     auto min_abs = chi2_data.find_minimum();
+    std::cout << "Minimum at " << min_abs.x << " with chi2 " << min_abs.y << std::endl;
 
     //##########################################################//
     //### CHECK LANDSCAPE IS OK FOR AVERAGING & INTERPLATION ###//
@@ -124,6 +125,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         }
         chi2_data.sort_x();
         min_abs = chi2_data.find_minimum();
+        std::cout << "New minimum at " << min_abs.x << " with chi2 " << min_abs.y << std::endl;
         chi2_data.limit_y(0, min_abs.y*5);
 
         if (chi2_data.size_rows() < 10) {
@@ -145,10 +147,14 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
 
     double spacing = data_avg_int.x(1)-data_avg_int.x(0); 
     auto minima = data_avg_int.find_minima(static_cast<int>(0.1*data_avg_int.size()), 0.1); // find all minima. they should be fairly spaced out (10% seems reasonable?)
-
     {   // find the absolute minimum in the smoothed landscape
         auto tmp = data_avg_int.find_minimum(1);
-        min_abs = {tmp[0], tmp[1], tmp[2]};
+        if (tmp[1] < min_abs.y) {
+            std::cout << "Warning: Absolute minimum in the smoothed landscape is different from the original minimum. Using the smoothed minimum." << std::endl;
+            std::cout << "\tOriginal: " << min_abs.x << " " << min_abs.y << std::endl;
+            std::cout << "\tSmoothed: " << tmp[0] << " " << tmp[1] << std::endl;
+            min_abs = {tmp[0], tmp[1], tmp[2]};
+        }
     }
 
     // prepare the mass axis
@@ -159,10 +165,9 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         }
         mass_data.sort_x();
         data_avg_int.col("mass") = mass_data.interpolate(data_avg_int.x()).y();
-    } 
+    }
 
-    // remove minima that are too far away from the absolute minimum
-    {
+    { // remove minima that are too far away from the absolute minimum
         std::vector<unsigned int> to_keep;
         for (auto m : minima) {
             if (data_avg_int.y(m) < min_abs.y*2) {to_keep.push_back(m);}
@@ -199,7 +204,14 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         { // make a nice plot of the landscape within some range of the minimum; this is often nicer to look at than the full landscape due to the reduced y-range
             // plot the minimum in blue
             SimpleDataset p_min, chi2_copy = chi2_data, avg_copy = data_avg_int;
-            for (auto m : minima) {p_min.push_back(to_level(data_avg_int.x(m)), data_avg_int.y(m)/dof);}
+            for (auto m : minima) {
+                // if the minimum is too close to the absolute minimum & the absolute minimum is lower, plot the absolute minimum instead
+                if (std::abs(data_avg_int.x(m) - min_abs.x) < from_level(0.5) && min_abs.y < data_avg_int.y(m)) {
+                    p_min.push_back(to_level(min_abs.x), min_abs.y/dof);
+                    continue;
+                }
+                p_min.push_back(to_level(data_avg_int.x(m)), data_avg_int.y(m)/dof);
+            }
 
             // convert cutoff to std levels & normalize chi2
             for (unsigned int i = 0; i < chi2_copy.size(); ++i) {
@@ -222,7 +234,14 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
                 SimpleDataset mass_avg_copy(data_avg_int.col("mass"), data_avg_int.col("chi2")/dof);
 
                 SimpleDataset mass_p_min;
-                for (auto m : minima) {mass_p_min.push_back(data_avg_int.col("mass")[m], data_avg_int.col("chi2")[m]/dof);}
+                for (auto m : minima) {
+                    // if the minimum is too close to the absolute minimum & the absolute minimum is lower, plot the absolute minimum instead
+                    if (std::abs(data_avg_int.x(m) - min_abs.x) < from_level(0.5) && min_abs.y < data_avg_int.y(m)) {
+                        mass_p_min.push_back(data_avg_int.interpolate_x(min_abs.x, 2), min_abs.y/dof);
+                        continue;
+                    }
+                    mass_p_min.push_back(data_avg_int.col("mass")[m], data_avg_int.col("chi2")[m]/dof);
+                }
 
                 // make the plot
                 plots::PlotDataset plot_mass(mass_avg_copy, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}));

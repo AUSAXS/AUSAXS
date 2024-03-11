@@ -56,19 +56,16 @@ void CrystalScattering::rotate(const Vector3<double>& axis, double angle) {
 }
 
 SimpleDataset CrystalScattering::rotational_average(unsigned int n) {
+    settings::crystal::detail::use_checkpointing = false;
     std::vector<SimpleDataset> datasets;
     for (unsigned int i = 0; i < n; i++) {
         datasets.push_back(calculate());
         random_rotation();
     }
 
-    SimpleDataset result;
-    for (unsigned int i = 0; i < datasets[0].size_rows(); i++) {
-        double sum = 0;
-        for (auto& dataset : datasets) {
-            sum += dataset.y(i);
-        }
-        result.push_back(datasets[0].x(i), sum/datasets.size());
+    SimpleDataset result(datasets[0].x(), std::vector<double>(datasets[0].size_rows()));
+    for (const auto& dataset : datasets) {
+        std::transform(result.y().begin(), result.y().end(), dataset.y().begin(), result.y().begin(), std::plus<>());
     }
     return result;
 }
@@ -147,12 +144,12 @@ SimpleDataset CrystalScattering::calculate() const {
     auto millers = miller_strategy->generate();
 
     std::vector<Fval> fvals(millers.size());
-    std::atomic<unsigned int> index = load_checkpoint(fvals);
+    std::atomic<unsigned int> index = settings::crystal::detail::use_checkpointing ? load_checkpoint(fvals) : 0;
 
     auto dispatcher = [&] () {
         while (true) {
-            unsigned int start = index.fetch_add(1000);
-            unsigned int end = std::min<unsigned int>(start + 1000, millers.size());
+            unsigned int start = index.fetch_add(settings::general::detail::job_size);
+            unsigned int end = std::min<unsigned int>(start + settings::general::detail::job_size, millers.size());
             if (start >= millers.size() || interrupt_signal) {
                 index = std::min(index.load(), end);
                 break;
@@ -168,7 +165,7 @@ SimpleDataset CrystalScattering::calculate() const {
     // if the checkpoint file does not contain all points, we need to calculate the remaining points
     if (index < millers.size()) {
         // register the interrupt signal handler. we need this to ensure that the checkpoint file is saved properly before the program exits
-        std::signal(SIGINT, interrupt_handler);
+        if (settings::crystal::detail::use_checkpointing) {std::signal(SIGINT, interrupt_handler);}
 
         // start threads
         std::vector<std::thread> threads;
@@ -182,10 +179,12 @@ SimpleDataset CrystalScattering::calculate() const {
         }
 
         // save final checkpoint
-        std::signal(SIGINT, interrupt_handler_save);
-        save_checkpoint(index, fvals);
-        std::signal(SIGINT, SIG_DFL); // reset the interrupt signal handler
-        if (interrupt_signal) {raise(SIGINT);} // raise the interrupt signal again to ensure that the program exits
+        if (settings::crystal::detail::use_checkpointing) {
+            std::signal(SIGINT, interrupt_handler_save);
+            save_checkpoint(millers.size(), fvals);
+            std::signal(SIGINT, SIG_DFL); // reset the interrupt signal handler
+            if (interrupt_signal) {raise(SIGINT);} // raise the interrupt signal again to ensure that the program exits
+        }
     }
 
     // sort fvals by q

@@ -2,6 +2,7 @@
 pymol := pymol
 simprog := pdb2mrc
 pdbfixer := ~/tools/conda/bin/pdbfixer
+denss_folder := ~/tools/denss/bin
 
 cmake_threads := 6
 
@@ -189,6 +190,20 @@ em_fit/%: build/bin/em_fitter
 		echo "Fitting " $${path} "..."; \
 		$< $${path} $${measurement} ${options}; \
 		make plot/output/em_fitter/$*; \
+		sleep 1; \
+	done
+
+denss_em/%: 
+	mkdir -p temp/denss
+	measurement=$$(find data/ -name "$*.RSR" -or -name "$*.dat"); \
+	folder=$$(dirname $${measurement}); \
+	emmaps=$$(cat $${folder}/maps.txt); \
+	for map in $${emmaps}; do\
+		path=$$(find data/$${map}/ -name "*.map" -or -name "*.ccp4" -or -name "*.mrc"); \
+		echo "Fitting " $${path} "..."; \
+		cd temp/denss; \
+		python ${denss_folder}/denss.mrc2sas.py -f ../../$${path} -d ../../$${measurement} ${options}; \
+		cd ../..; \
 		sleep 1; \
 	done
 

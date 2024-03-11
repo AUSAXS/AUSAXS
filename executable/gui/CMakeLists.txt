@@ -17,6 +17,7 @@ FetchContent_Declare(
 	nfd
 	GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
 )
+
 FetchContent_MakeAvailable(elements CLI11 nfd)
 link_libraries(nfd)
 include_directories(resources)

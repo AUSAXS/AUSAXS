@@ -12,6 +12,10 @@ namespace settings {
         namespace reduced {
             extern double basis_q;    // The maximum q value for which the basis is generated.
         }
+
+        namespace detail {
+            extern bool use_checkpointing; // Whether to use checkpointing during the calculation. 
+        }
     }
 }
 

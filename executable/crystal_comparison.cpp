@@ -8,8 +8,8 @@
 #include <fitter/FitReporter.h>
 #include <settings/All.h>
 #include <io/ExistingFile.h>
-#include <data/Protein.h>
-#include <hist/CompositeDistanceHistogram.h>
+#include <data/Molecule.h>
+#include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 
 int main(int argc, char const *argv[]) {
     io::ExistingFile crystal;
@@ -18,13 +18,14 @@ int main(int argc, char const *argv[]) {
     app.add_option("--output,-o", settings::general::output, "Path to save the generated figures at.")->default_val("output/crystal_compare/");
     CLI11_PARSE(app, argc, argv);
     settings::general::output += crystal.stem() + "/";
+    settings::crystal::detail::use_checkpointing = false;
+    settings::general::detail::job_size = 10000;
 
-    settings::protein::use_effective_charge = false;
-    Protein protein(crystal);
-    auto debye = protein.get_histogram()->debye_transform();
+    settings::molecule::use_effective_charge = false;
+    data::Molecule protein(crystal);
+    auto debye = protein.get_histogram()->debye_transform().as_dataset();
 
     settings::axes::qmin = 1e-4;
-    settings::axes::bins = 1000;
     settings::crystal::h = 200; settings::crystal::k = 200; settings::crystal::l = 200;
 
     // compare with fibonnaci
@@ -60,6 +61,10 @@ int main(int argc, char const *argv[]) {
             fourier.limit_y(1e-4, 1e10);
             fourier.scale_y(debye.y(0)/fourier.y(0));
             fourier.save(settings::general::output + std::to_string(settings::crystal::grid_expansion) + "/reduced_" + std::to_string(i) + ".fit");
+
+            plots::PlotIntensity plot(debye, plots::PlotOptions(plots::option::draw_markers, {{plots::option::color, style::color::red}, {plots::option::legend, "debye"}}));
+            plot.plot(fourier, plots::PlotOptions({{plots::option::color, style::color::black}, {plots::option::legend, "max_basis_hkl = " + std::to_string(i)}}));
+            plot.save(settings::general::output + std::to_string(settings::crystal::grid_expansion) + "/reduced_" + std::to_string(i) + ".png");
 
             // calculate square difference
             double lsq = 0;

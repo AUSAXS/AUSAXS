@@ -48,7 +48,7 @@ std::vector<Miller> ReducedMillers::generate_independent_bases(double limit) con
         }
     }
 
-    // filter out Friedel symmetry equivalent pairs
+    // filter out Friedel symmetric pairs
     std::vector<Miller> friedel_independent;
     for (unsigned int i = 0; i < millers.size(); i++) {
         bool is_independent = true;

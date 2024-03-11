@@ -1,7 +1,5 @@
 #include <crystal/miller/Miller.h>
 
-#include <type_traits>
-#include <math.h>
 #include <math/Vector3.h>
 
 using namespace crystal;

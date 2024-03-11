@@ -1,8 +1,4 @@
-/*=============================================================================
-	Copyright (c) 2016-2020 Joel de Guzman
-
-	Distributed under the MIT License (https://opensource.org/licenses/MIT)
-=============================================================================*/
+#include "settings/GeneralSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
@@ -39,9 +35,9 @@ auto constexpr bred     = gui::colors::red.level(0.7).opacity(0.4);
 auto plot_names = std::vector<std::pair<std::string, std::string>>{
 	{"chi2_evaluated_points_full", "χ²"},
 	{"chi2_evaluated_points_limited", "χ² reduced axes"},
-	{"chi2_evaluated_points_limited_mass", "χ² reduced axes"},
 	{"chi2_near_minimum", "χ² near minimum"},
-	{"chi2_near_minimum_mass", "χ² near minimum"},
+	{"chi2_evaluated_points_limited_mass", "χ² reduced axes (mass)"},
+	{"chi2_near_minimum_mass", "χ² near minimum (mass)"},
 	{"log", "log plot"},
 	{"loglog", "log-log plot"}
 };
@@ -270,9 +266,6 @@ auto io_menu(gui::view& view) {
 					settings::saxs_file = tmp.path();
 					saxs_box.second->set_text(tmp.path());
 					saxs_box.second->on_enter(tmp.path());
-				} else if (constants::filetypes::setting.validate(tmp)) {
-					std::cout << "discovered settings file " << tmp.path() << std::endl;
-					settings::read(tmp);
 				}
 			}
 		}
@@ -944,7 +937,6 @@ auto make_start_button(gui::view& view) {
 			view.refresh(deck);
 		};
 
-		settings::general::output = "output/em_fitter/emd_24889/simulated_SAXS/";
 		deck.select(1);
 		view.refresh();
 		worker = std::thread([&view] () {
@@ -958,13 +950,13 @@ auto make_start_button(gui::view& view) {
 			}
 
 			// perform the plots
-			res->figures.data.save(settings::general::output + io::File(settings::saxs_file).stem() + ".dat");
+			res->figures.data.save(settings::general::output + io::File(settings::saxs_file).stem() + ".scat");
 			res->figures.intensity_interpolated.save(settings::general::output + "fit.fit");
 			fitter::FitReporter::save(res.get(), settings::general::output + "report.txt");
 			perform_plot(settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.25);
+				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.15);
 			};
 
 			auto chi2_landscape_pane = gui::vnotebook(
@@ -1002,7 +994,7 @@ auto make_start_button(gui::view& view) {
 							chi2_pane,
 							chi2_landscape_pane
 						),
-						gui::tab("χ²"),
+						gui::tab("Scattering profile"),
 						gui::tab("χ² landscape")
 					)
 				)
