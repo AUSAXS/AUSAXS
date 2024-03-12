@@ -1,4 +1,3 @@
-#include "fitter/ExcludedVolumeFitter.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 #include <include.h>
