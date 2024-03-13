@@ -153,6 +153,10 @@ double HydrationFitter::chi2(const std::vector<double>& params) {
     return chi;
 }
 
+unsigned int HydrationFitter::dof() const {
+    return data.size() - 3;
+}
+
 double HydrationFitter::get_intercept() {
     if (fitted == nullptr) {throw except::bad_order("HydrationFitter::get_intercept: Cannot determine model intercept before a fit has been made!");}
  

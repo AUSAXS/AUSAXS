@@ -9,7 +9,7 @@
 
 using namespace fitter;
 
-Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(res, chi2, fitter.dof()) {
+Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(res, chi2, fitter.size()) {
     add_fit(fitter);
     add_plots(fitter);
 }

@@ -78,7 +78,8 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     set_minimum_bounds(param.bounds->min);
     auto f = prepare_function(fitter);
     mini::Landscape evals; // since we'll be using multiple minimizers, we'll need to store the evaluated points manually
-    unsigned int dof = fitter->dof();
+    unsigned int dof = fitter->dof()-1; // minus one because we're also fitting the cutoff
+    std::cout << "degrees of freedom: " << dof << std::endl;
 
     if (settings::general::verbose) {
         std::cout << "The mass range [" << std::left << std::setw(8) << get_mass(param.bounds->min) 
@@ -316,26 +317,26 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
         mini::MinimumExplorer explorer(f, param, settings::fit::max_iterations);
         res = explorer.minimize();
 
+        // check if we found a better absolute minima
+        auto explored_points = explorer.get_evaluated_points().as_dataset();
+        if (auto new_min = explored_points.find_minimum(); new_min.y < min_abs.y) {
+            min_abs = new_min;
+        }
+
         // plot evaluated points near the minimum
         if (settings::general::supplementary_plots) {
-            SimpleDataset area;
-            {
-                auto l = explorer.landscape();
-                evals.append(l);
-                area = l.as_dataset();
-                area.y() = area.y()/dof;
-            }
+            explored_points.y() = explored_points.y()/dof;
 
             // calculate the mean & standard deviation of the sampled points
-            double mu = area.mean();
-            double sigma = area.std();
+            double mu = explored_points.mean();
+            double sigma = explored_points.std();
 
             // plot the starting point in blue
             SimpleDataset p_start;
             p_start.push_back(min_abs.x, min_abs.y/dof);
 
             // do the actual plotting
-            plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi_r^2$"}}))
+            plots::PlotDataset(explored_points, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi_r^2$"}}))
                 .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                 .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                 .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
@@ -345,20 +346,20 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             // make mass version
             if (settings::em::mass_axis) {
                 Dataset mass_cutoff(0, 2);
-                // skip the first few points since they are used for calibration
-                for (int i = static_cast<int>(this->evals.size() - area.size()); i < static_cast<int>(this->evals.size()); ++i) {
+                // this->evals also records the masses, so the last explored_points.size() entries are the ones we want
+                for (int i = static_cast<int>(this->evals.size() - explored_points.size()); i < static_cast<int>(this->evals.size()); ++i) {
                     mass_cutoff.push_back({this->evals[i].cutoff, this->evals[i].mass});
                 }
                 mass_cutoff.sort_x();
 
                 // create chi2 / mass dataset
-                area.x() = mass_cutoff.y();
+                explored_points.x() = mass_cutoff.y();
 
                 // interpolate start point
                 p_start.x(0) = mass_cutoff.interpolate_x(p_start.x(0), 1);
 
                 // make the plot
-                plots::PlotDataset(area, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}))
+                plots::PlotDataset(explored_points, plots::PlotOptions(style::draw::points, {{"xlabel", "mass [kDa]"}, {"ylabel", "$\\chi_r^2$"}}))
                     .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                     .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                     .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
@@ -372,7 +373,9 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     else {
         mini::Golden golden(f, param);
         res = golden.minimize();
-        evals.append(golden.get_evaluated_points());
+        if (res.fval < min_abs.y) {
+            min_abs = golden.get_evaluated_points().as_dataset().find_minimum();
+        }
     }
 
     // Make 3D landscape plot
@@ -392,7 +395,6 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
     }
 
     // update the fitter with the optimal cutoff, such that the returned fit is actually the best one
-    min_abs = evals.as_dataset().find_minimum();
     f({min_abs.x});
 
     std::unique_ptr<fitter::EMFit> emfit = std::make_unique<EMFit>(*fitter, res, res.fval);

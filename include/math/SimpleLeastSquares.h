@@ -72,6 +72,8 @@ namespace fitter {
              */
             [[nodiscard]] unsigned int dof() const override;
 
+            [[nodiscard]] unsigned int size() const override;
+
         private:
             const SimpleDataset data;
             double S, Sx, Sy, Sxx, Sxy, delta = 0;

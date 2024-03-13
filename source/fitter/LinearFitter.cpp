@@ -144,12 +144,12 @@ std::vector<double> LinearFitter::splice(const std::vector<double>& ym) const {
     return Im;
 }
 
-unsigned int LinearFitter::degrees_of_freedom() const {
-    return data.size() - 2;
+unsigned int LinearFitter::size() const {
+    return data.size();
 }
 
 unsigned int LinearFitter::dof() const {
-    return degrees_of_freedom();
+    return data.size() - 2;
 }
 
 std::shared_ptr<Fit> LinearFitter::get_fit() const {

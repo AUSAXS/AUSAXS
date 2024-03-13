@@ -39,8 +39,24 @@ namespace fitter {
 
             [[nodiscard]] virtual std::shared_ptr<Fit> get_fit() const = 0;
 
+            /**
+             * @brief Get the number of degrees of freedom.
+             */
             [[nodiscard]] virtual unsigned int dof() const = 0;
 
+            /**
+             * @brief Get the number of degrees of freedom.
+             */
+            [[nodiscard]] unsigned int degrees_of_freedom() const {return dof();}
+
+            /**
+             * @brief Get the total number of data points. 
+             */
+            [[nodiscard]] virtual unsigned int size() const = 0;
+
+            /**
+             * @brief Evaluate the chi2 function for the given parameters.
+             */
             [[nodiscard]] virtual double chi2(const std::vector<double>& params) = 0;
     };
 }

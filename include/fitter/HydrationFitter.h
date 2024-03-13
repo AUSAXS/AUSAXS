@@ -115,6 +115,8 @@ namespace fitter {
              */
             [[nodiscard]] SimpleDataset get_dataset() const;
 
+            [[nodiscard]] unsigned int dof() const override;
+
             /**
              * @brief Set the guess value for the hydration scaling factor @a c.
              */

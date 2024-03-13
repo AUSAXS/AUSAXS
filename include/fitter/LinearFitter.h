@@ -134,12 +134,12 @@ namespace fitter {
 			/**
 			 * @brief Get the number of degrees of freedom. 
 			 */
-			[[nodiscard]] unsigned int degrees_of_freedom() const;
+			[[nodiscard]] virtual unsigned int dof() const override;
 
 			/**
-			 * @brief Get the number of degrees of freedom. 
+			 * @brief Get the total number of data points.
 			 */
-			[[nodiscard]] unsigned int dof() const override;
+            [[nodiscard]] unsigned int size() const override;
 
 			/**
 			 * @brief Get the result of the last fit() call. 
