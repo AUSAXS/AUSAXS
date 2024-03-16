@@ -16,6 +16,7 @@ Fit::Fit(Fitter& fitter, const mini::Result& res, double chi2) noexcept : Fit(re
 
 Fit::Fit(const mini::Result& res, double chi2, unsigned int dof) noexcept : Result(res), dof(dof) {
     fval = chi2;
+    this->dof -= parameters.size();
 }
 
 void Fit::add_plots(Fitter& fitter) {

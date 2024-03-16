@@ -47,7 +47,8 @@ match len(sys.argv):
                 'axes.labelsize': 28,
                 'axes.titlesize': 28,
                 'xtick.labelsize': 20,
-                'ytick.labelsize': 20
+                'ytick.labelsize': 20,
+                'lines.markersize': 12
             }
         elif sys.argv[2] == "--medium":
             params = {
@@ -56,7 +57,8 @@ match len(sys.argv):
                 'axes.labelsize': 24,
                 'axes.titlesize': 24,
                 'xtick.labelsize': 18,
-                'ytick.labelsize': 18
+                'ytick.labelsize': 18,
+                'lines.markersize': 10
             }
     
     case 4:

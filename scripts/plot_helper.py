@@ -526,7 +526,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, title=""):
 
     ax[1].axhline(0, color='k', lw=0.5)
     ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.')
-    ax[1].set_xlabel("q")
+    ax[1].set_xlabel("q [$Å^{-1}$]")
     ax[1].set_ylabel("Residuals")
 
     plt.tight_layout()

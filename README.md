@@ -57,3 +57,6 @@ The following are automatically fetched by CMake:
 
 # Disclaimer
 This project was supported by grant 1026-00209B from the Independent Research Fund Denmark. 
+
+# Licence
+This project is licenced under the GNU General Public Licence v3.0. Alternative licencing arrangements can be discussed upon request. 

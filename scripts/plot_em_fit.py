@@ -12,10 +12,11 @@ params = {
     'axes.titlesize':14,
     'xtick.labelsize':11,
     'ytick.labelsize':11,
-    'lines.linewidth': 1,
+    'lines.linewidth': 1.5,
     'lines.markersize': 1,
     'lines.markeredgewidth': 1, # capthick
-    'errorbar.capsize': 1,
+    'errorbar.capsize': 2,
+    'lines.markersize': 5
 }
 
 # params = {
@@ -124,7 +125,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
 
     ax[1].axhline(0, color='k', lw=0.5)
     ax[1].plot(data[:, 0], (data[:, 1] - fit[:, 1]) / data[:, 2], 'k.')
-    ax[1].set_xlabel("q")
+    ax[1].set_xlabel("q [$Å^{-1}$]")
     ax[1].set_ylabel("Residuals")
 
     plt.tight_layout()
@@ -134,9 +135,9 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
     # insert small pymol image of the structure
     imarray = plt.imread(pymol_file)
     imagebox = OffsetImage(imarray, zoom=0.22)
-    ab = AnnotationBbox(imagebox, (0.015, 0.03), xycoords='axes fraction', box_alignment=(0, 0))
+    ab = AnnotationBbox(imagebox, (0.015, 0.03), xycoords='axes fraction', box_alignment=(0, 0), frameon=False)
+#    ax[0].text(0.11, 0.03, "fitted structure", transform=ax[0].transAxes, fontsize=12)
     ax[0].add_artist(ab)
-    ax[0].text(0.11, 0.03, "fitted structure", transform=ax[0].transAxes, fontsize=12)
 
     ax[0].semilogx()
     fig.savefig(os.path.dirname(data_file) + '/loglog.png', dpi=600)
@@ -154,9 +155,9 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
         ax.set_title(os.path.basename(os.path.abspath(data_file).split('.')[0]))
     plt.tight_layout()
     imagebox = OffsetImage(imarray, zoom=0.2)
-    ab = AnnotationBbox(imagebox, (0.015, 0.03), xycoords='axes fraction', box_alignment=(0, 0))
+    ab = AnnotationBbox(imagebox, (0.015, 0.03), xycoords='axes fraction', box_alignment=(0, 0), frameon=False)
+#    ax.text(0.11, 0.03, "fitted structure", transform=ax.transAxes, fontsize=12)
     ax.add_artist(ab)
-    ax.text(0.11, 0.03, "fitted structure", transform=ax.transAxes, fontsize=12)
     ax.semilogx()
     fig.savefig(os.path.dirname(data_file) + '/loglog_no_residuals.png', dpi=600)
     print("Plotted loglog_no_residuals.png")

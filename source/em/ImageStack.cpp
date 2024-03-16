@@ -336,7 +336,7 @@ std::unique_ptr<EMFit> ImageStack::fit_helper(std::shared_ptr<LinearFitter> fitt
             p_start.push_back(min_abs.x, min_abs.y/dof);
 
             // do the actual plotting
-            plots::PlotDataset(explored_points, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff"}, {"ylabel", "$\\chi_r^2$"}}))
+            plots::PlotDataset(explored_points, plots::PlotOptions(style::draw::points, {{"xlabel", "cutoff [$\\sigma$]"}, {"ylabel", "$\\chi_r^2$"}}))
                 .hline(mu, plots::PlotOptions(style::draw::line, {{"color", style::color::red}}))
                 .hline(mu+sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
                 .hline(mu-sigma, plots::PlotOptions(style::draw::line, {{"color", style::color::red}, {"linestyle", "--"}}))
