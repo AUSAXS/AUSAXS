@@ -1,3 +1,8 @@
+/*
+This software is distributed under the GNU General Public License v3.0. 
+For more information, please refer to the LICENSE file in the project root.
+*/
+
 #include <algorithm>
 #include <hist/distribution/Distribution1D.h>
 #include <hist/distribution/WeightedDistribution1D.h>

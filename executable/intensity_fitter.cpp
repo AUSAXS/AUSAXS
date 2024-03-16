@@ -15,6 +15,7 @@
 #include <mini/detail/FittedParameter.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogramExv.h>
 #include <hist/intensity_calculator/CompositeDistanceHistogram.h>
+#include <utility/Console.h>
 
 #include <vector>
 #include <string>
@@ -49,8 +50,14 @@ int main(int argc, char const *argv[]) {
     app.add_flag("--weighted_bins", settings::hist::weighted_bins, "Decides whether the weighted bins will be used.")->default_val(settings::hist::weighted_bins)->group("Hidden");
     app.add_option("--rvol", settings::grid::rvol, "The radius of the excluded volume sphere around each atom.")->default_val(settings::grid::rvol)->group("Hidden");
     app.add_flag("--save_exv", settings::grid::save_exv, "Decides whether the excluded volume will be saved.")->default_val(settings::grid::save_exv)->group("Hidden");
+    auto p_licence = app.add_flag("--licence", "Print the licence.");
     CLI11_PARSE(app, argc, argv);
+
     std::cout << "Running AUSAXS " << constants::version << std::endl;
+    if (p_licence->count() != 0) {
+        console::print_info(constants::licence);
+        return 0;
+    }
 
     //###################//
     //### PARSE INPUT ###//
