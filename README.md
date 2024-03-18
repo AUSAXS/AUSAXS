@@ -4,7 +4,7 @@
 # Main features
 - **Simple foundation**: We have implemented the methods in the simplest possible way, making as few assumptions about your data as possible. With the Debye equation as the basis for the scattering profiles, the only loss of accuracy is through the histogram approximation, where we support using both weighted and unweighted bins depending on your preferences. By implementing the technique in modern C++ with efficiency in mind, we have managed to achieve some of the [best performance available](https://github.com/klytje/AUSAXS/blob/media/benchmark.png).
 - **Fitting of high-resolution models to SAXS curves**: Fit atomic structure files using experimental SAXS data using an efficient implementation of the Debye equation. Various options are available regarding the handling of both the excluded volume and hydration shell. 
-- **Validation of electron microscopy maps**: Validate EM maps using experimental SAXS data. By using the information contained within the EM map itself, dummy structures can be constructed and compared against the SAXS data. Though various other implementations doing something similar are already available ([scipion](scipion.i2pc.es), [denss](https://tdgrant.com/)), ours is the only one that manages to consistenly achieve single-digit $\chi^2$ values for matching experimental datasets. 
+- **Validation of electron microscopy maps**: Validate EM maps using experimental SAXS data. By using the information contained within the EM map itself, dummy structures can be constructed and compared against the SAXS data, serving as a quick quality check on the conformation of the map. 
 - **Rigidbody optimization**: _(Still under development)_ Perform self-consistent and customizable rigidbody optimizations, generating a new hydration shell for each step. Optional calibration with scattering curves predicted by molecular dynamics simulations can limit the number of free parameters to just 2, dramatically reducing the capability of overfitting.
 
 User-guides to all of these programs can be found in the [wiki](https://github.com/klytje/AUSAXS/wiki).
@@ -37,8 +37,4 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 
 3. Compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
 
-# Disclaimer
-This project was supported by grant 1026-00209B from the Independent Research Fund Denmark. 
-
-# Licence
-This project is licenced under the GNU General Public Licence v3.0. Alternative licencing arrangements can be discussed upon request. 
+_This project is licenced under the GNU General Public Licence v3. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
