@@ -37,24 +37,6 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 
 3. Compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
 
-### Mac
-Note that Mac is not officially supported since I don't have such a machine available for testing. Make sure you have the most recent Clang compiler and `curl` available on your system, and then follow the Linux steps. 
-
-# Dependencies
-Manual dependencies:
-*	[CURL](https://github.com/curl/curl), for dynamically downloading configuration files for unknown complexes and ligands. 
-	*	[OpenSSL](https://github.com/openssl/openssl)
-
-The following are automatically fetched by CMake:
-*	[Elements](https://github.com/cycfi/elements), for the graphical user interface.
-	*	[Native File Dialog Extended](https://github.com/btzy/nativefiledialog-extended), for the file dialogues. 
-*	[Generalized Constant Expression Math](https://github.com/kthohr/gcem), for constexpr math support beyond GCC. 
-*	[BSThreadPool](https://github.com/bshoshany/thread-pool), for multithreading. 
-*	[CLI11](https://github.com/CLIUtils/CLI11), for interpreting command line arguments. 
-*	[dlib](https://github.com/davisking/dlib), for their fitting routine. 
-*	[Catch2](https://github.com/catchorg/Catch2), for running tests.
-*	[backward-cpp](https://github.com/bombela/backward-cpp), for better stacktraces in debug builds. 
-
 # Disclaimer
 This project was supported by grant 1026-00209B from the Independent Research Fund Denmark. 
 
