@@ -1,37 +1,35 @@
+---
 name: Run tests
-on: [workflow_dispatch]
-
+on:
+  - workflow_dispatch
 jobs:
   runner:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
       - name: Install prerequisites
         run: |
           sudo apt-get install libcurl4-openssl-dev
-       
       - name: Build the library
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
           cmake --build build --target ausaxs -j $(nproc)
-        
       - name: Build tests
-        run:
-          cmake --build build --target tests -j $(nproc)
-      
+        run: cmake --build build --target tests -j $(nproc)
       - name: Run tests
-        run: |
+        run: >
           make -C build tests -j${cmake_threads} --no-print-directory
-	  mkdir -p build/test/reports
-	  for test in $$(find build/test/bin/test_*); do
-	  	$${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml
-	  done
-          
+
+          mkdir -p build/test/reports
+
+          for test in $$(find build/test/bin/test_*); do
+            $${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml
+          done
       - name: Generate test report
         uses: mikepenz/action-junit-report@v3
         if: success() || failure()
         with:
-          report_paths: 'build/test/reports/*.xml'
+          report_paths: build/test/reports/*.xml
+
