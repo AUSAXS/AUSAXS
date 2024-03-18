@@ -23,7 +23,7 @@ jobs:
           cmake --build build --target tests -j $(nproc)
       
       - name: Run tests
-        run:
+        run: |
           make -C build tests -j${cmake_threads} --no-print-directory
 	  mkdir -p build/test/reports
 	  for test in $$(find build/test/bin/test_*); do
