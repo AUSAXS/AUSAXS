@@ -13,7 +13,8 @@ params = {
     'axes.labelsize': 14,
     'axes.titlesize':14,
     'xtick.labelsize':11,
-    'ytick.labelsize':11
+    'ytick.labelsize':11,
+    'lines.markersize': 5
 }
 
 title=""

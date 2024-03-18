@@ -4,6 +4,8 @@ import numpy as np
 from enum import Enum
 import os
 
+marker_scaling = 2
+
 def isfloat(value: str):
     try:
         float(value)
@@ -297,9 +299,9 @@ def plot_dataset(d: Dataset):
             color=d.options.color, 
             linestyle="none",
             marker=d.options.markerstyle, 
-            markersize=d.options.markersize, 
+            markersize=d.options.markersize*marker_scaling, 
             label=d.options.legend,
-            capsize=2,
+            capsize=2*marker_scaling,
             zorder=5
         )
 
@@ -308,7 +310,7 @@ def plot_dataset(d: Dataset):
             color=d.options.color, 
             linestyle="none",
             marker=d.options.markerstyle, 
-            markersize=d.options.markersize, 
+            markersize=d.options.markersize*marker_scaling, 
             label=d.options.legend,
             zorder=d.options.zorder
         )
@@ -317,7 +319,7 @@ def plot_dataset(d: Dataset):
         plt.plot(d.data[:,0], d.data[:,1], 
             color=d.options.color, 
             linestyle=d.options.linestyle, 
-            linewidth=d.options.linewidth, 
+            linewidth=d.options.linewidth*marker_scaling, 
             label=d.options.legend,
             zorder=d.options.zorder
         )
@@ -351,7 +353,7 @@ def plot_hline(h: Hline):
     plt.axhline(h.y, 
         color=h.options.color, 
         linestyle=h.options.linestyle, 
-        linewidth=h.options.linewidth, 
+        linewidth=h.options.linewidth*marker_scaling, 
     )
     return
 
@@ -365,7 +367,7 @@ def plot_vline(v: Vline):
     plt.axvline(v.x, 
         color=v.options.color, 
         linestyle=v.options.linestyle, 
-        linewidth=v.options.linewidth, 
+        linewidth=v.options.linewidth*marker_scaling, 
     )
     return
 

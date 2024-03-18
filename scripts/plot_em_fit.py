@@ -5,6 +5,7 @@ import sys
 import os
 from plot_helper import read_dataset
 
+img_scaling = 1
 params = {
     'legend.fontsize': 14,
     'figure.figsize': (10, 8),
@@ -19,17 +20,16 @@ params = {
     'lines.markersize': 5
 }
 
+#img_scaling = 0.9
 # params = {
-#     'legend.fontsize': 28,
+#     'legend.fontsize': 20,
 #     'figure.figsize': (10, 8),
-#     'axes.labelsize': 28,
-#     'axes.titlesize': 28,
-#     'xtick.labelsize': 20,
-#     'ytick.labelsize': 20,
-#     'lines.linewidth': 3,
-#     'lines.markersize': 12,
-#     'lines.markeredgewidth': 1, # capthick
-#     'errorbar.capsize': 1,
+#     'axes.labelsize': 20,
+#     'axes.titlesize': 20,
+#     'xtick.labelsize': 16,
+#     'ytick.labelsize': 16,
+#     'lines.markersize': 7.5,
+#     'lines.linewidth': 1.5
 # }
 plt.rcParams.update(params)
 
@@ -64,7 +64,9 @@ match len(sys.argv):
                 'axes.labelsize': 28,
                 'axes.titlesize': 28,
                 'xtick.labelsize': 20,
-                'ytick.labelsize': 20
+                'ytick.labelsize': 20,
+                'lines.markersize': 10,
+                'lines.linewidth': 2
             }
         elif sys.argv[2] == "--medium":
             params = {
@@ -73,7 +75,9 @@ match len(sys.argv):
                 'axes.labelsize': 24,
                 'axes.titlesize': 24,
                 'xtick.labelsize': 18,
-                'ytick.labelsize': 18
+                'ytick.labelsize': 18,
+                'lines.markersize': 7.5,
+                'lines.linewidth': 1.5
             }
     
     case 4:
@@ -91,7 +95,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
     fit = np.loadtxt(fit_file, skiprows=1, usecols=[0, 1])
 
     # calculate dof
-    dof = 1
+    dof = 0
     if report_file != "":
         # find dof in report
         with open(report_file, "r") as f:
@@ -99,6 +103,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
             for line in f:
                 if "PAR" in line:
                     par_section = True
+                    continue
                 if par_section:
                     if "+----" in line:
                         break
@@ -108,6 +113,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
     def chi2(ymodel):
         return np.sum(((data[:, 1] - ymodel) / data[:, 2]) ** 2)
 
+    print(f"CHI2 is {chi2(fit[:, 1])} for {len(data[:, 1])} data points and {dof} degrees of freedom.")
     chi2r = chi2(fit[:, 1]) / (len(data[:, 1]) - dof)
 
     # plot the data in loglog and with residuals underneath
@@ -134,7 +140,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
 
     # insert small pymol image of the structure
     imarray = plt.imread(pymol_file)
-    imagebox = OffsetImage(imarray, zoom=0.22)
+    imagebox = OffsetImage(imarray, zoom=0.22*img_scaling)
     ab = AnnotationBbox(imagebox, (0.015, 0.03), xycoords='axes fraction', box_alignment=(0, 0), frameon=False)
 #    ax[0].text(0.11, 0.03, "fitted structure", transform=ax[0].transAxes, fontsize=12)
     ax[0].add_artist(ab)
@@ -147,6 +153,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
     ax.errorbar(data[:, 0], data[:, 1], yerr=data[:, 2], fmt='k.', zorder=0)
     ax.plot(fit[:, 0], fit[:, 1], label=r"$\chi^2_{red} = " + f"{chi2r:.3f}$", color='red')
     ax.set_ylabel("I(q)")
+    ax.set_xlabel("q [$Å^{-1}$]")
     ax.legend()
     ax.semilogy()
     if title != "":
@@ -154,7 +161,7 @@ def plot_intensity_fit(data_file, fit_file, report_file, pymol_file, title=""):
     else: 
         ax.set_title(os.path.basename(os.path.abspath(data_file).split('.')[0]))
     plt.tight_layout()
-    imagebox = OffsetImage(imarray, zoom=0.2)
+    imagebox = OffsetImage(imarray, zoom=0.2*img_scaling)
     ab = AnnotationBbox(imagebox, (0.015, 0.03), xycoords='axes fraction', box_alignment=(0, 0), frameon=False)
 #    ax.text(0.11, 0.03, "fitted structure", transform=ax.transAxes, fontsize=12)
     ax.add_artist(ab)
