@@ -6,7 +6,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(CLI11)
 
-file(GLOB_RECURSE EXEC_SOURCE "*.cpp")
+file(GLOB EXEC_SOURCE "*.cpp")
 foreach(exec ${EXEC_SOURCE})
 	cmake_path(GET exec STEM name)
 	add_executable("${name}" ${exec} $<$<CONFIG:DEBUG>: ${BACKWARD_ENABLE}>)
