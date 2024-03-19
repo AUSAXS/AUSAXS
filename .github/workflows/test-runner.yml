@@ -1,4 +1,6 @@
----
+permissions:
+  - checks: write
+
 name: Run tests
 on:
   - workflow_dispatch
@@ -25,7 +27,7 @@ jobs:
         run: ctest --output-on-failure --test-dir build/test
 
       - name: Generate test report
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         if: success() || failure()
         with:
           report_paths: build/test/reports/*.xml

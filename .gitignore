@@ -1,4 +1,10 @@
 build
 temp
-output/*
-data/*
+output
+data
+
+# developer stuff
+Makefile
+.clangd
+.cache
+.vscode
