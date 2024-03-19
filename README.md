@@ -23,7 +23,7 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 2. Clone this repository  
 `git clone https://github.com/klytje/AUSAXS.git`.
 
-3. Create the build directory & prepare compilation 
+3. Prepare the project for compilation 
 `cmake -B build -S .`
 
 4. Compile your choice of executable
