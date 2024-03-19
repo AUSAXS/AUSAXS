@@ -8,25 +8,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Install prerequisites
-        run: |
-          sudo apt-get install libcurl4-openssl-dev
+        run: sudo apt-get install libcurl4-openssl-dev
+
       - name: Build the library
         run: |
           mkdir build
           cmake -DGUI=OFF -DCMAKE_BUILD_TYPE=RELEASE -S . -B build
           cmake --build build --target ausaxs -j $(nproc)
-      - name: Build tests
+
+      - name: Build the tests
         run: cmake --build build --target tests -j $(nproc)
-      - name: Run tests
-        run: >
-          make -C build tests -j${cmake_threads} --no-print-directory
 
-          mkdir -p build/test/reports
+      - name: Run the tests
+        run: ctest --output-on-failure --test-dir build/test
 
-          for test in $$(find build/test/bin/test_*); do
-            $${test} $(exclude_tags) --reporter junit --out build/test/reports/$$(basename $${test}).xml
-          done
       - name: Generate test report
         uses: mikepenz/action-junit-report@v3
         if: success() || failure()

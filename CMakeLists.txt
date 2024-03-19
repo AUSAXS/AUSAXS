@@ -133,7 +133,7 @@ endif()
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
 	set(sim3a_Doxygen "${CMAKE_BINARY_DIR}/saxs.dox")
-	configure_file(${CMAKE_SOURCE_DIR}/docs/saxs.dox.in ${sim3a_Doxygen} @ONLY)
+	configure_file(${CMAKE_SOURCE_DIR}/scripts/ausaxs.dox.in ${sim3a_Doxygen} @ONLY)
 	add_custom_target(
 		doc
 		${DOXYGEN_EXECUTABLE} ${sim3a_Doxygen}
