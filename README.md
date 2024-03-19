@@ -29,6 +29,8 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 4. Compile your choice of executable
 `cmake --build build --target em_fitter`
 
+The possible targets are `em_fitter`, `intensity_fitter`, `em_fitter_gui`, and `intensity_fitter_gui`. Use the multithreading flag `-jX` for significantly shorter compilation times. 
+
 ### Windows
 1. Make sure CURL and OpenSSL are available on your system, e.g. through vcpkg
 
