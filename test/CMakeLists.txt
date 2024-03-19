@@ -3,7 +3,7 @@ set(CMAKE_CXX_FLAGS_TEST
     "-Os -Wpedantic -Wall -Wextra"
     CACHE STRING "Flags used by the C++ compiler during test builds."
 )
-set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL)
+set_directory_properties(PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 include(FetchContent)
 FetchContent_Declare(
