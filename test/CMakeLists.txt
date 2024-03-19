@@ -43,6 +43,7 @@ foreach(test ${TEST_SRC})
 		WORKING_DIRECTORY "${TEST_BIN_DIR}"
 		REPORTER junit
 		OUTPUT_DIR ${REPORT_DIR}
+		OUTPUT_SUFFIX ".xml"
 	)
 endforeach()
 
