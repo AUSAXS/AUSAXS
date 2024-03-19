@@ -6,18 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE RELEASE)
 
 project(SAXS VERSION 0.0)
-#set(fprofile "-fprofile-generate=${CMAKE_BINARY_DIR}/profiling")
-#set(fprofile "-fprofile-use=${CMAKE_BINARY_DIR}/profiling" "-fprofile-correction")
-#add_link_options(-lgcov --coverage)
-set(fprofile "")
 option(GUI "Enable GUI executables" ON)
 option(DLIB "Download and use the dlib minimizers" ON)
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT LTO_SUPPORTED) #LTO
-
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG=1;SAFE_MATH=1>")
 if (WIN32)
 	if (MSVC)
@@ -29,7 +21,7 @@ if (WIN32)
 		)
 	elseif (MINGW)
 		add_compile_options(
-			-Ofast ${fprofile} -pipe -mavx
+			-Ofast -pipe -mavx
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 			"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 			"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
@@ -37,18 +29,14 @@ if (WIN32)
 		)
 	endif()
 elseif (UNIX)
-#	add_compile_definitions("$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:CONSTEXPR_LOOKUP_TABLE>") # only GCC supports large constexpr arrays
 	add_compile_options(
-		-Ofast ${fprofile} -pipe -mavx
+		-Ofast -pipe -mavx
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},Clang>:-fconstexpr-steps=1000000000>"
 		"$<$<STREQUAL:${CMAKE_CXX_COMPILER_ID},GNU>:-fconstexpr-ops-limit=10000000000>"
 		"$<$<CONFIG:DEBUG>:-g;-Wall;-Wpedantic;-Wextra;-march=native>"
 		"$<$<CONFIG:RELEASE>:-march=x86-64>"
 	)
 endif()
-#add_link_options(
-#	"$<$<CONFIG:DEBUG>:--coverage>"
-#)
 
 ############################################
 ##            Dependencies                ##
@@ -103,26 +91,16 @@ include_directories(${thread_pool_SOURCE_DIR}/include ${gcem_SOURCE_DIR}/include
 ############################################
 ##           Find and link CURL           ##
 ############################################
-# when building for windows we want a single executable, so we have to include a bunch of static libraries to make curl work
 if (WIN32)
 	add_compile_definitions("CURL_STATICLIB")
-	set(OPENSSL_USE_STATIC_LIBS TRUE)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-	set(OPENSSL_ROOT_DIR "/usr/x86_64-w64-mingw32/usr/local/lib64")
-	set(CURL_LIBRARY "/usr/x86_64-w64-mingw32/usr/local/lib/libcurl.a")
-	link_libraries(${CURL_LIBRARY})
-	include_directories("/usr/x86_64-w64-mingw32/usr/local/include")
-#	find_package(CURL REQUIRED)
+	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS SSL REQUIRED)
-	set(LIBS -static gcc stdc++ OpenSSL::SSL winpthread ws2_32 libwldap32.a crypt32)
-#	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
-
-# for linux we assume the users can figure out how to install missing packages by themselves
+	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
 elseif (UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
-		link_libraries(-lbfd -ldl -lgcov)
+		link_libraries(-lbfd -ldl)
 	endif()
 endif()
 
@@ -146,11 +124,12 @@ endif(DOXYGEN_FOUND)
 ############################################
 ##           Build library                ##
 ############################################
+include(CheckIPOSupported)
+check_ipo_supported(RESULT LTO_SUPPORTED)
 
 file(GLOB_RECURSE HEADER_FILES "${CMAKE_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE SOURCE_FILES "${CMAKE_SOURCE_DIR}/source/*.cpp")
 
-### SINGLE-COMPILED OBJECT LIBRARY APPROACH ###
 add_library(objlib OBJECT ${SOURCE_FILES})
 set_target_properties(objlib PROPERTIES POSITION_INDEPENDENT_CODE 1)
 
@@ -177,21 +156,5 @@ target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
 link_libraries(ausaxs)
 
-### DOUBLE-COMPILED STATIC & SHARED LIBRARY APPROACH - SUPPORTS PROFILING ###
-#add_library(ausaxs_static STATIC ${SOURCE_FILES})
-#add_library(ausaxs SHARED ${SOURCE_FILES})
-#target_include_directories(ausaxs PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_include_directories(ausaxs_static PUBLIC "${CMAKE_SOURCE_DIR}/include" PRIVATE "${CMAKE_SOURCE_DIR}/source")
-#target_link_libraries(ausaxs -static CLI11::CLI11 ${LIBS})
-#target_link_libraries(ausaxs_static CLI11::CLI11 ${LIBS})
-#link_libraries(ausaxs_static)
-
-############################################
-##             Unit Testing               ##
-############################################
 add_subdirectory(test)
-
-############################################
-##          Other executables             ##
-############################################
 add_subdirectory(executable)
