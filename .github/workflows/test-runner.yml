@@ -1,9 +1,10 @@
-permissions:
-  - checks: write
-
 name: Run tests
 on:
   - workflow_dispatch
+
+permissions:
+  checks: write
+
 jobs:
   runner:
     runs-on: ubuntu-latest
