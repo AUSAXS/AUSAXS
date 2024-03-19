@@ -23,10 +23,10 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 2. Clone this repository  
 `git clone https://github.com/klytje/AUSAXS.git`.
 
-3. Prepare the project for compilation 
+3. Prepare the project for compilation  
 `cmake -B build -S .`
 
-4. Compile your choice of executable
+4. Compile your choice of executable  
 `cmake --build build --target em_fitter`
 
 The possible targets are `em_fitter`, `intensity_fitter`, `em_fitter_gui`, and `intensity_fitter_gui`. Use the multithreading flag `-jX` for significantly shorter compilation times. 
