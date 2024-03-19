@@ -23,11 +23,11 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 2. Clone this repository  
 `git clone https://github.com/klytje/AUSAXS.git`.
 
-3. Run the build command  
-`make build`
+3. Create the build directory & prepare compilation 
+`cmake -B build -S .`
 
-4. Compile your choice of executable  
-`make intensity_fitter`
+4. Compile your choice of executable
+`cmake --build build --target em_fitter`
 
 ### Windows
 1. Make sure CURL and OpenSSL are available on your system, e.g. through vcpkg
@@ -35,6 +35,9 @@ The software can easily be compiled from source with only a few steps. GCC v11+,
 2. Download or clone this repository
 `git clone https://github.com/klytje/AUSAXS.git`.
 
-3. Compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
+3. Open the project with Visual Studio and compile your choice of executable. Note that this is very memory-intensive with the MSVC compiler, requiring 12GB+ of available memory due to their inefficient handling of constant expressions. 
+
+# References
+Several articles documenting the methods used in this project are currently in various stages of development. The first, on the EM validation methods, is expected to be published soon. Direct links will be provided in this section once they are publically available. 
 
 _This project is licenced under the GNU General Public Licence v3. Alternative licencing arrangements can be discussed upon request. Supported by grant 1026-00209B from the Independent Research Fund Denmark._
