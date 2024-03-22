@@ -8,12 +8,16 @@
 #include <dataset/SimpleDataset.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/HydrationFitter.h>
+#include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/FitReporter.h>
 #include <fitter/Fit.h>
 #include <settings/All.h>
 #include <plots/All.h>
 
 #include <bitset>
+#include <thread>
+#include <filesystem>
+#include <string_view>
 
 namespace gui = cycfi::elements;
 
