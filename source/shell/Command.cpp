@@ -52,6 +52,10 @@ Command& Command::mute() {
     return *this;
 }
 
+#ifdef _WIN32
+    #define popen _popen
+    #define pclose _pclose
+#endif
 CommandResult Command::execute() const {
     std::array<char, 128> buffer;
     std::string result;
