@@ -80,7 +80,7 @@ auto abs_path(const std::string& path) {
 shell::Command get_plotter_cmd() {
 	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
-		auto res = shell::Command("where plot").mute().execute();
+		auto res = shell::Command("where.exe plot /q").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			return shell::Command(res.out);

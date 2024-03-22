@@ -13,7 +13,7 @@ foreach(exec ${EXEC_SOURCE})
 	set_target_properties("${name}" PROPERTIES 
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 	)
-	target_link_libraries("${name}" CLI11::CLI11 ausaxs)
+	target_link_libraries("${name}" CLI11::CLI11 ausaxs_static)
 	if (CMAKE_BUILD_TYPE MATCHES DEBUG)
 		add_backward("${name}")
 	endif()	
