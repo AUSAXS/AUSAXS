@@ -1,4 +1,3 @@
-#include "settings/GeneralSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
@@ -12,7 +11,6 @@
 #include <constants/Constants.h>
 #include <constants/Version.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <settings/All.h>
 #include <utility/Limit2D.h>
 #include <utility/MultiThreading.h>
 #include <fitter/FitReporter.h>
@@ -25,6 +23,39 @@
 #include <memory>
 #include <thread>
 #include <bitset>
+
+#if defined(_WIN32)
+	#define dll_import __declspec( dllimport )
+	namespace settings {
+		dll_import void read(const ::io::ExistingFile& path);
+		namespace em {
+			dll_import unsigned int sample_frequency;
+			dll_import bool hydrate;
+			dll_import bool mass_axis;
+			dll_import Limit alpha_levels;
+			dll_import bool fixed_weights;
+		}
+		namespace fit {
+			dll_import bool verbose;
+			dll_import unsigned int max_iterations;
+		}
+		namespace general {
+			dll_import std::string output;
+		}
+		namespace axes {
+			dll_import double qmin;
+			dll_import double qmax;
+		}
+		namespace hist {
+			dll_import bool weighted_bins;
+		}
+		namespace molecule {
+			dll_import bool use_effective_charge;
+		}
+	}
+#else
+	#include <settings/All.h>
+#endif
 
 namespace gui = cycfi::elements;
 
@@ -47,7 +78,7 @@ auto abs_path(const std::string& path) {
 }
 
 shell::Command get_plotter_cmd() {
-	#ifdef _WIN32
+	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
 		auto res = shell::Command("where plot").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
@@ -56,7 +87,7 @@ shell::Command get_plotter_cmd() {
 		}
 
 		// if not, check if python & the python script is available
-		bool python_available = shell::Command("python --version").mute().execute();
+		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
 		bool python_script_available = io::File("scripts/plot.py").exists();
 		if (python_available && python_script_available) {
 			return shell::Command("python scripts/plot.py");
@@ -1008,6 +1039,7 @@ auto make_start_button(gui::view& view) {
 	return link(deck);
 }
 
+#include <iostream>
 #include <logo.h>
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
@@ -1022,9 +1054,6 @@ int main(int argc, char* argv[]) {
 
 	// generate the logo file on disk
 	auto logo_path = resources::generate_logo_file();
-
-	// check if the plotter is available
-	perform_plot("output/em_fitter/SASDDD3/emd_0560");
 
 	gui::app app(argc, argv, "EM fitter", "com.saxs.gui");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), gui::rect{20, 20, 1620, 1020});
