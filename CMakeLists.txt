@@ -1,11 +1,8 @@
-cmake_minimum_required(VERSION 3.14)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_BUILD_TYPE RELEASE)
 
-project(SAXS VERSION 0.0)
+cmake_minimum_required(VERSION 3.15)
+project(AUSAXS VERSION 1.0)
 option(GUI "Enable GUI executables" ON)
 option(DLIB "Download and use the dlib minimizers" ON)
 
@@ -19,6 +16,8 @@ if (WIN32)
 			/wd4267 # disable size_t --> int, unsigned int conversions
 			/wd4244 # disable double --> float,int conversions
 		)
+		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+		set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 	elseif (MINGW)
 		add_compile_options(
 			-Ofast -pipe -mavx
@@ -95,7 +94,8 @@ if (WIN32)
 	add_compile_definitions("CURL_STATICLIB")
 	find_package(CURL REQUIRED)
 	find_package(OpenSSL COMPONENTS SSL REQUIRED)
-	set(LIBS -static gcc stdc++ winpthread CURL::libcurl OpenSSL::SSL OpenSSL::Crypto ws2_32 libwldap32.a crypt32)
+	set(LIBS -static CURL::libcurl)
+	include_directories(${CURL_INCLUDE_DIRS}) # find_package apparently does not always include the headers
 elseif (UNIX)
 	find_package(CURL REQUIRED)
 	set(LIBS CURL::libcurl -static-libgcc -static-libstdc++)
@@ -154,7 +154,6 @@ if (DLIB)
 endif()
 target_link_libraries(ausaxs ${LIBS})
 target_link_libraries(ausaxs_static ${LIBS})
-link_libraries(ausaxs)
 
 add_subdirectory(test)
 add_subdirectory(executable)

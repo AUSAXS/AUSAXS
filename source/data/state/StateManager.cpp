@@ -6,6 +6,11 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/state/StateManager.h>
 #include <data/state/BoundSignaller.h>
 
+#ifdef DEBUG
+    #include <stdexcept>
+    #include <string>
+#endif
+
 using namespace state;
 
 StateManager::StateManager(unsigned int size) : _size(size), _externally_modified(size, true), _internally_modified(size, true), _modified_hydration(true) {
