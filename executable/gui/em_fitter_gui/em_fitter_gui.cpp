@@ -25,6 +25,39 @@
 #include <thread>
 #include <bitset>
 
+#if defined(_WIN32)
+	#define dll_import __declspec( dllimport )
+	namespace settings {
+		dll_import void read(const ::io::ExistingFile& path);
+		namespace em {
+			dll_import unsigned int sample_frequency;
+			dll_import bool hydrate;
+			dll_import bool mass_axis;
+			dll_import Limit alpha_levels;
+			dll_import bool fixed_weights;
+		}
+		namespace fit {
+			dll_import bool verbose;
+			dll_import unsigned int max_iterations;
+		}
+		namespace general {
+			dll_import std::string output;
+		}
+		namespace axes {
+			dll_import double qmin;
+			dll_import double qmax;
+		}
+		namespace hist {
+			dll_import bool weighted_bins;
+		}
+		namespace molecule {
+			dll_import bool use_effective_charge;
+		}
+	}
+#else
+	#include <settings/All.h>
+#endif
+
 namespace gui = cycfi::elements;
 
 auto constexpr bg_color_accent = gui::rgba(55, 55, 57, 255);

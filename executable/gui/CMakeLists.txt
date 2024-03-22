@@ -40,3 +40,4 @@ endif()
 
 # gui executables
 add_subdirectory(em_fitter_gui)
+add_subdirectory(saxs_fitter_gui)
