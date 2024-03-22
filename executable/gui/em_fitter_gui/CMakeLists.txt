@@ -26,4 +26,8 @@ endif()
 
 add_custom_command(TARGET em_fitter_gui POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_SOURCE_DIR}/scripts" "${CMAKE_BINARY_DIR}/executable/gui/em_fitter_gui/scripts"
+<<<<<<< HEAD
 )
+=======
+)
+>>>>>>> 30c39a5d (cmake fixes)
