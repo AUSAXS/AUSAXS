@@ -522,7 +522,7 @@ auto alpha_level_slider(gui::view& view) {
 								link(amin_bg)
 							)
 						),
-						gui::top_margin(
+						gui::margin_top(
 							2,
 							link(amin_infobox)
 						)
@@ -552,7 +552,7 @@ auto alpha_level_slider(gui::view& view) {
 								link(amax_bg)
 							)
 						),
-						gui::top_margin(
+						gui::margin_top(
 							2,
 							link(amax_infobox)
 						)
