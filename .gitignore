@@ -11,3 +11,4 @@ Makefile
 .cache
 .vscode
 **/__pycache__
+resources

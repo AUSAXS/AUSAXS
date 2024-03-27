@@ -41,6 +41,7 @@ endif()
 ##            Dependencies                ##
 ############################################
 include(FetchContent)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 if (DLIB)
 	FetchContent_Declare(
 		dlib
