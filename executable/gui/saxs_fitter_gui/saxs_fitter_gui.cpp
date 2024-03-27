@@ -52,7 +52,13 @@ auto make_start_button(gui::view& view) {
 			return;
 		}
 		setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
-		view.refresh();
+
+		// ensure the worker is ready to be assigned a job
+		if (worker.joinable()) {
+			worker.join();
+		}
+
+		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
 			bool fit_excluded_volume = false; //!
 
@@ -74,7 +80,7 @@ auto make_start_button(gui::view& view) {
 			perform_plot(settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.15);
+				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.13);
 			};
 
 			auto main_pane = gui::vnotebook(
@@ -91,13 +97,25 @@ auto make_start_button(gui::view& view) {
 				gui::tab(plot_names[3].second)
 			);
 
-			auto image_viewer_layout = gui::margin(
+			auto image_viewer_layout = 	gui::margin(
 				{10, 10, 10, 10},
-				main_pane
+				gui::vtile(
+					main_pane,
+					gui::margin_top(
+						10,
+						gui::align_center_middle(
+							gui::hsize(
+								200,
+								link(start_button)
+							)
+						)
+					)
+				)
 			);
 
 			deck.push_back(gui::share(image_viewer_layout));
 			deck.select(1);
+			view.refresh();
 		});
 	};
 
@@ -346,6 +364,76 @@ auto io_menu(gui::view& view) {
 	);
 }
 
+auto selection_menu_settings(gui::view& view) {
+	std::vector<std::pair<std::string, settings::grid::PlacementStrategy>> options1{
+		{"1. Radial placement", settings::grid::PlacementStrategy::RadialStrategy},
+		{"2. Axial placement", settings::grid::PlacementStrategy::AxesStrategy},
+		{"3. No hydration", settings::grid::PlacementStrategy::NoStrategy}
+	};
+	static auto hydration_model = gui::selection_menu(
+		[options1] (std::string_view selection) {
+			for (auto& option : options1) {
+				if (option.first == selection) {
+					settings::grid::placement_strategy = option.second;
+				}
+			}
+		}, 
+		{
+			options1[0].first,
+			options1[1].first,
+			options1[2].first
+		}
+	);
+
+	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2{
+		{"1. Default form-factor", settings::hist::HistogramManagerChoice::HistogramManagerMT},
+		{"2. Unique form-factors", settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg},
+		{"3. Atomic volumes", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
+		{"4. Occupied grid cells", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid}
+	};
+
+	static auto excluded_volume_model = gui::selection_menu(
+		[options2] (std::string_view selection) {
+			for (auto& option : options2) {
+				if (option.first == selection) {
+					settings::hist::histogram_manager = option.second;
+				}
+			}
+		}, 
+		{
+			options2[0].first,
+			options2[1].first,
+			options2[2].first,
+			options2[3].first
+		}
+	);
+
+	return gui::margin_left_right(
+		{10, 10},
+		gui::htile(
+			gui::vtile(
+				gui::margin_bottom(
+					10,
+					gui::label("hydration model")
+						.font_color(ColorManager::get_text_color())
+						.font_size(18)
+				),
+				link(hydration_model.first)
+			),
+			gui::hspace(50),
+			gui::vtile(
+				gui::margin_bottom(
+					10,
+					gui::label("excluded volume model")
+						.font_color(ColorManager::get_text_color())
+						.font_size(18)
+				),
+				link(excluded_volume_model.first)
+			)
+		)
+	);
+}
+
 // toggle light/dark mode
 auto toggle_mode_button(gui::view& view) {
 	static auto button = gui::button("light mode");
@@ -357,13 +445,16 @@ auto toggle_mode_button(gui::view& view) {
 	return link(button);
 }
 
+#include <logo.h>
+#include <resources.h>
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 	gui::app app(argc, argv, "AUSAXS intensity fitter", "com.cycfi.ausaxs-intensity-fitter");
-	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong());
+	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), {50, 50, 1024+50, 768+50});
 	win.on_close = [&app]() {app.stop();};
 
-	io::File logo_path = "logo.png";
+	resources::generate_resource_file();
+	auto logo_path = resources::generate_logo_file();
 
 	gui::view view(win);
 	auto header = gui::layer(
@@ -386,7 +477,10 @@ int main(int argc, char* argv[]) {
 		{10, 10, 10, 10},
 		gui::vtile(
 			io_menu(view),
-			q_slider(view),
+			gui::htile(
+				q_slider(view),
+				selection_menu_settings(view)
+			),
 			gui::align_center_middle(
 				make_start_button(view)
 			)

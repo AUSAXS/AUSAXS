@@ -22,7 +22,8 @@ namespace settings::grid {
     enum class PlacementStrategy {
         AxesStrategy, 
         RadialStrategy, 
-        JanStrategy
+        JanStrategy,
+        NoStrategy
     };
     extern PlacementStrategy placement_strategy;
 }

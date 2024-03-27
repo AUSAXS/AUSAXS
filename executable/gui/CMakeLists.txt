@@ -40,8 +40,4 @@ endif()
 
 # gui executables
 add_subdirectory(saxs_fitter_gui)
-<<<<<<< HEAD
 add_subdirectory(em_fitter_gui)
-=======
-add_subdirectory(em_fitter_gui)
->>>>>>> 30c39a5d (cmake fixes)

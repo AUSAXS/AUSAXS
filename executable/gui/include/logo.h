@@ -10,9 +10,8 @@ namespace resources {
 
     inline io::ExistingFile generate_logo_file() {
         io::File file("temp/logo.png");
-        if (file.exists()) {
-            return file;
-        }
+        if (file.exists()) {return file;}
+        else {file.create();}
         std::ofstream out(file.path(), std::ios::binary);
         out.write(reinterpret_cast<const char*>(logo.data()), logo.size());
         return file;
