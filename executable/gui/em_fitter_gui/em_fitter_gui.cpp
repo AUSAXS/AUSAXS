@@ -1,4 +1,3 @@
-#include "settings/GeneralSettings.h"
 #include <elements.hpp>
 #include <nfd.hpp>
 
@@ -12,11 +11,11 @@
 #include <constants/Constants.h>
 #include <constants/Version.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
-#include <settings/All.h>
 #include <utility/Limit2D.h>
 #include <utility/MultiThreading.h>
 #include <fitter/FitReporter.h>
 #include <shell/Command.h>
+#include <settings/All.h>
 #include <logo.h>
 
 #include <filesystem>
@@ -47,16 +46,16 @@ auto abs_path(const std::string& path) {
 }
 
 shell::Command get_plotter_cmd() {
-	#ifdef _WIN32
+	#if defined(_WIN32)
 		// first check if plot.exe is available in the path
-		auto res = shell::Command("where plot").mute().execute();
+		auto res = shell::Command("where.exe plot /q").mute().execute();
 		bool plot_exe_available = res.exit_code == 0;
 		if (plot_exe_available) {
 			return shell::Command(res.out);
 		}
 
 		// if not, check if python & the python script is available
-		bool python_available = shell::Command("python --version").mute().execute();
+		bool python_available = shell::Command("python --version").mute().execute().exit_code == 0;
 		bool python_script_available = io::File("scripts/plot.py").exists();
 		if (python_available && python_script_available) {
 			return shell::Command("python scripts/plot.py");
@@ -76,7 +75,10 @@ shell::Command get_plotter_cmd() {
 }
 
 auto perform_plot(const std::string& path) {
-	get_plotter_cmd().append(path).execute();
+	auto cmd = get_plotter_cmd().append(path);
+	std::cout << "PLOTTING CMD: " << cmd.get() << std::endl;
+	cmd.execute();
+//	get_plotter_cmd().append(path).execute();
 };
 
 namespace settings {
@@ -254,9 +256,17 @@ auto io_menu(gui::view& view) {
 
 		settings::map_file = file.path();
 		std::cout << "map file was set to " << settings::map_file << std::endl;
-		setup::map = std::make_unique<em::ImageStack>(settings::map_file);
-		map_box_bg = bgreen;
-		map_ok = true;
+		try {
+			setup::map = std::make_unique<em::ImageStack>(settings::map_file);
+			map_box_bg = bgreen;
+			map_ok = true;
+		} catch (std::exception& e) {
+//			std::cerr << "encountered following error while loading the map file \"" << settings:map_file << "\":\n" << e.what() << std::endl;
+			map_box_bg = bred;
+			map_ok = false;
+			setup::map = nullptr;
+			return;
+		}
 
 		if (!saxs_ok) {
 			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
@@ -266,6 +276,7 @@ auto io_menu(gui::view& view) {
 					settings::saxs_file = tmp.path();
 					saxs_box.second->set_text(tmp.path());
 					saxs_box.second->on_enter(tmp.path());
+					break;
 				}
 			}
 		}
@@ -350,9 +361,17 @@ auto io_menu(gui::view& view) {
 
 		settings::saxs_file = file.path();
 		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
-		saxs_box_bg = bgreen;
-		saxs_ok = true;
-		setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+		try {
+			setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+			saxs_box_bg = bgreen;
+			saxs_ok = true;
+		} catch (std::exception& e) {
+//			std::cerr << "encountered the following exception while loading \"" << settings::saxs_file << "\":\n" << e.what() << std::endl;
+			saxs_box_bg = bred;
+			saxs_ok = false;
+			setup::saxs_dataset = nullptr;
+			return;
+		}
 
 		if (map_ok) {
 		 	if (default_output) {
@@ -1002,12 +1021,14 @@ auto make_start_button(gui::view& view) {
 
 			deck.push_back(gui::share(image_viewer_layout));
 			deck.select(2);
+			view.refresh();
 		});
 	};
 
 	return link(deck);
 }
 
+#include <iostream>
 #include <logo.h>
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
@@ -1022,9 +1043,6 @@ int main(int argc, char* argv[]) {
 
 	// generate the logo file on disk
 	auto logo_path = resources::generate_logo_file();
-
-	// check if the plotter is available
-	perform_plot("output/em_fitter/SASDDD3/emd_0560");
 
 	gui::app app(argc, argv, "EM fitter", "com.saxs.gui");
 	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), gui::rect{20, 20, 1620, 1020});
