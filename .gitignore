@@ -8,3 +8,5 @@ Makefile
 .clangd
 .cache
 .vscode
+.vs
+**/__pycache__
