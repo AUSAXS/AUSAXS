@@ -10,5 +10,5 @@ Makefile
 .clangd
 .cache
 .vscode
+.vs
 **/__pycache__
-resources

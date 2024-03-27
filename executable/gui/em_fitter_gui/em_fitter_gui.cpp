@@ -15,6 +15,7 @@
 #include <utility/MultiThreading.h>
 #include <fitter/FitReporter.h>
 #include <shell/Command.h>
+#include <settings/All.h>
 #include <logo.h>
 
 #include <filesystem>
@@ -23,39 +24,6 @@
 #include <memory>
 #include <thread>
 #include <bitset>
-
-#if defined(_WIN32)
-	#define dll_import __declspec( dllimport )
-	namespace settings {
-		dll_import void read(const ::io::ExistingFile& path);
-		namespace em {
-			dll_import unsigned int sample_frequency;
-			dll_import bool hydrate;
-			dll_import bool mass_axis;
-			dll_import Limit alpha_levels;
-			dll_import bool fixed_weights;
-		}
-		namespace fit {
-			dll_import bool verbose;
-			dll_import unsigned int max_iterations;
-		}
-		namespace general {
-			dll_import std::string output;
-		}
-		namespace axes {
-			dll_import double qmin;
-			dll_import double qmax;
-		}
-		namespace hist {
-			dll_import bool weighted_bins;
-		}
-		namespace molecule {
-			dll_import bool use_effective_charge;
-		}
-	}
-#else
-	#include <settings/All.h>
-#endif
 
 namespace gui = cycfi::elements;
 
@@ -107,7 +75,10 @@ shell::Command get_plotter_cmd() {
 }
 
 auto perform_plot(const std::string& path) {
-	get_plotter_cmd().append(path).execute();
+	auto cmd = get_plotter_cmd().append(path);
+	std::cout << "PLOTTING CMD: " << cmd.get() << std::endl;
+	cmd.execute();
+//	get_plotter_cmd().append(path).execute();
 };
 
 namespace settings {
@@ -285,9 +256,17 @@ auto io_menu(gui::view& view) {
 
 		settings::map_file = file.path();
 		std::cout << "map file was set to " << settings::map_file << std::endl;
-		setup::map = std::make_unique<em::ImageStack>(settings::map_file);
-		map_box_bg = bgreen;
-		map_ok = true;
+		try {
+			setup::map = std::make_unique<em::ImageStack>(settings::map_file);
+			map_box_bg = bgreen;
+			map_ok = true;
+		} catch (std::exception& e) {
+//			std::cerr << "encountered following error while loading the map file \"" << settings:map_file << "\":\n" << e.what() << std::endl;
+			map_box_bg = bred;
+			map_ok = false;
+			setup::map = nullptr;
+			return;
+		}
 
 		if (!saxs_ok) {
 			if (20 < std::distance(std::filesystem::directory_iterator(file.directory().path()), std::filesystem::directory_iterator{})) {return;}
@@ -297,6 +276,7 @@ auto io_menu(gui::view& view) {
 					settings::saxs_file = tmp.path();
 					saxs_box.second->set_text(tmp.path());
 					saxs_box.second->on_enter(tmp.path());
+					break;
 				}
 			}
 		}
@@ -381,9 +361,17 @@ auto io_menu(gui::view& view) {
 
 		settings::saxs_file = file.path();
 		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
-		saxs_box_bg = bgreen;
-		saxs_ok = true;
-		setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+		try {
+			setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+			saxs_box_bg = bgreen;
+			saxs_ok = true;
+		} catch (std::exception& e) {
+//			std::cerr << "encountered the following exception while loading \"" << settings::saxs_file << "\":\n" << e.what() << std::endl;
+			saxs_box_bg = bred;
+			saxs_ok = false;
+			setup::saxs_dataset = nullptr;
+			return;
+		}
 
 		if (map_ok) {
 		 	if (default_output) {
@@ -1033,6 +1021,7 @@ auto make_start_button(gui::view& view) {
 
 			deck.push_back(gui::share(image_viewer_layout));
 			deck.select(2);
+			view.refresh();
 		});
 	};
 
