@@ -38,7 +38,7 @@ struct ColorManager {
 	}
 
 	static auto get_text_color() {
-		return gui::rgba(117, 117, 117, 255);
+		return dark_mode ? dark_txt : light_txt;
 	}
 
 	static auto get_color_success() {
@@ -58,15 +58,27 @@ struct ColorManager {
 				bg._color = get_color_background();
 			}
 		}
+
+		for (auto& label : managed_input_boxes) {
+			label->set_color(get_text_color());
+		}
+	}
+
+	static void manage_input_box(std::shared_ptr<gui::basic_input_box> label) {
+		label->set_color(get_text_color());
+		managed_input_boxes.push_back(label);
 	}
 
 	inline static bool dark_mode = true;
 	inline static std::list<gui::box_element> managed_background_colors;
+	inline static std::list<std::shared_ptr<gui::basic_input_box>> managed_input_boxes;
 
 	inline static constexpr auto dark_bg = gui::rgba(35, 35, 37, 255);
 	inline static constexpr auto light_bg = gui::rgba(255, 255, 255, 255);
 	inline static constexpr auto dark_accent = gui::rgba(55, 55, 57, 255);
 	inline static constexpr auto light_accent = gui::rgba(200, 200, 200, 255);
+	inline static constexpr auto dark_txt = gui::rgba(215, 215, 215, 255);
+	inline static constexpr auto light_txt = gui::rgba(65, 65, 65, 255);
 };
 static auto background = ColorManager::new_background_color();
 
@@ -204,6 +216,8 @@ auto q_slider(gui::view& view) {
 	static auto qinfo_box = gui::label("");
 	static auto qmin_bg = ColorManager::new_background_color();
 	static auto qmax_bg = ColorManager::new_background_color();
+	ColorManager::manage_input_box(qmin_textbox.second);
+	ColorManager::manage_input_box(qmax_textbox.second);
 
 	auto pretty_printer = [] (float value) {
 		std::stringstream ss;
