@@ -134,9 +134,9 @@ auto io_menu(gui::view& view) {
 	static auto saxs_box = gui::input_box("saxs path");
 	static auto pdb_box = gui::input_box("pdb path");
 	static auto output_box = gui::input_box("output path");
-	saxs_box.second->set_color(ColorManager::get_text_color());
-	pdb_box.second->set_color(ColorManager::get_text_color());
-	output_box.second->set_color(ColorManager::get_text_color());
+	ColorManager::manage_input_box(saxs_box.second);
+	ColorManager::manage_input_box(pdb_box.second);
+	ColorManager::manage_input_box(output_box.second);
 
 	static bool default_output = true;
 	output_box.second->set_text("output/saxs_fitter");
@@ -296,11 +296,11 @@ auto io_menu(gui::view& view) {
 	);
 }
 
-auto selection_menu_settings(gui::view& view) {
+auto selection_menu_settings(gui::view&) {
 	// we use a deck composite to avoid circular dependencies
 	static auto deck = gui::deck_composite();
 
-	std::vector<std::pair<std::string, settings::grid::PlacementStrategy>> options1{
+	std::vector<std::pair<std::string, settings::grid::PlacementStrategy>> options1 {
 		{"1. Radial placement", settings::grid::PlacementStrategy::RadialStrategy},
 		{"2. Axial placement", settings::grid::PlacementStrategy::AxesStrategy},
 		{"3. No hydration", settings::grid::PlacementStrategy::NoStrategy}
@@ -320,7 +320,7 @@ auto selection_menu_settings(gui::view& view) {
 		}
 	);
 
-	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2{
+	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2 {
 		{"1. Default form-factor", settings::hist::HistogramManagerChoice::HistogramManagerMT},
 		{"2. Unique form-factors", settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg},
 		{"3. Atomic volumes", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
@@ -429,7 +429,7 @@ auto selection_menu_settings(gui::view& view) {
 // toggle light/dark mode
 auto toggle_mode_button(gui::view& view) {
 	static auto button = gui::button("light mode");
-	button.on_click = [&view] (bool checked) {
+	button.on_click = [&view] (bool) {
 		ColorManager::switch_mode();
 		button->set_text(ColorManager::dark_mode ? "light mode" : "dark mode");
 		view.refresh();
