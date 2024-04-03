@@ -38,7 +38,7 @@ struct ColorManager {
 	}
 
 	static auto get_text_color() {
-		return gui::rgba(117, 117, 117, 255);
+		return dark_mode ? dark_txt : light_txt;
 	}
 
 	static auto get_color_success() {
@@ -58,15 +58,27 @@ struct ColorManager {
 				bg._color = get_color_background();
 			}
 		}
+
+		for (auto& label : managed_input_boxes) {
+			label->set_color(get_text_color());
+		}
+	}
+
+	static void manage_input_box(std::shared_ptr<gui::basic_input_box> label) {
+		label->set_color(get_text_color());
+		managed_input_boxes.push_back(label);
 	}
 
 	inline static bool dark_mode = true;
 	inline static std::list<gui::box_element> managed_background_colors;
+	inline static std::list<std::shared_ptr<gui::basic_input_box>> managed_input_boxes;
 
 	inline static constexpr auto dark_bg = gui::rgba(35, 35, 37, 255);
 	inline static constexpr auto light_bg = gui::rgba(255, 255, 255, 255);
 	inline static constexpr auto dark_accent = gui::rgba(55, 55, 57, 255);
 	inline static constexpr auto light_accent = gui::rgba(200, 200, 200, 255);
+	inline static constexpr auto dark_txt = gui::rgba(215, 215, 215, 255);
+	inline static constexpr auto light_txt = gui::rgba(65, 65, 65, 255);
 };
 static auto background = ColorManager::new_background_color();
 
@@ -106,48 +118,66 @@ auto perform_plot(const std::string& path) {
 enum class NFD_TARGET {FILE, FOLDER};
 template<NFD_TARGET target>
 auto make_dialog_button = [] (auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {
-   auto button = gui::button("");
-   auto icon = gui::icon(gui::icons::folder_open_empty);
+	auto folder_button = gui::button("");
+	auto clear_button = gui::button("");
+	auto folder_icon = gui::icon(gui::icons::folder_open_empty);
+	auto clear_icon = gui::icon(gui::icons::cancel);
 
-   button.on_click = [&text_field, filter] (bool) {
+	folder_button.on_click = [&text_field, filter] (bool) {
 		NFD::Guard guard;
 		NFD::UniquePath output;
 		nfdresult_t result;
 
 		if constexpr (target == NFD_TARGET::FILE) {
-		    nfdfilteritem_t filterItem[1] = {{filter.first.c_str(), filter.second.c_str()}};
+			nfdfilteritem_t filterItem[1] = {{filter.first.c_str(), filter.second.c_str()}};
 			result = NFD::OpenDialog(output, filterItem, 1);
 		} else {
 			result = NFD::PickFolder(output);
 		}
 
 		if (result == NFD_OKAY) {
-        	std::cout << "User picked target: " << output.get() << std::endl;
-        	text_field.second->set_text(output.get());
+			std::cout << "User picked target: " << output.get() << std::endl;
+			text_field.second->set_text(output.get());
 			text_field.second->on_enter(output.get());
-      	} else if (result == NFD_CANCEL) {
-        	puts("User cancelled selection.");
-      	} else {
-        	printf("Error: %s\n", NFD_GetError());
-      	}
-   };
+		} else if (result == NFD_CANCEL) {
+			puts("User cancelled selection.");
+		} else {
+			printf("Error: %s\n", NFD_GetError());
+		}
+	};
 
-   return gui::htile(
-      gui::fixed_size(
-         { 30, 30 },
-         gui::layer(
-            gui::align_center_middle(
-               icon
-            ),
-            button
-         )
-      ),
-      gui::hspace(5),
-	  gui::layer(
-	      link(text_field.first),
-		  link(bg)
-	  )
-   );
+	clear_button.on_click = [&text_field] (bool) {
+		text_field.second->set_text("");
+		text_field.second->on_text("");
+	};
+
+	return gui::htile(
+		gui::fixed_size(
+			{ 30, 30 },
+			gui::layer(
+				gui::align_center_middle(
+					folder_icon
+				),
+				folder_button
+			)
+		),
+		gui::hspace(5),
+		gui::layer(
+			gui::align_right_middle(
+				gui::fixed_size(
+					{ 18, 18 },
+					gui::layer(
+						gui::align_center_middle(
+							clear_icon
+						),
+						clear_button
+					)
+				)
+			),
+			link(text_field.first),
+			link(bg)
+		)
+	);
 };
 
 auto make_file_dialog_button(auto& text_field, auto& bg, std::pair<std::string, std::string> filter) {return make_dialog_button<NFD_TARGET::FILE>(text_field, bg, filter);}
@@ -186,6 +216,8 @@ auto q_slider(gui::view& view) {
 	static auto qinfo_box = gui::label("");
 	static auto qmin_bg = ColorManager::new_background_color();
 	static auto qmax_bg = ColorManager::new_background_color();
+	ColorManager::manage_input_box(qmin_textbox.second);
+	ColorManager::manage_input_box(qmax_textbox.second);
 
 	auto pretty_printer = [] (float value) {
 		std::stringstream ss;
@@ -337,6 +369,66 @@ auto q_slider(gui::view& view) {
 		)
 	);
 }
+
+/**
+ * @brief Text autocompleter. 
+ * 
+ * First determines if the path is valid for autocompletion.
+ * If so, it evaluates all files in the directory @a path with the @a cmp_func. 
+ * If there are no matches, an empty string is returned along with 'false'. 
+ * If there is only a single match, the full path to the file is returned along with 'true'. 
+ * If there are multiple matches, the longest common prefix is returned along with 'false'. 
+ */
+auto autocomplete = [] (std::string_view path, unsigned int& last_size, std::function<bool(const io::File&)> cmp_func) {
+	// prevent autocompletion when deleting text
+	if (path.size() < last_size) {
+		last_size = path.size();
+		return std::make_pair(std::string(), false);
+	}
+	last_size = path.size();
+
+	// only autocomplete if the last character is a '/' and there are less than 20 matches
+	if (path.back() != '/') {return std::make_pair(std::string(), false);;}
+	if (!std::filesystem::is_directory(path)) {return std::make_pair(std::string(), false);;}
+	if (20 < std::distance(std::filesystem::directory_iterator(path), std::filesystem::directory_iterator{})) {return std::make_pair(std::string(), false);;}
+
+	std::list<std::string> matches;
+	for (auto& p : std::filesystem::directory_iterator(path)) {
+		io::File tmp(p.path().string());
+		if (cmp_func(tmp)) {
+			matches.push_back(tmp.path());
+		}
+	}
+
+	// no matches, return empty string
+	if (matches.empty()) {return std::make_pair(std::string(path), false);}
+
+	// only one match, auto-fill
+	if (matches.size() == 1) {
+		return std::make_pair(matches.front(), true);
+	}
+
+	// multiple matches, find the longest common prefix
+	std::string prefix = matches.front();
+	for (auto& match : matches) {
+		if (prefix == match) {continue;}
+		std::string tmp;
+		for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
+			if (prefix[i] == match[i]) {
+				tmp += prefix[i];
+			} else {
+				break;
+			}
+		}
+		prefix = tmp;
+	}
+
+	// no slashes
+	if (prefix.size() > 1) {
+		return std::make_pair(prefix, false);
+	}
+	return std::make_pair(std::string(path), false);
+};
 
 auto alpha_level_slider(gui::view& view) {
 	static auto track = gui::basic_track<5, false>(gui::colors::black);
@@ -522,7 +614,7 @@ auto alpha_level_slider(gui::view& view) {
 								link(amin_bg)
 							)
 						),
-						gui::top_margin(
+						gui::margin_top(
 							2,
 							link(amin_infobox)
 						)
@@ -552,7 +644,7 @@ auto alpha_level_slider(gui::view& view) {
 								link(amax_bg)
 							)
 						),
-						gui::top_margin(
+						gui::margin_top(
 							2,
 							link(amax_infobox)
 						)

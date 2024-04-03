@@ -9,17 +9,8 @@ set(ELEMENTS_APP_VERSION "1.0")
 set(ELEMENTS_APP_SOURCES ${sources} ${CMAKE_CURRENT_SOURCE_DIR}/em_fitter_gui.cpp)
 include(ElementsConfigApp)
 
-#add_library(ausaxs_imp SHARED IMPORTED)
-#set_target_properties(ausaxs_imp PROPERTIES
-#	IMPORTED_LOCATION "${CMAKE_BINARY_DIR}/Release/ausaxs.dll"
-#	IMPORTED_IMPLIB "${CMAKE_BINARY_DIR}/Release/ausaxs.lib"
-#	INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include"
-#)
 target_link_libraries("${ELEMENTS_APP_PROJECT}" PRIVATE ausaxs_static)
-target_include_directories("${ELEMENTS_APP_PROJECT}" PUBLIC "${CMAKE_SOURCE_DIR}/include")
 set_target_properties("${ELEMENTS_APP_PROJECT}" PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
-if (BUILD_PLOT_EXE)
-	add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)
-endif()
+add_dependencies("${ELEMENTS_APP_PROJECT}" plotter)

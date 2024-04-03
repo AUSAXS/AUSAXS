@@ -5,6 +5,7 @@ data
 
 # developer stuff
 Makefile
+resources
 .clangd
 .cache
 .vscode

@@ -7,6 +7,7 @@ For more information, please refer to the LICENSE file in the project root.
 #include <hydrate/placement/JanPlacement.h>
 #include <hydrate/placement/RadialPlacement.h>
 #include <hydrate/placement/AxesPlacement.h>
+#include <hydrate/placement/NoPlacement.h>
 #include <settings/GridSettings.h>
 #include <utility/Exceptions.h>
 #include <math/Vector3.h>
@@ -23,6 +24,8 @@ std::unique_ptr<grid::PlacementStrategy> grid::factory::construct_placement_stra
             return std::make_unique<RadialPlacement>(grid);
         case settings::grid::PlacementStrategy::JanStrategy: 
             return std::make_unique<JanPlacement>(grid);
+        case settings::grid::PlacementStrategy::NoStrategy: 
+            return std::make_unique<NoPlacement>(grid);
         default: 
             throw except::unknown_argument("grid::factory::construct_placement_strategy: Unkown PlacementStrategy. Did you forget to add it to the switch statement?");
     }

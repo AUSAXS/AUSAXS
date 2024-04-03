@@ -8,14 +8,22 @@
 #include <dataset/SimpleDataset.h>
 #include <hist/intensity_calculator/ICompositeDistanceHistogram.h>
 #include <fitter/HydrationFitter.h>
+#include <fitter/ExcludedVolumeFitter.h>
 #include <fitter/FitReporter.h>
 #include <fitter/Fit.h>
 #include <settings/All.h>
 #include <plots/All.h>
 
 #include <bitset>
+#include <thread>
+#include <filesystem>
+#include <string_view>
 
 namespace gui = cycfi::elements;
+
+namespace settings {
+	bool fit_excluded_volume = false;
+}
 
 auto plot_names = std::vector<std::pair<std::string, std::string>>{
 	{"log", "single-logarithmic plot"},
@@ -26,6 +34,7 @@ auto plot_names = std::vector<std::pair<std::string, std::string>>{
 
 auto make_start_button(gui::view& view) {
 	static auto start_button = gui::button("start");
+	start_button->set_body_color(ColorManager::get_color_success());
 
 	auto start_button_layout = gui::margin(
 		{10, 100, 10, 100},
@@ -37,20 +46,39 @@ auto make_start_button(gui::view& view) {
 		)
 	);
 
-	static auto deck = gui::deck_composite();
-	deck.push_back(gui::share(start_button_layout));
+	static auto deck = gui::deck(
+		start_button_layout,
+		start_button_layout
+	);
 
 	static std::thread worker;
 	start_button.on_click = [&view] (bool) {
+		// ensure the worker is ready to be assigned a job
+		if (worker.joinable()) {
+			worker.join();
+		}
+
 		if (!setup::saxs_dataset || !io::File(settings::pdb_file).exists()) {
 			std::cout << "no saxs data or pdb file was provided" << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+			start_button->set_body_color(ColorManager::get_color_fail());
+			start_button->set_text("missing input");
+			view.refresh(start_button);
+			worker = std::thread([&view] () {
+				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+				start_button->set_body_color(ColorManager::get_color_success());
+				start_button->set_text("start");
+				view.refresh(start_button);
+			});
 			return;
 		}
-		setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
-		view.refresh();
+
+		start_button->set_body_color(ColorManager::get_color_accent());
+		start_button->set_text("working...");
+
+		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
-			bool fit_excluded_volume = false; //!
+			bool fit_excluded_volume = settings::fit_excluded_volume;
+			setup::pdb = std::make_unique<data::Molecule>(settings::pdb_file);
 
 			std::shared_ptr<fitter::HydrationFitter> fitter;
 			if (fit_excluded_volume) {fitter = std::make_shared<fitter::ExcludedVolumeFitter>(settings::saxs_file, setup::pdb->get_histogram());}
@@ -70,7 +98,7 @@ auto make_start_button(gui::view& view) {
 			perform_plot(settings::general::output);
 
 			auto make_image_pane = [] (const io::File& path) {
-				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.15);
+				return gui::image(std::filesystem::current_path().string() + "/" + path.path().c_str(), 0.13);
 			};
 
 			auto main_pane = gui::vnotebook(
@@ -87,13 +115,28 @@ auto make_start_button(gui::view& view) {
 				gui::tab(plot_names[3].second)
 			);
 
-			auto image_viewer_layout = gui::margin(
+			auto image_viewer_layout = 	gui::margin(
 				{10, 10, 10, 10},
-				main_pane
+				gui::vtile(
+					main_pane,
+					gui::margin_top(
+						10,
+						gui::align_center_middle(
+							gui::hsize(
+								200,
+								link(start_button)
+							)
+						)
+					)
+				)
 			);
 
-			deck.push_back(gui::share(image_viewer_layout));
+			start_button->set_body_color(ColorManager::get_color_success());
+			start_button->set_text("start");
+
+			deck[1] = gui::share(image_viewer_layout);
 			deck.select(1);
+			view.refresh();
 		});
 	};
 
@@ -108,9 +151,9 @@ auto io_menu(gui::view& view) {
 	static auto saxs_box = gui::input_box("saxs path");
 	static auto pdb_box = gui::input_box("pdb path");
 	static auto output_box = gui::input_box("output path");
-	saxs_box.second->set_color(ColorManager::get_text_color());
-	pdb_box.second->set_color(ColorManager::get_text_color());
-	output_box.second->set_color(ColorManager::get_text_color());
+	ColorManager::manage_input_box(saxs_box.second);
+	ColorManager::manage_input_box(pdb_box.second);
+	ColorManager::manage_input_box(output_box.second);
 
 	static bool default_output = true;
 	output_box.second->set_text("output/saxs_fitter");
@@ -118,7 +161,6 @@ auto io_menu(gui::view& view) {
 	static bool pdb_ok = false, saxs_ok = false;
 
 	pdb_box.second->on_text = [&view] (std::string_view text) {
-		static unsigned int last_size = 0;
 		if (text.size() == 1) {
 			pdb_box_bg.get()._color = ColorManager::get_color_accent();
 		} else if (text.empty()) {
@@ -130,50 +172,10 @@ auto io_menu(gui::view& view) {
 			pdb_box_bg.get() = ColorManager::get_color_accent();
 		}
 
-		// prevent autocompletion when deleting text
-		if (text.size() < last_size) {
-			last_size = text.size();
-			return;
-		}
-		last_size = text.size();
-
-		// only autocomplete if the last character is a '/' and there are less than 20 matches
-		if (text.back() != '/') {return;}
-		if (!std::filesystem::is_directory(text)) {return;}
-		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
-
-		std::list<std::string> matches;
-		for (auto& p : std::filesystem::directory_iterator(text)) {
-			io::File tmp(p.path().string());
-			if (constants::filetypes::em_map.validate(tmp)) {
-				matches.push_back(tmp.path());
-			}
-		}
-		if (matches.empty()) {return;}
-		if (matches.size() == 1) {
-			// only one match, auto-fill
-			// settings::map_file = matches.front();
-			pdb_box.second->set_text(matches.front());
-			pdb_box.second->on_enter(matches.front());
-			return;
-		}
-		// find the longest common prefix
-		std::string prefix = matches.front();
-		for (auto& match : matches) {
-			if (prefix == match) {continue;}
-			std::string tmp;
-			for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
-				if (prefix[i] == match[i]) {
-					tmp += prefix[i];
-				} else {
-					break;
-				}
-			}
-			prefix = tmp;
-		}
-		if (prefix.size() > 1) {
-			pdb_box.second->set_text(prefix);
-		}
+		static unsigned int last_size = 0;
+		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::structure.validate(p);});
+		if (!fill.first.empty()) {pdb_box.second->set_text(fill.first);}
+		if (fill.second) {pdb_box.second->on_enter(fill.first);}
 	};
 
 	pdb_box.second->on_enter = [&view] (std::string_view text) {
@@ -184,6 +186,12 @@ auto io_menu(gui::view& view) {
 			pdb_ok = false;
 			return;
 		}
+
+		// check if we can use a relative path instead of absolute
+		if (auto curpath = std::filesystem::current_path().string(); file.path().find(curpath) != std::string::npos) {
+			file = std::filesystem::relative(file.path(), curpath).string();
+		}
+		pdb_box.second->set_text(file.path());
 
 		settings::pdb_file = file.path();
 		std::cout << "pdb file was set to " << settings::pdb_file << std::endl;
@@ -210,7 +218,6 @@ auto io_menu(gui::view& view) {
 	};
 
 	saxs_box.second->on_text = [&view] (std::string_view text) {
-		static unsigned int last_size = 0;
 		if (text.size() == 1) {
 			saxs_box_bg.get() = ColorManager::get_color_accent();
 		} else if (text.empty()) {
@@ -222,52 +229,10 @@ auto io_menu(gui::view& view) {
 			saxs_box_bg.get() = ColorManager::get_color_accent();
 		}
 
-		// prevent autocompletion when deleting text
-		if (text.size() < last_size) {
-			last_size = text.size();
-			return;
-		}
-		last_size = text.size();
-
-		// only autocomplete if the last character is a '/' and there are less than 20 matches
-		if (text.back() != '/') {return;}
-		if (!std::filesystem::is_directory(text)) {return;}
-		if (20 < std::distance(std::filesystem::directory_iterator(text), std::filesystem::directory_iterator{})) {return;}
-
-		std::list<std::string> matches;
-		for (auto& p : std::filesystem::directory_iterator(text)) {
-			io::File tmp(p.path().string());
-			if (constants::filetypes::saxs_data.validate(tmp)) {
-				matches.push_back(tmp.path());
-			} else {
-				std::cout << "reject possible match: " << tmp.path() << std::endl;
-			}
-		}
-		if (matches.empty()) {return;}
-		if (matches.size() == 1) {
-			// only one match, auto-fill
-			settings::saxs_file = matches.front();
-			saxs_box.second->set_text(matches.front());
-			saxs_box.second->on_enter(matches.front());
-			return;
-		}
-		// find the longest common prefix
-		std::string prefix = matches.front();
-		for (auto& match : matches) {
-			if (prefix == match) {continue;}
-			std::string tmp;
-			for (size_t i = 0; i < std::min(prefix.size(), match.size()); ++i) {
-				if (prefix[i] == match[i]) {
-					tmp += prefix[i];
-				} else {
-					break;
-				}
-			}
-			prefix = tmp;
-		}
-		if (prefix.size() > 1) {
-			saxs_box.second->set_text(prefix);
-		}
+		static unsigned int last_size = 0;
+		auto fill = autocomplete(text, last_size, [] (const io::File& p) {return constants::filetypes::saxs_data.validate(p);});
+		if (!fill.first.empty()) {pdb_box.second->set_text(fill.first);}
+		if (fill.second) {saxs_box.second->on_enter(fill.first);}
 	};
 
 	saxs_box.second->on_enter = [&view] (std::string_view text) {
@@ -280,14 +245,20 @@ auto io_menu(gui::view& view) {
 			return;
 		}
 
-		settings::saxs_file = file.path();
+		// check if we can use a relative path instead of absolute
+		if (auto curpath = std::filesystem::current_path().string(); file.path().find(curpath) != std::string::npos) {
+			file = std::filesystem::relative(file.path(), curpath).string();
+		}
+		saxs_box.second->set_text(file.path());
+
 		std::cout << "saxs file was set to " << settings::saxs_file << std::endl;
+		settings::saxs_file = file.path();
 		saxs_box_bg.get() = ColorManager::get_color_success();
-		saxs_ok = true;
 		setup::saxs_dataset = std::make_unique<SimpleDataset>(settings::saxs_file);
+		saxs_ok = true;
 
 		if (pdb_ok) {
-		 	if (default_output) {
+		 	if (default_output || output_box.second->get_text().empty()) {
 				std::string path = "output/saxs_fitter/" + io::File(settings::pdb_file).stem() + "/" + io::File(settings::saxs_file).stem();
 				output_box.second->set_text(path);
 				output_box.second->on_enter(path);
@@ -342,10 +313,140 @@ auto io_menu(gui::view& view) {
 	);
 }
 
+auto selection_menu_settings(gui::view&) {
+	// we use a deck composite to avoid circular dependencies
+	static auto deck = gui::deck_composite();
+
+	std::vector<std::pair<std::string, settings::grid::PlacementStrategy>> options1 {
+		{"1. Radial placement", settings::grid::PlacementStrategy::RadialStrategy},
+		{"2. Axial placement", settings::grid::PlacementStrategy::AxesStrategy},
+		{"3. No hydration", settings::grid::PlacementStrategy::NoStrategy}
+	};
+	static auto hydration_model = gui::selection_menu(
+		[options1] (std::string_view selection) {
+			for (auto& option : options1) {
+				if (option.first == selection) {
+					settings::grid::placement_strategy = option.second;
+				}
+			}
+		}, 
+		{
+			options1[0].first,
+			options1[1].first,
+			options1[2].first
+		}
+	);
+
+	std::vector<std::pair<std::string, settings::hist::HistogramManagerChoice>> options2 {
+		{"1. Default form-factor", settings::hist::HistogramManagerChoice::HistogramManagerMT},
+		{"2. Unique form-factors", settings::hist::HistogramManagerChoice::HistogramManagerMTFFAvg},
+		{"3. Atomic volumes", settings::hist::HistogramManagerChoice::HistogramManagerMTFFExplicit},
+		{"4. Occupied grid cells", settings::hist::HistogramManagerChoice::HistogramManagerMTFFGrid}
+	};
+
+	static auto excluded_volume_model = gui::selection_menu(
+		[options2] (std::string_view selection) {
+			for (auto& option : options2) {
+				if (option.first == selection) {
+					settings::hist::histogram_manager = option.second;
+				}
+			}
+			switch (settings::hist::histogram_manager) {
+				case settings::hist::HistogramManagerChoice::HistogramManager:
+				case settings::hist::HistogramManagerChoice::HistogramManagerMT:
+				case settings::hist::HistogramManagerChoice::PartialHistogramManager:
+				case settings::hist::HistogramManagerChoice::PartialHistogramManagerMT:
+					settings::molecule::use_effective_charge = true;
+					settings::fit_excluded_volume = false;
+					deck.select(0);
+					break;
+				default:
+					settings::molecule::use_effective_charge = false;
+					deck.select(1);
+					break;
+			}
+		}, 
+		{
+			options2[0].first,
+			options2[1].first,
+			options2[2].first,
+			options2[3].first
+		}
+	);
+
+	static auto fit_excluded_volume_button = gui::check_box("fit excluded volume");
+	fit_excluded_volume_button.on_click = [] (bool value) {
+		settings::fit_excluded_volume = value;
+	};
+
+	auto exv_fit_support_layout = gui::margin_left_right(
+		{10, 10},
+		gui::htile(
+			gui::vtile(
+				gui::margin_bottom(
+					10,
+					gui::label("hydration model")
+						.font_color(ColorManager::get_text_color())
+						.font_size(18)
+				),
+				link(hydration_model.first)
+			),
+			gui::hspace(50),
+			gui::vtile(
+				gui::margin_bottom(
+					10,
+					gui::label("excluded volume model")
+						.font_color(ColorManager::get_text_color())
+						.font_size(18)
+				),
+				link(excluded_volume_model.first)
+			),
+			gui::hspace(50),
+			gui::align_center_middle(
+				gui::fixed_size(
+					{200, 100},
+					link(fit_excluded_volume_button)
+				)
+			)
+		)
+	);
+
+	auto no_exv_fit_support_layout = gui::margin_left_right(
+		{10, 10},
+		gui::htile(
+			gui::vtile(
+				gui::margin_bottom(
+					10,
+					gui::label("hydration model")
+						.font_color(ColorManager::get_text_color())
+						.font_size(18)
+				),
+				link(hydration_model.first)
+			),
+			gui::hspace(50),
+			gui::vtile(
+				gui::margin_bottom(
+					10,
+					gui::label("excluded volume model")
+						.font_color(ColorManager::get_text_color())
+						.font_size(18)
+				),
+				link(excluded_volume_model.first)
+			)
+		)
+	);
+
+	deck.push_back(share(no_exv_fit_support_layout));
+	deck.push_back(share(exv_fit_support_layout));
+	deck.select(0);
+
+	return link(deck);
+}
+
 // toggle light/dark mode
 auto toggle_mode_button(gui::view& view) {
 	static auto button = gui::button("light mode");
-	button.on_click = [&view] (bool checked) {
+	button.on_click = [&view] (bool) {
 		ColorManager::switch_mode();
 		button->set_text(ColorManager::dark_mode ? "light mode" : "dark mode");
 		view.refresh();
@@ -353,13 +454,16 @@ auto toggle_mode_button(gui::view& view) {
 	return link(button);
 }
 
+#include <logo.h>
+#include <resources.h>
 int main(int argc, char* argv[]) {
     std::ios_base::sync_with_stdio(false);
 	gui::app app(argc, argv, "AUSAXS intensity fitter", "com.cycfi.ausaxs-intensity-fitter");
-	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong());
+	gui::window win(app.name(), std::bitset<4>{"1111"}.to_ulong(), {50, 50, 1024+50, 768+50});
 	win.on_close = [&app]() {app.stop();};
 
-	io::File logo_path = "logo.png";
+	resources::generate_resource_file();
+	auto logo_path = resources::generate_logo_file();
 
 	gui::view view(win);
 	auto header = gui::layer(
@@ -382,7 +486,10 @@ int main(int argc, char* argv[]) {
 		{10, 10, 10, 10},
 		gui::vtile(
 			io_menu(view),
-			q_slider(view),
+			gui::htile(
+				q_slider(view),
+				selection_menu_settings(view)
+			),
 			gui::align_center_middle(
 				make_start_button(view)
 			)
