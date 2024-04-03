@@ -34,6 +34,7 @@ auto plot_names = std::vector<std::pair<std::string, std::string>>{
 
 auto make_start_button(gui::view& view) {
 	static auto start_button = gui::button("start");
+	start_button->set_body_color(ColorManager::get_color_success());
 
 	auto start_button_layout = gui::margin(
 		{10, 100, 10, 100},
@@ -45,21 +46,34 @@ auto make_start_button(gui::view& view) {
 		)
 	);
 
-	static auto deck = gui::deck_composite();
-	deck.push_back(gui::share(start_button_layout));
+	static auto deck = gui::deck(
+		start_button_layout,
+		start_button_layout
+	);
 
 	static std::thread worker;
 	start_button.on_click = [&view] (bool) {
-		if (!setup::saxs_dataset || !io::File(settings::pdb_file).exists()) {
-			std::cout << "no saxs data or pdb file was provided" << std::endl;
-			std::this_thread::sleep_for(std::chrono::milliseconds(500));
-			return;
-		}
-
 		// ensure the worker is ready to be assigned a job
 		if (worker.joinable()) {
 			worker.join();
 		}
+
+		if (!setup::saxs_dataset || !io::File(settings::pdb_file).exists()) {
+			std::cout << "no saxs data or pdb file was provided" << std::endl;
+			start_button->set_body_color(ColorManager::get_color_fail());
+			start_button->set_text("missing input");
+			view.refresh(start_button);
+			worker = std::thread([&view] () {
+				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+				start_button->set_body_color(ColorManager::get_color_success());
+				start_button->set_text("start");
+				view.refresh(start_button);
+			});
+			return;
+		}
+
+		start_button->set_body_color(ColorManager::get_color_accent());
+		start_button->set_text("working...");
 
 		// use a worker thread to avoid locking the gui
 		worker = std::thread([&view] () {
@@ -117,8 +131,11 @@ auto make_start_button(gui::view& view) {
 				)
 			);
 
-			deck.push_back(gui::share(image_viewer_layout)); //! should overwrite itself instead
-			deck.select(deck.size()-1);
+			start_button->set_body_color(ColorManager::get_color_success());
+			start_button->set_text("start");
+
+			deck[1] = gui::share(image_viewer_layout);
+			deck.select(1);
 			view.refresh();
 		});
 	};

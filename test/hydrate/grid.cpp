@@ -4,7 +4,6 @@
 
 #include <vector>
 #include <string>
-#include <fstream>
 
 #include <data/Body.h>
 #include <data/Molecule.h>
