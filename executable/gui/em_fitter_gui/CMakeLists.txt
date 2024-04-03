@@ -1,5 +1,6 @@
 project(EMGUI)
 
+include(ElementsConfigCommon)
 set(ELEMENTS_APP_PROJECT "em_fitter_gui")
 set(ELEMENTS_APP_TITLE "EM fitter GUI")
 set(ELEMENTS_APP_COPYRIGHT "Copyright (c) 2024 Kristian Lytje")

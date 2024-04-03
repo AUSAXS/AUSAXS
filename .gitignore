@@ -5,8 +5,9 @@ data
 
 # developer stuff
 Makefile
+resources
 .clangd
 .cache
 .vscode
+.vs
 **/__pycache__
-resources
