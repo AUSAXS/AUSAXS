@@ -4,6 +4,8 @@ output
 data
 
 # developer stuff
+**/__pycache__
+resources
 Makefile
 .clangd
 .cache

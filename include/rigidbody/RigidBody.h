@@ -17,9 +17,7 @@ namespace rigidbody {
 			std::vector<data::record::Water> waters;
 			double chi2;	
 		};
-
 	}
-
 
 	class RigidBody : public data::Molecule {
 		public:
@@ -32,7 +30,9 @@ namespace rigidbody {
 			/**
 			 * @brief Perform a rigid-body optimization for this structure. 
 			 */
-			std::shared_ptr<fitter::Fit> optimize(const std::string& measurement_path);
+			std::shared_ptr<fitter::Fit> optimize(const io::ExistingFile& measurement_path);
+
+			std::shared_ptr<fitter::Fit> optimize_sequence(const io::ExistingFile& measurement_path);
 
 			/**
 			 * @brief Apply a calibration to this rigid body. 

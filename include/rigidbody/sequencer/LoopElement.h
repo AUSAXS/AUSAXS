@@ -58,7 +58,6 @@ namespace rigidbody {
                 std::unique_ptr<ParameterElement> parameter_element;
                 std::unique_ptr<BodySelectElement> body_select_element;
                 std::unique_ptr<TransformElement> transform_element;
-                bool is_root = true;
         };
     }
 }
