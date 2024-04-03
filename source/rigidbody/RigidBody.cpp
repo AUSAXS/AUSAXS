@@ -98,12 +98,6 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measure
 }
 
 #include <rigidbody/sequencer/Sequencer.h>
-using settings::rigidbody::TransformationStrategyChoice;
-using settings::rigidbody::ParameterGenerationStrategyChoice;
-using settings::rigidbody::BodySelectStrategyChoice;
-using settings::rigidbody::ConstraintGenerationStrategyChoice;
-using settings::rigidbody::DecayStrategyChoice;
-
 std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
     sequencer::Sequencer(measurement_path, *this)
         .parameter_strategy(settings::rigidbody::parameter_generation_strategy)

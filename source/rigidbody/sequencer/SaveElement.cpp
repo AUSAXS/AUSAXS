@@ -14,8 +14,16 @@ SaveElement::SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, 
             break;
     }
 }
-SaveElement::~SaveElement() override = default;
+SaveElement::~SaveElement() = default;
 
-void write_pdb(const io::File& path);
+void SaveElement::write_pdb(const io::File& path) {
+    if (path.empty()) {
+        // save at default location
+    } else {
+        // save at specified location
+    }
+}
 
-void write_xyz(const io::File& path = "");
+void SaveElement::write_xyz(const io::File& path = "") {
+
+}

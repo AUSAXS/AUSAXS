@@ -13,6 +13,6 @@ BodySelectElement::BodySelectElement(LoopElement* owner) : LoopElementCallback(o
 BodySelectElement::BodySelectElement(LoopElement* owner, settings::rigidbody::BodySelectStrategyChoice strategy) : LoopElementCallback(owner), strategy(strategy) {}
 BodySelectElement::~BodySelectElement() = default;
 
-void BodySelectElement::apply() {
+void BodySelectElement::run() {
     std::cout << "BodySelectElement::apply()" << std::endl;
 }

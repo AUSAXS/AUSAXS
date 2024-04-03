@@ -13,6 +13,6 @@ TransformElement::TransformElement(LoopElement* owner) : LoopElementCallback(own
 TransformElement::TransformElement(LoopElement* owner, settings::rigidbody::TransformationStrategyChoice strategy) : LoopElementCallback(owner), strategy(strategy) {}
 TransformElement::~TransformElement() = default;
 
-void TransformElement::apply() {
+void TransformElement::run() {
     std::cout << "TransformElement::apply()" << std::endl;
 }

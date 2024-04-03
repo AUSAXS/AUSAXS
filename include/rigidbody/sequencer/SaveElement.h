@@ -4,12 +4,13 @@
 #include <utility/observer_ptr.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
+#include <rigidbody/sequencer/GenericElement.h>
 
 namespace rigidbody {
     namespace sequencer {
         enum class SaveFormat {XYZ, PDB};
 
-        class SaveElement : public LoopElementCallback {
+        class SaveElement : public LoopElementCallback, public GenericElement {
             public:
                 SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner);
                 SaveElement(observer_ptr<rigidbody::sequencer::LoopElement> owner, SaveFormat fmt);
