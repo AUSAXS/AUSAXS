@@ -1,18 +1,19 @@
 #pragma once
 
-#include <rigidbody/sequencer/SequencerFwd.h>
 #include <settings/RigidBodySettings.h>
+#include <rigidbody/sequencer/SequencerFwd.h>
 #include <rigidbody/sequencer/LoopElementCallback.h>
+#include <rigidbody/sequencer/GenericElement.h>
 
 namespace rigidbody {
     namespace sequencer {
-        class ParameterElement : public LoopElementCallback {
+        class ParameterElement : public LoopElementCallback, public GenericElement {
             public:
                 ParameterElement(LoopElement* owner);
                 ParameterElement(LoopElement* owner, settings::rigidbody::ParameterGenerationStrategyChoice strategy);
                 ~ParameterElement() override;
 
-                void apply();
+                void run() override;
 
                 ParameterElement& amplitude(double amplitude);
 

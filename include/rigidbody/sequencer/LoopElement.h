@@ -1,8 +1,9 @@
 #pragma once
 
+#include <settings/RigidBodySettings.h>
 #include <rigidbody/RigidbodyFwd.h>
 #include <rigidbody/sequencer/SequencerFwd.h>
-#include <settings/RigidBodySettings.h>
+#include <rigidbody/sequencer/GenericElement.h>
 
 #include <memory>
 #include <vector>
@@ -42,6 +43,11 @@ namespace rigidbody {
                 TransformElement& transform_strategy(settings::rigidbody::TransformationStrategyChoice strategy);
 
                 /**
+                 * @brief Perform a single optimization step.
+                 */
+                LoopElement& optimize();
+
+                /**
                  * @brief End the current loop.
                  */
                 LoopElement& end();
@@ -55,9 +61,7 @@ namespace rigidbody {
             protected: 
                 unsigned int iterations = 1;
                 std::vector<std::unique_ptr<LoopElement>> inner_loops;
-                std::unique_ptr<ParameterElement> parameter_element;
-                std::unique_ptr<BodySelectElement> body_select_element;
-                std::unique_ptr<TransformElement> transform_element;
+                std::vector<std::unique_ptr<GenericElement>> elements;
         };
     }
 }

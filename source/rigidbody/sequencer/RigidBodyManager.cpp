@@ -17,8 +17,6 @@ For more information, please refer to the LICENSE file in the project root.
 #include <data/record/Water.h>
 #include <constants/ConstantsMath.h>
 
-#include <iostream>
-
 using namespace rigidbody::sequencer;
 
 std::unique_ptr<RigidBodyManager> rigidbody::sequencer::rigidbody;

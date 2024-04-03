@@ -20,7 +20,7 @@ ParameterElement::ParameterElement(LoopElement* owner, settings::rigidbody::Para
 
 ParameterElement::~ParameterElement() = default;
 
-void ParameterElement::apply() {
+void ParameterElement::run() {
     std::cout << "ParameterElement::apply()" << std::endl;
 }
 

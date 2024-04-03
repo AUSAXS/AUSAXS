@@ -23,7 +23,7 @@ Sequencer::~Sequencer() = default;
 
 void Sequencer::execute() {
     std::cout << "Sequencer::execute()" << std::endl;
-    for (auto& loop : inner_loops) {
-        loop->execute();
+    for (auto& loop : elements) {
+        loop->run();
     }
 }
