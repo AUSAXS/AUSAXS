@@ -44,7 +44,7 @@ void LoopElement::execute() {
     transform_element->apply();
 
     // if this is a root node, run it the given number of times. 
-    if (is_root) {
+    if (inner_loops.empty()) {
         for (unsigned int i = 0; i < iterations; i++) {
             this->run();
         }
@@ -57,7 +57,6 @@ void LoopElement::execute() {
 
 LoopElement& LoopElement::loop(unsigned int repeats) {
     std::cout << "LoopElement::loop(" << repeats << ")" << std::endl;
-    is_root = false;
     LoopElement& ref = *inner_loops.emplace_back(std::make_unique<LoopElement>(owner, repeats));
     ref.body_select_element->strategy = body_select_element->strategy;
     ref.parameter_element->strategy = parameter_element->strategy;

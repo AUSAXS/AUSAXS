@@ -11,12 +11,14 @@ For more information, please refer to the LICENSE file in the project root.
 
 using namespace rigidbody::sequencer;
 
-template<typename T> requires std::is_same_v<std::decay_t<T>, data::Molecule>
+template<typename T> requires std::is_base_of_v<data::Molecule, std::decay_t<T>>
 Sequencer::Sequencer(const io::ExistingFile& saxs, T&& rigidbody) {
     rigidbody::sequencer::rigidbody = std::make_unique<RigidBodyManager>(saxs, std::forward<T>(rigidbody));
 }
 template Sequencer::Sequencer(const io::ExistingFile& saxs, data::Molecule&& protein);
 template Sequencer::Sequencer(const io::ExistingFile& saxs, const data::Molecule& protein);
+template Sequencer::Sequencer(const io::ExistingFile& saxs, rigidbody::RigidBody&& protein);
+template Sequencer::Sequencer(const io::ExistingFile& saxs, const rigidbody::RigidBody& protein);
 Sequencer::~Sequencer() = default;
 
 void Sequencer::execute() {

@@ -57,7 +57,7 @@ void RigidBody::initialize() {
     constraints = std::make_shared<ConstraintManager>(this);
 }
 
-std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_path) {
+std::shared_ptr<fitter::Fit> RigidBody::optimize(const io::ExistingFile& measurement_path) {
     generate_new_hydration();
     prepare_fitter(measurement_path);
 
@@ -95,6 +95,22 @@ std::shared_ptr<fitter::Fit> RigidBody::optimize(const std::string& measurement_
     auto fit = fitter->fit();
     if (calibration != nullptr) {fit->add_parameter(calibration->get_parameter("c"));}
     return fit;
+}
+
+#include <rigidbody/sequencer/Sequencer.h>
+using settings::rigidbody::TransformationStrategyChoice;
+using settings::rigidbody::ParameterGenerationStrategyChoice;
+using settings::rigidbody::BodySelectStrategyChoice;
+using settings::rigidbody::ConstraintGenerationStrategyChoice;
+using settings::rigidbody::DecayStrategyChoice;
+
+std::shared_ptr<fitter::Fit> RigidBody::optimize_sequence(const io::ExistingFile& measurement_path) {
+    sequencer::Sequencer(measurement_path, *this)
+        .parameter_strategy(settings::rigidbody::parameter_generation_strategy)
+        .body_select_strategy(settings::rigidbody::body_select_strategy)
+        .transform_strategy(settings::rigidbody::transform_strategy)
+        .loop(settings::rigidbody::iterations)
+    .execute();
 }
 
 bool RigidBody::optimize_step(detail::BestConf& best) {
