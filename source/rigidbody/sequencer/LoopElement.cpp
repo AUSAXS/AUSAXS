@@ -69,9 +69,9 @@ observer_ptr<const Sequencer> LoopElement::_get_sequencer() const {
     return owner->_get_sequencer();
 }
 
-LoopElement& LoopElement::optimize() {
+OptimizeStepElement& LoopElement::optimize() {
     elements.push_back(std::make_unique<OptimizeStepElement>(this));
-    return *this;
+    return *static_cast<OptimizeStepElement*>(elements.back().get());
 }
 
 LoopElement& LoopElement::end() {

@@ -3,10 +3,10 @@
 #include <rigidbody/parameters/ParameterGenerationStrategy.h>
 
 namespace rigidbody::parameter {
-    class RotationsOnly : public ParameterGenerationStrategy {
+    class TranslationsOnly : public ParameterGenerationStrategy {
         public: 
             using ParameterGenerationStrategy::ParameterGenerationStrategy;
-            ~RotationsOnly() override;
+            ~TranslationsOnly() override;
 
             Parameter next() override;
     };

@@ -38,8 +38,9 @@ namespace settings::rigidbody {
 
 namespace settings::rigidbody {
     enum class ParameterGenerationStrategyChoice {
-        Simple,         // Generate translation and rotation parameters. Their amplitudes decays linearly with the iteration number.
-        RotationsOnly   // Only generate rotation parameters. The amplitudes decays linearly with the iteration number.
+        Simple,             // Generate translation and rotation parameters.
+        RotationsOnly,      // Only generate rotation parameters.
+        TranslationsOnly    // Only generate translation parameters.
     };
     extern ParameterGenerationStrategyChoice parameter_generation_strategy;
 }
